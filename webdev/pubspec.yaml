@@ -6,5 +6,9 @@ homepage: https://github.com/dart-lang/webdev
 environment:
   sdk: ">=2.0.0-dev <2.0.0"
 
+dependencies:
+  args: ^1.2.0
+  io: ^0.3.1
+
 dev_dependencies:
   test: "^0.12.0"
