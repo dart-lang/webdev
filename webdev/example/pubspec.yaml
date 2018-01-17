@@ -14,12 +14,22 @@ dev_dependencies:
     path: ../
   ##############################################################################
   # Temporary until build_runner exposes a function to generate it's script.
-  build_runner:
-    git:
-      url: https://github.com/dart-lang/build.git
-      path: build_runner
+  build_runner: ^0.7.5+1
   ##############################################################################
 
 dependency_overrides:
   # Necessary with angular: ^5.0.0-alpha+1 dependency.
   analyzer: ^0.31.0-alpha.1
+  ##############################################################################
+  # Temporary until updated packages are published.
+  build:
+    git:
+      url: https://github.com/dart-lang/build.git
+      ref: ffbba7fc74a1262c958a63fb31c146995f0a3a99
+      path: build
+  build_runner:
+    git:
+      url: https://github.com/dart-lang/build.git
+      ref: ffbba7fc74a1262c958a63fb31c146995f0a3a99
+      path: build_runner
+  ##############################################################################
