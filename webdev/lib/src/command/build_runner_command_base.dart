@@ -30,12 +30,19 @@ abstract class BuildRunnerCommandBase extends Command {
   /// running build_runner after.
   Future runBuildRunner(List<String> arguments) async {
     var exitPort = new ReceivePort();
+    var errorPort = new ReceivePort();
+    var errorListener =
+        errorPort.listen((e) => stderr.writeAll(e as List, '\n'));
     try {
       await Isolate.spawnUri(await _buildRunnerScript, arguments, null,
-          onExit: exitPort.sendPort, automaticPackageResolution: true);
+          onExit: exitPort.sendPort,
+          onError: errorPort.sendPort,
+          automaticPackageResolution: true);
       await exitPort.first;
     } on _PubDependenciesError catch (_) {
       exitPort.close();
+    } finally {
+      await errorListener.cancel();
     }
   }
 
