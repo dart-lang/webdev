@@ -29,77 +29,83 @@ abstract class BuildRunnerCommandBase extends Command {
   /// Attempts to run `pub get` and `pub upgrade` if needed and will retry
   /// running build_runner after.
   Future runBuildRunner(List<String> arguments) async {
-    var exitPort = new ReceivePort();
-    try {
-      await Isolate.spawnUri(await _buildRunnerScript, arguments, null,
-          onExit: exitPort.sendPort, automaticPackageResolution: true);
-      await exitPort.first;
-    } on _PubDependenciesError catch (_) {
-      exitPort.close();
-    }
-  }
+    final result = await _runBuildRunnerGenerate();
 
-  Future<Uri> get _buildRunnerScript async {
-    return await logTimedAsync(
-        _logger, 'Generating build script', _runBuildRunnerGenerate);
+    if (result.exitCode != 0) {
+      print(result.exitCode);
+      _logger.severe('Unable to run `pub get` and `pub run build_runner`.'
+          '\nPlease fix the dependencies and retry.'
+          '\n\n${result.stderr}');
+      return;
+    }
+
+    var exitPort = new ReceivePort();
+    var errorPort = new ReceivePort();
+    var messagePort = new ReceivePort();
+    var errorListener = errorPort.listen((e) {
+      stderr.writeAll(e as List, '\n');
+      if (exitCode == 0) exitCode = 1;
+    });
+    await Isolate.spawnUri(_scriptPath(result), arguments, messagePort.sendPort,
+        onExit: exitPort.sendPort,
+        onError: errorPort.sendPort,
+        automaticPackageResolution: true);
+    try {
+      exitCode = await messagePort.first as int;
+    } on StateError catch (_) {
+      if (exitCode == 0) exitCode = 1;
+    }
+    await exitPort.first;
+    await errorListener.cancel();
   }
 
   /// Generates a build script and returns it's location.
   ///
-  /// Will attempt to run `pub get` or `pub update` if needed.
-  Future<Uri> _runBuildRunnerGenerate() async {
-    // TODO(nshahan) build_runner will expose this as a function call that will
-    // be imported to avoid running a binary in a transitive dependency with
-    // pub run.
-    final executable = 'pub';
-    final arguments = ['run', 'build_runner', 'generate-build-script'];
-    var result = await Process.run(executable, arguments);
+  /// Will attempt to get dependencies if needed.
+  Future<ProcessResult> _runBuildRunnerGenerate() async {
+    var result = await logTimedAsync(
+        _logger, 'Generating build script', _runGenerateBuildScript);
 
-    if (_needPubGet(result)) {
+    if (result.exitCode != 0) {
       _logger.warning('Generating build script failed.');
       result = await logTimedAsync(_logger, 'Getting dependencies', _runPubGet);
 
-      // Try running build_runner again.
-      result = await Process.run(executable, arguments);
-
-      if (_needPubGet(result)) {
+      if (result.exitCode != 0) {
         _logger.warning('Getting dependencies failed.');
         result = await logTimedAsync(
             _logger, 'Upgrading dependencies', _runPubUpgrade);
 
         if (result.exitCode != 0) {
-          _logger.severe(
-              'Could not retrieve dependencies. webdev must be able to run `pub'
-              ' get`.'
-              '\nPlease fix the dependencies and retry.'
-              '\n\n${result.stderr}');
-          throw new _PubDependenciesError();
+          _logger.severe('Upgrading dependencies failed');
+          return result;
         }
-
-        // Try running build_runner one last time.
-        result = await Process.run(executable, arguments);
       }
+
+      // Try running build_runner again.
+      result = await logTimedAsync(
+          _logger, 'Generating build script', _runGenerateBuildScript);
     }
 
-    return new Uri.file(result.stdout.toString().trim());
+    return result;
   }
 
-  /// Checks [result] for errors to see if a `pub get` is needed.
-  bool _needPubGet(ProcessResult result) =>
-      result.exitCode != 0 &&
-      result.stderr.toString().contains('please run "pub get"');
+  /// Parses the generated script path from the the results of running
+  /// `build_runner generate-build-script`.`
+  Uri _scriptPath(ProcessResult result) =>
+      new Uri.file(result.stdout.toString().trim());
+
+  /// Runs `build_runner generate-build-script` as a Process.
+  Future<ProcessResult> _runGenerateBuildScript() =>
+      // TODO(nshahan) build_runner will expose this as a function call that
+      // will be imported to avoid running a binary in a transitive dependency
+      // with pub run.
+      Process.run('pub', ['run', 'build_runner', 'generate-build-script']);
 
   /// Runs `pub get` as a Process.
-  Future<ProcessResult> _runPubGet() async {
-    return await Process.run('pub', ['get', '--no-precompile']);
-  }
+  Future<ProcessResult> _runPubGet() =>
+      Process.run('pub', ['get', '--no-precompile']);
 
   /// Runs `pub upgrade` as a Process.
-  Future<ProcessResult> _runPubUpgrade() async {
-    return await Process.run('pub', ['upgrade', '--no-precompile']);
-  }
+  Future<ProcessResult> _runPubUpgrade() =>
+      Process.run('pub', ['upgrade', '--no-precompile']);
 }
-
-/// Private error class used to report back an error when attempting to run
-/// `pub get` and `pub upgrade`.
-class _PubDependenciesError extends Error {}

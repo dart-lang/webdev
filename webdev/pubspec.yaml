@@ -8,26 +8,8 @@ environment:
 
 dependencies:
   args: ^1.2.0
-  build_runner:
-    git:
-      url: https://github.com/dart-lang/build.git
-      path: build_runner
+  build_runner: ^0.7.7
   build_web_compilers: ^0.2.0
 
 dev_dependencies:
   test: "^0.12.0"
-
-################################################################################
-# Temporary until updated packages are published.
-dependency_overrides:
-  build:
-    git:
-      url: https://github.com/dart-lang/build.git
-      ref: ffbba7fc74a1262c958a63fb31c146995f0a3a99
-      path: build
-  build_runner:
-    git:
-      url: https://github.com/dart-lang/build.git
-      ref: ffbba7fc74a1262c958a63fb31c146995f0a3a99
-      path: build_runner
-################################################################################
