@@ -8,11 +8,8 @@ environment:
 
 dependencies:
   args: ^1.2.0
-  build_runner:
-    git:
-      url: https://github.com/dart-lang/build.git
-      path: build_runner
-  build_web_compilers: ^0.1.1
+  build_runner: ^0.7.7
+  build_web_compilers: ^0.2.0
 
 dev_dependencies:
   test: "^0.12.0"

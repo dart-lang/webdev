@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:isolate';
 
 import 'build_runner_command_base.dart';
 
@@ -15,9 +14,6 @@ class BuildCommand extends BuildRunnerCommandBase {
   Future run() async {
     final arguments = ['build'];
     arguments.addAll(argResults.arguments);
-    var exitPort = new ReceivePort();
-    await Isolate.spawnUri(await buildRunnerScript, arguments, null,
-        onExit: exitPort.sendPort, automaticPackageResolution: true);
-    await exitPort.first;
+    await runBuildRunner(arguments);
   }
 }
