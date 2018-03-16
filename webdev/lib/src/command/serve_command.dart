@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:isolate';
 
 import 'build_runner_command_base.dart';
 
@@ -17,16 +16,13 @@ class ServeCommand extends BuildRunnerCommandBase {
     // build_runner might expose args for use in wrapping scripts like this one.
     argParser
       ..addOption('hostname',
-          defaultsTo: 'localhost', help: 'Specify the hostname to serve on.');
+          help: 'Specify the hostname to serve on', defaultsTo: 'localhost')
+      ..addFlag('log-requests',
+          defaultsTo: false,
+          negatable: false,
+          help: 'Enables logging for each request to the server.');
   }
 
   @override
-  Future run() async {
-    final arguments = ['serve'];
-    arguments.addAll(argResults.arguments);
-    var exitPort = new ReceivePort();
-    await Isolate.spawnUri(await buildRunnerScript, arguments, null,
-        onExit: exitPort.sendPort, automaticPackageResolution: true);
-    await exitPort.first;
-  }
+  Future run() => runCore('serve');
 }
