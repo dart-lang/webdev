@@ -15,6 +15,9 @@ class ServeCommand extends BuildRunnerCommandBase {
   final description = 'Run a local web development server and a file system'
       ' watcher that re-builds on changes.';
 
+  @override
+  String get invocation => '${super.invocation} [<directory>[:<port>]]...';
+
   ServeCommand() {
     // TODO(nshahan) Expose more args passed to build_runner serve.
     // build_runner might expose args for use in wrapping scripts like this one.
