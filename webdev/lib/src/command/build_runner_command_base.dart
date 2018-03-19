@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:args/command_runner.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 /// Extend to get a command with the arguments common to all build_runner
 /// commands.
@@ -26,10 +27,41 @@ abstract class BuildRunnerCommandBase extends Command {
 
   Future runCore(String command) async {
     final arguments = [command]..addAll(argResults.arguments);
+
+    // Heavily inspired by dart-lang/build @ 0c77443dd7
+    // /build_runner/bin/build_runner.dart#L58-L85
     var exitPort = new ReceivePort();
-    await Isolate.spawnUri(await _buildRunnerScript(), arguments, null,
-        onExit: exitPort.sendPort, automaticPackageResolution: true);
+    var errorPort = new ReceivePort();
+    var messagePort = new ReceivePort();
+    var errorListener = errorPort.listen((e) {
+      stderr.writeln('\n\nYou have hit a bug in build_runner');
+      stderr.writeln('Please file an issue with reproduction steps at '
+          'https://github.com/dart-lang/build/issues\n\n');
+      final error = e[0];
+      final trace = e[1] as String;
+      stderr.writeln(error);
+      stderr.writeln(new Trace.parse(trace).terse);
+      if (exitCode == 0) exitCode = 1;
+    });
+    await Isolate.spawnUri(
+        await _buildRunnerScript(), arguments, messagePort.sendPort,
+        onExit: exitPort.sendPort,
+        onError: errorPort.sendPort,
+        automaticPackageResolution: true);
+    StreamSubscription exitCodeListener;
+    exitCodeListener = messagePort.listen((isolateExitCode) {
+      if (isolateExitCode is! int) {
+        throw new StateError(
+            'Bad response from isolate, expected an exit code but got '
+            '$isolateExitCode');
+      }
+      exitCode = isolateExitCode as int;
+      exitCodeListener.cancel();
+      exitCodeListener = null;
+    });
     await exitPort.first;
+    await errorListener.cancel();
+    await exitCodeListener?.cancel();
   }
 }
 
