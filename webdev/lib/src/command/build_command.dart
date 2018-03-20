@@ -14,5 +14,5 @@ class BuildCommand extends BuildRunnerCommandBase {
   final description = 'Run builders to build a package.';
 
   @override
-  Future run() => runCore('build');
+  Future<int> run() => runCore('build');
 }

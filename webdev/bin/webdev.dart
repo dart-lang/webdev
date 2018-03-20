@@ -12,11 +12,21 @@ import 'package:webdev/src/webdev_command_runner.dart';
 
 Future main(List<String> args) async {
   try {
-    await webdevCommandRunner().run(args);
+    exitCode = await run(args);
   } on UsageException catch (e) {
     print(yellow.wrap(e.message));
     print(' ');
     print(e.usage);
     exitCode = ExitCode.usage.code;
+  } on PackageException catch (e) {
+    print(yellow.wrap('Could not run in the current directory.'));
+    for (var detail in e.details) {
+      print(detail.error);
+      if (detail.description != null) {
+        print('  ${detail.description}');
+      }
+    }
+
+    exitCode = ExitCode.config.code;
   }
 }

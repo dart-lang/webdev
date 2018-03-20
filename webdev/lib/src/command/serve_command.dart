@@ -31,5 +31,5 @@ class ServeCommand extends BuildRunnerCommandBase {
   }
 
   @override
-  Future run() => runCore('serve');
+  Future<int> run() => runCore('serve');
 }

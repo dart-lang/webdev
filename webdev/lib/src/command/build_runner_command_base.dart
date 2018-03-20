@@ -3,15 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' hide exitCode, exit;
 import 'dart:isolate';
 
 import 'package:args/command_runner.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+import '../pubspec.dart';
+
 /// Extend to get a command with the arguments common to all build_runner
 /// commands.
-abstract class BuildRunnerCommandBase extends Command {
+abstract class BuildRunnerCommandBase extends Command<int> {
   BuildRunnerCommandBase() {
     // TODO(nshahan) Expose more common args passed to build_runner commands.
     // build_runner might expose args for use in wrapping scripts like this one.
@@ -25,8 +27,12 @@ abstract class BuildRunnerCommandBase extends Command {
           help: 'Enables verbose logging.');
   }
 
-  Future runCore(String command) async {
+  Future<int> runCore(String command) async {
+    await checkPubspecLock();
+
     final arguments = [command]..addAll(argResults.arguments);
+
+    var exitCode = 0;
 
     // Heavily inspired by dart-lang/build @ 0c77443dd7
     // /build_runner/bin/build_runner.dart#L58-L85
@@ -62,6 +68,8 @@ abstract class BuildRunnerCommandBase extends Command {
     await exitPort.first;
     await errorListener.cancel();
     await exitCodeListener?.cancel();
+
+    return exitCode;
   }
 }
 
