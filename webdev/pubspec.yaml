@@ -1,8 +1,10 @@
 name: webdev
-description: A CLI for Dart web development.
+version: 0.1.0
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
-version: 0.1.0-dev
+description: >-
+  A CLI for Dart web development. Provides an easy and consistent set of
+  features for users and tools to build and deploy web applications with Dart.
 
 environment:
   sdk: ">=2.0.0-dev.32.0 <2.0.0"

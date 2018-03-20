@@ -1,0 +1,4 @@
+## 0.1.0
+
+- Initial release. Supports basic invocation of `build` and `serve` with
+  `build_runner: ^0.8.0`.
