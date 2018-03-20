@@ -2,17 +2,15 @@ name: webdev
 description: A CLI for Dart web development.
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
+version: 0.1.0-dev
 
 environment:
-  sdk: ">=2.0.0-dev.3.0 <2.0.0"
+  sdk: ">=2.0.0-dev.32.0 <2.0.0"
 
 dependencies:
   args: ^1.2.0
-  build_runner:
-    git:
-      url: https://github.com/dart-lang/build.git
-      path: build_runner
-  build_web_compilers: ^0.1.1
+  io: ^0.3.2+1
+  stack_trace: ^1.9.2
 
-dev_dependencies:
-  test: "^0.12.0"
+executables:
+  webdev:
