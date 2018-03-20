@@ -12,5 +12,9 @@ dependencies:
   io: ^0.3.2+1
   stack_trace: ^1.9.2
 
+dev_dependencies:
+  test: ^0.12.0
+  test_process: ^1.0.1
+
 executables:
   webdev:

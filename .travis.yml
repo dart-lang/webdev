@@ -19,9 +19,14 @@ jobs:
       script: ./tool/travis.sh dartanalyzer
       env: PKG="webdev"
       dart: dev
+    - stage: unit_test
+      script: ./tool/travis.sh test
+      env: PKG="webdev"
+      dart: dev
 
 stages:
   - analyzer_and_format
+  - unit_test
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
