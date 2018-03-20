@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/dart-lang/webdev.svg?branch=master)](https://travis-ci.org/dart-lang/webdev)
+
 ## Installation
 
 ```console
