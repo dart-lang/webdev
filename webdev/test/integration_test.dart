@@ -153,4 +153,44 @@ packages:
         process.stdout, emits('An unexpected exception has occurred.'));
     await process.shouldExit(70);
   });
+
+  test('should succeed with valid configuration', () async {
+    var exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
+    var process = await TestProcess.start('pub', ['get'],
+        workingDirectory: exampleDirectory, environment: _getPubEnvironment());
+
+    await process.shouldExit(0);
+
+    await d.file('.packages', isNotEmpty).validate(exampleDirectory);
+    await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
+
+    process = await TestProcess.start(
+        'dart', [_webdevBin, 'build', '-o', d.sandbox],
+        workingDirectory: exampleDirectory);
+
+    var output = await process.stdoutStream().join('\n');
+
+    expect(output, contains(d.sandbox));
+    expect(output, contains('[INFO] Succeeded'));
+    await process.shouldExit(0);
+
+    await d.file('web/main.dart.js', isNotEmpty).validate();
+  }, timeout: const Timeout(const Duration(minutes: 5)));
+}
+
+/// Returns an environment map that includes `PUB_ENVIRONMENT`.
+///
+/// Maintains any existing values for this environment var.
+/// Adds a new value that flags this is a bot/test and not human usage.
+Map<String, String> _getPubEnvironment() {
+  var pubEnvironmentKey = 'PUB_ENVIRONMENT';
+  var pubEnvironment = Platform.environment[pubEnvironmentKey] ?? '';
+  if (pubEnvironment.isNotEmpty) {
+    pubEnvironment = '$pubEnvironment;';
+  }
+  pubEnvironment = '${pubEnvironment}bot.pkg.webdev.test';
+
+  var environment = {'PUB_ENVIRONMENT': pubEnvironment};
+
+  return environment;
 }
