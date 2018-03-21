@@ -14,23 +14,19 @@ final _webdevBin = p.absolute('bin/webdev.dart');
 void main() {
   test('README contains help output', () async {
     var process = await TestProcess.start('dart', [_webdevBin]);
-
     var output = (await process.stdoutStream().join('\n')).trim();
+    await process.shouldExit(0);
 
     var readme = new File('README.md');
-
     expect(readme.readAsStringSync(),
         contains('```console\n\$ webdev\n$output\n```'));
-
-    await process.shouldExit(0);
   });
 
   test('non-existant commands create errors', () async {
     var process = await TestProcess.start('dart', [_webdevBin, 'monkey']);
 
-    var output = (await process.stdoutStream().join('\n')).trim();
-
-    expect(output, contains('Could not find a command named "monkey".'));
+    await expectLater(
+        process.stdout, emits('Could not find a command named "monkey".'));
 
     await process.shouldExit(64);
   });
@@ -63,12 +59,12 @@ packages:
 
         var process = await TestProcess.start('dart', [_webdevBin, 'build'],
             workingDirectory: d.sandbox);
-        var output = (await process.stdoutStream().join('\n')).trim();
 
-        expect(output, contains('Could not run in the current directory.'));
-        expect(
-            output,
-            contains('The `build_runner` version – $version – '
+        await expectLater(
+            process.stdout, emits('Could not run in the current directory.'));
+        await expectLater(
+            process.stdout,
+            emits('The `build_runner` version – $version – '
                 'is not within the supported range – >=0.8.0 <0.9.0.'));
         await process.shouldExit(78);
       });
@@ -90,11 +86,11 @@ packages:
 
     var process = await TestProcess.start('dart', [_webdevBin, 'build'],
         workingDirectory: d.sandbox);
-    var output = (await process.stdoutStream().join('\n')).trim();
 
-    expect(output, contains('Could not run in the current directory.'));
-    expect(output,
-        contains('A dependency on `build_web_compilers` was not found.'));
+    await expectLater(
+        process.stdout, emits('Could not run in the current directory.'));
+    await expectLater(process.stdout,
+        emits('A dependency on `build_web_compilers` was not found.'));
     await process.shouldExit(78);
   });
 
@@ -120,11 +116,11 @@ packages:
 
     var process = await TestProcess.start('dart', [_webdevBin, 'build'],
         workingDirectory: d.sandbox);
-    var output = (await process.stdoutStream().join('\n')).trim();
 
-    expect(output, contains('Could not run in the current directory.'));
-    expect(output,
-        contains('A `.packages` file does not exist in the target directory.'));
+    await expectLater(
+        process.stdout, emits('Could not run in the current directory.'));
+    await expectLater(process.stdout,
+        emits('A `.packages` file does not exist in the target directory.'));
     await process.shouldExit(78);
   });
 
@@ -152,9 +148,9 @@ packages:
 
     var process = await TestProcess.start('dart', [_webdevBin, 'build'],
         workingDirectory: d.sandbox);
-    var output = (await process.stdoutStream().join('\n')).trim();
 
-    expect(output, contains('An unexpected exception has occurred.'));
+    await expectLater(
+        process.stdout, emits('An unexpected exception has occurred.'));
     await process.shouldExit(70);
   });
 }
