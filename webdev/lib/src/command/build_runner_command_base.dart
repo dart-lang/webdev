@@ -11,6 +11,8 @@ import 'package:stack_trace/stack_trace.dart';
 
 import '../pubspec.dart';
 
+const _packagesFileName = '.packages';
+
 /// Extend to get a command with the arguments common to all build_runner
 /// commands.
 abstract class BuildRunnerCommandBase extends Command<int> {
@@ -29,6 +31,8 @@ abstract class BuildRunnerCommandBase extends Command<int> {
 
   Future<int> runCore(String command) async {
     await checkPubspecLock();
+
+    var buildRunnerScript = await _buildRunnerScript();
 
     final arguments = [command]..addAll(argResults.arguments);
 
@@ -49,8 +53,7 @@ abstract class BuildRunnerCommandBase extends Command<int> {
       stderr.writeln(new Trace.parse(trace).terse);
       if (exitCode == 0) exitCode = 1;
     });
-    await Isolate.spawnUri(
-        await _buildRunnerScript(), arguments, messagePort.sendPort,
+    await Isolate.spawnUri(buildRunnerScript, arguments, messagePort.sendPort,
         onExit: exitPort.sendPort,
         onError: errorPort.sendPort,
         automaticPackageResolution: true);
@@ -74,6 +77,13 @@ abstract class BuildRunnerCommandBase extends Command<int> {
 }
 
 Future<Uri> _buildRunnerScript() async {
+  var packagesFile = new File(_packagesFileName);
+  if (!packagesFile.existsSync()) {
+    throw new FileSystemException(
+        'A `$_packagesFileName` file does not exist in the target directory.',
+        packagesFile.absolute.path);
+  }
+
   var dataUri = new Uri.dataFromString(_bootstrapScript);
 
   var messagePort = new ReceivePort();
@@ -84,7 +94,7 @@ Future<Uri> _buildRunnerScript() async {
       onExit: exitPort.sendPort,
       onError: errorPort.sendPort,
       errorsAreFatal: true,
-      packageConfig: new Uri.file('.packages'));
+      packageConfig: new Uri.file(_packagesFileName));
 
   var allErrorsFuture = errorPort.forEach((error) {
     var errorList = error as List;
@@ -106,7 +116,7 @@ Future<Uri> _buildRunnerScript() async {
 
   var messages = items[0] as List;
   if (messages.isEmpty) {
-    throw new StateError('An error occurred while running booting.');
+    throw new StateError('An error occurred while bootstrapping.');
   }
 
   assert(messages.length == 1);

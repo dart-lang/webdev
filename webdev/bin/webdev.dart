@@ -28,5 +28,12 @@ Future main(List<String> args) async {
     }
 
     exitCode = ExitCode.config.code;
+  } on FileSystemException catch (e) {
+    print(yellow.wrap('Could not run in the current directory.'));
+    print(e.message);
+    if (e.path != null) {
+      print('  ${e.path}');
+    }
+    exitCode = ExitCode.config.code;
   }
 }
