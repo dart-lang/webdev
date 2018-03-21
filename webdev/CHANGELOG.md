@@ -1,6 +1,7 @@
 ## 0.1.1
 
 - Checks for a dependency on `build_web_compilers`.
+- Gracefully handle exceptions.
 
 ## 0.1.0
 

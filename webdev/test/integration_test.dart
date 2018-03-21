@@ -127,4 +127,34 @@ packages:
         contains('A `.packages` file does not exist in the target directory.'));
     await process.shouldExit(78);
   });
+
+  test('should fail gracefully if there is an isolate error', () async {
+    await d.file('pubspec.lock', '''
+# Copy-pasted from a valid run
+packages:
+  build_runner:
+    dependency: "direct main"
+    description:
+      name: build_runner
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.8.0"
+  build_web_compilers:
+    dependency: "direct main"
+    description:
+      name: build_web_compilers
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.4+2"
+''').create();
+
+    await d.file('.packages', '').create();
+
+    var process = await TestProcess.start('dart', [_webdevBin, 'build'],
+        workingDirectory: d.sandbox);
+    var output = (await process.stdoutStream().join('\n')).trim();
+
+    expect(output, contains('An unexpected exception has occurred.'));
+    await process.shouldExit(70);
+  });
 }

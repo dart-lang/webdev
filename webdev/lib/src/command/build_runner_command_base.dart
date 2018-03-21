@@ -53,26 +53,33 @@ abstract class BuildRunnerCommandBase extends Command<int> {
       stderr.writeln(new Trace.parse(trace).terse);
       if (exitCode == 0) exitCode = 1;
     });
-    await Isolate.spawnUri(buildRunnerScript, arguments, messagePort.sendPort,
-        onExit: exitPort.sendPort,
-        onError: errorPort.sendPort,
-        automaticPackageResolution: true);
-    StreamSubscription exitCodeListener;
-    exitCodeListener = messagePort.listen((isolateExitCode) {
-      if (isolateExitCode is! int) {
-        throw new StateError(
-            'Bad response from isolate, expected an exit code but got '
-            '$isolateExitCode');
-      }
-      exitCode = isolateExitCode as int;
-      exitCodeListener.cancel();
-      exitCodeListener = null;
-    });
-    await exitPort.first;
-    await errorListener.cancel();
-    await exitCodeListener?.cancel();
 
-    return exitCode;
+    try {
+      await Isolate.spawnUri(buildRunnerScript, arguments, messagePort.sendPort,
+          onExit: exitPort.sendPort,
+          onError: errorPort.sendPort,
+          automaticPackageResolution: true);
+      StreamSubscription exitCodeListener;
+      exitCodeListener = messagePort.listen((isolateExitCode) {
+        if (isolateExitCode is! int) {
+          throw new StateError(
+              'Bad response from isolate, expected an exit code but got '
+              '$isolateExitCode');
+        }
+        exitCode = isolateExitCode as int;
+        exitCodeListener.cancel();
+        exitCodeListener = null;
+      });
+      await exitPort.first;
+      await errorListener.cancel();
+      await exitCodeListener?.cancel();
+
+      return exitCode;
+    } finally {
+      exitPort.close();
+      errorPort.close();
+      messagePort.close();
+    }
   }
 }
 
@@ -90,37 +97,43 @@ Future<Uri> _buildRunnerScript() async {
   var exitPort = new ReceivePort();
   var errorPort = new ReceivePort();
 
-  await Isolate.spawnUri(dataUri, [], messagePort.sendPort,
-      onExit: exitPort.sendPort,
-      onError: errorPort.sendPort,
-      errorsAreFatal: true,
-      packageConfig: new Uri.file(_packagesFileName));
+  try {
+    await Isolate.spawnUri(dataUri, [], messagePort.sendPort,
+        onExit: exitPort.sendPort,
+        onError: errorPort.sendPort,
+        errorsAreFatal: true,
+        packageConfig: new Uri.file(_packagesFileName));
 
-  var allErrorsFuture = errorPort.forEach((error) {
-    var errorList = error as List;
-    var message = errorList[0] as String;
-    var stack = new StackTrace.fromString(errorList[1] as String);
+    var allErrorsFuture = errorPort.forEach((error) {
+      var errorList = error as List;
+      var message = errorList[0] as String;
+      var stack = new StackTrace.fromString(errorList[1] as String);
 
-    stderr.writeln(message);
-    stderr.writeln(stack);
-  });
+      stderr.writeln(message);
+      stderr.writeln(stack);
+    });
 
-  var items = await Future.wait([
-    messagePort.toList(),
-    allErrorsFuture,
-    exitPort.first.whenComplete(() {
-      messagePort.close();
-      errorPort.close();
-    })
-  ]);
+    var items = await Future.wait([
+      messagePort.toList(),
+      allErrorsFuture,
+      exitPort.first.whenComplete(() {
+        messagePort.close();
+        errorPort.close();
+      })
+    ]);
 
-  var messages = items[0] as List;
-  if (messages.isEmpty) {
-    throw new StateError('An error occurred while bootstrapping.');
+    var messages = items[0] as List;
+    if (messages.isEmpty) {
+      throw new StateError('An error occurred while bootstrapping.');
+    }
+
+    assert(messages.length == 1);
+    return new Uri.file(messages.single as String);
+  } finally {
+    messagePort.close();
+    exitPort.close();
+    errorPort.close();
   }
-
-  assert(messages.length == 1);
-  return new Uri.file(messages.single as String);
 }
 
 const _bootstrapScript = r'''

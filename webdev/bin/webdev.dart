@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/command_runner.dart';
 import 'package:io/ansi.dart';
@@ -35,5 +36,9 @@ Future main(List<String> args) async {
       print('  ${e.path}');
     }
     exitCode = ExitCode.config.code;
+  } on IsolateSpawnException catch (e) {
+    print(red.wrap('An unexpected exception has occurred.'));
+    print(e.message);
+    exitCode = ExitCode.software.code;
   }
 }
