@@ -33,6 +33,12 @@ class PackageExceptionDetails {
           'You must have a dependency on `build_runner` in `pubspec.yaml`. '
           'It can be in either `dependencies` or `dev_dependencies`.');
 
+  static const noBuildWebCompilersDep = const PackageExceptionDetails._(
+      'A dependency on `build_web_compilers` was not found.',
+      description:
+          'You must have a dependency on `build_web_compilers` in `pubspec.yaml` '
+          'or transitively via another dependency.');
+
   @override
   String toString() => [error, description].join('\n');
 }
@@ -81,8 +87,10 @@ Future checkPubspecLock() async {
     }
   }
 
-  // TODO: validate build_web_compilers
-  //var buldWebCompilers = packages['build_web_compilers'];
+  var buldWebCompilers = packages['build_web_compilers'];
+  if (buldWebCompilers == null) {
+    issues.add(PackageExceptionDetails.noBuildWebCompilersDep);
+  }
 
   if (issues.isNotEmpty) {
     throw new PackageException._(issues);

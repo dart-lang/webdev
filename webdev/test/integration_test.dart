@@ -36,7 +36,9 @@ void main() {
   });
 
   test('should fail in a package without a build_runner dependency', () async {
-    var process = await TestProcess.start('dart', [_webdevBin, 'serve']);
+    // Running on the `webdev` package directory – which has no dependency on
+    // build runner.
+    var process = await TestProcess.start('dart', [_webdevBin, 'build']);
     var output = (await process.stdoutStream().join('\n')).trim();
 
     expect(output, contains(r'''Could not run in the current directory.
@@ -71,5 +73,28 @@ packages:
         await process.shouldExit(78);
       });
     }
+  });
+
+  test('should fail with no `build_web_compilers` dependency', () async {
+    await d.file('pubspec.lock', '''
+# Copy-pasted from a valid run
+packages:
+  build_runner:
+    dependency: "direct main"
+    description:
+      name: build_runner
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.8.0"
+''').create();
+
+    var process = await TestProcess.start('dart', [_webdevBin, 'build'],
+        workingDirectory: d.sandbox);
+    var output = (await process.stdoutStream().join('\n')).trim();
+
+    expect(output, contains('Could not run in the current directory.'));
+    expect(output,
+        contains('A dependency on `build_web_compilers` was not found.'));
+    await process.shouldExit(78);
   });
 }
