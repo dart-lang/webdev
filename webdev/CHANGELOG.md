@@ -1,3 +1,8 @@
+## 0.1.2
+
+- Remove check for `build_web_compilers`. Allows general support for
+  `build_runner` from tools.
+
 ## 0.1.1
 
 - Checks for a dependency on `build_web_compilers`.

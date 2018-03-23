@@ -71,29 +71,6 @@ packages:
     }
   });
 
-  test('should fail with no `build_web_compilers` dependency', () async {
-    await d.file('pubspec.lock', '''
-# Copy-pasted from a valid run
-packages:
-  build_runner:
-    dependency: "direct main"
-    description:
-      name: build_runner
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.8.0"
-''').create();
-
-    var process = await TestProcess.start('dart', [_webdevBin, 'build'],
-        workingDirectory: d.sandbox);
-
-    await expectLater(
-        process.stdout, emits('Could not run in the current directory.'));
-    await expectLater(process.stdout,
-        emits('A dependency on `build_web_compilers` was not found.'));
-    await process.shouldExit(78);
-  });
-
   test('should fail gracefully if there is no .packages file', () async {
     await d.file('pubspec.lock', '''
 # Copy-pasted from a valid run
@@ -105,13 +82,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.8.0"
-  build_web_compilers:
-    dependency: "direct main"
-    description:
-      name: build_web_compilers
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.4+2"
 ''').create();
 
     var process = await TestProcess.start('dart', [_webdevBin, 'build'],
@@ -135,13 +105,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.8.0"
-  build_web_compilers:
-    dependency: "direct main"
-    description:
-      name: build_web_compilers
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.4+2"
 ''').create();
 
     await d.file('.packages', '').create();
