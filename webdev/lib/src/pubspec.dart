@@ -58,26 +58,24 @@ Future checkPubspecLock() async {
       issues.add(PackageExceptionDetails.noBuildRunnerDep);
     }
 
-    var version = buildRunner['version'] as String;
-    if (version == null) {
-      // TODO: warning?
-    } else {
-      var buildRunnerVersion = new Version.parse(version);
+    var source = buildRunner['source'] as String;
+    if (source == 'hosted') {
+      // NOTE: buildRunner['description'] should be:
+      //           `{url: https://pub.dartlang.org, name: build_runner}`
+      //       If a user is playing around here, they are on their own.
 
+      var version = buildRunner['version'] as String;
+      var buildRunnerVersion = new Version.parse(version);
       if (!supportedBuildRunnerVersionRange.allows(buildRunnerVersion)) {
         var error = 'The `build_runner` version – $buildRunnerVersion – is not '
             'within the supported range – $supportedBuildRunnerVersionRange.';
         issues.add(new PackageExceptionDetails._(error));
       }
-    }
 
-    var source = buildRunner['source'] as String;
-    if (source == 'hosted') {
-      //var description = buildRunner['description'] as YamlMap;
-      // TODO: check for `{url: https://pub.dartlang.org, name: build_runner}`
-      // If not, print a warning
+      stderr.writeln('hosted: $buildRunner');
     } else {
-      // TODO: print a warning that we're assuming hosted
+      // NOTE: Intentionally not checking non-hosted dependencies: git, path
+      //       If a user is playing around here, they are on their own.
     }
   }
 
