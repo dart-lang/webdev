@@ -2,6 +2,7 @@
 
 - Remove check for `build_web_compilers`. Allows general support for
   `build_runner` from tools.
+- Use `pub deps` to validate target directory.
 
 ## 0.1.1
 

@@ -37,13 +37,28 @@ class PackageExceptionDetails {
   String toString() => [error, description].join('\n');
 }
 
-Future checkPubspecLock() async {
-  var file = new File('pubspec.lock');
-  if (!file.existsSync()) {
-    throw new PackageException._([PackageExceptionDetails.noPubspecLock]);
+Future _runPubDeps() async {
+  var result = Process.runSync('pub', ['deps']);
+
+  if (result.exitCode == 65 || result.exitCode == 66) {
+    throw new PackageException._(
+        [new PackageExceptionDetails._((result.stderr as String).trim())]);
   }
 
-  var pubspecLock = loadYaml(await file.readAsString()) as YamlMap;
+  if (result.exitCode != 0) {
+    throw new ProcessException(
+        'pub',
+        ['deps'],
+        '***OUT***\n${result.stdout}\n***ERR***\n${result.stderr}\n***',
+        exitCode);
+  }
+}
+
+Future checkPubspecLock() async {
+  await _runPubDeps();
+
+  var pubspecLock =
+      loadYaml(await new File('pubspec.lock').readAsString()) as YamlMap;
 
   var packages = pubspecLock['packages'] as YamlMap;
 
