@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -45,6 +46,10 @@ A dependency on `build_runner` was not found.'''));
   group('should fail when `build_runner` is the wrong version', () {
     for (var version in ['0.7.13+1', '0.9.0']) {
       test(version, () async {
+        await d.file('pubspec.yaml', '''
+name: sample
+''').create();
+
         await d.file('pubspec.lock', '''
 # Copy-pasted from a valid run
 packages:
@@ -55,6 +60,9 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "$version"
+''').create();
+
+        await d.file('.packages', '''
 ''').create();
 
         var process = await TestProcess.start('dart', [_webdevBin, 'build'],
@@ -71,7 +79,38 @@ packages:
     }
   });
 
-  test('should fail gracefully if there is no .packages file', () async {
+  test('no pubspec.yaml', () async {
+    var process = await TestProcess.start('dart', [_webdevBin, 'build'],
+        workingDirectory: d.sandbox);
+
+    var output = await process.stdoutStream().join('\n');
+
+    expect(output, contains('Could not run in the current directory.'));
+    expect(output, contains('Could not find a file named "pubspec.yaml"'));
+    await process.shouldExit(78);
+  });
+
+  test('pubspec.yaml, no pubspec.lock', () async {
+    await d.file('pubspec.yaml', '''
+name: sample
+''').create();
+
+    var process = await TestProcess.start('dart', [_webdevBin, 'build'],
+        workingDirectory: d.sandbox);
+
+    var output = await process.stdoutStream().join('\n');
+
+    expect(output, contains('Could not run in the current directory.'));
+    expect(output,
+        contains('No pubspec.lock file found, please run "pub get" first.'));
+    await process.shouldExit(78);
+  });
+
+  test('pubspec.yaml, pubspec.lock, no .packages', () async {
+    await d.file('pubspec.yaml', '''
+name: sample
+''').create();
+
     await d.file('pubspec.lock', '''
 # Copy-pasted from a valid run
 packages:
@@ -87,14 +126,19 @@ packages:
     var process = await TestProcess.start('dart', [_webdevBin, 'build'],
         workingDirectory: d.sandbox);
 
-    await expectLater(
-        process.stdout, emits('Could not run in the current directory.'));
-    await expectLater(process.stdout,
-        emits('A `.packages` file does not exist in the target directory.'));
+    var output = await process.stdoutStream().join('\n');
+
+    expect(output, contains('Could not run in the current directory.'));
+    expect(output,
+        contains('No .packages file found, please run "pub get" first.'));
     await process.shouldExit(78);
   });
 
   test('should fail gracefully if there is an isolate error', () async {
+    await d.file('pubspec.yaml', '''
+name: sample
+''').create();
+
     await d.file('pubspec.lock', '''
 # Copy-pasted from a valid run
 packages:
@@ -112,9 +156,51 @@ packages:
     var process = await TestProcess.start('dart', [_webdevBin, 'build'],
         workingDirectory: d.sandbox);
 
-    await expectLater(
-        process.stdout, emits('An unexpected exception has occurred.'));
+    var output = await process.stdoutStream().join('\n');
+
+    expect(output, contains('An unexpected exception has occurred.'));
+
+    // The isolate will fail - broken .packages file
+    expect(output, contains('Unable to spawn isolate'));
     await process.shouldExit(70);
+  });
+
+  test('should fail if there has been a dependency change', () async {
+    await d.file('pubspec.lock', '''
+# Copy-pasted from a valid run
+packages:
+  build_runner:
+    dependency: "direct main"
+    description:
+      name: build_runner
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.8.0"
+''').create();
+
+    await d.file('.packages', '').create();
+
+    // Ensure there is a noticeable delta in the creation times
+    await new Future.delayed(const Duration(milliseconds: 500));
+
+    await d.file('pubspec.yaml', '''
+name: sample
+dependencies:
+  args: ^1.0.0
+''').create();
+
+    var process = await TestProcess.start('dart', [_webdevBin, 'build'],
+        workingDirectory: d.sandbox);
+
+    var output = await process.stdoutStream().join('\n');
+
+    expect(output, contains('Could not run in the current directory.'));
+    expect(
+        output,
+        contains(
+            'The pubspec.yaml file has changed since the pubspec.lock file '
+            'was generated, please run "pub get" again.'));
+    await process.shouldExit(78);
   });
 
   test('should succeed with valid configuration', () async {
