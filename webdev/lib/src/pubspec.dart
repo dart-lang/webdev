@@ -86,8 +86,6 @@ Future checkPubspecLock() async {
             'within the supported range – $supportedBuildRunnerVersionRange.';
         issues.add(new PackageExceptionDetails._(error));
       }
-
-      stderr.writeln('hosted: $buildRunner');
     } else {
       // NOTE: Intentionally not checking non-hosted dependencies: git, path
       //       If a user is playing around here, they are on their own.
