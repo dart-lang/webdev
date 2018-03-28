@@ -12,9 +12,28 @@ import 'package:test_process/test_process.dart';
 
 final _webdevBin = p.absolute('bin/webdev.dart');
 
+/// The path to the root directory of the SDK.
+final String _sdkDir = (() {
+  // The Dart executable is in "/path/to/sdk/bin/dart", so two levels up is
+  // "/path/to/sdk".
+  var aboveExecutable = p.dirname(p.dirname(Platform.resolvedExecutable));
+  assert(FileSystemEntity.isFileSync(p.join(aboveExecutable, 'version')));
+  return aboveExecutable;
+})();
+
+final String _dartPath = p.join(_sdkDir, 'bin', 'dart');
+final String _pubPath = p.join(_sdkDir, 'bin', 'pub');
+
+Future<TestProcess> _runWebDev(List<String> args, {String workingDirectory}) {
+  var fullArgs = [_webdevBin]..addAll(args);
+
+  return TestProcess.start(_dartPath, fullArgs,
+      workingDirectory: workingDirectory);
+}
+
 void main() {
   test('README contains help output', () async {
-    var process = await TestProcess.start('dart', [_webdevBin]);
+    var process = await _runWebDev([]);
     var output = (await process.stdoutStream().join('\n')).trim();
     await process.shouldExit(0);
 
@@ -24,7 +43,7 @@ void main() {
   });
 
   test('non-existant commands create errors', () async {
-    var process = await TestProcess.start('dart', [_webdevBin, 'monkey']);
+    var process = await _runWebDev(['monkey']);
 
     await expectLater(
         process.stdout, emits('Could not find a command named "monkey".'));
@@ -35,7 +54,7 @@ void main() {
   test('should fail in a package without a build_runner dependency', () async {
     // Running on the `webdev` package directory – which has no dependency on
     // build runner.
-    var process = await TestProcess.start('dart', [_webdevBin, 'build']);
+    var process = await _runWebDev(['build']);
     var output = (await process.stdoutStream().join('\n')).trim();
 
     expect(output, contains(r'''Could not run in the current directory.
@@ -65,8 +84,7 @@ packages:
         await d.file('.packages', '''
 ''').create();
 
-        var process = await TestProcess.start('dart', [_webdevBin, 'build'],
-            workingDirectory: d.sandbox);
+        var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
 
         await expectLater(
             process.stdout, emits('Could not run in the current directory.'));
@@ -80,8 +98,7 @@ packages:
   });
 
   test('no pubspec.yaml', () async {
-    var process = await TestProcess.start('dart', [_webdevBin, 'build'],
-        workingDirectory: d.sandbox);
+    var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
 
     var output = await process.stdoutStream().join('\n');
 
@@ -95,8 +112,7 @@ packages:
 name: sample
 ''').create();
 
-    var process = await TestProcess.start('dart', [_webdevBin, 'build'],
-        workingDirectory: d.sandbox);
+    var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
 
     var output = await process.stdoutStream().join('\n');
 
@@ -123,8 +139,7 @@ packages:
     version: "0.8.0"
 ''').create();
 
-    var process = await TestProcess.start('dart', [_webdevBin, 'build'],
-        workingDirectory: d.sandbox);
+    var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
 
     var output = await process.stdoutStream().join('\n');
 
@@ -153,8 +168,7 @@ packages:
 
     await d.file('.packages', '').create();
 
-    var process = await TestProcess.start('dart', [_webdevBin, 'build'],
-        workingDirectory: d.sandbox);
+    var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
 
     var output = await process.stdoutStream().join('\n');
 
@@ -189,8 +203,7 @@ dependencies:
   args: ^1.0.0
 ''').create();
 
-    var process = await TestProcess.start('dart', [_webdevBin, 'build'],
-        workingDirectory: d.sandbox);
+    var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
 
     var output = await process.stdoutStream().join('\n');
 
@@ -205,7 +218,7 @@ dependencies:
 
   test('should succeed with valid configuration', () async {
     var exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
-    var process = await TestProcess.start('pub', ['get'],
+    var process = await TestProcess.start(_pubPath, ['get'],
         workingDirectory: exampleDirectory, environment: _getPubEnvironment());
 
     await process.shouldExit(0);
@@ -213,8 +226,7 @@ dependencies:
     await d.file('.packages', isNotEmpty).validate(exampleDirectory);
     await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
 
-    process = await TestProcess.start(
-        'dart', [_webdevBin, 'build', '-o', d.sandbox],
+    process = await _runWebDev(['build', '-o', d.sandbox],
         workingDirectory: exampleDirectory);
 
     var output = await process.stdoutStream().join('\n');
