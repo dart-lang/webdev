@@ -208,9 +208,7 @@ dependencies:
   test('should succeed with valid configuration', () async {
     var exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
     var process = await TestProcess.start(pubPath, ['get'],
-        workingDirectory: exampleDirectory,
-        environment: _getPubEnvironment(),
-        runInShell: true);
+        workingDirectory: exampleDirectory, environment: _getPubEnvironment());
 
     await process.shouldExit(0);
 
