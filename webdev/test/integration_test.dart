@@ -9,25 +9,14 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
+import 'package:webdev/src/util.dart';
 
 final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
-
-/// The path to the root directory of the SDK.
-final String _sdkDir = (() {
-  // The Dart executable is in "/path/to/sdk/bin/dart", so two levels up is
-  // "/path/to/sdk".
-  var aboveExecutable = p.dirname(p.dirname(Platform.resolvedExecutable));
-  assert(FileSystemEntity.isFileSync(p.join(aboveExecutable, 'version')));
-  return aboveExecutable;
-})();
-
-final String _dartPath = p.join(_sdkDir, 'bin', 'dart');
-final String _pubPath = p.join(_sdkDir, 'bin', 'pub');
 
 Future<TestProcess> _runWebDev(List<String> args, {String workingDirectory}) {
   var fullArgs = [_webdevBin]..addAll(args);
 
-  return TestProcess.start(_dartPath, fullArgs,
+  return TestProcess.start(dartPath, fullArgs,
       workingDirectory: workingDirectory);
 }
 
@@ -218,10 +207,8 @@ dependencies:
 
   test('should succeed with valid configuration', () async {
     var exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
-    var process = await TestProcess.start(_pubPath, ['get'],
-        workingDirectory: exampleDirectory,
-        environment: _getPubEnvironment(),
-        runInShell: true);
+    var process = await TestProcess.start(pubPath, ['get'],
+        workingDirectory: exampleDirectory, environment: _getPubEnvironment());
 
     await process.shouldExit(0);
 

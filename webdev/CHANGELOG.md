@@ -1,3 +1,7 @@
+## 0.1.3+1
+
+- Support running `pub` when it's not in the environment path.
+
 ## 0.1.3
 
 - Now runs on Windows.
