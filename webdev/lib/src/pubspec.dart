@@ -47,7 +47,7 @@ Future _runPubDeps() async {
 
   if (result.exitCode != 0) {
     throw new ProcessException(
-        'pub',
+        pubPath,
         ['deps'],
         '***OUT***\n${result.stdout}\n***ERR***\n${result.stderr}\n***',
         exitCode);
