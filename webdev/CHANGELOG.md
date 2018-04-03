@@ -1,3 +1,7 @@
+## 0.1.3
+
+- Now runs on Windows.
+
 ## 0.1.2
 
 - Remove check for `build_web_compilers`. Allows general support for

@@ -38,7 +38,7 @@ class PackageExceptionDetails {
 }
 
 Future _runPubDeps() async {
-  var result = Process.runSync('pub', ['deps']);
+  var result = Process.runSync('pub', ['deps'], runInShell: true);
 
   if (result.exitCode == 65 || result.exitCode == 66) {
     throw new PackageException._(

@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 
-final _webdevBin = p.absolute('bin/webdev.dart');
+final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
 
 /// The path to the root directory of the SDK.
 final String _sdkDir = (() {
@@ -219,7 +219,9 @@ dependencies:
   test('should succeed with valid configuration', () async {
     var exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
     var process = await TestProcess.start(_pubPath, ['get'],
-        workingDirectory: exampleDirectory, environment: _getPubEnvironment());
+        workingDirectory: exampleDirectory,
+        environment: _getPubEnvironment(),
+        runInShell: true);
 
     await process.shouldExit(0);
 
