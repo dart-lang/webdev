@@ -58,17 +58,7 @@ A dependency on `build_runner` was not found.'''));
 name: sample
 ''').create();
 
-        await d.file('pubspec.lock', '''
-# Copy-pasted from a valid run
-packages:
-  build_runner:
-    dependency: "direct main"
-    description:
-      name: build_runner
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "$version"
-''').create();
+        await d.file('pubspec.lock', _pubspecLock(version: version)).create();
 
         await d.file('.packages', '''
 ''').create();
@@ -116,17 +106,7 @@ name: sample
 name: sample
 ''').create();
 
-    await d.file('pubspec.lock', '''
-# Copy-pasted from a valid run
-packages:
-  build_runner:
-    dependency: "direct main"
-    description:
-      name: build_runner
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.8.0"
-''').create();
+    await d.file('pubspec.lock', _pubspecLock()).create();
 
     var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
 
@@ -143,17 +123,7 @@ packages:
 name: sample
 ''').create();
 
-    await d.file('pubspec.lock', '''
-# Copy-pasted from a valid run
-packages:
-  build_runner:
-    dependency: "direct main"
-    description:
-      name: build_runner
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.8.0"
-''').create();
+    await d.file('pubspec.lock', _pubspecLock()).create();
 
     await d.file('.packages', '').create();
 
@@ -169,17 +139,7 @@ packages:
   });
 
   test('should fail if there has been a dependency change', () async {
-    await d.file('pubspec.lock', '''
-# Copy-pasted from a valid run
-packages:
-  build_runner:
-    dependency: "direct main"
-    description:
-      name: build_runner
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.8.0"
-''').create();
+    await d.file('pubspec.lock', _pubspecLock()).create();
 
     await d.file('.packages', '').create();
 
@@ -227,6 +187,18 @@ dependencies:
     await d.file('web/main.dart.js', isNotEmpty).validate();
   }, timeout: const Timeout(const Duration(minutes: 5)));
 }
+
+String _pubspecLock({String version: '0.8.0'}) => '''
+# Copy-pasted from a valid run
+packages:
+  build_runner:
+    dependency: "direct main"
+    description:
+      name: build_runner
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "$version"
+''';
 
 /// Returns an environment map that includes `PUB_ENVIRONMENT`.
 ///
