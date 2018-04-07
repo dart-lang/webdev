@@ -25,13 +25,14 @@ class PackageExceptionDetails {
   static const noPubspecLock = const PackageExceptionDetails._(
       '`pubspec.lock` does not exist.',
       description:
-          'Run `webdev` in a Dart package directory. Run `pub get` first.');
+          'Run `$appName` in a Dart package directory. Run `pub get` first.');
 
-  static const noBuildRunnerDep = const PackageExceptionDetails._(
-      'A dependency on `build_runner` was not found.',
-      description:
-          'You must have a dependency on `build_runner` in `pubspec.yaml`. '
-          'It can be in either `dependencies` or `dev_dependencies`.');
+  static final noBuildRunnerDep = new PackageExceptionDetails._(
+      'You must have a dependency on `build_runner` in `pubspec.yaml`.',
+      description: '''
+# pubspec.yaml
+dev_dependencies:
+  build_runner: $supportedBuildRunnerVersionConstraint''');
 
   @override
   String toString() => [error, description].join('\n');
@@ -81,9 +82,9 @@ Future checkPubspecLock() async {
 
       var version = buildRunner['version'] as String;
       var buildRunnerVersion = new Version.parse(version);
-      if (!supportedBuildRunnerVersionRange.allows(buildRunnerVersion)) {
+      if (!supportedBuildRunnerVersionConstraint.allows(buildRunnerVersion)) {
         var error = 'The `build_runner` version – $buildRunnerVersion – is not '
-            'within the supported range – $supportedBuildRunnerVersionRange.';
+            'within the allowed constraint – $supportedBuildRunnerVersionConstraint.';
         issues.add(new PackageExceptionDetails._(error));
       }
     } else {

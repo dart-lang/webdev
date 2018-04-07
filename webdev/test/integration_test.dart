@@ -46,8 +46,8 @@ void main() {
     var process = await _runWebDev(['build']);
     var output = (await process.stdoutStream().join('\n')).trim();
 
-    expect(output, contains(r'''Could not run in the current directory.
-A dependency on `build_runner` was not found.'''));
+    expect(output, contains(r'''webdev could not run for this project.
+You must have a dependency on `build_runner` in `pubspec.yaml`.'''));
     await process.shouldExit(78);
   });
 
@@ -66,11 +66,11 @@ name: sample
         var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
 
         await expectLater(
-            process.stdout, emits('Could not run in the current directory.'));
+            process.stdout, emits('webdev could not run for this project.'));
         await expectLater(
             process.stdout,
             emits('The `build_runner` version – $version – '
-                'is not within the supported range – >=0.8.0 <0.9.0.'));
+                'is not within the allowed constraint – ^0.8.0.'));
         await process.shouldExit(78);
       });
     }
@@ -81,7 +81,7 @@ name: sample
 
     var output = await process.stdoutStream().join('\n');
 
-    expect(output, contains('Could not run in the current directory.'));
+    expect(output, contains('webdev could not run for this project.'));
     expect(output, contains('Could not find a file named "pubspec.yaml"'));
     await process.shouldExit(78);
   });
@@ -95,7 +95,7 @@ name: sample
 
     var output = await process.stdoutStream().join('\n');
 
-    expect(output, contains('Could not run in the current directory.'));
+    expect(output, contains('webdev could not run for this project.'));
     expect(output,
         contains('No pubspec.lock file found, please run "pub get" first.'));
     await process.shouldExit(78);
@@ -112,7 +112,7 @@ name: sample
 
     var output = await process.stdoutStream().join('\n');
 
-    expect(output, contains('Could not run in the current directory.'));
+    expect(output, contains('webdev could not run for this project.'));
     expect(output,
         contains('No .packages file found, please run "pub get" first.'));
     await process.shouldExit(78);
@@ -131,7 +131,7 @@ name: sample
 
     var output = await process.stdoutStream().join('\n');
 
-    expect(output, contains('An unexpected exception has occurred.'));
+    expect(output, contains('webdev failed with an unexpected exception.'));
 
     // The isolate will fail - broken .packages file
     expect(output, contains('Unable to spawn isolate'));
@@ -156,7 +156,7 @@ dependencies:
 
     var output = await process.stdoutStream().join('\n');
 
-    expect(output, contains('Could not run in the current directory.'));
+    expect(output, contains('webdev could not run for this project.'));
     expect(
         output,
         contains(

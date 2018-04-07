@@ -8,12 +8,13 @@ import 'package:args/command_runner.dart';
 
 import 'command/build_command.dart';
 import 'command/serve_command.dart';
+import 'util.dart';
 
 export 'pubspec.dart' show PackageException;
 
 Future<int> run(List<String> args) async {
   var runner =
-      new CommandRunner<int>('webdev', 'A tool to develop Dart web projects.')
+      new CommandRunner<int>(appName, 'A tool to develop Dart web projects.')
         ..addCommand(new BuildCommand())
         ..addCommand(new ServeCommand());
 
