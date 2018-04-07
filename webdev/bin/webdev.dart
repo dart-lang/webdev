@@ -10,6 +10,7 @@ import 'package:args/command_runner.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 import 'package:webdev/src/webdev_command_runner.dart';
+import 'package:webdev/src/util.dart';
 
 Future main(List<String> args) async {
   try {
@@ -19,26 +20,28 @@ Future main(List<String> args) async {
     print(' ');
     print(e.usage);
     exitCode = ExitCode.usage.code;
-  } on PackageException catch (e) {
-    print(yellow.wrap('Could not run in the current directory.'));
-    for (var detail in e.details) {
-      print(detail.error);
-      if (detail.description != null) {
-        print('  ${detail.description}');
-      }
-    }
-
-    exitCode = ExitCode.config.code;
   } on FileSystemException catch (e) {
-    print(yellow.wrap('Could not run in the current directory.'));
+    print(yellow.wrap('$_boldApp could not run in the current directory.'));
     print(e.message);
     if (e.path != null) {
       print('  ${e.path}');
     }
     exitCode = ExitCode.config.code;
+  } on PackageException catch (e) {
+    print(yellow.wrap('$_boldApp could not run for this project.'));
+    for (var detail in e.details) {
+      print(yellow.wrap(detail.error));
+      if (detail.description != null) {
+        print(detail.description);
+      }
+    }
+
+    exitCode = ExitCode.config.code;
   } on IsolateSpawnException catch (e) {
-    print(red.wrap('An unexpected exception has occurred.'));
+    print(red.wrap('$_boldApp failed with an unexpected exception.'));
     print(e.message);
     exitCode = ExitCode.software.code;
   }
 }
+
+String get _boldApp => styleBold.wrap(appName);
