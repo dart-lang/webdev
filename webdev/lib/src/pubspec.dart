@@ -10,6 +10,8 @@ import 'package:yaml/yaml.dart';
 
 import 'util.dart';
 
+final _supportedBuildRunnerVersion = new VersionConstraint.parse('^0.8.0');
+
 class PackageException implements Exception {
   final List<PackageExceptionDetails> details;
 
@@ -32,7 +34,7 @@ class PackageExceptionDetails {
       description: '''
 # pubspec.yaml
 dev_dependencies:
-  build_runner: $supportedBuildRunnerVersionConstraint''');
+  build_runner: $_supportedBuildRunnerVersion''');
 
   @override
   String toString() => [error, description].join('\n');
@@ -82,9 +84,9 @@ Future checkPubspecLock() async {
 
       var version = buildRunner['version'] as String;
       var buildRunnerVersion = new Version.parse(version);
-      if (!supportedBuildRunnerVersionConstraint.allows(buildRunnerVersion)) {
+      if (!_supportedBuildRunnerVersion.allows(buildRunnerVersion)) {
         var error = 'The `build_runner` version – $buildRunnerVersion – is not '
-            'within the allowed constraint – $supportedBuildRunnerVersionConstraint.';
+            'within the allowed constraint – $_supportedBuildRunnerVersion.';
         issues.add(new PackageExceptionDetails._(error));
       }
     } else {

@@ -5,12 +5,8 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart';
 
 const appName = 'webdev';
-
-final supportedBuildRunnerVersionConstraint =
-    new VersionConstraint.parse('^0.8.0');
 
 /// The path to the root directory of the SDK.
 final String _sdkDir = (() {
