@@ -1,3 +1,7 @@
+## 0.1.4
+
+- Require and use features from `build_runner` 0.8.2.
+
 ## 0.1.3+1
 
 - Support running `pub` when it's not in the environment path.

@@ -7,6 +7,8 @@ import 'build_runner_command_base.dart';
 
 /// Command to execute pub run build_runner build.
 class BuildCommand extends BuildRunnerCommandBase {
+  BuildCommand() : super(releaseDefault: true);
+
   @override
   final name = 'build';
 

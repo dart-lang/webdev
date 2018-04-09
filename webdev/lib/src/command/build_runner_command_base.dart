@@ -7,22 +7,38 @@ import 'dart:io' hide exitCode, exit;
 import 'dart:isolate';
 
 import 'package:args/command_runner.dart';
+import 'package:meta/meta.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../pubspec.dart';
 
 const _packagesFileName = '.packages';
+const _release = 'release';
+const _output = 'output';
+const _verbose = 'verbose';
 
 /// Extend to get a command with the arguments common to all build_runner
 /// commands.
 abstract class BuildRunnerCommandBase extends Command<int> {
-  BuildRunnerCommandBase() {
+  final bool releaseDefault;
+
+  BuildRunnerCommandBase({@required this.releaseDefault}) {
     // TODO(nshahan) Expose more common args passed to build_runner commands.
     // build_runner might expose args for use in wrapping scripts like this one.
     argParser
-      ..addOption('output',
-          abbr: 'o', help: 'A directory to write the result of a build to.')
-      ..addFlag('verbose',
+      ..addFlag(_release,
+          abbr: 'r',
+          defaultsTo: releaseDefault,
+          negatable: true,
+          help: 'Build with release mode defaults for builders.')
+      ..addOption(
+        _output,
+        abbr: 'o',
+        help: 'A directory to write the result of a build to. Or a mapping '
+            'from a top-level directory in the package to the directory to '
+            'write a filtered build output to. For example "web:deploy".',
+      )
+      ..addFlag(_verbose,
           abbr: 'v',
           defaultsTo: false,
           negatable: false,
@@ -34,7 +50,20 @@ abstract class BuildRunnerCommandBase extends Command<int> {
 
     var buildRunnerScript = await _buildRunnerScript();
 
-    final arguments = [command]..addAll(argResults.arguments);
+    final arguments = [command];
+
+    if ((argResults[_release] as bool) ?? releaseDefault) {
+      arguments.add('--$_release');
+    }
+
+    var output = argResults[_output] as String;
+    if (output != null) {
+      arguments.addAll(['--$_output', output]);
+    }
+
+    if (argResults[_verbose] as bool) {
+      arguments.add('--$_verbose');
+    }
 
     var exitCode = 0;
 

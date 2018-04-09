@@ -70,7 +70,7 @@ name: sample
         await expectLater(
             process.stdout,
             emits('The `build_runner` version – $version – '
-                'is not within the allowed constraint – ^0.8.0.'));
+                'is not within the allowed constraint – ^0.8.2.'));
         await process.shouldExit(78);
       });
     }
@@ -165,30 +165,53 @@ dependencies:
     await process.shouldExit(78);
   });
 
-  test('should succeed with valid configuration', () async {
-    var exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
-    var process = await TestProcess.start(pubPath, ['get'],
-        workingDirectory: exampleDirectory, environment: _getPubEnvironment());
+  group('should succeed with valid configuration', () {
+    for (var withDDC in [true, false]) {
+      test(withDDC ? 'DDC' : 'dart2js', () async {
+        var exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
+        var process = await TestProcess.start(pubPath, ['get'],
+            workingDirectory: exampleDirectory,
+            environment: _getPubEnvironment());
 
-    await process.shouldExit(0);
+        await process.shouldExit(0);
 
-    await d.file('.packages', isNotEmpty).validate(exampleDirectory);
-    await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
+        await d.file('.packages', isNotEmpty).validate(exampleDirectory);
+        await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
 
-    process = await _runWebDev(['build', '-o', d.sandbox],
-        workingDirectory: exampleDirectory);
+        var args = ['build', '-o', 'web:${d.sandbox}'];
+        if (withDDC) {
+          args.add('--no-release');
+        }
 
-    var output = await process.stdoutStream().join('\n');
+        process = await _runWebDev(args, workingDirectory: exampleDirectory);
 
-    expect(output, contains(d.sandbox));
-    expect(output, contains('[INFO] Succeeded'));
-    await process.shouldExit(0);
+        var output = await process.stdoutStream().join('\n');
 
-    await d.file('web/main.dart.js', isNotEmpty).validate();
-  }, timeout: const Timeout(const Duration(minutes: 5)));
+        expect(output, contains('[INFO] Succeeded'));
+
+        if (!withDDC && !output.contains('with 0 outputs')) {
+          // If outputs were generated, then dart2js should have been run
+          expect(output, contains('Running dart2js with'),
+              reason: 'Should run dart2js during build.');
+        }
+
+        await process.shouldExit(0);
+
+        await d.file('main.dart.js', isNotEmpty).validate();
+
+        for (var ddcFile in ['main.dart.bootstrap.js', 'main.ddc.js']) {
+          if (withDDC) {
+            await d.file(ddcFile, isNotEmpty).validate();
+          } else {
+            await d.nothing(ddcFile).validate();
+          }
+        }
+      }, timeout: const Timeout(const Duration(minutes: 5)));
+    }
+  });
 }
 
-String _pubspecLock({String version: '0.8.0'}) => '''
+String _pubspecLock({String version: '0.8.2'}) => '''
 # Copy-pasted from a valid run
 packages:
   build_runner:

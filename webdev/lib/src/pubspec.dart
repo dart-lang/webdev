@@ -10,7 +10,7 @@ import 'package:yaml/yaml.dart';
 
 import 'util.dart';
 
-final _supportedBuildRunnerVersion = new VersionConstraint.parse('^0.8.0');
+final _supportedBuildRunnerVersion = new VersionConstraint.parse('^0.8.2');
 
 class PackageException implements Exception {
   final List<PackageExceptionDetails> details;
