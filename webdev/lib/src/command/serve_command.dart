@@ -31,5 +31,21 @@ class ServeCommand extends CommandBase {
   }
 
   @override
+  List<String> getArgs() {
+    var arguments = super.getArgs();
+
+    var hostname = argResults['hostname'] as String;
+    if (hostname != null) {
+      arguments.addAll(['--hostname', hostname]);
+    }
+
+    if (argResults['log-requests'] == true) {
+      arguments.add('--log-requests');
+    }
+
+    return arguments;
+  }
+
+  @override
   Future<int> run() => runCore('serve');
 }

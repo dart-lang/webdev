@@ -45,13 +45,8 @@ abstract class CommandBase extends Command<int> {
           help: 'Enables verbose logging.');
   }
 
-  Future<int> runCore(String command) async {
-    await checkPubspecLock();
-
-    var buildRunnerScript = await _buildRunnerScript();
-
-    final arguments = [command];
-
+  List<String> getArgs() {
+    var arguments = <String>[];
     if ((argResults[_release] as bool) ?? releaseDefault) {
       arguments.add('--$_release');
     }
@@ -64,6 +59,15 @@ abstract class CommandBase extends Command<int> {
     if (argResults[_verbose] as bool) {
       arguments.add('--$_verbose');
     }
+    return arguments;
+  }
+
+  Future<int> runCore(String command) async {
+    await checkPubspecLock();
+
+    var buildRunnerScript = await _buildRunnerScript();
+
+    final arguments = [command]..addAll(getArgs());
 
     var exitCode = 0;
 
