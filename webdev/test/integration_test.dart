@@ -3,13 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
-import 'package:test_process/test_process.dart';
-import 'package:webdev/src/util.dart';
 
 import 'test_utils.dart';
 
@@ -41,7 +37,7 @@ name: sample
 
       var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-      await _checkProcessStdout(process, [
+      await checkProcessStdout(process, [
         r'''webdev could not run for this project.
 You must have a dependency on `build_runner` in `pubspec.yaml`.'''
       ]);
@@ -62,7 +58,7 @@ name: sample
 
       var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
-      await _checkProcessStdout(process, [
+      await checkProcessStdout(process, [
         r'''webdev could not run for this project.
 You must have a dependency on `build_web_compilers` in `pubspec.yaml`.'''
       ]);
@@ -88,7 +84,7 @@ name: sample
           workingDirectory: d.sandbox);
 
       // Fails w/ an isolate exception instead - since this is a fake package
-      await _checkProcessStdout(process, [
+      await checkProcessStdout(process, [
         'webdev failed with an unexpected exception.',
         // The isolate will fail - broken .packages file
         'Unable to spawn isolate'
@@ -112,7 +108,7 @@ name: sample
       var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
       // Fails w/ an isolate exception instead - since this is a fake package
-      await _checkProcessStdout(process, [
+      await checkProcessStdout(process, [
         'webdev failed with an unexpected exception.',
         // The isolate will fail - broken .packages file
         'Unable to spawn isolate'
@@ -155,7 +151,7 @@ name: sample
 
           var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
-          await _checkProcessStdout(process, [
+          await checkProcessStdout(process, [
             'webdev could not run for this project.',
             // See https://github.com/dart-lang/linter/issues/965
             // ignore: prefer_adjacent_string_concatenation
@@ -171,7 +167,7 @@ name: sample
   test('no pubspec.yaml', () async {
     var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-    await _checkProcessStdout(process, [
+    await checkProcessStdout(process, [
       'webdev could not run for this project.',
       'Could not find a file named "pubspec.yaml"'
     ]);
@@ -185,7 +181,7 @@ name: sample
 
     var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-    await _checkProcessStdout(process, [
+    await checkProcessStdout(process, [
       'webdev could not run for this project.',
       'No pubspec.lock file found, please run "pub get" first.'
     ]);
@@ -201,7 +197,7 @@ name: sample
 
     var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-    await _checkProcessStdout(process, [
+    await checkProcessStdout(process, [
       'webdev could not run for this project.',
       'No .packages file found, please run "pub get" first.'
     ]);
@@ -219,7 +215,7 @@ name: sample
 
     var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-    await _checkProcessStdout(process, [
+    await checkProcessStdout(process, [
       'webdev failed with an unexpected exception.',
       // The isolate will fail - broken .packages file
       'Unable to spawn isolate'
@@ -243,7 +239,7 @@ dependencies:
 
     var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-    await _checkProcessStdout(process, [
+    await checkProcessStdout(process, [
       'webdev could not run for this project.',
       // See https://github.com/dart-lang/linter/issues/965
       // ignore: prefer_adjacent_string_concatenation
@@ -252,58 +248,6 @@ dependencies:
     ]);
     await process.shouldExit(78);
   });
-
-  group('should succeed with valid configuration', () {
-    for (var withDDC in [true, false]) {
-      test(withDDC ? 'DDC' : 'dart2js', () async {
-        var exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
-        var process = await TestProcess.start(pubPath, ['get'],
-            workingDirectory: exampleDirectory,
-            environment: _getPubEnvironment());
-
-        await process.shouldExit(0);
-
-        await d.file('.packages', isNotEmpty).validate(exampleDirectory);
-        await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
-
-        var args = ['build', '-o', 'web:${d.sandbox}'];
-        if (withDDC) {
-          args.add('--no-release');
-        }
-
-        process = await runWebDev(args, workingDirectory: exampleDirectory);
-
-        var expectedItems = <Object>['[INFO] Succeeded'];
-        if (!withDDC) {
-          expectedItems.add(anyOf(
-              contains('with 0 outputs'), contains('Running dart2js with')));
-        }
-
-        await _checkProcessStdout(process, expectedItems);
-        await process.shouldExit(0);
-
-        await d.file('main.dart.js', isNotEmpty).validate();
-
-        for (var ddcFile in ['main.dart.bootstrap.js', 'main.ddc.js']) {
-          if (withDDC) {
-            await d.file(ddcFile, isNotEmpty).validate();
-          } else {
-            await d.nothing(ddcFile).validate();
-          }
-        }
-      }, timeout: const Timeout(const Duration(minutes: 5)));
-    }
-  });
-}
-
-Future _checkProcessStdout(TestProcess process, List items) async {
-  var output = await process.stdoutStream().join('\n');
-  for (var item in items) {
-    if (item is! Matcher) {
-      item = contains(item);
-    }
-    expect(output, item);
-  }
 }
 
 const _supportedBuildRunnerVersion = '0.8.2';
@@ -342,21 +286,4 @@ packages:
   }
 
   return buffer.toString();
-}
-
-/// Returns an environment map that includes `PUB_ENVIRONMENT`.
-///
-/// Maintains any existing values for this environment var.
-/// Adds a new value that flags this is a bot/test and not human usage.
-Map<String, String> _getPubEnvironment() {
-  var pubEnvironmentKey = 'PUB_ENVIRONMENT';
-  var pubEnvironment = Platform.environment[pubEnvironmentKey] ?? '';
-  if (pubEnvironment.isNotEmpty) {
-    pubEnvironment = '$pubEnvironment;';
-  }
-  pubEnvironment = '${pubEnvironment}bot.pkg.webdev.test';
-
-  var environment = {'PUB_ENVIRONMENT': pubEnvironment};
-
-  return environment;
 }
