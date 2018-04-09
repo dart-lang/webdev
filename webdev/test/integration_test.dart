@@ -11,18 +11,11 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 import 'package:webdev/src/util.dart';
 
-final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
-
-Future<TestProcess> _runWebDev(List<String> args, {String workingDirectory}) {
-  var fullArgs = [_webdevBin]..addAll(args);
-
-  return TestProcess.start(dartPath, fullArgs,
-      workingDirectory: workingDirectory);
-}
+import 'test_utils.dart';
 
 void main() {
   test('README contains help output', () async {
-    var process = await _runWebDev([]);
+    var process = await runWebDev([]);
     var output = (await process.stdoutStream().join('\n')).trim();
     await process.shouldExit(0);
 
@@ -32,7 +25,7 @@ void main() {
   });
 
   test('non-existant commands create errors', () async {
-    var process = await _runWebDev(['monkey']);
+    var process = await runWebDev(['monkey']);
 
     await expectLater(
         process.stdout, emits('Could not find a command named "monkey".'));
@@ -43,7 +36,7 @@ void main() {
   test('should fail in a package without a build_runner dependency', () async {
     // Running on the `webdev` package directory – which has no dependency on
     // build runner.
-    var process = await _runWebDev(['build']);
+    var process = await runWebDev(['build']);
     var output = (await process.stdoutStream().join('\n')).trim();
 
     expect(output, contains(r'''webdev could not run for this project.
@@ -63,7 +56,7 @@ name: sample
         await d.file('.packages', '''
 ''').create();
 
-        var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
+        var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
         await expectLater(
             process.stdout, emits('webdev could not run for this project.'));
@@ -77,7 +70,7 @@ name: sample
   });
 
   test('no pubspec.yaml', () async {
-    var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
+    var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
     var output = await process.stdoutStream().join('\n');
 
@@ -91,7 +84,7 @@ name: sample
 name: sample
 ''').create();
 
-    var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
+    var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
     var output = await process.stdoutStream().join('\n');
 
@@ -108,7 +101,7 @@ name: sample
 
     await d.file('pubspec.lock', _pubspecLock()).create();
 
-    var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
+    var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
     var output = await process.stdoutStream().join('\n');
 
@@ -127,7 +120,7 @@ name: sample
 
     await d.file('.packages', '').create();
 
-    var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
+    var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
     var output = await process.stdoutStream().join('\n');
 
@@ -152,7 +145,7 @@ dependencies:
   args: ^1.0.0
 ''').create();
 
-    var process = await _runWebDev(['build'], workingDirectory: d.sandbox);
+    var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
     var output = await process.stdoutStream().join('\n');
 
@@ -183,7 +176,7 @@ dependencies:
           args.add('--no-release');
         }
 
-        process = await _runWebDev(args, workingDirectory: exampleDirectory);
+        process = await runWebDev(args, workingDirectory: exampleDirectory);
 
         var output = await process.stdoutStream().join('\n');
 
