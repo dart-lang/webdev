@@ -127,7 +127,7 @@ name: sample
     await d.file('.packages', '').create();
 
     // Ensure there is a noticeable delta in the creation times
-    await new Future.delayed(const Duration(milliseconds: 500));
+    await new Future.delayed(const Duration(milliseconds: 1100));
 
     await d.file('pubspec.yaml', '''
 name: sample
