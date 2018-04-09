@@ -7,4 +7,4 @@ stages:
     - dartfmt
     - dartanalyzer: --fatal-infos --fatal-warnings .
   - unit_test:
-    - test
+    - test: -j 1
