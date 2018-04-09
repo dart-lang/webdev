@@ -15,19 +15,40 @@ $ pub global activate webdev
 
 ## Usage
 
+`webdev` provides two commands: `serve` and `build`.
+
+### `webdev serve`
+
 ```console
-$ webdev
-A tool to develop Dart web projects.
+$ webdev help serve
+Run a local web development server and a file system watcher that re-builds on changes.
 
-Usage: webdev <command> [arguments]
+Usage: webdev serve [arguments] [<directory>[:<port>]]...
+-h, --help            Print this usage information.
+-r, --[no-]release    Build with release mode defaults for builders.
+-o, --output          A directory to write the result of a build to. Or a mapping from a top-level directory in the package to the directory to write a filtered build output to. For example "web:deploy".
+-v, --verbose         Enables verbose logging.
+    --hostname        Specify the hostname to serve on
+                      (defaults to "localhost")
 
-Global options:
--h, --help    Print this usage information.
+    --log-requests    Enables logging for each request to the server.
 
-Available commands:
-  build   Run builders to build a package.
-  help    Display help information for webdev.
-  serve   Run a local web development server and a file system watcher that re-builds on changes.
+Run "webdev help" to see global options.
+```
 
-Run "webdev help <command>" for more information about a command.
+### `webdev build`
+
+```console
+$ webdev help build
+Run builders to build a package.
+
+Usage: webdev build [arguments]
+-h, --help            Print this usage information.
+-r, --[no-]release    Build with release mode defaults for builders.
+                      (defaults to on)
+
+-o, --output          A directory to write the result of a build to. Or a mapping from a top-level directory in the package to the directory to write a filtered build output to. For example "web:deploy".
+-v, --verbose         Enables verbose logging.
+
+Run "webdev help" to see global options.
 ```
