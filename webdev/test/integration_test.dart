@@ -14,16 +14,6 @@ import 'package:webdev/src/util.dart';
 import 'test_utils.dart';
 
 void main() {
-  test('README contains help output', () async {
-    var process = await runWebDev([]);
-    var output = (await process.stdoutStream().join('\n')).trim();
-    await process.shouldExit(0);
-
-    var readme = new File('README.md');
-    expect(readme.readAsStringSync(),
-        contains('```console\n\$ webdev\n$output\n```'));
-  });
-
   test('non-existant commands create errors', () async {
     var process = await runWebDev(['monkey']);
 
