@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
-import 'build_runner_command_base.dart';
+import 'command_base.dart';
 
 /// Command to execute pub run build_runner serve.
-class ServeCommand extends BuildRunnerCommandBase {
+class ServeCommand extends CommandBase {
   @override
   final name = 'serve';
 

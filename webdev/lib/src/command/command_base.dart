@@ -19,10 +19,10 @@ const _verbose = 'verbose';
 
 /// Extend to get a command with the arguments common to all build_runner
 /// commands.
-abstract class BuildRunnerCommandBase extends Command<int> {
+abstract class CommandBase extends Command<int> {
   final bool releaseDefault;
 
-  BuildRunnerCommandBase({@required this.releaseDefault}) {
+  CommandBase({@required this.releaseDefault}) {
     // TODO(nshahan) Expose more common args passed to build_runner commands.
     // build_runner might expose args for use in wrapping scripts like this one.
     argParser

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'build_runner_command_base.dart';
+import 'command_base.dart';
 
 /// Command to execute pub run build_runner build.
-class BuildCommand extends BuildRunnerCommandBase {
+class BuildCommand extends CommandBase {
   BuildCommand() : super(releaseDefault: true);
 
   @override
