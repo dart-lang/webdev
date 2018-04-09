@@ -1,6 +1,7 @@
 ## 0.1.4
 
 - Require and use features from `build_runner` 0.8.2.
+- Added a `--[no]-release`.
 
 ## 0.1.3+1
 
