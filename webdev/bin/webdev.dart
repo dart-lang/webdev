@@ -10,7 +10,6 @@ import 'package:args/command_runner.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 import 'package:webdev/src/webdev_command_runner.dart';
-import 'package:webdev/src/util.dart';
 
 Future main(List<String> args) async {
   try {

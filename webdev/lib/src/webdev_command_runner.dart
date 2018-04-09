@@ -11,6 +11,7 @@ import 'command/serve_command.dart';
 import 'util.dart';
 
 export 'pubspec.dart' show PackageException;
+export 'util.dart' show appName;
 
 Future<int> run(List<String> args) async {
   var runner =
