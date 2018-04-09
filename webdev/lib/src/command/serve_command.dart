@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'command_base.dart';
 
+const _requireBuildWebCompilers = 'require-build-web-compilers';
+
 /// Command to execute pub run build_runner serve.
 class ServeCommand extends CommandBase {
   @override
@@ -27,7 +29,11 @@ class ServeCommand extends CommandBase {
       ..addFlag('log-requests',
           defaultsTo: false,
           negatable: false,
-          help: 'Enables logging for each request to the server.');
+          help: 'Enables logging for each request to the server.')
+      ..addFlag(_requireBuildWebCompilers,
+          defaultsTo: true,
+          negatable: true,
+          help: 'If a dependency on `build_web_compilers` is required to run.');
   }
 
   @override
@@ -47,5 +53,6 @@ class ServeCommand extends CommandBase {
   }
 
   @override
-  Future<int> run() => runCore('serve');
+  Future<int> run() => runCore('serve',
+      requireBuildWebCompilers: argResults[_requireBuildWebCompilers] as bool);
 }

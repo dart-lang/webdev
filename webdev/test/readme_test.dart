@@ -24,6 +24,5 @@ Future _readmeCheck(List<String> args) async {
   var command = (['webdev']..addAll(args)).join(' ');
   var expected = '```console\n\$ $command\n$output\n```';
 
-  printOnFailure(expected);
   expect(readme.readAsStringSync(), contains(expected));
 }

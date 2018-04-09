@@ -1,7 +1,9 @@
 ## 0.1.4
 
 - Require and use features from `build_runner` 0.8.2.
-- Added a `--[no]-release`.
+  - Added a `--[no]-release` flag.
+- Require `build_web_compliers` 0.3.6 when running `serve`.
+  - Unless the `--no-require-build-web-compilers` flag is provided.
 
 ## 0.1.3+1
 

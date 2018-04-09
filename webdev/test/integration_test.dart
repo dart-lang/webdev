@@ -23,49 +23,158 @@ void main() {
     await process.shouldExit(64);
   });
 
-  test('should fail in a package without a build_runner dependency', () async {
-    // Running on the `webdev` package directory – which has no dependency on
-    // build runner.
-    var process = await runWebDev(['build']);
-    var output = (await process.stdoutStream().join('\n')).trim();
+  var invalidRanges = <String, List<String>>{
+    'build_runner': ['0.7.13+1', '0.9.0'],
+    'build_web_compilers': ['0.3.5', '0.4.0']
+  };
 
-    expect(output, contains(r'''webdev could not run for this project.
-You must have a dependency on `build_runner` in `pubspec.yaml`.'''));
-    await process.shouldExit(78);
-  });
-
-  group('should fail when `build_runner` is the wrong version', () {
-    for (var version in ['0.7.13+1', '0.9.0']) {
-      test(version, () async {
-        await d.file('pubspec.yaml', '''
+  group('missing dependency on', () {
+    test('`build_runner` should fail', () async {
+      await d.file('pubspec.yaml', '''
 name: sample
 ''').create();
 
-        await d.file('pubspec.lock', _pubspecLock(version: version)).create();
+      await d.file('pubspec.lock', _pubspecLock(runnerVersion: null)).create();
 
-        await d.file('.packages', '''
+      await d.file('.packages', '''
 ''').create();
 
-        var process = await runWebDev(['build'], workingDirectory: d.sandbox);
+      var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-        await expectLater(
-            process.stdout, emits('webdev could not run for this project.'));
-        await expectLater(
-            process.stdout,
-            emits('The `build_runner` version – $version – '
-                'is not within the allowed constraint – ^0.8.2.'));
-        await process.shouldExit(78);
-      });
-    }
+      await _checkProcessStdout(process, [
+        r'''webdev could not run for this project.
+You must have a dependency on `build_runner` in `pubspec.yaml`.'''
+      ]);
+      await process.shouldExit(78);
+    });
+
+    test('`build_web_compilers` should fail', () async {
+      await d.file('pubspec.yaml', '''
+name: sample
+''').create();
+
+      await d
+          .file('pubspec.lock', _pubspecLock(webCompilersVersion: null))
+          .create();
+
+      await d.file('.packages', '''
+''').create();
+
+      var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
+
+      await _checkProcessStdout(process, [
+        r'''webdev could not run for this project.
+You must have a dependency on `build_web_compilers` in `pubspec.yaml`.'''
+      ]);
+      await process.shouldExit(78);
+    });
+
+    test(
+        '`build_web_compilers` should be ignored with '
+        '--no-require-build-web-compilers', () async {
+      await d.file('pubspec.yaml', '''
+name: sample
+''').create();
+
+      await d
+          .file('pubspec.lock', _pubspecLock(webCompilersVersion: null))
+          .create();
+
+      await d.file('.packages', '''
+''').create();
+
+      var process = await runWebDev(
+          ['serve', '--no-require-build-web-compilers'],
+          workingDirectory: d.sandbox);
+
+      // Fails w/ an isolate exception instead - since this is a fake package
+      await _checkProcessStdout(process, [
+        'webdev failed with an unexpected exception.',
+        // The isolate will fail - broken .packages file
+        'Unable to spawn isolate'
+      ]);
+      await process.shouldExit(70);
+    });
+
+    test('`build_web_compilers` should be ignored when running `build` command',
+        () async {
+      await d.file('pubspec.yaml', '''
+name: sample
+''').create();
+
+      await d
+          .file('pubspec.lock', _pubspecLock(webCompilersVersion: null))
+          .create();
+
+      await d.file('.packages', '''
+''').create();
+
+      var process = await runWebDev(['build'], workingDirectory: d.sandbox);
+
+      // Fails w/ an isolate exception instead - since this is a fake package
+      await _checkProcessStdout(process, [
+        'webdev failed with an unexpected exception.',
+        // The isolate will fail - broken .packages file
+        'Unable to spawn isolate'
+      ]);
+      await process.shouldExit(70);
+    });
   });
+
+  for (var entry in invalidRanges.entries) {
+    group('package `${entry.key}` should fail with the wrong version', () {
+      for (var version in entry.value) {
+        test(version, () async {
+          var buildRunnerVersion = _supportedBuildRunnerVersion;
+          var webCompilersVersion = _supportedWebCompilersVersion;
+
+          String supportedRange;
+          if (entry.key == 'build_runner') {
+            buildRunnerVersion = version;
+            supportedRange = '^0.8.2';
+          } else {
+            assert(entry.key == 'build_web_compilers');
+            webCompilersVersion = version;
+            supportedRange = '^0.3.6';
+          }
+
+          await d.file('pubspec.yaml', '''
+name: sample
+''').create();
+
+          await d
+              .file(
+                  'pubspec.lock',
+                  _pubspecLock(
+                      runnerVersion: buildRunnerVersion,
+                      webCompilersVersion: webCompilersVersion))
+              .create();
+
+          await d.file('.packages', '''
+''').create();
+
+          var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
+
+          await _checkProcessStdout(process, [
+            'webdev could not run for this project.',
+            // See https://github.com/dart-lang/linter/issues/965
+            // ignore: prefer_adjacent_string_concatenation
+            'The `${entry.key}` version – $version – ' +
+                'is not within the allowed constraint – $supportedRange.'
+          ]);
+          await process.shouldExit(78);
+        });
+      }
+    });
+  }
 
   test('no pubspec.yaml', () async {
     var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-    var output = await process.stdoutStream().join('\n');
-
-    expect(output, contains('webdev could not run for this project.'));
-    expect(output, contains('Could not find a file named "pubspec.yaml"'));
+    await _checkProcessStdout(process, [
+      'webdev could not run for this project.',
+      'Could not find a file named "pubspec.yaml"'
+    ]);
     await process.shouldExit(78);
   });
 
@@ -76,11 +185,10 @@ name: sample
 
     var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-    var output = await process.stdoutStream().join('\n');
-
-    expect(output, contains('webdev could not run for this project.'));
-    expect(output,
-        contains('No pubspec.lock file found, please run "pub get" first.'));
+    await _checkProcessStdout(process, [
+      'webdev could not run for this project.',
+      'No pubspec.lock file found, please run "pub get" first.'
+    ]);
     await process.shouldExit(78);
   });
 
@@ -93,11 +201,10 @@ name: sample
 
     var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-    var output = await process.stdoutStream().join('\n');
-
-    expect(output, contains('webdev could not run for this project.'));
-    expect(output,
-        contains('No .packages file found, please run "pub get" first.'));
+    await _checkProcessStdout(process, [
+      'webdev could not run for this project.',
+      'No .packages file found, please run "pub get" first.'
+    ]);
     await process.shouldExit(78);
   });
 
@@ -112,12 +219,11 @@ name: sample
 
     var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-    var output = await process.stdoutStream().join('\n');
-
-    expect(output, contains('webdev failed with an unexpected exception.'));
-
-    // The isolate will fail - broken .packages file
-    expect(output, contains('Unable to spawn isolate'));
+    await _checkProcessStdout(process, [
+      'webdev failed with an unexpected exception.',
+      // The isolate will fail - broken .packages file
+      'Unable to spawn isolate'
+    ]);
     await process.shouldExit(70);
   });
 
@@ -137,14 +243,13 @@ dependencies:
 
     var process = await runWebDev(['build'], workingDirectory: d.sandbox);
 
-    var output = await process.stdoutStream().join('\n');
-
-    expect(output, contains('webdev could not run for this project.'));
-    expect(
-        output,
-        contains(
-            'The pubspec.yaml file has changed since the pubspec.lock file '
-            'was generated, please run "pub get" again.'));
+    await _checkProcessStdout(process, [
+      'webdev could not run for this project.',
+      // See https://github.com/dart-lang/linter/issues/965
+      // ignore: prefer_adjacent_string_concatenation
+      'The pubspec.yaml file has changed since the pubspec.lock file ' +
+          'was generated, please run "pub get" again.'
+    ]);
     await process.shouldExit(78);
   });
 
@@ -168,16 +273,13 @@ dependencies:
 
         process = await runWebDev(args, workingDirectory: exampleDirectory);
 
-        var output = await process.stdoutStream().join('\n');
-
-        expect(output, contains('[INFO] Succeeded'));
-
-        if (!withDDC && !output.contains('with 0 outputs')) {
-          // If outputs were generated, then dart2js should have been run
-          expect(output, contains('Running dart2js with'),
-              reason: 'Should run dart2js during build.');
+        var expectedItems = <Object>['[INFO] Succeeded'];
+        if (!withDDC) {
+          expectedItems.add(anyOf(
+              contains('with 0 outputs'), contains('Running dart2js with')));
         }
 
+        await _checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
 
         await d.file('main.dart.js', isNotEmpty).validate();
@@ -194,17 +296,53 @@ dependencies:
   });
 }
 
-String _pubspecLock({String version: '0.8.2'}) => '''
+Future _checkProcessStdout(TestProcess process, List items) async {
+  var output = await process.stdoutStream().join('\n');
+  for (var item in items) {
+    if (item is! Matcher) {
+      item = contains(item);
+    }
+    expect(output, item);
+  }
+}
+
+const _supportedBuildRunnerVersion = '0.8.2';
+const _supportedWebCompilersVersion = '0.3.6';
+
+String _pubspecLock(
+    {String runnerVersion: _supportedBuildRunnerVersion,
+    String webCompilersVersion: _supportedWebCompilersVersion}) {
+  var buffer = new StringBuffer('''
 # Copy-pasted from a valid run
 packages:
+''');
+
+  if (runnerVersion != null) {
+    buffer.writeln('''
   build_runner:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "$version"
-''';
+    version: "$runnerVersion"
+''');
+  }
+
+  if (webCompilersVersion != null) {
+    buffer.writeln('''
+  build_web_compilers:
+    dependency: "direct dev"
+    description:
+      name: build_web_compilers
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "$webCompilersVersion"
+''');
+  }
+
+  return buffer.toString();
+}
 
 /// Returns an environment map that includes `PUB_ENVIRONMENT`.
 ///

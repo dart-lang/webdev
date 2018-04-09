@@ -5,12 +5,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'util.dart';
-
-final _supportedBuildRunnerVersion = new VersionConstraint.parse('^0.8.2');
 
 class PackageException implements Exception {
   final List<PackageExceptionDetails> details;
@@ -29,12 +28,14 @@ class PackageExceptionDetails {
       description:
           'Run `$appName` in a Dart package directory. Run `pub get` first.');
 
-  static final noBuildRunnerDep = new PackageExceptionDetails._(
-      'You must have a dependency on `build_runner` in `pubspec.yaml`.',
-      description: '''
+  static PackageExceptionDetails missingDep(
+          String pkgName, VersionConstraint constraint) =>
+      new PackageExceptionDetails._(
+          'You must have a dependency on `$pkgName` in `pubspec.yaml`.',
+          description: '''
 # pubspec.yaml
 dev_dependencies:
-  build_runner: $_supportedBuildRunnerVersion''');
+  $pkgName: $constraint''');
 
   @override
   String toString() => [error, description].join('\n');
@@ -57,7 +58,7 @@ Future _runPubDeps() async {
   }
 }
 
-Future checkPubspecLock() async {
+Future checkPubspecLock({@required bool requireBuildWebCompilers}) async {
   await _runPubDeps();
 
   var pubspecLock =
@@ -67,32 +68,43 @@ Future checkPubspecLock() async {
 
   var issues = <PackageExceptionDetails>[];
 
-  var buildRunner = packages['build_runner'] as YamlMap;
-  if (buildRunner == null) {
-    issues.add(PackageExceptionDetails.noBuildRunnerDep);
-  } else {
-    var dependency = buildRunner['dependency'] as String;
-    if (!dependency.startsWith('direct ')) {
-      issues.add(PackageExceptionDetails.noBuildRunnerDep);
-    }
+  void checkPackage(String pkgName, VersionConstraint constraint) {
+    var missingDetails =
+        PackageExceptionDetails.missingDep(pkgName, constraint);
 
-    var source = buildRunner['source'] as String;
-    if (source == 'hosted') {
-      // NOTE: buildRunner['description'] should be:
-      //           `{url: https://pub.dartlang.org, name: build_runner}`
-      //       If a user is playing around here, they are on their own.
-
-      var version = buildRunner['version'] as String;
-      var buildRunnerVersion = new Version.parse(version);
-      if (!_supportedBuildRunnerVersion.allows(buildRunnerVersion)) {
-        var error = 'The `build_runner` version – $buildRunnerVersion – is not '
-            'within the allowed constraint – $_supportedBuildRunnerVersion.';
-        issues.add(new PackageExceptionDetails._(error));
-      }
+    var pkgDataMap = (packages == null) ? null : packages[pkgName] as YamlMap;
+    if (pkgDataMap == null) {
+      issues.add(missingDetails);
     } else {
-      // NOTE: Intentionally not checking non-hosted dependencies: git, path
-      //       If a user is playing around here, they are on their own.
+      var dependency = pkgDataMap['dependency'] as String;
+      if (!dependency.startsWith('direct ')) {
+        issues.add(missingDetails);
+      }
+
+      var source = pkgDataMap['source'] as String;
+      if (source == 'hosted') {
+        // NOTE: pkgDataMap['description'] should be:
+        //           `{url: https://pub.dartlang.org, name: [pkgName]}`
+        //       If a user is playing around here, they are on their own.
+
+        var version = pkgDataMap['version'] as String;
+        var pkgVersion = new Version.parse(version);
+        if (!constraint.allows(pkgVersion)) {
+          var error = 'The `$pkgName` version – $pkgVersion – is not '
+              'within the allowed constraint – $constraint.';
+          issues.add(new PackageExceptionDetails._(error));
+        }
+      } else {
+        // NOTE: Intentionally not checking non-hosted dependencies: git, path
+        //       If a user is playing around here, they are on their own.
+      }
     }
+  }
+
+  checkPackage('build_runner', new VersionConstraint.parse('^0.8.2'));
+
+  if (requireBuildWebCompilers) {
+    checkPackage('build_web_compilers', new VersionConstraint.parse('^0.3.6'));
   }
 
   if (issues.isNotEmpty) {

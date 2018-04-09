@@ -62,8 +62,9 @@ abstract class CommandBase extends Command<int> {
     return arguments;
   }
 
-  Future<int> runCore(String command) async {
-    await checkPubspecLock();
+  Future<int> runCore(String command,
+      {@required bool requireBuildWebCompilers}) async {
+    await checkPubspecLock(requireBuildWebCompilers: requireBuildWebCompilers);
 
     var buildRunnerScript = await _buildRunnerScript();
 
