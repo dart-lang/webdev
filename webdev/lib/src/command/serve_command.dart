@@ -49,6 +49,9 @@ class ServeCommand extends CommandBase {
       arguments.add('--log-requests');
     }
 
+    // The remaining arguments should be interpreted as [<directory>[:<port>]].
+    arguments.addAll(argResults.rest);
+
     return arguments;
   }
 
