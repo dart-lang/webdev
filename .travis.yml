@@ -1,6 +1,10 @@
 # Created with https://github.com/dart-lang/mono_repo
 language: dart
 
+# Gives more resources on Travis (8GB Ram, 2CPUs).
+# Do not remove without verifying w/ Travis.
+sudo: required
+
 jobs:
   include:
     - stage: analyzer_and_format
