@@ -2,6 +2,7 @@
 
 - Pass the arguments supporting `directory:port` for the `serve` command.
 - Add the requirement for `build_web_compilers` to `build` command.
+- Renamed `--require-build-web-compilers` flag to `--build-web-compilers`.
 
 ## 0.1.4
 

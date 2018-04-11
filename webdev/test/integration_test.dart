@@ -71,7 +71,7 @@ You must have a dependency on `build_web_compilers` in `pubspec.yaml`.'''
 
         test(
             '`build_web_compilers` should be ignored with '
-            '--no-require-build-web-compilers', () async {
+            '--no-build-web-compilers', () async {
           await d.file('pubspec.yaml', '''
 name: sample
 ''').create();
@@ -83,8 +83,7 @@ name: sample
           await d.file('.packages', '''
 ''').create();
 
-          var process = await runWebDev(
-              ['serve', '--no-require-build-web-compilers'],
+          var process = await runWebDev(['serve', '--no-build-web-compilers'],
               workingDirectory: d.sandbox);
 
           // Fails w/ an isolate exception instead - since this is a fake package

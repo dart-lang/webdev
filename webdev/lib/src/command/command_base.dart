@@ -17,7 +17,7 @@ const _release = 'release';
 const _output = 'output';
 const _verbose = 'verbose';
 
-const _requireBuildWebCompilers = 'require-build-web-compilers';
+const _requireBuildWebCompilers = 'build-web-compilers';
 
 /// Extend to get a command with the arguments common to all build_runner
 /// commands.
