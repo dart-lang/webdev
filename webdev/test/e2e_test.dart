@@ -111,9 +111,13 @@ void main() {
           client.close(force: true);
         }
 
-        process.signal(ProcessSignal.SIGINT);
-
-        await process.shouldExit(0);
+        if (Platform.isWindows) {
+          await process.kill();
+          await process.shouldExit(-1);
+        } else {
+          process.signal(ProcessSignal.SIGINT);
+          await process.shouldExit(0);
+        }
       });
     }
   });
