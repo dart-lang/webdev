@@ -15,25 +15,28 @@ import 'package:webdev/src/util.dart';
 import 'test_utils.dart';
 
 void main() {
-  group('should succeed with valid configuration', () {
+  String exampleDirectory;
+  setUpAll(() async {
+    exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
+
+    var process = await TestProcess.start(pubPath, ['get'],
+        workingDirectory: exampleDirectory, environment: _getPubEnvironment());
+
+    await process.shouldExit(0);
+
+    await d.file('.packages', isNotEmpty).validate(exampleDirectory);
+    await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
+  });
+
+  group('should build with valid configuration', () {
     for (var withDDC in [true, false]) {
       test(withDDC ? 'DDC' : 'dart2js', () async {
-        var exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
-        var process = await TestProcess.start(pubPath, ['get'],
-            workingDirectory: exampleDirectory,
-            environment: _getPubEnvironment());
-
-        await process.shouldExit(0);
-
-        await d.file('.packages', isNotEmpty).validate(exampleDirectory);
-        await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
-
         var args = ['build', '-o', 'web:${d.sandbox}'];
         if (withDDC) {
           args.add('--no-release');
         }
 
-        process = await runWebDev(args, workingDirectory: exampleDirectory);
+        var process = await runWebDev(args, workingDirectory: exampleDirectory);
 
         var expectedItems = <Object>['[INFO] Succeeded'];
         if (!withDDC) {
