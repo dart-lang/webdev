@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -25,5 +26,24 @@ Future checkProcessStdout(TestProcess process, List items) async {
       item = contains(item);
     }
     expect(output, item);
+  }
+}
+
+/// Returns an open port by creating a temporary Socket
+Future<int> getOpenPort() async {
+  ServerSocket socket;
+
+  try {
+    socket = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  } catch (_) {
+    // try again v/ V6 only. Slight possibility that V4 is disabled
+    socket = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V6, 0,
+        v6Only: true);
+  }
+
+  try {
+    return socket.port;
+  } finally {
+    await socket.close();
   }
 }

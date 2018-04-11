@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(const Duration(minutes: 8))
+@Timeout(const Duration(minutes: 5))
 
 import 'dart:io';
 
@@ -66,6 +66,61 @@ void main() {
             await d.nothing(entry.key).validate();
           }
         }
+      });
+    }
+  });
+
+  group('should serve with valid configuration', () {
+    for (var withDDC in [true, false]) {
+      test(withDDC ? 'DDC' : 'dart2js', () async {
+        var openPort = await getOpenPort();
+        var args = ['serve', 'web:$openPort'];
+        if (!withDDC) {
+          args.add('--release');
+        }
+
+        var process = await runWebDev(args, workingDirectory: exampleDirectory);
+
+        var expectedItems = <Object>['[INFO] Succeeded'];
+        if (!withDDC) {
+          expectedItems.add(anyOf(
+              contains('with 0 outputs'), contains('Running dart2js with')));
+        }
+
+        var hostUrl = 'http://localhost:$openPort';
+
+        await expectLater(
+            process.stdout, emitsThrough('Serving `web` on $hostUrl'));
+
+        var client = new HttpClient();
+
+        try {
+          for (var entry in _testItems.entries) {
+            var url = Uri.parse('$hostUrl/${entry.key}');
+
+            var request = await client.getUrl(url);
+            var response = await request.close();
+
+            var shouldExist = (entry.value ?? withDDC) == withDDC;
+
+            if (entry.key == 'main.ddc.js') {
+              // This file SHOULD NOT be output in dart2js mode
+              // But there is an issue here
+              // https://github.com/dart-lang/build/issues/1033
+              shouldExist = true;
+            }
+
+            var expectedStatusCode = shouldExist ? 200 : 404;
+
+            expect(response.statusCode, expectedStatusCode);
+          }
+        } finally {
+          client.close(force: true);
+        }
+
+        process.signal(ProcessSignal.SIGTERM);
+
+        await process.shouldExit(-15);
       });
     }
   });
