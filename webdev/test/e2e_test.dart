@@ -111,9 +111,9 @@ void main() {
           client.close(force: true);
         }
 
-        process.signal(ProcessSignal.SIGTERM);
+        process.signal(ProcessSignal.SIGINT);
 
-        await process.shouldExit(-15);
+        await process.shouldExit(0);
       });
     }
   });
