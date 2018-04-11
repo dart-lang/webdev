@@ -14,6 +14,16 @@ import 'package:webdev/src/util.dart';
 
 import 'test_utils.dart';
 
+/// Key: name of file in web directory
+/// Value: `null`  - exists in both modes
+///        `true`  - DDC only
+///        `false` - dart2js only
+const _testItems = const <String, bool>{
+  'main.dart.js': null,
+  'main.dart.bootstrap.js': true,
+  'main.ddc.js': true
+};
+
 void main() {
   String exampleDirectory;
   setUpAll(() async {
@@ -47,13 +57,13 @@ void main() {
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
 
-        await d.file('main.dart.js', isNotEmpty).validate();
+        for (var entry in _testItems.entries) {
+          var shouldExist = (entry.value ?? withDDC) == withDDC;
 
-        for (var ddcFile in ['main.dart.bootstrap.js', 'main.ddc.js']) {
-          if (withDDC) {
-            await d.file(ddcFile, isNotEmpty).validate();
+          if (shouldExist) {
+            await d.file(entry.key, isNotEmpty).validate();
           } else {
-            await d.nothing(ddcFile).validate();
+            await d.nothing(entry.key).validate();
           }
         }
       });
