@@ -1,3 +1,7 @@
+## 0.1.5
+
+- Pass the arguments supporting `directory:port` for the `serve` command.
+
 ## 0.1.4
 
 - Require and use features from `build_runner` 0.8.2.
