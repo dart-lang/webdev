@@ -19,11 +19,11 @@ Future<TestProcess> runWebDev(List<String> args, {String workingDirectory}) {
 }
 
 Future checkProcessStdout(TestProcess process, List items) async {
-  var output = await process.stdoutStream().join('\n');
   for (var item in items) {
     if (item is! Matcher) {
       item = contains(item);
     }
-    expect(output, item);
+
+    await expectLater(process.stdout, emitsThrough(item));
   }
 }

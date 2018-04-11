@@ -42,8 +42,8 @@ name: sample
           var process = await runWebDev([command], workingDirectory: d.sandbox);
 
           await checkProcessStdout(process, [
-            r'''webdev could not run for this project.
-You must have a dependency on `build_runner` in `pubspec.yaml`.'''
+            'webdev could not run for this project.',
+            'You must have a dependency on `build_runner` in `pubspec.yaml`.'
           ]);
           await process.shouldExit(78);
         });
@@ -63,8 +63,8 @@ name: sample
           var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
           await checkProcessStdout(process, [
-            r'''webdev could not run for this project.
-You must have a dependency on `build_web_compilers` in `pubspec.yaml`.'''
+            'webdev could not run for this project.',
+            'You must have a dependency on `build_web_compilers` in `pubspec.yaml`.'
           ]);
           await process.shouldExit(78);
         });

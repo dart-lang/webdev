@@ -50,10 +50,6 @@ void main() {
         var process = await runWebDev(args, workingDirectory: exampleDirectory);
 
         var expectedItems = <Object>['[INFO] Succeeded'];
-        if (!withDDC) {
-          expectedItems.add(anyOf(
-              contains('with 0 outputs'), contains('Running dart2js with')));
-        }
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
