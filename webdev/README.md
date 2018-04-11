@@ -28,12 +28,13 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
 -r, --[no-]release                        Build with release mode defaults for builders.
 -o, --output                              A directory to write the result of a build to. Or a mapping from a top-level directory in the package to the directory to write a filtered build output to. For example "web:deploy".
 -v, --verbose                             Enables verbose logging.
+    --[no-]require-build-web-compilers    If a dependency on `build_web_compilers` is required to run.
+                                          (defaults to on)
+
     --hostname                            Specify the hostname to serve on
                                           (defaults to "localhost")
 
     --log-requests                        Enables logging for each request to the server.
-    --[no-]require-build-web-compilers    If a dependency on `build_web_compilers` is required to run.
-                                          (defaults to on)
 
 Run "webdev help" to see global options.
 ```
@@ -45,12 +46,14 @@ $ webdev help build
 Run builders to build a package.
 
 Usage: webdev build [arguments]
--h, --help            Print this usage information.
--r, --[no-]release    Build with release mode defaults for builders.
-                      (defaults to on)
+-h, --help                                Print this usage information.
+-r, --[no-]release                        Build with release mode defaults for builders.
+                                          (defaults to on)
 
--o, --output          A directory to write the result of a build to. Or a mapping from a top-level directory in the package to the directory to write a filtered build output to. For example "web:deploy".
--v, --verbose         Enables verbose logging.
+-o, --output                              A directory to write the result of a build to. Or a mapping from a top-level directory in the package to the directory to write a filtered build output to. For example "web:deploy".
+-v, --verbose                             Enables verbose logging.
+    --[no-]require-build-web-compilers    If a dependency on `build_web_compilers` is required to run.
+                                          (defaults to on)
 
 Run "webdev help" to see global options.
 ```

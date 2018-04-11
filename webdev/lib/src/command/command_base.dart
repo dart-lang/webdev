@@ -17,6 +17,8 @@ const _release = 'release';
 const _output = 'output';
 const _verbose = 'verbose';
 
+const _requireBuildWebCompilers = 'require-build-web-compilers';
+
 /// Extend to get a command with the arguments common to all build_runner
 /// commands.
 abstract class CommandBase extends Command<int> {
@@ -42,7 +44,11 @@ abstract class CommandBase extends Command<int> {
           abbr: 'v',
           defaultsTo: false,
           negatable: false,
-          help: 'Enables verbose logging.');
+          help: 'Enables verbose logging.')
+      ..addFlag(_requireBuildWebCompilers,
+          defaultsTo: true,
+          negatable: true,
+          help: 'If a dependency on `build_web_compilers` is required to run.');
   }
 
   List<String> getArgs() {
@@ -62,9 +68,10 @@ abstract class CommandBase extends Command<int> {
     return arguments;
   }
 
-  Future<int> runCore(String command,
-      {@required bool requireBuildWebCompilers}) async {
-    await checkPubspecLock(requireBuildWebCompilers: requireBuildWebCompilers);
+  Future<int> runCore(String command) async {
+    await checkPubspecLock(
+        requireBuildWebCompilers:
+            argResults[_requireBuildWebCompilers] as bool);
 
     var buildRunnerScript = await _buildRunnerScript();
 

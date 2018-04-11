@@ -1,6 +1,7 @@
-## 0.1.5
+## 0.2.0
 
 - Pass the arguments supporting `directory:port` for the `serve` command.
+- Add the requirement for `build_web_compilers` to `build` command.
 
 ## 0.1.4
 

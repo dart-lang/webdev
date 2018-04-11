@@ -16,5 +16,5 @@ class BuildCommand extends CommandBase {
   final description = 'Run builders to build a package.';
 
   @override
-  Future<int> run() => runCore('build', requireBuildWebCompilers: false);
+  Future<int> run() => runCore('build');
 }
