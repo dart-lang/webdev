@@ -39,6 +39,26 @@ void main() {
     await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
   });
 
+  test('build should fail if targetting an existing directory', () async {
+    await d.file('simple thing', 'throw-away').create();
+
+    var args = ['build', '-o', 'web:${d.sandbox}'];
+
+    var process = await runWebDev(args, workingDirectory: exampleDirectory);
+
+    // NOTE: We'd like this to be more useful
+    // See https://github.com/dart-lang/build/issues/1283
+
+    await expectLater(
+        process.stdout,
+        emitsThrough(
+            '[WARNING] Skipped creation of the merged output directory.'));
+    await expectLater(process.stderr,
+        emitsThrough('Failed to create merged output directories.'));
+
+    await process.shouldExit(1);
+  });
+
   group('should build with valid configuration', () {
     for (var withDDC in [true, false]) {
       test(withDDC ? 'DDC' : 'dart2js', () async {
