@@ -105,9 +105,7 @@ void main() {
               shouldExist = true;
             }
 
-            var expectedStatusCode = shouldExist ? 200 : 404;
-
-            expect(response.statusCode, expectedStatusCode);
+            expect(response.statusCode, shouldExist ? 200 : 404);
           }
         } finally {
           client.close(force: true);
