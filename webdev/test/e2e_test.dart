@@ -4,6 +4,7 @@
 
 @Timeout(const Duration(minutes: 5))
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -73,7 +74,7 @@ void main() {
   group('should serve with valid configuration', () {
     for (var withDDC in [true, false]) {
       test(withDDC ? 'DDC' : 'dart2js', () async {
-        var openPort = await getOpenPort();
+        var openPort = await _getOpenPort();
         var args = ['serve', 'web:$openPort'];
         if (!withDDC) {
           args.add('--release');
@@ -141,4 +142,23 @@ Map<String, String> _getPubEnvironment() {
   var environment = {'PUB_ENVIRONMENT': pubEnvironment};
 
   return environment;
+}
+
+/// Returns an open port by creating a temporary Socket
+Future<int> _getOpenPort() async {
+  ServerSocket socket;
+
+  try {
+    socket = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  } catch (_) {
+    // try again v/ V6 only. Slight possibility that V4 is disabled
+    socket = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V6, 0,
+        v6Only: true);
+  }
+
+  try {
+    return socket.port;
+  } finally {
+    await socket.close();
+  }
 }
