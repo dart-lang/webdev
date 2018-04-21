@@ -15,19 +15,19 @@ Future main(List<String> args) async {
   try {
     exitCode = await run(args);
   } on UsageException catch (e) {
-    print(yellow.wrap(e.message));
+    print(red.wrap(e.message));
     print(' ');
     print(e.usage);
     exitCode = ExitCode.usage.code;
   } on FileSystemException catch (e) {
-    print(yellow.wrap('$_boldApp could not run in the current directory.'));
+    print(red.wrap('$_boldApp could not run in the current directory.'));
     print(e.message);
     if (e.path != null) {
       print('  ${e.path}');
     }
     exitCode = ExitCode.config.code;
   } on PackageException catch (e) {
-    print(yellow.wrap('$_boldApp could not run for this project.'));
+    print(red.wrap('$_boldApp could not run for this project.'));
     for (var detail in e.details) {
       print(yellow.wrap(detail.error));
       if (detail.description != null) {
