@@ -19,6 +19,15 @@ void main() {
     await process.shouldExit(64);
   });
 
+  test('passing extra args to build fails with bad usage', () async {
+    var process = await runWebDev(['build', 'extra', 'args']);
+
+    await expectLater(process.stdout,
+        emits('Arguments were provided that are not supported: "extra args".'));
+
+    await process.shouldExit(64);
+  });
+
   var invalidRanges = <String, List<String>>{
     'build_runner': ['0.7.13+1', '0.9.0'],
     'build_web_compilers': ['0.3.5', '0.4.0']

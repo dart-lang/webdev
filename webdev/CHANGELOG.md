@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Exit with an error if unsupported arguments are passed to `build` command.
+
 ## 0.2.0
 
 - Pass the arguments supporting `directory:port` for the `serve` command.

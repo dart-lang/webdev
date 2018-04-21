@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+
+import 'package:args/command_runner.dart';
+
 import 'command_base.dart';
 
 /// Command to execute pub run build_runner build.
@@ -16,5 +19,13 @@ class BuildCommand extends CommandBase {
   final description = 'Run builders to build a package.';
 
   @override
-  Future<int> run() => runCore('build');
+  Future<int> run() {
+    if (argResults.rest.isNotEmpty) {
+      throw new UsageException(
+          'Arguments were provided that are not supported: '
+          '"${argResults.rest.join(' ')}".',
+          argParser.usage);
+    }
+    return runCore('build');
+  }
 }
