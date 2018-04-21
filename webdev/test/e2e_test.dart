@@ -56,7 +56,7 @@ void main() {
     await expectLater(process.stderr,
         emitsThrough('Failed to create merged output directories.'));
 
-    await process.shouldExit(1);
+    await process.shouldExit(73);
   });
 
   group('should build with valid configuration', () {
