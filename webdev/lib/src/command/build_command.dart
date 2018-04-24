@@ -26,6 +26,6 @@ class BuildCommand extends CommandBase {
           '"${argResults.rest.join(' ')}".',
           argParser.usage);
     }
-    return runCore('build');
+    return runCore('build', extraArgs: ['--fail-on-severe']);
   }
 }
