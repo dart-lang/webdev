@@ -30,7 +30,7 @@ void main() {
   setUpAll(() async {
     exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
 
-    var process = await TestProcess.start(pubPath, ['get'],
+    var process = await TestProcess.start(pubPath, ['upgrade'],
         workingDirectory: exampleDirectory, environment: _getPubEnvironment());
 
     await process.shouldExit(0);
@@ -57,10 +57,12 @@ void main() {
     await expectLater(
         process.stderr,
         emitsThrough(
-            '[SEVERE] Unable to create merged directory for ${d.sandbox}. '
+            '[SEVERE] Unable to create merged directory for ${d.sandbox}.'));
+    await expectLater(
+        process.stderr,
+        emitsThrough(
             'Choose a different directory or delete the contents of that '
-            'directory'));
-
+            'directory.'));
     await expectLater(process.stderr,
         emitsThrough('Failed to create merged output directories.'));
 
