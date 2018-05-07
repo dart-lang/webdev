@@ -1,7 +1,6 @@
-- Always pass the argument `--fail-on-severe` to the `build` command.
-
 ## 0.2.1
 
+- Always pass the argument `--fail-on-severe` to the `build` command.
 - Exit with an error if unsupported arguments are passed to `build` command.
 
 ## 0.2.0
