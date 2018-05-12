@@ -1,5 +1,5 @@
 name: webdev
-version: 0.2.1
+version: 0.2.2-dev
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
 description: >-
@@ -7,7 +7,7 @@ description: >-
   features for users and tools to build and deploy web applications with Dart.
 
 environment:
-  sdk: ">=2.0.0-dev.32.0 <2.0.0"
+  sdk: ">=2.0.0-dev.54.0 <2.0.0"
 
 dependencies:
   args: ^1.2.0
