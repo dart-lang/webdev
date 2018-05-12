@@ -1,3 +1,7 @@
+## 0.2.2
+
+- Update to use lower-case constants from Dart `^2.0.0-dev.54`.
+
 ## 0.2.1
 
 - Support `package:build_web_compilers` `v0.4.0`.
