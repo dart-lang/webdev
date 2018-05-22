@@ -124,14 +124,8 @@ void main() {
 
             var shouldExist = (entry.value ?? withDDC) == withDDC;
 
-            if (entry.key == 'main.ddc.js') {
-              // This file SHOULD NOT be output in dart2js mode
-              // But there is an issue here
-              // https://github.com/dart-lang/build/issues/1033
-              shouldExist = true;
-            }
-
-            expect(response.statusCode, shouldExist ? 200 : 404);
+            expect(response.statusCode, shouldExist ? 200 : 404,
+                reason: 'Expecting "$url"? $shouldExist');
           }
         } finally {
           client.close(force: true);
