@@ -15,8 +15,9 @@ import '../pubspec.dart';
 const _packagesFileName = '.packages';
 const _release = 'release';
 const _output = 'output';
-const _outputNone = 'NONE';
 const _verbose = 'verbose';
+
+const outputNone = 'NONE';
 
 const _requireBuildWebCompilers = 'build-web-compilers';
 
@@ -40,7 +41,9 @@ abstract class CommandBase extends Command<int> {
         defaultsTo: outputDefault,
         help: 'A directory to write the result of a build to. Or a mapping '
             'from a top-level directory in the package to the directory to '
-            'write a filtered build output to. For example "web:deploy".',
+            'write a filtered build output to. For example "web:deploy".\n'
+            'A value of "NONE" indicates that no "--output" value should be '
+            'passed to `build_runner`.',
       )
       ..addFlag(_verbose,
           abbr: 'v',
@@ -60,7 +63,7 @@ abstract class CommandBase extends Command<int> {
     }
 
     var output = argResults[_output] as String;
-    if (output != null && output != _outputNone) {
+    if (output != null && output != outputNone) {
       arguments.addAll(['--$_output', output]);
     }
 

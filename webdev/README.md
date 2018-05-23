@@ -27,6 +27,7 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
 -h, --help                        Print this usage information.
 -r, --[no-]release                Build with release mode defaults for builders.
 -o, --output                      A directory to write the result of a build to. Or a mapping from a top-level directory in the package to the directory to write a filtered build output to. For example "web:deploy".
+                                  A value of "NONE" indicates that no "--output" value should be passed to `build_runner`.
                                   (defaults to "NONE")
 
 -v, --verbose                     Enables verbose logging.
@@ -53,6 +54,7 @@ Usage: webdev build [arguments]
                                   (defaults to on)
 
 -o, --output                      A directory to write the result of a build to. Or a mapping from a top-level directory in the package to the directory to write a filtered build output to. For example "web:deploy".
+                                  A value of "NONE" indicates that no "--output" value should be passed to `build_runner`.
                                   (defaults to "web:build")
 
 -v, --verbose                     Enables verbose logging.

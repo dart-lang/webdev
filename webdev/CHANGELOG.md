@@ -1,8 +1,6 @@
+## 0.2.2
 - Add default vaule for `--output` to be `build:web` for `build` command 
   and `NONE` for the `serve` command.
-
-## 0.2.2
-
 - Update to use lower-case constants from Dart `^2.0.0-dev.54`.
 
 ## 0.2.1
