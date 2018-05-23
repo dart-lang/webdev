@@ -10,7 +10,7 @@ import 'command_base.dart';
 
 /// Command to execute pub run build_runner build.
 class BuildCommand extends CommandBase {
-  BuildCommand() : super(releaseDefault: true);
+  BuildCommand() : super(releaseDefault: true, outputDefault: 'web:build');
 
   @override
   final name = 'build';

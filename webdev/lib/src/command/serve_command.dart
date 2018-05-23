@@ -18,7 +18,7 @@ class ServeCommand extends CommandBase {
   @override
   String get invocation => '${super.invocation} [<directory>[:<port>]]...';
 
-  ServeCommand() : super(releaseDefault: false) {
+  ServeCommand() : super(releaseDefault: false, outputDefault: outputNone) {
     // TODO(nshahan) Expose more args passed to build_runner serve.
     // build_runner might expose args for use in wrapping scripts like this one.
     argParser

@@ -17,6 +17,8 @@ const _release = 'release';
 const _output = 'output';
 const _verbose = 'verbose';
 
+const outputNone = 'NONE';
+
 const _requireBuildWebCompilers = 'build-web-compilers';
 
 /// Extend to get a command with the arguments common to all build_runner
@@ -24,7 +26,7 @@ const _requireBuildWebCompilers = 'build-web-compilers';
 abstract class CommandBase extends Command<int> {
   final bool releaseDefault;
 
-  CommandBase({@required this.releaseDefault}) {
+  CommandBase({@required this.releaseDefault, @required String outputDefault}) {
     // TODO(nshahan) Expose more common args passed to build_runner commands.
     // build_runner might expose args for use in wrapping scripts like this one.
     argParser
@@ -36,9 +38,12 @@ abstract class CommandBase extends Command<int> {
       ..addOption(
         _output,
         abbr: 'o',
+        defaultsTo: outputDefault,
         help: 'A directory to write the result of a build to. Or a mapping '
             'from a top-level directory in the package to the directory to '
-            'write a filtered build output to. For example "web:deploy".',
+            'write a filtered build output to. For example "web:deploy".\n'
+            'A value of "NONE" indicates that no "--output" value should be '
+            'passed to `build_runner`.',
       )
       ..addFlag(_verbose,
           abbr: 'v',
@@ -58,7 +63,7 @@ abstract class CommandBase extends Command<int> {
     }
 
     var output = argResults[_output] as String;
-    if (output != null) {
+    if (output != null && output != outputNone) {
       arguments.addAll(['--$_output', output]);
     }
 
