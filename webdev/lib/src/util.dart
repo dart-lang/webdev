@@ -17,7 +17,6 @@ final String _sdkDir = (() {
   return aboveExecutable;
 })();
 
-final String dartPath =
-    p.join(_sdkDir, 'bin', Platform.isWindows ? 'dart.exe' : 'dart');
+final String dartPath = p.join(_sdkDir, 'bin', 'dart');
 final String pubPath =
     p.join(_sdkDir, 'bin', Platform.isWindows ? 'pub.bat' : 'pub');
