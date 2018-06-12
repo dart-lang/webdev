@@ -7,7 +7,7 @@ import 'package:angular/angular.dart';
 // ignore: uri_has_not_been_generated
 import 'package:webdev_example_app/app_component.template.dart' as ng;
 
-main() {
+void main() {
   // ignore: argument_type_not_assignable
   runApp(ng.AppComponentNgFactory);
 }
