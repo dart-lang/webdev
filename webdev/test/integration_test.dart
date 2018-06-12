@@ -245,8 +245,8 @@ const _supportedBuildRunnerVersion = '0.8.2';
 const _supportedWebCompilersVersion = '0.4.0';
 
 String _pubspecLock(
-    {String runnerVersion: _supportedBuildRunnerVersion,
-    String webCompilersVersion: _supportedWebCompilersVersion}) {
+    {String runnerVersion = _supportedBuildRunnerVersion,
+    String webCompilersVersion = _supportedWebCompilersVersion}) {
   var buffer = new StringBuffer('''
 # Copy-pasted from a valid run
 packages:
