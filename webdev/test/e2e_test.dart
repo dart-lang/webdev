@@ -55,16 +55,14 @@ void main() {
             '[WARNING] Skipped creation of the merged output directory.'));
 
     await expectLater(
-        process.stderr,
+        process.stdout,
         emitsThrough(
             '[SEVERE] Unable to create merged directory for ${d.sandbox}.'));
     await expectLater(
-        process.stderr,
+        process.stdout,
         emitsThrough(
             'Choose a different directory or delete the contents of that '
             'directory.'));
-    await expectLater(process.stderr,
-        emitsThrough('Failed to create merged output directories.'));
 
     await process.shouldExit(73);
   });

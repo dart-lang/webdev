@@ -1,3 +1,8 @@
+## 0.2.3
+
+- Update required Dart SDK and `package:build_runner` to support latest
+  versions.
+
 ## 0.2.2
 - Add default value for `--output` to be `build:web` for the `build` command 
   and `NONE` for the `serve` command.

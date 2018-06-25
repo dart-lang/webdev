@@ -29,7 +29,7 @@ void main() {
   });
 
   var invalidRanges = <String, List<String>>{
-    'build_runner': ['0.7.13+1', '0.9.0'],
+    'build_runner': ['0.8.9', '0.10.0'],
     'build_web_compilers': ['0.3.5', '0.5.0']
   };
 
@@ -115,7 +115,7 @@ name: sample
               String supportedRange;
               if (entry.key == 'build_runner') {
                 buildRunnerVersion = version;
-                supportedRange = '^0.8.2';
+                supportedRange = '>=0.8.10 <0.10.0';
               } else {
                 assert(entry.key == 'build_web_compilers');
                 webCompilersVersion = version;
@@ -241,7 +241,7 @@ dependencies:
   }
 }
 
-const _supportedBuildRunnerVersion = '0.8.2';
+const _supportedBuildRunnerVersion = '0.9.0';
 const _supportedWebCompilersVersion = '0.4.0';
 
 String _pubspecLock(
