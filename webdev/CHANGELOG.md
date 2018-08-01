@@ -1,3 +1,7 @@
+## 0.2.3+2
+
+- Support latest `package:build_runner`.
+
 ## 0.2.3+1
 
 - Support Dart 2 stable.
