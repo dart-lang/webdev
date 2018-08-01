@@ -101,7 +101,7 @@ Future checkPubspecLock({@required bool requireBuildWebCompilers}) async {
     }
   }
 
-  checkPackage('build_runner', new VersionConstraint.parse('>=0.8.10 <0.10.0'));
+  checkPackage('build_runner', new VersionConstraint.parse('>=0.8.10 <0.11.0'));
 
   if (requireBuildWebCompilers) {
     checkPackage(
