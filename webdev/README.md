@@ -34,6 +34,7 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
     --[no-]build-web-compilers    If a dependency on `build_web_compilers` is required to run.
                                   (defaults to on)
 
+    --live-reload                 Automatically refreshes the page after each build.
     --hostname                    Specify the hostname to serve on
                                   (defaults to "localhost")
 
@@ -60,6 +61,8 @@ Usage: webdev build [arguments]
 -v, --verbose                     Enables verbose logging.
     --[no-]build-web-compilers    If a dependency on `build_web_compilers` is required to run.
                                   (defaults to on)
+
+    --live-reload                 Automatically refreshes the page after each build.
 
 Run "webdev help" to see global options.
 ```
