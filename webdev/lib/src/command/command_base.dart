@@ -16,6 +16,7 @@ const _packagesFileName = '.packages';
 const _release = 'release';
 const _output = 'output';
 const _verbose = 'verbose';
+const _liveReload = 'live-reload';
 
 const outputNone = 'NONE';
 
@@ -53,7 +54,11 @@ abstract class CommandBase extends Command<int> {
       ..addFlag(_requireBuildWebCompilers,
           defaultsTo: true,
           negatable: true,
-          help: 'If a dependency on `build_web_compilers` is required to run.');
+          help: 'If a dependency on `build_web_compilers` is required to run.')
+      ..addFlag(_liveReload,
+          defaultsTo: false,
+          negatable: false,
+          help: 'Automatically refreshes the page after each build.');
   }
 
   List<String> getArgs() {
@@ -69,6 +74,9 @@ abstract class CommandBase extends Command<int> {
 
     if (argResults[_verbose] as bool) {
       arguments.add('--$_verbose');
+    }
+    if (argResults[_liveReload] as bool) {
+      arguments.add('--$_liveReload');
     }
     return arguments;
   }
@@ -195,6 +203,6 @@ void main(List<String> args, [SendPort sendPort]) async {
   var buildScript = await generateBuildScript();
   var scriptFile = new File(scriptLocation)..createSync(recursive: true);
   scriptFile.writeAsStringSync(buildScript);
-  sendPort.send(p.absolute(scriptLocation));  
+  sendPort.send(p.absolute(scriptLocation));
 }
 ''';
