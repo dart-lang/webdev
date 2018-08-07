@@ -1,4 +1,4 @@
-## 0.2.3+3
+## 0.2.4
 
 - Added support for the --live-reload flag, and require build_runner 0.10.1.
 
