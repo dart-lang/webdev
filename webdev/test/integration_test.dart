@@ -115,7 +115,7 @@ name: sample
               String supportedRange;
               if (entry.key == 'build_runner') {
                 buildRunnerVersion = version;
-                supportedRange = '>=0.8.10 <0.11.0';
+                supportedRange = '>=0.10.1 <0.11.0';
               } else {
                 assert(entry.key == 'build_web_compilers');
                 webCompilersVersion = version;
@@ -241,7 +241,7 @@ dependencies:
   }
 }
 
-const _supportedBuildRunnerVersion = '0.9.0';
+const _supportedBuildRunnerVersion = '0.10.1';
 const _supportedWebCompilersVersion = '0.4.0';
 
 String _pubspecLock(
