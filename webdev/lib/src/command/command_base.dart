@@ -16,7 +16,6 @@ const _packagesFileName = '.packages';
 const _release = 'release';
 const _output = 'output';
 const _verbose = 'verbose';
-const _liveReload = 'live-reload';
 
 const outputNone = 'NONE';
 
@@ -54,14 +53,10 @@ abstract class CommandBase extends Command<int> {
       ..addFlag(_requireBuildWebCompilers,
           defaultsTo: true,
           negatable: true,
-          help: 'If a dependency on `build_web_compilers` is required to run.')
-      ..addFlag(_liveReload,
-          defaultsTo: false,
-          negatable: false,
-          help: 'Automatically refreshes the page after each build.');
+          help: 'If a dependency on `build_web_compilers` is required to run.');
   }
 
-  List<String> getArgs() {
+  List<String> getArgs(PubspecLock pubspecLock) {
     var arguments = <String>[];
     if ((argResults[_release] as bool) ?? releaseDefault) {
       arguments.add('--$_release');
@@ -75,22 +70,20 @@ abstract class CommandBase extends Command<int> {
     if (argResults[_verbose] as bool) {
       arguments.add('--$_verbose');
     }
-    if (argResults[_liveReload] as bool) {
-      arguments.add('--$_liveReload');
-    }
     return arguments;
   }
 
   Future<int> runCore(String command, {List<String> extraArgs}) async {
-    await checkPubspecLock(
+    var pubspecLock = await PubspecLock.read();
+    await checkPubspecLock(pubspecLock,
         requireBuildWebCompilers:
             argResults[_requireBuildWebCompilers] as bool);
 
-    var buildRunnerScript = await _buildRunnerScript();
-
     final arguments = [command]
       ..addAll(extraArgs ?? const [])
-      ..addAll(getArgs());
+      ..addAll(getArgs(pubspecLock));
+
+    var buildRunnerScript = await _buildRunnerScript();
 
     var exitCode = 0;
 

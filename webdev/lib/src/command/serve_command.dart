@@ -4,7 +4,12 @@
 
 import 'dart:async';
 
+import 'package:pub_semver/pub_semver.dart';
+
+import '../pubspec.dart';
 import 'command_base.dart';
+
+const _liveReload = 'live-reload';
 
 /// Command to execute pub run build_runner serve.
 class ServeCommand extends CommandBase {
@@ -27,12 +32,16 @@ class ServeCommand extends CommandBase {
       ..addFlag('log-requests',
           defaultsTo: false,
           negatable: false,
-          help: 'Enables logging for each request to the server.');
+          help: 'Enables logging for each request to the server.')
+      ..addFlag(_liveReload,
+          defaultsTo: false,
+          negatable: false,
+          help: 'Automatically refreshes the page after each build.');
   }
 
   @override
-  List<String> getArgs() {
-    var arguments = super.getArgs();
+  List<String> getArgs(PubspecLock pubspecLock) {
+    var arguments = super.getArgs(pubspecLock);
 
     var hostname = argResults['hostname'] as String;
     if (hostname != null) {
@@ -41,6 +50,16 @@ class ServeCommand extends CommandBase {
 
     if (argResults['log-requests'] == true) {
       arguments.add('--log-requests');
+    }
+
+    if (argResults[_liveReload] as bool) {
+      var issues = pubspecLock.checkPackage(
+          'build_runner', new VersionConstraint.parse('>=0.10.1'));
+      if (issues.isEmpty) {
+        arguments.add('--$_liveReload');
+      } else {
+        throw new PackageException(issues, unsupportedArgument: _liveReload);
+      }
     }
 
     // The remaining arguments should be interpreted as [<directory>[:<port>]].
