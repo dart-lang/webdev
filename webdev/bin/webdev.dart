@@ -27,7 +27,10 @@ Future main(List<String> args) async {
     }
     exitCode = ExitCode.config.code;
   } on PackageException catch (e) {
-    print(red.wrap('$_boldApp could not run for this project.'));
+    var withUnsupportedArg =
+        e.unsupportedArgument != null ? ' with --${e.unsupportedArgument}' : '';
+    print(red
+        .wrap('$_boldApp could not run$withUnsupportedArg for this project.'));
     for (var detail in e.details) {
       print(yellow.wrap(detail.error));
       if (detail.description != null) {

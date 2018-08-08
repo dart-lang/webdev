@@ -14,7 +14,9 @@ import 'util.dart';
 class PackageException implements Exception {
   final List<PackageExceptionDetails> details;
 
-  PackageException._(this.details);
+  final String unsupportedArgument;
+
+  PackageException(this.details, {this.unsupportedArgument});
 }
 
 class PackageExceptionDetails {
@@ -45,7 +47,7 @@ Future _runPubDeps() async {
   var result = Process.runSync(pubPath, ['deps']);
 
   if (result.exitCode == 65 || result.exitCode == 66) {
-    throw new PackageException._(
+    throw new PackageException(
         [new PackageExceptionDetails._((result.stderr as String).trim())]);
   }
 
@@ -58,21 +60,29 @@ Future _runPubDeps() async {
   }
 }
 
-Future checkPubspecLock({@required bool requireBuildWebCompilers}) async {
-  await _runPubDeps();
+class PubspecLock {
+  final YamlMap _packages;
 
-  var pubspecLock =
-      loadYaml(await new File('pubspec.lock').readAsString()) as YamlMap;
+  PubspecLock(this._packages);
 
-  var packages = pubspecLock['packages'] as YamlMap;
+  static Future<PubspecLock> read([String path]) async {
+    path ??= 'pubspec.lock';
+    await _runPubDeps();
 
-  var issues = <PackageExceptionDetails>[];
+    var pubspecLock = loadYaml(await new File(path).readAsString()) as YamlMap;
 
-  void checkPackage(String pkgName, VersionConstraint constraint) {
+    var packages = pubspecLock['packages'] as YamlMap;
+    return new PubspecLock(packages);
+  }
+
+  List<PackageExceptionDetails> checkPackage(
+      String pkgName, VersionConstraint constraint,
+      {String forArgument}) {
+    var issues = <PackageExceptionDetails>[];
     var missingDetails =
         PackageExceptionDetails.missingDep(pkgName, constraint);
 
-    var pkgDataMap = (packages == null) ? null : packages[pkgName] as YamlMap;
+    var pkgDataMap = (_packages == null) ? null : _packages[pkgName] as YamlMap;
     if (pkgDataMap == null) {
       issues.add(missingDetails);
     } else {
@@ -99,16 +109,23 @@ Future checkPubspecLock({@required bool requireBuildWebCompilers}) async {
         //       If a user is playing around here, they are on their own.
       }
     }
+    return issues;
   }
+}
 
-  checkPackage('build_runner', new VersionConstraint.parse('>=0.10.1 <0.11.0'));
+Future<void> checkPubspecLock(PubspecLock pubspecLock,
+    {@required bool requireBuildWebCompilers}) async {
+  var issues = <PackageExceptionDetails>[];
+
+  issues.addAll(pubspecLock.checkPackage(
+      'build_runner', new VersionConstraint.parse('>=0.8.10 <0.11.0')));
 
   if (requireBuildWebCompilers) {
-    checkPackage(
-        'build_web_compilers', new VersionConstraint.parse('>=0.3.6 <0.5.0'));
+    issues.addAll(pubspecLock.checkPackage(
+        'build_web_compilers', new VersionConstraint.parse('>=0.3.6 <0.5.0')));
   }
 
   if (issues.isNotEmpty) {
-    throw new PackageException._(issues);
+    throw new PackageException(issues);
   }
 }

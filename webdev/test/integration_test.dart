@@ -115,7 +115,7 @@ name: sample
               String supportedRange;
               if (entry.key == 'build_runner') {
                 buildRunnerVersion = version;
-                supportedRange = '>=0.10.1 <0.11.0';
+                supportedRange = '>=0.8.10 <0.11.0';
               } else {
                 assert(entry.key == 'build_web_compilers');
                 webCompilersVersion = version;
@@ -152,6 +152,40 @@ name: sample
           }
         });
       }
+
+      test(
+          '--live-reload at invalid version <$_liveReloadBuildRunnerVersion '
+          ' should fail', () async {
+        var buildRunnerVersion = '0.10.0';
+        var supportedRange = '>=$_liveReloadBuildRunnerVersion';
+
+        await d.file('pubspec.yaml', '''
+name: sample
+''').create();
+
+        await d
+            .file(
+                'pubspec.lock',
+                _pubspecLock(
+                    runnerVersion: buildRunnerVersion,
+                    webCompilersVersion: _supportedWebCompilersVersion))
+            .create();
+
+        await d.file('.packages', '''
+''').create();
+
+        var process = await runWebDev(['serve', '--live-reload'],
+            workingDirectory: d.sandbox);
+
+        await checkProcessStdout(process, [
+          'webdev could not run with --live-reload for this project.',
+          // See https://github.com/dart-lang/linter/issues/965
+          // ignore: prefer_adjacent_string_concatenation
+          'The `build_runner` version – 0.10.0 – ' +
+              'is not within the allowed constraint – $supportedRange.'
+        ]);
+        await process.shouldExit(78);
+      });
 
       test('no pubspec.yaml', () async {
         var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
@@ -241,7 +275,8 @@ dependencies:
   }
 }
 
-const _supportedBuildRunnerVersion = '0.10.1';
+const _supportedBuildRunnerVersion = '0.9.0';
+const _liveReloadBuildRunnerVersion = '0.10.1';
 const _supportedWebCompilersVersion = '0.4.0';
 
 String _pubspecLock(
