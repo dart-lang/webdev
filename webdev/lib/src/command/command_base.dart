@@ -83,7 +83,10 @@ abstract class CommandBase extends Command<int> {
       ..addAll(extraArgs ?? const [])
       ..addAll(getArgs(pubspecLock));
 
+    stdout.write('Creating build script');
+    var stopwatch = new Stopwatch()..start();
     var buildRunnerScript = await _buildRunnerScript();
+    stdout.writeln(', took ${stopwatch.elapsedMilliseconds}ms');
 
     var exitCode = 0;
 
