@@ -1,3 +1,8 @@
+## 0.2.4+1
+
+- Print `Creating build script` on startup so the user is aware of what the
+  process is doing.
+
 ## 0.2.4
 
 - Added support for the --live-reload flag, if on build_runner >=0.10.1.
