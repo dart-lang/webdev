@@ -189,7 +189,7 @@ name: sample
 
       test(
           '--hot-reload at invalid version <$_hotReloadBuildRunnerVersion '
-              ' should fail', () async {
+          ' should fail', () async {
         var buildRunnerVersion = '0.10.1';
         var supportedRange = '>=$_hotReloadBuildRunnerVersion';
 
@@ -199,10 +199,10 @@ name: sample
 
         await d
             .file(
-            'pubspec.lock',
-            _pubspecLock(
-                runnerVersion: buildRunnerVersion,
-                webCompilersVersion: _supportedWebCompilersVersion))
+                'pubspec.lock',
+                _pubspecLock(
+                    runnerVersion: buildRunnerVersion,
+                    webCompilersVersion: _supportedWebCompilersVersion))
             .create();
 
         await d.file('.packages', '''

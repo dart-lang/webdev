@@ -60,11 +60,10 @@ class ServeCommand extends CommandBase {
       arguments.add('--log-requests');
     }
 
-    if (argResults[_liveReload] as bool &&
-        argResults[_hotReload] as bool) {
+    if (argResults[_liveReload] as bool && argResults[_hotReload] as bool) {
       throw UsageException(
           'Options --$_liveReload and --$_hotReload '
-              "can't both be used together",
+          "can't both be used together",
           usage);
     } else if (argResults[_liveReload] as bool) {
       var issues = pubspecLock.checkPackage(
