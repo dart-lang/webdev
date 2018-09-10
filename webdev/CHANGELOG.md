@@ -1,3 +1,7 @@
+## 0.2.5
+
+- Added support for the --hot-reload flag, if on build_runner >=0.10.2.
+
 ## 0.2.4+1
 
 - Print `Creating build script` on startup so the user is aware of what the

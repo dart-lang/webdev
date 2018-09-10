@@ -187,6 +187,40 @@ name: sample
         await process.shouldExit(78);
       });
 
+      test(
+          '--hot-reload at invalid version <$_hotReloadBuildRunnerVersion '
+          ' should fail', () async {
+        var buildRunnerVersion = '0.10.1';
+        var supportedRange = '>=$_hotReloadBuildRunnerVersion';
+
+        await d.file('pubspec.yaml', '''
+name: sample
+''').create();
+
+        await d
+            .file(
+                'pubspec.lock',
+                _pubspecLock(
+                    runnerVersion: buildRunnerVersion,
+                    webCompilersVersion: _supportedWebCompilersVersion))
+            .create();
+
+        await d.file('.packages', '''
+''').create();
+
+        var process = await runWebDev(['serve', '--hot-reload'],
+            workingDirectory: d.sandbox);
+
+        await checkProcessStdout(process, [
+          'webdev could not run with --hot-reload for this project.',
+          // See https://github.com/dart-lang/linter/issues/965
+          // ignore: prefer_adjacent_string_concatenation
+          'The `build_runner` version – 0.10.1 – ' +
+              'is not within the allowed constraint – $supportedRange.'
+        ]);
+        await process.shouldExit(78);
+      });
+
       test('no pubspec.yaml', () async {
         var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
@@ -277,6 +311,7 @@ dependencies:
 
 const _supportedBuildRunnerVersion = '0.9.0';
 const _liveReloadBuildRunnerVersion = '0.10.1';
+const _hotReloadBuildRunnerVersion = '0.10.2';
 const _supportedWebCompilersVersion = '0.4.0';
 
 String _pubspecLock(

@@ -4,12 +4,14 @@
 
 import 'dart:async';
 
+import 'package:args/command_runner.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../pubspec.dart';
 import 'command_base.dart';
 
 const _liveReload = 'live-reload';
+const _hotReload = 'hot-reload';
 
 /// Command to execute pub run build_runner serve.
 class ServeCommand extends CommandBase {
@@ -36,7 +38,14 @@ class ServeCommand extends CommandBase {
       ..addFlag(_liveReload,
           defaultsTo: false,
           negatable: false,
-          help: 'Automatically refreshes the page after each build.');
+          help: 'Automatically refreshes the page after each build.\n'
+              "Can't be used together with --$_hotReload.")
+      ..addFlag(_hotReload,
+          defaultsTo: false,
+          negatable: false,
+          help: 'Automatically reloads changed modules after each build.\n'
+              'See https://github.com/dart-lang/build/blob/master/docs/hot_module_reloading.md for more info.\n'
+              "Can't be used together with --$_liveReload.");
   }
 
   @override
@@ -52,13 +61,30 @@ class ServeCommand extends CommandBase {
       arguments.add('--log-requests');
     }
 
-    if (argResults[_liveReload] as bool) {
+    if (argResults[_liveReload] as bool && argResults[_hotReload] as bool) {
+      throw UsageException(
+          'Options --$_liveReload and --$_hotReload '
+          "can't both be used together",
+          usage);
+    } else if (argResults[_liveReload] as bool) {
       var issues = pubspecLock.checkPackage(
           'build_runner', new VersionConstraint.parse('>=0.10.1'));
+      issues.addAll(pubspecLock.checkPackage(
+          'build_web_compilers', new VersionConstraint.parse('>=0.4.2')));
       if (issues.isEmpty) {
         arguments.add('--$_liveReload');
       } else {
         throw new PackageException(issues, unsupportedArgument: _liveReload);
+      }
+    } else if (argResults[_hotReload] as bool) {
+      var issues = pubspecLock.checkPackage(
+          'build_runner', new VersionConstraint.parse('>=0.10.2'));
+      issues.addAll(pubspecLock.checkPackage(
+          'build_web_compilers', new VersionConstraint.parse('>=0.4.3')));
+      if (issues.isEmpty) {
+        arguments.add('--$_hotReload');
+      } else {
+        throw new PackageException(issues, unsupportedArgument: _hotReload);
       }
     }
 
