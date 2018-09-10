@@ -38,12 +38,13 @@ class ServeCommand extends CommandBase {
       ..addFlag(_liveReload,
           defaultsTo: false,
           negatable: false,
-          help: 'Automatically refreshes the page after each build. '
+          help: 'Automatically refreshes the page after each build.\n'
               "Can't be used together with --$_hotReload.")
       ..addFlag(_hotReload,
           defaultsTo: false,
           negatable: false,
-          help: 'Automatically refreshes the page after each build. '
+          help: 'Automatically reloads changed modules after each build.\n'
+              'See https://github.com/dart-lang/build/blob/master/docs/hot_module_reloading.md for more info.\n'
               "Can't be used together with --$_liveReload.");
   }
 
