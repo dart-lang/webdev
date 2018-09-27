@@ -1,3 +1,7 @@
+## 1.0.0
+
+- Support `package:build_runner` `v1.0.0`.
+
 ## 0.2.5
 
 - Added support for the --hot-reload flag, if on build_runner >=0.10.2.

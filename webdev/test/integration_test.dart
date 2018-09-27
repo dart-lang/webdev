@@ -29,7 +29,7 @@ void main() {
   });
 
   var invalidRanges = <String, List<String>>{
-    'build_runner': ['0.8.9', '0.11.0'],
+    'build_runner': ['0.8.9', '2.0.0'],
     'build_web_compilers': ['0.3.5', '0.5.0']
   };
 
@@ -115,7 +115,7 @@ name: sample
               String supportedRange;
               if (entry.key == 'build_runner') {
                 buildRunnerVersion = version;
-                supportedRange = '>=0.8.10 <0.11.0';
+                supportedRange = '>=0.8.10 <2.0.0';
               } else {
                 assert(entry.key == 'build_web_compilers');
                 webCompilersVersion = version;
