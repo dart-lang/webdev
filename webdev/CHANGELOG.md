@@ -1,6 +1,7 @@
 ## 1.0.0
 
 - Support `package:build_runner` `v1.0.0`.
+- Add `--version` to CLI.
 
 ## 0.2.5
 
