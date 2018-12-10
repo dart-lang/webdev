@@ -30,7 +30,7 @@ void main() {
 
   var invalidRanges = <String, List<String>>{
     'build_runner': ['0.8.9', '2.0.0'],
-    'build_web_compilers': ['0.3.5', '0.5.0']
+    'build_web_compilers': ['0.3.5', '2.0.0']
   };
 
   for (var command in ['build', 'serve']) {
@@ -119,7 +119,7 @@ name: sample
               } else {
                 assert(entry.key == 'build_web_compilers');
                 webCompilersVersion = version;
-                supportedRange = '>=0.3.6 <0.5.0';
+                supportedRange = '>=0.3.6 <2.0.0';
               }
 
               await d.file('pubspec.yaml', '''
