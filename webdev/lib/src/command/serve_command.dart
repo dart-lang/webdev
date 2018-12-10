@@ -69,8 +69,8 @@ class ServeCommand extends CommandBase {
     } else if (argResults[_liveReload] as bool) {
       var issues = pubspecLock.checkPackage(
           'build_runner', new VersionConstraint.parse('>=0.10.1'));
-      issues.addAll(pubspecLock.checkPackage(
-          'build_web_compilers', new VersionConstraint.parse('>=0.4.2 <2.0.0')));
+      issues.addAll(pubspecLock.checkPackage('build_web_compilers',
+          new VersionConstraint.parse('>=0.4.2 <2.0.0')));
       if (issues.isEmpty) {
         arguments.add('--$_liveReload');
       } else {
