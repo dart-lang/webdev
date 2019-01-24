@@ -39,15 +39,20 @@ void main() {
     await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
   });
 
+  tearDown(() {
+    var buildDir = p.join(exampleDirectory, '.dart_tool', 'build');
+    var dir = Directory(buildDir);
+    if (dir.existsSync()) {
+      dir.deleteSync(recursive: true);
+    }
+  });
+
   test('build should fail if targetting an existing directory', () async {
     await d.file('simple thing', 'throw-away').create();
 
     var args = ['build', '-o', 'web:${d.sandbox}'];
 
     var process = await runWebDev(args, workingDirectory: exampleDirectory);
-
-    // NOTE: We'd like this to be more useful
-    // See https://github.com/dart-lang/build/issues/1283
 
     await expectLater(
         process.stdout,
