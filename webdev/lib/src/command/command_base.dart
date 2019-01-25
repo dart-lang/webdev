@@ -73,12 +73,16 @@ abstract class CommandBase extends Command<int> {
     return arguments;
   }
 
-  Future<int> runCore(String command, {List<String> extraArgs}) async {
-    var pubspecLock = await PubspecLock.read();
+  Future<PubspecLock> readPubspecLock([String path]) async {
+    var pubspecLock = await PubspecLock.read(path);
     await checkPubspecLock(pubspecLock,
         requireBuildWebCompilers:
             argResults[_requireBuildWebCompilers] as bool);
+    return pubspecLock;
+  }
 
+  Future<int> runCore(String command, {List<String> extraArgs}) async {
+    var pubspecLock = await readPubspecLock();
     final arguments = [command]
       ..addAll(extraArgs ?? const [])
       ..addAll(getArgs(pubspecLock));
