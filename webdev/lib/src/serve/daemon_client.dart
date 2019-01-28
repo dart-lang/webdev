@@ -7,13 +7,14 @@ import 'dart:io';
 
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
+import 'package:webdev/src/util.dart';
 
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(
         String workingDirectory, List<String> options) =>
     BuildDaemonClient.connect(
       workingDirectory,
-      ['pub', 'run', 'build_runner', 'daemon']..addAll(options),
+      [pubPath, 'run', 'build_runner', 'daemon']..addAll(options),
     );
 
 /// Returns the port of the daemon asset server.
