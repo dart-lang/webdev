@@ -20,9 +20,7 @@ class AssetHandler {
   );
 
   Handler get handler {
-    _handler ??= Cascade()
-        .add(proxyHandler('http://localhost:$_daemonPort/$_target/'))
-        .handler;
+    _handler ??= proxyHandler('http://localhost:$_daemonPort/$_target/');
     return _handler;
   }
 }

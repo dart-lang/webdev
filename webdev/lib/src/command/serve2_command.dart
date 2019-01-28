@@ -42,13 +42,7 @@ class Serve2Command extends CommandBase {
       ..addFlag('log-requests',
           defaultsTo: false,
           negatable: false,
-          help: 'Enables logging for each request to the server.')
-      // For development purposes.
-      ..addOption(
-        'working-directory',
-        hide: true,
-        help: 'Set the working directory for this command.',
-      );
+          help: 'Enables logging for each request to the server.');
   }
 
   @override
@@ -67,8 +61,7 @@ class Serve2Command extends CommandBase {
 
   @override
   Future<int> run() async {
-    var workingDirectory = argResults['working-directory'] as String;
-    workingDirectory ??= Directory.current.path;
+    var workingDirectory = Directory.current.path;
 
     var hostname = argResults['hostname'] as String;
     var logRequests = argResults['log-requests'] as bool;
@@ -106,7 +99,7 @@ class Serve2Command extends CommandBase {
     }
 
     var manager = ServerManager(
-      getDaemonPort(workingDirectory),
+      daemonPort(workingDirectory),
       hostname,
       targetPorts,
       logRequests,
