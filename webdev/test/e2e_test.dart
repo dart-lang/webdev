@@ -96,47 +96,49 @@ void main() {
   });
 
   group('should serve with valid configuration', () {
-    for (var withDDC in [true, false]) {
-      test(withDDC ? 'DDC' : 'dart2js', () async {
-        var openPort = await _getOpenPort();
-        var args = ['serve', 'web:$openPort'];
-        if (!withDDC) {
-          args.add('--release');
-        }
-
-        var process = await runWebDev(args, workingDirectory: exampleDirectory);
-
-        var hostUrl = 'http://localhost:$openPort';
-
-        await expectLater(
-            process.stdout, emitsThrough('Serving `web` on $hostUrl'));
-
-        var client = new HttpClient();
-
-        try {
-          for (var entry in _testItems.entries) {
-            var url = Uri.parse('$hostUrl/${entry.key}');
-
-            var request = await client.getUrl(url);
-            var response = await request.close();
-
-            var shouldExist = (entry.value ?? withDDC) == withDDC;
-
-            expect(response.statusCode, shouldExist ? 200 : 404,
-                reason: 'Expecting "$url"? $shouldExist');
+    for (var command in ['serve', 'serve2']) {
+      if (command == 'serve2' && Platform.isWindows) return;
+      for (var withDDC in [true, false]) {
+        var type = withDDC ? 'DDC' : 'dart2js';
+        var name = 'using $command with $type';
+        test(name, () async {
+          var openPort = await _getOpenPort();
+          var args = [command, 'web:$openPort'];
+          if (!withDDC) {
+            args.add('--release');
           }
-        } finally {
-          client.close(force: true);
-        }
 
-        if (Platform.isWindows) {
+          var process =
+              await runWebDev(args, workingDirectory: exampleDirectory);
+
+          var hostUrl = 'http://localhost:$openPort';
+
+          // Wait for the initial build to finish.
+          await expectLater(
+              process.stdout, emitsThrough(contains('Succeeded')));
+
+          var client = new HttpClient();
+
+          try {
+            for (var entry in _testItems.entries) {
+              var url = Uri.parse('$hostUrl/${entry.key}');
+
+              var request = await client.getUrl(url);
+              var response = await request.close();
+
+              var shouldExist = (entry.value ?? withDDC) == withDDC;
+
+              expect(response.statusCode, shouldExist ? 200 : 404,
+                  reason: 'Expecting "$url"? $shouldExist');
+            }
+          } finally {
+            client.close(force: true);
+          }
+
           await process.kill();
-          await process.shouldExit(-1);
-        } else {
-          process.signal(ProcessSignal.sigint);
-          await process.shouldExit(0);
-        }
-      });
+          await process.shouldExit();
+        });
+      }
     }
   });
 }
