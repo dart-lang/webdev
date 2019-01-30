@@ -5,9 +5,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:build_daemon/data/build_status.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'handlers/asset_handler.dart';
+import 'handlers/build_results_handler.dart';
 import 'handlers/webdev_handler.dart';
 
 class WebDevServer {
@@ -25,9 +27,19 @@ class WebDevServer {
     int daemonPort,
     String target,
     bool logRequests,
+    bool liveReload,
+    Stream<BuildResults> buildResults,
   ) async {
     var assetHandler = AssetHandler(daemonPort, target);
-    var webDevHandler = WebDevHandler(assetHandler, logRequests);
+    BuildResultsHandler buildResultsHandler;
+    if (liveReload) {
+      buildResultsHandler = BuildResultsHandler(
+          // Only provide relevant build results
+          buildResults.asyncMap<BuildResult>((results) =>
+              results.results.firstWhere((result) => result.target == target)));
+    }
+    var webDevHandler =
+        WebDevHandler(assetHandler, buildResultsHandler, logRequests);
     var server = await HttpServer.bind(hostname, port);
     shelf_io.serveRequests(server, webDevHandler.handler);
     print('Serving `$target` on http://$hostname:$port');
