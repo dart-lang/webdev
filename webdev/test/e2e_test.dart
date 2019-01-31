@@ -97,7 +97,6 @@ void main() {
 
   group('should serve with valid configuration', () {
     for (var command in ['serve', 'serve2']) {
-      if (command == 'serve2' && Platform.isWindows) return;
       for (var withDDC in [true, false]) {
         var type = withDDC ? 'DDC' : 'dart2js';
         var name = 'using $command with $type';

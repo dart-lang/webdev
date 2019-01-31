@@ -13,9 +13,13 @@ import 'package:webdev/src/util.dart';
 Future<BuildDaemonClient> connectClient(
         String workingDirectory, List<String> options) =>
     BuildDaemonClient.connect(
-      workingDirectory,
-      [pubPath, 'run', 'build_runner', 'daemon']..addAll(options),
-    );
+        workingDirectory,
+        // On Windows we need to call the snapshot directly otherwise
+        // the process will start in a disjoint cmd without access to
+        // STDIO.
+        (Platform.isWindows ? [dartPath, pubSnapshot] : ['pub'])
+          ..addAll(['run', 'build_runner', 'daemon'])
+          ..addAll(options));
 
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {
