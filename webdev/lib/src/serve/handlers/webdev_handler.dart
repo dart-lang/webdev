@@ -12,15 +12,14 @@ import 'build_results_handler.dart';
 class WebDevHandler {
   final bool _logRequests;
   final AssetHandler _assetHandler;
-  final BuildResultsHandler _buildResultsHandler;
+  BuildResultsHandler _buildResultsHandler;
 
   Handler _handler;
 
   WebDevHandler(
-    this._assetHandler,
-    this._buildResultsHandler,
-    this._logRequests,
-  );
+      this._assetHandler, this._logRequests,
+      {BuildResultsHandler buildResultsHandler})
+      : _buildResultsHandler = buildResultsHandler;
 
   Handler get handler {
     if (_handler == null) {

@@ -38,8 +38,8 @@ class WebDevServer {
           buildResults.asyncMap<BuildResult>((results) =>
               results.results.firstWhere((result) => result.target == target)));
     }
-    var webDevHandler =
-        WebDevHandler(assetHandler, buildResultsHandler, logRequests);
+    var webDevHandler = WebDevHandler(assetHandler, logRequests,
+        buildResultsHandler: buildResultsHandler);
     var server = await HttpServer.bind(hostname, port);
     shelf_io.serveRequests(server, webDevHandler.handler);
     print('Serving `$target` on http://$hostname:$port');
