@@ -1,19 +1,42 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
-import 'package:args/command_runner.dart';
-import 'package:pub_semver/pub_semver.dart';
+import 'package:build_daemon/client.dart';
+import 'package:build_daemon/data/build_target.dart';
 
-import '../pubspec.dart';
+import '../serve/daemon_client.dart';
+import '../serve/server_manager.dart';
 import 'command_base.dart';
 
-const _liveReload = 'live-reload';
-const _hotReload = 'hot-reload';
+final _defaultWebDirs = const ['web', 'test', 'example', 'benchmark'];
 
-/// Command to execute pub run build_runner serve.
+Map<String, int> _parseDirectoryArgs(List<String> args) {
+  var result = <String, int>{};
+  var basePort = 8080;
+  if (args.isEmpty) {
+    for (var dir in _defaultWebDirs) {
+      if (Directory(dir).existsSync()) {
+        result[dir] = basePort++;
+      }
+    }
+  } else {
+    for (var arg in args) {
+      var splitOption = arg.split(':');
+      if (splitOption.length == 2) {
+        result[splitOption.first] = int.parse(splitOption.last);
+      } else {
+        result[arg] = basePort++;
+      }
+    }
+  }
+  return result;
+}
+
+/// Command to run a server for local web development with the build daemon.
 class ServeCommand extends CommandBase {
   @override
   final name = 'serve';
@@ -22,78 +45,76 @@ class ServeCommand extends CommandBase {
   final description = 'Run a local web development server and a file system'
       ' watcher that re-builds on changes.';
 
-  @override
-  String get invocation => '${super.invocation} [<directory>[:<port>]]...';
-
   ServeCommand() : super(releaseDefault: false, outputDefault: outputNone) {
-    // TODO(nshahan) Expose more args passed to build_runner serve.
-    // build_runner might expose args for use in wrapping scripts like this one.
     argParser
       ..addOption('hostname',
           help: 'Specify the hostname to serve on', defaultsTo: 'localhost')
       ..addFlag('log-requests',
           defaultsTo: false,
           negatable: false,
-          help: 'Enables logging for each request to the server.')
-      ..addFlag(_liveReload,
-          defaultsTo: false,
-          negatable: false,
-          help: 'Automatically refreshes the page after each build.\n'
-              "Can't be used together with --$_hotReload.")
-      ..addFlag(_hotReload,
-          defaultsTo: false,
-          negatable: false,
-          help: 'Automatically reloads changed modules after each build.\n'
-              'See https://github.com/dart-lang/build/blob/master/docs/hot_module_reloading.md for more info.\n'
-              "Can't be used together with --$_liveReload.");
+          help: 'Enables logging for each request to the server.');
   }
 
   @override
-  List<String> getArgs(PubspecLock pubspecLock) {
-    var arguments = super.getArgs(pubspecLock);
+  bool get hidden => true;
+
+  @override
+  String get invocation => '${super.invocation} [<directory>[:<port>]]...';
+
+  @override
+  Future<int> run() async {
+    var workingDirectory = Directory.current.path;
 
     var hostname = argResults['hostname'] as String;
-    if (hostname != null) {
-      arguments.addAll(['--hostname', hostname]);
+    var logRequests = argResults['log-requests'] as bool;
+
+    var directoryArgs = argResults.rest
+        .where((arg) => arg.contains(':') || !arg.startsWith('--'))
+        .toList();
+
+    var pubspecLock = await readPubspecLock();
+
+    // Forward remaining arguments as Build Options to the Daemon.
+    // This isn't documented. Should it be advertised?
+    var buildOptions = getArgs(pubspecLock)
+      ..addAll(argResults.rest
+          .where((arg) => !arg.contains(':') || arg.startsWith('--'))
+          .toList());
+
+    print('Connecting to the build daemon...');
+    BuildDaemonClient client;
+    try {
+      client = await connectClient(workingDirectory, buildOptions);
+    } on OptionsSkew {
+      print('\nIncompatible options with current running build daemon.\n\n'
+          'Please stop other WebDev instances running in this directory '
+          'before starting a new instance with these options.');
+      // TODO(grouma) - Give an option to kill the running daemon.
+      return -1;
+    }
+    client.serverLogs.listen((serverLog) => print(serverLog.log));
+
+    print('Registering build targets...');
+    var targetPorts = _parseDirectoryArgs(directoryArgs);
+    for (var target in targetPorts.keys) {
+      client.registerBuildTarget(DefaultBuildTarget((b) => b.target = target));
     }
 
-    if (argResults['log-requests'] == true) {
-      arguments.add('--log-requests');
-    }
+    var manager = ServerManager(
+      daemonPort(workingDirectory),
+      hostname,
+      targetPorts,
+      logRequests,
+    );
 
-    if (argResults[_liveReload] as bool && argResults[_hotReload] as bool) {
-      throw UsageException(
-          'Options --$_liveReload and --$_hotReload '
-          "can't both be used together",
-          usage);
-    } else if (argResults[_liveReload] as bool) {
-      var issues = pubspecLock.checkPackage(
-          'build_runner', new VersionConstraint.parse('>=0.10.1'));
-      issues.addAll(pubspecLock.checkPackage('build_web_compilers',
-          new VersionConstraint.parse('>=0.4.2 <2.0.0')));
-      if (issues.isEmpty) {
-        arguments.add('--$_liveReload');
-      } else {
-        throw new PackageException(issues, unsupportedArgument: _liveReload);
-      }
-    } else if (argResults[_hotReload] as bool) {
-      var issues = pubspecLock.checkPackage(
-          'build_runner', new VersionConstraint.parse('>=0.10.2'));
-      issues.addAll(pubspecLock.checkPackage('build_web_compilers',
-          new VersionConstraint.parse('>=0.4.3 <2.0.0')));
-      if (issues.isEmpty) {
-        arguments.add('--$_hotReload');
-      } else {
-        throw new PackageException(issues, unsupportedArgument: _hotReload);
-      }
-    }
+    print('Starting resource servers...');
+    await manager.start();
 
-    // The remaining arguments should be interpreted as [<directory>[:<port>]].
-    arguments.addAll(argResults.rest);
+    print('Starting initial build...');
+    client.startBuild();
 
-    return arguments;
+    await client.finished;
+    await manager.stop();
+    return 0;
   }
-
-  @override
-  Future<int> run() => runCore('serve');
 }
