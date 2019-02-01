@@ -14,6 +14,10 @@ import '../serve/daemon_client.dart';
 import '../serve/server_manager.dart';
 import 'command_base.dart';
 
+const _hostnameFlag = 'hostname';
+const _logRequestsFlag = 'log-requests';
+const _liveReloadFlag = 'live-reload';
+
 Map<String, int> _parseDirectoryArgs(List<String> args) {
   var result = <String, int>{};
   for (var arg in args) {
@@ -37,12 +41,17 @@ class Serve2Command extends CommandBase {
 
   Serve2Command() : super(releaseDefault: false, outputDefault: outputNone) {
     argParser
-      ..addOption('hostname',
+      ..addOption(_hostnameFlag,
           help: 'Specify the hostname to serve on', defaultsTo: 'localhost')
-      ..addFlag('log-requests',
+      ..addFlag(_logRequestsFlag,
           defaultsTo: false,
           negatable: false,
-          help: 'Enables logging for each request to the server.');
+          help: 'Enables logging for each request to the server.')
+      ..addFlag(_liveReloadFlag,
+          defaultsTo: false,
+          negatable: false,
+          help:
+              'Automatically refreshes the page after each successful build.');
   }
 
   @override
@@ -63,8 +72,9 @@ class Serve2Command extends CommandBase {
   Future<int> run() async {
     var workingDirectory = Directory.current.path;
 
-    var hostname = argResults['hostname'] as String;
-    var logRequests = argResults['log-requests'] as bool;
+    var hostname = argResults[_hostnameFlag] as String;
+    var logRequests = argResults[_logRequestsFlag] as bool;
+    var liveReload = argResults[_liveReloadFlag] as bool;
 
     var directoryArgs =
         argResults.rest.where((arg) => arg.contains(':')).toList();
@@ -99,10 +109,12 @@ class Serve2Command extends CommandBase {
     }
 
     var manager = ServerManager(
+      client.buildResults,
       daemonPort(workingDirectory),
       hostname,
       targetPorts,
       logRequests,
+      liveReload,
     );
 
     print('Starting resource servers...');

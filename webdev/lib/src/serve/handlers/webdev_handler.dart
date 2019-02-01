@@ -4,28 +4,35 @@
 
 import 'package:shelf/shelf.dart';
 
+import '../middlewares/reload_middleware.dart';
 import 'asset_handler.dart';
+import 'build_results_handler.dart';
 
 /// A composition of handlers for all WebDev requests.
 class WebDevHandler {
   final bool _logRequests;
   final AssetHandler _assetHandler;
+  final BuildResultsHandler _buildResultsHandler;
 
   Handler _handler;
 
-  WebDevHandler(
-    this._assetHandler,
-    this._logRequests,
-  );
+  WebDevHandler(this._assetHandler, this._logRequests,
+      {BuildResultsHandler buildResultsHandler})
+      : _buildResultsHandler = buildResultsHandler;
 
   Handler get handler {
     if (_handler == null) {
-      // TODO(grouma) - add custom handler for hot reload requests.
+      var cascade = Cascade();
       var pipeline = const Pipeline();
       if (_logRequests) {
         pipeline = pipeline.addMiddleware(logRequests());
       }
-      _handler = pipeline.addHandler(_assetHandler.handler);
+      if (_buildResultsHandler != null) {
+        pipeline = pipeline.addMiddleware(injectLiveReloadClientCode);
+        cascade = cascade.add(_buildResultsHandler.handler);
+      }
+      cascade = cascade.add(_assetHandler.handler);
+      _handler = pipeline.addHandler(cascade.handler);
     }
     return _handler;
   }
