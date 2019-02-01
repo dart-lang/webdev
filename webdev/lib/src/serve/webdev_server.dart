@@ -6,11 +6,32 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
+import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'handlers/asset_handler.dart';
 import 'handlers/build_results_handler.dart';
-import 'handlers/webdev_handler.dart';
+import 'middlewares/reload_middleware.dart';
+
+class ServerOptions {
+  final String hostname;
+  final int port;
+  final String target;
+  final int daemonPort;
+  final bool liveReload;
+  final bool hotRestart;
+  final bool logRequests;
+
+  ServerOptions(
+    this.hostname,
+    this.port,
+    this.target,
+    this.daemonPort,
+    this.liveReload,
+    this.hotRestart,
+    this.logRequests,
+  );
+}
 
 class WebDevServer {
   HttpServer _server;
@@ -22,27 +43,39 @@ class WebDevServer {
   Future<void> stop() => _server.close(force: true);
 
   static Future<WebDevServer> start(
-    String hostname,
-    int port,
-    int daemonPort,
-    String target,
-    bool logRequests,
-    bool liveReload,
+    ServerOptions options,
     Stream<BuildResults> buildResults,
   ) async {
-    var assetHandler = AssetHandler(daemonPort, target);
-    BuildResultsHandler buildResultsHandler;
-    if (liveReload) {
-      buildResultsHandler = BuildResultsHandler(
-          // Only provide relevant build results
-          buildResults.asyncMap<BuildResult>((results) =>
-              results.results.firstWhere((result) => result.target == target)));
+    var assetHandler = AssetHandler(options.daemonPort, options.target);
+    var cascade = Cascade();
+    var pipeline = const Pipeline();
+
+    if (options.logRequests) {
+      pipeline = pipeline.addMiddleware(logRequests());
     }
-    var webDevHandler = WebDevHandler(assetHandler, logRequests,
-        buildResultsHandler: buildResultsHandler);
-    var server = await HttpServer.bind(hostname, port);
-    shelf_io.serveRequests(server, webDevHandler.handler);
-    print('Serving `$target` on http://$hostname:$port');
+
+    if (options.liveReload || options.hotRestart) {
+      if (options.liveReload) {
+        pipeline = pipeline.addMiddleware(injectLiveReloadClientCode);
+      }
+
+      if (options.hotRestart) {
+        pipeline = pipeline.addMiddleware(injectHotRestartClientCode);
+      }
+
+      var buildResultsHandler = BuildResultsHandler(
+          // Only provide relevant build results
+          buildResults.asyncMap<BuildResult>((results) => results.results
+              .firstWhere((result) => result.target == options.target)));
+      cascade = cascade.add(buildResultsHandler.handler);
+    }
+
+    cascade = cascade.add(assetHandler.handler);
+
+    var server = await HttpServer.bind(options.hostname, options.port);
+    shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
+    print('Serving `${options.target}` on '
+        'http://${options.hostname}:${options.port}');
     return WebDevServer._(server);
   }
 }

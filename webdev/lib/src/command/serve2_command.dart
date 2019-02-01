@@ -12,11 +12,13 @@ import 'package:webdev/src/pubspec.dart';
 
 import '../serve/daemon_client.dart';
 import '../serve/server_manager.dart';
+import '../serve/webdev_server.dart';
 import 'command_base.dart';
 
 const _hostnameFlag = 'hostname';
 const _logRequestsFlag = 'log-requests';
 const _liveReloadFlag = 'live-reload';
+const _hotRestartFlag = 'hot-restart';
 
 Map<String, int> _parseDirectoryArgs(List<String> args) {
   var result = <String, int>{};
@@ -51,7 +53,14 @@ class Serve2Command extends CommandBase {
           defaultsTo: false,
           negatable: false,
           help:
-              'Automatically refreshes the page after each successful build.');
+              'Automatically refreshes the page after each successful build.\n'
+              "Can't be used with $_hotRestartFlag")
+      ..addFlag(_hotRestartFlag,
+          defaultsTo: false,
+          negatable: false,
+          help: 'Automatically reloads changed modules after each build '
+              'and restarts your application.\n'
+              "Can't be used with $_liveReloadFlag");
   }
 
   @override
@@ -75,6 +84,13 @@ class Serve2Command extends CommandBase {
     var hostname = argResults[_hostnameFlag] as String;
     var logRequests = argResults[_logRequestsFlag] as bool;
     var liveReload = argResults[_liveReloadFlag] as bool;
+    var hotRestart = argResults[_hotRestartFlag] as bool;
+
+    if (liveReload && hotRestart) {
+      print("Can't use $liveReload and $hotRestart together\n\n");
+      printUsage();
+      return -1;
+    }
 
     var directoryArgs =
         argResults.rest.where((arg) => arg.contains(':')).toList();
@@ -108,14 +124,21 @@ class Serve2Command extends CommandBase {
       client.registerBuildTarget(DefaultBuildTarget((b) => b.target = target));
     }
 
-    var manager = ServerManager(
-      client.buildResults,
-      daemonPort(workingDirectory),
-      hostname,
-      targetPorts,
-      logRequests,
-      liveReload,
-    );
+    var assetPort = daemonPort(workingDirectory);
+    var serverOptions = Set<ServerOptions>();
+    for (var target in targetPorts.keys) {
+      serverOptions.add(ServerOptions(
+        hostname,
+        targetPorts[target],
+        target,
+        assetPort,
+        liveReload,
+        hotRestart,
+        logRequests,
+      ));
+    }
+
+    var manager = ServerManager(serverOptions, client.buildResults);
 
     print('Starting resource servers...');
     await manager.start();

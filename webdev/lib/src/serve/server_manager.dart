@@ -9,39 +9,19 @@ import 'package:build_daemon/data/build_status.dart';
 import 'webdev_server.dart';
 
 /// Manages a set of [WebDevServer]s.
-///
-/// Starts a [WebDevServer] for each target port pair.
 class ServerManager {
   final Stream<BuildResults> _buildResults;
-  final int _daemonPort;
-  final String _hostname;
-  final Map<String, int> _targetPorts;
-  final bool _logRequests;
-  final bool _liveReload;
-
+  final Set<ServerOptions> _serverOptions;
   final _servers = Set<WebDevServer>();
 
-  ServerManager(
-    this._buildResults,
-    this._daemonPort,
-    this._hostname,
-    this._targetPorts,
-    this._logRequests,
-    this._liveReload,
-  );
+  ServerManager(this._serverOptions, this._buildResults);
 
   Future<void> start() async {
-    for (var target in _targetPorts.keys) {
-      var server = await WebDevServer.start(
-        _hostname,
-        _targetPorts[target],
-        _daemonPort,
-        target,
-        _logRequests,
-        _liveReload,
+    for (var options in _serverOptions) {
+      _servers.add(await WebDevServer.start(
+        options,
         _buildResults,
-      );
-      _servers.add(server);
+      ));
     }
   }
 

@@ -13,6 +13,9 @@ import 'package:shelf/shelf.dart';
 final injectLiveReloadClientCode =
     _injectBuildResultsClientCode('live_reload_client');
 
+final injectHotRestartClientCode =
+    _injectBuildResultsClientCode('hot_restart_client');
+
 const clientPrefix = 'webdev/src/serve/reload_client/';
 const entrypointExtensionMarker = '/* ENTRYPOINT_EXTENTION_MARKER */';
 
