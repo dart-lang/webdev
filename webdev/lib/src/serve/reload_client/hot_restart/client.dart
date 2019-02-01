@@ -14,7 +14,6 @@ import 'package:js/js_util.dart';
 import 'module.dart';
 import 'reloading_manager.dart';
 
-final _digestsExtension = '.digests';
 final _buildResultsProtocol = r'$buildResults';
 
 @anonymous
@@ -117,7 +116,7 @@ abstract class JsError {
 @JS()
 class DartLoader {
   @JS()
-  external JsMap<String, String> get urlToModuleId;
+  external String get appDigests;
 
   @JS()
   external JsMap<String, List<String>> get moduleParentsGraph;
@@ -174,20 +173,14 @@ void _reloadPage() {
   window.location.reload();
 }
 
-Future<Map<String, String>> _getDigests(String entryModule) async {
-  var request = await HttpRequest.request('$entryModule$_digestsExtension',
+Future<Map<String, String>> _getDigests() async {
+  var request = await HttpRequest.request(dartLoader.appDigests,
       responseType: 'json', method: 'GET');
   return (request.response as Map).cast<String, String>();
 }
 
 Future<void> main() async {
-  var currentOrigin = '${window.location.origin}';
-  var entryModule = keys(dartLoader.urlToModuleId)
-      .map((key) =>
-          key.replaceFirst(currentOrigin, '').replaceFirst('.ddc.js', ''))
-      .toList()
-      .last;
-  var currentDigests = await _getDigests(entryModule);
+  var currentDigests = await _getDigests();
 
   var manager = ReloadingManager(
       _reloadModule,
@@ -200,7 +193,7 @@ Future<void> main() async {
       WebSocket('ws://${window.location.host}', [_buildResultsProtocol]);
 
   webSocket.onMessage.listen((_) async {
-    var newDigests = await _getDigests(entryModule);
+    var newDigests = await _getDigests();
     var modulesToLoad = <String>[];
     for (var module in newDigests.keys) {
       if (!currentDigests.containsKey(module) ||
