@@ -2,8 +2,6 @@
 
 A CLI for Dart web development.
 
-__*Note: Under heavy development.*__
-
 See the [Dart 2 Web Migration Guide](https://webdev.dartlang.org/dart-2) for
 more information.
 
