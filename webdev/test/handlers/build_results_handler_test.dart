@@ -12,6 +12,8 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 import 'package:webdev/src/serve/handlers/build_results_handler.dart';
 
+const _pumpTimes = 150;
+
 void main() {
   StreamController<BuildResult> streamController;
   HttpServer server;
@@ -69,7 +71,7 @@ void main() {
       streamController.add(DefaultBuildResult((b) => b
         ..target = 'foo'
         ..status = BuildStatus.succeeded));
-      await pumpEventQueue();
+      await pumpEventQueue(times: _pumpTimes);
 
       await client.close();
       await pumpEventQueue();
@@ -99,12 +101,12 @@ void main() {
 
       await clientB.first;
       await clientB.close();
-      await pumpEventQueue();
+      await pumpEventQueue(times: _pumpTimes);
 
       streamController.add(DefaultBuildResult((b) => b
         ..target = 'foo'
         ..status = BuildStatus.succeeded));
-      await pumpEventQueue();
+      await pumpEventQueue(times: _pumpTimes);
 
       expect(events, 2);
     });
@@ -121,22 +123,22 @@ void main() {
       streamController.add(DefaultBuildResult((b) => b
         ..target = 'foo'
         ..status = BuildStatus.succeeded));
-      await pumpEventQueue();
+      await pumpEventQueue(times: _pumpTimes);
 
       streamController.add(DefaultBuildResult((b) => b
         ..target = 'foo'
         ..status = BuildStatus.started));
-      await pumpEventQueue();
+      await pumpEventQueue(times: _pumpTimes);
 
       streamController.add(DefaultBuildResult((b) => b
         ..target = 'foo'
         ..status = BuildStatus.failed));
-      await pumpEventQueue();
+      await pumpEventQueue(times: _pumpTimes);
 
       streamController.add(DefaultBuildResult((b) => b
         ..target = 'foo'
         ..status = BuildStatus.succeeded));
-      await pumpEventQueue();
+      await pumpEventQueue(times: _pumpTimes);
 
       expect(events, 2);
     });
