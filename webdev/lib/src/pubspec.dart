@@ -122,7 +122,7 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
 
   if (requireBuildWebCompilers) {
     issues.addAll(pubspecLock.checkPackage(
-        'build_web_compilers', new VersionConstraint.parse('>=1.0.0 <2.0.0')));
+        'build_web_compilers', new VersionConstraint.parse('>=1.1.0 <2.0.0')));
   }
 
   if (issues.isNotEmpty) {

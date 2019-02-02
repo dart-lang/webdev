@@ -2,8 +2,6 @@
 
 A CLI for Dart web development.
 
-__*Note: Under heavy development.*__
-
 See the [Dart 2 Web Migration Guide](https://webdev.dartlang.org/dart-2) for
 more information.
 
@@ -38,6 +36,11 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
                                   (defaults to "localhost")
 
     --log-requests                Enables logging for each request to the server.
+    --live-reload                 Automatically refreshes the page after each successful build.
+                                  Can't be used with hot-restart
+
+    --hot-restart                 Automatically reloads changed modules after each build and restarts your application.
+                                  Can't be used with live-reload
 
 Run "webdev help" to see global options.
 ```

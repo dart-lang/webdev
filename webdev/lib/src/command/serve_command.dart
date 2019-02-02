@@ -10,8 +10,13 @@ import 'package:build_daemon/data/build_target.dart';
 
 import '../serve/daemon_client.dart';
 import '../serve/server_manager.dart';
+import '../serve/webdev_server.dart';
 import 'command_base.dart';
 
+const _hostnameFlag = 'hostname';
+const _hotRestartFlag = 'hot-restart';
+const _liveReloadFlag = 'live-reload';
+const _logRequestsFlag = 'log-requests';
 final _defaultWebDirs = const ['web', 'test', 'example', 'benchmark'];
 
 Map<String, int> _parseDirectoryArgs(List<String> args) {
@@ -47,12 +52,24 @@ class ServeCommand extends CommandBase {
 
   ServeCommand() : super(releaseDefault: false, outputDefault: outputNone) {
     argParser
-      ..addOption('hostname',
+      ..addOption(_hostnameFlag,
           help: 'Specify the hostname to serve on', defaultsTo: 'localhost')
-      ..addFlag('log-requests',
+      ..addFlag(_logRequestsFlag,
           defaultsTo: false,
           negatable: false,
-          help: 'Enables logging for each request to the server.');
+          help: 'Enables logging for each request to the server.')
+      ..addFlag(_liveReloadFlag,
+          defaultsTo: false,
+          negatable: false,
+          help:
+              'Automatically refreshes the page after each successful build.\n'
+              "Can't be used with $_hotRestartFlag")
+      ..addFlag(_hotRestartFlag,
+          defaultsTo: false,
+          negatable: false,
+          help: 'Automatically reloads changed modules after each build '
+              'and restarts your application.\n'
+              "Can't be used with $_liveReloadFlag");
   }
 
   @override
@@ -65,8 +82,16 @@ class ServeCommand extends CommandBase {
   Future<int> run() async {
     var workingDirectory = Directory.current.path;
 
-    var hostname = argResults['hostname'] as String;
-    var logRequests = argResults['log-requests'] as bool;
+    var hostname = argResults[_hostnameFlag] as String;
+    var logRequests = argResults[_logRequestsFlag] as bool;
+    var liveReload = argResults[_liveReloadFlag] as bool;
+    var hotRestart = argResults[_hotRestartFlag] as bool;
+
+    if (liveReload && hotRestart) {
+      print("Can't use $liveReload and $hotRestart together\n\n");
+      printUsage();
+      return -1;
+    }
 
     var directoryArgs = argResults.rest
         .where((arg) => arg.contains(':') || !arg.startsWith('--'))
@@ -100,12 +125,21 @@ class ServeCommand extends CommandBase {
       client.registerBuildTarget(DefaultBuildTarget((b) => b.target = target));
     }
 
-    var manager = ServerManager(
-      daemonPort(workingDirectory),
-      hostname,
-      targetPorts,
-      logRequests,
-    );
+    var assetPort = daemonPort(workingDirectory);
+    var serverOptions = Set<ServerOptions>();
+    for (var target in targetPorts.keys) {
+      serverOptions.add(ServerOptions(
+        hostname,
+        targetPorts[target],
+        target,
+        assetPort,
+        liveReload,
+        hotRestart,
+        logRequests,
+      ));
+    }
+
+    var manager = ServerManager(serverOptions, client.buildResults);
 
     print('Starting resource servers...');
     await manager.start();
