@@ -36,12 +36,11 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
                                   (defaults to "localhost")
 
     --log-requests                Enables logging for each request to the server.
-    --live-reload                 Automatically refreshes the page after each build.
-                                  Can't be used together with --hot-reload.
+    --live-reload                 Automatically refreshes the page after each successful build.
+                                  Can't be used with hot-restart
 
-    --hot-reload                  Automatically reloads changed modules after each build.
-                                  See https://github.com/dart-lang/build/blob/master/docs/hot_module_reloading.md for more info.
-                                  Can't be used together with --live-reload.
+    --hot-restart                 Automatically reloads changed modules after each build and restarts your application.
+                                  Can't be used with live-reload
 
 Run "webdev help" to see global options.
 ```

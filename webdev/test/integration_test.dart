@@ -81,27 +81,22 @@ name: sample
         test(
             '`build_web_compilers` should be ignored with '
             '--no-build-web-compilers', () async {
-          await d.file('pubspec.yaml', '''
-name: sample
+          await d.file('pubspec.yaml', '''	
+name: sample	
 ''').create();
 
           await d
               .file('pubspec.lock', _pubspecLock(webCompilersVersion: null))
               .create();
 
-          await d.file('.packages', '''
+          await d.file('.packages', '''	
 ''').create();
 
           var process = await runWebDev(['serve', '--no-build-web-compilers'],
               workingDirectory: d.sandbox);
 
-          // Fails w/ an isolate exception instead - since this is a fake package
-          await checkProcessStdout(process, [
-            'webdev failed with an unexpected exception.',
-            // The isolate will fail - broken .packages file
-            'Unable to spawn isolate'
-          ]);
-          await process.shouldExit(70);
+          // Fails since this is a fake package
+          await process.shouldExit(255);
         });
       });
 
@@ -115,11 +110,11 @@ name: sample
               String supportedRange;
               if (entry.key == 'build_runner') {
                 buildRunnerVersion = version;
-                supportedRange = '>=0.8.10 <2.0.0';
+                supportedRange = '>=1.2.2 <2.0.0';
               } else {
                 assert(entry.key == 'build_web_compilers');
                 webCompilersVersion = version;
-                supportedRange = '>=0.3.6 <2.0.0';
+                supportedRange = '>=1.1.0 <2.0.0';
               }
 
               await d.file('pubspec.yaml', '''
@@ -152,74 +147,6 @@ name: sample
           }
         });
       }
-
-      test(
-          '--live-reload at invalid version <$_liveReloadBuildRunnerVersion '
-          ' should fail', () async {
-        var buildRunnerVersion = '0.10.0';
-        var supportedRange = '>=$_liveReloadBuildRunnerVersion';
-
-        await d.file('pubspec.yaml', '''
-name: sample
-''').create();
-
-        await d
-            .file(
-                'pubspec.lock',
-                _pubspecLock(
-                    runnerVersion: buildRunnerVersion,
-                    webCompilersVersion: _supportedWebCompilersVersion))
-            .create();
-
-        await d.file('.packages', '''
-''').create();
-
-        var process = await runWebDev(['serve', '--live-reload'],
-            workingDirectory: d.sandbox);
-
-        await checkProcessStdout(process, [
-          'webdev could not run with --live-reload for this project.',
-          // See https://github.com/dart-lang/linter/issues/965
-          // ignore: prefer_adjacent_string_concatenation
-          'The `build_runner` version – 0.10.0 – ' +
-              'is not within the allowed constraint – $supportedRange.'
-        ]);
-        await process.shouldExit(78);
-      });
-
-      test(
-          '--hot-reload at invalid version <$_hotReloadBuildRunnerVersion '
-          ' should fail', () async {
-        var buildRunnerVersion = '0.10.1';
-        var supportedRange = '>=$_hotReloadBuildRunnerVersion';
-
-        await d.file('pubspec.yaml', '''
-name: sample
-''').create();
-
-        await d
-            .file(
-                'pubspec.lock',
-                _pubspecLock(
-                    runnerVersion: buildRunnerVersion,
-                    webCompilersVersion: _supportedWebCompilersVersion))
-            .create();
-
-        await d.file('.packages', '''
-''').create();
-
-        var process = await runWebDev(['serve', '--hot-reload'],
-            workingDirectory: d.sandbox);
-
-        await checkProcessStdout(process, [
-          'webdev could not run with --hot-reload for this project.',
-          // See https://github.com/dart-lang/linter/issues/965
-          // ignore: prefer_adjacent_string_concatenation
-          'The `build_runner` version – 0.10.1 – ' +
-              'is not within the allowed constraint – $supportedRange.'
-        ]);
-        await process.shouldExit(78);
-      });
 
       test('no pubspec.yaml', () async {
         var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
@@ -261,25 +188,6 @@ name: sample
         await process.shouldExit(78);
       });
 
-      test('should fail gracefully if there is an isolate error', () async {
-        await d.file('pubspec.yaml', '''
-name: sample
-''').create();
-
-        await d.file('pubspec.lock', _pubspecLock()).create();
-
-        await d.file('.packages', '').create();
-
-        var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
-
-        await checkProcessStdout(process, [
-          'webdev failed with an unexpected exception.',
-          // The isolate will fail - broken .packages file
-          'Unable to spawn isolate'
-        ]);
-        await process.shouldExit(70);
-      });
-
       test('should fail if there has been a dependency change', () async {
         await d.file('pubspec.lock', _pubspecLock()).create();
 
@@ -309,10 +217,8 @@ dependencies:
   }
 }
 
-const _supportedBuildRunnerVersion = '0.9.0';
-const _liveReloadBuildRunnerVersion = '0.10.1';
-const _hotReloadBuildRunnerVersion = '0.10.2';
-const _supportedWebCompilersVersion = '0.4.0';
+const _supportedBuildRunnerVersion = '1.2.2';
+const _supportedWebCompilersVersion = '1.1.0';
 
 String _pubspecLock(
     {String runnerVersion = _supportedBuildRunnerVersion,

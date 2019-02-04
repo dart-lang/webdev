@@ -118,11 +118,11 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
   var issues = <PackageExceptionDetails>[];
 
   issues.addAll(pubspecLock.checkPackage(
-      'build_runner', new VersionConstraint.parse('>=0.8.10 <2.0.0')));
+      'build_runner', new VersionConstraint.parse('>=1.2.2 <2.0.0')));
 
   if (requireBuildWebCompilers) {
     issues.addAll(pubspecLock.checkPackage(
-        'build_web_compilers', new VersionConstraint.parse('>=0.3.6 <2.0.0')));
+        'build_web_compilers', new VersionConstraint.parse('>=1.1.0 <2.0.0')));
   }
 
   if (issues.isNotEmpty) {
