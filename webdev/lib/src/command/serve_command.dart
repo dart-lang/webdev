@@ -15,6 +15,7 @@ import 'command_base.dart';
 
 const _hostnameFlag = 'hostname';
 const _hotRestartFlag = 'hot-restart';
+const _hotReloadFlag = 'hot-reload';
 const _liveReloadFlag = 'live-reload';
 const _logRequestsFlag = 'log-requests';
 final _defaultWebDirs = const ['web', 'test', 'example', 'benchmark'];
@@ -69,7 +70,9 @@ class ServeCommand extends CommandBase {
           negatable: false,
           help: 'Automatically reloads changed modules after each build '
               'and restarts your application.\n'
-              "Can't be used with $_liveReloadFlag");
+              "Can't be used with $_liveReloadFlag")
+      ..addFlag(_hotReloadFlag,
+          defaultsTo: false, negatable: false, hide: true);
   }
 
   @override
@@ -86,6 +89,12 @@ class ServeCommand extends CommandBase {
     var logRequests = argResults[_logRequestsFlag] as bool;
     var liveReload = argResults[_liveReloadFlag] as bool;
     var hotRestart = argResults[_hotRestartFlag] as bool;
+    var hotReload = argResults[_hotReloadFlag] as bool;
+
+    if (hotReload) {
+      print('Hot reload is not ready yet, using --$_hotRestartFlag');
+      hotRestart = true;
+    }
 
     if (liveReload && hotRestart) {
       print("Can't use $liveReload and $hotRestart together\n\n");
