@@ -7,30 +7,27 @@ import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
-import 'package:shelf_web_socket/shelf_web_socket.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-
-final _buildResultsProtocol = r'$buildResults';
+import 'package:sse/server/sse_handler.dart';
 
 /// Web socket handler to inform clients of build results.
 class BuildResultsHandler {
-  final _connections = Set<WebSocketChannel>();
   StreamSubscription _sub;
+  final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'));
+  final _connections = Set<SseConnection>();
 
-  Handler _handler;
   BuildResultsHandler(Stream<BuildResult> buildResults) {
     _sub = buildResults.listen(_emitBuildResults);
-    _handler =
-        webSocketHandler(_handleConnection, protocols: [_buildResultsProtocol]);
+    _listen();
   }
 
-  Handler get handler => _handler;
+  Handler get handler => _sseHandler.handler;
 
   Future<void> close() async {
     await _sub.cancel();
     for (var connection in _connections) {
-      await connection.sink.close();
+      connection.close();
     }
   }
 
@@ -41,9 +38,14 @@ class BuildResultsHandler {
     }
   }
 
-  void _handleConnection(WebSocketChannel webSocket, String protocol) async {
-    _connections.add(webSocket);
-    await webSocket.stream.drain();
-    _connections.remove(webSocket);
+  void _listen() async {
+    var connections = _sseHandler.connections;
+    while (await connections.hasNext) {
+      var connection = await connections.next;
+      _connections.add(connection);
+      unawaited(connection.onClose.then((_) {
+        _connections.remove(connection);
+      }));
+    }
   }
 }

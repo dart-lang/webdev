@@ -4,7 +4,6 @@
 
 @Timeout(const Duration(minutes: 5))
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -31,7 +30,7 @@ void main() {
     exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
 
     var process = await TestProcess.start(pubPath, ['upgrade'],
-        workingDirectory: exampleDirectory, environment: _getPubEnvironment());
+        workingDirectory: exampleDirectory, environment: getPubEnvironment());
 
     await process.shouldExit(0);
 
@@ -99,7 +98,7 @@ void main() {
     for (var withDDC in [true, false]) {
       var type = withDDC ? 'DDC' : 'dart2js';
       test('using $type', () async {
-        var openPort = await _getOpenPort();
+        var openPort = await getOpenPort();
         var args = ['serve', 'web:$openPort'];
         if (!withDDC) {
           args.add('--release');
@@ -135,40 +134,4 @@ void main() {
       });
     }
   });
-}
-
-/// Returns an environment map that includes `PUB_ENVIRONMENT`.
-///
-/// Maintains any existing values for this environment var.
-/// Adds a new value that flags this is a bot/test and not human usage.
-Map<String, String> _getPubEnvironment() {
-  var pubEnvironmentKey = 'PUB_ENVIRONMENT';
-  var pubEnvironment = Platform.environment[pubEnvironmentKey] ?? '';
-  if (pubEnvironment.isNotEmpty) {
-    pubEnvironment = '$pubEnvironment;';
-  }
-  pubEnvironment = '${pubEnvironment}bot.pkg.webdev.test';
-
-  var environment = {'PUB_ENVIRONMENT': pubEnvironment};
-
-  return environment;
-}
-
-/// Returns an open port by creating a temporary Socket
-Future<int> _getOpenPort() async {
-  ServerSocket socket;
-
-  try {
-    socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-  } catch (_) {
-    // try again v/ V6 only. Slight possibility that V4 is disabled
-    socket =
-        await ServerSocket.bind(InternetAddress.loopbackIPv6, 0, v6Only: true);
-  }
-
-  try {
-    return socket.port;
-  } finally {
-    await socket.close();
-  }
 }
