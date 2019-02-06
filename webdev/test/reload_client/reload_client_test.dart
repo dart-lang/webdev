@@ -39,85 +39,87 @@ void main() {
     await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
   });
 
-  tearDown(() async {
-    if (entryContents != null) {
-      entryFile?.writeAsStringSync(entryContents);
-    }
-    await webdriver?.close();
-    await webdev?.kill();
-  });
+  group('Reload Clients', () {
+    tearDown(() async {
+      if (entryContents != null) {
+        entryFile?.writeAsStringSync(entryContents);
+      }
+      await webdriver?.close();
+      await webdev?.kill();
+    });
 
-  test('Can hot restart changes ', () async {
-    var openPort = await getOpenPort();
-    var args = ['serve', 'web:$openPort', '--hot-restart'];
+    test('Can hot restart changes ', () async {
+      var openPort = await getOpenPort();
+      var args = ['serve', 'web:$openPort', '--hot-restart'];
 
-    // This keeps the test open so kill it at the end :/
-    webdev = await runWebDev(args, workingDirectory: exampleDirectory);
+      // This keeps the test open so kill it at the end :/
+      webdev = await runWebDev(args, workingDirectory: exampleDirectory);
 
-    var hostUrl = 'http://localhost:$openPort';
+      var hostUrl = 'http://localhost:$openPort';
 
-    // Wait for the initial build to finish.
-    await expectLater(webdev.stdout, emitsThrough(contains('Succeeded')));
+      // Wait for the initial build to finish.
+      await expectLater(webdev.stdout, emitsThrough(contains('Succeeded')));
 
-    webdriver = await createDriver();
-    await webdriver.get(hostUrl);
+      webdriver = await createDriver();
+      await webdriver.get(hostUrl);
 
-    // Wait for the build
-    await Future.delayed(const Duration(seconds: 2));
+      // Wait for the build
+      await Future.delayed(const Duration(seconds: 2));
 
-    var source = await webdriver.pageSource;
+      var source = await webdriver.pageSource;
 
-    expect(source.contains('Hello World!'), isTrue);
+      expect(source.contains('Hello World!'), isTrue);
 
-    entryFile.writeAsStringSync(
-        entryContents.replaceAll('Hello World!', 'Gary is awesome!'));
+      entryFile.writeAsStringSync(
+          entryContents.replaceAll('Hello World!', 'Gary is awesome!'));
 
-    // Wait for the build
-    await Future.delayed(const Duration(seconds: 5));
+      // Wait for the build
+      await Future.delayed(const Duration(seconds: 5));
 
-    source = await webdriver.pageSource;
+      source = await webdriver.pageSource;
 
-    // Main is re-invoked which shouldn't clear the state.
-    expect(source.contains('Hello World!'), isTrue);
-    expect(source.contains('Gary is awesome!'), isTrue);
+      // Main is re-invoked which shouldn't clear the state.
+      expect(source.contains('Hello World!'), isTrue);
+      expect(source.contains('Gary is awesome!'), isTrue);
 
-    await webdev.kill();
-  });
+      await webdev.kill();
+    });
 
-  test('Can live reload changes ', () async {
-    var openPort = await getOpenPort();
-    var args = ['serve', 'web:$openPort', '--live-reload'];
+    test('Can live reload changes ', () async {
+      var openPort = await getOpenPort();
+      var args = ['serve', 'web:$openPort', '--live-reload'];
 
-    // This keeps the test open so kill it at the end :/
-    webdev = await runWebDev(args, workingDirectory: exampleDirectory);
+      // This keeps the test open so kill it at the end :/
+      webdev = await runWebDev(args, workingDirectory: exampleDirectory);
 
-    var hostUrl = 'http://localhost:$openPort';
+      var hostUrl = 'http://localhost:$openPort';
 
-    // Wait for the initial build to finish.
-    await expectLater(webdev.stdout, emitsThrough(contains('Succeeded')));
+      // Wait for the initial build to finish.
+      await expectLater(webdev.stdout, emitsThrough(contains('Succeeded')));
 
-    webdriver = await createDriver();
-    await webdriver.get(hostUrl);
+      webdriver = await createDriver();
+      await webdriver.get(hostUrl);
 
-    // Wait for the build
-    await Future.delayed(const Duration(seconds: 2));
+      // Wait for the build
+      await Future.delayed(const Duration(seconds: 2));
 
-    var source = await webdriver.pageSource;
+      var source = await webdriver.pageSource;
 
-    expect(source.contains('Hello World!'), isTrue);
+      expect(source.contains('Hello World!'), isTrue);
 
-    entryFile.writeAsStringSync(
-        entryContents.replaceAll('Hello World!', 'Gary is awesome!'));
+      entryFile.writeAsStringSync(
+          entryContents.replaceAll('Hello World!', 'Gary is awesome!'));
 
-    // Wait for the build
-    await Future.delayed(const Duration(seconds: 5));
+      // Wait for the build
+      await Future.delayed(const Duration(seconds: 5));
 
-    source = await webdriver.pageSource;
+      source = await webdriver.pageSource;
 
-    // A full reload should clear the state.
-    expect(source.contains('Hello World!'), isFalse);
-    expect(source.contains('Gary is awesome!'), isTrue);
+      // A full reload should clear the state.
+      expect(source.contains('Hello World!'), isFalse);
+      expect(source.contains('Gary is awesome!'), isTrue);
 
-    await webdev.kill();
-  });
+      await webdev.kill();
+    });
+  }, tags: ['webdriver']);
 }
