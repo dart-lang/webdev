@@ -27,9 +27,6 @@ window.\$dartLoader.forceLoadModule('$clientPrefix/$scriptName');
 Handler Function(Handler) _injectBuildResultsClientCode(String scriptName) =>
     (innerHandler) {
       return (Request request) async {
-        if (!request.url.path.endsWith('.js')) {
-          return innerHandler(request);
-        }
         if (request.url.path == '$clientPrefix/$scriptName.js') {
           var uri = await Isolate.resolvePackageUri(
               Uri.parse('package:$clientPrefix/$scriptName.js'));
@@ -37,22 +34,32 @@ Handler Function(Handler) _injectBuildResultsClientCode(String scriptName) =>
           return Response.ok(result, headers: {
             HttpHeaders.contentTypeHeader: 'application/javascript'
           });
-        }
-        var response = await innerHandler(request);
-        var body = await response.readAsString();
-        if (body.startsWith(entrypointExtensionMarker)) {
-          body += _buildResultsInjectedJS(scriptName);
-          var originalEtag = response.headers[HttpHeaders.etagHeader];
-          if (originalEtag != null) {
-            var newEtag = base64.encode(md5.convert(body.codeUnits).bytes);
-            var newHeaders = Map.of(response.headers);
-            newHeaders[HttpHeaders.etagHeader] = newEtag;
-            if (request.headers[HttpHeaders.ifNoneMatchHeader] == newEtag) {
-              return Response.notModified(headers: newHeaders);
-            }
-            response = response.change(headers: newHeaders);
+        } else if (request.url.path.endsWith('.bootstrap.js')) {
+          var ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
+          if (ifNoneMatch != null) {
+            // Disable caching of the inner hander by manually modifying the
+            // if-none-match header before forwarding the request.
+            request = request.change(headers: {
+              HttpHeaders.ifNoneMatchHeader: '$ifNoneMatch\$injected',
+            });
           }
+
+          var response = await innerHandler(request);
+          var body = await response.readAsString();
+          var etag = response.headers[HttpHeaders.etagHeader];
+          var newHeaders = Map.of(response.headers);
+          if (body.startsWith(entrypointExtensionMarker)) {
+            body += _buildResultsInjectedJS(scriptName);
+
+            etag = base64.encode(md5.convert(body.codeUnits).bytes);
+            newHeaders[HttpHeaders.etagHeader] = etag;
+          }
+          if (ifNoneMatch == etag) {
+            return Response.notModified(headers: newHeaders);
+          }
+          return response.change(body: body, headers: newHeaders);
+        } else {
+          return innerHandler(request);
         }
-        return response.change(body: body);
       };
     };
