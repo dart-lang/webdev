@@ -1,8 +1,18 @@
-# Created with https://github.com/dart-lang/mono_repo
+# Created with package:mono_repo v1.2.1
 language: dart
 
 # Custom configuration
 sudo: required
+before_install:
+  - "export CHROMEDRIVER_BINARY=/usr/bin/google-chrome"
+  - "export CHROMEDRIVER_ARGS=--no-sandbox"
+  - "/usr/bin/google-chrome --version"
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - "wget http://chromedriver.storage.googleapis.com/2.35/chromedriver_linux64.zip"
+  - unzip chromedriver_linux64.zip
+  - "export PATH=$PATH:$PWD"
+  - "chromedriver --port=4444 --url-base=wd/hub &"
 
 jobs:
   include:
