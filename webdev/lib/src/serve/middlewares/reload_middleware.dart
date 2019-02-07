@@ -17,7 +17,13 @@ final injectHotRestartClientCode =
     _injectBuildResultsClientCode('hot_restart_client');
 
 const clientPrefix = 'webdev/src/serve/reload_client/';
+
+/// Marker placed by build_web_compilers for where to put injected JS code.
 const entrypointExtensionMarker = '/* ENTRYPOINT_EXTENTION_MARKER */';
+
+/// File extension that build_web_compilers will place the
+/// [entrypointExtensionMarker] in.
+const bootstrapJsExtension = '.bootstrap.js';
 
 String _buildResultsInjectedJS(String scriptName) => '''\n
 // Injected by webdev for build results support.
@@ -34,7 +40,7 @@ Handler Function(Handler) _injectBuildResultsClientCode(String scriptName) =>
           return Response.ok(result, headers: {
             HttpHeaders.contentTypeHeader: 'application/javascript'
           });
-        } else if (request.url.path.endsWith('.bootstrap.js')) {
+        } else if (request.url.path.endsWith(bootstrapJsExtension)) {
           var ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
           if (ifNoneMatch != null) {
             // Disable caching of the inner hander by manually modifying the
