@@ -39,7 +39,7 @@ void main() {
     await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
   });
 
-  group('Reload Clients', () {
+  group('Reload client', () {
     tearDown(() async {
       if (entryContents != null) {
         entryFile?.writeAsStringSync(entryContents);
@@ -48,10 +48,9 @@ void main() {
       await webdev?.kill();
     });
 
-    test('Can hot restart changes ', () async {
+    Future<void> _buildAndLoad(String arg) async {
       var openPort = await getOpenPort();
-      var args = ['serve', 'web:$openPort', '--hot-restart'];
-
+      var args = ['serve', 'web:$openPort', arg];
       // This keeps the test open so kill it at the end :/
       webdev = await runWebDev(args, workingDirectory: exampleDirectory);
 
@@ -63,20 +62,30 @@ void main() {
       webdriver = await createDriver();
       await webdriver.get(hostUrl);
 
-      // Wait for the build
+      // Wait for the page to fully load.
       await Future.delayed(const Duration(seconds: 2));
 
       var source = await webdriver.pageSource;
 
       expect(source.contains('Hello World!'), isTrue);
+    }
 
+    Future<void> _changeInput() async {
       entryFile.writeAsStringSync(
           entryContents.replaceAll('Hello World!', 'Gary is awesome!'));
 
-      // Wait for the build
-      await Future.delayed(const Duration(seconds: 5));
+      // Wait for the build.
+      await expectLater(webdev.stdout, emitsThrough(contains('Succeeded')));
 
-      source = await webdriver.pageSource;
+      // Allow change to propagate to the browser.
+      await Future.delayed(const Duration(seconds: 2));
+    }
+
+    test('can hot restart changes ', () async {
+      await _buildAndLoad('--hot-restart');
+      await _changeInput();
+
+      var source = await webdriver.pageSource;
 
       // Main is re-invoked which shouldn't clear the state.
       expect(source.contains('Hello World!'), isTrue);
@@ -85,35 +94,11 @@ void main() {
       await webdev.kill();
     });
 
-    test('Can live reload changes ', () async {
-      var openPort = await getOpenPort();
-      var args = ['serve', 'web:$openPort', '--live-reload'];
-
-      // This keeps the test open so kill it at the end :/
-      webdev = await runWebDev(args, workingDirectory: exampleDirectory);
-
-      var hostUrl = 'http://localhost:$openPort';
-
-      // Wait for the initial build to finish.
-      await expectLater(webdev.stdout, emitsThrough(contains('Succeeded')));
-
-      webdriver = await createDriver();
-      await webdriver.get(hostUrl);
-
-      // Wait for the build
-      await Future.delayed(const Duration(seconds: 2));
+    test('can live reload changes ', () async {
+      await _buildAndLoad('--live-reload');
+      await _changeInput();
 
       var source = await webdriver.pageSource;
-
-      expect(source.contains('Hello World!'), isTrue);
-
-      entryFile.writeAsStringSync(
-          entryContents.replaceAll('Hello World!', 'Gary is awesome!'));
-
-      // Wait for the build
-      await Future.delayed(const Duration(seconds: 5));
-
-      source = await webdriver.pageSource;
 
       // A full reload should clear the state.
       expect(source.contains('Hello World!'), isFalse);
