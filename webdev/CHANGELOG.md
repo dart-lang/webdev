@@ -38,6 +38,7 @@
   versions.
 
 ## 0.2.2
+
 - Add default value for `--output` to be `build:web` for the `build` command
   and `NONE` for the `serve` command.
 - Update to use lower-case constants from Dart `^2.0.0-dev.54`.
