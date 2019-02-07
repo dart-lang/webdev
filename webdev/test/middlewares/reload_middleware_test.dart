@@ -12,17 +12,19 @@ import 'package:webdev/src/serve/middlewares/reload_middleware.dart';
 
 void main() {
   HttpServer server;
+  const entryEtag = 'entry etag';
+  const nonEntryEtag = 'some etag';
 
   group('ReloadMiddleware', () {
     setUp(() async {
       var pipeline = const Pipeline().addMiddleware(injectLiveReloadClientCode);
       server = await shelf_io.serve(pipeline.addHandler((request) {
-        if (request.url.path.endsWith('entrypoint.js')) {
+        if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok('$entrypointExtensionMarker',
-              headers: {HttpHeaders.etagHeader: 'entry etag'});
+              headers: {HttpHeaders.etagHeader: entryEtag});
         } else if (request.url.path.endsWith('foo.js')) {
           return Response.ok('some js',
-              headers: {HttpHeaders.etagHeader: 'some etag'});
+              headers: {HttpHeaders.etagHeader: nonEntryEtag});
         } else {
           return Response.notFound('Not found');
         }
@@ -40,24 +42,46 @@ void main() {
 
     test('does not update etags for non-entrypoints', () async {
       var result = await http.get('http://localhost:${server.port}/foo.js');
-      expect(result.headers[HttpHeaders.etagHeader], 'some etag');
+      expect(result.headers[HttpHeaders.etagHeader], nonEntryEtag);
     });
 
     test('injects client for entrypoints', () async {
-      var result =
-          await http.get('http://localhost:${server.port}/entrypoint.js');
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
       expect(result.body.contains('Injected by webdev'), isTrue);
     });
 
     test('updates etags for injected responses', () async {
-      var result =
-          await http.get('http://localhost:${server.port}/entrypoint.js');
-      expect(result.headers[HttpHeaders.etagHeader], isNot('entry etag'));
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.headers[HttpHeaders.etagHeader], isNot(entryEtag));
     });
 
     test('ignores non-js requests', () async {
       var result = await http.get('http://localhost:${server.port}/main.dart');
       expect(result.body, 'Not found');
+    });
+
+    test(
+        'Does not return 304 when if-none-match etag matches the original '
+        'content etag', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+          headers: {HttpHeaders.ifNoneMatchHeader: entryEtag});
+      expect(result.statusCode, HttpStatus.ok);
+    });
+
+    test('Does return 304 when if-none-match etag matches the modified etag',
+        () async {
+      var originalResponse = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var cachedResponse = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+          headers: {
+            HttpHeaders.ifNoneMatchHeader:
+                originalResponse.headers[HttpHeaders.etagHeader]
+          });
+      expect(cachedResponse.statusCode, HttpStatus.notModified);
     });
   });
 }
