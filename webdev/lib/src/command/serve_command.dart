@@ -76,9 +76,6 @@ class ServeCommand extends CommandBase {
   }
 
   @override
-  bool get hidden => true;
-
-  @override
   String get invocation => '${super.invocation} [<directory>[:<port>]]...';
 
   @override
