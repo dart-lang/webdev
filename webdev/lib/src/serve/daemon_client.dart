@@ -7,11 +7,12 @@ import 'dart:io';
 
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
+import 'package:build_daemon/data/server_log.dart';
 import 'package:webdev/src/util.dart';
 
 /// Connects to the `build_runner` daemon.
-Future<BuildDaemonClient> connectClient(
-        String workingDirectory, List<String> options) =>
+Future<BuildDaemonClient> connectClient(String workingDirectory,
+        List<String> options, Function(ServerLog) logHandler) =>
     BuildDaemonClient.connect(
         workingDirectory,
         // On Windows we need to call the snapshot directly otherwise
@@ -19,7 +20,8 @@ Future<BuildDaemonClient> connectClient(
         // STDIO.
         (Platform.isWindows ? [dartPath, pubSnapshot] : ['pub'])
           ..addAll(['run', 'build_runner', 'daemon'])
-          ..addAll(options));
+          ..addAll(options),
+        logHandler: logHandler);
 
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {
