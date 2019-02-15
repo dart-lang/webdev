@@ -1,0 +1,19 @@
+name: dwds
+version: 0.1.0-dev
+description: >-
+  A service that proxies between the Chrome debug protocol and the vm
+  service protocol.
+environment:
+  sdk: ^2.1.0
+dependencies:
+  source_maps: ^0.10.0
+  vm_service_lib: ^3.1.5-dev
+  webkit_inspection_protocol: ^0.3.6
+dev_dependencies:
+  test: ^1.0.0
+dependency_overrides:
+  vm_service_lib:
+    git:
+      url: https://github.com/jakemac53/vm_service_drivers.git
+      ref: add-to-json
+      path: dart
