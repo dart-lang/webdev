@@ -23,11 +23,13 @@ void writeServerLog(ServerLog serverLog, bool verbose) {
       color = red;
     }
     var message = serverLog.log.replaceFirst('[$recordLevel]', '');
+    var multiline = message.contains('\n');
     var eraseLine = verbose ? '' : '\x1b[2K\r';
     var level = color.wrap('[$recordLevel]');
 
     stdout.write('$eraseLine$level$message');
-    if (recordLevel > Level.INFO || verbose) {
+    // Prevent multilines and severe messages from being erased.
+    if (recordLevel > Level.INFO || verbose || multiline) {
       stdout.writeln('');
     }
   }
