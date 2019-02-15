@@ -10,6 +10,7 @@ import 'package:build_daemon/data/build_target.dart';
 
 import '../serve/daemon_client.dart';
 import '../serve/server_manager.dart';
+import '../serve/utils.dart';
 import '../serve/webdev_server.dart';
 import 'command_base.dart';
 
@@ -87,6 +88,7 @@ class ServeCommand extends CommandBase {
     var liveReload = argResults[_liveReloadFlag] as bool;
     var hotRestart = argResults[_hotRestartFlag] as bool;
     var hotReload = argResults[_hotReloadFlag] as bool;
+    var verbose = argResults['verbose'] as bool;
 
     if (hotReload) {
       print('Hot reload is not ready yet, using --$_hotRestartFlag');
@@ -115,7 +117,11 @@ class ServeCommand extends CommandBase {
     print('Connecting to the build daemon...');
     BuildDaemonClient client;
     try {
-      client = await connectClient(workingDirectory, buildOptions);
+      client = await connectClient(
+        workingDirectory,
+        buildOptions,
+        (serverLog) => writeServerLog(serverLog, verbose),
+      );
     } on OptionsSkew {
       print('\nIncompatible options with current running build daemon.\n\n'
           'Please stop other WebDev instances running in this directory '
@@ -123,7 +129,6 @@ class ServeCommand extends CommandBase {
       // TODO(grouma) - Give an option to kill the running daemon.
       return -1;
     }
-    client.serverLogs.listen((serverLog) => print(serverLog.log));
 
     print('Registering build targets...');
     var targetPorts = _parseDirectoryArgs(directoryArgs);

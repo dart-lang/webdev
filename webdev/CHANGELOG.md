@@ -1,6 +1,6 @@
 ## 2.0.0
 
-- Support building with `package:build_daemon` through `serve2` command.
+- Support building with `package:build_daemon` through `serve` command.
 
 ## 1.0.1
 
