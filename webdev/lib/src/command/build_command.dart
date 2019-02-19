@@ -9,7 +9,7 @@ import 'dart:isolate';
 import 'package:args/command_runner.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-import '../pubspec.dart';
+import 'shared.dart';
 
 const _bootstrapScript = r'''
 import 'dart:io';
@@ -25,11 +25,7 @@ void main(List<String> args, [SendPort sendPort]) async {
   sendPort.send(p.absolute(scriptLocation));
 }
 ''';
-const _outputFlag = 'output';
 const _packagesFileName = '.packages';
-const _releaseFlag = 'release';
-const _requireBuildWebCompilers = 'build-web-compilers';
-const _verboseFlag = 'verbose';
 
 Future<Uri> _buildRunnerScript() async {
   var packagesFile = new File(_packagesFileName);
@@ -93,56 +89,7 @@ class BuildCommand extends Command<int> {
   final description = 'Run builders to build a package.';
 
   BuildCommand() {
-    argParser
-      ..addOption(
-        _outputFlag,
-        abbr: 'o',
-        defaultsTo: 'web:build',
-        help: 'A directory to write the result of a build to. Or a mapping '
-            'from a top-level directory in the package to the directory to '
-            'write a filtered build output to. For example "web:deploy".\n'
-            'A value of "NONE" indicates that no "--output" value should be '
-            'passed to `build_runner`.',
-      )
-      ..addFlag(_releaseFlag,
-          abbr: 'r',
-          defaultsTo: true,
-          negatable: true,
-          help: 'Build with release mode defaults for builders.')
-      ..addFlag(_requireBuildWebCompilers,
-          defaultsTo: true,
-          negatable: true,
-          help: 'If a dependency on `build_web_compilers` is required to run.')
-      ..addFlag(_verboseFlag,
-          abbr: 'v',
-          defaultsTo: false,
-          negatable: false,
-          help: 'Enables verbose logging.');
-  }
-
-  List<String> getArgs(PubspecLock pubspecLock) {
-    var arguments = <String>[];
-    if (argResults[_releaseFlag] as bool) {
-      arguments.add('--$_releaseFlag');
-    }
-
-    var output = argResults[_outputFlag] as String;
-    if (output != null && output != 'NONE') {
-      arguments.addAll(['--$_outputFlag', output]);
-    }
-
-    if (argResults[_verboseFlag] as bool) {
-      arguments.add('--$_verboseFlag');
-    }
-    return arguments;
-  }
-
-  Future<PubspecLock> readPubspecLock([String path]) async {
-    var pubspecLock = await PubspecLock.read(path);
-    await checkPubspecLock(pubspecLock,
-        requireBuildWebCompilers:
-            argResults[_requireBuildWebCompilers] as bool);
-    return pubspecLock;
+    addSharedArgs(argParser, outputDefault: 'web:build');
   }
 
   @override
@@ -157,10 +104,10 @@ class BuildCommand extends Command<int> {
   }
 
   Future<int> runCore(String command, {List<String> extraArgs}) async {
-    var pubspecLock = await readPubspecLock();
+    var pubspecLock = await readPubspecLock(argResults);
     final arguments = [command]
       ..addAll(extraArgs ?? const [])
-      ..addAll(getArgs(pubspecLock));
+      ..addAll(buildRunnerArgs(pubspecLock, argResults));
 
     stdout.write('Creating build script');
     var stopwatch = new Stopwatch()..start();

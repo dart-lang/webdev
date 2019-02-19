@@ -23,6 +23,15 @@ Run a local web development server and a file system watcher that re-builds on c
 
 Usage: webdev serve [arguments] [<directory>[:<port>]]...
 -h, --help                        Print this usage information.
+-o, --output                      A directory to write the result of a build to. Or a mapping from a top-level directory in the package to the directory to write a filtered build output to. For example "web:deploy".
+                                  A value of "NONE" indicates that no "--output" value should be passed to `build_runner`.
+                                  (defaults to "NONE")
+
+-r, --[no-]release                Build with release mode defaults for builders.
+    --[no-]build-web-compilers    If a dependency on `build_web_compilers` is required to run.
+                                  (defaults to on)
+
+-v, --verbose                     Enables verbose logging.
     --hostname                    Specify the hostname to serve on
                                   (defaults to "localhost")
 
@@ -33,15 +42,6 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
                                   Can't be used with hot-restart
 
     --log-requests                Enables logging for each request to the server.
--o, --output                      A directory to write the result of a build to. Or a mapping from a top-level directory in the package to the directory to write a filtered build output to. For example "web:deploy".
-                                  A value of "NONE" indicates that no "--output" value should be passed to `build_runner`.
-                                  (defaults to "NONE")
-
--r, --[no-]release                Build with release mode defaults for builders.
-    --[no-]build-web-compilers    If a dependency on `build_web_compilers` is required to run.
-                                  (defaults to on)
-
--v, --verbose                     Enables verbose logging.
 
 Run "webdev help" to see global options.
 ```
