@@ -35,12 +35,14 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
     --hostname                    Specify the hostname to serve on
                                   (defaults to "localhost")
 
-    --log-requests                Enables logging for each request to the server.
+    --hot-restart                 Automatically reloads changed modules after each build and restarts your application.
+                                  Can't be used with live-reload
+
+    --launch-in-chrome            Automatically launches your application in chrome
     --live-reload                 Automatically refreshes the page after each successful build.
                                   Can't be used with hot-restart
 
-    --hot-restart                 Automatically reloads changed modules after each build and restarts your application.
-                                  Can't be used with live-reload
+    --log-requests                Enables logging for each request to the server.
 
 Run "webdev help" to see global options.
 ```

@@ -15,16 +15,15 @@ import 'package:logging/logging.dart';
 /// any time after this call has returned.
 Future<int> findUnusedPort() async {
   int port;
+  ServerSocket socket;
   try {
-    final socket =
+    socket =
         await ServerSocket.bind(InternetAddress.loopbackIPv6, 0, v6Only: true);
-    port = socket.port;
-    await socket.close();
   } on SocketException {
-    final socket = await RawServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-    port = socket.port;
-    await socket.close();
+    socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   }
+  port = socket.port;
+  await socket.close();
   return port;
 }
 
