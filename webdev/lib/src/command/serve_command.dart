@@ -13,13 +13,8 @@ import '../serve/daemon_client.dart';
 import '../serve/server_manager.dart';
 import '../serve/utils.dart';
 import '../serve/webdev_server.dart';
+import 'configuration.dart';
 import 'shared.dart';
-
-const _hostnameFlag = 'hostname';
-const _hotReloadFlag = 'hot-reload';
-const _hotRestartFlag = 'hot-restart';
-const _liveReloadFlag = 'live-reload';
-const _logRequestsFlag = 'log-requests';
 
 final _defaultWebDirs = const ['web', 'test', 'example', 'benchmark'];
 
@@ -57,22 +52,22 @@ class ServeCommand extends Command<int> {
   ServeCommand() {
     addSharedArgs(argParser, releaseDefault: false);
     argParser
-      ..addOption(_hostnameFlag,
+      ..addOption(hostnameFlag,
           help: 'Specify the hostname to serve on', defaultsTo: 'localhost')
-      ..addFlag(_hotRestartFlag,
+      ..addFlag(hotRestartFlag,
           defaultsTo: false,
           negatable: false,
           help: 'Automatically reloads changed modules after each build '
               'and restarts your application.\n'
-              "Can't be used with $_liveReloadFlag")
-      ..addFlag(_hotReloadFlag, defaultsTo: false, negatable: false, hide: true)
-      ..addFlag(_liveReloadFlag,
+              "Can't be used with $liveReloadFlag")
+      ..addFlag(hotReloadFlag, defaultsTo: false, negatable: false, hide: true)
+      ..addFlag(liveReloadFlag,
           defaultsTo: false,
           negatable: false,
           help:
               'Automatically refreshes the page after each successful build.\n'
-              "Can't be used with $_hotRestartFlag")
-      ..addFlag(_logRequestsFlag,
+              "Can't be used with $hotRestartFlag")
+      ..addFlag(logRequestsFlag,
           defaultsTo: false,
           negatable: false,
           help: 'Enables logging for each request to the server.');
@@ -83,22 +78,18 @@ class ServeCommand extends Command<int> {
 
   @override
   Future<int> run() async {
+    var configuration = ConfigurationLoader.load(argResults: argResults);
+
     var workingDirectory = Directory.current.path;
 
-    var hostname = argResults[_hostnameFlag] as String;
-    var logRequests = argResults[_logRequestsFlag] as bool;
-    var liveReload = argResults[_liveReloadFlag] as bool;
-    var hotRestart = argResults[_hotRestartFlag] as bool;
-    var hotReload = argResults[_hotReloadFlag] as bool;
-    var verbose = argResults[verboseFlag] as bool;
-
-    if (hotReload) {
-      print('Hot reload is not ready yet, using --$_hotRestartFlag');
+    var hotRestart = configuration.hotRestart;
+    if (configuration.hotReload) {
+      print('Hot reload is not ready yet, using --$hotRestartFlag');
       hotRestart = true;
     }
 
-    if (liveReload && hotRestart) {
-      print("Can't use $liveReload and $hotRestart together\n\n");
+    if (configuration.liveReload && hotRestart) {
+      print("Can't use $liveReloadFlag and $hotRestartFlag together\n\n");
       printUsage();
       return -1;
     }
@@ -107,11 +98,11 @@ class ServeCommand extends Command<int> {
         .where((arg) => arg.contains(':') || !arg.startsWith('--'))
         .toList();
 
-    var pubspecLock = await readPubspecLock(argResults);
+    var pubspecLock = await readPubspecLock(configuration);
 
     // Forward remaining arguments as Build Options to the Daemon.
     // This isn't documented. Should it be advertised?
-    var buildOptions = buildRunnerArgs(pubspecLock, argResults)
+    var buildOptions = buildRunnerArgs(pubspecLock, configuration)
       ..addAll(argResults.rest
           .where((arg) => !arg.contains(':') || arg.startsWith('--'))
           .toList());
@@ -122,7 +113,7 @@ class ServeCommand extends Command<int> {
       client = await connectClient(
         workingDirectory,
         buildOptions,
-        (serverLog) => writeServerLog(serverLog, verbose),
+        (serverLog) => writeServerLog(serverLog, configuration.verbose),
       );
     } on OptionsSkew {
       print('\nIncompatible options with current running build daemon.\n\n'
@@ -142,13 +133,13 @@ class ServeCommand extends Command<int> {
     var serverOptions = Set<ServerOptions>();
     for (var target in targetPorts.keys) {
       serverOptions.add(ServerOptions(
-        hostname,
+        configuration.hostname,
         targetPorts[target],
         target,
         assetPort,
-        liveReload,
-        hotRestart,
-        logRequests,
+        configuration.liveReload,
+        configuration.hotRestart,
+        configuration.logRequests,
       ));
     }
 

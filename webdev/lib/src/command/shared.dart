@@ -7,16 +7,11 @@ import 'dart:async';
 import 'package:args/args.dart';
 
 import '../pubspec.dart';
-
-const outputFlag = 'output';
-const releaseFlag = 'release';
-const verboseFlag = 'verbose';
-const _outputNone = 'NONE';
-const _requireBuildWebCompilers = 'build-web-compilers';
+import 'configuration.dart';
 
 void addSharedArgs(ArgParser argParser,
     {String outputDefault, bool releaseDefault}) {
-  outputDefault ??= _outputNone;
+  outputDefault ??= outputNone;
   releaseDefault ??= true;
   argParser
     ..addOption(
@@ -34,7 +29,7 @@ void addSharedArgs(ArgParser argParser,
         defaultsTo: releaseDefault,
         negatable: true,
         help: 'Build with release mode defaults for builders.')
-    ..addFlag(_requireBuildWebCompilers,
+    ..addFlag(requireBuildWebCompilersFlag,
         defaultsTo: true,
         negatable: true,
         help: 'If a dependency on `build_web_compilers` is required to run.')
@@ -45,27 +40,27 @@ void addSharedArgs(ArgParser argParser,
         help: 'Enables verbose logging.');
 }
 
-List<String> buildRunnerArgs(PubspecLock pubspecLock, ArgResults argResults) {
+List<String> buildRunnerArgs(
+    PubspecLock pubspecLock, Configuration configuration) {
   var arguments = <String>[];
-  if (argResults[releaseFlag] as bool) {
+  if (configuration.release) {
     arguments.add('--$releaseFlag');
   }
 
-  var output = argResults[outputFlag] as String;
-  if (output != null && output != _outputNone) {
-    arguments.addAll(['--$outputFlag', output]);
+  if (configuration.output != null && configuration.output != outputNone) {
+    arguments.addAll(['--$outputFlag', configuration.output]);
   }
 
-  if (argResults[verboseFlag] as bool) {
+  if (configuration.verbose) {
     arguments.add('--$verboseFlag');
   }
   return arguments;
 }
 
-Future<PubspecLock> readPubspecLock(ArgResults argResults,
+Future<PubspecLock> readPubspecLock(Configuration configuration,
     [String path]) async {
   var pubspecLock = await PubspecLock.read(path);
   await checkPubspecLock(pubspecLock,
-      requireBuildWebCompilers: argResults[_requireBuildWebCompilers] as bool);
+      requireBuildWebCompilers: configuration.requireBuildWebCompilers);
   return pubspecLock;
 }
