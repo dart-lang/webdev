@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/command_runner.dart';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_target.dart';
 
@@ -13,7 +14,7 @@ import '../serve/daemon_client.dart';
 import '../serve/server_manager.dart';
 import '../serve/utils.dart';
 import '../serve/webdev_server.dart';
-import 'command_base.dart';
+import 'shared.dart';
 
 const _hostnameFlag = 'hostname';
 const _hotReloadFlag = 'hot-reload';
@@ -47,7 +48,7 @@ Map<String, int> _parseDirectoryArgs(List<String> args) {
 }
 
 /// Command to run a server for local web development with the build daemon.
-class ServeCommand extends CommandBase {
+class ServeCommand extends Command<int> {
   ServerManager _serverManager;
   Chrome _chrome;
 
@@ -58,17 +59,18 @@ class ServeCommand extends CommandBase {
   final description = 'Run a local web development server and a file system'
       ' watcher that re-builds on changes.';
 
-  ServeCommand() : super(releaseDefault: false, outputDefault: outputNone) {
+  ServeCommand() {
+    addSharedArgs(argParser, releaseDefault: false);
     argParser
       ..addOption(_hostnameFlag,
           help: 'Specify the hostname to serve on', defaultsTo: 'localhost')
-      ..addFlag(_hotReloadFlag, defaultsTo: false, negatable: false, hide: true)
       ..addFlag(_hotRestartFlag,
           defaultsTo: false,
           negatable: false,
           help: 'Automatically reloads changed modules after each build '
               'and restarts your application.\n'
               "Can't be used with $_liveReloadFlag")
+      ..addFlag(_hotReloadFlag, defaultsTo: false, negatable: false, hide: true)
       ..addFlag(_launchInChrome,
           defaultsTo: false,
           negatable: false,
@@ -98,7 +100,7 @@ class ServeCommand extends CommandBase {
     var launchInChrome = argResults[_launchInChrome] as bool;
     var liveReload = argResults[_liveReloadFlag] as bool;
     var logRequests = argResults[_logRequestsFlag] as bool;
-    var verbose = argResults['verbose'] as bool;
+    var verbose = argResults[verboseFlag] as bool;
 
     if (hotReload) {
       print('Hot reload is not ready yet, using --$_hotRestartFlag');
@@ -106,7 +108,7 @@ class ServeCommand extends CommandBase {
     }
 
     if (liveReload && hotRestart) {
-      print("Can't use $liveReload and $hotRestart together\n\n");
+      print("Can't use $_liveReloadFlag and $_hotRestartFlag together\n\n");
       printUsage();
       return -1;
     }
@@ -115,11 +117,11 @@ class ServeCommand extends CommandBase {
         .where((arg) => arg.contains(':') || !arg.startsWith('--'))
         .toList();
 
-    var pubspecLock = await readPubspecLock();
+    var pubspecLock = await readPubspecLock(argResults);
 
     // Forward remaining arguments as Build Options to the Daemon.
     // This isn't documented. Should it be advertised?
-    var buildOptions = getArgs(pubspecLock)
+    var buildOptions = buildRunnerArgs(pubspecLock, argResults)
       ..addAll(argResults.rest
           .where((arg) => !arg.contains(':') || arg.startsWith('--'))
           .toList());
