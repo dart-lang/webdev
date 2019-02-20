@@ -63,24 +63,24 @@ class ServeCommand extends Command<int> {
     addSharedArgs(argParser, releaseDefault: false);
     argParser
       ..addOption(_hostnameFlag,
-          help: 'Specify the hostname to serve on', defaultsTo: 'localhost')
+          help: 'Specify the hostname to serve on.', defaultsTo: 'localhost')
       ..addFlag(_hotRestartFlag,
           defaultsTo: false,
           negatable: false,
           help: 'Automatically reloads changed modules after each build '
               'and restarts your application.\n'
-              "Can't be used with $_liveReloadFlag")
+              "Can't be used with $_liveReloadFlag.")
       ..addFlag(_hotReloadFlag, defaultsTo: false, negatable: false, hide: true)
       ..addFlag(_launchInChrome,
           defaultsTo: false,
           negatable: false,
-          help: 'Automatically launches your application in chrome')
+          help: 'Automatically launches your application in chrome.')
       ..addFlag(_liveReloadFlag,
           defaultsTo: false,
           negatable: false,
           help:
               'Automatically refreshes the page after each successful build.\n'
-              "Can't be used with $_hotRestartFlag")
+              "Can't be used with $_hotRestartFlag.")
       ..addFlag(_logRequestsFlag,
           defaultsTo: false,
           negatable: false,
