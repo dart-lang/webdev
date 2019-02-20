@@ -7,12 +7,16 @@ import 'dart:io';
 
 import 'utils.dart';
 
+const _chromeEnvironment = 'CHROME_EXECUTABLE';
 const _linuxExecutable = 'google-chrome';
 const _macOSExecutable =
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const _windowsExecutable = r'Google\Chrome\Application\chrome.exe';
 
 String get _executable {
+  if (Platform.environment.containsKey(_chromeEnvironment)) {
+    return Platform.environment[_chromeEnvironment];
+  }
   if (Platform.isLinux) return _linuxExecutable;
   if (Platform.isMacOS) return _macOSExecutable;
   if (Platform.isWindows) return _windowsExecutable;
