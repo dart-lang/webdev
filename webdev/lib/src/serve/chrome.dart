@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'utils.dart';
 
@@ -29,7 +32,9 @@ class Chrome {
   final Process _process;
   final Directory _dataDir;
 
-  Chrome._(this.debugPort, this._process, this._dataDir);
+  final ChromeConnection chromeConnection;
+
+  Chrome._(this.debugPort, this._process, this._dataDir, this.chromeConnection);
 
   Future<void> close() async {
     _process.kill();
@@ -59,6 +64,14 @@ class Chrome {
     ]..addAll(urls);
 
     var process = await Process.start(_executable, args);
-    return Chrome._(port, process, dataDir);
+
+    // Wait until the DevTools are listening before trying to connect.
+    await process.stderr
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .firstWhere((line) => line.startsWith('DevTools listening'));
+
+    return Chrome._(
+        port, process, dataDir, ChromeConnection('localhost', port));
   }
 }
