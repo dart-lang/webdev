@@ -9,6 +9,7 @@ import 'package:args/command_runner.dart';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_target.dart';
 
+import '../serve/chrome.dart';
 import '../serve/daemon_client.dart';
 import '../serve/server_manager.dart';
 import '../serve/utils.dart';
@@ -18,6 +19,7 @@ import 'shared.dart';
 const _hostnameFlag = 'hostname';
 const _hotReloadFlag = 'hot-reload';
 const _hotRestartFlag = 'hot-restart';
+const _launchInChrome = 'launch-in-chrome';
 const _liveReloadFlag = 'live-reload';
 const _logRequestsFlag = 'log-requests';
 
@@ -47,6 +49,9 @@ Map<String, int> _parseDirectoryArgs(List<String> args) {
 
 /// Command to run a server for local web development with the build daemon.
 class ServeCommand extends Command<int> {
+  ServerManager _serverManager;
+  Chrome _chrome;
+
   @override
   final name = 'serve';
 
@@ -58,20 +63,24 @@ class ServeCommand extends Command<int> {
     addSharedArgs(argParser, releaseDefault: false);
     argParser
       ..addOption(_hostnameFlag,
-          help: 'Specify the hostname to serve on', defaultsTo: 'localhost')
+          help: 'Specify the hostname to serve on.', defaultsTo: 'localhost')
       ..addFlag(_hotRestartFlag,
           defaultsTo: false,
           negatable: false,
           help: 'Automatically reloads changed modules after each build '
               'and restarts your application.\n'
-              "Can't be used with $_liveReloadFlag")
+              "Can't be used with $_liveReloadFlag.")
       ..addFlag(_hotReloadFlag, defaultsTo: false, negatable: false, hide: true)
+      ..addFlag(_launchInChrome,
+          defaultsTo: false,
+          negatable: false,
+          help: 'Automatically launches your application in chrome.')
       ..addFlag(_liveReloadFlag,
           defaultsTo: false,
           negatable: false,
           help:
               'Automatically refreshes the page after each successful build.\n'
-              "Can't be used with $_hotRestartFlag")
+              "Can't be used with $_hotRestartFlag.")
       ..addFlag(_logRequestsFlag,
           defaultsTo: false,
           negatable: false,
@@ -86,10 +95,11 @@ class ServeCommand extends Command<int> {
     var workingDirectory = Directory.current.path;
 
     var hostname = argResults[_hostnameFlag] as String;
-    var logRequests = argResults[_logRequestsFlag] as bool;
-    var liveReload = argResults[_liveReloadFlag] as bool;
-    var hotRestart = argResults[_hotRestartFlag] as bool;
     var hotReload = argResults[_hotReloadFlag] as bool;
+    var hotRestart = argResults[_hotRestartFlag] as bool;
+    var launchInChrome = argResults[_launchInChrome] as bool;
+    var liveReload = argResults[_liveReloadFlag] as bool;
+    var logRequests = argResults[_logRequestsFlag] as bool;
     var verbose = argResults[verboseFlag] as bool;
 
     if (hotReload) {
@@ -98,7 +108,7 @@ class ServeCommand extends Command<int> {
     }
 
     if (liveReload && hotRestart) {
-      print("Can't use $liveReload and $hotRestart together\n\n");
+      print("Can't use $_liveReloadFlag and $_hotRestartFlag together\n\n");
       printUsage();
       return -1;
     }
@@ -152,16 +162,26 @@ class ServeCommand extends Command<int> {
       ));
     }
 
-    var manager = ServerManager(serverOptions, client.buildResults);
+    _serverManager = ServerManager(serverOptions, client.buildResults);
 
     print('Starting resource servers...');
-    await manager.start();
+    await _serverManager.start();
 
     print('Starting initial build...');
     client.startBuild();
 
+    if (launchInChrome) {
+      _chrome = await Chrome.start(_serverManager.uris);
+    }
+
     await client.finished;
-    await manager.stop();
+    await shutDown();
+
     return 0;
+  }
+
+  Future<void> shutDown() async {
+    await _serverManager?.stop();
+    await _chrome?.close();
   }
 }

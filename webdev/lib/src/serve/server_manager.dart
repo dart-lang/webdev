@@ -16,6 +16,9 @@ class ServerManager {
 
   ServerManager(this._serverOptions, this._buildResults);
 
+  List<String> get uris =>
+      _servers.map((s) => 'http://${s.host}:${s.port}').toList();
+
   Future<void> start() async {
     for (var options in _serverOptions) {
       _servers.add(await WebDevServer.start(

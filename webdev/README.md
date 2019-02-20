@@ -32,14 +32,15 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
                                   (defaults to on)
 
 -v, --verbose                     Enables verbose logging.
-    --hostname                    Specify the hostname to serve on
+    --hostname                    Specify the hostname to serve on.
                                   (defaults to "localhost")
 
     --hot-restart                 Automatically reloads changed modules after each build and restarts your application.
-                                  Can't be used with live-reload
+                                  Can't be used with live-reload.
 
+    --launch-in-chrome            Automatically launches your application in chrome.
     --live-reload                 Automatically refreshes the page after each successful build.
-                                  Can't be used with hot-restart
+                                  Can't be used with hot-restart.
 
     --log-requests                Enables logging for each request to the server.
 
