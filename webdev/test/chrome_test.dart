@@ -25,6 +25,7 @@ void main() {
 
   test('debugger is working', () async {
     var tabs = await chrome.chromeConnection.getTabs();
-    expect(tabs.length, equals(1));
+    expect(tabs.length, equals(1),
+        reason: 'Got the following tabs: ${tabs.map((t) => t.url).join(', ')}');
   }, skip: Platform.isWindows);
 }
