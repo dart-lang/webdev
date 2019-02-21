@@ -14,8 +14,8 @@ void main() {
     chrome = await Chrome.start(['www.google.com']);
   });
 
-  tearDown(() {
-    chrome?.close();
+  tearDown(() async {
+    await chrome?.close();
     chrome = null;
   });
 
