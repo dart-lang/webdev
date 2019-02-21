@@ -7,11 +7,13 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:webdev/src/serve/chrome.dart';
 
+const _googleUrl = 'http://www.google.com/';
+
 void main() {
   Chrome chrome;
   setUp(() async {
     // The url doesn't matter.
-    chrome = await Chrome.start(['www.google.com']);
+    chrome = await Chrome.start([_googleUrl]);
   });
 
   tearDown(() async {
@@ -25,6 +27,6 @@ void main() {
 
   test('debugger is working', () async {
     var tabs = await chrome.chromeConnection.getTabs();
-    expect(tabs.length, equals(1));
+    expect(tabs.firstWhere((tab) => tab.url == _googleUrl), isNotNull);
   }, skip: Platform.isWindows);
 }
