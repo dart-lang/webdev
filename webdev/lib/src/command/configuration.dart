@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:args/args.dart';
-import 'package:source_span/source_span.dart';
-import 'package:yaml/yaml.dart';
 
 const hostnameFlag = 'hostname';
 const hotReloadFlag = 'hot-reload';
 const hotRestartFlag = 'hot-restart';
+const launchInChromeFlag = 'launch-in-chrome';
 const liveReloadFlag = 'live-reload';
 const logRequestsFlag = 'log-requests';
 const outputFlag = 'output';
@@ -19,12 +16,11 @@ const releaseFlag = 'release';
 const requireBuildWebCompilersFlag = 'build-web-compilers';
 const verboseFlag = 'verbose';
 
-const _configurationFile = 'webdev.yaml';
-
 class Configuration {
   final String _hostname;
   final bool _hotReload;
   final bool _hotRestart;
+  final bool _launchInChrome;
   final bool _liveReload;
   final bool _logRequests;
   final String _output;
@@ -36,6 +32,7 @@ class Configuration {
     String hostname,
     bool hotReload,
     bool hotRestart,
+    bool launchInChrome,
     bool liveReload,
     bool logRequests,
     String output,
@@ -45,6 +42,7 @@ class Configuration {
   })  : _hostname = hostname,
         _hotReload = hotReload,
         _hotRestart = hotRestart,
+        _launchInChrome = launchInChrome,
         _liveReload = liveReload,
         _logRequests = logRequests,
         _output = output,
@@ -57,6 +55,8 @@ class Configuration {
   bool get hotReload => _hotReload ?? false;
 
   bool get hotRestart => _hotRestart ?? false;
+
+  bool get launchInChrome => _launchInChrome ?? false;
 
   bool get liveReload => _liveReload ?? false;
 
@@ -71,7 +71,7 @@ class Configuration {
   bool get verbose => _verbose ?? false;
 
   /// Returns a new configuration with values updated from the parsed args.
-  Configuration _mergeArgs(ArgResults argResults) {
+  Configuration mergeArgs(ArgResults argResults) {
     if (argResults == null) return this;
 
     var hostname = argResults.options.contains(hostnameFlag) &&
@@ -88,6 +88,11 @@ class Configuration {
             argResults.wasParsed(hotRestartFlag)
         ? argResults[hotRestartFlag] as bool
         : this.hotRestart;
+
+    var launchInChrome = argResults.options.contains(launchInChromeFlag) &&
+            argResults.wasParsed(launchInChromeFlag)
+        ? argResults[launchInChromeFlag] as bool
+        : this.liveReload;
 
     var liveReload = argResults.options.contains(liveReloadFlag) &&
             argResults.wasParsed(liveReloadFlag)
@@ -124,100 +129,12 @@ class Configuration {
         hostname: hostname,
         hotReload: hotReload,
         hotRestart: hotRestart,
+        launchInChrome: launchInChrome,
         liveReload: liveReload,
         logRequests: logRequests,
         output: output,
         release: release,
         requireBuildWebCompilers: requireBuildWebCompilers,
         verbose: verbose);
-  }
-}
-
-class ConfigurationLoader {
-  final String _source;
-  final YamlMap _document;
-
-  ConfigurationLoader._(this._source, this._document);
-
-  /// Throws a [SourceSpanFormatException] with [message] about [field].
-  void _error(String message, String field) {
-    throw SourceSpanFormatException(
-        message, _document.nodes[field].span, _source);
-  }
-
-  /// Asserts that [field] is a boolean and returns its value.
-  bool _getBool(String field) =>
-      _getValue(field, 'boolean', (value) => value is bool) as bool;
-
-  /// Asserts that [field] is a string and returns its value.
-  String _getString(String field) =>
-      _getValue(field, 'string', (value) => value is String) as String;
-
-  /// Returns the value of the node at [field].
-  ///
-  /// If [typeTest] returns `false` for that value, instead throws an error
-  /// complaining that the field is not a [typeName].
-  dynamic _getValue(String field, String typeName, bool typeTest(value)) {
-    var value = _document[field];
-    if (value == null || typeTest(value)) return value;
-    _error('$field is not $typeName.', field);
-  }
-
-  Configuration _parseAndMergeConfiguration(
-      Configuration defaultConfiguration) {
-    var hostname = _getString(hostnameFlag);
-    var hotReload = _getBool(hotReloadFlag);
-    var hotRestart = _getBool(hotRestartFlag);
-    var liveReload = _getBool(liveReloadFlag);
-    var logRequests = _getBool(logRequestsFlag);
-    var output = _getString(outputFlag);
-    var release = _getBool(releaseFlag);
-    var requireBuildWebCompilers = _getBool(requireBuildWebCompilersFlag);
-    var verbose = _getBool(verboseFlag);
-
-    return Configuration(
-        hostname: hostname ?? defaultConfiguration.hostname,
-        hotReload: hotReload ?? defaultConfiguration.hotReload,
-        hotRestart: hotRestart ?? defaultConfiguration.hotRestart,
-        liveReload: liveReload ?? defaultConfiguration.liveReload,
-        logRequests: logRequests ?? defaultConfiguration.logRequests,
-        output: output ?? defaultConfiguration.output,
-        release: release ?? defaultConfiguration.release,
-        requireBuildWebCompilers: requireBuildWebCompilers ??
-            defaultConfiguration.requireBuildWebCompilers,
-        verbose: verbose ?? defaultConfiguration.verbose);
-  }
-
-  /// Loads the configuration and merges the provided arguments.
-  ///
-  /// Configuration from [argResults] takes precedence to configuration in the
-  /// [defaultConfiguration] which takes to precedence to configuration found in
-  /// [Configuration].
-  static Configuration load({
-    Configuration defaultConfiguration,
-    ArgResults argResults,
-    String filePath,
-  }) {
-    defaultConfiguration ??= Configuration();
-    filePath ??= _configurationFile;
-    var yamlFile = File(filePath);
-    if (!yamlFile.existsSync()) {
-      return defaultConfiguration._mergeArgs(argResults);
-    }
-
-    var source = yamlFile.readAsStringSync();
-    var document = loadYamlNode(source);
-
-    if (document.value == null) {
-      return defaultConfiguration._mergeArgs(argResults);
-    }
-
-    if (document is! Map) {
-      throw SourceSpanFormatException(
-          'The configuration must be a YAML map.', document.span, source);
-    }
-    return ConfigurationLoader._(source, document as YamlMap)
-        ._parseAndMergeConfiguration(defaultConfiguration)
-        ._mergeArgs(argResults);
   }
 }

@@ -9,6 +9,7 @@ import 'package:args/command_runner.dart';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_target.dart';
 
+import '../serve/chrome.dart';
 import '../serve/daemon_client.dart';
 import '../serve/server_manager.dart';
 import '../serve/utils.dart';
@@ -42,6 +43,9 @@ Map<String, int> _parseDirectoryArgs(List<String> args) {
 
 /// Command to run a server for local web development with the build daemon.
 class ServeCommand extends Command<int> {
+  ServerManager _serverManager;
+  Chrome _chrome;
+
   @override
   final name = 'serve';
 
@@ -78,7 +82,7 @@ class ServeCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    var configuration = ConfigurationLoader.load(argResults: argResults);
+    var configuration = Configuration().mergeArgs(argResults);
 
     var workingDirectory = Directory.current.path;
 
@@ -143,16 +147,26 @@ class ServeCommand extends Command<int> {
       ));
     }
 
-    var manager = ServerManager(serverOptions, client.buildResults);
+    _serverManager = ServerManager(serverOptions, client.buildResults);
 
     print('Starting resource servers...');
-    await manager.start();
+    await _serverManager.start();
 
     print('Starting initial build...');
     client.startBuild();
 
+    if (configuration.launchInChrome) {
+      _chrome = await Chrome.start(_serverManager.uris);
+    }
+
     await client.finished;
-    await manager.stop();
+    await shutDown();
+
     return 0;
+  }
+
+  Future<void> shutDown() async {
+    await _serverManager?.stop();
+    await _chrome?.close();
   }
 }
