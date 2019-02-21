@@ -16,7 +16,7 @@ import 'module.dart';
 import 'reloading_manager.dart';
 
 // GENERATE:
-// dart2js lib/src/serve/reload_client/hot_restart/client.dart -o lib/src/serve/reload_client/hot_restart_client.js -m
+// dart2js lib/src/serve/reload_client/client.dart -o lib/src/serve/reload_client/client.js -m
 Future<void> main() async {
   var currentDigests = await _getDigests();
 
@@ -29,24 +29,33 @@ Future<void> main() async {
 
   var client = SseClient(r'/$sseHandler');
   client.stream.listen((_) async {
-    var newDigests = await _getDigests();
-    var modulesToLoad = <String>[];
-    for (var module in newDigests.keys) {
-      if (!currentDigests.containsKey(module) ||
-          currentDigests[module] != newDigests[module]) {
-        modulesToLoad.add(module.replaceFirst('.js', ''));
+    if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
+      window.location.reload();
+    } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
+      var newDigests = await _getDigests();
+      var modulesToLoad = <String>[];
+      for (var module in newDigests.keys) {
+        if (!currentDigests.containsKey(module) ||
+            currentDigests[module] != newDigests[module]) {
+          modulesToLoad.add(module.replaceFirst('.js', ''));
+        }
       }
-    }
-    currentDigests = newDigests;
-    if (modulesToLoad.isNotEmpty) {
-      manager.updateGraph();
-      await manager.reload(modulesToLoad);
+      currentDigests = newDigests;
+      if (modulesToLoad.isNotEmpty) {
+        manager.updateGraph();
+        await manager.reload(modulesToLoad);
+      }
+    } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
+      print('Hot reload is currently unsupported. Ignoring change.');
     }
   });
 }
 
 @JS(r'$dartLoader')
 external DartLoader get dartLoader;
+
+@JS(r'$dartReloadConfiguration')
+external String get reloadConfiguration;
 
 List<K> keys<K, V>(JsMap<K, V> map) {
   return List.from(_jsArrayFrom(map.keys()));

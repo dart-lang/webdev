@@ -82,21 +82,16 @@ class ServeCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    var configuration = Configuration.fromArgs(argResults);
-
-    var workingDirectory = Directory.current.path;
-
-    var hotRestart = configuration.hotRestart;
-    if (configuration.hotReload) {
-      print('Hot reload is not ready yet, using --$hotRestartFlag');
-      hotRestart = true;
-    }
-
-    if (configuration.liveReload && hotRestart) {
-      print("Can't use $liveReloadFlag and $hotRestartFlag together\n\n");
+    Configuration configuration;
+    try {
+      configuration = Configuration.fromArgs(argResults);
+    } on InvalidConfiguration catch (e) {
+      print('Invalid configuration: ${e.details}\n\n');
       printUsage();
       return -1;
     }
+
+    var workingDirectory = Directory.current.path;
 
     var directoryArgs = argResults.rest
         .where((arg) => arg.contains(':') || !arg.startsWith('--'))

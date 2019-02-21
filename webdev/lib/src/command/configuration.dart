@@ -4,6 +4,8 @@
 
 import 'package:args/args.dart';
 
+import '../serve/reload_client/configuration.dart';
+
 const hostnameFlag = 'hostname';
 const hotReloadFlag = 'hot-reload';
 const hotRestartFlag = 'hot-restart';
@@ -16,55 +18,66 @@ const releaseFlag = 'release';
 const requireBuildWebCompilersFlag = 'build-web-compilers';
 const verboseFlag = 'verbose';
 
+ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
+  var reload = ReloadConfiguration.none;
+  var hotReload = argResults.options.contains(hotReloadFlag)
+      ? argResults[hotReloadFlag] as bool
+      : false;
+  var hotRestart = argResults.options.contains(hotRestartFlag)
+      ? argResults[hotRestartFlag] as bool
+      : false;
+  var liveReload = argResults.options.contains(liveReloadFlag)
+      ? argResults[liveReloadFlag] as bool
+      : false;
+  if ([hotReload, hotRestart, liveReload].where((v) => v).length > 1) {
+    throw InvalidConfiguration('Can not use --$hotReloadFlag, --$hotRestartFlag'
+        ' or --$liveReloadFlag together.');
+  }
+  if (hotReload) reload = ReloadConfiguration.hotReload;
+  if (hotRestart) reload = ReloadConfiguration.hotRestart;
+  if (liveReload) reload = ReloadConfiguration.liveReload;
+  return reload;
+}
+
 class Configuration {
   final String _hostname;
-  final bool _hotReload;
-  final bool _hotRestart;
   final bool _launchInChrome;
-  final bool _liveReload;
   final bool _logRequests;
   final String _output;
   final bool _release;
+  final ReloadConfiguration _reload;
   final bool _requireBuildWebCompilers;
   final bool _verbose;
 
   Configuration._({
     String hostname,
-    bool hotReload,
-    bool hotRestart,
     bool launchInChrome,
-    bool liveReload,
     bool logRequests,
     String output,
+    ReloadConfiguration reload,
     bool release,
     bool requireBuildWebCompilers,
     bool verbose,
   })  : _hostname = hostname,
-        _hotReload = hotReload,
-        _hotRestart = hotRestart,
         _launchInChrome = launchInChrome,
-        _liveReload = liveReload,
         _logRequests = logRequests,
         _output = output,
         _release = release,
+        _reload = reload,
         _requireBuildWebCompilers = requireBuildWebCompilers,
         _verbose = verbose;
 
   String get hostname => _hostname ?? 'localhost';
 
-  bool get hotReload => _hotReload ?? false;
-
-  bool get hotRestart => _hotRestart ?? false;
-
   bool get launchInChrome => _launchInChrome ?? false;
-
-  bool get liveReload => _liveReload ?? false;
 
   bool get logRequests => _logRequests ?? false;
 
   String get output => _output ?? outputNone;
 
   bool get release => _release ?? false;
+
+  ReloadConfiguration get reload => _reload ?? ReloadConfiguration.none;
 
   bool get requireBuildWebCompilers => _requireBuildWebCompilers ?? true;
 
@@ -79,21 +92,9 @@ class Configuration {
         ? argResults[hostnameFlag] as String
         : defaultConfiguration.hostname;
 
-    var hotReload = argResults.options.contains(hotReloadFlag)
-        ? argResults[hotReloadFlag] as bool
-        : defaultConfiguration.hotReload;
-
-    var hotRestart = argResults.options.contains(hotRestartFlag)
-        ? argResults[hotRestartFlag] as bool
-        : defaultConfiguration.hotRestart;
-
     var launchInChrome = argResults.options.contains(launchInChromeFlag)
         ? argResults[launchInChromeFlag] as bool
-        : defaultConfiguration.liveReload;
-
-    var liveReload = argResults.options.contains(liveReloadFlag)
-        ? argResults[liveReloadFlag] as bool
-        : defaultConfiguration.liveReload;
+        : defaultConfiguration.launchInChrome;
 
     var logRequests = argResults.options.contains(logRequestsFlag)
         ? argResults[logRequestsFlag] as bool
@@ -118,14 +119,17 @@ class Configuration {
 
     return Configuration._(
         hostname: hostname,
-        hotReload: hotReload,
-        hotRestart: hotRestart,
         launchInChrome: launchInChrome,
-        liveReload: liveReload,
         logRequests: logRequests,
         output: output,
         release: release,
+        reload: _parseReloadConfiguration(argResults),
         requireBuildWebCompilers: requireBuildWebCompilers,
         verbose: verbose);
   }
+}
+
+class InvalidConfiguration implements Exception {
+  final String details;
+  InvalidConfiguration(this.details);
 }

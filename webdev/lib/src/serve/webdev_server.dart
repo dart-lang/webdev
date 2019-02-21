@@ -13,6 +13,7 @@ import '../command/configuration.dart';
 import 'handlers/asset_handler.dart';
 import 'handlers/build_results_handler.dart';
 import 'middlewares/reload_middleware.dart';
+import 'reload_client/configuration.dart';
 
 class ServerOptions {
   final Configuration configuration;
@@ -50,14 +51,9 @@ class WebDevServer {
       pipeline = pipeline.addMiddleware(logRequests());
     }
 
-    if (options.configuration.liveReload || options.configuration.hotRestart) {
-      if (options.configuration.liveReload) {
-        pipeline = pipeline.addMiddleware(injectLiveReloadClientCode);
-      }
-
-      if (options.configuration.hotRestart) {
-        pipeline = pipeline.addMiddleware(injectHotRestartClientCode);
-      }
+    if (options.configuration.reload != ReloadConfiguration.none) {
+      pipeline = pipeline
+          .addMiddleware(createReloadHandler(options.configuration.reload));
 
       var buildResultsHandler = BuildResultsHandler(
           // Only provide relevant build results
