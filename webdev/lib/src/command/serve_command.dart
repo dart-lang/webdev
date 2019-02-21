@@ -63,7 +63,7 @@ class ServeCommand extends Command<int> {
           help: 'Automatically reloads changed modules after each build '
               'and restarts your application.\n'
               "Can't be used with $liveReloadFlag.")
-      ..addFlag(hotReloadFlag, defaultsTo: false, negatable: false, hide: true)
+      ..addFlag(hotReloadFlag, negatable: false, hide: true)
       ..addFlag(launchInChromeFlag,
           negatable: false,
           help: 'Automatically launches your application in chrome.')
@@ -82,7 +82,7 @@ class ServeCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    var configuration = Configuration().mergeArgs(argResults);
+    var configuration = Configuration.fromArgs(argResults);
 
     var workingDirectory = Directory.current.path;
 

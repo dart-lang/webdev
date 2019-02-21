@@ -28,7 +28,7 @@ class Configuration {
   final bool _requireBuildWebCompilers;
   final bool _verbose;
 
-  Configuration({
+  Configuration._({
     String hostname,
     bool hotReload,
     bool hotRestart,
@@ -66,66 +66,57 @@ class Configuration {
 
   bool get release => _release ?? false;
 
-  bool get requireBuildWebCompilers => _requireBuildWebCompilers ?? false;
+  bool get requireBuildWebCompilers => _requireBuildWebCompilers ?? true;
 
   bool get verbose => _verbose ?? false;
 
   /// Returns a new configuration with values updated from the parsed args.
-  Configuration mergeArgs(ArgResults argResults) {
-    if (argResults == null) return this;
+  static Configuration fromArgs(ArgResults argResults) {
+    var defaultConfiguration = Configuration._();
+    if (argResults == null) return defaultConfiguration;
 
-    var hostname = argResults.options.contains(hostnameFlag) &&
-            argResults.wasParsed(hostnameFlag)
+    var hostname = argResults.options.contains(hostnameFlag)
         ? argResults[hostnameFlag] as String
-        : this.hostname;
+        : defaultConfiguration.hostname;
 
-    var hotReload = argResults.options.contains(hotReloadFlag) &&
-            argResults.wasParsed(hotReloadFlag)
+    var hotReload = argResults.options.contains(hotReloadFlag)
         ? argResults[hotReloadFlag] as bool
-        : this.hotReload;
+        : defaultConfiguration.hotReload;
 
-    var hotRestart = argResults.options.contains(hotRestartFlag) &&
-            argResults.wasParsed(hotRestartFlag)
+    var hotRestart = argResults.options.contains(hotRestartFlag)
         ? argResults[hotRestartFlag] as bool
-        : this.hotRestart;
+        : defaultConfiguration.hotRestart;
 
-    var launchInChrome = argResults.options.contains(launchInChromeFlag) &&
-            argResults.wasParsed(launchInChromeFlag)
+    var launchInChrome = argResults.options.contains(launchInChromeFlag)
         ? argResults[launchInChromeFlag] as bool
-        : this.liveReload;
+        : defaultConfiguration.liveReload;
 
-    var liveReload = argResults.options.contains(liveReloadFlag) &&
-            argResults.wasParsed(liveReloadFlag)
+    var liveReload = argResults.options.contains(liveReloadFlag)
         ? argResults[liveReloadFlag] as bool
-        : this.liveReload;
+        : defaultConfiguration.liveReload;
 
-    var logRequests = argResults.options.contains(logRequestsFlag) &&
-            argResults.wasParsed(logRequestsFlag)
+    var logRequests = argResults.options.contains(logRequestsFlag)
         ? argResults[logRequestsFlag] as bool
-        : this.logRequests;
+        : defaultConfiguration.logRequests;
 
-    var output = argResults.options.contains(outputFlag) &&
-            argResults.wasParsed(outputFlag)
+    var output = argResults.options.contains(outputFlag)
         ? argResults[outputFlag] as String
-        : this.output;
+        : defaultConfiguration.output;
 
-    var release = argResults.options.contains(releaseFlag) &&
-            argResults.wasParsed(releaseFlag)
+    var release = argResults.options.contains(releaseFlag)
         ? argResults[releaseFlag] as bool
-        : this.release;
+        : defaultConfiguration.release;
 
     var requireBuildWebCompilers =
-        argResults.options.contains(requireBuildWebCompilersFlag) &&
-                argResults.wasParsed(requireBuildWebCompilersFlag)
+        argResults.options.contains(requireBuildWebCompilersFlag)
             ? argResults[requireBuildWebCompilersFlag] as bool
-            : this.requireBuildWebCompilers;
+            : defaultConfiguration.requireBuildWebCompilers;
 
-    var verbose = argResults.options.contains(verboseFlag) &&
-            argResults.wasParsed(verboseFlag)
+    var verbose = argResults.options.contains(verboseFlag)
         ? argResults[verboseFlag] as bool
-        : this.verbose;
+        : defaultConfiguration.verbose;
 
-    return Configuration(
+    return Configuration._(
         hostname: hostname,
         hotReload: hotReload,
         hotRestart: hotRestart,

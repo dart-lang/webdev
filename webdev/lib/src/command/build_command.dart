@@ -105,8 +105,7 @@ class BuildCommand extends Command<int> {
   }
 
   Future<int> runCore(String command, {List<String> extraArgs}) async {
-    var configuration =
-        Configuration(release: true, output: 'web:build').mergeArgs(argResults);
+    var configuration = Configuration.fromArgs(argResults);
     var pubspecLock = await readPubspecLock(configuration);
     final arguments = [command]
       ..addAll(extraArgs ?? const [])

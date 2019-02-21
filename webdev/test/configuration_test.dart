@@ -13,16 +13,15 @@ void main() {
   });
 
   test('default configuration is correctly applied', () {
-    var configuration = Configuration();
-    expect(configuration.release, isFalse);
-    configuration = Configuration(release: true);
-    expect(configuration.release, isTrue);
+    var configuration = Configuration.fromArgs(null);
+    expect(configuration.hostname, equals('localhost'));
   });
 
   test('arg configuration takes precedence to default configuration', () {
+    var defaultConfiguration = Configuration.fromArgs(null);
+    expect(defaultConfiguration.release, isFalse);
     var argResults = argParser.parse(['--release']);
-    var configuration = Configuration(release: false);
-    expect(configuration.release, isFalse);
-    expect(configuration.mergeArgs(argResults).release, isTrue);
+    var argConfiguration = Configuration.fromArgs(argResults);
+    expect(argConfiguration.release, isTrue);
   });
 }
