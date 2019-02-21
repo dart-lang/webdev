@@ -9,27 +9,22 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
+import '../command/configuration.dart';
 import 'handlers/asset_handler.dart';
 import 'handlers/build_results_handler.dart';
 import 'middlewares/reload_middleware.dart';
 
 class ServerOptions {
-  final String hostname;
+  final Configuration configuration;
   final int port;
   final String target;
   final int daemonPort;
-  final bool liveReload;
-  final bool hotRestart;
-  final bool logRequests;
 
   ServerOptions(
-    this.hostname,
+    this.configuration,
     this.port,
     this.target,
     this.daemonPort,
-    this.liveReload,
-    this.hotRestart,
-    this.logRequests,
   );
 }
 
@@ -51,16 +46,16 @@ class WebDevServer {
     var cascade = Cascade();
     var pipeline = const Pipeline();
 
-    if (options.logRequests) {
+    if (options.configuration.logRequests) {
       pipeline = pipeline.addMiddleware(logRequests());
     }
 
-    if (options.liveReload || options.hotRestart) {
-      if (options.liveReload) {
+    if (options.configuration.liveReload || options.configuration.hotRestart) {
+      if (options.configuration.liveReload) {
         pipeline = pipeline.addMiddleware(injectLiveReloadClientCode);
       }
 
-      if (options.hotRestart) {
+      if (options.configuration.hotRestart) {
         pipeline = pipeline.addMiddleware(injectHotRestartClientCode);
       }
 
@@ -73,10 +68,11 @@ class WebDevServer {
 
     cascade = cascade.add(assetHandler.handler);
 
-    var server = await HttpServer.bind(options.hostname, options.port);
+    var server =
+        await HttpServer.bind(options..configuration.hostname, options.port);
     shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
     print('Serving `${options.target}` on '
-        'http://${options.hostname}:${options.port}');
+        'http://${options.configuration.hostname}:${options.port}');
     return WebDevServer._(server);
   }
 }

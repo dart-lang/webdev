@@ -57,22 +57,22 @@ class ServeCommand extends Command<int> {
     addSharedArgs(argParser, releaseDefault: false);
     argParser
       ..addOption(hostnameFlag,
-          help: 'Specify the hostname to serve on', defaultsTo: 'localhost')
+          help: 'Specify the hostname to serve on.', defaultsTo: 'localhost')
       ..addFlag(hotRestartFlag,
-          defaultsTo: false,
           negatable: false,
           help: 'Automatically reloads changed modules after each build '
               'and restarts your application.\n'
-              "Can't be used with $liveReloadFlag")
+              "Can't be used with $liveReloadFlag.")
       ..addFlag(hotReloadFlag, defaultsTo: false, negatable: false, hide: true)
+      ..addFlag(launchInChromeFlag,
+          negatable: false,
+          help: 'Automatically launches your application in chrome.')
       ..addFlag(liveReloadFlag,
-          defaultsTo: false,
           negatable: false,
           help:
               'Automatically refreshes the page after each successful build.\n'
-              "Can't be used with $hotRestartFlag")
+              "Can't be used with $hotRestartFlag.")
       ..addFlag(logRequestsFlag,
-          defaultsTo: false,
           negatable: false,
           help: 'Enables logging for each request to the server.');
   }
@@ -137,13 +137,10 @@ class ServeCommand extends Command<int> {
     var serverOptions = Set<ServerOptions>();
     for (var target in targetPorts.keys) {
       serverOptions.add(ServerOptions(
-        configuration.hostname,
+        configuration,
         targetPorts[target],
         target,
         assetPort,
-        configuration.liveReload,
-        configuration.hotRestart,
-        configuration.logRequests,
       ));
     }
 
