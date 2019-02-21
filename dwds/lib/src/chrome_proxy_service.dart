@@ -2,10 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
+  // ignore: unused_field
+  final ChromeConnection _chromeConnection;
+
+  ChromeProxyService(this._chromeConnection);
+
   @override
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) {

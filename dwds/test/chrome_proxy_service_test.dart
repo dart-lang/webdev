@@ -5,12 +5,21 @@
 import 'package:test/test.dart';
 
 import 'package:dwds/src/chrome_proxy_service.dart';
+import 'package:webdev/src/serve/chrome.dart';
 
 void main() {
+  Chrome chrome;
   ChromeProxyService service;
 
-  setUp(() {
-    service = ChromeProxyService();
+  setUpAll(() async {
+    chrome = await Chrome.start(['https://www.google.com']);
+    var connection = chrome.chromeConnection;
+
+    service = ChromeProxyService(connection);
+  });
+
+  tearDownAll(() async {
+    await chrome.close();
   });
 
   test('addBreakPoint', () {
