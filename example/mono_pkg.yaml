@@ -5,8 +5,9 @@ dart:
 
 stages:
   - analyzer_and_format:
-    - dartfmt
-    - dartanalyzer: --fatal-infos --fatal-warnings .
+    - group:
+      - dartfmt
+      - dartanalyzer: --fatal-infos --fatal-warnings .
 
 cache:
   directories:
