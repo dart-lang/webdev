@@ -9,6 +9,7 @@ import 'dart:isolate';
 import 'package:args/command_runner.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+import 'configuration.dart';
 import 'shared.dart';
 
 const _bootstrapScript = r'''
@@ -104,10 +105,11 @@ class BuildCommand extends Command<int> {
   }
 
   Future<int> runCore(String command, {List<String> extraArgs}) async {
-    var pubspecLock = await readPubspecLock(argResults);
+    var configuration = Configuration.fromArgs(argResults);
+    var pubspecLock = await readPubspecLock(configuration);
     final arguments = [command]
       ..addAll(extraArgs ?? const [])
-      ..addAll(buildRunnerArgs(pubspecLock, argResults));
+      ..addAll(buildRunnerArgs(pubspecLock, configuration));
 
     stdout.write('Creating build script');
     var stopwatch = new Stopwatch()..start();

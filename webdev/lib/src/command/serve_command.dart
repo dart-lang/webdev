@@ -14,14 +14,8 @@ import '../serve/daemon_client.dart';
 import '../serve/server_manager.dart';
 import '../serve/utils.dart';
 import '../serve/webdev_server.dart';
+import 'configuration.dart';
 import 'shared.dart';
-
-const _hostnameFlag = 'hostname';
-const _hotReloadFlag = 'hot-reload';
-const _hotRestartFlag = 'hot-restart';
-const _launchInChrome = 'launch-in-chrome';
-const _liveReloadFlag = 'live-reload';
-const _logRequestsFlag = 'log-requests';
 
 final _defaultWebDirs = const ['web', 'test', 'example', 'benchmark'];
 
@@ -62,27 +56,23 @@ class ServeCommand extends Command<int> {
   ServeCommand() {
     addSharedArgs(argParser, releaseDefault: false);
     argParser
-      ..addOption(_hostnameFlag,
+      ..addOption(hostnameFlag,
           help: 'Specify the hostname to serve on.', defaultsTo: 'localhost')
-      ..addFlag(_hotRestartFlag,
-          defaultsTo: false,
+      ..addFlag(hotRestartFlag,
           negatable: false,
           help: 'Automatically reloads changed modules after each build '
               'and restarts your application.\n'
-              "Can't be used with $_liveReloadFlag.")
-      ..addFlag(_hotReloadFlag, defaultsTo: false, negatable: false, hide: true)
-      ..addFlag(_launchInChrome,
-          defaultsTo: false,
+              "Can't be used with $liveReloadFlag.")
+      ..addFlag(hotReloadFlag, negatable: false, hide: true)
+      ..addFlag(launchInChromeFlag,
           negatable: false,
           help: 'Automatically launches your application in chrome.')
-      ..addFlag(_liveReloadFlag,
-          defaultsTo: false,
+      ..addFlag(liveReloadFlag,
           negatable: false,
           help:
               'Automatically refreshes the page after each successful build.\n'
-              "Can't be used with $_hotRestartFlag.")
-      ..addFlag(_logRequestsFlag,
-          defaultsTo: false,
+              "Can't be used with $hotRestartFlag.")
+      ..addFlag(logRequestsFlag,
           negatable: false,
           help: 'Enables logging for each request to the server.');
   }
@@ -92,23 +82,18 @@ class ServeCommand extends Command<int> {
 
   @override
   Future<int> run() async {
+    var configuration = Configuration.fromArgs(argResults);
+
     var workingDirectory = Directory.current.path;
 
-    var hostname = argResults[_hostnameFlag] as String;
-    var hotReload = argResults[_hotReloadFlag] as bool;
-    var hotRestart = argResults[_hotRestartFlag] as bool;
-    var launchInChrome = argResults[_launchInChrome] as bool;
-    var liveReload = argResults[_liveReloadFlag] as bool;
-    var logRequests = argResults[_logRequestsFlag] as bool;
-    var verbose = argResults[verboseFlag] as bool;
-
-    if (hotReload) {
-      print('Hot reload is not ready yet, using --$_hotRestartFlag');
+    var hotRestart = configuration.hotRestart;
+    if (configuration.hotReload) {
+      print('Hot reload is not ready yet, using --$hotRestartFlag');
       hotRestart = true;
     }
 
-    if (liveReload && hotRestart) {
-      print("Can't use $_liveReloadFlag and $_hotRestartFlag together\n\n");
+    if (configuration.liveReload && hotRestart) {
+      print("Can't use $liveReloadFlag and $hotRestartFlag together\n\n");
       printUsage();
       return -1;
     }
@@ -117,11 +102,11 @@ class ServeCommand extends Command<int> {
         .where((arg) => arg.contains(':') || !arg.startsWith('--'))
         .toList();
 
-    var pubspecLock = await readPubspecLock(argResults);
+    var pubspecLock = await readPubspecLock(configuration);
 
     // Forward remaining arguments as Build Options to the Daemon.
     // This isn't documented. Should it be advertised?
-    var buildOptions = buildRunnerArgs(pubspecLock, argResults)
+    var buildOptions = buildRunnerArgs(pubspecLock, configuration)
       ..addAll(argResults.rest
           .where((arg) => !arg.contains(':') || arg.startsWith('--'))
           .toList());
@@ -132,7 +117,7 @@ class ServeCommand extends Command<int> {
       client = await connectClient(
         workingDirectory,
         buildOptions,
-        (serverLog) => writeServerLog(serverLog, verbose),
+        (serverLog) => writeServerLog(serverLog, configuration.verbose),
       );
     } on OptionsSkew {
       print('\nIncompatible options with current running build daemon.\n\n'
@@ -152,13 +137,10 @@ class ServeCommand extends Command<int> {
     var serverOptions = Set<ServerOptions>();
     for (var target in targetPorts.keys) {
       serverOptions.add(ServerOptions(
-        hostname,
+        configuration,
         targetPorts[target],
         target,
         assetPort,
-        liveReload,
-        hotRestart,
-        logRequests,
       ));
     }
 
@@ -170,7 +152,7 @@ class ServeCommand extends Command<int> {
     print('Starting initial build...');
     client.startBuild();
 
-    if (launchInChrome) {
+    if (configuration.launchInChrome) {
       _chrome = await Chrome.start(_serverManager.uris);
     }
 
