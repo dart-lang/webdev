@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 @TestOn('vm')
+import 'dart:io';
+
 import 'package:test/test.dart';
 
-import 'package:dwds/src/chrome_proxy_service.dart';
+import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webdev/src/serve/chrome.dart';
+
+import 'package:dwds/src/chrome_proxy_service.dart';
 
 void main() {
   Chrome chrome;
@@ -15,7 +19,7 @@ void main() {
     chrome = await Chrome.start(['https://www.google.com']);
     var connection = chrome.chromeConnection;
 
-    service = ChromeProxyService(connection);
+    service = await ChromeProxyService.create(connection);
   });
 
   tearDownAll(() async {
@@ -88,8 +92,18 @@ void main() {
         () => service.getInstances(null, null, null), throwsUnimplementedError);
   });
 
-  test('getIsolate', () {
-    expect(() => service.getIsolate(null), throwsUnimplementedError);
+  group('getIsolate', () {
+    test('works for existing isolates', () async {
+      var vm = await service.getVM();
+      var result = await service.getIsolate(vm.isolates.first.id);
+      expect(result, const TypeMatcher<Isolate>());
+      var isolate = result as Isolate;
+      expect(isolate.name, contains('google.com'));
+    });
+
+    test('throws for invalid ids', () async {
+      expect(service.getIsolate('bad'), throwsArgumentError);
+    });
   });
 
   test('getObject', () {
@@ -112,8 +126,15 @@ void main() {
     expect(() => service.getStack(null), throwsUnimplementedError);
   });
 
-  test('getVM', () {
-    expect(() => service.getVM(), throwsUnimplementedError);
+  test('getVM', () async {
+    var vm = await service.getVM();
+    expect(vm.name, isNotNull);
+    expect(vm.version, Platform.version);
+    expect(vm.isolates.length, equals(1));
+    var isolate = vm.isolates.first;
+    expect(isolate.id, isNotNull);
+    expect(isolate.name, isNotNull);
+    expect(isolate.number, isNotNull);
   });
 
   test('getVersion', () {
