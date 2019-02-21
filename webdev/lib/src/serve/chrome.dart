@@ -38,6 +38,7 @@ class Chrome {
 
   Future<void> close() async {
     _process.kill();
+    await _process.exitCode;
     await _dataDir.delete(recursive: true);
   }
 
