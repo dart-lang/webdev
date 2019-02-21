@@ -69,7 +69,7 @@ class WebDevServer {
     cascade = cascade.add(assetHandler.handler);
 
     var server =
-        await HttpServer.bind(options..configuration.hostname, options.port);
+        await HttpServer.bind(options.configuration.hostname, options.port);
     shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
     print('Serving `${options.target}` on '
         'http://${options.configuration.hostname}:${options.port}');
