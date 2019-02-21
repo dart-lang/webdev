@@ -13,7 +13,7 @@ import 'package:test_process/test_process.dart';
 import 'package:webdev/src/util.dart';
 import 'package:webdriver/io.dart';
 
-import '../test_utils.dart';
+import '../../test_utils.dart';
 
 void main() {
   File entryFile;
@@ -23,10 +23,10 @@ void main() {
   TestProcess webdev;
 
   setUpAll(() async {
-    exampleDirectory =
-        p.absolute(p.join(p.current, 'test', 'reload_client', 'fixtures'));
-    entryFile = File(p.absolute(p.join(
-        p.current, 'test', 'reload_client', 'fixtures', 'web', 'main.dart')));
+    exampleDirectory = p.absolute(
+        p.join(p.current, 'test', 'serve', 'reload_client', 'fixtures'));
+    entryFile = File(p.absolute(p.join(p.current, 'test', 'serve',
+        'reload_client', 'fixtures', 'web', 'main.dart')));
 
     entryContents = entryFile.readAsStringSync();
 
