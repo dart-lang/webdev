@@ -17,23 +17,13 @@ before_install:
 jobs:
   include:
     - stage: analyzer_and_format
-      name: "SDK: dev - DIR: dwds - TASKS: dartfmt -n --set-exit-if-changed ."
-      script: ./tool/travis.sh dartfmt
+      name: "SDK: dev - DIR: dwds - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="dwds"
       dart: dev
     - stage: analyzer_and_format
-      name: "SDK: stable - DIR: dwds - TASKS: dartfmt -n --set-exit-if-changed ."
-      script: ./tool/travis.sh dartfmt
-      env: PKG="dwds"
-      dart: stable
-    - stage: analyzer_and_format
-      name: "SDK: dev - DIR: dwds - TASKS: dartanalyzer --fatal-infos --fatal-warnings ."
-      script: ./tool/travis.sh dartanalyzer
-      env: PKG="dwds"
-      dart: dev
-    - stage: analyzer_and_format
-      name: "SDK: stable - DIR: dwds - TASKS: dartanalyzer --fatal-infos --fatal-warnings ."
-      script: ./tool/travis.sh dartanalyzer
+      name: "SDK: stable - DIR: dwds - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="dwds"
       dart: stable
     - stage: unit_test
@@ -47,43 +37,23 @@ jobs:
       env: PKG="dwds"
       dart: stable
     - stage: analyzer_and_format
-      name: "SDK: dev - DIR: example - TASKS: dartfmt -n --set-exit-if-changed ."
-      script: ./tool/travis.sh dartfmt
+      name: "SDK: dev - DIR: example - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="example"
       dart: dev
     - stage: analyzer_and_format
-      name: "SDK: stable - DIR: example - TASKS: dartfmt -n --set-exit-if-changed ."
-      script: ./tool/travis.sh dartfmt
-      env: PKG="example"
-      dart: stable
-    - stage: analyzer_and_format
-      name: "SDK: dev - DIR: example - TASKS: dartanalyzer --fatal-infos --fatal-warnings ."
-      script: ./tool/travis.sh dartanalyzer
-      env: PKG="example"
-      dart: dev
-    - stage: analyzer_and_format
-      name: "SDK: stable - DIR: example - TASKS: dartanalyzer --fatal-infos --fatal-warnings ."
-      script: ./tool/travis.sh dartanalyzer
+      name: "SDK: stable - DIR: example - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="example"
       dart: stable
     - stage: analyzer_and_format
-      name: "SDK: dev - DIR: webdev - TASKS: dartfmt -n --set-exit-if-changed ."
-      script: ./tool/travis.sh dartfmt
+      name: "SDK: dev - DIR: webdev - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="webdev"
       dart: dev
     - stage: analyzer_and_format
-      name: "SDK: stable - DIR: webdev - TASKS: dartfmt -n --set-exit-if-changed ."
-      script: ./tool/travis.sh dartfmt
-      env: PKG="webdev"
-      dart: stable
-    - stage: analyzer_and_format
-      name: "SDK: dev - DIR: webdev - TASKS: dartanalyzer --fatal-infos --fatal-warnings ."
-      script: ./tool/travis.sh dartanalyzer
-      env: PKG="webdev"
-      dart: dev
-    - stage: analyzer_and_format
-      name: "SDK: stable - DIR: webdev - TASKS: dartanalyzer --fatal-infos --fatal-warnings ."
-      script: ./tool/travis.sh dartanalyzer
+      name: "SDK: stable - DIR: webdev - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="webdev"
       dart: stable
     - stage: unit_test
