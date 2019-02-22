@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:webdev/src/serve/chrome.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 const _googleUrl = 'http://www.google.com/';
 
@@ -27,6 +28,9 @@ void main() {
 
   test('debugger is working', () async {
     var tabs = await chrome.chromeConnection.getTabs();
-    expect(tabs.firstWhere((tab) => tab.url == _googleUrl), isNotNull);
+    expect(
+        tabs,
+        contains(const TypeMatcher<ChromeTab>()
+            .having((t) => t.url, 'url', _googleUrl)));
   }, skip: Platform.isWindows);
 }
