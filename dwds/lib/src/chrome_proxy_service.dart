@@ -12,68 +12,41 @@ import 'helpers.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
-  /// The root connection with a chrome instance.
-  // ignore: unused_field
-  final ChromeConnection _chromeConnection;
-
-  /// All current isolates by their id.
-  final Map<String, Isolate> _isolates;
-
-  /// Maps isolates by id to their underlying [WipConnection].
-  // ignore: unused_field
-  final Map<String, WipConnection> _isolateConnections;
+  /// The isolate for the current tab.
+  final Isolate _isolate;
 
   /// The root `VM` instance. There can only be one of these, but its isolates
   /// are dynamic and roughly map to chrome tabs.
   final VM _vm;
 
-  ChromeProxyService._(this._chromeConnection, this._vm, this._isolates,
-      this._isolateConnections);
+  ChromeProxyService._(this._vm, this._isolate);
 
   static Future<ChromeProxyService> create(
-      ChromeConnection chromeConnection) async {
-    // TODO: Robust isolate handling: https://github.com/dart-lang/webdev/issues/151
+      ChromeConnection chromeConnection, String tabUrl) async {
+    var tab = await chromeConnection.getTab((tab) => tab.url == tabUrl);
+    var id = createId();
+    var isolate = Isolate()
+      ..id = id
+      ..number = id
+      ..name = '${tab.url}:main()'
+      ..runnable = true
+      ..breakpoints = [];
+    var isolateRef = toIsolateRef(isolate);
+    isolate.pauseEvent = Event()
+      ..kind = EventKind.kResume
+      ..isolate = isolateRef;
+    var tabConnection = await tab.connect();
 
-    // Find the Chrome tabs that look like dart apps.
-    var tabs = (await chromeConnection.getTabs()).where((ChromeTab tab) {
-      return !tab.isBackgroundPage &&
-          !tab.isChromeExtension &&
-          !tab.url.startsWith('chrome-devtools://');
-    });
-
-    var isolates = <String, Isolate>{};
-    var isolateRefs = <IsolateRef>[];
-    var isolateConnections = <String, WipConnection>{};
-    for (var tab in tabs) {
-      var id = createId();
-      var isolate = Isolate()
-        ..id = id
-        ..number = id
-        ..name = '${tab.url}:main()'
-        ..runnable = true
-        ..breakpoints = [];
-      var isolateRef = toIsolateRef(isolate);
-      isolate.pauseEvent = Event()
-        ..kind = EventKind.kResume
-        ..isolate = isolateRef;
-
-      isolateRefs.add(isolateRef);
-      isolates[id] = isolate;
-      var tabConnection = await tab.connect();
-      isolateConnections[isolate.id] = tabConnection;
-
-      await tabConnection.runtime.enable();
-    }
+    await tabConnection.runtime.enable();
 
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
-      ..isolates = isolateRefs
+      ..isolates = [isolateRef]
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
 
-    return ChromeProxyService._(
-        chromeConnection, vm, isolates, isolateConnections);
+    return ChromeProxyService._(vm, isolate);
   }
 
   @override
@@ -144,12 +117,9 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Future getIsolate(String isolateId) async {
-    var isolate = _isolates[isolateId];
-    if (isolate == null) {
-      throw ArgumentError.value(
-          isolateId, 'isolateId', 'Unrecognized isolate id');
-    }
-    return isolate;
+    if (_isolate.id == isolateId) return _isolate;
+    throw ArgumentError.value(
+        isolateId, 'isolateId', 'Unrecognized isolate id');
   }
 
   @override
