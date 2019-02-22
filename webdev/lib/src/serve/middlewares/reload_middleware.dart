@@ -42,6 +42,7 @@ Handler Function(Handler) createReloadHandler(
           }
 
           var response = await innerHandler(request);
+          if (response.statusCode == HttpStatus.notFound) return response;
           var body = await response.readAsString();
           var etag = response.headers[HttpHeaders.etagHeader];
           var newHeaders = Map.of(response.headers);
