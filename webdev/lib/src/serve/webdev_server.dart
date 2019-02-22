@@ -57,8 +57,8 @@ class WebDevServer {
         // Only provide relevant build results
         buildResults.asyncMap<BuildResult>((results) => results.results
             .firstWhere((result) => result.target == options.target)));
-    cascade = cascade.add(buildResultsHandler.handler)
-      ..add(assetHandler.handler);
+    cascade =
+        cascade.add(buildResultsHandler.handler).add(assetHandler.handler);
 
     var server =
         await HttpServer.bind(options.configuration.hostname, options.port);
