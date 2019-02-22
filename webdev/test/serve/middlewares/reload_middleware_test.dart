@@ -9,6 +9,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 import 'package:webdev/src/serve/middlewares/reload_middleware.dart';
+import 'package:webdev/src/serve/reload_client/configuration.dart';
 
 void main() {
   HttpServer server;
@@ -17,7 +18,8 @@ void main() {
 
   group('ReloadMiddleware', () {
     setUp(() async {
-      var pipeline = const Pipeline().addMiddleware(injectLiveReloadClientCode);
+      var pipeline = const Pipeline()
+          .addMiddleware(createReloadHandler(ReloadConfiguration.liveReload));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok('$entrypointExtensionMarker',

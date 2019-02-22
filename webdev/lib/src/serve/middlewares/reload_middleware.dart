@@ -7,35 +7,26 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
-
 import 'package:shelf/shelf.dart';
 
-final injectLiveReloadClientCode =
-    _injectBuildResultsClientCode('live_reload_client');
-
-final injectHotRestartClientCode =
-    _injectBuildResultsClientCode('hot_restart_client');
-
-const clientPrefix = 'webdev/src/serve/reload_client/';
-
-/// Marker placed by build_web_compilers for where to put injected JS code.
-const entrypointExtensionMarker = '/* ENTRYPOINT_EXTENTION_MARKER */';
+import '../reload_client/configuration.dart';
 
 /// File extension that build_web_compilers will place the
 /// [entrypointExtensionMarker] in.
 const bootstrapJsExtension = '.bootstrap.js';
 
-String _buildResultsInjectedJS(String scriptName) => '''\n
-// Injected by webdev for build results support.
-window.\$dartLoader.forceLoadModule('$clientPrefix/$scriptName');
-''';
+/// Marker placed by build_web_compilers for where to put injected JS code.
+const entrypointExtensionMarker = '/* ENTRYPOINT_EXTENTION_MARKER */';
 
-Handler Function(Handler) _injectBuildResultsClientCode(String scriptName) =>
+const _clientScript = 'webdev/src/serve/reload_client/client';
+
+Handler Function(Handler) createReloadHandler(
+        ReloadConfiguration configuration) =>
     (innerHandler) {
       return (Request request) async {
-        if (request.url.path == '$clientPrefix/$scriptName.js') {
+        if (request.url.path == '$_clientScript.js') {
           var uri = await Isolate.resolvePackageUri(
-              Uri.parse('package:$clientPrefix/$scriptName.js'));
+              Uri.parse('package:$_clientScript.js'));
           var result = await File(uri.toFilePath()).readAsString();
           return Response.ok(result, headers: {
             HttpHeaders.contentTypeHeader: 'application/javascript'
@@ -51,11 +42,12 @@ Handler Function(Handler) _injectBuildResultsClientCode(String scriptName) =>
           }
 
           var response = await innerHandler(request);
+          if (response.statusCode == HttpStatus.notFound) return response;
           var body = await response.readAsString();
           var etag = response.headers[HttpHeaders.etagHeader];
           var newHeaders = Map.of(response.headers);
           if (body.startsWith(entrypointExtensionMarker)) {
-            body += _buildResultsInjectedJS(scriptName);
+            body += _injectedClientJs(configuration);
 
             etag = base64.encode(md5.convert(body.codeUnits).bytes);
             newHeaders[HttpHeaders.etagHeader] = etag;
@@ -69,3 +61,9 @@ Handler Function(Handler) _injectBuildResultsClientCode(String scriptName) =>
         }
       };
     };
+
+String _injectedClientJs(ReloadConfiguration configuration) => '''\n
+// Injected by webdev for build results support.
+window.\$dartReloadConfiguration = "$configuration";
+window.\$dartLoader.forceLoadModule('$_clientScript');
+''';

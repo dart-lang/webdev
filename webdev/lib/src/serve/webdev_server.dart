@@ -50,23 +50,15 @@ class WebDevServer {
       pipeline = pipeline.addMiddleware(logRequests());
     }
 
-    if (options.configuration.liveReload || options.configuration.hotRestart) {
-      if (options.configuration.liveReload) {
-        pipeline = pipeline.addMiddleware(injectLiveReloadClientCode);
-      }
+    pipeline = pipeline
+        .addMiddleware(createReloadHandler(options.configuration.reload));
 
-      if (options.configuration.hotRestart) {
-        pipeline = pipeline.addMiddleware(injectHotRestartClientCode);
-      }
-
-      var buildResultsHandler = BuildResultsHandler(
-          // Only provide relevant build results
-          buildResults.asyncMap<BuildResult>((results) => results.results
-              .firstWhere((result) => result.target == options.target)));
-      cascade = cascade.add(buildResultsHandler.handler);
-    }
-
-    cascade = cascade.add(assetHandler.handler);
+    var buildResultsHandler = BuildResultsHandler(
+        // Only provide relevant build results
+        buildResults.asyncMap<BuildResult>((results) => results.results
+            .firstWhere((result) => result.target == options.target)));
+    cascade =
+        cascade.add(buildResultsHandler.handler).add(assetHandler.handler);
 
     var server =
         await HttpServer.bind(options.configuration.hostname, options.port);
