@@ -16,10 +16,10 @@ void main() {
   ChromeProxyService service;
 
   setUpAll(() async {
-    chrome = await Chrome.start(['https://www.google.com']);
+    chrome = await Chrome.start(['https://www.google.com/']);
     var connection = chrome.chromeConnection;
-
-    service = await ChromeProxyService.create(connection);
+    service =
+        await ChromeProxyService.create(connection, 'https://www.google.com/');
   });
 
   tearDownAll(() async {
