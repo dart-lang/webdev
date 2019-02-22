@@ -63,8 +63,6 @@ class ChromeProxyService implements VmServiceInterface {
       isolateConnections[isolate.id] = tabConnection;
 
       await tabConnection.runtime.enable();
-      await tabConnection.runtime
-          .evaluate('console.log("Dart Web Debugger Proxy Running")');
     }
 
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
