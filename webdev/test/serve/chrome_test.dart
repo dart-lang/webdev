@@ -2,20 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:webdev/src/serve/chrome.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-const _googleUrl = 'http://www.google.com/';
-
 void main() {
   Chrome chrome;
-  setUp(() async {
-    // The url doesn't matter.
-    chrome = await Chrome.start([_googleUrl]);
-  });
+
+  Future<void> launchChrome({int port}) async {
+    chrome = await Chrome.start([_googleUrl], port: port);
+  }
 
   tearDown(() async {
     await chrome?.close();
@@ -23,14 +22,23 @@ void main() {
   });
 
   test('can launch chrome', () async {
+    await launchChrome();
     expect(chrome, isNotNull);
   }, skip: Platform.isWindows);
 
   test('debugger is working', () async {
+    await launchChrome();
     var tabs = await chrome.chromeConnection.getTabs();
     expect(
         tabs,
         contains(const TypeMatcher<ChromeTab>()
             .having((t) => t.url, 'url', _googleUrl)));
   }, skip: Platform.isWindows);
+
+  test('uses open debug port if provided port is 0', () async {
+    await launchChrome(port: 0);
+    expect(chrome.debugPort, isNot(equals(0)));
+  }, skip: Platform.isWindows);
 }
+
+const _googleUrl = 'http://www.google.com/';

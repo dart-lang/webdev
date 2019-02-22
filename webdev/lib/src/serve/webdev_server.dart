@@ -30,13 +30,17 @@ class ServerOptions {
 
 class WebDevServer {
   HttpServer _server;
+  BuildResultsHandler _buildResultsHandler;
 
-  WebDevServer._(this._server);
+  WebDevServer._(this._server, this._buildResultsHandler);
 
   String get host => _server.address.host;
   int get port => _server.port;
 
-  Future<void> stop() => _server.close(force: true);
+  Future<void> stop() async {
+    await _buildResultsHandler.close();
+    await _server.close(force: true);
+  }
 
   static Future<WebDevServer> start(
     ServerOptions options,
@@ -65,6 +69,6 @@ class WebDevServer {
     shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
     print('Serving `${options.target}` on '
         'http://${options.configuration.hostname}:${options.port}');
-    return WebDevServer._(server);
+    return WebDevServer._(server, buildResultsHandler);
   }
 }

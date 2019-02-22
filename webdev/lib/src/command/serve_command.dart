@@ -45,6 +45,7 @@ Map<String, int> _parseDirectoryArgs(List<String> args) {
 class ServeCommand extends Command<int> {
   ServerManager _serverManager;
   Chrome _chrome;
+  BuildDaemonClient _client;
 
   @override
   final name = 'serve';
@@ -56,6 +57,10 @@ class ServeCommand extends Command<int> {
   ServeCommand() {
     addSharedArgs(argParser, releaseDefault: false);
     argParser
+      ..addOption(chromeDebugPortFlag,
+          help: 'Specify which port the Chrome debugger is listenting on. '
+              'If used with $launchInChromeFlag Chrome will be started with the'
+              ' debugger listening on this port.')
       ..addOption(hostnameFlag,
           help: 'Specify the hostname to serve on.', defaultsTo: 'localhost')
       ..addFlag(hotRestartFlag,
@@ -66,7 +71,9 @@ class ServeCommand extends Command<int> {
       ..addFlag(hotReloadFlag, negatable: false, hide: true)
       ..addFlag(launchInChromeFlag,
           negatable: false,
-          help: 'Automatically launches your application in chrome.')
+          help: 'Automatically launches your application in Chrome with the '
+              'debug port open. Use $chromeDebugPortFlag to specify a specific '
+              'port.')
       ..addFlag(liveReloadFlag,
           negatable: false,
           help:
@@ -107,9 +114,8 @@ class ServeCommand extends Command<int> {
           .toList());
 
     print('Connecting to the build daemon...');
-    BuildDaemonClient client;
     try {
-      client = await connectClient(
+      _client = await connectClient(
         workingDirectory,
         buildOptions,
         (serverLog) => writeServerLog(serverLog, configuration.verbose),
@@ -125,7 +131,7 @@ class ServeCommand extends Command<int> {
     print('Registering build targets...');
     var targetPorts = _parseDirectoryArgs(directoryArgs);
     for (var target in targetPorts.keys) {
-      client.registerBuildTarget(DefaultBuildTarget((b) => b.target = target));
+      _client.registerBuildTarget(DefaultBuildTarget((b) => b.target = target));
     }
 
     var assetPort = daemonPort(workingDirectory);
@@ -139,25 +145,33 @@ class ServeCommand extends Command<int> {
       ));
     }
 
-    _serverManager = ServerManager(serverOptions, client.buildResults);
+    _serverManager = ServerManager(serverOptions, _client.buildResults);
 
     print('Starting resource servers...');
     await _serverManager.start();
 
     print('Starting initial build...');
-    client.startBuild();
+    _client.startBuild();
 
-    if (configuration.launchInChrome) {
-      _chrome = await Chrome.start(_serverManager.uris);
+    try {
+      if (configuration.launchInChrome) {
+        _chrome = await Chrome.start(_serverManager.uris,
+            port: configuration.chromeDebugPort);
+      } else if (configuration.chromeDebugPort != 0) {
+        _chrome = await Chrome.fromExisting(configuration.chromeDebugPort);
+      }
+      await _client.finished;
+    } on ChromeError catch (e) {
+      print(e.details);
+    } finally {
+      await shutDown();
     }
-
-    await client.finished;
-    await shutDown();
 
     return 0;
   }
 
   Future<void> shutDown() async {
+    await _client?.close();
     await _serverManager?.stop();
     await _chrome?.close();
   }

@@ -6,6 +6,7 @@ import 'package:args/args.dart';
 
 import '../serve/reload_client/configuration.dart';
 
+const chromeDebugPortFlag = 'chrome-debug-port';
 const hostnameFlag = 'hostname';
 const hotReloadFlag = 'hot-reload';
 const hotRestartFlag = 'hot-restart';
@@ -40,6 +41,7 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
 }
 
 class Configuration {
+  final int _chromeDebugPort;
   final String _hostname;
   final bool _launchInChrome;
   final bool _logRequests;
@@ -50,6 +52,7 @@ class Configuration {
   final bool _verbose;
 
   Configuration._({
+    int chromeDebugPort,
     String hostname,
     bool launchInChrome,
     bool logRequests,
@@ -58,7 +61,8 @@ class Configuration {
     bool release,
     bool requireBuildWebCompilers,
     bool verbose,
-  })  : _hostname = hostname,
+  })  : _chromeDebugPort = chromeDebugPort,
+        _hostname = hostname,
         _launchInChrome = launchInChrome,
         _logRequests = logRequests,
         _output = output,
@@ -66,6 +70,8 @@ class Configuration {
         _reload = reload,
         _requireBuildWebCompilers = requireBuildWebCompilers,
         _verbose = verbose;
+
+  int get chromeDebugPort => _chromeDebugPort ?? 0;
 
   String get hostname => _hostname ?? 'localhost';
 
@@ -87,6 +93,10 @@ class Configuration {
   static Configuration fromArgs(ArgResults argResults) {
     var defaultConfiguration = Configuration._();
     if (argResults == null) return defaultConfiguration;
+
+    var chromeDebugPort = argResults.options.contains(chromeDebugPortFlag)
+        ? argResults[chromeDebugPortFlag] as int
+        : defaultConfiguration.chromeDebugPort;
 
     var hostname = argResults.options.contains(hostnameFlag)
         ? argResults[hostnameFlag] as String
@@ -118,6 +128,7 @@ class Configuration {
         : defaultConfiguration.verbose;
 
     return Configuration._(
+        chromeDebugPort: chromeDebugPort,
         hostname: hostname,
         launchInChrome: launchInChrome,
         logRequests: logRequests,

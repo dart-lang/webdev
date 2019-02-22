@@ -34,20 +34,31 @@ class Chrome {
 
   final ChromeConnection chromeConnection;
 
-  Chrome._(this.debugPort, this._process, this._dataDir, this.chromeConnection);
+  Chrome._(
+    this.debugPort,
+    this.chromeConnection, {
+    Process process,
+    Directory dataDir,
+  })  : _process = process,
+        _dataDir = dataDir;
 
   Future<void> close() async {
-    _process.kill();
-    await _process.exitCode;
-    await _dataDir.delete(recursive: true);
+    chromeConnection.close();
+    _process?.kill();
+    await _process?.exitCode;
+    await _dataDir?.delete(recursive: true);
   }
+
+  /// Connects to an instance of the Chreom.
+  static Future<Chrome> fromExisting(int port) async =>
+      _connect(Chrome._(port, ChromeConnection('localhost', port)));
 
   /// Starts Chrome with the remote debug port enabled.
   ///
   /// Each url in [urls] will be loaded in a separate tab.
-  static Future<Chrome> start(List<String> urls) async {
+  static Future<Chrome> start(List<String> urls, {int port}) async {
     var dataDir = Directory.systemTemp.createTempSync();
-    var port = await findUnusedPort();
+    port = port == null || port == 0 ? await findUnusedPort() : port;
     var args = [
       // Using a tmp directory ensures that a new instance of chrome launches
       // allowing for the remote debug port to be enabled.
@@ -72,7 +83,29 @@ class Chrome {
         .transform(const LineSplitter())
         .firstWhere((line) => line.startsWith('DevTools listening'));
 
-    return Chrome._(
-        port, process, dataDir, ChromeConnection('localhost', port));
+    return _connect(Chrome._(
+      port,
+      ChromeConnection('localhost', port),
+      process: process,
+      dataDir: dataDir,
+    ));
   }
+
+  static Future<Chrome> _connect(Chrome chrome) async {
+    // The connection is lazy. Try a simple call to make sure the provided
+    // connection is valid.
+    try {
+      await chrome.chromeConnection.getTabs();
+    } on SocketException catch (_) {
+      await chrome.close();
+      throw ChromeError(
+          'Unable to connect to Chrome debug port: ${chrome.debugPort}');
+    }
+    return chrome;
+  }
+}
+
+class ChromeError extends Error {
+  final String details;
+  ChromeError(this.details);
 }
