@@ -25,14 +25,14 @@ class PackageExceptionDetails {
 
   const PackageExceptionDetails._(this.error, {this.description});
 
-  static const noPubspecLock = const PackageExceptionDetails._(
+  static const noPubspecLock = PackageExceptionDetails._(
       '`pubspec.lock` does not exist.',
       description:
           'Run `$appName` in a Dart package directory. Run `pub get` first.');
 
   static PackageExceptionDetails missingDep(
           String pkgName, VersionConstraint constraint) =>
-      new PackageExceptionDetails._(
+      PackageExceptionDetails._(
           'You must have a dependency on `$pkgName` in `pubspec.yaml`.',
           description: '''
 # pubspec.yaml
@@ -47,12 +47,12 @@ Future _runPubDeps() async {
   var result = Process.runSync(pubPath, ['deps']);
 
   if (result.exitCode == 65 || result.exitCode == 66) {
-    throw new PackageException(
-        [new PackageExceptionDetails._((result.stderr as String).trim())]);
+    throw PackageException(
+        [PackageExceptionDetails._((result.stderr as String).trim())]);
   }
 
   if (result.exitCode != 0) {
-    throw new ProcessException(
+    throw ProcessException(
         pubPath,
         ['deps'],
         '***OUT***\n${result.stdout}\n***ERR***\n${result.stderr}\n***',
@@ -69,10 +69,10 @@ class PubspecLock {
     path ??= 'pubspec.lock';
     await _runPubDeps();
 
-    var pubspecLock = loadYaml(await new File(path).readAsString()) as YamlMap;
+    var pubspecLock = loadYaml(await File(path).readAsString()) as YamlMap;
 
     var packages = pubspecLock['packages'] as YamlMap;
-    return new PubspecLock(packages);
+    return PubspecLock(packages);
   }
 
   List<PackageExceptionDetails> checkPackage(
@@ -98,11 +98,11 @@ class PubspecLock {
         //       If a user is playing around here, they are on their own.
 
         var version = pkgDataMap['version'] as String;
-        var pkgVersion = new Version.parse(version);
+        var pkgVersion = Version.parse(version);
         if (!constraint.allows(pkgVersion)) {
           var error = 'The `$pkgName` version – $pkgVersion – is not '
               'within the allowed constraint – $constraint.';
-          issues.add(new PackageExceptionDetails._(error));
+          issues.add(PackageExceptionDetails._(error));
         }
       } else {
         // NOTE: Intentionally not checking non-hosted dependencies: git, path
@@ -118,14 +118,14 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
   var issues = <PackageExceptionDetails>[];
 
   issues.addAll(pubspecLock.checkPackage(
-      'build_runner', new VersionConstraint.parse('>=1.2.2 <2.0.0')));
+      'build_runner', VersionConstraint.parse('>=1.2.2 <2.0.0')));
 
   if (requireBuildWebCompilers) {
     issues.addAll(pubspecLock.checkPackage(
-        'build_web_compilers', new VersionConstraint.parse('>=1.1.0 <2.0.0')));
+        'build_web_compilers', VersionConstraint.parse('>=1.1.0 <2.0.0')));
   }
 
   if (issues.isNotEmpty) {
-    throw new PackageException(issues);
+    throw PackageException(issues);
   }
 }

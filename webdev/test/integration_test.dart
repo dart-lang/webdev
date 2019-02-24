@@ -194,7 +194,7 @@ name: sample
         await d.file('.packages', '').create();
 
         // Ensure there is a noticeable delta in the creation times
-        await new Future.delayed(const Duration(milliseconds: 1100));
+        await Future.delayed(const Duration(milliseconds: 1100));
 
         await d.file('pubspec.yaml', '''
 name: sample
@@ -223,7 +223,7 @@ const _supportedWebCompilersVersion = '1.1.0';
 String _pubspecLock(
     {String runnerVersion = _supportedBuildRunnerVersion,
     String webCompilersVersion = _supportedWebCompilersVersion}) {
-  var buffer = new StringBuffer('''
+  var buffer = StringBuffer('''
 # Copy-pasted from a valid run
 packages:
 ''');
