@@ -19,7 +19,7 @@ Future _readmeCheck(List<String> args) async {
   var output = (await process.stdoutStream().join('\n')).trim();
   await process.shouldExit(0);
 
-  var readme = new File('README.md');
+  var readme = File('README.md');
 
   var command = (['webdev']..addAll(args)).join(' ');
   var expected = '```console\n\$ $command\n$output\n```';

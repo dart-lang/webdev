@@ -29,30 +29,30 @@ void main(List<String> args, [SendPort sendPort]) async {
 const _packagesFileName = '.packages';
 
 Future<Uri> _buildRunnerScript() async {
-  var packagesFile = new File(_packagesFileName);
+  var packagesFile = File(_packagesFileName);
   if (!packagesFile.existsSync()) {
-    throw new FileSystemException(
+    throw FileSystemException(
         'A `$_packagesFileName` file does not exist in the target directory.',
         packagesFile.absolute.path);
   }
 
-  var dataUri = new Uri.dataFromString(_bootstrapScript);
+  var dataUri = Uri.dataFromString(_bootstrapScript);
 
-  var messagePort = new ReceivePort();
-  var exitPort = new ReceivePort();
-  var errorPort = new ReceivePort();
+  var messagePort = ReceivePort();
+  var exitPort = ReceivePort();
+  var errorPort = ReceivePort();
 
   try {
     await Isolate.spawnUri(dataUri, [], messagePort.sendPort,
         onExit: exitPort.sendPort,
         onError: errorPort.sendPort,
         errorsAreFatal: true,
-        packageConfig: new Uri.file(_packagesFileName));
+        packageConfig: Uri.file(_packagesFileName));
 
     var allErrorsFuture = errorPort.forEach((error) {
       var errorList = error as List;
       var message = errorList[0] as String;
-      var stack = new StackTrace.fromString(errorList[1] as String);
+      var stack = StackTrace.fromString(errorList[1] as String);
 
       stderr.writeln(message);
       stderr.writeln(stack);
@@ -69,11 +69,11 @@ Future<Uri> _buildRunnerScript() async {
 
     var messages = items[0] as List;
     if (messages.isEmpty) {
-      throw new StateError('An error occurred while bootstrapping.');
+      throw StateError('An error occurred while bootstrapping.');
     }
 
     assert(messages.length == 1);
-    return new Uri.file(messages.single as String);
+    return Uri.file(messages.single as String);
   } finally {
     messagePort.close();
     exitPort.close();
@@ -96,7 +96,7 @@ class BuildCommand extends Command<int> {
   @override
   Future<int> run() {
     if (argResults.rest.isNotEmpty) {
-      throw new UsageException(
+      throw UsageException(
           'Arguments were provided that are not supported: '
           '"${argResults.rest.join(' ')}".',
           argParser.usage);
@@ -112,7 +112,7 @@ class BuildCommand extends Command<int> {
       ..addAll(buildRunnerArgs(pubspecLock, configuration));
 
     stdout.write('Creating build script');
-    var stopwatch = new Stopwatch()..start();
+    var stopwatch = Stopwatch()..start();
     var buildRunnerScript = await _buildRunnerScript();
     stdout.writeln(', took ${stopwatch.elapsedMilliseconds}ms');
 
@@ -120,9 +120,9 @@ class BuildCommand extends Command<int> {
 
     // Heavily inspired by dart-lang/build @ 0c77443dd7
     // /build_runner/bin/build_runner.dart#L58-L85
-    var exitPort = new ReceivePort();
-    var errorPort = new ReceivePort();
-    var messagePort = new ReceivePort();
+    var exitPort = ReceivePort();
+    var errorPort = ReceivePort();
+    var messagePort = ReceivePort();
     var errorListener = errorPort.listen((e) {
       stderr.writeln('\n\nYou have hit a bug in build_runner');
       stderr.writeln('Please file an issue with reproduction steps at '
@@ -130,7 +130,7 @@ class BuildCommand extends Command<int> {
       final error = e[0];
       final trace = e[1] as String;
       stderr.writeln(error);
-      stderr.writeln(new Trace.parse(trace).terse);
+      stderr.writeln(Trace.parse(trace).terse);
       if (exitCode == 0) exitCode = 1;
     });
 
@@ -142,7 +142,7 @@ class BuildCommand extends Command<int> {
       StreamSubscription exitCodeListener;
       exitCodeListener = messagePort.listen((isolateExitCode) {
         if (isolateExitCode is! int) {
-          throw new StateError(
+          throw StateError(
               'Bad response from isolate, expected an exit code but got '
               '$isolateExitCode');
         }
