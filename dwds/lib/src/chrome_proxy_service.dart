@@ -186,7 +186,8 @@ class ChromeProxyService implements VmServiceInterface {
               (e) => _stdoutTypes.contains(e.type));
         case 'Stderr':
           return _chromeConsoleStreamController(
-              (e) => _stderrTypes.contains(e.type));
+              (e) => _stderrTypes.contains(e.type),
+              includeExceptions: true);
         default:
           throw UnimplementedError('The stream `$streamId` is not supported.');
       }
@@ -270,13 +271,16 @@ class ChromeProxyService implements VmServiceInterface {
   /// Returns a streamController that listens for console logs from chrome and
   /// adds all events passing [filter] to the stream.
   StreamController<Event> _chromeConsoleStreamController(
-      bool Function(ConsoleAPIEvent) filter) {
+      bool Function(ConsoleAPIEvent) filter,
+      {bool includeExceptions = false}) {
     StreamController<Event> controller;
-    StreamSubscription chromeSubscription;
+    StreamSubscription chromeConsoleSubscription;
+    StreamSubscription exceptionsSubscription;
     controller = StreamController<Event>.broadcast(onCancel: () {
-      chromeSubscription.cancel();
+      chromeConsoleSubscription?.cancel();
+      exceptionsSubscription?.cancel();
     }, onListen: () {
-      chromeSubscription =
+      chromeConsoleSubscription =
           _tabConnection.runtime.onConsoleAPICalled.listen((e) {
         if (!filter(e)) return;
         var args = e.params['args'] as List;
@@ -288,6 +292,16 @@ class ChromeProxyService implements VmServiceInterface {
           ..bytes = base64.encode(value.codeUnits)
           ..timestamp = e.timestamp.toInt());
       });
+      if (includeExceptions) {
+        exceptionsSubscription =
+            _tabConnection.runtime.onExceptionThrown.listen((e) {
+          controller.add(Event()
+            ..kind = EventKind.kWriteEvent
+            ..isolate = toIsolateRef(_isolate)
+            ..bytes = base64
+                .encode(e.exceptionDetails.exception.description.codeUnits));
+        });
+      }
     });
     return controller;
   }
