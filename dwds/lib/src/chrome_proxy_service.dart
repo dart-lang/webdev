@@ -276,7 +276,7 @@ class ChromeProxyService implements VmServiceInterface {
     StreamController<Event> controller;
     StreamSubscription chromeConsoleSubscription;
     StreamSubscription exceptionsSubscription;
-    controller = StreamController<Event>.broadcast(onCancel: () {
+    return StreamController<Event>.broadcast(onCancel: () {
       chromeConsoleSubscription?.cancel();
       exceptionsSubscription?.cancel();
     }, onListen: () {
@@ -303,7 +303,6 @@ class ChromeProxyService implements VmServiceInterface {
         });
       }
     });
-    return controller;
   }
 }
 
