@@ -30,7 +30,8 @@ class ChromeProxyService implements VmServiceInterface {
       ..number = id
       ..name = '${tab.url}:main()'
       ..runnable = true
-      ..breakpoints = [];
+      ..breakpoints = []
+      ..libraries = [];
     var isolateRef = toIsolateRef(isolate);
     isolate.pauseEvent = Event()
       ..kind = EventKind.kResume
