@@ -7,7 +7,7 @@ import 'dart:html';
 
 void main() async {
   // Travis needs a bit of time here.
-  await Future.delayed(Duration(seconds: 1));
+  await Future.delayed(Duration(seconds: 5));
 
   print('hello');
   window.console.error('Expected Error Log');
