@@ -21,8 +21,8 @@ class _CommandRunner extends CommandRunner<int> {
   _CommandRunner() : super(appName, 'A tool to develop Dart web projects.') {
     argParser.addFlag('version',
         negatable: false, help: 'Prints the version of webdev.');
-    addCommand(new BuildCommand());
-    addCommand(new ServeCommand());
+    addCommand(BuildCommand());
+    addCommand(ServeCommand());
   }
 
   @override

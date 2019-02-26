@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(const Duration(minutes: 5))
+@Timeout(Duration(minutes: 5))
 
 import 'dart:io';
 
@@ -18,7 +18,7 @@ import 'test_utils.dart';
 /// Value: `null`  - exists in both modes
 ///        `true`  - DDC only
 ///        `false` - dart2js only
-const _testItems = const <String, bool>{
+const _testItems = <String, bool>{
   'main.dart.js': null,
   'main.dart.bootstrap.js': true,
   'main.ddc.js': true
@@ -111,7 +111,7 @@ void main() {
         // Wait for the initial build to finish.
         await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
 
-        var client = new HttpClient();
+        var client = HttpClient();
 
         try {
           for (var entry in _testItems.entries) {

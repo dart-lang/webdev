@@ -19,8 +19,6 @@ class AssetHandler {
     this._target,
   );
 
-  Handler get handler {
-    _handler ??= proxyHandler('http://localhost:$_daemonPort/$_target/');
-    return _handler;
-  }
+  Handler get handler =>
+      _handler ??= proxyHandler('http://localhost:$_daemonPort/$_target/');
 }
