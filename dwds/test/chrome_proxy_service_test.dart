@@ -2,26 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 @TestOn('vm')
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
 
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webdev/src/serve/chrome.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'package:dwds/src/chrome_proxy_service.dart';
 
 void main() {
+  final appUrl = 'http://www.google.com/';
   Chrome chrome;
   ChromeProxyService service;
+  WipConnection tabConnection;
 
   setUpAll(() async {
-    chrome = await Chrome.start(['https://www.google.com/']);
+    chrome = await Chrome.start([appUrl]);
     var connection = chrome.chromeConnection;
-    service =
-        await ChromeProxyService.create(connection, 'https://www.google.com/');
+    service = await ChromeProxyService.create(connection, appUrl);
+    var tab = await connection.getTab((t) => t.url == appUrl);
+    tabConnection = await tab.connect();
   });
-
   tearDownAll(() async {
     await chrome.close();
   });
@@ -98,7 +102,7 @@ void main() {
       var result = await service.getIsolate(vm.isolates.first.id);
       expect(result, const TypeMatcher<Isolate>());
       var isolate = result as Isolate;
-      expect(isolate.name, contains('google.com'));
+      expect(isolate.name, contains(appUrl));
     });
 
     test('throws for invalid ids', () async {
@@ -210,7 +214,54 @@ void main() {
     expect(() => service.streamCancel(null), throwsUnimplementedError);
   });
 
-  test('streamListen', () {
-    expect(() => service.streamListen(null), throwsUnimplementedError);
+  group('streamListen/onEvent', () {
+    test('VM', () async {
+      expect(() => service.streamListen('VM'), throwsUnimplementedError);
+    });
+
+    test('Isolate', () async {
+      expect(() => service.streamListen('Isolate'), throwsUnimplementedError);
+    });
+
+    test('Debug', () async {
+      expect(() => service.streamListen('Debug'), throwsUnimplementedError);
+    });
+
+    test('GC', () async {
+      expect(() => service.streamListen('GC'), throwsUnimplementedError);
+    });
+
+    test('Extension', () async {
+      expect(() => service.streamListen('Extension'), throwsUnimplementedError);
+    });
+
+    test('Timeline', () async {
+      expect(() => service.streamListen('Timeline'), throwsUnimplementedError);
+    });
+
+    test('Stdout', () async {
+      expect(service.streamListen('Stdout'), completion(isSuccess));
+      expect(
+          service.onEvent('Stdout'),
+          emitsThrough(predicate((Event event) =>
+              event.kind == EventKind.kWriteEvent &&
+              String.fromCharCodes(base64.decode(event.bytes))
+                  .contains('hello'))));
+      await tabConnection.runtime.evaluate('console.log("hello");');
+    });
+
+    test('Stderr', () async {
+      expect(service.streamListen('Stderr'), completion(isSuccess));
+      var stderrStream = service.onEvent('Stderr');
+      expect(
+          stderrStream,
+          emitsThrough(predicate((Event event) =>
+              event.kind == EventKind.kWriteEvent &&
+              String.fromCharCodes(base64.decode(event.bytes))
+                  .contains('Error'))));
+      await tabConnection.runtime.evaluate('console.error("Error");');
+    });
   });
 }
+
+const isSuccess = TypeMatcher<Success>();

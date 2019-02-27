@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -15,11 +16,19 @@ class ChromeProxyService implements VmServiceInterface {
   /// The isolate for the current tab.
   final Isolate _isolate;
 
+  /// Cache of all existing StreamControllers.
+  ///
+  /// These are all created through [onEvent].
+  final _streamControllers = <String, StreamController<Event>>{};
+
   /// The root `VM` instance. There can only be one of these, but its isolates
   /// are dynamic and roughly map to chrome tabs.
   final VM _vm;
 
-  ChromeProxyService._(this._vm, this._isolate);
+  /// The connection with the chrome debug service for the tab.
+  final WipConnection _tabConnection;
+
+  ChromeProxyService._(this._vm, this._isolate, this._tabConnection);
 
   static Future<ChromeProxyService> create(
       ChromeConnection chromeConnection, String tabUrl) async {
@@ -47,7 +56,7 @@ class ChromeProxyService implements VmServiceInterface {
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
 
-    return ChromeProxyService._(vm, isolate);
+    return ChromeProxyService._(vm, isolate, tabConnection);
   }
 
   @override
@@ -170,7 +179,19 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Stream<Event> onEvent(String streamId) {
-    throw UnimplementedError();
+    return _streamControllers.putIfAbsent(streamId, () {
+      switch (streamId) {
+        case 'Stdout':
+          return _chromeConsoleStreamController(
+              (e) => _stdoutTypes.contains(e.type));
+        case 'Stderr':
+          return _chromeConsoleStreamController(
+              (e) => _stderrTypes.contains(e.type),
+              includeExceptions: true);
+        default:
+          throw UnimplementedError('The stream `$streamId` is not supported.');
+      }
+    }).stream;
   }
 
   @override
@@ -242,7 +263,55 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> streamListen(String streamId) {
-    throw UnimplementedError();
+  Future<Success> streamListen(String streamId) async {
+    onEvent(streamId);
+    return Success();
+  }
+
+  /// Returns a streamController that listens for console logs from chrome and
+  /// adds all events passing [filter] to the stream.
+  StreamController<Event> _chromeConsoleStreamController(
+      bool Function(ConsoleAPIEvent) filter,
+      {bool includeExceptions = false}) {
+    StreamController<Event> controller;
+    StreamSubscription chromeConsoleSubscription;
+    StreamSubscription exceptionsSubscription;
+    // This is an edge case for this lint apparently
+    //
+    // ignore: join_return_with_assignment
+    controller = StreamController<Event>.broadcast(onCancel: () {
+      chromeConsoleSubscription?.cancel();
+      exceptionsSubscription?.cancel();
+    }, onListen: () {
+      chromeConsoleSubscription =
+          _tabConnection.runtime.onConsoleAPICalled.listen((e) {
+        if (!filter(e)) return;
+        var args = e.params['args'] as List;
+        var item = args[0] as Map;
+        var value = '${item["value"]}\n';
+        controller.add(Event()
+          ..kind = EventKind.kWriteEvent
+          ..isolate = toIsolateRef(_isolate)
+          ..bytes = base64.encode(value.codeUnits)
+          ..timestamp = e.timestamp.toInt());
+      });
+      if (includeExceptions) {
+        exceptionsSubscription =
+            _tabConnection.runtime.onExceptionThrown.listen((e) {
+          controller.add(Event()
+            ..kind = EventKind.kWriteEvent
+            ..isolate = toIsolateRef(_isolate)
+            ..bytes = base64
+                .encode(e.exceptionDetails.exception.description.codeUnits));
+        });
+      }
+    });
+    return controller;
   }
 }
+
+/// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
+const _stderrTypes = ['error'];
+
+/// The `type`s of [ConsoleAPIEvent]s that are treated as `stdout` logs.
+const _stdoutTypes = ['log', 'debug', 'info', 'warning'];
