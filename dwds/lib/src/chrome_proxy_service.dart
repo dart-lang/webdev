@@ -276,7 +276,10 @@ class ChromeProxyService implements VmServiceInterface {
     StreamController<Event> controller;
     StreamSubscription chromeConsoleSubscription;
     StreamSubscription exceptionsSubscription;
-    return StreamController<Event>.broadcast(onCancel: () {
+    // This is an edge case for this lint apparently
+    //
+    // ignore: join_return_with_assignment
+    controller = StreamController<Event>.broadcast(onCancel: () {
       chromeConsoleSubscription?.cancel();
       exceptionsSubscription?.cancel();
     }, onListen: () {
@@ -303,6 +306,7 @@ class ChromeProxyService implements VmServiceInterface {
         });
       }
     });
+    return controller;
   }
 }
 
