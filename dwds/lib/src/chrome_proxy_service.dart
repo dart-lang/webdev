@@ -243,13 +243,16 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> setName(String isolateId, String name) {
-    throw UnimplementedError();
+  Future<Success> setName(String isolateId, String name) async {
+    var isolate = await getIsolate(isolateId) as Isolate;
+    isolate.name = name;
+    return Success();
   }
 
   @override
-  Future<Success> setVMName(String name) {
-    throw UnimplementedError();
+  Future<Success> setVMName(String name) async {
+    _vm.name = name;
+    return Success();
   }
 
   @override
