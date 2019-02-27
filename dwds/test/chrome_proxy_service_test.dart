@@ -26,11 +26,15 @@ void main() {
     var port = await findUnusedPort();
     webdev = await Process.start(
         'pub', ['global', 'run', 'webdev', 'serve', 'example:$port']);
+    webdev.stderr.listen(print);
     await webdev.stdout
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
         .takeWhile((line) => !line.contains('$port'))
-        .drain();
+        .map((line) {
+      print(line);
+      return line;
+    }).drain();
     appUrl = 'http://localhost:$port/hello_world/';
     chrome = await Chrome.start([appUrl]);
     var connection = chrome.chromeConnection;
