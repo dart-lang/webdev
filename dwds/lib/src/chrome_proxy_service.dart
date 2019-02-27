@@ -125,12 +125,16 @@ class ChromeProxyService implements VmServiceInterface {
     throw UnimplementedError();
   }
 
-  @override
-  Future getIsolate(String isolateId) async {
+  /// Sync version of [getIsolate] for internal use, also has stronger typing
+  /// than the public one which has to be dynamic.
+  Isolate _getIsolate(String isolateId) {
     if (_isolate.id == isolateId) return _isolate;
     throw ArgumentError.value(
         isolateId, 'isolateId', 'Unrecognized isolate id');
   }
+
+  @override
+  Future getIsolate(String isolateId) async => _getIsolate(isolateId);
 
   @override
   Future getObject(String isolateId, String objectId, {int offset, int count}) {
@@ -248,7 +252,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Future<Success> setName(String isolateId, String name) async {
-    var isolate = await getIsolate(isolateId) as Isolate;
+    var isolate = _getIsolate(isolateId);
     isolate.name = name;
     return Success();
   }
