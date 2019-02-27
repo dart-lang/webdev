@@ -28,7 +28,30 @@ class ChromeProxyService implements VmServiceInterface {
   /// The connection with the chrome debug service for the tab.
   final WipConnection _tabConnection;
 
-  ChromeProxyService._(this._vm, this._isolate, this._tabConnection);
+  ChromeProxyService._(this._vm, this._isolate, this._tabConnection) {
+    // Listen for `registerExtension` and `postEvent` calls.
+    _tabConnection.runtime.onConsoleAPICalled.listen((ConsoleAPIEvent event) {
+      if (event.type != 'debug') return;
+      var firstArgValue = event.args[0].value;
+      if (firstArgValue == 'dart.developer.registerExtension') {
+        var service = event.args[1].value;
+        _isolate.extensionRPCs.add(service);
+        _streamNotify(
+            'Isolate',
+            Event()
+              ..kind = EventKind.kServiceExtensionAdded
+              ..extensionRPC = service);
+      } else if (firstArgValue == 'dart.developer.postEvent') {
+        _streamNotify(
+            'Extension',
+            Event()
+              ..kind = EventKind.kExtension
+              ..extensionKind = event.args[1].value
+              ..extensionData =
+                  ExtensionData.parse(jsonDecode(event.args[2].value) as Map));
+      }
+    });
+  }
 
   static Future<ChromeProxyService> create(
       ChromeConnection chromeConnection, String tabUrl) async {
@@ -40,7 +63,8 @@ class ChromeProxyService implements VmServiceInterface {
       ..name = '${tab.url}:main()'
       ..runnable = true
       ..breakpoints = []
-      ..libraries = [];
+      ..libraries = []
+      ..extensionRPCs = [];
     var isolateRef = toIsolateRef(isolate);
     isolate.pauseEvent = Event()
       ..kind = EventKind.kResume
@@ -185,6 +209,12 @@ class ChromeProxyService implements VmServiceInterface {
   Stream<Event> onEvent(String streamId) {
     return _streamControllers.putIfAbsent(streamId, () {
       switch (streamId) {
+        case 'Extension':
+        // TODO: right now we only support the `ServiceExtensionAdded` event for
+        // the Isolate stream.
+        case 'Isolate':
+        case '_Service':
+          return StreamController<Event>.broadcast();
         case 'Stdout':
           return _chromeConsoleStreamController(
               (e) => _stdoutTypes.contains(e.type));
@@ -208,8 +238,15 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> registerService(String service, String alias) {
-    throw UnimplementedError();
+  // TODO: what does `alias` represent here?
+  Future<Success> registerService(String service, String alias) async {
+    _isolate.extensionRPCs.add(service);
+    _streamNotify(
+        '_Service',
+        Event()
+          ..kind = EventKind.kServiceRegistered
+          ..extensionRPC = service);
+    return Success();
   }
 
   @override
@@ -260,12 +297,11 @@ class ChromeProxyService implements VmServiceInterface {
   @override
   Future<Success> setVMName(String name) async {
     _vm.name = name;
-    var controller = _streamControllers['VM'];
-    if (controller != null) {
-      controller.add(Event()
-        ..kind = EventKind.kVMUpdate
-        ..vm = toVMRef(_vm));
-    }
+    _streamNotify(
+        'VM',
+        Event()
+          ..kind = EventKind.kVMUpdate
+          ..vm = toVMRef(_vm));
     return Success();
   }
 
@@ -325,10 +361,18 @@ class ChromeProxyService implements VmServiceInterface {
     });
     return controller;
   }
+
+  /// Adds [event] to the stream with [streamId] if there is anybody listening
+  /// on that stream.
+  void _streamNotify(String streamId, Event event) {
+    var controller = _streamControllers[streamId];
+    if (controller == null) return;
+    controller.add(event);
+  }
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
 const _stderrTypes = ['error'];
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stdout` logs.
-const _stdoutTypes = ['log', 'debug', 'info', 'warning'];
+const _stdoutTypes = ['log', 'info', 'warning'];
