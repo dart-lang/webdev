@@ -1,6 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 @TestOn('vm')
 import 'dart:convert';
 import 'dart:io';
@@ -9,24 +10,45 @@ import 'package:test/test.dart';
 
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webdev/src/serve/chrome.dart';
+import 'package:webdev/src/serve/utils.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'package:dwds/src/chrome_proxy_service.dart';
 
 void main() {
-  final appUrl = 'http://www.google.com/';
+  String appUrl;
   Chrome chrome;
   ChromeProxyService service;
   WipConnection tabConnection;
+  Process webdev;
 
   setUpAll(() async {
+    var port = await findUnusedPort();
+    webdev = await Process.start(
+        'pub', ['global', 'run', 'webdev', 'serve', 'example:$port']);
+    await webdev.stdout
+        .transform(const Utf8Decoder())
+        .transform(const LineSplitter())
+        .takeWhile((line) => !line.contains('$port'))
+        .drain();
+    appUrl = 'http://localhost:$port/hello_world/';
     chrome = await Chrome.start([appUrl]);
     var connection = chrome.chromeConnection;
-    service = await ChromeProxyService.create(connection, appUrl);
     var tab = await connection.getTab((t) => t.url == appUrl);
     tabConnection = await tab.connect();
+    await tabConnection.runtime.enable();
+
+    // Wait for the app to be ready, today it just logs a debug log that we can
+    // listen for.
+    await tabConnection.runtime.onConsoleAPICalled.firstWhere((event) =>
+        event.type == 'debug' && event.args[0].value == 'Page Ready');
+
+    service = await ChromeProxyService.create(connection, appUrl);
   });
+
   tearDownAll(() async {
+    webdev.kill();
+    await webdev.exitCode;
     await chrome.close();
   });
 
@@ -162,8 +184,11 @@ void main() {
     expect(() => service.pause(null), throwsUnimplementedError);
   });
 
-  test('registerService', () {
-    expect(() => service.registerService(null, null), throwsUnimplementedError);
+  test('registerService', () async {
+    expect(service.registerService('ext.foo.bar', null), completion(isSuccess));
+    var vm = await service.getVM();
+    var isolate = await service.getIsolate(vm.isolates.first.id) as Isolate;
+    expect(isolate.extensionRPCs, contains('ext.foo.bar'));
   });
 
   test('reloadSources', () {
@@ -221,31 +246,37 @@ void main() {
   });
 
   group('streamListen/onEvent', () {
-    test('VM', () async {
-      var status = await service.streamListen('VM');
-      expect(status, isSuccess);
-      var stream = service.onEvent('VM');
-      expect(
-          stream,
-          emitsThrough(predicate((Event e) =>
-              e.kind == EventKind.kVMUpdate && e.vm.name == 'test')));
-      await service.setVMName('test');
-    });
-
-    test('Isolate', () async {
-      expect(() => service.streamListen('Isolate'), throwsUnimplementedError);
-    });
-
     test('Debug', () async {
       expect(() => service.streamListen('Debug'), throwsUnimplementedError);
+    });
+
+    test('Extension', () async {
+      expect(service.streamListen('Extension'), completion(isSuccess));
+      var stream = service.onEvent('Extension');
+      var eventKind = 'my.custom.event';
+      expect(
+          stream,
+          emitsThrough(predicate((Event event) =>
+              event.kind == EventKind.kExtension &&
+              event.extensionKind == eventKind &&
+              event.extensionData.data['example'] == 'data')));
+      await tabConnection.runtime.evaluate("postEvent('$eventKind');");
     });
 
     test('GC', () async {
       expect(() => service.streamListen('GC'), throwsUnimplementedError);
     });
 
-    test('Extension', () async {
-      expect(() => service.streamListen('Extension'), throwsUnimplementedError);
+    test('Isolate', () async {
+      expect(service.streamListen('Isolate'), completion(isSuccess));
+      var stream = service.onEvent('Isolate');
+      var extensionMethod = 'ext.foo.bar';
+      expect(
+          stream,
+          emitsThrough(predicate((Event event) =>
+              event.kind == EventKind.kServiceExtensionAdded &&
+              event.extensionRPC == extensionMethod)));
+      await tabConnection.runtime.evaluate("registerExtension('ext.foo.bar');");
     });
 
     test('Timeline', () async {
@@ -273,6 +304,28 @@ void main() {
               String.fromCharCodes(base64.decode(event.bytes))
                   .contains('Error'))));
       await tabConnection.runtime.evaluate('console.error("Error");');
+    });
+
+    test('VM', () async {
+      var status = await service.streamListen('VM');
+      expect(status, isSuccess);
+      var stream = service.onEvent('VM');
+      expect(
+          stream,
+          emitsThrough(predicate((Event e) =>
+              e.kind == EventKind.kVMUpdate && e.vm.name == 'test')));
+      await service.setVMName('test');
+    });
+
+    test('_Service', () async {
+      expect(service.streamListen('_Service'), completion(isSuccess));
+      var stream = service.onEvent('_Service');
+      expect(
+          stream,
+          emitsThrough(predicate((Event event) =>
+              event.kind == EventKind.kServiceRegistered &&
+              event.extensionRPC == 'ext.foo.bar')));
+      await service.registerService('ext.foo.bar', null);
     });
   });
 }
