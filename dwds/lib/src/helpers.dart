@@ -10,6 +10,8 @@ IsolateRef toIsolateRef(Isolate isolate) => IsolateRef()
   ..name = isolate.name
   ..number = isolate.number;
 
+VMRef toVMRef(VM vm) => VMRef()..name = vm.name;
+
 int _nextId = 0;
 String createId() {
   _nextId++;

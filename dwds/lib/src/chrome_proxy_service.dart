@@ -188,6 +188,10 @@ class ChromeProxyService implements VmServiceInterface {
           return _chromeConsoleStreamController(
               (e) => _stderrTypes.contains(e.type),
               includeExceptions: true);
+        case 'VM':
+          return StreamController<Event>.broadcast(onCancel: () {
+            _streamControllers.remove('VM');
+          });
         default:
           throw UnimplementedError('The stream `$streamId` is not supported.');
       }
@@ -252,6 +256,12 @@ class ChromeProxyService implements VmServiceInterface {
   @override
   Future<Success> setVMName(String name) async {
     _vm.name = name;
+    var controller = _streamControllers['VM'];
+    if (controller != null) {
+      controller.add(Event()
+        ..kind = EventKind.kVMUpdate
+        ..vm = toVMRef(_vm));
+    }
     return Success();
   }
 

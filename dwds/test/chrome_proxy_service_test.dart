@@ -222,7 +222,14 @@ void main() {
 
   group('streamListen/onEvent', () {
     test('VM', () async {
-      expect(() => service.streamListen('VM'), throwsUnimplementedError);
+      var status = await service.streamListen('VM');
+      expect(status, isSuccess);
+      var stream = service.onEvent('VM');
+      expect(
+          stream,
+          emitsThrough(predicate((Event e) =>
+              e.kind == EventKind.kVMUpdate && e.vm.name == 'test')));
+      await service.setVMName('test');
     });
 
     test('Isolate', () async {
