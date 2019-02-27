@@ -125,12 +125,16 @@ class ChromeProxyService implements VmServiceInterface {
     throw UnimplementedError();
   }
 
-  @override
-  Future getIsolate(String isolateId) async {
+  /// Sync version of [getIsolate] for internal use, also has stronger typing
+  /// than the public one which has to be dynamic.
+  Isolate _getIsolate(String isolateId) {
     if (_isolate.id == isolateId) return _isolate;
     throw ArgumentError.value(
         isolateId, 'isolateId', 'Unrecognized isolate id');
   }
+
+  @override
+  Future getIsolate(String isolateId) async => _getIsolate(isolateId);
 
   @override
   Future getObject(String isolateId, String objectId, {int offset, int count}) {
@@ -188,6 +192,10 @@ class ChromeProxyService implements VmServiceInterface {
           return _chromeConsoleStreamController(
               (e) => _stderrTypes.contains(e.type),
               includeExceptions: true);
+        case 'VM':
+          return StreamController<Event>.broadcast(onCancel: () {
+            _streamControllers.remove('VM');
+          });
         default:
           throw UnimplementedError('The stream `$streamId` is not supported.');
       }
@@ -243,13 +251,22 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> setName(String isolateId, String name) {
-    throw UnimplementedError();
+  Future<Success> setName(String isolateId, String name) async {
+    var isolate = _getIsolate(isolateId);
+    isolate.name = name;
+    return Success();
   }
 
   @override
-  Future<Success> setVMName(String name) {
-    throw UnimplementedError();
+  Future<Success> setVMName(String name) async {
+    _vm.name = name;
+    var controller = _streamControllers['VM'];
+    if (controller != null) {
+      controller.add(Event()
+        ..kind = EventKind.kVMUpdate
+        ..vm = toVMRef(_vm));
+    }
+    return Success();
   }
 
   @override

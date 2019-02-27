@@ -198,12 +198,18 @@ void main() {
         throwsUnimplementedError);
   });
 
-  test('setName', () {
-    expect(() => service.setName(null, null), throwsUnimplementedError);
+  test('setName', () async {
+    var vm = await service.getVM();
+    var isolateId = vm.isolates.first.id;
+    expect(service.setName(isolateId, 'test'), completion(isSuccess));
+    var isolate = await service.getIsolate(isolateId);
+    expect(isolate.name, 'test');
   });
 
-  test('setVMName', () {
-    expect(() => service.setVMName(null), throwsUnimplementedError);
+  test('setVMName', () async {
+    expect(service.setVMName('foo'), completion(isSuccess));
+    var vm = await service.getVM();
+    expect(vm.name, 'foo');
   });
 
   test('setVMTimelineFlags', () {
@@ -216,7 +222,14 @@ void main() {
 
   group('streamListen/onEvent', () {
     test('VM', () async {
-      expect(() => service.streamListen('VM'), throwsUnimplementedError);
+      var status = await service.streamListen('VM');
+      expect(status, isSuccess);
+      var stream = service.onEvent('VM');
+      expect(
+          stream,
+          emitsThrough(predicate((Event e) =>
+              e.kind == EventKind.kVMUpdate && e.vm.name == 'test')));
+      await service.setVMName('test');
     });
 
     test('Isolate', () async {
