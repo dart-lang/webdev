@@ -297,12 +297,11 @@ class ChromeProxyService implements VmServiceInterface {
   @override
   Future<Success> setVMName(String name) async {
     _vm.name = name;
-    var controller = _streamControllers['VM'];
-    if (controller != null) {
-      controller.add(Event()
-        ..kind = EventKind.kVMUpdate
-        ..vm = toVMRef(_vm));
-    }
+    _streamNotify(
+        'VM',
+        Event()
+          ..kind = EventKind.kVMUpdate
+          ..vm = toVMRef(_vm));
     return Success();
   }
 
