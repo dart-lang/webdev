@@ -38,10 +38,15 @@ void main() {
     tabConnection = await tab.connect();
     await tabConnection.runtime.enable();
 
-    // Wait for the app to be ready, today it just logs a debug log that we can
-    // listen for.
-    await tabConnection.runtime.onConsoleAPICalled.firstWhere((event) =>
-        event.type == 'debug' && event.args[0].value == 'Page Ready');
+    // Check if the app is already loaded, look for the top level
+    // `registerExtension` variable which we set as the last step.
+    var result = await tabConnection.runtime
+        .evaluate('(window.registerExtension !== undefined).toString();');
+    if (result.value != 'true') {
+      // If it wasn't already loaded, then wait for the 'Page Ready' log.
+      await tabConnection.runtime.onConsoleAPICalled.firstWhere((event) =>
+          event.type == 'debug' && event.args[0].value == 'Page Ready');
+    }
 
     service = await ChromeProxyService.create(connection, appUrl);
   });

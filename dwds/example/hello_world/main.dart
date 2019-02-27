@@ -20,7 +20,5 @@ void main() async {
     });
   };
 
-  // Help with flakyness on travis, don't fire this event right away.
-  await Future.delayed(Duration(seconds: 1));
   window.console.debug('Page Ready');
 }
