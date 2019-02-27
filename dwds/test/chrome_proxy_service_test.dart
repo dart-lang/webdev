@@ -26,7 +26,10 @@ void main() {
     var port = await findUnusedPort();
     webdev = await Process.start(
         'pub', ['global', 'run', 'webdev', 'serve', 'example:$port']);
-    webdev.stderr.listen(print);
+    webdev.stderr
+        .transform(const Utf8Decoder())
+        .transform(const LineSplitter())
+        .listen(print);
     await webdev.stdout
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
