@@ -276,7 +276,8 @@ void main() {
           emitsThrough(predicate((Event event) =>
               event.kind == EventKind.kServiceExtensionAdded &&
               event.extensionRPC == extensionMethod)));
-      await tabConnection.runtime.evaluate("registerExtension('ext.foo.bar');");
+      await tabConnection.runtime
+          .evaluate("registerExtension('$extensionMethod');");
     });
 
     test('Timeline', () async {
@@ -320,12 +321,13 @@ void main() {
     test('_Service', () async {
       expect(service.streamListen('_Service'), completion(isSuccess));
       var stream = service.onEvent('_Service');
+      var extensionMethod = 'ext.foo.bar';
       expect(
           stream,
           emitsThrough(predicate((Event event) =>
               event.kind == EventKind.kServiceRegistered &&
-              event.extensionRPC == 'ext.foo.bar')));
-      await service.registerService('ext.foo.bar', null);
+              event.extensionRPC == extensionMethod)));
+      await service.registerService(extensionMethod, null);
     });
   });
 }
