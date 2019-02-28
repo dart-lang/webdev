@@ -121,6 +121,7 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
     if (decodedResponse.containsKey('code') &&
         decodedResponse.containsKey('message') &&
         decodedResponse.containsKey('data')) {
+      // ignore: only_throw_errors
       throw RPCError(method, decodedResponse['code'] as int,
           decodedResponse['message'] as String, decodedResponse['data'] as Map);
     } else {
