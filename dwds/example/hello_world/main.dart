@@ -15,8 +15,15 @@ void main() async {
   context['registerExtension'] = (String method) {
     registerExtension(method,
         (String method, Map<String, String> parameters) async {
-      return ServiceExtensionResponse.result(
-          jsonEncode({'example': 'response'}));
+      return ServiceExtensionResponse.result(jsonEncode(parameters ?? {}));
+    });
+  };
+
+  context['registerExtensionWithError'] = (String method) {
+    registerExtension(method,
+        (String method, Map<String, String> parameters) async {
+      return ServiceExtensionResponse.error(
+          int.parse(parameters['code']), parameters['details']);
     });
   };
 

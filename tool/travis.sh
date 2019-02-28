@@ -36,6 +36,11 @@ while (( "$#" )); do
     ;;
   test_1) echo
     echo -e '\033[1mTASK: test_1\033[22m'
+    echo -e 'pub run test -t requires-edge-sdk --run-skipped'
+    pub run test -t requires-edge-sdk --run-skipped || EXIT_CODE=$?
+    ;;
+  test_2) echo
+    echo -e '\033[1mTASK: test_2\033[22m'
     echo -e 'pub run test -j 1 --run-skipped'
     pub run test -j 1 --run-skipped || EXIT_CODE=$?
     ;;

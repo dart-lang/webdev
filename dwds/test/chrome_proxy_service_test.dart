@@ -77,17 +77,41 @@ void main() {
         throwsUnimplementedError);
   });
 
+  group('callServiceExtension', () {
+    test('success', () async {
+      var serviceMethod = 'ext.test.callServiceExtension';
+      await tabConnection.runtime
+          .evaluate('registerExtension("$serviceMethod");');
+
+      var result = await service
+          .callServiceExtension(serviceMethod, args: {'example': 'response'});
+      expect(result.json, {'example': 'response'});
+    });
+
+    test('failure', () async {
+      var serviceMethod = 'ext.test.callServiceExtensionWithError';
+      await tabConnection.runtime
+          .evaluate('registerExtensionWithError("$serviceMethod");');
+
+      var errorDetails = {'intentional': 'error'};
+      expect(
+          service.callServiceExtension(serviceMethod, args: {
+            'code': '-32001',
+            'details': jsonEncode(errorDetails),
+          }),
+          throwsA(predicate((error) =>
+              error is RPCError &&
+              error.code == -32001 &&
+              error.details == jsonEncode(errorDetails))));
+    });
+  }, tags: 'requires-edge-sdk');
+
   test('clearCpuProfile', () {
     expect(() => service.clearCpuProfile(null), throwsUnimplementedError);
   });
 
   test('clearVMTimeline', () {
     expect(() => service.clearVMTimeline(), throwsUnimplementedError);
-  });
-
-  test('addBreakPoint', () {
-    expect(() => service.addBreakpoint(null, null, null),
-        throwsUnimplementedError);
   });
 
   test('clearVMTimeline', () {

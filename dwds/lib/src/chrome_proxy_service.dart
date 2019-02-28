@@ -101,6 +101,33 @@ class ChromeProxyService implements VmServiceInterface {
     throw UnimplementedError();
   }
 
+  // TODO: Upstream this on the [VmServiceInterface].
+  Future<Response> callServiceExtension(String method,
+      {String isolateId, Map<String, String> args}) async {
+    // Validate the isolate id is correct, _getIsolate throws if not.
+    if (isolateId != null) _getIsolate(isolateId);
+    args ??= <String, String>{};
+    var expression = '''
+require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEncode(args)}));
+''';
+    var response =
+        await _tabConnection.runtime.sendCommand('Runtime.evaluate', params: {
+      'expression': expression,
+      'awaitPromise': true,
+    });
+    var decodedResponse =
+        jsonDecode(response.result['result']['value'] as String)
+            as Map<String, dynamic>;
+    if (decodedResponse.containsKey('code') &&
+        decodedResponse.containsKey('message') &&
+        decodedResponse.containsKey('data')) {
+      throw RPCError(method, decodedResponse['code'] as int,
+          decodedResponse['message'] as String, decodedResponse['data'] as Map);
+    } else {
+      return Response()..json = decodedResponse;
+    }
+  }
+
   @override
   Future<Success> clearCpuProfile(String isolateId) {
     throw UnimplementedError();
