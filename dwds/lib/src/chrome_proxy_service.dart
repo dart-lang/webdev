@@ -70,7 +70,7 @@ class ChromeProxyService implements VmServiceInterface {
       ..kind = EventKind.kResume
       ..isolate = isolateRef;
     var tabConnection = await tab.connect();
-
+    await tabConnection.debugger.enable();
     await tabConnection.runtime.enable();
 
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
@@ -396,7 +396,7 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
   StreamController<Event> _debugStreamController() {
     StreamSubscription pauseSubscription;
     StreamSubscription resumeSubscription;
-    return StreamController<Event>(onListen: () {
+    return StreamController<Event>.broadcast(onListen: () {
       pauseSubscription = _tabConnection.debugger.onPaused.listen((e) async {
         var event = Event()..isolate = toIsolateRef(_isolate);
         var params = e.params;
