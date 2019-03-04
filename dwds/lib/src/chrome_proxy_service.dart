@@ -101,9 +101,9 @@ class ChromeProxyService implements VmServiceInterface {
     throw UnimplementedError();
   }
 
-  // TODO: Upstream this on the [VmServiceInterface].
+  @override
   Future<Response> callServiceExtension(String method,
-      {String isolateId, Map<String, String> args}) async {
+      {String isolateId, Map args}) async {
     // Validate the isolate id is correct, _getIsolate throws if not.
     if (isolateId != null) _getIsolate(isolateId);
     args ??= <String, String>{};
