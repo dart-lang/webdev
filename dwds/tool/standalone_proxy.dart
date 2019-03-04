@@ -17,6 +17,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// Shared debugService for all clients.
 ChromeProxyService debugService;
+final serviceExtensionRegistry = ServiceExtensionRegistry();
 
 /// Sets up a web app with the debug service.
 ///
@@ -69,5 +70,6 @@ void handleNewConnection(WebSocketChannel webSocket, String protocol) {
     return jsonDecode(value as String) as Map<String, Object>;
   });
 
-  VmServer(inputStream, responseController.sink, debugService);
+  VmServerConnection(inputStream, responseController.sink,
+      serviceExtensionRegistry, debugService);
 }

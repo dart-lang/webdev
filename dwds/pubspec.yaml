@@ -7,7 +7,7 @@ environment:
   sdk: ^2.1.0
 dependencies:
   source_maps: ^0.10.0
-  vm_service_lib: ^3.14.3-dev.1
+  vm_service_lib: 3.14.3-dev.3
   webkit_inspection_protocol: ^0.3.6
 dev_dependencies:
   args: ^1.0.0
