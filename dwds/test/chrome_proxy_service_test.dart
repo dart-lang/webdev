@@ -314,7 +314,7 @@ void main() {
     });
 
     test('GC', () async {
-      expect(() => service.streamListen('GC'), throwsUnimplementedError);
+      expect(service.streamListen('GC'), completion(isSuccess));
     });
 
     test('Isolate', () async {
@@ -331,7 +331,7 @@ void main() {
     });
 
     test('Timeline', () async {
-      expect(() => service.streamListen('Timeline'), throwsUnimplementedError);
+      expect(service.streamListen('Timeline'), completion(isSuccess));
     });
 
     test('Stdout', () async {

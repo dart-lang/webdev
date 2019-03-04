@@ -242,6 +242,10 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
         // the Isolate stream.
         case 'Isolate':
         case 'VM':
+        // TODO: https://github.com/dart-lang/webdev/issues/168
+        case 'GC':
+        // TODO: https://github.com/dart-lang/webdev/issues/168
+        case 'Timeline':
         case '_Service':
           return StreamController<Event>.broadcast();
         case 'Debug':
