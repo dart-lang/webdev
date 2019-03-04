@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:args/args.dart';
 import 'package:dwds/src/chrome_proxy_service.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:webdev/src/serve/chrome.dart';
 import 'package:webdev/src/serve/utils.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -37,8 +38,29 @@ void main(List<String> args) async {
 
   var chrome = await Chrome.start([appUri]);
 
-  debugService =
-      await ChromeProxyService.create(chrome.chromeConnection, appUri);
+  /// Creates a new VmServer instance for each client, reusing the global service
+  /// object.
+  void handleNewConnection(WebSocketChannel webSocket, String protocol) async {
+    var responseController = StreamController<Map<String, Object>>();
+    unawaited(
+        webSocket.sink.addStream(responseController.stream.map(jsonEncode)));
+    var inputStream = webSocket.stream.map((value) {
+      if (value is List<int>) {
+        value = utf8.decode(value as List<int>);
+      } else if (value is! String) {
+        throw StateError(
+            'Got value with unexpected type ${value.runtimeType} from web '
+            'socket, expected a List<int> or String.');
+      }
+      return jsonDecode(value as String) as Map<String, Object>;
+    });
+
+    debugService ??=
+        await ChromeProxyService.create(chrome.chromeConnection, appUri);
+
+    VmServerConnection(inputStream, responseController.sink,
+        serviceExtensionRegistry, debugService);
+  }
 
   var cascade = shelf.Cascade().add(webSocketHandler(handleNewConnection));
 
@@ -52,24 +74,4 @@ void main(List<String> args) async {
 
   await serve(cascade.handler, host, port);
   print('Debug service running at ws://$host:$port');
-}
-
-/// Creates a new VmServer instance for each client, reusing the global service
-/// object.
-void handleNewConnection(WebSocketChannel webSocket, String protocol) {
-  var responseController = StreamController<Map<String, Object>>();
-  webSocket.sink.addStream(responseController.stream.map(jsonEncode));
-  var inputStream = webSocket.stream.map((value) {
-    if (value is List<int>) {
-      value = utf8.decode(value as List<int>);
-    } else if (value is! String) {
-      throw StateError(
-          'Got value with unexpected type ${value.runtimeType} from web '
-          'socket, expected a List<int> or String.');
-    }
-    return jsonDecode(value as String) as Map<String, Object>;
-  });
-
-  VmServerConnection(inputStream, responseController.sink,
-      serviceExtensionRegistry, debugService);
 }
