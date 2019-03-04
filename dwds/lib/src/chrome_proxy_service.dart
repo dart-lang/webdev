@@ -241,6 +241,10 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
         // TODO: right now we only support the `ServiceExtensionAdded` event for
         // the Isolate stream.
         case 'Isolate':
+        // TODO: https://github.com/dart-lang/webdev/issues/168
+        case 'GC':
+        // TODO: https://github.com/dart-lang/webdev/issues/168
+        case 'Timeline':
         case '_Service':
           return StreamController<Event>.broadcast();
         case 'Stdout':
