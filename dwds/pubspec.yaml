@@ -8,7 +8,7 @@ environment:
 dependencies:
   source_maps: ^0.10.0
   vm_service_lib: 3.14.3-dev.3
-  webkit_inspection_protocol: ^0.3.6
+  webkit_inspection_protocol: ^0.4.0
 dev_dependencies:
   args: ^1.0.0
   build_runner: ^1.0.0
