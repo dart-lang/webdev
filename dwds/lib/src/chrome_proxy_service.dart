@@ -34,7 +34,7 @@ class ChromeProxyService implements VmServiceInterface {
       if (event.type != 'debug') return;
       var firstArgValue = event.args[0].value;
       if (firstArgValue == 'dart.developer.registerExtension') {
-        var service = event.args[1].value;
+        var service = event.args[1].value as String;
         _isolate.extensionRPCs.add(service);
         _streamNotify(
             'Isolate',
@@ -46,9 +46,9 @@ class ChromeProxyService implements VmServiceInterface {
             'Extension',
             Event()
               ..kind = EventKind.kExtension
-              ..extensionKind = event.args[1].value
-              ..extensionData =
-                  ExtensionData.parse(jsonDecode(event.args[2].value) as Map));
+              ..extensionKind = event.args[1].value as String
+              ..extensionData = ExtensionData.parse(
+                  jsonDecode(event.args[2].value as String) as Map));
       }
     });
   }
