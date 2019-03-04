@@ -6,8 +6,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
-
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webdev/src/serve/chrome.dart';
 import 'package:webdev/src/serve/utils.dart';
@@ -42,6 +42,7 @@ void main() {
     var tab = await connection.getTab((t) => t.url == appUrl);
     tabConnection = await tab.connect();
     await tabConnection.runtime.enable();
+    await tabConnection.debugger.enable();
 
     // Check if the app is already loaded, look for the top level
     // `registerExtension` variable which we set as the last step.
@@ -280,8 +281,23 @@ void main() {
   });
 
   group('streamListen/onEvent', () {
-    test('Debug', () async {
-      expect(() => service.streamListen('Debug'), throwsUnimplementedError);
+    group('Debug', () {
+      test('basic Pause/Resume', () async {
+        expect(service.streamListen('Debug'), completion(isSuccess));
+        var stream = service.onEvent('Debug');
+        await tabConnection.debugger.pause();
+        // Need to actually execute some JS code for the pause to take effect.
+        unawaited(tabConnection.runtime.evaluate('console.log("foo");'));
+        expect(
+            stream,
+            emitsThrough(const TypeMatcher<Event>()
+                .having((e) => e.kind, 'kind', EventKind.kPauseInterrupted)));
+        unawaited(tabConnection.debugger.resume());
+        expect(
+            stream,
+            emitsThrough(const TypeMatcher<Event>()
+                .having((e) => e.kind, 'kind', EventKind.kResume)));
+      });
     });
 
     test('Extension', () async {

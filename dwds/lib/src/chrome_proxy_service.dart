@@ -70,7 +70,7 @@ class ChromeProxyService implements VmServiceInterface {
       ..kind = EventKind.kResume
       ..isolate = isolateRef;
     var tabConnection = await tab.connect();
-
+    await tabConnection.debugger.enable();
     await tabConnection.runtime.enable();
 
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
@@ -241,12 +241,15 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
         // TODO: right now we only support the `ServiceExtensionAdded` event for
         // the Isolate stream.
         case 'Isolate':
+        case 'VM':
         // TODO: https://github.com/dart-lang/webdev/issues/168
         case 'GC':
         // TODO: https://github.com/dart-lang/webdev/issues/168
         case 'Timeline':
         case '_Service':
           return StreamController<Event>.broadcast();
+        case 'Debug':
+          return _debugStreamController();
         case 'Stdout':
           return _chromeConsoleStreamController(
               (e) => _stdoutTypes.contains(e.type));
@@ -254,10 +257,6 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
           return _chromeConsoleStreamController(
               (e) => _stderrTypes.contains(e.type),
               includeExceptions: true);
-        case 'VM':
-          return StreamController<Event>.broadcast(onCancel: () {
-            _streamControllers.remove('VM');
-          });
         default:
           throw UnimplementedError('The stream `$streamId` is not supported.');
       }
@@ -392,6 +391,41 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
       }
     });
     return controller;
+  }
+
+  /// Listens to the `debugger` events from chrome and translates those to
+  /// the `Debug` stream events for the vm service protocol.
+  ///
+  // TODO: Implement the rest https://github.com/dart-lang/webdev/issues/166
+  StreamController<Event> _debugStreamController() {
+    StreamSubscription pauseSubscription;
+    StreamSubscription resumeSubscription;
+    return StreamController<Event>.broadcast(onListen: () {
+      pauseSubscription = _tabConnection.debugger.onPaused.listen((e) {
+        var event = Event()..isolate = toIsolateRef(_isolate);
+        var params = e.params;
+        var breakpoints = params['hitBreakpoints'] as List;
+        if (breakpoints.isNotEmpty) {
+          // TODO: Set `breakpoint` and `pauseBreakpoints` fields.
+          event.kind = EventKind.kPauseBreakpoint;
+        } else if (e.reason == 'exception' || e.reason == 'assert') {
+          event.kind = EventKind.kPauseException;
+        } else {
+          event.kind = EventKind.kPauseInterrupted;
+        }
+        _streamNotify('Debug', event);
+      });
+      resumeSubscription = _tabConnection.debugger.onResumed.listen((e) {
+        _streamNotify(
+            'Debug',
+            Event()
+              ..kind = EventKind.kResume
+              ..isolate = toIsolateRef(_isolate));
+      });
+    }, onCancel: () {
+      pauseSubscription.cancel();
+      resumeSubscription.cancel();
+    });
   }
 
   /// Adds [event] to the stream with [streamId] if there is anybody listening
