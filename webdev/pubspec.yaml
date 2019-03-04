@@ -21,7 +21,7 @@ dependencies:
   shelf_proxy: ^0.1.0+5
   stack_trace: ^1.9.2
   sse: ^1.0.0
-  webkit_inspection_protocol: ^0.3.6
+  webkit_inspection_protocol: ^0.4.0
   yaml: ^2.1.13
 
 dev_dependencies:
