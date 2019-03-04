@@ -396,12 +396,12 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
   /// Listens to the `debugger` events from chrome and translates those to
   /// the `Debug` stream events for the vm service protocol.
   ///
-  /// TODO: Implement the rest https://github.com/dart-lang/webdev/issues/166
+  // TODO: Implement the rest https://github.com/dart-lang/webdev/issues/166
   StreamController<Event> _debugStreamController() {
     StreamSubscription pauseSubscription;
     StreamSubscription resumeSubscription;
     return StreamController<Event>.broadcast(onListen: () {
-      pauseSubscription = _tabConnection.debugger.onPaused.listen((e) async {
+      pauseSubscription = _tabConnection.debugger.onPaused.listen((e) {
         var event = Event()..isolate = toIsolateRef(_isolate);
         var params = e.params;
         var breakpoints = params['hitBreakpoints'] as List;
@@ -415,7 +415,7 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
         }
         _streamNotify('Debug', event);
       });
-      resumeSubscription = _tabConnection.debugger.onResumed.listen((e) async {
+      resumeSubscription = _tabConnection.debugger.onResumed.listen((e) {
         _streamNotify(
             'Debug',
             Event()

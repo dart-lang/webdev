@@ -288,15 +288,15 @@ void main() {
         await tabConnection.debugger.pause();
         // Need to actually execute some JS code for the pause to take effect.
         unawaited(tabConnection.runtime.evaluate('console.log("foo");'));
-        // ignore: await_only_futures
-        await expect(
+        expect(
             stream,
-            emitsThrough(
-                predicate((Event e) => e.kind == EventKind.kPauseInterrupted)));
+            emitsThrough(const TypeMatcher<Event>()
+                .having((e) => e.kind, 'kind', EventKind.kPauseInterrupted)));
         unawaited(tabConnection.debugger.resume());
-        // ignore: await_only_futures
-        await expect(stream,
-            emitsThrough(predicate((Event e) => e.kind == EventKind.kResume)));
+        expect(
+            stream,
+            emitsThrough(const TypeMatcher<Event>()
+                .having((e) => e.kind, 'kind', EventKind.kResume)));
       });
     });
 
