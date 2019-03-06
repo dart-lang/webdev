@@ -10,6 +10,8 @@ import 'package:webdriver/io.dart';
 
 import 'injected_fixture.dart';
 
+// To run locally first run:
+//  chromedriver --port=4444 --url-base=wd/hub --verbose
 void main() {
   InjectedFixture fixture;
 
@@ -24,7 +26,7 @@ void main() {
     });
 
     test('can can launch devtools', () async {
-      await fixture.buildAndLoad(['--debugger']);
+      await fixture.buildAndLoad(['--debug']);
 
       await fixture.webdriver.driver.keyboard.sendKeys('${Keyboard.alt}d');
 

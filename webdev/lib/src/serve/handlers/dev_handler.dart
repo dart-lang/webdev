@@ -16,7 +16,7 @@ import '../data/serializers.dart' as webdev;
 import '../debugger/devtools.dart';
 import '../debugger/service.dart';
 
-/// Web socket handler to enable development features like hot reload and
+/// SSE handler to enable development features like hot reload and
 /// opening DevTools.
 class DevHandler {
   StreamSubscription _sub;
@@ -60,6 +60,7 @@ class DevHandler {
           message.url,
         );
         await chrome.chromeConnection
+            // Chrome protocol for spawning a new tab.
             .getUrl('json/new/?http://${devTools.hostname}:${devTools.port}'
                 '/?port=${debugService.port}');
       }

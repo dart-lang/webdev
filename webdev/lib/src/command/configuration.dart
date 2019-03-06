@@ -7,7 +7,7 @@ import 'package:args/args.dart';
 import '../serve/injected/configuration.dart';
 
 const chromeDebugPortFlag = 'chrome-debug-port';
-const debuggerFlag = 'debugger';
+const debugFlag = 'debug';
 const hostnameFlag = 'hostname';
 const hotReloadFlag = 'hot-reload';
 const hotRestartFlag = 'hot-restart';
@@ -43,7 +43,7 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
 
 class Configuration {
   final int _chromeDebugPort;
-  final bool _debugger;
+  final bool _debug;
   final String _hostname;
   final bool _launchInChrome;
   final bool _logRequests;
@@ -55,7 +55,7 @@ class Configuration {
 
   Configuration._({
     int chromeDebugPort,
-    bool debugger,
+    bool debug,
     String hostname,
     bool launchInChrome,
     bool logRequests,
@@ -65,7 +65,7 @@ class Configuration {
     bool requireBuildWebCompilers,
     bool verbose,
   })  : _chromeDebugPort = chromeDebugPort,
-        _debugger = debugger,
+        _debug = debug,
         _hostname = hostname,
         _launchInChrome = launchInChrome,
         _logRequests = logRequests,
@@ -77,7 +77,7 @@ class Configuration {
 
   int get chromeDebugPort => _chromeDebugPort ?? 0;
 
-  bool get debugger => _debugger ?? false;
+  bool get debug => _debug ?? false;
 
   String get hostname => _hostname ?? 'localhost';
 
@@ -104,9 +104,9 @@ class Configuration {
         ? int.parse(argResults[chromeDebugPortFlag] as String)
         : defaultConfiguration.chromeDebugPort;
 
-    var debugger = argResults.options.contains(debuggerFlag)
-        ? argResults[debuggerFlag] as bool
-        : defaultConfiguration.debugger;
+    var debug = argResults.options.contains(debugFlag)
+        ? argResults[debugFlag] as bool
+        : defaultConfiguration.debug;
 
     var hostname = argResults.options.contains(hostnameFlag)
         ? argResults[hostnameFlag] as String
@@ -137,15 +137,15 @@ class Configuration {
         ? argResults[verboseFlag] as bool
         : defaultConfiguration.verbose;
 
-    if (debugger && chromeDebugPort == 0 && !launchInChrome) {
+    if (debug && chromeDebugPort == 0 && !launchInChrome) {
       throw InvalidConfiguration(
           'Must either use --$chromeDebugPortFlag or --$launchInChrome with '
-          '--$debuggerFlag.');
+          '--$debugFlag.');
     }
 
     return Configuration._(
         chromeDebugPort: chromeDebugPort,
-        debugger: debugger,
+        debug: debug,
         hostname: hostname,
         launchInChrome: launchInChrome,
         logRequests: logRequests,

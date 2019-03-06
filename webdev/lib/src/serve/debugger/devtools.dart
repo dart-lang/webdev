@@ -19,6 +19,7 @@ class DevTools {
   final String hostname;
   final int port;
   final HttpServer _server;
+  // The instance of Chrome running the application to debug.
   final Chrome chrome;
 
   DevTools._(this.chrome, this.hostname, this.port, this._server);

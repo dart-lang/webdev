@@ -63,10 +63,10 @@ class ServeCommand extends Command<int> {
     addSharedArgs(argParser, releaseDefault: false);
     argParser
       ..addOption(chromeDebugPortFlag,
-          help: 'Specify which port the Chrome debugger is listenting on. '
+          help: 'Specify which port the Chrome debugger is listening on. '
               'If used with $launchInChromeFlag Chrome will be started with the'
               ' debugger listening on this port.')
-      ..addFlag(debuggerFlag,
+      ..addFlag(debugFlag,
           help: 'Enable the launching of DevTools (Alt + D). '
               'Must use with either --$launchInChromeFlag or '
               '--$chromeDebugPortFlag.')
@@ -170,7 +170,7 @@ class ServeCommand extends Command<int> {
         _chrome = await Chrome.fromExisting(configuration.chromeDebugPort);
       }
 
-      if (configuration.debugger) {
+      if (configuration.debug) {
         var devTools = await DevTools.start(configuration.hostname, _chrome);
         devToolsCompleter.complete(devTools);
       } else {
