@@ -20,7 +20,7 @@ const entrypointExtensionMarker = '/* ENTRYPOINT_EXTENTION_MARKER */';
 
 const _clientScript = 'webdev/src/serve/injected/client';
 
-Handler Function(Handler) createReloadHandler(
+Handler Function(Handler) createInjectedHandler(
         ReloadConfiguration configuration) =>
     (innerHandler) {
       return (Request request) async {
