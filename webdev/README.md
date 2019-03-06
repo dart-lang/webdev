@@ -19,7 +19,7 @@ $ pub global activate webdev
 
 ```console
 $ webdev help serve
-Run a local web development server and a file system watcher that re-builds on
+Run a local web development server and a file system watcher that rebuilds on
 changes.
 
 Usage: webdev serve [arguments] [<directory>[:<port>]]...
