@@ -2,23 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:args/args.dart';
-import 'package:dwds/src/chrome_proxy_service.dart';
-import 'package:pedantic/pedantic.dart';
+import 'package:dwds/service.dart';
+import 'package:dwds/src/helpers.dart';
 import 'package:webdev/src/serve/chrome.dart';
-import 'package:webdev/src/serve/utils.dart';
-import 'package:vm_service_lib/vm_service_lib.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf/shelf_io.dart';
-import 'package:shelf_web_socket/shelf_web_socket.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-
-/// Shared debugService for all clients.
-ChromeProxyService debugService;
-final serviceExtensionRegistry = ServiceExtensionRegistry();
 
 /// Sets up a web app with the debug service.
 ///
@@ -37,33 +24,6 @@ void main(List<String> args) async {
   }
 
   var chrome = await Chrome.start([appUri]);
-
-  /// Creates a new VmServer instance for each client, reusing the global service
-  /// object.
-  void handleNewConnection(WebSocketChannel webSocket, String protocol) async {
-    var responseController = StreamController<Map<String, Object>>();
-    unawaited(
-        webSocket.sink.addStream(responseController.stream.map(jsonEncode)));
-    var inputStream = webSocket.stream.map((value) {
-      if (value is List<int>) {
-        value = utf8.decode(value as List<int>);
-      } else if (value is! String) {
-        throw StateError(
-            'Got value with unexpected type ${value.runtimeType} from web '
-            'socket, expected a List<int> or String.');
-      }
-      return jsonDecode(value as String) as Map<String, Object>;
-    });
-
-    debugService ??=
-        await ChromeProxyService.create(chrome.chromeConnection, appUri);
-
-    VmServerConnection(inputStream, responseController.sink,
-        serviceExtensionRegistry, debugService);
-  }
-
-  var cascade = shelf.Cascade().add(webSocketHandler(handleNewConnection));
-
   var host = parsed['host'] as String;
   int port;
   if (parsed['port'] != null) {
@@ -72,6 +32,6 @@ void main(List<String> args) async {
     port = await findUnusedPort();
   }
 
-  await serve(cascade.handler, host, port);
+  await DebugService.start(host, chrome.chromeConnection, appUri);
   print('Debug service running at ws://$host:$port');
 }

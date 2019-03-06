@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart';
+import 'package:dwds/service.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -14,7 +15,6 @@ import 'package:sse/server/sse_handler.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart' as webdev;
 import '../debugger/devtools.dart';
-import '../debugger/service.dart';
 
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
@@ -54,11 +54,15 @@ class DevHandler {
         var devTools = await _devtoolsFuture;
         if (devTools == null) return;
         var chrome = devTools.chrome;
-        debugService ??= await DebugService.start(
-          devTools.hostname,
-          chrome,
-          message.url,
-        );
+        if (debugService == null) {
+          debugService = await DebugService.start(
+            devTools.hostname,
+            chrome.chromeConnection,
+            message.url,
+          );
+          print('Debug service listening on '
+              'ws://${debugService.hostname}:${debugService.port}');
+        }
         await chrome.chromeConnection
             // Chrome protocol for spawning a new tab.
             .getUrl('json/new/?http://${devTools.hostname}:${devTools.port}'
@@ -66,7 +70,12 @@ class DevHandler {
       }
     });
     unawaited(connection.onClose.then((_) async {
-      await debugService?.close();
+      if (debugService != null) {
+        await debugService.close();
+        debugService = null;
+        print('Stopped debug service on '
+            'ws://${debugService.hostname}:${debugService.port}');
+      }
       _connections.remove(connection);
     }));
   }

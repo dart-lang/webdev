@@ -6,18 +6,17 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-// ignore: implementation_imports
-import 'package:dwds/src/chrome_proxy_service.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../chrome.dart';
-import '../utils.dart';
+import './src/chrome_proxy_service.dart';
+import './src/helpers.dart';
 
-void Function(WebSocketChannel, String) _handleNewConnection(
+void Function(WebSocketChannel, String) _createNewConnectionHandler(
     ChromeProxyService chromeProxyService) {
   return (webSocket, protocol) {
     var responseController = StreamController<Map<String, Object>>();
@@ -55,11 +54,11 @@ class DebugService {
   }
 
   static Future<DebugService> start(
-      String hostname, Chrome chrome, String url) async {
+      String hostname, ChromeConnection chromeConnection, String url) async {
     var chromeProxyService =
-        await ChromeProxyService.create(chrome.chromeConnection, url);
+        await ChromeProxyService.create(chromeConnection, url);
     var cascade = Cascade()
-        .add(webSocketHandler(_handleNewConnection(chromeProxyService)));
+        .add(webSocketHandler(_createNewConnectionHandler(chromeProxyService)));
 
     var port = await findUnusedPort();
 
