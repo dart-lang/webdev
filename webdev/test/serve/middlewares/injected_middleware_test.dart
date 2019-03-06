@@ -8,18 +8,18 @@ import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
-import 'package:webdev/src/serve/middlewares/reload_middleware.dart';
-import 'package:webdev/src/serve/reload_client/configuration.dart';
+import 'package:webdev/src/serve/middlewares/injected_middleware.dart';
+import 'package:webdev/src/serve/injected/configuration.dart';
 
 void main() {
   HttpServer server;
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
 
-  group('ReloadMiddleware', () {
+  group('InjectedMiddelware', () {
     setUp(() async {
       var pipeline = const Pipeline()
-          .addMiddleware(createReloadHandler(ReloadConfiguration.liveReload));
+          .addMiddleware(createInjectedHandler(ReloadConfiguration.liveReload));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok('$entrypointExtensionMarker',
