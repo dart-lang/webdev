@@ -82,6 +82,7 @@ class ChromeProxyService implements VmServiceInterface {
       'expression': "require('dart_sdk').dart.getLibraries();",
       'returnByValue': true
     });
+    _handleErrorIfPresent(librariesResult);
     var libraryNames =
         (librariesResult.result['result']['value'] as List).cast<String>();
     for (var library in libraryNames) {
@@ -136,6 +137,7 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
       'expression': expression,
       'awaitPromise': true,
     });
+    _handleErrorIfPresent(response);
     var decodedResponse =
         jsonDecode(response.result['result']['value'] as String)
             as Map<String, dynamic>;
@@ -266,6 +268,7 @@ ${_getLibrarySnippet(libraryRef.uri)}
       var classesResult = await _tabConnection.runtime.sendCommand(
           'Runtime.evaluate',
           params: {'expression': expression, 'returnByValue': true});
+      _handleErrorIfPresent(classesResult);
       var classDescriptions = (classesResult.result['result']['value'] as List)
           .cast<Map<String, Object>>();
       var classRefs = <ClassRef>[];
@@ -576,6 +579,16 @@ const _stderrTypes = ['error'];
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stdout` logs.
 const _stdoutTypes = ['log', 'info', 'warning'];
+
+/// Throws an [ExceptionDetails] object if `exceptionDetails` is present on the
+/// result.
+void _handleErrorIfPresent(WipResponse response) {
+  if (response.result.containsKey('exceptionDetails')) {
+    // ignore: only_throw_errors
+    throw ExceptionDetails(
+        response.result['exceptionDetails'] as Map<String, dynamic>);
+  }
+}
 
 /// Creates a snippet of JS code that initializes a `library` variable that has
 /// the actual library object in DDC for [libraryUri].
