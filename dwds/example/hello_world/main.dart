@@ -7,7 +7,11 @@ import 'dart:developer';
 import 'dart:html';
 import 'dart:js';
 
+import 'package:path/path.dart' as p;
+
 void main() async {
+  print(p.join('Hello', 'World'));
+
   context['postEvent'] = (String kind) {
     postEvent(kind, {'example': 'data'});
   };
@@ -28,4 +32,12 @@ void main() async {
   };
 
   window.console.debug('Page Ready');
+}
+
+String helloString(String response) => response;
+bool helloBool(bool response) => response;
+num helloNum(num response) => response;
+
+class MyTestClass {
+  String hello() => 'world';
 }

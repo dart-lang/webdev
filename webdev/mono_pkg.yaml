@@ -9,4 +9,7 @@ stages:
       - dartfmt
       - dartanalyzer: --fatal-infos --fatal-warnings .
   - unit_test:
-    - test: -j 1 --run-skipped
+    - test: -j 1 -x requires-edge-sdk --run-skipped
+    - test: -t requires-edge-sdk --run-skipped
+      dart:
+        - be/raw/latest

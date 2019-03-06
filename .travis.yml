@@ -19,28 +19,13 @@ before_install:
 jobs:
   include:
     - stage: analyzer_and_format
-      name: "SDK: dev - DIR: dwds - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      name: "SDK: be/raw/latest - DIR: dwds - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
       script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="dwds"
-      dart: dev
-    - stage: analyzer_and_format
-      name: "SDK: stable - DIR: dwds - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
-      script: ./tool/travis.sh dartfmt dartanalyzer
-      env: PKG="dwds"
-      dart: stable
+      dart: be/raw/latest
     - stage: unit_test
-      name: "SDK: dev - DIR: dwds - TASKS: pub run test"
+      name: "SDK: be/raw/latest - DIR: dwds - TASKS: pub run test"
       script: ./tool/travis.sh test_0
-      env: PKG="dwds"
-      dart: dev
-    - stage: unit_test
-      name: "SDK: stable - DIR: dwds - TASKS: pub run test"
-      script: ./tool/travis.sh test_0
-      env: PKG="dwds"
-      dart: stable
-    - stage: unit_test
-      name: "SDK: be/raw/latest - DIR: dwds - TASKS: pub run test -t requires-edge-sdk --run-skipped"
-      script: ./tool/travis.sh test_1
       env: PKG="dwds"
       dart: be/raw/latest
     - stage: analyzer_and_format
@@ -64,15 +49,20 @@ jobs:
       env: PKG="webdev"
       dart: stable
     - stage: unit_test
-      name: "SDK: dev - DIR: webdev - TASKS: pub run test -j 1 --run-skipped"
-      script: ./tool/travis.sh test_2
+      name: "SDK: dev - DIR: webdev - TASKS: pub run test -j 1 -x requires-edge-sdk --run-skipped"
+      script: ./tool/travis.sh test_1
       env: PKG="webdev"
       dart: dev
     - stage: unit_test
-      name: "SDK: stable - DIR: webdev - TASKS: pub run test -j 1 --run-skipped"
-      script: ./tool/travis.sh test_2
+      name: "SDK: stable - DIR: webdev - TASKS: pub run test -j 1 -x requires-edge-sdk --run-skipped"
+      script: ./tool/travis.sh test_1
       env: PKG="webdev"
       dart: stable
+    - stage: unit_test
+      name: "SDK: be/raw/latest - DIR: webdev - TASKS: pub run test -t requires-edge-sdk --run-skipped"
+      script: ./tool/travis.sh test_2
+      env: PKG="webdev"
+      dart: be/raw/latest
 
 stages:
   - analyzer_and_format

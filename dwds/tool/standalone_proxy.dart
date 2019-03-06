@@ -24,7 +24,6 @@ void main(List<String> args) async {
   }
 
   var chrome = await Chrome.start([appUri]);
-
   var host = parsed['host'] as String;
   int port;
   if (parsed['port'] != null) {
@@ -34,6 +33,5 @@ void main(List<String> args) async {
   }
 
   await DebugService.start(host, chrome.chromeConnection, appUri);
-
   print('Debug service running at ws://$host:$port');
 }

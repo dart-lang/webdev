@@ -105,7 +105,7 @@ void main() {
               error.code == -32001 &&
               error.details == jsonEncode(errorDetails))));
     });
-  }, tags: 'requires-edge-sdk');
+  });
 
   test('clearCpuProfile', () {
     expect(() => service.clearCpuProfile(null), throwsUnimplementedError);
@@ -127,8 +127,50 @@ void main() {
     expect(() => service.clearVMTimeline(), throwsUnimplementedError);
   });
 
-  test('evaluate', () {
-    expect(() => service.evaluate(null, null, null), throwsUnimplementedError);
+  group('evaluate', () {
+    Isolate isolate;
+    setUpAll(() async {
+      var vm = await service.getVM();
+      isolate = await service.getIsolate(vm.isolates.first.id) as Isolate;
+    });
+
+    group('top level methods', () {
+      test('can return strings', () async {
+        expect(
+            await service.evaluate(
+                isolate.id, isolate.rootLib.id, "helloString('world')"),
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'value', 'world'));
+      });
+
+      test('can return bools', () async {
+        expect(
+            await service.evaluate(
+                isolate.id, isolate.rootLib.id, 'helloBool(true)'),
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', 'true'));
+        expect(
+            await service.evaluate(
+                isolate.id, isolate.rootLib.id, 'helloBool(false)'),
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString,
+                'valueAsString',
+                'false'));
+      });
+
+      test('can return nums', () async {
+        expect(
+            await service.evaluate(
+                isolate.id, isolate.rootLib.id, 'helloNum(42.0)'),
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', '42'));
+        expect(
+            await service.evaluate(
+                isolate.id, isolate.rootLib.id, 'helloNum(42.2)'),
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', '42.2'));
+      });
+    });
   });
 
   test('evaluateInFrame', () {
@@ -160,6 +202,15 @@ void main() {
       expect(result, const TypeMatcher<Isolate>());
       var isolate = result as Isolate;
       expect(isolate.name, contains(appUrl));
+      expect(isolate.rootLib.uri, 'hello_world/main.dart');
+      expect(
+          isolate.libraries,
+          containsAll([
+            predicate((LibraryRef lib) => lib.uri == 'dart:core'),
+            predicate((LibraryRef lib) => lib.uri == 'dart:html'),
+            predicate((LibraryRef lib) => lib.uri == 'package:path/path.dart'),
+            predicate((LibraryRef lib) => lib.uri == 'hello_world/main.dart'),
+          ]));
     });
 
     test('throws for invalid ids', () async {
@@ -167,8 +218,34 @@ void main() {
     });
   });
 
-  test('getObject', () {
-    expect(() => service.getObject(null, null), throwsUnimplementedError);
+  group('getObject', () {
+    Isolate isolate;
+    Library rootLibrary;
+    setUpAll(() async {
+      var vm = await service.getVM();
+      isolate = await service.getIsolate(vm.isolates.first.id) as Isolate;
+      rootLibrary =
+          await service.getObject(isolate.id, isolate.rootLib.id) as Library;
+    });
+
+    test('Libraries', () async {
+      expect(rootLibrary, isNotNull);
+      expect(rootLibrary.uri, 'hello_world/main.dart');
+      expect(rootLibrary.classes.length, 1);
+      var testClass = rootLibrary.classes.first;
+      expect(testClass.name, 'MyTestClass');
+    });
+
+    test('Classes', () async {
+      var testClass = await service.getObject(
+          isolate.id, rootLibrary.classes.first.id) as Class;
+
+      expect(
+          testClass.functions,
+          unorderedEquals([
+            predicate((FuncRef f) => f.name == 'hello' && !f.isStatic),
+          ]));
+    });
   });
 
   test('getScripts', () {
