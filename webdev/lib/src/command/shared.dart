@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:args/args.dart';
 
 import '../pubspec.dart';
 import 'configuration.dart';
+
+final lineLength = stdout.hasTerminal ? stdout.terminalColumns : 80;
 
 void addSharedArgs(ArgParser argParser,
     {String outputDefault, bool releaseDefault}) {

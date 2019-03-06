@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:stack_trace/stack_trace.dart';
 
@@ -83,6 +84,9 @@ Future<Uri> _buildRunnerScript() async {
 
 /// Command to execute pub run build_runner build.
 class BuildCommand extends Command<int> {
+  @override
+  final argParser = ArgParser(usageLineLength: lineLength);
+
   @override
   final name = 'build';
 

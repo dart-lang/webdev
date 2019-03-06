@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_target.dart';
@@ -52,7 +53,10 @@ class ServeCommand extends Command<int> {
 
   @override
   final description = 'Run a local web development server and a file system'
-      ' watcher that re-builds on changes.';
+      ' watcher that rebuilds on changes.';
+
+  @override
+  final argParser = ArgParser(usageLineLength: lineLength);
 
   ServeCommand() {
     addSharedArgs(argParser, releaseDefault: false);
