@@ -13,7 +13,7 @@ import '../command/configuration.dart';
 import 'debugger/devtools.dart';
 import 'handlers/asset_handler.dart';
 import 'handlers/dev_handler.dart';
-import 'middlewares/reload_middleware.dart';
+import 'middlewares/injected_middleware.dart';
 
 class ServerOptions {
   final Configuration configuration;
@@ -57,7 +57,7 @@ class WebDevServer {
     }
 
     pipeline = pipeline
-        .addMiddleware(createReloadHandler(options.configuration.reload));
+        .addMiddleware(createInjectedHandler(options.configuration.reload));
 
     var devHandler = DevHandler(
       // Only provide relevant build results
