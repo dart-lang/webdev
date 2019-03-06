@@ -28,7 +28,7 @@ class InjectedFixture {
     var debugPort = await getOpenPort();
     webdriver = await createDriver(desired: {
       'chromeOptions': {
-        'args': ['remote-debugging-port=$debugPort']
+        'args': ['remote-debugging-port=$debugPort', '--headless']
       }
     });
 
