@@ -3,6 +3,8 @@ language: dart
 
 # Custom configuration
 sudo: required
+addons:
+  chrome: stable
 before_install:
   - "export CHROMEDRIVER_BINARY=/usr/bin/google-chrome"
   - "export CHROMEDRIVER_ARGS=--no-sandbox"
