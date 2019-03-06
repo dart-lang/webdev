@@ -49,12 +49,12 @@ jobs:
       env: PKG="webdev"
       dart: stable
     - stage: unit_test
-      name: "SDK: dev - DIR: webdev - TASKS: pub run test -j 1 --run-skipped"
+      name: "SDK: dev - DIR: webdev - TASKS: pub run test -j 1 -x requires-edge-sdk --run-skipped"
       script: ./tool/travis.sh test_1
       env: PKG="webdev"
       dart: dev
     - stage: unit_test
-      name: "SDK: stable - DIR: webdev - TASKS: pub run test -j 1 --run-skipped"
+      name: "SDK: stable - DIR: webdev - TASKS: pub run test -j 1 -x requires-edge-sdk --run-skipped"
       script: ./tool/travis.sh test_1
       env: PKG="webdev"
       dart: stable
