@@ -10,6 +10,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
+import 'package:webdev/src/serve/utils.dart';
 import 'package:webdev/src/util.dart';
 
 import 'test_utils.dart';
@@ -98,7 +99,7 @@ void main() {
     for (var withDDC in [true, false]) {
       var type = withDDC ? 'DDC' : 'dart2js';
       test('using $type', () async {
-        var openPort = await getOpenPort();
+        var openPort = await findUnusedPort();
         var args = ['serve', 'web:$openPort'];
         if (!withDDC) {
           args.add('--release');

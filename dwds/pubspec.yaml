@@ -15,5 +15,4 @@ dev_dependencies:
   build_web_compilers: ^1.0.0
   pedantic: ^1.0.0
   test: ^1.0.0
-  webdev:
-    path: ../webdev
+  webdriver: ^2.0.0

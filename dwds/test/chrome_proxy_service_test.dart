@@ -9,18 +9,20 @@ import 'dart:io';
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
-import 'package:webdev/src/serve/chrome.dart';
-import 'package:webdev/src/serve/utils.dart';
+import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'package:dwds/src/chrome_proxy_service.dart';
+import 'package:dwds/src/helpers.dart';
 
+// To run locally first run:
+//  chromedriver --port=4444 --url-base=wd/hub --verbose
 void main() {
   String appUrl;
-  Chrome chrome;
   ChromeProxyService service;
   WipConnection tabConnection;
   Process webdev;
+  WebDriver webDriver;
 
   setUpAll(() async {
     var port = await findUnusedPort();
@@ -37,8 +39,14 @@ void main() {
         .takeWhile((line) => !line.contains('$port'))
         .drain();
     appUrl = 'http://localhost:$port/hello_world/';
-    chrome = await Chrome.start([appUrl]);
-    var connection = chrome.chromeConnection;
+    var debugPort = await findUnusedPort();
+    webDriver = await createDriver(desired: {
+      'chromeOptions': {
+        'args': ['remote-debugging-port=$debugPort', '--headless']
+      }
+    });
+    await webDriver.get(appUrl);
+    var connection = ChromeConnection('localhost', debugPort);
     var tab = await connection.getTab((t) => t.url == appUrl);
     tabConnection = await tab.connect();
     await tabConnection.runtime.enable();
@@ -60,7 +68,7 @@ void main() {
   tearDownAll(() async {
     webdev.kill();
     await webdev.exitCode;
-    await chrome.close();
+    await webDriver?.quit();
   });
 
   test('addBreakPoint', () {

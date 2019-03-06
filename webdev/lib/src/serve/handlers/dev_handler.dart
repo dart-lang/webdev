@@ -72,9 +72,9 @@ class DevHandler {
     unawaited(connection.onClose.then((_) async {
       if (debugService != null) {
         await debugService.close();
-        debugService = null;
         print('Stopped debug service on '
             'ws://${debugService.hostname}:${debugService.port}');
+        debugService = null;
       }
       _connections.remove(connection);
     }));
