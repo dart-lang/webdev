@@ -14,7 +14,7 @@ dependencies:
   build_daemon: ^0.4.1
   built_value: ^6.3.0
   crypto: ^2.0.6
-  dwds: ^0.1.0
+  dwds: ^0.1.0-dev
   devtools: ^0.0.1
   io: ^0.3.2+1
   meta: ^1.1.2
