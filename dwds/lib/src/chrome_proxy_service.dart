@@ -28,6 +28,9 @@ class ChromeProxyService implements VmServiceInterface {
   /// The connection with the chrome debug service for the tab.
   final WipConnection _tabConnection;
 
+  final _classes = <String, Class>{};
+  final _libraries = <String, Future<Library>>{};
+
   ChromeProxyService._(this._vm, this._isolate, this._tabConnection) {
     // Listen for `registerExtension` and `postEvent` calls.
     _tabConnection.runtime.onConsoleAPICalled.listen((ConsoleAPIEvent event) {
@@ -73,6 +76,25 @@ class ChromeProxyService implements VmServiceInterface {
     await tabConnection.debugger.enable();
     await tabConnection.runtime.enable();
 
+    // Query for the available libraries and add them to the isolate
+    var librariesResult = await tabConnection.runtime
+        .sendCommand('Runtime.evaluate', params: {
+      'expression': "require('dart_sdk').dart.getLibraries();",
+      'returnByValue': true
+    });
+    _handleErrorIfPresent(librariesResult);
+    var libraryNames =
+        (librariesResult.result['result']['value'] as List).cast<String>();
+    for (var library in libraryNames) {
+      isolate.libraries.add(LibraryRef()
+        ..id = library
+        ..name = library
+        ..uri = library);
+    }
+    // TODO: Something more robust here, right now we rely on the 2nd to last
+    // library being the root one (the last library is the bootstrap lib).
+    isolate.rootLib = isolate.libraries[isolate.libraries.length - 2];
+
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
       ..isolates = [isolateRef]
@@ -115,6 +137,7 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
       'expression': expression,
       'awaitPromise': true,
     });
+    _handleErrorIfPresent(response);
     var decodedResponse =
         jsonDecode(response.result['result']['value'] as String)
             as Map<String, dynamic>;
@@ -146,8 +169,41 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
 
   @override
   Future evaluate(String isolateId, String targetId, String expression,
-      {Map<String, String> scope}) {
-    throw UnimplementedError();
+      {Map<String, String> scope}) async {
+    var library = await _getLibrary(isolateId, targetId);
+    if (library == null) {
+      throw UnsupportedError(
+          'Evaluate is only supported when `targetId` is a library.');
+    }
+    var result = await _tabConnection.runtime.evaluate('''
+(function() {
+  ${_getLibrarySnippet(library.uri)};
+  return library.$expression;
+})();
+    ''');
+
+    String kind;
+    var classRef = ClassRef()
+      ..id = 'dart:core:${result.type}'
+      ..name = result.type;
+    switch (result.type) {
+      case 'string':
+        kind = InstanceKind.kString;
+        break;
+      case 'number':
+        kind = InstanceKind.kDouble;
+        break;
+      case 'boolean':
+        kind = InstanceKind.kBool;
+        break;
+      default:
+        throw UnsupportedError('Unsupported response type ${result.type}');
+    }
+
+    return InstanceRef()
+      ..valueAsString = '${result.value}'
+      ..classRef = classRef
+      ..kind = kind;
   }
 
   @override
@@ -188,9 +244,90 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
   @override
   Future getIsolate(String isolateId) async => _getIsolate(isolateId);
 
+  Future<Library> _getLibrary(String isolateId, String objectId) async {
+    return _libraries.putIfAbsent(objectId, () async {
+      var libraryRef = _getIsolate(isolateId)
+          .libraries
+          .firstWhere((l) => l.id == objectId, orElse: () => null);
+      if (libraryRef == null) return null;
+
+      // Fetch information about all the classes in this library.
+      var expression = '''
+(function() {
+${_getLibrarySnippet(libraryRef.uri)}
+  var classes = Object.values(library)
+    .filter((l) => sdkUtils.isType(l));
+  return classes.map(function(clazz) {
+    var description = {'name': clazz.name};
+    var methods = sdkUtils.getMethods(clazz);
+    description['methods'] = methods ? Object.keys(methods) : [];
+    return description;
+  });
+})()
+''';
+      var classesResult = await _tabConnection.runtime.sendCommand(
+          'Runtime.evaluate',
+          params: {'expression': expression, 'returnByValue': true});
+      _handleErrorIfPresent(classesResult);
+      var classDescriptions = (classesResult.result['result']['value'] as List)
+          .cast<Map<String, Object>>();
+      var classRefs = <ClassRef>[];
+      for (var description in classDescriptions) {
+        var name = description['name'] as String;
+        var classId = '${libraryRef.id}:$name';
+        var classRef = ClassRef()
+          ..name = name
+          ..id = classId;
+        classRefs.add(classRef);
+
+        var methodRefs = <FuncRef>[];
+
+        // Add all instance methods, static methods aren't supported yet.
+        var methodNames = (description['methods'] as List).cast<String>();
+        for (var method in methodNames) {
+          var methodId = '$classId:$method';
+          methodRefs.add(FuncRef()
+            ..id = methodId
+            ..name = method
+            ..owner = classRef
+            ..isStatic = false);
+        }
+
+        // TODO: Implement the rest of these
+        // https://github.com/dart-lang/webdev/issues/176.
+        _classes[classId] = Class()
+          ..classRef = classRef
+          ..functions = methodRefs
+          ..id = classId
+          ..library = libraryRef
+          ..name = name
+          ..fields = []
+          ..interfaces = []
+          ..subclasses = [];
+      }
+
+      return Library()
+        ..id = libraryRef.id
+        ..name = libraryRef.name
+        ..uri = libraryRef.uri
+        ..classes = classRefs
+        ..debuggable = true
+        ..dependencies = []
+        ..functions = []
+        ..scripts = []
+        ..variables = [];
+    });
+  }
+
   @override
-  Future getObject(String isolateId, String objectId, {int offset, int count}) {
-    throw UnimplementedError();
+  Future getObject(String isolateId, String objectId,
+      {int offset, int count}) async {
+    var library = await _getLibrary(isolateId, objectId);
+    if (library != null) return library;
+    var clazz = _classes[objectId];
+    if (clazz != null) return clazz;
+    throw UnsupportedError(
+        'Only libraries and classes are supported for getObject');
   }
 
   @override
@@ -376,7 +513,7 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
         controller.add(Event()
           ..kind = EventKind.kWriteEvent
           ..isolate = toIsolateRef(_isolate)
-          ..bytes = base64.encode(value.codeUnits)
+          ..bytes = base64.encode(utf8.encode(value))
           ..timestamp = e.timestamp.toInt());
       });
       if (includeExceptions) {
@@ -386,7 +523,7 @@ require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEn
             ..kind = EventKind.kWriteEvent
             ..isolate = toIsolateRef(_isolate)
             ..bytes = base64
-                .encode(e.exceptionDetails.exception.description.codeUnits));
+                .encode(utf8.encode(e.exceptionDetails.exception.description)));
         });
       }
     });
@@ -442,3 +579,34 @@ const _stderrTypes = ['error'];
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stdout` logs.
 const _stdoutTypes = ['log', 'info', 'warning'];
+
+/// Throws an [ExceptionDetails] object if `exceptionDetails` is present on the
+/// result.
+void _handleErrorIfPresent(WipResponse response) {
+  if (response.result.containsKey('exceptionDetails')) {
+    // ignore: only_throw_errors
+    throw ExceptionDetails(
+        response.result['exceptionDetails'] as Map<String, dynamic>);
+  }
+}
+
+/// Creates a snippet of JS code that initializes a `library` variable that has
+/// the actual library object in DDC for [libraryUri].
+String _getLibrarySnippet(String libraryUri) => '''
+  var libraryName = '$libraryUri';
+  var sdkUtils = require('dart_sdk').dart;
+  var moduleName = sdkUtils.getModuleNames().find(
+    (name) => sdkUtils.getModuleLibraries(name)[libraryName]);
+  // need to strip out the trailing `.ddc`.
+  var module = require(moduleName.replace('.ddc', ''));
+  // Strip the 'package:<package_name>` name out of the library name, if this
+  // library is from a package.
+  var startIndex = libraryName.startsWith('package:')
+      ? libraryName.indexOf("/") + 1 : 0;
+  var libraryIdentifier = libraryName
+    .substring(
+      startIndex,
+      libraryName.length - ".dart".length)
+    .replace(/\\//gi, "__");
+  var library = module[libraryIdentifier];
+''';
