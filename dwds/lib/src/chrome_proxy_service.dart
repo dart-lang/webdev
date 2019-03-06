@@ -257,14 +257,8 @@ ${_getLibrarySnippet(libraryRef.uri)}
     .filter((l) => sdkUtils.isType(l));
   return classes.map(function(clazz) {
     var description = {'name': clazz.name};
-
     var methods = sdkUtils.getMethods(clazz);
     description['methods'] = methods ? Object.keys(methods) : [];
-
-    var staticMethods = sdkUtils.getStaticMethods(clazz);
-    description['static_methods'] =
-      staticMethods ? Object.keys(staticMethods) : [];
-
     return description;
   });
 })()
@@ -284,24 +278,16 @@ ${_getLibrarySnippet(libraryRef.uri)}
         classRefs.add(classRef);
 
         var methodRefs = <FuncRef>[];
-        void addMethod(String methodName, bool isStatic) {
-          var methodId = '$classId:$methodName';
-          methodRefs.add(FuncRef()
-            ..id = methodId
-            ..name = methodName
-            ..owner = classRef
-            ..isStatic = isStatic);
-        }
 
-        // Add all the static and instance methods.
+        // Add all instance methods, static methods aren't supported yet.
         var methodNames = (description['methods'] as List).cast<String>();
         for (var method in methodNames) {
-          addMethod(method, false);
-        }
-        var staticMethodNames =
-            (description['static_methods'] as List).cast<String>();
-        for (var method in staticMethodNames) {
-          addMethod(method, false);
+          var methodId = '$classId:$method';
+          methodRefs.add(FuncRef()
+            ..id = methodId
+            ..name = method
+            ..owner = classRef
+            ..isStatic = false);
         }
 
         // TODO: Implement the rest of these
@@ -600,9 +586,13 @@ String _getLibrarySnippet(String libraryUri) => '''
     (name) => sdkUtils.getModuleLibraries(name)[libraryName]);
   // need to strip out the trailing `.ddc`.
   var module = require(moduleName.replace('.ddc', ''));
+  // Strip the 'package:<package_name>` name out of the library name, if this
+  // library is from a package.
+  var startIndex = libraryName.startsWith('package:')
+      ? libraryName.indexOf("/") + 1 : 0;
   var libraryIdentifier = libraryName
     .substring(
-      libraryName.indexOf("/") + 1,
+      startIndex,
       libraryName.length - ".dart".length)
     .replace(/\\//gi, "__");
   var library = module[libraryIdentifier];
