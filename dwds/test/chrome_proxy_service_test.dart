@@ -105,7 +105,7 @@ void main() {
               error.code == -32001 &&
               error.details == jsonEncode(errorDetails))));
     });
-  }, tags: 'requires-edge-sdk');
+  });
 
   test('clearCpuProfile', () {
     expect(() => service.clearCpuProfile(null), throwsUnimplementedError);

@@ -83,7 +83,6 @@ class ChromeProxyService implements VmServiceInterface {
       'returnByValue': true
     });
     _handleErrorIfPresent(librariesResult);
-    print(librariesResult.result['result']);
     var libraryNames =
         (librariesResult.result['result']['value'] as List).cast<String>();
     for (var library in libraryNames) {
