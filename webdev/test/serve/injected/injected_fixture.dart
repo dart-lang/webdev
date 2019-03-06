@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
+import 'package:webdev/src/serve/utils.dart';
 import 'package:webdev/src/util.dart';
 import 'package:webdriver/io.dart';
 
@@ -25,14 +26,14 @@ class InjectedFixture {
       this._entryFile, this._entryContents, this._exampleDirectory);
 
   Future<void> buildAndLoad(List<String> arg) async {
-    var debugPort = await getOpenPort();
+    var debugPort = await findUnusedPort();
     webdriver = await createDriver(desired: {
       'chromeOptions': {
         'args': ['remote-debugging-port=$debugPort', '--headless']
       }
     });
 
-    var openPort = await getOpenPort();
+    var openPort = await findUnusedPort();
     var args = ['serve', 'web:$openPort', '--chrome-debug-port=$debugPort']
       ..addAll(arg);
 
