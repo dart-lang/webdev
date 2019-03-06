@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:build_daemon/data/build_status.dart';
 
+import 'debugger/devtools.dart';
 import 'webdev_server.dart';
 
 /// Manages a set of [WebDevServer]s.
@@ -13,18 +14,17 @@ class ServerManager {
   final Stream<BuildResults> _buildResults;
   final Set<ServerOptions> _serverOptions;
   final _servers = Set<WebDevServer>();
+  final Future<DevTools> _devtoolsFuture;
 
-  ServerManager(this._serverOptions, this._buildResults);
+  ServerManager(this._serverOptions, this._buildResults, this._devtoolsFuture);
 
   List<String> get uris =>
-      _servers.map((s) => 'http://${s.host}:${s.port}').toList();
+      _servers.map((s) => 'http://${s.host}:${s.port}/').toList();
 
   Future<void> start() async {
     for (var options in _serverOptions) {
-      _servers.add(await WebDevServer.start(
-        options,
-        _buildResults,
-      ));
+      _servers.add(
+          await WebDevServer.start(options, _buildResults, _devtoolsFuture));
     }
   }
 
