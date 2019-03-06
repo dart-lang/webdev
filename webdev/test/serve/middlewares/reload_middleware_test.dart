@@ -9,7 +9,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 import 'package:webdev/src/serve/middlewares/reload_middleware.dart';
-import 'package:webdev/src/serve/reload_client/configuration.dart';
+import 'package:webdev/src/serve/injected/configuration.dart';
 
 void main() {
   HttpServer server;

@@ -6,17 +6,20 @@
 library hot_reload_client;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:sse/client/sse_client.dart';
 
+import '../data/devtools_request.dart';
+import '../data/serializers.dart';
 import 'module.dart';
 import 'reloading_manager.dart';
 
 // GENERATE:
-// dart2js lib/src/serve/reload_client/client.dart -o lib/src/serve/reload_client/client.js -m
+// dart2js lib/src/serve/injected/client.dart -o lib/src/serve/injected/client.js -m
 Future<void> main() async {
   var currentDigests = await _getDigests();
 
@@ -47,6 +50,14 @@ Future<void> main() async {
       }
     } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
       print('Hot reload is currently unsupported. Ignoring change.');
+    }
+  });
+
+  window.onKeyDown.listen((e) {
+    if (e.key.toLowerCase() == 'd' && e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      client.sink.add(jsonEncode(serializers
+          .serialize(DevToolsRequest((b) => b.url = '${window.location}'))));
     }
   });
 }

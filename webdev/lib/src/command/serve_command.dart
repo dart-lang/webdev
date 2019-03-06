@@ -11,6 +11,7 @@ import 'package:build_daemon/data/build_target.dart';
 
 import '../serve/chrome.dart';
 import '../serve/daemon_client.dart';
+import '../serve/debugger/devtools.dart';
 import '../serve/server_manager.dart';
 import '../serve/utils.dart';
 import '../serve/webdev_server.dart';
@@ -61,6 +62,10 @@ class ServeCommand extends Command<int> {
           help: 'Specify which port the Chrome debugger is listenting on. '
               'If used with $launchInChromeFlag Chrome will be started with the'
               ' debugger listening on this port.')
+      ..addFlag(debuggerFlag,
+          help: 'Enable the launching of DevTools (Alt + D). '
+              'Must use with either --$launchInChromeFlag or '
+              '--$chromeDebugPortFlag.')
       ..addOption(hostnameFlag,
           help: 'Specify the hostname to serve on.', defaultsTo: 'localhost')
       ..addFlag(hotRestartFlag,
@@ -145,13 +150,13 @@ class ServeCommand extends Command<int> {
       ));
     }
 
-    _serverManager = ServerManager(serverOptions, _client.buildResults);
+    var devToolsCompleter = Completer<DevTools>();
+
+    _serverManager = ServerManager(
+        serverOptions, _client.buildResults, devToolsCompleter.future);
 
     print('Starting resource servers...');
     await _serverManager.start();
-
-    print('Starting initial build...');
-    _client.startBuild();
 
     try {
       if (configuration.launchInChrome) {
@@ -160,6 +165,16 @@ class ServeCommand extends Command<int> {
       } else if (configuration.chromeDebugPort != 0) {
         _chrome = await Chrome.fromExisting(configuration.chromeDebugPort);
       }
+
+      if (configuration.debugger) {
+        var devTools = await DevTools.start(configuration.hostname, _chrome);
+        devToolsCompleter.complete(devTools);
+      } else {
+        devToolsCompleter.complete(null);
+      }
+
+      print('Starting initial build...');
+      _client.startBuild();
       await _client.finished;
     } on ChromeError catch (e) {
       print(e.details);

@@ -33,6 +33,7 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
 
 -v, --verbose                     Enables verbose logging.
     --chrome-debug-port           Specify which port the Chrome debugger is listenting on. If used with launch-in-chrome Chrome will be started with the debugger listening on this port.
+    --[no-]debugger               Enable the launching of DevTools (Alt + D). Must use with either --launch-in-chrome or --chrome-debug-port.
     --hostname                    Specify the hostname to serve on.
                                   (defaults to "localhost")
 

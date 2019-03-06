@@ -9,7 +9,7 @@ import 'dart:isolate';
 import 'package:crypto/crypto.dart';
 import 'package:shelf/shelf.dart';
 
-import '../reload_client/configuration.dart';
+import '../injected/configuration.dart';
 
 /// File extension that build_web_compilers will place the
 /// [entrypointExtensionMarker] in.
@@ -18,7 +18,7 @@ const bootstrapJsExtension = '.bootstrap.js';
 /// Marker placed by build_web_compilers for where to put injected JS code.
 const entrypointExtensionMarker = '/* ENTRYPOINT_EXTENTION_MARKER */';
 
-const _clientScript = 'webdev/src/serve/reload_client/client';
+const _clientScript = 'webdev/src/serve/injected/client';
 
 Handler Function(Handler) createReloadHandler(
         ReloadConfiguration configuration) =>
