@@ -95,6 +95,17 @@ class ChromeProxyService implements VmServiceInterface {
     // library being the root one (the last library is the bootstrap lib).
     isolate.rootLib = isolate.libraries[isolate.libraries.length - 2];
 
+    // Find all the previously registered extensions on the page and add them
+    // to `extensionRPCs`.
+    var extensionsResult =
+        await tabConnection.runtime.sendCommand('Runtime.evaluate', params: {
+      'expression': "require('dart_sdk').developer._extensions.keys.toList();",
+      'returnByValue': true
+    });
+    _handleErrorIfPresent(extensionsResult);
+    isolate.extensionRPCs.addAll(
+        (extensionsResult.result['result']['value'] as List).cast<String>());
+
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
       ..isolates = [isolateRef]
@@ -129,8 +140,11 @@ class ChromeProxyService implements VmServiceInterface {
     // Validate the isolate id is correct, _getIsolate throws if not.
     if (isolateId != null) _getIsolate(isolateId);
     args ??= <String, String>{};
+    var stringArgs = args.map((k, v) => MapEntry(
+        k is String ? k : jsonEncode(k), v is String ? v : jsonEncode(v)));
     var expression = '''
-require("dart_sdk").developer.invokeExtension("$method", JSON.stringify(${jsonEncode(args)}));
+require("dart_sdk").developer.invokeExtension(
+    "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
     var response =
         await _tabConnection.runtime.sendCommand('Runtime.evaluate', params: {

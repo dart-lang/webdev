@@ -92,9 +92,23 @@ void main() {
       await tabConnection.runtime
           .evaluate('registerExtension("$serviceMethod");');
 
-      var result = await service
-          .callServiceExtension(serviceMethod, args: {'example': 'response'});
-      expect(result.json, {'example': 'response'});
+      // The non-string keys/values get auto json-encoded to match the vm
+      // behavior.
+      var args = {
+        'bool': true,
+        'list': [1, '2', 3],
+        'map': {'foo': 'bar'},
+        'num': 1.0,
+        'string': 'hello',
+        1: 2,
+        false: true,
+      };
+      var result =
+          await service.callServiceExtension(serviceMethod, args: args);
+      expect(
+          result.json,
+          args.map((k, v) => MapEntry(k is String ? k : jsonEncode(k),
+              v is String ? v : jsonEncode(v))));
     });
 
     test('failure', () async {
@@ -219,6 +233,7 @@ void main() {
             predicate((LibraryRef lib) => lib.uri == 'package:path/path.dart'),
             predicate((LibraryRef lib) => lib.uri == 'hello_world/main.dart'),
           ]));
+      expect(isolate.extensionRPCs, contains('ext.hello_world.existing'));
     });
 
     test('throws for invalid ids', () async {
