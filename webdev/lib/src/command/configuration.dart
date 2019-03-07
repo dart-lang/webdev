@@ -5,6 +5,7 @@
 import 'package:args/args.dart';
 
 import '../serve/injected/configuration.dart';
+import 'shared.dart' show SharedOptions;
 
 const chromeDebugPortFlag = 'chrome-debug-port';
 const debugFlag = 'debug';
@@ -41,7 +42,7 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   return reload;
 }
 
-class Configuration {
+class Configuration implements SharedOptions {
   final int _chromeDebugPort;
   final bool _debug;
   final String _hostname;
@@ -85,14 +86,18 @@ class Configuration {
 
   bool get logRequests => _logRequests ?? false;
 
+  @override
   String get output => _output ?? outputNone;
 
+  @override
   bool get release => _release ?? false;
 
   ReloadConfiguration get reload => _reload ?? ReloadConfiguration.none;
 
+  @override
   bool get requireBuildWebCompilers => _requireBuildWebCompilers ?? true;
 
+  @override
   bool get verbose => _verbose ?? false;
 
   /// Returns a new configuration with values updated from the parsed args.

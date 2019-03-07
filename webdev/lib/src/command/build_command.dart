@@ -10,7 +10,6 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-import 'configuration.dart';
 import 'shared.dart';
 
 const _bootstrapScript = r'''
@@ -109,7 +108,7 @@ class BuildCommand extends Command<int> {
   }
 
   Future<int> runCore(String command, {List<String> extraArgs}) async {
-    var configuration = Configuration.fromArgs(argResults);
+    var configuration = parseSharedOptionsResult(argResults);
     var pubspecLock = await readPubspecLock(configuration);
     final arguments = [command]
       ..addAll(extraArgs ?? const [])

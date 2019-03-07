@@ -6,9 +6,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:build_cli_annotations/build_cli_annotations.dart';
+import 'package:meta/meta.dart';
 
 import '../pubspec.dart';
 import 'configuration.dart';
+
+part 'shared.g.dart';
 
 final lineLength = stdout.hasTerminal ? stdout.terminalColumns : 80;
 
@@ -16,35 +20,16 @@ void addSharedArgs(ArgParser argParser,
     {String outputDefault, bool releaseDefault}) {
   outputDefault ??= outputNone;
   releaseDefault ??= true;
-  argParser
-    ..addOption(
-      outputFlag,
-      abbr: 'o',
-      defaultsTo: outputDefault,
-      help: 'A directory to write the result of a build to. Or a mapping '
-          'from a top-level directory in the package to the directory to '
-          'write a filtered build output to. For example "web:deploy".\n'
-          'A value of "NONE" indicates that no "--output" value should be '
-          'passed to `build_runner`.',
-    )
-    ..addFlag(releaseFlag,
-        abbr: 'r',
-        defaultsTo: releaseDefault,
-        negatable: true,
-        help: 'Build with release mode defaults for builders.')
-    ..addFlag(requireBuildWebCompilersFlag,
-        defaultsTo: true,
-        negatable: true,
-        help: 'If a dependency on `build_web_compilers` is required to run.')
-    ..addFlag(verboseFlag,
-        abbr: 'v',
-        defaultsTo: false,
-        negatable: false,
-        help: 'Enables verbose logging.');
+  _$populateSharedOptionsParser(argParser,
+      outputDefaultOverride: outputDefault,
+      releaseDefaultOverride: releaseDefault);
 }
 
+SharedOptions parseSharedOptionsResult(ArgResults result) =>
+    _$parseSharedOptionsResult(result);
+
 List<String> buildRunnerArgs(
-    PubspecLock pubspecLock, Configuration configuration) {
+    PubspecLock pubspecLock, SharedOptions configuration) {
   var arguments = <String>[];
   if (configuration.release) {
     arguments.add('--$releaseFlag');
@@ -60,10 +45,58 @@ List<String> buildRunnerArgs(
   return arguments;
 }
 
-Future<PubspecLock> readPubspecLock(Configuration configuration,
+Future<PubspecLock> readPubspecLock(SharedOptions configuration,
     [String path]) async {
   var pubspecLock = await PubspecLock.read(path);
   await checkPubspecLock(pubspecLock,
       requireBuildWebCompilers: configuration.requireBuildWebCompilers);
   return pubspecLock;
+}
+
+@CliOptions()
+class SharedOptions {
+  @CliOption(
+    name: outputFlag,
+    abbr: 'o',
+    provideDefaultToOverride: true,
+    help: 'A directory to write the result of a build to. Or a mapping '
+        'from a top-level directory in the package to the directory to '
+        'write a filtered build output to. For example "web:deploy".\n'
+        'A value of "NONE" indicates that no "--output" value should be '
+        'passed to `build_runner`.',
+  )
+  final String output;
+
+  @CliOption(
+    name: releaseFlag,
+    abbr: 'r',
+    provideDefaultToOverride: true,
+    negatable: true,
+    help: 'Build with release mode defaults for builders.',
+  )
+  final bool release;
+
+  @CliOption(
+    name: requireBuildWebCompilersFlag,
+    defaultsTo: true,
+    negatable: true,
+    help: 'If a dependency on `build_web_compilers` is required to run.',
+  )
+  final bool requireBuildWebCompilers;
+
+  @CliOption(
+    name: verboseFlag,
+    abbr: 'v',
+    defaultsTo: false,
+    negatable: false,
+    help: 'Enables verbose logging.',
+  )
+  final bool verbose;
+
+  SharedOptions({
+    @required this.release,
+    @required this.verbose,
+    @required this.requireBuildWebCompilers,
+    @required this.output,
+  });
 }

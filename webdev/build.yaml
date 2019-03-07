@@ -1,0 +1,13 @@
+# Read about `build.yaml` at https://pub.dartlang.org/packages/build_config
+targets:
+  $default:
+    builders:
+      build_cli:
+        generate_for:
+          include:
+            - lib/src/command/configuration.dart
+            - lib/src/command/shared.dart
+      built_value_generator|built_value:
+        generate_for:
+          include:
+            - lib/src/serve/data/*.dart
