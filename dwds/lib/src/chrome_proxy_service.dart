@@ -95,8 +95,8 @@ class ChromeProxyService implements VmServiceInterface {
     // library being the root one (the last library is the bootstrap lib).
     isolate.rootLib = isolate.libraries[isolate.libraries.length - 2];
 
-    // Find all the already registered extensions on the page and add them
-    // to extension rpcs
+    // Find all the previously registered extensions on the page and add them
+    // to `extensionRPCs`.
     var extensionsResult =
         await tabConnection.runtime.sendCommand('Runtime.evaluate', params: {
       'expression': "require('dart_sdk').developer._extensions.keys.toList();",
