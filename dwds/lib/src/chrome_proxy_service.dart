@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -270,7 +271,7 @@ require("dart_sdk").developer.invokeExtension(
 (function() {
 ${_getLibrarySnippet(libraryRef.uri)}
   var classes = Object.values(library)
-    .filter((l) => sdkUtils.isType(l));
+    .filter((l) => l && sdkUtils.isType(l));
   return classes.map(function(clazz) {
     var description = {'name': clazz.name};
     var methods = sdkUtils.getMethods(clazz);
@@ -328,7 +329,7 @@ ${_getLibrarySnippet(libraryRef.uri)}
         ..debuggable = true
         ..dependencies = []
         ..functions = []
-        ..scripts = []
+        ..scripts = [ScriptRef()..uri = libraryRef.uri]
         ..variables = [];
     });
   }
@@ -345,8 +346,21 @@ ${_getLibrarySnippet(libraryRef.uri)}
   }
 
   @override
-  Future<ScriptList> getScripts(String isolateId) {
-    throw UnimplementedError();
+  Future<ScriptList> getScripts(String isolateId) async {
+    var scripts = await _getScripts(isolateId);
+    return ScriptList()..scripts = scripts;
+  }
+
+  Future<List<ScriptRef>> _getScripts(String isolateId) async {
+    var isolate = _getIsolate(isolateId);
+    var scripts = <ScriptRef>[];
+    for (var lib in isolate.libraries) {
+      // We can't provide the source for `dart:` imports so ignore for now.
+      // Also `main.dart.bootstrap` does not have a corresponding script.
+      if (lib.id.startsWith('dart:') || lib.id.endsWith('.bootstrap')) continue;
+      scripts.addAll((await _getLibrary(isolateId, lib.id)).scripts);
+    }
+    return scripts;
   }
 
   @override
@@ -369,8 +383,11 @@ ${_getLibrarySnippet(libraryRef.uri)}
   }
 
   @override
-  Future<Version> getVersion() {
-    throw UnimplementedError();
+  Future<Version> getVersion() async {
+    var version = semver.Version.parse(vmServiceVersion);
+    return Version()
+      ..major = version.major
+      ..minor = version.minor;
   }
 
   @override
