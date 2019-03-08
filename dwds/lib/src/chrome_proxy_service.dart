@@ -35,23 +35,45 @@ class ChromeProxyService implements VmServiceInterface {
     // Listen for `registerExtension` and `postEvent` calls.
     _tabConnection.runtime.onConsoleAPICalled.listen((ConsoleAPIEvent event) {
       if (event.type != 'debug') return;
-      var firstArgValue = event.args[0].value;
-      if (firstArgValue == 'dart.developer.registerExtension') {
-        var service = event.args[1].value as String;
-        _isolate.extensionRPCs.add(service);
-        _streamNotify(
-            'Isolate',
-            Event()
-              ..kind = EventKind.kServiceExtensionAdded
-              ..extensionRPC = service);
-      } else if (firstArgValue == 'dart.developer.postEvent') {
-        _streamNotify(
-            'Extension',
-            Event()
-              ..kind = EventKind.kExtension
-              ..extensionKind = event.args[1].value as String
-              ..extensionData = ExtensionData.parse(
-                  jsonDecode(event.args[2].value as String) as Map));
+      var firstArgValue = event.args[0].value as String;
+      switch (firstArgValue) {
+        case 'dart.developer.registerExtension':
+          var service = event.args[1].value as String;
+          _isolate.extensionRPCs.add(service);
+          _streamNotify(
+              'Isolate',
+              Event()
+                ..kind = EventKind.kServiceExtensionAdded
+                ..extensionRPC = service);
+          break;
+        case 'dart.developer.postEvent':
+          _streamNotify(
+              'Extension',
+              Event()
+                ..kind = EventKind.kExtension
+                ..extensionKind = event.args[1].value as String
+                ..extensionData = ExtensionData.parse(
+                    jsonDecode(event.args[2].value as String) as Map));
+          break;
+        case 'dart.developer.inspect':
+          // All inspected objects should be real objects.
+          if (event.args[1].type != 'object') break;
+
+          var inspectee = InstanceRef()
+            ..kind = InstanceKind.kPlainInstance
+            ..id = event.args[1].objectId
+            // TODO: A real classref? we need something here so it can properly
+            // serialize, but it isn't used by the widget inspector.
+            ..classRef = ClassRef();
+          _streamNotify(
+              'Debug',
+              Event()
+                ..kind = EventKind.kInspect
+                ..inspectee = inspectee
+                ..timestamp = event.timestamp.toInt());
+          break;
+        default:
+          break;
       }
     });
   }
