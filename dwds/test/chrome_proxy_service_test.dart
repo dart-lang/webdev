@@ -297,6 +297,8 @@ void main() {
     var scripts = await service.getScripts(isolateId);
     expect(scripts, isNotNull);
     expect(scripts.scripts.length, greaterThan(0));
+    // Test for a known script
+    expect(scripts.scripts.map((s) => s.uri), contains(endsWith('path.dart')));
   });
 
   test('clearVMTimeline', () {
