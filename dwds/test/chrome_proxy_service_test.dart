@@ -7,14 +7,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/chrome_proxy_service.dart';
+import 'package:dwds/src/helpers.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'package:dwds/src/chrome_proxy_service.dart';
-import 'package:dwds/src/helpers.dart';
 
 // To run locally first run:
 //  chromedriver --port=4444 --url-base=wd/hub --verbose
@@ -320,17 +319,19 @@ void main() {
     var vm = await service.getVM();
     var isolateId = vm.isolates.first.id;
     var pauseCompleter = Completer();
-    tabConnection.debugger.onPaused.listen((_) {
+    var pauseSub = tabConnection.debugger.onPaused.listen((_) {
       pauseCompleter.complete();
     });
     var resumeCompleter = Completer();
-    tabConnection.debugger.onResumed.listen((_) {
+    var resumseSub = tabConnection.debugger.onResumed.listen((_) {
       resumeCompleter.complete();
     });
     expect(await service.pause(isolateId), const TypeMatcher<Success>());
     await pauseCompleter.future;
     expect(await service.resume(isolateId), const TypeMatcher<Success>());
     await resumeCompleter.future;
+    await pauseSub.cancel();
+    await resumseSub.cancel();
   });
 
   test('registerService', () async {
@@ -395,8 +396,8 @@ void main() {
       test('basic Pause/Resume', () async {
         expect(service.streamListen('Debug'), completion(isSuccess));
         var stream = service.onEvent('Debug');
-        await tabConnection.debugger.pause();
-        expect(
+        unawaited(tabConnection.debugger.pause());
+        await expectLater(
             stream,
             emitsThrough(const TypeMatcher<Event>()
                 .having((e) => e.kind, 'kind', EventKind.kPauseInterrupted)));

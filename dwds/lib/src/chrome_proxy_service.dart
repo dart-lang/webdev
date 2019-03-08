@@ -457,7 +457,9 @@ ${_getLibrarySnippet(libraryRef.uri)}
   @override
   Future<Success> resume(String isolateId,
       {String step, int frameIndex}) async {
-    if (step != null) throw UnimplementedError();
+    if (step != null || frameIndex != null) {
+      throw ArgumentError('Step and frameIndex are currently unsupported');
+    }
     var result = await _tabConnection.sendCommand('Debugger.resume');
     _handleErrorIfPresent(result);
     return Success();
