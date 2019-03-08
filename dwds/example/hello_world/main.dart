@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:html';
@@ -12,6 +13,9 @@ import 'package:path/path.dart' as p;
 final myInstance = MyTestClass();
 
 void main() async {
+  // Long running so that we can test the pause / resume behavior.
+  Timer.periodic(Duration(seconds: 1), (_) {});
+
   print(p.join('Hello', 'World'));
 
   context['inspectInstance'] = () {

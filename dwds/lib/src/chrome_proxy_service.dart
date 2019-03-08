@@ -488,8 +488,10 @@ ${_getLibrarySnippet(libraryRef.uri)}
   }
 
   @override
-  Future<Success> pause(String isolateId) {
-    throw UnimplementedError();
+  Future<Success> pause(String isolateId) async {
+    var result = await _tabConnection.sendCommand('Debugger.pause');
+    _handleErrorIfPresent(result);
+    return Success();
   }
 
   @override
@@ -522,8 +524,14 @@ ${_getLibrarySnippet(libraryRef.uri)}
   }
 
   @override
-  Future<Success> resume(String isolateId, {String step, int frameIndex}) {
-    throw UnimplementedError();
+  Future<Success> resume(String isolateId,
+      {String step, int frameIndex}) async {
+    if (step != null || frameIndex != null) {
+      throw ArgumentError('Step and frameIndex are currently unsupported');
+    }
+    var result = await _tabConnection.sendCommand('Debugger.resume');
+    _handleErrorIfPresent(result);
+    return Success();
   }
 
   @override
