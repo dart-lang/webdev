@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 @TestOn('vm')
 import 'dart:convert';
 import 'dart:io';
@@ -315,8 +316,21 @@ void main() {
     expect(() => service.onEvent(null), throwsUnimplementedError);
   });
 
-  test('pause', () {
-    expect(() => service.pause(null), throwsUnimplementedError);
+  test('pause / resume', () async {
+    var vm = await service.getVM();
+    var isolateId = vm.isolates.first.id;
+    var pauseCompleter = Completer();
+    tabConnection.debugger.onPaused.listen((_) {
+      pauseCompleter.complete();
+    });
+    var resumeCompleter = Completer();
+    tabConnection.debugger.onResumed.listen((_) {
+      resumeCompleter.complete();
+    });
+    expect(await service.pause(isolateId), const TypeMatcher<Success>());
+    await pauseCompleter.future;
+    expect(await service.resume(isolateId), const TypeMatcher<Success>());
+    await resumeCompleter.future;
   });
 
   test('registerService', () async {
@@ -338,10 +352,6 @@ void main() {
   test('requestHeapSnapshot', () {
     expect(() => service.requestHeapSnapshot(null, null, null),
         throwsUnimplementedError);
-  });
-
-  test('resume', () {
-    expect(() => service.resume(null), throwsUnimplementedError);
   });
 
   test('setExceptionPauseMode', () {
@@ -386,8 +396,6 @@ void main() {
         expect(service.streamListen('Debug'), completion(isSuccess));
         var stream = service.onEvent('Debug');
         await tabConnection.debugger.pause();
-        // Need to actually execute some JS code for the pause to take effect.
-        unawaited(tabConnection.runtime.evaluate('console.log("foo");'));
         expect(
             stream,
             emitsThrough(const TypeMatcher<Event>()
