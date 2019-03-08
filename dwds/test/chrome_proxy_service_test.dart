@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 @TestOn('vm')
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/chrome_proxy_service.dart';
+import 'package:dwds/src/helpers.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'package:dwds/src/chrome_proxy_service.dart';
-import 'package:dwds/src/helpers.dart';
 
 // To run locally first run:
 //  chromedriver --port=4444 --url-base=wd/hub --verbose
@@ -315,8 +315,23 @@ void main() {
     expect(() => service.onEvent(null), throwsUnimplementedError);
   });
 
-  test('pause', () {
-    expect(() => service.pause(null), throwsUnimplementedError);
+  test('pause / resume', () async {
+    var vm = await service.getVM();
+    var isolateId = vm.isolates.first.id;
+    var pauseCompleter = Completer();
+    var pauseSub = tabConnection.debugger.onPaused.listen((_) {
+      pauseCompleter.complete();
+    });
+    var resumeCompleter = Completer();
+    var resumseSub = tabConnection.debugger.onResumed.listen((_) {
+      resumeCompleter.complete();
+    });
+    expect(await service.pause(isolateId), const TypeMatcher<Success>());
+    await pauseCompleter.future;
+    expect(await service.resume(isolateId), const TypeMatcher<Success>());
+    await resumeCompleter.future;
+    await pauseSub.cancel();
+    await resumseSub.cancel();
   });
 
   test('registerService', () async {
@@ -338,10 +353,6 @@ void main() {
   test('requestHeapSnapshot', () {
     expect(() => service.requestHeapSnapshot(null, null, null),
         throwsUnimplementedError);
-  });
-
-  test('resume', () {
-    expect(() => service.resume(null), throwsUnimplementedError);
   });
 
   test('setExceptionPauseMode', () {
@@ -391,11 +402,11 @@ void main() {
       });
 
       test('basic Pause/Resume', () async {
-        await tabConnection.debugger.pause();
-        // Need to actually execute some JS code for the pause to take effect.
-        unawaited(tabConnection.runtime.evaluate('console.log("foo");'));
-        expect(
-            eventStream,
+        expect(service.streamListen('Debug'), completion(isSuccess));
+        var stream = service.onEvent('Debug');
+        unawaited(tabConnection.debugger.pause());
+        await expectLater(
+            stream,
             emitsThrough(const TypeMatcher<Event>()
                 .having((e) => e.kind, 'kind', EventKind.kPauseInterrupted)));
         unawaited(tabConnection.debugger.resume());
