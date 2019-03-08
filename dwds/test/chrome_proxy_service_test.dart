@@ -390,10 +390,6 @@ void main() {
         eventStream = service.onEvent('Debug');
       });
 
-      tearDown(() async {
-        await service.streamCancel('Debug');
-      });
-
       test('basic Pause/Resume', () async {
         await tabConnection.debugger.pause();
         // Need to actually execute some JS code for the pause to take effect.
@@ -418,9 +414,9 @@ void main() {
                     (e) => e.inspectee,
                     'inspectee',
                     const TypeMatcher<InstanceRef>()
-                        .having((instance) => instance.id, 'id', isNotNull))
-                .having((instance) => instance.kind, 'kind',
-                    InstanceKind.kPlainInstance)));
+                        .having((instance) => instance.id, 'id', isNotNull)
+                        .having((instance) => instance.kind, 'inspectee.kind',
+                            InstanceKind.kPlainInstance))));
         await tabConnection.runtime.evaluate('inspectInstance()');
       });
     });

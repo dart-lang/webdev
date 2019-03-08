@@ -64,7 +64,7 @@ class ChromeProxyService implements VmServiceInterface {
             ..id = event.args[1].objectId
             ..classRef = null;
           _streamNotify(
-              '_Debug',
+              'Debug',
               Event()
                 ..kind = EventKind.kInspect
                 ..inspectee = inspectee
