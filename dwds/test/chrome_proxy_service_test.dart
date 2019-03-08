@@ -279,6 +279,7 @@ void main() {
 
     test('Scripts', () async {
       var scripts = await service.getScripts(isolate.id);
+      assert(scripts.scripts.isNotEmpty);
       for (var scriptRef in scripts.scripts) {
         var script =
             await service.getObject(isolate.id, scriptRef.id) as Script;

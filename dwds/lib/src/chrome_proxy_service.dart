@@ -287,6 +287,7 @@ require("dart_sdk").developer.invokeExtension(
   Future getIsolate(String isolateId) async => _getIsolate(isolateId);
 
   LibraryRef _getLibraryRef(String isolateId, String objectId) {
+    // TODO(grouma) - We should get a set of LibraryRefs to improve performance.
     return _getIsolate(isolateId)
         .libraries
         .firstWhere((l) => l.id == objectId, orElse: () => null);
@@ -352,6 +353,8 @@ ${_getLibrarySnippet(libraryRef.uri)}
           ..subclasses = [];
       }
 
+      // TODO(grouma) - This currently does not support part files.
+      // Figure out how to support them.
       var scriptRef = ScriptRef()
         ..uri = libraryRef.uri
         ..id = createId();
