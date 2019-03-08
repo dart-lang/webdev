@@ -277,7 +277,7 @@ void main() {
           ]));
     });
 
-    test('getScript', () async {
+    test('Scripts', () async {
       var scripts = await service.getScripts(isolate.id);
       for (var scriptRef in scripts.scripts) {
         var script =
