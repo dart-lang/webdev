@@ -29,10 +29,15 @@ class ChromeProxyService implements VmServiceInterface {
   /// The connection with the chrome debug service for the tab.
   final WipConnection _tabConnection;
 
+  /// A handler for application assets, e.g. Dart sources.
+  final Future<String> Function(String) _assetHandler;
+
   final _classes = <String, Class>{};
   final _libraries = <String, Future<Library>>{};
+  final _scriptRefs = <String, ScriptRef>{};
 
-  ChromeProxyService._(this._vm, this._isolate, this._tabConnection) {
+  ChromeProxyService._(
+      this._vm, this._isolate, this._tabConnection, this._assetHandler) {
     // Listen for `registerExtension` and `postEvent` calls.
     _tabConnection.runtime.onConsoleAPICalled.listen((ConsoleAPIEvent event) {
       if (event.type != 'debug') return;
@@ -57,8 +62,8 @@ class ChromeProxyService implements VmServiceInterface {
     });
   }
 
-  static Future<ChromeProxyService> create(
-      ChromeConnection chromeConnection, String tabUrl) async {
+  static Future<ChromeProxyService> create(ChromeConnection chromeConnection,
+      Future<String> Function(String) assetHandler, String tabUrl) async {
     var tab = await chromeConnection.getTab((tab) => tab.url == tabUrl);
     var id = createId();
     var isolate = Isolate()
@@ -114,7 +119,7 @@ class ChromeProxyService implements VmServiceInterface {
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
 
-    return ChromeProxyService._(vm, isolate, tabConnection);
+    return ChromeProxyService._(vm, isolate, tabConnection, assetHandler);
   }
 
   @override
@@ -259,11 +264,15 @@ require("dart_sdk").developer.invokeExtension(
   @override
   Future getIsolate(String isolateId) async => _getIsolate(isolateId);
 
+  LibraryRef _getLibraryRef(String isolateId, String objectId) {
+    return _getIsolate(isolateId)
+        .libraries
+        .firstWhere((l) => l.id == objectId, orElse: () => null);
+  }
+
   Future<Library> _getLibrary(String isolateId, String objectId) async {
     return _libraries.putIfAbsent(objectId, () async {
-      var libraryRef = _getIsolate(isolateId)
-          .libraries
-          .firstWhere((l) => l.id == objectId, orElse: () => null);
+      var libraryRef = _getLibraryRef(isolateId, objectId);
       if (libraryRef == null) return null;
 
       // Fetch information about all the classes in this library.
@@ -321,6 +330,12 @@ ${_getLibrarySnippet(libraryRef.uri)}
           ..subclasses = [];
       }
 
+      var scriptRef = ScriptRef()
+        ..uri = libraryRef.uri
+        ..id = createId();
+
+      _scriptRefs[scriptRef.id] = scriptRef;
+
       return Library()
         ..id = libraryRef.id
         ..name = libraryRef.name
@@ -329,7 +344,7 @@ ${_getLibrarySnippet(libraryRef.uri)}
         ..debuggable = true
         ..dependencies = []
         ..functions = []
-        ..scripts = [ScriptRef()..uri = libraryRef.uri]
+        ..scripts = [scriptRef]
         ..variables = [];
     });
   }
@@ -341,6 +356,9 @@ ${_getLibrarySnippet(libraryRef.uri)}
     if (library != null) return library;
     var clazz = _classes[objectId];
     if (clazz != null) return clazz;
+    var scriptRef = _scriptRefs[objectId];
+    if (scriptRef != null) return await _getScript(isolateId, scriptRef);
+
     throw UnsupportedError(
         'Only libraries and classes are supported for getObject');
   }
@@ -349,6 +367,19 @@ ${_getLibrarySnippet(libraryRef.uri)}
   Future<ScriptList> getScripts(String isolateId) async {
     var scripts = await _getScripts(isolateId);
     return ScriptList()..scripts = scripts;
+  }
+
+  Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
+    var libraryId = scriptRef.uri;
+    var scriptPath = libraryId.replaceAll('package:', 'packages/');
+    var script = await _assetHandler(scriptPath);
+    return Script()
+      ..library = _getLibraryRef(isolateId, libraryId)
+      ..id = scriptRef.id
+      ..uri = libraryId
+      // TODO(grouma) - Fill in to enable break points.
+      ..tokenPosTable = []
+      ..source = script;
   }
 
   Future<List<ScriptRef>> _getScripts(String isolateId) async {

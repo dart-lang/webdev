@@ -54,9 +54,12 @@ class DebugService {
   }
 
   static Future<DebugService> start(
-      String hostname, ChromeConnection chromeConnection, String url) async {
+      String hostname,
+      ChromeConnection chromeConnection,
+      Future<String> Function(String) assetHandler,
+      String url) async {
     var chromeProxyService =
-        await ChromeProxyService.create(chromeConnection, url);
+        await ChromeProxyService.create(chromeConnection, assetHandler, url);
     var cascade = Cascade()
         .add(webSocketHandler(_createNewConnectionHandler(chromeProxyService)));
 

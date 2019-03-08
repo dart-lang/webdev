@@ -6,6 +6,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -23,9 +24,10 @@ void main() {
   WipConnection tabConnection;
   Process webdev;
   WebDriver webDriver;
+  int port;
 
   setUpAll(() async {
-    var port = await findUnusedPort();
+    port = await findUnusedPort();
     await Process.run('pub', ['global', 'activate', 'webdev']);
     webdev = await Process.start(
         'pub', ['global', 'run', 'webdev', 'serve', 'example:$port']);
@@ -62,7 +64,12 @@ void main() {
           event.type == 'debug' && event.args[0].value == 'Page Ready');
     }
 
-    service = await ChromeProxyService.create(connection, appUrl);
+    var assetHandler = (String path) async {
+      var result = await http.get('http://localhost:$port/$path');
+      return result.body;
+    };
+
+    service = await ChromeProxyService.create(connection, assetHandler, appUrl);
   });
 
   tearDownAll(() async {
@@ -269,10 +276,26 @@ void main() {
             predicate((FuncRef f) => f.name == 'hello' && !f.isStatic),
           ]));
     });
+
+    test('getScript', () async {
+      var scripts = await service.getScripts(isolate.id);
+      for (var scriptRef in scripts.scripts) {
+        var script =
+            await service.getObject(isolate.id, scriptRef.id) as Script;
+        var result = await http.get('http://localhost:$port/'
+            '${script.uri.replaceAll("package:", "packages/")}');
+        expect(script.source, result.body);
+        expect(scriptRef.uri, endsWith('.dart'));
+      }
+    });
   });
 
-  test('getScripts', () {
-    expect(() => service.getScripts(null), throwsUnimplementedError);
+  test('getScripts', () async {
+    var vm = await service.getVM();
+    var isolateId = vm.isolates.first.id;
+    var scripts = await service.getScripts(isolateId);
+    expect(scripts, isNotNull);
+    expect(scripts.scripts.length, greaterThan(0));
   });
 
   test('clearVMTimeline', () {
@@ -298,8 +321,10 @@ void main() {
     expect(isolate.number, isNotNull);
   });
 
-  test('getVersion', () {
-    expect(() => service.getVersion(), throwsUnimplementedError);
+  test('getVersion', () async {
+    var version = await service.getVersion();
+    expect(version, isNotNull);
+    expect(version.major, greaterThan(0));
   });
 
   test('invoke', () {

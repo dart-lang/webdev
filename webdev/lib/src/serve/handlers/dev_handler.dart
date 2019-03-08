@@ -15,6 +15,7 @@ import 'package:sse/server/sse_handler.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart' as webdev;
 import '../debugger/devtools.dart';
+import '../handlers/asset_handler.dart';
 
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
@@ -23,8 +24,10 @@ class DevHandler {
   final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'));
   final _connections = Set<SseConnection>();
   final Future<DevTools> _devtoolsFuture;
+  final AssetHandler _assetHandler;
 
-  DevHandler(Stream<BuildResult> buildResults, this._devtoolsFuture) {
+  DevHandler(Stream<BuildResult> buildResults, this._devtoolsFuture,
+      this._assetHandler) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
   }
@@ -58,6 +61,7 @@ class DevHandler {
           debugService = await DebugService.start(
             devTools.hostname,
             chrome.chromeConnection,
+            _assetHandler.getRelativeAsset,
             message.url,
           );
           print('Debug service listening on '
