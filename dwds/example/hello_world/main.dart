@@ -9,8 +9,14 @@ import 'dart:js';
 
 import 'package:path/path.dart' as p;
 
+final myInstance = MyTestClass();
+
 void main() async {
   print(p.join('Hello', 'World'));
+
+  context['inspectInstance'] = () {
+    inspect(myInstance);
+  };
 
   context['postEvent'] = (String kind) {
     postEvent(kind, {'example': 'data'});

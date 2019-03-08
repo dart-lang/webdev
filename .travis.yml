@@ -19,15 +19,15 @@ before_install:
 jobs:
   include:
     - stage: analyzer_and_format
-      name: "SDK: be/raw/latest - DIR: dwds - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      name: "SDK: dev/raw/2.2.1-dev.1.0 - DIR: dwds - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
       script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="dwds"
-      dart: be/raw/latest
+      dart: "dev/raw/2.2.1-dev.1.0"
     - stage: unit_test
-      name: "SDK: be/raw/latest - DIR: dwds - TASKS: pub run test"
+      name: "SDK: dev/raw/2.2.1-dev.1.0 - DIR: dwds - TASKS: pub run test"
       script: ./tool/travis.sh test_0
       env: PKG="dwds"
-      dart: be/raw/latest
+      dart: "dev/raw/2.2.1-dev.1.0"
     - stage: analyzer_and_format
       name: "SDK: dev - DIR: example - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
       script: ./tool/travis.sh dartfmt dartanalyzer

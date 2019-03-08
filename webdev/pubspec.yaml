@@ -15,7 +15,7 @@ dependencies:
   built_value: ^6.3.0
   crypto: ^2.0.6
   dwds: ^0.1.0-dev
-  devtools: ^0.0.1
+  devtools: ^0.0.13-dev.0
   io: ^0.3.2+1
   meta: ^1.1.2
   path: ^1.5.1
