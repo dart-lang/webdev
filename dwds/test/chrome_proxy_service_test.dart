@@ -382,21 +382,46 @@ void main() {
 
   group('streamListen/onEvent', () {
     group('Debug', () {
+      Stream<Event> eventStream;
+
+      setUp(() async {
+        expect(
+            await service.streamListen('Debug'), const TypeMatcher<Success>());
+        eventStream = service.onEvent('Debug');
+      });
+
+      tearDown(() async {
+        await service.streamCancel('Debug');
+      });
+
       test('basic Pause/Resume', () async {
-        expect(service.streamListen('Debug'), completion(isSuccess));
-        var stream = service.onEvent('Debug');
         await tabConnection.debugger.pause();
         // Need to actually execute some JS code for the pause to take effect.
         unawaited(tabConnection.runtime.evaluate('console.log("foo");'));
         expect(
-            stream,
+            eventStream,
             emitsThrough(const TypeMatcher<Event>()
                 .having((e) => e.kind, 'kind', EventKind.kPauseInterrupted)));
         unawaited(tabConnection.debugger.resume());
         expect(
-            stream,
+            eventStream,
             emitsThrough(const TypeMatcher<Event>()
                 .having((e) => e.kind, 'kind', EventKind.kResume)));
+      });
+
+      test('Inspect', () async {
+        expect(
+            eventStream,
+            emitsThrough(const TypeMatcher<Event>()
+                .having((e) => e.kind, 'kind', EventKind.kInspect)
+                .having(
+                    (e) => e.inspectee,
+                    'inspectee',
+                    const TypeMatcher<InstanceRef>()
+                        .having((instance) => instance.id, 'id', isNotNull))
+                .having((instance) => instance.kind, 'kind',
+                    InstanceKind.kPlainInstance)));
+        await tabConnection.runtime.evaluate('inspectInstance()');
       });
     });
 
