@@ -62,7 +62,9 @@ class ChromeProxyService implements VmServiceInterface {
           var inspectee = InstanceRef()
             ..kind = InstanceKind.kPlainInstance
             ..id = event.args[1].objectId
-            ..classRef = null;
+            // TODO: A real classref? we need something here so it can properly
+            // serialize, but it isn't used by the widget inspector.
+            ..classRef = ClassRef();
           _streamNotify(
               'Debug',
               Event()
