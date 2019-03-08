@@ -10,11 +10,17 @@ import 'dart:js';
 
 import 'package:path/path.dart' as p;
 
+final myInstance = MyTestClass();
+
 void main() async {
   // Long running so that we can test the pause / resume behavior.
   Timer.periodic(Duration(seconds: 1), (_) {});
 
   print(p.join('Hello', 'World'));
+
+  context['inspectInstance'] = () {
+    inspect(myInstance);
+  };
 
   context['postEvent'] = (String kind) {
     postEvent(kind, {'example': 'data'});
