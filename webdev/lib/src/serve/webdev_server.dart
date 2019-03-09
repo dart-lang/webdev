@@ -48,7 +48,8 @@ class WebDevServer {
     Stream<BuildResults> buildResults,
     Future<DevTools> devtoolsFuture,
   ) async {
-    var assetHandler = AssetHandler(options.daemonPort, options.target);
+    var assetHandler = AssetHandler(options.daemonPort, options.target,
+        options.configuration.hostname, options.port);
     var cascade = Cascade();
     var pipeline = const Pipeline();
 
@@ -64,6 +65,7 @@ class WebDevServer {
       buildResults.asyncMap<BuildResult>((results) => results.results
           .firstWhere((result) => result.target == options.target)),
       devtoolsFuture,
+      assetHandler,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
