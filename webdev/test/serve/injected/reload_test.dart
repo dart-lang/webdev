@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 5))
+import 'dart:io';
+
 import 'package:test/test.dart';
 
 import 'injected_fixture.dart';
@@ -11,6 +13,21 @@ import 'injected_fixture.dart';
 //  chromedriver --port=4444 --url-base=wd/hub --verbose
 void main() {
   InjectedFixture fixture;
+  Process chromeDriver;
+
+  setUpAll(() async {
+    try {
+      chromeDriver = await Process.start(
+          'chromedriver', ['--port=4444', '--url-base=wd/hub']);
+    } catch (e) {
+      throw StateError(
+          'Could not start ChromeDriver. Is it installed?\nError: $e');
+    }
+  });
+
+  tearDownAll(() {
+    chromeDriver.kill();
+  });
 
   group('Injected client', () {
     setUp(() async {
