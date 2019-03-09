@@ -9,8 +9,6 @@ import 'package:test/test.dart';
 
 import 'injected_fixture.dart';
 
-// To run locally first run:
-//  chromedriver --port=4444 --url-base=wd/hub --verbose
 void main() {
   InjectedFixture fixture;
   Process chromeDriver;
