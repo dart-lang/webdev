@@ -64,6 +64,8 @@ class Chrome {
       // allowing for the remote debug port to be enabled.
       '--user-data-dir=${dataDir.path}',
       '--remote-debugging-port=$port',
+      // When the DevTools has focus we don't want to slow down the application.
+      '--disable-background-timer-throttling',
       // Since we are using a temp profile, disable features that slow the
       // Chrome launch.
       '--disable-extensions',
