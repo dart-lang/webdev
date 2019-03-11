@@ -8,10 +8,12 @@ import 'dart:convert';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart';
 import 'package:dwds/service.dart';
+import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 
+import '../../serve/utils.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart' as webdev;
 import '../debugger/devtools.dart';
@@ -64,8 +66,10 @@ class DevHandler {
             _assetHandler.getRelativeAsset,
             message.url,
           );
-          print('Debug service listening on '
-              'ws://${debugService.hostname}:${debugService.port}');
+          colorLog(
+              Level.INFO,
+              'Debug service listening on '
+              'ws://${debugService.hostname}:${debugService.port}\n');
         }
         await chrome.chromeConnection
             // Chrome protocol for spawning a new tab.
@@ -76,8 +80,10 @@ class DevHandler {
     unawaited(connection.onClose.then((_) async {
       if (debugService != null) {
         await debugService.close();
-        print('Stopped debug service on '
-            'ws://${debugService.hostname}:${debugService.port}');
+        colorLog(
+            Level.INFO,
+            'Stopped debug service on '
+            'ws://${debugService.hostname}:${debugService.port}\n');
         debugService = null;
       }
       _connections.remove(connection);

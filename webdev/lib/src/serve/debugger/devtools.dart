@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
@@ -55,7 +56,8 @@ class DevTools {
 
     var server = await serve(handler, hostname, await findUnusedPort());
 
-    print('Serving DevTools at http://${server.address.host}:${server.port}');
+    colorLog(Level.INFO,
+        'Serving DevTools at http://${server.address.host}:${server.port}');
     return DevTools._(chrome, server.address.host, server.port, server);
   }
 }

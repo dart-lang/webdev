@@ -6,10 +6,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import '../command/configuration.dart';
+import '../serve/utils.dart';
 import 'debugger/devtools.dart';
 import 'handlers/asset_handler.dart';
 import 'handlers/dev_handler.dart';
@@ -72,8 +74,10 @@ class WebDevServer {
     var server =
         await HttpServer.bind(options.configuration.hostname, options.port);
     shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
-    print('Serving `${options.target}` on '
-        'http://${options.configuration.hostname}:${options.port}');
+    colorLog(
+        Level.INFO,
+        'Serving `${options.target}` on '
+        'http://${options.configuration.hostname}:${options.port}\n');
     return WebDevServer._(server, devHandler);
   }
 }
