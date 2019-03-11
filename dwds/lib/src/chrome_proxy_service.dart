@@ -33,11 +33,15 @@ class ChromeProxyService implements VmServiceInterface {
   final Future<String> Function(String) _assetHandler;
 
   final _classes = <String, Class>{};
-  final _libraries = <String, Future<Library>>{};
   final _scriptRefs = <String, ScriptRef>{};
+  final _libraries = <String, Library>{};
+  final _libraryRefs = <String, LibraryRef>{};
 
   ChromeProxyService._(
       this._vm, this._isolate, this._tabConnection, this._assetHandler) {
+    for (var libraryRef in _isolate.libraries) {
+      _libraryRefs[libraryRef.id] = libraryRef;
+    }
     // Listen for `registerExtension` and `postEvent` calls.
     _tabConnection.runtime.onConsoleAPICalled.listen((ConsoleAPIEvent event) {
       if (event.type != 'debug') return;
@@ -286,92 +290,91 @@ require("dart_sdk").developer.invokeExtension(
   @override
   Future getIsolate(String isolateId) async => _getIsolate(isolateId);
 
-  LibraryRef _getLibraryRef(String isolateId, String objectId) {
-    // TODO(grouma) - We should get a set of LibraryRefs to improve performance.
-    return _getIsolate(isolateId)
-        .libraries
-        .firstWhere((l) => l.id == objectId, orElse: () => null);
+  Future<Library> _constructLibrary(LibraryRef libraryRef) async {
+    // Fetch information about all the classes in this library.
+    var expression = '''
+    (function() {
+    ${_getLibrarySnippet(libraryRef.uri)}
+      var classes = Object.values(library)
+        .filter((l) => l && sdkUtils.isType(l));
+      return classes.map(function(clazz) {
+        var description = {'name': clazz.name};
+        var methods = sdkUtils.getMethods(clazz);
+        description['methods'] = methods ? Object.keys(methods) : [];
+        return description;
+      });
+    })()
+    ''';
+    var classesResult = await _tabConnection.runtime.sendCommand(
+        'Runtime.evaluate',
+        params: {'expression': expression, 'returnByValue': true});
+    _handleErrorIfPresent(classesResult);
+    var classDescriptions = (classesResult.result['result']['value'] as List)
+        .cast<Map<String, Object>>();
+    var classRefs = <ClassRef>[];
+    for (var description in classDescriptions) {
+      var name = description['name'] as String;
+      var classId = '${libraryRef.id}:$name';
+      var classRef = ClassRef()
+        ..name = name
+        ..id = classId;
+      classRefs.add(classRef);
+
+      var methodRefs = <FuncRef>[];
+
+      // Add all instance methods, static methods aren't supported yet.
+      var methodNames = (description['methods'] as List).cast<String>();
+      for (var method in methodNames) {
+        var methodId = '$classId:$method';
+        methodRefs.add(FuncRef()
+          ..id = methodId
+          ..name = method
+          ..owner = classRef
+          ..isStatic = false);
+      }
+
+      // TODO: Implement the rest of these
+      // https://github.com/dart-lang/webdev/issues/176.
+      _classes[classId] = Class()
+        ..classRef = classRef
+        ..functions = methodRefs
+        ..id = classId
+        ..library = libraryRef
+        ..name = name
+        ..fields = []
+        ..interfaces = []
+        ..subclasses = [];
+    }
+
+    // TODO(grouma) - This currently does not support part files.
+    // Figure out how to support them.
+    var scriptRef = ScriptRef()
+      ..uri = libraryRef.uri
+      ..id = createId();
+
+    _scriptRefs[scriptRef.id] = scriptRef;
+
+    return Library()
+      ..id = libraryRef.id
+      ..name = libraryRef.name
+      ..uri = libraryRef.uri
+      ..classes = classRefs
+      ..debuggable = true
+      ..dependencies = []
+      ..functions = []
+      ..scripts = [scriptRef]
+      ..variables = [];
   }
 
   Future<Library> _getLibrary(String isolateId, String objectId) async {
-    return _libraries.putIfAbsent(objectId, () async {
-      var libraryRef = _getLibraryRef(isolateId, objectId);
-      if (libraryRef == null) return null;
-
-      // Fetch information about all the classes in this library.
-      var expression = '''
-(function() {
-${_getLibrarySnippet(libraryRef.uri)}
-  var classes = Object.values(library)
-    .filter((l) => l && sdkUtils.isType(l));
-  return classes.map(function(clazz) {
-    var description = {'name': clazz.name};
-    var methods = sdkUtils.getMethods(clazz);
-    description['methods'] = methods ? Object.keys(methods) : [];
-    return description;
-  });
-})()
-''';
-      var classesResult = await _tabConnection.runtime.sendCommand(
-          'Runtime.evaluate',
-          params: {'expression': expression, 'returnByValue': true});
-      _handleErrorIfPresent(classesResult);
-      var classDescriptions = (classesResult.result['result']['value'] as List)
-          .cast<Map<String, Object>>();
-      var classRefs = <ClassRef>[];
-      for (var description in classDescriptions) {
-        var name = description['name'] as String;
-        var classId = '${libraryRef.id}:$name';
-        var classRef = ClassRef()
-          ..name = name
-          ..id = classId;
-        classRefs.add(classRef);
-
-        var methodRefs = <FuncRef>[];
-
-        // Add all instance methods, static methods aren't supported yet.
-        var methodNames = (description['methods'] as List).cast<String>();
-        for (var method in methodNames) {
-          var methodId = '$classId:$method';
-          methodRefs.add(FuncRef()
-            ..id = methodId
-            ..name = method
-            ..owner = classRef
-            ..isStatic = false);
-        }
-
-        // TODO: Implement the rest of these
-        // https://github.com/dart-lang/webdev/issues/176.
-        _classes[classId] = Class()
-          ..classRef = classRef
-          ..functions = methodRefs
-          ..id = classId
-          ..library = libraryRef
-          ..name = name
-          ..fields = []
-          ..interfaces = []
-          ..subclasses = [];
-      }
-
-      // TODO(grouma) - This currently does not support part files.
-      // Figure out how to support them.
-      var scriptRef = ScriptRef()
-        ..uri = libraryRef.uri
-        ..id = createId();
-
-      _scriptRefs[scriptRef.id] = scriptRef;
-
-      return Library()
-        ..id = libraryRef.id
-        ..name = libraryRef.name
-        ..uri = libraryRef.uri
-        ..classes = classRefs
-        ..debuggable = true
-        ..dependencies = []
-        ..functions = []
-        ..scripts = [scriptRef]
-        ..variables = [];
-    });
+    if (isolateId != _isolate.id) return null;
+    var libraryRef = _libraryRefs[objectId];
+    if (libraryRef == null) return null;
+    var library = _libraries[objectId];
+    if (library != null) return library;
+    library = await _constructLibrary(libraryRef);
+    _libraries[objectId] = library;
+    return library;
   }
 
   @override
@@ -399,7 +402,7 @@ ${_getLibrarySnippet(libraryRef.uri)}
     var scriptPath = libraryId.replaceAll('package:', 'packages/');
     var script = await _assetHandler(scriptPath);
     return Script()
-      ..library = _getLibraryRef(isolateId, libraryId)
+      ..library = _libraryRefs[libraryId]
       ..id = scriptRef.id
       ..uri = libraryId
       // TODO(grouma) - Fill in to enable break points.
