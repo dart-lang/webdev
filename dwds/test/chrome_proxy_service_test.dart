@@ -16,18 +16,25 @@ import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-// To run locally first run:
-//  chromedriver --port=4444 --url-base=wd/hub --verbose
 void main() {
   String appUrl;
   ChromeProxyService service;
   WipConnection tabConnection;
   Process webdev;
   WebDriver webDriver;
+  Process chromeDriver;
   int port;
 
   setUpAll(() async {
     port = await findUnusedPort();
+    try {
+      chromeDriver = await Process.start(
+          'chromedriver', ['--port=4444', '--url-base=wd/hub']);
+    } catch (e) {
+      throw StateError(
+          'Could not start ChromeDriver. Is it installed?\nError: $e');
+    }
+
     await Process.run('pub', ['global', 'activate', 'webdev']);
     webdev = await Process.start(
         'pub', ['global', 'run', 'webdev', 'serve', 'example:$port']);
@@ -76,6 +83,7 @@ void main() {
     webdev.kill();
     await webdev.exitCode;
     await webDriver?.quit();
+    chromeDriver.kill();
   });
 
   test('addBreakPoint', () {

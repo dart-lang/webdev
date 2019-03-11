@@ -5,16 +5,30 @@
 @Timeout(Duration(minutes: 5))
 @Tags(['requires-edge-sdk'])
 import 'dart:async';
+import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
 
 import 'injected_fixture.dart';
 
-// To run locally first run:
-//  chromedriver --port=4444 --url-base=wd/hub --verbose
 void main() {
   InjectedFixture fixture;
+  Process chromeDriver;
+
+  setUpAll(() async {
+    try {
+      chromeDriver = await Process.start(
+          'chromedriver', ['--port=4444', '--url-base=wd/hub']);
+    } catch (e) {
+      throw StateError(
+          'Could not start ChromeDriver. Is it installed?\nError: $e');
+    }
+  });
+
+  tearDownAll(() {
+    chromeDriver.kill();
+  });
 
   group('Injected client', () {
     setUp(() async {
