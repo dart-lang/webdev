@@ -9,6 +9,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_target.dart';
+import 'package:logging/logging.dart';
 
 import '../serve/chrome.dart';
 import '../serve/daemon_client.dart';
@@ -102,7 +103,7 @@ class ServeCommand extends Command<int> {
     try {
       configuration = Configuration.fromArgs(argResults);
     } on InvalidConfiguration catch (e) {
-      print('Invalid configuration: ${e.details}\n\n');
+      colorLog(Level.SEVERE, 'Invalid configuration: ${e.details}\n\n');
       printUsage();
       return -1;
     }
@@ -122,7 +123,7 @@ class ServeCommand extends Command<int> {
           .where((arg) => !arg.contains(':') || arg.startsWith('--'))
           .toList());
 
-    print('Connecting to the build daemon...');
+    colorLog(Level.INFO, 'Connecting to the build daemon...');
     try {
       _client = await connectClient(
         workingDirectory,
@@ -130,14 +131,16 @@ class ServeCommand extends Command<int> {
         (serverLog) => writeServerLog(serverLog, configuration.verbose),
       );
     } on OptionsSkew {
-      print('\nIncompatible options with current running build daemon.\n\n'
+      colorLog(
+          Level.SEVERE,
+          '\nIncompatible options with current running build daemon.\n\n'
           'Please stop other WebDev instances running in this directory '
           'before starting a new instance with these options.');
       // TODO(grouma) - Give an option to kill the running daemon.
       return -1;
     }
 
-    print('Registering build targets...');
+    colorLog(Level.INFO, 'Registering build targets...');
     var targetPorts = _parseDirectoryArgs(directoryArgs);
     for (var target in targetPorts.keys) {
       _client.registerBuildTarget(DefaultBuildTarget((b) => b.target = target));
@@ -159,7 +162,7 @@ class ServeCommand extends Command<int> {
     _serverManager = ServerManager(
         serverOptions, _client.buildResults, devToolsCompleter.future);
 
-    print('Starting resource servers...');
+    colorLog(Level.INFO, 'Starting resource servers...');
     await _serverManager.start();
 
     try {
@@ -177,11 +180,11 @@ class ServeCommand extends Command<int> {
         devToolsCompleter.complete(null);
       }
 
-      print('Starting initial build...');
+      colorLog(Level.INFO, 'Starting initial build...');
       _client.startBuild();
       await _client.finished;
     } on ChromeError catch (e) {
-      print(e.details);
+      colorLog(Level.SEVERE, e.details);
     } finally {
       await shutDown();
     }

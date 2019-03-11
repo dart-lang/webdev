@@ -27,31 +27,35 @@ Future<int> findUnusedPort() async {
   return port;
 }
 
+/// Colors the message and writes it to stdout.
+///
+/// If the [level] is not contained in the message, one will be inserted.
+void colorLog(Level level, String message, {bool verbose}) {
+  verbose ??= false;
+  AnsiCode color;
+  if (level < Level.WARNING) {
+    color = cyan;
+  } else if (level < Level.SEVERE) {
+    color = yellow;
+  } else {
+    color = red;
+  }
+  var trimmedMessage = message.replaceFirst('[$level]', '').trimLeft();
+  var multiline = message.contains('\n');
+  var eraseLine = verbose ? '' : '\x1b[2K\r';
+  var colorLevel = color.wrap('[$level]');
+
+  stdout.write('$eraseLine$colorLevel $trimmedMessage');
+  // Prevent multilines and severe messages from being erased.
+  if (level > Level.INFO || verbose || multiline) {
+    stdout.writeln('');
+  }
+}
+
 /// Colors and writes daemon [ServerLog]s
 void writeServerLog(ServerLog serverLog, bool verbose) {
-  var recordLevel = _levelForLog(serverLog);
-  if (recordLevel == null) {
-    stdout.writeln(serverLog.log);
-  } else {
-    AnsiCode color;
-    if (recordLevel < Level.WARNING) {
-      color = cyan;
-    } else if (recordLevel < Level.SEVERE) {
-      color = yellow;
-    } else {
-      color = red;
-    }
-    var message = serverLog.log.replaceFirst('[$recordLevel]', '');
-    var multiline = message.contains('\n');
-    var eraseLine = verbose ? '' : '\x1b[2K\r';
-    var level = color.wrap('[$recordLevel]');
-
-    stdout.write('$eraseLine$level$message');
-    // Prevent multilines and severe messages from being erased.
-    if (recordLevel > Level.INFO || verbose || multiline) {
-      stdout.writeln('');
-    }
-  }
+  var recordLevel = _levelForLog(serverLog) ?? Level.INFO;
+  colorLog(recordLevel, serverLog.log, verbose: verbose);
 }
 
 /// Detects if the [ServerLog] contains a [Level] and returns the
