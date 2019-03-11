@@ -290,13 +290,7 @@ require("dart_sdk").developer.invokeExtension(
   @override
   Future getIsolate(String isolateId) async => _getIsolate(isolateId);
 
-  Future<Library> _getLibrary(String isolateId, String objectId) async {
-    if (isolateId != _isolate.id) return null;
-    var libraryRef = _libraryRefs[objectId];
-    if (libraryRef == null) return null;
-    var library = _libraries[objectId];
-    if (library != null) return library;
-
+  Future<Library> _constructLibrary(LibraryRef libraryRef) async {
     // Fetch information about all the classes in this library.
     var expression = '''
     (function() {
@@ -360,7 +354,7 @@ require("dart_sdk").developer.invokeExtension(
 
     _scriptRefs[scriptRef.id] = scriptRef;
 
-    library = Library()
+    return Library()
       ..id = libraryRef.id
       ..name = libraryRef.name
       ..uri = libraryRef.uri
@@ -370,9 +364,16 @@ require("dart_sdk").developer.invokeExtension(
       ..functions = []
       ..scripts = [scriptRef]
       ..variables = [];
+  }
 
+  Future<Library> _getLibrary(String isolateId, String objectId) async {
+    if (isolateId != _isolate.id) return null;
+    var libraryRef = _libraryRefs[objectId];
+    if (libraryRef == null) return null;
+    var library = _libraries[objectId];
+    if (library != null) return library;
+    library = await _constructLibrary(libraryRef);
     _libraries[objectId] = library;
-
     return library;
   }
 
