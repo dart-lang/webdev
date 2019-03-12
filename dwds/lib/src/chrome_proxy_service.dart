@@ -215,7 +215,7 @@ require("dart_sdk").developer.invokeExtension(
 
   @override
   Future evaluate(String isolateId, String targetId, String expression,
-      {Map<String, String> scope}) async {
+      {Map<String, String> scope, bool disableBreakpoints}) async {
     var library = await _getLibrary(isolateId, targetId);
     if (library == null) {
       throw UnsupportedError(
@@ -254,7 +254,7 @@ require("dart_sdk").developer.invokeExtension(
 
   @override
   Future evaluateInFrame(String isolateId, int frameIndex, String expression,
-      {Map<String, String> scope}) {
+      {Map<String, String> scope, bool disableBreakpoints}) {
     throw UnimplementedError();
   }
 
@@ -451,7 +451,8 @@ require("dart_sdk").developer.invokeExtension(
 
   @override
   Future invoke(String isolateId, String targetId, String selector,
-      List<String> argumentIds) {
+      List<String> argumentIds,
+      {bool disableBreakpoints}) {
     throw UnimplementedError();
   }
 
