@@ -8,6 +8,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import 'command/build_command.dart';
+import 'command/daemon_command.dart';
 import 'command/serve_command.dart';
 import 'util.dart';
 import 'version.dart';
@@ -23,6 +24,7 @@ class _CommandRunner extends CommandRunner<int> {
         negatable: false, help: 'Prints the version of webdev.');
     addCommand(BuildCommand());
     addCommand(ServeCommand());
+    addCommand(DaemonCommand());
   }
 
   @override
