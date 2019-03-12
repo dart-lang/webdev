@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 import 'package:webdev/src/util.dart';
 
@@ -22,9 +21,6 @@ void main() {
         workingDirectory: exampleDirectory, environment: getPubEnvironment());
 
     await process.shouldExit(0);
-
-    await d.file('.packages', isNotEmpty).validate(exampleDirectory);
-    await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
   });
 
   group('Daemon', () {

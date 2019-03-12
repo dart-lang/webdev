@@ -13,23 +13,24 @@ const String protocolVersion = '0.4.2';
 /// A collection of method and events relevant to the daemon command.
 class DaemonDomain extends Domain {
   DaemonDomain(Daemon daemon) : super(daemon, 'daemon') {
-    registerHandler('version', version);
-    registerHandler('shutdown', shutdown);
+    registerHandler('version', _version);
+    registerHandler('shutdown', _shutdown);
 
     sendEvent(
       'daemon.connected',
-      <String, dynamic>{
+      {
         'version': protocolVersion,
         'pid': pid,
       },
     );
   }
 
-  Future<String> version(Map<String, dynamic> args) {
+  Future<String> _version(Map<String, dynamic> args) {
     return Future<String>.value(protocolVersion);
   }
 
-  Future<void> shutdown(Map<String, dynamic> args) {
+  Future<void> _shutdown(Map<String, dynamic> args) {
+    // Schedule shutdown after we return the result.
     Timer.run(daemon.shutdown);
     return Future<void>.value();
   }

@@ -17,15 +17,17 @@ String getStringArg(Map<String, dynamic> args, String name,
   if (required && !args.containsKey(name))
     throw ArgumentError('$name is required');
   var val = args[name];
-  if (val != null && val is! String)
+  if (val != null && val is! String) {
     throw ArgumentError('$name is not a String');
+  }
   return val as String;
 }
 
 bool getBoolArg(Map<String, dynamic> args, String name,
     {bool required = false}) {
-  if (required && !args.containsKey(name))
+  if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
+  }
   var val = args[name];
   if (val != null && val is! bool) throw ArgumentError('$name is not a bool');
   return val as bool;

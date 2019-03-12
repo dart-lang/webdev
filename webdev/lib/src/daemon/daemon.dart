@@ -9,18 +9,12 @@ import 'daemon_domain.dart';
 import 'domain.dart';
 import 'utilites.dart';
 
-typedef DispatchCommand = void Function(Map<String, dynamic> command);
-
 /// A collection of domains.
 ///
 /// Listens for commands, routes them to the corresponding domain and provides
 /// the result.
 class Daemon {
-  Daemon(
-    Stream<Map<String, dynamic>> commandStream,
-    this.sendCommand, {
-    this.logToStdout = false,
-  }) {
+  Daemon(Stream<Map<String, dynamic>> commandStream, this._sendCommand) {
     _registerDomain(DaemonDomain(this));
 
     // TODO(grouma) - complete these other domains.
@@ -38,8 +32,7 @@ class Daemon {
 
   StreamSubscription<Map<String, dynamic>> _commandSubscription;
 
-  final DispatchCommand sendCommand;
-  final bool logToStdout;
+  final void Function(Map<String, dynamic>) _sendCommand;
 
   final Completer<int> _onExitCompleter = Completer<int>();
   final Map<String, Domain> _domainMap = <String, Domain>{};
@@ -62,22 +55,19 @@ class Daemon {
     }
 
     try {
-      var method = request['method'] as String;
+      var method = request['method'] as String ?? '';
       if (!method.contains('.')) {
         throw ArgumentError('method not understood: $method');
       }
 
-      var prefix = method.substring(0, method.indexOf('.'));
+      var domain = method.substring(0, method.indexOf('.'));
       var name = method.substring(method.indexOf('.') + 1);
-      if (_domainMap[prefix] == null) {
+      if (_domainMap[domain] == null) {
         throw ArgumentError('no domain for method: $method');
       }
 
-      _domainMap[prefix].handleCommand(
-          name,
-          id,
-          request['params'] as Map<String, dynamic> ??
-              const <String, dynamic>{});
+      _domainMap[domain].handleCommand(
+          name, id, request['params'] as Map<String, dynamic> ?? {});
     } catch (error, trace) {
       send(<String, dynamic>{
         'id': id,
@@ -87,16 +77,17 @@ class Daemon {
     }
   }
 
-  void send(Map<String, dynamic> map) => sendCommand(map);
+  void send(Map<String, dynamic> map) => _sendCommand(map);
 
   void shutdown({dynamic error}) {
     _commandSubscription?.cancel();
     for (var domain in _domainMap.values) domain.dispose();
     if (!_onExitCompleter.isCompleted) {
-      if (error == null)
+      if (error == null) {
         _onExitCompleter.complete(0);
-      else
+      } else {
         _onExitCompleter.completeError(error);
+      }
     }
   }
 }
