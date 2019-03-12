@@ -31,23 +31,28 @@ Future<void> main() async {
       () => keys(dartLoader.moduleParentsGraph));
 
   var client = SseClient(r'/$sseHandler');
+
+  hotRestart = allowInterop(() async {
+    var newDigests = await _getDigests();
+    var modulesToLoad = <String>[];
+    for (var module in newDigests.keys) {
+      if (!currentDigests.containsKey(module) ||
+          currentDigests[module] != newDigests[module]) {
+        modulesToLoad.add(module.replaceFirst('.js', ''));
+      }
+    }
+    currentDigests = newDigests;
+    if (modulesToLoad.isNotEmpty) {
+      manager.updateGraph();
+      await manager.reload(modulesToLoad);
+    }
+  });
+
   client.stream.listen((_) async {
     if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
       window.location.reload();
     } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
-      var newDigests = await _getDigests();
-      var modulesToLoad = <String>[];
-      for (var module in newDigests.keys) {
-        if (!currentDigests.containsKey(module) ||
-            currentDigests[module] != newDigests[module]) {
-          modulesToLoad.add(module.replaceFirst('.js', ''));
-        }
-      }
-      currentDigests = newDigests;
-      if (modulesToLoad.isNotEmpty) {
-        manager.updateGraph();
-        await manager.reload(modulesToLoad);
-      }
+      await hotRestart();
     } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
       print('Hot reload is currently unsupported. Ignoring change.');
     }
@@ -61,6 +66,11 @@ Future<void> main() async {
     }
   });
 }
+
+@JS(r'$dartHotRestart')
+external Future<void> Function() get hotRestart;
+@JS(r'$dartHotRestart')
+external set hotRestart(Future<void> Function() cb);
 
 @JS(r'$dartLoader')
 external DartLoader get dartLoader;

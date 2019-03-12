@@ -371,10 +371,8 @@ void main() {
   });
 
   test('registerService', () async {
-    expect(service.registerService('ext.foo.bar', null), completion(isSuccess));
-    var vm = await service.getVM();
-    var isolate = await service.getIsolate(vm.isolates.first.id) as Isolate;
-    expect(isolate.extensionRPCs, contains('ext.foo.bar'));
+    expect(() => service.registerService('ext.foo.bar', null),
+        throwsUnimplementedError);
   });
 
   test('reloadSources', () {
@@ -534,18 +532,6 @@ void main() {
           emitsThrough(predicate((Event e) =>
               e.kind == EventKind.kVMUpdate && e.vm.name == 'test')));
       await service.setVMName('test');
-    });
-
-    test('_Service', () async {
-      expect(service.streamListen('_Service'), completion(isSuccess));
-      var stream = service.onEvent('_Service');
-      var extensionMethod = 'ext.foo.bar';
-      expect(
-          stream,
-          emitsThrough(predicate((Event event) =>
-              event.kind == EventKind.kServiceRegistered &&
-              event.extensionRPC == extensionMethod)));
-      await service.registerService(extensionMethod, null);
     });
   });
 }

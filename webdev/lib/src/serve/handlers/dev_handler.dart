@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
+import 'package:vm_service_lib/vm_service_lib.dart';
 
 import '../../serve/utils.dart';
 import '../data/devtools_request.dart';
@@ -53,6 +54,7 @@ class DevHandler {
   void _handleConnection(SseConnection connection) {
     _connections.add(connection);
     DebugService debugService;
+    _WebdevClient webdevClient;
     connection.stream.listen((data) async {
       var message = webdev.serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
@@ -66,6 +68,9 @@ class DevHandler {
             _assetHandler.getRelativeAsset,
             message.url,
           );
+
+          webdevClient = await _WebdevClient.create(debugService);
+
           colorLog(
               Level.INFO,
               'Debug service listening on '
@@ -80,11 +85,14 @@ class DevHandler {
     unawaited(connection.onClose.then((_) async {
       if (debugService != null) {
         await debugService.close();
+        webdevClient.close();
+
         colorLog(
             Level.INFO,
             'Stopped debug service on '
             'ws://${debugService.hostname}:${debugService.port}\n');
         debugService = null;
+        webdevClient = null;
       }
       _connections.remove(connection);
     }));
@@ -95,5 +103,51 @@ class DevHandler {
     while (await connections.hasNext) {
       _handleConnection(await connections.next);
     }
+  }
+}
+
+// A client of the vm service that registers some custom extensions like
+// hotRestart.
+class _WebdevClient {
+  final VmService _client;
+  final StreamController<Map<String, Object>> _requestController;
+  final StreamController<Map<String, Object>> _responseController;
+
+  _WebdevClient(
+      this._client, this._requestController, this._responseController);
+
+  static Future<_WebdevClient> create(DebugService debugService) async {
+    // Set up hot restart as an extension.
+    var requestController = StreamController<Map<String, Object>>();
+    var responseController = StreamController<Map<String, Object>>();
+    VmServerConnection(requestController.stream, responseController.sink,
+        debugService.serviceExtensionRegistry, debugService.chromeProxyService);
+    var client = VmService(
+        responseController.stream.map(jsonEncode),
+        (request) => requestController.sink
+            .add(jsonDecode(request) as Map<String, dynamic>));
+    client.registerServiceCallback('hotRestart', (request) async {
+      await debugService.chromeProxyService.tabConnection.runtime.sendCommand(
+          'Runtime.evaluate',
+          params: {'expression': r'$dartHotRestart();', 'awaitPromise': true});
+      return {'result': Success().toJson()};
+    });
+    await client.registerService('hotRestart', 'WebDev');
+
+    // TODO: Remove this (we don't actually support it yet) once devtools
+    // has published a new version.
+    client.registerServiceCallback('reloadSources', (request) async {
+      throw UnsupportedError(
+          'Hot Reload is not yet supported for flutter web, try hot restart.');
+    });
+    await client.registerService('reloadSources', 'WebDev');
+
+    return _WebdevClient(client, requestController, responseController);
+  }
+
+  void close() {
+    _requestController.close();
+    _responseController.close();
+    _client.dispose();
   }
 }

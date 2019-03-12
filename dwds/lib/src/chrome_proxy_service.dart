@@ -27,7 +27,7 @@ class ChromeProxyService implements VmServiceInterface {
   final VM _vm;
 
   /// The connection with the chrome debug service for the tab.
-  final WipConnection _tabConnection;
+  final WipConnection tabConnection;
 
   /// A handler for application assets, e.g. Dart sources.
   final Future<String> Function(String) _assetHandler;
@@ -38,12 +38,12 @@ class ChromeProxyService implements VmServiceInterface {
   final _libraryRefs = <String, LibraryRef>{};
 
   ChromeProxyService._(
-      this._vm, this._isolate, this._tabConnection, this._assetHandler) {
+      this._vm, this._isolate, this.tabConnection, this._assetHandler) {
     for (var libraryRef in _isolate.libraries) {
       _libraryRefs[libraryRef.id] = libraryRef;
     }
     // Listen for `registerExtension` and `postEvent` calls.
-    _tabConnection.runtime.onConsoleAPICalled.listen((ConsoleAPIEvent event) {
+    tabConnection.runtime.onConsoleAPICalled.listen((ConsoleAPIEvent event) {
       if (event.type != 'debug') return;
       var firstArgValue = event.args[0].value as String;
       switch (firstArgValue) {
@@ -179,7 +179,7 @@ require("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
     var response =
-        await _tabConnection.runtime.sendCommand('Runtime.evaluate', params: {
+        await tabConnection.runtime.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
       'awaitPromise': true,
     });
@@ -221,7 +221,7 @@ require("dart_sdk").developer.invokeExtension(
       throw UnsupportedError(
           'Evaluate is only supported when `targetId` is a library.');
     }
-    var result = await _tabConnection.runtime.evaluate('''
+    var result = await tabConnection.runtime.evaluate('''
 (function() {
   ${_getLibrarySnippet(library.uri)};
   return library.$expression;
@@ -305,7 +305,7 @@ require("dart_sdk").developer.invokeExtension(
       });
     })()
     ''';
-    var classesResult = await _tabConnection.runtime.sendCommand(
+    var classesResult = await tabConnection.runtime.sendCommand(
         'Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     _handleErrorIfPresent(classesResult);
@@ -492,21 +492,14 @@ require("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> pause(String isolateId) async {
-    var result = await _tabConnection.sendCommand('Debugger.pause');
+    var result = await tabConnection.sendCommand('Debugger.pause');
     _handleErrorIfPresent(result);
     return Success();
   }
 
   @override
-  // TODO: what does `alias` represent here?
   Future<Success> registerService(String service, String alias) async {
-    _isolate.extensionRPCs.add(service);
-    _streamNotify(
-        '_Service',
-        Event()
-          ..kind = EventKind.kServiceRegistered
-          ..extensionRPC = service);
-    return Success();
+    throw UnimplementedError();
   }
 
   @override
@@ -532,7 +525,7 @@ require("dart_sdk").developer.invokeExtension(
     if (step != null || frameIndex != null) {
       throw ArgumentError('Step and frameIndex are currently unsupported');
     }
-    var result = await _tabConnection.sendCommand('Debugger.resume');
+    var result = await tabConnection.sendCommand('Debugger.resume');
     _handleErrorIfPresent(result);
     return Success();
   }
@@ -603,7 +596,7 @@ require("dart_sdk").developer.invokeExtension(
       exceptionsSubscription?.cancel();
     }, onListen: () {
       chromeConsoleSubscription =
-          _tabConnection.runtime.onConsoleAPICalled.listen((e) {
+          tabConnection.runtime.onConsoleAPICalled.listen((e) {
         if (!filter(e)) return;
         var args = e.params['args'] as List;
         var item = args[0] as Map;
@@ -616,7 +609,7 @@ require("dart_sdk").developer.invokeExtension(
       });
       if (includeExceptions) {
         exceptionsSubscription =
-            _tabConnection.runtime.onExceptionThrown.listen((e) {
+            tabConnection.runtime.onExceptionThrown.listen((e) {
           controller.add(Event()
             ..kind = EventKind.kWriteEvent
             ..isolate = toIsolateRef(_isolate)
@@ -636,7 +629,7 @@ require("dart_sdk").developer.invokeExtension(
     StreamSubscription pauseSubscription;
     StreamSubscription resumeSubscription;
     return StreamController<Event>.broadcast(onListen: () {
-      pauseSubscription = _tabConnection.debugger.onPaused.listen((e) {
+      pauseSubscription = tabConnection.debugger.onPaused.listen((e) {
         var event = Event()..isolate = toIsolateRef(_isolate);
         var params = e.params;
         var breakpoints = params['hitBreakpoints'] as List;
@@ -650,7 +643,7 @@ require("dart_sdk").developer.invokeExtension(
         }
         _streamNotify('Debug', event);
       });
-      resumeSubscription = _tabConnection.debugger.onResumed.listen((e) {
+      resumeSubscription = tabConnection.debugger.onResumed.listen((e) {
         _streamNotify(
             'Debug',
             Event()

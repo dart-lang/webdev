@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service_lib/vm_service_lib_io.dart';
 import 'package:webdriver/io.dart';
 
 import 'injected_fixture.dart';
@@ -15,6 +17,7 @@ import 'injected_fixture.dart';
 void main() {
   InjectedFixture fixture;
   Process chromeDriver;
+  int debugPort;
 
   setUpAll(() async {
     try {
@@ -33,6 +36,16 @@ void main() {
   group('Injected client', () {
     setUp(() async {
       fixture = await InjectedFixture.create();
+      await fixture.buildAndLoad(['--debug']);
+      await fixture.webdriver.driver.keyboard.sendKeys('${Keyboard.alt}d');
+      var debugServiceLine = '';
+      while (!debugServiceLine.contains('Debug service listening')) {
+        debugServiceLine = await fixture.webdev.stdout.next;
+      }
+      debugPort = int.parse(debugServiceLine.split(':').last.trim());
+
+      // Let DevTools open.
+      await Future.delayed(const Duration(seconds: 2));
     });
 
     tearDown(() async {
@@ -40,20 +53,27 @@ void main() {
       fixture = null;
     });
 
-    test('can can launch devtools', () async {
-      await fixture.buildAndLoad(['--debug']);
-
-      await fixture.webdriver.driver.keyboard.sendKeys('${Keyboard.alt}d');
-
-      // Let DevTools open.
-      await Future.delayed(const Duration(seconds: 2));
-
+    test('can launch devtools', () async {
       var windows = await fixture.webdriver.windows.toList();
 
       await fixture.webdriver.driver.switchTo.window(windows.last);
 
       expect(await fixture.webdriver.title, 'Dart DevTools');
+      await fixture.webdev.kill();
+    });
 
+    test('can hot restart via the service extension', () async {
+      var client = await vmServiceConnect('localhost', debugPort);
+      await fixture.changeInput();
+
+      expect(await client.callServiceExtension('hotRestart'),
+          const TypeMatcher<Success>());
+      await Future.delayed(const Duration(seconds: 2));
+
+      var source = await fixture.webdriver.pageSource;
+      // Main is re-invoked which shouldn't clear the state.
+      expect(source, contains('Hello World!'));
+      expect(source, contains('Gary is awesome!'));
       await fixture.webdev.kill();
     });
   }, tags: ['webdriver']);
