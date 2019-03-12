@@ -40,29 +40,26 @@ void colorLog(Level level, String message, {bool verbose}) {
   } else {
     color = red;
   }
-  var trimmedMessage = message.replaceFirst('[$level]', '').trimLeft();
   var multiline = message.contains('\n');
   var eraseLine = verbose ? '' : '\x1b[2K\r';
   var colorLevel = color.wrap('[$level]');
 
-  stdout.write('$eraseLine$colorLevel $trimmedMessage');
+  stdout.write('$eraseLine$colorLevel $message');
   // Prevent multilines and severe messages from being erased.
   if (level > Level.INFO || verbose || multiline) {
     stdout.writeln('');
   }
 }
 
-/// Colors and writes daemon [ServerLog]s
-void writeServerLog(ServerLog serverLog, bool verbose) {
-  var recordLevel = _levelForLog(serverLog) ?? Level.INFO;
-  colorLog(recordLevel, serverLog.log, verbose: verbose);
-}
+String trimLevel(Level level, String message) => message.startsWith('[$level]')
+    ? message.replaceFirst('[$level]', '').trimLeft()
+    : message;
 
 /// Detects if the [ServerLog] contains a [Level] and returns the
 /// resulting value.
 ///
 /// If the [ServerLog] does not contain a [Level], null will be returned.
-Level _levelForLog(ServerLog serverLog) {
+Level levelForLog(ServerLog serverLog) {
   var log = serverLog.log;
   Level recordLevel;
   for (var level in Level.LEVELS) {

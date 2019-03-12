@@ -7,16 +7,10 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:build_daemon/client.dart';
-import 'package:build_daemon/data/build_target.dart';
 import 'package:logging/logging.dart';
 
-import '../serve/chrome.dart';
-import '../serve/daemon_client.dart';
-import '../serve/debugger/devtools.dart';
-import '../serve/server_manager.dart';
+import '../serve/controller.dart';
 import '../serve/utils.dart';
-import '../serve/webdev_server.dart';
 import 'configuration.dart';
 import 'shared.dart';
 
@@ -46,10 +40,6 @@ Map<String, int> _parseDirectoryArgs(List<String> args) {
 
 /// Command to run a server for local web development with the build daemon.
 class ServeCommand extends Command<int> {
-  ServerManager _serverManager;
-  Chrome _chrome;
-  BuildDaemonClient _client;
-
   @override
   final name = 'serve';
 
@@ -99,102 +89,32 @@ class ServeCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    Configuration configuration;
     try {
-      configuration = Configuration.fromArgs(argResults);
-    } on InvalidConfiguration catch (e) {
-      colorLog(Level.SEVERE, 'Invalid configuration: ${e.details}\n\n');
-      printUsage();
+      Configuration configuration;
+      try {
+        configuration = Configuration.fromArgs(argResults);
+      } on InvalidConfiguration catch (e) {
+        colorLog(Level.SEVERE, e.toString());
+        return -1;
+      }
+      var pubspecLock = await readPubspecLock(configuration);
+      // Forward remaining arguments as Build Options to the Daemon.
+      // This isn't documented. Should it be advertised?
+      var buildOptions = buildRunnerArgs(pubspecLock, configuration)
+        ..addAll(argResults.rest
+            .where((arg) => !arg.contains(':') || arg.startsWith('--'))
+            .toList());
+      var directoryArgs = argResults.rest
+          .where((arg) => arg.contains(':') || !arg.startsWith('--'))
+          .toList();
+      var targetPorts = _parseDirectoryArgs(directoryArgs);
+      var controller = await ServeController.start(
+          configuration, buildOptions, targetPorts, colorLog);
+      await controller.done;
+      return 0;
+    } catch (e) {
+      colorLog(Level.SEVERE, e.toString());
       return -1;
     }
-
-    var workingDirectory = Directory.current.path;
-
-    var directoryArgs = argResults.rest
-        .where((arg) => arg.contains(':') || !arg.startsWith('--'))
-        .toList();
-
-    var pubspecLock = await readPubspecLock(configuration);
-
-    // Forward remaining arguments as Build Options to the Daemon.
-    // This isn't documented. Should it be advertised?
-    var buildOptions = buildRunnerArgs(pubspecLock, configuration)
-      ..addAll(argResults.rest
-          .where((arg) => !arg.contains(':') || arg.startsWith('--'))
-          .toList());
-
-    colorLog(Level.INFO, 'Connecting to the build daemon...');
-    try {
-      _client = await connectClient(
-        workingDirectory,
-        buildOptions,
-        (serverLog) => writeServerLog(serverLog, configuration.verbose),
-      );
-    } on OptionsSkew {
-      colorLog(
-          Level.SEVERE,
-          '\nIncompatible options with current running build daemon.\n\n'
-          'Please stop other WebDev instances running in this directory '
-          'before starting a new instance with these options.');
-      // TODO(grouma) - Give an option to kill the running daemon.
-      return -1;
-    }
-
-    colorLog(Level.INFO, 'Registering build targets...');
-    var targetPorts = _parseDirectoryArgs(directoryArgs);
-    for (var target in targetPorts.keys) {
-      _client.registerBuildTarget(DefaultBuildTarget((b) => b.target = target));
-    }
-
-    var assetPort = daemonPort(workingDirectory);
-    var serverOptions = Set<ServerOptions>();
-    for (var target in targetPorts.keys) {
-      serverOptions.add(ServerOptions(
-        configuration,
-        targetPorts[target],
-        target,
-        assetPort,
-      ));
-    }
-
-    var devToolsCompleter = Completer<DevTools>();
-
-    _serverManager = ServerManager(
-        serverOptions, _client.buildResults, devToolsCompleter.future);
-
-    colorLog(Level.INFO, 'Starting resource servers...');
-    await _serverManager.start();
-
-    try {
-      if (configuration.launchInChrome) {
-        _chrome = await Chrome.start(_serverManager.uris,
-            port: configuration.chromeDebugPort);
-      } else if (configuration.chromeDebugPort != 0) {
-        _chrome = await Chrome.fromExisting(configuration.chromeDebugPort);
-      }
-
-      if (configuration.debug) {
-        var devTools = await DevTools.start(configuration.hostname, _chrome);
-        devToolsCompleter.complete(devTools);
-      } else {
-        devToolsCompleter.complete(null);
-      }
-
-      colorLog(Level.INFO, 'Starting initial build...');
-      _client.startBuild();
-      await _client.finished;
-    } on ChromeError catch (e) {
-      colorLog(Level.SEVERE, e.details);
-    } finally {
-      await shutDown();
-    }
-
-    return 0;
-  }
-
-  Future<void> shutDown() async {
-    await _client?.close();
-    await _serverManager?.stop();
-    await _chrome?.close();
   }
 }

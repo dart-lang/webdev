@@ -9,6 +9,10 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 import '../daemon/daemon.dart';
+import '../serve/controller.dart';
+import '../serve/utils.dart';
+import 'configuration.dart';
+import 'shared.dart';
 
 Stream<Map<String, dynamic>> get _stdinCommandStream => stdin
         .transform<String>(utf8.decoder)
@@ -42,8 +46,22 @@ class DaemonCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    var daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
+    var controllerCompleter = Completer<ServeController>();
+    var daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse,
+        controllerCompleter.future);
+    var port = await findUnusedPort();
+    var configuration = Configuration(launchInChrome: true);
+    var pubspecLock = await readPubspecLock(configuration);
+    var buildOptions = buildRunnerArgs(pubspecLock, configuration);
+    var controller = await ServeController.start(
+        configuration, buildOptions, {'web': port}, (level, message) {
+      daemon.sendEvent(
+          'daemon', 'logMessage', {'level': '$level', 'message': message});
+    });
+    controllerCompleter.complete(controller);
     await daemon.onExit;
+    await controller.shutDown();
+    await controller.done;
     return 0;
   }
 }

@@ -98,10 +98,10 @@ class Chrome {
     // connection is valid.
     try {
       await chrome.chromeConnection.getTabs();
-    } on SocketException catch (_) {
+    } catch (e) {
       await chrome.close();
       throw ChromeError(
-          'Unable to connect to Chrome debug port: ${chrome.debugPort}');
+          'Unable to connect to Chrome debug port: ${chrome.debugPort}\n $e');
     }
     return chrome;
   }
@@ -110,4 +110,9 @@ class Chrome {
 class ChromeError extends Error {
   final String details;
   ChromeError(this.details);
+
+  @override
+  String toString() {
+    return 'ChromeError: $details';
+  }
 }
