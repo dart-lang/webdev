@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
+import 'package:vm_service_lib/vm_service_lib.dart';
 
 import '../../serve/utils.dart';
 import '../data/devtools_request.dart';
@@ -75,6 +76,28 @@ class DevHandler {
             // Chrome protocol for spawning a new tab.
             .getUrl('json/new/?http://${devTools.hostname}:${devTools.port}'
                 '/?port=${debugService.port}');
+
+        // Set up hot restart as an extension.
+        var requestController = StreamController<Map<String, Object>>();
+        var responseController = StreamController<Map<String, Object>>();
+        VmServerConnection(
+            requestController.stream,
+            responseController.sink,
+            debugService.serviceExtensionRegistry,
+            debugService.chromeProxyService);
+        var client = VmService(
+            responseController.stream.map(jsonEncode),
+            (request) => requestController.sink
+                .add(jsonDecode(request) as Map<String, dynamic>));
+        client.registerServiceCallback('hotRestart', (request) async {
+          await debugService.chromeProxyService.tabConnection.runtime
+              .evaluate(r'$dartHotRestart();');
+          return {'result': Success().toJson()};
+        });
+        await client.registerService('hotRestart', 'WebDev');
+        // TODO: Remove this (we don't actually support it yet) once devtools
+        // has published a new version.
+        await client.registerService('reloadSources', 'WebDev');
       }
     });
     unawaited(connection.onClose.then((_) async {
