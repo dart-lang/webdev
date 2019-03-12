@@ -17,7 +17,8 @@ import './src/chrome_proxy_service.dart';
 import './src/helpers.dart';
 
 void Function(WebSocketChannel, String) _createNewConnectionHandler(
-    ChromeProxyService chromeProxyService) {
+    ChromeProxyService chromeProxyService,
+    ServiceExtensionRegistry serviceExtensionRegistry) {
   return (webSocket, protocol) {
     var responseController = StreamController<Map<String, Object>>();
     webSocket.sink.addStream(responseController.stream.map(jsonEncode));
@@ -32,8 +33,6 @@ void Function(WebSocketChannel, String) _createNewConnectionHandler(
       return jsonDecode(value as String) as Map<String, Object>;
     });
 
-    var serviceExtensionRegistry = ServiceExtensionRegistry();
-
     VmServerConnection(inputStream, responseController.sink,
         serviceExtensionRegistry, chromeProxyService);
   };
@@ -43,11 +42,14 @@ void Function(WebSocketChannel, String) _createNewConnectionHandler(
 ///
 /// Creates a [ChromeProxyService] from an existing Chrome instance.
 class DebugService {
+  final ChromeProxyService chromeProxyService;
   final String hostname;
+  final ServiceExtensionRegistry serviceExtensionRegistry;
 
   final int port;
   final HttpServer _server;
-  DebugService._(this.hostname, this.port, this._server);
+  DebugService._(this.chromeProxyService, this.hostname, this.port,
+      this.serviceExtensionRegistry, this._server);
 
   Future<void> close() async {
     await _server.close();
@@ -60,12 +62,14 @@ class DebugService {
       String url) async {
     var chromeProxyService =
         await ChromeProxyService.create(chromeConnection, assetHandler, url);
-    var cascade = Cascade()
-        .add(webSocketHandler(_createNewConnectionHandler(chromeProxyService)));
+    var serviceExtensionRegistry = ServiceExtensionRegistry();
+    var cascade = Cascade().add(webSocketHandler(_createNewConnectionHandler(
+        chromeProxyService, serviceExtensionRegistry)));
 
     var port = await findUnusedPort();
 
     var server = await serve(cascade.handler, hostname, port);
-    return DebugService._(hostname, port, server);
+    return DebugService._(
+        chromeProxyService, hostname, port, serviceExtensionRegistry, server);
   }
 }
