@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:uuid/uuid.dart';
 
 import '../serve/controller.dart';
+import '../serve/debugger/webdev_vm_client.dart';
 import 'daemon.dart';
 import 'domain.dart';
 import 'utilites.dart';
@@ -16,6 +17,7 @@ import 'utilites.dart';
 class AppDomain extends Domain {
   final String _appId;
 
+  WebdevVmClient _webdevVmClient;
   Future<ServeController> _serveController;
 
   AppDomain(Daemon daemon, this._serveController)
@@ -49,13 +51,13 @@ class AppDomain extends Domain {
           .firstWhere((tab) => tab.url.startsWith('http://localhost'))
           .url;
 
-      var client =
+      _webdevVmClient =
           await server.devHandler.createClient(chrome, 'localhost', appUrl);
 
       sendEvent('app.debugPort', {
         'appId': _appId,
-        'port': client.port,
-        'wsUri': client.wsUri,
+        'port': _webdevVmClient.port,
+        'wsUri': _webdevVmClient.wsUri,
       });
 
       // TODO(grouma) - Add an event for when the application is started.
@@ -76,5 +78,10 @@ class AppDomain extends Domain {
     var serve = await _serveController;
     await serve.shutDown();
     return true;
+  }
+
+  @override
+  void dispose() {
+    _webdevVmClient?.close();
   }
 }

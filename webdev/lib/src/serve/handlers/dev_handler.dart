@@ -19,7 +19,7 @@ import '../../serve/utils.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart' as webdev;
 import '../debugger/devtools.dart';
-import '../debugger/webdev_client.dart';
+import '../debugger/webdev_vm_client.dart';
 import '../handlers/asset_handler.dart';
 
 /// SSE handler to enable development features like hot reload and
@@ -57,7 +57,7 @@ class DevHandler {
 
   // TODO(https://github.com/dart-lang/webdev/issues/202) - Refactor so this is
   // a getter and is created immediately.
-  Future<WebdevClient> createClient(
+  Future<WebdevVmClient> createClient(
       Chrome chrome, String hostname, String appUrl) async {
     var debugService = await DebugService.start(
       hostname,
@@ -66,12 +66,13 @@ class DevHandler {
       appUrl,
     );
 
-    return await WebdevClient.create(debugService);
+    return await WebdevVmClient.create(debugService);
   }
 
   void _handleConnection(SseConnection connection) {
     _connections.add(connection);
-    WebdevClient webdevClient;
+    // TODO(grouma) - This client should be closed on close.
+    WebdevVmClient webdevClient;
 
     connection.stream.listen((data) async {
       var message = webdev.serializers.deserialize(jsonDecode(data));
