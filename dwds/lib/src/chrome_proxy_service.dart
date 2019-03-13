@@ -14,9 +14,6 @@ import 'helpers.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
-  /// The isolate for the current tab.
-  final Isolate _isolate;
-
   /// Cache of all existing StreamControllers.
   ///
   /// These are all created through [onEvent].
@@ -26,24 +23,112 @@ class ChromeProxyService implements VmServiceInterface {
   /// are dynamic and roughly map to chrome tabs.
   final VM _vm;
 
+  /// The actual chrome tab running this app.
+  final ChromeTab _tab;
+
   /// The connection with the chrome debug service for the tab.
   final WipConnection tabConnection;
 
   /// A handler for application assets, e.g. Dart sources.
   final Future<String> Function(String) _assetHandler;
 
+  /// The isolate for the current tab.
+  ///
+  /// This may be null during a hot restart or page refresh.
+  Isolate _isolate;
+
+  /// Fields that are specific to the current [_isolate].
+  ///
+  /// These need to get cleared whenever [destroyIsolate] is called.
   final _classes = <String, Class>{};
   final _scriptRefs = <String, ScriptRef>{};
   final _libraries = <String, Library>{};
   final _libraryRefs = <String, LibraryRef>{};
+  StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 
   ChromeProxyService._(
-      this._vm, this._isolate, this.tabConnection, this._assetHandler) {
-    for (var libraryRef in _isolate.libraries) {
+      this._vm, this._tab, this.tabConnection, this._assetHandler);
+
+  static Future<ChromeProxyService> create(ChromeConnection chromeConnection,
+      Future<String> Function(String) assetHandler, String tabUrl) async {
+    var tab = await chromeConnection.getTab((tab) => tab.url == tabUrl);
+    var tabConnection = await tab.connect();
+    await tabConnection.debugger.enable();
+    await tabConnection.runtime.enable();
+
+    // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
+    final vm = VM()
+      ..isolates = []
+      ..name = 'ChromeDebugProxy'
+      ..startTime = DateTime.now().millisecondsSinceEpoch
+      ..version = Platform.version;
+    var service = ChromeProxyService._(vm, tab, tabConnection, assetHandler);
+    await service.createIsolate();
+    return service;
+  }
+
+  /// Creates a new [_isolate].
+  ///
+  /// Only one isolate at a time is supported, but they should be cleaned up
+  /// with [destroyIsolate] and recreated with this method there is a hot
+  /// restart or full page refresh.
+  Future<void> createIsolate() async {
+    if (_isolate != null) {
+      throw UnsupportedError(
+          'Cannot create multiple isolates for the same app');
+    }
+
+    var id = createId();
+    var isolate = Isolate()
+      ..id = id
+      ..number = id
+      ..name = '${_tab.url}:main()'
+      ..runnable = true
+      ..breakpoints = []
+      ..libraries = []
+      ..extensionRPCs = [];
+    var isolateRef = toIsolateRef(isolate);
+    isolate.pauseEvent = Event()
+      ..kind = EventKind.kResume
+      ..isolate = isolateRef;
+
+    // Query for the available libraries and add them to the isolate
+    var librariesResult = await tabConnection.runtime
+        .sendCommand('Runtime.evaluate', params: {
+      'expression': "require('dart_sdk').dart.getLibraries();",
+      'returnByValue': true
+    });
+    _handleErrorIfPresent(librariesResult);
+    var libraryNames =
+        (librariesResult.result['result']['value'] as List).cast<String>();
+    for (var library in libraryNames) {
+      isolate.libraries.add(LibraryRef()
+        ..id = library
+        ..name = library
+        ..uri = library);
+    }
+    // TODO: Something more robust here, right now we rely on the 2nd to last
+    // library being the root one (the last library is the bootstrap lib).
+    isolate.rootLib = isolate.libraries[isolate.libraries.length - 2];
+
+    // Find all the previously registered extensions on the page and add them
+    // to `extensionRPCs`.
+    var extensionsResult =
+        await tabConnection.runtime.sendCommand('Runtime.evaluate', params: {
+      'expression': "require('dart_sdk').developer._extensions.keys.toList();",
+      'returnByValue': true
+    });
+    _handleErrorIfPresent(extensionsResult);
+    isolate.extensionRPCs.addAll(
+        (extensionsResult.result['result']['value'] as List).cast<String>());
+
+    for (var libraryRef in isolate.libraries) {
       _libraryRefs[libraryRef.id] = libraryRef;
     }
+
     // Listen for `registerExtension` and `postEvent` calls.
-    tabConnection.runtime.onConsoleAPICalled.listen((ConsoleAPIEvent event) {
+    _consoleSubscription = tabConnection.runtime.onConsoleAPICalled
+        .listen((ConsoleAPIEvent event) {
       if (event.type != 'debug') return;
       var firstArgValue = event.args[0].value as String;
       switch (firstArgValue) {
@@ -86,66 +171,22 @@ class ChromeProxyService implements VmServiceInterface {
           break;
       }
     });
+
+    _vm.isolates.add(isolateRef);
+    _isolate = isolate;
   }
 
-  static Future<ChromeProxyService> create(ChromeConnection chromeConnection,
-      Future<String> Function(String) assetHandler, String tabUrl) async {
-    var tab = await chromeConnection.getTab((tab) => tab.url == tabUrl);
-    var id = createId();
-    var isolate = Isolate()
-      ..id = id
-      ..number = id
-      ..name = '${tab.url}:main()'
-      ..runnable = true
-      ..breakpoints = []
-      ..libraries = []
-      ..extensionRPCs = [];
-    var isolateRef = toIsolateRef(isolate);
-    isolate.pauseEvent = Event()
-      ..kind = EventKind.kResume
-      ..isolate = isolateRef;
-    var tabConnection = await tab.connect();
-    await tabConnection.debugger.enable();
-    await tabConnection.runtime.enable();
-
-    // Query for the available libraries and add them to the isolate
-    var librariesResult = await tabConnection.runtime
-        .sendCommand('Runtime.evaluate', params: {
-      'expression': "require('dart_sdk').dart.getLibraries();",
-      'returnByValue': true
-    });
-    _handleErrorIfPresent(librariesResult);
-    var libraryNames =
-        (librariesResult.result['result']['value'] as List).cast<String>();
-    for (var library in libraryNames) {
-      isolate.libraries.add(LibraryRef()
-        ..id = library
-        ..name = library
-        ..uri = library);
-    }
-    // TODO: Something more robust here, right now we rely on the 2nd to last
-    // library being the root one (the last library is the bootstrap lib).
-    isolate.rootLib = isolate.libraries[isolate.libraries.length - 2];
-
-    // Find all the previously registered extensions on the page and add them
-    // to `extensionRPCs`.
-    var extensionsResult =
-        await tabConnection.runtime.sendCommand('Runtime.evaluate', params: {
-      'expression': "require('dart_sdk').developer._extensions.keys.toList();",
-      'returnByValue': true
-    });
-    _handleErrorIfPresent(extensionsResult);
-    isolate.extensionRPCs.addAll(
-        (extensionsResult.result['result']['value'] as List).cast<String>());
-
-    // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
-    final vm = VM()
-      ..isolates = [isolateRef]
-      ..name = 'ChromeDebugProxy'
-      ..startTime = DateTime.now().millisecondsSinceEpoch
-      ..version = Platform.version;
-
-    return ChromeProxyService._(vm, isolate, tabConnection, assetHandler);
+  /// Should be called when there is a hot restart or full page refresh.
+  ///
+  /// Clears out [_isolate] and all related cached information.
+  void destroyIsolate() {
+    _isolate = null;
+    _classes.clear();
+    _scriptRefs.clear();
+    _libraries.clear();
+    _libraryRefs.clear();
+    _consoleSubscription.cancel();
+    _consoleSubscription = null;
   }
 
   @override
