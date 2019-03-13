@@ -79,6 +79,7 @@ void main() {
 
     test('destroys and recreates the isolate during a hot restart', () async {
       var client = await vmServiceConnect('localhost', debugPort);
+      await client.streamListen('Isolate');
       await fixture.changeInput();
 
       var eventsDone = expectLater(
@@ -92,8 +93,8 @@ void main() {
 
       expect(await client.callServiceExtension('hotRestart'),
           const TypeMatcher<Success>());
-      await eventsDone;
 
+      await eventsDone;
       await fixture.webdev.kill();
     });
   }, tags: ['webdriver']);
