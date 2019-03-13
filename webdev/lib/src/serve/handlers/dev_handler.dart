@@ -127,9 +127,11 @@ class _WebdevClient {
         (request) => requestController.sink
             .add(jsonDecode(request) as Map<String, dynamic>));
     client.registerServiceCallback('hotRestart', (request) async {
+      debugService.chromeProxyService.destroyIsolate();
       await debugService.chromeProxyService.tabConnection.runtime.sendCommand(
           'Runtime.evaluate',
           params: {'expression': r'$dartHotRestart();', 'awaitPromise': true});
+      unawaited(debugService.chromeProxyService.createIsolate());
       return {'result': Success().toJson()};
     });
     await client.registerService('hotRestart', 'WebDev');

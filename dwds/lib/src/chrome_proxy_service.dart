@@ -174,12 +174,30 @@ class ChromeProxyService implements VmServiceInterface {
 
     _vm.isolates.add(isolateRef);
     _isolate = isolate;
+
+    _streamNotify(
+        'Isolate',
+        Event()
+          ..kind = EventKind.kIsolateStart
+          ..isolate = isolateRef);
+    _streamNotify(
+        'Isolate',
+        Event()
+          ..kind = EventKind.kIsolateRunnable
+          ..isolate = isolateRef);
   }
 
   /// Should be called when there is a hot restart or full page refresh.
   ///
   /// Clears out [_isolate] and all related cached information.
   void destroyIsolate() {
+    _streamNotify(
+        'Isolate',
+        Event()
+          ..kind = EventKind.kIsolateExit
+          ..isolate = toIsolateRef(_isolate));
+    _vm.isolates.removeWhere((ref) => ref.id == _isolate.id);
+
     _isolate = null;
     _classes.clear();
     _scriptRefs.clear();
