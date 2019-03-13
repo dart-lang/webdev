@@ -26,6 +26,8 @@ String get _executable {
   throw StateError('Unexpected platform type.');
 }
 
+var _currentCompleter = Completer<Chrome>();
+
 /// A class for managing an instance of Chrome.
 class Chrome {
   final int debugPort;
@@ -43,6 +45,7 @@ class Chrome {
         _dataDir = dataDir;
 
   Future<void> close() async {
+    if (_currentCompleter.isCompleted) _currentCompleter = Completer<Chrome>();
     chromeConnection.close();
     _process?.kill();
     await _process?.exitCode;
@@ -52,6 +55,8 @@ class Chrome {
   /// Connects to an instance of the Chreom.
   static Future<Chrome> fromExisting(int port) async =>
       _connect(Chrome._(port, ChromeConnection('localhost', port)));
+
+  static Future<Chrome> get connectedInstance => _currentCompleter.future;
 
   /// Starts Chrome with the remote debug port enabled.
   ///
@@ -94,6 +99,9 @@ class Chrome {
   }
 
   static Future<Chrome> _connect(Chrome chrome) async {
+    if (_currentCompleter.isCompleted) {
+      throw ChromeError('Only one instance of chrome can be started.');
+    }
     // The connection is lazy. Try a simple call to make sure the provided
     // connection is valid.
     try {
@@ -103,6 +111,7 @@ class Chrome {
       throw ChromeError(
           'Unable to connect to Chrome debug port: ${chrome.debugPort}\n $e');
     }
+    _currentCompleter.complete(chrome);
     return chrome;
   }
 }

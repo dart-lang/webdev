@@ -23,16 +23,16 @@ import '../serve/webdev_server.dart';
 /// the DevTools.
 class ServeController {
   final _doneCompleter = Completer();
-  final BuildDaemonClient client;
+  final BuildDaemonClient _client;
   final ServerManager serverManager;
-  final DevTools devTools;
-  final Chrome chrome;
+  final DevTools _devTools;
+  final Chrome _chrome;
 
   ServeController._(
-    this.client,
+    this._client,
     this.serverManager,
-    this.chrome,
-    this.devTools,
+    this._chrome,
+    this._devTools,
   );
 
   Future<void> get done => _doneCompleter.future;
@@ -81,11 +81,16 @@ class ServeController {
       ));
     }
 
-    var devToolsCompleter = Completer<DevTools>();
-
     logHandler(Level.INFO, 'Starting resource servers...');
-    var serverManager = await ServerManager.start(
-        serverOptions, client.buildResults, devToolsCompleter.future);
+    DevTools devTools;
+    if (configuration.debug) {
+      devTools = await DevTools.start(configuration.hostname);
+      logHandler(Level.INFO,
+          'Serving DevTools at http://${devTools.hostname}:${devTools.port}');
+    }
+
+    var serverManager =
+        await ServerManager.start(serverOptions, client.buildResults, devTools);
 
     var uris = serverManager.servers
         .map((s) => 'http://${s.host}:${s.port}/')
@@ -99,21 +104,11 @@ class ServeController {
     }
 
     Chrome chrome;
-    DevTools devTools;
     try {
       if (configuration.launchInChrome) {
         chrome = await Chrome.start(uris, port: configuration.chromeDebugPort);
       } else if (configuration.chromeDebugPort != 0) {
         chrome = await Chrome.fromExisting(configuration.chromeDebugPort);
-      }
-
-      if (configuration.debug) {
-        devTools = await DevTools.start(configuration.hostname, chrome);
-        devToolsCompleter.complete(devTools);
-        logHandler(Level.INFO,
-            'Serving DevTools at http://${devTools.hostname}:${devTools.port}');
-      } else {
-        devToolsCompleter.complete(null);
       }
     } on ChromeError {
       await serverManager.stop();
@@ -127,10 +122,10 @@ class ServeController {
   }
 
   Future<void> shutDown() async {
-    await chrome?.close();
-    await client?.close();
+    await _chrome?.close();
+    await _client?.close();
     await serverManager?.stop();
-    await devTools?.close();
+    await _devTools?.close();
     if (!_doneCompleter.isCompleted) _doneCompleter.complete();
   }
 }

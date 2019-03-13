@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:logging/logging.dart';
 
 import '../serve/controller.dart';
 import '../serve/utils.dart';
@@ -89,32 +88,22 @@ class ServeCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    try {
-      Configuration configuration;
-      try {
-        configuration = Configuration.fromArgs(argResults);
-      } on InvalidConfiguration catch (e) {
-        colorLog(Level.SEVERE, e.toString());
-        return -1;
-      }
-      var pubspecLock = await readPubspecLock(configuration);
-      // Forward remaining arguments as Build Options to the Daemon.
-      // This isn't documented. Should it be advertised?
-      var buildOptions = buildRunnerArgs(pubspecLock, configuration)
-        ..addAll(argResults.rest
-            .where((arg) => !arg.contains(':') || arg.startsWith('--'))
-            .toList());
-      var directoryArgs = argResults.rest
-          .where((arg) => arg.contains(':') || !arg.startsWith('--'))
-          .toList();
-      var targetPorts = _parseDirectoryArgs(directoryArgs);
-      var controller = await ServeController.start(
-          configuration, buildOptions, targetPorts, colorLog);
-      await controller.done;
-      return 0;
-    } catch (e) {
-      colorLog(Level.SEVERE, e.toString());
-      return -1;
-    }
+    Configuration configuration;
+    configuration = Configuration.fromArgs(argResults);
+    var pubspecLock = await readPubspecLock(configuration);
+    // Forward remaining arguments as Build Options to the Daemon.
+    // This isn't documented. Should it be advertised?
+    var buildOptions = buildRunnerArgs(pubspecLock, configuration)
+      ..addAll(argResults.rest
+          .where((arg) => !arg.contains(':') || arg.startsWith('--'))
+          .toList());
+    var directoryArgs = argResults.rest
+        .where((arg) => arg.contains(':') || !arg.startsWith('--'))
+        .toList();
+    var targetPorts = _parseDirectoryArgs(directoryArgs);
+    var controller = await ServeController.start(
+        configuration, buildOptions, targetPorts, colorLog);
+    await controller.done;
+    return 0;
   }
 }

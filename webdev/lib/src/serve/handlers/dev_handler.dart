@@ -13,8 +13,9 @@ import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
+import 'package:webdev/src/serve/chrome.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../serve/chrome.dart';
 import '../../serve/utils.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart' as webdev;
@@ -28,13 +29,14 @@ class DevHandler {
   StreamSubscription _sub;
   final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'));
   final _connections = Set<SseConnection>();
-  final Future<DevTools> _devtoolsFuture;
+  final DevTools _devTools;
   final AssetHandler _assetHandler;
+  final String _hostname;
 
   StreamQueue<SseConnection> get connections => _sseHandler.connections;
 
-  DevHandler(Stream<BuildResult> buildResults, this._devtoolsFuture,
-      this._assetHandler) {
+  DevHandler(Stream<BuildResult> buildResults, this._devTools,
+      this._assetHandler, this._hostname) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
   }
@@ -57,45 +59,45 @@ class DevHandler {
 
   // TODO(https://github.com/dart-lang/webdev/issues/202) - Refactor so this is
   // a getter and is created immediately.
-  Future<WebdevVmClient> createClient(
-      Chrome chrome, String hostname, String appUrl) async {
-    var debugService = await DebugService.start(
-      hostname,
-      chrome.chromeConnection,
+  Future<DebugService> startDebugService(
+      ChromeConnection chromeConnection, String appUrl) async {
+    return await DebugService.start(
+      _hostname,
+      chromeConnection,
       _assetHandler.getRelativeAsset,
       appUrl,
     );
-
-    return await WebdevVmClient.create(debugService);
   }
 
   void _handleConnection(SseConnection connection) {
     _connections.add(connection);
     // TODO(grouma) - This client should be closed on close.
     WebdevVmClient webdevClient;
-
+    DebugService debugService;
     connection.stream.listen((data) async {
       var message = webdev.serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
-        var devTools = await _devtoolsFuture;
-        if (devTools == null) return;
-        var chrome = devTools.chrome;
-        if (webdevClient == null) {
-          webdevClient =
-              await createClient(chrome, devTools.hostname, message.url);
+        if (_devTools == null) return;
+        var chrome = await Chrome.connectedInstance;
+        if (debugService == null) {
+          debugService =
+              await startDebugService(chrome.chromeConnection, message.url);
           colorLog(
               Level.INFO,
               'Debug service listening on '
               'ws://${webdevClient.hostname}:${webdevClient.port}\n');
         }
+
+        webdevClient = await WebdevVmClient.create(debugService);
         await chrome.chromeConnection
             // Chrome protocol for spawning a new tab.
-            .getUrl('json/new/?http://${devTools.hostname}:${devTools.port}'
+            .getUrl('json/new/?http://${_devTools.hostname}:${_devTools.port}'
                 '/?port=${webdevClient.port}');
       }
     });
     unawaited(connection.sink.done.then((_) async {
-      if (webdevClient != null) {
+      if (debugService != null) {
+        await debugService.close();
         await webdevClient.close();
         colorLog(
             Level.INFO,

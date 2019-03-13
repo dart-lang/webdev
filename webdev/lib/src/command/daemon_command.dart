@@ -61,7 +61,6 @@ class DaemonCommand extends Command<int> {
     controllerCompleter.complete(controller);
     await daemon.onExit;
     await controller.shutDown();
-    await controller.done;
     return 0;
   }
 }

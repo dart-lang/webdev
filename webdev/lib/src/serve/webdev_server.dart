@@ -47,7 +47,7 @@ class WebDevServer {
   static Future<WebDevServer> start(
     ServerOptions options,
     Stream<BuildResults> buildResults,
-    Future<DevTools> devtoolsFuture,
+    DevTools devTools,
   ) async {
     var assetHandler = AssetHandler(options.daemonPort, options.target,
         options.configuration.hostname, options.port);
@@ -65,8 +65,9 @@ class WebDevServer {
       // Only provide relevant build results
       buildResults.asyncMap<BuildResult>((results) => results.results
           .firstWhere((result) => result.target == options.target)),
-      devtoolsFuture,
+      devTools,
       assetHandler,
+      options.configuration.hostname,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 

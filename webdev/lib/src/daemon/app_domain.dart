@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:uuid/uuid.dart';
+import 'package:webdev/src/serve/chrome.dart';
 
 import '../serve/controller.dart';
 import '../serve/debugger/webdev_vm_client.dart';
@@ -44,15 +45,16 @@ class AppDomain extends Domain {
       // TODO(https://github.com/dart-lang/webdev/issues/202) - Remove.
       await Future.delayed(Duration(seconds: 1));
 
-      var chrome = controller.chrome;
+      var chrome = await Chrome.connectedInstance;
       // TODO(https://github.com/dart-lang/webdev/issues/202) - Run an eval to
       // get the appId.
       var appUrl = (await chrome.chromeConnection.getTabs())
           .firstWhere((tab) => tab.url.startsWith('http://localhost'))
           .url;
 
-      _webdevVmClient =
-          await server.devHandler.createClient(chrome, 'localhost', appUrl);
+      var debugService = await server.devHandler
+          .startDebugService(chrome.chromeConnection, appUrl);
+      _webdevVmClient = await WebdevVmClient.create(debugService);
 
       sendEvent('app.debugPort', {
         'appId': _appId,

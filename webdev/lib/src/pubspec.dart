@@ -17,6 +17,9 @@ class PackageException implements Exception {
   final String unsupportedArgument;
 
   PackageException(this.details, {this.unsupportedArgument});
+
+  @override
+  String toString() => details.join('\n');
 }
 
 class PackageExceptionDetails {
