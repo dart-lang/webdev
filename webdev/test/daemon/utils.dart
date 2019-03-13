@@ -14,7 +14,7 @@ import '../test_utils.dart';
 Future<void> exitWebdev(TestProcess webdev) async {
   webdev.stdin.add(utf8.encode('[{"method":"daemon.shutdown","id":0}]\n'));
   // Try to shutdown webdev cleanly before killing it.
-  await webdev.exitCode.timeout(Duration(seconds: 5), onTimeout: () {
+  await webdev.exitCode.timeout(const Duration(seconds: 5), onTimeout: () {
     webdev.kill();
   });
 }
