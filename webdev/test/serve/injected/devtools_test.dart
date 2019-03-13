@@ -76,5 +76,26 @@ void main() {
       expect(source, contains('Gary is awesome!'));
       await fixture.webdev.kill();
     });
+
+    test('destroys and recreates the isolate during a hot restart', () async {
+      var client = await vmServiceConnect('localhost', debugPort);
+      await client.streamListen('Isolate');
+      await fixture.changeInput();
+
+      var eventsDone = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(emitsInOrder([
+            predicate((Event event) => event.kind == EventKind.kIsolateExit),
+            predicate((Event event) => event.kind == EventKind.kIsolateStart),
+            predicate(
+                (Event event) => event.kind == EventKind.kIsolateRunnable),
+          ])));
+
+      expect(await client.callServiceExtension('hotRestart'),
+          const TypeMatcher<Success>());
+
+      await eventsDone;
+      await fixture.webdev.kill();
+    });
   }, tags: ['webdriver']);
 }

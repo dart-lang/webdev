@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dwds/service.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
 // A client of the vm service that registers some custom extensions like
@@ -43,9 +44,11 @@ class WebdevVmClient {
         (request) => requestController.sink
             .add(jsonDecode(request) as Map<String, dynamic>));
     client.registerServiceCallback('hotRestart', (request) async {
+      debugService.chromeProxyService.destroyIsolate();
       await debugService.chromeProxyService.tabConnection.runtime.sendCommand(
           'Runtime.evaluate',
           params: {'expression': r'$dartHotRestart();', 'awaitPromise': true});
+      unawaited(debugService.chromeProxyService.createIsolate());
       return {'result': Success().toJson()};
     });
     await client.registerService('hotRestart', 'WebDev');

@@ -483,17 +483,47 @@ void main() {
       expect(service.streamListen('GC'), completion(isSuccess));
     });
 
-    test('Isolate', () async {
-      expect(service.streamListen('Isolate'), completion(isSuccess));
-      var stream = service.onEvent('Isolate');
-      var extensionMethod = 'ext.foo.bar';
-      expect(
-          stream,
-          emitsThrough(predicate((Event event) =>
-              event.kind == EventKind.kServiceExtensionAdded &&
-              event.extensionRPC == extensionMethod)));
-      await tabConnection.runtime
-          .evaluate("registerExtension('$extensionMethod');");
+    group('Isolate', () {
+      Stream<Event> isolateEventStream;
+
+      setUp(() async {
+        expect(await service.streamListen('Isolate'), isSuccess);
+        isolateEventStream = service.onEvent('Isolate');
+      });
+
+      test('ServiceExtensionAdded', () async {
+        var extensionMethod = 'ext.foo.bar';
+        expect(
+            isolateEventStream,
+            emitsThrough(predicate((Event event) =>
+                event.kind == EventKind.kServiceExtensionAdded &&
+                event.extensionRPC == extensionMethod)));
+        await tabConnection.runtime
+            .evaluate("registerExtension('$extensionMethod');");
+      });
+
+      test('lifecycle events', () async {
+        var vm = await service.getVM();
+        var initialIsolateId = vm.isolates.first.id;
+        var eventsDone = expectLater(
+            isolateEventStream,
+            emitsThrough(emitsInOrder([
+              predicate((Event event) =>
+                  event.kind == EventKind.kIsolateExit &&
+                  event.isolate.id == initialIsolateId),
+              predicate((Event event) =>
+                  event.kind == EventKind.kIsolateStart &&
+                  event.isolate.id != initialIsolateId),
+              predicate((Event event) =>
+                  event.kind == EventKind.kIsolateRunnable &&
+                  event.isolate.id != initialIsolateId),
+            ])));
+        service.destroyIsolate();
+        await service.createIsolate();
+        await eventsDone;
+        expect(
+            (await service.getVM()).isolates.first.id, isNot(initialIsolateId));
+      });
     });
 
     test('Timeline', () async {
