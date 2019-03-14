@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@Timeout(Duration(minutes: 5))
+
+import 'dart:io';
+
 import 'package:test/test.dart';
 
 import '../test_utils.dart';
@@ -31,6 +35,7 @@ void main() {
             emitsThrough(startsWith('[{"event":"app.debugPort"')));
         await exitWebdev(webdev);
       });
-    });
+      // Chrome doesn't work on AppVeyor yet.
+    }, skip: Platform.isWindows);
   });
 }
