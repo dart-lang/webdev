@@ -10,7 +10,6 @@ import 'package:uuid/uuid.dart';
 
 import '../serve/chrome.dart';
 import '../serve/debugger/webdev_vm_client.dart';
-import '../serve/handlers/dev_handler.dart';
 import '../serve/server_manager.dart';
 import 'daemon.dart';
 import 'domain.dart';
@@ -20,20 +19,23 @@ import 'utilites.dart';
 class AppDomain extends Domain {
   final String _appId;
 
-  DevHandler _devHandler;
   WebdevVmClient _webdevVmClient;
   DebugService _debugService;
   bool _isShutdown = false;
 
-  void _initialize() async {
+  void _initialize(ServerManager serverManager) async {
     sendEvent('app.start', {
       'appId': _appId,
       'directory': Directory.current.path,
       'deviceId': 'chrome',
       'launchMode': 'run'
     });
+    // TODO(https://github.com/dart-lang/webdev/issues/202) - Embed the appID
+    // in the WebServer.
+    var server = serverManager.servers.firstWhere((s) => s.target == 'web');
+    var devHandler = server.devHandler;
 
-    await _devHandler.connections.next;
+    await devHandler.connections.next;
     // TODO(https://github.com/dart-lang/webdev/issues/202) - Remove.
     await Future.delayed(Duration(seconds: 2));
 
@@ -48,7 +50,7 @@ class AppDomain extends Domain {
         {'level': 'info', 'message': 'Connecting to $appUrl'});
 
     _debugService =
-        await _devHandler.startDebugService(chrome.chromeConnection, appUrl);
+        await devHandler.startDebugService(chrome.chromeConnection, appUrl);
     _webdevVmClient = await WebdevVmClient.create(_debugService);
 
     sendEvent('app.debugPort', {
@@ -71,12 +73,7 @@ class AppDomain extends Domain {
     registerHandler('callServiceExtension', _callServiceExtension);
     registerHandler('stop', _stop);
 
-    // TODO(https://github.com/dart-lang/webdev/issues/202) - Embed the appID
-    // in the WebServer.
-    var server = serverManager.servers.firstWhere((s) => s.target == 'web');
-    _devHandler = server.devHandler;
-
-    _initialize();
+    _initialize(serverManager);
   }
 
   Future<String> _callServiceExtension(Map<String, dynamic> args) {
@@ -98,7 +95,6 @@ class AppDomain extends Domain {
   @override
   void dispose() {
     _isShutdown = true;
-    _devHandler?.connections?.cancel();
     _debugService?.close();
     _webdevVmClient?.close();
   }
