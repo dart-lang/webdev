@@ -43,13 +43,14 @@ class AppDomain extends Domain {
       var devHandler = server.devHandler;
       await devHandler.connections.next;
       // TODO(https://github.com/dart-lang/webdev/issues/202) - Remove.
-      await Future.delayed(Duration(seconds: 10));
+      await Future.delayed(Duration(seconds: 2));
 
       var chrome = await Chrome.connectedInstance;
       // TODO(https://github.com/dart-lang/webdev/issues/202) - Run an eval to
       // get the appId.
       var appUrl = (await chrome.chromeConnection.getTabs())
-          .firstWhere((tab) => tab.url.startsWith('http://localhost'))
+          .firstWhere(
+              (tab) => tab.url.startsWith('http://localhost:${server.port}'))
           .url;
 
       _debugService = await server.devHandler
