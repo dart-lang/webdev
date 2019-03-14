@@ -48,7 +48,6 @@ class DevHandler {
     for (var connection in _connections) {
       await connection.sink.close();
     }
-    await _sseHandler.connections.cancel(immediate: true);
   }
 
   void _emitBuildResults(BuildResult result) {

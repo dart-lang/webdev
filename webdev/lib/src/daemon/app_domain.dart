@@ -5,7 +5,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:dwds/service.dart';
+import 'package:sse/server/sse_handler.dart';
 import 'package:uuid/uuid.dart';
 
 import '../serve/chrome.dart';
@@ -21,6 +23,7 @@ class AppDomain extends Domain {
 
   WebdevVmClient _webdevVmClient;
   DebugService _debugService;
+  StreamQueue<SseConnection> _connections;
   bool _isShutdown = false;
 
   void _initialize(ServerManager serverManager) async {
@@ -34,10 +37,16 @@ class AppDomain extends Domain {
     // in the WebServer.
     var server = serverManager.servers.firstWhere((s) => s.target == 'web');
     var devHandler = server.devHandler;
-
-    await devHandler.connections.next;
-    // TODO(https://github.com/dart-lang/webdev/issues/202) - Remove.
-    await Future.delayed(Duration(seconds: 2));
+    _connections = devHandler.connections;
+    try {
+      await _connections.next;
+      // TODO(https://github.com/dart-lang/webdev/issues/202) - Remove.
+      await Future.delayed(Duration(seconds: 2));
+    } catch (e) {
+      sendEvent('daemon.logMessage',
+          {'level': 'severe', 'message': 'Unable to connec to the app: $e'});
+      return;
+    }
 
     var chrome = await Chrome.connectedInstance;
     // TODO(https://github.com/dart-lang/webdev/issues/202) - Run an eval to
@@ -95,6 +104,7 @@ class AppDomain extends Domain {
   @override
   void dispose() {
     _isShutdown = true;
+    _connections?.cancel(immediate: true);
     _debugService?.close();
     _webdevVmClient?.close();
   }
