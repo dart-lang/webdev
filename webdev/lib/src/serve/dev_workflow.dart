@@ -107,7 +107,7 @@ Future<DevTools> _startDevTools(
   return null;
 }
 
-/// Controls the serve behavior of WebDev.
+/// Controls the web development workflow.
 ///
 /// Connects to the Build Daemon, creates servers, launches Chrome and wires up
 /// the DevTools.

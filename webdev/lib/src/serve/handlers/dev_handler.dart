@@ -13,9 +13,9 @@ import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
-import 'package:webdev/src/serve/chrome.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../../serve/chrome.dart';
 import '../../serve/utils.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart' as webdev;
