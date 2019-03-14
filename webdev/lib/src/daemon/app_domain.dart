@@ -7,10 +7,11 @@ import 'dart:io';
 
 import 'package:dwds/service.dart';
 import 'package:uuid/uuid.dart';
-import 'package:webdev/src/serve/chrome.dart';
-import 'package:webdev/src/serve/server_manager.dart';
 
+import '../serve/chrome.dart';
 import '../serve/debugger/webdev_vm_client.dart';
+import '../serve/handlers/dev_handler.dart';
+import '../serve/server_manager.dart';
 import 'daemon.dart';
 import 'domain.dart';
 import 'utilites.dart';
@@ -19,12 +20,12 @@ import 'utilites.dart';
 class AppDomain extends Domain {
   final String _appId;
 
+  DevHandler _devHandler;
   WebdevVmClient _webdevVmClient;
   DebugService _debugService;
   bool _isShutdown = false;
 
-  Future<void> _initialize(ServerManager serverManager) async {
-    if (_isShutdown) return;
+  void _initialize() async {
     sendEvent('app.start', {
       'appId': _appId,
       'directory': Directory.current.path,
@@ -32,11 +33,7 @@ class AppDomain extends Domain {
       'launchMode': 'run'
     });
 
-    // TODO(https://github.com/dart-lang/webdev/issues/202) - Embed the appID
-    // in the WebServer.
-    var server = serverManager.servers.firstWhere((s) => s.target == 'web');
-    var devHandler = server.devHandler;
-    await devHandler.connections.next;
+    await _devHandler.connections.next;
     // TODO(https://github.com/dart-lang/webdev/issues/202) - Remove.
     await Future.delayed(Duration(seconds: 2));
 
@@ -44,15 +41,14 @@ class AppDomain extends Domain {
     // TODO(https://github.com/dart-lang/webdev/issues/202) - Run an eval to
     // get the appId.
     var appUrl = (await chrome.chromeConnection.getTabs())
-        .firstWhere(
-            (tab) => tab.url.startsWith('http://localhost:${server.port}'))
+        .firstWhere((tab) => tab.url.startsWith('http://localhost'))
         .url;
 
     sendEvent('daemon.logMessage',
         {'level': 'info', 'message': 'Connecting to $appUrl'});
 
-    _debugService = await server.devHandler
-        .startDebugService(chrome.chromeConnection, appUrl);
+    _debugService =
+        await _devHandler.startDebugService(chrome.chromeConnection, appUrl);
     _webdevVmClient = await WebdevVmClient.create(_debugService);
 
     sendEvent('app.debugPort', {
@@ -75,7 +71,12 @@ class AppDomain extends Domain {
     registerHandler('callServiceExtension', _callServiceExtension);
     registerHandler('stop', _stop);
 
-    _initialize(serverManager);
+    // TODO(https://github.com/dart-lang/webdev/issues/202) - Embed the appID
+    // in the WebServer.
+    var server = serverManager.servers.firstWhere((s) => s.target == 'web');
+    _devHandler = server.devHandler;
+
+    _initialize();
   }
 
   Future<String> _callServiceExtension(Map<String, dynamic> args) {
@@ -97,6 +98,7 @@ class AppDomain extends Domain {
   @override
   void dispose() {
     _isShutdown = true;
+    _devHandler?.connections?.cancel();
     _debugService?.close();
     _webdevVmClient?.close();
   }
