@@ -43,7 +43,7 @@ class AppDomain extends Domain {
       var devHandler = server.devHandler;
       await devHandler.connections.next;
       // TODO(https://github.com/dart-lang/webdev/issues/202) - Remove.
-      await Future.delayed(Duration(seconds: 5));
+      await Future.delayed(Duration(seconds: 10));
 
       var chrome = await Chrome.connectedInstance;
       // TODO(https://github.com/dart-lang/webdev/issues/202) - Run an eval to
