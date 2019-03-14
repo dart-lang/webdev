@@ -85,14 +85,14 @@ class DevHandler {
           colorLog(
               Level.INFO,
               'Debug service listening on '
-              'ws://${webdevClient.hostname}:${webdevClient.port}\n');
+              'ws://${debugService.hostname}:${debugService.port}\n');
         }
 
         webdevClient = await WebdevVmClient.create(debugService);
         await chrome.chromeConnection
             // Chrome protocol for spawning a new tab.
             .getUrl('json/new/?http://${_devTools.hostname}:${_devTools.port}'
-                '/?port=${webdevClient.port}');
+                '/?port=${debugService.port}');
       }
     });
     unawaited(connection.sink.done.then((_) async {
@@ -102,8 +102,9 @@ class DevHandler {
         colorLog(
             Level.INFO,
             'Stopped debug service on '
-            'ws://${webdevClient.hostname}:${webdevClient.port}\n');
+            'ws://${debugService.hostname}:${debugService.port}\n');
         webdevClient = null;
+        debugService = null;
       }
       _connections.remove(connection);
     }));

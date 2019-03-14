@@ -45,15 +45,17 @@ class DebugService {
   final ChromeProxyService chromeProxyService;
   final String hostname;
   final ServiceExtensionRegistry serviceExtensionRegistry;
-
   final int port;
   final HttpServer _server;
+
   DebugService._(this.chromeProxyService, this.hostname, this.port,
       this.serviceExtensionRegistry, this._server);
 
   Future<void> close() async {
     await _server.close();
   }
+
+  String get wsUri => 'ws://$hostname:$port';
 
   static Future<DebugService> start(
       String hostname,

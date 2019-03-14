@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import '../serve/controller.dart';
+import '../serve/server_manager.dart';
 import 'app_domain.dart';
 import 'daemon_domain.dart';
 import 'domain.dart';
@@ -19,10 +19,10 @@ class Daemon {
   Daemon(
     Stream<Map<String, dynamic>> commandStream,
     this._sendCommand,
-    Future<ServeController> futureServeController,
+    Future<ServerManager> futureServerManagers,
   ) {
     _registerDomain(DaemonDomain(this));
-    _registerDomain(AppDomain(this, futureServeController));
+    _registerDomain(AppDomain(this, futureServerManagers));
 
     // TODO(grouma) - complete these other domains.
     //_registerDomain(deviceDomain = DeviceDomain(this));

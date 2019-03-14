@@ -9,7 +9,8 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 import '../daemon/daemon.dart';
-import '../serve/controller.dart';
+import '../serve/dev_workflow.dart';
+import '../serve/server_manager.dart';
 import '../serve/utils.dart';
 import 'configuration.dart';
 import 'shared.dart';
@@ -46,21 +47,21 @@ class DaemonCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    var controllerCompleter = Completer<ServeController>();
+    var serveManagerCompleter = Completer<ServerManager>();
     var daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse,
-        controllerCompleter.future);
+        serveManagerCompleter.future);
     var port = await findUnusedPort();
     var configuration = Configuration(launchInChrome: true);
     var pubspecLock = await readPubspecLock(configuration);
     var buildOptions = buildRunnerArgs(pubspecLock, configuration);
-    var controller = await ServeController.start(
+    var workflow = await DevWorkflow.start(
         configuration, buildOptions, {'web': port}, (level, message) {
       daemon.sendEvent(
           'daemon', 'logMessage', {'level': '$level', 'message': message});
     });
-    controllerCompleter.complete(controller);
+    serveManagerCompleter.complete(workflow.serverManager);
     await daemon.onExit;
-    await controller.shutDown();
+    await workflow.shutDown();
     return 0;
   }
 }

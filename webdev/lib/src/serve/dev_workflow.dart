@@ -21,23 +21,24 @@ import '../serve/webdev_server.dart';
 ///
 /// Connects to the Build Daemon, creates servers, launches Chrome and wires up
 /// the DevTools.
-class ServeController {
+class DevWorkflow {
   final _doneCompleter = Completer();
   final BuildDaemonClient _client;
-  final ServerManager serverManager;
   final DevTools _devTools;
   final Chrome _chrome;
 
-  ServeController._(
+  final ServerManager serverManager;
+
+  DevWorkflow._(
     this._client,
-    this.serverManager,
     this._chrome,
     this._devTools,
+    this.serverManager,
   );
 
   Future<void> get done => _doneCompleter.future;
 
-  static Future<ServeController> start(
+  static Future<DevWorkflow> start(
     Configuration configuration,
     List<String> buildOptions,
     Map<String, int> targetPorts,
@@ -118,14 +119,14 @@ class ServeController {
 
     logHandler(Level.INFO, 'Starting initial build...');
     client.startBuild();
-    return ServeController._(client, serverManager, chrome, devTools);
+    return DevWorkflow._(client, chrome, devTools, serverManager);
   }
 
   Future<void> shutDown() async {
     await _chrome?.close();
     await _client?.close();
-    await serverManager?.stop();
     await _devTools?.close();
+    await serverManager?.stop();
     if (!_doneCompleter.isCompleted) _doneCompleter.complete();
   }
 }

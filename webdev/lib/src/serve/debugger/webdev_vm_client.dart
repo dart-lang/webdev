@@ -12,22 +12,14 @@ import 'package:vm_service_lib/vm_service_lib.dart';
 // A client of the vm service that registers some custom extensions like
 // hotRestart.
 class WebdevVmClient {
-  final DebugService _debugService;
   final VmService _client;
   final StreamController<Map<String, Object>> _requestController;
   final StreamController<Map<String, Object>> _responseController;
 
-  WebdevVmClient(this._debugService, this._client, this._requestController,
-      this._responseController);
-
-  String get hostname => _debugService.hostname;
-
-  int get port => _debugService.port;
-
-  String get wsUri => 'ws://$hostname:$port';
+  WebdevVmClient(
+      this._client, this._requestController, this._responseController);
 
   Future<void> close() async {
-    await _debugService.close();
     await _requestController.close();
     await _responseController.close();
     _client.dispose();
@@ -61,7 +53,6 @@ class WebdevVmClient {
     });
     await client.registerService('reloadSources', 'WebDev');
 
-    return WebdevVmClient(
-        debugService, client, requestController, responseController);
+    return WebdevVmClient(client, requestController, responseController);
   }
 }

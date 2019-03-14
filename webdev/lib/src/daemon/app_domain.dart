@@ -5,10 +5,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dwds/service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webdev/src/serve/chrome.dart';
+import 'package:webdev/src/serve/server_manager.dart';
 
-import '../serve/controller.dart';
 import '../serve/debugger/webdev_vm_client.dart';
 import 'daemon.dart';
 import 'domain.dart';
@@ -19,16 +20,16 @@ class AppDomain extends Domain {
   final String _appId;
 
   WebdevVmClient _webdevVmClient;
-  Future<ServeController> _serveController;
+  DebugService _debugService;
 
-  AppDomain(Daemon daemon, this._serveController)
+  AppDomain(Daemon daemon, Future<ServerManager> futureServerManager)
       : _appId = Uuid().v1() as String,
         super(daemon, 'app') {
     registerHandler('restart', _restart);
     registerHandler('callServiceExtension', _callServiceExtension);
     registerHandler('stop', _stop);
 
-    _serveController.then((controller) async {
+    futureServerManager.then((serverManager) async {
       sendEvent('app.start', {
         'appId': _appId,
         'directory': Directory.current.path,
@@ -38,8 +39,7 @@ class AppDomain extends Domain {
 
       // TODO(https://github.com/dart-lang/webdev/issues/202) - Embed the appID
       // in the WebServer.
-      var server =
-          controller.serverManager.servers.firstWhere((s) => s.target == 'web');
+      var server = serverManager.servers.firstWhere((s) => s.target == 'web');
       var devHandler = server.devHandler;
       await devHandler.connections.next;
       // TODO(https://github.com/dart-lang/webdev/issues/202) - Remove.
@@ -52,14 +52,14 @@ class AppDomain extends Domain {
           .firstWhere((tab) => tab.url.startsWith('http://localhost'))
           .url;
 
-      var debugService = await server.devHandler
+      _debugService = await server.devHandler
           .startDebugService(chrome.chromeConnection, appUrl);
-      _webdevVmClient = await WebdevVmClient.create(debugService);
+      _webdevVmClient = await WebdevVmClient.create(_debugService);
 
       sendEvent('app.debugPort', {
         'appId': _appId,
-        'port': _webdevVmClient.port,
-        'wsUri': _webdevVmClient.wsUri,
+        'port': _debugService.port,
+        'wsUri': _debugService.wsUri,
       });
 
       // TODO(grouma) - Add an event for when the application is started.
@@ -77,13 +77,14 @@ class AppDomain extends Domain {
   Future<bool> _stop(Map<String, dynamic> args) async {
     var appId = getStringArg(args, 'appId', required: true);
     if (_appId != appId) throw ArgumentError("app '$appId' not found");
-    var serve = await _serveController;
-    await serve.shutDown();
+    var chrome = await Chrome.connectedInstance;
+    await chrome.close();
     return true;
   }
 
   @override
   void dispose() {
+    _debugService?.close();
     _webdevVmClient?.close();
   }
 }
