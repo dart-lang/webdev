@@ -68,6 +68,10 @@ class AppDomain extends Domain {
         'wsUri': _debugService.wsUri,
       });
 
+      // Shutdown could have been triggered while awaiting above.
+      // ignore: invariant_booleans
+      if (_isShutdown) dispose();
+
       // TODO(grouma) - Add an event for when the application is started.
     });
   }
