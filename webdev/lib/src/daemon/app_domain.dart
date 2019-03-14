@@ -53,6 +53,9 @@ class AppDomain extends Domain {
               (tab) => tab.url.startsWith('http://localhost:${server.port}'))
           .url;
 
+      sendEvent('daemon.logMessage',
+          {'level': 'info', 'message': 'Connecting to $appUrl'});
+
       _debugService = await server.devHandler
           .startDebugService(chrome.chromeConnection, appUrl);
       _webdevVmClient = await WebdevVmClient.create(_debugService);
