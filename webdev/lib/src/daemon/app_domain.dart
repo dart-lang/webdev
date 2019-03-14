@@ -21,6 +21,7 @@ class AppDomain extends Domain {
 
   WebdevVmClient _webdevVmClient;
   DebugService _debugService;
+  bool _isShutdown = false;
 
   AppDomain(Daemon daemon, Future<ServerManager> futureServerManager)
       : _appId = Uuid().v1() as String,
@@ -30,6 +31,7 @@ class AppDomain extends Domain {
     registerHandler('stop', _stop);
 
     futureServerManager.then((serverManager) async {
+      if (_isShutdown) return;
       sendEvent('app.start', {
         'appId': _appId,
         'directory': Directory.current.path,
@@ -88,6 +90,7 @@ class AppDomain extends Domain {
 
   @override
   void dispose() {
+    _isShutdown = true;
     _debugService?.close();
     _webdevVmClient?.close();
   }

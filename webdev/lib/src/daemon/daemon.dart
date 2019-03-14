@@ -19,10 +19,10 @@ class Daemon {
   Daemon(
     Stream<Map<String, dynamic>> commandStream,
     this._sendCommand,
-    Future<ServerManager> futureServerManagers,
+    Future<ServerManager> futureServerManager,
   ) {
     _registerDomain(DaemonDomain(this));
-    _registerDomain(AppDomain(this, futureServerManagers));
+    _registerDomain(AppDomain(this, futureServerManager));
 
     // TODO(grouma) - complete these other domains.
     //_registerDomain(deviceDomain = DeviceDomain(this));

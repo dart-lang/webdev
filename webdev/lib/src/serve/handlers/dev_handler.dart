@@ -61,7 +61,7 @@ class DevHandler {
   // a getter and is created immediately.
   Future<DebugService> startDebugService(
       ChromeConnection chromeConnection, String appUrl) async {
-    return await DebugService.start(
+    return DebugService.start(
       _hostname,
       chromeConnection,
       _assetHandler.getRelativeAsset,
