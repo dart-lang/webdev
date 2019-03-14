@@ -43,7 +43,7 @@ class AppDomain extends Domain {
       await Future.delayed(Duration(seconds: 2));
     } catch (e) {
       sendEvent('daemon.logMessage',
-          {'level': 'severe', 'message': 'Unable to connec to the app: $e'});
+          {'level': 'severe', 'message': 'Unable to connect to the app: $e'});
       return;
     }
 
