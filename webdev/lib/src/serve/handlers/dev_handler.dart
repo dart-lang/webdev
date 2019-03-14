@@ -48,6 +48,12 @@ class DevHandler {
     for (var connection in _connections) {
       await connection.sink.close();
     }
+    try {
+      await connections.cancel(immediate: true);
+    } catch (_) {
+      // TODO(https://github.com/dart-lang/sse/issues/5) - close the sseHandler
+      // instead.
+    }
   }
 
   void _emitBuildResults(BuildResult result) {

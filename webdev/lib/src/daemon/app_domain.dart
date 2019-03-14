@@ -5,9 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:async/async.dart';
 import 'package:dwds/service.dart';
-import 'package:sse/server/sse_handler.dart';
 import 'package:uuid/uuid.dart';
 
 import '../serve/chrome.dart';
@@ -23,23 +21,24 @@ class AppDomain extends Domain {
 
   WebdevVmClient _webdevVmClient;
   DebugService _debugService;
-  StreamQueue<SseConnection> _connections;
   bool _isShutdown = false;
 
   void _initialize(ServerManager serverManager) async {
+    if (_isShutdown) return;
+
     sendEvent('app.start', {
       'appId': _appId,
       'directory': Directory.current.path,
       'deviceId': 'chrome',
       'launchMode': 'run'
     });
+
     // TODO(https://github.com/dart-lang/webdev/issues/202) - Embed the appID
     // in the WebServer.
     var server = serverManager.servers.firstWhere((s) => s.target == 'web');
     var devHandler = server.devHandler;
-    _connections = devHandler.connections;
     try {
-      await _connections.next;
+      await devHandler.connections.next;
       // TODO(https://github.com/dart-lang/webdev/issues/202) - Remove.
       await Future.delayed(Duration(seconds: 2));
     } catch (e) {
@@ -104,7 +103,6 @@ class AppDomain extends Domain {
   @override
   void dispose() {
     _isShutdown = true;
-    _connections?.cancel(immediate: true);
     _debugService?.close();
     _webdevVmClient?.close();
   }
