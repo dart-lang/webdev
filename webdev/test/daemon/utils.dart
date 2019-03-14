@@ -13,7 +13,9 @@ import '../test_utils.dart';
 
 Future<void> exitWebdev(TestProcess webdev) async {
   webdev.stdin.add(utf8.encode('[{"method":"daemon.shutdown","id":0}]\n'));
+  print('before exit code');
   await webdev.exitCode;
+  print('after exit code');
 }
 
 Future<String> prepareWorkspace() async {
