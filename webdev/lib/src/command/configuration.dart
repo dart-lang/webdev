@@ -53,7 +53,7 @@ class Configuration {
   final bool _requireBuildWebCompilers;
   final bool _verbose;
 
-  Configuration._({
+  Configuration({
     int chromeDebugPort,
     bool debug,
     String hostname,
@@ -97,7 +97,7 @@ class Configuration {
 
   /// Returns a new configuration with values updated from the parsed args.
   static Configuration fromArgs(ArgResults argResults) {
-    var defaultConfiguration = Configuration._();
+    var defaultConfiguration = Configuration();
     if (argResults == null) return defaultConfiguration;
 
     var chromeDebugPort = argResults.options.contains(chromeDebugPortFlag)
@@ -143,7 +143,7 @@ class Configuration {
           '--$debugFlag.');
     }
 
-    return Configuration._(
+    return Configuration(
         chromeDebugPort: chromeDebugPort,
         debug: debug,
         hostname: hostname,
@@ -160,4 +160,9 @@ class Configuration {
 class InvalidConfiguration implements Exception {
   final String details;
   InvalidConfiguration(this.details);
+
+  @override
+  String toString() {
+    return 'Invalid configuration: $details';
+  }
 }

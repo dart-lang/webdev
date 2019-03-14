@@ -11,25 +11,21 @@ import 'webdev_server.dart';
 
 /// Manages a set of [WebDevServer]s.
 class ServerManager {
-  final Stream<BuildResults> _buildResults;
-  final Set<ServerOptions> _serverOptions;
-  final _servers = Set<WebDevServer>();
-  final Future<DevTools> _devtoolsFuture;
+  final Set<WebDevServer> servers;
 
-  ServerManager(this._serverOptions, this._buildResults, this._devtoolsFuture);
+  ServerManager._(this.servers);
 
-  List<String> get uris =>
-      _servers.map((s) => 'http://${s.host}:${s.port}/').toList();
-
-  Future<void> start() async {
-    for (var options in _serverOptions) {
-      _servers.add(
-          await WebDevServer.start(options, _buildResults, _devtoolsFuture));
+  static Future<ServerManager> start(Set<ServerOptions> serverOptions,
+      Stream<BuildResults> buildResults, DevTools devTools) async {
+    var servers = Set<WebDevServer>();
+    for (var options in serverOptions) {
+      servers.add(await WebDevServer.start(options, buildResults, devTools));
     }
+    return ServerManager._(servers);
   }
 
   Future<void> stop() async {
-    for (var server in _servers) {
+    for (var server in servers) {
       await server.stop();
     }
   }

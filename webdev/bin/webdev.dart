@@ -9,6 +9,7 @@ import 'dart:isolate';
 import 'package:args/command_runner.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
+import 'package:webdev/src/command/configuration.dart';
 import 'package:webdev/src/webdev_command_runner.dart';
 
 Future main(List<String> args) async {
@@ -43,6 +44,9 @@ Future main(List<String> args) async {
     print(red.wrap('$_boldApp failed with an unexpected exception.'));
     print(e.message);
     exitCode = ExitCode.software.code;
+  } on InvalidConfiguration catch (e) {
+    print(red.wrap('$_boldApp $e'));
+    exitCode = ExitCode.config.code;
   }
 }
 

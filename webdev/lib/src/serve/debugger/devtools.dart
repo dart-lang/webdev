@@ -6,13 +6,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_static/shelf_static.dart';
 
-import '../chrome.dart';
 import '../utils.dart';
 
 /// A server for Dart Devtools.
@@ -20,16 +18,14 @@ class DevTools {
   final String hostname;
   final int port;
   final HttpServer _server;
-  // The instance of Chrome running the application to debug.
-  final Chrome chrome;
 
-  DevTools._(this.chrome, this.hostname, this.port, this._server);
+  DevTools._(this.hostname, this.port, this._server);
 
   Future<void> close() async {
     await _server.close();
   }
 
-  static Future<DevTools> start(String hostname, Chrome chrome) async {
+  static Future<DevTools> start(String hostname) async {
     var resourceUri = await Isolate.resolvePackageUri(
         Uri(scheme: 'package', path: 'devtools/devtools.dart'));
     final packageDir = p.dirname(p.dirname(resourceUri.toFilePath()));
@@ -56,8 +52,6 @@ class DevTools {
 
     var server = await serve(handler, hostname, await findUnusedPort());
 
-    colorLog(Level.INFO,
-        'Serving DevTools at http://${server.address.host}:${server.port}');
-    return DevTools._(chrome, server.address.host, server.port, server);
+    return DevTools._(server.address.host, server.port, server);
   }
 }

@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import '../serve/server_manager.dart';
+import 'app_domain.dart';
 import 'daemon_domain.dart';
 import 'domain.dart';
 import 'utilites.dart';
@@ -14,11 +16,15 @@ import 'utilites.dart';
 /// Listens for commands, routes them to the corresponding domain and provides
 /// the result.
 class Daemon {
-  Daemon(Stream<Map<String, dynamic>> commandStream, this._sendCommand) {
+  Daemon(
+    Stream<Map<String, dynamic>> commandStream,
+    this._sendCommand,
+    Future<ServerManager> futureServerManager,
+  ) {
     _registerDomain(DaemonDomain(this));
+    _registerDomain(AppDomain(this, futureServerManager));
 
     // TODO(grouma) - complete these other domains.
-    //_registerDomain(appDomain = AppDomain(this));
     //_registerDomain(deviceDomain = DeviceDomain(this));
     //_registerDomain(emulatorDomain = EmulatorDomain(this));
 
@@ -78,6 +84,9 @@ class Daemon {
   }
 
   void send(Map<String, dynamic> map) => _sendCommand(map);
+
+  void sendEvent(String domain, String name, [dynamic args]) =>
+      _domainMap[domain].sendEvent('$domain.$name', args);
 
   void shutdown({dynamic error}) {
     _commandSubscription?.cancel();
