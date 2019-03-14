@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 2))
+@Tags(['requires-edge-sdk'])
 
 import 'package:test/test.dart';
 
@@ -33,7 +34,6 @@ void main() {
             emitsThrough(startsWith('[{"event":"app.debugPort"')));
         await exitWebdev(webdev);
       });
-      // Chrome doesn't work on AppVeyor yet.
     });
   }, tags: ['webdriver']);
 }
