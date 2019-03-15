@@ -81,8 +81,22 @@ class AppDomain extends Domain {
     return response.json;
   }
 
-  Future<String> _restart(Map<String, dynamic> args) async {
-    throw UnimplementedError();
+  Future<Map<String, dynamic>> _restart(Map<String, dynamic> args) async {
+    var appId = getStringArg(args, 'appId', required: true);
+    if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
+    // TODO(grouma) - Figure out what fullRestart means in this context.
+    // For now we will ignore.
+    // var fullRestart = getBoolArg(args, 'fullRestart') ?? false;
+    var pauseAfterRestart = getBoolArg(args, 'pause') ?? false;
+    if (pauseAfterRestart) {
+      throw ArgumentError.value(
+          pauseAfterRestart, 'pauseAfterRestart', 'Not supported.');
+    }
+    var response = await _vmService.callServiceExtension('hotRestart');
+    return {
+      'code': response.type == 'Success' ? 0 : 1,
+      'message': response.toString()
+    };
   }
 
   Future<bool> _stop(Map<String, dynamic> args) async {

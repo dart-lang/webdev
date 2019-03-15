@@ -30,21 +30,24 @@ void main() {
       });
     });
 
-    test('.version', () async {
-      var webdev =
-          await runWebDev(['daemon'], workingDirectory: exampleDirectory);
-      webdev.stdin.add(utf8.encode('[{"method":"daemon.version","id":0}]\n'));
-      await expectLater(
-          webdev.stdout, emitsThrough(equals('[{"id":0,"result":"0.4.2"}]')));
-      await exitWebdev(webdev);
-    });
+    group('Methods', () {
+      test('.version', () async {
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        webdev.stdin.add(utf8.encode('[{"method":"daemon.version","id":0}]\n'));
+        await expectLater(
+            webdev.stdout, emitsThrough(equals('[{"id":0,"result":"0.4.2"}]')));
+        await exitWebdev(webdev);
+      });
 
-    test('.shutdown', () async {
-      var webdev =
-          await runWebDev(['daemon'], workingDirectory: exampleDirectory);
-      webdev.stdin.add(utf8.encode('[{"method":"daemon.shutdown","id":0}]\n'));
-      await expectLater(webdev.stdout, emitsThrough(equals('[{"id":0}]')));
-      expect(await webdev.exitCode, equals(0));
+      test('.shutdown', () async {
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        webdev.stdin
+            .add(utf8.encode('[{"method":"daemon.shutdown","id":0}]\n'));
+        await expectLater(webdev.stdout, emitsThrough(equals('[{"id":0}]')));
+        expect(await webdev.exitCode, equals(0));
+      });
     });
   }, tags: ['webdriver']);
 }

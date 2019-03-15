@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 2))
-@Tags(['requires-edge-sdk'])
 
+import 'dart:convert';
+
+@Tags(['requires-edge-sdk'])
 import 'package:test/test.dart';
 
 import '../test_utils.dart';
@@ -40,6 +42,53 @@ void main() {
             await runWebDev(['daemon'], workingDirectory: exampleDirectory);
         await expectLater(webdev.stdout,
             emitsThrough(startsWith('[{"event":"app.debugPort"')));
+        await exitWebdev(webdev);
+      });
+    });
+
+    group('Methods', () {
+      test('.callServiceExtension', () async {
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var appId = '';
+        while (await webdev.stdout.hasNext) {
+          var line = await webdev.stdout.next;
+          if (line.startsWith('[{"event":"app.started"')) {
+            line = line.substring(1, line.length - 1);
+            var message = json.decode(line) as Map<String, dynamic>;
+            appId = message['params']['appId'] as String;
+            break;
+          }
+        }
+        assert(appId.isNotEmpty);
+        var extensionCall = '[{"method":"app.callServiceExtension","id":0,'
+            '"params" : { "appId" : "$appId", "methodName" : "ext.print"}}]';
+        webdev.stdin.add(utf8.encode('$extensionCall\n'));
+        // The example app sets up a service extension for printing.
+        await expectLater(
+            webdev.stdout, emitsThrough(startsWith('[{"event":"app.log"')));
+        await exitWebdev(webdev);
+      });
+
+      test('.restart', () async {
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var appId = '';
+        while (await webdev.stdout.hasNext) {
+          var line = await webdev.stdout.next;
+          if (line.startsWith('[{"event":"app.started"')) {
+            line = line.substring(1, line.length - 1);
+            var message = json.decode(line) as Map<String, dynamic>;
+            appId = message['params']['appId'] as String;
+            break;
+          }
+        }
+        assert(appId.isNotEmpty);
+        var extensionCall = '[{"method":"app.restart","id":0,'
+            '"params" : { "appId" : "$appId"}}]';
+        webdev.stdin.add(utf8.encode('$extensionCall\n'));
+        await expectLater(webdev.stdout,
+            emitsThrough(startsWith('[{"id":0,"result":{"code":0')));
         await exitWebdev(webdev);
       });
     });
