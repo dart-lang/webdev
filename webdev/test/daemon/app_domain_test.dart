@@ -27,6 +27,14 @@ void main() {
         await exitWebdev(webdev);
       });
 
+      test('.started', () async {
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        await expectLater(
+            webdev.stdout, emitsThrough(startsWith('[{"event":"app.started"')));
+        await exitWebdev(webdev);
+      });
+
       test('.debugPort', () async {
         var webdev =
             await runWebDev(['daemon'], workingDirectory: exampleDirectory);

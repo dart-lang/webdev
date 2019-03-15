@@ -8,8 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
-import 'package:webdev/src/serve/middlewares/injected_middleware.dart';
 import 'package:webdev/src/serve/injected/configuration.dart';
+import 'package:webdev/src/serve/middlewares/injected_middleware.dart';
 
 void main() {
   HttpServer server;
@@ -22,7 +22,7 @@ void main() {
           .addMiddleware(createInjectedHandler(ReloadConfiguration.liveReload));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
-          return Response.ok('$entrypointExtensionMarker',
+          return Response.ok('$entrypointExtensionMarker$mainExtensionMarker',
               headers: {HttpHeaders.etagHeader: entryEtag});
         } else if (request.url.path.endsWith('foo.js')) {
           return Response.ok('some js',
@@ -47,10 +47,11 @@ void main() {
       expect(result.headers[HttpHeaders.etagHeader], nonEntryEtag);
     });
 
-    test('injects client for entrypoints', () async {
+    test('replaces main marker with injected client', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
       expect(result.body.contains('Injected by webdev'), isTrue);
+      expect(result.body.contains(mainExtensionMarker), isFalse);
     });
 
     test('updates etags for injected responses', () async {

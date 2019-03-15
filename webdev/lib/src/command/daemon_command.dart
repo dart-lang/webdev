@@ -8,9 +8,10 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
+import '../daemon/app_domain.dart';
 import '../daemon/daemon.dart';
+import '../daemon/daemon_domain.dart';
 import '../serve/dev_workflow.dart';
-import '../serve/server_manager.dart';
 import '../serve/utils.dart';
 import 'configuration.dart';
 import 'shared.dart';
@@ -47,19 +48,19 @@ class DaemonCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    var serveManagerCompleter = Completer<ServerManager>();
-    var daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse,
-        serveManagerCompleter.future);
-    var port = await findUnusedPort();
+    var daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
+    var daemonDomain = DaemonDomain(daemon);
+    daemon.registerDomain(daemonDomain);
     var configuration = Configuration(launchInChrome: true);
     var pubspecLock = await readPubspecLock(configuration);
     var buildOptions = buildRunnerArgs(pubspecLock, configuration);
+    var port = await findUnusedPort();
     var workflow = await DevWorkflow.start(
         configuration, buildOptions, {'web': port}, (level, message) {
-      daemon.sendEvent(
-          'daemon', 'logMessage', {'level': '$level', 'message': message});
+      daemonDomain.sendEvent(
+          'daemon.logMessage', {'level': '$level', 'message': message});
     });
-    serveManagerCompleter.complete(workflow.serverManager);
+    daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
     await daemon.onExit;
     await workflow.shutDown();
     return 0;

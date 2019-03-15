@@ -13,6 +13,7 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:sse/client/sse_client.dart';
 
+import '../data/connect_request.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart';
 import 'module.dart';
@@ -61,11 +62,19 @@ Future<void> main() async {
   window.onKeyDown.listen((e) {
     if (e.key.toLowerCase() == 'd' && e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      client.sink.add(jsonEncode(serializers
-          .serialize(DevToolsRequest((b) => b.url = '${window.location}'))));
+      client.sink.add(jsonEncode(
+          serializers.serialize(DevToolsRequest((b) => b.appId = dartAppId))));
     }
   });
+
+  // Wait for the connection to be estabilished before sending the AppId.
+  await client.onOpen.first;
+  client.sink.add(jsonEncode(
+      serializers.serialize(ConnectRequest((b) => b.appId = dartAppId))));
 }
+
+@JS(r'$dartAppId')
+external String get dartAppId;
 
 @JS(r'$dartHotRestart')
 external Future<void> Function() get hotRestart;

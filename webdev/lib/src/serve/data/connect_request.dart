@@ -5,18 +5,17 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
-part 'devtools_request.g.dart';
+part 'connect_request.g.dart';
 
 /// A request to open DevTools.
-abstract class DevToolsRequest
-    implements Built<DevToolsRequest, DevToolsRequestBuilder> {
-  static Serializer<DevToolsRequest> get serializer =>
-      _$devToolsRequestSerializer;
+abstract class ConnectRequest
+    implements Built<ConnectRequest, ConnectRequestBuilder> {
+  static Serializer<ConnectRequest> get serializer =>
+      _$connectRequestSerializer;
 
-  factory DevToolsRequest([updates(DevToolsRequestBuilder b)]) =
-      _$DevToolsRequest;
+  factory ConnectRequest([updates(ConnectRequestBuilder b)]) = _$ConnectRequest;
 
-  DevToolsRequest._();
+  ConnectRequest._();
 
   String get appId;
 }

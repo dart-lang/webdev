@@ -4,6 +4,7 @@
 
 import 'package:built_value/serializer.dart';
 
+import 'connect_request.dart';
 import 'devtools_request.dart';
 
 part 'serializers.g.dart';
@@ -11,5 +12,6 @@ part 'serializers.g.dart';
 /// Serializers for all the types used in webdev communication.
 @SerializersFor([
   DevToolsRequest,
+  ConnectRequest,
 ])
 final Serializers serializers = _$serializers;

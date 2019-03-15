@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:async/async.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart';
 import 'package:dwds/service.dart';
@@ -17,6 +16,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../serve/chrome.dart';
 import '../../serve/utils.dart';
+import '../data/connect_request.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart' as webdev;
 import '../debugger/devtools.dart';
@@ -32,8 +32,9 @@ class DevHandler {
   final DevTools _devTools;
   final AssetHandler _assetHandler;
   final String _hostname;
+  final _connectedApps = StreamController<String>.broadcast();
 
-  StreamQueue<SseConnection> get connections => _sseHandler.connections;
+  Stream<String> get connectedApps => _connectedApps.stream;
 
   DevHandler(Stream<BuildResult> buildResults, this._devTools,
       this._assetHandler, this._hostname) {
@@ -81,7 +82,7 @@ class DevHandler {
         var chrome = await Chrome.connectedInstance;
         if (debugService == null) {
           debugService =
-              await startDebugService(chrome.chromeConnection, message.url);
+              await startDebugService(chrome.chromeConnection, message.appId);
           colorLog(
               Level.INFO,
               'Debug service listening on '
@@ -93,6 +94,8 @@ class DevHandler {
             // Chrome protocol for spawning a new tab.
             .getUrl('json/new/?http://${_devTools.hostname}:${_devTools.port}'
                 '/?port=${debugService.port}');
+      } else if (message is ConnectRequest) {
+        _connectedApps.add(message.appId);
       }
     });
     unawaited(connection.sink.done.then((_) async {
