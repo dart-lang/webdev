@@ -84,9 +84,11 @@ class AppDomain extends Domain {
   Future<Map<String, dynamic>> _restart(Map<String, dynamic> args) async {
     var appId = getStringArg(args, 'appId', required: true);
     if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
-    // TODO(grouma) - Figure out what fullRestart means in this context.
-    // For now we will ignore.
-    // var fullRestart = getBoolArg(args, 'fullRestart') ?? false;
+    var fullRestart = getBoolArg(args, 'fullRestart') ?? false;
+    if (!fullRestart) {
+      throw ArgumentError.value(
+          fullRestart, 'fullRestart', 'We do not support hot reload yet.');
+    }
     var pauseAfterRestart = getBoolArg(args, 'pause') ?? false;
     if (pauseAfterRestart) {
       throw ArgumentError.value(
