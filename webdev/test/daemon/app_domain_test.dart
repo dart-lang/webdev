@@ -4,13 +4,30 @@
 
 @Timeout(Duration(minutes: 2))
 
+import 'dart:async';
 import 'dart:convert';
 
 @Tags(['requires-edge-sdk'])
 import 'package:test/test.dart';
+import 'package:test_process/test_process.dart';
 
 import '../test_utils.dart';
 import 'utils.dart';
+
+Future<String> _getAppId(TestProcess webdev) async {
+  var appId = '';
+  while (await webdev.stdout.hasNext) {
+    var line = await webdev.stdout.next;
+    if (line.startsWith('[{"event":"app.started"')) {
+      line = line.substring(1, line.length - 1);
+      var message = json.decode(line) as Map<String, dynamic>;
+      appId = message['params']['appId'] as String;
+      break;
+    }
+  }
+  assert(appId.isNotEmpty);
+  return appId;
+}
 
 void main() {
   String exampleDirectory;
@@ -50,17 +67,7 @@ void main() {
       test('.callServiceExtension', () async {
         var webdev =
             await runWebDev(['daemon'], workingDirectory: exampleDirectory);
-        var appId = '';
-        while (await webdev.stdout.hasNext) {
-          var line = await webdev.stdout.next;
-          if (line.startsWith('[{"event":"app.started"')) {
-            line = line.substring(1, line.length - 1);
-            var message = json.decode(line) as Map<String, dynamic>;
-            appId = message['params']['appId'] as String;
-            break;
-          }
-        }
-        assert(appId.isNotEmpty);
+        var appId = _getAppId(webdev);
         var extensionCall = '[{"method":"app.callServiceExtension","id":0,'
             '"params" : { "appId" : "$appId", "methodName" : "ext.print"}}]';
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
@@ -73,17 +80,7 @@ void main() {
       test('.restart', () async {
         var webdev =
             await runWebDev(['daemon'], workingDirectory: exampleDirectory);
-        var appId = '';
-        while (await webdev.stdout.hasNext) {
-          var line = await webdev.stdout.next;
-          if (line.startsWith('[{"event":"app.started"')) {
-            line = line.substring(1, line.length - 1);
-            var message = json.decode(line) as Map<String, dynamic>;
-            appId = message['params']['appId'] as String;
-            break;
-          }
-        }
-        assert(appId.isNotEmpty);
+        var appId = _getAppId(webdev);
         var extensionCall = '[{"method":"app.restart","id":0,'
             '"params" : { "appId" : "$appId"}}]';
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
