@@ -83,7 +83,7 @@ void main() {
             await runWebDev(['daemon'], workingDirectory: exampleDirectory);
         var appId = await _getAppId(webdev);
         var extensionCall = '[{"method":"app.restart","id":0,'
-            '"params" : { "appId" : "$appId"}}]';
+            '"params" : { "appId" : "$appId", "fullRestart" : true}}]';
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
         await expectLater(webdev.stdout,
             emitsThrough(startsWith('[{"id":0,"result":{"code":0')));
