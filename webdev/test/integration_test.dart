@@ -81,15 +81,15 @@ name: sample
         test(
             '`build_web_compilers` should be ignored with '
             '--no-build-web-compilers', () async {
-          await d.file('pubspec.yaml', '''	
-name: sample	
+          await d.file('pubspec.yaml', '''
+name: sample
 ''').create();
 
           await d
               .file('pubspec.lock', _pubspecLock(webCompilersVersion: null))
               .create();
 
-          await d.file('.packages', '''	
+          await d.file('.packages', '''
 ''').create();
 
           var process = await runWebDev(['serve', '--no-build-web-compilers'],
@@ -114,7 +114,7 @@ name: sample
               } else {
                 assert(entry.key == 'build_web_compilers');
                 webCompilersVersion = version;
-                supportedRange = '>=1.1.0 <2.0.0';
+                supportedRange = '>=1.2.0 <2.0.0';
               }
 
               await d.file('pubspec.yaml', '''
@@ -218,7 +218,7 @@ dependencies:
 }
 
 const _supportedBuildRunnerVersion = '1.2.2';
-const _supportedWebCompilersVersion = '1.1.0';
+const _supportedWebCompilersVersion = '1.2.0';
 
 String _pubspecLock(
     {String runnerVersion = _supportedBuildRunnerVersion,

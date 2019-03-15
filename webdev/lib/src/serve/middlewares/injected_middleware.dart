@@ -18,10 +18,15 @@ const bootstrapJsExtension = '.bootstrap.js';
 /// Marker placed by build_web_compilers for where to put injected JS code.
 const entrypointExtensionMarker = '/* ENTRYPOINT_EXTENTION_MARKER */';
 
+/// Marker placed by build_web_compilers for where to put injected JS code.
+const mainExtensionMarker = '/* MAIN_EXTENSION_MARKER */';
+
 const _clientScript = 'webdev/src/serve/injected/client';
 
 Handler Function(Handler) createInjectedHandler(
-        ReloadConfiguration configuration) =>
+  ReloadConfiguration configuration,
+  String appId,
+) =>
     (innerHandler) {
       return (Request request) async {
         if (request.url.path == '$_clientScript.js') {
@@ -47,7 +52,8 @@ Handler Function(Handler) createInjectedHandler(
           var etag = response.headers[HttpHeaders.etagHeader];
           var newHeaders = Map.of(response.headers);
           if (body.startsWith(entrypointExtensionMarker)) {
-            body += _injectedClientJs(configuration);
+            body = body.replaceAll(
+                mainExtensionMarker, _injectedClientJs(configuration, appId));
 
             etag = base64.encode(md5.convert(body.codeUnits).bytes);
             newHeaders[HttpHeaders.etagHeader] = etag;
@@ -62,8 +68,10 @@ Handler Function(Handler) createInjectedHandler(
       };
     };
 
-String _injectedClientJs(ReloadConfiguration configuration) => '''\n
+String _injectedClientJs(ReloadConfiguration configuration, String appId) =>
+    '''\n
 // Injected by webdev for build results support.
 window.\$dartReloadConfiguration = "$configuration";
 window.\$dartLoader.forceLoadModule('$_clientScript');
+window.\$dartAppId = "$appId";
 ''';

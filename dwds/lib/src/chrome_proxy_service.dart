@@ -50,9 +50,26 @@ class ChromeProxyService implements VmServiceInterface {
       this._vm, this._tab, this.tabConnection, this._assetHandler);
 
   static Future<ChromeProxyService> create(ChromeConnection chromeConnection,
-      Future<String> Function(String) assetHandler, String tabUrl) async {
-    var tab = await chromeConnection.getTab((tab) => tab.url == tabUrl);
-    var tabConnection = await tab.connect();
+      Future<String> Function(String) assetHandler, String appId) async {
+    ChromeTab appTab;
+    for (var tab in await chromeConnection.getTabs()) {
+      try {
+        var tabConnection = await tab.connect();
+        var result = await tabConnection.runtime.sendCommand('Runtime.evaluate',
+            params: {
+              'expression': r'window.$dartAppId;',
+              'awaitPromise': true
+            });
+        if (result.result['result']['value'] == appId) {
+          appTab = tab;
+          break;
+        }
+      } catch (_) {}
+    }
+    if (appTab == null) {
+      throw StateError('Could not connect to application with appId: $appId');
+    }
+    var tabConnection = await appTab.connect();
     await tabConnection.debugger.enable();
     await tabConnection.runtime.enable();
 
@@ -62,7 +79,7 @@ class ChromeProxyService implements VmServiceInterface {
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
-    var service = ChromeProxyService._(vm, tab, tabConnection, assetHandler);
+    var service = ChromeProxyService._(vm, appTab, tabConnection, assetHandler);
     await service.createIsolate();
     return service;
   }

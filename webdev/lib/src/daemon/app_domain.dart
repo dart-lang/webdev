@@ -32,46 +32,27 @@ class AppDomain extends Domain {
       'deviceId': 'chrome',
       'launchMode': 'run'
     });
-
-    // TODO(https://github.com/dart-lang/webdev/issues/202) - Embed the appID
-    // in the WebServer.
-    var server = serverManager.servers.firstWhere((s) => s.target == 'web');
+    // Daemon command only launches one application and therefore only has one
+    // server.
+    var server = serverManager.servers.first;
     var devHandler = server.devHandler;
-    try {
-      await devHandler.connections.next;
-      // TODO(https://github.com/dart-lang/webdev/issues/202) - Remove.
-      await Future.delayed(Duration(seconds: 2));
-    } catch (e) {
-      sendEvent('daemon.logMessage',
-          {'level': 'severe', 'message': 'Unable to connect to the app: $e'});
-      return;
-    }
-
+    // The connection is established right before `main()` is called.
+    await devHandler.connections.next;
+    sendEvent('app.started', {
+      'appId': _appId,
+    });
     var chrome = await Chrome.connectedInstance;
-    // TODO(https://github.com/dart-lang/webdev/issues/202) - Run an eval to
-    // get the appId.
-    var appUrl = (await chrome.chromeConnection.getTabs())
-        .firstWhere((tab) => tab.url.startsWith('http://localhost'))
-        .url;
-
-    sendEvent('daemon.logMessage',
-        {'level': 'info', 'message': 'Connecting to $appUrl'});
-
-    _debugService =
-        await devHandler.startDebugService(chrome.chromeConnection, appUrl);
+    _debugService = await devHandler.startDebugService(
+        chrome.chromeConnection, server.appId);
     _webdevVmClient = await WebdevVmClient.create(_debugService);
-
     sendEvent('app.debugPort', {
       'appId': _appId,
       'port': _debugService.port,
       'wsUri': _debugService.wsUri,
     });
-
     // Shutdown could have been triggered while awaiting above.
     // ignore: invariant_booleans
     if (_isShutdown) dispose();
-
-    // TODO(grouma) - Add an event for when the application is started.
   }
 
   AppDomain(Daemon daemon, ServerManager serverManager)
