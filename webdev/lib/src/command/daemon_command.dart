@@ -62,9 +62,7 @@ class DaemonCommand extends Command<int> {
     });
     daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
     await daemon.onExit;
-    print('AFTER EXIT');
     await workflow.shutDown();
-    print('AFTER SHUTDOWN');
     return 0;
   }
 }

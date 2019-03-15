@@ -44,12 +44,6 @@ class DevHandler {
   Handler get handler => _sseHandler.handler;
 
   Future<void> close() async {
-    try {
-      await connections.cancel(immediate: true);
-    } catch (_) {
-      // TODO(https://github.com/dart-lang/sse/issues/5) - close the sseHandler
-      // instead.
-    }
     await _sub.cancel();
     for (var connection in _connections) {
       await connection.sink.close();
