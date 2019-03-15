@@ -57,6 +57,8 @@ class DebugService {
 
   String get wsUri => 'ws://$hostname:$port';
 
+  /// [appId] is a unique String embedded in the application available through
+  /// `window.$dartAppId`.
   static Future<DebugService> start(
       String hostname,
       ChromeConnection chromeConnection,
