@@ -18,8 +18,8 @@ void main() {
 
   group('InjectedMiddelware', () {
     setUp(() async {
-      var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
-          ReloadConfiguration.liveReload, 'some-guid-1-2-3'));
+      var pipeline = const Pipeline()
+          .addMiddleware(createInjectedHandler(ReloadConfiguration.liveReload));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok('$entrypointExtensionMarker$mainExtensionMarker',

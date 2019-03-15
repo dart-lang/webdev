@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
-import 'package:uuid/uuid.dart';
 
 import '../command/configuration.dart';
 import 'debugger/devtools.dart';
@@ -34,9 +33,8 @@ class WebDevServer {
   final HttpServer _server;
   final DevHandler devHandler;
   final String target;
-  final String appId;
 
-  WebDevServer._(this.target, this._server, this.devHandler, this.appId);
+  WebDevServer._(this.target, this._server, this.devHandler);
 
   String get host => _server.address.host;
   int get port => _server.port;
@@ -51,7 +49,6 @@ class WebDevServer {
     Stream<BuildResults> buildResults,
     DevTools devTools,
   ) async {
-    var appId = Uuid().v1() as String;
     var assetHandler = AssetHandler(options.daemonPort, options.target,
         options.configuration.hostname, options.port);
     var cascade = Cascade();
@@ -61,8 +58,8 @@ class WebDevServer {
       pipeline = pipeline.addMiddleware(logRequests());
     }
 
-    pipeline = pipeline.addMiddleware(
-        createInjectedHandler(options.configuration.reload, appId));
+    pipeline = pipeline
+        .addMiddleware(createInjectedHandler(options.configuration.reload));
 
     var devHandler = DevHandler(
       // Only provide relevant build results
@@ -77,6 +74,6 @@ class WebDevServer {
     var server =
         await HttpServer.bind(options.configuration.hostname, options.port);
     shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
-    return WebDevServer._(options.target, server, devHandler, appId);
+    return WebDevServer._(options.target, server, devHandler);
   }
 }

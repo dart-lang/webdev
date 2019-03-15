@@ -13,6 +13,7 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:sse/client/sse_client.dart';
 
+import '../data/connect_request.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart';
 import 'module.dart';
@@ -65,6 +66,11 @@ Future<void> main() async {
           serializers.serialize(DevToolsRequest((b) => b.appId = dartAppId))));
     }
   });
+
+  // Wait for the connection to be estabilished before sending the AppId.
+  await client.onOpen.first;
+  client.sink.add(jsonEncode(
+      serializers.serialize(ConnectRequest((b) => b.appId = dartAppId))));
 }
 
 @JS(r'$dartAppId')

@@ -53,18 +53,14 @@ class ChromeProxyService implements VmServiceInterface {
       Future<String> Function(String) assetHandler, String appId) async {
     ChromeTab appTab;
     for (var tab in await chromeConnection.getTabs()) {
-      try {
-        var tabConnection = await tab.connect();
-        var result = await tabConnection.runtime.sendCommand('Runtime.evaluate',
-            params: {
-              'expression': r'window.$dartAppId;',
-              'awaitPromise': true
-            });
-        if (result.result['result']['value'] == appId) {
-          appTab = tab;
-          break;
-        }
-      } catch (_) {}
+      if (tab.url.startsWith('chrome-extensions:')) continue;
+      var tabConnection = await tab.connect();
+      var result = await tabConnection.runtime.sendCommand('Runtime.evaluate',
+          params: {'expression': r'window.$dartAppId;', 'awaitPromise': true});
+      if (result.result['result']['value'] == appId) {
+        appTab = tab;
+        break;
+      }
     }
     if (appTab == null) {
       throw StateError('Could not connect to application with appId: $appId');

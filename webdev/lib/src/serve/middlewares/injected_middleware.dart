@@ -25,7 +25,6 @@ const _clientScript = 'webdev/src/serve/injected/client';
 
 Handler Function(Handler) createInjectedHandler(
   ReloadConfiguration configuration,
-  String appId,
 ) =>
     (innerHandler) {
       return (Request request) async {
@@ -52,7 +51,12 @@ Handler Function(Handler) createInjectedHandler(
           var etag = response.headers[HttpHeaders.etagHeader];
           var newHeaders = Map.of(response.headers);
           if (body.startsWith(entrypointExtensionMarker)) {
-            body = body.replaceAll(
+            // The requestedUri contains the hostname and port which gaurantees
+            // uniqueness.
+            var requestedUri = request.requestedUri;
+            var appId =
+                base64.encode(md5.convert(utf8.encode('$requestedUri')).bytes);
+            body = body.replaceFirst(
                 mainExtensionMarker, _injectedClientJs(configuration, appId));
 
             etag = base64.encode(md5.convert(body.codeUnits).bytes);
