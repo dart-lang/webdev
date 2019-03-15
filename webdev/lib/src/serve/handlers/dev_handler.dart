@@ -81,7 +81,7 @@ class DevHandler {
         var chrome = await Chrome.connectedInstance;
         if (debugService == null) {
           debugService =
-              await startDebugService(chrome.chromeConnection, message.url);
+              await startDebugService(chrome.chromeConnection, message.appId);
           colorLog(
               Level.INFO,
               'Debug service listening on '

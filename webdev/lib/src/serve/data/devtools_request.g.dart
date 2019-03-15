@@ -20,8 +20,9 @@ class _$DevToolsRequestSerializer
   Iterable serialize(Serializers serializers, DevToolsRequest object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
-      'url',
-      serializers.serialize(object.url, specifiedType: const FullType(String)),
+      'appId',
+      serializers.serialize(object.appId,
+          specifiedType: const FullType(String)),
     ];
 
     return result;
@@ -38,8 +39,8 @@ class _$DevToolsRequestSerializer
       iterator.moveNext();
       final dynamic value = iterator.current;
       switch (key) {
-        case 'url':
-          result.url = serializers.deserialize(value,
+        case 'appId':
+          result.appId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
       }
@@ -51,14 +52,14 @@ class _$DevToolsRequestSerializer
 
 class _$DevToolsRequest extends DevToolsRequest {
   @override
-  final String url;
+  final String appId;
 
   factory _$DevToolsRequest([void updates(DevToolsRequestBuilder b)]) =>
       (new DevToolsRequestBuilder()..update(updates)).build();
 
-  _$DevToolsRequest._({this.url}) : super._() {
-    if (url == null) {
-      throw new BuiltValueNullFieldError('DevToolsRequest', 'url');
+  _$DevToolsRequest._({this.appId}) : super._() {
+    if (appId == null) {
+      throw new BuiltValueNullFieldError('DevToolsRequest', 'appId');
     }
   }
 
@@ -73,17 +74,17 @@ class _$DevToolsRequest extends DevToolsRequest {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is DevToolsRequest && url == other.url;
+    return other is DevToolsRequest && appId == other.appId;
   }
 
   @override
   int get hashCode {
-    return $jf($jc(0, url.hashCode));
+    return $jf($jc(0, appId.hashCode));
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('DevToolsRequest')..add('url', url))
+    return (newBuiltValueToStringHelper('DevToolsRequest')..add('appId', appId))
         .toString();
   }
 }
@@ -92,15 +93,15 @@ class DevToolsRequestBuilder
     implements Builder<DevToolsRequest, DevToolsRequestBuilder> {
   _$DevToolsRequest _$v;
 
-  String _url;
-  String get url => _$this._url;
-  set url(String url) => _$this._url = url;
+  String _appId;
+  String get appId => _$this._appId;
+  set appId(String appId) => _$this._appId = appId;
 
   DevToolsRequestBuilder();
 
   DevToolsRequestBuilder get _$this {
     if (_$v != null) {
-      _url = _$v.url;
+      _appId = _$v.appId;
       _$v = null;
     }
     return this;
@@ -121,7 +122,7 @@ class DevToolsRequestBuilder
 
   @override
   _$DevToolsRequest build() {
-    final _$result = _$v ?? new _$DevToolsRequest._(url: url);
+    final _$result = _$v ?? new _$DevToolsRequest._(appId: appId);
     replace(_$result);
     return _$result;
   }

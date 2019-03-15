@@ -9304,7 +9304,7 @@ sf6:function(a){this.f=H.i(a,"$if",[P.e],"$af")},
 sfl:function(a){this.r=H.i(a,"$it",[P.e,P.d],"$at")}}
 M.be.prototype={}
 M.iG.prototype={
-C:function(a,b,c){return H.p(["url",a.ai(H.l(b,"$ibe").a,C.ah)],[P.n])},
+C:function(a,b,c){return H.p(["appId",a.ai(H.l(b,"$ibe").a,C.ah)],[P.n])},
 T:function(a,b){return this.C(a,b,C.d)},
 $iC:1,
 $aC:function(){return[M.be]},
@@ -9326,7 +9326,7 @@ k:function(a){var u,t,s=$.nR().$1("DevToolsRequest"),r=this.a
 s.toString
 if(r!=null){u=s.a
 t=u.a+=C.a.a3(" ",$.eh)
-t+="url"
+t+="appId"
 u.a=t
 t+="="
 u.a=t
@@ -9398,11 +9398,11 @@ H.k(new D.kA(),{func:1,ret:-1,args:[M.c5]}).$1(s)
 r=s.a
 if(r==null){q=s.gd7().b
 r=new M.dU(q)
-if(q==null)H.r(new Y.eY("DevToolsRequest","url"))}s.a=r
+if(q==null)H.r(new Y.eY("DevToolsRequest","appId"))}s.a=r
 u.l(0,H.h(C.u.e2(t.d1(r),null),H.a(u,0)))}},
 $S:58}
 D.kA.prototype={
-$1:function(a){var u=H.j(window.location)
+$1:function(a){var u=H.u(self.$dartAppId)
 return a.gd7().b=u},
 $S:59}
 D.ke.prototype={

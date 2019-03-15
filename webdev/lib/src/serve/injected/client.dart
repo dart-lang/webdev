@@ -61,11 +61,14 @@ Future<void> main() async {
   window.onKeyDown.listen((e) {
     if (e.key.toLowerCase() == 'd' && e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      client.sink.add(jsonEncode(serializers
-          .serialize(DevToolsRequest((b) => b.url = '${window.location}'))));
+      client.sink.add(jsonEncode(
+          serializers.serialize(DevToolsRequest((b) => b.appId = dartAppId))));
     }
   });
 }
+
+@JS(r'$dartAppId')
+external String get dartAppId;
 
 @JS(r'$dartHotRestart')
 external Future<void> Function() get hotRestart;

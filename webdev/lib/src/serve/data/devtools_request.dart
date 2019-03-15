@@ -18,5 +18,5 @@ abstract class DevToolsRequest
 
   DevToolsRequest._();
 
-  String get url;
+  String get appId;
 }
