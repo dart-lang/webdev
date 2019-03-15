@@ -1,23 +1,23 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'devtools_request.dart';
+part of 'connect_request.dart';
 
 // **************************************************************************
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<DevToolsRequest> _$devToolsRequestSerializer =
-    new _$DevToolsRequestSerializer();
+Serializer<ConnectRequest> _$connectRequestSerializer =
+    new _$ConnectRequestSerializer();
 
-class _$DevToolsRequestSerializer
-    implements StructuredSerializer<DevToolsRequest> {
+class _$ConnectRequestSerializer
+    implements StructuredSerializer<ConnectRequest> {
   @override
-  final Iterable<Type> types = const [DevToolsRequest, _$DevToolsRequest];
+  final Iterable<Type> types = const [ConnectRequest, _$ConnectRequest];
   @override
-  final String wireName = 'DevToolsRequest';
+  final String wireName = 'ConnectRequest';
 
   @override
-  Iterable serialize(Serializers serializers, DevToolsRequest object,
+  Iterable serialize(Serializers serializers, ConnectRequest object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'appId',
@@ -29,9 +29,9 @@ class _$DevToolsRequestSerializer
   }
 
   @override
-  DevToolsRequest deserialize(Serializers serializers, Iterable serialized,
+  ConnectRequest deserialize(Serializers serializers, Iterable serialized,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = new DevToolsRequestBuilder();
+    final result = new ConnectRequestBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -50,31 +50,31 @@ class _$DevToolsRequestSerializer
   }
 }
 
-class _$DevToolsRequest extends DevToolsRequest {
+class _$ConnectRequest extends ConnectRequest {
   @override
   final String appId;
 
-  factory _$DevToolsRequest([void updates(DevToolsRequestBuilder b)]) =>
-      (new DevToolsRequestBuilder()..update(updates)).build();
+  factory _$ConnectRequest([void updates(ConnectRequestBuilder b)]) =>
+      (new ConnectRequestBuilder()..update(updates)).build();
 
-  _$DevToolsRequest._({this.appId}) : super._() {
+  _$ConnectRequest._({this.appId}) : super._() {
     if (appId == null) {
-      throw new BuiltValueNullFieldError('DevToolsRequest', 'appId');
+      throw new BuiltValueNullFieldError('ConnectRequest', 'appId');
     }
   }
 
   @override
-  DevToolsRequest rebuild(void updates(DevToolsRequestBuilder b)) =>
+  ConnectRequest rebuild(void updates(ConnectRequestBuilder b)) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  DevToolsRequestBuilder toBuilder() =>
-      new DevToolsRequestBuilder()..replace(this);
+  ConnectRequestBuilder toBuilder() =>
+      new ConnectRequestBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is DevToolsRequest && appId == other.appId;
+    return other is ConnectRequest && appId == other.appId;
   }
 
   @override
@@ -84,22 +84,22 @@ class _$DevToolsRequest extends DevToolsRequest {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('DevToolsRequest')..add('appId', appId))
+    return (newBuiltValueToStringHelper('ConnectRequest')..add('appId', appId))
         .toString();
   }
 }
 
-class DevToolsRequestBuilder
-    implements Builder<DevToolsRequest, DevToolsRequestBuilder> {
-  _$DevToolsRequest _$v;
+class ConnectRequestBuilder
+    implements Builder<ConnectRequest, ConnectRequestBuilder> {
+  _$ConnectRequest _$v;
 
   String _appId;
   String get appId => _$this._appId;
   set appId(String appId) => _$this._appId = appId;
 
-  DevToolsRequestBuilder();
+  ConnectRequestBuilder();
 
-  DevToolsRequestBuilder get _$this {
+  ConnectRequestBuilder get _$this {
     if (_$v != null) {
       _appId = _$v.appId;
       _$v = null;
@@ -108,21 +108,21 @@ class DevToolsRequestBuilder
   }
 
   @override
-  void replace(DevToolsRequest other) {
+  void replace(ConnectRequest other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other as _$DevToolsRequest;
+    _$v = other as _$ConnectRequest;
   }
 
   @override
-  void update(void updates(DevToolsRequestBuilder b)) {
+  void update(void updates(ConnectRequestBuilder b)) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$DevToolsRequest build() {
-    final _$result = _$v ?? new _$DevToolsRequest._(appId: appId);
+  _$ConnectRequest build() {
+    final _$result = _$v ?? new _$ConnectRequest._(appId: appId);
     replace(_$result);
     return _$result;
   }

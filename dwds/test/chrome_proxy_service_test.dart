@@ -76,7 +76,12 @@ void main() {
       return result.body;
     };
 
-    service = await ChromeProxyService.create(connection, assetHandler, appUrl);
+    service = await ChromeProxyService.create(
+      connection,
+      assetHandler,
+      // Provided in the example index.html.
+      'id-for-testing',
+    );
   });
 
   tearDownAll(() async {
