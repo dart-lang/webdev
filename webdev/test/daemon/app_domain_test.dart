@@ -67,7 +67,7 @@ void main() {
       test('.callServiceExtension', () async {
         var webdev =
             await runWebDev(['daemon'], workingDirectory: exampleDirectory);
-        var appId = _getAppId(webdev);
+        var appId = await _getAppId(webdev);
         var extensionCall = '[{"method":"app.callServiceExtension","id":0,'
             '"params" : { "appId" : "$appId", "methodName" : "ext.print"}}]';
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
@@ -80,7 +80,7 @@ void main() {
       test('.restart', () async {
         var webdev =
             await runWebDev(['daemon'], workingDirectory: exampleDirectory);
-        var appId = _getAppId(webdev);
+        var appId = await _getAppId(webdev);
         var extensionCall = '[{"method":"app.restart","id":0,'
             '"params" : { "appId" : "$appId"}}]';
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
