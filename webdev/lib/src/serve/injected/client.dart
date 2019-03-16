@@ -20,7 +20,7 @@ import 'module.dart';
 import 'reloading_manager.dart';
 
 // GENERATE:
-// dart2js lib/src/serve/injected/client.dart -o lib/src/serve/injected/client.js -m
+// dart2js lib/src/serve/injected/client.dart -o lib/src/serve/injected/client.js -m --no-source-maps
 Future<void> main() async {
   var currentDigests = await _getDigests();
 
@@ -59,8 +59,16 @@ Future<void> main() async {
     }
   });
 
-  window.onKeyDown.listen((e) {
-    if (e.key.toLowerCase() == 'd' && e.altKey && !e.ctrlKey && !e.metaKey) {
+  window.onKeyPress.listen((e) {
+    if (const [
+          'd',
+          'D',
+          '∂', // alt-d output on Mac
+          'Î', // shift-alt-D output on Mac
+        ].contains(e.key) &&
+        e.altKey &&
+        !e.ctrlKey &&
+        !e.metaKey) {
       e.preventDefault();
       client.sink.add(jsonEncode(
           serializers.serialize(DevToolsRequest((b) => b.appId = dartAppId))));
