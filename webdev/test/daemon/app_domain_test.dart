@@ -74,7 +74,10 @@ void main() {
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
         // The example app sets up a service extension for printing.
         await expectLater(
-            webdev.stdout, emitsThrough(startsWith('[{"event":"app.log"')));
+            webdev.stdout,
+            emitsThrough(
+                startsWith('[{"event":"app.log","params":{"appId":"$appId",'
+                    '"log":"Hello World\\n"}}')));
         await exitWebdev(webdev);
       });
 

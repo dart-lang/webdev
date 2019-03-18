@@ -39,20 +39,20 @@ class AppDomain extends Domain {
         await devHandler.startDebugService(chrome.chromeConnection, _appId);
     _webdevVmClient = await WebdevVmClient.create(_debugService);
     _vmService = _webdevVmClient.client;
-    await _vmService.streamListen('Stdout');
-    sendEvent('app.debugPort', {
-      'appId': _appId,
-      'port': _debugService.port,
-      'wsUri': _debugService.wsUri,
-    });
     sendEvent('app.started', {
       'appId': _appId,
     });
+    await _vmService.streamListen('Stdout');
     _vmService.onStdoutEvent.listen((log) {
       sendEvent('app.log', {
         'appId': _appId,
         'log': utf8.decode(base64.decode(log.bytes)),
       });
+    });
+    sendEvent('app.debugPort', {
+      'appId': _appId,
+      'port': _debugService.port,
+      'wsUri': _debugService.wsUri,
     });
 
     // Shutdown could have been triggered while awaiting above.
@@ -89,11 +89,8 @@ class AppDomain extends Domain {
       throw ArgumentError.value(
           fullRestart, 'fullRestart', 'We do not support hot reload yet.');
     }
-    var pauseAfterRestart = getBoolArg(args, 'pause') ?? false;
-    if (pauseAfterRestart) {
-      throw ArgumentError.value(
-          pauseAfterRestart, 'pauseAfterRestart', 'Not supported.');
-    }
+    // TODO(grouma) - Support pauseAfterRestart.
+    // var pauseAfterRestart = getBoolArg(args, 'pause') ?? false;
     var response = await _vmService.callServiceExtension('hotRestart');
     return {
       'code': response.type == 'Success' ? 0 : 1,
