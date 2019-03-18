@@ -33,6 +33,7 @@ class DevHandler {
   final AssetHandler _assetHandler;
   final String _hostname;
   final _connectedApps = StreamController<String>.broadcast();
+  final _servicesByAppId = <String, Future<_AppDebugServices>>{};
 
   Stream<String> get connectedApps => _connectedApps.stream;
 
@@ -49,6 +50,10 @@ class DevHandler {
     for (var connection in _connections) {
       await connection.sink.close();
     }
+    await Future.wait(_servicesByAppId.values.map((futureServices) async {
+      await (await futureServices).close();
+    }));
+    _servicesByAppId.clear();
   }
 
   void _emitBuildResults(BuildResult result) {
@@ -72,44 +77,48 @@ class DevHandler {
 
   void _handleConnection(SseConnection connection) {
     _connections.add(connection);
-    // TODO(grouma) - This client should be closed on close.
-    WebdevVmClient webdevClient;
-    DebugService debugService;
+    _AppDebugServices appServices;
     connection.stream.listen((data) async {
       var message = webdev.serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
-        if (_devTools == null) return;
-        var chrome = await Chrome.connectedInstance;
-        if (debugService == null) {
-          debugService =
+        appServices =
+            await _servicesByAppId.putIfAbsent(message.appId, () async {
+          var chrome = await Chrome.connectedInstance;
+          var debugService =
               await startDebugService(chrome.chromeConnection, message.appId);
           colorLog(
               Level.INFO,
               'Debug service listening on '
               'ws://${debugService.hostname}:${debugService.port}\n');
-        }
 
-        webdevClient = await WebdevVmClient.create(debugService);
-        await chrome.chromeConnection
+          var webdevClient = await WebdevVmClient.create(debugService);
+          return _AppDebugServices(chrome, debugService, webdevClient);
+        });
+        if (appServices.isConnected) {
+          connection.sink.add(jsonEncode(webdev.serializers.serialize(
+              DevToolsResponse((b) => b
+                ..success = false
+                ..error =
+                    'This app is already being debugged in a different tab. '
+                    'Please close that tab or switch to it.'))));
+          return;
+        } else {
+          connection.sink.add(jsonEncode(webdev.serializers
+              .serialize(DevToolsResponse((b) => b..success = true))));
+        }
+        appServices.isConnected = true;
+        await appServices.chrome.chromeConnection
             // Chrome protocol for spawning a new tab.
             .getUrl('json/new/?http://${_devTools.hostname}:${_devTools.port}'
-                '/?port=${debugService.port}');
+                '/?port=${appServices.debugService.port}');
       } else if (message is ConnectRequest) {
         _connectedApps.add(message.appId);
       }
     });
+
     unawaited(connection.sink.done.then((_) async {
-      if (debugService != null) {
-        await debugService.close();
-        await webdevClient.close();
-        colorLog(
-            Level.INFO,
-            'Stopped debug service on '
-            'ws://${debugService.hostname}:${debugService.port}\n');
-        webdevClient = null;
-        debugService = null;
-      }
       _connections.remove(connection);
+      appServices?.isConnected = false;
     }));
   }
 
@@ -119,4 +128,21 @@ class DevHandler {
       _handleConnection(await connections.next);
     }
   }
+}
+
+/// A container for all the services required for debugging an application.
+class _AppDebugServices {
+  final Chrome chrome;
+  final DebugService debugService;
+  final WebdevVmClient webdevClient;
+
+  /// Whether we are currently connected to a running app.
+  ///
+  /// Only one connection is allowed at a time.
+  bool isConnected = false;
+
+  _AppDebugServices(this.chrome, this.debugService, this.webdevClient);
+
+  Future<void> close() =>
+      Future.wait([debugService.close(), webdevClient.close()]);
 }

@@ -12,6 +12,7 @@ part 'serializers.g.dart';
 /// Serializers for all the types used in webdev communication.
 @SerializersFor([
   DevToolsRequest,
+  DevToolsResponse,
   ConnectRequest,
 ])
 final Serializers serializers = _$serializers;

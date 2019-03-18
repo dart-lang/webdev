@@ -20,3 +20,19 @@ abstract class DevToolsRequest
 
   String get appId;
 }
+
+/// A response to a [DevToolsRequest].
+abstract class DevToolsResponse
+    implements Built<DevToolsResponse, DevToolsResponseBuilder> {
+  static Serializer<DevToolsResponse> get serializer =>
+      _$devToolsResponseSerializer;
+
+  factory DevToolsResponse([updates(DevToolsResponseBuilder b)]) =
+      _$DevToolsResponse;
+
+  DevToolsResponse._();
+
+  bool get success;
+
+  String get error;
+}

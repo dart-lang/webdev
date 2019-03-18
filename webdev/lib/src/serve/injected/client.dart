@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:build_daemon/data/build_status.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:sse/client/sse_client.dart';
@@ -49,13 +50,20 @@ Future<void> main() async {
     }
   });
 
-  client.stream.listen((_) async {
-    if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
-      window.location.reload();
-    } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
-      await hotRestart();
-    } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
-      print('Hot reload is currently unsupported. Ignoring change.');
+  client.stream.listen((serialized) async {
+    var event = serializers.deserialize(jsonDecode(serialized));
+    if (event is BuildResult) {
+      if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
+        window.location.reload();
+      } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
+        await hotRestart();
+      } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
+        print('Hot reload is currently unsupported. Ignoring change.');
+      }
+    } else if (event is DevToolsResponse) {
+      if (!event.success) {
+        window.alert('DevTools failed to open with: ${event.error}');
+      }
     }
   });
 
