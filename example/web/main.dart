@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:developer';
+
 void main() {
-  print('Hello World!');
+  registerExtension('ext.print', (_, __) async {
+    print('Hello World');
+    return ServiceExtensionResponse.result(json.encode({'success': true}));
+  });
 }
