@@ -59,7 +59,7 @@ Future<void> main() async {
     }
   });
 
-  window.onKeyPress.listen((e) {
+  window.onKeyDown.listen((e) {
     if (const [
           'd',
           'D',
