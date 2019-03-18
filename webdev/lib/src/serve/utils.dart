@@ -40,11 +40,12 @@ void colorLog(Level level, String message, {bool verbose}) {
   } else {
     color = red;
   }
-  var multiline = message.contains('\n');
+  var multiline = message.contains('\n') && !message.endsWith('\n');
   var eraseLine = verbose ? '' : '\x1b[2K\r';
   var colorLevel = color.wrap('[$level]');
 
   stdout.write('$eraseLine$colorLevel $message');
+
   // Prevent multilines and severe messages from being erased.
   if (level > Level.INFO || verbose || multiline) {
     stdout.writeln('');

@@ -101,7 +101,7 @@ Future<DevTools> _startDevTools(
   if (configuration.debug) {
     var devTools = await DevTools.start(configuration.hostname);
     logHandler(Level.INFO,
-        'Serving DevTools at http://${devTools.hostname}:${devTools.port}');
+        'Serving DevTools at http://${devTools.hostname}:${devTools.port}\n');
     return devTools;
   }
   return null;
