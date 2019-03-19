@@ -83,6 +83,9 @@ class DevHandler {
       if (message is DevToolsRequest) {
         appServices = await _servicesByAppId.putIfAbsent(message.appId,
             () => _createAppDebugServices(message.appId, message.instanceId));
+
+        // Check if we are already running debug services for a different
+        // instance of this app.
         if (appServices.connectedInstanceId != null &&
             appServices.connectedInstanceId != message.instanceId) {
           connection.sink.add(jsonEncode(webdev.serializers.serialize(
