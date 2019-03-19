@@ -88,8 +88,16 @@ void main() {
         var extensionCall = '[{"method":"app.restart","id":0,'
             '"params" : { "appId" : "$appId", "fullRestart" : true}}]';
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
-        await expectLater(webdev.stdout,
-            emitsThrough(startsWith('[{"id":0,"result":{"code":0')));
+        await expectLater(
+            webdev.stdout,
+            emitsThrough(emitsInOrder([
+              startsWith(
+                  '[{"event":"app.progress","params":{"appId":"$appId","id":"1",'
+                  '"message":"Performing hot restart..."'),
+              startsWith(
+                  '[{"event":"app.progress","params":{"appId":"$appId","id":"1",'
+                  '"finished":true')
+            ])));
         await exitWebdev(webdev);
       });
     });
