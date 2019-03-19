@@ -162,6 +162,10 @@ class DevHandler {
         debugService.chromeProxyService.tabConnection.onClose.first.then((_) {
       appServices.close();
       _servicesByAppId.remove(appId);
+      colorLog(
+          Level.INFO,
+          'Debug service shut down on '
+          'ws://${debugService.hostname}:${debugService.port}\n');
     }));
 
     return appServices;
