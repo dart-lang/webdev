@@ -167,7 +167,7 @@ class DevHandler {
       _servicesByAppId.remove(appId);
       colorLog(
           Level.INFO,
-          'Debug service shut down on '
+          'Stopped debug service on '
           'ws://${debugService.hostname}:${debugService.port}\n');
     }));
 
