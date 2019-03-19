@@ -25,6 +25,9 @@ class _$DevToolsRequestSerializer
       'appId',
       serializers.serialize(object.appId,
           specifiedType: const FullType(String)),
+      'instanceId',
+      serializers.serialize(object.instanceId,
+          specifiedType: const FullType(String)),
     ];
 
     return result;
@@ -43,6 +46,10 @@ class _$DevToolsRequestSerializer
       switch (key) {
         case 'appId':
           result.appId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'instanceId':
+          result.instanceId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
       }
@@ -66,10 +73,13 @@ class _$DevToolsResponseSerializer
       'success',
       serializers.serialize(object.success,
           specifiedType: const FullType(bool)),
-      'error',
-      serializers.serialize(object.error,
-          specifiedType: const FullType(String)),
     ];
+    if (object.error != null) {
+      result
+        ..add('error')
+        ..add(serializers.serialize(object.error,
+            specifiedType: const FullType(String)));
+    }
 
     return result;
   }
@@ -103,13 +113,18 @@ class _$DevToolsResponseSerializer
 class _$DevToolsRequest extends DevToolsRequest {
   @override
   final String appId;
+  @override
+  final String instanceId;
 
   factory _$DevToolsRequest([void updates(DevToolsRequestBuilder b)]) =>
       (new DevToolsRequestBuilder()..update(updates)).build();
 
-  _$DevToolsRequest._({this.appId}) : super._() {
+  _$DevToolsRequest._({this.appId, this.instanceId}) : super._() {
     if (appId == null) {
       throw new BuiltValueNullFieldError('DevToolsRequest', 'appId');
+    }
+    if (instanceId == null) {
+      throw new BuiltValueNullFieldError('DevToolsRequest', 'instanceId');
     }
   }
 
@@ -124,17 +139,21 @@ class _$DevToolsRequest extends DevToolsRequest {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is DevToolsRequest && appId == other.appId;
+    return other is DevToolsRequest &&
+        appId == other.appId &&
+        instanceId == other.instanceId;
   }
 
   @override
   int get hashCode {
-    return $jf($jc(0, appId.hashCode));
+    return $jf($jc($jc(0, appId.hashCode), instanceId.hashCode));
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('DevToolsRequest')..add('appId', appId))
+    return (newBuiltValueToStringHelper('DevToolsRequest')
+          ..add('appId', appId)
+          ..add('instanceId', instanceId))
         .toString();
   }
 }
@@ -147,11 +166,16 @@ class DevToolsRequestBuilder
   String get appId => _$this._appId;
   set appId(String appId) => _$this._appId = appId;
 
+  String _instanceId;
+  String get instanceId => _$this._instanceId;
+  set instanceId(String instanceId) => _$this._instanceId = instanceId;
+
   DevToolsRequestBuilder();
 
   DevToolsRequestBuilder get _$this {
     if (_$v != null) {
       _appId = _$v.appId;
+      _instanceId = _$v.instanceId;
       _$v = null;
     }
     return this;
@@ -172,7 +196,8 @@ class DevToolsRequestBuilder
 
   @override
   _$DevToolsRequest build() {
-    final _$result = _$v ?? new _$DevToolsRequest._(appId: appId);
+    final _$result =
+        _$v ?? new _$DevToolsRequest._(appId: appId, instanceId: instanceId);
     replace(_$result);
     return _$result;
   }
@@ -190,9 +215,6 @@ class _$DevToolsResponse extends DevToolsResponse {
   _$DevToolsResponse._({this.success, this.error}) : super._() {
     if (success == null) {
       throw new BuiltValueNullFieldError('DevToolsResponse', 'success');
-    }
-    if (error == null) {
-      throw new BuiltValueNullFieldError('DevToolsResponse', 'error');
     }
   }
 

@@ -17,5 +17,9 @@ abstract class ConnectRequest
 
   ConnectRequest._();
 
+  /// Identifies a given application, across tabs/windows.
   String get appId;
+
+  /// Identifies a given instance of an application, unique per tab/window.
+  String get instanceId;
 }

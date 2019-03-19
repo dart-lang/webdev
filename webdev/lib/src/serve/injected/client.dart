@@ -13,6 +13,7 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:sse/client/sse_client.dart';
+import 'package:uuid/uuid.dart';
 
 import '../data/connect_request.dart';
 import '../data/devtools_request.dart';
@@ -23,6 +24,9 @@ import 'reloading_manager.dart';
 // GENERATE:
 // dart2js lib/src/serve/injected/client.dart -o lib/src/serve/injected/client.js -m --no-source-maps
 Future<void> main() async {
+  // Set the unique id for this instance of the app.
+  dartAppInstanceId = Uuid().v1() as String;
+
   var currentDigests = await _getDigests();
 
   var manager = ReloadingManager(
@@ -78,19 +82,26 @@ Future<void> main() async {
         !e.ctrlKey &&
         !e.metaKey) {
       e.preventDefault();
-      client.sink.add(jsonEncode(
-          serializers.serialize(DevToolsRequest((b) => b.appId = dartAppId))));
+      client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
+        ..appId = dartAppId
+        ..instanceId = dartAppInstanceId))));
     }
   });
 
   // Wait for the connection to be estabilished before sending the AppId.
   await client.onOpen.first;
-  client.sink.add(jsonEncode(
-      serializers.serialize(ConnectRequest((b) => b.appId = dartAppId))));
+  client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
+    ..appId = dartAppId
+    ..instanceId = dartAppInstanceId))));
 }
 
 @JS(r'$dartAppId')
 external String get dartAppId;
+
+@JS(r'$dartAppInstanceId')
+external String get dartAppInstanceId;
+@JS(r'$dartAppInstanceId')
+external set dartAppInstanceId(String id);
 
 @JS(r'$dartHotRestart')
 external Future<void> Function() get hotRestart;

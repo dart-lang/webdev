@@ -23,6 +23,9 @@ class _$ConnectRequestSerializer
       'appId',
       serializers.serialize(object.appId,
           specifiedType: const FullType(String)),
+      'instanceId',
+      serializers.serialize(object.instanceId,
+          specifiedType: const FullType(String)),
     ];
 
     return result;
@@ -43,6 +46,10 @@ class _$ConnectRequestSerializer
           result.appId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'instanceId':
+          result.instanceId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
       }
     }
 
@@ -53,13 +60,18 @@ class _$ConnectRequestSerializer
 class _$ConnectRequest extends ConnectRequest {
   @override
   final String appId;
+  @override
+  final String instanceId;
 
   factory _$ConnectRequest([void updates(ConnectRequestBuilder b)]) =>
       (new ConnectRequestBuilder()..update(updates)).build();
 
-  _$ConnectRequest._({this.appId}) : super._() {
+  _$ConnectRequest._({this.appId, this.instanceId}) : super._() {
     if (appId == null) {
       throw new BuiltValueNullFieldError('ConnectRequest', 'appId');
+    }
+    if (instanceId == null) {
+      throw new BuiltValueNullFieldError('ConnectRequest', 'instanceId');
     }
   }
 
@@ -74,17 +86,21 @@ class _$ConnectRequest extends ConnectRequest {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is ConnectRequest && appId == other.appId;
+    return other is ConnectRequest &&
+        appId == other.appId &&
+        instanceId == other.instanceId;
   }
 
   @override
   int get hashCode {
-    return $jf($jc(0, appId.hashCode));
+    return $jf($jc($jc(0, appId.hashCode), instanceId.hashCode));
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ConnectRequest')..add('appId', appId))
+    return (newBuiltValueToStringHelper('ConnectRequest')
+          ..add('appId', appId)
+          ..add('instanceId', instanceId))
         .toString();
   }
 }
@@ -97,11 +113,16 @@ class ConnectRequestBuilder
   String get appId => _$this._appId;
   set appId(String appId) => _$this._appId = appId;
 
+  String _instanceId;
+  String get instanceId => _$this._instanceId;
+  set instanceId(String instanceId) => _$this._instanceId = instanceId;
+
   ConnectRequestBuilder();
 
   ConnectRequestBuilder get _$this {
     if (_$v != null) {
       _appId = _$v.appId;
+      _instanceId = _$v.instanceId;
       _$v = null;
     }
     return this;
@@ -122,7 +143,8 @@ class ConnectRequestBuilder
 
   @override
   _$ConnectRequest build() {
-    final _$result = _$v ?? new _$ConnectRequest._(appId: appId);
+    final _$result =
+        _$v ?? new _$ConnectRequest._(appId: appId, instanceId: instanceId);
     replace(_$result);
     return _$result;
   }

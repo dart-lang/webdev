@@ -57,15 +57,15 @@ class DebugService {
 
   String get wsUri => 'ws://$hostname:$port';
 
-  /// [appId] is a unique String embedded in the application available through
-  /// `window.$dartAppId`.
+  /// [appInstanceId] is a unique String embedded in the instance of the
+  /// application available through `window.$dartAppInstanceId`.
   static Future<DebugService> start(
       String hostname,
       ChromeConnection chromeConnection,
       Future<String> Function(String) assetHandler,
-      String appId) async {
-    var chromeProxyService =
-        await ChromeProxyService.create(chromeConnection, assetHandler, appId);
+      String appInstanceId) async {
+    var chromeProxyService = await ChromeProxyService.create(
+        chromeConnection, assetHandler, appInstanceId);
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     var cascade = Cascade().add(webSocketHandler(_createNewConnectionHandler(
         chromeProxyService, serviceExtensionRegistry)));
