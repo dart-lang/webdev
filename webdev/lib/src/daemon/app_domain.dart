@@ -56,7 +56,6 @@ class AppDomain extends Domain {
     });
 
     // Shutdown could have been triggered while awaiting above.
-    // ignore: invariant_booleans
     if (_isShutdown) dispose();
   }
 
