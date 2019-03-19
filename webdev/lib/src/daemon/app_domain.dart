@@ -23,7 +23,7 @@ class AppDomain extends Domain {
   WebdevVmClient _webdevVmClient;
   DebugService _debugService;
   bool _isShutdown = false;
-  var _restartId = 0;
+  var _progressEventId = 0;
 
   void _initialize(ServerManager serverManager) async {
     var devHandler = serverManager.servers.first.devHandler;
@@ -91,17 +91,17 @@ class AppDomain extends Domain {
     }
     // TODO(grouma) - Support pauseAfterRestart.
     // var pauseAfterRestart = getBoolArg(args, 'pause') ?? false;
-    _restartId++;
+    _progressEventId++;
     sendEvent('app.progress', {
       'appId': _appId,
-      'id': '$_restartId',
+      'id': '$_progressEventId',
       'message': 'Performing hot restart...',
       'progressId': 'hot.restart',
     });
     var response = await _vmService.callServiceExtension('hotRestart');
     sendEvent('app.progress', {
       'appId': _appId,
-      'id': '$_restartId',
+      'id': '$_progressEventId',
       'finished': true,
       'progressId': 'hot.restart',
     });
