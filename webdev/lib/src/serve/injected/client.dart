@@ -56,7 +56,7 @@ Future<void> main() async {
 
   client.stream.listen((serialized) async {
     var event = serializers.deserialize(jsonDecode(serialized));
-    if (event is BuildResult) {
+    if (event is DefaultBuildResult) {
       if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
         window.location.reload();
       } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
