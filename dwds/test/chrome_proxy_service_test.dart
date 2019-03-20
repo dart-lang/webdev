@@ -80,7 +80,7 @@ void main() {
       connection,
       assetHandler,
       // Provided in the example index.html.
-      'id-for-testing',
+      'instance-id-for-testing',
     );
   });
 

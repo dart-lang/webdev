@@ -32,10 +32,10 @@ class DevHandler {
   final DevTools _devTools;
   final AssetHandler _assetHandler;
   final String _hostname;
-  final _connectedApps = StreamController<String>.broadcast();
+  final _connectedApps = StreamController<ConnectRequest>.broadcast();
   final _servicesByAppId = <String, Future<_AppDebugServices>>{};
 
-  Stream<String> get connectedApps => _connectedApps.stream;
+  Stream<ConnectRequest> get connectedApps => _connectedApps.stream;
 
   DevHandler(Stream<BuildResult> buildResults, this._devTools,
       this._assetHandler, this._hostname) {
@@ -117,7 +117,7 @@ class DevHandler {
             .getUrl('json/new/?http://${_devTools.hostname}:${_devTools.port}'
                 '/?port=${appServices.debugService.port}');
       } else if (message is ConnectRequest) {
-        _connectedApps.add(message.appId);
+        _connectedApps.add(message);
         // After a page refresh, reconnect to the same app services if they
         // were previously launched and create the new isolate.
         var services = await _servicesByAppId[message.appId];

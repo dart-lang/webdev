@@ -140,17 +140,6 @@ class ChromeProxyService implements VmServiceInterface {
     isolate.extensionRPCs.addAll(
         (extensionsResult.result['result']['value'] as List).cast<String>());
 
-    // TODO: We shouldn't need to fire these events since they exist on the
-    // isolate, but devtools doesn't recognize extensions after a page refresh
-    // otherwise.
-    for (var extensionRpc in isolate.extensionRPCs) {
-      _streamNotify(
-          'Isolate',
-          Event()
-            ..kind = EventKind.kServiceExtensionAdded
-            ..extensionRPC = extensionRpc);
-    }
-
     for (var libraryRef in isolate.libraries) {
       _libraryRefs[libraryRef.id] = libraryRef;
     }
@@ -169,7 +158,8 @@ class ChromeProxyService implements VmServiceInterface {
               'Isolate',
               Event()
                 ..kind = EventKind.kServiceExtensionAdded
-                ..extensionRPC = service);
+                ..extensionRPC = service
+                ..isolate = isolateRef);
           break;
         case 'dart.developer.postEvent':
           _streamNotify(
@@ -178,7 +168,8 @@ class ChromeProxyService implements VmServiceInterface {
                 ..kind = EventKind.kExtension
                 ..extensionKind = event.args[1].value as String
                 ..extensionData = ExtensionData.parse(
-                    jsonDecode(event.args[2].value as String) as Map));
+                    jsonDecode(event.args[2].value as String) as Map)
+                ..isolate = isolateRef);
           break;
         case 'dart.developer.inspect':
           // All inspected objects should be real objects.
@@ -195,7 +186,8 @@ class ChromeProxyService implements VmServiceInterface {
               Event()
                 ..kind = EventKind.kInspect
                 ..inspectee = inspectee
-                ..timestamp = event.timestamp.toInt());
+                ..timestamp = event.timestamp.toInt()
+                ..isolate = isolateRef);
           break;
         default:
           break;
@@ -215,6 +207,18 @@ class ChromeProxyService implements VmServiceInterface {
         Event()
           ..kind = EventKind.kIsolateRunnable
           ..isolate = isolateRef);
+
+    // TODO: We shouldn't need to fire these events since they exist on the
+    // isolate, but devtools doesn't recognize extensions after a page refresh
+    // otherwise.
+    for (var extensionRpc in isolate.extensionRPCs) {
+      _streamNotify(
+          'Isolate',
+          Event()
+            ..kind = EventKind.kServiceExtensionAdded
+            ..extensionRPC = extensionRpc
+            ..isolate = isolateRef);
+    }
   }
 
   /// Should be called when there is a hot restart or full page refresh.
