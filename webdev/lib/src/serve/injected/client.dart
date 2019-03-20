@@ -25,7 +25,7 @@ import 'reloading_manager.dart';
 // dart2js lib/src/serve/injected/client.dart -o lib/src/serve/injected/client.js -m --no-source-maps
 Future<void> main() async {
   // Set the unique id for this instance of the app.
-  dartAppInstanceId = Uuid().v1() as String;
+  dartAppInstanceId = Uuid().v1();
 
   var currentDigests = await _getDigests();
 
