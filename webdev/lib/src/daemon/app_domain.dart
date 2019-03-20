@@ -28,7 +28,8 @@ class AppDomain extends Domain {
   void _initialize(ServerManager serverManager) async {
     var devHandler = serverManager.servers.first.devHandler;
     // The connection is established right before `main()` is called.
-    _appId = await devHandler.connectedApps.first;
+    var request = await devHandler.connectedApps.first;
+    _appId = request.appId;
     sendEvent('app.start', {
       'appId': _appId,
       'directory': Directory.current.path,
@@ -36,8 +37,8 @@ class AppDomain extends Domain {
       'launchMode': 'run'
     });
     var chrome = await Chrome.connectedInstance;
-    _debugService =
-        await devHandler.startDebugService(chrome.chromeConnection, _appId);
+    _debugService = await devHandler.startDebugService(
+        chrome.chromeConnection, request.instanceId);
     _webdevVmClient = await WebdevVmClient.create(_debugService);
     _vmService = _webdevVmClient.client;
     sendEvent('app.started', {

@@ -18,5 +18,26 @@ abstract class DevToolsRequest
 
   DevToolsRequest._();
 
+  /// Identifies a given application, across tabs/windows.
   String get appId;
+
+  /// Identifies a given instance of an application, unique per tab/window.
+  String get instanceId;
+}
+
+/// A response to a [DevToolsRequest].
+abstract class DevToolsResponse
+    implements Built<DevToolsResponse, DevToolsResponseBuilder> {
+  static Serializer<DevToolsResponse> get serializer =>
+      _$devToolsResponseSerializer;
+
+  factory DevToolsResponse([updates(DevToolsResponseBuilder b)]) =
+      _$DevToolsResponse;
+
+  DevToolsResponse._();
+
+  bool get success;
+
+  @nullable
+  String get error;
 }

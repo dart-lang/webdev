@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -49,21 +50,25 @@ class ChromeProxyService implements VmServiceInterface {
   ChromeProxyService._(
       this._vm, this._tab, this.tabConnection, this._assetHandler);
 
-  static Future<ChromeProxyService> create(ChromeConnection chromeConnection,
-      Future<String> Function(String) assetHandler, String appId) async {
+  static Future<ChromeProxyService> create(
+      ChromeConnection chromeConnection,
+      Future<String> Function(String) assetHandler,
+      String appInstanceId) async {
     ChromeTab appTab;
     for (var tab in await chromeConnection.getTabs()) {
       if (tab.url.startsWith('chrome-extensions:')) continue;
       var tabConnection = await tab.connect();
-      var result = await tabConnection.runtime.sendCommand('Runtime.evaluate',
-          params: {'expression': r'window.$dartAppId;', 'awaitPromise': true});
-      if (result.result['result']['value'] == appId) {
+      var result = await tabConnection.runtime
+          .evaluate(r'window["$dartAppInstanceId"];');
+      if (result.value == appInstanceId) {
         appTab = tab;
         break;
       }
+      unawaited(tabConnection.close());
     }
     if (appTab == null) {
-      throw StateError('Could not connect to application with appId: $appId');
+      throw StateError('Could not connect to application with appInstanceId: '
+          '$appInstanceId');
     }
     var tabConnection = await appTab.connect();
     await tabConnection.debugger.enable();
@@ -142,6 +147,7 @@ class ChromeProxyService implements VmServiceInterface {
     // Listen for `registerExtension` and `postEvent` calls.
     _consoleSubscription = tabConnection.runtime.onConsoleAPICalled
         .listen((ConsoleAPIEvent event) {
+      if (_isolate == null) return;
       if (event.type != 'debug') return;
       var firstArgValue = event.args[0].value as String;
       switch (firstArgValue) {
@@ -152,7 +158,8 @@ class ChromeProxyService implements VmServiceInterface {
               'Isolate',
               Event()
                 ..kind = EventKind.kServiceExtensionAdded
-                ..extensionRPC = service);
+                ..extensionRPC = service
+                ..isolate = isolateRef);
           break;
         case 'dart.developer.postEvent':
           _streamNotify(
@@ -161,7 +168,8 @@ class ChromeProxyService implements VmServiceInterface {
                 ..kind = EventKind.kExtension
                 ..extensionKind = event.args[1].value as String
                 ..extensionData = ExtensionData.parse(
-                    jsonDecode(event.args[2].value as String) as Map));
+                    jsonDecode(event.args[2].value as String) as Map)
+                ..isolate = isolateRef);
           break;
         case 'dart.developer.inspect':
           // All inspected objects should be real objects.
@@ -178,7 +186,8 @@ class ChromeProxyService implements VmServiceInterface {
               Event()
                 ..kind = EventKind.kInspect
                 ..inspectee = inspectee
-                ..timestamp = event.timestamp.toInt());
+                ..timestamp = event.timestamp.toInt()
+                ..isolate = isolateRef);
           break;
         default:
           break;
@@ -198,12 +207,25 @@ class ChromeProxyService implements VmServiceInterface {
         Event()
           ..kind = EventKind.kIsolateRunnable
           ..isolate = isolateRef);
+
+    // TODO: We shouldn't need to fire these events since they exist on the
+    // isolate, but devtools doesn't recognize extensions after a page refresh
+    // otherwise.
+    for (var extensionRpc in isolate.extensionRPCs) {
+      _streamNotify(
+          'Isolate',
+          Event()
+            ..kind = EventKind.kServiceExtensionAdded
+            ..extensionRPC = extensionRpc
+            ..isolate = isolateRef);
+    }
   }
 
   /// Should be called when there is a hot restart or full page refresh.
   ///
   /// Clears out [_isolate] and all related cached information.
   void destroyIsolate() {
+    if (_isolate == null) return;
     _streamNotify(
         'Isolate',
         Event()
@@ -354,7 +376,7 @@ require("dart_sdk").developer.invokeExtension(
   /// Sync version of [getIsolate] for internal use, also has stronger typing
   /// than the public one which has to be dynamic.
   Isolate _getIsolate(String isolateId) {
-    if (_isolate.id == isolateId) return _isolate;
+    if (_isolate?.id == isolateId) return _isolate;
     throw ArgumentError.value(
         isolateId, 'isolateId', 'Unrecognized isolate id');
   }
@@ -439,7 +461,7 @@ require("dart_sdk").developer.invokeExtension(
   }
 
   Future<Library> _getLibrary(String isolateId, String objectId) async {
-    if (isolateId != _isolate.id) return null;
+    if (isolateId != _isolate?.id) return null;
     var libraryRef = _libraryRefs[objectId];
     if (libraryRef == null) return null;
     var library = _libraries[objectId];
@@ -670,6 +692,7 @@ require("dart_sdk").developer.invokeExtension(
     }, onListen: () {
       chromeConsoleSubscription =
           tabConnection.runtime.onConsoleAPICalled.listen((e) {
+        if (_isolate == null) return;
         if (!filter(e)) return;
         var args = e.params['args'] as List;
         var item = args[0] as Map;
@@ -683,6 +706,7 @@ require("dart_sdk").developer.invokeExtension(
       if (includeExceptions) {
         exceptionsSubscription =
             tabConnection.runtime.onExceptionThrown.listen((e) {
+          if (_isolate == null) return;
           controller.add(Event()
             ..kind = EventKind.kWriteEvent
             ..isolate = toIsolateRef(_isolate)
@@ -703,6 +727,7 @@ require("dart_sdk").developer.invokeExtension(
     StreamSubscription resumeSubscription;
     return StreamController<Event>.broadcast(onListen: () {
       pauseSubscription = tabConnection.debugger.onPaused.listen((e) {
+        if (_isolate == null) return;
         var event = Event()..isolate = toIsolateRef(_isolate);
         var params = e.params;
         var breakpoints = params['hitBreakpoints'] as List;
@@ -717,6 +742,7 @@ require("dart_sdk").developer.invokeExtension(
         _streamNotify('Debug', event);
       });
       resumeSubscription = tabConnection.debugger.onResumed.listen((e) {
+        if (_isolate == null) return;
         _streamNotify(
             'Debug',
             Event()
