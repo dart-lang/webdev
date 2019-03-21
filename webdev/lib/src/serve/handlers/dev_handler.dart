@@ -81,6 +81,16 @@ class DevHandler {
     connection.stream.listen((data) async {
       var message = webdev.serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
+        if (_devTools == null) {
+          connection.sink.add(jsonEncode(webdev.serializers.serialize(
+              DevToolsResponse((b) => b
+                ..success = false
+                ..error =
+                    'Debugging is not enabled, please pass the --debug flag '
+                    'when starting webdev.'))));
+          return;
+        }
+
         appServices = await _servicesByAppId.putIfAbsent(message.appId,
             () => _createAppDebugServices(message.appId, message.instanceId));
 
