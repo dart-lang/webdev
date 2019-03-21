@@ -20,7 +20,6 @@ import '../serve/webdev_server.dart';
 Future<BuildDaemonClient> _startBuildDaemon(
   String workingDirectory,
   List<String> buildOptions,
-  void Function(Level level, String message) logHandler,
 ) async {
   logHandler(Level.INFO, 'Connecting to the build daemon...');
   try {
@@ -68,7 +67,6 @@ Future<ServerManager> _startServerManager(
   String workingDirectory,
   BuildDaemonClient client,
   DevTools devTools,
-  void Function(Level level, String message) logHandler,
 ) async {
   var assetPort = daemonPort(workingDirectory);
   var serverOptions = Set<ServerOptions>();
@@ -96,7 +94,6 @@ Future<ServerManager> _startServerManager(
 
 Future<DevTools> _startDevTools(
   Configuration configuration,
-  void Function(Level level, String message) logHandler,
 ) async {
   if (configuration.debug) {
     var devTools = await DevTools.start(configuration.hostname);
@@ -132,14 +129,12 @@ class DevWorkflow {
     Configuration configuration,
     List<String> buildOptions,
     Map<String, int> targetPorts,
-    void Function(Level level, String message) logHandler,
   ) async {
     var workingDirectory = Directory.current.path;
-    var client =
-        await _startBuildDaemon(workingDirectory, buildOptions, logHandler);
-    var devTools = await _startDevTools(configuration, logHandler);
-    var serverManager = await _startServerManager(configuration, targetPorts,
-        workingDirectory, client, devTools, logHandler);
+    var client = await _startBuildDaemon(workingDirectory, buildOptions);
+    var devTools = await _startDevTools(configuration);
+    var serverManager = await _startServerManager(
+        configuration, targetPorts, workingDirectory, client, devTools);
     var chrome = await _startChrome(configuration, serverManager, client);
     logHandler(Level.INFO, 'Registering build targets...');
     for (var target in targetPorts.keys) {

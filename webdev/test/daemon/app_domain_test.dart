@@ -96,7 +96,7 @@ void main() {
                   '"message":"Performing hot restart..."'),
               startsWith(
                   '[{"event":"app.progress","params":{"appId":"$appId","id":"1",'
-                  '"finished":true')
+                  '"finished":true'),
             ])));
         await exitWebdev(webdev);
       });

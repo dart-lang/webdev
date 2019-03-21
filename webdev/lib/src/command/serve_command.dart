@@ -9,7 +9,6 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import '../serve/dev_workflow.dart';
-import '../serve/utils.dart';
 import 'configuration.dart';
 import 'shared.dart';
 
@@ -101,8 +100,8 @@ class ServeCommand extends Command<int> {
         .where((arg) => arg.contains(':') || !arg.startsWith('--'))
         .toList();
     var targetPorts = _parseDirectoryArgs(directoryArgs);
-    var workflow = await DevWorkflow.start(
-        configuration, buildOptions, targetPorts, colorLog);
+    var workflow =
+        await DevWorkflow.start(configuration, buildOptions, targetPorts);
     await workflow.done;
     return 0;
   }

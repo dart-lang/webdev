@@ -52,6 +52,8 @@ void colorLog(Level level, String message, {bool verbose}) {
   }
 }
 
+void Function(Level level, String message) logHandler = colorLog;
+
 String trimLevel(Level level, String message) => message.startsWith('[$level]')
     ? message.replaceFirst('[$level]', '').trimLeft()
     : message;
