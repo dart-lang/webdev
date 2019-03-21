@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 5))
-@Tags(['requires-edge-sdk'])
+@Tags(['requires-edge-sdk', 'webdriver'])
 import 'dart:async';
 import 'dart:io';
 
@@ -154,5 +154,21 @@ void main() {
       await eventsDone;
       await fixture.webdev.kill();
     });
-  }, tags: ['webdriver']);
+  });
+
+  test('gives a good error if --debug was not passed', () async {
+    var fixture = await InjectedFixture.create();
+    addTearDown(() => fixture.tearDown());
+    await fixture.buildAndLoad([]);
+
+    // Try to open devtools and check for the alert.
+    await fixture.webdriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
+    await Future.delayed(const Duration(seconds: 1));
+    var alert = fixture.webdriver.driver.switchTo.alert;
+    expect(alert, isNotNull);
+    expect(await alert.text, contains('--debug'));
+    await alert.accept();
+
+    await fixture.webdev.kill();
+  });
 }
