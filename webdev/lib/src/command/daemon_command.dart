@@ -51,7 +51,7 @@ class DaemonCommand extends Command<int> {
     var daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
     var daemonDomain = DaemonDomain(daemon);
     daemon.registerDomain(daemonDomain);
-    var configuration = Configuration(launchInChrome: true);
+    var configuration = Configuration(launchInChrome: true, debug: true);
     var pubspecLock = await readPubspecLock(configuration);
     var buildOptions = buildRunnerArgs(pubspecLock, configuration);
     var port = await findUnusedPort();
