@@ -10,7 +10,7 @@ import 'package:dwds/service.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
 import '../serve/chrome.dart';
-import '../serve/debugger/webdev_vm_client.dart';
+import '../serve/debugger/app_debug_services.dart';
 import '../serve/server_manager.dart';
 import 'daemon.dart';
 import 'domain.dart';
@@ -19,9 +19,9 @@ import 'utilites.dart';
 /// A collection of method and events relevant to the running application.
 class AppDomain extends Domain {
   String _appId;
-  VmService _vmService;
-  WebdevVmClient _webdevVmClient;
-  DebugService _debugService;
+  AppDebugServices _appDebugServices;
+  DebugService get _debugService => _appDebugServices?.debugService;
+  VmService get _vmService => _appDebugServices?.webdevClient?.client;
   bool _isShutdown = false;
   var _progressEventId = 0;
 
@@ -29,6 +29,8 @@ class AppDomain extends Domain {
     var devHandler = serverManager.servers.first.devHandler;
     // The connection is established right before `main()` is called.
     var request = await devHandler.connectedApps.first;
+    _appDebugServices =
+        await devHandler.loadAppServices(request.appId, request.instanceId);
     _appId = request.appId;
     sendEvent('app.start', {
       'appId': _appId,
@@ -36,11 +38,6 @@ class AppDomain extends Domain {
       'deviceId': 'chrome',
       'launchMode': 'run'
     });
-    var chrome = await Chrome.connectedInstance;
-    _debugService = await devHandler.startDebugService(
-        chrome.chromeConnection, request.instanceId);
-    _webdevVmClient = await WebdevVmClient.create(_debugService);
-    _vmService = _webdevVmClient.client;
     sendEvent('app.started', {
       'appId': _appId,
     });
@@ -123,7 +120,6 @@ class AppDomain extends Domain {
   @override
   void dispose() {
     _isShutdown = true;
-    _debugService?.close();
-    _webdevVmClient?.close();
+    _appDebugServices.close();
   }
 }

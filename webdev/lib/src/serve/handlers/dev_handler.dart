@@ -19,6 +19,7 @@ import '../../serve/utils.dart';
 import '../data/connect_request.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart' as webdev;
+import '../debugger/app_debug_services.dart';
 import '../debugger/devtools.dart';
 import '../debugger/webdev_vm_client.dart';
 import '../handlers/asset_handler.dart';
@@ -33,7 +34,7 @@ class DevHandler {
   final AssetHandler _assetHandler;
   final String _hostname;
   final _connectedApps = StreamController<ConnectRequest>.broadcast();
-  final _servicesByAppId = <String, Future<_AppDebugServices>>{};
+  final _servicesByAppId = <String, Future<AppDebugServices>>{};
 
   Stream<ConnectRequest> get connectedApps => _connectedApps.stream;
 
@@ -75,9 +76,13 @@ class DevHandler {
     );
   }
 
+  Future<AppDebugServices> loadAppServices(String appId, String instanceId) =>
+      _servicesByAppId.putIfAbsent(
+          appId, () => _createAppDebugServices(appId, instanceId));
+
   void _handleConnection(SseConnection connection) {
     _connections.add(connection);
-    _AppDebugServices appServices;
+    AppDebugServices appServices;
     connection.stream.listen((data) async {
       var message = webdev.serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
@@ -91,8 +96,7 @@ class DevHandler {
           return;
         }
 
-        appServices = await _servicesByAppId.putIfAbsent(message.appId,
-            () => _createAppDebugServices(message.appId, message.instanceId));
+        appServices = await loadAppServices(message.appId, message.instanceId);
 
         // Check if we are already running debug services for a different
         // instance of this app.
@@ -112,10 +116,9 @@ class DevHandler {
         if (!(await _isCorrectTab(message.instanceId,
             appServices.debugService.chromeProxyService.tabConnection))) {
           unawaited(appServices.close());
-          var futureServices =
-              _createAppDebugServices(message.appId, message.instanceId);
-          _servicesByAppId[message.appId] = futureServices;
-          appServices = await futureServices;
+          unawaited(_servicesByAppId.remove(message.appId));
+          appServices =
+              await loadAppServices(message.appId, message.instanceId);
         }
 
         connection.sink.add(jsonEncode(webdev.serializers
@@ -158,7 +161,7 @@ class DevHandler {
     }
   }
 
-  Future<_AppDebugServices> _createAppDebugServices(
+  Future<AppDebugServices> _createAppDebugServices(
       String appId, String instanceId) async {
     var chrome = await Chrome.connectedInstance;
     var debugService =
@@ -169,7 +172,7 @@ class DevHandler {
         'ws://${debugService.hostname}:${debugService.port}\n');
 
     var webdevClient = await WebdevVmClient.create(debugService);
-    var appServices = _AppDebugServices(chrome, debugService, webdevClient);
+    var appServices = AppDebugServices(chrome, debugService, webdevClient);
 
     unawaited(
         debugService.chromeProxyService.tabConnection.onClose.first.then((_) {
@@ -191,21 +194,4 @@ Future<bool> _isCorrectTab(
   var result =
       await tabConnection.runtime.evaluate(r'window["$dartAppInstanceId"];');
   return result.value == instanceId;
-}
-
-/// A container for all the services required for debugging an application.
-class _AppDebugServices {
-  final Chrome chrome;
-  final DebugService debugService;
-  final WebdevVmClient webdevClient;
-
-  /// The instance ID for the currently connected application, if there is one.
-  ///
-  /// We only allow a given app to be debugged in a single tab at a time.
-  String connectedInstanceId;
-
-  _AppDebugServices(this.chrome, this.debugService, this.webdevClient);
-
-  Future<void> close() =>
-      Future.wait([debugService.close(), webdevClient.close()]);
 }
