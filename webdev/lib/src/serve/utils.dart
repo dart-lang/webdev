@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:build_daemon/data/server_log.dart';
-import 'package:io/ansi.dart';
 import 'package:logging/logging.dart';
 
 /// Returns a port that is probably, but not definitely, not in use.
@@ -26,34 +25,6 @@ Future<int> findUnusedPort() async {
   await socket.close();
   return port;
 }
-
-var verboseLogs = false;
-
-/// Colors the message and writes it to stdout.
-///
-/// If the [level] is not contained in the message, one will be inserted.
-void colorLog(Level level, String message) {
-  AnsiCode color;
-  if (level < Level.WARNING) {
-    color = cyan;
-  } else if (level < Level.SEVERE) {
-    color = yellow;
-  } else {
-    color = red;
-  }
-  var multiline = message.contains('\n') && !message.endsWith('\n');
-  var eraseLine = verboseLogs ? '' : '\x1b[2K\r';
-  var colorLevel = color.wrap('[$level]');
-
-  stdout.write('$eraseLine$colorLevel $message');
-
-  // Prevent multilines and severe messages from being erased.
-  if (level > Level.INFO || verboseLogs || multiline) {
-    stdout.writeln('');
-  }
-}
-
-void Function(Level level, String message) logHandler = colorLog;
 
 String trimLevel(Level level, String message) => message.startsWith('[$level]')
     ? message.replaceFirst('[$level]', '').trimLeft()

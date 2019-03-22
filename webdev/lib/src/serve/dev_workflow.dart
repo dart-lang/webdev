@@ -13,6 +13,7 @@ import '../command/configuration.dart';
 import '../serve/chrome.dart';
 import '../serve/daemon_client.dart';
 import '../serve/debugger/devtools.dart';
+import '../serve/logging.dart';
 import '../serve/server_manager.dart';
 import '../serve/utils.dart';
 import '../serve/webdev_server.dart';

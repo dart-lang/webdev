@@ -15,7 +15,7 @@ import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../serve/chrome.dart';
-import '../../serve/utils.dart';
+import '../../serve/logging.dart';
 import '../data/connect_request.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart' as webdev;

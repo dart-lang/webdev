@@ -9,7 +9,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import '../serve/dev_workflow.dart';
-import '../serve/utils.dart';
+import '../serve/logging.dart';
 import 'configuration.dart';
 import 'shared.dart';
 
@@ -91,7 +91,7 @@ class ServeCommand extends Command<int> {
     Configuration configuration;
     configuration = Configuration.fromArgs(argResults);
     // Globally trigger verbose logs.
-    verboseLogs = configuration.verbose;
+    setVerbosity(configuration.verbose);
     var pubspecLock = await readPubspecLock(configuration);
     // Forward remaining arguments as Build Options to the Daemon.
     // This isn't documented. Should it be advertised?
