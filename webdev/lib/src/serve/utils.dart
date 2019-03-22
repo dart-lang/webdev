@@ -27,11 +27,12 @@ Future<int> findUnusedPort() async {
   return port;
 }
 
+var verboseLogs = false;
+
 /// Colors the message and writes it to stdout.
 ///
 /// If the [level] is not contained in the message, one will be inserted.
-void colorLog(Level level, String message, {bool verbose}) {
-  verbose ??= false;
+void colorLog(Level level, String message) {
   AnsiCode color;
   if (level < Level.WARNING) {
     color = cyan;
@@ -41,13 +42,13 @@ void colorLog(Level level, String message, {bool verbose}) {
     color = red;
   }
   var multiline = message.contains('\n') && !message.endsWith('\n');
-  var eraseLine = verbose ? '' : '\x1b[2K\r';
+  var eraseLine = verboseLogs ? '' : '\x1b[2K\r';
   var colorLevel = color.wrap('[$level]');
 
   stdout.write('$eraseLine$colorLevel $message');
 
   // Prevent multilines and severe messages from being erased.
-  if (level > Level.INFO || verbose || multiline) {
+  if (level > Level.INFO || verboseLogs || multiline) {
     stdout.writeln('');
   }
 }
