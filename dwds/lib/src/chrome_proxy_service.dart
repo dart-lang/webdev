@@ -110,89 +110,25 @@ class ChromeProxyService implements VmServiceInterface {
       ..kind = EventKind.kResume
       ..isolate = isolateRef;
 
-    // Query for the available libraries and add them to the isolate
-    var librariesResult = await tabConnection.runtime
-        .sendCommand('Runtime.evaluate', params: {
-      'expression': "require('dart_sdk').dart.getLibraries();",
-      'returnByValue': true
-    });
-    _handleErrorIfPresent(librariesResult);
-    var libraryNames =
-        (librariesResult.result['result']['value'] as List).cast<String>();
-    for (var library in libraryNames) {
+    for (var library in await _getLibraryNames()) {
       isolate.libraries.add(LibraryRef()
         ..id = library
         ..name = library
         ..uri = library);
     }
+
     // TODO: Something more robust here, right now we rely on the 2nd to last
     // library being the root one (the last library is the bootstrap lib).
     isolate.rootLib = isolate.libraries[isolate.libraries.length - 2];
 
-    // Find all the previously registered extensions on the page and add them
-    // to `extensionRPCs`.
-    var extensionsResult =
-        await tabConnection.runtime.sendCommand('Runtime.evaluate', params: {
-      'expression': "require('dart_sdk').developer._extensions.keys.toList();",
-      'returnByValue': true
-    });
-    _handleErrorIfPresent(extensionsResult);
-    isolate.extensionRPCs.addAll(
-        (extensionsResult.result['result']['value'] as List).cast<String>());
+    isolate.extensionRPCs.addAll(await _getExtensionRpcs());
 
     for (var libraryRef in isolate.libraries) {
       _libraryRefs[libraryRef.id] = libraryRef;
     }
 
     // Listen for `registerExtension` and `postEvent` calls.
-    _consoleSubscription = tabConnection.runtime.onConsoleAPICalled
-        .listen((ConsoleAPIEvent event) {
-      if (_isolate == null) return;
-      if (event.type != 'debug') return;
-      var firstArgValue = event.args[0].value as String;
-      switch (firstArgValue) {
-        case 'dart.developer.registerExtension':
-          var service = event.args[1].value as String;
-          _isolate.extensionRPCs.add(service);
-          _streamNotify(
-              'Isolate',
-              Event()
-                ..kind = EventKind.kServiceExtensionAdded
-                ..extensionRPC = service
-                ..isolate = isolateRef);
-          break;
-        case 'dart.developer.postEvent':
-          _streamNotify(
-              'Extension',
-              Event()
-                ..kind = EventKind.kExtension
-                ..extensionKind = event.args[1].value as String
-                ..extensionData = ExtensionData.parse(
-                    jsonDecode(event.args[2].value as String) as Map)
-                ..isolate = isolateRef);
-          break;
-        case 'dart.developer.inspect':
-          // All inspected objects should be real objects.
-          if (event.args[1].type != 'object') break;
-
-          var inspectee = InstanceRef()
-            ..kind = InstanceKind.kPlainInstance
-            ..id = event.args[1].objectId
-            // TODO: A real classref? we need something here so it can properly
-            // serialize, but it isn't used by the widget inspector.
-            ..classRef = ClassRef();
-          _streamNotify(
-              'Debug',
-              Event()
-                ..kind = EventKind.kInspect
-                ..inspectee = inspectee
-                ..timestamp = event.timestamp.toInt()
-                ..isolate = isolateRef);
-          break;
-        default:
-          break;
-      }
-    });
+    _setUpChromeConsoleListeners(isolateRef);
 
     _vm.isolates.add(isolateRef);
     _isolate = isolate;
@@ -277,7 +213,7 @@ require("dart_sdk").developer.invokeExtension(
       'expression': expression,
       'awaitPromise': true,
     });
-    _handleErrorIfPresent(response);
+    _handleErrorIfPresent(response, evalContents: expression);
     var decodedResponse =
         jsonDecode(response.result['result']['value'] as String)
             as Map<String, dynamic>;
@@ -402,7 +338,7 @@ require("dart_sdk").developer.invokeExtension(
     var classesResult = await tabConnection.runtime.sendCommand(
         'Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
-    _handleErrorIfPresent(classesResult);
+    _handleErrorIfPresent(classesResult, evalContents: expression);
     var classDescriptions = (classesResult.result['result']['value'] as List)
         .cast<Map<String, Object>>();
     var classRefs = <ClassRef>[];
@@ -755,6 +691,78 @@ require("dart_sdk").developer.invokeExtension(
     });
   }
 
+  /// Runs an eval on the page to compute all existing registered extensions.
+  Future<List<String>> _getExtensionRpcs() async {
+    var expression = "require('dart_sdk').developer._extensions.keys.toList();";
+    var extensionsResult = await tabConnection.runtime.sendCommand(
+        'Runtime.evaluate',
+        params: {'expression': expression, 'returnByValue': true});
+    _handleErrorIfPresent(extensionsResult, evalContents: expression);
+    return List.from(extensionsResult.result['result']['value'] as List);
+  }
+
+  /// Runs an eval on the page to compute all the library names in the app.
+  Future<List<String>> _getLibraryNames() async {
+    var expression = "require('dart_sdk').dart.getLibraries();";
+    var librariesResult = await tabConnection.runtime.sendCommand(
+        'Runtime.evaluate',
+        params: {'expression': expression, 'returnByValue': true});
+    _handleErrorIfPresent(librariesResult, evalContents: expression);
+    return List.from(librariesResult.result['result']['value'] as List);
+  }
+
+  /// Listens for chrome console events and handles the ones we care about.
+  void _setUpChromeConsoleListeners(IsolateRef isolateRef) {
+    _consoleSubscription = tabConnection.runtime.onConsoleAPICalled
+        .listen((ConsoleAPIEvent event) {
+      if (_isolate == null) return;
+      if (event.type != 'debug') return;
+      var firstArgValue = event.args[0].value as String;
+      switch (firstArgValue) {
+        case 'dart.developer.registerExtension':
+          var service = event.args[1].value as String;
+          _isolate.extensionRPCs.add(service);
+          _streamNotify(
+              'Isolate',
+              Event()
+                ..kind = EventKind.kServiceExtensionAdded
+                ..extensionRPC = service
+                ..isolate = isolateRef);
+          break;
+        case 'dart.developer.postEvent':
+          _streamNotify(
+              'Extension',
+              Event()
+                ..kind = EventKind.kExtension
+                ..extensionKind = event.args[1].value as String
+                ..extensionData = ExtensionData.parse(
+                    jsonDecode(event.args[2].value as String) as Map)
+                ..isolate = isolateRef);
+          break;
+        case 'dart.developer.inspect':
+          // All inspected objects should be real objects.
+          if (event.args[1].type != 'object') break;
+
+          var inspectee = InstanceRef()
+            ..kind = InstanceKind.kPlainInstance
+            ..id = event.args[1].objectId
+            // TODO: A real classref? we need something here so it can properly
+            // serialize, but it isn't used by the widget inspector.
+            ..classRef = ClassRef();
+          _streamNotify(
+              'Debug',
+              Event()
+                ..kind = EventKind.kInspect
+                ..inspectee = inspectee
+                ..timestamp = event.timestamp.toInt()
+                ..isolate = isolateRef);
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
   /// Adds [event] to the stream with [streamId] if there is anybody listening
   /// on that stream.
   void _streamNotify(String streamId, Event event) {
@@ -772,11 +780,11 @@ const _stdoutTypes = ['log', 'info', 'warning'];
 
 /// Throws an [ExceptionDetails] object if `exceptionDetails` is present on the
 /// result.
-void _handleErrorIfPresent(WipResponse response) {
+void _handleErrorIfPresent(WipResponse response, {String evalContents}) {
   if (response.result.containsKey('exceptionDetails')) {
-    // ignore: only_throw_errors
-    throw ExceptionDetails(
-        response.result['exceptionDetails'] as Map<String, dynamic>);
+    throw ChromeDebugException(
+        response.result['exceptionDetails'] as Map<String, dynamic>,
+        evalContents: evalContents);
   }
 }
 
@@ -800,3 +808,31 @@ String _getLibrarySnippet(String libraryUri) => '''
     .replace(/\\//gi, "__");
   var library = module[libraryIdentifier];
 ''';
+
+class ChromeDebugException extends ExceptionDetails implements Exception {
+  /// Optional, the exact contents of the eval that was attempted.
+  final String evalContents;
+
+  ChromeDebugException(Map<String, dynamic> exceptionDetails,
+      {this.evalContents})
+      : super(exceptionDetails);
+
+  @override
+  String toString() {
+    var description = StringBuffer()
+      ..writeln('Unexpected error from chrome devtools:');
+    if (text != null) {
+      description.writeln('text: $text');
+    }
+    if (exception != null) {
+      description.writeln('exception:');
+      description.writeln('  description: ${exception.description}');
+      description.writeln('  type: ${exception.type}');
+      description.writeln('  value: ${exception.value}');
+    }
+    if (evalContents != null) {
+      description.writeln('attempted eval: `$evalContents`');
+    }
+    return description.toString();
+  }
+}
