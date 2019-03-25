@@ -9,7 +9,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import '../serve/dev_workflow.dart';
-import '../serve/utils.dart';
+import '../serve/logging.dart';
 import 'configuration.dart';
 import 'shared.dart';
 
@@ -90,6 +90,8 @@ class ServeCommand extends Command<int> {
   Future<int> run() async {
     Configuration configuration;
     configuration = Configuration.fromArgs(argResults);
+    // Globally trigger verbose logs.
+    setVerbosity(configuration.verbose);
     var pubspecLock = await readPubspecLock(configuration);
     // Forward remaining arguments as Build Options to the Daemon.
     // This isn't documented. Should it be advertised?
@@ -101,8 +103,8 @@ class ServeCommand extends Command<int> {
         .where((arg) => arg.contains(':') || !arg.startsWith('--'))
         .toList();
     var targetPorts = _parseDirectoryArgs(directoryArgs);
-    var workflow = await DevWorkflow.start(
-        configuration, buildOptions, targetPorts, colorLog);
+    var workflow =
+        await DevWorkflow.start(configuration, buildOptions, targetPorts);
     await workflow.done;
     return 0;
   }

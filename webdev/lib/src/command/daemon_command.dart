@@ -12,6 +12,7 @@ import '../daemon/app_domain.dart';
 import '../daemon/daemon.dart';
 import '../daemon/daemon_domain.dart';
 import '../serve/dev_workflow.dart';
+import '../serve/logging.dart';
 import '../serve/utils.dart';
 import 'configuration.dart';
 import 'shared.dart';
@@ -50,16 +51,20 @@ class DaemonCommand extends Command<int> {
   Future<int> run() async {
     var daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
     var daemonDomain = DaemonDomain(daemon);
+    setLogHandler((level, message, {verbose}) {
+      daemonDomain.sendEvent(
+          'daemon.logMessage', {'level': '$level', 'message': message});
+    });
     daemon.registerDomain(daemonDomain);
     var configuration = Configuration(launchInChrome: true, debug: true);
     var pubspecLock = await readPubspecLock(configuration);
     var buildOptions = buildRunnerArgs(pubspecLock, configuration);
     var port = await findUnusedPort();
     var workflow = await DevWorkflow.start(
-        configuration, buildOptions, {'web': port}, (level, message) {
-      daemonDomain.sendEvent(
-          'daemon.logMessage', {'level': '$level', 'message': message});
-    });
+      configuration,
+      buildOptions,
+      {'web': port},
+    );
     daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
     await daemon.onExit;
     await workflow.shutDown();
