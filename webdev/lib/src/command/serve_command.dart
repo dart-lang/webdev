@@ -13,7 +13,7 @@ import '../serve/utils.dart';
 import 'configuration.dart';
 import 'shared.dart';
 
-final _defaultWebDirs = const ['web', 'test', 'example', 'benchmark'];
+final _defaultWebDirs = const ['web'];
 
 Map<String, int> _parseDirectoryArgs(List<String> args) {
   var result = <String, int>{};
