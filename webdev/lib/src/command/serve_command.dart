@@ -52,6 +52,13 @@ class ServeCommand extends Command<int> {
   ServeCommand() {
     addSharedArgs(argParser, releaseDefault: false);
     argParser
+      ..addOption(autoOption, help: '''
+Automatically performs an action after each build:
+
+reload:  Reload modules and hot-patch the app (retains current state)
+restart: Reload modules and re-invoke main (loses current state)
+refresh: Performs a full page refresh.
+''', allowed: ['reload', 'restart', 'refresh'])
       ..addOption(chromeDebugPortFlag,
           help: 'Specify which port the Chrome debugger is listening on. '
               'If used with $launchInChromeFlag Chrome will be started with the'
@@ -66,7 +73,8 @@ class ServeCommand extends Command<int> {
           negatable: false,
           help: 'Automatically reloads changed modules after each build '
               'and restarts your application.\n'
-              "Can't be used with $liveReloadFlag.")
+              "Can't be used with $liveReloadFlag.",
+          hide: true)
       ..addFlag(hotReloadFlag, negatable: false, hide: true)
       ..addFlag(launchInChromeFlag,
           negatable: false,
