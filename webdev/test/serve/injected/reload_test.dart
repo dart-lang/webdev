@@ -38,7 +38,7 @@ void main() {
     });
 
     test('can hot restart changes ', () async {
-      await fixture.buildAndLoad(['--hot-restart']);
+      await fixture.buildAndLoad(['--auto=restart']);
       await fixture.changeInput();
 
       var source = await fixture.webdriver.pageSource;
@@ -51,7 +51,7 @@ void main() {
     });
 
     test('can live reload changes ', () async {
-      await fixture.buildAndLoad(['--live-reload']);
+      await fixture.buildAndLoad(['--auto=refresh']);
       await fixture.changeInput();
 
       var source = await fixture.webdriver.pageSource;

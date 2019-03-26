@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
+import 'package:logging/logging.dart';
 
 import '../serve/injected/configuration.dart';
+import '../serve/logging.dart';
 
+const autoOption = 'auto';
 const chromeDebugPortFlag = 'chrome-debug-port';
 const debugFlag = 'debug';
 const hostnameFlag = 'hostname';
@@ -21,24 +24,47 @@ const requireBuildWebCompilersFlag = 'build-web-compilers';
 const verboseFlag = 'verbose';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
-  var reload = ReloadConfiguration.none;
-  var hotReload = argResults.options.contains(hotReloadFlag)
-      ? argResults[hotReloadFlag] as bool
-      : false;
-  var hotRestart = argResults.options.contains(hotRestartFlag)
-      ? argResults[hotRestartFlag] as bool
-      : false;
-  var liveReload = argResults.options.contains(liveReloadFlag)
-      ? argResults[liveReloadFlag] as bool
-      : false;
-  if ([hotReload, hotRestart, liveReload].where((v) => v).length > 1) {
-    throw InvalidConfiguration('Can not use --$hotReloadFlag, --$hotRestartFlag'
-        ' or --$liveReloadFlag together.');
+  var auto = argResults.options.contains(autoOption)
+      ? argResults[autoOption] as String
+      : null;
+
+  void _handleDeprecatedFlag(String flag, String autoFallback) {
+    if (argResults.options.contains(flag) &&
+        argResults.wasParsed(flag) &&
+        argResults[flag] as bool == true) {
+      logHandler(
+          Level.WARNING,
+          '--$flag is deprecated please use --auto=$autoFallback instead '
+          '(this has been automatically selected).');
+      if (auto != null) {
+        logHandler(
+            Level.WARNING,
+            'Only one --auto option is allowed, got $flag which corresponds '
+            'to --auto=$autoFallback, but already got --auto=$auto');
+      } else {
+        auto = autoFallback;
+      }
+    }
   }
-  if (hotReload) reload = ReloadConfiguration.hotReload;
-  if (hotRestart) reload = ReloadConfiguration.hotRestart;
-  if (liveReload) reload = ReloadConfiguration.liveReload;
-  return reload;
+
+  _handleDeprecatedFlag(hotReloadFlag, 'reload');
+  _handleDeprecatedFlag(hotRestartFlag, 'restart');
+  _handleDeprecatedFlag(liveReloadFlag, 'refresh');
+
+  switch (auto) {
+    case 'reload':
+      logHandler(
+          Level.WARNING,
+          'Hot reload is not yet supported for web projects. '
+          'Please try --auto=restart instead.');
+      return ReloadConfiguration.none;
+    case 'restart':
+      return ReloadConfiguration.hotRestart;
+    case 'refresh':
+      return ReloadConfiguration.liveReload;
+    default:
+      return ReloadConfiguration.none;
+  }
 }
 
 class Configuration {
