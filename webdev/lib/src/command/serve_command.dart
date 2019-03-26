@@ -89,7 +89,7 @@ class ServeCommand extends Command<int> {
   @override
   Future<int> run() async {
     Configuration configuration;
-    configuration = Configuration.fromArgs(argResults);
+    configuration = await Configuration.fromArgs(argResults);
     // Globally trigger verbose logs.
     setVerbosity(configuration.verbose);
     var pubspecLock = await readPubspecLock(configuration);
