@@ -55,10 +55,9 @@ class ServeCommand extends Command<int> {
       ..addOption(autoOption, help: '''
 Automatically performs an action after each build:
 
-reload:  Reload modules and hot-patch the app (retains current state)
 restart: Reload modules and re-invoke main (loses current state)
 refresh: Performs a full page refresh.
-''', allowed: ['reload', 'restart', 'refresh'])
+''', allowed: ['restart', 'refresh'])
       ..addOption(chromeDebugPortFlag,
           help: 'Specify which port the Chrome debugger is listening on. '
               'If used with $launchInChromeFlag Chrome will be started with the'
