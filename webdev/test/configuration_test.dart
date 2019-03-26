@@ -12,12 +12,12 @@ void main() {
     argParser = ArgParser()..addFlag('release');
   });
 
-  test('default configuration is correctly applied', () async {
+  test('default configuration is correctly applied', () {
     var configuration = Configuration.fromArgs(null);
     expect(configuration.hostname, equals('localhost'));
   });
 
-  test('arg configuration takes precedence to default configuration', () async {
+  test('arg configuration takes precedence to default configuration', () {
     var defaultConfiguration = Configuration.fromArgs(null);
     expect(defaultConfiguration.release, isFalse);
     var argResults = argParser.parse(['--release']);
