@@ -118,7 +118,7 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
   var issues = <PackageExceptionDetails>[];
 
   issues.addAll(pubspecLock.checkPackage(
-      'build_runner', VersionConstraint.parse('>=1.2.2 <2.0.0')));
+      'build_runner', VersionConstraint.parse('>=1.3.0 <2.0.0')));
 
   if (requireBuildWebCompilers) {
     issues.addAll(pubspecLock.checkPackage(

@@ -44,13 +44,17 @@ void addSharedArgs(ArgParser argParser,
 }
 
 List<String> buildRunnerArgs(
-    PubspecLock pubspecLock, Configuration configuration) {
+    PubspecLock pubspecLock, Configuration configuration,
+    {bool includeOutput}) {
+  includeOutput ??= true;
   var arguments = <String>[];
   if (configuration.release) {
     arguments.add('--$releaseFlag');
   }
 
-  if (configuration.output != null && configuration.output != outputNone) {
+  if (includeOutput &&
+      configuration.output != null &&
+      configuration.output != outputNone) {
     arguments.addAll(['--$outputFlag', configuration.output]);
   }
 

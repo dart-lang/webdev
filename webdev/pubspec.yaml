@@ -11,7 +11,7 @@ environment:
 
 dependencies:
   args: ^1.5.0
-  build_daemon: ^0.4.1
+  build_daemon: ^0.5.0
   built_value: ^6.3.0
   crypto: ^2.0.6
   dwds: ^0.1.0-dev
@@ -41,6 +41,8 @@ dev_dependencies:
 dependency_overrides:
   dwds:
     path: ../dwds
+  build_daemon:
+    path: /usr/local/google/home/grouma/Projects/build/build_daemon
 
 executables:
   webdev:

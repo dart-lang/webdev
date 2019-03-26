@@ -48,6 +48,8 @@ class Configuration {
   final bool _launchInChrome;
   final bool _logRequests;
   final String _output;
+  final String _outputInput;
+  final String _outputPath;
   final bool _release;
   final ReloadConfiguration _reload;
   final bool _requireBuildWebCompilers;
@@ -60,6 +62,8 @@ class Configuration {
     bool launchInChrome,
     bool logRequests,
     String output,
+    String outputInput,
+    String outputPath,
     ReloadConfiguration reload,
     bool release,
     bool requireBuildWebCompilers,
@@ -70,6 +74,8 @@ class Configuration {
         _launchInChrome = launchInChrome,
         _logRequests = logRequests,
         _output = output,
+        _outputInput = outputInput,
+        _outputPath = outputPath,
         _release = release,
         _reload = reload,
         _requireBuildWebCompilers = requireBuildWebCompilers,
@@ -86,6 +92,10 @@ class Configuration {
   bool get logRequests => _logRequests ?? false;
 
   String get output => _output ?? outputNone;
+
+  String get outputInput => _outputInput;
+
+  String get outputPath => _outputPath;
 
   bool get release => _release ?? false;
 
@@ -124,6 +134,19 @@ class Configuration {
         ? argResults[outputFlag] as String
         : defaultConfiguration.output;
 
+    String outputPath;
+    String outputInput;
+    if (output != 'NONE') {
+      var splitOutput = output.split(':');
+      if (splitOutput.length == 2) {
+        outputInput = splitOutput.first;
+        outputPath = splitOutput.last;
+      } else {
+        outputInput = '';
+        outputPath = output;
+      }
+    }
+
     var release = argResults.options.contains(releaseFlag)
         ? argResults[releaseFlag] as bool
         : defaultConfiguration.release;
@@ -150,6 +173,8 @@ class Configuration {
         launchInChrome: launchInChrome,
         logRequests: logRequests,
         output: output,
+        outputInput: outputInput,
+        outputPath: outputPath,
         release: release,
         reload: _parseReloadConfiguration(argResults),
         requireBuildWebCompilers: requireBuildWebCompilers,
