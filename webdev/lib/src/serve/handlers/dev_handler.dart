@@ -83,7 +83,7 @@ class DevHandler {
 
   void _handleConnection(SseConnection connection) {
     _connections.add(connection);
-    AppDebugServices appServices;
+    String appId;
     connection.stream.listen((data) async {
       var message = webdev.serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
@@ -96,8 +96,19 @@ class DevHandler {
                     'when starting webdev.'))));
           return;
         }
+        if (appId != message.appId) {
+          connection.sink.add(jsonEncode(webdev.serializers.serialize(
+              DevToolsResponse((b) => b
+                ..success = false
+                ..error =
+                    'App ID has changed since the connection was established. '
+                    'Please file an issue at '
+                    'https://github.com/dart-lang/webdev/issues/new.'))));
+          return;
+        }
 
-        appServices = await loadAppServices(message.appId, message.instanceId);
+        var appServices =
+            await loadAppServices(message.appId, message.instanceId);
 
         // Check if we are already running debug services for a different
         // instance of this app.
@@ -131,7 +142,14 @@ class DevHandler {
             .getUrl('json/new/?http://${_devTools.hostname}:${_devTools.port}'
                 '/?port=${appServices.debugService.port}');
       } else if (message is ConnectRequest) {
+        if (appId != null) {
+          throw StateError('Duplicate connection request from the same app. '
+              'Please file an issue at '
+              'https://github.com/dart-lang/webdev/issues/new.');
+        }
+        appId = message.appId;
         _connectedApps.add(message);
+
         // After a page refresh, reconnect to the same app services if they
         // were previously launched and create the new isolate.
         var services = await _servicesByAppId[message.appId];
@@ -140,9 +158,8 @@ class DevHandler {
           // otherwise do nothing for now.
           if (await _isCorrectTab(message.instanceId,
               services.debugService.chromeProxyService.tabConnection)) {
-            appServices = services;
-            appServices.connectedInstanceId = message.instanceId;
-            await appServices.debugService.chromeProxyService.createIsolate();
+            services.connectedInstanceId = message.instanceId;
+            await services.debugService.chromeProxyService.createIsolate();
           }
         }
       }
@@ -150,8 +167,11 @@ class DevHandler {
 
     unawaited(connection.sink.done.then((_) async {
       _connections.remove(connection);
-      appServices?.connectedInstanceId = null;
-      appServices?.debugService?.chromeProxyService?.destroyIsolate();
+      if (appId != null) {
+        var services = await _servicesByAppId[appId];
+        services?.connectedInstanceId = null;
+        services?.debugService?.chromeProxyService?.destroyIsolate();
+      }
     }));
   }
 
