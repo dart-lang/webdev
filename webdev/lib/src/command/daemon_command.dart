@@ -56,8 +56,7 @@ class DaemonCommand extends Command<int> {
           'daemon.logMessage', {'level': '$level', 'message': message});
     });
     daemon.registerDomain(daemonDomain);
-    var configuration =
-        await Configuration.fromValues(launchInChrome: true, debug: true);
+    var configuration = Configuration(launchInChrome: true, debug: true);
     var pubspecLock = await readPubspecLock(configuration);
     var buildOptions = buildRunnerArgs(pubspecLock, configuration);
     var port = await findUnusedPort();

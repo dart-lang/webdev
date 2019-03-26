@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 
 import '../serve/injected/configuration.dart';
 import '../serve/logging.dart';
-import '../util.dart';
 
 const autoOption = 'auto';
 const chromeDebugPortFlag = 'chrome-debug-port';
@@ -82,7 +79,7 @@ class Configuration {
   final bool _requireBuildWebCompilers;
   final bool _verbose;
 
-  Configuration._({
+  Configuration({
     int chromeDebugPort,
     bool debug,
     String hostname,
@@ -108,7 +105,7 @@ class Configuration {
 
   bool get debug => _debug ?? false;
 
-  String get hostname => _hostname;
+  String get hostname => _hostname ?? 'localhost';
 
   bool get launchInChrome => _launchInChrome ?? false;
 
@@ -124,36 +121,9 @@ class Configuration {
 
   bool get verbose => _verbose ?? false;
 
-  static Future<Configuration> fromValues({
-    int chromeDebugPort,
-    bool debug,
-    String hostname,
-    bool launchInChrome,
-    bool logRequests,
-    String output,
-    ReloadConfiguration reload,
-    bool release,
-    bool requireBuildWebCompilers,
-    bool verbose,
-  }) async {
-    hostname ??= await supportsIpv6 ? '0.0.0.0' : 'localhost';
-    return Configuration._(
-      chromeDebugPort: chromeDebugPort,
-      debug: debug,
-      hostname: hostname,
-      launchInChrome: launchInChrome,
-      logRequests: logRequests,
-      output: output,
-      reload: reload,
-      release: release,
-      requireBuildWebCompilers: requireBuildWebCompilers,
-      verbose: verbose,
-    );
-  }
-
   /// Returns a new configuration with values updated from the parsed args.
-  static Future<Configuration> fromArgs(ArgResults argResults) async {
-    var defaultConfiguration = await fromValues();
+  static Configuration fromArgs(ArgResults argResults) {
+    var defaultConfiguration = Configuration();
     if (argResults == null) return defaultConfiguration;
 
     var chromeDebugPort = argResults.options.contains(chromeDebugPortFlag)
@@ -199,7 +169,7 @@ class Configuration {
           '--$debugFlag.');
     }
 
-    return Configuration._(
+    return Configuration(
         chromeDebugPort: chromeDebugPort,
         debug: debug,
         hostname: hostname,

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:shelf/shelf.dart';
+import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -67,12 +67,13 @@ class DebugService {
     var chromeProxyService = await ChromeProxyService.create(
         chromeConnection, assetHandler, appInstanceId);
     var serviceExtensionRegistry = ServiceExtensionRegistry();
-    var cascade = Cascade().add(webSocketHandler(_createNewConnectionHandler(
-        chromeProxyService, serviceExtensionRegistry)));
-
+    var handler = webSocketHandler(_createNewConnectionHandler(
+        chromeProxyService, serviceExtensionRegistry));
     var port = await findUnusedPort();
-
-    var server = await serve(cascade.handler, hostname, port);
+    var server = hostname == 'localhost'
+        ? await HttpMultiServer.loopback(port)
+        : await HttpServer.bind(hostname, port);
+    serveRequests(server, handler);
     return DebugService._(
         chromeProxyService, hostname, port, serviceExtensionRegistry, server);
   }

@@ -52,7 +52,7 @@ class Chrome {
     await _dataDir?.delete(recursive: true);
   }
 
-  /// Connects to an instance of the Chreom.
+  /// Connects to an instance of the Chrome.
   static Future<Chrome> fromExisting(int port) async =>
       _connect(Chrome._(port, ChromeConnection('localhost', port)));
 

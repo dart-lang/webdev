@@ -97,7 +97,7 @@ refresh: Performs a full page refresh.
   @override
   Future<int> run() async {
     Configuration configuration;
-    configuration = await Configuration.fromArgs(argResults);
+    configuration = Configuration.fromArgs(argResults);
     // Globally trigger verbose logs.
     setVerbosity(configuration.verbose);
     var pubspecLock = await readPubspecLock(configuration);
