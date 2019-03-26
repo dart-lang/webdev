@@ -84,7 +84,8 @@ refresh: Performs a full page refresh.
           negatable: false,
           help:
               'Automatically refreshes the page after each successful build.\n'
-              "Can't be used with $hotRestartFlag.")
+              "Can't be used with $hotRestartFlag.",
+          hide: true)
       ..addFlag(logRequestsFlag,
           negatable: false,
           help: 'Enables logging for each request to the server.');
