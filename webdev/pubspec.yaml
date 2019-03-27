@@ -41,8 +41,6 @@ dev_dependencies:
 dependency_overrides:
   dwds:
     path: ../dwds
-  build_daemon:
-    path: /usr/local/google/home/grouma/Projects/build/build_daemon
 
 executables:
   webdev:
