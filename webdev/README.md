@@ -38,6 +38,13 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
                                   (defaults to on)
 
 -v, --verbose                     Enables verbose logging.
+    --auto                        Automatically performs an action after each
+                                  build:
+
+                                  restart: Reload modules and re-invoke main
+                                  (loses current state)
+                                  refresh: Performs a full page refresh.
+                                  [restart, refresh]
     --chrome-debug-port           Specify which port the Chrome debugger is
                                   listening on. If used with launch-in-chrome
                                   Chrome will be started with the debugger
@@ -50,17 +57,10 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
     --hostname                    Specify the hostname to serve on.
                                   (defaults to "localhost")
 
-    --hot-restart                 Automatically reloads changed modules after
-                                  each build and restarts your application.
-                                  Can't be used with live-reload.
 
     --launch-in-chrome            Automatically launches your application in
                                   Chrome with the debug port open. Use
                                   chrome-debug-port to specify a specific port.
-
-    --live-reload                 Automatically refreshes the page after each
-                                  successful build.
-                                  Can't be used with hot-restart.
 
     --log-requests                Enables logging for each request to the
                                   server.

@@ -21,8 +21,10 @@ Future _readmeCheck(List<String> args) async {
 
   var readme = File('README.md');
 
-  var command = (['webdev']..addAll(args)).join(' ');
-  var expected = '```console\n\$ $command\n$output\n```';
-
-  expect(readme.readAsStringSync(), contains(expected));
+  var contents = readme.readAsStringSync();
+  var placeholder = '\$ webdev ${args.join(' ')}';
+  contents =
+      contents.substring(contents.indexOf(placeholder) + placeholder.length);
+  contents = contents.substring(0, contents.indexOf('```'));
+  expect(contents, equalsIgnoringWhitespace(output));
 }

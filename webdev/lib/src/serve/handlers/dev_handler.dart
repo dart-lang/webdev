@@ -15,7 +15,7 @@ import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../serve/chrome.dart';
-import '../../serve/utils.dart';
+import '../../serve/logging.dart';
 import '../data/connect_request.dart';
 import '../data/devtools_request.dart';
 import '../data/serializers.dart' as webdev;
@@ -35,11 +35,12 @@ class DevHandler {
   final String _hostname;
   final _connectedApps = StreamController<ConnectRequest>.broadcast();
   final _servicesByAppId = <String, Future<AppDebugServices>>{};
+  final Stream<BuildResult> buildResults;
 
   Stream<ConnectRequest> get connectedApps => _connectedApps.stream;
 
-  DevHandler(Stream<BuildResult> buildResults, this._devTools,
-      this._assetHandler, this._hostname) {
+  DevHandler(
+      this.buildResults, this._devTools, this._assetHandler, this._hostname) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
   }
@@ -166,7 +167,7 @@ class DevHandler {
     var chrome = await Chrome.connectedInstance;
     var debugService =
         await startDebugService(chrome.chromeConnection, instanceId);
-    colorLog(
+    logHandler(
         Level.INFO,
         'Debug service listening on '
         'ws://${debugService.hostname}:${debugService.port}\n');
@@ -178,7 +179,7 @@ class DevHandler {
         debugService.chromeProxyService.tabConnection.onClose.first.then((_) {
       appServices.close();
       _servicesByAppId.remove(appId);
-      colorLog(
+      logHandler(
           Level.INFO,
           'Stopped debug service on '
           'ws://${debugService.hostname}:${debugService.port}\n');

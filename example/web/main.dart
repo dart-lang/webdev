@@ -4,10 +4,12 @@
 
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:html';
 
 void main() {
   registerExtension('ext.print', (_, __) async {
     print('Hello World');
     return ServiceExtensionResponse.result(json.encode({'success': true}));
   });
+  document.body.append(SpanElement()..text = 'Hello World!!');
 }

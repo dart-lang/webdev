@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:build_daemon/data/build_status.dart';
 import 'package:dwds/service.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
@@ -22,7 +23,9 @@ class AppDomain extends Domain {
   AppDebugServices _appDebugServices;
   DebugService get _debugService => _appDebugServices?.debugService;
   VmService get _vmService => _appDebugServices?.webdevClient?.client;
+  StreamSubscription<BuildResult> _resultSub;
   bool _isShutdown = false;
+  int _buildProgressEventId;
   var _progressEventId = 0;
 
   void _initialize(ServerManager serverManager) async {
@@ -52,6 +55,35 @@ class AppDomain extends Domain {
       'appId': _appId,
       'port': _debugService.port,
       'wsUri': _debugService.wsUri,
+    });
+    _resultSub = devHandler.buildResults.listen((result) {
+      switch (result.status) {
+        case BuildStatus.started:
+          _buildProgressEventId = _progressEventId++;
+          sendEvent('app.progress', {
+            'appId': _appId,
+            'id': '$_buildProgressEventId',
+            'message': 'Starting Build',
+            'progressId': 'build.started',
+          });
+          break;
+        case BuildStatus.failed:
+          sendEvent('app.progress', {
+            'appId': _appId,
+            'id': '$_buildProgressEventId',
+            'message': 'Build Failed',
+            'progressId': 'build.failed',
+          });
+          break;
+        case BuildStatus.succeeded:
+          sendEvent('app.progress', {
+            'appId': _appId,
+            'id': '$_buildProgressEventId',
+            'message': 'Build Succeeded',
+            'progressId': 'build.succeeded',
+          });
+          break;
+      }
     });
 
     // Shutdown could have been triggered while awaiting above.
@@ -89,6 +121,7 @@ class AppDomain extends Domain {
     }
     // TODO(grouma) - Support pauseAfterRestart.
     // var pauseAfterRestart = getBoolArg(args, 'pause') ?? false;
+    var stopwatch = Stopwatch()..start();
     _progressEventId++;
     sendEvent('app.progress', {
       'appId': _appId,
@@ -102,6 +135,10 @@ class AppDomain extends Domain {
       'id': '$_progressEventId',
       'finished': true,
       'progressId': 'hot.restart',
+    });
+    sendEvent('daemon.logMessage', {
+      'level': 'info',
+      'message': 'Restared application in ${stopwatch.elapsedMilliseconds}ms'
     });
     return {
       'code': response.type == 'Success' ? 0 : 1,
@@ -120,6 +157,7 @@ class AppDomain extends Domain {
   @override
   void dispose() {
     _isShutdown = true;
+    _resultSub.cancel();
     _appDebugServices.close();
   }
 }
