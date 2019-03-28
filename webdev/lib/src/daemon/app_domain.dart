@@ -138,7 +138,7 @@ class AppDomain extends Domain {
     });
     sendEvent('daemon.logMessage', {
       'level': 'info',
-      'message': 'Restared application in ${stopwatch.elapsedMilliseconds}ms'
+      'message': 'Restarted application in ${stopwatch.elapsedMilliseconds}ms'
     });
     return {
       'code': response.type == 'Success' ? 0 : 1,
