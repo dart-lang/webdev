@@ -58,7 +58,8 @@ class DaemonCommand extends Command<int> {
     daemon.registerDomain(daemonDomain);
     var configuration = Configuration(launchInChrome: true, debug: true);
     var pubspecLock = await readPubspecLock(configuration);
-    var buildOptions = buildRunnerArgs(pubspecLock, configuration);
+    var buildOptions =
+        buildRunnerArgs(pubspecLock, configuration, includeOutput: false);
     var port = await findUnusedPort();
     var workflow = await DevWorkflow.start(
       configuration,

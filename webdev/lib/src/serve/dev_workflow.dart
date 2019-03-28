@@ -105,6 +105,39 @@ Future<DevTools> _startDevTools(
   return null;
 }
 
+void _registerBuildTargets(
+  BuildDaemonClient client,
+  Configuration configuration,
+  Map<String, int> targetPorts,
+) {
+  // Register a target for each serve target.
+  for (var target in targetPorts.keys) {
+    OutputLocation outputLocation;
+    if (configuration.outputPath != null &&
+        (configuration.outputInput == null ||
+            target == configuration.outputInput)) {
+      outputLocation = OutputLocation((b) => b
+        ..output = configuration.outputPath
+        ..useSymlinks = true
+        ..hoist = true);
+    }
+    client.registerBuildTarget(DefaultBuildTarget((b) => b
+      ..target = target
+      ..outputLocation = outputLocation?.toBuilder()));
+  }
+  // Empty string indicates we should build everything, register a corresponding
+  // target.
+  if (configuration.outputInput == '') {
+    var outputLocation = OutputLocation((b) => b
+      ..output = configuration.outputPath
+      ..useSymlinks = true
+      ..hoist = false);
+    client.registerBuildTarget(DefaultBuildTarget((b) => b
+      ..target = ''
+      ..outputLocation = outputLocation?.toBuilder()));
+  }
+}
+
 /// Controls the web development workflow.
 ///
 /// Connects to the Build Daemon, creates servers, launches Chrome and wires up
@@ -138,9 +171,7 @@ class DevWorkflow {
         configuration, targetPorts, workingDirectory, client, devTools);
     var chrome = await _startChrome(configuration, serverManager, client);
     logHandler(Level.INFO, 'Registering build targets...');
-    for (var target in targetPorts.keys) {
-      client.registerBuildTarget(DefaultBuildTarget((b) => b.target = target));
-    }
+    _registerBuildTargets(client, configuration, targetPorts);
     logHandler(Level.INFO, 'Starting initial build...');
     client.startBuild();
     return DevWorkflow._(client, chrome, devTools, serverManager);

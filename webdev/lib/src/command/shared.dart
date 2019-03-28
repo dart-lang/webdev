@@ -43,14 +43,20 @@ void addSharedArgs(ArgParser argParser,
         help: 'Enables verbose logging.');
 }
 
+/// Parses the provided [Configuration] to return a list of
+/// `package:build_runner` appropriate arguments.
 List<String> buildRunnerArgs(
-    PubspecLock pubspecLock, Configuration configuration) {
+    PubspecLock pubspecLock, Configuration configuration,
+    {bool includeOutput}) {
+  includeOutput ??= true;
   var arguments = <String>[];
   if (configuration.release) {
     arguments.add('--$releaseFlag');
   }
 
-  if (configuration.output != null && configuration.output != outputNone) {
+  if (includeOutput &&
+      configuration.output != null &&
+      configuration.output != outputNone) {
     arguments.addAll(['--$outputFlag', configuration.output]);
   }
 
