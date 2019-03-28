@@ -43,6 +43,8 @@ void addSharedArgs(ArgParser argParser,
         help: 'Enables verbose logging.');
 }
 
+/// Parses the provided [Configuration] to return a list of
+/// `package:build_runner` appropriate arguments.
 List<String> buildRunnerArgs(
     PubspecLock pubspecLock, Configuration configuration,
     {bool includeOutput}) {
