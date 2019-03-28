@@ -6,6 +6,7 @@ description: >-
 environment:
   sdk: ^2.1.0
 dependencies:
+  http_multi_server: ^2.0.0
   pub_semver: ^1.4.2
   source_maps: ^0.10.0
   vm_service_lib: 3.14.3-dev.4
