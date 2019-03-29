@@ -30,7 +30,8 @@ void main() {
 
   var invalidRanges = <String, List<String>>{
     'build_runner': ['0.8.9', '2.0.0'],
-    'build_web_compilers': ['0.3.5', '2.0.0']
+    'build_web_compilers': ['0.3.5', '2.0.0'],
+    'build_daemon': ['0.3.0', '0.4.1'],
   };
 
   for (var command in ['build', 'serve']) {
@@ -106,15 +107,21 @@ name: sample
             test('at invalid version `$version` should fail', () async {
               var buildRunnerVersion = _supportedBuildRunnerVersion;
               var webCompilersVersion = _supportedWebCompilersVersion;
+              var buildDaemonVersion = _supportedBuildDaemonVersion;
 
               String supportedRange;
-              if (entry.key == 'build_runner') {
-                buildRunnerVersion = version;
-                supportedRange = '>=1.3.0 <2.0.0';
-              } else {
-                assert(entry.key == 'build_web_compilers');
-                webCompilersVersion = version;
-                supportedRange = '>=1.2.0 <2.0.0';
+              switch (entry.key) {
+                case 'build_runner':
+                  buildRunnerVersion = version;
+                  supportedRange = '>=1.3.0 <2.0.0';
+                  break;
+                case 'build_web_compilers':
+                  webCompilersVersion = version;
+                  supportedRange = '>=1.2.0 <2.0.0';
+                  break;
+                case 'build_daemon':
+                  buildDaemonVersion = version;
+                  supportedRange = '^0.4.0';
               }
 
               await d.file('pubspec.yaml', '''
@@ -126,7 +133,8 @@ name: sample
                       'pubspec.lock',
                       _pubspecLock(
                           runnerVersion: buildRunnerVersion,
-                          webCompilersVersion: webCompilersVersion))
+                          webCompilersVersion: webCompilersVersion,
+                          daemonVersion: buildDaemonVersion))
                   .create();
 
               await d.file('.packages', '''
@@ -135,13 +143,21 @@ name: sample
               var process =
                   await runWebDev(['serve'], workingDirectory: d.sandbox);
 
-              await checkProcessStdout(process, [
-                'webdev could not run for this project.',
-                // See https://github.com/dart-lang/linter/issues/965
-                // ignore: prefer_adjacent_string_concatenation
-                'The `${entry.key}` version – $version – ' +
-                    'is not within the allowed constraint – $supportedRange.'
-              ]);
+              if (entry.key == 'build_daemon') {
+                await checkProcessStdout(process, [
+                  'webdev could not run for this project.',
+                  'This version of webdev does not support the `build_daemon`'
+                ]);
+              } else {
+                await checkProcessStdout(process, [
+                  'webdev could not run for this project.',
+                  // See https://github.com/dart-lang/linter/issues/965
+                  // ignore: prefer_adjacent_string_concatenation
+                  'The `${entry.key}` version – $version – ' +
+                      'is not within the allowed constraint – $supportedRange.'
+                ]);
+              }
+
               await process.shouldExit(78);
             });
           }
@@ -219,10 +235,12 @@ dependencies:
 
 const _supportedBuildRunnerVersion = '1.3.0';
 const _supportedWebCompilersVersion = '1.2.0';
+const _supportedBuildDaemonVersion = '0.5.0';
 
 String _pubspecLock(
     {String runnerVersion = _supportedBuildRunnerVersion,
-    String webCompilersVersion = _supportedWebCompilersVersion}) {
+    String webCompilersVersion = _supportedWebCompilersVersion,
+    String daemonVersion = _supportedBuildDaemonVersion}) {
   var buffer = StringBuffer('''
 # Copy-pasted from a valid run
 packages:
@@ -249,6 +267,18 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "$webCompilersVersion"
+''');
+  }
+
+  if (daemonVersion != null) {
+    buffer.writeln('''
+  build_daemon:
+    dependency: "direct transitive"
+    description:
+      name: build_daemon
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "$daemonVersion"
 ''');
   }
 
