@@ -16,16 +16,23 @@ dependencies:
   crypto: ^2.0.6
   dwds: ^0.1.0
   devtools: ^0.0.13-dev.0
+  graphs: ^0.2.0
+  http: ^0.12.0
   io: ^0.3.2+1
+  js: ^0.6.1
+  logging: ^0.11.0
+  pedantic: ^1.5.0
   meta: ^1.1.2
   path: ^1.5.1
   pubspec_parse: ^0.1.4
   pub_semver: ^1.3.2
   shelf: ^0.7.4
   shelf_proxy: ^0.1.0+5
+  shelf_static: ^0.2.8
   stack_trace: ^1.9.2
   sse: ^2.0.0
   uuid: ^2.0.0
+  vm_service_lib: ^3.14.2
   webkit_inspection_protocol: ^0.4.0
   yaml: ^2.1.13
 
@@ -38,10 +45,6 @@ dev_dependencies:
   test_descriptor: ^1.0.3
   test_process: ^1.0.1
   webdriver: ^2.0.0
-
-dependency_overrides:
-  dwds:
-    path: ../dwds
 
 executables:
   webdev:
