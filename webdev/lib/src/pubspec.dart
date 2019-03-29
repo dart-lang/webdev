@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'util.dart';
+import 'version.dart';
 
 class PackageException implements Exception {
   final List<PackageExceptionDetails> details;
@@ -22,13 +25,17 @@ class PackageException implements Exception {
 class PackageExceptionDetails {
   final String error;
   final String description;
+  final bool _missingDependency;
 
-  const PackageExceptionDetails._(this.error, {this.description});
+  const PackageExceptionDetails._(this.error,
+      {this.description, bool missingDependency})
+      : _missingDependency = missingDependency ?? false;
 
   static const noPubspecLock = PackageExceptionDetails._(
       '`pubspec.lock` does not exist.',
       description:
-          'Run `$appName` in a Dart package directory. Run `pub get` first.');
+          'Run `$appName` in a Dart package directory. Run `pub get` first.',
+      missingDependency: true);
 
   static PackageExceptionDetails missingDep(
           String pkgName, VersionConstraint constraint) =>
@@ -37,7 +44,8 @@ class PackageExceptionDetails {
           description: '''
 # pubspec.yaml
 dev_dependencies:
-  $pkgName: $constraint''');
+  $pkgName: $constraint''',
+          missingDependency: true);
 
   @override
   String toString() => [error, description].join('\n');
@@ -77,7 +85,8 @@ class PubspecLock {
 
   List<PackageExceptionDetails> checkPackage(
       String pkgName, VersionConstraint constraint,
-      {String forArgument}) {
+      {String forArgument, bool requireDirect}) {
+    requireDirect ??= true;
     var issues = <PackageExceptionDetails>[];
     var missingDetails =
         PackageExceptionDetails.missingDep(pkgName, constraint);
@@ -87,7 +96,7 @@ class PubspecLock {
       issues.add(missingDetails);
     } else {
       var dependency = pkgDataMap['dependency'] as String;
-      if (!dependency.startsWith('direct ')) {
+      if (requireDirect && !dependency.startsWith('direct ')) {
         issues.add(missingDetails);
       }
 
@@ -113,6 +122,42 @@ class PubspecLock {
   }
 }
 
+Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
+    PubspecLock pubspecLock) async {
+  var buildDaemonConstraint = '^0.4.0';
+
+  var issues = <PackageExceptionDetails>[];
+
+  var buildDaemonIssues = pubspecLock.checkPackage(
+    'build_daemon',
+    VersionConstraint.parse(buildDaemonConstraint),
+  );
+
+  // Only warn of build_daemon issues if they have a dependency on the package.
+  if (buildDaemonIssues.any((issue) => !issue._missingDependency)) {
+    var info = await _latestPackageInfo();
+    var issuePreamble =
+        'This version of webdev does not support the `build_daemon` '
+        'protocol used by your version of `build_runner`.';
+    // Check if the newer version supports the `build_daemon` transitive version
+    // used by their application.
+    if (info.isNewer &&
+        pubspecLock
+            .checkPackage('build_daemon', info.buildDaemonConstraint,
+                requireDirect: false)
+            .isEmpty) {
+      issues.add(PackageExceptionDetails._('$issuePreamble\n'
+          'A newer version of webdev is available which supports'
+          'your version of the `build_daemon`. Please update.'));
+    } else {
+      issues.add(PackageExceptionDetails._('$issuePreamble\n'
+          'Please add a dev dependency on `build_daemon` with constraint: '
+          '$buildDaemonConstraint'));
+    }
+  }
+  return issues;
+}
+
 Future<void> checkPubspecLock(PubspecLock pubspecLock,
     {@required bool requireBuildWebCompilers}) async {
   var issues = <PackageExceptionDetails>[];
@@ -125,7 +170,33 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
         'build_web_compilers', VersionConstraint.parse('>=1.2.0 <2.0.0')));
   }
 
+  issues.addAll(await _validateBuildDaemonVersion(pubspecLock));
+
   if (issues.isNotEmpty) {
     throw PackageException(issues);
   }
+}
+
+class _PackageInfo {
+  final Version version;
+  final VersionConstraint buildDaemonConstraint;
+  final bool isNewer;
+  _PackageInfo(this.version, this.buildDaemonConstraint, this.isNewer);
+}
+
+/// Returns the package info for the latest webdev release.
+Future<_PackageInfo> _latestPackageInfo() async {
+  var response = await get('https://pub.dartlang.org/api/packages/webdev');
+  var responseObj = json.decode(response.body);
+  var pubVersionString = responseObj['latest']['pubspec']['version'] as String;
+  var buildDaemonConfig = responseObj['latest']['pubspec']['dev_dependencies']
+      ['build_demon'] as String;
+  var buildDaemonConstraint = buildDaemonConfig != null
+      ? VersionConstraint.parse(buildDaemonConfig)
+      // This should never be satisfied.
+      : VersionConstraint.parse('0.0.0');
+  var pubVersion = Version.parse(pubVersionString);
+  var currentVersion = Version.parse(packageVersion);
+  return _PackageInfo(pubVersion, buildDaemonConstraint,
+      currentVersion.compareTo(pubVersion) < 0);
 }
