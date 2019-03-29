@@ -31,7 +31,7 @@ void main() {
   var invalidRanges = <String, List<String>>{
     'build_runner': ['0.8.9', '2.0.0'],
     'build_web_compilers': ['0.3.5', '2.0.0'],
-    'build_daemon': ['0.3.0', '0.3.1'],
+    'build_daemon': ['0.3.0', '0.4.1'],
   };
 
   for (var command in ['build', 'serve']) {
@@ -235,7 +235,7 @@ dependencies:
 
 const _supportedBuildRunnerVersion = '1.3.0';
 const _supportedWebCompilersVersion = '1.2.0';
-const _supportedBuildDaemonVersion = '0.4.0';
+const _supportedBuildDaemonVersion = '0.5.0';
 
 String _pubspecLock(
     {String runnerVersion = _supportedBuildRunnerVersion,
