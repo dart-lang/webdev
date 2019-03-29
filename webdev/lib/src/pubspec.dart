@@ -193,8 +193,7 @@ Future<_PackageInfo> _latestPackageInfo() async {
   var responseObj = json.decode(response.body);
   var pubspec = Pubspec.fromJson(
       responseObj['latest']['pubspec'] as Map<String, dynamic>);
-  var buildDaemonDependency = pubspec.dependencies['build_daemon'] ??
-      pubspec.devDependencies['build_daemon'];
+  var buildDaemonDependency = pubspec.dependencies['build_daemon'];
   // This should never be satisfied.
   var buildDaemonConstraint = VersionConstraint.parse('0.0.0');
   if (buildDaemonDependency is HostedDependency) {
