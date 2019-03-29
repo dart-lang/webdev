@@ -74,6 +74,8 @@ class Configuration {
   final bool _launchInChrome;
   final bool _logRequests;
   final String _output;
+  final String outputInput;
+  final String outputPath;
   final bool _release;
   final ReloadConfiguration _reload;
   final bool _requireBuildWebCompilers;
@@ -86,6 +88,8 @@ class Configuration {
     bool launchInChrome,
     bool logRequests,
     String output,
+    this.outputInput,
+    this.outputPath,
     ReloadConfiguration reload,
     bool release,
     bool requireBuildWebCompilers,
@@ -150,6 +154,19 @@ class Configuration {
         ? argResults[outputFlag] as String
         : defaultConfiguration.output;
 
+    String outputPath;
+    String outputInput;
+    if (output != 'NONE') {
+      var splitOutput = output.split(':');
+      if (splitOutput.length == 2) {
+        outputInput = splitOutput.first;
+        outputPath = splitOutput.last;
+      } else {
+        outputInput = '';
+        outputPath = output;
+      }
+    }
+
     var release = argResults.options.contains(releaseFlag)
         ? argResults[releaseFlag] as bool
         : defaultConfiguration.release;
@@ -176,6 +193,8 @@ class Configuration {
         launchInChrome: launchInChrome,
         logRequests: logRequests,
         output: output,
+        outputInput: outputInput,
+        outputPath: outputPath,
         release: release,
         reload: _parseReloadConfiguration(argResults),
         requireBuildWebCompilers: requireBuildWebCompilers,
