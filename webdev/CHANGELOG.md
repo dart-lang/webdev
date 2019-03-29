@@ -1,4 +1,4 @@
-## 2.0.0
+## 2.0.0-alpha.0
 
 - Support building with `package:build_daemon` through `serve` command.
 - The `serve` command will now only serve `web` by default.
