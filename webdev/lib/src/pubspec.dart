@@ -10,6 +10,7 @@ import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 
 import 'util.dart';
 import 'version.dart';
@@ -131,6 +132,7 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
   var buildDaemonIssues = pubspecLock.checkPackage(
     'build_daemon',
     VersionConstraint.parse(buildDaemonConstraint),
+    requireDirect: false,
   );
 
   // Only warn of build_daemon issues if they have a dependency on the package.
@@ -186,17 +188,19 @@ class _PackageInfo {
 
 /// Returns the package info for the latest webdev release.
 Future<_PackageInfo> _latestPackageInfo() async {
-  var response = await get('https://pub.dartlang.org/api/packages/webdev');
+  var response = await get('https://pub.dartlang.org/api/packages/webdev',
+      headers: {HttpHeaders.userAgentHeader: 'webdev $packageVersion'});
   var responseObj = json.decode(response.body);
-  var pubVersionString = responseObj['latest']['pubspec']['version'] as String;
-  var buildDaemonConfig = responseObj['latest']['pubspec']['dev_dependencies']
-      ['build_demon'] as String;
-  var buildDaemonConstraint = buildDaemonConfig != null
-      ? VersionConstraint.parse(buildDaemonConfig)
-      // This should never be satisfied.
-      : VersionConstraint.parse('0.0.0');
-  var pubVersion = Version.parse(pubVersionString);
+  var pubspec = Pubspec.fromJson(
+      responseObj['latest']['pubspec'] as Map<String, dynamic>);
+  var buildDaemonDependency = pubspec.dependencies['build_daemon'] ??
+      pubspec.devDependencies['build_daemon'];
+  // This should never be satisfied.
+  var buildDaemonConstraint = VersionConstraint.parse('0.0.0');
+  if (buildDaemonDependency is HostedDependency) {
+    buildDaemonConstraint = buildDaemonDependency.version;
+  }
   var currentVersion = Version.parse(packageVersion);
-  return _PackageInfo(pubVersion, buildDaemonConstraint,
-      currentVersion.compareTo(pubVersion) < 0);
+  return _PackageInfo(pubspec.version, buildDaemonConstraint,
+      currentVersion.compareTo(pubspec.version) < 0);
 }
