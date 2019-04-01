@@ -15,14 +15,14 @@ import 'package:js/js_util.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 
-import '../data/connect_request.dart';
-import '../data/devtools_request.dart';
-import '../data/serializers.dart';
+import 'package:webdev/src/serve/data/connect_request.dart';
+import 'package:webdev/src/serve/data/devtools_request.dart';
+import 'package:webdev/src/serve/data/serializers.dart';
 import 'module.dart';
 import 'reloading_manager.dart';
 
 // GENERATE:
-// dart2js lib/src/serve/injected/client.dart -o lib/src/serve/injected/client.js -m --no-source-maps
+// pub run build_runner build web
 Future<void> main() async {
   // Set the unique id for this instance of the app.
   dartAppInstanceId = Uuid().v1();
