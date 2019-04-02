@@ -135,6 +135,12 @@ external List _jsObjectValues(Object any);
 
 Module _moduleLibraries(String moduleId) {
   var moduleObj = dartLoader.getModuleLibraries(moduleId);
+  // In kernel mode the actual module names don't end with `.ddc`, so we try
+  // a fallback lookup without that extension.
+  if (moduleObj == null && moduleId.endsWith('.ddc')) {
+    moduleObj = dartLoader
+        .getModuleLibraries(moduleId.substring(0, moduleId.length - 4));
+  }
   if (moduleObj == null) {
     throw HotReloadFailedException("Failed to get module '$moduleId'. "
         "This error might appear if such module doesn't exist or isn't already loaded");
