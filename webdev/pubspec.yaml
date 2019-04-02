@@ -34,6 +34,7 @@ dependencies:
   yaml: ^2.1.13
 
 dev_dependencies:
+  build: ^1.0.0
   build_runner: ^1.0.0
   built_value_generator: ^6.2.0
   build_web_compilers: ^1.0.0
