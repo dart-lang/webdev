@@ -9,8 +9,8 @@ import 'dart:io';
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:yaml/yaml.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
+import 'package:yaml/yaml.dart';
 
 import 'util.dart';
 import 'version.dart';
@@ -164,15 +164,19 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
     {@required bool requireBuildWebCompilers}) async {
   var issues = <PackageExceptionDetails>[];
 
-  issues.addAll(pubspecLock.checkPackage(
-      'build_runner', VersionConstraint.parse('>=1.3.0 <2.0.0')));
+  var buildRunnerIssues = pubspecLock.checkPackage(
+      'build_runner', VersionConstraint.parse('>=1.3.0 <2.0.0'));
+
+  issues.addAll(buildRunnerIssues);
 
   if (requireBuildWebCompilers) {
     issues.addAll(pubspecLock.checkPackage(
         'build_web_compilers', VersionConstraint.parse('>=1.2.0 <2.0.0')));
   }
 
-  issues.addAll(await _validateBuildDaemonVersion(pubspecLock));
+  if (buildRunnerIssues.isEmpty) {
+    issues.addAll(await _validateBuildDaemonVersion(pubspecLock));
+  }
 
   if (issues.isNotEmpty) {
     throw PackageException(issues);
