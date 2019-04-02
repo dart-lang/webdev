@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 5))
-@Tags(['requires-edge-sdk', 'webdriver'])
+@Tags(['webdriver'])
 import 'dart:async';
 import 'dart:io';
 

@@ -1,3 +1,8 @@
+## 2.0.0-alpha.1
+
+- Hot restart will now invoke the `ext.flutter.disassemble` service extension if
+  it exists, and wait for that result to complete before reloading modules.
+
 ## 2.0.0-alpha.0
 
 - Support building with `package:build_daemon` through `serve` command.

@@ -45,14 +45,6 @@ class WebdevVmClient {
     });
     await client.registerService('hotRestart', 'WebDev');
 
-    // TODO: Remove this (we don't actually support it yet) once devtools
-    // has published a new version.
-    client.registerServiceCallback('reloadSources', (request) async {
-      throw UnsupportedError(
-          'Hot Reload is not yet supported for flutter web, try hot restart.');
-    });
-    await client.registerService('reloadSources', 'WebDev');
-
     return WebdevVmClient(client, requestController, responseController);
   }
 }

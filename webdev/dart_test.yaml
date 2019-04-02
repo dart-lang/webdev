@@ -3,5 +3,3 @@ tags:
     skip: "Should only be run during presubmit"
   webdriver:
     skip: "Should only be run during presubmit"
-  requires-edge-sdk:
-    skip: 'requires the latest sdk'
