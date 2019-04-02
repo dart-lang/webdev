@@ -50,10 +50,7 @@ name: sample
 
     var output = await process.stdout.rest.toList();
 
-    expect(
-        output,
-        isNot(contains(startsWith(
-            'This version of webdev does not support the `build_daemon`'))));
+    expect(output, isNot(contains(contains('`build_daemon`'))));
 
     await process.shouldExit(78);
   });
