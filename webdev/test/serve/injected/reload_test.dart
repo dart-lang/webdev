@@ -51,7 +51,7 @@ void main() {
           contains('start disassemble end disassemble Gary is awesome'));
 
       await fixture.webdev.kill();
-    });
+    }, tags: ['requires-edge-sdk']);
 
     test('can live reload changes ', () async {
       await fixture.buildAndLoad(['--auto=refresh']);
