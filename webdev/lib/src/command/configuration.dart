@@ -68,6 +68,7 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
 }
 
 class Configuration {
+  final bool _autoRun;
   final int _chromeDebugPort;
   final bool _debug;
   final String _hostname;
@@ -82,6 +83,7 @@ class Configuration {
   final bool _verbose;
 
   Configuration({
+    bool autoRun,
     int chromeDebugPort,
     bool debug,
     String hostname,
@@ -94,7 +96,8 @@ class Configuration {
     bool release,
     bool requireBuildWebCompilers,
     bool verbose,
-  })  : _chromeDebugPort = chromeDebugPort,
+  })  : _autoRun = autoRun,
+        _chromeDebugPort = chromeDebugPort,
         _debug = debug,
         _hostname = hostname,
         _launchInChrome = launchInChrome,
@@ -104,6 +107,9 @@ class Configuration {
         _reload = reload,
         _requireBuildWebCompilers = requireBuildWebCompilers,
         _verbose = verbose;
+
+  // Whether the application should automatically run when loaded.
+  bool get autoRun => _autoRun ?? true;
 
   int get chromeDebugPort => _chromeDebugPort ?? 0;
 

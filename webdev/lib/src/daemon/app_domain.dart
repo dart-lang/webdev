@@ -11,8 +11,6 @@ import 'package:dwds/service.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
 import '../serve/chrome.dart';
-import '../serve/data/run_request.dart';
-import '../serve/data/serializers.dart';
 import '../serve/debugger/app_debug_services.dart';
 import '../serve/server_manager.dart';
 import 'daemon.dart';
@@ -99,8 +97,7 @@ class AppDomain extends Domain {
         }
       });
 
-      connection.connection.sink
-          .add(jsonEncode(serializers.serialize(RunRequest())));
+      connection.runMain();
     }
 
     // Shutdown could have been triggered while awaiting above.

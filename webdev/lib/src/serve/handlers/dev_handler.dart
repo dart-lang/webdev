@@ -15,6 +15,7 @@ import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../serve/chrome.dart';
+import '../../serve/data/run_request.dart';
 import '../../serve/logging.dart';
 import '../data/connect_request.dart';
 import '../data/devtools_request.dart';
@@ -220,6 +221,15 @@ Future<bool> _isCorrectTab(
 
 class DevConnection {
   final ConnectRequest request;
-  final SseConnection connection;
-  DevConnection(this.request, this.connection);
+  final SseConnection _connection;
+  var _isStarted = false;
+  DevConnection(this.request, this._connection);
+
+  void runMain() {
+    if (!_isStarted) {
+      _connection.sink
+          .add(jsonEncode(webdev.serializers.serialize(RunRequest())));
+    }
+    _isStarted = true;
+  }
 }

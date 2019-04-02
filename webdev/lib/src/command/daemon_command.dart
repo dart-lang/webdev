@@ -56,7 +56,8 @@ class DaemonCommand extends Command<int> {
           'daemon.logMessage', {'level': '$level', 'message': message});
     });
     daemon.registerDomain(daemonDomain);
-    var configuration = Configuration(launchInChrome: true, debug: true);
+    var configuration =
+        Configuration(launchInChrome: true, debug: true, autoRun: false);
     var pubspecLock = await readPubspecLock(configuration);
     var buildOptions =
         buildRunnerArgs(pubspecLock, configuration, includeOutput: false);
