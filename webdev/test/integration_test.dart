@@ -28,6 +28,36 @@ void main() {
     await process.shouldExit(64);
   });
 
+  test('Errors with `build_runner` should not surface `build_daemon` issues',
+      () async {
+    await d.file('pubspec.yaml', '''
+name: sample
+''').create();
+
+    await d
+        .file(
+            'pubspec.lock',
+            _pubspecLock(
+              runnerVersion: '1.2.8',
+              daemonVersion: '0.4.0',
+            ))
+        .create();
+
+    await d.file('.packages', '''
+''').create();
+
+    var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
+
+    var output = await process.stdout.rest.toList();
+
+    expect(
+        output,
+        isNot(contains(startsWith(
+            'This version of webdev does not support the `build_daemon`'))));
+
+    await process.shouldExit(78);
+  });
+
   var invalidRanges = <String, List<String>>{
     'build_runner': ['0.8.9', '2.0.0'],
     'build_web_compilers': ['0.3.5', '2.0.0'],
