@@ -11,11 +11,15 @@ import 'package:dwds/service.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
 import '../serve/chrome.dart';
+import '../serve/data/run_request.dart';
+import '../serve/data/serializers.dart';
 import '../serve/debugger/app_debug_services.dart';
 import '../serve/server_manager.dart';
 import 'daemon.dart';
 import 'domain.dart';
 import 'utilites.dart';
+
+var firstRun = true;
 
 /// A collection of method and events relevant to the running application.
 class AppDomain extends Domain {
@@ -24,6 +28,7 @@ class AppDomain extends Domain {
   DebugService get _debugService => _appDebugServices?.debugService;
   VmService get _vmService => _appDebugServices?.webdevClient?.client;
   StreamSubscription<BuildResult> _resultSub;
+  StreamSubscription<Event> _stdOutSub;
   bool _isShutdown = false;
   int _buildProgressEventId;
   var _progressEventId = 0;
@@ -31,60 +36,73 @@ class AppDomain extends Domain {
   void _initialize(ServerManager serverManager) async {
     var devHandler = serverManager.servers.first.devHandler;
     // The connection is established right before `main()` is called.
-    var request = await devHandler.connectedApps.first;
-    _appDebugServices =
-        await devHandler.loadAppServices(request.appId, request.instanceId);
-    _appId = request.appId;
-    sendEvent('app.start', {
-      'appId': _appId,
-      'directory': Directory.current.path,
-      'deviceId': 'chrome',
-      'launchMode': 'run'
-    });
-    sendEvent('app.started', {
-      'appId': _appId,
-    });
-    await _vmService.streamListen('Stdout');
-    _vmService.onStdoutEvent.listen((log) {
-      sendEvent('app.log', {
+    await for (var connection in devHandler.connectedApps) {
+      await _stdOutSub?.cancel();
+      await _resultSub?.cancel();
+      _appDebugServices = await devHandler.loadAppServices(
+          connection.request.appId, connection.request.instanceId);
+      _appId = connection.request.appId;
+      sendEvent('app.start', {
         'appId': _appId,
-        'log': utf8.decode(base64.decode(log.bytes)),
+        'directory': Directory.current.path,
+        'deviceId': 'chrome',
+        'launchMode': 'run'
       });
-    });
-    sendEvent('app.debugPort', {
-      'appId': _appId,
-      'port': _debugService.port,
-      'wsUri': _debugService.wsUri,
-    });
-    _resultSub = devHandler.buildResults.listen((result) {
-      switch (result.status) {
-        case BuildStatus.started:
-          _buildProgressEventId = _progressEventId++;
-          sendEvent('app.progress', {
-            'appId': _appId,
-            'id': '$_buildProgressEventId',
-            'message': 'Starting Build',
-            'progressId': 'build.started',
-          });
-          break;
-        case BuildStatus.failed:
-          sendEvent('app.progress', {
-            'appId': _appId,
-            'id': '$_buildProgressEventId',
-            'message': 'Build Failed',
-            'progressId': 'build.failed',
-          });
-          break;
-        case BuildStatus.succeeded:
-          sendEvent('app.progress', {
-            'appId': _appId,
-            'id': '$_buildProgressEventId',
-            'message': 'Build Succeeded',
-            'progressId': 'build.succeeded',
-          });
-          break;
+      sendEvent('app.started', {
+        'appId': _appId,
+      });
+      if (firstRun) {
+        await _vmService.streamListen('Stdout');
+      } else {
+        await _vmService.streamCancel('Stdout');
+        await _vmService.streamListen('Stdout');
       }
-    });
+      firstRun = false;
+      _stdOutSub = _vmService.onStdoutEvent.listen((log) {
+        sendEvent('app.log', {
+          'appId': _appId,
+          'log': utf8.decode(base64.decode(log.bytes)),
+        });
+      });
+      sendEvent('app.debugPort', {
+        'appId': _appId,
+        'port': _debugService.port,
+        'wsUri': _debugService.wsUri,
+      });
+      _resultSub = devHandler.buildResults.listen((result) {
+        switch (result.status) {
+          case BuildStatus.started:
+            _buildProgressEventId = _progressEventId++;
+            sendEvent('app.progress', {
+              'appId': _appId,
+              'id': '$_buildProgressEventId',
+              'message': 'Starting Build',
+              'progressId': 'build.started',
+            });
+            break;
+          case BuildStatus.failed:
+            sendEvent('app.progress', {
+              'appId': _appId,
+              'id': '$_buildProgressEventId',
+              'message': 'Build Failed',
+              'progressId': 'build.failed',
+            });
+            break;
+          case BuildStatus.succeeded:
+            sendEvent('app.progress', {
+              'appId': _appId,
+              'id': '$_buildProgressEventId',
+              'message': 'Build Succeeded',
+              'progressId': 'build.succeeded',
+            });
+            break;
+        }
+      });
+
+      await Future.delayed(Duration(seconds: 2));
+      connection.connection.sink
+          .add(jsonEncode(serializers.serialize(RunRequest())));
+    }
 
     // Shutdown could have been triggered while awaiting above.
     if (_isShutdown) dispose();

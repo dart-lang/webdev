@@ -33,11 +33,11 @@ class DevHandler {
   final DevTools _devTools;
   final AssetHandler _assetHandler;
   final String _hostname;
-  final _connectedApps = StreamController<ConnectRequest>.broadcast();
+  final _connectedApps = StreamController<DevConnection>.broadcast();
   final _servicesByAppId = <String, Future<AppDebugServices>>{};
   final Stream<BuildResult> buildResults;
 
-  Stream<ConnectRequest> get connectedApps => _connectedApps.stream;
+  Stream<DevConnection> get connectedApps => _connectedApps.stream;
 
   DevHandler(
       this.buildResults, this._devTools, this._assetHandler, this._hostname) {
@@ -148,7 +148,7 @@ class DevHandler {
               'https://github.com/dart-lang/webdev/issues/new.');
         }
         appId = message.appId;
-        _connectedApps.add(message);
+        _connectedApps.add(DevConnection(message, connection));
 
         // After a page refresh, reconnect to the same app services if they
         // were previously launched and create the new isolate.
@@ -215,4 +215,10 @@ Future<bool> _isCorrectTab(
   var result =
       await tabConnection.runtime.evaluate(r'window["$dartAppInstanceId"];');
   return result.value == instanceId;
+}
+
+class DevConnection {
+  final ConnectRequest request;
+  final SseConnection connection;
+  DevConnection(this.request, this.connection);
 }

@@ -56,6 +56,7 @@ Handler Function(Handler) createInjectedHandler(
             var requestedUri = request.requestedUri;
             var appId =
                 base64.encode(md5.convert(utf8.encode('$requestedUri')).bytes);
+            body = body.replaceFirst('app.main.main();', '');
             body = body.replaceFirst(
                 mainExtensionMarker, _injectedClientJs(configuration, appId));
 
@@ -75,7 +76,8 @@ Handler Function(Handler) createInjectedHandler(
 String _injectedClientJs(ReloadConfiguration configuration, String appId) =>
     '''\n
 // Injected by webdev for build results support.
+window.\$dartAppId = "$appId";
+window.\$dartRunMain = app.main.main;
 window.\$dartReloadConfiguration = "$configuration";
 window.\$dartLoader.forceLoadModule('$_clientScript');
-window.\$dartAppId = "$appId";
 ''';
