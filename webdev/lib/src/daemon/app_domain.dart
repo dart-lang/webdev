@@ -99,7 +99,6 @@ class AppDomain extends Domain {
         }
       });
 
-      await Future.delayed(Duration(seconds: 2));
       connection.connection.sink
           .add(jsonEncode(serializers.serialize(RunRequest())));
     }

@@ -148,7 +148,6 @@ class DevHandler {
               'https://github.com/dart-lang/webdev/issues/new.');
         }
         appId = message.appId;
-        _connectedApps.add(DevConnection(message, connection));
 
         // After a page refresh, reconnect to the same app services if they
         // were previously launched and create the new isolate.
@@ -162,6 +161,8 @@ class DevHandler {
             await services.debugService.chromeProxyService.createIsolate();
           }
         }
+
+        _connectedApps.add(DevConnection(message, connection));
       }
     });
 
