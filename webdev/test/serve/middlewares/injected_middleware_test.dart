@@ -22,7 +22,10 @@ void main() {
           .addMiddleware(createInjectedHandler(ReloadConfiguration.liveReload));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
-          return Response.ok('$entrypointExtensionMarker$mainExtensionMarker',
+          return Response.ok(
+              '$entrypointExtensionMarker\n'
+              '$mainExtensionMarker\n'
+              'app.main.main()',
               headers: {HttpHeaders.etagHeader: entryEtag});
         } else if (request.url.path.endsWith('foo.js')) {
           return Response.ok('some js',

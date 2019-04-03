@@ -56,12 +56,18 @@ Handler Function(Handler) createInjectedHandler(
             var requestedUri = request.requestedUri;
             var appId =
                 base64.encode(md5.convert(utf8.encode('$requestedUri')).bytes);
-            // We prevent main from being called and make it runnable through
-            // a global variable.
-            body = body.replaceFirst('app.main.main();', '');
-            body = body.replaceFirst(
-                mainExtensionMarker, _injectedClientJs(configuration, appId));
-
+            var bodyLines = body.split('\n');
+            var extensionIndex = bodyLines
+                .indexWhere((line) => line.contains(mainExtensionMarker));
+            body = bodyLines.sublist(0, extensionIndex).join('\n');
+            // The line after the marker calls `main`. We prevent `main` from
+            // being called and make it runnable through a global variable.
+            var mainFuntion = bodyLines[extensionIndex + 1]
+                .replaceAll('(', '')
+                .replaceAll(')', '')
+                .trim();
+            body += _injectedClientJs(configuration, appId, mainFuntion);
+            body += bodyLines.sublist(extensionIndex + 2).join('\n');
             etag = base64.encode(md5.convert(body.codeUnits).bytes);
             newHeaders[HttpHeaders.etagHeader] = etag;
           }
@@ -75,11 +81,12 @@ Handler Function(Handler) createInjectedHandler(
       };
     };
 
-String _injectedClientJs(ReloadConfiguration configuration, String appId) =>
+String _injectedClientJs(
+        ReloadConfiguration configuration, String appId, String mainFunction) =>
     '''\n
 // Injected by webdev for build results support.
 window.\$dartAppId = "$appId";
-window.\$dartRunMain = app.main.main;
+window.\$dartRunMain = $mainFunction;
 window.\$dartReloadConfiguration = "$configuration";
 window.\$dartLoader.forceLoadModule('$_clientScript');
 ''';
