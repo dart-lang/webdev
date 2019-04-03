@@ -57,6 +57,12 @@ void main() {
       expect(result.body.contains(mainExtensionMarker), isFalse);
     });
 
+    test('prevents main from being called', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('app.main.main()'), isFalse);
+    });
+
     test('updates etags for injected responses', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
