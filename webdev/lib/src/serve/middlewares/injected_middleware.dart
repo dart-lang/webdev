@@ -56,6 +56,8 @@ Handler Function(Handler) createInjectedHandler(
             var requestedUri = request.requestedUri;
             var appId =
                 base64.encode(md5.convert(utf8.encode('$requestedUri')).bytes);
+            // We prevent main from being called and make it runnable through
+            // a global variable.
             body = body.replaceFirst('app.main.main();', '');
             body = body.replaceFirst(
                 mainExtensionMarker, _injectedClientJs(configuration, appId));

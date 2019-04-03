@@ -17,8 +17,6 @@ import 'daemon.dart';
 import 'domain.dart';
 import 'utilites.dart';
 
-var firstRun = true;
-
 /// A collection of method and events relevant to the running application.
 class AppDomain extends Domain {
   String _appId;
@@ -30,6 +28,36 @@ class AppDomain extends Domain {
   bool _isShutdown = false;
   int _buildProgressEventId;
   var _progressEventId = 0;
+
+  void _handleBuildResult(BuildResult result) {
+    switch (result.status) {
+      case BuildStatus.started:
+        _buildProgressEventId = _progressEventId++;
+        sendEvent('app.progress', {
+          'appId': _appId,
+          'id': '$_buildProgressEventId',
+          'message': 'Starting Build',
+          'progressId': 'build.started',
+        });
+        break;
+      case BuildStatus.failed:
+        sendEvent('app.progress', {
+          'appId': _appId,
+          'id': '$_buildProgressEventId',
+          'message': 'Build Failed',
+          'progressId': 'build.failed',
+        });
+        break;
+      case BuildStatus.succeeded:
+        sendEvent('app.progress', {
+          'appId': _appId,
+          'id': '$_buildProgressEventId',
+          'message': 'Build Succeeded',
+          'progressId': 'build.succeeded',
+        });
+        break;
+    }
+  }
 
   void _initialize(ServerManager serverManager) async {
     var devHandler = serverManager.servers.first.devHandler;
@@ -49,13 +77,13 @@ class AppDomain extends Domain {
       sendEvent('app.started', {
         'appId': _appId,
       });
-      if (firstRun) {
-        await _vmService.streamListen('Stdout');
-      } else {
+      // TODO(grouma) - limit the catch to the appropriate error.
+      try {
         await _vmService.streamCancel('Stdout');
+      } catch (_) {}
+      try {
         await _vmService.streamListen('Stdout');
-      }
-      firstRun = false;
+      } catch (_) {}
       _stdOutSub = _vmService.onStdoutEvent.listen((log) {
         sendEvent('app.log', {
           'appId': _appId,
@@ -67,35 +95,7 @@ class AppDomain extends Domain {
         'port': _debugService.port,
         'wsUri': _debugService.wsUri,
       });
-      _resultSub = devHandler.buildResults.listen((result) {
-        switch (result.status) {
-          case BuildStatus.started:
-            _buildProgressEventId = _progressEventId++;
-            sendEvent('app.progress', {
-              'appId': _appId,
-              'id': '$_buildProgressEventId',
-              'message': 'Starting Build',
-              'progressId': 'build.started',
-            });
-            break;
-          case BuildStatus.failed:
-            sendEvent('app.progress', {
-              'appId': _appId,
-              'id': '$_buildProgressEventId',
-              'message': 'Build Failed',
-              'progressId': 'build.failed',
-            });
-            break;
-          case BuildStatus.succeeded:
-            sendEvent('app.progress', {
-              'appId': _appId,
-              'id': '$_buildProgressEventId',
-              'message': 'Build Succeeded',
-              'progressId': 'build.succeeded',
-            });
-            break;
-        }
-      });
+      _resultSub = devHandler.buildResults.listen(_handleBuildResult);
 
       connection.runMain();
     }
@@ -171,7 +171,8 @@ class AppDomain extends Domain {
   @override
   void dispose() {
     _isShutdown = true;
-    _resultSub.cancel();
+    _stdOutSub?.cancel();
+    _resultSub?.cancel();
     _appDebugServices.close();
   }
 }
