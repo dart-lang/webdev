@@ -20,6 +20,7 @@ import 'package:webdev/src/serve/data/run_request.dart';
 import 'package:webdev/src/serve/data/serializers.dart';
 
 import 'module.dart';
+import 'promise.dart';
 import 'reloading_manager.dart';
 
 // GENERATE:
@@ -40,6 +41,14 @@ Future<void> main() async {
   var client = SseClient(r'/$sseHandler');
 
   hotRestart = allowInterop(() async {
+    var developer = getProperty(require('dart_sdk'), 'developer');
+    if (callMethod(getProperty(developer, '_extensions'), 'containsKey',
+        ['ext.flutter.disassemble']) as bool) {
+      await toFuture(callMethod(
+              developer, 'invokeExtension', ['ext.flutter.disassemble', '{}'])
+          as Promise<void>);
+    }
+
     var newDigests = await _getDigests();
     var modulesToLoad = <String>[];
     for (var module in newDigests.keys) {
@@ -120,6 +129,9 @@ external DartLoader get dartLoader;
 @JS(r'$dartReloadConfiguration')
 external String get reloadConfiguration;
 
+@JS(r'require')
+external Object Function(String module) get require;
+
 List<K> keys<K, V>(JsMap<K, V> map) {
   return List.from(_jsArrayFrom(map.keys()));
 }
@@ -141,6 +153,12 @@ external List _jsObjectValues(Object any);
 
 Module _moduleLibraries(String moduleId) {
   var moduleObj = dartLoader.getModuleLibraries(moduleId);
+  // In kernel mode the actual module names don't end with `.ddc`, so we try
+  // a fallback lookup without that extension.
+  if (moduleObj == null && moduleId.endsWith('.ddc')) {
+    moduleObj = dartLoader
+        .getModuleLibraries(moduleId.substring(0, moduleId.length - 4));
+  }
   if (moduleObj == null) {
     throw HotReloadFailedException("Failed to get module '$moduleId'. "
         "This error might appear if such module doesn't exist or isn't already loaded");
