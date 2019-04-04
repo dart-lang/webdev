@@ -45,7 +45,9 @@ void main() {
 
     test('addBreakPoint', () async {
       //  ### separately test - setting breakpoint and the JS/dart position is right.
-      // Returning the SourceLocation (i.e. token position)
+      // Returning the SourceLocation (i.e. token position).
+      // Move these tests to a separate test file? Or does that help?
+      // 
       await service.addBreakpoint(isolate.id, mainScript.id, 19);
       var breakpoints = isolate.breakpoints;
       expect(breakpoints, isNotEmpty);
