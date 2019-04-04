@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'debugger.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -38,6 +39,8 @@ class ChromeProxyService implements VmServiceInterface {
   /// This may be null during a hot restart or page refresh.
   Isolate _isolate;
 
+  Debugger debugger; // ####
+
   /// Fields that are specific to the current [_isolate].
   ///
   /// These need to get cleared whenever [destroyIsolate] is called.
@@ -60,7 +63,7 @@ class ChromeProxyService implements VmServiceInterface {
       var tabConnection = await tab.connect();
       var result = await tabConnection.runtime
           .evaluate(r'window["$dartAppInstanceId"];');
-      if (result.value == appInstanceId) {
+      if (result.value != null && RegExp(appInstanceId).matchAsPrefix(result.value) != null) {
         appTab = tab;
         break;
       }
@@ -71,7 +74,6 @@ class ChromeProxyService implements VmServiceInterface {
           '$appInstanceId');
     }
     var tabConnection = await appTab.connect();
-    await tabConnection.debugger.enable();
     await tabConnection.runtime.enable();
 
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
@@ -81,8 +83,14 @@ class ChromeProxyService implements VmServiceInterface {
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
     var service = ChromeProxyService._(vm, appTab, tabConnection, assetHandler);
+    await service.initialize();
     await service.createIsolate();
     return service;
+  }
+
+  Future<Null> initialize() async {  // ### Why did I put this in a separate method?
+    debugger = Debugger(this);
+    await debugger.initialize();
   }
 
   /// Creates a new [_isolate].
@@ -133,12 +141,12 @@ class ChromeProxyService implements VmServiceInterface {
     _vm.isolates.add(isolateRef);
     _isolate = isolate;
 
-    _streamNotify(
+    streamNotify(
         'Isolate',
         Event()
           ..kind = EventKind.kIsolateStart
           ..isolate = isolateRef);
-    _streamNotify(
+    streamNotify(
         'Isolate',
         Event()
           ..kind = EventKind.kIsolateRunnable
@@ -148,7 +156,7 @@ class ChromeProxyService implements VmServiceInterface {
     // isolate, but devtools doesn't recognize extensions after a page refresh
     // otherwise.
     for (var extensionRpc in isolate.extensionRPCs) {
-      _streamNotify(
+      streamNotify(
           'Isolate',
           Event()
             ..kind = EventKind.kServiceExtensionAdded
@@ -162,7 +170,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// Clears out [_isolate] and all related cached information.
   void destroyIsolate() {
     if (_isolate == null) return;
-    _streamNotify(
+    streamNotify(
         'Isolate',
         Event()
           ..kind = EventKind.kIsolateExit
@@ -177,11 +185,11 @@ class ChromeProxyService implements VmServiceInterface {
     _consoleSubscription.cancel();
     _consoleSubscription = null;
   }
-
+  
   @override
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
-      {int column}) {
-    throw UnimplementedError();
+      {int column}) async {
+        return debugger.addBreakpoint(isolateId, scriptId, line, column: column);
   }
 
   @override
@@ -501,7 +509,7 @@ function($argsString) {
 
   @override
   Future<ScriptList> getScripts(String isolateId) async {
-    var scripts = await _getScripts(isolateId);
+    var scripts = await getScriptRefs(isolateId);
     return ScriptList()..scripts = scripts;
   }
 
@@ -518,7 +526,7 @@ function($argsString) {
       ..source = script;
   }
 
-  Future<List<ScriptRef>> _getScripts(String isolateId) async {
+  Future<List<ScriptRef>> getScriptRefs(String isolateId) async {
     var isolate = _getIsolate(isolateId);
     var scripts = <ScriptRef>[];
     for (var lib in isolate.libraries) {
@@ -527,7 +535,7 @@ function($argsString) {
       if (lib.id.startsWith('dart:') || lib.id.endsWith('.bootstrap')) continue;
       scripts.addAll((await _getLibrary(isolateId, lib.id)).scripts);
     }
-    return scripts;
+    return scripts; 
   }
 
   @override
@@ -613,8 +621,8 @@ function($argsString) {
 
   @override
   Future<ReloadReport> reloadSources(String isolateId,
-      {bool force, bool pause, String rootLibUri, String packagesUri}) {
-    throw UnimplementedError();
+      {bool force, bool pause, String rootLibUri, String packagesUri}) async {
+
   }
 
   @override
@@ -673,7 +681,7 @@ function($argsString) {
   @override
   Future<Success> setVMName(String name) async {
     _vm.name = name;
-    _streamNotify(
+    streamNotify(
         'VM',
         Event()
           ..kind = EventKind.kVMUpdate
@@ -744,6 +752,7 @@ function($argsString) {
   /// the `Debug` stream events for the vm service protocol.
   ///
   // TODO: Implement the rest https://github.com/dart-lang/webdev/issues/166
+  // #### PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
   StreamController<Event> _debugStreamController() {
     StreamSubscription pauseSubscription;
     StreamSubscription resumeSubscription;
@@ -761,11 +770,11 @@ function($argsString) {
         } else {
           event.kind = EventKind.kPauseInterrupted;
         }
-        _streamNotify('Debug', event);
+        streamNotify('Debug', event);
       });
       resumeSubscription = tabConnection.debugger.onResumed.listen((e) {
         if (_isolate == null) return;
-        _streamNotify(
+        streamNotify(
             'Debug',
             Event()
               ..kind = EventKind.kResume
@@ -808,7 +817,7 @@ function($argsString) {
         case 'dart.developer.registerExtension':
           var service = event.args[1].value as String;
           _isolate.extensionRPCs.add(service);
-          _streamNotify(
+          streamNotify(
               'Isolate',
               Event()
                 ..kind = EventKind.kServiceExtensionAdded
@@ -816,7 +825,7 @@ function($argsString) {
                 ..isolate = isolateRef);
           break;
         case 'dart.developer.postEvent':
-          _streamNotify(
+          streamNotify(
               'Extension',
               Event()
                 ..kind = EventKind.kExtension
@@ -836,7 +845,7 @@ function($argsString) {
             // up the library for a given instance to create it though.
             // https://github.com/dart-lang/sdk/issues/36771.
             ..classRef = ClassRef();
-          _streamNotify(
+          streamNotify(
               'Debug',
               Event()
                 ..kind = EventKind.kInspect
@@ -852,7 +861,7 @@ function($argsString) {
 
   /// Adds [event] to the stream with [streamId] if there is anybody listening
   /// on that stream.
-  void _streamNotify(String streamId, Event event) {
+  void streamNotify(String streamId, Event event) {
     var controller = _streamControllers[streamId];
     if (controller == null) return;
     controller.add(event);
