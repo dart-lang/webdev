@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'debugger.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -37,6 +38,8 @@ class ChromeProxyService implements VmServiceInterface {
   ///
   /// This may be null during a hot restart or page refresh.
   Isolate _isolate;
+
+  DebuggerProxyThing debugger; // ####
 
   /// Fields that are specific to the current [_isolate].
   ///
@@ -71,7 +74,6 @@ class ChromeProxyService implements VmServiceInterface {
           '$appInstanceId');
     }
     var tabConnection = await appTab.connect();
-    await tabConnection.debugger.enable();
     await tabConnection.runtime.enable();
 
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
@@ -81,8 +83,14 @@ class ChromeProxyService implements VmServiceInterface {
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
     var service = ChromeProxyService._(vm, appTab, tabConnection, assetHandler);
+    await service.initialize();
     await service.createIsolate();
     return service;
+  }
+
+  Future<Null> initialize() async {
+    var debugger = DebuggerProxyThing(this);
+    await debugger.initialize();
   }
 
   /// Creates a new [_isolate].
@@ -177,11 +185,61 @@ class ChromeProxyService implements VmServiceInterface {
     _consoleSubscription.cancel();
     _consoleSubscription = null;
   }
-
+  
   @override
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
-      {int column}) {
-    throw UnimplementedError();
+      {int column}) async {
+    // Validate the isolate id is correct, _getIsolate throws if not.
+    if (isolateId != null) _getIsolate(isolateId);
+    return null;
+
+    // var jsId = _dartIdToJsId[script.id];
+    // var locations = _jsIdToLocationData[jsId];
+    // var locationData = locations.dartLocations[script.uri];
+
+    // for (var location in locationData) {
+    //   // Match first line hit for now.
+    //   if (location.dartLine >= line) {
+    //     WipResponse result;
+    //     try {
+    //       result = await _cdp.debugger
+    //           .sendCommand('Debugger.setBreakpoint', params: {
+    //         'location': {
+    //           'scriptId': jsId,
+    //           'lineNumber': location.jsLine - 1,
+    //         }
+    //       });
+    //     } catch (e) {
+    //       throw RpcError(102)..data.details = '$e';
+    //     }
+
+    //     var jsBreakpointId = result.result['breakpointId'];
+    //     // TODO(vsm):
+    //     // (1) Validate that the breakpoint was resolved.
+    //     // (2) Update the location to the actual location (in result.result).
+
+    //     var breakpoint = _createBreakpoint()
+    //       ..resolved = true
+    //       ..location = (SourceLocation()
+    //         ..script = script
+    //         ..tokenPos = location.dartTokenPos);
+
+    //     _jsBreakpointIdToDartId[jsBreakpointId] = breakpoint.id;
+    //     _dartBreakpointIdToJsId[breakpoint.id] = jsBreakpointId;
+
+    //     _streamNotify(
+    //         'Debug',
+    //         Event()
+    //           ..kind = EventKind.BreakpointAdded
+    //           ..isolate = isolate.toRef()
+    //           ..breakpoint = breakpoint);
+    //     return breakpoint;
+    //   }
+
+
+
+
+    // throw UnimplementedError();
   }
 
   @override
@@ -744,6 +802,7 @@ function($argsString) {
   /// the `Debug` stream events for the vm service protocol.
   ///
   // TODO: Implement the rest https://github.com/dart-lang/webdev/issues/166
+  // #### PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
   StreamController<Event> _debugStreamController() {
     StreamSubscription pauseSubscription;
     StreamSubscription resumeSubscription;
