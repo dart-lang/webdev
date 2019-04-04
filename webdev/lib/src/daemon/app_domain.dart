@@ -24,67 +24,81 @@ class AppDomain extends Domain {
   DebugService get _debugService => _appDebugServices?.debugService;
   VmService get _vmService => _appDebugServices?.webdevClient?.client;
   StreamSubscription<BuildResult> _resultSub;
+  StreamSubscription<Event> _stdOutSub;
   bool _isShutdown = false;
   int _buildProgressEventId;
   var _progressEventId = 0;
 
+  void _handleBuildResult(BuildResult result) {
+    switch (result.status) {
+      case BuildStatus.started:
+        _buildProgressEventId = _progressEventId++;
+        sendEvent('app.progress', {
+          'appId': _appId,
+          'id': '$_buildProgressEventId',
+          'message': 'Starting Build',
+          'progressId': 'build.started',
+        });
+        break;
+      case BuildStatus.failed:
+        sendEvent('app.progress', {
+          'appId': _appId,
+          'id': '$_buildProgressEventId',
+          'message': 'Build Failed',
+          'progressId': 'build.failed',
+        });
+        break;
+      case BuildStatus.succeeded:
+        sendEvent('app.progress', {
+          'appId': _appId,
+          'id': '$_buildProgressEventId',
+          'message': 'Build Succeeded',
+          'progressId': 'build.succeeded',
+        });
+        break;
+    }
+  }
+
   void _initialize(ServerManager serverManager) async {
     var devHandler = serverManager.servers.first.devHandler;
     // The connection is established right before `main()` is called.
-    var request = await devHandler.connectedApps.first;
-    _appDebugServices =
-        await devHandler.loadAppServices(request.appId, request.instanceId);
-    _appId = request.appId;
-    sendEvent('app.start', {
-      'appId': _appId,
-      'directory': Directory.current.path,
-      'deviceId': 'chrome',
-      'launchMode': 'run'
-    });
-    sendEvent('app.started', {
-      'appId': _appId,
-    });
-    await _vmService.streamListen('Stdout');
-    _vmService.onStdoutEvent.listen((log) {
-      sendEvent('app.log', {
+    await for (var connection in devHandler.connectedApps) {
+      await _stdOutSub?.cancel();
+      await _resultSub?.cancel();
+      _appDebugServices = await devHandler.loadAppServices(
+          connection.request.appId, connection.request.instanceId);
+      _appId = connection.request.appId;
+      sendEvent('app.start', {
         'appId': _appId,
-        'log': utf8.decode(base64.decode(log.bytes)),
+        'directory': Directory.current.path,
+        'deviceId': 'chrome',
+        'launchMode': 'run'
       });
-    });
-    sendEvent('app.debugPort', {
-      'appId': _appId,
-      'port': _debugService.port,
-      'wsUri': _debugService.wsUri,
-    });
-    _resultSub = devHandler.buildResults.listen((result) {
-      switch (result.status) {
-        case BuildStatus.started:
-          _buildProgressEventId = _progressEventId++;
-          sendEvent('app.progress', {
-            'appId': _appId,
-            'id': '$_buildProgressEventId',
-            'message': 'Starting Build',
-            'progressId': 'build.started',
-          });
-          break;
-        case BuildStatus.failed:
-          sendEvent('app.progress', {
-            'appId': _appId,
-            'id': '$_buildProgressEventId',
-            'message': 'Build Failed',
-            'progressId': 'build.failed',
-          });
-          break;
-        case BuildStatus.succeeded:
-          sendEvent('app.progress', {
-            'appId': _appId,
-            'id': '$_buildProgressEventId',
-            'message': 'Build Succeeded',
-            'progressId': 'build.succeeded',
-          });
-          break;
-      }
-    });
+      sendEvent('app.started', {
+        'appId': _appId,
+      });
+      // TODO(grouma) - limit the catch to the appropriate error.
+      try {
+        await _vmService.streamCancel('Stdout');
+      } catch (_) {}
+      try {
+        await _vmService.streamListen('Stdout');
+      } catch (_) {}
+      _stdOutSub = _vmService.onStdoutEvent.listen((log) {
+        sendEvent('app.log', {
+          'appId': _appId,
+          'log': utf8.decode(base64.decode(log.bytes)),
+        });
+      });
+      sendEvent('app.debugPort', {
+        'appId': _appId,
+        'port': _debugService.port,
+        'wsUri': _debugService.wsUri,
+      });
+      _resultSub = devHandler.buildResults.listen(_handleBuildResult);
+
+      connection.runMain();
+    }
 
     // Shutdown could have been triggered while awaiting above.
     if (_isShutdown) dispose();
@@ -157,7 +171,8 @@ class AppDomain extends Domain {
   @override
   void dispose() {
     _isShutdown = true;
-    _resultSub.cancel();
+    _stdOutSub?.cancel();
+    _resultSub?.cancel();
     _appDebugServices.close();
   }
 }

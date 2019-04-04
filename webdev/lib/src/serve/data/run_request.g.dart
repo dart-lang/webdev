@@ -1,0 +1,86 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'run_request.dart';
+
+// **************************************************************************
+// BuiltValueGenerator
+// **************************************************************************
+
+Serializer<RunRequest> _$runRequestSerializer = new _$RunRequestSerializer();
+
+class _$RunRequestSerializer implements StructuredSerializer<RunRequest> {
+  @override
+  final Iterable<Type> types = const [RunRequest, _$RunRequest];
+  @override
+  final String wireName = 'RunRequest';
+
+  @override
+  Iterable serialize(Serializers serializers, RunRequest object,
+      {FullType specifiedType = FullType.unspecified}) {
+    return <Object>[];
+  }
+
+  @override
+  RunRequest deserialize(Serializers serializers, Iterable serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    return new RunRequestBuilder().build();
+  }
+}
+
+class _$RunRequest extends RunRequest {
+  factory _$RunRequest([void updates(RunRequestBuilder b)]) =>
+      (new RunRequestBuilder()..update(updates)).build();
+
+  _$RunRequest._() : super._();
+
+  @override
+  RunRequest rebuild(void updates(RunRequestBuilder b)) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  RunRequestBuilder toBuilder() => new RunRequestBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is RunRequest;
+  }
+
+  @override
+  int get hashCode {
+    return 248087772;
+  }
+
+  @override
+  String toString() {
+    return newBuiltValueToStringHelper('RunRequest').toString();
+  }
+}
+
+class RunRequestBuilder implements Builder<RunRequest, RunRequestBuilder> {
+  _$RunRequest _$v;
+
+  RunRequestBuilder();
+
+  @override
+  void replace(RunRequest other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$RunRequest;
+  }
+
+  @override
+  void update(void updates(RunRequestBuilder b)) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$RunRequest build() {
+    final _$result = _$v ?? new _$RunRequest._();
+    replace(_$result);
+    return _$result;
+  }
+}
+
+// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
