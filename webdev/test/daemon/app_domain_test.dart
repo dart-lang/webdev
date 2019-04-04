@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 2))
-@Tags(['requires-edge-sdk'])
 
 import 'dart:async';
 import 'dart:convert';
 
-@Tags(['requires-edge-sdk'])
 import 'package:test/test.dart';
 import 'package:test_process/test_process.dart';
 

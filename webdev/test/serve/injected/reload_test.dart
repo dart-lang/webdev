@@ -46,6 +46,9 @@ void main() {
       // Main is re-invoked which shouldn't clear the state.
       expect(source.contains('Hello World!'), isTrue);
       expect(source.contains('Gary is awesome!'), isTrue);
+      // The ext.flutter.disassemble callback is invoked and waited for.
+      expect(source,
+          contains('start disassemble end disassemble Gary is awesome'));
 
       await fixture.webdev.kill();
     });

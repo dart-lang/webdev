@@ -19,6 +19,7 @@ import 'package:webdev/src/serve/data/connect_request.dart';
 import 'package:webdev/src/serve/data/devtools_request.dart';
 import 'package:webdev/src/serve/data/serializers.dart';
 import 'module.dart';
+import 'promise.dart';
 import 'reloading_manager.dart';
 
 // GENERATE:
@@ -39,6 +40,14 @@ Future<void> main() async {
   var client = SseClient(r'/$sseHandler');
 
   hotRestart = allowInterop(() async {
+    var developer = getProperty(require('dart_sdk'), 'developer');
+    if (callMethod(getProperty(developer, '_extensions'), 'containsKey',
+        ['ext.flutter.disassemble']) as bool) {
+      await toFuture(callMethod(
+              developer, 'invokeExtension', ['ext.flutter.disassemble', '{}'])
+          as Promise<void>);
+    }
+
     var newDigests = await _getDigests();
     var modulesToLoad = <String>[];
     for (var module in newDigests.keys) {
@@ -113,6 +122,9 @@ external DartLoader get dartLoader;
 
 @JS(r'$dartReloadConfiguration')
 external String get reloadConfiguration;
+
+@JS(r'require')
+external Object Function(String module) get require;
 
 List<K> keys<K, V>(JsMap<K, V> map) {
   return List.from(_jsArrayFrom(map.keys()));
