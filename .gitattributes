@@ -1,0 +1,3 @@
+
+# Exclude compiled file from github statistics
+**/injected/client.js linguist-generated=true
