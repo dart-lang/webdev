@@ -36,8 +36,8 @@ class AppDomain extends Domain {
         sendEvent('app.progress', {
           'appId': _appId,
           'id': '$_buildProgressEventId',
-          'message': 'Starting Build',
-          'progressId': 'build.started',
+          'message': 'Building',
+          'progressId': 'build',
         });
         break;
       case BuildStatus.failed:
@@ -45,7 +45,8 @@ class AppDomain extends Domain {
           'appId': _appId,
           'id': '$_buildProgressEventId',
           'message': 'Build Failed',
-          'progressId': 'build.failed',
+          'progressId': 'build',
+          'finished': true,
         });
         break;
       case BuildStatus.succeeded:
@@ -53,7 +54,8 @@ class AppDomain extends Domain {
           'appId': _appId,
           'id': '$_buildProgressEventId',
           'message': 'Build Succeeded',
-          'progressId': 'build.succeeded',
+          'progressId': 'build',
+          'finished': true,
         });
         break;
     }
