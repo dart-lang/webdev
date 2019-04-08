@@ -94,7 +94,7 @@ class DevHandler {
                 ..success = false
                 ..error =
                     'Debugging is not enabled, please pass the --debug flag '
-                    'when starting webdev.'))));
+                        'when starting webdev.'))));
           return;
         }
         if (appId != message.appId) {
@@ -103,8 +103,8 @@ class DevHandler {
                 ..success = false
                 ..error =
                     'App ID has changed since the connection was established. '
-                    'Please file an issue at '
-                    'https://github.com/dart-lang/webdev/issues/new.'))));
+                        'Please file an issue at '
+                        'https://github.com/dart-lang/webdev/issues/new.'))));
           return;
         }
 
@@ -120,7 +120,7 @@ class DevHandler {
                 ..success = false
                 ..error =
                     'This app is already being debugged in a different tab. '
-                    'Please close that tab or switch to it.'))));
+                        'Please close that tab or switch to it.'))));
           return;
         }
 
