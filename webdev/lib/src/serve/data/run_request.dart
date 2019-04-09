@@ -10,7 +10,7 @@ part 'run_request.g.dart';
 abstract class RunRequest implements Built<RunRequest, RunRequestBuilder> {
   static Serializer<RunRequest> get serializer => _$runRequestSerializer;
 
-  factory RunRequest([updates(RunRequestBuilder b)]) = _$RunRequest;
+  factory RunRequest([Function(RunRequestBuilder) updates]) = _$RunRequest;
 
   RunRequest._();
 }

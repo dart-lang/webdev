@@ -63,7 +63,7 @@ class _$ConnectRequest extends ConnectRequest {
   @override
   final String instanceId;
 
-  factory _$ConnectRequest([void updates(ConnectRequestBuilder b)]) =>
+  factory _$ConnectRequest([void Function(ConnectRequestBuilder) updates]) =>
       (new ConnectRequestBuilder()..update(updates)).build();
 
   _$ConnectRequest._({this.appId, this.instanceId}) : super._() {
@@ -76,7 +76,7 @@ class _$ConnectRequest extends ConnectRequest {
   }
 
   @override
-  ConnectRequest rebuild(void updates(ConnectRequestBuilder b)) =>
+  ConnectRequest rebuild(void Function(ConnectRequestBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
@@ -137,7 +137,7 @@ class ConnectRequestBuilder
   }
 
   @override
-  void update(void updates(ConnectRequestBuilder b)) {
+  void update(void Function(ConnectRequestBuilder) updates) {
     if (updates != null) updates(this);
   }
 

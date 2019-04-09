@@ -28,13 +28,13 @@ class _$RunRequestSerializer implements StructuredSerializer<RunRequest> {
 }
 
 class _$RunRequest extends RunRequest {
-  factory _$RunRequest([void updates(RunRequestBuilder b)]) =>
+  factory _$RunRequest([void Function(RunRequestBuilder) updates]) =>
       (new RunRequestBuilder()..update(updates)).build();
 
   _$RunRequest._() : super._();
 
   @override
-  RunRequest rebuild(void updates(RunRequestBuilder b)) =>
+  RunRequest rebuild(void Function(RunRequestBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
@@ -71,7 +71,7 @@ class RunRequestBuilder implements Builder<RunRequest, RunRequestBuilder> {
   }
 
   @override
-  void update(void updates(RunRequestBuilder b)) {
+  void update(void Function(RunRequestBuilder) updates) {
     if (updates != null) updates(this);
   }
 

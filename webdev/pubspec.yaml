@@ -36,7 +36,7 @@ dependencies:
 dev_dependencies:
   build: ^1.0.0
   build_runner: ^1.0.0
-  built_value_generator: ^6.2.0
+  built_value_generator: ^6.4.0
   build_web_compilers: ^1.0.0
   build_verify: ^1.0.0
   build_version: ^2.0.0
