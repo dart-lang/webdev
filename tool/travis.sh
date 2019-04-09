@@ -42,8 +42,13 @@ for PKG in ${PKGS}; do
       ;;
     test_1) echo
       echo -e '\033[1mTASK: test_1\033[22m'
-      echo -e 'pub run test -j 1 --run-skipped'
-      pub run test -j 1 --run-skipped || EXIT_CODE=$?
+      echo -e 'pub run test -j 1 --run-skipped --total-shards 2 --shard-index 0'
+      pub run test -j 1 --run-skipped --total-shards 2 --shard-index 0 || EXIT_CODE=$?
+      ;;
+    test_2) echo
+      echo -e '\033[1mTASK: test_2\033[22m'
+      echo -e 'pub run test -j 1 --run-skipped --total-shards 2 --shard-index 1'
+      pub run test -j 1 --run-skipped --total-shards 2 --shard-index 1 || EXIT_CODE=$?
       ;;
     *) echo -e "\033[31mNot expecting TASK '${TASK}'. Error!\033[0m"
       EXIT_CODE=1

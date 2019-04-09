@@ -38,15 +38,25 @@ jobs:
       env: PKGS="dwds"
       script: ./tool/travis.sh test_0
     - stage: unit_test
-      name: "SDK: dev; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped`"
+      name: "SDK: dev; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped --total-shards 2 --shard-index 0`"
       dart: dev
       env: PKGS="webdev"
       script: ./tool/travis.sh test_1
     - stage: unit_test
-      name: "SDK: 2.2.1-dev.2.0; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped`"
+      name: "SDK: 2.2.1-dev.2.0; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped --total-shards 2 --shard-index 0`"
       dart: "2.2.1-dev.2.0"
       env: PKGS="webdev"
       script: ./tool/travis.sh test_1
+    - stage: unit_test
+      name: "SDK: dev; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped --total-shards 2 --shard-index 1`"
+      dart: dev
+      env: PKGS="webdev"
+      script: ./tool/travis.sh test_2
+    - stage: unit_test
+      name: "SDK: 2.2.1-dev.2.0; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped --total-shards 2 --shard-index 1`"
+      dart: "2.2.1-dev.2.0"
+      env: PKGS="webdev"
+      script: ./tool/travis.sh test_2
 
 stages:
   - analyzer_and_format
