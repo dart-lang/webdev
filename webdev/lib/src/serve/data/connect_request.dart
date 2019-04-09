@@ -13,7 +13,8 @@ abstract class ConnectRequest
   static Serializer<ConnectRequest> get serializer =>
       _$connectRequestSerializer;
 
-  factory ConnectRequest([updates(ConnectRequestBuilder b)]) = _$ConnectRequest;
+  factory ConnectRequest([Function(ConnectRequestBuilder) updates]) =
+      _$ConnectRequest;
 
   ConnectRequest._();
 
