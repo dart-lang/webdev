@@ -1,3 +1,9 @@
+## 2.0.0-alpha.2-dev
+
+- Open up devtools with the full uri instead of just the port. This is required
+  for the latest proxy because it contains a unique token in the uri for each
+  instance of the service.
+
 ## 2.0.0-alpha.1
 
 - Hot restart will now invoke the `ext.flutter.disassemble` service extension if

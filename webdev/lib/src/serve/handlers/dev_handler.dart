@@ -141,7 +141,7 @@ class DevHandler {
         await appServices.chrome.chromeConnection
             // Chrome protocol for spawning a new tab.
             .getUrl('json/new/?http://${_devTools.hostname}:${_devTools.port}'
-                '/?port=${appServices.debugService.port}');
+                '/?uri=${appServices.debugService.wsUri}');
       } else if (message is ConnectRequest) {
         if (appId != null) {
           throw StateError('Duplicate connection request from the same app. '
@@ -192,7 +192,7 @@ class DevHandler {
     logHandler(
         Level.INFO,
         'Debug service listening on '
-        'ws://${debugService.hostname}:${debugService.port}\n');
+        '${debugService.wsUri}\n');
 
     var webdevClient = await WebdevVmClient.create(debugService);
     var appServices = AppDebugServices(chrome, debugService, webdevClient);
