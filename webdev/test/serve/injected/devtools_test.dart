@@ -17,7 +17,7 @@ import 'injected_fixture.dart';
 void main() {
   InjectedFixture fixture;
   Process chromeDriver;
-  int debugPort;
+  String debugUri;
 
   setUpAll(() async {
     try {
@@ -42,7 +42,8 @@ void main() {
       while (!debugServiceLine.contains('Debug service listening')) {
         debugServiceLine = await fixture.webdev.stdout.next;
       }
-      debugPort = int.parse(debugServiceLine.split(':').last.trim());
+      debugUri =
+          debugServiceLine.substring(debugServiceLine.indexOf('ws://')).trim();
 
       // Let DevTools open.
       await Future.delayed(const Duration(seconds: 2));
@@ -100,7 +101,7 @@ void main() {
     });
 
     test('can hot restart via the service extension', () async {
-      var client = await vmServiceConnect('localhost', debugPort);
+      var client = await vmServiceConnectUri(debugUri);
       await fixture.changeInput();
 
       expect(await client.callServiceExtension('hotRestart'),
@@ -115,7 +116,7 @@ void main() {
     });
 
     test('destroys and recreates the isolate during a hot restart', () async {
-      var client = await vmServiceConnect('localhost', debugPort);
+      var client = await vmServiceConnectUri(debugUri);
       await client.streamListen('Isolate');
       await fixture.changeInput();
 
@@ -136,7 +137,7 @@ void main() {
     });
 
     test('destroys and recreates the isolate during a page refresh', () async {
-      var client = await vmServiceConnect('localhost', debugPort);
+      var client = await vmServiceConnectUri(debugUri);
       await client.streamListen('Isolate');
       await fixture.changeInput();
 
