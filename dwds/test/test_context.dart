@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dwds/src/chrome_proxy_service.dart';
 import 'package:dwds/src/helpers.dart';
+import 'package:dwds/service.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
@@ -10,7 +11,8 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 class TestContext {
   String appUrl;
-  ChromeProxyService service;
+  DebugService debugService;
+  ChromeProxyService get chromeProxyService => debugService.chromeProxyService;
   WipConnection tabConnection;
   Process webdev;
   WebDriver webDriver;
@@ -68,12 +70,8 @@ class TestContext {
       return result.body;
     };
 
-    service = await ChromeProxyService.create(
-      connection,
-      assetHandler,
-      // Provided in the example index.html.
-      'instance-id-for-testing',
-    );
+    debugService = await DebugService.start(
+        'localhost', connection, assetHandler, 'instance-id-for-testing');
   }
 
   Future<Null> tearDown() async {

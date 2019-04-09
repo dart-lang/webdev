@@ -18,7 +18,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'test_context.dart';
 
 final context = TestContext();
-ChromeProxyService get service => context.service;
+ChromeProxyService get service => context.chromeProxyService;
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
