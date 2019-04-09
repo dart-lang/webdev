@@ -1,4 +1,4 @@
-## 2.0.0-alpha.2-dev
+## 2.0.0-alpha.2
 
 - Open up devtools with the full uri instead of just the port. This is required
   for the latest proxy because it contains a unique token in the uri for each
