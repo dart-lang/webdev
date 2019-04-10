@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Support `setExceptionPauseMode`.
+
 ## 0.2.0
 
 - Added custom tokens to the `wsUri` for increased security.
