@@ -562,8 +562,16 @@ require("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> setExceptionPauseMode(String isolateId, String mode) {
-    throw UnimplementedError();
+  Future<Success> setExceptionPauseMode(String isolateId, String mode) async {
+    // Validates that the ID is correct.
+    _getIsolate(isolateId);
+
+    var pauseState = _pauseModePauseStates[mode.toLowerCase()] ??
+        // ignore: only_throw_errors
+        (throw RPCError(
+            'setExceptionPauseMode', -32602, 'Unsupported mode `$mode`'));
+    await tabConnection.debugger.setPauseOnExceptions(pauseState);
+    return Success();
   }
 
   @override
@@ -836,3 +844,10 @@ class ChromeDebugException extends ExceptionDetails implements Exception {
     return description.toString();
   }
 }
+
+/// Converts from ExceptionPauseMode strings to [PauseState] enums.
+const _pauseModePauseStates = {
+  'none': PauseState.none,
+  'all': PauseState.all,
+  'unhandled': PauseState.uncaught,
+};

@@ -333,9 +333,18 @@ void main() {
         throwsUnimplementedError);
   });
 
-  test('setExceptionPauseMode', () {
-    expect(() => service.setExceptionPauseMode(null, null),
-        throwsUnimplementedError);
+  test('setExceptionPauseMode', () async {
+    var vm = await service.getVM();
+    var isolateId = vm.isolates.first.id;
+    expect(await service.setExceptionPauseMode(isolateId, 'all'), isSuccess);
+    expect(
+        await service.setExceptionPauseMode(isolateId, 'unhandled'), isSuccess);
+    // Make sure this is the last one - or future tests might hang.
+    expect(await service.setExceptionPauseMode(isolateId, 'none'), isSuccess);
+    expect(
+        service.setExceptionPauseMode(isolateId, 'invalid'),
+        throwsA(isA<RPCError>()
+            .having((e) => e.code, 'invalid params error', equals(-32602))));
   });
 
   test('setFlag', () {
