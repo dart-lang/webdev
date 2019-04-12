@@ -148,7 +148,8 @@ class Configuration {
         ? argResults[hostnameFlag] as String
         : defaultConfiguration.hostname;
 
-    var launchInChrome = argResults.wasParsed(launchInChromeFlag)
+    var launchInChrome = argResults.options.contains(launchInChromeFlag) &&
+            argResults.wasParsed(launchInChromeFlag)
         ? argResults[launchInChromeFlag] as bool
         // We want to default to launch chrome if the user provides just --debug
         // and not --chrome-debug-port.
