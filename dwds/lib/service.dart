@@ -5,8 +5,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:http_multi_server/http_multi_server.dart';
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -47,15 +50,16 @@ class DebugService {
   final ServiceExtensionRegistry serviceExtensionRegistry;
   final int port;
   final HttpServer _server;
+  final String _authToken;
 
   DebugService._(this.chromeProxyService, this.hostname, this.port,
-      this.serviceExtensionRegistry, this._server);
+      this._authToken, this.serviceExtensionRegistry, this._server);
 
   Future<void> close() async {
     await _server.close();
   }
 
-  String get wsUri => 'ws://$hostname:$port';
+  String get wsUri => 'ws://$hostname:$port/$_authToken';
 
   /// [appInstanceId] is a unique String embedded in the instance of the
   /// application available through `window.$dartAppInstanceId`.
@@ -67,14 +71,32 @@ class DebugService {
     var chromeProxyService = await ChromeProxyService.create(
         chromeConnection, assetHandler, appInstanceId);
     var serviceExtensionRegistry = ServiceExtensionRegistry();
-    var handler = webSocketHandler(_createNewConnectionHandler(
+    var authToken = _makeAuthToken();
+    var innerHandler = webSocketHandler(_createNewConnectionHandler(
         chromeProxyService, serviceExtensionRegistry));
+    var handler = (shelf.Request request) {
+      if (request.url.pathSegments.first != authToken) {
+        return shelf.Response.forbidden('Incorrect auth token');
+      }
+      return innerHandler(request);
+    };
     var port = await findUnusedPort();
     var server = hostname == 'localhost'
         ? await HttpMultiServer.loopback(port)
         : await HttpServer.bind(hostname, port);
     serveRequests(server, handler);
-    return DebugService._(
-        chromeProxyService, hostname, port, serviceExtensionRegistry, server);
+    return DebugService._(chromeProxyService, hostname, port, authToken,
+        serviceExtensionRegistry, server);
   }
+}
+
+// Creates a random auth token for more secure connections.
+String _makeAuthToken() {
+  final tokenBytes = 8;
+  final bytes = Uint8List(tokenBytes);
+  final random = Random.secure();
+  for (var i = 0; i < tokenBytes; i++) {
+    bytes[i] = random.nextInt(256);
+  }
+  return base64Url.encode(bytes);
 }

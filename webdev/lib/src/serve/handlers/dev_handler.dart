@@ -15,6 +15,7 @@ import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../serve/chrome.dart';
+import '../../serve/data/run_request.dart';
 import '../../serve/logging.dart';
 import '../data/connect_request.dart';
 import '../data/devtools_request.dart';
@@ -33,11 +34,11 @@ class DevHandler {
   final DevTools _devTools;
   final AssetHandler _assetHandler;
   final String _hostname;
-  final _connectedApps = StreamController<ConnectRequest>.broadcast();
+  final _connectedApps = StreamController<DevConnection>.broadcast();
   final _servicesByAppId = <String, Future<AppDebugServices>>{};
   final Stream<BuildResult> buildResults;
 
-  Stream<ConnectRequest> get connectedApps => _connectedApps.stream;
+  Stream<DevConnection> get connectedApps => _connectedApps.stream;
 
   DevHandler(
       this.buildResults, this._devTools, this._assetHandler, this._hostname) {
@@ -93,7 +94,7 @@ class DevHandler {
                 ..success = false
                 ..error =
                     'Debugging is not enabled, please pass the --debug flag '
-                    'when starting webdev.'))));
+                        'when starting webdev.'))));
           return;
         }
         if (appId != message.appId) {
@@ -102,8 +103,8 @@ class DevHandler {
                 ..success = false
                 ..error =
                     'App ID has changed since the connection was established. '
-                    'Please file an issue at '
-                    'https://github.com/dart-lang/webdev/issues/new.'))));
+                        'Please file an issue at '
+                        'https://github.com/dart-lang/webdev/issues/new.'))));
           return;
         }
 
@@ -119,7 +120,7 @@ class DevHandler {
                 ..success = false
                 ..error =
                     'This app is already being debugged in a different tab. '
-                    'Please close that tab or switch to it.'))));
+                        'Please close that tab or switch to it.'))));
           return;
         }
 
@@ -140,7 +141,7 @@ class DevHandler {
         await appServices.chrome.chromeConnection
             // Chrome protocol for spawning a new tab.
             .getUrl('json/new/?http://${_devTools.hostname}:${_devTools.port}'
-                '/?port=${appServices.debugService.port}');
+                '/?uri=${appServices.debugService.wsUri}');
       } else if (message is ConnectRequest) {
         if (appId != null) {
           throw StateError('Duplicate connection request from the same app. '
@@ -148,7 +149,6 @@ class DevHandler {
               'https://github.com/dart-lang/webdev/issues/new.');
         }
         appId = message.appId;
-        _connectedApps.add(message);
 
         // After a page refresh, reconnect to the same app services if they
         // were previously launched and create the new isolate.
@@ -162,6 +162,8 @@ class DevHandler {
             await services.debugService.chromeProxyService.createIsolate();
           }
         }
+
+        _connectedApps.add(DevConnection(message, connection));
       }
     });
 
@@ -190,7 +192,7 @@ class DevHandler {
     logHandler(
         Level.INFO,
         'Debug service listening on '
-        'ws://${debugService.hostname}:${debugService.port}\n');
+        '${debugService.wsUri}\n');
 
     var webdevClient = await WebdevVmClient.create(debugService);
     var appServices = AppDebugServices(chrome, debugService, webdevClient);
@@ -215,4 +217,19 @@ Future<bool> _isCorrectTab(
   var result =
       await tabConnection.runtime.evaluate(r'window["$dartAppInstanceId"];');
   return result.value == instanceId;
+}
+
+class DevConnection {
+  final ConnectRequest request;
+  final SseConnection _connection;
+  var _isStarted = false;
+  DevConnection(this.request, this._connection);
+
+  void runMain() {
+    if (!_isStarted) {
+      _connection.sink
+          .add(jsonEncode(webdev.serializers.serialize(RunRequest())));
+    }
+    _isStarted = true;
+  }
 }

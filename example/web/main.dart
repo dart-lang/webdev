@@ -7,6 +7,8 @@ import 'dart:developer';
 import 'dart:html';
 
 void main() {
+  print('Initial Print');
+
   registerExtension('ext.print', (_, __) async {
     print('Hello World');
     return ServiceExtensionResponse.result(json.encode({'success': true}));

@@ -18,7 +18,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'test_context.dart';
 
 final context = TestContext();
-ChromeProxyService get service => context.service;
+ChromeProxyService get service => context.chromeProxyService;
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
@@ -333,9 +333,18 @@ void main() {
         throwsUnimplementedError);
   });
 
-  test('setExceptionPauseMode', () {
-    expect(() => service.setExceptionPauseMode(null, null),
-        throwsUnimplementedError);
+  test('setExceptionPauseMode', () async {
+    var vm = await service.getVM();
+    var isolateId = vm.isolates.first.id;
+    expect(await service.setExceptionPauseMode(isolateId, 'all'), isSuccess);
+    expect(
+        await service.setExceptionPauseMode(isolateId, 'unhandled'), isSuccess);
+    // Make sure this is the last one - or future tests might hang.
+    expect(await service.setExceptionPauseMode(isolateId, 'none'), isSuccess);
+    expect(
+        service.setExceptionPauseMode(isolateId, 'invalid'),
+        throwsA(isA<RPCError>()
+            .having((e) => e.code, 'invalid params error', equals(-32602))));
   });
 
   test('setFlag', () {

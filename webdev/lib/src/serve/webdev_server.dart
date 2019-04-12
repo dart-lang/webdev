@@ -34,7 +34,13 @@ class WebDevServer {
   final DevHandler devHandler;
   final String target;
 
-  WebDevServer._(this.target, this._server, this.devHandler);
+  WebDevServer._(this.target, this._server, this.devHandler, bool autoRun) {
+    if (autoRun) {
+      devHandler.connectedApps.listen((connection) {
+        connection.runMain();
+      });
+    }
+  }
 
   String get host => _server.address.host;
   int get port => _server.port;
@@ -74,6 +80,7 @@ class WebDevServer {
     var server =
         await HttpServer.bind(options.configuration.hostname, options.port);
     shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
-    return WebDevServer._(options.target, server, devHandler);
+    return WebDevServer._(
+        options.target, server, devHandler, options.configuration.autoRun);
   }
 }

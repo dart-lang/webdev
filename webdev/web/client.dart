@@ -14,10 +14,11 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
-
 import 'package:webdev/src/serve/data/connect_request.dart';
 import 'package:webdev/src/serve/data/devtools_request.dart';
+import 'package:webdev/src/serve/data/run_request.dart';
 import 'package:webdev/src/serve/data/serializers.dart';
+
 import 'module.dart';
 import 'promise.dart';
 import 'reloading_manager.dart';
@@ -77,6 +78,8 @@ Future<void> main() async {
       if (!event.success) {
         window.alert('DevTools failed to open with: ${event.error}');
       }
+    } else if (event is RunRequest) {
+      runMain();
     }
   });
 
@@ -111,6 +114,9 @@ external String get dartAppId;
 external String get dartAppInstanceId;
 @JS(r'$dartAppInstanceId')
 external set dartAppInstanceId(String id);
+
+@JS(r'$dartRunMain')
+external void Function() get runMain;
 
 @JS(r'$dartHotRestart')
 external Future<void> Function() get hotRestart;

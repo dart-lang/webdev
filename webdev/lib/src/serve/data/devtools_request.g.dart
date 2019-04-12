@@ -116,7 +116,7 @@ class _$DevToolsRequest extends DevToolsRequest {
   @override
   final String instanceId;
 
-  factory _$DevToolsRequest([void updates(DevToolsRequestBuilder b)]) =>
+  factory _$DevToolsRequest([void Function(DevToolsRequestBuilder) updates]) =>
       (new DevToolsRequestBuilder()..update(updates)).build();
 
   _$DevToolsRequest._({this.appId, this.instanceId}) : super._() {
@@ -129,7 +129,7 @@ class _$DevToolsRequest extends DevToolsRequest {
   }
 
   @override
-  DevToolsRequest rebuild(void updates(DevToolsRequestBuilder b)) =>
+  DevToolsRequest rebuild(void Function(DevToolsRequestBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
@@ -190,7 +190,7 @@ class DevToolsRequestBuilder
   }
 
   @override
-  void update(void updates(DevToolsRequestBuilder b)) {
+  void update(void Function(DevToolsRequestBuilder) updates) {
     if (updates != null) updates(this);
   }
 
@@ -209,7 +209,8 @@ class _$DevToolsResponse extends DevToolsResponse {
   @override
   final String error;
 
-  factory _$DevToolsResponse([void updates(DevToolsResponseBuilder b)]) =>
+  factory _$DevToolsResponse(
+          [void Function(DevToolsResponseBuilder) updates]) =>
       (new DevToolsResponseBuilder()..update(updates)).build();
 
   _$DevToolsResponse._({this.success, this.error}) : super._() {
@@ -219,7 +220,7 @@ class _$DevToolsResponse extends DevToolsResponse {
   }
 
   @override
-  DevToolsResponse rebuild(void updates(DevToolsResponseBuilder b)) =>
+  DevToolsResponse rebuild(void Function(DevToolsResponseBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
@@ -280,7 +281,7 @@ class DevToolsResponseBuilder
   }
 
   @override
-  void update(void updates(DevToolsResponseBuilder b)) {
+  void update(void Function(DevToolsResponseBuilder) updates) {
     if (updates != null) updates(this);
   }
 

@@ -7,6 +7,7 @@ import 'package:built_value/serializer.dart';
 
 import 'connect_request.dart';
 import 'devtools_request.dart';
+import 'run_request.dart';
 
 part 'serializers.g.dart';
 
@@ -15,6 +16,7 @@ part 'serializers.g.dart';
   DevToolsRequest,
   DevToolsResponse,
   ConnectRequest,
+  RunRequest,
   DefaultBuildResult,
 ])
 final Serializers serializers = _$serializers;

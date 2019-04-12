@@ -13,7 +13,7 @@ abstract class DevToolsRequest
   static Serializer<DevToolsRequest> get serializer =>
       _$devToolsRequestSerializer;
 
-  factory DevToolsRequest([updates(DevToolsRequestBuilder b)]) =
+  factory DevToolsRequest([Function(DevToolsRequestBuilder) updates]) =
       _$DevToolsRequest;
 
   DevToolsRequest._();
@@ -31,7 +31,7 @@ abstract class DevToolsResponse
   static Serializer<DevToolsResponse> get serializer =>
       _$devToolsResponseSerializer;
 
-  factory DevToolsResponse([updates(DevToolsResponseBuilder b)]) =
+  factory DevToolsResponse([Function(DevToolsResponseBuilder) updates]) =
       _$DevToolsResponse;
 
   DevToolsResponse._();

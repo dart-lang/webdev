@@ -68,6 +68,7 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
 }
 
 class Configuration {
+  final bool _autoRun;
   final int _chromeDebugPort;
   final bool _debug;
   final String _hostname;
@@ -82,6 +83,7 @@ class Configuration {
   final bool _verbose;
 
   Configuration({
+    bool autoRun,
     int chromeDebugPort,
     bool debug,
     String hostname,
@@ -94,7 +96,8 @@ class Configuration {
     bool release,
     bool requireBuildWebCompilers,
     bool verbose,
-  })  : _chromeDebugPort = chromeDebugPort,
+  })  : _autoRun = autoRun,
+        _chromeDebugPort = chromeDebugPort,
         _debug = debug,
         _hostname = hostname,
         _launchInChrome = launchInChrome,
@@ -104,6 +107,9 @@ class Configuration {
         _reload = reload,
         _requireBuildWebCompilers = requireBuildWebCompilers,
         _verbose = verbose;
+
+  // Whether the application should automatically run when loaded.
+  bool get autoRun => _autoRun ?? true;
 
   int get chromeDebugPort => _chromeDebugPort ?? 0;
 
@@ -142,9 +148,14 @@ class Configuration {
         ? argResults[hostnameFlag] as String
         : defaultConfiguration.hostname;
 
-    var launchInChrome = argResults.options.contains(launchInChromeFlag)
+    var launchInChrome = argResults.options.contains(launchInChromeFlag) &&
+            argResults.wasParsed(launchInChromeFlag)
         ? argResults[launchInChromeFlag] as bool
-        : defaultConfiguration.launchInChrome;
+        // We want to default to launch chrome if the user provides just --debug
+        // and not --chrome-debug-port.
+        : debug && !argResults.wasParsed(chromeDebugPortFlag)
+            ? true
+            : defaultConfiguration.launchInChrome;
 
     var logRequests = argResults.options.contains(logRequestsFlag)
         ? argResults[logRequestsFlag] as bool
@@ -182,8 +193,8 @@ class Configuration {
 
     if (debug && chromeDebugPort == 0 && !launchInChrome) {
       throw InvalidConfiguration(
-          'Must either use --$chromeDebugPortFlag or --$launchInChrome with '
-          '--$debugFlag.');
+          'Must either use --$chromeDebugPortFlag or --$launchInChromeFlag '
+          'with --$debugFlag.');
     }
 
     return Configuration(

@@ -60,6 +60,19 @@ void main() {
             emitsThrough(startsWith('[{"event":"app.debugPort"')));
         await exitWebdev(webdev);
       });
+
+      test('.log', () async {
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var appId = await _getAppId(webdev);
+        // The example app does an initial print.
+        await expectLater(
+            webdev.stdout,
+            emitsThrough(
+                startsWith('[{"event":"app.log","params":{"appId":"$appId",'
+                    '"log":"Initial Print\\n"}}')));
+        await exitWebdev(webdev);
+      });
     });
 
     group('Methods', () {
