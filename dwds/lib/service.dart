@@ -42,7 +42,7 @@ void Function(WebSocketChannel, String) _createNewConnectionHandler(
 ///
 /// Creates a [ChromeProxyService] from an existing Chrome instance.
 class DebugService {
-  final ChromeProxyService chromeProxyService;
+  final VmServiceInterface chromeProxyService;
   final String hostname;
   final ServiceExtensionRegistry serviceExtensionRegistry;
   final int port;
