@@ -63,7 +63,7 @@ class ChromeProxyService implements VmServiceInterface {
       var tabConnection = await tab.connect();
       var result = await tabConnection.runtime
           .evaluate(r'window["$dartAppInstanceId"];');
-      if (result.value == appInstanceId) {
+      if (result.value != null && RegExp(appInstanceId).matchAsPrefix(result.value) != null) {
         appTab = tab;
         break;
       }
@@ -88,8 +88,8 @@ class ChromeProxyService implements VmServiceInterface {
     return service;
   }
 
-  Future<Null> initialize() async {
-    var debugger = DebuggerProxyThing(this);
+  Future<Null> initialize() async {  // ### Why did I put this in a separate method?
+    debugger = DebuggerProxyThing(this);
     await debugger.initialize();
   }
 
@@ -189,57 +189,7 @@ class ChromeProxyService implements VmServiceInterface {
   @override
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
-    // Validate the isolate id is correct, _getIsolate throws if not.
-    if (isolateId != null) _getIsolate(isolateId);
-    return null;
-
-    // var jsId = _dartIdToJsId[script.id];
-    // var locations = _jsIdToLocationData[jsId];
-    // var locationData = locations.dartLocations[script.uri];
-
-    // for (var location in locationData) {
-    //   // Match first line hit for now.
-    //   if (location.dartLine >= line) {
-    //     WipResponse result;
-    //     try {
-    //       result = await _cdp.debugger
-    //           .sendCommand('Debugger.setBreakpoint', params: {
-    //         'location': {
-    //           'scriptId': jsId,
-    //           'lineNumber': location.jsLine - 1,
-    //         }
-    //       });
-    //     } catch (e) {
-    //       throw RpcError(102)..data.details = '$e';
-    //     }
-
-    //     var jsBreakpointId = result.result['breakpointId'];
-    //     // TODO(vsm):
-    //     // (1) Validate that the breakpoint was resolved.
-    //     // (2) Update the location to the actual location (in result.result).
-
-    //     var breakpoint = _createBreakpoint()
-    //       ..resolved = true
-    //       ..location = (SourceLocation()
-    //         ..script = script
-    //         ..tokenPos = location.dartTokenPos);
-
-    //     _jsBreakpointIdToDartId[jsBreakpointId] = breakpoint.id;
-    //     _dartBreakpointIdToJsId[breakpoint.id] = jsBreakpointId;
-
-    //     _streamNotify(
-    //         'Debug',
-    //         Event()
-    //           ..kind = EventKind.BreakpointAdded
-    //           ..isolate = isolate.toRef()
-    //           ..breakpoint = breakpoint);
-    //     return breakpoint;
-    //   }
-
-
-
-
-    // throw UnimplementedError();
+        return debugger.addBreakpoint(isolateId, scriptId, line, column: column);
   }
 
   @override
@@ -671,8 +621,8 @@ function($argsString) {
 
   @override
   Future<ReloadReport> reloadSources(String isolateId,
-      {bool force, bool pause, String rootLibUri, String packagesUri}) {
-    throw UnimplementedError();
+      {bool force, bool pause, String rootLibUri, String packagesUri}) async {
+
   }
 
   @override

@@ -36,6 +36,7 @@ void main() {
     ScriptRef mainScript;
 
     setUp(() async {
+      // await tabConnection.page.reload(ignoreCache: true);
       vm = await service.getVM();
       isolate = await service.getIsolate(vm.isolates.first.id) as Isolate;
       scripts = await service.getScripts(isolate.id);
@@ -43,17 +44,29 @@ void main() {
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
     });
 
+    Future<void> reload() async {
+      var loading = tabConnection.page.reload(ignoreCache: true);
+      await service.debugger.waitForSourceMap('main.dart');
+      return await loading;
+    }
+
+    test('load sourcemaps', () async {
+      await reload();
+      expect(service.debugger.dartToJs['main.dart'], isNotNull);
+    });
+
     test('addBreakPoint', () async {
       //  ### separately test - setting breakpoint and the JS/dart position is right.
       // Returning the SourceLocation (i.e. token position).
       // Move these tests to a separate test file? Or does that help?
-      // 
+      //
+      await reload();
       await service.addBreakpoint(isolate.id, mainScript.id, 19);
       var breakpoints = isolate.breakpoints;
-      expect(breakpoints, isNotEmpty);
-      expect (breakpoints.any((b) => b.location.tokenPos == 42), isNotNull);
-
-     });
+      print("printing something");
+      // expect(breakpoints, isNotEmpty);
+      expect(breakpoints.any((b) => b.location.tokenPos == 42), isNotNull);
+    });
 
     test('addBreakpointAtEntry', () {
       expect(() => service.addBreakpointAtEntry(null, null),
@@ -380,7 +393,7 @@ void main() {
       pauseCompleter.complete();
     });
     var resumeCompleter = Completer();
-    var resumseSub = tabConnection.debugger.onResumed.listen((_) {
+    var resumeSub = tabConnection.debugger.onResumed.listen((_) {
       resumeCompleter.complete();
     });
     expect(await service.pause(isolateId), const TypeMatcher<Success>());
@@ -388,7 +401,7 @@ void main() {
     expect(await service.resume(isolateId), const TypeMatcher<Success>());
     await resumeCompleter.future;
     await pauseSub.cancel();
-    await resumseSub.cancel();
+    await resumeSub.cancel();
   });
 
   test('registerService', () async {

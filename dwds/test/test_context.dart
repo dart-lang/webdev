@@ -22,7 +22,8 @@ class TestContext {
   int port;
 
   Future<void> setUp() async {
-    port = await findUnusedPort();
+   // port = await findUnusedPort();
+    port = 9876;
     try {
       chromeDriver = await Process.start(
           'chromedriver', ['--port=4444', '--url-base=wd/hub']);
@@ -31,28 +32,24 @@ class TestContext {
           'Could not start ChromeDriver. Is it installed?\nError: $e');
     }
 
-    webdev =
-        await Process.start('pub', ['run', 'webdev', 'serve', 'example:$port']);
-    webdev.stderr
-        .transform(const Utf8Decoder())
-        .transform(const LineSplitter())
-        .listen(print);
-    var assetReadyCompleter = Completer();
-    webdev.stdout
-        .transform(const Utf8Decoder())
-        .transform(const LineSplitter())
-        .listen((line) {
-      if (line.contains('$port') && !assetReadyCompleter.isCompleted) {
-        assetReadyCompleter.complete();
-      }
-      printOnFailure(line);
-    });
-    await assetReadyCompleter.future.timeout(Duration(seconds: 60));
+  //  await Process.run('pub', ['global', 'activate', 'webdev']);
+    // webdev = await Process.start(
+    //     'pub', ['global', 'run', 'webdev', 'serve', 'example:$port']);
+    // webdev.stderr
+    //     .transform(const Utf8Decoder())
+    //     .transform(const LineSplitter())
+    //     .listen(printOnFailure);
+    // await webdev.stdout
+    //     .transform(const Utf8Decoder())
+    //     .transform(const LineSplitter())
+    //     .takeWhile((line) => !line.contains('$port'))
+    //     .drain();
     appUrl = 'http://localhost:$port/hello_world/';
-    var debugPort = await findUnusedPort();
+    var debugPort = 9222;
     webDriver = await createDriver(desired: {
       'chromeOptions': {
-        'args': ['remote-debugging-port=$debugPort', '--headless']
+        // 'args': ['remote-debugging-port=$debugPort', '--headless']
+                'args': ['remote-debugging-port=$debugPort']
       }
     });
     await webDriver.get(appUrl);
@@ -85,8 +82,8 @@ class TestContext {
   }
 
   Future<Null> tearDown() async {
-    webdev.kill();
-    await webdev.exitCode;
+    webdev?.kill();
+    await webdev?.exitCode;
     await webDriver?.quit();
     chromeDriver.kill();
   }

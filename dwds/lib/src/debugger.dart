@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -15,70 +16,76 @@ class DebuggerProxyThing {
 
   WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
 
-  Map<String, WipScript> urlToScript = {};
+  /// Dart URL to script.  (the script has the JS url)
+  Map<String, WipScript> jsScripts = {};
+  /// JS URL to sourcemap
+  Map<String, sourcemaps.SingleMapping> mappings = {};
 
   Future<Null> initialize() async {
-    await chromeDebugger.enable();
     chromeDebugger.onScriptParsed.listen(_scriptParsed);
+    await chromeDebugger.enable();
+
+  }
+
+  StreamController<String> sourceMapLoadedController = StreamController<String>();
+  Stream<String> get sourceMapLoaded => sourceMapLoadedController.stream;
+
+  /// Return a Future that completers once the source map for [url]
+  /// has been loaded.
+  Future<String> waitForSourceMap(String url) {
+    var completer = Completer<String>();
+    StreamSubscription listener;
+    listener = sourceMapLoaded.listen((loadedUrl) {
+      if (url == loadedUrl) completer.complete(url);
+      listener.cancel();
+    });
+    return completer.future;
   }
 
   Future<String> sourceMap(WipScript script) async {
     var sourceMapUrl = script.sourceMapURL;
-    if (sourceMapUrl == null || sourceMapUrl.isEmpty) return null;
+
+    if (sourceMapUrl == null || sourceMapUrl.isEmpty) {
+            return null;
+    }
     var absolute = p.join(p.dirname(script.url), sourceMapUrl);
     var sourceMapContents = await fetch(absolute);
     return sourceMapContents;
   }
 
   Future<Null> _scriptParsed(ScriptParsedEvent e) async {
-     var script = e.script;
+    var script = e.script;
+    // var source = await chromeDebugger.getScriptSource(script.scriptId);
     var sourceMapContents = await sourceMap(script);
     if (sourceMapContents == null) return;
-        // This happens to be a [SingleMapping] today in DDC.
-        var mapping = sourcemaps.parse(sourceMapContents);
-        if (mapping is sourcemaps.SingleMapping) {
-          urlToScript[script.url] = script;
-        }
+    // This happens to be a [SingleMapping] today in DDC.
+    var mapping = sourcemaps.parse(sourceMapContents);
+    if (mapping is sourcemaps.SingleMapping) {
+      jsScripts[script.url] = script;
+      mappings[script.url] = mapping;
+      for (var dartUrl in mapping.urls) {
+        sourceMapLoadedController.add(dartUrl);
+      }
+    }
+  }
 
-
-
-// ### Is this stuff necessary here, or is it covered by the getSourceReport api?
-    //       var locationData = DartLocationData(jsUrl, jsId, mapping);
-    //       _jsIdToLocationData[jsId] = locationData;
-
-    //       for (var src in mapping.urls) {
-    //         // TODO(vsm): Support part files.
-    //         var dartUrl = p.join(p.dirname(jsUrl), src);
-    //         // TODO(vsm): Record this properly.
-    //         var dartSource = await _fetch(dartUrl);
-    //         if (dartSource == null) continue;
-    //         dartUrl = _dartifiedUrl(dartUrl);
-
-    //         var dartScript = _createScript()
-    //           ..uri = dartUrl
-    //           ..tokenPosTable = locationData.dartUrlToTokenPosTable[dartUrl]
-    //           ..source = dartSource;
-    //         _dartIdToJsId[dartScript.id] = jsId;
-    //         _dartUrlToScript[dartUrl] = dartScript;
-    //         var library = _createLibrary()
-    //           ..uri = dartUrl
-    //           ..getScripts().add(dartScript)
-    // #### I think the libraries are already getting created? So this is unnecessary?
-    //           ..name = p.basenameWithoutExtension(dartUrl);
-    //         // TODO(vsm): Need a robust way to query for the root library.
-    //         if (libraries.isEmpty) isolate.rootLib = library.toRef();
-    //         libraries.add(library);
-    //       }
-    //     }
-    //     _mappings.add(mapping);
-    //   }
-    // }
+    ScriptRef _getScriptById(String isolateId, String scriptId) {
+    var scripts = _getScripts(isolateId);
+    for (var script in scripts) {
+      if (script.id == scriptId) {
+        return script;
+      }
+    }
+    return null;
   }
 
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
     // Validate the isolate id is correct, _getIsolate throws if not.
     if (isolateId != null) await mainProxy.getIsolate(isolateId);
+    var script = _getScriptById(isolateId, scriptId);
+    var jsScript = jsScripts[scriptId];
+
     return null;
 
     // var jsId = _dartIdToJsId[script.id];
