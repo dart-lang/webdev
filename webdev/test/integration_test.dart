@@ -57,7 +57,7 @@ name: sample
 
   var invalidRanges = <String, List<String>>{
     'build_runner': ['0.8.9', '2.0.0'],
-    'build_web_compilers': ['0.3.5', '2.0.0'],
+    'build_web_compilers': ['0.3.5', '3.0.0'],
     'build_daemon': ['0.3.0', '0.4.1'],
   };
 
@@ -144,7 +144,7 @@ name: sample
                   break;
                 case 'build_web_compilers':
                   webCompilersVersion = version;
-                  supportedRange = '>=1.2.0 <2.0.0';
+                  supportedRange = '>=1.2.0 <3.0.0';
                   break;
                 case 'build_daemon':
                   buildDaemonVersion = version;
