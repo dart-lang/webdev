@@ -1,3 +1,8 @@
+## 2.0.0-alpha.3
+
+- Lots of small daemon mode bug fixes.
+- Allow build_web_compilers 2.x.
+
 ## 2.0.0-alpha.2
 
 - Open up devtools with the full uri instead of just the port. This is required
