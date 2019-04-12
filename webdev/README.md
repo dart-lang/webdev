@@ -58,9 +58,11 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
                                   (defaults to "localhost")
 
 
-    --launch-in-chrome            Automatically launches your application in
+    --[no-]launch-in-chrome       Automatically launches your application in
                                   Chrome with the debug port open. Use
-                                  chrome-debug-port to specify a specific port.
+                                  chrome-debug-port to specify a specific port
+                                  to attach to an already running chrome
+                                  instance instead.
 
     --log-requests                Enables logging for each request to the
                                   server.
