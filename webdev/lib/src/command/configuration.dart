@@ -148,9 +148,13 @@ class Configuration {
         ? argResults[hostnameFlag] as String
         : defaultConfiguration.hostname;
 
-    var launchInChrome = argResults.options.contains(launchInChromeFlag)
+    var launchInChrome = argResults.wasParsed(launchInChromeFlag)
         ? argResults[launchInChromeFlag] as bool
-        : defaultConfiguration.launchInChrome;
+        // We want to default to launch chrome if the user provides just --debug
+        // and not --chrome-debug-port.
+        : debug && !argResults.wasParsed(chromeDebugPortFlag)
+            ? true
+            : defaultConfiguration.launchInChrome;
 
     var logRequests = argResults.options.contains(logRequestsFlag)
         ? argResults[logRequestsFlag] as bool
@@ -188,8 +192,8 @@ class Configuration {
 
     if (debug && chromeDebugPort == 0 && !launchInChrome) {
       throw InvalidConfiguration(
-          'Must either use --$chromeDebugPortFlag or --$launchInChrome with '
-          '--$debugFlag.');
+          'Must either use --$chromeDebugPortFlag or --$launchInChromeFlag '
+          'with --$debugFlag.');
     }
 
     return Configuration(

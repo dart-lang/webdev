@@ -79,7 +79,7 @@ refresh: Performs a full page refresh.
           negatable: false,
           help: 'Automatically launches your application in Chrome with the '
               'debug port open. Use $chromeDebugPortFlag to specify a specific '
-              'port.')
+              'port to attach to an already running chrome instance instead.')
       ..addFlag(liveReloadFlag,
           negatable: false,
           help:
