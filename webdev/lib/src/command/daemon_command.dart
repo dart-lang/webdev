@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:pedantic/pedantic.dart';
 
 import '../daemon/app_domain.dart';
 import '../daemon/daemon.dart';
@@ -49,27 +50,35 @@ class DaemonCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    var daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
-    var daemonDomain = DaemonDomain(daemon);
-    setLogHandler((level, message, {verbose}) {
-      daemonDomain.sendEvent(
-          'daemon.logMessage', {'level': '$level', 'message': message});
-    });
-    daemon.registerDomain(daemonDomain);
-    var configuration =
-        Configuration(launchInChrome: true, debug: true, autoRun: false);
-    var pubspecLock = await readPubspecLock(configuration);
-    var buildOptions =
-        buildRunnerArgs(pubspecLock, configuration, includeOutput: false);
-    var port = await findUnusedPort();
-    var workflow = await DevWorkflow.start(
-      configuration,
-      buildOptions,
-      {'web': port},
-    );
-    daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
-    await daemon.onExit;
-    await workflow.shutDown();
-    return 0;
+    Daemon daemon;
+    DevWorkflow workflow;
+    try {
+      daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
+      var daemonDomain = DaemonDomain(daemon);
+      setLogHandler((level, message, {verbose}) {
+        daemonDomain.sendEvent(
+            'daemon.logMessage', {'level': '$level', 'message': message});
+      });
+      daemon.registerDomain(daemonDomain);
+      var configuration =
+          Configuration(launchInChrome: true, debug: true, autoRun: false);
+      var pubspecLock = await readPubspecLock(configuration);
+      var buildOptions =
+          buildRunnerArgs(pubspecLock, configuration, includeOutput: false);
+      var port = await findUnusedPort();
+      workflow = await DevWorkflow.start(
+        configuration,
+        buildOptions,
+        {'web': port},
+      );
+      daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
+      await daemon.onExit;
+      return 0;
+    } catch (e) {
+      daemon?.shutdown();
+      rethrow;
+    } finally {
+      unawaited(workflow?.shutDown());
+    }
   }
 }
