@@ -509,7 +509,7 @@ function($argsString) {
 
   @override
   Future<ScriptList> getScripts(String isolateId) async {
-    var scripts = await _getScripts(isolateId);
+    var scripts = await getScriptRefs(isolateId);
     return ScriptList()..scripts = scripts;
   }
 
@@ -526,7 +526,7 @@ function($argsString) {
       ..source = script;
   }
 
-  Future<List<ScriptRef>> _getScripts(String isolateId) async {
+  Future<List<ScriptRef>> getScriptRefs(String isolateId) async {
     var isolate = _getIsolate(isolateId);
     var scripts = <ScriptRef>[];
     for (var lib in isolate.libraries) {

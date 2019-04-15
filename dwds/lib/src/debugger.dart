@@ -69,8 +69,8 @@ class DebuggerProxyThing {
     }
   }
 
-    ScriptRef _getScriptById(String isolateId, String scriptId) {
-    var scripts = _getScripts(isolateId);
+    Future<ScriptRef> _getScriptById(String isolateId, String scriptId) async {
+    var scripts = await mainProxy.getScriptRefs(isolateId);
     for (var script in scripts) {
       if (script.id == scriptId) {
         return script;
@@ -83,10 +83,56 @@ class DebuggerProxyThing {
       {int column}) async {
     // Validate the isolate id is correct, _getIsolate throws if not.
     if (isolateId != null) await mainProxy.getIsolate(isolateId);
-    var script = _getScriptById(isolateId, scriptId);
-    var jsScript = jsScripts[scriptId];
+    var scriptRef = await _getScriptById(isolateId, scriptId);
+    var jsScript = jsScripts[scriptRef.uri];
+    var sourcemap = mappings[scriptRef.uri];
+
+    var jsLine = jsBreakpointPosition(jsScript, line);
+    // actually set the breakpoint
 
     return null;
+   }
+
+   jsBreakpointPosition(sourcemaps.SingleMapping sourcemap, int line) {
+     for (var lineEntry in mapping.lines) {
+       for (var entry in lineEntry.entries) {
+        var index = entry.sourceUrlId;
+        if (index == null) continue;
+        var dartUrl = _dartifiedUrl(p.join(parent, mapping.urls[index]));
+        var dartLine = entry.sourceLine;
+        var dartColumn = entry.sourceColumn;
+
+        // TODO(vsm): This is broken - assumes Dart is laid out contiguously
+        // in JS.
+        if (dartLine != currentLine) {
+          currentLine = dartLine;
+          current = [dartLine];
+          tokenPosTable.add(current);
+        }
+        current.addAll([tokenPos, dartColumn]);
+        dartLocationList.add(DartLocationMapping(jsScriptId, lineEntry.line,
+            entry.column, dartUrl, dartLine, dartColumn, tokenPos));
+        tokenPos += 1;
+
+
+
+    for (var location in locationData) {
+      // Match first line hit for now.
+      if (location.dartLine >= line) {
+        WipResponse result;
+        try {
+          result = await _cdp.debugger
+              .sendCommand('Debugger.setBreakpoint', params: {
+            'location': {
+              'scriptId': jsId,
+              'lineNumber': location.jsLine - 1,
+            }
+          });
+        } catch (e) {
+          throw RpcError(102)..data.details = '$e';
+        }
+
+        var jsBreakpointId = result.result['breakpointId'];
 
     // var jsId = _dartIdToJsId[script.id];
     // var locations = _jsIdToLocationData[jsId];
