@@ -12,7 +12,8 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 class TestContext {
   String appUrl;
   DebugService debugService;
-  ChromeProxyService get chromeProxyService => debugService.chromeProxyService;
+  ChromeProxyService get chromeProxyService =>
+      debugService.chromeProxyService as ChromeProxyService;
   WipConnection tabConnection;
   Process webdev;
   WebDriver webDriver;
