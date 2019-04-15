@@ -1,3 +1,7 @@
+## 2.0.0-dev
+
+- Fix an NPE is the reload logic.
+
 ## 2.0.0-alpha.3
 
 - Lots of small daemon mode bug fixes.
