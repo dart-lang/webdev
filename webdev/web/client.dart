@@ -54,7 +54,9 @@ Future<void> main() async {
     for (var module in newDigests.keys) {
       if (!currentDigests.containsKey(module) ||
           currentDigests[module] != newDigests[module]) {
-        modulesToLoad.add(module.replaceFirst('.js', ''));
+        var moduleName =
+            dartLoader.urlToModuleId.get('${window.location.origin}/$module');
+        modulesToLoad.add(moduleName);
       }
     }
     currentDigests = newDigests;
@@ -153,15 +155,10 @@ external List _jsObjectValues(Object any);
 
 Module _moduleLibraries(String moduleId) {
   var moduleObj = dartLoader.getModuleLibraries(moduleId);
-  // In kernel mode the actual module names don't end with `.ddc`, so we try
-  // a fallback lookup without that extension.
-  if (moduleObj == null && moduleId.endsWith('.ddc')) {
-    moduleObj = dartLoader
-        .getModuleLibraries(moduleId.substring(0, moduleId.length - 4));
-  }
   if (moduleObj == null) {
     throw HotReloadFailedException("Failed to get module '$moduleId'. "
-        "This error might appear if such module doesn't exist or isn't already loaded");
+        "This error might appear if such module doesn't exist or isn't already "
+        'loaded');
   }
   var moduleKeys = List<String>.from(_jsObjectKeys(moduleObj));
   var moduleValues =
@@ -200,6 +197,9 @@ class DartLoader {
 
   @JS()
   external Object getModuleLibraries(String moduleId);
+
+  @JS()
+  external JsMap<String, String> get urlToModuleId;
 }
 
 @anonymous
