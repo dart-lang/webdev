@@ -1,9 +1,5 @@
 name: webdev
-<<<<<<< HEAD
-version: 2.0.0-alpha.4
-=======
 version: 2.0.0-dev
->>>>>>> master
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
 description: >-
