@@ -56,6 +56,12 @@ Future<void> main() async {
           currentDigests[module] != newDigests[module]) {
         var moduleName =
             dartLoader.urlToModuleId.get('${window.location.origin}/$module');
+        if (moduleName == null) {
+          print('Error during script reloading, refreshing the page. \n'
+              'Unable to find an existing module for script $module.');
+          _reloadPage();
+          return;
+        }
         modulesToLoad.add(moduleName);
       }
     }
