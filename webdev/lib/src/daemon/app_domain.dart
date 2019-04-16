@@ -164,9 +164,9 @@ class AppDomain extends Domain {
       'finished': true,
       'progressId': 'hot.restart',
     });
-    sendEvent('daemon.logMessage', {
-      'level': 'info',
-      'message': 'Restarted application in ${stopwatch.elapsedMilliseconds}ms'
+    sendEvent('app.log', {
+      'appId': _appId,
+      'log': 'Restarted application in ${stopwatch.elapsedMilliseconds}ms'
     });
     return {
       'code': response.type == 'Success' ? 0 : 1,

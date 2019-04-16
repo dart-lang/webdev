@@ -12,6 +12,7 @@ import 'dart:html';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
+import 'package:path/path.dart' as p;
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webdev/src/serve/data/connect_request.dart';
@@ -51,10 +52,23 @@ Future<void> main() async {
 
     var newDigests = await _getDigests();
     var modulesToLoad = <String>[];
-    for (var module in newDigests.keys) {
-      if (!currentDigests.containsKey(module) ||
-          currentDigests[module] != newDigests[module]) {
-        modulesToLoad.add(module.replaceFirst('.js', ''));
+    for (var jsPath in newDigests.keys) {
+      if (!currentDigests.containsKey(jsPath) ||
+          currentDigests[jsPath] != newDigests[jsPath]) {
+        var parts = p.url.split(jsPath);
+        // We serve top level dirs, so this strips the top level dir from all
+        // but `packages` paths.
+        var servePath =
+            parts.first == 'packages' ? jsPath : p.url.joinAll(parts.skip(1));
+        var jsUri = '${window.location.origin}/$servePath';
+        var moduleName = dartLoader.urlToModuleId.get(jsUri);
+        if (moduleName == null) {
+          print('Error during script reloading, refreshing the page. \n'
+              'Unable to find an existing module for script $jsUri.');
+          _reloadPage();
+          return;
+        }
+        modulesToLoad.add(moduleName);
       }
     }
     currentDigests = newDigests;
@@ -153,15 +167,10 @@ external List _jsObjectValues(Object any);
 
 Module _moduleLibraries(String moduleId) {
   var moduleObj = dartLoader.getModuleLibraries(moduleId);
-  // In kernel mode the actual module names don't end with `.ddc`, so we try
-  // a fallback lookup without that extension.
-  if (moduleObj == null && moduleId.endsWith('.ddc')) {
-    moduleObj = dartLoader
-        .getModuleLibraries(moduleId.substring(0, moduleId.length - 4));
-  }
   if (moduleObj == null) {
     throw HotReloadFailedException("Failed to get module '$moduleId'. "
-        "This error might appear if such module doesn't exist or isn't already loaded");
+        "This error might appear if such module doesn't exist or isn't already "
+        'loaded');
   }
   var moduleKeys = List<String>.from(_jsObjectKeys(moduleObj));
   var moduleValues =
@@ -200,6 +209,9 @@ class DartLoader {
 
   @JS()
   external Object getModuleLibraries(String moduleId);
+
+  @JS()
+  external JsMap<String, String> get urlToModuleId;
 }
 
 @anonymous

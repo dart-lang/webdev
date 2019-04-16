@@ -25,16 +25,32 @@ class ReloadingManager {
   final List<String> Function(String moduleId) _moduleParents;
   final Iterable<String> Function() _allModules;
 
-  final Map<String, int> _moduleOrdering = {};
+  final _moduleOrdering = HashMap<String, int>();
   SplayTreeSet<String> _dirtyModules;
   Completer<void> _running = Completer()..complete();
 
   int moduleTopologicalCompare(String module1, String module2) {
-    var topological =
+    var topological = 0;
+
+    final order1 = _moduleOrdering[module1];
+    final order2 = _moduleOrdering[module2];
+
+    if (order1 == null || order2 == null) {
+      var missing = order1 == null ? module1 : module2;
+      throw HotReloadFailedException(
+          'Unable to fetch ordering info for module: $missing');
+    }
+
+    topological =
         Comparable.compare(_moduleOrdering[module2], _moduleOrdering[module1]);
-    // If modules are in cycle (same strongly connected component) compare their
-    // string id, to ensure total ordering for SplayTreeSet uniqueness.
-    return topological != 0 ? topological : module1.compareTo(module2);
+
+    if (topological == 0) {
+      // If modules are in cycle (same strongly connected component) compare their
+      // string id, to ensure total ordering for SplayTreeSet uniqueness.
+      topological = module1.compareTo(module2);
+    }
+
+    return topological;
   }
 
   void updateGraph() {

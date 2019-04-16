@@ -1,3 +1,7 @@
+## 0.2.2
+
+- Change the exposed type on DebugService to VmServiceInterface
+
 ## 0.2.1
 
 - Support `setExceptionPauseMode`.
