@@ -1,6 +1,6 @@
-## 2.0.0-dev
+## 2.0.0-alpha.4
 
-- Fix an NPE is the reload logic.
+- Fix hot restart so it works for all build_web_compilers versions.
 
 ## 2.0.0-alpha.3
 
