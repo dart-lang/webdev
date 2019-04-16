@@ -25,16 +25,27 @@ class ReloadingManager {
   final List<String> Function(String moduleId) _moduleParents;
   final Iterable<String> Function() _allModules;
 
-  final Map<String, int> _moduleOrdering = {};
+  final _moduleOrdering = HashMap<String, int>();
   SplayTreeSet<String> _dirtyModules;
   Completer<void> _running = Completer()..complete();
 
   int moduleTopologicalCompare(String module1, String module2) {
-    var topological =
-        Comparable.compare(_moduleOrdering[module2], _moduleOrdering[module1]);
-    // If modules are in cycle (same strongly connected component) compare their
-    // string id, to ensure total ordering for SplayTreeSet uniqueness.
-    return topological != 0 ? topological : module1.compareTo(module2);
+    var value = 0;
+
+    final order1 = _moduleOrdering[module1];
+    final order2 = _moduleOrdering[module2];
+
+    if (order1 != null && order2 != null) {
+      value = order2.compareTo(order1);
+    }
+
+    if (value == 0) {
+      // If modules are in cycle (same strongly connected component) compare their
+      // string id, to ensure total ordering for SplayTreeSet uniqueness.
+      value = module1.compareTo(module2);
+    }
+
+    return value;
   }
 
   void updateGraph() {
