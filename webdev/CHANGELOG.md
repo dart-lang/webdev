@@ -1,28 +1,27 @@
-## 2.0.0-alpha.4
+## 2.0.0
 
-- Fix an NPE is the reload logic.
-- Shutdown the daemon process when the corresponding application is closed.
+## Breaking Changes
 
-## 2.0.0-alpha.3
-
-- Lots of small daemon mode bug fixes.
-- Allow build_web_compilers 2.x.
-
-## 2.0.0-alpha.2
-
-- Open up devtools with the full uri instead of just the port. This is required
-  for the latest proxy because it contains a unique token in the uri for each
-  instance of the service.
-
-## 2.0.0-alpha.1
-
-- Hot restart will now invoke the `ext.flutter.disassemble` service extension if
-  it exists, and wait for that result to complete before reloading modules.
-
-## 2.0.0-alpha.0
-
-- Support building with `package:build_daemon` through `serve` command.
 - The `serve` command will now only serve `web` by default.
+- Deprecated the `--hot-reload` and `--live-reload` flags, in favor of the new
+  `--auto=<action>` option which performs an action whenever a build completes.
+  - The current supported actions are `restart` and `refresh`, which correspond
+    to the old `--hot-reload` and `--live-reload` flags.
+- Support building with `package:build_daemon` through `serve` command.
+  - This should not affect most users but might break some workflows.
+
+### Features
+
+- Multiple webdev processes in the same package will now share builds and not
+  conflict with each other.
+- Added the `--debug` flag.
+  - Runs a "fake" dart vm service with limited functionality, and proxies calls
+    to the app running in chrome.
+  - Enables [devtools](https://github.com/flutter/devtools) for web apps.
+    - For regular web apps currently this doesn't actually do anything yet,
+      except for supported frameworks which will enable some tabs.
+    - Use `alt+d` in the web app to launch devtools.
+- Allow build_web_compilers 2.x.
 
 ## 1.0.1
 
