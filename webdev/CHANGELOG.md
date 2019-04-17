@@ -15,8 +15,8 @@
 - Multiple webdev processes in the same package will now share builds and not
   conflict with each other.
 - Added the `--debug` flag.
-  - Runs a "fake" dart vm service with limited functionality, and proxies calls
-    to the app running in chrome.
+  - Runs a proxy dart vm service with limited functionality, which talks to the
+    running in chrome.
   - Enables [devtools](https://github.com/flutter/devtools) for web apps.
     - For regular web apps currently this doesn't actually do anything yet,
       except for supported frameworks which will enable some tabs.
