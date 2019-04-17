@@ -1,6 +1,8 @@
 ## 2.0.0-alpha.4
 
 - Fix hot restart so it works for all build_web_compilers versions.
+- Fix an NPE is the reload logic.
+- Shutdown the daemon process when the corresponding application is closed.
 
 ## 2.0.0-alpha.3
 

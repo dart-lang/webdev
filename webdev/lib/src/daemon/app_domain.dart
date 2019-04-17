@@ -8,9 +8,9 @@ import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:dwds/service.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
-import '../serve/chrome.dart';
 import '../serve/debugger/app_debug_services.dart';
 import '../serve/server_manager.dart';
 import 'daemon.dart';
@@ -70,6 +70,18 @@ class AppDomain extends Domain {
       _appDebugServices = await devHandler.loadAppServices(
           connection.request.appId, connection.request.instanceId);
       _appId = connection.request.appId;
+      unawaited(_appDebugServices
+          .debugService.chromeProxyService.tabConnection.onClose.first
+          .then((_) {
+        sendEvent('app.log', {
+          'appId': _appId,
+          'log': 'Lost connection to device.',
+        });
+        sendEvent('app.stop', {
+          'appId': _appId,
+        });
+        daemon.shutdown();
+      }));
       sendEvent('app.start', {
         'appId': _appId,
         'directory': Directory.current.path,
@@ -152,9 +164,9 @@ class AppDomain extends Domain {
       'finished': true,
       'progressId': 'hot.restart',
     });
-    sendEvent('daemon.logMessage', {
-      'level': 'info',
-      'message': 'Restarted application in ${stopwatch.elapsedMilliseconds}ms'
+    sendEvent('app.log', {
+      'appId': _appId,
+      'log': 'Restarted application in ${stopwatch.elapsedMilliseconds}ms'
     });
     return {
       'code': response.type == 'Success' ? 0 : 1,
@@ -165,8 +177,8 @@ class AppDomain extends Domain {
   Future<bool> _stop(Map<String, dynamic> args) async {
     var appId = getStringArg(args, 'appId', required: true);
     if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
-    var chrome = await Chrome.connectedInstance;
-    await chrome.close();
+    await _appDebugServices.debugService.chromeProxyService.tabConnection
+        .close();
     return true;
   }
 
