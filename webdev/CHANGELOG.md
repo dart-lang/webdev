@@ -1,6 +1,7 @@
 ## 2.0.0-dev
 
 - Fix an NPE is the reload logic.
+- Shutdown the daemon process when the corresponding application is closed.
 
 ## 2.0.0-alpha.3
 

@@ -111,6 +111,21 @@ void main() {
             ])));
         await exitWebdev(webdev);
       });
+
+      test('.stop', () async {
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var appId = await _getAppId(webdev);
+        var stopCall = '[{"method":"app.stop","id":0,'
+            '"params" : { "appId" : "$appId"}}]';
+        webdev.stdin.add(utf8.encode('$stopCall\n'));
+        await expectLater(
+            webdev.stdout,
+            emitsThrough(startsWith(
+                '[{"event":"app.stop","params":{"appId":"$appId"}}')));
+        // This should cause webdev to exit.
+        expect(await webdev.exitCode, equals(0));
+      });
     });
   }, tags: ['webdriver']);
 }
