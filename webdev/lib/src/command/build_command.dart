@@ -44,8 +44,7 @@ class BuildCommand extends Command<int> {
     var configuration = Configuration.fromArgs(argResults);
     setVerbosity(configuration.verbose);
     var pubspecLock = await readPubspecLock(configuration);
-    final arguments =
-        buildRunnerArgs(pubspecLock, configuration, includeOutput: false);
+    final arguments = buildRunnerArgs(pubspecLock, configuration);
 
     try {
       logHandler(Level.INFO, 'Connecting to the build daemon...');
