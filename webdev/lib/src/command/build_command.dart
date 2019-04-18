@@ -34,17 +34,22 @@ class BuildCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    if (argResults.rest.isNotEmpty) {
+    var unsupported =
+        argResults.rest.where((arg) => !arg.startsWith('-')).toList();
+    if (unsupported.isNotEmpty) {
       throw UsageException(
           'Arguments were provided that are not supported: '
-          '"${argResults.rest.join(' ')}".',
+          '"${unsupported.join(' ')}".',
           argParser.usage);
     }
+    var extraArgs =
+        argResults.rest.where((arg) => arg.startsWith('-')).toList();
 
     var configuration = Configuration.fromArgs(argResults);
     setVerbosity(configuration.verbose);
     var pubspecLock = await readPubspecLock(configuration);
-    final arguments = buildRunnerArgs(pubspecLock, configuration);
+    final arguments = buildRunnerArgs(pubspecLock, configuration)
+      ..addAll(extraArgs);
 
     try {
       logHandler(Level.INFO, 'Connecting to the build daemon...');
