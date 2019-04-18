@@ -10,20 +10,17 @@ import 'package:build_daemon/data/build_target.dart';
 import 'package:logging/logging.dart';
 
 import '../command/configuration.dart';
-import '../serve/chrome.dart';
-import '../serve/daemon_client.dart';
-import '../serve/debugger/devtools.dart';
-import '../serve/logging.dart';
-import '../serve/server_manager.dart';
-import '../serve/utils.dart';
-import '../serve/webdev_server.dart';
+import '../daemon_client.dart';
+import '../logging.dart';
+import 'chrome.dart';
+import 'debugger/devtools.dart';
+import 'server_manager.dart';
+import 'webdev_server.dart';
 
 Future<BuildDaemonClient> _startBuildDaemon(
-  String workingDirectory,
-  List<String> buildOptions,
-) async {
-  logHandler(Level.INFO, 'Connecting to the build daemon...');
+    String workingDirectory, List<String> buildOptions) async {
   try {
+    logHandler(Level.INFO, 'Connecting to the build daemon...');
     return await connectClient(
       workingDirectory,
       buildOptions,
@@ -32,7 +29,7 @@ Future<BuildDaemonClient> _startBuildDaemon(
         logHandler(recordLevel, trimLevel(recordLevel, serverLog.log));
       },
     );
-  } on OptionsSkew {
+  } on OptionsSkew catch (_) {
     // TODO(grouma) - Give an option to kill the running daemon.
     throw StateError(
         'Incompatible options with current running build daemon.\n\n'

@@ -5,8 +5,8 @@
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 
+import '../logging.dart';
 import '../serve/injected/configuration.dart';
-import '../serve/logging.dart';
 
 const autoOption = 'auto';
 const chromeDebugPortFlag = 'chrome-debug-port';

@@ -8,8 +8,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
+import '../logging.dart';
 import '../serve/dev_workflow.dart';
-import '../serve/logging.dart';
 import 'configuration.dart';
 import 'shared.dart';
 
