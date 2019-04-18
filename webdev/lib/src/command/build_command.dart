@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' show Directory;
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
@@ -74,24 +74,23 @@ class BuildCommand extends Command<int> {
             (buildResult) => buildResult.target == configuration.outputInput,
             orElse: () => null);
         if (targetResult == null) continue;
-        if (!gotBuildStart) {
-          if (targetResult.status == BuildStatus.started) {
-            gotBuildStart = true;
-          }
-        } else {
-          if (targetResult.status == BuildStatus.started) {
-            // Shouldn't happen, but just in case.
-            continue;
-          }
+        // We ignore any builds that happen before we get a `started` event,
+        // because those could be stale (from some other client).
+        gotBuildStart =
+            gotBuildStart || targetResult.status == BuildStatus.started;
+        if (!gotBuildStart) continue;
 
-          if (targetResult.status == BuildStatus.failed) {
-            exitCode = 1;
-          }
-          if (targetResult.error?.isNotEmpty == true) {
-            logHandler(Level.SEVERE, targetResult.error);
-          }
-          break;
+        // Shouldn't happen, but being a bit defensive here.
+        if (targetResult.status == BuildStatus.started) continue;
+
+        if (targetResult.status == BuildStatus.failed) {
+          exitCode = 1;
         }
+
+        if (targetResult.error?.isNotEmpty == true) {
+          logHandler(Level.SEVERE, targetResult.error);
+        }
+        break;
       }
       await client.close();
       return exitCode;

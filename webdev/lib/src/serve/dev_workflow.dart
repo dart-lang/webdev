@@ -29,7 +29,7 @@ Future<BuildDaemonClient> _startBuildDaemon(
         logHandler(recordLevel, trimLevel(recordLevel, serverLog.log));
       },
     );
-  } on OptionsSkew catch (_) {
+  } on OptionsSkew {
     // TODO(grouma) - Give an option to kill the running daemon.
     throw StateError(
         'Incompatible options with current running build daemon.\n\n'
