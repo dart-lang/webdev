@@ -62,6 +62,21 @@ void main() {
     await process.shouldExit(isNot(0));
   });
 
+  test('build should allow passing extra arguments to build_runner', () async {
+    var args = [
+      'build',
+      '-o',
+      'web:${d.sandbox}',
+      '--',
+      '--delete-conflicting-outputs'
+    ];
+
+    var process = await runWebDev(args, workingDirectory: exampleDirectory);
+
+    await checkProcessStdout(process, ['Succeeded']);
+    await process.shouldExit(0);
+  });
+
   group('should build with valid configuration', () {
     for (var withDDC in [true, false]) {
       test(withDDC ? 'DDC' : 'dart2js', () async {
