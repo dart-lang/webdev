@@ -52,7 +52,7 @@ void main() {
 
     test('load sourcemaps', () async {
       await reload();
-      expect(service.debugger.dartToJs['main.dart'], isNotNull);
+      expect(service.debugger.sourcemaps['main.dart'], isNotNull);
     });
 
     test('addBreakPoint', () async {

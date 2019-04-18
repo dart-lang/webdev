@@ -141,12 +141,12 @@ class ChromeProxyService implements VmServiceInterface {
     _vm.isolates.add(isolateRef);
     _isolate = isolate;
 
-    _streamNotify(
+    streamNotify(
         'Isolate',
         Event()
           ..kind = EventKind.kIsolateStart
           ..isolate = isolateRef);
-    _streamNotify(
+    streamNotify(
         'Isolate',
         Event()
           ..kind = EventKind.kIsolateRunnable
@@ -156,7 +156,7 @@ class ChromeProxyService implements VmServiceInterface {
     // isolate, but devtools doesn't recognize extensions after a page refresh
     // otherwise.
     for (var extensionRpc in isolate.extensionRPCs) {
-      _streamNotify(
+      streamNotify(
           'Isolate',
           Event()
             ..kind = EventKind.kServiceExtensionAdded
@@ -170,7 +170,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// Clears out [_isolate] and all related cached information.
   void destroyIsolate() {
     if (_isolate == null) return;
-    _streamNotify(
+    streamNotify(
         'Isolate',
         Event()
           ..kind = EventKind.kIsolateExit
@@ -681,7 +681,7 @@ function($argsString) {
   @override
   Future<Success> setVMName(String name) async {
     _vm.name = name;
-    _streamNotify(
+    streamNotify(
         'VM',
         Event()
           ..kind = EventKind.kVMUpdate
@@ -770,11 +770,11 @@ function($argsString) {
         } else {
           event.kind = EventKind.kPauseInterrupted;
         }
-        _streamNotify('Debug', event);
+        streamNotify('Debug', event);
       });
       resumeSubscription = tabConnection.debugger.onResumed.listen((e) {
         if (_isolate == null) return;
-        _streamNotify(
+        streamNotify(
             'Debug',
             Event()
               ..kind = EventKind.kResume
@@ -817,7 +817,7 @@ function($argsString) {
         case 'dart.developer.registerExtension':
           var service = event.args[1].value as String;
           _isolate.extensionRPCs.add(service);
-          _streamNotify(
+          streamNotify(
               'Isolate',
               Event()
                 ..kind = EventKind.kServiceExtensionAdded
@@ -825,7 +825,7 @@ function($argsString) {
                 ..isolate = isolateRef);
           break;
         case 'dart.developer.postEvent':
-          _streamNotify(
+          streamNotify(
               'Extension',
               Event()
                 ..kind = EventKind.kExtension
@@ -845,7 +845,7 @@ function($argsString) {
             // up the library for a given instance to create it though.
             // https://github.com/dart-lang/sdk/issues/36771.
             ..classRef = ClassRef();
-          _streamNotify(
+          streamNotify(
               'Debug',
               Event()
                 ..kind = EventKind.kInspect
@@ -861,7 +861,7 @@ function($argsString) {
 
   /// Adds [event] to the stream with [streamId] if there is anybody listening
   /// on that stream.
-  void _streamNotify(String streamId, Event event) {
+  void streamNotify(String streamId, Event event) {
     var controller = _streamControllers[streamId];
     if (controller == null) return;
     controller.add(event);

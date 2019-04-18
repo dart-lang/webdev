@@ -3,32 +3,53 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:source_maps/source_maps.dart' as sourcemaps;
+import 'package:source_maps/source_maps.dart' as source_maps;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
 import 'chrome_proxy_service.dart';
+import 'helpers.dart';
 
-class DebuggerProxyThing {
-  DebuggerProxyThing(this.mainProxy);
 
+/// Keeps track of the scripts (both Dart and JS) and their source maps.
+class SourceMaps {
+
+  // ### Do we need a generic class for these things, or some central way of finding the main connection?
   ChromeProxyService mainProxy;
 
   WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
 
-  /// Dart URL to script.  (the script has the JS url)
+  /// Dart (#### wrong, JS, fix??###) URL to script.  (the script has the JS url)
   Map<String, WipScript> jsScripts = {};
+
   /// JS URL to sourcemap
-  Map<String, sourcemaps.SingleMapping> mappings = {};
+  Map<String, source_maps.SingleMapping> sourcemaps = {};
 
-  Future<Null> initialize() async {
-    chromeDebugger.onScriptParsed.listen(_scriptParsed);
-    await chromeDebugger.enable();
+  StreamController<String> sourceMapLoadedController = StreamController<String>.broadcast();
+  Stream<String> get sourceMapLoaded => sourceMapLoadedController.stream;
 
+    /// Called to handle the even that a script has been parsed
+  /// and add its sourcemap information.
+  Future<Null> _scriptParsed(ScriptParsedEvent e) async {
+    var script = e.script;
+    // var source = await chromeDebugger.getScriptSource(script.scriptId);
+    var sourceMapContents = await sourceMap(script);
+    if (sourceMapContents == null) return;
+    // This happens to be a [SingleMapping] today in DDC.
+    var mapping = source_maps.parse(sourceMapContents);
+    if (mapping is source_maps.SingleMapping) {
+    #### Iterate the dart urls which are in the mapping and call _makeUrlAbsolute on them
+      jsScripts[script.url] = script;
+      sourcemaps[script.url] = mapping;
+      for (var dartUrl in mapping.urls) {
+        sourceMapLoadedController.add(dartUrl);
+      }
+    }
   }
 
-  StreamController<String> sourceMapLoadedController = StreamController<String>();
-  Stream<String> get sourceMapLoaded => sourceMapLoadedController.stream;
+  _makeUrlAbsolute(String mainUrl, String relativeUrl) {
+     return p.join(p.dirname(mainUrl), relativeUrl);
+  }
 
   /// Return a Future that completers once the source map for [url]
   /// has been loaded.
@@ -42,6 +63,7 @@ class DebuggerProxyThing {
     return completer.future;
   }
 
+  /// The source map for a JS [script].
   Future<String> sourceMap(WipScript script) async {
     var sourceMapUrl = script.sourceMapURL;
 
@@ -53,20 +75,22 @@ class DebuggerProxyThing {
     return sourceMapContents;
   }
 
-  Future<Null> _scriptParsed(ScriptParsedEvent e) async {
-    var script = e.script;
-    // var source = await chromeDebugger.getScriptSource(script.scriptId);
-    var sourceMapContents = await sourceMap(script);
-    if (sourceMapContents == null) return;
-    // This happens to be a [SingleMapping] today in DDC.
-    var mapping = sourcemaps.parse(sourceMapContents);
-    if (mapping is sourcemaps.SingleMapping) {
-      jsScripts[script.url] = script;
-      mappings[script.url] = mapping;
-      for (var dartUrl in mapping.urls) {
-        sourceMapLoadedController.add(dartUrl);
-      }
-    }
+
+}
+
+
+class DebuggerProxyThing {
+  DebuggerProxyThing(this.mainProxy);
+
+  ChromeProxyService mainProxy;
+
+  WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
+
+  SourceMaps sourcemaps = SourceMaps();
+
+  Future<Null> initialize() async {
+    chromeDebugger.onScriptParsed.listen(sourcemaps._scriptParsed);
+    await chromeDebugger.enable();
   }
 
     Future<ScriptRef> _getScriptById(String isolateId, String scriptId) async {
@@ -82,104 +106,69 @@ class DebuggerProxyThing {
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
     // Validate the isolate id is correct, _getIsolate throws if not.
-    if (isolateId != null) await mainProxy.getIsolate(isolateId);
-    var scriptRef = await _getScriptById(isolateId, scriptId);
-    var jsScript = jsScripts[scriptRef.uri];
-    var sourcemap = mappings[scriptRef.uri];
+    Isolate isolate;
+    if (isolateId != null) isolate = await mainProxy.getIsolate(isolateId);
+    ScriptRef dartScript = await _getScriptById(isolateId, scriptId);
+    var jsScript = jsScripts[dartScript.uri];
+    var sourcemap = sourcemaps[dartScript.uri];
 
-    var jsLine = jsBreakpointPosition(jsScript, line);
+    var location = jsPosition(sourcemap, line);
     // actually set the breakpoint
-
-    return null;
-   }
-
-   jsBreakpointPosition(sourcemaps.SingleMapping sourcemap, int line) {
-     for (var lineEntry in mapping.lines) {
-       for (var entry in lineEntry.entries) {
-        var index = entry.sourceUrlId;
-        if (index == null) continue;
-        var dartUrl = _dartifiedUrl(p.join(parent, mapping.urls[index]));
-        var dartLine = entry.sourceLine;
-        var dartColumn = entry.sourceColumn;
-
-        // TODO(vsm): This is broken - assumes Dart is laid out contiguously
-        // in JS.
-        if (dartLine != currentLine) {
-          currentLine = dartLine;
-          current = [dartLine];
-          tokenPosTable.add(current);
-        }
-        current.addAll([tokenPos, dartColumn]);
-        dartLocationList.add(DartLocationMapping(jsScriptId, lineEntry.line,
-            entry.column, dartUrl, dartLine, dartColumn, tokenPos));
-        tokenPos += 1;
-
-
-
-    for (var location in locationData) {
-      // Match first line hit for now.
-      if (location.dartLine >= line) {
-        WipResponse result;
+            WipResponse result;
         try {
-          result = await _cdp.debugger
+          result = await chromeDebugger
               .sendCommand('Debugger.setBreakpoint', params: {
             'location': {
-              'scriptId': jsId,
-              'lineNumber': location.jsLine - 1,
+              'scriptId': jsScript.scriptId,
+              'lineNumber': location.jsLine,
             }
           });
         } catch (e) {
-          throw RpcError(102)..data.details = '$e';
+          // throw RpcError(102)..data.details = '$e';
+          rethrow;
         }
+    var jsBreakpointId = result.result['breakpointId'];
+    var breakpoint = Breakpoint()
+          ..resolved = true
+          ..location = (SourceLocation()
+            ..script = dartScript
+            ..tokenPos = location.dartTokenPos);
 
-        var jsBreakpointId = result.result['breakpointId'];
+        // _jsBreakpointIdToDartId[jsBreakpointId] = breakpoint.id;
+        // _dartBreakpointIdToJsId[breakpoint.id] = jsBreakpointId;
 
-    // var jsId = _dartIdToJsId[script.id];
-    // var locations = _jsIdToLocationData[jsId];
-    // var locationData = locations.dartLocations[script.uri];
+        mainProxy.streamNotify(
+            'Debug',
+            Event()
+              ..kind = EventKind.kBreakpointAdded
+              ..isolate = toIsolateRef(isolate)
+              ..breakpoint = breakpoint);
+        return breakpoint;
 
-    // for (var location in locationData) {
-    //   // Match first line hit for now.
-    //   if (location.dartLine >= line) {
-    //     WipResponse result;
-    //     try {
-    //       result = await _cdp.debugger
-    //           .sendCommand('Debugger.setBreakpoint', params: {
-    //         'location': {
-    //           'scriptId': jsId,
-    //           'lineNumber': location.jsLine - 1,
-    //         }
-    //       });
-    //     } catch (e) {
-    //       throw RpcError(102)..data.details = '$e';
-    //     }
+      }
 
-    //     var jsBreakpointId = result.result['breakpointId'];
-    //     // TODO(vsm):
-    //     // (1) Validate that the breakpoint was resolved.
-    //     // (2) Update the location to the actual location (in result.result).
+   jsPosition(source_maps.SingleMapping sourcemap, int line) {
+     for (var lineEntry in sourcemap.lines) {
+       for (var entry in lineEntry.entries) {
+        var index = entry.sourceUrlId;
+        if (index == null) continue;
+        // var dartUrl = _dartifiedUrl(p.join(parent, mapping.urls[index]));
+        var dartLine = entry.sourceLine;
+        var dartColumn = entry.sourceColumn;
+        var jsLine = lineEntry.line;
+        var jsColumn = entry.column;
+        var jsScriptId = 'bogus script id';
+        var dartUrl = 'bogus dart url';
+        if (dartLine == line) {
+          return Location(jsScriptId, jsLine, jsColumn, dartUrl, dartLine, dartColumn, 0);
+        }
+       }
+     }
+   }
 
-    //     var breakpoint = _createBreakpoint()
-    //       ..resolved = true
-    //       ..location = (SourceLocation()
-    //         ..script = script
-    //         ..tokenPos = location.dartTokenPos);
 
-    //     _jsBreakpointIdToDartId[jsBreakpointId] = breakpoint.id;
-    //     _dartBreakpointIdToJsId[breakpoint.id] = jsBreakpointId;
-
-    //     _streamNotify(
-    //         'Debug',
-    //         Event()
-    //           ..kind = EventKind.BreakpointAdded
-    //           ..isolate = isolate.toRef()
-    //           ..breakpoint = breakpoint);
-    //     return breakpoint;
-    //   }
-
-    // throw UnimplementedError();
-  }
 }
+
 
 Future<String> fetch(String uri) async {
   try {
@@ -197,4 +186,18 @@ Future<String> fetch(String uri) async {
   } catch (e) {
     return null;
   }
+}
+
+// ### Use jsScript rather than id? Or do we not have the script?
+class Location {
+  Location(this.jsScriptId, this.jsLine, this.jsColumn, this.dartUrl,
+      this.dartLine, this.dartColumn, this.dartTokenPos);
+
+  final String jsScriptId;
+  final int jsLine;
+  final int jsColumn;
+  final String dartUrl;
+  final int dartLine;
+  final int dartColumn;
+  final int dartTokenPos;
 }
