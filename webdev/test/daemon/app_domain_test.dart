@@ -101,7 +101,7 @@ void main() {
         await expectLater(
           webdev.stdout,
           emitsThrough(startsWith(
-            '[{"id":0,"result":{"code": 1, "message": "hot reload not yet supported',
+            '[{"id":0,"result":{"code":1,"message":"hot reload not yet supported',
           )),
         );
         await exitWebdev(webdev);
