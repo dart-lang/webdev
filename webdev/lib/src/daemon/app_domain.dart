@@ -21,7 +21,9 @@ import 'utilites.dart';
 class AppDomain extends Domain {
   String _appId;
   AppDebugServices _appDebugServices;
+
   DebugService get _debugService => _appDebugServices?.debugService;
+
   VmService get _vmService => _appDebugServices?.webdevClient?.client;
   StreamSubscription<BuildResult> _resultSub;
   StreamSubscription<Event> _stdOutSub;
@@ -144,8 +146,10 @@ class AppDomain extends Domain {
     if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
     var fullRestart = getBoolArg(args, 'fullRestart') ?? false;
     if (!fullRestart) {
-      throw ArgumentError.value(
-          fullRestart, 'fullRestart', 'We do not support hot reload yet.');
+      return {
+        'code': 1,
+        'message': 'hot reload not yet supported by package:flutter_web',
+      };
     }
     // TODO(grouma) - Support pauseAfterRestart.
     // var pauseAfterRestart = getBoolArg(args, 'pause') ?? false;
