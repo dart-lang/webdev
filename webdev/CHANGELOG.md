@@ -12,8 +12,6 @@
 
 ### Features
 
-- Multiple webdev processes in the same package will now share builds and not
-  conflict with each other.
 - Added the `--debug` flag.
   - Runs a proxy dart vm service with limited functionality, which talks to the
     running in chrome.
