@@ -9,6 +9,8 @@ import 'package:logging/logging.dart';
 
 var _verbose = false;
 
+var _loggerName = RegExp(r'^(\w)+: ');
+
 /// Sets the verbosity of the current [logHandler].
 void setVerbosity(bool verbose) => _verbose = verbose;
 
@@ -38,7 +40,11 @@ void _colorLog(Level level, String message, {bool verbose}) {
   var multiline = message.contains('\n') && !message.endsWith('\n');
   var eraseLine = _verbose ? '' : '\x1b[2K\r';
   var colorLevel = color.wrap('[$level]');
-
+  if (!verbose) {
+    var match = _loggerName.firstMatch(message);
+    // Remove the logger name.
+    if (match != null) message = message.substring(match.end);
+  }
   stdout.write('$eraseLine$colorLevel $message');
 
   // Prevent multilines and severe messages from being erased.
