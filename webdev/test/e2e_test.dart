@@ -52,14 +52,29 @@ void main() {
     await expectLater(
         process.stdout,
         emitsThrough(
-            '[SEVERE] Unable to create merged directory at ${d.sandbox}.'));
+            contains('Unable to create merged directory at ${d.sandbox}.')));
     await expectLater(
         process.stdout,
         emitsThrough(
             'Choose a different directory or delete the contents of that '
             'directory.'));
 
-    await process.shouldExit(73);
+    await process.shouldExit(isNot(0));
+  });
+
+  test('build should allow passing extra arguments to build_runner', () async {
+    var args = [
+      'build',
+      '-o',
+      'web:${d.sandbox}',
+      '--',
+      '--delete-conflicting-outputs'
+    ];
+
+    var process = await runWebDev(args, workingDirectory: exampleDirectory);
+
+    await checkProcessStdout(process, ['Succeeded']);
+    await process.shouldExit(0);
   });
 
   group('should build with valid configuration', () {
@@ -72,7 +87,7 @@ void main() {
 
         var process = await runWebDev(args, workingDirectory: exampleDirectory);
 
-        var expectedItems = <Object>['[INFO] Succeeded'];
+        var expectedItems = <Object>['Succeeded'];
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);

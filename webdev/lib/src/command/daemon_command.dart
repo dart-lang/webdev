@@ -12,8 +12,8 @@ import 'package:pedantic/pedantic.dart';
 import '../daemon/app_domain.dart';
 import '../daemon/daemon.dart';
 import '../daemon/daemon_domain.dart';
+import '../logging.dart';
 import '../serve/dev_workflow.dart';
-import '../serve/logging.dart';
 import '../serve/utils.dart';
 import 'configuration.dart';
 import 'shared.dart';
@@ -63,8 +63,7 @@ class DaemonCommand extends Command<int> {
       var configuration =
           Configuration(launchInChrome: true, debug: true, autoRun: false);
       var pubspecLock = await readPubspecLock(configuration);
-      var buildOptions =
-          buildRunnerArgs(pubspecLock, configuration, includeOutput: false);
+      var buildOptions = buildRunnerArgs(pubspecLock, configuration);
       var port = await findUnusedPort();
       workflow = await DevWorkflow.start(
         configuration,
