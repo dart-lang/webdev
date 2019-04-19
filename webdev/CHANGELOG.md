@@ -1,3 +1,7 @@
+## 2.0.0-dev
+
+- The daemon command now logs build events through `daemon.log`.
+
 ## 2.0.0-alpha.4
 
 - Fix an NPE is the reload logic.
