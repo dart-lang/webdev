@@ -5,8 +5,8 @@
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 
+import '../logging.dart';
 import '../serve/injected/configuration.dart';
-import '../serve/logging.dart';
 
 const autoOption = 'auto';
 const chromeDebugPortFlag = 'chrome-debug-port';
@@ -169,12 +169,12 @@ class Configuration {
     String outputInput;
     if (output != 'NONE') {
       var splitOutput = output.split(':');
-      if (splitOutput.length == 2) {
-        outputInput = splitOutput.first;
-        outputPath = splitOutput.last;
-      } else {
+      if (splitOutput.length == 1) {
         outputInput = '';
         outputPath = output;
+      } else {
+        outputInput = splitOutput.first;
+        outputPath = splitOutput.skip(1).join(':');
       }
     }
 

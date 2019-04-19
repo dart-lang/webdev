@@ -14,11 +14,11 @@ import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../serve/chrome.dart';
-import '../../serve/data/run_request.dart';
-import '../../serve/logging.dart';
+import '../../logging.dart';
+import '../chrome.dart';
 import '../data/connect_request.dart';
 import '../data/devtools_request.dart';
+import '../data/run_request.dart';
 import '../data/serializers.dart' as webdev;
 import '../debugger/app_debug_services.dart';
 import '../debugger/devtools.dart';

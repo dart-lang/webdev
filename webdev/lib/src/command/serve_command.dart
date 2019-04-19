@@ -8,8 +8,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
+import '../logging.dart';
 import '../serve/dev_workflow.dart';
-import '../serve/logging.dart';
 import 'configuration.dart';
 import 'shared.dart';
 
@@ -102,11 +102,10 @@ refresh: Performs a full page refresh.
     var pubspecLock = await readPubspecLock(configuration);
     // Forward remaining arguments as Build Options to the Daemon.
     // This isn't documented. Should it be advertised?
-    var buildOptions =
-        buildRunnerArgs(pubspecLock, configuration, includeOutput: false)
-          ..addAll(argResults.rest
-              .where((arg) => !arg.contains(':') || arg.startsWith('--'))
-              .toList());
+    var buildOptions = buildRunnerArgs(pubspecLock, configuration)
+      ..addAll(argResults.rest
+          .where((arg) => !arg.contains(':') || arg.startsWith('--'))
+          .toList());
     var directoryArgs = argResults.rest
         .where((arg) => arg.contains(':') || !arg.startsWith('--'))
         .toList();
