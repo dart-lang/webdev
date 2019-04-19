@@ -1,0 +1,4 @@
+*.dart eol=lf
+
+# Don't collapse in github code reviews by default.
+webdev/lib/src/version.dart linguist-generated=false
