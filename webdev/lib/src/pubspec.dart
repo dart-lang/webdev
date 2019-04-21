@@ -74,11 +74,11 @@ class PubspecLock {
 
   PubspecLock(this._packages);
 
-  static Future<PubspecLock> read([String path]) async {
-    path ??= 'pubspec.lock';
+  static Future<PubspecLock> read() async {
     await _runPubDeps();
 
-    var pubspecLock = loadYaml(await File(path).readAsString()) as YamlMap;
+    var pubspecLock =
+        loadYaml(await File('pubspec.lock').readAsString()) as YamlMap;
 
     var packages = pubspecLock['packages'] as YamlMap;
     return PubspecLock(packages);

@@ -58,9 +58,8 @@ List<String> buildRunnerArgs(
   return arguments;
 }
 
-Future<PubspecLock> readPubspecLock(Configuration configuration,
-    [String path]) async {
-  var pubspecLock = await PubspecLock.read(path);
+Future<PubspecLock> readPubspecLock(Configuration configuration) async {
+  var pubspecLock = await PubspecLock.read();
   await checkPubspecLock(pubspecLock,
       requireBuildWebCompilers: configuration.requireBuildWebCompilers);
   return pubspecLock;
