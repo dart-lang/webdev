@@ -30,7 +30,7 @@ class Promise<T> {
       [dynamic Function(dynamic reason) onError]);
 }
 
-/// Returns a [Promise] that resolves once the give [future] resolves.
+/// Returns a [Promise] that resolves once the given [future] resolves.
 ///
 /// This also propagates errors to the returned [Promise].
 Promise<T> toPromise<T>(Future<T> future) {
