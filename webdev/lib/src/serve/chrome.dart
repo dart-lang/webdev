@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'utils.dart';
@@ -62,7 +63,9 @@ class Chrome {
   ///
   /// Each url in [urls] will be loaded in a separate tab.
   static Future<Chrome> start(List<String> urls, {int port}) async {
-    var dataDir = Directory.systemTemp.createTempSync();
+    var dataDir = Directory(p.joinAll(
+        [Directory.current.path, '.dart_tool', 'webdev', 'chrome_profile']))
+      ..createSync(recursive: true);
     port = port == null || port == 0 ? await findUnusedPort() : port;
     var args = [
       // Using a tmp directory ensures that a new instance of chrome launches
