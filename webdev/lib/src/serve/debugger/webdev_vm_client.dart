@@ -37,11 +37,24 @@ class WebdevVmClient {
             .add(jsonDecode(request) as Map<String, dynamic>));
     client.registerServiceCallback('hotRestart', (request) async {
       debugService.chromeProxyService.destroyIsolate();
-      await debugService.chromeProxyService.tabConnection.runtime.sendCommand(
-          'Runtime.evaluate',
-          params: {'expression': r'$dartHotRestart();', 'awaitPromise': true});
-      unawaited(debugService.chromeProxyService.createIsolate());
-      return {'result': Success().toJson()};
+      var response = await debugService.chromeProxyService.tabConnection.runtime
+          .sendCommand('Runtime.evaluate', params: {
+        'expression': r'$dartHotRestart();',
+        'awaitPromise': true
+      });
+      var exceptionDetails = response.result['exceptionDetails'];
+      if (exceptionDetails != null) {
+        return {
+          'error': {
+            'code': -32603,
+            'message': exceptionDetails['exception']['description'],
+            'data': exceptionDetails,
+          }
+        };
+      } else {
+        unawaited(debugService.chromeProxyService.createIsolate());
+        return {'result': Success().toJson()};
+      }
     });
     await client.registerService('hotRestart', 'WebDev');
 
