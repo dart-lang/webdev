@@ -30,9 +30,19 @@ class Promise<T> {
       [dynamic Function(dynamic reason) onError]);
 }
 
-/// Returns a Future that resolves once the given [promise] resolves.
+/// Returns a [Promise] that resolves once the given [future] resolves.
 ///
-/// This also propagates Promise rejection through to the returned Future.
+/// This also propagates errors to the returned [Promise].
+Promise<T> toPromise<T>(Future<T> future) {
+  return Promise(
+      allowInterop((void Function(T) resolve, void Function(dynamic) reject) {
+    future.then(resolve).catchError(reject);
+  }));
+}
+
+/// Returns a [Future] that resolves once the given [promise] resolves.
+///
+/// This also propagates [Promise] rejection through to the returned [Future].
 Future<T> toFuture<T>(Promise<T> promise) {
   var completer = Completer<T>();
   promise.then(
