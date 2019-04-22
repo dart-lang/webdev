@@ -63,8 +63,8 @@ class Chrome {
   ///
   /// Each url in [urls] will be loaded in a separate tab.
   static Future<Chrome> start(List<String> urls, {int port}) async {
-    var dataDir = Directory.fromUri(Uri.parse(p.joinAll(
-        [Directory.current.path, '.dart_tool', 'webdev', 'chrome_profile'])))
+    var dataDir = Directory(p.joinAll(
+        [Directory.current.path, '.dart_tool', 'webdev', 'chrome_profile']))
       ..createSync(recursive: true);
     port = port == null || port == 0 ? await findUnusedPort() : port;
     var args = [
