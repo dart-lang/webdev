@@ -41,11 +41,8 @@ void _colorLog(Level level, String message, {bool verbose}) {
   var multiline = message.contains('\n') && !message.endsWith('\n');
   var eraseLine = _verbose ? '' : '\x1b[2K\r';
   var colorLevel = color.wrap('[$level]');
-  if (!verbose) {
-    var match = _loggerName.firstMatch(message);
-    // Remove the logger name.
-    if (match != null) message = message.substring(match.end);
-  }
+  if (!verbose) message = trimLoggerName(message);
+
   stdout.write('$eraseLine$colorLevel $message');
 
   // Prevent multilines and severe messages from being erased.
@@ -58,6 +55,14 @@ void _colorLog(Level level, String message, {bool verbose}) {
 String trimLevel(Level level, String message) => message.startsWith('[$level]')
     ? message.replaceFirst('[$level]', '').trimLeft()
     : message;
+
+/// Removes the logger name from the [message] if one is present.
+String trimLoggerName(String message) {
+  var match = _loggerName.firstMatch(message);
+  // Remove the logger name.
+  if (match != null) message = message.substring(match.end);
+  return message;
+}
 
 /// Detects if the [ServerLog] contains a [Level] and returns the
 /// resulting value.
