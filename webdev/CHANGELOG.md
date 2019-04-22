@@ -22,7 +22,7 @@
   - Enables [devtools](https://github.com/flutter/devtools) for web apps.
     - For regular web apps currently this doesn't actually do anything yet,
       except for supported frameworks which will enable some tabs.
-    - Use `alt+d` (or `option+d` on mac) in the web app to launch devtools.
+    - Use `alt+d` (or `option+d` on Mac) in the web app to launch devtools.
 - Allow build_web_compilers 2.x.
 
 ## 1.0.1
