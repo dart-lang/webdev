@@ -3,84 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
-import 'dart:isolate';
+import 'dart:io' show Directory;
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:stack_trace/stack_trace.dart';
+import 'package:build_daemon/client.dart';
+import 'package:build_daemon/data/build_status.dart';
+import 'package:build_daemon/data/build_target.dart';
+import 'package:logging/logging.dart';
 
+import '../daemon_client.dart';
+import '../logging.dart';
 import 'configuration.dart';
 import 'shared.dart';
-
-const _bootstrapScript = r'''
-import 'dart:io';
-import 'dart:isolate';
-
-import 'package:build_runner/build_script_generate.dart';
-import 'package:path/path.dart' as p;
-
-void main(List<String> args, [SendPort sendPort]) async {
-  var buildScript = await generateBuildScript();
-  var scriptFile = new File(scriptLocation)..createSync(recursive: true);
-  scriptFile.writeAsStringSync(buildScript);
-  sendPort.send(p.absolute(scriptLocation));
-}
-''';
-const _packagesFileName = '.packages';
-
-Future<Uri> _buildRunnerScript() async {
-  var packagesFile = File(_packagesFileName);
-  if (!packagesFile.existsSync()) {
-    throw FileSystemException(
-        'A `$_packagesFileName` file does not exist in the target directory.',
-        packagesFile.absolute.path);
-  }
-
-  var dataUri = Uri.dataFromString(_bootstrapScript);
-
-  var messagePort = ReceivePort();
-  var exitPort = ReceivePort();
-  var errorPort = ReceivePort();
-
-  try {
-    await Isolate.spawnUri(dataUri, [], messagePort.sendPort,
-        onExit: exitPort.sendPort,
-        onError: errorPort.sendPort,
-        errorsAreFatal: true,
-        packageConfig: Uri.file(_packagesFileName));
-
-    var allErrorsFuture = errorPort.forEach((error) {
-      var errorList = error as List;
-      var message = errorList[0] as String;
-      var stack = StackTrace.fromString(errorList[1] as String);
-
-      stderr.writeln(message);
-      stderr.writeln(stack);
-    });
-
-    var items = await Future.wait([
-      messagePort.toList(),
-      allErrorsFuture,
-      exitPort.first.whenComplete(() {
-        messagePort.close();
-        errorPort.close();
-      })
-    ]);
-
-    var messages = items[0] as List;
-    if (messages.isEmpty) {
-      throw StateError('An error occurred while bootstrapping.');
-    }
-
-    assert(messages.length == 1);
-    return Uri.file(messages.single as String);
-  } finally {
-    messagePort.close();
-    exitPort.close();
-    errorPort.close();
-  }
-}
 
 /// Command to execute pub run build_runner build.
 class BuildCommand extends Command<int> {
@@ -98,71 +33,79 @@ class BuildCommand extends Command<int> {
   }
 
   @override
-  Future<int> run() {
-    if (argResults.rest.isNotEmpty) {
+  Future<int> run() async {
+    var unsupported =
+        argResults.rest.where((arg) => !arg.startsWith('-')).toList();
+    if (unsupported.isNotEmpty) {
       throw UsageException(
           'Arguments were provided that are not supported: '
-          '"${argResults.rest.join(' ')}".',
+          '"${unsupported.join(' ')}".',
           argParser.usage);
     }
-    return runCore('build', extraArgs: ['--fail-on-severe']);
-  }
+    var extraArgs =
+        argResults.rest.where((arg) => arg.startsWith('-')).toList();
 
-  Future<int> runCore(String command, {List<String> extraArgs}) async {
     var configuration = Configuration.fromArgs(argResults);
+    setVerbosity(configuration.verbose);
     var pubspecLock = await readPubspecLock(configuration);
-    final arguments = [command]
-      ..addAll(extraArgs ?? const [])
-      ..addAll(buildRunnerArgs(pubspecLock, configuration));
-
-    stdout.write('Creating build script');
-    var stopwatch = Stopwatch()..start();
-    var buildRunnerScript = await _buildRunnerScript();
-    stdout.writeln(', took ${stopwatch.elapsedMilliseconds}ms');
-
-    var exitCode = 0;
-
-    // Heavily inspired by dart-lang/build @ 0c77443dd7
-    // /build_runner/bin/build_runner.dart#L58-L85
-    var exitPort = ReceivePort();
-    var errorPort = ReceivePort();
-    var messagePort = ReceivePort();
-    var errorListener = errorPort.listen((e) {
-      stderr.writeln('\n\nYou have hit a bug in build_runner');
-      stderr.writeln('Please file an issue with reproduction steps at '
-          'https://github.com/dart-lang/build/issues\n\n');
-      final error = e[0];
-      final trace = e[1] as String;
-      stderr.writeln(error);
-      stderr.writeln(Trace.parse(trace).terse);
-      if (exitCode == 0) exitCode = 1;
-    });
+    final arguments = buildRunnerArgs(pubspecLock, configuration)
+      ..addAll(extraArgs);
 
     try {
-      await Isolate.spawnUri(buildRunnerScript, arguments, messagePort.sendPort,
-          onExit: exitPort.sendPort,
-          onError: errorPort.sendPort,
-          automaticPackageResolution: true);
-      StreamSubscription exitCodeListener;
-      exitCodeListener = messagePort.listen((isolateExitCode) {
-        if (isolateExitCode is! int) {
-          throw StateError(
-              'Bad response from isolate, expected an exit code but got '
-              '$isolateExitCode');
-        }
-        exitCode = isolateExitCode as int;
-        exitCodeListener.cancel();
-        exitCodeListener = null;
-      });
-      await exitPort.first;
-      await errorListener.cancel();
-      await exitCodeListener?.cancel();
+      logHandler(Level.INFO, 'Connecting to the build daemon...');
+      var client = await connectClient(
+        Directory.current.path,
+        arguments,
+        (serverLog) {
+          var recordLevel = levelForLog(serverLog) ?? Level.INFO;
+          logHandler(recordLevel, trimLevel(recordLevel, serverLog.log));
+        },
+      );
+      OutputLocation outputLocation;
+      if (configuration.outputPath != null) {
+        outputLocation = OutputLocation((b) => b
+          ..output = configuration.outputPath
+          ..useSymlinks = false
+          ..hoist = configuration.outputInput.isNotEmpty);
+      }
+      client.registerBuildTarget(DefaultBuildTarget((b) => b
+        ..target = configuration.outputInput
+        ..outputLocation = outputLocation?.toBuilder()));
+      client.startBuild();
+      var exitCode = 0;
+      var gotBuildStart = false;
+      await for (final result in client.buildResults) {
+        var targetResult = result.results.firstWhere(
+            (buildResult) => buildResult.target == configuration.outputInput,
+            orElse: () => null);
+        if (targetResult == null) continue;
+        // We ignore any builds that happen before we get a `started` event,
+        // because those could be stale (from some other client).
+        gotBuildStart =
+            gotBuildStart || targetResult.status == BuildStatus.started;
+        if (!gotBuildStart) continue;
 
+        // Shouldn't happen, but being a bit defensive here.
+        if (targetResult.status == BuildStatus.started) continue;
+
+        if (targetResult.status == BuildStatus.failed) {
+          exitCode = 1;
+        }
+
+        if (targetResult.error?.isNotEmpty == true) {
+          logHandler(Level.SEVERE, targetResult.error);
+        }
+        break;
+      }
+      await client.close();
       return exitCode;
-    } finally {
-      exitPort.close();
-      errorPort.close();
-      messagePort.close();
+    } on OptionsSkew catch (_) {
+      logHandler(
+          Level.SEVERE,
+          'Incompatible options with current running build daemon.\n\n'
+          'Please stop other WebDev instances running in this directory '
+          'before starting a new instance with these options.\n\n');
+      return 1;
     }
   }
 }

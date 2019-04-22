@@ -7,8 +7,12 @@
   `--auto=<action>` option which performs an action whenever a build completes.
   - The current supported actions are `restart` and `refresh`, which correspond
     to the old `--hot-reload` and `--live-reload` flags.
-- Support building with `package:build_daemon` through `serve` command.
+- Support building with `package:build_daemon`. This allows shared builds as
+  long as the build arguments are compatible.
   - This should not affect most users but might break some workflows.
+  - Prompts are not supported, so you may have to pass the
+    `-- --delete-conflicting-outputs` argument if you used to hit `y` at the
+    prompt.
 
 ### Features
 
