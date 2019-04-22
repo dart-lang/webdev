@@ -10,7 +10,7 @@ import 'package:logging/logging.dart';
 
 var _verbose = false;
 
-var _loggerName = RegExp(r'^(\w)+: ');
+var _loggerName = RegExp(r'^\w+: ');
 
 /// Sets the verbosity of the current [logHandler].
 void setVerbosity(bool verbose) => _verbose = verbose;
