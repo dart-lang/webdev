@@ -37,8 +37,8 @@ for PKG in ${PKGS}; do
       ;;
     test_0) echo
       echo -e '\033[1mTASK: test_0\033[22m'
-      echo -e 'pub run test'
-      pub run test || EXIT_CODE=$?
+      echo -e 'pub run test -j 1'
+      pub run test -j 1 || EXIT_CODE=$?
       ;;
     test_1) echo
       echo -e '\033[1mTASK: test_1\033[22m'

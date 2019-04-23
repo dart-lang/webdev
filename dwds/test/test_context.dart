@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/service.dart';
 import 'package:dwds/src/chrome_proxy_service.dart';
 import 'package:dwds/src/helpers.dart';
-import 'package:dwds/service.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
@@ -36,12 +37,18 @@ class TestContext {
     webdev.stderr
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
-        .listen(printOnFailure);
-    await webdev.stdout
+        .listen(print);
+    var assetReadyCompleter = Completer();
+    webdev.stdout
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
-        .takeWhile((line) => !line.contains('$port'))
-        .drain();
+        .listen((line) {
+      if (line.contains('$port') && !assetReadyCompleter.isCompleted) {
+        assetReadyCompleter.complete();
+      }
+      printOnFailure(line);
+    });
+    await assetReadyCompleter.future;
     appUrl = 'http://localhost:$port/hello_world/';
     var debugPort = await findUnusedPort();
     webDriver = await createDriver(desired: {
@@ -71,8 +78,11 @@ class TestContext {
       return result.body;
     };
 
+    var instanceId =
+        await tabConnection.runtime.evaluate(r'window.$dartAppInstanceId');
+
     debugService = await DebugService.start(
-        'localhost', connection, assetHandler, 'instance-id-for-testing');
+        'localhost', connection, assetHandler, instanceId.value.toString());
   }
 
   Future<Null> tearDown() async {
