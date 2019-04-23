@@ -150,10 +150,10 @@ class DevHandler {
             .serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
-        await appServices.chrome.chromeConnection
-            // Chrome protocol for spawning a new tab.
-            .getUrl('json/new/?http://${_devTools.hostname}:${_devTools.port}'
-                '/?uri=${appServices.debugService.wsUri}');
+        await appServices.debugService.chromeProxyService.tabConnection.runtime
+            .evaluate(
+                'window.open("http://${_devTools.hostname}:${_devTools.port}'
+                '/?uri=${appServices.debugService.wsUri}", "", "_blank")');
       } else if (message is ConnectRequest) {
         if (appId != null) {
           throw StateError('Duplicate connection request from the same app. '
