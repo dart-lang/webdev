@@ -1,4 +1,4 @@
-# Created with package:mono_repo v2.0.0
+# Created with package:mono_repo v2.1.0
 language: dart
 
 # Custom configuration
@@ -18,15 +18,15 @@ before_install:
 jobs:
   include:
     - stage: analyzer_and_format
-      name: "SDK: dev; PKGS: dwds, example, webdev; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
-      dart: dev
-      env: PKGS="dwds example webdev"
-      script: ./tool/travis.sh dartfmt dartanalyzer_0
-    - stage: analyzer_and_format
       name: "SDK: 2.2.1-dev.2.0; PKGS: dwds, example, webdev; TASKS: `dartanalyzer --fatal-warnings .`"
       dart: "2.2.1-dev.2.0"
       env: PKGS="dwds example webdev"
       script: ./tool/travis.sh dartanalyzer_1
+    - stage: analyzer_and_format
+      name: "SDK: dev; PKGS: dwds, example, webdev; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
+      dart: dev
+      env: PKGS="dwds example webdev"
+      script: ./tool/travis.sh dartfmt dartanalyzer_0
     - stage: unit_test
       name: "SDK: 2.2.1-dev.2.0; PKG: dwds; TASKS: `pub run test -j 1`"
       dart: "2.2.1-dev.2.0"
@@ -38,13 +38,13 @@ jobs:
       env: PKGS="dwds"
       script: ./tool/travis.sh test_0
     - stage: unit_test
-      name: "SDK: dev; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped`"
-      dart: dev
+      name: "SDK: 2.2.1-dev.2.0; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped`"
+      dart: "2.2.1-dev.2.0"
       env: PKGS="webdev"
       script: ./tool/travis.sh test_1
     - stage: unit_test
-      name: "SDK: 2.2.1-dev.2.0; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped`"
-      dart: "2.2.1-dev.2.0"
+      name: "SDK: dev; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped`"
+      dart: dev
       env: PKGS="webdev"
       script: ./tool/travis.sh test_1
 
