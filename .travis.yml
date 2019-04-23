@@ -28,12 +28,12 @@ jobs:
       env: PKGS="dwds example webdev"
       script: ./tool/travis.sh dartanalyzer_1
     - stage: unit_test
-      name: "SDK: 2.2.1-dev.2.0; PKG: dwds; TASKS: `pub run test`"
+      name: "SDK: 2.2.1-dev.2.0; PKG: dwds; TASKS: `pub run test -j 1`"
       dart: "2.2.1-dev.2.0"
       env: PKGS="dwds"
       script: ./tool/travis.sh test_0
     - stage: unit_test
-      name: "SDK: dev; PKG: dwds; TASKS: `pub run test`"
+      name: "SDK: dev; PKG: dwds; TASKS: `pub run test -j 1`"
       dart: dev
       env: PKGS="dwds"
       script: ./tool/travis.sh test_0
