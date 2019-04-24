@@ -45,18 +45,18 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
                                   (loses current state)
                                   refresh: Performs a full page refresh.
                                   [restart, refresh]
+
     --chrome-debug-port           Specify which port the Chrome debugger is
                                   listening on. If used with launch-in-chrome
                                   Chrome will be started with the debugger
                                   listening on this port.
 
-    --[no-]debug                  Enable the launching of DevTools (Alt + D).
-                                  Must use with either --launch-in-chrome or
-                                  --chrome-debug-port.
+    --[no-]debug                  Enable the launching of DevTools (Alt + D /
+                                  Option + D). This also enables
+                                  --launch-in-chrome.
 
     --hostname                    Specify the hostname to serve on.
                                   (defaults to "localhost")
-
 
     --[no-]launch-in-chrome       Automatically launches your application in
                                   Chrome with the debug port open. Use
