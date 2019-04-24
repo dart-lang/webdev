@@ -45,6 +45,12 @@ Future<void> main() async {
     return toPromise(hotRestart(currentDigests, manager));
   });
 
+  launchDevToolsJs = allowInterop(() {
+    client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
+      ..appId = dartAppId
+      ..instanceId = dartAppInstanceId))));
+  });
+
   client.stream.listen((serialized) async {
     var event = serializers.deserialize(jsonDecode(serialized));
     if (event is DefaultBuildResult) {
@@ -75,9 +81,7 @@ Future<void> main() async {
         !e.ctrlKey &&
         !e.metaKey) {
       e.preventDefault();
-      client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
-        ..appId = dartAppId
-        ..instanceId = dartAppInstanceId))));
+      launchDevToolsJs();
     }
   });
 
@@ -145,6 +149,11 @@ external void Function() get runMain;
 
 @JS(r'$dartHotRestart')
 external set hotRestartJs(Promise<bool> Function() cb);
+
+@JS(r'$launchDevTools')
+external set launchDevToolsJs(void Function() cb);
+@JS(r'$launchDevTools')
+external void Function() get launchDevToolsJs;
 
 @JS(r'$dartLoader')
 external DartLoader get dartLoader;
