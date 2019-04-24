@@ -1,4 +1,4 @@
-## 0.2.2
+## 0.3.0
 
 - Change the exposed type on DebugService to VmServiceInterface
 
