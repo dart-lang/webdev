@@ -42,7 +42,7 @@ dev_dependencies:
   build_version: ^2.0.0
   graphs: ^0.2.0
   js: ^0.6.1
-  test: ^1.0.0
+  test: ^1.6.0
   test_descriptor: ^1.0.3
   test_process: ^1.0.1
   uuid: ^2.0.0

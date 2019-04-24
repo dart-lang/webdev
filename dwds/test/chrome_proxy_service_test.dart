@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 @TestOn('vm')
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/chrome_proxy_service.dart';
-
 import 'package:http/http.dart' as http;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
@@ -183,14 +182,17 @@ void main() {
       expect(result, const TypeMatcher<Isolate>());
       var isolate = result as Isolate;
       expect(isolate.name, contains(context.appUrl));
-      expect(isolate.rootLib.uri, 'hello_world/main.dart');
+      // TODO: library names change with kernel dart-lang/sdk#36736
+      expect(isolate.rootLib.uri, endsWith('main.dart'));
+
       expect(
           isolate.libraries,
           containsAll([
-            predicate((LibraryRef lib) => lib.uri == 'dart:core'),
-            predicate((LibraryRef lib) => lib.uri == 'dart:html'),
-            predicate((LibraryRef lib) => lib.uri == 'package:path/path.dart'),
-            predicate((LibraryRef lib) => lib.uri == 'hello_world/main.dart'),
+            _libRef('dart:core'),
+            _libRef('dart:html'),
+            _libRef('package:path/path.dart'),
+            // TODO: library names change with kernel dart-lang/sdk#36736
+            _libRef(endsWith('main.dart')),
           ]));
       expect(isolate.extensionRPCs, contains('ext.hello_world.existing'));
     });
@@ -212,7 +214,8 @@ void main() {
 
     test('Libraries', () async {
       expect(rootLibrary, isNotNull);
-      expect(rootLibrary.uri, 'hello_world/main.dart');
+      // TODO: library names change with kernel dart-lang/sdk#36736
+      expect(rootLibrary.uri, endsWith('main.dart'));
       expect(rootLibrary.classes.length, 1);
       var testClass = rootLibrary.classes.first;
       expect(testClass.name, 'MyTestClass');
@@ -336,11 +339,11 @@ void main() {
   test('setExceptionPauseMode', () async {
     var vm = await service.getVM();
     var isolateId = vm.isolates.first.id;
-    expect(await service.setExceptionPauseMode(isolateId, 'all'), isSuccess);
-    expect(
-        await service.setExceptionPauseMode(isolateId, 'unhandled'), isSuccess);
+    expect(await service.setExceptionPauseMode(isolateId, 'all'), _isSuccess);
+    expect(await service.setExceptionPauseMode(isolateId, 'unhandled'),
+        _isSuccess);
     // Make sure this is the last one - or future tests might hang.
-    expect(await service.setExceptionPauseMode(isolateId, 'none'), isSuccess);
+    expect(await service.setExceptionPauseMode(isolateId, 'none'), _isSuccess);
     expect(
         service.setExceptionPauseMode(isolateId, 'invalid'),
         throwsA(isA<RPCError>()
@@ -359,13 +362,13 @@ void main() {
   test('setName', () async {
     var vm = await service.getVM();
     var isolateId = vm.isolates.first.id;
-    expect(service.setName(isolateId, 'test'), completion(isSuccess));
+    expect(service.setName(isolateId, 'test'), completion(_isSuccess));
     var isolate = await service.getIsolate(isolateId);
     expect(isolate.name, 'test');
   });
 
   test('setVMName', () async {
-    expect(service.setVMName('foo'), completion(isSuccess));
+    expect(service.setVMName('foo'), completion(_isSuccess));
     var vm = await service.getVM();
     expect(vm.name, 'foo');
   });
@@ -389,7 +392,7 @@ void main() {
       });
 
       test('basic Pause/Resume', () async {
-        expect(service.streamListen('Debug'), completion(isSuccess));
+        expect(service.streamListen('Debug'), completion(_isSuccess));
         var stream = service.onEvent('Debug');
         unawaited(tabConnection.debugger.pause());
         await expectLater(
@@ -420,7 +423,7 @@ void main() {
     });
 
     test('Extension', () async {
-      expect(service.streamListen('Extension'), completion(isSuccess));
+      expect(service.streamListen('Extension'), completion(_isSuccess));
       var stream = service.onEvent('Extension');
       var eventKind = 'my.custom.event';
       expect(
@@ -433,14 +436,14 @@ void main() {
     });
 
     test('GC', () async {
-      expect(service.streamListen('GC'), completion(isSuccess));
+      expect(service.streamListen('GC'), completion(_isSuccess));
     });
 
     group('Isolate', () {
       Stream<Event> isolateEventStream;
 
       setUp(() async {
-        expect(await service.streamListen('Isolate'), isSuccess);
+        expect(await service.streamListen('Isolate'), _isSuccess);
         isolateEventStream = service.onEvent('Isolate');
       });
 
@@ -480,11 +483,11 @@ void main() {
     });
 
     test('Timeline', () async {
-      expect(service.streamListen('Timeline'), completion(isSuccess));
+      expect(service.streamListen('Timeline'), completion(_isSuccess));
     });
 
     test('Stdout', () async {
-      expect(service.streamListen('Stdout'), completion(isSuccess));
+      expect(service.streamListen('Stdout'), completion(_isSuccess));
       expect(
           service.onEvent('Stdout'),
           emitsThrough(predicate((Event event) =>
@@ -495,7 +498,7 @@ void main() {
     });
 
     test('Stderr', () async {
-      expect(service.streamListen('Stderr'), completion(isSuccess));
+      expect(service.streamListen('Stderr'), completion(_isSuccess));
       var stderrStream = service.onEvent('Stderr');
       expect(
           stderrStream,
@@ -508,7 +511,7 @@ void main() {
 
     test('VM', () async {
       var status = await service.streamListen('VM');
-      expect(status, isSuccess);
+      expect(status, _isSuccess);
       var stream = service.onEvent('VM');
       expect(
           stream,
@@ -519,4 +522,7 @@ void main() {
   });
 }
 
-const isSuccess = TypeMatcher<Success>();
+final _isSuccess = isA<Success>();
+
+TypeMatcher _libRef(uriMatcher) =>
+    isA<LibraryRef>().having((l) => l.uri, 'uri', uriMatcher);
