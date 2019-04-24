@@ -33,7 +33,6 @@ var _currentCompleter = Completer<Chrome>();
 class Chrome {
   final int debugPort;
   final Process _process;
-  final Directory _dataDir;
 
   final ChromeConnection chromeConnection;
 
@@ -41,16 +40,13 @@ class Chrome {
     this.debugPort,
     this.chromeConnection, {
     Process process,
-    Directory dataDir,
-  })  : _process = process,
-        _dataDir = dataDir;
+  }) : _process = process;
 
   Future<void> close() async {
     if (_currentCompleter.isCompleted) _currentCompleter = Completer<Chrome>();
     chromeConnection.close();
     _process?.kill();
     await _process?.exitCode;
-    await _dataDir?.delete(recursive: true);
   }
 
   /// Connects to an instance of Chrome with an open debug port.
@@ -97,7 +93,6 @@ class Chrome {
       port,
       ChromeConnection('localhost', port),
       process: process,
-      dataDir: dataDir,
     ));
   }
 
