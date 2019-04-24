@@ -67,8 +67,7 @@ class AppDomain extends Domain {
       _appDebugServices = await devHandler.loadAppServices(
           connection.request.appId, connection.request.instanceId);
       _appId = connection.request.appId;
-      unawaited(_appDebugServices
-          .debugService.chromeProxyService.tabConnection.onClose.first
+      unawaited(_appDebugServices.chromeProxyService.tabConnection.onClose.first
           .then((_) {
         sendEvent('app.log', {
           'appId': _appId,
@@ -176,8 +175,7 @@ class AppDomain extends Domain {
   Future<bool> _stop(Map<String, dynamic> args) async {
     var appId = getStringArg(args, 'appId', required: true);
     if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
-    await _appDebugServices.debugService.chromeProxyService.tabConnection
-        .close();
+    await _appDebugServices.chromeProxyService.tabConnection.close();
     return true;
   }
 

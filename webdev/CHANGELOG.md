@@ -1,3 +1,7 @@
+## 2.0.2-dev
+
+- Support `package:dwds` version `0.3.0`.
+
 ## 2.0.0
 
 ## Breaking Changes

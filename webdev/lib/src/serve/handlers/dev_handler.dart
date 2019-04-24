@@ -139,7 +139,7 @@ class DevHandler {
         // If you load the same app in a different tab then we need to throw
         // away our old services and start new ones.
         if (!(await _isCorrectTab(message.instanceId,
-            appServices.debugService.chromeProxyService.tabConnection))) {
+            appServices.chromeProxyService.tabConnection))) {
           unawaited(appServices.close());
           unawaited(_servicesByAppId.remove(message.appId));
           appServices =
@@ -150,10 +150,9 @@ class DevHandler {
             .serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
-        await appServices.debugService.chromeProxyService.tabConnection.runtime
-            .evaluate(
-                'window.open("http://${_devTools.hostname}:${_devTools.port}'
-                '/?uri=${appServices.debugService.wsUri}", "", "_blank")');
+        await appServices.chromeProxyService.tabConnection.runtime.evaluate(
+            'window.open("http://${_devTools.hostname}:${_devTools.port}'
+            '/?uri=${appServices.debugService.wsUri}", "", "_blank")');
       } else if (message is ConnectRequest) {
         if (appId != null) {
           throw StateError('Duplicate connection request from the same app. '
@@ -168,10 +167,10 @@ class DevHandler {
         if (services != null && services.connectedInstanceId == null) {
           // Re-connect to the previous instance if its in the same tab,
           // otherwise do nothing for now.
-          if (await _isCorrectTab(message.instanceId,
-              services.debugService.chromeProxyService.tabConnection)) {
+          if (await _isCorrectTab(
+              message.instanceId, services.chromeProxyService.tabConnection)) {
             services.connectedInstanceId = message.instanceId;
-            await services.debugService.chromeProxyService.createIsolate();
+            await services.chromeProxyService.createIsolate();
           }
         }
 
@@ -184,7 +183,7 @@ class DevHandler {
       if (appId != null) {
         var services = await _servicesByAppId[appId];
         services?.connectedInstanceId = null;
-        services?.debugService?.chromeProxyService?.destroyIsolate();
+        services?.chromeProxyService?.destroyIsolate();
       }
     }));
   }
@@ -210,7 +209,7 @@ class DevHandler {
     var appServices = AppDebugServices(chrome, debugService, webdevClient);
 
     unawaited(
-        debugService.chromeProxyService.tabConnection.onClose.first.then((_) {
+        appServices.chromeProxyService.tabConnection.onClose.first.then((_) {
       appServices.close();
       _servicesByAppId.remove(appId);
       logHandler(
