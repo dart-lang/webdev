@@ -62,4 +62,5 @@ branches:
 cache:
   directories:
     - "$HOME/.pub-cache"
-    - example/.dart_tool
+    - example/.dart_tool/build
+    - example/.dart_tool/pub
