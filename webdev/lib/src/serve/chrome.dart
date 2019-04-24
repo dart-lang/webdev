@@ -16,6 +16,11 @@ const _linuxExecutable = 'google-chrome';
 const _macOSExecutable =
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const _windowsExecutable = r'Google\Chrome\Application\chrome.exe';
+var _windowsPrefixes = [
+  Platform.environment['LOCALAPPDATA'],
+  Platform.environment['PROGRAMFILES'],
+  Platform.environment['PROGRAMFILES(X86)']
+];
 
 String get _executable {
   if (Platform.environment.containsKey(_chromeEnvironment)) {
@@ -23,7 +28,15 @@ String get _executable {
   }
   if (Platform.isLinux) return _linuxExecutable;
   if (Platform.isMacOS) return _macOSExecutable;
-  if (Platform.isWindows) return _windowsExecutable;
+  if (Platform.isWindows) {
+    return p.join(
+        _windowsPrefixes.firstWhere((prefix) {
+          if (prefix == null) return false;
+          var path = p.join(prefix, _windowsExecutable);
+          return File(path).existsSync();
+        }, orElse: () => '.'),
+        _windowsExecutable);
+  }
   throw StateError('Unexpected platform type.');
 }
 
