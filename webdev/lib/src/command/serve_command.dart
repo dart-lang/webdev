@@ -63,9 +63,8 @@ refresh: Performs a full page refresh.
               'If used with $launchInChromeFlag Chrome will be started with the'
               ' debugger listening on this port.')
       ..addFlag(debugFlag,
-          help: 'Enable the launching of DevTools (Alt + D). '
-              'Must use with either --$launchInChromeFlag or '
-              '--$chromeDebugPortFlag.')
+          help: 'Enable the launching of DevTools (Alt + D / Option + D). '
+              'This also enables --$launchInChromeFlag.')
       ..addOption(hostnameFlag,
           help: 'Specify the hostname to serve on.', defaultsTo: 'localhost')
       ..addFlag(hotRestartFlag,
