@@ -103,12 +103,9 @@ refresh: Performs a full page refresh.
     // Forward remaining arguments as Build Options to the Daemon.
     // This isn't documented. Should it be advertised?
     var buildOptions = buildRunnerArgs(pubspecLock, configuration)
-      ..addAll(argResults.rest
-          .where((arg) => !arg.contains(':') || arg.startsWith('--'))
-          .toList());
-    var directoryArgs = argResults.rest
-        .where((arg) => arg.contains(':') || !arg.startsWith('--'))
-        .toList();
+      ..addAll(argResults.rest.where((arg) => arg.startsWith('-')).toList());
+    var directoryArgs =
+        argResults.rest.where((arg) => !arg.startsWith('-')).toList();
     var targetPorts = _parseDirectoryArgs(directoryArgs);
     var workflow =
         await DevWorkflow.start(configuration, buildOptions, targetPorts);
