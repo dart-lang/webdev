@@ -108,13 +108,13 @@ class Chrome {
     ]);
 
     // Wait until the DevTools are listening before trying to connect.
-    await output.firstWhere((line) {
-      print(line);
-      return line.startsWith('DevTools listening') ||
-          line.startsWith('Opening in existing');
-    }).timeout(Duration(seconds: 60),
-        onTimeout: () =>
-            throw Exception('Unable to connect to Chrome DevTools.'));
+    await output
+        .firstWhere((line) =>
+            line.startsWith('DevTools listening') ||
+            line.startsWith('Opening in existing'))
+        .timeout(Duration(seconds: 60),
+            onTimeout: () =>
+                throw Exception('Unable to connect to Chrome DevTools.'));
 
     // The DevToolsActivePort file is only written if 0 is provided.
     if (port == 0) {

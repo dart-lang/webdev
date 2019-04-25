@@ -1,3 +1,7 @@
+## 2.0.3
+
+- Fix an issue with reusing an existing Chrome instance.
+
 ## 2.0.2
 
 - Support `package:dwds` version `0.3.0`.
