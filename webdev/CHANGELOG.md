@@ -1,3 +1,7 @@
+## 2.0.2
+
+- Depend on the latest `package:dwds`.
+
 ## 2.0.1
 
 - Fix launching Chrome on Windows.
