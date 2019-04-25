@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:webdev/src/serve/chrome.dart';
+import 'package:webdev/src/serve/utils.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 void main() {
@@ -38,6 +39,12 @@ void main() {
   test('uses open debug port if provided port is 0', () async {
     await launchChrome(port: 0);
     expect(chrome.debugPort, isNot(equals(0)));
+  }, skip: Platform.isWindows);
+
+  test('can provide a specific debug port', () async {
+    var port = await findUnusedPort();
+    await launchChrome(port: port);
+    expect(chrome.debugPort, port);
   }, skip: Platform.isWindows);
 }
 
