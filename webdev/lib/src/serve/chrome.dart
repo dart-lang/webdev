@@ -5,11 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:async/async.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'utils.dart';
 
 const _chromeEnvironment = 'CHROME_EXECUTABLE';
 const _linuxExecutable = 'google-chrome';
@@ -73,9 +72,17 @@ class Chrome {
   /// Each url in [urls] will be loaded in a separate tab.
   static Future<Chrome> start(List<String> urls, {int port}) async {
     var dataDir = Directory(p.joinAll(
-        [Directory.current.path, '.dart_tool', 'webdev', 'chrome_profile']))
-      ..createSync(recursive: true);
-    port = port == null || port == 0 ? await findUnusedPort() : port;
+        [Directory.current.path, '.dart_tool', 'webdev', 'chrome_profile']));
+    var activePortFile = File(p.join(dataDir.path, 'DevToolsActivePort'));
+    // If we are reusing the Chrome profile we'll need to be able to read the
+    // DevToolsActivePort to connect the debugger.
+    // When a non-zero debugging port is provided Chrome will not write the
+    // DevToolsActivePort file and therefore we can not reuse the profile.
+    if (dataDir.existsSync() && !activePortFile.existsSync()) {
+      dataDir.deleteSync(recursive: true);
+    }
+    dataDir.createSync(recursive: true);
+    port = port == null ? 0 : port;
     var args = [
       // Using a tmp directory ensures that a new instance of chrome launches
       // allowing for the remote debug port to be enabled.
@@ -95,15 +102,27 @@ class Chrome {
     ]..addAll(urls);
 
     var process = await Process.start(_executable, args);
+    var output = StreamGroup.merge([
+      process.stderr.transform(utf8.decoder).transform(const LineSplitter()),
+      process.stdout.transform(utf8.decoder).transform(const LineSplitter())
+    ]);
 
     // Wait until the DevTools are listening before trying to connect.
-    await process.stderr
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .firstWhere((line) => line.startsWith('DevTools listening'))
-        .timeout(Duration(seconds: 60),
-            onTimeout: () =>
-                throw Exception('Unable to connect to Chrome DevTools.'));
+    await output.firstWhere((line) {
+      print(line);
+      return line.startsWith('DevTools listening') ||
+          line.startsWith('Opening in existing');
+    }).timeout(Duration(seconds: 60),
+        onTimeout: () =>
+            throw Exception('Unable to connect to Chrome DevTools.'));
+
+    // The DevToolsActivePort file is only written if 0 is provided.
+    if (port == 0) {
+      if (!activePortFile.existsSync()) {
+        throw ChromeError("Can't read DevToolsActivePort file.");
+      }
+      port = int.parse(activePortFile.readAsLinesSync().first);
+    }
 
     return _connect(Chrome._(
       port,
