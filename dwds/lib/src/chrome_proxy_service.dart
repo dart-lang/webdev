@@ -251,18 +251,28 @@ require("dart_sdk").developer.invokeExtension(
       throw UnsupportedError(
           'Evaluate is only supported when `targetId` is a library.');
     }
-    var result = await tabConnection.runtime.evaluate('''
+    var evalExpression = '''
 (function() {
   ${_getLibrarySnippet(library.uri)};
   return library.$expression;
 })();
-    ''');
+    ''';
+    var result = await tabConnection.runtime.sendCommand('Runtime.evaluate',
+        params: {'expression': evalExpression, 'returnByValue': true});
+    _handleErrorIfPresent(result,
+        evalContents: evalExpression,
+        additionalDetails: {
+          'Dart expression': expression,
+          'scope': scope,
+        });
+    var remoteObject =
+        RemoteObject(result.result['result'] as Map<String, dynamic>);
 
     String kind;
     var classRef = ClassRef()
-      ..id = 'dart:core:${result.type}'
-      ..name = result.type;
-    switch (result.type) {
+      ..id = 'dart:core:${remoteObject.type}'
+      ..name = remoteObject.type;
+    switch (remoteObject.type) {
       case 'string':
         kind = InstanceKind.kString;
         break;
@@ -273,11 +283,12 @@ require("dart_sdk").developer.invokeExtension(
         kind = InstanceKind.kBool;
         break;
       default:
-        throw UnsupportedError('Unsupported response type ${result.type}');
+        throw UnsupportedError(
+            'Unsupported response type ${remoteObject.type}');
     }
 
     return InstanceRef()
-      ..valueAsString = '${result.value}'
+      ..valueAsString = '${remoteObject.value}'
       ..classRef = classRef
       ..kind = kind;
   }
@@ -788,11 +799,13 @@ const _stdoutTypes = ['log', 'info', 'warning'];
 
 /// Throws an [ExceptionDetails] object if `exceptionDetails` is present on the
 /// result.
-void _handleErrorIfPresent(WipResponse response, {String evalContents}) {
+void _handleErrorIfPresent(WipResponse response,
+    {String evalContents, Object additionalDetails}) {
   if (response.result.containsKey('exceptionDetails')) {
     throw ChromeDebugException(
         response.result['exceptionDetails'] as Map<String, dynamic>,
-        evalContents: evalContents);
+        evalContents: evalContents,
+        additionalDetails: additionalDetails);
   }
 }
 
@@ -818,11 +831,14 @@ String _getLibrarySnippet(String libraryUri) => '''
 ''';
 
 class ChromeDebugException extends ExceptionDetails implements Exception {
+  /// Optional, additional information about the exception.
+  final Object additionalDetails;
+
   /// Optional, the exact contents of the eval that was attempted.
   final String evalContents;
 
   ChromeDebugException(Map<String, dynamic> exceptionDetails,
-      {this.evalContents})
+      {this.additionalDetails, this.evalContents})
       : super(exceptionDetails);
 
   @override
@@ -839,7 +855,10 @@ class ChromeDebugException extends ExceptionDetails implements Exception {
       description.writeln('  value: ${exception.value}');
     }
     if (evalContents != null) {
-      description.writeln('attempted eval: `$evalContents`');
+      description.writeln('attempted JS eval: `$evalContents`');
+    }
+    if (additionalDetails != null) {
+      description.writeln('additional details:\n  $additionalDetails');
     }
     return description.toString();
   }
