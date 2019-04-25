@@ -1,3 +1,8 @@
+## 0.3.1
+
+- Improve error reporting for evals, give the full JS eval in the error message
+  so it can be more easily reproduced.
+
 ## 0.3.0
 
 - Change the exposed type on DebugService to VmServiceInterface
