@@ -163,14 +163,14 @@ class DevWorkflow {
   ) async {
     var workingDirectory = Directory.current.path;
     var client = await _startBuildDaemon(workingDirectory, buildOptions);
-    var devTools = await _startDevTools(configuration);
-    var serverManager = await _startServerManager(
-        configuration, targetPorts, workingDirectory, client, devTools);
-    var chrome = await _startChrome(configuration, serverManager, client);
     logHandler(Level.INFO, 'Registering build targets...');
     _registerBuildTargets(client, configuration, targetPorts);
     logHandler(Level.INFO, 'Starting initial build...');
     client.startBuild();
+    var devTools = await _startDevTools(configuration);
+    var serverManager = await _startServerManager(
+        configuration, targetPorts, workingDirectory, client, devTools);
+    var chrome = await _startChrome(configuration, serverManager, client);
     return DevWorkflow._(client, chrome, devTools, serverManager);
   }
 
