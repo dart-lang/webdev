@@ -265,7 +265,8 @@ require("dart_sdk").developer.invokeExtension(
           'Dart expression': expression,
           'scope': scope,
         });
-    var remoteObject = RemoteObject(result.result);
+    var remoteObject =
+        RemoteObject(result.result['result'] as Map<String, dynamic>);
 
     String kind;
     var classRef = ClassRef()
