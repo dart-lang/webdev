@@ -81,6 +81,7 @@ class Chrome {
     if (dataDir.existsSync() && !activePortFile.existsSync()) {
       dataDir.deleteSync(recursive: true);
     }
+    if (activePortFile.existsSync()) activePortFile.deleteSync();
     dataDir.createSync(recursive: true);
     port = port == null ? 0 : port;
     var args = [
@@ -108,13 +109,13 @@ class Chrome {
     ]);
 
     // Wait until the DevTools are listening before trying to connect.
-    await output
-        .firstWhere((line) =>
-            line.startsWith('DevTools listening') ||
-            line.startsWith('Opening in existing'))
-        .timeout(Duration(seconds: 60),
-            onTimeout: () =>
-                throw Exception('Unable to connect to Chrome DevTools.'));
+    await output.firstWhere((line) {
+      print(line);
+      return line.startsWith('DevTools listening') ||
+          line.startsWith('Opening in existing');
+    }).timeout(Duration(seconds: 60),
+        onTimeout: () =>
+            throw Exception('Unable to connect to Chrome DevTools.'));
 
     // The DevToolsActivePort file is only written if 0 is provided.
     if (port == 0) {
