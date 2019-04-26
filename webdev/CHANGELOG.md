@@ -1,3 +1,8 @@
+## 2.0.3
+
+- Support latest `package:build_daemon`.
+- Fix Chrome issues while running through VS Code.
+
 ## 2.0.2
 
 - Support `package:dwds` version `0.3.0`.
