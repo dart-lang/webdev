@@ -46,13 +46,13 @@ void main() {
 
     Future<void> reload() async {
       var loading = tabConnection.page.reload(ignoreCache: true);
-      await service.debugger.waitForSourceMap('main.dart');
+      await service.debugger.sourcemaps.waitForSourceMap('main.dart');
       return await loading;
     }
 
     test('load sourcemaps', () async {
       await reload();
-      expect(service.debugger.sourcemaps['main.dart'], isNotNull);
+      expect(service.debugger.sourcemaps.sourcemaps['main.dart'], isNotNull);
     });
 
     test('addBreakPoint', () async {

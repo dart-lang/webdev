@@ -39,7 +39,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// This may be null during a hot restart or page refresh.
   Isolate _isolate;
 
-  DebuggerProxyThing debugger; // ####
+  Debugger debugger; // ####
 
   /// Fields that are specific to the current [_isolate].
   ///
@@ -89,7 +89,7 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<Null> initialize() async {  // ### Why did I put this in a separate method?
-    debugger = DebuggerProxyThing(this);
+    debugger = Debugger(this);
     await debugger.initialize();
   }
 
@@ -535,7 +535,7 @@ function($argsString) {
       if (lib.id.startsWith('dart:') || lib.id.endsWith('.bootstrap')) continue;
       scripts.addAll((await _getLibrary(isolateId, lib.id)).scripts);
     }
-    return scripts;
+    return scripts; 
   }
 
   @override

@@ -38,11 +38,10 @@ class SourceMaps {
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = source_maps.parse(sourceMapContents);
     if (mapping is source_maps.SingleMapping) {
-    #### Iterate the dart urls which are in the mapping and call _makeUrlAbsolute on them
       jsScripts[script.url] = script;
       sourcemaps[script.url] = mapping;
       for (var dartUrl in mapping.urls) {
-        sourceMapLoadedController.add(dartUrl);
+        sourceMapLoadedController.add(_makeUrlAbsolute('http://www.google.com', dartUrl));
       }
     }
   }
@@ -79,8 +78,8 @@ class SourceMaps {
 }
 
 
-class DebuggerProxyThing {
-  DebuggerProxyThing(this.mainProxy);
+class Debugger {
+  Debugger(this.mainProxy);
 
   ChromeProxyService mainProxy;
 
@@ -109,8 +108,9 @@ class DebuggerProxyThing {
     Isolate isolate;
     if (isolateId != null) isolate = await mainProxy.getIsolate(isolateId);
     ScriptRef dartScript = await _getScriptById(isolateId, scriptId);
-    var jsScript = jsScripts[dartScript.uri];
-    var sourcemap = sourcemaps[dartScript.uri];
+    var jsScript = sourcemaps.jsScripts[dartScript.uri];
+    var sourcemap = sourcemaps.sourcemaps[dartScript.uri];  // #### clean up this api
+
 
     var location = jsPosition(sourcemap, line);
     // actually set the breakpoint
