@@ -61,7 +61,6 @@ class Chrome {
   Future<void> close() async {
     if (_currentCompleter.isCompleted) _currentCompleter = Completer<Chrome>();
     chromeConnection.close();
-    print("ABOUT TO CLOSE CHROME");
     _process?.kill(ProcessSignal.sigkill);
     await _process?.exitCode;
     await _dataDir?.delete(recursive: true);
