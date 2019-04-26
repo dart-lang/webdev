@@ -63,7 +63,16 @@ class Chrome {
     chromeConnection.close();
     _process?.kill(ProcessSignal.sigkill);
     await _process?.exitCode;
-    await _dataDir?.delete(recursive: true);
+    try {
+      // Chrome starts another process as soon as it dies that modifies the
+      // profile information. Give it some time before attempting to delete
+      // the directory.
+      await Future.delayed(Duration(milliseconds: 500));
+      await _dataDir?.delete(recursive: true);
+    } catch (_) {
+      // Silently fail if we can't clean up the profile information.
+      // It is a system tmp directory so it should get cleaned up eventually.
+    }
   }
 
   /// Connects to an instance of Chrome with an open debug port.
