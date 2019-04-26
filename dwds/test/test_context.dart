@@ -48,7 +48,7 @@ class TestContext {
       }
       printOnFailure(line);
     });
-    await assetReadyCompleter.future;
+    await assetReadyCompleter.future.timeout(Duration(seconds: 60));
     appUrl = 'http://localhost:$port/hello_world/';
     var debugPort = await findUnusedPort();
     webDriver = await createDriver(desired: {

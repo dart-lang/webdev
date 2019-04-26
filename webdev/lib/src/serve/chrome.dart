@@ -46,6 +46,7 @@ var _currentCompleter = Completer<Chrome>();
 class Chrome {
   final int debugPort;
   final Process _process;
+  final Directory _dataDir;
 
   final ChromeConnection chromeConnection;
 
@@ -53,13 +54,25 @@ class Chrome {
     this.debugPort,
     this.chromeConnection, {
     Process process,
-  }) : _process = process;
+    Directory dataDir,
+  })  : _process = process,
+        _dataDir = dataDir;
 
   Future<void> close() async {
     if (_currentCompleter.isCompleted) _currentCompleter = Completer<Chrome>();
     chromeConnection.close();
-    _process?.kill();
+    _process?.kill(ProcessSignal.sigkill);
     await _process?.exitCode;
+    try {
+      // Chrome starts another process as soon as it dies that modifies the
+      // profile information. Give it some time before attempting to delete
+      // the directory.
+      await Future.delayed(Duration(milliseconds: 500));
+      await _dataDir?.delete(recursive: true);
+    } catch (_) {
+      // Silently fail if we can't clean up the profile information.
+      // It is a system tmp directory so it should get cleaned up eventually.
+    }
   }
 
   /// Connects to an instance of Chrome with an open debug port.
@@ -72,9 +85,7 @@ class Chrome {
   ///
   /// Each url in [urls] will be loaded in a separate tab.
   static Future<Chrome> start(List<String> urls, {int port}) async {
-    var dataDir = Directory(p.joinAll(
-        [Directory.current.path, '.dart_tool', 'webdev', 'chrome_profile']))
-      ..createSync(recursive: true);
+    var dataDir = Directory.systemTemp.createTempSync();
     port = port == null || port == 0 ? await findUnusedPort() : port;
     var args = [
       // Using a tmp directory ensures that a new instance of chrome launches
@@ -109,6 +120,7 @@ class Chrome {
       port,
       ChromeConnection('localhost', port),
       process: process,
+      dataDir: dataDir,
     ));
   }
 
