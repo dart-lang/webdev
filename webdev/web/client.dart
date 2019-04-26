@@ -89,7 +89,7 @@ Future<void> main() async {
     }
   });
 
-  if (window.navigator.userAgent.contains('Chrome')) {
+  if (isChrome) {
     // Wait for the connection to be established before sending the AppId.
     await client.onOpen.first;
     client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
