@@ -150,6 +150,47 @@ void main() {
             const TypeMatcher<InstanceRef>().having(
                 (instance) => instance.valueAsString, 'valueAsString', '42.2'));
       });
+
+      test('can return objects with ids', () async {
+        expect(
+            await service.evaluate(
+                isolate.id, isolate.rootLib.id, 'createObject("cool")'),
+            const TypeMatcher<InstanceRef>()
+                .having((instance) => instance.id, 'id', isNotNull));
+        // TODO(jakemac): Add tests for the ClassRef once we create one,
+        // https://github.com/dart-lang/sdk/issues/36771.
+      });
+
+      group('with provided scope', () {
+        Future<InstanceRef> createRemoteObject(String message) async {
+          return await service.evaluate(
+                  isolate.id, isolate.rootLib.id, 'createObject("$message")')
+              as InstanceRef;
+        }
+
+        test('single scope object', () async {
+          var instance = await createRemoteObject('A');
+          var result = await service.evaluate(
+              isolate.id, isolate.rootLib.id, 'messageFor(arg1)',
+              scope: {'arg1': instance.id});
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', 'A'));
+        });
+
+        test('multiple scope objects', () async {
+          var instance1 = await createRemoteObject('A');
+          var instance2 = await createRemoteObject('B');
+          var result = await service.evaluate(
+              isolate.id, isolate.rootLib.id, 'messagesCombined(arg1, arg2)',
+              scope: {'arg1': instance1.id, 'arg2': instance2.id});
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', 'AB'));
+        });
+      });
     });
   });
 

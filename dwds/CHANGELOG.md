@@ -1,3 +1,7 @@
+## 0.3.2
+
+- Add support for `scope` in `evaluate` calls.
+
 ## 0.3.1
 
 - Improve error reporting for evals, give the full JS eval in the error message
