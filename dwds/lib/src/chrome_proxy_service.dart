@@ -301,23 +301,13 @@ function($argsString) {
     var remoteObject =
         RemoteObject(result.result['result'] as Map<String, dynamic>);
 
-    InstanceRef primitiveInstance(String kind) {
-      var classRef = ClassRef()
-        ..id = 'dart:core:${remoteObject.type}'
-        ..name = kind;
-      return InstanceRef()
-        ..valueAsString = '${remoteObject.value}'
-        ..classRef = classRef
-        ..kind = kind;
-    }
-
     switch (remoteObject.type) {
       case 'string':
-        return primitiveInstance(InstanceKind.kString);
+        return _primitiveInstance(InstanceKind.kString, remoteObject);
       case 'number':
-        return primitiveInstance(InstanceKind.kDouble);
+        return _primitiveInstance(InstanceKind.kDouble, remoteObject);
       case 'boolean':
-        return primitiveInstance(InstanceKind.kBool);
+        return _primitiveInstance(InstanceKind.kBool, remoteObject);
       case 'object':
         return InstanceRef()
           ..kind = InstanceKind.kPlainInstance
@@ -910,3 +900,14 @@ const _pauseModePauseStates = {
   'all': PauseState.all,
   'unhandled': PauseState.uncaught,
 };
+
+/// Creates an [InstanceRef] for a primitive [RemoteObject].
+InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
+  var classRef = ClassRef()
+    ..id = 'dart:core:${remoteObject.type}'
+    ..name = kind;
+  return InstanceRef()
+    ..valueAsString = '${remoteObject.value}'
+    ..classRef = classRef
+    ..kind = kind;
+}
