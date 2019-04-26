@@ -28,3 +28,8 @@ dev_dependencies:
   build_web_compilers: '>=1.0.0 <3.0.0'
   test: ^1.6.0
   webdriver: ^2.0.0
+  webdev: ^2.0.0
+
+dependency_overrides:
+  webdev:
+    path: ../webdev
