@@ -246,51 +246,89 @@ require("dart_sdk").developer.invokeExtension(
   @override
   Future evaluate(String isolateId, String targetId, String expression,
       {Map<String, String> scope, bool disableBreakpoints}) async {
+    scope ??= {};
+    disableBreakpoints ??= false;
     var library = await _getLibrary(isolateId, targetId);
     if (library == null) {
       throw UnsupportedError(
           'Evaluate is only supported when `targetId` is a library.');
     }
-    var evalExpression = '''
+    WipResponse result;
+
+    // If there is scope, we use `callFunctionOn` because that accepts the
+    // `arguments` option.
+    //
+    // If there is no scope we run a normal evaluate call.
+    if (scope.isEmpty) {
+      var evalExpression = '''
 (function() {
   ${_getLibrarySnippet(library.uri)};
   return library.$expression;
 })();
     ''';
-    var result = await tabConnection.runtime.sendCommand('Runtime.evaluate',
-        params: {'expression': evalExpression, 'returnByValue': true});
-    _handleErrorIfPresent(result,
-        evalContents: evalExpression,
-        additionalDetails: {
-          'Dart expression': expression,
-          'scope': scope,
-        });
+      result = await tabConnection.runtime.sendCommand('Runtime.evaluate',
+          params: {'expression': evalExpression});
+      _handleErrorIfPresent(result,
+          evalContents: evalExpression,
+          additionalDetails: {
+            'Dart expression': expression,
+          });
+    } else {
+      var argsString = scope.keys.join(', ');
+      var arguments = scope.values.map((id) => {'objectId': id}).toList();
+      var evalExpression = '''
+function($argsString) {
+  ${_getLibrarySnippet(library.uri)};
+  return library.$expression;
+}
+    ''';
+      result = await tabConnection.runtime
+          .sendCommand('Runtime.callFunctionOn', params: {
+        'functionDeclaration': evalExpression,
+        'arguments': arguments,
+        // We don't actually care about what `this` is, we just have to provide
+        // something valid in order to use this api.
+        'objectId': scope.values.first,
+      });
+      _handleErrorIfPresent(result,
+          evalContents: evalExpression,
+          additionalDetails: {
+            'Dart expression': expression,
+            'scope': scope,
+          });
+    }
     var remoteObject =
         RemoteObject(result.result['result'] as Map<String, dynamic>);
 
-    String kind;
-    var classRef = ClassRef()
-      ..id = 'dart:core:${remoteObject.type}'
-      ..name = remoteObject.type;
+    InstanceRef primitiveInstance(String kind) {
+      var classRef = ClassRef()
+        ..id = 'dart:core:${remoteObject.type}'
+        ..name = kind;
+      return InstanceRef()
+        ..valueAsString = '${remoteObject.value}'
+        ..classRef = classRef
+        ..kind = kind;
+    }
+
     switch (remoteObject.type) {
       case 'string':
-        kind = InstanceKind.kString;
-        break;
+        return primitiveInstance(InstanceKind.kString);
       case 'number':
-        kind = InstanceKind.kDouble;
-        break;
+        return primitiveInstance(InstanceKind.kDouble);
       case 'boolean':
-        kind = InstanceKind.kBool;
-        break;
+        return primitiveInstance(InstanceKind.kBool);
+      case 'object':
+        return InstanceRef()
+          ..kind = InstanceKind.kPlainInstance
+          ..id = remoteObject.objectId
+          // TODO(jakemac): Create a real ClassRef, we need a way of looking
+          // up the library for a given instance to create it though.
+          // https://github.com/dart-lang/sdk/issues/36771.
+          ..classRef = ClassRef();
       default:
         throw UnsupportedError(
             'Unsupported response type ${remoteObject.type}');
     }
-
-    return InstanceRef()
-      ..valueAsString = '${remoteObject.value}'
-      ..classRef = classRef
-      ..kind = kind;
   }
 
   @override
@@ -765,8 +803,9 @@ require("dart_sdk").developer.invokeExtension(
           var inspectee = InstanceRef()
             ..kind = InstanceKind.kPlainInstance
             ..id = event.args[1].objectId
-            // TODO: A real classref? we need something here so it can properly
-            // serialize, but it isn't used by the widget inspector.
+            // TODO(jakemac): Create a real ClassRef, we need a way of looking
+            // up the library for a given instance to create it though.
+            // https://github.com/dart-lang/sdk/issues/36771.
             ..classRef = ClassRef();
           _streamNotify(
               'Debug',
