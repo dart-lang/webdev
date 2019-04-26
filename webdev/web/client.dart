@@ -51,6 +51,8 @@ Future<void> main() async {
       ..instanceId = dartAppInstanceId))));
   });
 
+  var isChrome = window.navigator.userAgent.contains('Chrome');
+  var notChromeMessage = 'Dart DevTools is only supported on Chrome';
   client.stream.listen((serialized) async {
     var event = serializers.deserialize(jsonDecode(serialized));
     if (event is DefaultBuildResult) {
@@ -63,7 +65,9 @@ Future<void> main() async {
       }
     } else if (event is DevToolsResponse) {
       if (!event.success) {
-        window.alert('DevTools failed to open with: ${event.error}');
+        window.alert(isChrome
+            ? 'DevTools failed to open with: ${event.error}'
+            : notChromeMessage);
       }
     } else if (event is RunRequest) {
       runMain();
@@ -85,14 +89,20 @@ Future<void> main() async {
     }
   });
 
-  // Wait for the connection to be estabilished before sending the AppId.
-  await client.onOpen.first;
-  client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
-    ..appId = dartAppId
-    ..instanceId = dartAppInstanceId))));
+  if (window.navigator.userAgent.contains('Chrome')) {
+    // Wait for the connection to be established before sending the AppId.
+    await client.onOpen.first;
+    client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
+      ..appId = dartAppId
+      ..instanceId = dartAppInstanceId))));
+  } else {
+    // Skip if not Chrome.
+    window.console.error(notChromeMessage);
+    runMain();
+  }
 }
 
-/// Attemps to perform a hot restart, and returns whether it was successful or
+/// Attempts to perform a hot restart, and returns whether it was successful or
 /// not.
 Future<bool> hotRestart(
     Map<String, String> currentDigests, ReloadingManager manager) async {
