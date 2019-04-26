@@ -175,6 +175,7 @@ class DevWorkflow {
   }
 
   Future<void> shutDown() async {
+    print("SHUTTING DOWN");
     await _chrome?.close();
     await _client?.close();
     await _devTools?.close();

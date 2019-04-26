@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:async/async.dart';
 import 'package:pedantic/pedantic.dart';
 
 import '../daemon/app_domain.dart';
@@ -52,6 +53,14 @@ class DaemonCommand extends Command<int> {
   Future<int> run() async {
     Daemon daemon;
     DevWorkflow workflow;
+    var cancelCount = 0;
+    var cancelSub = StreamGroup.merge(
+            [ProcessSignal.sigint.watch(), ProcessSignal.sigterm.watch()])
+        .listen((signal) async {
+      cancelCount++;
+      daemon?.shutdown();
+      if (cancelCount > 1) exit(1);
+    });
     try {
       daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
       var daemonDomain = DaemonDomain(daemon);
@@ -76,6 +85,7 @@ class DaemonCommand extends Command<int> {
       daemon?.shutdown();
       rethrow;
     } finally {
+      unawaited(cancelSub.cancel());
       unawaited(workflow?.shutDown());
     }
   }
