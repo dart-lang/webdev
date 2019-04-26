@@ -12,6 +12,8 @@ travis:
     - wget http://chromedriver.storage.googleapis.com/2.40/chromedriver_linux64.zip
     - unzip chromedriver_linux64.zip
     - export PATH=$PATH:$PWD
+  after_failure:
+    - tool/report_failure.sh
 
 merge_stages:
 - analyzer_and_format
