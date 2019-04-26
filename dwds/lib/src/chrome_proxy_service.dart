@@ -286,8 +286,9 @@ function($argsString) {
           .sendCommand('Runtime.callFunctionOn', params: {
         'functionDeclaration': evalExpression,
         'arguments': arguments,
-        // We don't actually care about what `this` is, we just have to provide
-        // something valid in order to use this api.
+        // TODO(jakemac): Use the executionContext instead, or possibly the
+        // library object. This will get weird if people try to use `this` in
+        // their expression.
         'objectId': scope.values.first,
       });
       _handleErrorIfPresent(result,
