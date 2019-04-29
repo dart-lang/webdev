@@ -46,6 +46,10 @@ Future<void> main() async {
   });
 
   launchDevToolsJs = allowInterop(() {
+    if (!_isChrome) {
+      window.alert('Dart DevTools is only supported on Chrome');
+      return;
+    }
     client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
       ..appId = dartAppId
       ..instanceId = dartAppInstanceId))));
@@ -85,11 +89,16 @@ Future<void> main() async {
     }
   });
 
-  // Wait for the connection to be estabilished before sending the AppId.
-  await client.onOpen.first;
-  client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
-    ..appId = dartAppId
-    ..instanceId = dartAppInstanceId))));
+  if (_isChrome) {
+    // Wait for the connection to be estabilished before sending the AppId.
+    await client.onOpen.first;
+    client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
+      ..appId = dartAppId
+      ..instanceId = dartAppInstanceId))));
+  } else {
+    // If not chrome we just invoke main, devtools aren't supported.
+    runMain();
+  }
 }
 
 /// Attemps to perform a hot restart, and returns whether it was successful or
@@ -173,6 +182,12 @@ Future<Map<String, String>> _getDigests() async {
       responseType: 'json', method: 'GET');
   return (request.response as Map).cast<String, String>();
 }
+
+bool get _isChrome =>
+    window.navigator.userAgent.contains('Chrome') &&
+    // Edge has `Chrome` in its user agent string, but it also has `Edg` which
+    // chrome doesn't.
+    !window.navigator.userAgent.contains('Edg');
 
 @JS('Array.from')
 external List _jsArrayFrom(Object any);
