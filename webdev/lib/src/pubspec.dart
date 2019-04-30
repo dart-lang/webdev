@@ -48,6 +48,12 @@ dev_dependencies:
   $pkgName: $constraint''',
           missingDependency: true);
 
+  static PackageExceptionDetails unsupportedDep(String pkgName) =>
+      PackageExceptionDetails._(
+          'You have a dependency on `$pkgName` which is not supported for '
+          'flutter_web tech preview. See https://flutter.dev/web for more '
+          'details.');
+
   @override
   String toString() => [error, description].join('\n');
 }
@@ -121,6 +127,15 @@ class PubspecLock {
     }
     return issues;
   }
+
+  List<PackageExceptionDetails> checkNoDependency(String pkgName) {
+    var issues = <PackageExceptionDetails>[];
+    var packageDetails = _packages[pkgName] as YamlMap;
+    if (packageDetails != null) {
+      issues.add(PackageExceptionDetails.unsupportedDep(pkgName));
+    }
+    return issues;
+  }
 }
 
 Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
@@ -177,6 +192,9 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
   if (buildRunnerIssues.isEmpty) {
     issues.addAll(await _validateBuildDaemonVersion(pubspecLock));
   }
+
+  issues.addAll(pubspecLock.checkNoDependency('flutter'));
+  issues.addAll(pubspecLock.checkNoDependency('flutter_test'));
 
   if (issues.isNotEmpty) {
     throw PackageException(issues);
