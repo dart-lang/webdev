@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:async/async.dart';
-import 'package:pedantic/pedantic.dart';
 
 import '../daemon/app_domain.dart';
 import '../daemon/daemon.dart';
@@ -85,8 +84,10 @@ class DaemonCommand extends Command<int> {
       daemon?.shutdown();
       rethrow;
     } finally {
-      unawaited(cancelSub.cancel());
-      unawaited(workflow?.shutDown());
+      await workflow?.shutDown();
+      // Only cancel this subscription after all shutdown work has completed.
+      // https://github.com/dart-lang/sdk/issues/23074.
+      await cancelSub.cancel();
     }
   }
 }
