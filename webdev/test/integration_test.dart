@@ -191,6 +191,31 @@ name: sample
         });
       }
 
+      group('unsupported dependency on', () {
+        var unsupportedPkgs = ['flutter', 'flutter_test'];
+        for (var unsupportedPkg in unsupportedPkgs) {
+          test('`$unsupportedPkg` should fail', () async {
+            await d.file('pubspec.yaml', 'name: sample').create();
+
+            await d
+                .file('pubspec.lock', _pubspecLock(extraPkgs: [unsupportedPkg]))
+                .create();
+
+            await d.file('.packages', '').create();
+
+            var process =
+                await runWebDev([command], workingDirectory: d.sandbox);
+
+            await checkProcessStdout(process, [
+              'webdev could not run for this project.',
+              'You have a dependency on `$unsupportedPkg` which is not '
+                  'supported for flutter_web tech preview.'
+            ]);
+            await process.shouldExit(78);
+          });
+        }
+      });
+
       test('no pubspec.yaml', () async {
         var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
@@ -267,7 +292,8 @@ const _supportedBuildDaemonVersion = '0.5.0';
 String _pubspecLock(
     {String runnerVersion = _supportedBuildRunnerVersion,
     String webCompilersVersion = _supportedWebCompilersVersion,
-    String daemonVersion = _supportedBuildDaemonVersion}) {
+    String daemonVersion = _supportedBuildDaemonVersion,
+    List<String> extraPkgs = const []}) {
   var buffer = StringBuffer('''
 # Copy-pasted from a valid run
 packages:
@@ -306,6 +332,18 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "$daemonVersion"
+''');
+  }
+
+  for (var pkg in extraPkgs) {
+    buffer.writeln('''
+  $pkg:
+    dependency: "direct"
+    description:
+      name: $pkg
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
 ''');
   }
 

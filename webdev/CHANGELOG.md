@@ -1,3 +1,9 @@
+## 2.0.4-dev
+
+- Fix loading apps in non-chrome browsers in --debug mode
+  - Add a nice error if attempting to launch devtools in non-chrome browsers.
+- Detect `flutter` and `flutter_test` dependencies and fail with a nice message.
+
 ## 2.0.3
 
 - Support latest `package:build_daemon`.
