@@ -41,12 +41,42 @@ Learn more about activating and using packages [here][pub global].
 
 ### `webdev serve`
 
-```console
-$ webdev help serve
+```
 Run a local web development server and a file system watcher that rebuilds on
 changes.
 
 Usage: webdev serve [arguments] [<directory>[:<port>]]...
+    --auto                        Automatically performs an action after each
+                                  build:
+
+                                  restart: Reload modules and re-invoke main
+                                  (loses current state)
+                                  refresh: Performs a full page refresh.
+                                  [restart, refresh]
+
+    --[no-]debug                  Enable the launching of DevTools (Alt + D /
+                                  Option + D). This also enables
+                                  --launch-in-chrome.
+
+Advanced:
+    --chrome-debug-port           Specify which port the Chrome debugger is
+                                  listening on. If used with launch-in-chrome
+                                  Chrome will be started with the debugger
+                                  listening on this port.
+
+    --hostname                    Specify the hostname to serve on.
+                                  (defaults to "localhost")
+
+    --[no-]launch-in-chrome       Automatically launches your application in
+                                  Chrome with the debug port open. Use
+                                  chrome-debug-port to specify a specific port
+                                  to attach to an already running chrome
+                                  instance instead.
+
+    --log-requests                Enables logging for each request to the
+                                  server.
+
+Common:
 -h, --help                        Print this usage information.
 -o, --output                      A directory to write the result of a build to.
                                   Or a mapping from a top-level directory in the
@@ -62,42 +92,13 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
                                   (defaults to on)
 
 -v, --verbose                     Enables verbose logging.
-    --auto                        Automatically performs an action after each
-                                  build:
-
-                                  restart: Reload modules and re-invoke main
-                                  (loses current state)
-                                  refresh: Performs a full page refresh.
-                                  [restart, refresh]
-
-    --chrome-debug-port           Specify which port the Chrome debugger is
-                                  listening on. If used with launch-in-chrome
-                                  Chrome will be started with the debugger
-                                  listening on this port.
-
-    --[no-]debug                  Enable the launching of DevTools (Alt + D /
-                                  Option + D). This also enables
-                                  --launch-in-chrome.
-
-    --hostname                    Specify the hostname to serve on.
-                                  (defaults to "localhost")
-
-    --[no-]launch-in-chrome       Automatically launches your application in
-                                  Chrome with the debug port open. Use
-                                  chrome-debug-port to specify a specific port
-                                  to attach to an already running chrome
-                                  instance instead.
-
-    --log-requests                Enables logging for each request to the
-                                  server.
 
 Run "webdev help" to see global options.
 ```
 
 ### `webdev build`
 
-```console
-$ webdev help build
+```
 Run builders to build a package.
 
 Usage: webdev build [arguments]
