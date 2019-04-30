@@ -58,6 +58,8 @@ String messagesCombined(MyTestClass a, MyTestClass b) => a.message + b.message;
 class MyTestClass {
   final String message;
 
+  String notFinal;
+
   MyTestClass({this.message = 'world'});
 
   String hello() => message;

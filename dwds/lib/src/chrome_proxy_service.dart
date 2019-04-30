@@ -368,10 +368,36 @@ function($argsString) {
       var classes = Object.values(library)
         .filter((l) => l && sdkUtils.isType(l));
       return classes.map(function(clazz) {
-        var description = {'name': clazz.name};
+        var descriptor = {'name': clazz.name};
+
+        // TODO(jakemac): static methods once ddc supports them
         var methods = sdkUtils.getMethods(clazz);
-        description['methods'] = methods ? Object.keys(methods) : [];
-        return description;
+        var methodNames = methods ? Object.keys(methods) : [];
+        descriptor['methods'] = {};
+        for (var name of methodNames) {
+          var method = methods[name];
+          descriptor['methods'][name] = {
+            // TODO(jakemac): how can we get actual const info?
+            "isConst": false,
+            "isStatic": false,
+          }
+        }
+
+        // TODO(jakemac): static fields once ddc supports them
+        var fields = sdkUtils.getFields(clazz);
+        var fieldNames = fields ? Object.keys(fields) : [];
+        descriptor['fields'] = {};
+        for (var name of fieldNames) {
+          var field = fields[name];
+          descriptor['fields'][name] = {
+            // TODO(jakemac): how can we get actual const info?
+            "isConst": false,
+            "isFinal": field.isFinal,
+            "isStatic": false,
+          }
+        }
+
+        return descriptor;
       });
     })()
     ''';
@@ -379,11 +405,11 @@ function($argsString) {
         'Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     _handleErrorIfPresent(classesResult, evalContents: expression);
-    var classDescriptions = (classesResult.result['result']['value'] as List)
+    var classDescriptors = (classesResult.result['result']['value'] as List)
         .cast<Map<String, Object>>();
     var classRefs = <ClassRef>[];
-    for (var description in classDescriptions) {
-      var name = description['name'] as String;
+    for (var classDescriptor in classDescriptors) {
+      var name = classDescriptor['name'] as String;
       var classId = '${libraryRef.id}:$name';
       var classRef = ClassRef()
         ..name = name
@@ -391,27 +417,39 @@ function($argsString) {
       classRefs.add(classRef);
 
       var methodRefs = <FuncRef>[];
-
-      // Add all instance methods, static methods aren't supported yet.
-      var methodNames = (description['methods'] as List).cast<String>();
-      for (var method in methodNames) {
-        var methodId = '$classId:$method';
+      var methodDescriptors =
+          classDescriptor['methods'] as Map<String, dynamic>;
+      methodDescriptors.forEach((name, descriptor) {
+        var methodId = '$classId:$name';
         methodRefs.add(FuncRef()
           ..id = methodId
-          ..name = method
+          ..name = name
           ..owner = classRef
-          ..isStatic = false);
-      }
+          ..isConst = descriptor['isConst'] as bool
+          ..isStatic = descriptor['isStatic'] as bool);
+      });
+
+      var fieldRefs = <FieldRef>[];
+      var fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
+      fieldDescriptors.forEach((name, descriptor) {
+        fieldRefs.add(FieldRef()
+          ..name = name
+          ..declaredType = InstanceRef()
+          ..owner = classRef
+          ..isConst = descriptor['isConst'] as bool
+          ..isFinal = descriptor['isFinal'] as bool
+          ..isStatic = descriptor['isStatic'] as bool);
+      });
 
       // TODO: Implement the rest of these
       // https://github.com/dart-lang/webdev/issues/176.
       _classes[classId] = Class()
         ..classRef = classRef
+        ..fields = fieldRefs
         ..functions = methodRefs
         ..id = classId
         ..library = libraryRef
         ..name = name
-        ..fields = []
         ..interfaces = []
         ..subclasses = [];
     }

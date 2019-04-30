@@ -48,5 +48,9 @@ dev_dependencies:
   uuid: ^2.0.0
   webdriver: ^2.0.0
 
+dependency_overrides:
+  dwds:
+    path: ../dwds
+
 executables:
   webdev:
