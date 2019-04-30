@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -14,17 +15,25 @@ void main() {
   test('help serve', () => _readmeCheck(['help', 'serve']));
 }
 
+final _readmeContents = File('README.md').readAsStringSync();
+
 Future _readmeCheck(List<String> args) async {
   var process = await runWebDev(args);
-  var output = (await process.stdoutStream().join('\n')).trim();
+  var output =
+      (await process.stdoutStream().map((line) => line.trimRight()).join('\n'))
+          .trim();
   await process.shouldExit(0);
 
-  var readme = File('README.md');
+  final firstLineStart =
+      _readmeContents.indexOf(LineSplitter.split(output).first);
 
-  var contents = readme.readAsStringSync();
-  var placeholder = '\$ webdev ${args.join(' ')}';
-  contents =
-      contents.substring(contents.indexOf(placeholder) + placeholder.length);
-  contents = contents.substring(0, contents.indexOf('```'));
-  expect(contents, equalsIgnoringWhitespace(output));
+  expect(firstLineStart, greaterThanOrEqualTo(0));
+
+  final sectionEnd = _readmeContents.indexOf('```', firstLineStart);
+  expect(sectionEnd, greaterThan(firstLineStart));
+
+  expect(
+    _readmeContents.substring(firstLineStart, sectionEnd).trim(),
+    output,
+  );
 }
