@@ -149,7 +149,7 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
                 requireDirect: false)
             .isEmpty) {
       issues.add(PackageExceptionDetails._('$issuePreamble\n'
-          'A newer version of webdev is available which supports'
+          'A newer version of webdev is available which supports '
           'your version of the `build_daemon`. Please update.'));
     } else {
       issues.add(PackageExceptionDetails._('$issuePreamble\n'
