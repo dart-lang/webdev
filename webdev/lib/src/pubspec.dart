@@ -193,8 +193,25 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
     issues.addAll(await _validateBuildDaemonVersion(pubspecLock));
   }
 
-  issues.addAll(pubspecLock.checkNoDependency('flutter'));
-  issues.addAll(pubspecLock.checkNoDependency('flutter_test'));
+  var unsupportedDeps = [
+    'cached_network_image',
+    'cloud_firestore',
+    'cupertino_icons',
+    'firebase_auth',
+    'firebase_core',
+    'flutter',
+    'flutter_test',
+    'google_sign_in',
+    'image_picker',
+    'path_provider',
+    'shared_preferences',
+    'sqflite',
+    'url_launcher',
+  ];
+
+  for (var dep in unsupportedDeps) {
+    issues.addAll(pubspecLock.checkNoDependency(dep));
+  }
 
   if (issues.isNotEmpty) {
     throw PackageException(issues);
