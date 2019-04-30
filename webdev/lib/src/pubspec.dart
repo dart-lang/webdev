@@ -48,7 +48,7 @@ dev_dependencies:
   $pkgName: $constraint''',
           missingDependency: true);
 
-  static PackageExceptionDetails unsupportedDep(String pkgName) =>
+  static PackageExceptionDetails unsupportedFlutterWebDep(String pkgName) =>
       PackageExceptionDetails._(
           'You have a dependency on `$pkgName` which is not supported for '
           'flutter_web tech preview. See https://flutter.dev/web for more '
@@ -128,11 +128,11 @@ class PubspecLock {
     return issues;
   }
 
-  List<PackageExceptionDetails> checkNoDependency(String pkgName) {
+  List<PackageExceptionDetails> checkNoFlutterDependency(String pkgName) {
     var issues = <PackageExceptionDetails>[];
     var packageDetails = _packages[pkgName] as YamlMap;
     if (packageDetails != null) {
-      issues.add(PackageExceptionDetails.unsupportedDep(pkgName));
+      issues.add(PackageExceptionDetails.unsupportedFlutterWebDep(pkgName));
     }
     return issues;
   }
@@ -193,7 +193,7 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
     issues.addAll(await _validateBuildDaemonVersion(pubspecLock));
   }
 
-  var unsupportedDeps = [
+  var unsupportedFlutterDeps = [
     'cached_network_image',
     'cloud_firestore',
     'cupertino_icons',
@@ -209,8 +209,8 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
     'url_launcher',
   ];
 
-  for (var dep in unsupportedDeps) {
-    issues.addAll(pubspecLock.checkNoDependency(dep));
+  for (var dep in unsupportedFlutterDeps) {
+    issues.addAll(pubspecLock.checkNoFlutterDependency(dep));
   }
 
   if (issues.isNotEmpty) {
