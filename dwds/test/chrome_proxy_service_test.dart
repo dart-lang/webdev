@@ -271,6 +271,17 @@ void main() {
           unorderedEquals([
             predicate((FuncRef f) => f.name == 'hello' && !f.isStatic),
           ]));
+      expect(
+          testClass.fields,
+          unorderedEquals([
+            predicate((FieldRef f) =>
+                f.name == 'message' && !f.isStatic && !f.isConst && f.isFinal),
+            predicate((FieldRef f) =>
+                f.name == 'notFinal' &&
+                !f.isStatic &&
+                !f.isConst &&
+                !f.isFinal),
+          ]));
     });
 
     test('Scripts', () async {
