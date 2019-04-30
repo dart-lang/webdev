@@ -9,7 +9,9 @@ before_install:
   - "export CHROMEDRIVER_BINARY=/usr/bin/google-chrome"
   - "export CHROMEDRIVER_ARGS=--no-sandbox"
   - "/usr/bin/google-chrome --version"
-  - "wget http://chromedriver.storage.googleapis.com/2.40/chromedriver_linux64.zip"
+  - "export CHROME_LATEST_VERSION=$(/usr/bin/google-chrome --version | cut -d' ' -f3 | cut -d'.' -f1)"
+  - "export CHROME_DRIVER_VERSION=$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_LATEST_VERSION)"
+  - "wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip"
   - unzip chromedriver_linux64.zip
   - "export PATH=$PATH:$PWD"
 after_failure:
@@ -62,4 +64,5 @@ branches:
 cache:
   directories:
     - "$HOME/.pub-cache"
-    - example/.dart_tool
+    - example/.dart_tool/build
+    - example/.dart_tool/pub
