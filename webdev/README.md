@@ -1,15 +1,39 @@
+[![Pub Package](https://img.shields.io/pub/v/webdev.svg)](https://pub.dartlang.org/packages/webdev)
 [![Build Status](https://travis-ci.org/dart-lang/webdev.svg?branch=master)](https://travis-ci.org/dart-lang/webdev)
 
-A CLI for Dart web development.
+A command-line tool for developing and deploying web applications with Dart.
 
-See the [Dart 2 Web Migration Guide](https://webdev.dartlang.org/dart-2) for
-more information.
+## Requirements
+
+The latest release of `webdev` requires Dart SDK `2.3` or later.
+This corresponds to Flutter SDK `1.5` or later.
+
+To use `webdev` with a package, make sure you have entries in `pubspec.yaml`
+similar to:
+
+```yaml
+...
+dev_dependencies:
+  build_runner: ^1.3.0
+  build_web_compilers: ^2.0.0
+...
+```
+
+*`build_web_compliers` `^1.2.0` is supported, but with some limited
+functionality.*
 
 ## Installation
 
+`webdev` is not meant to be used as a dependency. Instead, it should be
+["activated"][activating].
+
 ```console
 $ pub global activate webdev
+# or
+$ flutter packages pub global activate webdev
 ```
+
+Learn more about activating and using packages [here][pub global].
 
 ## Usage
 
@@ -97,3 +121,7 @@ Usage: webdev build [arguments]
 
 Run "webdev help" to see global options.
 ```
+
+[activating]: https://www.dartlang.org/tools/pub/cmd/pub-global#activating-a-package
+[pub global]: https://www.dartlang.org/tools/pub/cmd/pub-global
+[Dart build system]: https://github.com/dart-lang/build
