@@ -1,5 +1,5 @@
 name: webdev
-version: 2.0.4-dev
+version: 2.0.4
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
 description: >-
@@ -48,10 +48,6 @@ dev_dependencies:
   test_process: ^1.0.1
   uuid: ^2.0.0
   webdriver: ^2.0.0
-
-dependency_overrides:
-  dwds:
-    path: ../dwds
 
 executables:
   webdev:
