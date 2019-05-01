@@ -53,9 +53,11 @@ class DaemonCommand extends Command<int> {
     Daemon daemon;
     DevWorkflow workflow;
     var cancelCount = 0;
-    var cancelSub = StreamGroup.merge(
-            [ProcessSignal.sigint.watch(), ProcessSignal.sigterm.watch()])
-        .listen((signal) async {
+    var cancelSub = StreamGroup.merge([
+      ProcessSignal.sigint.watch(),
+      // SIGTERM is not supported on Windows.
+      Platform.isWindows ? const Stream.empty() : ProcessSignal.sigterm.watch()
+    ]).listen((signal) async {
       cancelCount++;
       daemon?.shutdown();
       if (cancelCount > 1) exit(1);
