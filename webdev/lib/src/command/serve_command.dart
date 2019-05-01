@@ -47,46 +47,46 @@ class ServeCommand extends Command<int> {
       ' watcher that rebuilds on changes.';
 
   @override
-  final argParser = ArgParser(usageLineLength: lineLength);
-
-  ServeCommand() {
-    addSharedArgs(argParser, releaseDefault: false);
-    argParser
-      ..addOption(autoOption, help: '''
+  final argParser = ArgParser(usageLineLength: lineLength)
+    ..addOption(autoOption, help: '''
 Automatically performs an action after each build:
 
 restart: Reload modules and re-invoke main (loses current state)
 refresh: Performs a full page refresh.
 ''', allowed: ['restart', 'refresh'])
-      ..addOption(chromeDebugPortFlag,
-          help: 'Specify which port the Chrome debugger is listening on. '
-              'If used with $launchInChromeFlag Chrome will be started with the'
-              ' debugger listening on this port.')
-      ..addFlag(debugFlag,
-          help: 'Enable the launching of DevTools (Alt + D / Option + D). '
-              'This also enables --$launchInChromeFlag.')
-      ..addOption(hostnameFlag,
-          help: 'Specify the hostname to serve on.', defaultsTo: 'localhost')
-      ..addFlag(hotRestartFlag,
-          negatable: false,
-          help: 'Automatically reloads changed modules after each build '
-              'and restarts your application.\n'
-              "Can't be used with $liveReloadFlag.",
-          hide: true)
-      ..addFlag(hotReloadFlag, negatable: false, hide: true)
-      ..addFlag(launchInChromeFlag,
-          help: 'Automatically launches your application in Chrome with the '
-              'debug port open. Use $chromeDebugPortFlag to specify a specific '
-              'port to attach to an already running chrome instance instead.')
-      ..addFlag(liveReloadFlag,
-          negatable: false,
-          help:
-              'Automatically refreshes the page after each successful build.\n'
-              "Can't be used with $hotRestartFlag.",
-          hide: true)
-      ..addFlag(logRequestsFlag,
-          negatable: false,
-          help: 'Enables logging for each request to the server.');
+    ..addFlag(debugFlag,
+        help: 'Enable the launching of DevTools (Alt + D / Option + D). '
+            'This also enables --$launchInChromeFlag.')
+    ..addSeparator('Advanced:')
+    ..addOption(chromeDebugPortFlag,
+        help: 'Specify which port the Chrome debugger is listening on. '
+            'If used with $launchInChromeFlag Chrome will be started with the'
+            ' debugger listening on this port.')
+    ..addOption(hostnameFlag,
+        help: 'Specify the hostname to serve on.', defaultsTo: 'localhost')
+    ..addFlag(hotRestartFlag,
+        negatable: false,
+        help: 'Automatically reloads changed modules after each build '
+            'and restarts your application.\n'
+            "Can't be used with $liveReloadFlag.",
+        hide: true)
+    ..addFlag(hotReloadFlag, negatable: false, hide: true)
+    ..addFlag(launchInChromeFlag,
+        help: 'Automatically launches your application in Chrome with the '
+            'debug port open. Use $chromeDebugPortFlag to specify a specific '
+            'port to attach to an already running chrome instance instead.')
+    ..addFlag(liveReloadFlag,
+        negatable: false,
+        help: 'Automatically refreshes the page after each successful build.\n'
+            "Can't be used with $hotRestartFlag.",
+        hide: true)
+    ..addFlag(logRequestsFlag,
+        negatable: false,
+        help: 'Enables logging for each request to the server.')
+    ..addSeparator('Common:');
+
+  ServeCommand() {
+    addSharedArgs(argParser, releaseDefault: false);
   }
 
   @override
