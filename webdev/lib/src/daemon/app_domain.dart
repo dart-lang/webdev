@@ -176,6 +176,8 @@ class AppDomain extends Domain {
     var appId = getStringArg(args, 'appId', required: true);
     if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
     await _appDebugServices.chromeProxyService.tabConnection.close();
+    // Wait for the daemon to gracefully shutdown before sending success.
+    await daemon.onExit;
     return true;
   }
 
