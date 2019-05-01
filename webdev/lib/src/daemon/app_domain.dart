@@ -175,6 +175,8 @@ class AppDomain extends Domain {
   Future<bool> _stop(Map<String, dynamic> args) async {
     var appId = getStringArg(args, 'appId', required: true);
     if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
+    // Note that this triggers the daemon to shutdown as we listen for the
+    // tabConnection to close to initiate a shutdown.
     await _appDebugServices.chromeProxyService.tabConnection.close();
     // Wait for the daemon to gracefully shutdown before sending success.
     await daemon.onExit;
