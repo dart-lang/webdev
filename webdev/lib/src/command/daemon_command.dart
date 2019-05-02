@@ -91,7 +91,11 @@ class DaemonCommand extends Command<int> {
       // https://github.com/dart-lang/sdk/issues/23074.
       await cancelSub.cancel();
       // We need to drain the stdin otherwise the Dart program won't complete.
-      await stdin.drain();
+      // This is only required on Windows for some reason. In practice stdin
+      // shouldn't allow multiple listeners.
+      try {
+        await stdin.drain();
+      } catch (_) {}
     }
   }
 }
