@@ -90,6 +90,8 @@ class DaemonCommand extends Command<int> {
       // Only cancel this subscription after all shutdown work has completed.
       // https://github.com/dart-lang/sdk/issues/23074.
       await cancelSub.cancel();
+      // We need to drain the stdin otherwise the Dart program won't complete.
+      await stdin.drain();
     }
   }
 }
