@@ -57,7 +57,7 @@ class DaemonCommand extends Command<int> {
       ProcessSignal.sigint.watch(),
       // SIGTERM is not supported on Windows.
       Platform.isWindows ? const Stream.empty() : ProcessSignal.sigterm.watch()
-    ]).listen((signal) async {
+    ]).listen((signal) {
       cancelCount++;
       daemon?.shutdown();
       if (cancelCount > 1) exit(1);
@@ -83,7 +83,7 @@ class DaemonCommand extends Command<int> {
       await daemon.onExit;
       return 0;
     } catch (e) {
-      daemon?.shutdown();
+      await daemon?.shutdown();
       rethrow;
     } finally {
       await workflow?.shutDown();
