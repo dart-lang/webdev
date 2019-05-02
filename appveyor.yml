@@ -15,7 +15,7 @@ install:
 build: off
 
 test_script:
-  - C:\tools\dart-sdk\bin\pub.bat run test -j 1 -x webdriver
+  - C:\tools\dart-sdk\bin\pub.bat run test -j 1
 
 cache:
   - C:\Users\appveyor\AppData\Roaming\Pub\Cache
