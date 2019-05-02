@@ -83,7 +83,7 @@ class DaemonCommand extends Command<int> {
       await daemon.onExit;
       return 0;
     } catch (e) {
-      await daemon?.shutdown();
+      daemon?.shutdown();
       rethrow;
     } finally {
       await workflow?.shutDown();
