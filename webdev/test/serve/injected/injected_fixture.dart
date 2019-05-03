@@ -49,6 +49,7 @@ class InjectedFixture {
 
     // Wait for the page to fully load.
     await Future.delayed(Platform.isWindows
+        // AppVeyor is a little slower than Travis.
         ? const Duration(seconds: 5)
         : const Duration(seconds: 2));
 
