@@ -83,13 +83,14 @@ class DaemonCommand extends Command<int> {
       await daemon.onExit;
       return 0;
     } catch (e) {
-      daemon?.shutdown();
+      await daemon?.shutdown();
       rethrow;
     } finally {
       await workflow?.shutDown();
       // Only cancel this subscription after all shutdown work has completed.
       // https://github.com/dart-lang/sdk/issues/23074.
       await cancelSub.cancel();
+      if (Platform.isWindows) exit(0);
     }
   }
 }
