@@ -78,7 +78,7 @@ class Daemon {
   void send(Map<String, dynamic> map) => _sendCommand(map);
 
   void shutdown({dynamic error}) {
-    _commandSubscription?.cancel();
+    _commandSubscription.cancel();
     for (var domain in _domainMap.values) domain.dispose();
     if (!_onExitCompleter.isCompleted) {
       if (error == null) {

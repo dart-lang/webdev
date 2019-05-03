@@ -81,15 +81,20 @@ class DaemonCommand extends Command<int> {
       );
       daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
       await daemon.onExit;
+      exitCode = 0;
       return 0;
     } catch (e) {
       daemon?.shutdown();
+      exitCode = 1;
       rethrow;
     } finally {
       await workflow?.shutDown();
       // Only cancel this subscription after all shutdown work has completed.
       // https://github.com/dart-lang/sdk/issues/23074.
       await cancelSub.cancel();
+      // For some reason Windows remains open due to what appears to be an
+      // undrained `stdin`. Feel free to waste some time trying to remove this.
+      if (Platform.isWindows) exit(exitCode);
     }
   }
 }

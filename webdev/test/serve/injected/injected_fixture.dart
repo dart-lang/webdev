@@ -48,7 +48,10 @@ class InjectedFixture {
     await webdriver.get(hostUrl);
 
     // Wait for the page to fully load.
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(Platform.isWindows
+        // AppVeyor is a little slower than Travis.
+        ? const Duration(seconds: 5)
+        : const Duration(seconds: 2));
 
     var source = await webdriver.pageSource;
 
