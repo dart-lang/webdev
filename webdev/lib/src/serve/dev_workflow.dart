@@ -7,7 +7,8 @@ import 'dart:io';
 
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_target.dart';
-import 'package:logging/logging.dart';
+import 'package:build_daemon/data/server_log.dart';
+import 'package:logging/logging.dart' as logging;
 
 import '../command/configuration.dart';
 import '../daemon_client.dart';
@@ -20,13 +21,15 @@ import 'webdev_server.dart';
 Future<BuildDaemonClient> _startBuildDaemon(
     String workingDirectory, List<String> buildOptions) async {
   try {
-    logHandler(Level.INFO, 'Connecting to the build daemon...');
+    logHandler(logging.Level.INFO, 'Connecting to the build daemon...');
     return await connectClient(
       workingDirectory,
       buildOptions,
       (serverLog) {
-        var recordLevel = levelForLog(serverLog) ?? Level.INFO;
-        logHandler(recordLevel, trimLevel(recordLevel, serverLog.log));
+        logHandler(toLoggingLevel(serverLog.level), serverLog.message,
+            loggerName: serverLog.loggerName,
+            error: serverLog.error,
+            stackTrace: serverLog.stackTrace);
       },
     );
   } on OptionsSkew {
@@ -76,13 +79,13 @@ Future<ServerManager> _startServerManager(
       assetPort,
     ));
   }
-  logHandler(Level.INFO, 'Starting resource servers...');
+  logHandler(logging.Level.INFO, 'Starting resource servers...');
   var serverManager =
       await ServerManager.start(serverOptions, client.buildResults, devTools);
 
   for (var server in serverManager.servers) {
     logHandler(
-        Level.INFO,
+        logging.Level.INFO,
         'Serving `${server.target}` on '
         'http://${server.host}:${server.port}\n');
   }
@@ -95,7 +98,7 @@ Future<DevTools> _startDevTools(
 ) async {
   if (configuration.debug) {
     var devTools = await DevTools.start(configuration.hostname);
-    logHandler(Level.INFO,
+    logHandler(logging.Level.INFO,
         'Serving DevTools at http://${devTools.hostname}:${devTools.port}\n');
     return devTools;
   }
@@ -163,9 +166,9 @@ class DevWorkflow {
   ) async {
     var workingDirectory = Directory.current.path;
     var client = await _startBuildDaemon(workingDirectory, buildOptions);
-    logHandler(Level.INFO, 'Registering build targets...');
+    logHandler(logging.Level.INFO, 'Registering build targets...');
     _registerBuildTargets(client, configuration, targetPorts);
-    logHandler(Level.INFO, 'Starting initial build...');
+    logHandler(logging.Level.INFO, 'Starting initial build...');
     client.startBuild();
     var devTools = await _startDevTools(configuration);
     var serverManager = await _startServerManager(

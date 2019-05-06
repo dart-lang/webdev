@@ -65,8 +65,17 @@ class DaemonCommand extends Command<int> {
     try {
       daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
       var daemonDomain = DaemonDomain(daemon);
-      setLogHandler((level, message, {verbose}) {
-        daemonDomain.sendEvent('daemon.log', {'log': message});
+      setLogHandler((level, message, {loggerName, error, stackTrace, verbose}) {
+        daemonDomain.sendEvent('daemon.log', {
+          'log': formatLog(
+            level,
+            message,
+            loggerName: loggerName,
+            error: error,
+            stackTrace: stackTrace,
+            verbose: verbose,
+          )
+        });
       });
       daemon.registerDomain(daemonDomain);
       var configuration =

@@ -10,7 +10,8 @@ import 'package:args/command_runner.dart';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
-import 'package:logging/logging.dart';
+import 'package:build_daemon/data/server_log.dart';
+import 'package:logging/logging.dart' as logging;
 
 import '../daemon_client.dart';
 import '../logging.dart';
@@ -52,13 +53,15 @@ class BuildCommand extends Command<int> {
       ..addAll(extraArgs);
 
     try {
-      logHandler(Level.INFO, 'Connecting to the build daemon...');
+      logHandler(logging.Level.INFO, 'Connecting to the build daemon...');
       var client = await connectClient(
         Directory.current.path,
         arguments,
         (serverLog) {
-          var recordLevel = levelForLog(serverLog) ?? Level.INFO;
-          logHandler(recordLevel, trimLevel(recordLevel, serverLog.log));
+          logHandler(toLoggingLevel(serverLog.level), serverLog.message,
+              error: serverLog.error,
+              loggerName: serverLog.loggerName,
+              stackTrace: serverLog.stackTrace);
         },
       );
       OutputLocation outputLocation;
@@ -93,7 +96,7 @@ class BuildCommand extends Command<int> {
         }
 
         if (targetResult.error?.isNotEmpty == true) {
-          logHandler(Level.SEVERE, targetResult.error);
+          logHandler(logging.Level.SEVERE, targetResult.error);
         }
         break;
       }
@@ -101,7 +104,7 @@ class BuildCommand extends Command<int> {
       return exitCode;
     } on OptionsSkew catch (_) {
       logHandler(
-          Level.SEVERE,
+          logging.Level.SEVERE,
           'Incompatible options with current running build daemon.\n\n'
           'Please stop other WebDev instances running in this directory '
           'before starting a new instance with these options.\n\n');
