@@ -5,77 +5,84 @@
 import 'dart:io';
 
 import 'package:io/ansi.dart';
-import 'package:build_daemon/data/server_log.dart';
 import 'package:logging/logging.dart';
+
+typedef LogWriter = void Function(Level level, String message,
+    {String error, String loggerName, String stackTrace});
 
 var _verbose = false;
 
-var _loggerName = RegExp(r'^\w+: ');
-
-/// Sets the verbosity of the current [logHandler].
+/// Sets the verbosity of the current [logWriter].
 void setVerbosity(bool verbose) => _verbose = verbose;
 
-void Function(Level, String) _logHandler =
-    (level, message) => _colorLog(level, message, verbose: _verbose);
+LogWriter _logWriter =
+    (level, message, {String error, String loggerName, String stackTrace}) {
+  // Erases the previous line
+  if (!_verbose) stdout.write('\x1b[2K\r');
+  var log = formatLog(level, message,
+      error: error,
+      loggerName: loggerName,
+      stackTrace: stackTrace,
+      verbose: _verbose,
+      withColors: true);
+  stdout.write(log);
+  // Prevent multiline logs and > info messages from being erased.
+  if (level > Level.INFO ||
+      _verbose ||
+      (log.contains('\n') && !log.endsWith('\n'))) {
+    stdout.writeln('');
+  }
+};
 
-void Function(Level level, String message) get logHandler => _logHandler;
+LogWriter get logWriter => _logWriter;
 
-void setLogHandler(void Function(Level, String, {bool verbose}) newHandler) {
-  _logHandler =
-      (level, message) => newHandler(level, message, verbose: _verbose);
+void setLogWriter(
+    void Function(Level, String,
+            {String error, String loggerName, String stackTrace, bool verbose})
+        newWriter) {
+  _logWriter = (level, message,
+          {String error, String loggerName, String stackTrace}) =>
+      newWriter(level, message,
+          error: error,
+          loggerName: loggerName,
+          stackTrace: stackTrace,
+          verbose: _verbose);
 }
 
 /// Colors the message and writes it to stdout.
-///
-/// If the [level] is not contained in the message, one will be inserted.
-void _colorLog(Level level, String message, {bool verbose}) {
+String formatLog(Level level, String message,
+    {bool withColors,
+    String error,
+    String loggerName,
+    String stackTrace,
+    bool verbose}) {
   verbose ??= false;
-  AnsiCode color;
-  if (level < Level.WARNING) {
-    color = cyan;
-  } else if (level < Level.SEVERE) {
-    color = yellow;
-  } else {
-    color = red;
+  withColors ??= false;
+  var buffer = StringBuffer(message);
+  if (error != null) {
+    buffer.writeln(error);
   }
-  var multiline = message.contains('\n') && !message.endsWith('\n');
-  var eraseLine = _verbose ? '' : '\x1b[2K\r';
-  var colorLevel = color.wrap('[$level]');
-  if (!verbose) message = trimLoggerName(message);
 
-  stdout.write('$eraseLine$colorLevel $message');
-
-  // Prevent multilines and severe messages from being erased.
-  if (level > Level.INFO || verbose || multiline) {
-    stdout.writeln('');
+  if (verbose && stackTrace != null) {
+    buffer.writeln(stackTrace);
   }
-}
 
-/// Trims [level] from [message] if it is prefixed by it.
-String trimLevel(Level level, String message) => message.startsWith('[$level]')
-    ? message.replaceFirst('[$level]', '').trimLeft()
-    : message;
-
-/// Removes the logger name from the [message] if one is present.
-String trimLoggerName(String message) {
-  var match = _loggerName.firstMatch(message);
-  // Remove the logger name.
-  if (match != null) message = message.substring(match.end);
-  return message;
-}
-
-/// Detects if the [ServerLog] contains a [Level] and returns the
-/// resulting value.
-///
-/// If the [ServerLog] does not contain a [Level], null will be returned.
-Level levelForLog(ServerLog serverLog) {
-  var log = serverLog.log;
-  Level recordLevel;
-  for (var level in Level.LEVELS) {
-    if (log.startsWith('[$level]')) {
-      recordLevel = level;
-      break;
+  var formattedLevel = '[$level]';
+  if (withColors) {
+    AnsiCode color;
+    if (level < Level.WARNING) {
+      color = cyan;
+    } else if (level < Level.SEVERE) {
+      color = yellow;
+    } else {
+      color = red;
     }
+    formattedLevel = color.wrap(formattedLevel);
   }
-  return recordLevel;
+
+  var loggerNameOutput =
+      (loggerName != null && (verbose || loggerName.contains(' ')))
+          ? '$loggerName:'
+          : '';
+  return '$formattedLevel$loggerNameOutput $buffer';
 }

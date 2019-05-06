@@ -202,7 +202,7 @@ class DevHandler {
     var chrome = await Chrome.connectedInstance;
     var debugService =
         await startDebugService(chrome.chromeConnection, instanceId);
-    logHandler(
+    logWriter(
         Level.INFO,
         'Debug service listening on '
         '${debugService.wsUri}\n');
@@ -214,7 +214,7 @@ class DevHandler {
         appServices.chromeProxyService.tabConnection.onClose.first.then((_) {
       appServices.close();
       _servicesByAppId.remove(appId);
-      logHandler(
+      logWriter(
           Level.INFO,
           'Stopped debug service on '
           'ws://${debugService.hostname}:${debugService.port}\n');
