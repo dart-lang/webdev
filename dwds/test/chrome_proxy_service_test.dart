@@ -36,7 +36,6 @@ void main() {
     ScriptRef mainScript;
 
     setUp(() async {
-      // await tabConnection.page.reload(ignoreCache: true);
       vm = await service.getVM();
       isolate = await service.getIsolate(vm.isolates.first.id) as Isolate;
       scripts = await service.getScripts(isolate.id);
@@ -44,28 +43,18 @@ void main() {
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
     });
 
+    // We reload to ensure that sourcemap events fire.
     Future<void> reload() async {
       var loading = tabConnection.page.reload(ignoreCache: true);
-      await service.debugger.sourcemaps.waitForSourceMap('hello_world/main.dart');
       return await loading;
     }
 
-    test('load sourcemaps', () async {
-      await reload();
-      expect(service.debugger.sourcemaps.sourcemaps['hello_world/main.dart'], isNotNull);
-    });
-
     test('addBreakPoint', () async {
-      //  ### separately test - setting breakpoint and the JS/dart position is right.
-      // Returning the SourceLocation (i.e. token position).
-      // Move these tests to a separate test file? Or does that help?
-      //
       await reload();
-      await service.addBreakpoint(isolate.id, mainScript.id, 19);
+      expect(() => service.addBreakpoint(isolate.id, mainScript.id, 19),
+          throwsUnimplementedError);
       var breakpoints = isolate.breakpoints;
-      print("printing something");
-      // expect(breakpoints, isNotEmpty);
-      expect(breakpoints.any((b) => b.location.tokenPos == 42), isNotNull);
+      expect(breakpoints, isEmpty);
     });
 
     test('addBreakpointAtEntry', () {
@@ -73,7 +62,6 @@ void main() {
           throwsUnimplementedError);
     });
     
-
     test('addBreakpointWithScriptUri', () {
       expect(() => service.addBreakpointWithScriptUri(null, null, null),
           throwsUnimplementedError);
