@@ -46,18 +46,10 @@ void addSharedArgs(ArgParser argParser,
 /// Parses the provided [Configuration] to return a list of
 /// `package:build_runner` appropriate arguments.
 List<String> buildRunnerArgs(
-    PubspecLock pubspecLock, Configuration configuration,
-    {bool includeOutput}) {
-  includeOutput ??= true;
+    PubspecLock pubspecLock, Configuration configuration) {
   var arguments = <String>[];
   if (configuration.release) {
     arguments.add('--$releaseFlag');
-  }
-
-  if (includeOutput &&
-      configuration.output != null &&
-      configuration.output != outputNone) {
-    arguments.addAll(['--$outputFlag', configuration.output]);
   }
 
   if (configuration.verbose) {
@@ -66,9 +58,8 @@ List<String> buildRunnerArgs(
   return arguments;
 }
 
-Future<PubspecLock> readPubspecLock(Configuration configuration,
-    [String path]) async {
-  var pubspecLock = await PubspecLock.read(path);
+Future<PubspecLock> readPubspecLock(Configuration configuration) async {
+  var pubspecLock = await PubspecLock.read();
   await checkPubspecLock(pubspecLock,
       requireBuildWebCompilers: configuration.requireBuildWebCompilers);
   return pubspecLock;

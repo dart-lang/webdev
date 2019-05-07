@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/service.dart';
 import 'package:dwds/src/chrome_proxy_service.dart';
 import 'package:dwds/src/helpers.dart';
-import 'package:dwds/service.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
@@ -12,7 +13,8 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 class TestContext {
   String appUrl;
   DebugService debugService;
-  ChromeProxyService get chromeProxyService => debugService.chromeProxyService;
+  ChromeProxyService get chromeProxyService =>
+      debugService.chromeProxyService as ChromeProxyService;
   WipConnection tabConnection;
   Process webdev;
   WebDriver webDriver;
@@ -29,18 +31,23 @@ class TestContext {
           'Could not start ChromeDriver. Is it installed?\nError: $e');
     }
 
-    await Process.run('pub', ['global', 'activate', 'webdev']);
-    webdev = await Process.start(
-        'pub', ['global', 'run', 'webdev', 'serve', 'example:$port']);
+    webdev =
+        await Process.start('pub', ['run', 'webdev', 'serve', 'example:$port']);
     webdev.stderr
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
-        .listen(printOnFailure);
-    await webdev.stdout
+        .listen(print);
+    var assetReadyCompleter = Completer();
+    webdev.stdout
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
-        .takeWhile((line) => !line.contains('$port'))
-        .drain();
+        .listen((line) {
+      if (line.contains('$port') && !assetReadyCompleter.isCompleted) {
+        assetReadyCompleter.complete();
+      }
+      printOnFailure(line);
+    });
+    await assetReadyCompleter.future.timeout(Duration(seconds: 60));
     appUrl = 'http://localhost:$port/hello_world/';
     var debugPort = await findUnusedPort();
     webDriver = await createDriver(desired: {
@@ -70,8 +77,11 @@ class TestContext {
       return result.body;
     };
 
+    var instanceId =
+        await tabConnection.runtime.evaluate(r'window.$dartAppInstanceId');
+
     debugService = await DebugService.start(
-        'localhost', connection, assetHandler, 'instance-id-for-testing');
+        'localhost', connection, assetHandler, instanceId.value.toString());
   }
 
   Future<Null> tearDown() async {

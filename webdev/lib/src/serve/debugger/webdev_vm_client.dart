@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dwds/service.dart';
+// ignore: implementation_imports
+import 'package:dwds/src/chrome_proxy_service.dart' show ChromeProxyService;
 import 'package:pedantic/pedantic.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
@@ -35,13 +37,26 @@ class WebdevVmClient {
         responseController.stream.map(jsonEncode),
         (request) => requestController.sink
             .add(jsonDecode(request) as Map<String, dynamic>));
+    var chromeProxyService =
+        debugService.chromeProxyService as ChromeProxyService;
     client.registerServiceCallback('hotRestart', (request) async {
-      debugService.chromeProxyService.destroyIsolate();
-      await debugService.chromeProxyService.tabConnection.runtime.sendCommand(
+      chromeProxyService.destroyIsolate();
+      var response = await chromeProxyService.tabConnection.runtime.sendCommand(
           'Runtime.evaluate',
           params: {'expression': r'$dartHotRestart();', 'awaitPromise': true});
-      unawaited(debugService.chromeProxyService.createIsolate());
-      return {'result': Success().toJson()};
+      var exceptionDetails = response.result['exceptionDetails'];
+      if (exceptionDetails != null) {
+        return {
+          'error': {
+            'code': -32603,
+            'message': exceptionDetails['exception']['description'],
+            'data': exceptionDetails,
+          }
+        };
+      } else {
+        unawaited(chromeProxyService.createIsolate());
+        return {'result': Success().toJson()};
+      }
     });
     await client.registerService('hotRestart', 'WebDev');
 

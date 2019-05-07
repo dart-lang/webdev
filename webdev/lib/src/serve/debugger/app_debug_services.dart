@@ -4,6 +4,8 @@
 
 import 'dart:async';
 import 'package:dwds/service.dart';
+// ignore: implementation_imports
+import 'package:dwds/src/chrome_proxy_service.dart' show ChromeProxyService;
 
 import '../../serve/chrome.dart';
 import '../debugger/webdev_vm_client.dart';
@@ -13,6 +15,9 @@ class AppDebugServices {
   final Chrome chrome;
   final DebugService debugService;
   final WebdevVmClient webdevClient;
+
+  ChromeProxyService get chromeProxyService =>
+      debugService.chromeProxyService as ChromeProxyService;
 
   /// The instance ID for the currently connected application, if there is one.
   ///

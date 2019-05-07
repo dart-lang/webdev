@@ -51,7 +51,16 @@ void main() async {
 String helloString(String response) => response;
 bool helloBool(bool response) => response;
 num helloNum(num response) => response;
+MyTestClass createObject(String message) => MyTestClass(message: message);
+String messageFor(MyTestClass instance) => instance.message;
+String messagesCombined(MyTestClass a, MyTestClass b) => a.message + b.message;
 
 class MyTestClass {
-  String hello() => 'world';
+  final String message;
+
+  String notFinal;
+
+  MyTestClass({this.message = 'world'});
+
+  String hello() => message;
 }

@@ -10,20 +10,17 @@ import 'package:build_daemon/data/build_target.dart';
 import 'package:logging/logging.dart';
 
 import '../command/configuration.dart';
-import '../serve/chrome.dart';
-import '../serve/daemon_client.dart';
-import '../serve/debugger/devtools.dart';
-import '../serve/logging.dart';
-import '../serve/server_manager.dart';
-import '../serve/utils.dart';
-import '../serve/webdev_server.dart';
+import '../daemon_client.dart';
+import '../logging.dart';
+import 'chrome.dart';
+import 'debugger/devtools.dart';
+import 'server_manager.dart';
+import 'webdev_server.dart';
 
 Future<BuildDaemonClient> _startBuildDaemon(
-  String workingDirectory,
-  List<String> buildOptions,
-) async {
-  logHandler(Level.INFO, 'Connecting to the build daemon...');
+    String workingDirectory, List<String> buildOptions) async {
   try {
+    logHandler(Level.INFO, 'Connecting to the build daemon...');
     return await connectClient(
       workingDirectory,
       buildOptions,
@@ -166,14 +163,14 @@ class DevWorkflow {
   ) async {
     var workingDirectory = Directory.current.path;
     var client = await _startBuildDaemon(workingDirectory, buildOptions);
-    var devTools = await _startDevTools(configuration);
-    var serverManager = await _startServerManager(
-        configuration, targetPorts, workingDirectory, client, devTools);
-    var chrome = await _startChrome(configuration, serverManager, client);
     logHandler(Level.INFO, 'Registering build targets...');
     _registerBuildTargets(client, configuration, targetPorts);
     logHandler(Level.INFO, 'Starting initial build...');
     client.startBuild();
+    var devTools = await _startDevTools(configuration);
+    var serverManager = await _startServerManager(
+        configuration, targetPorts, workingDirectory, client, devTools);
+    var chrome = await _startChrome(configuration, serverManager, client);
     return DevWorkflow._(client, chrome, devTools, serverManager);
   }
 

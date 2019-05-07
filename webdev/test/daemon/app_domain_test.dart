@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 2))
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -92,6 +91,22 @@ void main() {
         await exitWebdev(webdev);
       });
 
+      test('.reload', () async {
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var appId = await _getAppId(webdev);
+        var extensionCall = '[{"method":"app.restart","id":0,'
+            '"params" : { "appId" : "$appId", "fullRestart" : false}}]';
+        webdev.stdin.add(utf8.encode('$extensionCall\n'));
+        await expectLater(
+          webdev.stdout,
+          emitsThrough(startsWith(
+            '[{"id":0,"result":{"code":1,"message":"hot reload not yet supported',
+          )),
+        );
+        await exitWebdev(webdev);
+      });
+
       test('.restart', () async {
         var webdev =
             await runWebDev(['daemon'], workingDirectory: exampleDirectory);
@@ -110,6 +125,21 @@ void main() {
                   '"finished":true')
             ])));
         await exitWebdev(webdev);
+      });
+
+      test('.stop', () async {
+        var webdev =
+            await runWebDev(['daemon'], workingDirectory: exampleDirectory);
+        var appId = await _getAppId(webdev);
+        var stopCall = '[{"method":"app.stop","id":0,'
+            '"params" : { "appId" : "$appId"}}]';
+        webdev.stdin.add(utf8.encode('$stopCall\n'));
+        await expectLater(
+            webdev.stdout,
+            emitsThrough(startsWith(
+                '[{"event":"app.stop","params":{"appId":"$appId"}}')));
+        // This should cause webdev to exit.
+        expect(await webdev.exitCode, equals(0));
       });
     });
   }, tags: ['webdriver']);

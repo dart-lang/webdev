@@ -246,40 +246,80 @@ require("dart_sdk").developer.invokeExtension(
   @override
   Future evaluate(String isolateId, String targetId, String expression,
       {Map<String, String> scope, bool disableBreakpoints}) async {
+    scope ??= {};
+    disableBreakpoints ??= false;
     var library = await _getLibrary(isolateId, targetId);
     if (library == null) {
       throw UnsupportedError(
           'Evaluate is only supported when `targetId` is a library.');
     }
-    var result = await tabConnection.runtime.evaluate('''
+    WipResponse result;
+
+    // If there is scope, we use `callFunctionOn` because that accepts the
+    // `arguments` option.
+    //
+    // If there is no scope we run a normal evaluate call.
+    if (scope.isEmpty) {
+      var evalExpression = '''
 (function() {
   ${_getLibrarySnippet(library.uri)};
   return library.$expression;
 })();
-    ''');
-
-    String kind;
-    var classRef = ClassRef()
-      ..id = 'dart:core:${result.type}'
-      ..name = result.type;
-    switch (result.type) {
-      case 'string':
-        kind = InstanceKind.kString;
-        break;
-      case 'number':
-        kind = InstanceKind.kDouble;
-        break;
-      case 'boolean':
-        kind = InstanceKind.kBool;
-        break;
-      default:
-        throw UnsupportedError('Unsupported response type ${result.type}');
+    ''';
+      result = await tabConnection.runtime.sendCommand('Runtime.evaluate',
+          params: {'expression': evalExpression});
+      _handleErrorIfPresent(result,
+          evalContents: evalExpression,
+          additionalDetails: {
+            'Dart expression': expression,
+          });
+    } else {
+      var argsString = scope.keys.join(', ');
+      var arguments = scope.values.map((id) => {'objectId': id}).toList();
+      var evalExpression = '''
+function($argsString) {
+  ${_getLibrarySnippet(library.uri)};
+  return library.$expression;
+}
+    ''';
+      result = await tabConnection.runtime
+          .sendCommand('Runtime.callFunctionOn', params: {
+        'functionDeclaration': evalExpression,
+        'arguments': arguments,
+        // TODO(jakemac): Use the executionContext instead, or possibly the
+        // library object. This will get weird if people try to use `this` in
+        // their expression.
+        'objectId': scope.values.first,
+      });
+      _handleErrorIfPresent(result,
+          evalContents: evalExpression,
+          additionalDetails: {
+            'Dart expression': expression,
+            'scope': scope,
+          });
     }
+    var remoteObject =
+        RemoteObject(result.result['result'] as Map<String, dynamic>);
 
-    return InstanceRef()
-      ..valueAsString = '${result.value}'
-      ..classRef = classRef
-      ..kind = kind;
+    switch (remoteObject.type) {
+      case 'string':
+        return _primitiveInstance(InstanceKind.kString, remoteObject);
+      case 'number':
+        return _primitiveInstance(InstanceKind.kDouble, remoteObject);
+      case 'boolean':
+        return _primitiveInstance(InstanceKind.kBool, remoteObject);
+      case 'object':
+        return InstanceRef()
+          ..kind = InstanceKind.kPlainInstance
+          ..id = remoteObject.objectId
+          // TODO(jakemac): Create a real ClassRef, we need a way of looking
+          // up the library for a given instance to create it though.
+          // https://github.com/dart-lang/sdk/issues/36771.
+          ..classRef = ClassRef();
+      default:
+        throw UnsupportedError(
+            'Unsupported response type ${remoteObject.type}');
+    }
   }
 
   @override
@@ -328,10 +368,36 @@ require("dart_sdk").developer.invokeExtension(
       var classes = Object.values(library)
         .filter((l) => l && sdkUtils.isType(l));
       return classes.map(function(clazz) {
-        var description = {'name': clazz.name};
+        var descriptor = {'name': clazz.name};
+
+        // TODO(jakemac): static methods once ddc supports them
         var methods = sdkUtils.getMethods(clazz);
-        description['methods'] = methods ? Object.keys(methods) : [];
-        return description;
+        var methodNames = methods ? Object.keys(methods) : [];
+        descriptor['methods'] = {};
+        for (var name of methodNames) {
+          var method = methods[name];
+          descriptor['methods'][name] = {
+            // TODO(jakemac): how can we get actual const info?
+            "isConst": false,
+            "isStatic": false,
+          }
+        }
+
+        // TODO(jakemac): static fields once ddc supports them
+        var fields = sdkUtils.getFields(clazz);
+        var fieldNames = fields ? Object.keys(fields) : [];
+        descriptor['fields'] = {};
+        for (var name of fieldNames) {
+          var field = fields[name];
+          descriptor['fields'][name] = {
+            // TODO(jakemac): how can we get actual const info?
+            "isConst": false,
+            "isFinal": field.isFinal,
+            "isStatic": false,
+          }
+        }
+
+        return descriptor;
       });
     })()
     ''';
@@ -339,11 +405,11 @@ require("dart_sdk").developer.invokeExtension(
         'Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     _handleErrorIfPresent(classesResult, evalContents: expression);
-    var classDescriptions = (classesResult.result['result']['value'] as List)
+    var classDescriptors = (classesResult.result['result']['value'] as List)
         .cast<Map<String, Object>>();
     var classRefs = <ClassRef>[];
-    for (var description in classDescriptions) {
-      var name = description['name'] as String;
+    for (var classDescriptor in classDescriptors) {
+      var name = classDescriptor['name'] as String;
       var classId = '${libraryRef.id}:$name';
       var classRef = ClassRef()
         ..name = name
@@ -351,27 +417,39 @@ require("dart_sdk").developer.invokeExtension(
       classRefs.add(classRef);
 
       var methodRefs = <FuncRef>[];
-
-      // Add all instance methods, static methods aren't supported yet.
-      var methodNames = (description['methods'] as List).cast<String>();
-      for (var method in methodNames) {
-        var methodId = '$classId:$method';
+      var methodDescriptors =
+          classDescriptor['methods'] as Map<String, dynamic>;
+      methodDescriptors.forEach((name, descriptor) {
+        var methodId = '$classId:$name';
         methodRefs.add(FuncRef()
           ..id = methodId
-          ..name = method
+          ..name = name
           ..owner = classRef
-          ..isStatic = false);
-      }
+          ..isConst = descriptor['isConst'] as bool
+          ..isStatic = descriptor['isStatic'] as bool);
+      });
+
+      var fieldRefs = <FieldRef>[];
+      var fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
+      fieldDescriptors.forEach((name, descriptor) {
+        fieldRefs.add(FieldRef()
+          ..name = name
+          ..declaredType = InstanceRef()
+          ..owner = classRef
+          ..isConst = descriptor['isConst'] as bool
+          ..isFinal = descriptor['isFinal'] as bool
+          ..isStatic = descriptor['isStatic'] as bool);
+      });
 
       // TODO: Implement the rest of these
       // https://github.com/dart-lang/webdev/issues/176.
       _classes[classId] = Class()
         ..classRef = classRef
+        ..fields = fieldRefs
         ..functions = methodRefs
         ..id = classId
         ..library = libraryRef
         ..name = name
-        ..fields = []
         ..interfaces = []
         ..subclasses = [];
     }
@@ -754,8 +832,9 @@ require("dart_sdk").developer.invokeExtension(
           var inspectee = InstanceRef()
             ..kind = InstanceKind.kPlainInstance
             ..id = event.args[1].objectId
-            // TODO: A real classref? we need something here so it can properly
-            // serialize, but it isn't used by the widget inspector.
+            // TODO(jakemac): Create a real ClassRef, we need a way of looking
+            // up the library for a given instance to create it though.
+            // https://github.com/dart-lang/sdk/issues/36771.
             ..classRef = ClassRef();
           _streamNotify(
               'Debug',
@@ -788,11 +867,13 @@ const _stdoutTypes = ['log', 'info', 'warning'];
 
 /// Throws an [ExceptionDetails] object if `exceptionDetails` is present on the
 /// result.
-void _handleErrorIfPresent(WipResponse response, {String evalContents}) {
+void _handleErrorIfPresent(WipResponse response,
+    {String evalContents, Object additionalDetails}) {
   if (response.result.containsKey('exceptionDetails')) {
     throw ChromeDebugException(
         response.result['exceptionDetails'] as Map<String, dynamic>,
-        evalContents: evalContents);
+        evalContents: evalContents,
+        additionalDetails: additionalDetails);
   }
 }
 
@@ -818,11 +899,14 @@ String _getLibrarySnippet(String libraryUri) => '''
 ''';
 
 class ChromeDebugException extends ExceptionDetails implements Exception {
+  /// Optional, additional information about the exception.
+  final Object additionalDetails;
+
   /// Optional, the exact contents of the eval that was attempted.
   final String evalContents;
 
   ChromeDebugException(Map<String, dynamic> exceptionDetails,
-      {this.evalContents})
+      {this.additionalDetails, this.evalContents})
       : super(exceptionDetails);
 
   @override
@@ -839,7 +923,10 @@ class ChromeDebugException extends ExceptionDetails implements Exception {
       description.writeln('  value: ${exception.value}');
     }
     if (evalContents != null) {
-      description.writeln('attempted eval: `$evalContents`');
+      description.writeln('attempted JS eval: `$evalContents`');
+    }
+    if (additionalDetails != null) {
+      description.writeln('additional details:\n  $additionalDetails');
     }
     return description.toString();
   }
@@ -851,3 +938,14 @@ const _pauseModePauseStates = {
   'all': PauseState.all,
   'unhandled': PauseState.uncaught,
 };
+
+/// Creates an [InstanceRef] for a primitive [RemoteObject].
+InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
+  var classRef = ClassRef()
+    ..id = 'dart:core:${remoteObject.type}'
+    ..name = kind;
+  return InstanceRef()
+    ..valueAsString = '${remoteObject.value}'
+    ..classRef = classRef
+    ..kind = kind;
+}

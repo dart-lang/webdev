@@ -48,6 +48,12 @@ dev_dependencies:
   $pkgName: $constraint''',
           missingDependency: true);
 
+  static PackageExceptionDetails unsupportedFlutterWebDep(String pkgName) =>
+      PackageExceptionDetails._(
+          'You have a dependency on `$pkgName` which is not supported for '
+          'flutter_web tech preview. See https://flutter.dev/web for more '
+          'details.');
+
   @override
   String toString() => [error, description].join('\n');
 }
@@ -74,11 +80,11 @@ class PubspecLock {
 
   PubspecLock(this._packages);
 
-  static Future<PubspecLock> read([String path]) async {
-    path ??= 'pubspec.lock';
+  static Future<PubspecLock> read() async {
     await _runPubDeps();
 
-    var pubspecLock = loadYaml(await File(path).readAsString()) as YamlMap;
+    var pubspecLock =
+        loadYaml(await File('pubspec.lock').readAsString()) as YamlMap;
 
     var packages = pubspecLock['packages'] as YamlMap;
     return PubspecLock(packages);
@@ -121,11 +127,20 @@ class PubspecLock {
     }
     return issues;
   }
+
+  List<PackageExceptionDetails> checkNoFlutterDependency(String pkgName) {
+    var issues = <PackageExceptionDetails>[];
+    var packageDetails = _packages[pkgName] as YamlMap;
+    if (packageDetails != null) {
+      issues.add(PackageExceptionDetails.unsupportedFlutterWebDep(pkgName));
+    }
+    return issues;
+  }
 }
 
 Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
     PubspecLock pubspecLock) async {
-  var buildDaemonConstraint = '^0.5.0';
+  var buildDaemonConstraint = '>=0.5.0 <0.7.0';
 
   var issues = <PackageExceptionDetails>[];
 
@@ -149,7 +164,7 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
                 requireDirect: false)
             .isEmpty) {
       issues.add(PackageExceptionDetails._('$issuePreamble\n'
-          'A newer version of webdev is available which supports'
+          'A newer version of webdev is available which supports '
           'your version of the `build_daemon`. Please update.'));
     } else {
       issues.add(PackageExceptionDetails._('$issuePreamble\n'
@@ -176,6 +191,26 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
 
   if (buildRunnerIssues.isEmpty) {
     issues.addAll(await _validateBuildDaemonVersion(pubspecLock));
+  }
+
+  var unsupportedFlutterDeps = [
+    'cached_network_image',
+    'cloud_firestore',
+    'cupertino_icons',
+    'firebase_auth',
+    'firebase_core',
+    'flutter',
+    'flutter_test',
+    'google_sign_in',
+    'image_picker',
+    'path_provider',
+    'shared_preferences',
+    'sqflite',
+    'url_launcher',
+  ];
+
+  for (var dep in unsupportedFlutterDeps) {
+    issues.addAll(pubspecLock.checkNoFlutterDependency(dep));
   }
 
   if (issues.isNotEmpty) {

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'utils.dart';
@@ -15,6 +16,11 @@ const _linuxExecutable = 'google-chrome';
 const _macOSExecutable =
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const _windowsExecutable = r'Google\Chrome\Application\chrome.exe';
+var _windowsPrefixes = [
+  Platform.environment['LOCALAPPDATA'],
+  Platform.environment['PROGRAMFILES'],
+  Platform.environment['PROGRAMFILES(X86)']
+];
 
 String get _executable {
   if (Platform.environment.containsKey(_chromeEnvironment)) {
@@ -22,7 +28,15 @@ String get _executable {
   }
   if (Platform.isLinux) return _linuxExecutable;
   if (Platform.isMacOS) return _macOSExecutable;
-  if (Platform.isWindows) return _windowsExecutable;
+  if (Platform.isWindows) {
+    return p.join(
+        _windowsPrefixes.firstWhere((prefix) {
+          if (prefix == null) return false;
+          var path = p.join(prefix, _windowsExecutable);
+          return File(path).existsSync();
+        }, orElse: () => '.'),
+        _windowsExecutable);
+  }
   throw StateError('Unexpected platform type.');
 }
 
@@ -47,9 +61,18 @@ class Chrome {
   Future<void> close() async {
     if (_currentCompleter.isCompleted) _currentCompleter = Completer<Chrome>();
     chromeConnection.close();
-    _process?.kill();
+    _process?.kill(ProcessSignal.sigkill);
     await _process?.exitCode;
-    await _dataDir?.delete(recursive: true);
+    try {
+      // Chrome starts another process as soon as it dies that modifies the
+      // profile information. Give it some time before attempting to delete
+      // the directory.
+      await Future.delayed(Duration(milliseconds: 500));
+      await _dataDir?.delete(recursive: true);
+    } catch (_) {
+      // Silently fail if we can't clean up the profile information.
+      // It is a system tmp directory so it should get cleaned up eventually.
+    }
   }
 
   /// Connects to an instance of Chrome with an open debug port.
@@ -88,7 +111,10 @@ class Chrome {
     await process.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
-        .firstWhere((line) => line.startsWith('DevTools listening'));
+        .firstWhere((line) => line.startsWith('DevTools listening'))
+        .timeout(Duration(seconds: 60),
+            onTimeout: () =>
+                throw Exception('Unable to connect to Chrome DevTools.'));
 
     return _connect(Chrome._(
       port,

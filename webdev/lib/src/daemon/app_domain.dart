@@ -8,9 +8,9 @@ import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:dwds/service.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
-import '../serve/chrome.dart';
 import '../serve/debugger/app_debug_services.dart';
 import '../serve/server_manager.dart';
 import 'daemon.dart';
@@ -21,7 +21,9 @@ import 'utilites.dart';
 class AppDomain extends Domain {
   String _appId;
   AppDebugServices _appDebugServices;
+
   DebugService get _debugService => _appDebugServices?.debugService;
+
   VmService get _vmService => _appDebugServices?.webdevClient?.client;
   StreamSubscription<BuildResult> _resultSub;
   StreamSubscription<Event> _stdOutSub;
@@ -36,16 +38,13 @@ class AppDomain extends Domain {
         sendEvent('app.progress', {
           'appId': _appId,
           'id': '$_buildProgressEventId',
-          'message': 'Building',
-          'progressId': 'build',
+          'message': 'Building...',
         });
         break;
       case BuildStatus.failed:
         sendEvent('app.progress', {
           'appId': _appId,
           'id': '$_buildProgressEventId',
-          'message': 'Build Failed',
-          'progressId': 'build',
           'finished': true,
         });
         break;
@@ -53,8 +52,6 @@ class AppDomain extends Domain {
         sendEvent('app.progress', {
           'appId': _appId,
           'id': '$_buildProgressEventId',
-          'message': 'Build Succeeded',
-          'progressId': 'build',
           'finished': true,
         });
         break;
@@ -70,6 +67,17 @@ class AppDomain extends Domain {
       _appDebugServices = await devHandler.loadAppServices(
           connection.request.appId, connection.request.instanceId);
       _appId = connection.request.appId;
+      unawaited(_appDebugServices.chromeProxyService.tabConnection.onClose.first
+          .then((_) {
+        sendEvent('app.log', {
+          'appId': _appId,
+          'log': 'Lost connection to device.',
+        });
+        sendEvent('app.stop', {
+          'appId': _appId,
+        });
+        daemon.shutdown();
+      }));
       sendEvent('app.start', {
         'appId': _appId,
         'directory': Directory.current.path,
@@ -132,8 +140,10 @@ class AppDomain extends Domain {
     if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
     var fullRestart = getBoolArg(args, 'fullRestart') ?? false;
     if (!fullRestart) {
-      throw ArgumentError.value(
-          fullRestart, 'fullRestart', 'We do not support hot reload yet.');
+      return {
+        'code': 1,
+        'message': 'hot reload not yet supported by package:flutter_web',
+      };
     }
     // TODO(grouma) - Support pauseAfterRestart.
     // var pauseAfterRestart = getBoolArg(args, 'pause') ?? false;
@@ -152,9 +162,9 @@ class AppDomain extends Domain {
       'finished': true,
       'progressId': 'hot.restart',
     });
-    sendEvent('daemon.logMessage', {
-      'level': 'info',
-      'message': 'Restarted application in ${stopwatch.elapsedMilliseconds}ms'
+    sendEvent('app.log', {
+      'appId': _appId,
+      'log': 'Restarted application in ${stopwatch.elapsedMilliseconds}ms'
     });
     return {
       'code': response.type == 'Success' ? 0 : 1,
@@ -165,8 +175,11 @@ class AppDomain extends Domain {
   Future<bool> _stop(Map<String, dynamic> args) async {
     var appId = getStringArg(args, 'appId', required: true);
     if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
-    var chrome = await Chrome.connectedInstance;
-    await chrome.close();
+    // Note that this triggers the daemon to shutdown as we listen for the
+    // tabConnection to close to initiate a shutdown.
+    await _appDebugServices.chromeProxyService.tabConnection.close();
+    // Wait for the daemon to gracefully shutdown before sending success.
+    await daemon.onExit;
     return true;
   }
 

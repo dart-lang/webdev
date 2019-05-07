@@ -7,13 +7,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:pedantic/pedantic.dart';
+import 'package:async/async.dart';
 
 import '../daemon/app_domain.dart';
 import '../daemon/daemon.dart';
 import '../daemon/daemon_domain.dart';
+import '../logging.dart';
 import '../serve/dev_workflow.dart';
-import '../serve/logging.dart';
 import '../serve/utils.dart';
 import 'configuration.dart';
 import 'shared.dart';
@@ -52,19 +52,27 @@ class DaemonCommand extends Command<int> {
   Future<int> run() async {
     Daemon daemon;
     DevWorkflow workflow;
+    var cancelCount = 0;
+    var cancelSub = StreamGroup.merge([
+      ProcessSignal.sigint.watch(),
+      // SIGTERM is not supported on Windows.
+      Platform.isWindows ? const Stream.empty() : ProcessSignal.sigterm.watch()
+    ]).listen((signal) async {
+      cancelCount++;
+      daemon?.shutdown();
+      if (cancelCount > 1) exit(1);
+    });
     try {
       daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
       var daemonDomain = DaemonDomain(daemon);
       setLogHandler((level, message, {verbose}) {
-        daemonDomain.sendEvent(
-            'daemon.logMessage', {'level': '$level', 'message': message});
+        daemonDomain.sendEvent('daemon.log', {'log': message});
       });
       daemon.registerDomain(daemonDomain);
       var configuration =
           Configuration(launchInChrome: true, debug: true, autoRun: false);
       var pubspecLock = await readPubspecLock(configuration);
-      var buildOptions =
-          buildRunnerArgs(pubspecLock, configuration, includeOutput: false);
+      var buildOptions = buildRunnerArgs(pubspecLock, configuration);
       var port = await findUnusedPort();
       workflow = await DevWorkflow.start(
         configuration,
@@ -73,12 +81,20 @@ class DaemonCommand extends Command<int> {
       );
       daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
       await daemon.onExit;
+      exitCode = 0;
       return 0;
     } catch (e) {
       daemon?.shutdown();
+      exitCode = 1;
       rethrow;
     } finally {
-      unawaited(workflow?.shutDown());
+      await workflow?.shutDown();
+      // Only cancel this subscription after all shutdown work has completed.
+      // https://github.com/dart-lang/sdk/issues/23074.
+      await cancelSub.cancel();
+      // For some reason Windows remains open due to what appears to be an
+      // undrained `stdin`. Feel free to waste some time trying to remove this.
+      if (Platform.isWindows) exit(exitCode);
     }
   }
 }

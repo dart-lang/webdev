@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:graphs/graphs.dart' as graphs;
+import 'package:pedantic/pedantic.dart';
 
 import 'module.dart';
 
@@ -25,16 +26,32 @@ class ReloadingManager {
   final List<String> Function(String moduleId) _moduleParents;
   final Iterable<String> Function() _allModules;
 
-  final Map<String, int> _moduleOrdering = {};
+  final _moduleOrdering = HashMap<String, int>();
   SplayTreeSet<String> _dirtyModules;
-  Completer<void> _running = Completer()..complete();
+  var _running = Completer<bool>()..complete();
 
   int moduleTopologicalCompare(String module1, String module2) {
-    var topological =
+    var topological = 0;
+
+    final order1 = _moduleOrdering[module1];
+    final order2 = _moduleOrdering[module2];
+
+    if (order1 == null || order2 == null) {
+      var missing = order1 == null ? module1 : module2;
+      throw HotReloadFailedException(
+          'Unable to fetch ordering info for module: $missing');
+    }
+
+    topological =
         Comparable.compare(_moduleOrdering[module2], _moduleOrdering[module1]);
-    // If modules are in cycle (same strongly connected component) compare their
-    // string id, to ensure total ordering for SplayTreeSet uniqueness.
-    return topological != 0 ? topological : module1.compareTo(module2);
+
+    if (topological == 0) {
+      // If modules are in cycle (same strongly connected component) compare their
+      // string id, to ensure total ordering for SplayTreeSet uniqueness.
+      topological = module1.compareTo(module2);
+    }
+
+    return topological;
   }
 
   void updateGraph() {
@@ -56,7 +73,7 @@ class ReloadingManager {
 
   var count = 0;
 
-  Future<void> reload(List<String> modules) async {
+  Future<bool> reload(List<String> modules) async {
     _dirtyModules.addAll(modules);
 
     // As function is async, it can potentially be called second time while
@@ -65,56 +82,62 @@ class ReloadingManager {
     if (!_running.isCompleted) return await _running.future;
     _running = Completer();
 
-    var reloadedModules = 0;
+    // We want to schedule some async work for the future but return the
+    // `_running` completers future synchronously.
+    unawaited(() async {
+      var reloadedModules = 0;
 
-    try {
-      while (_dirtyModules.isNotEmpty) {
-        var moduleId = _dirtyModules.first;
-        _dirtyModules.remove(moduleId);
-        ++reloadedModules;
+      try {
+        while (_dirtyModules.isNotEmpty) {
+          var moduleId = _dirtyModules.first;
+          _dirtyModules.remove(moduleId);
+          ++reloadedModules;
 
-        var existing = _moduleLibraries(moduleId);
-        var data = existing.onDestroy();
+          var existing = _moduleLibraries(moduleId);
+          var data = existing.onDestroy();
 
-        var newVersion = await _reloadModule(moduleId);
-        var success = newVersion.onSelfUpdate(data);
-        if (success == true) continue;
-        if (success == false) {
-          print("Module '$moduleId' is marked as unreloadable. "
-              'Firing full page reload.');
-          _reloadPage();
-          _running.complete();
-          return;
-        }
-
-        var parentIds = _moduleParents(moduleId);
-        if (parentIds == null || parentIds.isEmpty) {
-          print("Module reloading wasn't handled by any of parents. "
-              'Firing full page reload.');
-          _reloadPage();
-          _running.complete();
-          return;
-        }
-        parentIds.sort(moduleTopologicalCompare);
-        for (var parentId in parentIds) {
-          var parentModule = _moduleLibraries(parentId);
-          success = parentModule.onChildUpdate(moduleId, newVersion, data);
+          var newVersion = await _reloadModule(moduleId);
+          var success = newVersion.onSelfUpdate(data);
           if (success == true) continue;
           if (success == false) {
             print("Module '$moduleId' is marked as unreloadable. "
                 'Firing full page reload.');
             _reloadPage();
-            _running.complete();
-            return;
+            return false;
           }
-          _dirtyModules.add(parentId);
+
+          var parentIds = _moduleParents(moduleId);
+          if (parentIds == null || parentIds.isEmpty) {
+            print("Module reloading wasn't handled by any of parents. "
+                'Firing full page reload.');
+            _reloadPage();
+            return false;
+          }
+          parentIds.sort(moduleTopologicalCompare);
+          for (var parentId in parentIds) {
+            var parentModule = _moduleLibraries(parentId);
+            success = parentModule.onChildUpdate(moduleId, newVersion, data);
+            if (success == true) continue;
+            if (success == false) {
+              print("Module '$moduleId' is marked as unreloadable. "
+                  'Firing full page reload.');
+              _reloadPage();
+              return false;
+            }
+            _dirtyModules.add(parentId);
+          }
         }
+        print('$reloadedModules modules were hot-reloaded.');
+      } on HotReloadFailedException catch (e) {
+        print('Error during script reloading. Firing full page reload. $e');
+        _reloadPage();
+        return false;
       }
-      print('$reloadedModules modules were hot-reloaded.');
-    } on HotReloadFailedException catch (e) {
-      print('Error during script reloading. Firing full page reload. $e');
-      _reloadPage();
-    }
-    _running.complete();
+      return true;
+    }()
+        .then(_running.complete)
+        .catchError(_running.completeError));
+
+    return _running.future;
   }
 }

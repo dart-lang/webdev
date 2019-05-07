@@ -12,6 +12,7 @@ import 'dart:html';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
+import 'package:path/path.dart' as p;
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webdev/src/serve/data/connect_request.dart';
@@ -43,28 +44,18 @@ Future<void> main() async {
 
   var client = SseClient(r'/$sseHandler');
 
-  hotRestart = allowInterop(() async {
-    var developer = getProperty(require('dart_sdk'), 'developer');
-    if (callMethod(getProperty(developer, '_extensions'), 'containsKey',
-        ['ext.flutter.disassemble']) as bool) {
-      await toFuture(callMethod(
-              developer, 'invokeExtension', ['ext.flutter.disassemble', '{}'])
-          as Promise<void>);
-    }
+  hotRestartJs = allowInterop(() {
+    return toPromise(hotRestart(currentDigests, manager));
+  });
 
-    var newDigests = await _getDigests();
-    var modulesToLoad = <String>[];
-    for (var module in newDigests.keys) {
-      if (!currentDigests.containsKey(module) ||
-          currentDigests[module] != newDigests[module]) {
-        modulesToLoad.add(module.replaceFirst('.js', ''));
-      }
+  launchDevToolsJs = allowInterop(() {
+    if (!_isChrome) {
+      window.alert('Dart DevTools is only supported on Chrome');
+      return;
     }
-    currentDigests = newDigests;
-    if (modulesToLoad.isNotEmpty) {
-      manager.updateGraph();
-      await manager.reload(modulesToLoad);
-    }
+    client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
+      ..appId = dartAppId
+      ..instanceId = dartAppInstanceId))));
   });
 
   client.stream.listen((serialized) async {
@@ -73,7 +64,7 @@ Future<void> main() async {
       if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
         window.location.reload();
       } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
-        await hotRestart();
+        await hotRestart(currentDigests, manager);
       } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
         print('Hot reload is currently unsupported. Ignoring change.');
       }
@@ -97,17 +88,64 @@ Future<void> main() async {
         !e.ctrlKey &&
         !e.metaKey) {
       e.preventDefault();
-      client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
-        ..appId = dartAppId
-        ..instanceId = dartAppInstanceId))));
+      launchDevToolsJs();
     }
   });
 
-  // Wait for the connection to be estabilished before sending the AppId.
-  await client.onOpen.first;
-  client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
-    ..appId = dartAppId
-    ..instanceId = dartAppInstanceId))));
+  if (_isChrome) {
+    // Wait for the connection to be estabilished before sending the AppId.
+    await client.onOpen.first;
+    client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
+      ..appId = dartAppId
+      ..instanceId = dartAppInstanceId))));
+  } else {
+    // If not chrome we just invoke main, devtools aren't supported.
+    runMain();
+  }
+}
+
+/// Attemps to perform a hot restart, and returns whether it was successful or
+/// not.
+Future<bool> hotRestart(
+    Map<String, String> currentDigests, ReloadingManager manager) async {
+  var developer = getProperty(require('dart_sdk'), 'developer');
+  if (callMethod(getProperty(developer, '_extensions'), 'containsKey',
+      ['ext.flutter.disassemble']) as bool) {
+    await toFuture(callMethod(
+            developer, 'invokeExtension', ['ext.flutter.disassemble', '{}'])
+        as Promise<void>);
+  }
+
+  var newDigests = await _getDigests();
+  var modulesToLoad = <String>[];
+  for (var jsPath in newDigests.keys) {
+    if (!currentDigests.containsKey(jsPath) ||
+        currentDigests[jsPath] != newDigests[jsPath]) {
+      var parts = p.url.split(jsPath);
+      // We serve top level dirs, so this strips the top level dir from all
+      // but `packages` paths.
+      var servePath =
+          parts.first == 'packages' ? jsPath : p.url.joinAll(parts.skip(1));
+      var jsUri = '${window.location.origin}/$servePath';
+      var moduleName = dartLoader.urlToModuleId.get(jsUri);
+      if (moduleName == null) {
+        print('Error during script reloading, refreshing the page. \n'
+            'Unable to find an existing module for script $jsUri.');
+        _reloadPage();
+        return false;
+      }
+      modulesToLoad.add(moduleName);
+    }
+  }
+  currentDigests = newDigests;
+  if (modulesToLoad.isNotEmpty) {
+    manager.updateGraph();
+    return manager.reload(modulesToLoad);
+  } else {
+    callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
+    runMain();
+    return true;
+  }
 }
 
 @JS(r'$dartAppId')
@@ -122,9 +160,12 @@ external set dartAppInstanceId(String id);
 external void Function() get runMain;
 
 @JS(r'$dartHotRestart')
-external Future<void> Function() get hotRestart;
-@JS(r'$dartHotRestart')
-external set hotRestart(Future<void> Function() cb);
+external set hotRestartJs(Promise<bool> Function() cb);
+
+@JS(r'$launchDevTools')
+external set launchDevToolsJs(void Function() cb);
+@JS(r'$launchDevTools')
+external void Function() get launchDevToolsJs;
 
 @JS(r'$dartLoader')
 external DartLoader get dartLoader;
@@ -145,6 +186,12 @@ Future<Map<String, String>> _getDigests() async {
   return (request.response as Map).cast<String, String>();
 }
 
+bool get _isChrome =>
+    window.navigator.userAgent.contains('Chrome') &&
+    // Edge has `Chrome` in its user agent string, but it also has `Edg` which
+    // chrome doesn't.
+    !window.navigator.userAgent.contains('Edg');
+
 @JS('Array.from')
 external List _jsArrayFrom(Object any);
 
@@ -156,15 +203,10 @@ external List _jsObjectValues(Object any);
 
 Module _moduleLibraries(String moduleId) {
   var moduleObj = dartLoader.getModuleLibraries(moduleId);
-  // In kernel mode the actual module names don't end with `.ddc`, so we try
-  // a fallback lookup without that extension.
-  if (moduleObj == null && moduleId.endsWith('.ddc')) {
-    moduleObj = dartLoader
-        .getModuleLibraries(moduleId.substring(0, moduleId.length - 4));
-  }
   if (moduleObj == null) {
     throw HotReloadFailedException("Failed to get module '$moduleId'. "
-        "This error might appear if such module doesn't exist or isn't already loaded");
+        "This error might appear if such module doesn't exist or isn't already "
+        'loaded');
   }
   var moduleKeys = List<String>.from(_jsObjectKeys(moduleObj));
   var moduleValues =
@@ -203,6 +245,9 @@ class DartLoader {
 
   @JS()
   external Object getModuleLibraries(String moduleId);
+
+  @JS()
+  external JsMap<String, String> get urlToModuleId;
 }
 
 @anonymous
