@@ -29,9 +29,7 @@ import 'reloading_manager.dart';
 Future<void> main() async {
   // Set the unique id for this instance of the app.
   // Test apps may already have this set.
-  if (dartAppInstanceId == null) {
-    dartAppInstanceId = Uuid().v1();
-  }
+  dartAppInstanceId ??= Uuid().v1();
 
   var currentDigests = await _getDigests();
 
