@@ -46,13 +46,13 @@ void main() {
 
     Future<void> reload() async {
       var loading = tabConnection.page.reload(ignoreCache: true);
-      await service.debugger.sourcemaps.waitForSourceMap('main.dart');
+      await service.debugger.sourcemaps.waitForSourceMap('hello_world/main.dart');
       return await loading;
     }
 
     test('load sourcemaps', () async {
       await reload();
-      expect(service.debugger.sourcemaps.sourcemaps['main.dart'], isNotNull);
+      expect(service.debugger.sourcemaps.sourcemaps['hello_world/main.dart'], isNotNull);
     });
 
     test('addBreakPoint', () async {
@@ -72,6 +72,7 @@ void main() {
       expect(() => service.addBreakpointAtEntry(null, null),
           throwsUnimplementedError);
     });
+    
 
     test('addBreakpointWithScriptUri', () {
       expect(() => service.addBreakpointWithScriptUri(null, null, null),

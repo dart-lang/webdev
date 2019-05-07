@@ -10,6 +10,23 @@ import 'package:vm_service_lib/vm_service_lib.dart';
 import 'chrome_proxy_service.dart';
 import 'helpers.dart';
 
+// TODO(alanknight): Turn this into a more general service.
+// More generally, be able to qualify by host/port or not, any other variations
+class DartUri {
+  DartUri.fromScript(WipScript script, String relativeUri) {
+    var absolute = Uri.parse(script.url).path;
+    dartForm = p.join(p.dirname(absolute), relativeUri);
+    if (dartForm.startsWith('/packages/')) {
+      dartForm = 'package:' + dartForm.substring('/packages/'.length);
+    } else {
+      dartForm = dartForm.substring(1); // Remove leading slash
+    }
+  }
+  String dartForm;
+
+  toString() => dartForm;
+}
+
 
 /// Keeps track of the scripts (both Dart and JS) and their source maps.
 class SourceMaps {
@@ -38,14 +55,20 @@ class SourceMaps {
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = source_maps.parse(sourceMapContents);
     if (mapping is source_maps.SingleMapping) {
-      jsScripts[script.url] = script;
+  //    jsScripts[script.url] = script;
+      // Here we're indexing them by both JS and Dart URI, so we can look them up either way. But it's messy.
       sourcemaps[script.url] = mapping;
       for (var dartUrl in mapping.urls) {
-        sourceMapLoadedController.add(_makeUrlAbsolute('http://www.google.com', dartUrl));
+        var canonical = "${DartUri.fromScript(script, dartUrl)}";
+        jsScripts[canonical] = script;
+        sourcemaps[canonical] = mapping;  // ### Dart Url here is e.g. main.dart, but from the other end it wants to be hello_world/main.dart.
+         // ### Use isolate name to make absolute? Something better?
+        sourceMapLoadedController.add(canonical);
       }
-    }
-  }
+    } 
 
+  }
+// ### Vijay was qualifying this by the URL of the JS file.
   _makeUrlAbsolute(String mainUrl, String relativeUrl) {
      return p.join(p.dirname(mainUrl), relativeUrl);
   }
@@ -109,6 +132,7 @@ class Debugger {
     if (isolateId != null) isolate = await mainProxy.getIsolate(isolateId);
     ScriptRef dartScript = await _getScriptById(isolateId, scriptId);
     var jsScript = sourcemaps.jsScripts[dartScript.uri];
+    // #### This is wrong - the sourcemaps are indexed by JS URI.
     var sourcemap = sourcemaps.sourcemaps[dartScript.uri];  // #### clean up this api
 
 
