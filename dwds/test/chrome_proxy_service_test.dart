@@ -61,7 +61,7 @@ void main() {
       expect(() => service.addBreakpointAtEntry(null, null),
           throwsUnimplementedError);
     });
-    
+
     test('addBreakpointWithScriptUri', () {
       expect(() => service.addBreakpointWithScriptUri(null, null, null),
           throwsUnimplementedError);
