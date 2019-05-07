@@ -43,12 +43,6 @@ void main() {
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
     });
 
-    // We reload to ensure that sourcemap events fire.
-    Future<void> reload() async {
-      var loading = tabConnection.page.reload(ignoreCache: true);
-      return await loading;
-    }
-
     test('addBreakPoint', () async {
       // TODO: Reloading causes other tests to fail. Investigate.
       //  await reload();
