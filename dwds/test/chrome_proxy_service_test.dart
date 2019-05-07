@@ -50,7 +50,8 @@ void main() {
     }
 
     test('addBreakPoint', () async {
-      await reload();
+      // TODO: Reloading causes other tests to fail. Investigate.
+      //  await reload();
       expect(() => service.addBreakpoint(isolate.id, mainScript.id, 19),
           throwsUnimplementedError);
       var breakpoints = isolate.breakpoints;
