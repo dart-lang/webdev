@@ -6,12 +6,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'debugger.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'debugger.dart';
 import 'helpers.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
@@ -39,7 +39,8 @@ class ChromeProxyService implements VmServiceInterface {
   /// This may be null during a hot restart or page refresh.
   Isolate _isolate;
 
-  Debugger debugger; // ####
+  /// Provides debugger-related functionality.
+  Debugger debugger;
 
   /// Fields that are specific to the current [_isolate].
   ///
@@ -63,7 +64,7 @@ class ChromeProxyService implements VmServiceInterface {
       var tabConnection = await tab.connect();
       var result = await tabConnection.runtime
           .evaluate(r'window["$dartAppInstanceId"];');
-      if (result.value != null && RegExp(appInstanceId).matchAsPrefix(result.value) != null) {
+     if (result.value == appInstanceId) {
         appTab = tab;
         break;
       }
@@ -83,15 +84,20 @@ class ChromeProxyService implements VmServiceInterface {
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
     var service = ChromeProxyService._(vm, appTab, tabConnection, assetHandler);
-    await service.initialize();
+    await service._initialize();
     await service.createIsolate();
     return service;
   }
 
-  Future<Null> initialize() async {  // ### Why did I put this in a separate method?
+  Future<Null> _initialize() async {
     debugger = Debugger(this);
     await debugger.initialize();
   }
+
+  /// The root URI at which we're serving.
+  String get uri => _tab.url;
+
+  String get uriPath => Uri.parse(uri).path; // ## cache? 
 
   /// Creates a new [_isolate].
   ///
@@ -108,7 +114,7 @@ class ChromeProxyService implements VmServiceInterface {
     var isolate = Isolate()
       ..id = id
       ..number = id
-      ..name = '${_tab.url}:main()'
+      ..name = '$uri:main()'
       ..runnable = true
       ..breakpoints = []
       ..libraries = []
@@ -189,7 +195,7 @@ class ChromeProxyService implements VmServiceInterface {
   @override
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
-        return debugger.addBreakpoint(isolateId, scriptId, line, column: column);
+    return debugger.addBreakpoint(isolateId, scriptId, line, column: column);
   }
 
   @override
@@ -509,7 +515,7 @@ function($argsString) {
 
   @override
   Future<ScriptList> getScripts(String isolateId) async {
-    var scripts = await getScriptRefs(isolateId);
+    var scripts = await scriptRefs(isolateId);
     return ScriptList()..scripts = scripts;
   }
 
@@ -526,7 +532,11 @@ function($argsString) {
       ..source = script;
   }
 
-  Future<List<ScriptRef>> getScriptRefs(String isolateId) async {
+  /// Internal method to list all scripts in the isolate.
+  ///
+  /// This is used as the underlying mechanism
+  /// for [getScripts].
+  Future<List<ScriptRef>> scriptRefs(String isolateId) async {
     var isolate = _getIsolate(isolateId);
     var scripts = <ScriptRef>[];
     for (var lib in isolate.libraries) {
@@ -535,6 +545,8 @@ function($argsString) {
       if (lib.id.startsWith('dart:') || lib.id.endsWith('.bootstrap')) continue;
       scripts.addAll((await _getLibrary(isolateId, lib.id)).scripts);
     }
+    // TODO(alanknight): Is this the same as the values in _scriptRefs after
+    // constructing all the libraries? Make that clearer.
     return scripts; 
   }
 
@@ -622,7 +634,7 @@ function($argsString) {
   @override
   Future<ReloadReport> reloadSources(String isolateId,
       {bool force, bool pause, String rootLibUri, String packagesUri}) async {
-
+    throw UnimplementedError();
   }
 
   @override

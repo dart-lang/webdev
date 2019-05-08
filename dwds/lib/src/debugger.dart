@@ -13,18 +13,30 @@ import 'helpers.dart';
 // TODO(alanknight): Turn this into a more general service.
 // More generally, be able to qualify by host/port or not, any other variations
 class DartUri {
-  DartUri.fromScript(WipScript script, String relativeUri) {
-    var absolute = Uri.parse(script.url).path;
-    dartForm = p.join(p.dirname(absolute), relativeUri);
-    if (dartForm.startsWith('/packages/')) {
-      dartForm = 'package:' + dartForm.substring('/packages/'.length);
+  DartUri.fromSourcemap(String dartFile) {
+    if (dartFile.startsWith('/packages/')) {
+      dartForm = 'package:${dartFile.substring("/packages/".length)}';
     } else {
-      dartForm = dartForm.substring(1); // Remove leading slash
+      dartForm = dartFile.substring(1); // Remove leading slash
     }
   }
+
+  DartUri.fromScriptRef(ScriptRef script, String mainUri) {
+    // TODO: Longer term the Uri from the ScriptRef should match
+    // the WipScript, e.g. hello_world/main.dart. In the short term
+    // the ScriptRef just gives us main.dart, so we work around it.
+    var relative = script.uri;
+    dartForm = p.join(mainUri, relative);
+  }
+
+  String _noLeadingSlash(String s) => s[0] == '/' ? s.substring(1) : s;
+
+  String get uri => dartForm;
+
   String dartForm;
 
-  toString() => dartForm;
+  @override
+  String toString() => dartForm;
 }
 
 
@@ -59,7 +71,7 @@ class SourceMaps {
       // Here we're indexing them by both JS and Dart URI, so we can look them up either way. But it's messy.
       sourcemaps[script.url] = mapping;
       for (var dartUrl in mapping.urls) {
-        var canonical = "${DartUri.fromScript(script, dartUrl)}";
+        var canonical = DartUri.fromSourcemap(dartUrl).uri;
         jsScripts[canonical] = script;
         sourcemaps[canonical] = mapping;  // ### Dart Url here is e.g. main.dart, but from the other end it wants to be hello_world/main.dart.
          // ### Use isolate name to make absolute? Something better?
@@ -69,9 +81,9 @@ class SourceMaps {
 
   }
 // ### Vijay was qualifying this by the URL of the JS file.
-  _makeUrlAbsolute(String mainUrl, String relativeUrl) {
-     return p.join(p.dirname(mainUrl), relativeUrl);
-  }
+  // _makeUrlAbsolute(String mainUrl, String relativeUrl) {
+  //    return p.join(p.dirname(mainUrl), relativeUrl);
+  // }
 
   /// Return a Future that completers once the source map for [url]
   /// has been loaded.
@@ -116,7 +128,7 @@ class Debugger {
   }
 
     Future<ScriptRef> _getScriptById(String isolateId, String scriptId) async {
-    var scripts = await mainProxy.getScriptRefs(isolateId);
+    var scripts = await mainProxy.scriptRefs(isolateId);
     for (var script in scripts) {
       if (script.id == scriptId) {
         return script;
@@ -129,11 +141,12 @@ class Debugger {
       {int column}) async {
     // Validate the isolate id is correct, _getIsolate throws if not.
     Isolate isolate;
-    if (isolateId != null) isolate = await mainProxy.getIsolate(isolateId);
-    ScriptRef dartScript = await _getScriptById(isolateId, scriptId);
-    var jsScript = sourcemaps.jsScripts[dartScript.uri];
+    if (isolateId != null) isolate = await mainProxy.getIsolate(isolateId) as Isolate;
+    var dartScript = await _getScriptById(isolateId, scriptId);
+    var dartUri = DartUri.fromScriptRef(dartScript, mainProxy.uriPath);
+    var jsScript = sourcemaps.jsScripts[dartUri];
     // #### This is wrong - the sourcemaps are indexed by JS URI.
-    var sourcemap = sourcemaps.sourcemaps[dartScript.uri];  // #### clean up this api
+    var sourcemap = sourcemaps.sourcemaps[dartUri];  // #### clean up this api
 
 
     var location = jsPosition(sourcemap, line);
@@ -152,6 +165,7 @@ class Debugger {
           rethrow;
         }
     var jsBreakpointId = result.result['breakpointId'];
+    print('set breakpoint, id = $jsBreakpointId');
     var breakpoint = Breakpoint()
           ..resolved = true
           ..location = (SourceLocation()
@@ -171,7 +185,7 @@ class Debugger {
 
       }
 
-   jsPosition(source_maps.SingleMapping sourcemap, int line) {
+   Location jsPosition(source_maps.SingleMapping sourcemap, int line) {
      for (var lineEntry in sourcemap.lines) {
        for (var entry in lineEntry.entries) {
         var index = entry.sourceUrlId;
@@ -188,6 +202,7 @@ class Debugger {
         }
        }
      }
+     return null;
    }
 
 

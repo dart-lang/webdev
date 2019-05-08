@@ -51,6 +51,7 @@ void main() {
     }
 
     test('load sourcemaps', () async {
+            // TODO: Reloading causes other tests to fail. Investigate.
       await reload();
       expect(service.debugger.sourcemaps.sourcemaps['hello_world/main.dart'], isNotNull);
     });
@@ -63,7 +64,7 @@ void main() {
       await reload();
       await service.addBreakpoint(isolate.id, mainScript.id, 19);
       var breakpoints = isolate.breakpoints;
-      print("printing something");
+      print('printing something');
       // expect(breakpoints, isNotEmpty);
       expect(breakpoints.any((b) => b.location.tokenPos == 42), isNotNull);
     });
@@ -73,7 +74,6 @@ void main() {
           throwsUnimplementedError);
     });
     
-
     test('addBreakpointWithScriptUri', () {
       expect(() => service.addBreakpointWithScriptUri(null, null, null),
           throwsUnimplementedError);
