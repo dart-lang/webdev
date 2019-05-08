@@ -3386,46 +3386,45 @@ i8:function i8(){},
 i9:function i9(){}},D={iE:function iE(a){this.b=a},kA:function kA(){},
 dW:function(){var u=0,t=P.bR(-1),s,r,q,p,o,n,m,l
 var $async$dW=P.bS(function(a,b){if(a===1)return P.bM(b,t)
-while(true)switch(u){case 0:l=F.pI().eU()
-self.$dartAppInstanceId=l
-u=2
+while(true)switch(u){case 0:if(self.$dartAppInstanceId==null){s=F.pI().eU()
+self.$dartAppInstanceId=s}u=2
 return P.aW(D.h3(),$async$dW)
-case 2:s=b
-l=P.e
-r=P.ek(null,null,null,l,P.f)
-q=P.P
-q=new P.aU(new P.Q($.A,[q]),[q])
-q.cf(0)
-p=new L.eE(D.uS(),D.uR(),D.uT(),new D.nI(),new D.nJ(),r,q)
-p.r=P.pC(p.geI(),null,l)
-q=P.pD(l)
-r=P.pD(l)
-o=new O.hy(P.oc(W.bz))
-o.b=!0
-n=new M.eK(q,r,o,N.jA("SseClient"))
-m=F.pI().eU()
-n.e=W.t5("/$sseHandler?sseClientId="+m,P.ju(["withCredentials",!0],l,null))
-n.f="/$sseHandler?sseClientId="+m
-new P.dz(r,[H.d(r,0)]).ii(n.ghg(),n.ghe())
-C.M.em(n.e,"message",n.ghc())
-C.M.em(n.e,"control",n.gha())
-l=W.p
-W.f9(n.e,"error",q.ghD(),!1,l)
-o=P.cP(new D.nK(s,p))
-self.$dartHotRestart=o
-o=P.cP(new D.nL(n))
-self.$launchDevTools=o
-new P.dz(q,[H.d(q,0)]).ih(new D.nM(s,p))
+case 2:r=b
+s=P.e
+q=P.ek(null,null,null,s,P.f)
+p=P.P
+p=new P.aU(new P.Q($.A,[p]),[p])
+p.cf(0)
+o=new L.eE(D.uS(),D.uR(),D.uT(),new D.nI(),new D.nJ(),q,p)
+o.r=P.pC(o.geI(),null,s)
+p=P.pD(s)
+q=P.pD(s)
+n=new O.hy(P.oc(W.bz))
+n.b=!0
+m=new M.eK(p,q,n,N.jA("SseClient"))
+l=F.pI().eU()
+m.e=W.t5("/$sseHandler?sseClientId="+l,P.ju(["withCredentials",!0],s,null))
+m.f="/$sseHandler?sseClientId="+l
+new P.dz(q,[H.d(q,0)]).ii(m.ghg(),m.ghe())
+C.M.em(m.e,"message",m.ghc())
+C.M.em(m.e,"control",m.gha())
+s=W.p
+W.f9(m.e,"error",p.ghD(),!1,s)
+n=P.cP(new D.nK(r,o))
+self.$dartHotRestart=n
+n=P.cP(new D.nL(m))
+self.$launchDevTools=n
+new P.dz(p,[H.d(p,0)]).ih(new D.nM(r,o))
 W.f9(window,"keydown",new D.nN(),!1,W.c4)
 u=D.qg()?3:5
 break
-case 3:l=new W.ce(n.e,"open",!1,[l])
+case 3:s=new W.ce(m.e,"open",!1,[s])
 u=6
-return P.aW(l.gA(l),$async$dW)
-case 6:l=$.nW()
-q=new E.bu()
-new D.nO().$1(q)
-r.u(0,C.p.df(l.cz(q.V()),null))
+return P.aW(s.gA(s),$async$dW)
+case 6:s=$.nW()
+p=new E.bu()
+new D.nO().$1(p)
+q.u(0,C.p.df(s.cz(p.V()),null))
 u=4
 break
 case 5:self.$dartRunMain.$0()
