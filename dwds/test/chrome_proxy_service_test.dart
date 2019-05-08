@@ -29,19 +29,38 @@ void main() {
     await context.tearDown();
   });
 
-  test('addBreakPoint', () {
-    expect(() => service.addBreakpoint(null, null, null),
-        throwsUnimplementedError);
-  });
+  group('breakpoints', () {
+    VM vm;
+    Isolate isolate;
+    ScriptList scripts;
+    ScriptRef mainScript;
 
-  test('addBreakpointAtEntry', () {
-    expect(() => service.addBreakpointAtEntry(null, null),
-        throwsUnimplementedError);
-  });
+    setUp(() async {
+      vm = await service.getVM();
+      isolate = await service.getIsolate(vm.isolates.first.id) as Isolate;
+      scripts = await service.getScripts(isolate.id);
+      mainScript =
+          scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
+    });
 
-  test('addBreakpointWithScriptUri', () {
-    expect(() => service.addBreakpointWithScriptUri(null, null, null),
-        throwsUnimplementedError);
+    test('addBreakPoint', () async {
+      // TODO: Reloading causes other tests to fail. Investigate.
+      //  await reload();
+      expect(() => service.addBreakpoint(isolate.id, mainScript.id, 19),
+          throwsUnimplementedError);
+      var breakpoints = isolate.breakpoints;
+      expect(breakpoints, isEmpty);
+    });
+
+    test('addBreakpointAtEntry', () {
+      expect(() => service.addBreakpointAtEntry(null, null),
+          throwsUnimplementedError);
+    });
+
+    test('addBreakpointWithScriptUri', () {
+      expect(() => service.addBreakpointWithScriptUri(null, null, null),
+          throwsUnimplementedError);
+    });
   });
 
   group('callServiceExtension', () {
@@ -358,7 +377,7 @@ void main() {
       pauseCompleter.complete();
     });
     var resumeCompleter = Completer();
-    var resumseSub = tabConnection.debugger.onResumed.listen((_) {
+    var resumeSub = tabConnection.debugger.onResumed.listen((_) {
       resumeCompleter.complete();
     });
     expect(await service.pause(isolateId), const TypeMatcher<Success>());
@@ -366,7 +385,7 @@ void main() {
     expect(await service.resume(isolateId), const TypeMatcher<Success>());
     await resumeCompleter.future;
     await pauseSub.cancel();
-    await resumseSub.cancel();
+    await resumeSub.cancel();
   });
 
   test('registerService', () async {
