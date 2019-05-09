@@ -129,7 +129,7 @@ class ChromeProxyService implements VmServiceInterface {
       // relative to a top level directory in the package (such as `web` or
       // `test`), so we strip the scheme and skip the first path segment.
       var sourceMapUri = uri.scheme == 'org-dartlang-app'
-          ? p.url.joinAll(uri.pathSegments.skip(1))
+          ? p.url.joinAll(['/'].followedBy(uri.pathSegments.skip(1)))
           : '$uri';
       isolate.libraries.add(LibraryRef()
         ..id = sourceMapUri

@@ -242,7 +242,9 @@ void main() {
       expect(result, const TypeMatcher<Isolate>());
       var isolate = result as Isolate;
       expect(isolate.name, contains(context.appUrl));
-      expect(isolate.rootLib.uri, equals('hello_world/main.dart'));
+      // TODO(jakemac): Update to the full expected uri `/hello_world/main.dart`
+      // once the next dev sdk comes out.
+      expect(isolate.rootLib.uri, endsWith('main.dart'));
 
       expect(
           isolate.libraries,
