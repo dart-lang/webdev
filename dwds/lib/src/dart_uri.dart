@@ -3,11 +3,12 @@ import 'package:vm_service_lib/vm_service_lib.dart';
 
 // The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
+// TODO: Support absolute file and http URLs and org-dartlang-app.
 class DartUri {
   /// Expects a URI of the form /hello_world/main.dart or /packages/...
   DartUri.fromSourcemap(String dartFile) {
-  // TODO: What's the exact form of /packages URLS? Do we need to 
-  // compensate for the lib directory?
+    // TODO: What's the exact form of /packages URLS? Do we need to
+    // compensate for the lib directory?
     if (dartFile.startsWith('/packages/')) {
       dartForm = 'package:${dartFile.substring("/packages/".length)}';
     } else {
