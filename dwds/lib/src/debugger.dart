@@ -131,7 +131,7 @@ class BreakpointMapping {
   
   String jsId(String dartId) => _byDartId[dartId];
 
-  // TODO: Remove breakpoints
+  // TODO: Support removing breakpoints
 }
 
 

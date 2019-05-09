@@ -97,7 +97,8 @@ class ChromeProxyService implements VmServiceInterface {
   /// The root URI at which we're serving.
   String get uri => _tab.url;
 
-  String get uriPath => Uri.parse(uri).path; // ## cache? 
+  /// The path portion of the root uri.
+  String get uriPath => Uri.parse(uri).path; 
 
   /// Creates a new [_isolate].
   ///
