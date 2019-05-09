@@ -36,7 +36,6 @@ void main() {
     ScriptRef mainScript;
 
     setUp(() async {
-      // await tabConnection.page.reload(ignoreCache: true);
       vm = await service.getVM();
       isolate = await service.getIsolate(vm.isolates.first.id) as Isolate;
       scripts = await service.getScripts(isolate.id);
@@ -44,15 +43,9 @@ void main() {
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
     });
 
-    Future<void> reload() async {
-      var loading = tabConnection.page.reload(ignoreCache: true);
-      await service.debugger.sourcemaps.waitForSourceMap('hello_world/main.dart');
-      return await loading;
-    }
-
     test('load sourcemaps', () async {
             // TODO: Reloading causes other tests to fail. Investigate.
-      await reload();
+   //   await reload();
       expect(service.debugger.sourcemaps.sourcemaps['hello_world/main.dart'], isNotNull);
     });
 
@@ -61,10 +54,11 @@ void main() {
       // Returning the SourceLocation (i.e. token position).
       // Move these tests to a separate test file? Or does that help?
       //
-      await reload();
-      await service.addBreakpoint(isolate.id, mainScript.id, 19);
+   //   await reload();
+      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 20);
       var breakpoints = isolate.breakpoints;
-      print('printing something');
+      breakpoints = [bp];
+      print(breakpoints.first.location);
       // expect(breakpoints, isNotEmpty);
       expect(breakpoints.any((b) => b.location.tokenPos == 42), isNotNull);
     });
