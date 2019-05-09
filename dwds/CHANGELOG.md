@@ -1,3 +1,8 @@
+## 0.3.3-dev
+
+- Handle `org-dartlang-app` scheme library uris and convert them to match the
+  dart uris that we will see in the sourcemaps.
+
 ## 0.3.2
 
 - Add support for `scope` in `evaluate` calls.

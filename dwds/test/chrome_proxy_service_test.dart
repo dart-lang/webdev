@@ -242,8 +242,7 @@ void main() {
       expect(result, const TypeMatcher<Isolate>());
       var isolate = result as Isolate;
       expect(isolate.name, contains(context.appUrl));
-      // TODO: library names change with kernel dart-lang/sdk#36736
-      expect(isolate.rootLib.uri, endsWith('main.dart'));
+      expect(isolate.rootLib.uri, equals('hello_world/main.dart'));
 
       expect(
           isolate.libraries,

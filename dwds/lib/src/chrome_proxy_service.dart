@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -119,11 +120,21 @@ class ChromeProxyService implements VmServiceInterface {
       ..kind = EventKind.kResume
       ..isolate = isolateRef;
 
-    for (var library in await _getLibraryNames()) {
+    for (var uri in await _getLibraryUris()) {
+      // The `org-dartlang-app` scheme is used to reference files that are not
+      // under the `lib` directory (and thus can't be referenced using a
+      // `package` scheme).
+      //
+      // We want to make these match the uris in the source map, which are
+      // relative to a top level directory in the package (such as `web` or
+      // `test`), so we strip the scheme and skip the first path segment.
+      var sourceMapUri = uri.scheme == 'org-dartlang-app'
+          ? p.url.joinAll(uri.pathSegments.skip(1))
+          : '$uri';
       isolate.libraries.add(LibraryRef()
-        ..id = library
-        ..name = library
-        ..uri = library);
+        ..id = sourceMapUri
+        ..name = sourceMapUri
+        ..uri = sourceMapUri);
     }
 
     // TODO: Something more robust here, right now we rely on the 2nd to last
@@ -803,13 +814,16 @@ function($argsString) {
   }
 
   /// Runs an eval on the page to compute all the library names in the app.
-  Future<List<String>> _getLibraryNames() async {
+  Future<List<Uri>> _getLibraryUris() async {
     var expression = "require('dart_sdk').dart.getLibraries();";
     var librariesResult = await tabConnection.runtime.sendCommand(
         'Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     _handleErrorIfPresent(librariesResult, evalContents: expression);
-    return List.from(librariesResult.result['result']['value'] as List);
+    return (librariesResult.result['result']['value'] as List)
+        .cast<String>()
+        .map(Uri.parse)
+        .toList();
   }
 
   /// Listens for chrome console events and handles the ones we care about.
