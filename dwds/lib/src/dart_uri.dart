@@ -1,3 +1,7 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:path/path.dart' as p;
 import 'package:vm_service_lib/vm_service_lib.dart';
 
@@ -5,10 +9,13 @@ import 'package:vm_service_lib/vm_service_lib.dart';
 /// different representations.
 // TODO: Support absolute file and http URLs and org-dartlang-app.
 class DartUri {
-  /// Expects a URI of the form /hello_world/main.dart or /packages/...
+  /// Expects a URI of the form /hello_world/main.dart or of the form
+  /// /packages/...
+  ///
+  /// Note that these are web server URIs, and are relative to the directory
+  /// being served (usually either /web or /test) and not to the root of the
+  /// package.
   DartUri.fromSourcemap(String dartFile) {
-    // TODO: What's the exact form of /packages URLS? Do we need to
-    // compensate for the lib directory?
     if (dartFile.startsWith('/packages/')) {
       dartForm = 'package:${dartFile.substring("/packages/".length)}';
     } else {
