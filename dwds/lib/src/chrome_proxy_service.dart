@@ -32,7 +32,7 @@ class ChromeProxyService implements VmServiceInterface {
   final WipConnection tabConnection;
 
   /// A handler for application assets, e.g. Dart sources.
-  final Future<String> Function(String) _assetHandler;
+  final Future<String> Function(String) assetHandler;
 
   /// The isolate for the current tab.
   ///
@@ -52,7 +52,7 @@ class ChromeProxyService implements VmServiceInterface {
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 
   ChromeProxyService._(
-      this._vm, this._tab, this.tabConnection, this._assetHandler);
+      this._vm, this._tab, this.tabConnection, this.assetHandler);
 
   static Future<ChromeProxyService> create(
       ChromeConnection chromeConnection,
@@ -517,13 +517,12 @@ function($argsString) {
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
     var libraryId = scriptRef.uri;
     var scriptPath = libraryId.replaceAll('package:', 'packages/');
-    var script = await _assetHandler(scriptPath);
+    var script = await assetHandler(scriptPath);
     return Script()
       ..library = _libraryRefs[libraryId]
       ..id = scriptRef.id
       ..uri = libraryId
-      // TODO(grouma) - Fill in to enable break points.
-      ..tokenPosTable = []
+      ..tokenPosTable = debugger.tokenPosTableFor(scriptPath)
       ..source = script;
   }
 
