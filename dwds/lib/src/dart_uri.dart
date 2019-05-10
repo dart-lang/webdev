@@ -1,7 +1,4 @@
-import 'package:path/path.dart' as p;
-import 'package:vm_service_lib/vm_service_lib.dart';
-
-// The URI for a particular Dart file, able to canonicalize from various
+/// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
 class DartUri {
   /// Expects a URI of the form /hello_world/main.dart or /packages/...
@@ -15,14 +12,16 @@ class DartUri {
     }
   }
 
-  /// Expects a ScriptRef which provides the absolute URI, plus
-  /// a URI relative to that.
-  DartUri.fromScriptRef(ScriptRef script, String mainUri) {
-    // TODO: Longer term the Uri from the ScriptRef should match the WipScript,
-    // e.g. hello_world/main.dart. In the short term the ScriptRef just gives us
-    // main.dart, so work around it.
-    var relative = script.uri;
-    dartForm = _noLeadingSlash(p.join(mainUri, relative));
+  /// Expects a Dart URI, which will either be package: or app-dartlang-org:
+  DartUri.fromDartScheme(String dartUri) {
+    if (dartUri.startsWith('package:')) {
+      dartForm = dartUri;  // ### Is this right? OR do we want packages/
+    } else if (dartUri.startsWith('app-dartlang-org:')) {
+      // Take the path portion and remove the first segment.
+      dartForm = Uri.parse(dartUri).pathSegments.skip(1).join('/').toString();
+    } else {
+      throw FormatException('Unsupported Uri scheme', dartUri);
+    }
   }
 
   /// Make a path relative by removing the leading slash if present.

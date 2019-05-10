@@ -71,7 +71,7 @@ class Sources {
   /// The source map for a DDC-compiled JS [script].
   Future<String> sourceMap(WipScript script) async {
     var sourceMapUrl = script.sourceMapURL;
-    if (sourceMapUrl == null || !sourceMapUrl.endsWith('.ddc.js')) {
+    if (sourceMapUrl == null || !sourceMapUrl.endsWith('.ddc.js.map')) {
       return null;
     }
     // TODO: Clean up.

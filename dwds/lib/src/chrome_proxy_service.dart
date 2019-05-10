@@ -905,7 +905,37 @@ String _getLibrarySnippet(String libraryUri) => '''
   var sdkUtils = require('dart_sdk').dart;
   var moduleName = sdkUtils.getModuleNames().find(
     (name) => sdkUtils.getModuleLibraries(name)[libraryName]);
-  var library = sdk.getModuleLibraries[libraryName
+  var library = sdkUtils.getModuleLibraries(moduleName)[libraryName];
+  if (!library) throw 'cannot find library for ' + libraryName + ' under ' + moduleName;
+''';
+
+/// Creates a snippet of JS code that initializes a `library` variable that has
+/// the actual library object in DDC for [libraryUri].
+String _getLibrarySnippetX(String libraryUri) => '''
+  var libraryName = '$libraryUri';
+  var sdkUtils = require('dart_sdk').dart;
+  var moduleName = sdkUtils.getModuleNames().find(
+    (name) => sdkUtils.getModuleLibraries(name)[libraryName]); 
+  var ln = libraryName;
+  if(libraryName.startsWith('package:') {
+    ln = libraryName.substring(7);
+    ln = 'packages/' + 'ln';
+    ln = ln.substring(0, ln.length - ".dart".length);
+  }
+
+
+  // need to strip out the trailing `.ddc`.
+  var module = require(moduleName.replace('.ddc', ''));
+  // Strip the 'package:<package_name>` name out of the library name, if this
+  // library is from a package.
+  var startIndex = libraryName.startsWith('package:')
+      ? libraryName.indexOf("/") + 1 : 0;
+  var libraryIdentifier = libraryName
+    .substring(
+      startIndex,
+      libraryName.length - ".dart".length)
+    .replace(/\\//gi, "__");
+  var library = module[libraryIdentifier];
 ''';
 
 class ChromeDebugException extends ExceptionDetails implements Exception {
