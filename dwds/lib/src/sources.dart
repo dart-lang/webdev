@@ -9,19 +9,21 @@ import 'dart_uri.dart';
 
 /// Keeps track of the scripts (both Dart and JS) and their source maps.
 class Sources {
+  Sources(this.mainProxy);
+
   ChromeProxyService mainProxy;
 
   WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
 
-  /// Map from canonical Dart URL) to the JS script that is built from that 
+  /// Map from canonical Dart URL) to the JS script that is built from that
   /// Dart code.
-  /// 
+  ///
   /// The Dart URLs are relative, see [DartUri].
   Map<String, WipScript> jsScripts = {};
 
   /// Map from both Dart and JS URLs to the sourcemap used
   /// for them.
-  /// 
+  ///
   /// Note that the keys are either Dart or JS. The JS URIs are absolute.
   // TODO: Having two different sorts of URIs is messy, clean this up.
   Map<String, source_maps.SingleMapping> sourcemaps = {};
@@ -66,14 +68,16 @@ class Sources {
     return completer.future;
   }
 
-  /// The source map for a JS [script].
+  /// The source map for a DDC-compiled JS [script].
   Future<String> sourceMap(WipScript script) async {
     var sourceMapUrl = script.sourceMapURL;
-    if (sourceMapUrl == null || sourceMapUrl.isEmpty) {
+    if (sourceMapUrl == null || !sourceMapUrl.endsWith('.ddc.js')) {
       return null;
     }
-    var absolute = p.join(p.dirname(script.url), sourceMapUrl);
-    var sourceMapContents = await mainProxy.assetHandler(absolute);
+    // TODO: Clean up.
+    var fullPath = p.join(p.dirname(Uri.parse(script.url).path), sourceMapUrl);
+    fullPath = fullPath.substring(1); // Remove leading /
+    var sourceMapContents = await mainProxy.assetHandler(fullPath);
     return sourceMapContents;
   }
 }

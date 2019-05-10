@@ -18,7 +18,7 @@ class Debugger {
   WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
 
   /// Manages our sources, both JS and Dart.
-  Sources sources = Sources();
+  Sources sources; 
 
   /// Mapping from Dart script IDs to their ScriptRefs.
   Map<String, ScriptRef> _scriptRefs;
@@ -26,6 +26,7 @@ class Debugger {
   BreakpointMapping breakpoints = BreakpointMapping();
 
   Future<Null> initialize() async {
+    sources = Sources(mainProxy);
     chromeDebugger.onScriptParsed.listen(sources.scriptParsed);
     await chromeDebugger.enable();
   }

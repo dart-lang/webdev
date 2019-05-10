@@ -46,7 +46,7 @@ void main() {
     test('load sourcemaps', () async {
             // TODO: Reloading causes other tests to fail. Investigate.
    //   await reload();
-      expect(service.debugger.sourcemaps.sourcemaps['hello_world/main.dart'], isNotNull);
+      expect(service.debugger.sources.sourcemaps['hello_world/main.dart'], isNotNull);
     });
 
     test('addBreakPoint', () async {
