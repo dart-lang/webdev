@@ -18,6 +18,7 @@ dependencies:
   dwds: ^0.3.0
   devtools: ^0.0.15-dev.1
   http: ^0.12.0
+  http_multi_server: ^2.0.0
   io: ^0.3.2+1
   logging: ^0.11.0
   pedantic: ^1.5.0
