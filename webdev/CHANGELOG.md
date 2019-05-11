@@ -1,3 +1,7 @@
+## 2.0.5
+
+- Use `HttpMultiServer` to fix bind issues with IPv6 / IPv4.
+
 ## 2.0.4
 
 - Fix loading apps in non-chrome browsers in --debug mode
