@@ -1,11 +1,10 @@
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
 class DartUri {
-
   /// Accepts various forms of URI and can convert between forms.
   ///
   /// The accepted forms are:
-  /// 
+  ///
   ///  - package:packageName/pathUnderLib
   ///  - org-dartlang-app:///prefix/possibleAppPrefix/path/foo.dart, where
   ///    prefix is ignored
@@ -22,7 +21,7 @@ class DartUri {
 
   /// Construct from a package: URI
   DartUri._fromPackageUri(String uri) {
-    serverUri = '/packages/${uri.substring("package:".length)}';  
+    serverUri = '/packages/${uri.substring("package:".length)}';
   }
 
   /// Construct from an org-dartlang-app: URI.
