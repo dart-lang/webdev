@@ -48,7 +48,7 @@ class Sources {
       // either way. But it's messy.
       sourcemaps[script.url] = mapping;
       for (var dartUrl in mapping.urls) {
-        var canonical = DartUri.fromSourcemap(dartUrl).uri;
+        var canonical = DartUri(dartUrl).serverUri;
         jsScripts[canonical] = script;
         sourcemaps[canonical] = mapping;
         sourceMapLoadedController.add(canonical);

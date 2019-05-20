@@ -1,40 +1,48 @@
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
 class DartUri {
-  /// Expects a URI of the form /hello_world/main.dart or /packages/...
-  DartUri.fromSourcemap(String dartFile) {
-  // TODO: What's the exact form of /packages URLS? Do we need to 
-  // compensate for the lib directory?
-    if (dartFile.startsWith('/packages/')) {
-      dartForm = 'package:${dartFile.substring("/packages/".length)}';
-    } else {
-      dartForm = _noLeadingSlash(dartFile);
-    }
+
+  /// Accepts various forms of URI and can convert between forms.
+  ///
+  /// The accepted forms are:
+  /// 
+  ///  - package:packageName/pathUnderLib
+  ///  - org-dartlang-app:///prefix/possibleAppPrefix/path/foo.dart, where
+  ///    prefix is ignored
+  ///  - /packages/packageName/foo.dart, e.g. package:path/src/utils.dart
+  ///  - /possibleAppPrefix/path/foo.dart, where path is under /web. e.g.
+  ///    hello_world/main.dart
+  factory DartUri(String uri) {
+    if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
+    if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
+    if (uri.startsWith('/packages/')) return DartUri._fromPackagesPath(uri);
+    if (uri.startsWith('/')) return DartUri._fromPath(uri);
+    throw FormatException('Unsupported URI form', uri);
   }
 
-  /// Expects a Dart URI, which will either be package: or app-dartlang-org:
-  DartUri.fromDartScheme(String dartUri) {
-    if (dartUri.startsWith('package:')) {
-      dartForm = dartUri;  // ### Is this right? OR do we want packages/
-    } else if (dartUri.startsWith('app-dartlang-org:')) {
-      // Take the path portion and remove the first segment.
-      dartForm = Uri.parse(dartUri).pathSegments.skip(1).join('/').toString();
-    } else {
-      throw FormatException('Unsupported Uri scheme', dartUri);
-    }
+  /// Construct from a package: URI
+  DartUri._fromPackageUri(String uri) {
+    serverUri = '/packages/${uri.substring("package:".length)}';  
   }
 
-  /// Make a path relative by removing the leading slash if present.
-  String _noLeadingSlash(String s) => s[0] == '/' ? s.substring(1) : s;
+  /// Construct from an org-dartlang-app: URI.
+  DartUri._fromAppUri(String uri) {
+    // We ignore the first segment of the path.
+    serverUri = Uri.parse(uri).pathSegments.skip(1).join('/').toString();
+  }
 
-  String get uri => dartForm;
+  /// Construct from a path of the form /packages/packageName/foo.dart
+  DartUri._fromPackagesPath(this.serverUri);
 
-  /// The canonical Dart form of the URI.
+  /// Construct from an ordinary path, expected to be under /web.
+  DartUri._fromPath(String uri) {
+    serverUri = uri[0] == '/' ? uri.substring(1) : uri;
+  }
+
+  /// The canonical web server form of the URI.
   ///
   /// This is a relative URI, which can be used to fetch the corresponding file
-  /// from the server. For example, 'hello_world/main.dart'
-  String dartForm;
-
-  @override
-  String toString() => dartForm;
+  /// from the server. For example, 'hello_world/main.dart' or
+  /// '/packages/path/src/utils.dart'.
+  String serverUri;
 }

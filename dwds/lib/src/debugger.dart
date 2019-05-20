@@ -55,8 +55,8 @@ class Debugger {
       isolate = await mainProxy.getIsolate(isolateId) as Isolate;
 
     var dartScript = await _scriptWithId(isolateId, scriptId);
-    var dartUri = DartUri.fromScriptRef(dartScript, mainProxy.uriPath);
-    var jsScript = sources.jsScripts[dartUri.uri];
+    var dartUri = DartUri(dartScript.uri);
+    var jsScript = sources.jsScripts[dartUri.serverUri];
     var location = locationFor(dartUri, line);
 
     var jsBreakpointId = await _setBreakpoint(jsScript, location);
@@ -94,7 +94,7 @@ class Debugger {
 
   /// Find the [Location] for the given Dart source position.
   Location locationFor(DartUri uri, int line) {
-    var sourcemap = sources.sourcemaps[uri.uri];
+    var sourcemap = sources.sourcemaps[uri.serverUri];
     for (var lineEntry in sourcemap.lines) {
       for (var entry in lineEntry.entries) {
         var index = entry.sourceUrlId;
@@ -107,7 +107,7 @@ class Debugger {
           var jsLine = lineEntry.line;
           var jsColumn = entry.column;
           var basicDartUrl = sourcemap.urls[entry.sourceUrlId];
-          var dartUrl = DartUri.fromSourcemap(basicDartUrl).uri;
+          var dartUrl = DartUri(basicDartUrl).serverUri;
           var jsScriptId = sources.jsScripts[dartUrl].scriptId;
           return Location(jsScriptId, jsLine + 1, jsColumn + 1, dartUrl,
               dartLine, dartColumn, 0);

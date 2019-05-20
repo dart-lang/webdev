@@ -49,7 +49,7 @@ void main() {
       expect(service.debugger.sources.sourcemaps['hello_world/main.dart'], isNotNull);
     });
 
-    test('addBreakPoint', () async {
+    test('addBreakpoint', () async {
       //  ### separately test - setting breakpoint and the JS/dart position is right.
       // Returning the SourceLocation (i.e. token position).
       // Move these tests to a separate test file? Or does that help?
