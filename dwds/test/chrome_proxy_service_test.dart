@@ -44,7 +44,8 @@ void main() {
     });
 
     test('load sourcemaps', () async {
-      expect(service.debugger.sources.sourcemapForDart('hello_world/main.dart'), isNotNull);
+      expect(service.debugger.sources.sourcemapForDart('hello_world/main.dart'),
+          isNotNull);
     });
 
     test('addBreakpoint', () async {
@@ -59,7 +60,6 @@ void main() {
       expect(() => service.addBreakpointAtEntry(null, null),
           throwsUnimplementedError);
     });
-    
     test('addBreakpointWithScriptUri', () {
       expect(() => service.addBreakpointWithScriptUri(null, null, null),
           throwsUnimplementedError);

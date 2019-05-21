@@ -64,7 +64,7 @@ class ChromeProxyService implements VmServiceInterface {
       var tabConnection = await tab.connect();
       var result = await tabConnection.runtime
           .evaluate(r'window["$dartAppInstanceId"];');
-     if (result.value == appInstanceId) {
+      if (result.value == appInstanceId) {
         appTab = tab;
         break;
       }
@@ -189,7 +189,7 @@ class ChromeProxyService implements VmServiceInterface {
     _consoleSubscription.cancel();
     _consoleSubscription = null;
   }
-  
+
   @override
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
@@ -485,6 +485,7 @@ function($argsString) {
       ..scripts = [scriptRef]
       ..variables = [];
   }
+
   Future<Library> _getLibrary(String isolateId, String objectId) async {
     if (isolateId != _isolate?.id) return null;
     var libraryRef = _libraryRefs[objectId];
@@ -544,7 +545,7 @@ function($argsString) {
     }
     // TODO(alanknight): Is this the same as the values in _scriptRefs after
     // constructing all the libraries? Make that clearer.
-    return scripts; 
+    return scripts;
   }
 
   @override
@@ -761,7 +762,7 @@ function($argsString) {
   /// the `Debug` stream events for the vm service protocol.
   ///
   // TODO: Implement the rest https://github.com/dart-lang/webdev/issues/166
- StreamController<Event> _debugStreamController() {
+  StreamController<Event> _debugStreamController() {
     StreamSubscription pauseSubscription;
     StreamSubscription resumeSubscription;
     return StreamController<Event>.broadcast(onListen: () {
