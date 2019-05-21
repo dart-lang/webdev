@@ -11,22 +11,32 @@ import 'dart_uri.dart';
 class Sources {
   Sources(this.mainProxy);
 
+  /// The main service proxy that this is associated with.
   ChromeProxyService mainProxy;
 
+  /// The Chrome debugger connection.
   WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
 
-  /// Map from canonical Dart URL) to the JS script that is built from that
-  /// Dart code.
-  ///
-  /// The Dart URLs are relative, see [DartUri].
+  /// Map from the server URI for Dart scripts to the JS script that is built
+  /// from that Dart code. See [DartUri] for details on the URIs.
   Map<String, WipScript> jsScripts = {};
 
-  /// Map from both Dart and JS URLs to the sourcemap used
-  /// for them.
+  /// Map from both Dart relative serer URIs to their sourcemap.
   ///
-  /// Note that the keys are either Dart or JS. The JS URIs are absolute.
-  // TODO: Having two different sorts of URIs is messy, clean this up.
-  Map<String, source_maps.SingleMapping> sourcemaps = {};
+  /// See [DartUri] for more details on URI format.
+  final Map<String, source_maps.SingleMapping> _dartSourcemaps = {};
+
+  /// Map from JS absolute server URLs to the sourcemap used
+  /// for them.
+  final Map<String, source_maps.SingleMapping> _jsSourcemaps = {};
+
+  /// Find the source map for a Dart file identified by its (relative) server
+  /// URI.
+  source_maps.SingleMapping sourcemapForDart(String uri) =>
+      _dartSourcemaps[uri];
+
+  /// Find the source map for a JS file identified by its absolute server URI.
+  source_maps.SingleMapping sourcemapForJs(String uri) => _jsSourcemaps[uri];
 
   /// Controller for a stream of events when a source map is loaded.
   StreamController<String> sourceMapLoadedController =
@@ -44,13 +54,11 @@ class Sources {
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = source_maps.parse(sourceMapContents);
     if (mapping is source_maps.SingleMapping) {
-      // We're indexing them by both JS and Dart URI, so we can look them up
-      // either way. But it's messy.
-      sourcemaps[script.url] = mapping;
+      _jsSourcemaps[script.url] = mapping;
       for (var dartUrl in mapping.urls) {
         var canonical = DartUri(dartUrl).serverUri;
         jsScripts[canonical] = script;
-        sourcemaps[canonical] = mapping;
+        _dartSourcemaps[canonical] = mapping;
         sourceMapLoadedController.add(canonical);
       }
     }

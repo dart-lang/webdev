@@ -21,12 +21,15 @@ class DartUri {
 
   /// Construct from a package: URI
   DartUri._fromPackageUri(String uri) {
-    serverUri = '/packages/${uri.substring("package:".length)}';
+    serverUri = 'packages/${uri.substring("package:".length)}';
   }
 
   /// Construct from an org-dartlang-app: URI.
   DartUri._fromAppUri(String uri) {
-    // We ignore the first segment of the path.
+    // We ignore the first segment of the path, which is the root
+    // from which we're serving.
+    // TODO: To be able to convert to an org-dartlang-app: URI we will
+    // need to know the root - possibly keep it as a static?
     serverUri = Uri.parse(uri).pathSegments.skip(1).join('/').toString();
   }
 
@@ -42,6 +45,6 @@ class DartUri {
   ///
   /// This is a relative URI, which can be used to fetch the corresponding file
   /// from the server. For example, 'hello_world/main.dart' or
-  /// '/packages/path/src/utils.dart'.
+  /// 'packages/path/src/utils.dart'.
   String serverUri;
 }

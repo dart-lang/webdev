@@ -44,22 +44,14 @@ void main() {
     });
 
     test('load sourcemaps', () async {
-            // TODO: Reloading causes other tests to fail. Investigate.
-   //   await reload();
-      expect(service.debugger.sources.sourcemaps['hello_world/main.dart'], isNotNull);
+      expect(service.debugger.sources.sourcemapForDart('hello_world/main.dart'), isNotNull);
     });
 
     test('addBreakpoint', () async {
-      //  ### separately test - setting breakpoint and the JS/dart position is right.
-      // Returning the SourceLocation (i.e. token position).
-      // Move these tests to a separate test file? Or does that help?
-      //
-   //   await reload();
+      // TODO: Much more testing.
       var bp = await service.addBreakpoint(isolate.id, mainScript.id, 20);
       var breakpoints = isolate.breakpoints;
       breakpoints = [bp];
-      print(breakpoints.first.location);
-      // expect(breakpoints, isNotEmpty);
       expect(breakpoints.any((b) => b.location.tokenPos == 42), isNotNull);
     });
 

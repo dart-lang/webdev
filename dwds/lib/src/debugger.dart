@@ -23,6 +23,8 @@ class Debugger {
   /// Mapping from Dart script IDs to their ScriptRefs.
   Map<String, ScriptRef> _scriptRefs;
 
+  /// The breakpoints we have set so far, indexable by either 
+  /// Dart or JS ID.
   BreakpointMapping breakpoints = BreakpointMapping();
 
   Future<Null> initialize() async {
@@ -31,7 +33,7 @@ class Debugger {
     await chromeDebugger.enable();
   }
 
-  /// Look up the script with a particular ID in the given isolate.
+  /// Look up the script by it's id in an isolate.
   Future<ScriptRef> _scriptWithId(String isolateId, String scriptId) async {
     // TODO: Reduce duplication with _scriptRefs in mainProxy.
     if (_scriptRefs == null) {
@@ -67,8 +69,6 @@ class Debugger {
         ..tokenPos = location.dartTokenPos
         ..endTokenPos = location.dartTokenPos);
     breakpoints.noteBreakpoint(js: jsBreakpointId, dart: breakpoint.id);
-    // _jsBreakpointIdToDartId[jsBreakpointId] = breakpoint.id;
-    // _dartBreakpointIdToJsId[breakpoint.id] = jsBreakpointId;
 
     mainProxy.streamNotify(
         'Debug',
@@ -94,7 +94,7 @@ class Debugger {
 
   /// Find the [Location] for the given Dart source position.
   Location locationFor(DartUri uri, int line) {
-    var sourcemap = sources.sourcemaps[uri.serverUri];
+    var sourcemap = sources.sourcemapForDart(uri.serverUri);
     for (var lineEntry in sourcemap.lines) {
       for (var entry in lineEntry.entries) {
         var index = entry.sourceUrlId;
@@ -109,6 +109,7 @@ class Debugger {
           var basicDartUrl = sourcemap.urls[entry.sourceUrlId];
           var dartUrl = DartUri(basicDartUrl).serverUri;
           var jsScriptId = sources.jsScripts[dartUrl].scriptId;
+          // TODO: Don't hard-code Dart token position to 0.
           return Location(jsScriptId, jsLine + 1, jsColumn + 1, dartUrl,
               dartLine, dartColumn, 0);
         }
@@ -140,15 +141,15 @@ class BreakpointMapping {
 ///
 /// Note that line and column numbers here are always 1-based. The  Dart VM
 /// Service protocol line/column numbers are one-based, but in JS source maps and
-/// the Chrome protocol are zero-based, so they will require translation.
+/// the Chrome protocol are zero-based, so they require translation. 
 class Location {
-  Location(this.jsScriptId, this.jsLine, this.jsColumn, this.dartUrl,
+  Location(this.jsScriptId, this.jsLine, this.jsColumn, this.dartUri,
       this.dartLine, this.dartColumn, this.dartTokenPos);
 
   final String jsScriptId;
   final int jsLine;
   final int jsColumn;
-  final String dartUrl;
+  final String dartUri;
   final int dartLine;
   final int dartColumn;
   final int dartTokenPos;

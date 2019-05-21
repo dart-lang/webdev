@@ -97,9 +97,6 @@ class ChromeProxyService implements VmServiceInterface {
   /// The root URI at which we're serving.
   String get uri => _tab.url;
 
-  /// The path portion of the root uri.
-  String get uriPath => Uri.parse(uri).path; 
-
   /// Creates a new [_isolate].
   ///
   /// Only one isolate at a time is supported, but they should be cleaned up
@@ -764,8 +761,7 @@ function($argsString) {
   /// the `Debug` stream events for the vm service protocol.
   ///
   // TODO: Implement the rest https://github.com/dart-lang/webdev/issues/166
-  // #### PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
-  StreamController<Event> _debugStreamController() {
+ StreamController<Event> _debugStreamController() {
     StreamSubscription pauseSubscription;
     StreamSubscription resumeSubscription;
     return StreamController<Event>.broadcast(onListen: () {
@@ -900,6 +896,14 @@ void handleErrorIfPresent(WipResponse response,
 
 /// Creates a snippet of JS code that initializes a `library` variable that has
 /// the actual library object in DDC for [libraryUri].
+///
+/// In DDC we have module libraries indexed by names of the form
+/// 'packages/package/mainFile' with no .dart suffix on the file, or
+/// 'directory/packageName/mainFile', also with no .dart suffix, and relative to
+/// the serving root, normally /web within the package. These modules have a map
+/// from the URI with a Dart-specific scheme (package: or org-dartlang-app:) to
+/// the library objects. The [libraryUri] parameter should be one of these
+/// Dart-specific scheme URIs, and we set `library` the corresponding library.
 String _getLibrarySnippet(String libraryUri) => '''
   var libraryName = '$libraryUri';
   var sdkUtils = require('dart_sdk').dart;
@@ -907,35 +911,6 @@ String _getLibrarySnippet(String libraryUri) => '''
     (name) => sdkUtils.getModuleLibraries(name)[libraryName]);
   var library = sdkUtils.getModuleLibraries(moduleName)[libraryName];
   if (!library) throw 'cannot find library for ' + libraryName + ' under ' + moduleName;
-''';
-
-/// Creates a snippet of JS code that initializes a `library` variable that has
-/// the actual library object in DDC for [libraryUri].
-String _getLibrarySnippetX(String libraryUri) => '''
-  var libraryName = '$libraryUri';
-  var sdkUtils = require('dart_sdk').dart;
-  var moduleName = sdkUtils.getModuleNames().find(
-    (name) => sdkUtils.getModuleLibraries(name)[libraryName]); 
-  var ln = libraryName;
-  if(libraryName.startsWith('package:') {
-    ln = libraryName.substring(7);
-    ln = 'packages/' + 'ln';
-    ln = ln.substring(0, ln.length - ".dart".length);
-  }
-
-
-  // need to strip out the trailing `.ddc`.
-  var module = require(moduleName.replace('.ddc', ''));
-  // Strip the 'package:<package_name>` name out of the library name, if this
-  // library is from a package.
-  var startIndex = libraryName.startsWith('package:')
-      ? libraryName.indexOf("/") + 1 : 0;
-  var libraryIdentifier = libraryName
-    .substring(
-      startIndex,
-      libraryName.length - ".dart".length)
-    .replace(/\\//gi, "__");
-  var library = module[libraryIdentifier];
 ''';
 
 class ChromeDebugException extends ExceptionDetails implements Exception {
