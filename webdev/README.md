@@ -30,7 +30,7 @@ functionality.*
 ```console
 $ pub global activate webdev
 # or
-$ flutter packages pub global activate webdev
+$ flutter pub global activate webdev
 ```
 
 Learn more about activating and using packages [here][pub global].
