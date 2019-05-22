@@ -7,7 +7,7 @@ description: >-
   features for users and tools to build and deploy web applications with Dart.
 
 environment:
-  sdk: ">=2.2.1-dev.2.0 <3.0.0"
+  sdk: ">=2.3.0 <3.0.0"
 
 dependencies:
   args: ^1.5.0
@@ -16,7 +16,7 @@ dependencies:
   built_value: ^6.3.0
   crypto: ^2.0.6
   dwds: ^0.3.0
-  devtools: ^0.0.15-dev.1
+  devtools: ^0.1.0
   http: ^0.12.0
   http_multi_server: ^2.0.0
   io: ^0.3.2+1
@@ -31,7 +31,7 @@ dependencies:
   shelf_static: ^0.2.8
   stack_trace: ^1.9.2
   sse: ^2.0.0
-  vm_service_lib: ^3.14.2
+  vm_service_lib: ^3.15.1+2
   webkit_inspection_protocol: ^0.4.0
   yaml: ^2.1.13
 
