@@ -6,12 +6,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:http_multi_server/http_multi_server.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_static/shelf_static.dart';
-
-import '../utils.dart';
 
 /// A server for Dart Devtools.
 class DevTools {
@@ -50,7 +49,10 @@ class DevTools {
           : buildHandler(request);
     };
 
-    var server = await serve(handler, hostname, await findUnusedPort());
+    var server = hostname == 'localhost'
+        ? await HttpMultiServer.loopback(0)
+        : await HttpServer.bind(hostname, 0);
+    serveRequests(server, handler);
 
     return DevTools._(server.address.host, server.port, server);
   }

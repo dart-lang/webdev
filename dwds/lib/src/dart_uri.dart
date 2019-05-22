@@ -17,8 +17,8 @@ class DartUri {
   ///  - /path/foo.dart, e.g. hello_world/web/main.dart, where path is a web
   ///    server path and so relative to the directory being served, not to the
   ///    package.
-  /// 
-  /// Note that there was a bug where older SDKs might provide 
+  ///
+  /// Note that there was a bug where older SDKs might provide
   factory DartUri(String uri) {
     if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
     if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
