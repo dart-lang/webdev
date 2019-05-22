@@ -1,5 +1,5 @@
 name: dwds
-version: 0.3.2
+version: 0.3.3
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev/tree/master/dwds
 description: >-
@@ -7,7 +7,7 @@ description: >-
   service protocol.
 
 environment:
-  sdk: ">=2.3.0 <3.0.0"
+  sdk: ">=2.3.0-dev.0.5 <3.0.0"
 
 dependencies:
   http: ^0.12.0
