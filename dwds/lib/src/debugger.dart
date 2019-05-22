@@ -23,7 +23,7 @@ class TokenPos {
 class Debugger {
   Debugger(this.mainProxy);
 
-  var _sourceToTokens = <String, Set<TokenPos>>{};
+  final _sourceToTokens = <String, Set<TokenPos>>{};
 
   ChromeProxyService mainProxy;
 
@@ -72,7 +72,6 @@ class Debugger {
       }
       tokenPosTable.add(tokenPos);
     }
-    print(tokenPosTable);
     return tokenPosTable;
   }
 
