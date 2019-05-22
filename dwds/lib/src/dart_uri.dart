@@ -1,3 +1,7 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
 class DartUri {
@@ -5,12 +9,16 @@ class DartUri {
   ///
   /// The accepted forms are:
   ///
-  ///  - package:packageName/pathUnderLib
-  ///  - org-dartlang-app:///prefix/possibleAppPrefix/path/foo.dart, where
-  ///    prefix is ignored
-  ///  - /packages/packageName/foo.dart, e.g. package:path/src/utils.dart
-  ///  - /possibleAppPrefix/path/foo.dart, where path is under /web. e.g.
-  ///    hello_world/main.dart
+  ///  - package:packageName/pathUnderLib/file.dart
+  ///  - org-dartlang-app:///prefix/path/file.dart, where prefix is ignored.
+  ///    e.g. org-dartlang-app:example/hello_world/main.dart,
+  ///  - /packages/packageName/foo.dart, the web server form of a package URI,
+  ///    e.g. /packages/path/src/utils.dart
+  ///  - /path/foo.dart, e.g. hello_world/web/main.dart, where path is a web
+  ///    server path and so relative to the directory being served, not to the
+  ///    package.
+  /// 
+  /// Note that there was a bug where older SDKs might provide 
   factory DartUri(String uri) {
     if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
     if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
@@ -36,7 +44,7 @@ class DartUri {
   /// Construct from a path of the form /packages/packageName/foo.dart
   DartUri._fromPackagesPath(this.serverUri);
 
-  /// Construct from an ordinary path, expected to be under /web.
+  /// Construct from an ordinary path, relative to the directory being served.
   DartUri._fromPath(String uri) {
     serverUri = uri[0] == '/' ? uri.substring(1) : uri;
   }
