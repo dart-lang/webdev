@@ -2,48 +2,57 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:path/path.dart' as p;
-import 'package:vm_service_lib/vm_service_lib.dart';
-
-// The URI for a particular Dart file, able to canonicalize from various
+/// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
-// TODO: Support absolute file and http URLs and org-dartlang-app.
 class DartUri {
-  /// Expects a URI of the form /hello_world/main.dart or of the form
-  /// /packages/...
+  /// Accepts various forms of URI and can convert between forms.
   ///
-  /// Note that these are web server URIs, and are relative to the directory
-  /// being served (usually either /web or /test) and not to the root of the
-  /// package.
-  DartUri.fromSourcemap(String dartFile) {
-    if (dartFile.startsWith('/packages/')) {
-      dartForm = 'package:${dartFile.substring("/packages/".length)}';
-    } else {
-      dartForm = _noLeadingSlash(dartFile);
-    }
+  /// The accepted forms are:
+  ///
+  ///  - package:packageName/pathUnderLib/file.dart
+  ///  - org-dartlang-app:///prefix/path/file.dart, where prefix is ignored.
+  ///    e.g. org-dartlang-app:example/hello_world/main.dart,
+  ///  - /packages/packageName/foo.dart, the web server form of a package URI,
+  ///    e.g. /packages/path/src/utils.dart
+  ///  - /path/foo.dart, e.g. hello_world/web/main.dart, where path is a web
+  ///    server path and so relative to the directory being served, not to the
+  ///    package.
+  /// 
+  /// Note that there was a bug where older SDKs might provide 
+  factory DartUri(String uri) {
+    if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
+    if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
+    if (uri.startsWith('/packages/')) return DartUri._fromPackagesPath(uri);
+    if (uri.startsWith('/')) return DartUri._fromPath(uri);
+    throw FormatException('Unsupported URI form', uri);
   }
 
-  /// Expects a ScriptRef which provides the absolute URI, plus
-  /// a URI relative to that.
-  DartUri.fromScriptRef(ScriptRef script, String mainUri) {
-    // TODO: Longer term the Uri from the ScriptRef should match the WipScript,
-    // e.g. hello_world/main.dart. In the short term the ScriptRef just gives us
-    // main.dart, so work around it.
-    var relative = script.uri;
-    dartForm = _noLeadingSlash(p.join(mainUri, relative));
+  /// Construct from a package: URI
+  DartUri._fromPackageUri(String uri) {
+    serverUri = 'packages/${uri.substring("package:".length)}';
   }
 
-  /// Make a path relative by removing the leading slash if present.
-  String _noLeadingSlash(String s) => s[0] == '/' ? s.substring(1) : s;
+  /// Construct from an org-dartlang-app: URI.
+  DartUri._fromAppUri(String uri) {
+    // We ignore the first segment of the path, which is the root
+    // from which we're serving.
+    // TODO: To be able to convert to an org-dartlang-app: URI we will
+    // need to know the root - possibly keep it as a static?
+    serverUri = Uri.parse(uri).pathSegments.skip(1).join('/').toString();
+  }
 
-  String get uri => dartForm;
+  /// Construct from a path of the form /packages/packageName/foo.dart
+  DartUri._fromPackagesPath(this.serverUri);
 
-  /// The canonical Dart form of the URI.
+  /// Construct from an ordinary path, relative to the directory being served.
+  DartUri._fromPath(String uri) {
+    serverUri = uri[0] == '/' ? uri.substring(1) : uri;
+  }
+
+  /// The canonical web server form of the URI.
   ///
   /// This is a relative URI, which can be used to fetch the corresponding file
-  /// from the server. For example, 'hello_world/main.dart'
-  String dartForm;
-
-  @override
-  String toString() => dartForm;
+  /// from the server. For example, 'hello_world/main.dart' or
+  /// 'packages/path/src/utils.dart'.
+  String serverUri;
 }
