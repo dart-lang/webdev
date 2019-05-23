@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/chrome_proxy_service.dart';
+import 'package:dwds/src/dart_uri.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
@@ -312,8 +313,9 @@ void main() {
       for (var scriptRef in scripts.scripts) {
         var script =
             await service.getObject(isolate.id, scriptRef.id) as Script;
-        var result = await http.get('http://localhost:${context.port}/'
-            '${script.uri.replaceAll("package:", "packages/")}');
+        var scriptPath = DartUri(script.uri).serverPath;
+        var result =
+            await http.get('http://localhost:${context.port}/$scriptPath');
         expect(script.source, result.body);
         expect(scriptRef.uri, endsWith('.dart'));
       }

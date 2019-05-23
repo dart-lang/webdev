@@ -16,7 +16,7 @@ class Sources {
   Sources(this.mainProxy);
 
   /// The main service proxy that this is associated with.
-  ChromeProxyService mainProxy;
+  final ChromeProxyService mainProxy;
 
   /// The Chrome debugger connection.
   WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
@@ -25,16 +25,16 @@ class Sources {
   /// from that Dart code.
   ///
   /// See [DartUri] for details on the URIs.
-  Map<String, WipScript> jsScripts = {};
+  final jsScripts = <String, WipScript>{};
 
   /// Map from both Dart relative server URIs to their sourcemap.
   ///
   /// See [DartUri] for more details on URI format.
-  final Map<String, SingleMapping> _dartSourcemaps = {};
+  final _dartSourcemaps = <String, SingleMapping>{};
 
   /// Map from JS absolute server URLs to the sourcemap used
   /// for them.
-  final Map<String, SingleMapping> _jsSourcemaps = {};
+  final _jsSourcemaps = <String, SingleMapping>{};
 
   /// Find the source map for a Dart file identified by its (relative) server
   /// URI.
@@ -61,7 +61,7 @@ class Sources {
     if (mapping is SingleMapping) {
       _jsSourcemaps[script.url] = mapping;
       for (var dartUrl in mapping.urls) {
-        var canonical = DartUri(dartUrl).serverUri;
+        var canonical = DartUri(dartUrl).serverPath;
         jsScripts[canonical] = script;
         _dartSourcemaps[canonical] = mapping;
         _sourceMapLoadedController.add(canonical);
@@ -71,15 +71,8 @@ class Sources {
 
   /// Return a Future that completes once the source map for [url] has been
   /// loaded.
-  Future<String> waitForSourceMap(String url) {
-    var completer = Completer<String>();
-    StreamSubscription listener;
-    listener = sourceMapLoaded.listen((loadedUrl) {
-      if (url == loadedUrl) completer.complete(url);
-      listener.cancel();
-    });
-    return completer.future;
-  }
+  Future<String> waitForSourceMap(String url) =>
+      sourceMapLoaded.firstWhere((loadedUrl) => url == loadedUrl);
 
   /// The source map for a DDC-compiled JS [script].
   Future<String> sourceMap(WipScript script) {
@@ -87,7 +80,7 @@ class Sources {
     if (sourceMapUrl == null || !sourceMapUrl.endsWith('.ddc.js.map')) {
       return null;
     }
-    var scriptPath = DartUri(script.url).serverUri;
+    var scriptPath = DartUri(script.url).serverPath;
     var sourcemapPath = p.join(p.dirname(scriptPath), sourceMapUrl);
     return mainProxy.assetHandler(sourcemapPath);
   }

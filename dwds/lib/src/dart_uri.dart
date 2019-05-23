@@ -5,12 +5,12 @@
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
 class DartUri {
-  /// The canonical web server form of the URI.
+  /// The canonical web server path part of the URI.
   ///
-  /// This is a relative URI, which can be used to fetch the corresponding file
+  /// This is a relative path, which can be used to fetch the corresponding file
   /// from the server. For example, 'hello_world/main.dart' or
   /// 'packages/path/src/utils.dart'.
-  final String serverUri;
+  final String serverPath;
 
   /// Accepts various forms of URI and can convert between forms.
   ///
@@ -27,8 +27,8 @@ class DartUri {
   factory DartUri(String uri) {
     if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
     if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
-    if (uri.startsWith('/packages/')) return DartUri._fromServePath(uri);
-    if (uri.startsWith('/')) return DartUri._fromServePath(uri);
+    if (uri.startsWith('/packages/')) return DartUri._fromServerPath(uri);
+    if (uri.startsWith('/')) return DartUri._fromServerPath(uri);
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
       return DartUri(Uri.parse(uri).path);
     }
@@ -37,7 +37,7 @@ class DartUri {
 
   /// Construct from a package: URI
   factory DartUri._fromPackageUri(String uri) {
-    return DartUri._internal('packages/${uri.substring("package:".length)}');
+    return DartUri._('packages/${uri.substring("package:".length)}');
   }
 
   /// Construct from an org-dartlang-app: URI.
@@ -46,14 +46,13 @@ class DartUri {
     // from which we're serving.
     // TODO: To be able to convert to an org-dartlang-app: URI we will
     // need to know the root - possibly keep it as a static?
-    return DartUri._internal(
-        Uri.parse(uri).pathSegments.skip(1).join('/').toString());
+    return DartUri._(Uri.parse(uri).pathSegments.skip(1).join('/').toString());
   }
 
-  DartUri._internal(this.serverUri);
+  DartUri._(this.serverPath);
 
   /// Construct from a path, relative to the directory being served.
-  factory DartUri._fromServePath(String uri) {
-    return DartUri._internal(uri[0] == '/' ? uri.substring(1) : uri);
+  factory DartUri._fromServerPath(String uri) {
+    return DartUri._(uri[0] == '/' ? uri.substring(1) : uri);
   }
 }

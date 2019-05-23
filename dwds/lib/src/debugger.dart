@@ -15,7 +15,7 @@ class Debugger {
   Debugger(this.mainProxy);
 
   /// The main service proxy that this is associated with.
-  ChromeProxyService mainProxy;
+  final ChromeProxyService mainProxy;
 
   /// The underlying connection to Chrome.
   WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
@@ -56,12 +56,13 @@ class Debugger {
       {int column}) async {
     Isolate isolate;
     // Validate the isolate id is correct, _getIsolate throws if not.
-    if (isolateId != null)
+    if (isolateId != null) {
       isolate = await mainProxy.getIsolate(isolateId) as Isolate;
+    }
 
     var dartScript = await _scriptWithId(isolateId, scriptId);
     var dartUri = DartUri(dartScript.uri);
-    var jsScript = sources.jsScripts[dartUri.serverUri];
+    var jsScript = sources.jsScripts[dartUri.serverPath];
     var location = locationFor(dartUri, line);
 
     var jsBreakpointId = await _setBreakpoint(jsScript, location);
@@ -103,7 +104,7 @@ class Debugger {
 
   /// Find the [Location] for the given Dart source position.
   Location locationFor(DartUri uri, int line) {
-    var sourcemap = sources.sourcemapForDart(uri.serverUri);
+    var sourcemap = sources.sourcemapForDart(uri.serverPath);
     for (var lineEntry in sourcemap.lines) {
       for (var entry in lineEntry.entries) {
         var index = entry.sourceUrlId;
@@ -116,7 +117,7 @@ class Debugger {
           var jsLine = lineEntry.line;
           var jsColumn = entry.column;
           var basicDartUrl = sourcemap.urls[entry.sourceUrlId];
-          var dartUrl = DartUri(basicDartUrl).serverUri;
+          var dartUrl = DartUri(basicDartUrl).serverPath;
           var jsScriptId = sources.jsScripts[dartUrl].scriptId;
           // TODO: Don't hard-code Dart token position to 0.
           return Location(jsScriptId, jsLine + 1, jsColumn + 1, dartUrl,
@@ -142,5 +143,6 @@ class _BreakpointMapping {
 
   String jsId(String dartId) => _byDartId[dartId];
 
-  // TODO: Support removing breakpoints
+  // TODO(https://github.com/dart-lang/webdev/issues/400): Support removing
+  // breakpoints
 }
