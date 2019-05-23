@@ -33,7 +33,7 @@ class Debugger {
     await chromeDebugger.enable();
   }
 
-  /// Look up the script by it's id in an isolate.
+  /// Look up the script by id in an isolate.
   Future<ScriptRef> _scriptWithId(String isolateId, String scriptId) async {
     // TODO: Reduce duplication with _scriptRefs in mainProxy.
     if (_scriptRefs == null) {
@@ -62,14 +62,19 @@ class Debugger {
     var location = locationFor(dartUri, line);
 
     var jsBreakpointId = await _setBreakpoint(jsScript, location);
+    var dartBreakpoint = _dartBreakpoint(dartScript, location, isolate);
+    breakpoints.noteBreakpoint(js: jsBreakpointId, dart: dartBreakpoint.id);
+    return dartBreakpoint;
+  }
+
+  /// Create a Dart breakpoint at [location] in [dartScript].
+  Breakpoint _dartBreakpoint(ScriptRef dartScript, Location location, Isolate isolate) {
     var breakpoint = Breakpoint()
       ..resolved = true
       ..location = (SourceLocation()
         ..script = dartScript
         ..tokenPos = location.dartTokenPos
         ..endTokenPos = location.dartTokenPos);
-    breakpoints.noteBreakpoint(js: jsBreakpointId, dart: breakpoint.id);
-
     mainProxy.streamNotify(
         'Debug',
         Event()
@@ -119,7 +124,7 @@ class Debugger {
   }
 }
 
-/// Keeps track of the correspondence betwe<<JS breakpoint IDs.
+/// Keeps track of the Dart and JS breakpoint Ids that correspond.
 class BreakpointMapping {
   final Map<String, String> _byJsId = {};
   final Map<String, String> _byDartId = {};

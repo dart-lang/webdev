@@ -21,14 +21,17 @@ class DartUri {
   ///    e.g. org-dartlang-app:example/hello_world/main.dart,
   ///  - /packages/packageName/foo.dart, the web server form of a package URI,
   ///    e.g. /packages/path/src/utils.dart
-  ///  - /path/foo.dart, e.g. /hello_world/web/main.dart, where path is a web
-  ///    server path and so relative to the directory being served, not to the
-  ///    package.
+  ///  - /path/foo.dart or path/foo.dart, e.g. /hello_world/web/main.dart, where
+  ///    path is a web server path and so relative to the directory being
+  ///    served, not to the package.
   factory DartUri(String uri) {
     if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
     if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
     if (uri.startsWith('/packages/')) return DartUri._fromPath(uri);
     if (uri.startsWith('/')) return DartUri._fromPath(uri);
+    if (uri.startsWith('http:') || uri.startsWith('https:')) {
+      return DartUri(Uri.parse(uri).path);
+    }
     throw FormatException('Unsupported URI form', uri);
   }
 

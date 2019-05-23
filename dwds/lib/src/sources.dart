@@ -39,11 +39,11 @@ class Sources {
   source_maps.SingleMapping sourcemapForJs(String uri) => _jsSourcemaps[uri];
 
   /// Controller for a stream of events when a source map is loaded.
-  StreamController<String> sourceMapLoadedController =
+  final StreamController<String> _sourceMapLoadedController =
       StreamController<String>.broadcast();
 
   /// Stream of events that a source map has been loaded.
-  Stream<String> get sourceMapLoaded => sourceMapLoadedController.stream;
+  Stream<String> get sourceMapLoaded => _sourceMapLoadedController.stream;
 
   /// Called to handle the event that a script has been parsed
   /// and add its sourcemap information.
@@ -59,7 +59,7 @@ class Sources {
         var canonical = DartUri(dartUrl).serverUri;
         jsScripts[canonical] = script;
         _dartSourcemaps[canonical] = mapping;
-        sourceMapLoadedController.add(canonical);
+        _sourceMapLoadedController.add(canonical);
       }
     }
   }
@@ -77,15 +77,13 @@ class Sources {
   }
 
   /// The source map for a DDC-compiled JS [script].
-  Future<String> sourceMap(WipScript script) async {
+  Future<String> sourceMap(WipScript script) {
     var sourceMapUrl = script.sourceMapURL;
     if (sourceMapUrl == null || !sourceMapUrl.endsWith('.ddc.js.map')) {
       return null;
     }
-    // TODO: Clean up.
-    var fullPath = p.join(p.dirname(Uri.parse(script.url).path), sourceMapUrl);
-    fullPath = fullPath.substring(1); // Remove leading /
-    var sourceMapContents = await mainProxy.assetHandler(fullPath);
-    return sourceMapContents;
+    var scriptPath = DartUri(script.url).serverUri;
+    var sourcemapPath = p.join(p.dirname(scriptPath), sourceMapUrl);
+    return mainProxy.assetHandler(sourcemapPath);
   }
 }
