@@ -52,7 +52,13 @@ dev_dependencies:
 
 dependency_overrides:
   build_daemon:
-    path: ../../build/build_daemon
+    git:
+      url: https://github.com/dart-lang/build.git
+      path: build_daemon
+  build_runner:
+    git:
+      url: https://github.com/dart-lang/build.git
+      path: build_runner
 
 executables:
   webdev:
