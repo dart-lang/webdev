@@ -27,8 +27,8 @@ class DartUri {
   factory DartUri(String uri) {
     if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
     if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
-    if (uri.startsWith('/packages/')) return DartUri._fromPath(uri);
-    if (uri.startsWith('/')) return DartUri._fromPath(uri);
+    if (uri.startsWith('/packages/')) return DartUri._fromServePath(uri);
+    if (uri.startsWith('/')) return DartUri._fromServePath(uri);
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
       return DartUri(Uri.parse(uri).path);
     }
@@ -46,13 +46,14 @@ class DartUri {
     // from which we're serving.
     // TODO: To be able to convert to an org-dartlang-app: URI we will
     // need to know the root - possibly keep it as a static?
-    return DartUri._internal(Uri.parse(uri).pathSegments.skip(1).join('/').toString());
+    return DartUri._internal(
+        Uri.parse(uri).pathSegments.skip(1).join('/').toString());
   }
-  
+
   DartUri._internal(this.serverUri);
 
   /// Construct from a path, relative to the directory being served.
-  factory DartUri._fromPath(String uri) {
+  factory DartUri._fromServePath(String uri) {
     return DartUri._internal(uri[0] == '/' ? uri.substring(1) : uri);
   }
 }

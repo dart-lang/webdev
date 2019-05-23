@@ -1,4 +1,6 @@
-import 'dart:async';
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -6,6 +8,7 @@ import 'package:vm_service_lib/vm_service_lib.dart';
 import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
 import 'helpers.dart';
+import 'location.dart';
 import 'sources.dart';
 
 class Debugger {
@@ -18,14 +21,14 @@ class Debugger {
   WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
 
   /// Manages our sources, both JS and Dart.
-  Sources sources; 
+  Sources sources;
 
   /// Mapping from Dart script IDs to their ScriptRefs.
   Map<String, ScriptRef> _scriptRefs;
 
-  /// The breakpoints we have set so far, indexable by either 
+  /// The breakpoints we have set so far, indexable by either
   /// Dart or JS ID.
-  BreakpointMapping breakpoints = BreakpointMapping();
+  final _BreakpointMapping _breakpoints = _BreakpointMapping();
 
   Future<Null> initialize() async {
     sources = Sources(mainProxy);
@@ -63,12 +66,13 @@ class Debugger {
 
     var jsBreakpointId = await _setBreakpoint(jsScript, location);
     var dartBreakpoint = _dartBreakpoint(dartScript, location, isolate);
-    breakpoints.noteBreakpoint(js: jsBreakpointId, dart: dartBreakpoint.id);
+    _breakpoints.noteBreakpoint(js: jsBreakpointId, dart: dartBreakpoint.id);
     return dartBreakpoint;
   }
 
   /// Create a Dart breakpoint at [location] in [dartScript].
-  Breakpoint _dartBreakpoint(ScriptRef dartScript, Location location, Isolate isolate) {
+  Breakpoint _dartBreakpoint(
+      ScriptRef dartScript, Location location, Isolate isolate) {
     var breakpoint = Breakpoint()
       ..resolved = true
       ..location = (SourceLocation()
@@ -86,13 +90,13 @@ class Debugger {
 
   /// Call the Chrome protocol setBreakpoint and return the breakpoint ID.
   Future<String> _setBreakpoint(WipScript jsScript, Location location) async {
-    var response = 
-          await chromeDebugger.sendCommand('Debugger.setBreakpoint', params: {
-        'location': {
-          'scriptId': jsScript.scriptId,
-          'lineNumber': location.jsLine,
-        }
-      });
+    var response =
+        await chromeDebugger.sendCommand('Debugger.setBreakpoint', params: {
+      'location': {
+        'scriptId': jsScript.scriptId,
+        'lineNumber': location.jsLine,
+      }
+    });
     handleErrorIfPresent(response);
     return response.result['breakpointId'] as String;
   }
@@ -125,7 +129,7 @@ class Debugger {
 }
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
-class BreakpointMapping {
+class _BreakpointMapping {
   final Map<String, String> _byJsId = {};
   final Map<String, String> _byDartId = {};
 
@@ -135,27 +139,8 @@ class BreakpointMapping {
   }
 
   String dartId(String jsId) => _byJsId[jsId];
-  
+
   String jsId(String dartId) => _byDartId[dartId];
 
   // TODO: Support removing breakpoints
-}
-
-
-/// A source location, with both Dart and JS information.
-///
-/// Note that line and column numbers here are always 1-based. The  Dart VM
-/// Service protocol line/column numbers are one-based, but in JS source maps and
-/// the Chrome protocol are zero-based, so they require translation. 
-class Location {
-  Location(this.jsScriptId, this.jsLine, this.jsColumn, this.dartUri,
-      this.dartLine, this.dartColumn, this.dartTokenPos);
-
-  final String jsScriptId;
-  final int jsLine;
-  final int jsColumn;
-  final String dartUri;
-  final int dartLine;
-  final int dartColumn;
-  final int dartTokenPos;
 }
