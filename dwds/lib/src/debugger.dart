@@ -30,6 +30,9 @@ class Debugger {
   /// Dart or JS ID.
   final _BreakpointMapping _breakpoints = _BreakpointMapping();
 
+  /// Allocates Dart breakpoint IDs
+  int _nextBreakpointId = 1;
+
   Future<Null> initialize() async {
     sources = Sources(mainProxy);
     chromeDebugger.onScriptParsed.listen(sources.scriptParsed);
@@ -76,6 +79,7 @@ class Debugger {
       ScriptRef dartScript, Location location, Isolate isolate) {
     var breakpoint = Breakpoint()
       ..resolved = true
+      ..id = '${_nextBreakpointId++}'
       ..location = (SourceLocation()
         ..script = dartScript
         ..tokenPos = location.dartTokenPos
@@ -89,6 +93,14 @@ class Debugger {
     return breakpoint;
   }
 
+  /// Remove a Dart breakpoint.
+  Future<void> removeBreakpoint(String breakpointId) async {
+    // TODO: Clean up breakpoint mapping and expose this as full API. Right now
+    // it's a minimal implementation for cleanup.
+    var jsId = _breakpoints.jsId(breakpointId);
+    return _removeBreakpoint(jsId);
+  }
+
   /// Call the Chrome protocol setBreakpoint and return the breakpoint ID.
   Future<String> _setBreakpoint(WipScript jsScript, Location location) async {
     var response =
@@ -100,6 +112,13 @@ class Debugger {
     });
     handleErrorIfPresent(response);
     return response.result['breakpointId'] as String;
+  }
+
+  /// Call the Chrome protocol removeBreakpoint.
+  Future<void> _removeBreakpoint(String breakpointId) async {
+    var response = await chromeDebugger.sendCommand('Debugger.removeBreakpoint',
+        params: {'breakpointId': breakpointId});
+    handleErrorIfPresent(response);
   }
 
   /// Find the [Location] for the given Dart source position.

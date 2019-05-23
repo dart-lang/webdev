@@ -35,6 +35,7 @@ void main() {
     Isolate isolate;
     ScriptList scripts;
     ScriptRef mainScript;
+    var breakpoints = <Breakpoint>[];
 
     setUp(() async {
       vm = await service.getVM();
@@ -42,6 +43,13 @@ void main() {
       scripts = await service.getScripts(isolate.id);
       mainScript =
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
+    });
+
+    tearDown(() async {
+      for (var breakpoint in breakpoints) {
+         await service.removeBreakpointInternal(breakpoint.id);
+      }
+      breakpoints = [];
     });
 
     test('load sourcemaps', () async {
@@ -52,7 +60,7 @@ void main() {
     test('addBreakpoint', () async {
       // TODO: Much more testing.
       var bp = await service.addBreakpoint(isolate.id, mainScript.id, 20);
-      var breakpoints = isolate.breakpoints;
+      breakpoints = isolate.breakpoints;
       breakpoints = [bp];
       expect(breakpoints.any((b) => b.location.tokenPos == 42), isNotNull);
     });

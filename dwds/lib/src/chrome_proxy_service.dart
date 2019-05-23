@@ -641,6 +641,13 @@ function($argsString) {
     throw UnimplementedError();
   }
 
+  /// A minimal internal version of removing breakpoints for cleanup - to be folded
+  /// into the main implementation and removed.
+  Future<void> removeBreakpointInternal(String breakpointId) {
+    // TODO: Flesh out the implementation and combine with the full API.
+    return debugger.removeBreakpoint(breakpointId);
+  }
+
   @override
   Future<Success> requestHeapSnapshot(
       String isolateId, String roots, bool collectGarbage) {
