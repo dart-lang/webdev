@@ -31,8 +31,20 @@ class DartUri {
     if (uri.startsWith('/')) return DartUri._fromServerPath(uri);
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
       return DartUri(Uri.parse(uri).path);
-    }
+    }    
     throw FormatException('Unsupported URI form', uri);
+  }
+
+  /// Temporary workaround for a bug with construction.
+  ///
+  /// Older SDKs (before D24) gave us a path that didn't include the full path,
+  /// e.g. main.dart rather than hello_world/main.dart.
+  factory DartUri.fromScriptRef(String shortPath, String mainPath) {
+    if (shortPath.startsWith('org-dartlang-app:')) {
+     return DartUri(shortPath);
+    } else {
+      return DartUri('$mainPath/$shortPath');
+    }
   }
 
   /// Construct from a package: URI
