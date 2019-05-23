@@ -149,6 +149,8 @@ class DevWorkflow {
   final ServerManager serverManager;
   StreamSubscription _resultsSub;
 
+  final _wrapWidth = stdout.hasTerminal ? stdout.terminalColumns : 72;
+
   DevWorkflow._(
     this._client,
     this._chrome,
@@ -159,7 +161,7 @@ class DevWorkflow {
       if (data.results.any((result) =>
           result.status == BuildStatus.failed ||
           result.status == BuildStatus.succeeded)) {
-        logHandler(Level.INFO, '${'-' * (stdout.terminalColumns - 8)}\n');
+        logHandler(Level.INFO, '${'-' * _wrapWidth}\n');
       }
     });
   }
