@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:build_daemon/client.dart';
+import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:logging/logging.dart';
 
@@ -146,13 +147,24 @@ class DevWorkflow {
   final Chrome _chrome;
 
   final ServerManager serverManager;
+  StreamSubscription _resultsSub;
+
+  final _wrapWidth = stdout.hasTerminal ? stdout.terminalColumns : 72;
 
   DevWorkflow._(
     this._client,
     this._chrome,
     this._devTools,
     this.serverManager,
-  );
+  ) {
+    _resultsSub = _client.buildResults.listen((data) {
+      if (data.results.any((result) =>
+          result.status == BuildStatus.failed ||
+          result.status == BuildStatus.succeeded)) {
+        logHandler(Level.INFO, '${'-' * _wrapWidth}\n');
+      }
+    });
+  }
 
   Future<void> get done => _doneCompleter.future;
 
@@ -175,6 +187,7 @@ class DevWorkflow {
   }
 
   Future<void> shutDown() async {
+    await _resultsSub?.cancel();
     await _chrome?.close();
     await _client?.close();
     await _devTools?.close();
