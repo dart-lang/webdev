@@ -4,21 +4,12 @@
 
 import 'dart:async';
 
+import 'package:source_maps/source_maps.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'package:source_maps/source_maps.dart';
-
 import 'chrome_proxy_service.dart';
-
-var tokenId = 100;
-
-class TokenPos {
-  final int line;
-  final int column;
-  final int id;
-  TokenPos(this.line, this.column) : id = ++tokenId;
-}
+import 'token_position.dart';
 
 class Debugger {
   Debugger(this.mainProxy);
@@ -34,6 +25,8 @@ class Debugger {
     await chromeDebugger.enable();
   }
 
+  // TODO(grouma) - remove this logic once alanknight@ lands the proper
+  // script abstraction.
   void scriptHandler(ScriptParsedEvent event) async {
     var sourceMapUrl = event.script.sourceMapURL;
     if (sourceMapUrl != null && sourceMapUrl.isNotEmpty) {
@@ -49,7 +42,7 @@ class Debugger {
               var dartLine = entry.sourceLine;
               var dartColumn = entry.sourceColumn;
               var token = TokenPos(dartLine, dartColumn);
-              _sourceToTokens.putIfAbsent(dartUrl, () => {}).add(token);
+              _sourceToTokens.putIfAbsent(dartUrl, () => Set()).add(token);
             }
           }
         }
