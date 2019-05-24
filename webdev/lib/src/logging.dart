@@ -12,7 +12,7 @@ typedef LogWriter = void Function(Level level, String message,
 
 var _verbose = false;
 
-/// Sets the verbosity of the current [logHandler].
+/// Sets the verbosity of the current [logWriter].
 void setVerbosity(bool verbose) => _verbose = verbose;
 
 LogWriter _logWriter =
