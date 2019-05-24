@@ -67,9 +67,10 @@ class Sources {
     }
   }
 
-  /// Waits until the source map for [url] has been loaded.
-  Future<void> waitForSourceMap(String url) =>
-      sourceMapLoaded.firstWhere((loadedUrl) => url == loadedUrl);
+  /// Waits until the source map for the Dart file [uri] has been loaded.
+  Future<void> waitForSourceMap(String uri) async =>
+      sourcemapForDart(uri) ??
+      sourceMapLoaded.firstWhere((loadedUri) => uri == loadedUri);
 
   /// The source map for a DDC-compiled JS [script].
   Future<String> sourceMap(WipScript script) {
