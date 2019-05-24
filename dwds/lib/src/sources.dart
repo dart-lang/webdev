@@ -11,14 +11,12 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
 
-/// Keeps track of the scripts (both Dart and JS) and their source maps.
+/// The scripts and sourcemaps for the application, both JS and Dart.
 class Sources {
   Sources(this.mainProxy);
 
-  /// The main service proxy that this is associated with.
   final ChromeProxyService mainProxy;
 
-  /// The Chrome debugger connection.
   WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
 
   /// Map from the server URI for Dart scripts to the JS script that is built
@@ -44,8 +42,7 @@ class Sources {
   SingleMapping sourcemapForJs(String uri) => _jsSourcemaps[uri];
 
   /// Controller for a stream of events when a source map is loaded.
-  final StreamController<String> _sourceMapLoadedController =
-      StreamController<String>.broadcast();
+  final _sourceMapLoadedController = StreamController<String>.broadcast();
 
   /// Stream of events that a source map has been loaded.
   Stream<String> get sourceMapLoaded => _sourceMapLoadedController.stream;

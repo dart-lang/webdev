@@ -47,7 +47,7 @@ void main() {
 
     tearDown(() async {
       for (var breakpoint in breakpoints) {
-         await service.removeBreakpointInternal(breakpoint.id);
+        await service.removeBreakpointInternal(breakpoint.id);
       }
       breakpoints = [];
     });

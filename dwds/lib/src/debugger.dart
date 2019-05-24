@@ -14,13 +14,11 @@ import 'sources.dart';
 class Debugger {
   Debugger(this.mainProxy);
 
-  /// The main service proxy that this is associated with.
   final ChromeProxyService mainProxy;
 
-  /// The underlying connection to Chrome.
   WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
 
-  /// Manages our sources, both JS and Dart.
+  /// The scripts and sourcemaps for the application, both JS and Dart.
   Sources sources;
 
   /// Mapping from Dart script IDs to their ScriptRefs.
@@ -42,13 +40,10 @@ class Debugger {
   /// Look up the script by id in an isolate.
   Future<ScriptRef> _scriptWithId(String isolateId, String scriptId) async {
     // TODO: Reduce duplication with _scriptRefs in mainProxy.
-    if (_scriptRefs == null) {
-      _scriptRefs = {};
-      var scripts = await mainProxy.scriptRefs(isolateId);
-      for (var script in scripts) {
-        _scriptRefs[script.id] = script;
-      }
-    }
+    _scriptRefs ??= {
+      for (var script in await mainProxy.scriptRefs(isolateId))
+        script.id: script,
+    };
     return _scriptRefs[scriptId];
   }
 
@@ -123,6 +118,8 @@ class Debugger {
   }
 
   /// Find the [Location] for the given Dart source position.
+  ///
+  /// The [line] number is 1-based.
   Location locationFor(DartUri uri, int line) {
     var sourcemap = sources.sourcemapForDart(uri.serverPath);
     for (var lineEntry in sourcemap.lines) {
@@ -132,17 +129,17 @@ class Debugger {
         var dartLine = entry.sourceLine;
         // TODO: Handle cases where a breakpoint can't be set exactly at that
         // line and we have to find the nearest valid position.
-        if (dartLine == line) {
-          var dartColumn = entry.sourceColumn;
-          var jsLine = lineEntry.line;
-          var jsColumn = entry.column;
-          var basicDartUrl = sourcemap.urls[entry.sourceUrlId];
-          var dartUrl = DartUri(basicDartUrl).serverPath;
-          var jsScriptId = sources.jsScripts[dartUrl].scriptId;
-          // TODO: Don't hard-code Dart token position to 0.
-          return Location(jsScriptId, jsLine + 1, jsColumn + 1, dartUrl,
-              dartLine, dartColumn, 0);
-        }
+        if (dartLine != line) continue;
+        
+        var dartColumn = entry.sourceColumn;
+        var jsLine = lineEntry.line;
+        var jsColumn = entry.column;
+        var basicDartUrl = sourcemap.urls[entry.sourceUrlId];
+        var dartUrl = DartUri(basicDartUrl).serverPath;
+        var jsScriptId = sources.jsScripts[dartUrl].scriptId;
+        // TODO: Don't hard-code Dart token position to 0.
+        return Location(jsScriptId, jsLine + 1, jsColumn + 1, dartUrl, dartLine,
+            dartColumn, 0);
       }
     }
     return null;
