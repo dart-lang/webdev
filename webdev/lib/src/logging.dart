@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:io/ansi.dart';
 import 'package:logging/logging.dart';
 
-typedef LogHandler = void Function(Level level, String message,
+typedef LogWriter = void Function(Level level, String message,
     {String error, String loggerName, String stackTrace});
 
 var _verbose = false;
@@ -15,7 +15,7 @@ var _verbose = false;
 /// Sets the verbosity of the current [logHandler].
 void setVerbosity(bool verbose) => _verbose = verbose;
 
-LogHandler _logHandler =
+LogWriter _logWriter =
     (level, message, {String error, String loggerName, String stackTrace}) {
   // Erases the previous line
   if (!_verbose) stdout.write('\x1b[2K\r');
@@ -34,15 +34,15 @@ LogHandler _logHandler =
   }
 };
 
-LogHandler get logHandler => _logHandler;
+LogWriter get logWriter => _logWriter;
 
-void setLogHandler(
+void setLogWriter(
     void Function(Level, String,
             {String error, String loggerName, String stackTrace, bool verbose})
-        newHandler) {
-  _logHandler = (level, message,
+        newWriter) {
+  _logWriter = (level, message,
           {String error, String loggerName, String stackTrace}) =>
-      newHandler(level, message,
+      newWriter(level, message,
           error: error,
           loggerName: loggerName,
           stackTrace: stackTrace,

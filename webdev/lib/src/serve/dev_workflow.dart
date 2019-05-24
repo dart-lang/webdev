@@ -21,12 +21,12 @@ import 'webdev_server.dart';
 Future<BuildDaemonClient> _startBuildDaemon(
     String workingDirectory, List<String> buildOptions) async {
   try {
-    logHandler(logging.Level.INFO, 'Connecting to the build daemon...');
+    logWriter(logging.Level.INFO, 'Connecting to the build daemon...');
     return await connectClient(
       workingDirectory,
       buildOptions,
       (serverLog) {
-        logHandler(toLoggingLevel(serverLog.level), serverLog.message,
+        logWriter(toLoggingLevel(serverLog.level), serverLog.message,
             loggerName: serverLog.loggerName,
             error: serverLog.error,
             stackTrace: serverLog.stackTrace);
@@ -79,12 +79,12 @@ Future<ServerManager> _startServerManager(
       assetPort,
     ));
   }
-  logHandler(logging.Level.INFO, 'Starting resource servers...');
+  logWriter(logging.Level.INFO, 'Starting resource servers...');
   var serverManager =
       await ServerManager.start(serverOptions, client.buildResults, devTools);
 
   for (var server in serverManager.servers) {
-    logHandler(
+    logWriter(
         logging.Level.INFO,
         'Serving `${server.target}` on '
         'http://${server.host}:${server.port}\n');
@@ -98,7 +98,7 @@ Future<DevTools> _startDevTools(
 ) async {
   if (configuration.debug) {
     var devTools = await DevTools.start(configuration.hostname);
-    logHandler(logging.Level.INFO,
+    logWriter(logging.Level.INFO,
         'Serving DevTools at http://${devTools.hostname}:${devTools.port}\n');
     return devTools;
   }
@@ -166,9 +166,9 @@ class DevWorkflow {
   ) async {
     var workingDirectory = Directory.current.path;
     var client = await _startBuildDaemon(workingDirectory, buildOptions);
-    logHandler(logging.Level.INFO, 'Registering build targets...');
+    logWriter(logging.Level.INFO, 'Registering build targets...');
     _registerBuildTargets(client, configuration, targetPorts);
-    logHandler(logging.Level.INFO, 'Starting initial build...');
+    logWriter(logging.Level.INFO, 'Starting initial build...');
     client.startBuild();
     var devTools = await _startDevTools(configuration);
     var serverManager = await _startServerManager(

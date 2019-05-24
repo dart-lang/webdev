@@ -53,12 +53,12 @@ class BuildCommand extends Command<int> {
       ..addAll(extraArgs);
 
     try {
-      logHandler(logging.Level.INFO, 'Connecting to the build daemon...');
+      logWriter(logging.Level.INFO, 'Connecting to the build daemon...');
       var client = await connectClient(
         Directory.current.path,
         arguments,
         (serverLog) {
-          logHandler(toLoggingLevel(serverLog.level), serverLog.message,
+          logWriter(toLoggingLevel(serverLog.level), serverLog.message,
               error: serverLog.error,
               loggerName: serverLog.loggerName,
               stackTrace: serverLog.stackTrace);
@@ -96,14 +96,14 @@ class BuildCommand extends Command<int> {
         }
 
         if (targetResult.error?.isNotEmpty == true) {
-          logHandler(logging.Level.SEVERE, targetResult.error);
+          logWriter(logging.Level.SEVERE, targetResult.error);
         }
         break;
       }
       await client.close();
       return exitCode;
     } on OptionsSkew catch (_) {
-      logHandler(
+      logWriter(
           logging.Level.SEVERE,
           'Incompatible options with current running build daemon.\n\n'
           'Please stop other WebDev instances running in this directory '
