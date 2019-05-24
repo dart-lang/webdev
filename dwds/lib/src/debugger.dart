@@ -130,7 +130,7 @@ class Debugger {
         // TODO: Handle cases where a breakpoint can't be set exactly at that
         // line and we have to find the nearest valid position.
         if (dartLine != line) continue;
-        
+
         var dartColumn = entry.sourceColumn;
         var jsLine = lineEntry.line;
         var jsColumn = entry.column;

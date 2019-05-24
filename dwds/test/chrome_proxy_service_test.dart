@@ -43,6 +43,7 @@ void main() {
       scripts = await service.getScripts(isolate.id);
       mainScript =
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
+      await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
     });
 
     tearDown(() async {

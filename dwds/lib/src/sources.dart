@@ -67,9 +67,8 @@ class Sources {
     }
   }
 
-  /// Return a Future that completes once the source map for [url] has been
-  /// loaded.
-  Future<String> waitForSourceMap(String url) =>
+  /// Waits until the source map for [url] has been loaded.
+  Future<void> waitForSourceMap(String url) =>
       sourceMapLoaded.firstWhere((loadedUrl) => url == loadedUrl);
 
   /// The source map for a DDC-compiled JS [script].
