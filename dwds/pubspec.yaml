@@ -29,15 +29,3 @@ dev_dependencies:
   test: ^1.6.0
   webdriver: ^2.0.0
   webdev: ^2.0.0
-
-dependency_overrides:
-  build_daemon:
-    git:
-      url: https://github.com/dart-lang/build.git
-      path: build_daemon
-  build_runner:
-    git:
-      url: https://github.com/dart-lang/build.git
-      path: build_runner
-  webdev:
-    path: ../webdev
