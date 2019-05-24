@@ -164,7 +164,7 @@ class DevWorkflow {
       if (data.results.any((result) =>
           result.status == BuildStatus.failed ||
           result.status == BuildStatus.succeeded)) {
-        logHandler(Level.INFO, '${'-' * _wrapWidth}\n');
+        logWriter(logging.Level.INFO, '${'-' * _wrapWidth}\n');
       }
     });
   }
