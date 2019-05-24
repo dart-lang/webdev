@@ -61,7 +61,8 @@ class Sources {
     if (mapping is SingleMapping) {
       _jsSourcemaps[script.url] = mapping;
       for (var dartUrl in mapping.urls) {
-        var canonical = DartUri(dartUrl).serverPath;
+        // TODO(401): Remove the additional parameter after D24 is stable.
+        var canonical = DartUri(dartUrl, script.url).serverPath;
         jsScripts[canonical] = script;
         _dartSourcemaps[canonical] = mapping;
         _sourceMapLoadedController.add(canonical);

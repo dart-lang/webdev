@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:path/path.dart' as p;
+
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
 class DartUri {
@@ -24,27 +26,28 @@ class DartUri {
   ///  - /path/foo.dart or path/foo.dart, e.g. /hello_world/web/main.dart, where
   ///    path is a web server path and so relative to the directory being
   ///    served, not to the package.
-  factory DartUri(String uri) {
+  ///
+  /// The optional [serverUri] is a temporary workaround for a bug with construction.
+  /// Older SDKs (before D24) gave us a path that didn't include the full path,
+  /// e.g. main.dart rather than hello_world/main.dart and src/path.dart rather than
+  /// packages/path/src/path.dart. The optional [serverUri] is the full URI of the
+  /// JS script. The dirname of that path should give us the missing prefix.
+  factory DartUri(String uri, [String serverUri]) {
+    // TODO(401): Remove serverUri after D24 is stable.
     if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
     if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
     if (uri.startsWith('/packages/')) return DartUri._fromServerPath(uri);
     if (uri.startsWith('/')) return DartUri._fromServerPath(uri);
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
       return DartUri(Uri.parse(uri).path);
-    }    
-    throw FormatException('Unsupported URI form', uri);
-  }
-
-  /// Temporary workaround for a bug with construction.
-  ///
-  /// Older SDKs (before D24) gave us a path that didn't include the full path,
-  /// e.g. main.dart rather than hello_world/main.dart.
-  factory DartUri.fromScriptRef(String shortPath, String mainPath) {
-    if (shortPath.startsWith('org-dartlang-app:')) {
-     return DartUri(shortPath);
-    } else {
-      return DartUri('$mainPath/$shortPath');
     }
+    // Work around short paths if we have been provided the context.
+    if (serverUri != null) {
+      var path = Uri.parse(serverUri).path;
+      var dir = p.dirname(path);
+      return DartUri._fromServerPath(p.join(dir, uri));
+    }
+    throw FormatException('Unsupported URI form', uri);
   }
 
   /// Construct from a package: URI

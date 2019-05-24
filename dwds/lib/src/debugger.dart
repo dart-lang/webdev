@@ -64,10 +64,8 @@ class Debugger {
     }
 
     var dartScript = await _scriptWithId(isolateId, scriptId);
-    // TODO: Remove this usage once D24 is stable in favor of the regular
-    // constructor.
-    var dartUri =
-        DartUri.fromScriptRef(dartScript.uri, Uri.parse(mainProxy.uri).path);
+    // TODO(401): Remove the additional parameter.
+    var dartUri = DartUri(dartScript.uri, Uri.parse(mainProxy.uri).path);
     var jsScript = sources.jsScripts[dartUri.serverPath];
     var location = locationFor(dartUri, line);
 
