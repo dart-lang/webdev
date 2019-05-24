@@ -40,10 +40,13 @@ class Debugger {
   /// Look up the script by id in an isolate.
   Future<ScriptRef> _scriptWithId(String isolateId, String scriptId) async {
     // TODO: Reduce duplication with _scriptRefs in mainProxy.
-    _scriptRefs ??= {
-      for (var script in await mainProxy.scriptRefs(isolateId))
-        script.id: script,
-    };
+    if (_scriptRefs == null) {
+      _scriptRefs = {};
+      var scripts = await mainProxy.scriptRefs(isolateId);
+      for (var script in scripts) {
+        _scriptRefs[script.id] = script;
+      }
+    }
     return _scriptRefs[scriptId];
   }
 
