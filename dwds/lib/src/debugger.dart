@@ -138,7 +138,7 @@ class Debugger {
         var jsLine = lineEntry.line;
         var jsColumn = entry.column;
         var basicDartUrl = sourcemap.urls[entry.sourceUrlId];
-        var dartUrl = DartUri(basicDartUrl).serverPath;
+        var dartUrl = DartUri(basicDartUrl, uri.serverPath).serverPath;
         var jsScriptId = sources.jsScripts[dartUrl].scriptId;
         // TODO: Don't hard-code Dart token position to 0.
         return Location(jsScriptId, jsLine + 1, jsColumn + 1, dartUrl, dartLine,
