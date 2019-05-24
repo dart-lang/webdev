@@ -322,7 +322,8 @@ void main() {
       for (var scriptRef in scripts.scripts) {
         var script =
             await service.getObject(isolate.id, scriptRef.id) as Script;
-        var scriptPath = DartUri(script.uri).serverPath;
+        // TODO(401): Remove service.uri parameter.
+        var scriptPath = DartUri(script.uri, service.uri).serverPath;
         var result =
             await http.get('http://localhost:${context.port}/$scriptPath');
         expect(script.source, result.body);

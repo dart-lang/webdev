@@ -63,7 +63,7 @@ class Debugger {
 
     var dartScript = await _scriptWithId(isolateId, scriptId);
     // TODO(401): Remove the additional parameter.
-    var dartUri = DartUri(dartScript.uri, Uri.parse(mainProxy.uri).path);
+    var dartUri = DartUri(dartScript.uri, '${Uri.parse(mainProxy.uri).path}/garbage.dart');
     var jsScript = sources.jsScripts[dartUri.serverPath];
     var location = locationFor(dartUri, line);
 

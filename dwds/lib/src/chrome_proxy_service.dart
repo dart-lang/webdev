@@ -520,7 +520,8 @@ function($argsString) {
 
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
     var libraryId = scriptRef.uri;
-    var scriptPath = DartUri(libraryId).serverPath;
+    // TODO(401): Remove uri parameter.
+    var scriptPath = DartUri(libraryId, uri).serverPath;
     var script = await assetHandler(scriptPath);
     return Script()
       ..library = _libraryRefs[libraryId]
