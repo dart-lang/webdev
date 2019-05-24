@@ -22,8 +22,8 @@ services:
 jobs:
   include:
     - stage: analyzer_and_format
-      name: "SDK: 2.3.0-dev.0.3; PKGS: dwds, example, webdev; TASKS: `dartanalyzer --fatal-warnings .`"
-      dart: "2.3.0-dev.0.3"
+      name: "SDK: 2.3.0; PKGS: dwds, example, webdev; TASKS: `dartanalyzer --fatal-warnings .`"
+      dart: "2.3.0"
       env: PKGS="dwds example webdev"
       script: ./tool/travis.sh dartanalyzer_1
     - stage: analyzer_and_format
@@ -32,8 +32,8 @@ jobs:
       env: PKGS="dwds example webdev"
       script: ./tool/travis.sh dartfmt dartanalyzer_0
     - stage: unit_test
-      name: "SDK: 2.3.0-dev.0.3; PKG: dwds; TASKS: `pub run test -j 1`"
-      dart: "2.3.0-dev.0.3"
+      name: "SDK: 2.3.0; PKG: dwds; TASKS: `pub run test -j 1`"
+      dart: "2.3.0"
       env: PKGS="dwds"
       script: ./tool/travis.sh test_0
     - stage: unit_test
@@ -42,8 +42,8 @@ jobs:
       env: PKGS="dwds"
       script: ./tool/travis.sh test_0
     - stage: unit_test
-      name: "SDK: 2.3.0-dev.0.3; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped`"
-      dart: "2.3.0-dev.0.3"
+      name: "SDK: 2.3.0; PKG: webdev; TASKS: `pub run test -j 1 --run-skipped`"
+      dart: "2.3.0"
       env: PKGS="webdev"
       script: ./tool/travis.sh test_1
     - stage: unit_test
