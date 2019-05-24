@@ -32,7 +32,7 @@ class ChromeProxyService implements VmServiceInterface {
   final WipConnection tabConnection;
 
   /// A handler for application assets, e.g. Dart sources.
-  final Future<String> Function(String) _assetHandler;
+  final Future<String> Function(String) assetHandler;
 
   /// The isolate for the current tab.
   ///
@@ -52,7 +52,7 @@ class ChromeProxyService implements VmServiceInterface {
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 
   ChromeProxyService._(
-      this._vm, this._tab, this.tabConnection, this._assetHandler);
+      this._vm, this._tab, this.tabConnection, this.assetHandler);
 
   static Future<ChromeProxyService> create(
       ChromeConnection chromeConnection,
@@ -94,6 +94,9 @@ class ChromeProxyService implements VmServiceInterface {
     await debugger.initialize();
   }
 
+  /// The root URI at which we're serving.
+  String get uri => _tab.url;
+
   /// Creates a new [_isolate].
   ///
   /// Only one isolate at a time is supported, but they should be cleaned up
@@ -109,7 +112,7 @@ class ChromeProxyService implements VmServiceInterface {
     var isolate = Isolate()
       ..id = id
       ..number = id
-      ..name = '${_tab.url}:main()'
+      ..name = '$uri:main()'
       ..runnable = true
       ..breakpoints = []
       ..libraries = []
@@ -222,7 +225,7 @@ require("dart_sdk").developer.invokeExtension(
       'expression': expression,
       'awaitPromise': true,
     });
-    _handleErrorIfPresent(response, evalContents: expression);
+    handleErrorIfPresent(response, evalContents: expression);
     var decodedResponse =
         jsonDecode(response.result['result']['value'] as String)
             as Map<String, dynamic>;
@@ -277,7 +280,7 @@ require("dart_sdk").developer.invokeExtension(
     ''';
       result = await tabConnection.runtime.sendCommand('Runtime.evaluate',
           params: {'expression': evalExpression});
-      _handleErrorIfPresent(result,
+      handleErrorIfPresent(result,
           evalContents: evalExpression,
           additionalDetails: {
             'Dart expression': expression,
@@ -300,7 +303,7 @@ function($argsString) {
         // their expression.
         'objectId': scope.values.first,
       });
-      _handleErrorIfPresent(result,
+      handleErrorIfPresent(result,
           evalContents: evalExpression,
           additionalDetails: {
             'Dart expression': expression,
@@ -413,7 +416,7 @@ function($argsString) {
     var classesResult = await tabConnection.runtime.sendCommand(
         'Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
-    _handleErrorIfPresent(classesResult, evalContents: expression);
+    handleErrorIfPresent(classesResult, evalContents: expression);
     var classDescriptors = (classesResult.result['result']['value'] as List)
         .cast<Map<String, Object>>();
     var classRefs = <ClassRef>[];
@@ -517,7 +520,7 @@ function($argsString) {
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
     var libraryId = scriptRef.uri;
     var scriptPath = libraryId.replaceAll('package:', 'packages/');
-    var script = await _assetHandler(scriptPath);
+    var script = await assetHandler(scriptPath);
     return Script()
       ..library = _libraryRefs[libraryId]
       ..id = scriptRef.id
@@ -617,7 +620,7 @@ function($argsString) {
   @override
   Future<Success> pause(String isolateId) async {
     var result = await tabConnection.sendCommand('Debugger.pause');
-    _handleErrorIfPresent(result);
+    handleErrorIfPresent(result);
     return Success();
   }
 
@@ -650,7 +653,7 @@ function($argsString) {
       throw ArgumentError('Step and frameIndex are currently unsupported');
     }
     var result = await tabConnection.sendCommand('Debugger.resume');
-    _handleErrorIfPresent(result);
+    handleErrorIfPresent(result);
     return Success();
   }
 
@@ -798,7 +801,7 @@ function($argsString) {
     var extensionsResult = await tabConnection.runtime.sendCommand(
         'Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
-    _handleErrorIfPresent(extensionsResult, evalContents: expression);
+    handleErrorIfPresent(extensionsResult, evalContents: expression);
     return List.from(extensionsResult.result['result']['value'] as List);
   }
 
@@ -808,7 +811,7 @@ function($argsString) {
     var librariesResult = await tabConnection.runtime.sendCommand(
         'Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
-    _handleErrorIfPresent(librariesResult, evalContents: expression);
+    handleErrorIfPresent(librariesResult, evalContents: expression);
     return List.from(librariesResult.result['result']['value'] as List);
   }
 
@@ -882,7 +885,7 @@ const _stdoutTypes = ['log', 'info', 'warning'];
 
 /// Throws an [ExceptionDetails] object if `exceptionDetails` is present on the
 /// result.
-void _handleErrorIfPresent(WipResponse response,
+void handleErrorIfPresent(WipResponse response,
     {String evalContents, Object additionalDetails}) {
   if (response.result.containsKey('exceptionDetails')) {
     throw ChromeDebugException(
@@ -894,23 +897,21 @@ void _handleErrorIfPresent(WipResponse response,
 
 /// Creates a snippet of JS code that initializes a `library` variable that has
 /// the actual library object in DDC for [libraryUri].
+///
+/// In DDC we have module libraries indexed by names of the form
+/// 'packages/package/mainFile' with no .dart suffix on the file, or
+/// 'directory/packageName/mainFile', also with no .dart suffix, and relative to
+/// the serving root, normally /web within the package. These modules have a map
+/// from the URI with a Dart-specific scheme (package: or org-dartlang-app:) to
+/// the library objects. The [libraryUri] parameter should be one of these
+/// Dart-specific scheme URIs, and we set `library` the corresponding library.
 String _getLibrarySnippet(String libraryUri) => '''
   var libraryName = '$libraryUri';
   var sdkUtils = require('dart_sdk').dart;
   var moduleName = sdkUtils.getModuleNames().find(
     (name) => sdkUtils.getModuleLibraries(name)[libraryName]);
-  // need to strip out the trailing `.ddc`.
-  var module = require(moduleName.replace('.ddc', ''));
-  // Strip the 'package:<package_name>` name out of the library name, if this
-  // library is from a package.
-  var startIndex = libraryName.startsWith('package:')
-      ? libraryName.indexOf("/") + 1 : 0;
-  var libraryIdentifier = libraryName
-    .substring(
-      startIndex,
-      libraryName.length - ".dart".length)
-    .replace(/\\//gi, "__");
-  var library = module[libraryIdentifier];
+  var library = sdkUtils.getModuleLibraries(moduleName)[libraryName];
+  if (!library) throw 'cannot find library for ' + libraryName + ' under ' + moduleName;
 ''';
 
 class ChromeDebugException extends ExceptionDetails implements Exception {
