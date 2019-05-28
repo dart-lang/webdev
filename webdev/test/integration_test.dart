@@ -287,7 +287,7 @@ dependencies:
 
 const _supportedBuildRunnerVersion = '1.3.0';
 const _supportedWebCompilersVersion = '1.2.0';
-const _supportedBuildDaemonVersion = '0.5.0';
+const _supportedBuildDaemonVersion = '1.0.0';
 
 String _pubspecLock(
     {String runnerVersion = _supportedBuildRunnerVersion,

@@ -32,12 +32,12 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
     if (argResults.options.contains(flag) &&
         argResults.wasParsed(flag) &&
         argResults[flag] as bool == true) {
-      logHandler(
+      logWriter(
           Level.WARNING,
           '--$flag is deprecated please use --auto=$autoFallback instead '
           '(this has been automatically selected).');
       if (auto != null) {
-        logHandler(
+        logWriter(
             Level.WARNING,
             'Only one --auto option is allowed, got $flag which corresponds '
             'to --auto=$autoFallback, but already got --auto=$auto');
@@ -53,7 +53,7 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
 
   switch (auto) {
     case 'reload':
-      logHandler(
+      logWriter(
           Level.WARNING,
           'Hot reload is not yet supported for web projects. '
           'Please try --auto=restart instead.');
