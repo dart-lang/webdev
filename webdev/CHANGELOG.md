@@ -1,3 +1,7 @@
+## 2.0.6
+
+- Use latest `package:build_daemon`.
+
 ## 2.0.5
 
 - Use `HttpMultiServer` to fix bind issues with IPv6 / IPv4.
