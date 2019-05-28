@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dwds/src/token_position.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -47,6 +48,12 @@ class Sources {
   /// Stream of events that a source map has been loaded.
   Stream<String> get sourceMapLoaded => _sourceMapLoadedController.stream;
 
+  /// Map from relative dart source path to tokenPosTable as defined in the
+  /// Dart VM Service Protocol.
+  final _sourceToTokenPosTable = <String, List<List<int>>>{};
+
+  final _sourceToTokens = <String, Set<TokenPos>>{};
+
   /// Called to handle the event that a script has been parsed
   /// and add its sourcemap information.
   Future<Null> scriptParsed(ScriptParsedEvent e) async {
@@ -63,6 +70,19 @@ class Sources {
         jsScripts[canonical] = script;
         _dartSourcemaps[canonical] = mapping;
         _sourceMapLoadedController.add(canonical);
+      }
+
+      // Create TokenPos for each entry in the source map.
+      for (var lineEntry in mapping.lines) {
+        for (var entry in lineEntry.entries) {
+          var index = entry.sourceUrlId;
+          if (index == null) continue;
+          var dartUrl = mapping.urls[index];
+          var dartLine = entry.sourceLine;
+          var dartColumn = entry.sourceColumn;
+          var token = TokenPos(dartLine, dartColumn);
+          _sourceToTokens.putIfAbsent(dartUrl, () => Set()).add(token);
+        }
       }
     }
   }
@@ -81,5 +101,32 @@ class Sources {
     var scriptPath = DartUri(script.url).serverPath;
     var sourcemapPath = p.join(p.dirname(scriptPath), sourceMapUrl);
     return mainProxy.assetHandler(sourcemapPath);
+  }
+
+  /// Returns the tokenPosTable for the provided Dart script path as defined
+  /// in:
+  /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#script
+  List<List<int>> tokenPosTableFor(String scriptPath) {
+    // Script paths contained in source maps always contain a leading slash.
+    scriptPath = scriptPath.startsWith('/') ? scriptPath : '/$scriptPath';
+    var tokenPosTable = _sourceToTokenPosTable[scriptPath];
+    if (tokenPosTable != null) return tokenPosTable;
+    // Construct the tokenPosTable which is of the form:
+    // [lineNumber, (tokenId, columnNumber)*]
+    tokenPosTable = <List<int>>[];
+    var tokens = _sourceToTokens[scriptPath] ?? {};
+    var lineNumberToTokens = <int, Set<TokenPos>>{};
+    for (var token in tokens) {
+      lineNumberToTokens.putIfAbsent(token.line, () => Set()).add(token);
+    }
+    for (var lineNumber in lineNumberToTokens.keys) {
+      var entry = [lineNumber];
+      for (var token in lineNumberToTokens[lineNumber]) {
+        entry.addAll([token.id, token.column]);
+      }
+      tokenPosTable.add(entry);
+    }
+    _sourceToTokenPosTable[scriptPath] = tokenPosTable;
+    return tokenPosTable;
   }
 }

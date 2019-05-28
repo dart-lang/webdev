@@ -527,8 +527,7 @@ function($argsString) {
       ..library = _libraryRefs[libraryId]
       ..id = scriptRef.id
       ..uri = libraryId
-      // TODO(grouma) - Fill in to enable break points.
-      ..tokenPosTable = []
+      ..tokenPosTable = debugger.sources.tokenPosTableFor(scriptPath)
       ..source = script;
   }
 

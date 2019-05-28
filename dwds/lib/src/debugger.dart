@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
