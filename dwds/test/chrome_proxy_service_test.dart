@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/chrome_proxy_service.dart';
+import 'package:dwds/src/dart_uri.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
@@ -34,6 +35,7 @@ void main() {
     Isolate isolate;
     ScriptList scripts;
     ScriptRef mainScript;
+    var breakpoints = <Breakpoint>[];
 
     setUp(() async {
       vm = await service.getVM();
@@ -41,22 +43,33 @@ void main() {
       scripts = await service.getScripts(isolate.id);
       mainScript =
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
+      await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
     });
 
-    test('addBreakPoint', () async {
-      // TODO: Reloading causes other tests to fail. Investigate.
-      //  await reload();
-      expect(() => service.addBreakpoint(isolate.id, mainScript.id, 19),
-          throwsUnimplementedError);
-      var breakpoints = isolate.breakpoints;
-      expect(breakpoints, isEmpty);
+    tearDown(() async {
+      for (var breakpoint in breakpoints) {
+        await service.removeBreakpointInternal(breakpoint.id);
+      }
+      breakpoints = [];
+    });
+
+    test('load sourcemaps', () async {
+      expect(service.debugger.sources.sourcemapForDart('hello_world/main.dart'),
+          isNotNull);
+    });
+
+    test('addBreakpoint', () async {
+      // TODO: Much more testing.
+      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 20);
+      breakpoints = isolate.breakpoints;
+      breakpoints = [bp];
+      expect(breakpoints.any((b) => b.location.tokenPos == 42), isNotNull);
     });
 
     test('addBreakpointAtEntry', () {
       expect(() => service.addBreakpointAtEntry(null, null),
           throwsUnimplementedError);
     });
-
     test('addBreakpointWithScriptUri', () {
       expect(() => service.addBreakpointWithScriptUri(null, null, null),
           throwsUnimplementedError);
@@ -309,8 +322,10 @@ void main() {
       for (var scriptRef in scripts.scripts) {
         var script =
             await service.getObject(isolate.id, scriptRef.id) as Script;
-        var result = await http.get('http://localhost:${context.port}/'
-            '${script.uri.replaceAll("package:", "packages/")}');
+        // TODO(401): Remove service.uri parameter.
+        var scriptPath = DartUri(script.uri, service.uri).serverPath;
+        var result =
+            await http.get('http://localhost:${context.port}/$scriptPath');
         expect(script.source, result.body);
         expect(scriptRef.uri, endsWith('.dart'));
       }

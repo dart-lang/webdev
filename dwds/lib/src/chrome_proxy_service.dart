@@ -11,6 +11,7 @@ import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'dart_uri.dart';
 import 'debugger.dart';
 import 'helpers.dart';
 
@@ -519,7 +520,8 @@ function($argsString) {
 
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
     var libraryId = scriptRef.uri;
-    var scriptPath = libraryId.replaceAll('package:', 'packages/');
+    // TODO(401): Remove uri parameter.
+    var scriptPath = DartUri(libraryId, uri).serverPath;
     var script = await assetHandler(scriptPath);
     return Script()
       ..library = _libraryRefs[libraryId]
@@ -638,6 +640,13 @@ function($argsString) {
   @override
   Future<Success> removeBreakpoint(String isolateId, String breakpointId) {
     throw UnimplementedError();
+  }
+
+  /// A minimal internal version of removing breakpoints for cleanup - to be folded
+  /// into the main implementation and removed.
+  Future<void> removeBreakpointInternal(String breakpointId) {
+    // TODO: Flesh out the implementation and combine with the full API.
+    return debugger.removeBreakpoint(breakpointId);
   }
 
   @override
