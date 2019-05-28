@@ -4,13 +4,13 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/token_position.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
+import 'token_position.dart';
 
 /// The scripts and sourcemaps for the application, both JS and Dart.
 class Sources {
