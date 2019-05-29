@@ -14,7 +14,7 @@ import 'location.dart';
 
 /// The scripts and sourcemaps for the application, both JS and Dart.
 class Sources {
-  final ChromeProxyService mainProxy;
+  final ChromeProxyService _mainProxy;
 
   /// Controller for a stream of events when a source map is loaded.
   final _sourceMapLoadedController = StreamController<String>.broadcast();
@@ -25,7 +25,7 @@ class Sources {
 
   final _sourceToLocation = <String, Set<Location>>{};
 
-  Sources(this.mainProxy);
+  Sources(this._mainProxy);
 
   /// Stream of events that a source map has been loaded.
   Stream<String> get _sourceMapLoaded => _sourceMapLoadedController.stream;
@@ -108,6 +108,6 @@ class Sources {
     }
     var scriptPath = DartUri(script.url).serverPath;
     var sourcemapPath = p.join(p.dirname(scriptPath), sourceMapUrl);
-    return mainProxy.assetHandler(sourcemapPath);
+    return _mainProxy.assetHandler(sourcemapPath);
   }
 }
