@@ -33,6 +33,7 @@ linter:
     - comment_references
     - constant_identifier_names
     - control_flow_in_finally
+    - curly_braces_in_flow_control_structures
     - directives_ordering
     - empty_catches
     - empty_constructor_bodies
@@ -68,6 +69,7 @@ linter:
     - prefer_interpolation_to_compose_strings
     - prefer_is_empty
     - prefer_is_not_empty
+    - prefer_null_aware_operators
     - prefer_single_quotes
     - prefer_typing_uninitialized_variables
     - recursive_getters
@@ -82,6 +84,7 @@ linter:
     - unnecessary_lambdas
     - unnecessary_new
     - unnecessary_null_aware_assignments
+    - unnecessary_null_in_if_null_operators
     - unnecessary_parenthesis
     - unnecessary_statements
     - unnecessary_this
