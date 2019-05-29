@@ -28,8 +28,9 @@ Future<BuildDaemonClient> connectClient(String workingDirectory,
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {
   var portFile = File(_assetServerPortFilePath(workingDirectory));
-  if (!portFile.existsSync())
+  if (!portFile.existsSync()) {
     throw Exception('Unable to read daemon asset port file.');
+  }
   return int.parse(portFile.readAsStringSync());
 }
 

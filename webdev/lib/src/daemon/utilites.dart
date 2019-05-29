@@ -14,8 +14,9 @@ dynamic toJsonable(dynamic obj) {
 
 String getStringArg(Map<String, dynamic> args, String name,
     {bool required = false}) {
-  if (required && !args.containsKey(name))
+  if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
+  }
   var val = args[name];
   if (val != null && val is! String) {
     throw ArgumentError('$name is not a String');
@@ -34,8 +35,9 @@ bool getBoolArg(Map<String, dynamic> args, String name,
 }
 
 int getIntArg(Map<String, dynamic> args, String name, {bool required = false}) {
-  if (required && !args.containsKey(name))
+  if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
+  }
   var val = args[name];
   if (val != null && val is! int) throw ArgumentError('$name is not an int');
   return val as int;
