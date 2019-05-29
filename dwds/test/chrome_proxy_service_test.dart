@@ -53,11 +53,6 @@ void main() {
       breakpoints = [];
     });
 
-    test('load sourcemaps', () async {
-      expect(service.debugger.sources.sourcemapForDart('hello_world/main.dart'),
-          isNotNull);
-    });
-
     test('addBreakpoint', () async {
       // TODO: Much more testing.
       var bp = await service.addBreakpoint(isolate.id, mainScript.id, 20);

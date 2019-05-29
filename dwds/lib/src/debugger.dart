@@ -33,6 +33,8 @@ class Debugger {
 
   Future<Null> initialize() async {
     sources = Sources(mainProxy);
+    // We must add a listener before enabling the debugger otherwise we will
+    // miss events.
     chromeDebugger.onScriptParsed.listen(sources.scriptParsed);
     await chromeDebugger.enable();
   }
@@ -65,10 +67,8 @@ class Debugger {
     // TODO(401): Remove the additional parameter.
     var dartUri = DartUri(
         dartScript.uri, '${Uri.parse(mainProxy.uri).path}/garbage.dart');
-    var jsScript = sources.jsScripts[dartUri.serverPath];
     var location = locationFor(dartUri, line);
-
-    var jsBreakpointId = await _setBreakpoint(jsScript, location);
+    var jsBreakpointId = await _setBreakpoint(location);
     var dartBreakpoint = _dartBreakpoint(dartScript, location, isolate);
     _breakpoints.noteBreakpoint(js: jsBreakpointId, dart: dartBreakpoint.id);
     return dartBreakpoint;
@@ -82,8 +82,7 @@ class Debugger {
       ..id = '${_nextBreakpointId++}'
       ..location = (SourceLocation()
         ..script = dartScript
-        ..tokenPos = location.dartTokenPos
-        ..endTokenPos = location.dartTokenPos);
+        ..tokenPos = location.tokenPos);
     mainProxy.streamNotify(
         'Debug',
         Event()
@@ -102,11 +101,11 @@ class Debugger {
   }
 
   /// Call the Chrome protocol setBreakpoint and return the breakpoint ID.
-  Future<String> _setBreakpoint(WipScript jsScript, Location location) async {
+  Future<String> _setBreakpoint(Location location) async {
     var response =
         await chromeDebugger.sendCommand('Debugger.setBreakpoint', params: {
       'location': {
-        'scriptId': jsScript.scriptId,
+        'scriptId': location.jsScriptId,
         'lineNumber': location.jsLine,
       }
     });
@@ -125,28 +124,11 @@ class Debugger {
   ///
   /// The [line] number is 1-based.
   Location locationFor(DartUri uri, int line) {
-    var sourcemap = sources.sourcemapForDart(uri.serverPath);
-    for (var lineEntry in sourcemap.lines) {
-      for (var entry in lineEntry.entries) {
-        var index = entry.sourceUrlId;
-        if (index == null) continue;
-        var dartLine = entry.sourceLine;
-        // TODO: Handle cases where a breakpoint can't be set exactly at that
-        // line and we have to find the nearest valid position.
-        if (dartLine != line) continue;
-
-        var dartColumn = entry.sourceColumn;
-        var jsLine = lineEntry.line;
-        var jsColumn = entry.column;
-        var basicDartUrl = sourcemap.urls[entry.sourceUrlId];
-        var dartUrl = DartUri(basicDartUrl, uri.serverPath).serverPath;
-        var jsScriptId = sources.jsScripts[dartUrl].scriptId;
-        // TODO: Don't hard-code Dart token position to 0.
-        return Location(jsScriptId, jsLine + 1, jsColumn + 1, dartUrl, dartLine,
-            dartColumn, 0);
-      }
-    }
-    return null;
+    // TODO: Handle cases where a breakpoint can't be set exactly at that
+    // line and we have to find the nearest valid position.
+    return sources.locationsFor(uri.serverPath).firstWhere(
+        (location) => location.dartLine == line,
+        orElse: () => null);
   }
 }
 
