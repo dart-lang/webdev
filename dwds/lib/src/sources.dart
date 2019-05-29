@@ -19,16 +19,21 @@ class Sources {
   /// Controller for a stream of events when a source map is loaded.
   final _sourceMapLoadedController = StreamController<String>.broadcast();
 
-  /// Map from Dart server path to tokenPosTable as defined in the
-  /// Dart VM Service Protocol.
-  final _sourceToTokenPosTable = <String, List<List<int>>>{};
-
-  final _sourceToLocation = <String, Set<Location>>{};
-
-  Sources(this._mainProxy);
-
   /// Stream of events that a source map has been loaded.
   Stream<String> get _sourceMapLoaded => _sourceMapLoadedController.stream;
+
+  /// Map from Dart server path to tokenPosTable as defined in the
+  /// Dart VM Service Protocol:
+  /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#script
+  final _sourceToTokenPosTable = <String, List<List<int>>>{};
+
+  /// Map from Dart server path to all corresponding [Location] data.
+  final _sourceToLocation = <String, Set<Location>>{};
+
+  /// Map from Dart URL to server path.
+  final _canonicalPaths = <String, String>{};
+
+  Sources(this._mainProxy);
 
   /// Returns all [Location] data for a provided Dart source.
   Set<Location> locationsFor(String serverPath) =>
@@ -49,19 +54,23 @@ class Sources {
           var index = entry.sourceUrlId;
           if (index == null) continue;
           var dartUrl = mapping.urls[index];
-          // TODO(401): Remove the additional parameter after D24 is stable.
-          var canonical = DartUri(dartUrl, script.url).serverPath;
-          var dartLine = entry.sourceLine;
-          var dartColumn = entry.sourceColumn;
-          var jsLine = lineEntry.line;
-          var jsColumn = entry.column;
-          var location = Location(script.scriptId, jsLine + 1, jsColumn + 1,
-              dartUrl, dartLine, dartColumn);
-          _sourceToLocation.putIfAbsent(canonical, () => Set()).add(location);
+          var location = Location.from(
+            script.scriptId,
+            lineEntry,
+            entry,
+            dartUrl,
+          );
+          _canonicalPaths.putIfAbsent(
+              dartUrl,
+              // TODO(401): Remove the additional parameter after D24 is stable.
+              () => DartUri(dartUrl, script.url).serverPath);
+          _sourceToLocation
+              .putIfAbsent(_canonicalPaths[dartUrl], () => Set())
+              .add(location);
         }
       }
 
-      // Notify the source map has been parsed.
+      // Notify which Dart file's source maps have been parsed.
       for (var serverPath in _sourceToLocation.keys) {
         _sourceMapLoadedController.add(serverPath);
       }
@@ -85,22 +94,27 @@ class Sources {
           .add(location);
     }
     for (var lineNumber in lineNumberToLocation.keys) {
-      var entry = [lineNumber];
-      for (var location in lineNumberToLocation[lineNumber]) {
-        entry.addAll([location.tokenPos, location.dartColumn]);
-      }
-      tokenPosTable.add(entry);
+      tokenPosTable.add([
+        lineNumber,
+        for (var location in lineNumberToLocation[lineNumber]) ...[
+          location.tokenPos,
+          location.dartColumn
+        ]
+      ]);
     }
     _sourceToTokenPosTable[serverPath] = tokenPosTable;
     return tokenPosTable;
   }
 
   /// Waits until the source map for the Dart server path has been loaded.
+  // TODO(grouma) - This is only used in a test context. Can we use an
+  // alternative signal and remove this method?
   Future<void> waitForSourceMap(String serverPath) async =>
       _sourceToLocation[serverPath] ??
       _sourceMapLoaded.firstWhere((loadedUri) => serverPath == loadedUri);
 
   /// The source map for a DDC-compiled JS [script].
+  // TODO(grouma) - Reuse this logic in `DartUri`.
   Future<String> _sourceMap(WipScript script) {
     var sourceMapUrl = script.sourceMapURL;
     if (sourceMapUrl == null || !sourceMapUrl.endsWith('.ddc.js.map')) {
