@@ -521,14 +521,13 @@ function($argsString) {
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
     var libraryId = scriptRef.uri;
     // TODO(401): Remove uri parameter.
-    var scriptPath = DartUri(libraryId, uri).serverPath;
-    var script = await assetHandler(scriptPath);
+    var serverPath = DartUri(libraryId, uri).serverPath;
+    var script = await assetHandler(serverPath);
     return Script()
       ..library = _libraryRefs[libraryId]
       ..id = scriptRef.id
       ..uri = libraryId
-      // TODO(grouma) - Fill in to enable break points.
-      ..tokenPosTable = []
+      ..tokenPosTable = debugger.sources.tokenPosTableFor(serverPath)
       ..source = script;
   }
 

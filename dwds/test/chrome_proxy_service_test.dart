@@ -53,11 +53,6 @@ void main() {
       breakpoints = [];
     });
 
-    test('load sourcemaps', () async {
-      expect(service.debugger.sources.sourcemapForDart('hello_world/main.dart'),
-          isNotNull);
-    });
-
     test('addBreakpoint', () async {
       // TODO: Much more testing.
       var bp = await service.addBreakpoint(isolate.id, mainScript.id, 20);
@@ -328,6 +323,12 @@ void main() {
             await http.get('http://localhost:${context.port}/$scriptPath');
         expect(script.source, result.body);
         expect(scriptRef.uri, endsWith('.dart'));
+        // TODO(401) - Once the dev SDK is updated with the org-dartlang-app
+        // fix we shouldn't need this conditional as the script URI should be
+        // `/hello_world/main.dart` instead of just `main.dart`.
+        if (script.uri != 'main.dart') {
+          expect(script.tokenPosTable, isNotEmpty);
+        }
       }
     });
   });
