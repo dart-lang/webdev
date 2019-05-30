@@ -80,7 +80,6 @@ class _$DevToolsResponseSerializer
         ..add(serializers.serialize(object.error,
             specifiedType: const FullType(String)));
     }
-
     return result;
   }
 
