@@ -140,7 +140,7 @@ name: sample
               switch (entry.key) {
                 case 'build_runner':
                   buildRunnerVersion = version;
-                  supportedRange = '>=1.3.0 <2.0.0';
+                  supportedRange = '>=1.5.0 <2.0.0';
                   break;
                 case 'build_web_compilers':
                   webCompilersVersion = version;
@@ -285,7 +285,7 @@ dependencies:
   }
 }
 
-const _supportedBuildRunnerVersion = '1.3.0';
+const _supportedBuildRunnerVersion = '1.5.0';
 const _supportedWebCompilersVersion = '1.2.0';
 const _supportedBuildDaemonVersion = '1.0.0';
 

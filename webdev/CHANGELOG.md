@@ -1,3 +1,7 @@
+## 2.0.7
+
+- Update minimum `package:build_runner` version to `1.5.0`.
+
 ## 2.0.6
 
 - Use latest `package:build_daemon`.

@@ -180,7 +180,7 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
   var issues = <PackageExceptionDetails>[];
 
   var buildRunnerIssues = pubspecLock.checkPackage(
-      'build_runner', VersionConstraint.parse('>=1.3.0 <2.0.0'));
+      'build_runner', VersionConstraint.parse('>=1.5.0 <2.0.0'));
 
   issues.addAll(buildRunnerIssues);
 
