@@ -498,7 +498,7 @@ function($argsString) {
     return library;
   }
 
-  @override 
+  @override
   Future<dynamic> getMemoryUsage(String isolateId) async {
     throw UnimplementedError();
   }
