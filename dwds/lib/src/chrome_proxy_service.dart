@@ -498,6 +498,11 @@ function($argsString) {
     return library;
   }
 
+  @override 
+  Future<dynamic> getMemoryUsage(String isolateId) async {
+    throw UnimplementedError();
+  }
+
   @override
   Future getObject(String isolateId, String objectId,
       {int offset, int count}) async {
