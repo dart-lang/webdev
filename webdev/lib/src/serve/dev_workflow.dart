@@ -152,7 +152,7 @@ class DevWorkflow {
   final ServerManager serverManager;
   StreamSubscription _resultsSub;
 
-  final _wrapWidth = stdout.hasTerminal ? stdout.terminalColumns : 72;
+  final _wrapWidth = stdout.hasTerminal ? stdout.terminalColumns - 8 : 72;
 
   DevWorkflow._(
     this._client,
