@@ -120,6 +120,9 @@ name: sample
           await d.file('.packages', '''
 ''').create();
 
+          // Required for webdev to not complain about nothing to serve.
+          await d.dir('web').create();
+
           var process = await runWebDev(['serve', '--no-build-web-compilers'],
               workingDirectory: d.sandbox);
 
