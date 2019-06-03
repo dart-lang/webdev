@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
+import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
@@ -77,8 +78,10 @@ class WebDevServer {
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
-    var server =
-        await HttpServer.bind(options.configuration.hostname, options.port);
+    var hostname = options.configuration.hostname;
+    var server = hostname == 'localhost'
+        ? await HttpMultiServer.loopback(options.port)
+        : await HttpServer.bind(hostname, options.port);
     shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
     return WebDevServer._(
         options.target, server, devHandler, options.configuration.autoRun);
