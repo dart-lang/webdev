@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:logging/logging.dart' as logging;
 
 import '../logging.dart';
 import '../serve/dev_workflow.dart';
@@ -106,6 +107,18 @@ refresh: Performs a full page refresh.
     var directoryArgs =
         argResults.rest.where((arg) => !arg.startsWith('-')).toList();
     var targetPorts = _parseDirectoryArgs(directoryArgs);
+
+    if (targetPorts.isEmpty) {
+      logWriter(logging.Level.SEVERE, '''
+Unable to detect a default directory to serve, by default $_defaultWebDirs is
+supported.
+
+You can specify a custom directory to serve by providing trailing arguments
+in the `<directory>:<port>` format, such as `webdev serve test:8080`.
+''');
+      return 1;
+    }
+
     var workflow =
         await DevWorkflow.start(configuration, buildOptions, targetPorts);
     await workflow.done;

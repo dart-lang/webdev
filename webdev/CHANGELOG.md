@@ -1,3 +1,8 @@
+## 2.0.8-dev
+
+- Add an explicit error if there are no directories to serve. Typically this
+  would happen if the user doesn't have a `web` directory.
+
 ## 2.0.7
 
 - Update minimum `package:build_runner` version to `1.5.0`.
