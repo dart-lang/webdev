@@ -13,8 +13,7 @@ Future<int> findUnusedPort() async {
   int port;
   ServerSocket socket;
   try {
-    socket =
-        await ServerSocket.bind(InternetAddress.loopbackIPv6, 0, v6Only: true);
+    socket = await ServerSocket.bind(InternetAddress.loopbackIPv6, 0);
   } on SocketException {
     socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   }
