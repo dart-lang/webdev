@@ -28,7 +28,7 @@ class InjectedFixture {
   Future<void> buildAndLoad(List<String> arg) async {
     var success = false;
     int debugPort;
-    for (var attempt = 1; attempt <= 3; attempt++) {
+    for (var attempt = 1; attempt <= 10; attempt++) {
       try {
         debugPort = await findUnusedPort();
         webdriver = await createDriver(desired: {
