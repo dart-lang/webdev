@@ -31,11 +31,14 @@ class InjectedFixture {
     for (var attempt = 1; attempt <= 10; attempt++) {
       try {
         debugPort = await findUnusedPort();
-        webdriver = await createDriver(desired: {
-          'chromeOptions': {
-            'args': ['remote-debugging-port=$debugPort', '--headless']
-          }
-        });
+        var capabilities = Capabilities.chrome
+          ..addAll({
+            Capabilities.chromeOptions: {
+              'args': ['remote-debugging-port=$debugPort', '--headless']
+            }
+          });
+        webdriver = await createDriver(
+            spec: WebDriverSpec.JsonWire, desired: capabilities);
         success = true;
         break;
       } on SocketException {

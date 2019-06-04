@@ -50,11 +50,14 @@ class TestContext {
     await assetReadyCompleter.future.timeout(Duration(seconds: 60));
     appUrl = 'http://localhost:$port/hello_world/';
     var debugPort = await findUnusedPort();
-    webDriver = await createDriver(desired: {
-      'chromeOptions': {
-        'args': ['remote-debugging-port=$debugPort', '--headless']
-      }
-    });
+    var capabilities = Capabilities.chrome
+      ..addAll({
+        Capabilities.chromeOptions: {
+          'args': ['remote-debugging-port=$debugPort', '--headless']
+        }
+      });
+    webDriver =
+        await createDriver(spec: WebDriverSpec.JsonWire, desired: capabilities);
     await webDriver.get(appUrl);
     var connection = ChromeConnection('localhost', debugPort);
     var tab = await connection.getTab((t) => t.url == appUrl);
