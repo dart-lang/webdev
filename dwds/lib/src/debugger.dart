@@ -68,6 +68,8 @@ class Debugger {
     var dartUri = DartUri(
         dartScript.uri, '${Uri.parse(mainProxy.uri).path}/garbage.dart');
     var location = locationFor(dartUri, line);
+    // TODO: Handle cases where a breakpoint can't be set exactly at that line.
+    if (location == null) return null;
     var jsBreakpointId = await _setBreakpoint(location);
     var dartBreakpoint = _dartBreakpoint(dartScript, location, isolate);
     _breakpoints.noteBreakpoint(js: jsBreakpointId, dart: dartBreakpoint.id);
