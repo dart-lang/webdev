@@ -13,9 +13,9 @@ Future<int> findUnusedPort() async {
   int port;
   ServerSocket socket;
   try {
-    socket = await ServerSocket.bind(InternetAddress.anyIPv6, 0);
+    socket = await ServerSocket.bind(InternetAddress.loopbackIPv6, 0);
   } on SocketException {
-    socket = await ServerSocket.bind(InternetAddress.anyIPv4, 0);
+    socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   }
   port = socket.port;
   await socket.close();
