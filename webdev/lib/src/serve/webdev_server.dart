@@ -79,9 +79,7 @@ class WebDevServer {
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
     var hostname = options.configuration.hostname;
-    var server = hostname == 'localhost'
-        ? await HttpMultiServer.loopback(options.port)
-        : await HttpServer.bind(hostname, options.port);
+    var server = await HttpMultiServer.bind(hostname, options.port);
     shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
     return WebDevServer._(
         options.target, server, devHandler, options.configuration.autoRun);

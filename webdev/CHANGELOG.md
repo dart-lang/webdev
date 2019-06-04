@@ -1,7 +1,8 @@
-## 2.0.8-dev
+## 2.1.0-dev
 
 - Add an explicit error if there are no directories to serve. Typically this
   would happen if the user doesn't have a `web` directory.
+- Add support for specifying `--hostname any`.
 
 ## 2.0.7
 
