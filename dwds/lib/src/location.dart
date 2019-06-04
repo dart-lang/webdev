@@ -50,7 +50,9 @@ class Location {
     var dartColumn = entry.sourceColumn;
     var jsLine = lineEntry.line;
     var jsColumn = entry.column;
-    return Location._(
-        scriptId, jsLine + 1, jsColumn + 1, dartUrl, dartLine, dartColumn);
+    // lineEntry data is 0 based according to:
+    // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
+    return Location._(scriptId, jsLine + 1, jsColumn + 1, dartUrl, dartLine + 1,
+        dartColumn + 1);
   }
 }

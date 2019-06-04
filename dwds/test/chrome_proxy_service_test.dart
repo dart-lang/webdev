@@ -55,7 +55,7 @@ void main() {
 
     test('addBreakpoint', () async {
       // TODO: Much more testing.
-      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 20);
+      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 21);
       breakpoints = isolate.breakpoints;
       breakpoints = [bp];
       expect(breakpoints.any((b) => b.location.tokenPos == 42), isNotNull);

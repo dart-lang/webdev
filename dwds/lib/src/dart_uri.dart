@@ -68,6 +68,8 @@ class DartUri {
 
   /// Construct from a path, relative to the directory being served.
   factory DartUri._fromServerPath(String uri) {
-    return DartUri._(uri[0] == '/' ? uri.substring(1) : uri);
+    uri = uri[0] == '.' ? uri.substring(1) : uri;
+    uri = uri[0] == '/' ? uri.substring(1) : uri;
+    return DartUri._(uri);
   }
 }

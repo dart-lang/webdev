@@ -68,6 +68,8 @@ class Debugger {
     var dartUri = DartUri(
         dartScript.uri, '${Uri.parse(mainProxy.uri).path}/garbage.dart');
     var location = locationFor(dartUri, line);
+    // TODO: Handle cases where a breakpoint can't be set exactly at that line.
+    if (location == null) return null;
     var jsBreakpointId = await _setBreakpoint(location);
     var dartBreakpoint = _dartBreakpoint(dartScript, location, isolate);
     _breakpoints.noteBreakpoint(js: jsBreakpointId, dart: dartBreakpoint.id);
@@ -102,11 +104,13 @@ class Debugger {
 
   /// Call the Chrome protocol setBreakpoint and return the breakpoint ID.
   Future<String> _setBreakpoint(Location location) async {
+    // Location is 0 based according to:
+    // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
     var response =
         await chromeDebugger.sendCommand('Debugger.setBreakpoint', params: {
       'location': {
         'scriptId': location.jsScriptId,
-        'lineNumber': location.jsLine,
+        'lineNumber': location.jsLine - 1,
       }
     });
     handleErrorIfPresent(response);
@@ -123,13 +127,9 @@ class Debugger {
   /// Find the [Location] for the given Dart source position.
   ///
   /// The [line] number is 1-based.
-  Location locationFor(DartUri uri, int line) {
-    // TODO: Handle cases where a breakpoint can't be set exactly at that
-    // line and we have to find the nearest valid position.
-    return sources.locationsFor(uri.serverPath).firstWhere(
-        (location) => location.dartLine == line,
-        orElse: () => null);
-  }
+  Location locationFor(DartUri uri, int line) => sources
+      .locationsFor(uri.serverPath)
+      .firstWhere((location) => location.dartLine == line, orElse: () => null);
 }
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
