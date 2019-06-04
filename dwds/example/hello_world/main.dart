@@ -43,9 +43,7 @@ void main() async {
 
   // Register one up front before the proxy connects, the isolate should still
   // recognize this as an available extension.
-  registerExtension('ext.hello_world.existing', (_, __) async {
-    return null;
-  });
+  registerExtension('ext.hello_world.existing', (_, __) => null);
 
   window.console.debug('Page Ready');
 }
