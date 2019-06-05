@@ -26,12 +26,26 @@ class InjectedFixture {
       this._entryFile, this._entryContents, this._exampleDirectory);
 
   Future<void> buildAndLoad(List<String> arg) async {
-    var debugPort = await findUnusedPort();
-    webdriver = await createDriver(desired: {
-      'chromeOptions': {
-        'args': ['remote-debugging-port=$debugPort', '--headless']
+    var success = false;
+    int debugPort;
+    for (var attempt = 1; attempt <= 10; attempt++) {
+      try {
+        debugPort = await findUnusedPort();
+        var capabilities = Capabilities.chrome
+          ..addAll({
+            Capabilities.chromeOptions: {
+              'args': ['remote-debugging-port=$debugPort', '--headless']
+            }
+          });
+        webdriver = await createDriver(
+            spec: WebDriverSpec.JsonWire, desired: capabilities);
+        success = true;
+        break;
+      } on SocketException {
+        // AppVeyor can be flaky to start webdriver.
       }
-    });
+    }
+    if (!success) throw Exception('Unable to start webdriver.');
 
     var openPort = await findUnusedPort();
     var args = ['serve', 'web:$openPort', '--chrome-debug-port=$debugPort']
