@@ -152,9 +152,13 @@ class DevHandler {
             .serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
-        await appServices.chromeProxyService.tabConnection.runtime.evaluate(
-            'window.open("http://${_devTools.hostname}:${_devTools.port}'
-            '/?uri=${appServices.debugService.wsUri}", "", "_blank")');
+        var chrome = await Chrome.connectedInstance;
+        // We can't use `window.open` here as DevTools is on the same hostname
+        // as the application. This makes it such that pausing execution in one
+        // will pause execution in the other.
+        await chrome.chromeConnection
+            .getUrl('json/new/?http://${_devTools.hostname}:${_devTools.port}'
+                '/?uri=${appServices.debugService.wsUri}');
       } else if (message is ConnectRequest) {
         if (appId != null) {
           throw StateError('Duplicate connection request from the same app. '
