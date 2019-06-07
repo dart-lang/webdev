@@ -11,7 +11,8 @@ Handler interceptFavicon(Handler handler) {
   return (request) async {
     var response = await handler(request);
     if (response.statusCode == 404 &&
-        request.url.path.endsWith('favicon.ico')) {
+        request.url.pathSegments.isNotEmpty &&
+        request.url.pathSegments.last == 'favicon.ico') {
       return Response.ok(_icon);
     }
     return response;
