@@ -152,9 +152,12 @@ class DevHandler {
             .serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
-        await appServices.chromeProxyService.tabConnection.runtime.evaluate(
-            'window.open("http://${_devTools.hostname}:${_devTools.port}'
-            '/?uri=${appServices.debugService.wsUri}", "", "_blank")');
+        await appServices.chromeProxyService.tabConnection
+            .sendCommand('Target.createTarget', {
+          'newWindow': true,
+          'url': 'http://${_devTools.hostname}:${_devTools.port}'
+              '/?uri=${appServices.debugService.wsUri}',
+        });
       } else if (message is ConnectRequest) {
         if (appId != null) {
           throw StateError('Duplicate connection request from the same app. '
