@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:shelf/shelf.dart';
+import 'package:pedantic/pedantic.dart';
 
 Handler interceptFavicon(Handler handler) {
   return (request) async {
@@ -13,6 +14,7 @@ Handler interceptFavicon(Handler handler) {
     if (response.statusCode == 404 &&
         request.url.pathSegments.isNotEmpty &&
         request.url.pathSegments.last == 'favicon.ico') {
+      unawaited(response.read().drain());
       return Response.ok(_icon);
     }
     return response;
