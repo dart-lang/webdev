@@ -35,7 +35,6 @@ void main() {
     Isolate isolate;
     ScriptList scripts;
     ScriptRef mainScript;
-    var breakpoints = <Breakpoint>[];
 
     setUp(() async {
       vm = await service.getVM();
@@ -46,19 +45,12 @@ void main() {
       await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
     });
 
-    tearDown(() async {
-      for (var breakpoint in breakpoints) {
-        await service.removeBreakpointInternal(breakpoint.id);
-      }
-      breakpoints = [];
-    });
-
     test('addBreakpoint', () async {
       // TODO: Much more testing.
       var bp = await service.addBreakpoint(isolate.id, mainScript.id, 21);
-      breakpoints = isolate.breakpoints;
-      breakpoints = [bp];
-      expect(breakpoints.any((b) => b.location.tokenPos == 42), isNotNull);
+      // Remove breakpoint so it doesn't impact other tests.
+      await service.removeBreakpointInternal(bp.id);
+      expect(bp.id, '1');
     });
 
     test('addBreakpointAtEntry', () {
@@ -354,16 +346,41 @@ void main() {
   group('getStack', () {
     String isolateId;
     Stream<Event> stream;
+    ScriptList scripts;
+    ScriptRef mainScript;
 
     setUp(() async {
       var vm = await service.getVM();
       isolateId = vm.isolates.first.id;
+      scripts = await service.getScripts(isolateId);
       await service.streamListen('Debug');
       stream = service.onEvent('Debug');
+      mainScript =
+          scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
+      await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
     });
 
     test('returns null if not paused', () async {
       expect(await service.getStack(isolateId), isNull);
+    });
+
+    test('returns stack when broken', () async {
+      var bp = await service.addBreakpoint(isolateId, mainScript.id, 59);
+      // Wait for breakpoint to trigger.
+      await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+      // Remove breakpoint so it doesn't impact other tests.
+      await service.removeBreakpointInternal(bp.id);
+      var stack = await service.getStack(isolateId);
+      // Resume as to not impact other tests.
+      await service.resume(isolateId);
+      expect(stack, isNotNull);
+      expect(stack.frames.length, 2);
+      var first = stack.frames.first;
+      expect(first.kind, 'Regular');
+      expect(first.code.kind, 'Dart');
+      // TODO(grouma) - Expect a Dart name.
+      expect(first.code.name, 'main.printCount');
     });
 
     test('returns non-empty stack when paused', () async {
