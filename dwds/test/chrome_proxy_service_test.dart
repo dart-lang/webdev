@@ -351,8 +351,30 @@ void main() {
     expect(() => service.getSourceReport(null, null), throwsUnimplementedError);
   });
 
-  test('getStack', () {
-    expect(() => service.getStack(null), throwsUnimplementedError);
+  group('getStack', () {
+    String isolateId;
+    Stream<Event> stream;
+
+    setUp(() async {
+      var vm = await service.getVM();
+      isolateId = vm.isolates.first.id;
+      await service.streamListen('Debug');
+      stream = service.onEvent('Debug');
+    });
+
+    test('returns null if not paused', () async {
+      expect(await service.getStack(isolateId), isNull);
+    });
+
+    test('returns non-empty stack when paused', () async {
+      await service.pause(isolateId);
+      // Wait for pausing to actually propagate.
+      await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
+      expect(await service.getStack(isolateId), isNotNull);
+      // Resume the isolate to not impact other tests.
+      await service.resume(isolateId);
+    });
   });
 
   test('getVM', () async {

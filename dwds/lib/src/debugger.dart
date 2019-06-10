@@ -67,7 +67,7 @@ class Debugger {
     // TODO(401): Remove the additional parameter.
     var dartUri = DartUri(
         dartScript.uri, '${Uri.parse(mainProxy.uri).path}/garbage.dart');
-    var location = locationFor(dartUri, line);
+    var location = locationForDart(dartUri, line);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) return null;
     var jsBreakpointId = await _setBreakpoint(location);
@@ -109,8 +109,8 @@ class Debugger {
     var response =
         await chromeDebugger.sendCommand('Debugger.setBreakpoint', params: {
       'location': {
-        'scriptId': location.jsScriptId,
-        'lineNumber': location.jsLine - 1,
+        'scriptId': location.jsLocation.scriptId,
+        'lineNumber': location.jsLocation.line - 1,
       }
     });
     handleErrorIfPresent(response);
@@ -127,9 +127,43 @@ class Debugger {
   /// Find the [Location] for the given Dart source position.
   ///
   /// The [line] number is 1-based.
-  Location locationFor(DartUri uri, int line) => sources
-      .locationsFor(uri.serverPath)
-      .firstWhere((location) => location.dartLine == line, orElse: () => null);
+  Location locationForDart(DartUri uri, int line) => sources
+      .locationsForDart(uri.serverPath)
+      .firstWhere((location) => location.dartLocation.line == line,
+          orElse: () => null);
+
+  /// Returns the closest [Location] for the given Dart source position.
+  ///
+  /// The [line] and [column] are  1-based.
+  ///
+  /// Can return null if no suitable [Location] is found.
+  Location _bestLocationForJs(String scriptId, int line, int column) {
+    Location result;
+    for (var location in sources.locationsForJs(scriptId)) {
+      if (location.jsLocation.line == line) {
+        result ??= location;
+        if ((location.jsLocation.column - column).abs() <
+            (result.jsLocation.column - column).abs()) {
+          result = location;
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Returns a Dart [Frame] for a [JsLocation].
+  Frame frameFor(JsLocation jsLocation) {
+    var location = _bestLocationForJs(
+        jsLocation.scriptId, jsLocation.line, jsLocation.column);
+    if (location == null) return null;
+    var script = mainProxy.scriptRefFor(location.dartLocation.uri.serverPath);
+    return Frame()
+      ..code = (CodeRef()..kind = CodeKind.kDart)
+      ..location = (SourceLocation()
+        ..tokenPos = location.tokenPos
+        ..script = script)
+      ..kind = FrameKind.kRegular;
+  }
 }
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.

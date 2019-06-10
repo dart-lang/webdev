@@ -1,3 +1,7 @@
+## 0.3.3
+
+- Add support for `getScript` for paused isolates.
+
 ## 0.3.2
 
 - Add support for `scope` in `evaluate` calls.
