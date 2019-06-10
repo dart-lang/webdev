@@ -14,6 +14,7 @@ import '../command/configuration.dart';
 import 'debugger/devtools.dart';
 import 'handlers/asset_handler.dart';
 import 'handlers/dev_handler.dart';
+import 'handlers/favicon_handler.dart';
 import 'middlewares/injected_middleware.dart';
 
 class ServerOptions {
@@ -66,7 +67,8 @@ class WebDevServer {
     }
 
     pipeline = pipeline
-        .addMiddleware(createInjectedHandler(options.configuration.reload));
+        .addMiddleware(createInjectedHandler(options.configuration.reload))
+        .addMiddleware(interceptFavicon);
 
     var devHandler = DevHandler(
       // Only provide relevant build results
