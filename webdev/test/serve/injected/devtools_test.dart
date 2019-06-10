@@ -157,6 +157,48 @@ void main() {
     });
   });
 
+  group('Injected client with --auto restart', () {
+    setUp(() async {
+      fixture = await InjectedFixture.create();
+      await fixture.buildAndLoad(['--debug', '--auto', 'restart']);
+      await fixture.webdriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
+      var debugServiceLine = '';
+      while (!debugServiceLine.contains('Debug service listening')) {
+        debugServiceLine = await fixture.webdev.stdout.next;
+      }
+      debugUri =
+          debugServiceLine.substring(debugServiceLine.indexOf('ws://')).trim();
+
+      // Let DevTools open.
+      await Future.delayed(const Duration(seconds: 2));
+    });
+
+    tearDown(() async {
+      await fixture.tearDown();
+      fixture = null;
+    });
+
+    test('fires isolate create/destroy events during hot restart', () async {
+      var client = await vmServiceConnectUri(debugUri);
+      await client.streamListen('Isolate');
+      await fixture.changeInput();
+
+      var eventsDone = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(emitsInOrder([
+            predicate((Event event) => event.kind == EventKind.kIsolateExit),
+            predicate((Event event) => event.kind == EventKind.kIsolateStart),
+            predicate(
+                (Event event) => event.kind == EventKind.kIsolateRunnable),
+          ])));
+
+      await fixture.changeInput();
+
+      await eventsDone;
+      await fixture.webdev.kill();
+    });
+  });
+
   test('gives a good error if --debug was not passed', () async {
     var fixture = await InjectedFixture.create();
     addTearDown(() => fixture.tearDown());

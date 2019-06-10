@@ -18,6 +18,7 @@ import '../../logging.dart';
 import '../chrome.dart';
 import '../data/connect_request.dart';
 import '../data/devtools_request.dart';
+import '../data/isolate_events.dart';
 import '../data/run_request.dart';
 import '../data/serializers.dart' as webdev;
 import '../debugger/app_debug_services.dart';
@@ -180,6 +181,14 @@ class DevHandler {
         }
 
         _connectedApps.add(DevConnection(message, connection));
+      } else if (message is IsolateExit) {
+        (await loadAppServices(message.appId, message.instanceId))
+            ?.chromeProxyService
+            ?.destroyIsolate();
+      } else if (message is IsolateStart) {
+        await (await loadAppServices(message.appId, message.instanceId))
+            ?.chromeProxyService
+            ?.createIsolate();
       }
     });
 
