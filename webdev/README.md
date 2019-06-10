@@ -19,7 +19,7 @@ dev_dependencies:
 ...
 ```
 
-*`build_web_compliers` `^1.2.0` is supported, but with some limited
+*`build_web_compilers` `^1.2.0` is supported, but with some limited
 functionality.*
 
 ## Installation
