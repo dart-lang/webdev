@@ -143,20 +143,25 @@ Future<bool> hotRestart(Map<String, String> currentDigests,
     ..appId = dartAppId
     ..instanceId = dartAppInstanceId))));
 
-  try {
-    if (modulesToLoad.isNotEmpty) {
-      manager.updateGraph();
-      return manager.reload(modulesToLoad);
-    } else {
-      callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
-      runMain();
-      return true;
-    }
-  } finally {
+  void rerunApp() {
+    callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
     // Notify webdev that the isolate has been created.
     sseClient.sink.add(jsonEncode(serializers.serialize(IsolateStart((b) => b
       ..appId = dartAppId
       ..instanceId = dartAppInstanceId))));
+    runMain();
+  }
+
+  if (modulesToLoad.isNotEmpty) {
+    manager.updateGraph();
+    var result = await manager.reload(modulesToLoad);
+    if (result == null) {
+      rerunApp();
+      return true;
+    }
+  } else {
+    rerunApp();
+    return true;
   }
 }
 
