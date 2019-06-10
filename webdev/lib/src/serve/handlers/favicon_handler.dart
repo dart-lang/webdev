@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:shelf/shelf.dart';
 import 'package:pedantic/pedantic.dart';
+import 'package:shelf/shelf.dart';
 
 Handler interceptFavicon(Handler handler) {
   return (request) async {
