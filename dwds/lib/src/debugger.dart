@@ -134,7 +134,7 @@ class Debugger {
 
   /// Returns the closest [Location] for the given Dart source position.
   ///
-  /// The [line] and [column] are  1-based.
+  /// The [line] and [column] are 1-based.
   ///
   /// Can return null if no suitable [Location] is found.
   Location _bestLocationForJs(String scriptId, int line, int column) {

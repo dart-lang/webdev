@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'location.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -15,6 +14,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'dart_uri.dart';
 import 'debugger.dart';
 import 'helpers.dart';
+import 'location.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
@@ -52,6 +52,8 @@ class ChromeProxyService implements VmServiceInterface {
   /// Fields that are specific to the current [_isolate].
   ///
   /// These need to get cleared whenever [destroyIsolate] is called.
+  // TODO(grouma) - Subclass Isolate to group these together. This will ensure
+  // that they are properly cleaned up and documented.
   final _classes = <String, Class>{};
   final _scriptRefs = <String, ScriptRef>{};
   final _serverPathToScriptRef = <String, ScriptRef>{};
@@ -534,7 +536,7 @@ function($argsString) {
     return ScriptList()..scripts = scripts;
   }
 
-  /// Returns the corresponding [ScriptRef] for the provided Dart server path.
+  /// Returns the [ScriptRef] for the provided Dart server path [uri].
   ScriptRef scriptRefFor(String uri) => _serverPathToScriptRef[uri];
 
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
@@ -787,7 +789,7 @@ function($argsString) {
     return controller;
   }
 
-  List<Frame> _translateJsFrames(DebuggerPausedEvent e) {
+  List<Frame> _dartFramesFor(DebuggerPausedEvent e) {
     var dartFrames = <Frame>[];
     var index = 0;
     for (var frame in e.params['callFrames']) {
@@ -796,10 +798,8 @@ function($argsString) {
       // translate this to a Dart function name.
       var functionName = frame['functionName'] as String ?? '';
       // Chrome is 0 based. Account for this.
-      var jsLocation = JsLocation(
-          location['scriptId'] as String,
-          location['lineNumber'] + 1 as int,
-          location['columnNumber'] + 1 as int);
+      var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
+          location['lineNumber'] as int, location['columnNumber'] as int);
       var dartFrame = debugger.frameFor(jsLocation);
       if (dartFrame != null) {
         dartFrame.code.name =
@@ -833,7 +833,7 @@ function($argsString) {
           event.kind = EventKind.kPauseInterrupted;
         }
         _pausedStack = Stack()
-          ..frames = _translateJsFrames(e)
+          ..frames = _dartFramesFor(e)
           ..messages = [];
         streamNotify('Debug', event);
       });

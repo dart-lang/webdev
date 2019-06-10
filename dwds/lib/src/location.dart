@@ -9,10 +9,6 @@ import 'dart_uri.dart';
 var _startTokenId = 1337;
 
 /// A source location, with both Dart and JS information.
-///
-/// Note that line and column numbers here are always 1-based. The  Dart VM
-/// Service protocol line/column numbers are one-based, but in JS source maps and
-/// the Chrome protocol are zero-based, so they require translation.
 class Location {
   final JsLocation jsLocation;
 
@@ -38,8 +34,8 @@ class Location {
     var jsColumn = entry.column;
     // lineEntry data is 0 based according to:
     // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
-    return Location._(JsLocation(scriptId, jsLine + 1, jsColumn + 1),
-        DartLocation(dartUri, dartLine + 1, dartColumn + 1));
+    return Location._(JsLocation.fromZeroBased(scriptId, jsLine, jsColumn),
+        DartLocation.fromZeroBased(dartUri, dartLine, dartColumn));
   }
 }
 
@@ -53,11 +49,17 @@ class DartLocation {
   /// 1 based column offset within the Dart source code.
   final int column;
 
-  DartLocation(
+  DartLocation._(
     this.uri,
     this.line,
     this.column,
   );
+
+  static DartLocation fromZeroBased(DartUri uri, int line, int column) =>
+      DartLocation._(uri, line + 1, column + 1);
+
+  static DartLocation fromOneBased(DartUri uri, int line, int column) =>
+      DartLocation._(uri, line, column);
 }
 
 /// Location information for a JS source.
@@ -71,9 +73,15 @@ class JsLocation {
   /// 1 based column offset within the JS source code.
   final int column;
 
-  JsLocation(
+  JsLocation._(
     this.scriptId,
     this.line,
     this.column,
   );
+
+  static JsLocation fromZeroBased(String scriptId, int line, int column) =>
+      JsLocation._(scriptId, line + 1, column + 1);
+
+  static JsLocation fromOneBased(String scriptId, int line, int column) =>
+      JsLocation._(scriptId, line, column);
 }
