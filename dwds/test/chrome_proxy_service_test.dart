@@ -415,7 +415,7 @@ void main() {
 
   test('removeBreakpoint', () {
     expect(
-        () => service.removeBreakpoint(null, null), throwsUnimplementedError);
+        () => service.removeBreakpoint(null, null), throwsArgumentError);
   });
 
   test('requestHeapSnapshot', () {

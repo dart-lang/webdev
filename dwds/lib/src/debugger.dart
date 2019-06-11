@@ -105,6 +105,9 @@ class Debugger {
     if (isolateId != null) {
       isolate = await mainProxy.getIsolate(isolateId) as Isolate;
     }
+    if (breakpointId == null) {
+      throw ArgumentError.notNull('breakpointId');
+    }
     var jsId = _breakpoints.jsId(breakpointId);
     var bp =_breakpoints.removeBreakpoint(js: jsId, dartId: breakpointId);
     mainProxy.streamNotify(
@@ -164,6 +167,9 @@ class _Breakpoints {
   void noteBreakpoint({String js, String dartId, Breakpoint bp}) {
     _byJsId[js] = dartId ?? bp?.id;
     _byDartId[dartId ?? bp?.id] = js;
+    if (bp != null) {
+      isolate?.breakpoints?.add(bp);
+    } 
   }
 
   Breakpoint removeBreakpoint({String js, String dartId, Breakpoint bp}) {
