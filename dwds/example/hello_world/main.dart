@@ -41,11 +41,22 @@ void main() async {
     });
   };
 
+  Timer.periodic(Duration(seconds: 1), (_) {
+    printCount();
+  });
+
   // Register one up front before the proxy connects, the isolate should still
   // recognize this as an available extension.
   registerExtension('ext.hello_world.existing', (_, __) => null);
 
   window.console.debug('Page Ready');
+}
+
+var count = 0;
+
+// An easy location to add a breakpoint.
+void printCount() {
+  print('The count is ${++count}');
 }
 
 String helloString(String response) => response;

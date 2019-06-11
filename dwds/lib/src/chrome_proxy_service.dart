@@ -14,6 +14,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'dart_uri.dart';
 import 'debugger.dart';
 import 'helpers.dart';
+import 'location.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
@@ -45,11 +46,19 @@ class ChromeProxyService implements VmServiceInterface {
   /// Provides debugger-related functionality.
   Debugger debugger;
 
+  /// The current Dart stack for the paused [_isolate].
+  ///
+  /// This is null if the [_isolate] is not paused.
+  Stack _pausedStack;
+
   /// Fields that are specific to the current [_isolate].
   ///
   /// These need to get cleared whenever [destroyIsolate] is called.
+  // TODO(grouma) - Subclass Isolate to group these together. This will ensure
+  // that they are properly cleaned up and documented.
   final _classes = <String, Class>{};
   final _scriptRefs = <String, ScriptRef>{};
+  final _serverPathToScriptRef = <String, ScriptRef>{};
   final _libraries = <String, Library>{};
   final _libraryRefs = <String, LibraryRef>{};
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
@@ -185,8 +194,10 @@ class ChromeProxyService implements VmServiceInterface {
     _vm.isolates.removeWhere((ref) => ref.id == _isolate.id);
 
     _isolate = null;
+    _pausedStack = null;
     _classes.clear();
     _scriptRefs.clear();
+    _serverPathToScriptRef.clear();
     _libraries.clear();
     _libraryRefs.clear();
     _consoleSubscription.cancel();
@@ -476,6 +487,8 @@ function($argsString) {
       ..id = createId();
 
     _scriptRefs[scriptRef.id] = scriptRef;
+    _serverPathToScriptRef[DartUri(libraryRef.id, scriptRef.uri).serverPath] =
+        scriptRef;
 
     return Library()
       ..id = libraryRef.id
@@ -525,6 +538,9 @@ function($argsString) {
     return ScriptList()..scripts = scripts;
   }
 
+  /// Returns the [ScriptRef] for the provided Dart server path [uri].
+  ScriptRef scriptRefFor(String uri) => _serverPathToScriptRef[uri];
+
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
     var libraryId = scriptRef.uri;
     // TODO(401): Remove uri parameter.
@@ -562,10 +578,12 @@ function($argsString) {
     throw UnimplementedError();
   }
 
+  /// Returns the current stack.
+  ///
+  /// Returns null if the corresponding isolate is not paused.
   @override
-  Future<Stack> getStack(String isolateId) {
-    throw UnimplementedError();
-  }
+  Future<Stack> getStack(String isolateId) async =>
+      isolateId == _isolate?.id ? _pausedStack : null;
 
   @override
   Future<VM> getVM() => Future.value(_vm);
@@ -767,6 +785,28 @@ function($argsString) {
     return controller;
   }
 
+  List<Frame> _dartFramesFor(DebuggerPausedEvent e) {
+    var dartFrames = <Frame>[];
+    var index = 0;
+    for (var frame in e.params['callFrames']) {
+      var location = frame['location'];
+      // TODO(grouma) - This function name is JS based. Add logic to
+      // translate this to a Dart function name.
+      var functionName = frame['functionName'] as String ?? '';
+      // Chrome is 0 based. Account for this.
+      var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
+          location['lineNumber'] as int, location['columnNumber'] as int);
+      var dartFrame = debugger.frameFor(jsLocation);
+      if (dartFrame != null) {
+        dartFrame.code.name =
+            functionName.isEmpty ? '(anonymous)' : functionName;
+        dartFrame.index = index++;
+        dartFrames.add(dartFrame);
+      }
+    }
+    return dartFrames;
+  }
+
   /// Listens to the `debugger` events from chrome and translates those to
   /// the `Debug` stream events for the vm service protocol.
   ///
@@ -788,10 +828,14 @@ function($argsString) {
         } else {
           event.kind = EventKind.kPauseInterrupted;
         }
+        _pausedStack = Stack()
+          ..frames = _dartFramesFor(e)
+          ..messages = [];
         streamNotify('Debug', event);
       });
       resumeSubscription = tabConnection.debugger.onResumed.listen((e) {
         if (_isolate == null) return;
+        _pausedStack = null;
         streamNotify(
             'Debug',
             Event()
