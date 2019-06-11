@@ -118,14 +118,15 @@ class ReloadingManager {
           parentIds.sort(moduleTopologicalCompare);
 
           for (var parentId in parentIds) {
-            // Found the bootstrap module at the top of the app, return null.
+            var parentModule = _moduleLibraries(parentId);
+            success = parentModule.onChildUpdate(moduleId, newVersion, data);
+
+            // Found the bootstrap module at the top of the app, return null to
+            // indicate an unhandled reload.
             if (parentId.endsWith('.dart.bootstrap')) {
-              await _reloadModule(parentId);
               return null;
             }
 
-            var parentModule = _moduleLibraries(parentId);
-            success = parentModule.onChildUpdate(moduleId, newVersion, data);
             if (success == true) continue;
             if (success == false) {
               print("Module '$moduleId' is marked as unreloadable. "

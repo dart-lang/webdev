@@ -138,12 +138,11 @@ Future<bool> hotRestart(Map<String, String> currentDigests,
   }
   currentDigests = newDigests;
 
-  // Notify webdev that the isolate is about to exit.
-  sseClient.sink.add(jsonEncode(serializers.serialize(IsolateExit((b) => b
-    ..appId = dartAppId
-    ..instanceId = dartAppInstanceId))));
-
   void rerunApp() {
+    // Notify webdev that the isolate is about to exit.
+    sseClient.sink.add(jsonEncode(serializers.serialize(IsolateExit((b) => b
+      ..appId = dartAppId
+      ..instanceId = dartAppInstanceId))));
     callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
     // Notify webdev that the isolate has been created.
     sseClient.sink.add(jsonEncode(serializers.serialize(IsolateStart((b) => b
@@ -157,12 +156,13 @@ Future<bool> hotRestart(Map<String, String> currentDigests,
     var result = await manager.reload(modulesToLoad);
     if (result == null) {
       rerunApp();
-      return true;
+      result = true;
     }
-  } else {
-    rerunApp();
-    return true;
+    return result;
   }
+
+  rerunApp();
+  return true;
 }
 
 @JS(r'$dartAppId')
