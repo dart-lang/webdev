@@ -662,7 +662,8 @@ function($argsString) {
   }
 
   @override
-  Future<Success> removeBreakpoint(String isolateId, String breakpointId) async {
+  Future<Success> removeBreakpoint(
+      String isolateId, String breakpointId) async {
     await debugger.removeBreakpoint(isolateId, breakpointId);
     return Success();
   }

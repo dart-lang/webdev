@@ -453,8 +453,7 @@ void main() {
   });
 
   test('removeBreakpoint', () {
-    expect(
-        () => service.removeBreakpoint(null, null), throwsArgumentError);
+    expect(() => service.removeBreakpoint(null, null), throwsArgumentError);
   });
 
   test('requestHeapSnapshot', () {

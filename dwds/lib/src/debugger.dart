@@ -13,7 +13,7 @@ import 'sources.dart';
 
 class Debugger {
   Debugger(this.mainProxy) {
-    _breakpoints.debugger = this;
+    _breakpoints = _Breakpoints(this);
   }
 
   final ChromeProxyService mainProxy;
@@ -28,7 +28,7 @@ class Debugger {
 
   /// The breakpoints we have set so far, indexable by either
   /// Dart or JS ID.
-  final _Breakpoints _breakpoints = _Breakpoints();
+  _Breakpoints _breakpoints;
 
   /// Allocates Dart breakpoint IDs
   int _nextBreakpointId = 1;
@@ -109,7 +109,7 @@ class Debugger {
       throw ArgumentError.notNull('breakpointId');
     }
     var jsId = _breakpoints.jsId(breakpointId);
-    var bp =_breakpoints.removeBreakpoint(js: jsId, dartId: breakpointId);
+    var bp = _breakpoints.removeBreakpoint(js: jsId, dartId: breakpointId);
     mainProxy.streamNotify(
         'Debug',
         Event()
@@ -185,25 +185,24 @@ class Debugger {
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
 class _Breakpoints {
-
   Debugger debugger;
 
   final Map<String, String> _byJsId = {};
   final Map<String, String> _byDartId = {};
 
-  _Breakpoints();
+  _Breakpoints(this.debugger);
 
-  Isolate get isolate => debugger.mainProxy.isolate;
+  Isolate get _isolate => debugger.mainProxy.isolate;
 
   /// Record the breakpoint.
-  /// 
+  ///
   /// Either [dartId] or the Dart breakpoint [bp] must be provided.
   void noteBreakpoint({String js, String dartId, Breakpoint bp}) {
     _byJsId[js] = dartId ?? bp?.id;
     _byDartId[dartId ?? bp?.id] = js;
     if (bp != null) {
-      isolate?.breakpoints?.add(bp);
-    } 
+      _isolate?.breakpoints?.add(bp);
+    }
   }
 
   Breakpoint removeBreakpoint({String js, String dartId, Breakpoint bp}) {
@@ -211,8 +210,8 @@ class _Breakpoints {
     _byDartId.remove(dartId ?? bp?.id);
     Breakpoint dartBp;
     // TODO: Do something better than the default throw when it's not found.
-    dartBp = bp ?? isolate.breakpoints.firstWhere((b) => b.id == dartId);
-    isolate?.breakpoints?.remove(dartBp);
+    dartBp = bp ?? _isolate.breakpoints.firstWhere((b) => b.id == dartId);
+    _isolate?.breakpoints?.remove(dartBp);
     return dartBp;
   }
 
