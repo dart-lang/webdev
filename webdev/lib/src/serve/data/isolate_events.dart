@@ -15,10 +15,10 @@ abstract class IsolateExit implements Built<IsolateExit, IsolateExitBuilder> {
 
   IsolateExit._();
 
-  /// Identifies a given application, across tabs/windows.
+  /// Identity of a given application, across tabs/windows.
   String get appId;
 
-  /// Identifies a given instance of an application, unique per tab/window.
+  /// Identify of a given instance of an application, unique per tab/window.
   String get instanceId;
 }
 

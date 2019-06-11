@@ -123,10 +123,9 @@ void main() {
       var eventsDone = expectLater(
           client.onIsolateEvent,
           emitsThrough(emitsInOrder([
-            predicate((Event event) => event.kind == EventKind.kIsolateExit),
-            predicate((Event event) => event.kind == EventKind.kIsolateStart),
-            predicate(
-                (Event event) => event.kind == EventKind.kIsolateRunnable),
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
           ])));
 
       expect(await client.callServiceExtension('hotRestart'),
@@ -144,10 +143,9 @@ void main() {
       var eventsDone = expectLater(
           client.onIsolateEvent,
           emitsThrough(emitsInOrder([
-            predicate((Event event) => event.kind == EventKind.kIsolateExit),
-            predicate((Event event) => event.kind == EventKind.kIsolateStart),
-            predicate(
-                (Event event) => event.kind == EventKind.kIsolateRunnable),
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
           ])));
 
       await fixture.webdriver.driver.refresh();
@@ -186,10 +184,9 @@ void main() {
       var eventsDone = expectLater(
           client.onIsolateEvent,
           emitsThrough(emitsInOrder([
-            predicate((Event event) => event.kind == EventKind.kIsolateExit),
-            predicate((Event event) => event.kind == EventKind.kIsolateStart),
-            predicate(
-                (Event event) => event.kind == EventKind.kIsolateRunnable),
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
           ])));
 
       await fixture.changeInput();
@@ -215,3 +212,6 @@ void main() {
     await fixture.webdev.kill();
   });
 }
+
+TypeMatcher<Event> _hasKind(String kind) =>
+    isA<Event>().having((e) => e.kind, 'kind', kind);
