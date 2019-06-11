@@ -30,14 +30,18 @@ class Sources {
   /// Map from Dart server path to all corresponding [Location] data.
   final _sourceToLocation = <String, Set<Location>>{};
 
-  /// Map from Dart URL to server path.
-  final _canonicalPaths = <String, String>{};
+  /// Map from JS scriptId to all corresponding [Location] data.
+  final _scriptIdToLocation = <String, Set<Location>>{};
 
   Sources(this._mainProxy);
 
   /// Returns all [Location] data for a provided Dart source.
-  Set<Location> locationsFor(String serverPath) =>
+  Set<Location> locationsForDart(String serverPath) =>
       _sourceToLocation[serverPath] ?? {};
+
+  /// Returns all [Location] data for a provided JS scriptId.
+  Set<Location> locationsForJs(String scriptId) =>
+      _scriptIdToLocation[scriptId] ?? {};
 
   /// Called to handle the event that a script has been parsed
   /// and add its sourcemap information.
@@ -53,19 +57,18 @@ class Sources {
         for (var entry in lineEntry.entries) {
           var index = entry.sourceUrlId;
           if (index == null) continue;
-          var dartUrl = mapping.urls[index];
+          var dartUri = DartUri(mapping.urls[index], script.url);
           var location = Location.from(
             script.scriptId,
             lineEntry,
             entry,
-            dartUrl,
+            dartUri,
           );
-          _canonicalPaths.putIfAbsent(
-              dartUrl,
-              // TODO(401): Remove the additional parameter after D24 is stable.
-              () => DartUri(dartUrl, script.url).serverPath);
           _sourceToLocation
-              .putIfAbsent(_canonicalPaths[dartUrl], () => Set())
+              .putIfAbsent(dartUri.serverPath, () => Set())
+              .add(location);
+          _scriptIdToLocation
+              .putIfAbsent(script.scriptId, () => Set())
               .add(location);
         }
       }
@@ -90,7 +93,7 @@ class Sources {
     var lineNumberToLocation = <int, Set<Location>>{};
     for (var location in locations) {
       lineNumberToLocation
-          .putIfAbsent(location.dartLine, () => Set())
+          .putIfAbsent(location.dartLocation.line, () => Set())
           .add(location);
     }
     for (var lineNumber in lineNumberToLocation.keys) {
@@ -98,7 +101,7 @@ class Sources {
         lineNumber,
         for (var location in lineNumberToLocation[lineNumber]) ...[
           location.tokenPos,
-          location.dartColumn
+          location.dartLocation.column
         ]
       ]);
     }
