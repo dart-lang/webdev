@@ -185,6 +185,7 @@ class Debugger {
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
 class _Breakpoints {
+  // TODO(439): We need to resolve the way we talk to other components.
   Debugger debugger;
 
   final Map<String, String> _byJsId = {};
