@@ -17,6 +17,7 @@ import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webdev/src/serve/data/connect_request.dart';
 import 'package:webdev/src/serve/data/devtools_request.dart';
+import 'package:webdev/src/serve/data/isolate_events.dart';
 import 'package:webdev/src/serve/data/run_request.dart';
 import 'package:webdev/src/serve/data/serializers.dart';
 
@@ -43,7 +44,7 @@ Future<void> main() async {
   var client = SseClient(r'/$sseHandler');
 
   hotRestartJs = allowInterop(() {
-    return toPromise(hotRestart(currentDigests, manager));
+    return toPromise(hotRestart(currentDigests, manager, client));
   });
 
   launchDevToolsJs = allowInterop(() {
@@ -62,7 +63,7 @@ Future<void> main() async {
       if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
         window.location.reload();
       } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
-        await hotRestart(currentDigests, manager);
+        await hotRestart(currentDigests, manager, client);
       } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
         print('Hot reload is currently unsupported. Ignoring change.');
       }
@@ -104,8 +105,8 @@ Future<void> main() async {
 
 /// Attemps to perform a hot restart, and returns whether it was successful or
 /// not.
-Future<bool> hotRestart(
-    Map<String, String> currentDigests, ReloadingManager manager) async {
+Future<bool> hotRestart(Map<String, String> currentDigests,
+    ReloadingManager manager, SseClient sseClient) async {
   var developer = getProperty(require('dart_sdk'), 'developer');
   if (callMethod(getProperty(developer, '_extensions'), 'containsKey',
       ['ext.flutter.disassemble']) as bool) {
@@ -136,14 +137,32 @@ Future<bool> hotRestart(
     }
   }
   currentDigests = newDigests;
+
+  void rerunApp() {
+    // Notify webdev that the isolate is about to exit.
+    sseClient.sink.add(jsonEncode(serializers.serialize(IsolateExit((b) => b
+      ..appId = dartAppId
+      ..instanceId = dartAppInstanceId))));
+    callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
+    // Notify webdev that the isolate has been created.
+    sseClient.sink.add(jsonEncode(serializers.serialize(IsolateStart((b) => b
+      ..appId = dartAppId
+      ..instanceId = dartAppInstanceId))));
+    runMain();
+  }
+
   if (modulesToLoad.isNotEmpty) {
     manager.updateGraph();
-    return manager.reload(modulesToLoad);
-  } else {
-    callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
-    runMain();
-    return true;
+    var result = await manager.reload(modulesToLoad);
+    if (result == null) {
+      rerunApp();
+      result = true;
+    }
+    return result;
   }
+
+  rerunApp();
+  return true;
 }
 
 @JS(r'$dartAppId')

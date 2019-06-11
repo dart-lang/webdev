@@ -123,10 +123,9 @@ void main() {
       var eventsDone = expectLater(
           client.onIsolateEvent,
           emitsThrough(emitsInOrder([
-            predicate((Event event) => event.kind == EventKind.kIsolateExit),
-            predicate((Event event) => event.kind == EventKind.kIsolateStart),
-            predicate(
-                (Event event) => event.kind == EventKind.kIsolateRunnable),
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
           ])));
 
       expect(await client.callServiceExtension('hotRestart'),
@@ -144,13 +143,53 @@ void main() {
       var eventsDone = expectLater(
           client.onIsolateEvent,
           emitsThrough(emitsInOrder([
-            predicate((Event event) => event.kind == EventKind.kIsolateExit),
-            predicate((Event event) => event.kind == EventKind.kIsolateStart),
-            predicate(
-                (Event event) => event.kind == EventKind.kIsolateRunnable),
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
           ])));
 
       await fixture.webdriver.driver.refresh();
+
+      await eventsDone;
+      await fixture.webdev.kill();
+    });
+  });
+
+  group('Injected client with --auto restart', () {
+    setUp(() async {
+      fixture = await InjectedFixture.create();
+      await fixture.buildAndLoad(['--debug', '--auto', 'restart']);
+      await fixture.webdriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
+      var debugServiceLine = '';
+      while (!debugServiceLine.contains('Debug service listening')) {
+        debugServiceLine = await fixture.webdev.stdout.next;
+      }
+      debugUri =
+          debugServiceLine.substring(debugServiceLine.indexOf('ws://')).trim();
+
+      // Let DevTools open.
+      await Future.delayed(const Duration(seconds: 2));
+    });
+
+    tearDown(() async {
+      await fixture.tearDown();
+      fixture = null;
+    });
+
+    test('fires isolate create/destroy events during hot restart', () async {
+      var client = await vmServiceConnectUri(debugUri);
+      await client.streamListen('Isolate');
+      await fixture.changeInput();
+
+      var eventsDone = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(emitsInOrder([
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
+          ])));
+
+      await fixture.changeInput();
 
       await eventsDone;
       await fixture.webdev.kill();
@@ -173,3 +212,6 @@ void main() {
     await fixture.webdev.kill();
   });
 }
+
+TypeMatcher<Event> _hasKind(String kind) =>
+    isA<Event>().having((e) => e.kind, 'kind', kind);

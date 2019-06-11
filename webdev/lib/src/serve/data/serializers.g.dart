@@ -12,6 +12,8 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(DefaultBuildResult.serializer)
       ..add(DevToolsRequest.serializer)
       ..add(DevToolsResponse.serializer)
+      ..add(IsolateExit.serializer)
+      ..add(IsolateStart.serializer)
       ..add(RunRequest.serializer))
     .build();
 

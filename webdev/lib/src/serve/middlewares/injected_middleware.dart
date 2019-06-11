@@ -68,6 +68,10 @@ Handler Function(Handler) createInjectedHandler(
                 .trim();
             body += _injectedClientJs(configuration, appId, mainFuntion);
             body += bodyLines.sublist(extensionIndex + 2).join('\n');
+            // Change the hot restart handler to re-assign
+            // `window.$dartRunMain` to the new main, instead of invoking it.
+            body = body.replaceFirst(
+                'child.main()', r'window.$dartRunMain = child.main');
             etag = base64.encode(md5.convert(body.codeUnits).bytes);
             newHeaders[HttpHeaders.etagHeader] = etag;
           }

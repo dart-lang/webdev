@@ -4,6 +4,7 @@
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:built_value/serializer.dart';
+import 'package:webdev/src/serve/data/isolate_events.dart';
 
 import 'connect_request.dart';
 import 'devtools_request.dart';
@@ -18,5 +19,7 @@ part 'serializers.g.dart';
   ConnectRequest,
   RunRequest,
   DefaultBuildResult,
+  IsolateExit,
+  IsolateStart
 ])
 final Serializers serializers = _$serializers;

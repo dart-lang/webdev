@@ -73,6 +73,8 @@ class ReloadingManager {
 
   var count = 0;
 
+  /// Returns `true` if the reload was fully handled, `false` if it failed
+  /// explicitly, or `null` for an unhandled reload.
   Future<bool> reload(List<String> modules) async {
     _dirtyModules.addAll(modules);
 
@@ -114,9 +116,17 @@ class ReloadingManager {
             return false;
           }
           parentIds.sort(moduleTopologicalCompare);
+
           for (var parentId in parentIds) {
             var parentModule = _moduleLibraries(parentId);
             success = parentModule.onChildUpdate(moduleId, newVersion, data);
+
+            // Found the bootstrap module at the top of the app, return null to
+            // indicate an unhandled reload.
+            if (parentId.endsWith('.dart.bootstrap')) {
+              return null;
+            }
+
             if (success == true) continue;
             if (success == false) {
               print("Module '$moduleId' is marked as unreloadable. "
