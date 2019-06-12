@@ -49,7 +49,7 @@ void main() {
       // TODO: Much more testing.
       var bp = await service.addBreakpoint(isolate.id, mainScript.id, 21);
       // Remove breakpoint so it doesn't impact other tests.
-      await service.removeBreakpointInternal(bp.id);
+      await service.removeBreakpoint(isolate.id, bp.id);
       expect(bp.id, '1');
     });
 
@@ -60,6 +60,21 @@ void main() {
     test('addBreakpointWithScriptUri', () {
       expect(() => service.addBreakpointWithScriptUri(null, null, null),
           throwsUnimplementedError);
+    });
+
+    test('removeBreakpoint null arguments', () {
+      expect(() => service.removeBreakpoint(null, null), throwsArgumentError);
+    });
+
+    test("removeBreakpoint doesn't exist", () {
+      expect(() => service.removeBreakpoint(isolate.id, '1234'),
+          throwsArgumentError);
+    });
+    test('add and remove breakpoint', () async {
+      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 19);
+      expect(isolate.breakpoints, [bp]);
+      await service.removeBreakpoint(isolate.id, bp.id);
+      expect(isolate.breakpoints, isEmpty);
     });
   });
 
@@ -370,7 +385,7 @@ void main() {
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
       // Remove breakpoint so it doesn't impact other tests.
-      await service.removeBreakpointInternal(bp.id);
+      await service.removeBreakpoint(isolateId, bp.id);
       var stack = await service.getStack(isolateId);
       // Resume as to not impact other tests.
       await service.resume(isolateId);
@@ -450,11 +465,6 @@ void main() {
 
   test('reloadSources', () {
     expect(() => service.reloadSources(null), throwsUnimplementedError);
-  });
-
-  test('removeBreakpoint', () {
-    expect(
-        () => service.removeBreakpoint(null, null), throwsUnimplementedError);
   });
 
   test('requestHeapSnapshot', () {
