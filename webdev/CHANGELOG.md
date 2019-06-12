@@ -5,6 +5,10 @@
 - Add support for specifying `--hostname any`.
 - DevTools no longer launches in a new window. This prevents an issue where
   pausing your application also pauses DevTools.
+- Fix some edge cases for hot restart:
+  - All restarts will now fire isolate create/destroy events, regardless of
+    how they are triggered.
+  - Fix a bug in the module invalidation/reload logic.
 
 ## 2.0.7
 
