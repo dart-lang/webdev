@@ -81,14 +81,16 @@ class Debugger {
     return Success();
   }
 
-  /// Resumes a paused isolate.
+  /// Resumes the debugger.
   ///
   /// If the step parameter is not provided, the program will resume regular
   /// execution.
   ///
   /// If the step parameter is provided, it indicates what form of
-  /// single-stepping to use. Note that stepping will automatically continue
-  /// until Chrome is paused at a location for which we have source information.
+  /// single-stepping to use.
+  ///
+  /// Note that stepping will automatically continue until Chrome is paused at
+  /// a location for which we have source information.
   Future<Success> resume(String isolateId,
       {String step, int frameIndex}) async {
     if (isolateId != _mainProxy.isolate.id) {
@@ -125,7 +127,13 @@ class Debugger {
   /// Returns the current Dart stack for the paused debugger.
   ///
   /// Returns null if the debugger is not paused.
-  Stack getStack() => _pausedStack;
+  Future<Stack> getStack(String isolateId) async {
+    if (isolateId != _mainProxy.isolate.id) {
+      throw ArgumentError.value(
+          isolateId, 'isolateId', 'Unrecognized isolate id');
+    }
+    return _pausedStack;
+  }
 
   Future<Null> initialize() async {
     sources = Sources(_mainProxy);
@@ -135,19 +143,6 @@ class Debugger {
     handleErrorIfPresent(
         await _mainProxy.tabConnection.page.enable() as WipResponse);
     handleErrorIfPresent(await chromeDebugger.enable() as WipResponse);
-  }
-
-  /// Look up the script by id in an isolate.
-  Future<ScriptRef> _scriptWithId(String isolateId, String scriptId) async {
-    // TODO: Reduce duplication with _scriptRefs in mainProxy.
-    if (_scriptRefs == null) {
-      _scriptRefs = {};
-      var scripts = await _mainProxy.scriptRefs(isolateId);
-      for (var script in scripts) {
-        _scriptRefs[script.id] = script;
-      }
-    }
-    return _scriptRefs[scriptId];
   }
 
   /// Add a breakpoint at the given position.
@@ -217,6 +212,19 @@ class Debugger {
     return _removeBreakpoint(jsId);
   }
 
+  /// Look up the script by id in an isolate.
+  Future<ScriptRef> _scriptWithId(String isolateId, String scriptId) async {
+    // TODO: Reduce duplication with _scriptRefs in mainProxy.
+    if (_scriptRefs == null) {
+      _scriptRefs = {};
+      var scripts = await _mainProxy.scriptRefs(isolateId);
+      for (var script in scripts) {
+        _scriptRefs[script.id] = script;
+      }
+    }
+    return _scriptRefs[scriptId];
+  }
+
   /// Call the Chrome protocol setBreakpoint and return the breakpoint ID.
   Future<String> _setBreakpoint(Location location) async {
     // Location is 0 based according to:
@@ -255,6 +263,10 @@ class Debugger {
       .firstWhere((location) => location.jsLocation.line == line,
           orElse: () => null);
 
+  /// Returns source [Location] for the paused event.
+  ///
+  /// If we do not have [Location] data for the embedded JS location, null is
+  /// returned.
   Location _sourceLocation(DebuggerPausedEvent e) {
     var frame = e.params['callFrames'][0];
     var location = frame['location'];

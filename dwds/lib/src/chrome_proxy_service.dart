@@ -575,8 +575,7 @@ function($argsString) {
   ///
   /// Returns null if the corresponding isolate is not paused.
   @override
-  Future<Stack> getStack(String isolateId) async =>
-      isolateId == _isolate?.id ? debugger.getStack() : null;
+  Future<Stack> getStack(String isolateId) => debugger.getStack(isolateId);
 
   @override
   Future<VM> getVM() => Future.value(_vm);
