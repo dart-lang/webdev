@@ -40,6 +40,8 @@ class ChromeProxyService implements VmServiceInterface {
   /// This may be null during a hot restart or page refresh.
   Isolate _isolate;
 
+  Isolate get isolate => _isolate;
+
   /// Provides debugger-related functionality.
   Debugger debugger;
 
@@ -649,15 +651,10 @@ function($argsString) {
   }
 
   @override
-  Future<Success> removeBreakpoint(String isolateId, String breakpointId) {
-    throw UnimplementedError();
-  }
-
-  /// A minimal internal version of removing breakpoints for cleanup - to be folded
-  /// into the main implementation and removed.
-  Future<void> removeBreakpointInternal(String breakpointId) {
-    // TODO: Flesh out the implementation and combine with the full API.
-    return debugger.removeBreakpoint(breakpointId);
+  Future<Success> removeBreakpoint(
+      String isolateId, String breakpointId) async {
+    await debugger.removeBreakpoint(isolateId, breakpointId);
+    return Success();
   }
 
   @override

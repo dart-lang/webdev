@@ -48,6 +48,7 @@ class Debugger {
             ..kind = EventKind.kResume
             ..isolate = toIsolateRef(_isolate));
     });
+    _breakpoints = _Breakpoints(this);
   }
 
   final ChromeProxyService mainProxy;
@@ -62,7 +63,7 @@ class Debugger {
 
   /// The breakpoints we have set so far, indexable by either
   /// Dart or JS ID.
-  final _BreakpointMapping _breakpoints = _BreakpointMapping();
+  _Breakpoints _breakpoints;
 
   /// Allocates Dart breakpoint IDs
   int _nextBreakpointId = 1;
@@ -146,7 +147,9 @@ class Debugger {
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     chromeDebugger.onScriptParsed.listen(sources.scriptParsed);
-    await chromeDebugger.enable();
+    handleErrorIfPresent(
+        await mainProxy.tabConnection.page.enable() as WipResponse);
+    handleErrorIfPresent(await chromeDebugger.enable() as WipResponse);
   }
 
   /// Look up the script by id in an isolate.
@@ -182,7 +185,7 @@ class Debugger {
     if (location == null) return null;
     var jsBreakpointId = await _setBreakpoint(location);
     var dartBreakpoint = _dartBreakpoint(dartScript, location, isolate);
-    _breakpoints.noteBreakpoint(js: jsBreakpointId, dart: dartBreakpoint.id);
+    _breakpoints.noteBreakpoint(js: jsBreakpointId, bp: dartBreakpoint);
     return dartBreakpoint;
   }
 
@@ -205,10 +208,27 @@ class Debugger {
   }
 
   /// Remove a Dart breakpoint.
-  Future<void> removeBreakpoint(String breakpointId) async {
-    // TODO: Clean up breakpoint mapping and expose this as full API. Right now
-    // it's a minimal implementation for cleanup.
+  Future<void> removeBreakpoint(String isolateId, String breakpointId) async {
+    Isolate isolate;
+    // Validate the isolate id is correct, _getIsolate throws if not.
+    if (isolateId != null) {
+      isolate = await mainProxy.getIsolate(isolateId) as Isolate;
+    }
+    if (breakpointId == null) {
+      throw ArgumentError.notNull('breakpointId');
+    }
     var jsId = _breakpoints.jsId(breakpointId);
+    var bp = _breakpoints.removeBreakpoint(js: jsId, dartId: breakpointId);
+    if (bp == null) {
+      throw ArgumentError.value(
+          breakpointId, 'Breakpoint not found with this id.');
+    }
+    mainProxy.streamNotify(
+        'Debug',
+        Event()
+          ..kind = EventKind.kBreakpointRemoved
+          ..isolate = toIsolateRef(isolate)
+          ..breakpoint = bp);
     return _removeBreakpoint(jsId);
   }
 
@@ -287,13 +307,38 @@ class Debugger {
 }
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
-class _BreakpointMapping {
+class _Breakpoints {
+  // TODO(439): We need to resolve the way we talk to other components.
+  Debugger debugger;
+
   final Map<String, String> _byJsId = {};
   final Map<String, String> _byDartId = {};
 
-  void noteBreakpoint({String js, String dart}) {
-    _byJsId[js] = dart;
-    _byDartId[dart] = js;
+  _Breakpoints(this.debugger);
+
+  Isolate get _isolate => debugger.mainProxy.isolate;
+
+  /// Record the breakpoint.
+  ///
+  /// Either [dartId] or the Dart breakpoint [bp] must be provided.
+  void noteBreakpoint({String js, String dartId, Breakpoint bp}) {
+    _byJsId[js] = dartId ?? bp?.id;
+    _byDartId[dartId ?? bp?.id] = js;
+    if (bp != null) {
+      _isolate?.breakpoints?.add(bp);
+    }
+  }
+
+  Breakpoint removeBreakpoint({String js, String dartId, Breakpoint bp}) {
+    _byJsId.remove(js);
+    _byDartId.remove(dartId ?? bp?.id);
+    Breakpoint dartBp;
+    // TODO: Do something better than the default throw when it's not found.
+    dartBp = bp ??
+        _isolate.breakpoints
+            .firstWhere((b) => b.id == dartId, orElse: () => null);
+    _isolate?.breakpoints?.remove(dartBp);
+    return dartBp;
   }
 
   String dartId(String jsId) => _byJsId[jsId];

@@ -116,14 +116,14 @@ void main() {
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
         await expectLater(
             webdev.stdout,
-            emitsThrough(emitsInOrder([
-              startsWith(
-                  '[{"event":"app.progress","params":{"appId":"$appId","id":"1",'
-                  '"message":"Performing hot restart..."'),
-              startsWith(
-                  '[{"event":"app.progress","params":{"appId":"$appId","id":"1",'
-                  '"finished":true')
-            ])));
+            emitsThrough(startsWith(
+                '[{"event":"app.progress","params":{"appId":"$appId","id":"1",'
+                '"message":"Performing hot restart..."')));
+        await expectLater(
+            webdev.stdout,
+            emitsThrough(startsWith(
+                '[{"event":"app.progress","params":{"appId":"$appId","id":"1",'
+                '"finished":true')));
         await exitWebdev(webdev);
       });
 

@@ -8,7 +8,6 @@ import 'dart:convert';
 import 'package:dwds/service.dart';
 // ignore: implementation_imports
 import 'package:dwds/src/chrome_proxy_service.dart' show ChromeProxyService;
-import 'package:pedantic/pedantic.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
 // A client of the vm service that registers some custom extensions like
@@ -40,7 +39,6 @@ class WebdevVmClient {
     var chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
     client.registerServiceCallback('hotRestart', (request) async {
-      chromeProxyService.destroyIsolate();
       var response = await chromeProxyService.tabConnection.runtime.sendCommand(
           'Runtime.evaluate',
           params: {'expression': r'$dartHotRestart();', 'awaitPromise': true});
@@ -54,7 +52,6 @@ class WebdevVmClient {
           }
         };
       } else {
-        unawaited(chromeProxyService.createIsolate());
         return {'result': Success().toJson()};
       }
     });
