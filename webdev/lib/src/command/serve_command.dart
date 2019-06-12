@@ -120,7 +120,7 @@ in the `<directory>:<port>` format, such as `webdev serve test:8080`.
     }
 
     var workflow =
-        await DevWorkflow.start(configuration, buildOptions, targetPorts);
+        await DevWorkflow.start(configuration, buildOptions, targetPorts, null);
     await workflow.done;
     return 0;
   }

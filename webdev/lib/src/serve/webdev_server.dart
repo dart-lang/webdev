@@ -22,12 +22,14 @@ class ServerOptions {
   final int port;
   final String target;
   final int daemonPort;
+  final Handler handler;
 
   ServerOptions(
     this.configuration,
     this.port,
     this.target,
     this.daemonPort,
+    this.handler,
   );
 }
 
@@ -78,7 +80,13 @@ class WebDevServer {
       assetHandler,
       options.configuration.hostname,
     );
-    cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
+    cascade = cascade
+      .add(devHandler.handler)
+      .add(assetHandler.handler);
+
+    if (options.handler != null) {
+      cascade = cascade.add(options.handler);
+    }
 
     var hostname = options.configuration.hostname;
     var server = await HttpMultiServer.bind(hostname, options.port);

@@ -10,6 +10,7 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:build_daemon/data/server_log.dart';
 import 'package:logging/logging.dart' as logging;
+import 'package:shelf/shelf.dart';
 
 import '../command/configuration.dart';
 import '../daemon_client.dart';
@@ -69,6 +70,7 @@ Future<ServerManager> _startServerManager(
   String workingDirectory,
   BuildDaemonClient client,
   DevTools devTools,
+  Handler handler,
 ) async {
   var assetPort = daemonPort(workingDirectory);
   var serverOptions = Set<ServerOptions>();
@@ -78,6 +80,7 @@ Future<ServerManager> _startServerManager(
       targetPorts[target],
       target,
       assetPort,
+      handler,
     ));
   }
   logWriter(logging.Level.INFO, 'Starting resource servers...');
@@ -175,6 +178,7 @@ class DevWorkflow {
     Configuration configuration,
     List<String> buildOptions,
     Map<String, int> targetPorts,
+    Handler handler,
   ) async {
     var workingDirectory = Directory.current.path;
     var client = await _startBuildDaemon(workingDirectory, buildOptions);
@@ -184,7 +188,7 @@ class DevWorkflow {
     client.startBuild();
     var devTools = await _startDevTools(configuration);
     var serverManager = await _startServerManager(
-        configuration, targetPorts, workingDirectory, client, devTools);
+        configuration, targetPorts, workingDirectory, client, devTools, handler);
     var chrome = await _startChrome(configuration, serverManager, client);
     return DevWorkflow._(client, chrome, devTools, serverManager);
   }
