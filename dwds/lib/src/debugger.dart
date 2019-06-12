@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'dart:async';
+
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -12,7 +14,41 @@ import 'location.dart';
 import 'sources.dart';
 
 class Debugger {
-  Debugger(this.mainProxy);
+  Debugger(this.mainProxy) {
+    chromeDebugger.onPaused.listen((e) async {
+      if (mainProxy.isolate == null) return;
+      var event = Event()..isolate = toIsolateRef(_isolate);
+      var params = e.params;
+      var breakpoints = params['hitBreakpoints'] as List;
+      if (breakpoints.isNotEmpty) {
+        // TODO: Set `breakpoint` and `pauseBreakpoints` fields.
+        event.kind = EventKind.kPauseBreakpoint;
+      } else if (e.reason == 'exception' || e.reason == 'assert') {
+        event.kind = EventKind.kPauseException;
+      } else {
+        event.kind = EventKind.kPauseInterrupted;
+        if (_isStepping && _locationFor(e) == null) {
+          await chromeDebugger.sendCommand('Debugger.stepInto');
+          return;
+        }
+      }
+      var frames = _dartFramesFor(e);
+      _pausedStack = Stack()
+        ..frames = frames
+        ..messages = [];
+      if (frames.isNotEmpty) event.topFrame = frames.first;
+      streamNotify('Debug', event);
+    });
+    chromeDebugger.onResumed.listen((e) {
+      if (_isolate == null) return;
+      _pausedStack = null;
+      streamNotify(
+          'Debug',
+          Event()
+            ..kind = EventKind.kResume
+            ..isolate = toIsolateRef(_isolate));
+    });
+  }
 
   final ChromeProxyService mainProxy;
 
@@ -30,6 +66,80 @@ class Debugger {
 
   /// Allocates Dart breakpoint IDs
   int _nextBreakpointId = 1;
+
+  Stack _pausedStack;
+
+  bool _isStepping = false;
+
+  Future<Success> pause() async {
+    _isStepping = false;
+    var result = await chromeDebugger.sendCommand('Debugger.pause');
+    handleErrorIfPresent(result);
+    return Success();
+  }
+
+  Future<Success> resume(String isolateId,
+      {String step, int frameIndex}) async {
+    if (frameIndex != null) {
+      throw ArgumentError('FrameIndex is currently unsupported.');
+    }
+    WipResponse result;
+    if (step != null) {
+      _isStepping = true;
+      switch (step) {
+        case 'Over':
+          result = await chromeDebugger.sendCommand('Debugger.stepOver');
+          break;
+        case 'Out':
+          result = await chromeDebugger.sendCommand('Debugger.stepOut');
+          break;
+        case 'Into':
+          result = await chromeDebugger.sendCommand('Debugger.stepInto');
+          break;
+        default:
+          throw ArgumentError('Unexpected value for step: $step');
+      }
+    } else {
+      _isStepping = false;
+      result = await chromeDebugger.sendCommand('Debugger.resume');
+    }
+    handleErrorIfPresent(result);
+    return Success();
+  }
+
+  /// Returns the current Dart stack for the paused debugger.
+  ///
+  /// Returns null if the debugger is not paused.
+  Stack getStack() => _pausedStack;
+
+  Location _locationFor(DebuggerPausedEvent e) {
+    var frame = e.params['callFrames'][0];
+    var location = frame['location'];
+    var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
+        location['lineNumber'] as int, location['columnNumber'] as int);
+    return locationForJs(
+        jsLocation.scriptId, jsLocation.line, jsLocation.column);
+  }
+
+  List<Frame> _dartFramesFor(DebuggerPausedEvent e) {
+    var dartFrames = <Frame>[];
+    var index = 0;
+    for (var frame in e.params['callFrames']) {
+      var location = frame['location'];
+      var functionName = frame['functionName'] as String ?? '';
+      functionName = functionName.split('.').last;
+      // Chrome is 0 based. Account for this.
+      var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
+          location['lineNumber'] as int, location['columnNumber'] as int);
+      var dartFrame = frameFor(jsLocation);
+      if (dartFrame != null) {
+        dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
+        dartFrame.index = index++;
+        dartFrames.add(dartFrame);
+      }
+    }
+    return dartFrames;
+  }
 
   Future<Null> initialize() async {
     sources = Sources(mainProxy);
@@ -132,6 +242,14 @@ class Debugger {
       .firstWhere((location) => location.dartLocation.line == line,
           orElse: () => null);
 
+  /// Find the [Location] for the given JS source position.
+  ///
+  /// The [line] and [column] are 1-based.
+  Location locationForJs(String scriptId, int line, int column) => sources
+      .locationsForJs(scriptId)
+      .firstWhere((location) => location.jsLocation.line == line,
+          orElse: () => null);
+
   /// Returns the closest [Location] for the given Dart source position.
   ///
   /// The [line] and [column] are 1-based.
@@ -153,6 +271,8 @@ class Debugger {
 
   /// Returns a Dart [Frame] for a [JsLocation].
   Frame frameFor(JsLocation jsLocation) {
+    // TODO(sdk/issues/37240) - ideally we look for an exact location instead
+    // of the closest location on a given line.
     var location = _bestLocationForJs(
         jsLocation.scriptId, jsLocation.line, jsLocation.column);
     if (location == null) return null;
