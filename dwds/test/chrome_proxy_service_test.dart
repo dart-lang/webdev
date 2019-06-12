@@ -61,6 +61,21 @@ void main() {
       expect(() => service.addBreakpointWithScriptUri(null, null, null),
           throwsUnimplementedError);
     });
+
+    test('removeBreakpoint null arguments', () {
+      expect(() => service.removeBreakpoint(null, null), throwsArgumentError);
+    });
+
+    test("removeBreakpoint doesn't exist", () {
+      expect(() => service.removeBreakpoint(isolate.id, '1234'),
+          throwsArgumentError);
+    });
+    test('add and remove breakpoint', () async {
+      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 19);
+      expect(isolate.breakpoints, [bp]);
+      await service.removeBreakpoint(isolate.id, bp.id);
+      expect(isolate.breakpoints, isEmpty);
+    });
   });
 
   group('callServiceExtension', () {
@@ -450,10 +465,6 @@ void main() {
 
   test('reloadSources', () {
     expect(() => service.reloadSources(null), throwsUnimplementedError);
-  });
-
-  test('removeBreakpoint', () {
-    expect(() => service.removeBreakpoint(null, null), throwsArgumentError);
   });
 
   test('requestHeapSnapshot', () {

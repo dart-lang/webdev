@@ -110,6 +110,10 @@ class Debugger {
     }
     var jsId = _breakpoints.jsId(breakpointId);
     var bp = _breakpoints.removeBreakpoint(js: jsId, dartId: breakpointId);
+    if (bp == null) {
+      throw ArgumentError.value(
+          breakpointId, 'Breakpoint not found with this id.');
+    }
     mainProxy.streamNotify(
         'Debug',
         Event()
@@ -211,7 +215,9 @@ class _Breakpoints {
     _byDartId.remove(dartId ?? bp?.id);
     Breakpoint dartBp;
     // TODO: Do something better than the default throw when it's not found.
-    dartBp = bp ?? _isolate.breakpoints.firstWhere((b) => b.id == dartId);
+    dartBp = bp ??
+        _isolate.breakpoints
+            .firstWhere((b) => b.id == dartId, orElse: () => null);
     _isolate?.breakpoints?.remove(dartBp);
     return dartBp;
   }
