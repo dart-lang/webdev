@@ -14,46 +14,48 @@ import 'location.dart';
 import 'sources.dart';
 
 class Debugger {
-  Debugger(this.mainProxy) {
+  Debugger(this._mainProxy) {
+    _breakpoints = _Breakpoints(_mainProxy);
+
     chromeDebugger.onPaused.listen((e) async {
-      if (mainProxy.isolate == null) return;
-      var event = Event()..isolate = toIsolateRef(_isolate);
+      if (_mainProxy.isolate == null) return;
+      var event = Event()..isolate = toIsolateRef(_mainProxy.isolate);
       var params = e.params;
       var breakpoints = params['hitBreakpoints'] as List;
       if (breakpoints.isNotEmpty) {
-        // TODO: Set `breakpoint` and `pauseBreakpoints` fields.
         event.kind = EventKind.kPauseBreakpoint;
       } else if (e.reason == 'exception' || e.reason == 'assert') {
         event.kind = EventKind.kPauseException;
       } else {
-        event.kind = EventKind.kPauseInterrupted;
-        if (_isStepping && _locationFor(e) == null) {
+        // If we don't have source location continue stepping.
+        if (_isStepping && _sourceLocation(e) == null) {
           await chromeDebugger.sendCommand('Debugger.stepInto');
           return;
         }
+        event.kind = EventKind.kPauseInterrupted;
       }
       var frames = _dartFramesFor(e);
       _pausedStack = Stack()
         ..frames = frames
         ..messages = [];
       if (frames.isNotEmpty) event.topFrame = frames.first;
-      streamNotify('Debug', event);
+      _mainProxy.streamNotify('Debug', event);
     });
+
     chromeDebugger.onResumed.listen((e) {
-      if (_isolate == null) return;
+      if (_mainProxy.isolate == null) return;
       _pausedStack = null;
-      streamNotify(
+      _mainProxy.streamNotify(
           'Debug',
           Event()
             ..kind = EventKind.kResume
-            ..isolate = toIsolateRef(_isolate));
+            ..isolate = toIsolateRef(_mainProxy.isolate));
     });
-    _breakpoints = _Breakpoints(this);
   }
 
-  final ChromeProxyService mainProxy;
+  final ChromeProxyService _mainProxy;
 
-  WipDebugger get chromeDebugger => mainProxy.tabConnection.debugger;
+  WipDebugger get chromeDebugger => _mainProxy.tabConnection.debugger;
 
   /// The scripts and sourcemaps for the application, both JS and Dart.
   Sources sources;
@@ -79,8 +81,20 @@ class Debugger {
     return Success();
   }
 
+  /// Resumes a paused isolate.
+  ///
+  /// If the step parameter is not provided, the program will resume regular
+  /// execution.
+  ///
+  /// If the step parameter is provided, it indicates what form of
+  /// single-stepping to use. Note that stepping will automatically continue
+  /// until Chrome is paused at a location for which we have source information.
   Future<Success> resume(String isolateId,
       {String step, int frameIndex}) async {
+    if (isolateId != _mainProxy.isolate.id) {
+      throw ArgumentError.value(
+          isolateId, 'isolateId', 'Unrecognized isolate id');
+    }
     if (frameIndex != null) {
       throw ArgumentError('FrameIndex is currently unsupported.');
     }
@@ -113,42 +127,13 @@ class Debugger {
   /// Returns null if the debugger is not paused.
   Stack getStack() => _pausedStack;
 
-  Location _locationFor(DebuggerPausedEvent e) {
-    var frame = e.params['callFrames'][0];
-    var location = frame['location'];
-    var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
-        location['lineNumber'] as int, location['columnNumber'] as int);
-    return locationForJs(
-        jsLocation.scriptId, jsLocation.line, jsLocation.column);
-  }
-
-  List<Frame> _dartFramesFor(DebuggerPausedEvent e) {
-    var dartFrames = <Frame>[];
-    var index = 0;
-    for (var frame in e.params['callFrames']) {
-      var location = frame['location'];
-      var functionName = frame['functionName'] as String ?? '';
-      functionName = functionName.split('.').last;
-      // Chrome is 0 based. Account for this.
-      var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
-          location['lineNumber'] as int, location['columnNumber'] as int);
-      var dartFrame = frameFor(jsLocation);
-      if (dartFrame != null) {
-        dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
-        dartFrame.index = index++;
-        dartFrames.add(dartFrame);
-      }
-    }
-    return dartFrames;
-  }
-
   Future<Null> initialize() async {
-    sources = Sources(mainProxy);
+    sources = Sources(_mainProxy);
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     chromeDebugger.onScriptParsed.listen(sources.scriptParsed);
     handleErrorIfPresent(
-        await mainProxy.tabConnection.page.enable() as WipResponse);
+        await _mainProxy.tabConnection.page.enable() as WipResponse);
     handleErrorIfPresent(await chromeDebugger.enable() as WipResponse);
   }
 
@@ -157,7 +142,7 @@ class Debugger {
     // TODO: Reduce duplication with _scriptRefs in mainProxy.
     if (_scriptRefs == null) {
       _scriptRefs = {};
-      var scripts = await mainProxy.scriptRefs(isolateId);
+      var scripts = await _mainProxy.scriptRefs(isolateId);
       for (var script in scripts) {
         _scriptRefs[script.id] = script;
       }
@@ -173,14 +158,14 @@ class Debugger {
     Isolate isolate;
     // Validate the isolate id is correct, _getIsolate throws if not.
     if (isolateId != null) {
-      isolate = await mainProxy.getIsolate(isolateId) as Isolate;
+      isolate = await _mainProxy.getIsolate(isolateId) as Isolate;
     }
 
     var dartScript = await _scriptWithId(isolateId, scriptId);
     // TODO(401): Remove the additional parameter.
     var dartUri = DartUri(
-        dartScript.uri, '${Uri.parse(mainProxy.uri).path}/garbage.dart');
-    var location = locationForDart(dartUri, line);
+        dartScript.uri, '${Uri.parse(_mainProxy.uri).path}/garbage.dart');
+    var location = _locationForDart(dartUri, line);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) return null;
     var jsBreakpointId = await _setBreakpoint(location);
@@ -198,7 +183,7 @@ class Debugger {
       ..location = (SourceLocation()
         ..script = dartScript
         ..tokenPos = location.tokenPos);
-    mainProxy.streamNotify(
+    _mainProxy.streamNotify(
         'Debug',
         Event()
           ..kind = EventKind.kBreakpointAdded
@@ -212,7 +197,7 @@ class Debugger {
     Isolate isolate;
     // Validate the isolate id is correct, _getIsolate throws if not.
     if (isolateId != null) {
-      isolate = await mainProxy.getIsolate(isolateId) as Isolate;
+      isolate = await _mainProxy.getIsolate(isolateId) as Isolate;
     }
     if (breakpointId == null) {
       throw ArgumentError.notNull('breakpointId');
@@ -223,7 +208,7 @@ class Debugger {
       throw ArgumentError.value(
           breakpointId, 'Breakpoint not found with this id.');
     }
-    mainProxy.streamNotify(
+    _mainProxy.streamNotify(
         'Debug',
         Event()
           ..kind = EventKind.kBreakpointRemoved
@@ -257,7 +242,7 @@ class Debugger {
   /// Find the [Location] for the given Dart source position.
   ///
   /// The [line] number is 1-based.
-  Location locationForDart(DartUri uri, int line) => sources
+  Location _locationForDart(DartUri uri, int line) => sources
       .locationsForDart(uri.serverPath)
       .firstWhere((location) => location.dartLocation.line == line,
           orElse: () => null);
@@ -265,42 +250,63 @@ class Debugger {
   /// Find the [Location] for the given JS source position.
   ///
   /// The [line] and [column] are 1-based.
-  Location locationForJs(String scriptId, int line, int column) => sources
+  Location _locationForJs(String scriptId, int line, int column) => sources
       .locationsForJs(scriptId)
       .firstWhere((location) => location.jsLocation.line == line,
           orElse: () => null);
 
-  /// Returns the closest [Location] for the given Dart source position.
-  ///
-  /// The [line] and [column] are 1-based.
-  ///
-  /// Can return null if no suitable [Location] is found.
-  Location _bestLocationForJs(String scriptId, int line, int column) {
-    Location result;
-    for (var location in sources.locationsForJs(scriptId)) {
-      if (location.jsLocation.line == line) {
-        result ??= location;
-        if ((location.jsLocation.column - column).abs() <
-            (result.jsLocation.column - column).abs()) {
-          result = location;
-        }
+  Location _sourceLocation(DebuggerPausedEvent e) {
+    var frame = e.params['callFrames'][0];
+    var location = frame['location'];
+    var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
+        location['lineNumber'] as int, location['columnNumber'] as int);
+    return _locationForJs(
+        jsLocation.scriptId, jsLocation.line, jsLocation.column);
+  }
+
+  /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
+  /// [Frame]s.
+  List<Frame> _dartFramesFor(DebuggerPausedEvent e) {
+    var dartFrames = <Frame>[];
+    var index = 0;
+    for (var frame in e.params['callFrames']) {
+      var location = frame['location'];
+      var functionName = frame['functionName'] as String ?? '';
+      functionName = functionName.split('.').last;
+      // Chrome is 0 based. Account for this.
+      var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
+          location['lineNumber'] as int, location['columnNumber'] as int);
+      var dartFrame = _frameFor(jsLocation);
+      if (dartFrame != null) {
+        dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
+        dartFrame.index = index++;
+        dartFrames.add(dartFrame);
       }
     }
-    return result;
+    return dartFrames;
   }
 
   /// Returns a Dart [Frame] for a [JsLocation].
-  Frame frameFor(JsLocation jsLocation) {
+  Frame _frameFor(JsLocation jsLocation) {
     // TODO(sdk/issues/37240) - ideally we look for an exact location instead
     // of the closest location on a given line.
-    var location = _bestLocationForJs(
-        jsLocation.scriptId, jsLocation.line, jsLocation.column);
-    if (location == null) return null;
-    var script = mainProxy.scriptRefFor(location.dartLocation.uri.serverPath);
+    Location bestLocation;
+    for (var location in sources.locationsForJs(jsLocation.scriptId)) {
+      if (location.jsLocation.line == jsLocation.line) {
+        bestLocation ??= location;
+        if ((location.jsLocation.column - jsLocation.column).abs() <
+            (bestLocation.jsLocation.column - jsLocation.column).abs()) {
+          bestLocation = location;
+        }
+      }
+    }
+    if (bestLocation == null) return null;
+    var script =
+        _mainProxy.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
     return Frame()
       ..code = (CodeRef()..kind = CodeKind.kDart)
       ..location = (SourceLocation()
-        ..tokenPos = location.tokenPos
+        ..tokenPos = bestLocation.tokenPos
         ..script = script)
       ..kind = FrameKind.kRegular;
   }
@@ -308,15 +314,15 @@ class Debugger {
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
 class _Breakpoints {
-  // TODO(439): We need to resolve the way we talk to other components.
-  Debugger debugger;
-
   final Map<String, String> _byJsId = {};
   final Map<String, String> _byDartId = {};
 
-  _Breakpoints(this.debugger);
+  // TODO(439): We need to resolve the way we talk to other components.
+  final ChromeProxyService _mainProxy;
 
-  Isolate get _isolate => debugger.mainProxy.isolate;
+  Isolate get _isolate => _mainProxy.isolate;
+
+  _Breakpoints(this._mainProxy);
 
   /// Record the breakpoint.
   ///
