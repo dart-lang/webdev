@@ -8,6 +8,8 @@ import 'package:logging/logging.dart';
 import '../logging.dart';
 import '../serve/injected/configuration.dart';
 
+export '../serve/injected/configuration.dart' show ReloadConfiguration;
+
 const autoOption = 'auto';
 const chromeDebugPortFlag = 'chrome-debug-port';
 const debugFlag = 'debug';
