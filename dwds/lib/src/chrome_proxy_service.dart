@@ -14,7 +14,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'dart_uri.dart';
 import 'debugger.dart';
 import 'helpers.dart';
-import 'location.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
@@ -45,11 +44,6 @@ class ChromeProxyService implements VmServiceInterface {
 
   /// Provides debugger-related functionality.
   Debugger debugger;
-
-  /// The current Dart stack for the paused [_isolate].
-  ///
-  /// This is null if the [_isolate] is not paused.
-  Stack _pausedStack;
 
   /// Fields that are specific to the current [_isolate].
   ///
@@ -194,7 +188,6 @@ class ChromeProxyService implements VmServiceInterface {
     _vm.isolates.removeWhere((ref) => ref.id == _isolate.id);
 
     _isolate = null;
-    _pausedStack = null;
     _classes.clear();
     _scriptRefs.clear();
     _serverPathToScriptRef.clear();
@@ -582,8 +575,7 @@ function($argsString) {
   ///
   /// Returns null if the corresponding isolate is not paused.
   @override
-  Future<Stack> getStack(String isolateId) async =>
-      isolateId == _isolate?.id ? _pausedStack : null;
+  Future<Stack> getStack(String isolateId) => debugger.getStack(isolateId);
 
   @override
   Future<VM> getVM() => Future.value(_vm);
@@ -629,7 +621,7 @@ function($argsString) {
         case '_Service':
           return StreamController<Event>.broadcast();
         case 'Debug':
-          return _debugStreamController();
+          return StreamController<Event>.broadcast();
         case 'Stdout':
           return _chromeConsoleStreamController(
               (e) => _stdoutTypes.contains(e.type));
@@ -644,11 +636,7 @@ function($argsString) {
   }
 
   @override
-  Future<Success> pause(String isolateId) async {
-    var result = await tabConnection.sendCommand('Debugger.pause');
-    handleErrorIfPresent(result);
-    return Success();
-  }
+  Future<Success> pause(String isolateId) => debugger.pause();
 
   @override
   Future<Success> registerService(String service, String alias) async {
@@ -676,14 +664,8 @@ function($argsString) {
 
   @override
   Future<Success> resume(String isolateId,
-      {String step, int frameIndex}) async {
-    if (step != null || frameIndex != null) {
-      throw ArgumentError('Step and frameIndex are currently unsupported');
-    }
-    var result = await tabConnection.sendCommand('Debugger.resume');
-    handleErrorIfPresent(result);
-    return Success();
-  }
+          {String step, int frameIndex}) async =>
+      debugger.resume(isolateId, step: step, frameIndex: frameIndex);
 
   @override
   Future<Success> setExceptionPauseMode(String isolateId, String mode) async {
@@ -784,69 +766,6 @@ function($argsString) {
       }
     });
     return controller;
-  }
-
-  List<Frame> _dartFramesFor(DebuggerPausedEvent e) {
-    var dartFrames = <Frame>[];
-    var index = 0;
-    for (var frame in e.params['callFrames']) {
-      var location = frame['location'];
-      // TODO(grouma) - This function name is JS based. Add logic to
-      // translate this to a Dart function name.
-      var functionName = frame['functionName'] as String ?? '';
-      // Chrome is 0 based. Account for this.
-      var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
-          location['lineNumber'] as int, location['columnNumber'] as int);
-      var dartFrame = debugger.frameFor(jsLocation);
-      if (dartFrame != null) {
-        dartFrame.code.name =
-            functionName.isEmpty ? '(anonymous)' : functionName;
-        dartFrame.index = index++;
-        dartFrames.add(dartFrame);
-      }
-    }
-    return dartFrames;
-  }
-
-  /// Listens to the `debugger` events from chrome and translates those to
-  /// the `Debug` stream events for the vm service protocol.
-  ///
-  // TODO: Implement the rest https://github.com/dart-lang/webdev/issues/166
-  StreamController<Event> _debugStreamController() {
-    StreamSubscription pauseSubscription;
-    StreamSubscription resumeSubscription;
-    return StreamController<Event>.broadcast(onListen: () {
-      pauseSubscription = tabConnection.debugger.onPaused.listen((e) {
-        if (_isolate == null) return;
-        var event = Event()..isolate = toIsolateRef(_isolate);
-        var params = e.params;
-        var breakpoints = params['hitBreakpoints'] as List;
-        if (breakpoints.isNotEmpty) {
-          // TODO: Set `breakpoint` and `pauseBreakpoints` fields.
-          event.kind = EventKind.kPauseBreakpoint;
-        } else if (e.reason == 'exception' || e.reason == 'assert') {
-          event.kind = EventKind.kPauseException;
-        } else {
-          event.kind = EventKind.kPauseInterrupted;
-        }
-        _pausedStack = Stack()
-          ..frames = _dartFramesFor(e)
-          ..messages = [];
-        streamNotify('Debug', event);
-      });
-      resumeSubscription = tabConnection.debugger.onResumed.listen((e) {
-        if (_isolate == null) return;
-        _pausedStack = null;
-        streamNotify(
-            'Debug',
-            Event()
-              ..kind = EventKind.kResume
-              ..isolate = toIsolateRef(_isolate));
-      });
-    }, onCancel: () {
-      pauseSubscription.cancel();
-      resumeSubscription.cancel();
-    });
   }
 
   /// Runs an eval on the page to compute all existing registered extensions.

@@ -358,6 +358,73 @@ void main() {
     expect(() => service.getSourceReport(null, null), throwsUnimplementedError);
   });
 
+  group('Step', () {
+    String isolateId;
+    Stream<Event> stream;
+    ScriptList scripts;
+    ScriptRef mainScript;
+
+    setUp(() async {
+      var vm = await service.getVM();
+      isolateId = vm.isolates.first.id;
+      scripts = await service.getScripts(isolateId);
+      await service.streamListen('Debug');
+      stream = service.onEvent('Debug');
+      mainScript = scripts.scripts
+          .firstWhere((script) => script.uri.contains('main.dart'));
+      await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
+      var bp = await service.addBreakpoint(isolateId, mainScript.id, 45);
+      // Wait for breakpoint to trigger.
+      await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+      await service.removeBreakpoint(isolateId, bp.id);
+    });
+
+    tearDown(() async {
+      // Resume execution to not impact other tests.
+      await service.resume(isolateId);
+    });
+
+    test('Into goes to the next Dart location', () async {
+      await service.resume(isolateId, step: 'Into');
+      // Wait for the step to actually occur.
+      await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
+      var stack = await service.getStack(isolateId);
+      expect(stack, isNotNull);
+      var first = stack.frames.first;
+      expect(first.kind, 'Regular');
+      expect(first.code.kind, 'Dart');
+      expect(first.code.name, 'printCount');
+    });
+
+    test('Over goes to the next Dart location', () async {
+      await service.resume(isolateId, step: 'Over');
+      // Wait for the step to actually occur.
+      await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
+      var stack = await service.getStack(isolateId);
+      expect(stack, isNotNull);
+      var first = stack.frames.first;
+      expect(first.kind, 'Regular');
+      expect(first.code.kind, 'Dart');
+      expect(first.code.name, '<closure>');
+    });
+
+    test('Out goes to the next Dart location', () async {
+      await service.resume(isolateId, step: 'Out');
+      // Wait for the step to actually occur.
+      await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
+      var stack = await service.getStack(isolateId);
+      expect(stack, isNotNull);
+      var first = stack.frames.first;
+      expect(first.kind, 'Regular');
+      expect(first.code.kind, 'Dart');
+      expect(first.code.name, '<closure>');
+    });
+  });
+
   group('getStack', () {
     String isolateId;
     Stream<Event> stream;
@@ -394,8 +461,7 @@ void main() {
       var first = stack.frames.first;
       expect(first.kind, 'Regular');
       expect(first.code.kind, 'Dart');
-      // TODO(grouma) - Expect a Dart name.
-      expect(first.code.name, 'main.printCount');
+      expect(first.code.name, 'printCount');
     });
 
     test('returns non-empty stack when paused', () async {
