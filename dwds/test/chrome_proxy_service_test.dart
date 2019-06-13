@@ -370,24 +370,27 @@ void main() {
       scripts = await service.getScripts(isolateId);
       await service.streamListen('Debug');
       stream = service.onEvent('Debug');
-      mainScript =
-          scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
+      mainScript = scripts.scripts
+          .firstWhere((script) => script.uri.contains('main.dart'));
       await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
-    });
-
-    test('Into goes to the next Dart location', () async {
       var bp = await service.addBreakpoint(isolateId, mainScript.id, 45);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
       await service.removeBreakpoint(isolateId, bp.id);
+    });
+
+    tearDown(() async {
+      // Resume execution to not impact other tests.
+      await service.resume(isolateId);
+    });
+
+    test('Into goes to the next Dart location', () async {
       await service.resume(isolateId, step: 'Into');
       // Wait for the step to actually occur.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
       var stack = await service.getStack(isolateId);
-      // Resume execution to not impact other tests.
-      await service.resume(isolateId);
       expect(stack, isNotNull);
       var first = stack.frames.first;
       expect(first.kind, 'Regular');
@@ -396,18 +399,11 @@ void main() {
     });
 
     test('Over goes to the next Dart location', () async {
-      var bp = await service.addBreakpoint(isolateId, mainScript.id, 45);
-      // Wait for breakpoint to trigger.
-      await stream
-          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
-      await service.removeBreakpoint(isolateId, bp.id);
       await service.resume(isolateId, step: 'Over');
       // Wait for the step to actually occur.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
       var stack = await service.getStack(isolateId);
-      // Resume execution to not impact other tests.
-      await service.resume(isolateId);
       expect(stack, isNotNull);
       var first = stack.frames.first;
       expect(first.kind, 'Regular');
@@ -416,18 +412,11 @@ void main() {
     });
 
     test('Out goes to the next Dart location', () async {
-      var bp = await service.addBreakpoint(isolateId, mainScript.id, 45);
-      // Wait for breakpoint to trigger.
-      await stream
-          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
-      await service.removeBreakpoint(isolateId, bp.id);
       await service.resume(isolateId, step: 'Out');
       // Wait for the step to actually occur.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
       var stack = await service.getStack(isolateId);
-      // Resume execution to not impact other tests.
-      await service.resume(isolateId);
       expect(stack, isNotNull);
       var first = stack.frames.first;
       expect(first.kind, 'Regular');

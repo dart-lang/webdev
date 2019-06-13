@@ -46,6 +46,9 @@ class Debugger {
 
   /// Resumes the debugger.
   ///
+  /// Step parameter options:
+  /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#resume
+  ///
   /// If the step parameter is not provided, the program will resume regular
   /// execution.
   ///
@@ -103,41 +106,8 @@ class Debugger {
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     chromeDebugger.onScriptParsed.listen(sources.scriptParsed);
-
-    chromeDebugger.onPaused.listen((e) async {
-      if (_mainProxy.isolate == null) return;
-      var event = Event()..isolate = toIsolateRef(_mainProxy.isolate);
-      var params = e.params;
-      var breakpoints = params['hitBreakpoints'] as List;
-      if (breakpoints.isNotEmpty) {
-        event.kind = EventKind.kPauseBreakpoint;
-      } else if (e.reason == 'exception' || e.reason == 'assert') {
-        event.kind = EventKind.kPauseException;
-      } else {
-        // If we don't have source location continue stepping.
-        if (_isStepping && _sourceLocation(e) == null) {
-          await chromeDebugger.sendCommand('Debugger.stepInto');
-          return;
-        }
-        event.kind = EventKind.kPauseInterrupted;
-      }
-      var frames = _dartFramesFor(e);
-      _pausedStack = Stack()
-        ..frames = frames
-        ..messages = [];
-      if (frames.isNotEmpty) event.topFrame = frames.first;
-      _mainProxy.streamNotify('Debug', event);
-    });
-
-    chromeDebugger.onResumed.listen((e) {
-      if (_mainProxy.isolate == null) return;
-      _pausedStack = null;
-      _mainProxy.streamNotify(
-          'Debug',
-          Event()
-            ..kind = EventKind.kResume
-            ..isolate = toIsolateRef(_mainProxy.isolate));
-    });
+    chromeDebugger.onPaused.listen(_pauseHandler);
+    chromeDebugger.onResumed.listen(_resumeHandler);
 
     handleErrorIfPresent(
         await _mainProxy.tabConnection.page.enable() as WipResponse);
@@ -257,9 +227,11 @@ class Debugger {
   /// Find the [Location] for the given JS source position.
   ///
   /// The [line] and [column] are 1-based.
-  Location _locationForJs(String scriptId, int line, int column) => sources
-      .locationsForJs(scriptId)
-      .firstWhere((location) => location.jsLocation.line == line,
+  Location _locationForJs(String scriptId, int line, int column) =>
+      sources.locationsForJs(scriptId).firstWhere(
+          (location) =>
+              location.jsLocation.line == line &&
+              location.jsLocation.column == column,
           orElse: () => null);
 
   /// Returns source [Location] for the paused event.
@@ -320,6 +292,43 @@ class Debugger {
         ..tokenPos = bestLocation.tokenPos
         ..script = script)
       ..kind = FrameKind.kRegular;
+  }
+
+  /// Handles pause events coming from the Chrome connection.
+  Future<void> _pauseHandler(DebuggerPausedEvent e) async {
+    if (_mainProxy.isolate == null) return;
+    var event = Event()..isolate = toIsolateRef(_mainProxy.isolate);
+    var params = e.params;
+    var breakpoints = params['hitBreakpoints'] as List;
+    if (breakpoints.isNotEmpty) {
+      event.kind = EventKind.kPauseBreakpoint;
+    } else if (e.reason == 'exception' || e.reason == 'assert') {
+      event.kind = EventKind.kPauseException;
+    } else {
+      // If we don't have source location continue stepping.
+      if (_isStepping && _sourceLocation(e) == null) {
+        await chromeDebugger.sendCommand('Debugger.stepInto');
+        return;
+      }
+      event.kind = EventKind.kPauseInterrupted;
+    }
+    var frames = _dartFramesFor(e);
+    _pausedStack = Stack()
+      ..frames = frames
+      ..messages = [];
+    if (frames.isNotEmpty) event.topFrame = frames.first;
+    _mainProxy.streamNotify('Debug', event);
+  }
+
+  /// Handles resume events coming from the Chrome connection.
+  Future<void> _resumeHandler(DebuggerResumedEvent e) async {
+    if (_mainProxy.isolate == null) return;
+    _pausedStack = null;
+    _mainProxy.streamNotify(
+        'Debug',
+        Event()
+          ..kind = EventKind.kResume
+          ..isolate = toIsolateRef(_mainProxy.isolate));
   }
 }
 
