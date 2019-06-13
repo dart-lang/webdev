@@ -14,44 +14,7 @@ import 'location.dart';
 import 'sources.dart';
 
 class Debugger {
-  Debugger(this._mainProxy) {
-    _breakpoints = _Breakpoints(_mainProxy);
-
-    chromeDebugger.onPaused.listen((e) async {
-      if (_mainProxy.isolate == null) return;
-      var event = Event()..isolate = toIsolateRef(_mainProxy.isolate);
-      var params = e.params;
-      var breakpoints = params['hitBreakpoints'] as List;
-      if (breakpoints.isNotEmpty) {
-        event.kind = EventKind.kPauseBreakpoint;
-      } else if (e.reason == 'exception' || e.reason == 'assert') {
-        event.kind = EventKind.kPauseException;
-      } else {
-        // If we don't have source location continue stepping.
-        if (_isStepping && _sourceLocation(e) == null) {
-          await chromeDebugger.sendCommand('Debugger.stepInto');
-          return;
-        }
-        event.kind = EventKind.kPauseInterrupted;
-      }
-      var frames = _dartFramesFor(e);
-      _pausedStack = Stack()
-        ..frames = frames
-        ..messages = [];
-      if (frames.isNotEmpty) event.topFrame = frames.first;
-      _mainProxy.streamNotify('Debug', event);
-    });
-
-    chromeDebugger.onResumed.listen((e) {
-      if (_mainProxy.isolate == null) return;
-      _pausedStack = null;
-      _mainProxy.streamNotify(
-          'Debug',
-          Event()
-            ..kind = EventKind.kResume
-            ..isolate = toIsolateRef(_mainProxy.isolate));
-    });
-  }
+  Debugger(this._mainProxy) : _breakpoints = _Breakpoints(_mainProxy);
 
   final ChromeProxyService _mainProxy;
 
@@ -140,6 +103,42 @@ class Debugger {
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     chromeDebugger.onScriptParsed.listen(sources.scriptParsed);
+
+    chromeDebugger.onPaused.listen((e) async {
+      if (_mainProxy.isolate == null) return;
+      var event = Event()..isolate = toIsolateRef(_mainProxy.isolate);
+      var params = e.params;
+      var breakpoints = params['hitBreakpoints'] as List;
+      if (breakpoints.isNotEmpty) {
+        event.kind = EventKind.kPauseBreakpoint;
+      } else if (e.reason == 'exception' || e.reason == 'assert') {
+        event.kind = EventKind.kPauseException;
+      } else {
+        // If we don't have source location continue stepping.
+        if (_isStepping && _sourceLocation(e) == null) {
+          await chromeDebugger.sendCommand('Debugger.stepInto');
+          return;
+        }
+        event.kind = EventKind.kPauseInterrupted;
+      }
+      var frames = _dartFramesFor(e);
+      _pausedStack = Stack()
+        ..frames = frames
+        ..messages = [];
+      if (frames.isNotEmpty) event.topFrame = frames.first;
+      _mainProxy.streamNotify('Debug', event);
+    });
+
+    chromeDebugger.onResumed.listen((e) {
+      if (_mainProxy.isolate == null) return;
+      _pausedStack = null;
+      _mainProxy.streamNotify(
+          'Debug',
+          Event()
+            ..kind = EventKind.kResume
+            ..isolate = toIsolateRef(_mainProxy.isolate));
+    });
+
     handleErrorIfPresent(
         await _mainProxy.tabConnection.page.enable() as WipResponse);
     handleErrorIfPresent(await chromeDebugger.enable() as WipResponse);
