@@ -1,4 +1,4 @@
-## 2.1.0-dev
+## 2.1.0
 
 - Add an explicit error if there are no directories to serve. Typically this
   would happen if the user doesn't have a `web` directory.
