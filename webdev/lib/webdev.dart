@@ -14,7 +14,6 @@ import 'src/serve/webdev_server.dart';
 
 export 'src/command/configuration.dart' show Configuration, ReloadConfiguration;
 export 'src/daemon_client.dart' show daemonPort;
-export 'src/serve/chrome.dart' show Chrome, ChromeError;
 export 'src/serve/debugger/app_debug_services.dart' show AppDebugServices;
 export 'src/serve/debugger/devtools.dart' show DevTools;
 
