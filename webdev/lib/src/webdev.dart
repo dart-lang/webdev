@@ -22,7 +22,6 @@ Stream<WebDevHandle> connectToWebdev(
   String target,
   Stream<BuildResults> buildResults, {
   Handler optionalHandler,
-  Uri devtoolsUri,
 }) async* {
   var hostname = 'localhost';
   var configuration = Configuration(
@@ -32,7 +31,7 @@ Stream<WebDevHandle> connectToWebdev(
     autoRun: true,
     reload: ReloadConfiguration.none,
   );
-  var devtools = await DevTools.start(hostname, overrideUri: devtoolsUri);
+  var devtools = await DevTools.start(hostname);
   var serverOptions = ServerOptions(
     configuration,
     port,
