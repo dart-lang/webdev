@@ -22,15 +22,10 @@ class ServerOptions {
   final int port;
   final String target;
   final int daemonPort;
-  final Handler handler;
+  final Handler optionalHandler;
 
-  ServerOptions(
-    this.configuration,
-    this.port,
-    this.target,
-    this.daemonPort,
-    this.handler,
-  );
+  ServerOptions(this.configuration, this.port, this.target, this.daemonPort,
+      {this.optionalHandler});
 }
 
 class WebDevServer {
@@ -80,12 +75,10 @@ class WebDevServer {
       assetHandler,
       options.configuration.hostname,
     );
-    cascade = cascade
-      .add(devHandler.handler)
-      .add(assetHandler.handler);
+    cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
-    if (options.handler != null) {
-      cascade = cascade.add(options.handler);
+    if (options.optionalHandler != null) {
+      cascade = cascade.add(options.optionalHandler);
     }
 
     var hostname = options.configuration.hostname;

@@ -87,7 +87,6 @@ class DaemonCommand extends Command<int> {
         configuration,
         buildOptions,
         {'web': port},
-        null,
       );
       daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
       await daemon.onExit;

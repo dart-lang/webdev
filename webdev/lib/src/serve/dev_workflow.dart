@@ -65,13 +65,12 @@ Future<Chrome> _startChrome(
 }
 
 Future<ServerManager> _startServerManager(
-  Configuration configuration,
-  Map<String, int> targetPorts,
-  String workingDirectory,
-  BuildDaemonClient client,
-  DevTools devTools,
-  Handler handler,
-) async {
+    Configuration configuration,
+    Map<String, int> targetPorts,
+    String workingDirectory,
+    BuildDaemonClient client,
+    DevTools devTools,
+    {Handler optionalHandler}) async {
   var assetPort = daemonPort(workingDirectory);
   var serverOptions = Set<ServerOptions>();
   for (var target in targetPorts.keys) {
@@ -80,7 +79,7 @@ Future<ServerManager> _startServerManager(
       targetPorts[target],
       target,
       assetPort,
-      handler,
+      optionalHandler: optionalHandler,
     ));
   }
   logWriter(logging.Level.INFO, 'Starting resource servers...');
@@ -174,12 +173,9 @@ class DevWorkflow {
 
   Future<void> get done => _doneCompleter.future;
 
-  static Future<DevWorkflow> start(
-    Configuration configuration,
-    List<String> buildOptions,
-    Map<String, int> targetPorts,
-    Handler handler,
-  ) async {
+  static Future<DevWorkflow> start(Configuration configuration,
+      List<String> buildOptions, Map<String, int> targetPorts,
+      {Handler optionalHandler}) async {
     var workingDirectory = Directory.current.path;
     var client = await _startBuildDaemon(workingDirectory, buildOptions);
     logWriter(logging.Level.INFO, 'Registering build targets...');
@@ -188,7 +184,8 @@ class DevWorkflow {
     client.startBuild();
     var devTools = await _startDevTools(configuration);
     var serverManager = await _startServerManager(
-        configuration, targetPorts, workingDirectory, client, devTools, handler);
+        configuration, targetPorts, workingDirectory, client, devTools,
+        optionalHandler: optionalHandler);
     var chrome = await _startChrome(configuration, serverManager, client);
     return DevWorkflow._(client, chrome, devTools, serverManager);
   }

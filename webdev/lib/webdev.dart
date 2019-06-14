@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:build_daemon/data/build_status.dart';
 import 'package:shelf/shelf.dart';
+import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webdev/src/serve/handlers/dev_handler.dart';
 
 import 'src/command/configuration.dart';
@@ -12,29 +15,32 @@ import 'src/serve/debugger/app_debug_services.dart';
 import 'src/serve/debugger/devtools.dart';
 import 'src/serve/webdev_server.dart';
 
-export 'src/command/configuration.dart' show Configuration, ReloadConfiguration;
-export 'src/daemon_client.dart' show daemonPort;
-export 'src/serve/debugger/app_debug_services.dart' show AppDebugServices;
-export 'src/serve/debugger/devtools.dart' show DevTools;
-
-Future<WebDevHandler> connectToWebdev(
-  Configuration configuration,
+Future<WebDevHandle> connectToWebdev(
   int port,
   int assetPort,
   String target,
-  Stream<BuildResults> buildResults,
-  DevTools devTools, {
+  Stream<BuildResults> buildResults, {
   Handler optionalHandler,
+  Uri devtoolsUri,
 }) async {
+  var hostname = 'localhost';
+  var configuration = Configuration(
+    hostname: hostname,
+    requireBuildWebCompilers: false,
+    debug: true,
+    autoRun: true,
+    reload: ReloadConfiguration.none,
+  );
+  var devtools = await DevTools.start(hostname, overrideUri: devtoolsUri);
   var serverOptions = ServerOptions(
     configuration,
     port,
     target,
     assetPort,
-    optionalHandler,
+    optionalHandler: optionalHandler,
   );
   var webDevServer =
-      await WebDevServer.start(serverOptions, buildResults, devTools);
+      await WebDevServer.start(serverOptions, buildResults, devtools);
   var chrome = await Chrome.start(
       <String>['http://${webDevServer.host}:${webDevServer.port}/'],
       port: configuration.chromeDebugPort);
@@ -42,20 +48,36 @@ Future<WebDevHandler> connectToWebdev(
   var connection = await devHandler.connectedApps.first;
   var appDebugServices = await devHandler.loadAppServices(
       connection.request.appId, connection.request.instanceId);
-  return WebDevHandler(appDebugServices, connection, chrome, webDevServer);
+  return WebDevHandle(
+      appDebugServices, connection, chrome, webDevServer, devtools);
 }
 
-class WebDevHandler {
-  final AppDebugServices appDebugServices;
-  final DevConnection devConnection;
+class WebDevHandle {
+  final AppDebugServices _appDebugServices;
+  final DevConnection _devConnection;
   final Chrome _chrome;
   final WebDevServer _webDevServer;
+  final DevTools _devTools;
 
-  WebDevHandler(this.appDebugServices, this.devConnection, this._chrome, this._webDevServer);
+  WebDevHandle(this._appDebugServices, this._devConnection, this._chrome,
+      this._webDevServer, this._devTools);
 
   Future<void> close() async {
     await _webDevServer.stop();
     await _chrome.close();
-    await appDebugServices.close();
+    await _devTools.close();
+    await _appDebugServices.close();
   }
+
+  VmService get vmService {
+    return _appDebugServices.webdevClient.client;
+  }
+
+  Stream<void> get onTabClose {
+    return _appDebugServices.chromeProxyService.tabConnection.onClose;
+  }
+
+  Uri get wsUri => null;
+
+  void runMain() => _devConnection.runMain();
 }

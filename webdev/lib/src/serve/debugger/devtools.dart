@@ -24,8 +24,8 @@ class DevTools {
     await _server.close();
   }
 
-  static Future<DevTools> start(String hostname) async {
-    var resourceUri = await Isolate.resolvePackageUri(
+  static Future<DevTools> start(String hostname, {Uri overrideUri}) async {
+    var resourceUri = overrideUri ?? await Isolate.resolvePackageUri(
         Uri(scheme: 'package', path: 'devtools/devtools.dart'));
     final packageDir = p.dirname(p.dirname(resourceUri.toFilePath()));
 
