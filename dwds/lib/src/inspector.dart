@@ -33,22 +33,15 @@ class Inspector {
   final Debugger _debugger;
   final Isolate isolate;
 
-  Inspector(
-    String id,
+  Inspector._(
+    this.isolate,
     this._tabConnection,
     this._assetHandler,
     this._debugger,
     this._root,
-  ) : isolate = Isolate()
-          ..id = id
-          ..number = id
-          ..name = '$_root:main()'
-          ..runnable = true
-          ..breakpoints = []
-          ..libraries = []
-          ..extensionRPCs = [];
+  );
 
-  Future<void> initialize() async {
+  Future<void> _initialize() async {
     isolate.libraries.addAll(await _getLibraryRefs());
 
     // TODO: Something more robust here, right now we rely on the 2nd to last
@@ -60,6 +53,27 @@ class Inspector {
     isolate.pauseEvent = Event()
       ..kind = EventKind.kResume
       ..isolate = toIsolateRef(isolate);
+  }
+
+  static Future<Inspector> initialize(
+    WipConnection tabConnection,
+    AssetHandler assetHandler,
+    Debugger debugger,
+    String root,
+  ) async {
+    var id = createId();
+    var isolate = Isolate()
+      ..id = id
+      ..number = id
+      ..name = '$root:main()'
+      ..runnable = true
+      ..breakpoints = []
+      ..libraries = []
+      ..extensionRPCs = [];
+    var inspector =
+        Inspector._(isolate, tabConnection, assetHandler, debugger, root);
+    await inspector._initialize();
+    return inspector;
   }
 
   Future evaluate(String isolateId, String targetId, String expression,

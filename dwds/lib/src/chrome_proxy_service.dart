@@ -121,15 +121,12 @@ class ChromeProxyService implements VmServiceInterface {
           'Cannot create multiple isolates for the same app');
     }
 
-    _inspector = Inspector(
-      createId(),
+    _inspector = await Inspector.initialize(
       tabConnection,
       _assetHandler,
       _debugger,
       uri,
     );
-
-    await _inspector.initialize();
 
     var isolateRef = toIsolateRef(_inspector.isolate);
 
@@ -164,7 +161,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   /// Should be called when there is a hot restart or full page refresh.
   ///
-  /// Clears out [_isolate] and all related cached information.
+  /// Clears out the [_inspector] and all related cached information.
   void destroyIsolate() {
     var isolate = _inspector?.isolate;
     if (isolate == null) return;
@@ -174,7 +171,6 @@ class ChromeProxyService implements VmServiceInterface {
           ..kind = EventKind.kIsolateExit
           ..isolate = toIsolateRef(isolate));
     _vm.isolates.removeWhere((ref) => ref.id == isolate.id);
-
     _inspector = null;
     _consoleSubscription.cancel();
     _consoleSubscription = null;
