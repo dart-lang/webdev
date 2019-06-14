@@ -17,43 +17,51 @@ class DevTools {
   final String hostname;
   final int port;
   final HttpServer _server;
+  static Process pr;
 
   DevTools._(this.hostname, this.port, this._server);
 
   Future<void> close() async {
-    await _server.close();
+   await _server.close();
+     pr.kill();
   }
 
   static Future<DevTools> start(String hostname) async {
-    var resourceUri = await Isolate.resolvePackageUri(
-        Uri(scheme: 'package', path: 'devtools/devtools.dart'));
-    final packageDir = p.dirname(p.dirname(resourceUri.toFilePath()));
+    // var resourceUri = await Isolate.resolvePackageUri(
+    //     Uri(scheme: 'package', path: 'devtools/devtools.dart'));
+    // final packageDir = p.dirname(p.dirname(resourceUri.toFilePath()));
 
-    // Default static handler for all non-package requests.
-    var buildDir = p.join(packageDir, 'build');
-    final buildHandler =
-        createStaticHandler(buildDir, defaultDocument: 'index.html');
+    // // Default static handler for all non-package requests.
+    // var buildDir = p.join(packageDir, 'build');
+    // final buildHandler =
+    //     createStaticHandler(buildDir, defaultDocument: 'index.html');
 
-    // The packages folder is renamed in the pub package so this handler serves
-    // out of the `pack` folder.
-    var packagesDir = p.join(packageDir, 'build', 'pack');
-    var packHandler =
-        createStaticHandler(packagesDir, defaultDocument: 'index.html');
+    // // The packages folder is renamed in the pub package so this handler serves
+    // // out of the `pack` folder.
+    // var packagesDir = p.join(packageDir, 'build');
+    // var packHandler =
+    //     createStaticHandler(packagesDir, defaultDocument: 'index.html');
 
-    // Make a handler that delegates to the correct handler based on path.
-    var handler = (Request request) {
-      return request.url.path.startsWith('packages/')
-          // request.change here will strip the `packages` prefix from the path
-          // so it's relative to packHandler's root.
-          ? packHandler(request.change(path: 'packages'))
-          : buildHandler(request);
-    };
+    // // Make a handler that delegates to the correct handler based on path.
+    // var handler = (Request request) {
+    //   return request.url.path.startsWith('packages/')
+    //       // request.change here will strip the `packages` prefix from the path
+    //       // so it's relative to packHandler's root.
+    //       ? packHandler(request.change(path: 'packages'))
+    //       : buildHandler(request);
+    // };
 
-    var server = hostname == 'localhost'
-        ? await HttpMultiServer.loopback(0)
-        : await HttpServer.bind(hostname, 0);
-    serveRequests(server, handler);
+    // var server = hostname == 'localhost'
+    //     ? await HttpMultiServer.loopback(0)
+    //     : await HttpServer.bind(hostname, 0);
+    // serveRequests(server, handler);
 
-    return DevTools._(server.address.host, server.port, server);
+
+    pr = await Process.start("/usr/local/google/home/alanknight/.pub-cache/bin/webdev", ["serve", "web:8888"],
+     workingDirectory: "/usr/local/google/home/alanknight/dart/devtools/packages/devtools",
+      runInShell: true);
+
+  //  return DevTools._(server.address.host, server.port, server);
+    return DevTools._(hostname, 8888, null);
   }
 }
