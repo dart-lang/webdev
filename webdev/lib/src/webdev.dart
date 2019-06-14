@@ -9,11 +9,12 @@ import 'package:shelf/shelf.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webdev/src/serve/handlers/dev_handler.dart';
 
-import 'src/command/configuration.dart';
-import 'src/serve/chrome.dart';
-import 'src/serve/debugger/app_debug_services.dart';
-import 'src/serve/debugger/devtools.dart';
-import 'src/serve/webdev_server.dart';
+import 'command/configuration.dart';
+import 'serve/chrome.dart';
+import 'serve/debugger/app_debug_services.dart';
+import 'serve/debugger/devtools.dart';
+import 'serve/injected/configuration.dart';
+import 'serve/webdev_server.dart';
 
 Future<WebDevHandle> connectToWebdev(
   int port,
@@ -77,7 +78,7 @@ class WebDevHandle {
     return _appDebugServices.chromeProxyService.tabConnection.onClose;
   }
 
-  Uri get wsUri => null;
+  Uri get wsUri => Uri.parse(_appDebugServices.debugService.wsUri);
 
   void runMain() => _devConnection.runMain();
 }
