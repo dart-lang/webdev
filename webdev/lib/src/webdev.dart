@@ -16,14 +16,14 @@ import 'serve/debugger/devtools.dart';
 import 'serve/injected/configuration.dart';
 import 'serve/webdev_server.dart';
 
-Future<WebDevHandle> connectToWebdev(
+Stream<WebDevHandle> connectToWebdev(
   int port,
   int assetPort,
   String target,
   Stream<BuildResults> buildResults, {
   Handler optionalHandler,
   Uri devtoolsUri,
-}) async {
+}) async* {
   var hostname = 'localhost';
   var configuration = Configuration(
     hostname: hostname,
@@ -46,11 +46,12 @@ Future<WebDevHandle> connectToWebdev(
       <String>['http://${webDevServer.host}:${webDevServer.port}/'],
       port: configuration.chromeDebugPort);
   var devHandler = webDevServer.devHandler;
-  var connection = await devHandler.connectedApps.first;
-  var appDebugServices = await devHandler.loadAppServices(
-      connection.request.appId, connection.request.instanceId);
-  return WebDevHandle(
-      appDebugServices, connection, chrome, webDevServer, devtools);
+  await for (var connection in devHandler.connectedApps) {
+    var appDebugServices = await devHandler.loadAppServices(
+        connection.request.appId, connection.request.instanceId);
+    yield WebDevHandle(
+        appDebugServices, connection, chrome, webDevServer, devtools);
+  }
 }
 
 class WebDevHandle {
