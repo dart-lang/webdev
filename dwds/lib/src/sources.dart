@@ -14,13 +14,8 @@ import 'location.dart';
 
 /// The scripts and sourcemaps for the application, both JS and Dart.
 class Sources {
-  final ChromeProxyService _mainProxy;
-
   /// Controller for a stream of events when a source map is loaded.
   final _sourceMapLoadedController = StreamController<String>.broadcast();
-
-  /// Stream of events that a source map has been loaded.
-  Stream<String> get _sourceMapLoaded => _sourceMapLoadedController.stream;
 
   /// Map from Dart server path to tokenPosTable as defined in the
   /// Dart VM Service Protocol:
@@ -33,7 +28,9 @@ class Sources {
   /// Map from JS scriptId to all corresponding [Location] data.
   final _scriptIdToLocation = <String, Set<Location>>{};
 
-  Sources(this._mainProxy);
+  final AssetHandler _assetHandler;
+
+  Sources(this._assetHandler);
 
   /// Returns all [Location] data for a provided Dart source.
   Set<Location> locationsForDart(String serverPath) =>
@@ -109,13 +106,6 @@ class Sources {
     return tokenPosTable;
   }
 
-  /// Waits until the source map for the Dart server path has been loaded.
-  // TODO(grouma) - This is only used in a test context. Can we use an
-  // alternative signal and remove this method?
-  Future<void> waitForSourceMap(String serverPath) async =>
-      _sourceToLocation[serverPath] ??
-      _sourceMapLoaded.firstWhere((loadedUri) => serverPath == loadedUri);
-
   /// The source map for a DDC-compiled JS [script].
   // TODO(grouma) - Reuse this logic in `DartUri`.
   Future<String> _sourceMap(WipScript script) {
@@ -125,6 +115,6 @@ class Sources {
     }
     var scriptPath = DartUri(script.url).serverPath;
     var sourcemapPath = p.join(p.dirname(scriptPath), sourceMapUrl);
-    return _mainProxy.assetHandler(sourcemapPath);
+    return _assetHandler(sourcemapPath);
   }
 }
