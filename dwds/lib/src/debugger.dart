@@ -28,7 +28,7 @@ class Debugger {
   final CurrentInspector _currentInspector;
   final String _root;
 
-  Debugger(
+  Debugger._(
     this._assetHandler,
     this._tabConnection,
     this._streamNotify,
@@ -131,7 +131,25 @@ class Debugger {
     return _pausedStack;
   }
 
-  Future<Null> initialize() async {
+  static Future<Debugger> initialize(
+      AssetHandler assetHandler,
+      WipConnection tabConnection,
+      StreamNotify streamNotify,
+      CurrentInspector currentInspector,
+      String root) async {
+    var debugger = Debugger._(
+      assetHandler,
+      tabConnection,
+      streamNotify,
+      currentInspector,
+      // TODO(401) - Remove.
+      root,
+    );
+    await debugger._initialize();
+    return debugger;
+  }
+
+  Future<Null> _initialize() async {
     sources = Sources(_assetHandler);
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.

@@ -60,15 +60,7 @@ class ChromeProxyService implements VmServiceInterface {
     this._tab,
     this.tabConnection,
     this._assetHandler,
-  ) {
-    _debugger = Debugger(
-      _assetHandler,
-      tabConnection,
-      _streamNotify,
-      _currentInspector,
-      uri,
-    );
-  }
+  );
 
   static Future<ChromeProxyService> create(ChromeConnection chromeConnection,
       AssetHandler assetHandler, String appInstanceId) async {
@@ -104,7 +96,13 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<Null> _initialize() async {
-    await _debugger.initialize();
+    _debugger = await Debugger.initialize(
+      _assetHandler,
+      tabConnection,
+      _streamNotify,
+      _currentInspector,
+      uri,
+    );
   }
 
   /// The root URI at which we're serving.
