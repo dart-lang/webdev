@@ -42,7 +42,6 @@ void main() {
       scripts = await service.getScripts(isolate.id);
       mainScript =
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
-      await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
     });
 
     test('addBreakpoint', () async {
@@ -372,7 +371,6 @@ void main() {
       stream = service.onEvent('Debug');
       mainScript = scripts.scripts
           .firstWhere((script) => script.uri.contains('main.dart'));
-      await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
       var bp = await service.addBreakpoint(isolateId, mainScript.id, 45);
       // Wait for breakpoint to trigger.
       await stream
@@ -439,7 +437,6 @@ void main() {
       stream = service.onEvent('Debug');
       mainScript =
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
-      await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
     });
 
     test('returns null if not paused', () async {
@@ -546,10 +543,8 @@ void main() {
         _isSuccess);
     // Make sure this is the last one - or future tests might hang.
     expect(await service.setExceptionPauseMode(isolateId, 'none'), _isSuccess);
-    expect(
-        service.setExceptionPauseMode(isolateId, 'invalid'),
-        throwsA(isA<RPCError>()
-            .having((e) => e.code, 'invalid params error', equals(-32602))));
+    expect(service.setExceptionPauseMode(isolateId, 'invalid'),
+        throwsA(isA<ArgumentError>()));
   });
 
   test('setFlag', () {
