@@ -25,17 +25,19 @@ class Debugger {
 
   final AssetHandler _assetHandler;
   final StreamNotify _streamNotify;
-  final CurrentInspector _currentInspector;
+  final AppInspectorProvider _appInspectorProvider;
+
+  /// The root URI from which the application is served.
   final String _root;
 
   Debugger._(
     this._assetHandler,
     this._tabConnection,
     this._streamNotify,
-    this._currentInspector,
+    this._appInspectorProvider,
     // TODO(401) - Remove.
     this._root,
-  ) : _breakpoints = _Breakpoints(_currentInspector);
+  ) : _breakpoints = _Breakpoints(_appInspectorProvider);
 
   WipDebugger get _chromeDebugger => _tabConnection.debugger;
 
@@ -64,7 +66,7 @@ class Debugger {
   }
 
   Future<Success> setExceptionPauseMode(String isolateId, String mode) async {
-    if (isolateId != _currentInspector().isolate?.id) {
+    if (isolateId != _appInspectorProvider().isolate?.id) {
       throw ArgumentError.value(
           isolateId, 'isolateId', 'Unrecognized isolate id');
     }
@@ -89,7 +91,7 @@ class Debugger {
   /// a location for which we have source information.
   Future<Success> resume(String isolateId,
       {String step, int frameIndex}) async {
-    if (isolateId != _currentInspector()?.isolate?.id) {
+    if (isolateId != _appInspectorProvider().isolate?.id) {
       throw ArgumentError.value(
           isolateId, 'isolateId', 'Unrecognized isolate id');
     }
@@ -124,7 +126,7 @@ class Debugger {
   ///
   /// Returns null if the debugger is not paused.
   Future<Stack> getStack(String isolateId) async {
-    if (isolateId != _currentInspector()?.isolate?.id) {
+    if (isolateId != _appInspectorProvider().isolate?.id) {
       throw ArgumentError.value(
           isolateId, 'isolateId', 'Unrecognized isolate id');
     }
@@ -135,13 +137,13 @@ class Debugger {
       AssetHandler assetHandler,
       WipConnection tabConnection,
       StreamNotify streamNotify,
-      CurrentInspector currentInspector,
+      AppInspectorProvider appInspectorProvider,
       String root) async {
     var debugger = Debugger._(
       assetHandler,
       tabConnection,
       streamNotify,
-      currentInspector,
+      appInspectorProvider,
       // TODO(401) - Remove.
       root,
     );
@@ -166,7 +168,7 @@ class Debugger {
   /// Note that line and column are Dart source locations and one-based.
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
-    var isolate = _currentInspector().isolate;
+    var isolate = _appInspectorProvider().isolate;
     if (isolateId != isolate.id) {
       throw ArgumentError.value(
           isolateId, 'isolateId', 'Unrecognized isolate id');
@@ -206,7 +208,7 @@ class Debugger {
   /// Remove a Dart breakpoint.
   Future<Success> removeBreakpoint(
       String isolateId, String breakpointId) async {
-    var isolate = _currentInspector().isolate;
+    var isolate = _appInspectorProvider().isolate;
     if (isolateId != isolate.id) {
       throw ArgumentError.value(
           isolateId, 'isolateId', 'Unrecognized isolate id');
@@ -235,7 +237,7 @@ class Debugger {
     // TODO: Reduce duplication with _scriptRefs in mainProxy.
     if (_scriptRefs == null) {
       _scriptRefs = {};
-      var scripts = await _currentInspector()?.scriptRefs(isolateId);
+      var scripts = await _appInspectorProvider().scriptRefs(isolateId);
       for (var script in scripts) {
         _scriptRefs[script.id] = script;
       }
@@ -334,7 +336,7 @@ class Debugger {
       }
     }
     if (bestLocation == null) return null;
-    var script = _currentInspector()
+    var script = _appInspectorProvider()
         ?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
     return Frame()
       ..code = (CodeRef()..kind = CodeKind.kDart)
@@ -346,7 +348,7 @@ class Debugger {
 
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
-    var isolate = _currentInspector()?.isolate;
+    var isolate = _appInspectorProvider().isolate;
     if (isolate == null) return;
     var event = Event()..isolate = toIsolateRef(isolate);
     var params = e.params;
@@ -373,7 +375,7 @@ class Debugger {
 
   /// Handles resume events coming from the Chrome connection.
   Future<void> _resumeHandler(DebuggerResumedEvent e) async {
-    var isolate = _currentInspector()?.isolate;
+    var isolate = _appInspectorProvider().isolate;
     if (isolate == null) return;
     _pausedStack = null;
     _streamNotify(
@@ -389,9 +391,9 @@ class _Breakpoints {
   final Map<String, String> _byJsId = {};
   final Map<String, String> _byDartId = {};
 
-  final CurrentInspector _currentInspector;
+  final AppInspectorProvider _appInspectorProvider;
 
-  _Breakpoints(this._currentInspector);
+  _Breakpoints(this._appInspectorProvider);
 
   /// Record the breakpoint.
   ///
@@ -399,14 +401,14 @@ class _Breakpoints {
   void noteBreakpoint({String js, String dartId, Breakpoint bp}) {
     _byJsId[js] = dartId ?? bp?.id;
     _byDartId[dartId ?? bp?.id] = js;
-    var isolate = _currentInspector()?.isolate;
+    var isolate = _appInspectorProvider().isolate;
     if (bp != null) {
       isolate?.breakpoints?.add(bp);
     }
   }
 
   Breakpoint removeBreakpoint({String js, String dartId, Breakpoint bp}) {
-    var isolate = _currentInspector()?.isolate;
+    var isolate = _appInspectorProvider().isolate;
     _byJsId.remove(js);
     _byDartId.remove(dartId ?? bp?.id);
     Breakpoint dartBp;

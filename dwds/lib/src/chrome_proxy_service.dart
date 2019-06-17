@@ -22,10 +22,10 @@ typedef AssetHandler = Future<String> Function(String);
 /// on that stream.
 typedef StreamNotify = void Function(String streamId, Event event);
 
-/// Returns the [Inspector] for the current tab.
+/// Returns the [AppInspector] for the current tab.
 ///
 /// This may be null during a hot restart or page refresh.
-typedef CurrentInspector = Inspector Function();
+typedef AppInspectorProvider = AppInspector Function();
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
@@ -50,8 +50,9 @@ class ChromeProxyService implements VmServiceInterface {
   /// Provides debugger-related functionality.
   Debugger _debugger;
 
-  Inspector _inspector;
-  Inspector _currentInspector() => _inspector;
+  AppInspector _inspector;
+  AppInspector _appInspectorProvider() =>
+      _inspector ?? (throw StateError('Null AppInspetor.'));
 
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 
@@ -100,7 +101,7 @@ class ChromeProxyService implements VmServiceInterface {
       _assetHandler,
       tabConnection,
       _streamNotify,
-      _currentInspector,
+      _appInspectorProvider,
       uri,
     );
   }
@@ -119,7 +120,7 @@ class ChromeProxyService implements VmServiceInterface {
           'Cannot create multiple isolates for the same app');
     }
 
-    _inspector = await Inspector.initialize(
+    _inspector = await AppInspector.initialize(
       tabConnection,
       _assetHandler,
       _debugger,

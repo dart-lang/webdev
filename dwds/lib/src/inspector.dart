@@ -4,14 +4,18 @@
 
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
 import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
 import 'debugger.dart';
 import 'helpers.dart';
 
-/// An Inspector for a running Dart application contained in the
+/// An inspector for a running Dart application contained in the
 /// [WipConnection].
-class Inspector {
+///
+/// Provides information about currently loaded scripts and objects and support
+/// for eval.
+class AppInspector {
   /// Map of class ID to [Class].
   final _classes = <String, Class>{};
 
@@ -29,11 +33,13 @@ class Inspector {
 
   final WipConnection _tabConnection;
   final AssetHandler _assetHandler;
-  final String _root;
   final Debugger _debugger;
   final Isolate isolate;
 
-  Inspector._(
+  /// The root URI from which the application is served.
+  final String _root;
+
+  AppInspector._(
     this.isolate,
     this._tabConnection,
     this._assetHandler,
@@ -55,7 +61,7 @@ class Inspector {
       ..isolate = toIsolateRef(isolate);
   }
 
-  static Future<Inspector> initialize(
+  static Future<AppInspector> initialize(
     WipConnection tabConnection,
     AssetHandler assetHandler,
     Debugger debugger,
@@ -71,7 +77,7 @@ class Inspector {
       ..libraries = []
       ..extensionRPCs = [];
     var inspector =
-        Inspector._(isolate, tabConnection, assetHandler, debugger, root);
+        AppInspector._(isolate, tabConnection, assetHandler, debugger, root);
     await inspector._initialize();
     return inspector;
   }
@@ -315,10 +321,7 @@ function($argsString) {
     return ScriptList()..scripts = scripts;
   }
 
-  /// Internal method to list all scripts in the isolate.
-  ///
-  /// This is used as the underlying mechanism
-  /// for [getScripts].
+  /// Returns all scripts in the isolate.
   Future<List<ScriptRef>> scriptRefs(String isolateId) async {
     if (isolateId != isolate.id) {
       throw ArgumentError.value(
