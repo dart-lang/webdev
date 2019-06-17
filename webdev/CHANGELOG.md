@@ -1,6 +1,6 @@
 ## 2.2.0-dev
 
-- Added a `slowReload` service extension which performs a full page refresh.
+- Added a `fullReload` service extension which performs a full page refresh.
 
 ## 2.1.0
 

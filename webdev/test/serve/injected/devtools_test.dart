@@ -154,14 +154,11 @@ void main() {
       await fixture.webdev.kill();
     });
 
-    test('can refresh the page via the slowReload service extension', () async {
-      fixture.webdev.stderrStream().listen(print);
-      fixture.webdev.stdoutStream().listen(print);
+    test('can refresh the page via the fullReload service extension', () async {
       var client = await vmServiceConnectUri(debugUri);
       await fixture.changeInput();
 
-      expect(await client.callServiceExtension('slowReload'),
-          const TypeMatcher<Success>());
+      expect(await client.callServiceExtension('fullReload'), isA<Success>());
       await Future.delayed(const Duration(seconds: 2));
 
       var source = await fixture.webdriver.pageSource;
