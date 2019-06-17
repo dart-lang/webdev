@@ -14,6 +14,9 @@ import 'location.dart';
 import 'sources.dart';
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
+///
+/// Values defined in:
+/// https://chromedevtools.github.io/devtools-protocol/tot/Debugger#method-setPauseOnExceptions
 const _pauseModePauseStates = {
   'none': PauseState.none,
   'all': PauseState.all,
@@ -133,7 +136,7 @@ class Debugger {
     return _pausedStack;
   }
 
-  static Future<Debugger> initialize(
+  static Future<Debugger> create(
       AssetHandler assetHandler,
       WipConnection tabConnection,
       StreamNotify streamNotify,

@@ -339,7 +339,7 @@ function($argsString) {
     return scripts;
   }
 
-  /// Returns all library names in the app.
+  /// Returns all libraryRefs in the app.
   ///
   /// Note this can return a cached result.
   Future<List<LibraryRef>> _getLibraryRefs() async {

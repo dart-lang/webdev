@@ -97,7 +97,7 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<Null> _initialize() async {
-    _debugger = await Debugger.initialize(
+    _debugger = await Debugger.create(
       _assetHandler,
       tabConnection,
       _streamNotify,
