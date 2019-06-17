@@ -35,6 +35,7 @@ class AppInspector {
   final AssetHandler _assetHandler;
   final Debugger _debugger;
   final Isolate isolate;
+  final IsolateRef isolateRef;
 
   /// The root URI from which the application is served.
   final String _root;
@@ -45,7 +46,7 @@ class AppInspector {
     this._assetHandler,
     this._debugger,
     this._root,
-  );
+  ) : isolateRef = _toIsolateRef(isolate);
 
   Future<void> _initialize() async {
     isolate.libraries.addAll(await _getLibraryRefs());
@@ -58,8 +59,14 @@ class AppInspector {
 
     isolate.pauseEvent = Event()
       ..kind = EventKind.kResume
-      ..isolate = toIsolateRef(isolate);
+      ..isolate = isolateRef;
   }
+
+  static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef()
+    ..id = isolate.id
+    ..fixedId = isolate.fixedId
+    ..name = isolate.name
+    ..number = isolate.number;
 
   static Future<AppInspector> initialize(
     WipConnection tabConnection,

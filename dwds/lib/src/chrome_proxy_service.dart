@@ -127,7 +127,7 @@ class ChromeProxyService implements VmServiceInterface {
       uri,
     );
 
-    var isolateRef = toIsolateRef(_inspector.isolate);
+    var isolateRef = _inspector.isolateRef;
 
     // Listen for `registerExtension` and `postEvent` calls.
     _setUpChromeConsoleListeners(isolateRef);
@@ -168,7 +168,7 @@ class ChromeProxyService implements VmServiceInterface {
         'Isolate',
         Event()
           ..kind = EventKind.kIsolateExit
-          ..isolate = toIsolateRef(isolate));
+          ..isolate = _inspector.isolateRef);
     _vm.isolates.removeWhere((ref) => ref.id == isolate.id);
     _inspector = null;
     _consoleSubscription.cancel();
@@ -471,7 +471,7 @@ require("dart_sdk").developer.invokeExtension(
         var value = '${item["value"]}\n';
         controller.add(Event()
           ..kind = EventKind.kWriteEvent
-          ..isolate = toIsolateRef(isolate)
+          ..isolate = _inspector.isolateRef
           ..bytes = base64.encode(utf8.encode(value))
           ..timestamp = e.timestamp.toInt());
       });
@@ -482,7 +482,7 @@ require("dart_sdk").developer.invokeExtension(
           if (isolate == null) return;
           controller.add(Event()
             ..kind = EventKind.kWriteEvent
-            ..isolate = toIsolateRef(isolate)
+            ..isolate = _inspector.isolateRef
             ..bytes = base64
                 .encode(utf8.encode(e.exceptionDetails.exception.description)));
         });
