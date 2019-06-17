@@ -153,6 +153,23 @@ void main() {
       await eventsDone;
       await fixture.webdev.kill();
     });
+
+    test('can refresh the page via the slowReload service extension', () async {
+      fixture.webdev.stderrStream().listen(print);
+      fixture.webdev.stdoutStream().listen(print);
+      var client = await vmServiceConnectUri(debugUri);
+      await fixture.changeInput();
+
+      expect(await client.callServiceExtension('slowReload'),
+          const TypeMatcher<Success>());
+      await Future.delayed(const Duration(seconds: 2));
+
+      var source = await fixture.webdriver.pageSource;
+      // Should see only the new text
+      expect(source, isNot(contains('Hello World!')));
+      expect(source, contains('Gary is awesome!'));
+      await fixture.webdev.kill();
+    });
   });
 
   group('Injected client with --auto restart', () {

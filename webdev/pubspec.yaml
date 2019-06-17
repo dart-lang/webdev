@@ -1,5 +1,5 @@
 name: webdev
-version: 2.1.0
+version: 2.2.0-dev
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
 description: >-
@@ -54,5 +54,5 @@ executables:
   webdev:
 
 # dependency_overrides:
-#  dwds:
-#    path: ../dwds
+#   dwds:
+#     path: ../dwds

@@ -1,3 +1,7 @@
+## 2.2.0-dev
+
+- Added a `slowReload` service extension which performs a full page refresh.
+
 ## 2.1.0
 
 - Add an explicit error if there are no directories to serve. Typically this

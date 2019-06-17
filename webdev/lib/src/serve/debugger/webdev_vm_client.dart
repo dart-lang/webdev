@@ -38,6 +38,7 @@ class WebdevVmClient {
             .add(jsonDecode(request) as Map<String, dynamic>));
     var chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
+
     client.registerServiceCallback('hotRestart', (request) async {
       var response = await chromeProxyService.tabConnection.runtime.sendCommand(
           'Runtime.evaluate',
@@ -55,7 +56,16 @@ class WebdevVmClient {
         return {'result': Success().toJson()};
       }
     });
-    await client.registerService('hotRestart', 'WebDev');
+    await client.registerService('hotRestart', 'WebDev slowReload');
+
+    client.registerServiceCallback('slowReload', (request) async {
+      await chromeProxyService.tabConnection.page.enable();
+      // TODO: use built in `page.reload` once it works,
+      // https://github.com/google/webkit_inspection_protocol.dart/issues/44
+      await chromeProxyService.tabConnection.sendCommand('Page.reload');
+      return {'result': Success().toJson()};
+    });
+    await client.registerService('slowReload', 'WebDev');
 
     return WebdevVmClient(client, requestController, responseController);
   }
