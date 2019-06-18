@@ -14,9 +14,6 @@ import 'location.dart';
 
 /// The scripts and sourcemaps for the application, both JS and Dart.
 class Sources {
-  /// Controller for a stream of events when a source map is loaded.
-  final _sourceMapLoadedController = StreamController<String>.broadcast();
-
   /// Map from Dart server path to tokenPosTable as defined in the
   /// Dart VM Service Protocol:
   /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#script
@@ -27,6 +24,12 @@ class Sources {
 
   /// Map from JS scriptId to all corresponding [Location] data.
   final _scriptIdToLocation = <String, Set<Location>>{};
+
+  /// Map from JS source url to corresponding Dart server paths.
+  final _sourceToServerPaths = <String, Set<String>>{};
+
+  /// Map from JS source url to Chrome script ID.
+  final _sourceToScriptId = <String, String>{};
 
   final AssetHandler _assetHandler;
 
@@ -46,9 +49,13 @@ class Sources {
     var script = e.script;
     var sourceMapContents = await _sourceMap(script);
     if (sourceMapContents == null) return;
+    _clearCacheFor(script);
+    _sourceToScriptId[script.url] = script.scriptId;
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = parse(sourceMapContents);
     if (mapping is SingleMapping) {
+      var serverPaths =
+          _sourceToServerPaths.putIfAbsent(script.url, () => Set());
       // Create TokenPos for each entry in the source map.
       for (var lineEntry in mapping.lines) {
         for (var entry in lineEntry.entries) {
@@ -61,6 +68,7 @@ class Sources {
             entry,
             dartUri,
           );
+          serverPaths.add(dartUri.serverPath);
           _sourceToLocation
               .putIfAbsent(dartUri.serverPath, () => Set())
               .add(location);
@@ -68,11 +76,6 @@ class Sources {
               .putIfAbsent(script.scriptId, () => Set())
               .add(location);
         }
-      }
-
-      // Notify which Dart file's source maps have been parsed.
-      for (var serverPath in _sourceToLocation.keys) {
-        _sourceMapLoadedController.add(serverPath);
       }
     }
   }
@@ -106,8 +109,21 @@ class Sources {
     return tokenPosTable;
   }
 
+  void _clearCacheFor(WipScript script) {
+    var serverPaths = _sourceToServerPaths[script.url] ?? {};
+    for (var serverPath in serverPaths) {
+      _sourceToLocation.remove(serverPath);
+      _sourceToTokenPosTable.remove(serverPath);
+    }
+    // This is the previous script ID for the file with the same URL.
+    var scriptId = _sourceToScriptId[script.url];
+    _scriptIdToLocation.remove(scriptId);
+
+    _sourceToServerPaths.remove(script.url);
+    _sourceToScriptId.remove(script.url);
+  }
+
   /// The source map for a DDC-compiled JS [script].
-  // TODO(grouma) - Reuse this logic in `DartUri`.
   Future<String> _sourceMap(WipScript script) {
     var sourceMapUrl = script.sourceMapURL;
     if (sourceMapUrl == null || !sourceMapUrl.endsWith('.ddc.js.map')) {

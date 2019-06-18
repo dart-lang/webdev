@@ -157,7 +157,7 @@ class DevHandler {
             .sendCommand('Target.createTarget', {
           'newWindow': true,
           'url': 'http://${_devTools.hostname}:${_devTools.port}'
-              '/?uri=${appServices.debugService.wsUri}',
+              '/?hide=none&uri=${appServices.debugService.wsUri}',
         });
       } else if (message is ConnectRequest) {
         if (appId != null) {

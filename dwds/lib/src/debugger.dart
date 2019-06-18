@@ -47,9 +47,6 @@ class Debugger {
   /// The scripts and sourcemaps for the application, both JS and Dart.
   Sources sources;
 
-  /// Mapping from Dart script IDs to their ScriptRefs.
-  Map<String, ScriptRef> _scriptRefs;
-
   /// The breakpoints we have set so far, indexable by either
   /// Dart or JS ID.
   _Breakpoints _breakpoints;
@@ -171,13 +168,14 @@ class Debugger {
   /// Note that line and column are Dart source locations and one-based.
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
-    var isolate = _appInspectorProvider().isolate;
+    var inspector = _appInspectorProvider();
+    var isolate = inspector.isolate;
     if (isolateId != isolate.id) {
       throw ArgumentError.value(
           isolateId, 'isolateId', 'Unrecognized isolate id');
     }
 
-    var dartScript = await _scriptWithId(isolateId, scriptId);
+    var dartScript = await inspector.scriptWithId(scriptId);
     // TODO(401): Remove the additional parameter.
     var dartUri =
         DartUri(dartScript.uri, '${Uri.parse(_root).path}/garbage.dart');
@@ -233,19 +231,6 @@ class Debugger {
           ..breakpoint = bp);
     await _removeBreakpoint(jsId);
     return Success();
-  }
-
-  /// Look up the script by id in an isolate.
-  Future<ScriptRef> _scriptWithId(String isolateId, String scriptId) async {
-    // TODO: Reduce duplication with _scriptRefs in mainProxy.
-    if (_scriptRefs == null) {
-      _scriptRefs = {};
-      var scripts = await _appInspectorProvider().scriptRefs(isolateId);
-      for (var script in scripts) {
-        _scriptRefs[script.id] = script;
-      }
-    }
-    return _scriptRefs[scriptId];
   }
 
   /// Call the Chrome protocol setBreakpoint and return the breakpoint ID.
@@ -378,7 +363,9 @@ class Debugger {
 
   /// Handles resume events coming from the Chrome connection.
   Future<void> _resumeHandler(DebuggerResumedEvent e) async {
-    var isolate = _appInspectorProvider().isolate;
+    // We can receive a resume event in the middle of a reload which will
+    // result in a null isolate.
+    var isolate = _appInspectorProvider()?.isolate;
     if (isolate == null) return;
     _pausedStack = null;
     _streamNotify(
