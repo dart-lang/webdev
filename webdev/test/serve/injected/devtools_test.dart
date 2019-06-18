@@ -153,6 +153,20 @@ void main() {
       await eventsDone;
       await fixture.webdev.kill();
     });
+
+    test('can refresh the page via the fullReload service extension', () async {
+      var client = await vmServiceConnectUri(debugUri);
+      await fixture.changeInput();
+
+      expect(await client.callServiceExtension('fullReload'), isA<Success>());
+      await Future.delayed(const Duration(seconds: 2));
+
+      var source = await fixture.webdriver.pageSource;
+      // Should see only the new text
+      expect(source, isNot(contains('Hello World!')));
+      expect(source, contains('Gary is awesome!'));
+      await fixture.webdev.kill();
+    });
   });
 
   group('Injected client with --auto restart', () {
