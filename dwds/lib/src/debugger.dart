@@ -47,9 +47,6 @@ class Debugger extends Domain {
   /// The scripts and sourcemaps for the application, both JS and Dart.
   Sources sources;
 
-  /// Mapping from Dart script IDs to their ScriptRefs.
-  Map<String, ScriptRef> _scriptRefs;
-
   /// The breakpoints we have set so far, indexable by either
   /// Dart or JS ID.
   _Breakpoints _breakpoints;
@@ -163,7 +160,7 @@ class Debugger extends Domain {
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
     var isolate = checkIsolate(isolateId);
-    var dartScript = await _scriptWithId(isolateId, scriptId);
+    var dartScript = await inspector.scriptWithId(scriptId);
     // TODO(401): Remove the additional parameter.
     var dartUri =
         DartUri(dartScript.uri, '${Uri.parse(_root).path}/garbage.dart');
@@ -215,19 +212,6 @@ class Debugger extends Domain {
           ..breakpoint = bp);
     await _removeBreakpoint(jsId);
     return Success();
-  }
-
-  /// Look up the script by id in an isolate.
-  Future<ScriptRef> _scriptWithId(String isolateId, String scriptId) async {
-    // TODO: Reduce duplication with _scriptRefs in mainProxy.
-    if (_scriptRefs == null) {
-      _scriptRefs = {};
-      var scripts = await inspector.scriptRefs(isolateId);
-      for (var script in scripts) {
-        _scriptRefs[script.id] = script;
-      }
-    }
-    return _scriptRefs[scriptId];
   }
 
   /// Call the Chrome protocol setBreakpoint and return the breakpoint ID.
@@ -360,6 +344,8 @@ class Debugger extends Domain {
 
   /// Handles resume events coming from the Chrome connection.
   Future<void> _resumeHandler(DebuggerResumedEvent e) async {
+    // We can receive a resume event in the middle of a reload which will
+    // result in a null isolate.
     var isolate = inspector.isolate;
     if (isolate == null) return;
     _pausedStack = null;
@@ -372,13 +358,11 @@ class Debugger extends Domain {
 }
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
-class _Breakpoints {
+class _Breakpoints extends Domain {
   final Map<String, String> _byJsId = {};
   final Map<String, String> _byDartId = {};
 
-  final AppInspectorProvider _appInspectorProvider;
-
-  _Breakpoints(this._appInspectorProvider);
+  _Breakpoints(AppInspectorProvider provider) : super(provider);
 
   /// Record the breakpoint.
   ///
@@ -386,14 +370,14 @@ class _Breakpoints {
   void noteBreakpoint({String js, String dartId, Breakpoint bp}) {
     _byJsId[js] = dartId ?? bp?.id;
     _byDartId[dartId ?? bp?.id] = js;
-    var isolate = _appInspectorProvider().isolate;
+    var isolate = inspector.isolate;
     if (bp != null) {
       isolate?.breakpoints?.add(bp);
     }
   }
 
   Breakpoint removeBreakpoint({String js, String dartId, Breakpoint bp}) {
-    var isolate = _appInspectorProvider().isolate;
+    var isolate = inspector.isolate;
     _byJsId.remove(js);
     _byDartId.remove(dartId ?? bp?.id);
     Breakpoint dartBp;
