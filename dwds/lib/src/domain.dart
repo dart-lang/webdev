@@ -18,11 +18,11 @@ abstract class Domain {
 
   AppInspector get inspector => _appInspectorProvider();
 
-  /// Validate that isolateId matches the current isolate we're
-  /// connected to and return that isolate.
+  /// Validate that isolateId matches the current isolate we're connected to and
+  /// return that isolate.
   ///
-  /// This is useful to call at the beginning of API methods that
-  /// are passed an isolate id.
+  /// This is useful to call at the beginning of API methods that are passed an
+  /// isolate id.
   Isolate checkIsolate(String isolateId) {
     if (isolateId != inspector.isolate?.id) {
       throw ArgumentError.value(
