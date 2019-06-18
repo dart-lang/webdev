@@ -58,7 +58,7 @@ class WebdevVmClient {
     });
     await client.registerService('hotRestart', 'WebDev fullReload');
 
-    client.registerServiceCallback('fullReload', (request) async {
+    client.registerServiceCallback('fullReload', (_) async {
       await chromeProxyService.tabConnection.page.enable();
       // TODO: use built in `page.reload` once it works,
       // https://github.com/google/webkit_inspection_protocol.dart/issues/44
@@ -66,6 +66,14 @@ class WebdevVmClient {
       return {'result': Success().toJson()};
     });
     await client.registerService('fullReload', 'WebDev');
+
+    client.registerServiceCallback('ext.webdev.screenshot', (_) async {
+      await chromeProxyService.tabConnection.page.enable();
+      var response = await chromeProxyService.tabConnection.page
+          .sendCommand('Page.captureScreenshot');
+      return {'result': response.result};
+    });
+    await client.registerService('ext.webdev.screenshot', 'WebDev');
 
     return WebdevVmClient(client, requestController, responseController);
   }
