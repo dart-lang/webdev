@@ -7,8 +7,8 @@ import 'package:vm_service_lib/vm_service_lib.dart';
 
 import 'inspector.dart';
 
-/// A common superclass to allow implementations of different parts of the protocol
-/// to get access to the inspector and utility functions.
+/// A common superclass to allow implementations of different parts of the
+/// protocol to get access to the inspector and utility functions.
 ///
 /// Subclasses should call the super constructor with the AppInspectorProvider.
 abstract class Domain {
