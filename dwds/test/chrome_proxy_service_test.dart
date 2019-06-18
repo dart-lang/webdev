@@ -38,7 +38,7 @@ void main() {
 
     setUp(() async {
       vm = await service.getVM();
-      isolate = await service.getIsolate(vm.isolates.first.id) as Isolate;
+      isolate = await service.getIsolate(vm.isolates.first.id);
       scripts = await service.getScripts(isolate.id);
       mainScript =
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
@@ -159,7 +159,7 @@ void main() {
     Isolate isolate;
     setUpAll(() async {
       var vm = await service.getVM();
-      isolate = await service.getIsolate(vm.isolates.first.id) as Isolate;
+      isolate = await service.getIsolate(vm.isolates.first.id);
     });
 
     group('top level methods', () {
@@ -269,7 +269,7 @@ void main() {
       var vm = await service.getVM();
       var result = await service.getIsolate(vm.isolates.first.id);
       expect(result, const TypeMatcher<Isolate>());
-      var isolate = result as Isolate;
+      var isolate = result;
       expect(isolate.name, contains(context.appUrl));
       // TODO: library names change with kernel dart-lang/sdk#36736
       expect(isolate.rootLib.uri, endsWith('main.dart'));
@@ -296,7 +296,7 @@ void main() {
     Library rootLibrary;
     setUpAll(() async {
       var vm = await service.getVM();
-      isolate = await service.getIsolate(vm.isolates.first.id) as Isolate;
+      isolate = await service.getIsolate(vm.isolates.first.id);
       rootLibrary =
           await service.getObject(isolate.id, isolate.rootLib.id) as Library;
     });
@@ -518,6 +518,8 @@ void main() {
   });
 
   test('pause / resume', () async {
+    await service.streamListen('Debug');
+    var stream = service.onEvent('Debug');
     var vm = await service.getVM();
     var isolateId = vm.isolates.first.id;
     var pauseCompleter = Completer();
@@ -529,8 +531,15 @@ void main() {
       resumeCompleter.complete();
     });
     expect(await service.pause(isolateId), const TypeMatcher<Success>());
+    await stream
+        .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
+    expect((await service.getIsolate(isolateId)).pauseEvent.kind,
+        EventKind.kPauseInterrupted);
     await pauseCompleter.future;
     expect(await service.resume(isolateId), const TypeMatcher<Success>());
+    await stream.firstWhere((event) => event.kind == EventKind.kResume);
+    expect((await service.getIsolate(isolateId)).pauseEvent.kind,
+        EventKind.kResume);
     await resumeCompleter.future;
     await pauseSub.cancel();
     await resumeSub.cancel();
