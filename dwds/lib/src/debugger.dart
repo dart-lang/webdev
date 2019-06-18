@@ -47,9 +47,6 @@ class Debugger {
   /// The scripts and sourcemaps for the application, both JS and Dart.
   Sources sources;
 
-  /// Mapping from Dart script IDs to their ScriptRefs.
-  Map<String, ScriptRef> _scriptRefs;
-
   /// The breakpoints we have set so far, indexable by either
   /// Dart or JS ID.
   _Breakpoints _breakpoints;
@@ -370,6 +367,8 @@ class Debugger {
 
   /// Handles resume events coming from the Chrome connection.
   Future<void> _resumeHandler(DebuggerResumedEvent e) async {
+    // We can receive a resume event in the middle of a reload which will
+    // result in a null isolate.
     var isolate = _appInspectorProvider()?.isolate;
     if (isolate == null) return;
     _pausedStack = null;

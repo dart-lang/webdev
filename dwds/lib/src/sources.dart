@@ -54,6 +54,8 @@ class Sources {
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = parse(sourceMapContents);
     if (mapping is SingleMapping) {
+      var serverPaths =
+          _sourceToServerPaths.putIfAbsent(script.url, () => Set());
       // Create TokenPos for each entry in the source map.
       for (var lineEntry in mapping.lines) {
         for (var entry in lineEntry.entries) {
@@ -66,9 +68,7 @@ class Sources {
             entry,
             dartUri,
           );
-          _sourceToServerPaths
-              .putIfAbsent(script.url, () => Set())
-              .add(dartUri.serverPath);
+          serverPaths.add(dartUri.serverPath);
           _sourceToLocation
               .putIfAbsent(dartUri.serverPath, () => Set())
               .add(location);
