@@ -20,11 +20,17 @@ import './src/chrome_proxy_service.dart';
 import './src/helpers.dart';
 
 void Function(WebSocketChannel, String) _createNewConnectionHandler(
-    ChromeProxyService chromeProxyService,
-    ServiceExtensionRegistry serviceExtensionRegistry) {
+  ChromeProxyService chromeProxyService,
+  ServiceExtensionRegistry serviceExtensionRegistry, {
+  void Function(Map<String, dynamic>) onRequest,
+  void Function(Map<String, dynamic>) onResponse,
+}) {
   return (webSocket, protocol) {
     var responseController = StreamController<Map<String, Object>>();
-    webSocket.sink.addStream(responseController.stream.map(jsonEncode));
+    webSocket.sink.addStream(responseController.stream.map((response) {
+      if (onResponse != null) onResponse(response);
+      return jsonEncode(response);
+    }));
     var inputStream = webSocket.stream.map((value) {
       if (value is List<int>) {
         value = utf8.decode(value as List<int>);
@@ -33,7 +39,9 @@ void Function(WebSocketChannel, String) _createNewConnectionHandler(
             'Got value with unexpected type ${value.runtimeType} from web '
             'socket, expected a List<int> or String.');
       }
-      return jsonDecode(value as String) as Map<String, Object>;
+      var request = jsonDecode(value as String) as Map<String, Object>;
+      if (onRequest != null) onRequest(request);
+      return request;
     });
 
     VmServerConnection(inputStream, responseController.sink,
@@ -64,16 +72,20 @@ class DebugService {
   /// [appInstanceId] is a unique String embedded in the instance of the
   /// application available through `window.$dartAppInstanceId`.
   static Future<DebugService> start(
-      String hostname,
-      ChromeConnection chromeConnection,
-      Future<String> Function(String) assetHandler,
-      String appInstanceId) async {
+    String hostname,
+    ChromeConnection chromeConnection,
+    Future<String> Function(String) assetHandler,
+    String appInstanceId, {
+    void Function(Map<String, dynamic>) onRequest,
+    void Function(Map<String, dynamic>) onResponse,
+  }) async {
     var chromeProxyService = await ChromeProxyService.create(
         chromeConnection, assetHandler, appInstanceId);
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     var authToken = _makeAuthToken();
     var innerHandler = webSocketHandler(_createNewConnectionHandler(
-        chromeProxyService, serviceExtensionRegistry));
+        chromeProxyService, serviceExtensionRegistry,
+        onRequest: onRequest, onResponse: onResponse));
     var handler = (shelf.Request request) {
       if (request.url.pathSegments.first != authToken) {
         return shelf.Response.forbidden('Incorrect auth token');

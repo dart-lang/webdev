@@ -38,11 +38,12 @@ class DevHandler {
   final _connectedApps = StreamController<DevConnection>.broadcast();
   final _servicesByAppId = <String, Future<AppDebugServices>>{};
   final Stream<BuildResult> buildResults;
+  final bool _verbose;
 
   Stream<DevConnection> get connectedApps => _connectedApps.stream;
 
-  DevHandler(
-      this.buildResults, this._devTools, this._assetHandler, this._hostname) {
+  DevHandler(this.buildResults, this._devTools, this._assetHandler,
+      this._hostname, this._verbose) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
   }
@@ -78,6 +79,13 @@ class DevHandler {
       chromeConnection,
       _assetHandler.getRelativeAsset,
       appInstanceId,
+      onResponse: _verbose
+          ? (response) {
+              if (response['error'] == null) return;
+              logWriter(Level.WARNING,
+                  'VmService proxy responded with an error:\n$response');
+            }
+          : null,
     );
   }
 
