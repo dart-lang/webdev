@@ -9,7 +9,7 @@ import 'inspector.dart';
 
 /// A common superclass to allow implementations of different parts of the protocol
 /// to get access to the inspector and utility functions.
-/// 
+///
 /// Subclasses should call the super constructor with the AppInspectorProvider.
 abstract class Domain {
   AppInspectorProvider _appInspectorProvider;
@@ -20,7 +20,7 @@ abstract class Domain {
 
   /// Validate that isolateId matches the current isolate we're
   /// connected to and return that isolate.
-  /// 
+  ///
   /// This is useful to call at the beginning of API methods that
   /// are passed an isolate id.
   Isolate checkIsolate(String isolateId) {
