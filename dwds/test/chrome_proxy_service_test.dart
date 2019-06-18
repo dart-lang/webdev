@@ -75,6 +75,21 @@ void main() {
       await service.removeBreakpoint(isolate.id, bp.id);
       expect(isolate.breakpoints, isEmpty);
     });
+
+    test('can add and remove after a refresh', () async {
+      var stream = service.onEvent('Isolate');
+      await context.webDriver.refresh();
+      // Wait for the refresh to propagate through.
+      await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
+      var refreshedScriptList = await service.getScripts(isolate.id);
+      var refreshedMain = refreshedScriptList.scripts
+          .lastWhere((each) => each.uri.contains('main.dart'));
+      var bp = await service.addBreakpoint(isolate.id, refreshedMain.id, 21);
+      expect(isolate.breakpoints, [bp]);
+      expect(bp.id, '3');
+      await service.removeBreakpoint(isolate.id, bp.id);
+      expect(isolate.breakpoints, isEmpty);
+    });
   });
 
   group('callServiceExtension', () {
