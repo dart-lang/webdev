@@ -51,8 +51,7 @@ class ChromeProxyService implements VmServiceInterface {
   Debugger _debugger;
 
   AppInspector _inspector;
-  AppInspector _appInspectorProvider() =>
-      _inspector ?? (throw StateError('Null AppInspetor.'));
+  AppInspector _appInspectorProvider() => _inspector;
 
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 

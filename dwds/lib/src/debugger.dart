@@ -236,17 +236,9 @@ class Debugger {
   }
 
   /// Look up the script by id in an isolate.
-  Future<ScriptRef> _scriptWithId(String isolateId, String scriptId) async {
-    // TODO: Reduce duplication with _scriptRefs in mainProxy.
-    if (_scriptRefs == null) {
-      _scriptRefs = {};
-      var scripts = await _appInspectorProvider().scriptRefs(isolateId);
-      for (var script in scripts) {
-        _scriptRefs[script.id] = script;
-      }
-    }
-    return _scriptRefs[scriptId];
-  }
+  Future<ScriptRef> _scriptWithId(String isolateId, String scriptId) async =>
+      (await _appInspectorProvider().scriptRefs(isolateId))
+          .firstWhere((ref) => ref.id == scriptId);
 
   /// Call the Chrome protocol setBreakpoint and return the breakpoint ID.
   Future<String> _setBreakpoint(Location location) async {
@@ -378,7 +370,7 @@ class Debugger {
 
   /// Handles resume events coming from the Chrome connection.
   Future<void> _resumeHandler(DebuggerResumedEvent e) async {
-    var isolate = _appInspectorProvider().isolate;
+    var isolate = _appInspectorProvider()?.isolate;
     if (isolate == null) return;
     _pausedStack = null;
     _streamNotify(
