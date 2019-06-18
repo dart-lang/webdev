@@ -77,6 +77,7 @@ class WebDevServer {
       devTools,
       assetHandler,
       options.configuration.hostname,
+      options.configuration.verbose,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 

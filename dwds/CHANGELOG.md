@@ -1,6 +1,7 @@
 ## 0.3.3
 
 - Add support for `getScript` for paused isolates.
+- Add support for `onRequest` and `onResponse` listeners for the vm service.
 
 ## 0.3.2
 

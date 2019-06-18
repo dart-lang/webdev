@@ -42,7 +42,6 @@ void main() {
       scripts = await service.getScripts(isolate.id);
       mainScript =
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
-      await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
     });
 
     test('addBreakpoint', () async {
@@ -73,6 +72,21 @@ void main() {
     test('add and remove breakpoint', () async {
       var bp = await service.addBreakpoint(isolate.id, mainScript.id, 19);
       expect(isolate.breakpoints, [bp]);
+      await service.removeBreakpoint(isolate.id, bp.id);
+      expect(isolate.breakpoints, isEmpty);
+    });
+
+    test('can add and remove after a refresh', () async {
+      var stream = service.onEvent('Isolate');
+      await context.webDriver.refresh();
+      // Wait for the refresh to propagate through.
+      await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
+      var refreshedScriptList = await service.getScripts(isolate.id);
+      var refreshedMain = refreshedScriptList.scripts
+          .lastWhere((each) => each.uri.contains('main.dart'));
+      var bp = await service.addBreakpoint(isolate.id, refreshedMain.id, 21);
+      expect(isolate.breakpoints, [bp]);
+      expect(bp.id, '3');
       await service.removeBreakpoint(isolate.id, bp.id);
       expect(isolate.breakpoints, isEmpty);
     });
@@ -372,7 +386,6 @@ void main() {
       stream = service.onEvent('Debug');
       mainScript = scripts.scripts
           .firstWhere((script) => script.uri.contains('main.dart'));
-      await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
       var bp = await service.addBreakpoint(isolateId, mainScript.id, 45);
       // Wait for breakpoint to trigger.
       await stream
@@ -439,7 +452,6 @@ void main() {
       stream = service.onEvent('Debug');
       mainScript =
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
-      await service.debugger.sources.waitForSourceMap('hello_world/main.dart');
     });
 
     test('returns null if not paused', () async {
@@ -546,10 +558,8 @@ void main() {
         _isSuccess);
     // Make sure this is the last one - or future tests might hang.
     expect(await service.setExceptionPauseMode(isolateId, 'none'), _isSuccess);
-    expect(
-        service.setExceptionPauseMode(isolateId, 'invalid'),
-        throwsA(isA<RPCError>()
-            .having((e) => e.code, 'invalid params error', equals(-32602))));
+    expect(service.setExceptionPauseMode(isolateId, 'invalid'),
+        throwsA(isA<ArgumentError>()));
   });
 
   test('setFlag', () {

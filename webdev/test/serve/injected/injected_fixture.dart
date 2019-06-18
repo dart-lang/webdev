@@ -19,11 +19,12 @@ class InjectedFixture {
   final File _entryFile;
   final String _entryContents;
   final String _exampleDirectory;
+  final bool _headless;
   WebDriver webdriver;
   TestProcess webdev;
 
-  InjectedFixture._(
-      this._entryFile, this._entryContents, this._exampleDirectory);
+  InjectedFixture._(this._entryFile, this._entryContents,
+      this._exampleDirectory, this._headless);
 
   Future<void> buildAndLoad(List<String> arg) async {
     var success = false;
@@ -34,7 +35,10 @@ class InjectedFixture {
         var capabilities = Capabilities.chrome
           ..addAll({
             Capabilities.chromeOptions: {
-              'args': ['remote-debugging-port=$debugPort', '--headless']
+              'args': [
+                'remote-debugging-port=$debugPort',
+                if (_headless) '--headless',
+              ]
             }
           });
         webdriver = await createDriver(
@@ -93,7 +97,8 @@ class InjectedFixture {
     webdev = null;
   }
 
-  static Future<InjectedFixture> create() async {
+  static Future<InjectedFixture> create({bool headless}) async {
+    headless ??= true;
     var exampleDirectory =
         p.absolute(p.join(p.current, 'test', 'serve', 'injected', 'fixtures'));
     var entryFile = File(p.absolute(p.join(p.current, 'test', 'serve',
@@ -109,6 +114,7 @@ class InjectedFixture {
     await d.file('.packages', isNotEmpty).validate(exampleDirectory);
     await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
 
-    return InjectedFixture._(entryFile, entryContents, exampleDirectory);
+    return InjectedFixture._(
+        entryFile, entryContents, exampleDirectory, headless);
   }
 }

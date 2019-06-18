@@ -14,14 +14,6 @@ import 'location.dart';
 
 /// The scripts and sourcemaps for the application, both JS and Dart.
 class Sources {
-  final ChromeProxyService _mainProxy;
-
-  /// Controller for a stream of events when a source map is loaded.
-  final _sourceMapLoadedController = StreamController<String>.broadcast();
-
-  /// Stream of events that a source map has been loaded.
-  Stream<String> get _sourceMapLoaded => _sourceMapLoadedController.stream;
-
   /// Map from Dart server path to tokenPosTable as defined in the
   /// Dart VM Service Protocol:
   /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#script
@@ -33,7 +25,15 @@ class Sources {
   /// Map from JS scriptId to all corresponding [Location] data.
   final _scriptIdToLocation = <String, Set<Location>>{};
 
-  Sources(this._mainProxy);
+  /// Map from JS source url to corresponding Dart server paths.
+  final _sourceToServerPaths = <String, Set<String>>{};
+
+  /// Map from JS source url to Chrome script ID.
+  final _sourceToScriptId = <String, String>{};
+
+  final AssetHandler _assetHandler;
+
+  Sources(this._assetHandler);
 
   /// Returns all [Location] data for a provided Dart source.
   Set<Location> locationsForDart(String serverPath) =>
@@ -49,9 +49,13 @@ class Sources {
     var script = e.script;
     var sourceMapContents = await _sourceMap(script);
     if (sourceMapContents == null) return;
+    _clearCacheFor(script);
+    _sourceToScriptId[script.url] = script.scriptId;
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = parse(sourceMapContents);
     if (mapping is SingleMapping) {
+      var serverPaths =
+          _sourceToServerPaths.putIfAbsent(script.url, () => Set());
       // Create TokenPos for each entry in the source map.
       for (var lineEntry in mapping.lines) {
         for (var entry in lineEntry.entries) {
@@ -64,6 +68,7 @@ class Sources {
             entry,
             dartUri,
           );
+          serverPaths.add(dartUri.serverPath);
           _sourceToLocation
               .putIfAbsent(dartUri.serverPath, () => Set())
               .add(location);
@@ -71,11 +76,6 @@ class Sources {
               .putIfAbsent(script.scriptId, () => Set())
               .add(location);
         }
-      }
-
-      // Notify which Dart file's source maps have been parsed.
-      for (var serverPath in _sourceToLocation.keys) {
-        _sourceMapLoadedController.add(serverPath);
       }
     }
   }
@@ -109,15 +109,21 @@ class Sources {
     return tokenPosTable;
   }
 
-  /// Waits until the source map for the Dart server path has been loaded.
-  // TODO(grouma) - This is only used in a test context. Can we use an
-  // alternative signal and remove this method?
-  Future<void> waitForSourceMap(String serverPath) async =>
-      _sourceToLocation[serverPath] ??
-      _sourceMapLoaded.firstWhere((loadedUri) => serverPath == loadedUri);
+  void _clearCacheFor(WipScript script) {
+    var serverPaths = _sourceToServerPaths[script.url] ?? {};
+    for (var serverPath in serverPaths) {
+      _sourceToLocation.remove(serverPath);
+      _sourceToTokenPosTable.remove(serverPath);
+    }
+    // This is the previous script ID for the file with the same URL.
+    var scriptId = _sourceToScriptId[script.url];
+    _scriptIdToLocation.remove(scriptId);
+
+    _sourceToServerPaths.remove(script.url);
+    _sourceToScriptId.remove(script.url);
+  }
 
   /// The source map for a DDC-compiled JS [script].
-  // TODO(grouma) - Reuse this logic in `DartUri`.
   Future<String> _sourceMap(WipScript script) {
     var sourceMapUrl = script.sourceMapURL;
     if (sourceMapUrl == null || !sourceMapUrl.endsWith('.ddc.js.map')) {
@@ -125,6 +131,6 @@ class Sources {
     }
     var scriptPath = DartUri(script.url).serverPath;
     var sourcemapPath = p.join(p.dirname(scriptPath), sourceMapUrl);
-    return _mainProxy.assetHandler(sourcemapPath);
+    return _assetHandler(sourcemapPath);
   }
 }
