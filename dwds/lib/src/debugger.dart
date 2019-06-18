@@ -10,7 +10,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
 import 'domain.dart';
-import 'helpers.dart';
 import 'location.dart';
 import 'sources.dart';
 
