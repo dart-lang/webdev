@@ -9,7 +9,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
-import 'helpers.dart';
+import 'domain.dart';
 import 'location.dart';
 import 'sources.dart';
 
@@ -23,12 +23,11 @@ const _pauseModePauseStates = {
   'unhandled': PauseState.uncaught,
 };
 
-class Debugger {
+class Debugger extends Domain {
   WipConnection _tabConnection;
 
   final AssetHandler _assetHandler;
   final StreamNotify _streamNotify;
-  final AppInspectorProvider _appInspectorProvider;
 
   /// The root URI from which the application is served.
   final String _root;
@@ -37,10 +36,11 @@ class Debugger {
     this._assetHandler,
     this._tabConnection,
     this._streamNotify,
-    this._appInspectorProvider,
+    AppInspectorProvider provider,
     // TODO(401) - Remove.
     this._root,
-  ) : _breakpoints = _Breakpoints(_appInspectorProvider);
+  )   : _breakpoints = _Breakpoints(provider),
+        super(provider);
 
   WipDebugger get _chromeDebugger => _tabConnection.debugger;
 
@@ -66,10 +66,7 @@ class Debugger {
   }
 
   Future<Success> setExceptionPauseMode(String isolateId, String mode) async {
-    if (isolateId != _appInspectorProvider().isolate?.id) {
-      throw ArgumentError.value(
-          isolateId, 'isolateId', 'Unrecognized isolate id');
-    }
+    checkIsolate(isolateId);
     var pauseState = _pauseModePauseStates[mode.toLowerCase()] ??
         (throw ArgumentError.value('mode', 'Unsupported mode `$mode`'));
     await _chromeDebugger.setPauseOnExceptions(pauseState);
@@ -91,10 +88,7 @@ class Debugger {
   /// a location for which we have source information.
   Future<Success> resume(String isolateId,
       {String step, int frameIndex}) async {
-    if (isolateId != _appInspectorProvider().isolate?.id) {
-      throw ArgumentError.value(
-          isolateId, 'isolateId', 'Unrecognized isolate id');
-    }
+    checkIsolate(isolateId);
     if (frameIndex != null) {
       throw ArgumentError('FrameIndex is currently unsupported.');
     }
@@ -126,10 +120,7 @@ class Debugger {
   ///
   /// Returns null if the debugger is not paused.
   Future<Stack> getStack(String isolateId) async {
-    if (isolateId != _appInspectorProvider().isolate?.id) {
-      throw ArgumentError.value(
-          isolateId, 'isolateId', 'Unrecognized isolate id');
-    }
+    checkIsolate(isolateId);
     return _pausedStack;
   }
 
@@ -168,13 +159,7 @@ class Debugger {
   /// Note that line and column are Dart source locations and one-based.
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
-    var inspector = _appInspectorProvider();
-    var isolate = inspector.isolate;
-    if (isolateId != isolate.id) {
-      throw ArgumentError.value(
-          isolateId, 'isolateId', 'Unrecognized isolate id');
-    }
-
+    var isolate = checkIsolate(isolateId);
     var dartScript = await inspector.scriptWithId(scriptId);
     // TODO(401): Remove the additional parameter.
     var dartUri =
@@ -201,7 +186,7 @@ class Debugger {
         'Debug',
         Event()
           ..kind = EventKind.kBreakpointAdded
-          ..isolate = toIsolateRef(isolate)
+          ..isolate = inspector.isolateRef
           ..breakpoint = breakpoint);
     return breakpoint;
   }
@@ -209,11 +194,7 @@ class Debugger {
   /// Remove a Dart breakpoint.
   Future<Success> removeBreakpoint(
       String isolateId, String breakpointId) async {
-    var isolate = _appInspectorProvider().isolate;
-    if (isolateId != isolate.id) {
-      throw ArgumentError.value(
-          isolateId, 'isolateId', 'Unrecognized isolate id');
-    }
+    checkIsolate(isolateId);
     if (breakpointId == null) {
       throw ArgumentError.notNull('breakpointId');
     }
@@ -227,7 +208,7 @@ class Debugger {
         'Debug',
         Event()
           ..kind = EventKind.kBreakpointRemoved
-          ..isolate = toIsolateRef(isolate)
+          ..isolate = inspector.isolateRef
           ..breakpoint = bp);
     await _removeBreakpoint(jsId);
     return Success();
@@ -324,8 +305,8 @@ class Debugger {
       }
     }
     if (bestLocation == null) return null;
-    var script = _appInspectorProvider()
-        ?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
+    var script =
+        inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
     return Frame()
       ..code = (CodeRef()..kind = CodeKind.kDart)
       ..location = (SourceLocation()
@@ -336,9 +317,9 @@ class Debugger {
 
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
-    var isolate = _appInspectorProvider().isolate;
+    var isolate = inspector.isolate;
     if (isolate == null) return;
-    var event = Event()..isolate = toIsolateRef(isolate);
+    var event = Event()..isolate = inspector.isolateRef;
     var params = e.params;
     var breakpoints = params['hitBreakpoints'] as List;
     if (breakpoints.isNotEmpty) {
@@ -365,25 +346,23 @@ class Debugger {
   Future<void> _resumeHandler(DebuggerResumedEvent e) async {
     // We can receive a resume event in the middle of a reload which will
     // result in a null isolate.
-    var isolate = _appInspectorProvider()?.isolate;
+    var isolate = inspector.isolate;
     if (isolate == null) return;
     _pausedStack = null;
     _streamNotify(
         'Debug',
         Event()
           ..kind = EventKind.kResume
-          ..isolate = toIsolateRef(isolate));
+          ..isolate = inspector.isolateRef);
   }
 }
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
-class _Breakpoints {
+class _Breakpoints extends Domain {
   final Map<String, String> _byJsId = {};
   final Map<String, String> _byDartId = {};
 
-  final AppInspectorProvider _appInspectorProvider;
-
-  _Breakpoints(this._appInspectorProvider);
+  _Breakpoints(AppInspectorProvider provider) : super(provider);
 
   /// Record the breakpoint.
   ///
@@ -391,14 +370,14 @@ class _Breakpoints {
   void noteBreakpoint({String js, String dartId, Breakpoint bp}) {
     _byJsId[js] = dartId ?? bp?.id;
     _byDartId[dartId ?? bp?.id] = js;
-    var isolate = _appInspectorProvider().isolate;
+    var isolate = inspector.isolate;
     if (bp != null) {
       isolate?.breakpoints?.add(bp);
     }
   }
 
   Breakpoint removeBreakpoint({String js, String dartId, Breakpoint bp}) {
-    var isolate = _appInspectorProvider().isolate;
+    var isolate = inspector.isolate;
     _byJsId.remove(js);
     _byDartId.remove(dartId ?? bp?.id);
     Breakpoint dartBp;
