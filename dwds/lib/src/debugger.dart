@@ -168,13 +168,14 @@ class Debugger {
   /// Note that line and column are Dart source locations and one-based.
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
-    var isolate = _appInspectorProvider().isolate;
+    var inspector = _appInspectorProvider();
+    var isolate = inspector.isolate;
     if (isolateId != isolate.id) {
       throw ArgumentError.value(
           isolateId, 'isolateId', 'Unrecognized isolate id');
     }
 
-    var dartScript = await _scriptWithId(isolateId, scriptId);
+    var dartScript = await inspector.scriptWithId(scriptId);
     // TODO(401): Remove the additional parameter.
     var dartUri =
         DartUri(dartScript.uri, '${Uri.parse(_root).path}/garbage.dart');
@@ -231,11 +232,6 @@ class Debugger {
     await _removeBreakpoint(jsId);
     return Success();
   }
-
-  /// Look up the script by id in an isolate.
-  Future<ScriptRef> _scriptWithId(String isolateId, String scriptId) async =>
-      (await _appInspectorProvider().scriptRefs(isolateId))
-          .firstWhere((ref) => ref.id == scriptId);
 
   /// Call the Chrome protocol setBreakpoint and return the breakpoint ID.
   Future<String> _setBreakpoint(Location location) async {

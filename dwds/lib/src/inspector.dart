@@ -339,6 +339,10 @@ function($argsString) {
     return scripts;
   }
 
+  /// Look up the script by id in an isolate.
+  Future<ScriptRef> scriptWithId(String scriptId) async =>
+      (await scriptRefs(isolate.id)).firstWhere((ref) => ref.id == scriptId);
+
   /// Returns all libraryRefs in the app.
   ///
   /// Note this can return a cached result.

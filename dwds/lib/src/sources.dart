@@ -115,6 +115,7 @@ class Sources {
       _sourceToLocation.remove(serverPath);
       _sourceToTokenPosTable.remove(serverPath);
     }
+    // This is the previous script ID for the file with the same URL.
     var scriptId = _sourceToScriptId[script.url];
     _scriptIdToLocation.remove(scriptId);
 
