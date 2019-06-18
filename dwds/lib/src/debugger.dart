@@ -358,6 +358,7 @@ class Debugger {
       ..frames = frames
       ..messages = [];
     if (frames.isNotEmpty) event.topFrame = frames.first;
+    isolate.pauseEvent = event;
     _streamNotify('Debug', event);
   }
 
@@ -368,11 +369,11 @@ class Debugger {
     var isolate = _appInspectorProvider()?.isolate;
     if (isolate == null) return;
     _pausedStack = null;
-    _streamNotify(
-        'Debug',
-        Event()
-          ..kind = EventKind.kResume
-          ..isolate = toIsolateRef(isolate));
+    var event = Event()
+      ..kind = EventKind.kResume
+      ..isolate = toIsolateRef(isolate);
+    isolate.pauseEvent = event;
+    _streamNotify('Debug', event);
   }
 }
 
