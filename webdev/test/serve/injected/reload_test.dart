@@ -6,6 +6,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:vm_service_lib/vm_service_lib_io.dart';
 import 'package:webdriver/io.dart';
 
@@ -69,7 +70,16 @@ void main() {
       var windows = await fixture.webdriver.windows.toList();
       await fixture.webdriver.driver.switchTo.window(windows.first);
       var vm = await client.getVM();
-      await client.pause(vm.isolates.first.id);
+      var isolateId = vm.isolates.first.id;
+      await client.streamListen('Debug');
+      var stream = client.onEvent('Debug');
+      var scriptList = await client.getScripts(isolateId);
+      var main = scriptList.scripts
+          .firstWhere((script) => script.uri.contains('main.dart'));
+      await client.addBreakpoint(isolateId, main.id, 13);
+      await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
       await fixture.changeInput();
       await client.callServiceExtension('hotRestart');
       var source = await fixture.webdriver.pageSource;
@@ -77,6 +87,13 @@ void main() {
       // Main is re-invoked which shouldn't clear the state.
       expect(source.contains('Hello World!'), isTrue);
       expect(source.contains('Gary is awesome!'), isTrue);
+
+      // Should not be paused.
+      vm = await client.getVM();
+      isolateId = vm.isolates.first.id;
+      var isolate = await client.getIsolate(isolateId) as Isolate;
+      expect(isolate.pauseEvent.kind, EventKind.kResume);
+      expect(isolate.breakpoints.isEmpty, isTrue);
 
       await fixture.webdev.kill();
     });
