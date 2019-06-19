@@ -18,6 +18,6 @@ void main() {
 
   var count = 0;
   Timer.periodic(Duration(seconds: 1), (_) {
-    print('Counter is: ${++count}');
+    print('Counter is: ${++count + 1}');
   });
 }
