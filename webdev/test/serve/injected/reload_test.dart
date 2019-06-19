@@ -6,6 +6,8 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:vm_service_lib/vm_service_lib_io.dart';
+import 'package:webdriver/io.dart';
 
 import 'injected_fixture.dart';
 
@@ -49,6 +51,32 @@ void main() {
       // The ext.flutter.disassemble callback is invoked and waited for.
       expect(source,
           contains('start disassemble end disassemble Gary is awesome'));
+
+      await fixture.webdev.kill();
+    });
+
+    test('can hot restart while paused', () async {
+      await fixture.buildAndLoad(['--debug']);
+
+      await fixture.webdriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
+      var debugServiceLine = '';
+      while (!debugServiceLine.contains('Debug service listening')) {
+        debugServiceLine = await fixture.webdev.stdout.next;
+      }
+      var debugUri =
+          debugServiceLine.substring(debugServiceLine.indexOf('ws://')).trim();
+      var client = await vmServiceConnectUri(debugUri);
+      var windows = await fixture.webdriver.windows.toList();
+      await fixture.webdriver.driver.switchTo.window(windows.first);
+      var vm = await client.getVM();
+      await client.pause(vm.isolates.first.id);
+      await fixture.changeInput();
+      await client.callServiceExtension('hotRestart');
+      var source = await fixture.webdriver.pageSource;
+
+      // Main is re-invoked which shouldn't clear the state.
+      expect(source.contains('Hello World!'), isTrue);
+      expect(source.contains('Gary is awesome!'), isTrue);
 
       await fixture.webdev.kill();
     });
