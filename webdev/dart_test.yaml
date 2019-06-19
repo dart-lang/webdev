@@ -3,3 +3,5 @@ tags:
     skip: "Should only be run during presubmit"
   webdriver:
     skip: "Should only be run during presubmit"
+
+retry: 3
