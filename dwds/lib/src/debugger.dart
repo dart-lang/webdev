@@ -339,6 +339,7 @@ class Debugger extends Domain {
       ..frames = frames
       ..messages = [];
     if (frames.isNotEmpty) event.topFrame = frames.first;
+    isolate.pauseEvent = event;
     _streamNotify('Debug', event);
   }
 
@@ -349,11 +350,11 @@ class Debugger extends Domain {
     var isolate = inspector.isolate;
     if (isolate == null) return;
     _pausedStack = null;
-    _streamNotify(
-        'Debug',
-        Event()
-          ..kind = EventKind.kResume
-          ..isolate = inspector.isolateRef);
+    var event = Event()
+      ..kind = EventKind.kResume
+      ..isolate = inspector.isolateRef;
+    isolate.pauseEvent = event;
+    _streamNotify('Debug', event);
   }
 }
 
