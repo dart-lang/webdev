@@ -40,6 +40,7 @@ class WebdevVmClient {
         debugService.chromeProxyService as ChromeProxyService;
 
     client.registerServiceCallback('hotRestart', (request) async {
+      await _removeBreakpointsAndResume(client);
       var response = await chromeProxyService.tabConnection.runtime.sendCommand(
           'Runtime.evaluate',
           params: {'expression': r'$dartHotRestart();', 'awaitPromise': true});
@@ -76,5 +77,18 @@ class WebdevVmClient {
     await client.registerService('ext.webdev.screenshot', 'WebDev');
 
     return WebdevVmClient(client, requestController, responseController);
+  }
+}
+
+Future<void> _removeBreakpointsAndResume(VmService client) async {
+  var vm = await client.getVM();
+  var isolateRef = vm.isolates.first;
+  var isolate = await client.getIsolate(isolateRef.id) as Isolate;
+  for (var breakpoint in isolate.breakpoints.toList()) {
+    await client.removeBreakpoint(isolate.id, breakpoint.id);
+  }
+  if (isolate.pauseEvent.kind == EventKind.kPauseInterrupted ||
+      isolate.pauseEvent.kind == EventKind.kPauseBreakpoint) {
+    await client.resume(isolate.id);
   }
 }

@@ -347,7 +347,7 @@ class Debugger extends Domain {
   Future<void> _resumeHandler(DebuggerResumedEvent e) async {
     // We can receive a resume event in the middle of a reload which will
     // result in a null isolate.
-    var isolate = inspector.isolate;
+    var isolate = inspector?.isolate;
     if (isolate == null) return;
     _pausedStack = null;
     var event = Event()
