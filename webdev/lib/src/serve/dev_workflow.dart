@@ -167,6 +167,13 @@ class DevWorkflow {
         logWriter(logging.Level.INFO, '${'-' * _wrapWidth}\n');
       }
     });
+    _client.shutdownNotifications.listen((data) {
+      logWriter(logging.Level.SEVERE, data.message);
+      if (data.failureType == 75) {
+        logWriter(logging.Level.SEVERE, 'Please restart WebDev.\n');
+      }
+      shutDown();
+    });
   }
 
   Future<void> get done => _doneCompleter.future;
