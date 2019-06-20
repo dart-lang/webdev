@@ -5,7 +5,7 @@
 /// An example with more complicated scope
 
 import 'dart:async';
-import 'dart:developer';
+//import 'dart:developer';
 import 'dart:html';
 
 final libraryPublicFinal = MyTestClass();
@@ -19,12 +19,12 @@ var _libraryPrivate = ['library', 'private', 'variable'];
 void main() async {
   var local = 'local in main';
 
-  nestedFunction(String parameter) {
+  String nestedFunction(String parameter) {
     var another = int.tryParse(parameter);
     return '$local: parameter, $another';
   }
 
-  nestedWithClosure(String banana) {
+  dynamic nestedWithClosure(String banana) {
     return () => '$local + $banana';
   }
 
@@ -34,11 +34,14 @@ void main() async {
     print('ticking... $ticks');
   });
 
-  // Register one up front before the proxy connects, the isolate should still
-  // recognize this as an available extension.
-  registerExtension('ext.hello_world.existing', (_, __) => null);
-
+  document.body.append(SpanElement()..text = 'Exercising some scopes');
   window.console.debug('Page Ready');
+  print(_libraryPrivateFinal);
+  print(_libraryPrivate);
+  print(nestedFunction(_libraryPrivate.first));
+  print(nestedWithClosure(_libraryPrivate.first)());
+
+
 }
 
 class MyTestClass {

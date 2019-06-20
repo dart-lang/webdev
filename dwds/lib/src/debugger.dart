@@ -166,6 +166,9 @@ class Debugger extends Domain {
         DartUri(dartScript.uri, '${Uri.parse(_root).path}/garbage.dart');
     var location = _locationForDart(dartUri, line);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
+    if (location == null ) {
+      print("Cannot set breakpoint at $line, $column");
+    }
     if (location == null) return null;
     var jsBreakpointId = await _setBreakpoint(location);
     var dartBreakpoint = _dartBreakpoint(dartScript, location, isolate);
