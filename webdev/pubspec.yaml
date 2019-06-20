@@ -1,4 +1,5 @@
 name: webdev
+# Every time this changes you need to run `pub run build_runner build`.
 version: 2.2.0
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
