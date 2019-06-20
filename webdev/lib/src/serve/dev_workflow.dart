@@ -168,9 +168,9 @@ class DevWorkflow {
       }
     });
     _client.shutdownNotifications.listen((data) {
-      logWriter(logging.Level.SEVERE, data.message);
+      logWriter(logging.Level.WARNING, data.message);
       if (data.failureType == 75) {
-        logWriter(logging.Level.SEVERE, 'Please restart WebDev.\n');
+        logWriter(logging.Level.WARNING, 'Please restart WebDev.\n');
       }
       shutDown();
     });
