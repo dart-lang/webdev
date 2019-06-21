@@ -359,6 +359,8 @@ void main() {
         scripts.scripts.map((s) => s.uri), contains('package:path/path.dart'));
     // Should return part files as well.
     expect(scripts.scripts.map((s) => s.uri), contains(endsWith('part.dart')));
+    expect(scripts.scripts.map((s) => s.uri),
+        contains('package:intl/src/intl/date_format_helpers.dart'));
   });
 
   test('clearVMTimeline', () {
