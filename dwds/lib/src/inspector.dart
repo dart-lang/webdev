@@ -297,6 +297,8 @@ function($argsString) {
         (result.result['result']['value']['parts'] as List).cast<String>();
     // Note that uris here are scheme based
     // e.g. org-dartlang-app:///web/main.dart
+    // We will need to normalize the parent if dart-lang/sdk#37336 ever gets
+    // fixed.
     var parent = libraryRef.uri.substring(0, libraryRef.uri.lastIndexOf('/'));
     var scriptRefs = [
       ScriptRef()

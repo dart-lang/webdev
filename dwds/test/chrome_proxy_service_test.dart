@@ -52,6 +52,15 @@ void main() {
       expect(bp.id, '1');
     });
 
+    test('addBreakpoint on a part file', () async {
+      var partScript = scripts.scripts
+          .firstWhere((script) => script.uri.contains('part.dart'));
+      var bp = await service.addBreakpoint(isolate.id, partScript.id, 10);
+      // Remove breakpoint so it doesn't impact other tests.
+      await service.removeBreakpoint(isolate.id, bp.id);
+      expect(bp.id, '2');
+    });
+
     test('addBreakpointAtEntry', () {
       expect(() => service.addBreakpointAtEntry(null, null),
           throwsUnimplementedError);
@@ -86,7 +95,7 @@ void main() {
           .lastWhere((each) => each.uri.contains('main.dart'));
       var bp = await service.addBreakpoint(isolate.id, refreshedMain.id, 23);
       expect(isolate.breakpoints, [bp]);
-      expect(bp.id, '3');
+      expect(bp.id, '4');
       await service.removeBreakpoint(isolate.id, bp.id);
       expect(isolate.breakpoints, isEmpty);
     });
