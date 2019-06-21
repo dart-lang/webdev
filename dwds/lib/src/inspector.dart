@@ -31,7 +31,7 @@ class AppInspector {
   /// Map of libraryRef ID to [LibraryRef].
   final _libraryRefs = <String, LibraryRef>{};
 
-  /// Map of [ScriptRef] id to [LibraryRef] id.
+  /// Map of [ScriptRef] id to containing [LibraryRef] id.
   final _scriptIdToLibraryId = <String, String>{};
 
   final WipConnection _tabConnection;

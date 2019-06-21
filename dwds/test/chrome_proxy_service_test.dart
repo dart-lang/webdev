@@ -354,6 +354,8 @@ void main() {
     expect(scripts.scripts.length, greaterThan(0));
     // Test for a known script
     expect(scripts.scripts.map((s) => s.uri), contains(endsWith('path.dart')));
+    // Should return part files as well.
+    expect(scripts.scripts.map((s) => s.uri), contains(endsWith('part.dart')));
   });
 
   test('clearVMTimeline', () {
