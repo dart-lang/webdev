@@ -35,8 +35,8 @@ for PKG in ${PKGS}; do
       dartfmt -n --set-exit-if-changed . || EXIT_CODE=$?
       ;;
     test_0)
-      echo 'pub run test -j 1'
-      pub run test -j 1 || EXIT_CODE=$?
+      echo 'pub run test'
+      pub run test || EXIT_CODE=$?
       ;;
     test_1)
       echo 'pub run test -j 1 --run-skipped'
