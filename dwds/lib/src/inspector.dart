@@ -292,6 +292,7 @@ function($argsString) {
         ..subclasses = [];
     }
 
+    // Parts are relative paths from the libraryRef uri.
     var parts =
         (result.result['result']['value']['parts'] as List).cast<String>();
     // Note that uris here are scheme based

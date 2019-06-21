@@ -44,7 +44,8 @@ class DartUri {
     // Work around short paths if we have been provided the context.
     if (serverUri != null) {
       var path = Uri.parse(serverUri).path;
-      return DartUri._fromServerPath(p.join(path, uri));
+      var dir = p.dirname(path);
+      return DartUri._fromServerPath(p.join(dir, uri));
     }
     throw FormatException('Unsupported URI form', uri);
   }
