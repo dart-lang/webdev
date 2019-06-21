@@ -8,6 +8,7 @@ import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'chrome_proxy_service.dart';
+import 'dart_uri.dart';
 import 'domain.dart';
 import 'location.dart';
 import 'sources.dart';
@@ -160,7 +161,8 @@ class Debugger extends Domain {
       {int column}) async {
     var isolate = checkIsolate(isolateId);
     var dartScript = await inspector.scriptWithId(scriptId);
-    var location = _locationForDart(dartScript.uri, line);
+    var dartUri = DartUri(dartScript.uri, _root);
+    var location = _locationForDart(dartUri, line);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) return null;
     var jsBreakpointId = await _setBreakpoint(location);
@@ -233,11 +235,11 @@ class Debugger extends Domain {
     handleErrorIfPresent(response);
   }
 
-  /// Find the [Location] for the given Dart server path.
+  /// Find the [Location] for the given Dart source position.
   ///
   /// The [line] number is 1-based.
-  Location _locationForDart(String serverPath, int line) => sources
-      .locationsForDart(serverPath)
+  Location _locationForDart(DartUri uri, int line) => sources
+      .locationsForDart(uri.serverPath)
       .firstWhere((location) => location.dartLocation.line == line,
           orElse: () => null);
 

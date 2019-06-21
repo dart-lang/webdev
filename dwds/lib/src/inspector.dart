@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:path/path.dart' as p;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -293,21 +294,24 @@ function($argsString) {
 
     var parts =
         (result.result['result']['value']['parts'] as List).cast<String>();
-
+    // Note that uris here are scheme based
+    // e.g. org-dartlang-app:///web/main.dart
+    var parent = libraryRef.uri.substring(0, libraryRef.uri.lastIndexOf('/'));
     var scriptRefs = [
       ScriptRef()
-        ..uri = DartUri(libraryRef.uri, _root).serverPath
+        ..uri = libraryRef.uri
         ..id = createId(),
       for (var part in parts)
         ScriptRef()
-          ..uri = DartUri(part, _root).serverPath
+          ..uri = p.join(parent, part)
           ..id = createId()
     ];
 
     for (var scriptRef in scriptRefs) {
       _scriptRefs[scriptRef.id] = scriptRef;
       _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
-      _serverPathToScriptRef[scriptRef.uri] = scriptRef;
+      _serverPathToScriptRef[DartUri(scriptRef.uri, _root).serverPath] =
+          scriptRef;
     }
 
     return Library()
@@ -324,7 +328,7 @@ function($argsString) {
 
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
     var libraryId = _scriptIdToLibraryId[scriptRef.id];
-    var serverPath = scriptRef.uri;
+    var serverPath = DartUri(scriptRef.uri, _root).serverPath;
     var script = await _assetHandler(serverPath);
     return Script()
       ..library = _libraryRefs[libraryId]

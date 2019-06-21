@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/chrome_proxy_service.dart';
+import 'package:dwds/src/dart_uri.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
@@ -45,7 +46,7 @@ void main() {
 
     test('addBreakpoint', () async {
       // TODO: Much more testing.
-      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 21);
+      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
       // Remove breakpoint so it doesn't impact other tests.
       await service.removeBreakpoint(isolate.id, bp.id);
       expect(bp.id, '1');
@@ -69,7 +70,7 @@ void main() {
           throwsArgumentError);
     });
     test('add and remove breakpoint', () async {
-      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 19);
+      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
       expect(isolate.breakpoints, [bp]);
       await service.removeBreakpoint(isolate.id, bp.id);
       expect(isolate.breakpoints, isEmpty);
@@ -83,7 +84,7 @@ void main() {
       var refreshedScriptList = await service.getScripts(isolate.id);
       var refreshedMain = refreshedScriptList.scripts
           .lastWhere((each) => each.uri.contains('main.dart'));
-      var bp = await service.addBreakpoint(isolate.id, refreshedMain.id, 21);
+      var bp = await service.addBreakpoint(isolate.id, refreshedMain.id, 23);
       expect(isolate.breakpoints, [bp]);
       expect(bp.id, '3');
       await service.removeBreakpoint(isolate.id, bp.id);
@@ -337,8 +338,9 @@ void main() {
       for (var scriptRef in scripts.scripts) {
         var script =
             await service.getObject(isolate.id, scriptRef.id) as Script;
+        var serverPath = DartUri(script.uri, 'hello_world/').serverPath;
         var result =
-            await http.get('http://localhost:${context.port}/${script.uri}');
+            await http.get('http://localhost:${context.port}/$serverPath');
         expect(script.source, result.body);
         expect(scriptRef.uri, endsWith('.dart'));
         expect(script.tokenPosTable, isNotEmpty);
@@ -353,7 +355,8 @@ void main() {
     expect(scripts, isNotNull);
     expect(scripts.scripts.length, greaterThan(0));
     // Test for a known script
-    expect(scripts.scripts.map((s) => s.uri), contains(endsWith('path.dart')));
+    expect(
+        scripts.scripts.map((s) => s.uri), contains('package:path/path.dart'));
     // Should return part files as well.
     expect(scripts.scripts.map((s) => s.uri), contains(endsWith('part.dart')));
   });
@@ -380,7 +383,7 @@ void main() {
       stream = service.onEvent('Debug');
       mainScript = scripts.scripts
           .firstWhere((script) => script.uri.contains('main.dart'));
-      var bp = await service.addBreakpoint(isolateId, mainScript.id, 47);
+      var bp = await service.addBreakpoint(isolateId, mainScript.id, 49);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -453,7 +456,7 @@ void main() {
     });
 
     test('returns stack when broken', () async {
-      var bp = await service.addBreakpoint(isolateId, mainScript.id, 61);
+      var bp = await service.addBreakpoint(isolateId, mainScript.id, 63);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
