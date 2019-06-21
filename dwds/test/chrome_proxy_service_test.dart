@@ -261,7 +261,7 @@ void main() {
 
   test('getInstances', () {
     expect(
-        () => service.getInstances(null, null, null), throwsUnimplementedError);
+        () => service.getInstances(null, null), throwsUnimplementedError);
   });
 
   group('getIsolate', () {

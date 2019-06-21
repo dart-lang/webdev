@@ -6,12 +6,6 @@ import 'dart:io';
 
 import 'package:vm_service_lib/vm_service_lib.dart';
 
-IsolateRef toIsolateRef(Isolate isolate) => IsolateRef()
-  ..id = isolate.id
-  ..fixedId = isolate.fixedId
-  ..name = isolate.name
-  ..number = isolate.number;
-
 VMRef toVMRef(VM vm) => VMRef()..name = vm.name;
 
 int _nextId = 0;

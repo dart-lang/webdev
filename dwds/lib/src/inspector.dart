@@ -64,12 +64,11 @@ class AppInspector {
 
   static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef()
     ..id = isolate.id
-    ..fixedId = isolate.fixedId
     ..name = isolate.name
     ..number = isolate.number;
 
   static Future<AppInspector> initialize(
-    WipConnection tabConnection,
+  WipConnection tabConnection,
     AssetHandler assetHandler,
     Debugger debugger,
     String root,
