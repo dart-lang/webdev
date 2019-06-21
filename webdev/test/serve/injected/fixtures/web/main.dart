@@ -7,6 +7,12 @@ import 'dart:developer';
 import 'dart:html';
 
 void main() {
+  var count = 0;
+  // For setting breakpoints.
+  Timer.periodic(const Duration(seconds: 1), (_) {
+    print('Count is: ${++count}');
+  });
+
   document.body.appendText('Hello World!!');
 
   registerExtension('ext.flutter.disassemble', (_, __) async {

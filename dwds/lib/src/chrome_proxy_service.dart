@@ -281,7 +281,7 @@ require("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future getIsolate(String isolateId) async => _getIsolate(isolateId);
+  Future<Isolate> getIsolate(String isolateId) async => _getIsolate(isolateId);
 
   @override
   Future<dynamic> getMemoryUsage(String isolateId) async {

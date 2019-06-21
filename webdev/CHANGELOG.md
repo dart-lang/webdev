@@ -1,6 +1,7 @@
-## 2.2.0-dev
+## 2.2.0
 
 - Added a `fullReload` service extension which performs a full page refresh.
+- Handle shutdown notifications from latest `build_daemon` protocol.
 
 ## 2.1.0
 
