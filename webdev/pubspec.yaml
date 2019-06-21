@@ -32,7 +32,7 @@ dependencies:
   shelf_static: ^0.2.8
   stack_trace: ^1.9.2
   sse: ^2.0.0
-  vm_service_lib: 3.20.0
+  vm_service_lib: '>3.17.0 <=4.0.0'
   webkit_inspection_protocol: ^0.4.0
   yaml: ^2.1.13
 
@@ -53,7 +53,3 @@ dev_dependencies:
 
 executables:
   webdev:
-
-dependency_overrides:
-  dwds:
-    path: ../dwds
