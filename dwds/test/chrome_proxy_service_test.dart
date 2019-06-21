@@ -8,7 +8,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/chrome_proxy_service.dart';
-import 'package:dwds/src/dart_uri.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
@@ -338,18 +337,11 @@ void main() {
       for (var scriptRef in scripts.scripts) {
         var script =
             await service.getObject(isolate.id, scriptRef.id) as Script;
-        // TODO(401): Remove service.uri parameter.
-        var scriptPath = DartUri(script.uri, service.uri).serverPath;
         var result =
-            await http.get('http://localhost:${context.port}/$scriptPath');
+            await http.get('http://localhost:${context.port}/${script.uri}');
         expect(script.source, result.body);
         expect(scriptRef.uri, endsWith('.dart'));
-        // TODO(401) - Once the dev SDK is updated with the org-dartlang-app
-        // fix we shouldn't need this conditional as the script URI should be
-        // `/hello_world/main.dart` instead of just `main.dart`.
-        if (script.uri != 'main.dart') {
-          expect(script.tokenPosTable, isNotEmpty);
-        }
+        expect(script.tokenPosTable, isNotEmpty);
       }
     });
   });
@@ -386,7 +378,7 @@ void main() {
       stream = service.onEvent('Debug');
       mainScript = scripts.scripts
           .firstWhere((script) => script.uri.contains('main.dart'));
-      var bp = await service.addBreakpoint(isolateId, mainScript.id, 45);
+      var bp = await service.addBreakpoint(isolateId, mainScript.id, 47);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -459,7 +451,7 @@ void main() {
     });
 
     test('returns stack when broken', () async {
-      var bp = await service.addBreakpoint(isolateId, mainScript.id, 59);
+      var bp = await service.addBreakpoint(isolateId, mainScript.id, 61);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);

@@ -31,6 +31,9 @@ class AppInspector {
   /// Map of libraryRef ID to [LibraryRef].
   final _libraryRefs = <String, LibraryRef>{};
 
+  /// TODO
+  final _scriptIdToLibraryId = <String, String>{};
+
   final WipConnection _tabConnection;
   final AssetHandler _assetHandler;
   final Debugger _debugger;
@@ -195,10 +198,12 @@ function($argsString) {
     // Fetch information about all the classes in this library.
     var expression = '''
     (function() {
-    ${_getLibrarySnippet(libraryRef.uri)}
+      ${_getLibrarySnippet(libraryRef.uri)}
+      var parts = sdkUtils.getParts('${libraryRef.uri}');
+      var result = {'parts' : parts}
       var classes = Object.values(library)
         .filter((l) => l && sdkUtils.isType(l));
-      return classes.map(function(clazz) {
+      var classList = classes.map(function(clazz) {
         var descriptor = {'name': clazz.name};
 
         // TODO(jakemac): static methods once ddc supports them
@@ -230,13 +235,14 @@ function($argsString) {
 
         return descriptor;
       });
+      result['classes'] = classList;
+      return result;
     })()
     ''';
-    var classesResult = await _tabConnection.runtime.sendCommand(
-        'Runtime.evaluate',
+    var result = await _tabConnection.runtime.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
-    handleErrorIfPresent(classesResult, evalContents: expression);
-    var classDescriptors = (classesResult.result['result']['value'] as List)
+    handleErrorIfPresent(result, evalContents: expression);
+    var classDescriptors = (result.result['result']['value']['classes'] as List)
         .cast<Map<String, Object>>();
     var classRefs = <ClassRef>[];
     for (var classDescriptor in classDescriptors) {
@@ -285,15 +291,24 @@ function($argsString) {
         ..subclasses = [];
     }
 
-    // TODO(grouma) - This currently does not support part files.
-    // Figure out how to support them.
-    var scriptRef = ScriptRef()
-      ..uri = libraryRef.uri
-      ..id = createId();
+    var parts =
+        (result.result['result']['value']['parts'] as List).cast<String>();
 
-    _scriptRefs[scriptRef.id] = scriptRef;
-    _serverPathToScriptRef[DartUri(libraryRef.id, scriptRef.uri).serverPath] =
-        scriptRef;
+    var scriptRefs = [
+      ScriptRef()
+        ..uri = DartUri(libraryRef.uri, _root).serverPath
+        ..id = createId(),
+      for (var part in parts)
+        ScriptRef()
+          ..uri = DartUri(part, _root).serverPath
+          ..id = createId()
+    ];
+
+    for (var scriptRef in scriptRefs) {
+      _scriptRefs[scriptRef.id] = scriptRef;
+      _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
+      _serverPathToScriptRef[scriptRef.uri] = scriptRef;
+    }
 
     return Library()
       ..id = libraryRef.id
@@ -303,19 +318,18 @@ function($argsString) {
       ..debuggable = true
       ..dependencies = []
       ..functions = []
-      ..scripts = [scriptRef]
+      ..scripts = scriptRefs
       ..variables = [];
   }
 
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
-    var libraryId = scriptRef.uri;
-    // TODO(401): Remove uri parameter.
-    var serverPath = DartUri(libraryId, _root).serverPath;
+    var libraryId = _scriptIdToLibraryId[scriptRef.id];
+    var serverPath = scriptRef.uri;
     var script = await _assetHandler(serverPath);
     return Script()
       ..library = _libraryRefs[libraryId]
       ..id = scriptRef.id
-      ..uri = libraryId
+      ..uri = scriptRef.uri
       ..tokenPosTable = _debugger.sources.tokenPosTableFor(serverPath)
       ..source = script;
   }

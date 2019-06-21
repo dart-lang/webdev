@@ -10,6 +10,8 @@ import 'dart:js';
 
 import 'package:path/path.dart' as p;
 
+part 'part.dart';
+
 final myInstance = MyTestClass();
 
 void main() async {
@@ -57,6 +59,7 @@ var count = 0;
 // An easy location to add a breakpoint.
 void printCount() {
   print('The count is ${++count}');
+  doSomething();
 }
 
 String helloString(String response) => response;
