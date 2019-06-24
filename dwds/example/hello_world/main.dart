@@ -8,11 +8,15 @@ import 'dart:developer';
 import 'dart:html';
 import 'dart:js';
 
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
+
+part 'part.dart';
 
 final myInstance = MyTestClass();
 
 void main() async {
+  print(DateFormat());
   // Long running so that we can test the pause / resume behavior.
   Timer.periodic(Duration(seconds: 1), (_) {});
 
@@ -57,6 +61,7 @@ var count = 0;
 // An easy location to add a breakpoint.
 void printCount() {
   print('The count is ${++count}');
+  doSomething();
 }
 
 String helloString(String response) => response;
