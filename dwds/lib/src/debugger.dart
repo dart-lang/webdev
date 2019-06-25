@@ -162,9 +162,7 @@ class Debugger extends Domain {
       {int column}) async {
     var isolate = checkIsolate(isolateId);
     var dartScript = await inspector.scriptWithId(scriptId);
-    // TODO(401): Remove the additional parameter.
-    var dartUri =
-        DartUri(dartScript.uri, '${Uri.parse(_root).path}/garbage.dart');
+    var dartUri = DartUri(dartScript.uri, _root);
     var location = _locationForDart(dartUri, line);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) return null;

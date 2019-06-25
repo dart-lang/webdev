@@ -46,10 +46,19 @@ void main() {
 
     test('addBreakpoint', () async {
       // TODO: Much more testing.
-      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 21);
+      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
       // Remove breakpoint so it doesn't impact other tests.
       await service.removeBreakpoint(isolate.id, bp.id);
       expect(bp.id, '1');
+    });
+
+    test('addBreakpoint on a part file', () async {
+      var partScript = scripts.scripts
+          .firstWhere((script) => script.uri.contains('part.dart'));
+      var bp = await service.addBreakpoint(isolate.id, partScript.id, 10);
+      // Remove breakpoint so it doesn't impact other tests.
+      await service.removeBreakpoint(isolate.id, bp.id);
+      expect(bp.id, '2');
     });
 
     test('addBreakpointAtEntry', () {
@@ -70,7 +79,7 @@ void main() {
           throwsArgumentError);
     });
     test('add and remove breakpoint', () async {
-      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 19);
+      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
       expect(isolate.breakpoints, [bp]);
       await service.removeBreakpoint(isolate.id, bp.id);
       expect(isolate.breakpoints, isEmpty);
@@ -84,9 +93,9 @@ void main() {
       var refreshedScriptList = await service.getScripts(isolate.id);
       var refreshedMain = refreshedScriptList.scripts
           .lastWhere((each) => each.uri.contains('main.dart'));
-      var bp = await service.addBreakpoint(isolate.id, refreshedMain.id, 21);
+      var bp = await service.addBreakpoint(isolate.id, refreshedMain.id, 23);
       expect(isolate.breakpoints, [bp]);
-      expect(bp.id, '3');
+      expect(bp.id, '4');
       await service.removeBreakpoint(isolate.id, bp.id);
       expect(isolate.breakpoints, isEmpty);
     });
@@ -338,18 +347,12 @@ void main() {
       for (var scriptRef in scripts.scripts) {
         var script =
             await service.getObject(isolate.id, scriptRef.id) as Script;
-        // TODO(401): Remove service.uri parameter.
-        var scriptPath = DartUri(script.uri, service.uri).serverPath;
+        var serverPath = DartUri(script.uri, 'hello_world/').serverPath;
         var result =
-            await http.get('http://localhost:${context.port}/$scriptPath');
+            await http.get('http://localhost:${context.port}/$serverPath');
         expect(script.source, result.body);
         expect(scriptRef.uri, endsWith('.dart'));
-        // TODO(401) - Once the dev SDK is updated with the org-dartlang-app
-        // fix we shouldn't need this conditional as the script URI should be
-        // `/hello_world/main.dart` instead of just `main.dart`.
-        if (script.uri != 'main.dart') {
-          expect(script.tokenPosTable, isNotEmpty);
-        }
+        expect(script.tokenPosTable, isNotEmpty);
       }
     });
   });
@@ -361,7 +364,12 @@ void main() {
     expect(scripts, isNotNull);
     expect(scripts.scripts.length, greaterThan(0));
     // Test for a known script
-    expect(scripts.scripts.map((s) => s.uri), contains(endsWith('path.dart')));
+    expect(
+        scripts.scripts.map((s) => s.uri), contains('package:path/path.dart'));
+    // Should return part files as well.
+    expect(scripts.scripts.map((s) => s.uri), contains(endsWith('part.dart')));
+    expect(scripts.scripts.map((s) => s.uri),
+        contains('package:intl/src/intl/date_format_helpers.dart'));
   });
 
   test('clearVMTimeline', () {
@@ -386,7 +394,7 @@ void main() {
       stream = service.onEvent('Debug');
       mainScript = scripts.scripts
           .firstWhere((script) => script.uri.contains('main.dart'));
-      var bp = await service.addBreakpoint(isolateId, mainScript.id, 45);
+      var bp = await service.addBreakpoint(isolateId, mainScript.id, 49);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -459,7 +467,7 @@ void main() {
     });
 
     test('returns stack when broken', () async {
-      var bp = await service.addBreakpoint(isolateId, mainScript.id, 59);
+      var bp = await service.addBreakpoint(isolateId, mainScript.id, 63);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);

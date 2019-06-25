@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:path/path.dart' as p;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -32,6 +33,9 @@ class AppInspector extends Domain {
 
   /// Map of libraryRef ID to [LibraryRef].
   final _libraryRefs = <String, LibraryRef>{};
+
+  /// Map of [ScriptRef] id to containing [LibraryRef] id.
+  final _scriptIdToLibraryId = <String, String>{};
 
   final WipConnection _tabConnection;
   final AssetHandler _assetHandler;
@@ -216,10 +220,12 @@ function($argsString) {
     // Fetch information about all the classes in this library.
     var expression = '''
     (function() {
-    ${_getLibrarySnippet(libraryRef.uri)}
+      ${_getLibrarySnippet(libraryRef.uri)}
+      var parts = sdkUtils.getParts('${libraryRef.uri}');
+      var result = {'parts' : parts}
       var classes = Object.values(library)
         .filter((l) => l && sdkUtils.isType(l));
-      return classes.map(function(clazz) {
+      var classList = classes.map(function(clazz) {
         var descriptor = {'name': clazz.name};
 
         // TODO(jakemac): static methods once ddc supports them
@@ -251,13 +257,14 @@ function($argsString) {
 
         return descriptor;
       });
+      result['classes'] = classList;
+      return result;
     })()
     ''';
-    var classesResult = await _tabConnection.runtime.sendCommand(
-        'Runtime.evaluate',
+    var result = await _tabConnection.runtime.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
-    handleErrorIfPresent(classesResult, evalContents: expression);
-    var classDescriptors = (classesResult.result['result']['value'] as List)
+    handleErrorIfPresent(result, evalContents: expression);
+    var classDescriptors = (result.result['result']['value']['classes'] as List)
         .cast<Map<String, Object>>();
     var classRefs = <ClassRef>[];
     for (var classDescriptor in classDescriptors) {
@@ -306,15 +313,30 @@ function($argsString) {
         ..subclasses = [];
     }
 
-    // TODO(grouma) - This currently does not support part files.
-    // Figure out how to support them.
-    var scriptRef = ScriptRef()
-      ..uri = libraryRef.uri
-      ..id = createId();
+    // Parts are relative paths from the libraryRef uri.
+    var parts =
+        (result.result['result']['value']['parts'] as List).cast<String>();
+    // Note that uris here are scheme based
+    // e.g. org-dartlang-app:///web/main.dart
+    // We will need to normalize the parent if dart-lang/sdk#37336 ever gets
+    // fixed.
+    var parent = libraryRef.uri.substring(0, libraryRef.uri.lastIndexOf('/'));
+    var scriptRefs = [
+      ScriptRef()
+        ..uri = libraryRef.uri
+        ..id = createId(),
+      for (var part in parts)
+        ScriptRef()
+          ..uri = p.join(parent, part)
+          ..id = createId()
+    ];
 
-    _scriptRefs[scriptRef.id] = scriptRef;
-    _serverPathToScriptRef[DartUri(libraryRef.id, scriptRef.uri).serverPath] =
-        scriptRef;
+    for (var scriptRef in scriptRefs) {
+      _scriptRefs[scriptRef.id] = scriptRef;
+      _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
+      _serverPathToScriptRef[DartUri(scriptRef.uri, _root).serverPath] =
+          scriptRef;
+    }
 
     return Library()
       ..id = libraryRef.id
@@ -324,19 +346,18 @@ function($argsString) {
       ..debuggable = true
       ..dependencies = []
       ..functions = []
-      ..scripts = [scriptRef]
+      ..scripts = scriptRefs
       ..variables = [];
   }
 
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
-    var libraryId = scriptRef.uri;
-    // TODO(401): Remove uri parameter.
-    var serverPath = DartUri(libraryId, _root).serverPath;
+    var libraryId = _scriptIdToLibraryId[scriptRef.id];
+    var serverPath = DartUri(scriptRef.uri, _root).serverPath;
     var script = await _assetHandler(serverPath);
     return Script()
       ..library = _libraryRefs[libraryId]
       ..id = scriptRef.id
-      ..uri = libraryId
+      ..uri = scriptRef.uri
       ..tokenPosTable = _debugger.sources.tokenPosTableFor(serverPath)
       ..source = script;
   }
