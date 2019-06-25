@@ -74,7 +74,6 @@ class AppInspector extends Domain {
 
   static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef()
     ..id = isolate.id
-    ..fixedId = isolate.fixedId
     ..name = isolate.name
     ..number = isolate.number;
 
