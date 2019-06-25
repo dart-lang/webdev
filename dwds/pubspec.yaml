@@ -18,7 +18,7 @@ dependencies:
   shelf: ^0.7.0
   shelf_web_socket: ^0.2.0
   source_maps: ^0.10.0
-  vm_service_lib: 3.17.0+1
+  vm_service_lib: 3.20.0+02
   web_socket_channel: ^1.0.0
   webkit_inspection_protocol: ^0.4.0
 

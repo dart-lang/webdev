@@ -252,7 +252,7 @@ require("dart_sdk").developer.invokeExtension(
 
   @override
   Future<AllocationProfile> getAllocationProfile(String isolateId,
-      {String gc, bool reset}) {
+      {bool gc, bool reset}) {
     throw UnimplementedError();
   }
 
@@ -267,7 +267,8 @@ require("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<ObjRef> getInstances(String isolateId, String classId, int limit) {
+  Future<InstanceSet> getInstances(
+      String isolateId, String classId, int limit) {
     throw UnimplementedError();
   }
 
@@ -313,7 +314,12 @@ require("dart_sdk").developer.invokeExtension(
   Future<VM> getVM() => Future.value(_vm);
 
   @override
-  Future<Response> getVMTimeline() {
+  Future<Timeline> getVMTimeline({int timeOriginMicros, int timeExtentMicros}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<TimelineFlags> getVMTimelineFlags() {
     throw UnimplementedError();
   }
 
