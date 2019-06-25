@@ -81,7 +81,10 @@ void main() {
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
       await fixture.changeInput();
+      await client.streamListen('Isolate');
+      stream = client.onEvent('Isolate');
       await client.callServiceExtension('hotRestart');
+      await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
       var source = await fixture.webdriver.pageSource;
 
       // Main is re-invoked which shouldn't clear the state.
