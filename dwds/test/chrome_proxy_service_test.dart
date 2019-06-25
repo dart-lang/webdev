@@ -269,8 +269,7 @@ void main() {
   });
 
   test('getInstances', () {
-    expect(
-        () => service.getInstances(null, null), throwsUnimplementedError);
+    expect(() => service.getInstances(null, null), throwsUnimplementedError);
   });
 
   group('getIsolate', () {

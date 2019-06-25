@@ -72,7 +72,7 @@ class AppInspector {
     ..number = isolate.number;
 
   static Future<AppInspector> initialize(
-  WipConnection tabConnection,
+    WipConnection tabConnection,
     AssetHandler assetHandler,
     Debugger debugger,
     String root,
