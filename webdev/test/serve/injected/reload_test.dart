@@ -81,7 +81,10 @@ void main() {
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
       await fixture.changeInput();
+      await client.streamListen('Isolate');
+      stream = client.onEvent('Isolate');
       await client.callServiceExtension('hotRestart');
+      await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
       var source = await fixture.webdriver.pageSource;
 
       // Main is re-invoked which shouldn't clear the state.
@@ -96,7 +99,8 @@ void main() {
       expect(isolate.breakpoints.isEmpty, isTrue);
 
       await fixture.webdev.kill();
-    });
+      // TODO(sdk/issues/37364) - Remove once corresponding SDK issue is fixed.
+    }, skip: Platform.isWindows);
 
     test('can live reload changes ', () async {
       await fixture.buildAndLoad(['--auto=refresh']);
