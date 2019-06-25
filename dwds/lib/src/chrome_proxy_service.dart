@@ -276,7 +276,7 @@ require("dart_sdk").developer.invokeExtension(
   Isolate _getIsolate(String isolateId) {
     var isolate = _inspector?.isolate;
     if (isolate?.id == isolateId) return isolate;
-    throw ArgumentError.value( 
+    throw ArgumentError.value(
         isolateId, 'isolateId', 'Unrecognized isolate id');
   }
 
@@ -327,7 +327,7 @@ require("dart_sdk").developer.invokeExtension(
 
   @override
   Future invoke(String isolateId, String targetId, String selector,
-      List<String> argumentIds,
+      List argumentIds,
       {bool disableBreakpoints}) {
     throw UnimplementedError();
   }

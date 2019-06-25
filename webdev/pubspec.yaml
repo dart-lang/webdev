@@ -58,6 +58,9 @@ dependency_overrides:
   dwds:
     path:
       ../dwds
+  vm_service_lib:
+    path:
+      /usr/local/google/home/alanknight/dart/vm_service_drivers/dart
   # devtools:
   #   path:
   #        /usr/local/google/home/alanknight/dart/devtools/packages/devtools

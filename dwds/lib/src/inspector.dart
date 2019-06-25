@@ -8,14 +8,16 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
 import 'debugger.dart';
+import 'domain.dart';
 import 'helpers.dart';
+import 'objects.dart';
 
 /// An inspector for a running Dart application contained in the
 /// [WipConnection].
 ///
 /// Provides information about currently loaded scripts and objects and support
 /// for eval.
-class AppInspector {
+class AppInspector extends Domain {
   /// Map of class ID to [Class].
   final _classes = <String, Class>{};
 
@@ -46,7 +48,11 @@ class AppInspector {
     this._assetHandler,
     this._debugger,
     this._root,
-  ) : isolateRef = _toIsolateRef(isolate);
+  )   : isolateRef = _toIsolateRef(isolate),
+        super(null);
+
+  @override
+  AppInspector get inspector => this;
 
   Future<void> _initialize() async {
     isolate.libraries.addAll(await _getLibraryRefs());
@@ -143,12 +149,11 @@ function($argsString) {
             'scope': scope,
           });
     }
-    return await flirp(result.result['result'] as Map<String, dynamic>);
+    return await flirp(
+        RemoteObject(result.result['result'] as Map<String, dynamic>));
   }
 
-  Future<InstanceRef> flirp(Map<String, dynamic> thing) async {
-    var remoteObject = RemoteObject(thing);
-
+  Future<InstanceRef> flirp(RemoteObject remoteObject) async {
     switch (remoteObject.type) {
       case 'string':
         return _primitiveInstance(InstanceKind.kString, remoteObject);
@@ -165,7 +170,7 @@ function($argsString) {
           // https://github.com/dart-lang/sdk/issues/36771.
           ..classRef = ClassRef();
       case 'symbol':
-         return null;
+        return null;
       default:
         throw UnsupportedError(
             'Unsupported response type ${remoteObject.type}');
@@ -191,10 +196,21 @@ function($argsString) {
     if (clazz != null) return clazz;
     var scriptRef = _scriptRefs[objectId];
     if (scriptRef != null) return await _getScript(isolateId, scriptRef);
-
-    throw UnsupportedError(
-        'Only libraries and classes are supported for getObject');
+    return _instance(objectId);
   }
+
+  Future<Instance> _instance(String objectId) async {
+    var properties = await _debugger.getProperties(objectId);
+    var instance = Instance()
+      ..kind = InstanceKind.kPlainInstance
+      //  ..classRef = getObject(  is the class property there???)  Or do we look it up in _classes?
+      ..fields = _instanceFields(properties);
+    return instance;
+  }
+
+  List<BoundField> _instanceFields(List<Property> properties) => properties
+      .map((each) => BoundField()..value = each.value)
+      .toList();
 
   Future<Library> _constructLibrary(LibraryRef libraryRef) async {
     // Fetch information about all the classes in this library.
@@ -335,10 +351,7 @@ function($argsString) {
 
   /// Returns all scripts in the isolate.
   Future<List<ScriptRef>> scriptRefs(String isolateId) async {
-    if (isolateId != isolate.id) {
-      throw ArgumentError.value(
-          isolateId, 'isolateId', 'Unrecognized isolate id');
-    }
+    checkIsolate(isolateId);
     var scripts = <ScriptRef>[];
     for (var lib in isolate.libraries) {
       // We can't provide the source for `dart:` imports so ignore for now.

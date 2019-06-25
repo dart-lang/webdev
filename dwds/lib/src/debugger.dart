@@ -11,6 +11,7 @@ import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
 import 'domain.dart';
 import 'location.dart';
+import 'objects.dart';
 import 'sources.dart';
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
@@ -292,49 +293,40 @@ class Debugger extends Domain {
     return dartFrames;
   }
 
-
-  Future<List> getProperties(String id) async {
+  Future<List<Property>> getProperties(String id) async {
     var response = await _tabConnection.runtime
         .sendCommand('Runtime.getProperties', params: {
       'objectId': id,
       'ownProperties': true,
     });
-    return response.result['result'] as List;
+    var jsProperties = response.result['result'];
+    var properties = (jsProperties as List)
+        .map<Property>((each) => Property(each as Map<String, dynamic>))
+        .toList();
+    return properties;
   }
 
-
-  T _lookup<T>(dynamic actuallyAMap, String key) =>
-      (actuallyAMap as Map<String, dynamic>)[key] as T;
-
   Future<List<BoundVariable>> _boundVariables(dynamic scope) async {
-    var foo =
-        await getProperties(scope['object']['objectId'] as String);
+    var properties = await getProperties(scope['object']['objectId'] as String);
 // get one level of properties from this object, and everything else is another round trip.
 
-    // var bar = <String, dynamic>{};
-    // for (var thing in foo) {
-    //   bar[thing['name'] as String] = await getProperties(thing['value']['objectId'] as String);
-    // }
     var variables = <BoundVariable>[];
-    for (var variable in foo) {
-      var value = inspector.flirp(variable['value'] as Map<String, dynamic>);
+    for (var property in properties) {
+      var value = inspector.flirp(property.value);
       if (value != null) {
-      variables.add(BoundVariable()
-        ..name = variable['name'] as String
-        ..value = await inspector.flirp(variable['value'] as Map<String, dynamic>));
+        variables.add(BoundVariable()
+          ..name = property.name
+          ..value =
+              await inspector.flirp(property.value));
       }
     }
     return variables;
   }
 
   Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
-    return [for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)];
-    //     const fullScopes = await Promise.all(groupPromises);
-    //     this.callFrame.debuggerModel.runtimeModel().releaseObjectGroup('completion');
-    //  var actualVariables
-    // // var scopes = scopeChain.map((each) => each['object']['value']);
-    // // return scopes.map((each) => inspector.flirp(each)).toList();
-    // return [];
+    return [
+      for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)
+    ];
   }
 
   /// Returns a Dart [Frame] for a [JsLocation].
