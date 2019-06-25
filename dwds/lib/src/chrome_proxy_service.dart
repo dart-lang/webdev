@@ -267,7 +267,8 @@ require("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<InstanceSet> getInstances(String objectId, int limit) {
+  Future<InstanceSet> getInstances(
+      String isolateId, String classId, int limit) {
     throw UnimplementedError();
   }
 
@@ -313,7 +314,7 @@ require("dart_sdk").developer.invokeExtension(
   Future<VM> getVM() => Future.value(_vm);
 
   @override
-  Future<Timeline> getVMTimeline(int timeOriginMicros, int timeExtentMicros) {
+  Future<Timeline> getVMTimeline({int timeOriginMicros, int timeExtentMicros}) {
     throw UnimplementedError();
   }
 
