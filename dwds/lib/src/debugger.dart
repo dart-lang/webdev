@@ -166,9 +166,6 @@ class Debugger extends Domain {
         DartUri(dartScript.uri, '${Uri.parse(_root).path}/garbage.dart');
     var location = _locationForDart(dartUri, line);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
-    if (location == null ) {
-      print("Cannot set breakpoint at $line, $column");
-    }
     if (location == null) return null;
     var jsBreakpointId = await _setBreakpoint(location);
     var dartBreakpoint = _dartBreakpoint(dartScript, location, isolate);
@@ -273,7 +270,7 @@ class Debugger extends Domain {
 
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
   /// [Frame]s.
-  List<Frame> _dartFramesFor(DebuggerPausedEvent e) {
+  Future<List<Frame>> _dartFramesFor(DebuggerPausedEvent e) async {
     var dartFrames = <Frame>[];
     var index = 0;
     for (var frame in e.params['callFrames']) {
@@ -287,10 +284,57 @@ class Debugger extends Domain {
       if (dartFrame != null) {
         dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
         dartFrame.index = index++;
+        dartFrame.vars =
+            await _variablesFor(frame['scopeChain'] as List<dynamic>);
         dartFrames.add(dartFrame);
       }
     }
     return dartFrames;
+  }
+
+
+  Future<List> getProperties(String id) async {
+    var response = await _tabConnection.runtime
+        .sendCommand('Runtime.getProperties', params: {
+      'objectId': id,
+      'ownProperties': true,
+    });
+    return response.result['result'] as List;
+  }
+
+
+  T _lookup<T>(dynamic actuallyAMap, String key) =>
+      (actuallyAMap as Map<String, dynamic>)[key] as T;
+
+  Future<List<BoundVariable>> _boundVariables(dynamic scope) async {
+    var foo =
+        await getProperties(scope['object']['objectId'] as String);
+// get one level of properties from this object, and everything else is another round trip.
+
+    // var bar = <String, dynamic>{};
+    // for (var thing in foo) {
+    //   bar[thing['name'] as String] = await getProperties(thing['value']['objectId'] as String);
+    // }
+    var variables = <BoundVariable>[];
+    for (var variable in foo) {
+      var value = inspector.flirp(variable['value'] as Map<String, dynamic>);
+      if (value != null) {
+      variables.add(BoundVariable()
+        ..name = variable['name'] as String
+        ..value = await inspector.flirp(variable['value'] as Map<String, dynamic>));
+      }
+    }
+    return variables;
+  }
+
+  Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
+    return [for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)];
+    //     const fullScopes = await Promise.all(groupPromises);
+    //     this.callFrame.debuggerModel.runtimeModel().releaseObjectGroup('completion');
+    //  var actualVariables
+    // // var scopes = scopeChain.map((each) => each['object']['value']);
+    // // return scopes.map((each) => inspector.flirp(each)).toList();
+    // return [];
   }
 
   /// Returns a Dart [Frame] for a [JsLocation].
@@ -337,7 +381,7 @@ class Debugger extends Domain {
       }
       event.kind = EventKind.kPauseInterrupted;
     }
-    var frames = _dartFramesFor(e);
+    var frames = await _dartFramesFor(e);
     _pausedStack = Stack()
       ..frames = frames
       ..messages = [];

@@ -143,8 +143,11 @@ function($argsString) {
             'scope': scope,
           });
     }
-    var remoteObject =
-        RemoteObject(result.result['result'] as Map<String, dynamic>);
+    return await flirp(result.result['result'] as Map<String, dynamic>);
+  }
+
+  Future<InstanceRef> flirp(Map<String, dynamic> thing) async {
+    var remoteObject = RemoteObject(thing);
 
     switch (remoteObject.type) {
       case 'string':
@@ -161,6 +164,8 @@ function($argsString) {
           // up the library for a given instance to create it though.
           // https://github.com/dart-lang/sdk/issues/36771.
           ..classRef = ClassRef();
+      case 'symbol':
+         return null;
       default:
         throw UnsupportedError(
             'Unsupported response type ${remoteObject.type}');

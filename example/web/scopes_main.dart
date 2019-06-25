@@ -18,6 +18,7 @@ var _libraryPrivate = ['library', 'private', 'variable'];
 
 void main() async {
   var local = 'local in main';
+  var intLocalInMain = 42;
 
   String nestedFunction(String parameter) {
     var another = int.tryParse(parameter);
@@ -31,7 +32,7 @@ void main() async {
   Timer.periodic(Duration(seconds: 1), (Timer t) {
     var ticks = t.tick;
     libraryPublicFinal.printCount();
-    print('ticking... $ticks');
+    print('ticking... $ticks (the answer is $intLocalInMain)');
   });
 
   document.body.append(SpanElement()..text = 'Exercising some scopes');
