@@ -19,6 +19,7 @@ var _libraryPrivate = ['library', 'private', 'variable'];
 void main() async {
   var local = 'local in main';
   var intLocalInMain = 42;
+  var testClass = MyTestClass();
 
   String nestedFunction(String parameter) {
     var another = int.tryParse(parameter);
@@ -33,6 +34,7 @@ void main() async {
     var ticks = t.tick;
     libraryPublicFinal.printCount();
     print('ticking... $ticks (the answer is $intLocalInMain)');
+    print(nestedFunction('$ticks ${testClass.message}'));
   });
 
   document.body.append(SpanElement()..text = 'Exercising some scopes');
@@ -41,8 +43,6 @@ void main() async {
   print(_libraryPrivate);
   print(nestedFunction(_libraryPrivate.first));
   print(nestedWithClosure(_libraryPrivate.first)());
-
-
 }
 
 class MyTestClass {

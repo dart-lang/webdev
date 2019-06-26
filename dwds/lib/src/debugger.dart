@@ -291,31 +291,31 @@ class Debugger extends Domain {
     return dartFrames;
   }
 
-    Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
-    // TODO: Much better logic for which frames to use.
+  /// The variables visible in a frame in Dart protocol BoundVariable form.
+  Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
+    // TODO: Much better logic for which frames to use. This is probably just
+    // the dynamically visible variables, so we should omit library scope.
     return [
       for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)
     ];
   }
 
-  Future<List<BoundVariable>> _boundVariables(dynamic scope) async {
+  /// The [BoundVariable]s visible in a v8 'scope' object as found in the
+  /// 'scopeChain' field of the 'callFrames' in a DebuggerPausedEvent.
+  Future<Iterable<BoundVariable>> _boundVariables(dynamic scope) async {
     var properties = await getProperties(scope['object']['objectId'] as String);
-    // We get one level of properties from this object. Sub-properties are
+    // We return one level of properties from this object. Sub-properties are
     // another round trip.
-    
-    var variables = <BoundVariable>[];
-    for (var property in properties) {
-      var value = inspector.flirp(property.value);
-      if (value != null) {
-        variables.add(BoundVariable()
+    var refs = properties
+        .map<Future<BoundVariable>>((property) async => BoundVariable()
           ..name = property.name
-          ..value =
-              await inspector.flirp(property.value));
-      }
-    }
-    return variables;
+          ..value = await inspector.instanceRefFor(property.value));
+    var resolved = await Future.wait(refs);
+    return resolved;
   }
 
+  /// Calls the Chrome Runtime.getProperties API for the object
+  /// with [id].
   Future<List<Property>> getProperties(String id) async {
     var response = await _tabConnection.runtime
         .sendCommand('Runtime.getProperties', params: {
@@ -328,9 +328,6 @@ class Debugger extends Domain {
         .toList();
     return properties;
   }
-
-
-
 
   /// Returns a Dart [Frame] for a [JsLocation].
   Frame _frameFor(JsLocation jsLocation) {

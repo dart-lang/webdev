@@ -159,7 +159,12 @@ function($argsString) {
         RemoteObject(result.result['result'] as Map<String, dynamic>));
   }
 
+  /// Create an [InstanceRef] for the given Chrome [remoteObject].
   Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) async {
+    // If we have a null result, treat it as a reference to null.
+    if (remoteObject == null) {
+      return _primitiveInstance(InstanceKind.kNull, remoteObject);
+    }
     switch (remoteObject.type) {
       case 'string':
         return _primitiveInstance(InstanceKind.kString, remoteObject);
@@ -168,7 +173,8 @@ function($argsString) {
       case 'boolean':
         return _primitiveInstance(InstanceKind.kBool, remoteObject);
       case 'object':
-        var toString = 'toString placeholder';
+        // TODO: Actual toString()
+        var toString = 'Placeholder for toString() result';
         var truncated = toString.substring(0, math.min(100, toString.length));
         return InstanceRef()
           ..kind = InstanceKind.kPlainInstance
@@ -179,11 +185,13 @@ function($argsString) {
           // up the library for a given instance to create it though.
           // https://github.com/dart-lang/sdk/issues/36771.
           ..classRef = ClassRef();
-      case 'symbol':
-        return null;
       default:
-        throw UnsupportedError(
-            'Unsupported response type ${remoteObject.type}');
+        // Return unsupported types as a String placeholder for now.
+        var unsupported = RemoteObject({
+          'type': 'String',
+          'value': 'Unsupported type:${remoteObject.type} (${remoteObject.description})'
+        });
+        return _primitiveInstance(InstanceKind.kString, unsupported);
     }
   }
 
@@ -206,33 +214,34 @@ function($argsString) {
     if (clazz != null) return clazz;
     var scriptRef = _scriptRefs[objectId];
     if (scriptRef != null) return await _getScript(isolateId, scriptRef);
-    return _instance(objectId);
+    return _instanceFor(objectId);
   }
 
-  Future<Instance> _instance(String objectId) async {
-      var arguments = [{'objectId': objectId}];
-      var expression = '''
+  Future<Instance> _instanceFor(String objectId) async {
+    var arguments = [
+      {'objectId': objectId}
+    ];
+    var expression = '''
       function (foo) {
           let dart = require('dart_sdk').dart;
           let fields = dart.getFields(dart.getType(foo));
-          let names = dart.getOwnPropertySymbols(fields);
+          let names = dart.getOwnNamesAndSymbols(fields);
           return dart.getType(foo).name + ',' + names.join(',');
           }''';
-      var fields = await _tabConnection.runtime
-          .sendCommand('Runtime.callFunctionOn', params: {
-        'functionDeclaration': expression,
-        'arguments': arguments,
-        // TODO(jakemac): Use the executionContext instead, or possibly the
-        // library object. This will get weird if people try to use `this` in
-        // their expression.
-        'objectId': objectId,
-      });
-      var things = fields.result['value'].split(',');
-      var className = things.first;
-      var fieldNames = things.skip(1).toList();
-      var clazz = ClassRef()
-         ..name = className as String;
-        // ..fields = fieldNames.map((each) => FieldRef()..name=each));
+    var fields = await _tabConnection.runtime
+        .sendCommand('Runtime.callFunctionOn', params: {
+      'functionDeclaration': expression,
+      'arguments': arguments,
+      // TODO(jakemac): Use the executionContext instead, or possibly the
+      // library object. This will get weird if people try to use `this` in
+      // their expression.
+      'objectId': objectId,
+    });
+    var things = fields.result['value'].split(',');
+    var className = things.first;
+    var fieldNames = things.skip(1).toList();
+    var clazz = ClassRef()..name = className as String;
+    // ..fields = fieldNames.map((each) => FieldRef()..name=each));
 
     // var properties = await _debugger.getProperties(objectId);
     // var proto = properties.firstWhere((each) => each.name == '__proto__');
@@ -244,20 +253,19 @@ function($argsString) {
     // from the instance __proto.constructor.Symbol(libraryUri) will give me
     // the library URI. Then call constructLibrary?
     // dart.getType will get me the _proto_.constructor, and I can call dart.getFields on that
-    // If they're symbols, then I need to use Object.getOwnPropertySymbols(proto); 
+    // If they're symbols, then I need to use Object.getOwnPropertySymbols(proto);
     // see replNameLookup  and dart. /#####
 
     var instance = Instance()
       ..kind = InstanceKind.kPlainInstance
-       ..classRef = clazz
-       //getObject(  is the class property there???)  Or do we look it up in _classes?
-      ..fields = _instanceFields();
+      ..classRef = clazz;
+    //getObject(  is the class property there???)  Or do we look it up in _classes?
+    // ####   ..fields = _instanceFields();
     return instance;
   }
 
-  List<BoundField> _instanceFields(List<Property> properties) => properties
-      .map((each) => BoundField()..value = each.value)
-      .toList();
+  List<BoundField> _instanceFields(List<Property> properties) =>
+      properties.map((each) => BoundField()..value = each.value).toList();
 
   Future<Library> _constructLibrary(LibraryRef libraryRef) async {
     // Fetch information about all the classes in this library.
