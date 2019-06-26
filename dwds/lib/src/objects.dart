@@ -5,6 +5,8 @@ class Property {
 
   Property(this._map);
 
+  Map<String, dynamic> get rawData => _map;
+
   /// Remote object value in case of primitive values or JSON values (if it was
   /// requested). (optional)
   RemoteObject get value => RemoteObject(_map['value'] as Map<String, dynamic>);

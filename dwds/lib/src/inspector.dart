@@ -203,11 +203,48 @@ function($argsString) {
   }
 
   Future<Instance> _instance(String objectId) async {
-    var properties = await _debugger.getProperties(objectId);
+      var arguments = [{'objectId': objectId}];
+      var expression = '''
+      function (foo) {
+          let dart = require('dart_sdk').dart;
+          let fields = dart.getFields(dart.getType(foo));
+          let names = dart.getOwnPropertySymbols(fields);
+          return dart.getType(foo).name + ',' + names.join(',');
+          }''';
+      var fields = await _tabConnection.runtime
+          .sendCommand('Runtime.callFunctionOn', params: {
+        'functionDeclaration': expression,
+        'arguments': arguments,
+        // TODO(jakemac): Use the executionContext instead, or possibly the
+        // library object. This will get weird if people try to use `this` in
+        // their expression.
+        'objectId': objectId,
+      });
+      var things = fields.result['value'].split(',');
+      var className = things.first;
+      var fieldNames = things.skip(1).toList();
+      var clazz = ClassRef()
+         ..name = className as String;
+        // ..fields = fieldNames.map((each) => FieldRef()..name=each));
+
+    // var properties = await _debugger.getProperties(objectId);
+    // var proto = properties.firstWhere((each) => each.name == '__proto__');
+    // var className = proto.rawData['value']['className'];
+    // var clazz = await _debugger.getProperties(proto.value.objectId);
+    // // print("class = $clazz");
+    // var clazzClazz = await _debugger.getProperties(clazz[0].rawData['value']['objectId'] as String);
+    // // print("class class = $clazzClazz");
+    // from the instance __proto.constructor.Symbol(libraryUri) will give me
+    // the library URI. Then call constructLibrary?
+    // dart.getType will get me the _proto_.constructor, and I can call dart.getFields on that
+    // If they're symbols, then I need to use Object.getOwnPropertySymbols(proto); 
+    // see replNameLookup  and dart. /#####
+
     var instance = Instance()
       ..kind = InstanceKind.kPlainInstance
-      //  ..classRef = getObject(  is the class property there???)  Or do we look it up in _classes?
-      ..fields = _instanceFields(properties);
+       ..classRef = clazz
+       //getObject(  is the class property there???)  Or do we look it up in _classes?
+      ..fields = _instanceFields(properties.cast<Property>());
     return instance;
   }
 

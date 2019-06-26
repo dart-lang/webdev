@@ -529,7 +529,7 @@ require("dart_sdk").developer.invokeExtension(
           // All inspected objects should be real objects.
           if (event.args[1].type != 'object') break;
 
-          var inspectee = InstanceRef()
+          var inspectee = InstanceRef()  // #### NEed to fix this
             ..kind = InstanceKind.kPlainInstance
             ..id = event.args[1].objectId
             // TODO(jakemac): Create a real ClassRef, we need a way of looking
