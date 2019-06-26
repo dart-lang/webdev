@@ -333,7 +333,7 @@ require("dart_sdk").developer.invokeExtension(
 
   @override
   Future invoke(String isolateId, String targetId, String selector,
-      List argumentIds,
+      List<String> argumentIds,
       {bool disableBreakpoints}) {
     throw UnimplementedError();
   }
@@ -529,7 +529,7 @@ require("dart_sdk").developer.invokeExtension(
           // All inspected objects should be real objects.
           if (event.args[1].type != 'object') break;
 
-          var inspectee = InstanceRef()  // #### NEed to fix this
+          var inspectee = InstanceRef()
             ..kind = InstanceKind.kPlainInstance
             ..id = event.args[1].objectId
             // TODO(jakemac): Create a real ClassRef, we need a way of looking

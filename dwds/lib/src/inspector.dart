@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'dart:math' as math show min;
+
 import 'package:path/path.dart' as p;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -53,9 +55,10 @@ class AppInspector extends Domain {
     this._debugger,
     this._root,
   )   : isolateRef = _toIsolateRef(isolate),
-        super(null);
+        super.forInspector();
 
   @override
+  /// We are the inspector, so this getter is trivial.
   AppInspector get inspector => this;
 
   Future<void> _initialize() async {
@@ -152,11 +155,11 @@ function($argsString) {
             'scope': scope,
           });
     }
-    return await flirp(
+    return await instanceRefFor(
         RemoteObject(result.result['result'] as Map<String, dynamic>));
   }
 
-  Future<InstanceRef> flirp(RemoteObject remoteObject) async {
+  Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) async {
     switch (remoteObject.type) {
       case 'string':
         return _primitiveInstance(InstanceKind.kString, remoteObject);
@@ -165,9 +168,13 @@ function($argsString) {
       case 'boolean':
         return _primitiveInstance(InstanceKind.kBool, remoteObject);
       case 'object':
+        var toString = 'toString placeholder';
+        var truncated = toString.substring(0, math.min(100, toString.length));
         return InstanceRef()
           ..kind = InstanceKind.kPlainInstance
           ..id = remoteObject.objectId
+          ..valueAsString = toString
+          ..valueAsStringIsTruncated = truncated.length != toString.length
           // TODO(jakemac): Create a real ClassRef, we need a way of looking
           // up the library for a given instance to create it though.
           // https://github.com/dart-lang/sdk/issues/36771.
@@ -244,7 +251,7 @@ function($argsString) {
       ..kind = InstanceKind.kPlainInstance
        ..classRef = clazz
        //getObject(  is the class property there???)  Or do we look it up in _classes?
-      ..fields = _instanceFields(properties.cast<Property>());
+      ..fields = _instanceFields();
     return instance;
   }
 

@@ -16,6 +16,10 @@ abstract class Domain {
 
   Domain(this._appInspectorProvider);
 
+  /// A constructor for the AppInspector to call which doesn't set
+  /// [_appInspectorProvider] as it's not used by the AppInspector.
+   Domain.forInspector();
+
   AppInspector get inspector => _appInspectorProvider();
 
   /// Validate that isolateId matches the current isolate we're connected to and
@@ -30,5 +34,4 @@ abstract class Domain {
     }
     return inspector.isolate;
   }
-  
 }

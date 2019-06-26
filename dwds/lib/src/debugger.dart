@@ -291,23 +291,18 @@ class Debugger extends Domain {
     return dartFrames;
   }
 
-  Future<List<Property>> getProperties(String id) async {
-    var response = await _tabConnection.runtime
-        .sendCommand('Runtime.getProperties', params: {
-      'objectId': id,
-      'ownProperties': true,
-    });
-    var jsProperties = response.result['result'];
-    var properties = (jsProperties as List)
-        .map<Property>((each) => Property(each as Map<String, dynamic>))
-        .toList();
-    return properties;
+    Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
+    // TODO: Much better logic for which frames to use.
+    return [
+      for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)
+    ];
   }
 
   Future<List<BoundVariable>> _boundVariables(dynamic scope) async {
     var properties = await getProperties(scope['object']['objectId'] as String);
-// get one level of properties from this object, and everything else is another round trip.
-
+    // We get one level of properties from this object. Sub-properties are
+    // another round trip.
+    
     var variables = <BoundVariable>[];
     for (var property in properties) {
       var value = inspector.flirp(property.value);
@@ -321,11 +316,21 @@ class Debugger extends Domain {
     return variables;
   }
 
-  Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
-    return [
-      for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)
-    ];
+  Future<List<Property>> getProperties(String id) async {
+    var response = await _tabConnection.runtime
+        .sendCommand('Runtime.getProperties', params: {
+      'objectId': id,
+      'ownProperties': true,
+    });
+    var jsProperties = response.result['result'];
+    var properties = (jsProperties as List)
+        .map<Property>((each) => Property(each as Map<String, dynamic>))
+        .toList();
+    return properties;
   }
+
+
+
 
   /// Returns a Dart [Frame] for a [JsLocation].
   Frame _frameFor(JsLocation jsLocation) {
