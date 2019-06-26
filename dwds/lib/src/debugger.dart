@@ -269,10 +269,10 @@ class Debugger extends Domain {
 
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
   /// [Frame]s.
-  Future<List<Frame>> _dartFramesFor(DebuggerPausedEvent e) async {
+  Future<List<Frame>> dartFramesFor(List<Map<String, dynamic>> frames) async {
     var dartFrames = <Frame>[];
     var index = 0;
-    for (var frame in e.params['callFrames']) {
+    for (var frame in frames) {
       var location = frame['location'];
       var functionName = frame['functionName'] as String ?? '';
       functionName = functionName.split('.').last;
@@ -373,7 +373,8 @@ class Debugger extends Domain {
       }
       event.kind = EventKind.kPauseInterrupted;
     }
-    var frames = await _dartFramesFor(e);
+    var frames = await dartFramesFor(
+        (e.params['callFrames'] as List).cast<Map<String, dynamic>>());
     _pausedStack = Stack()
       ..frames = frames
       ..messages = [];

@@ -493,6 +493,8 @@ void main() {
       // Resume the isolate to not impact other tests.
       await service.resume(isolateId);
     });
+
+    // #### Add some tests here 
   });
 
   test('getVM', () async {
