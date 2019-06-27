@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -147,12 +148,13 @@ class Debugger extends Domain {
     sources = Sources(_assetHandler);
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
-    _chromeDebugger.onScriptParsed.listen(sources.scriptParsed);
-    _chromeDebugger.onPaused.listen(_pauseHandler);
-    _chromeDebugger.onResumed.listen(_resumeHandler);
+    // Allow a null debugger/connection for unit tests.
+    _chromeDebugger?.onScriptParsed?.listen(sources.scriptParsed);
+    _chromeDebugger?.onPaused?.listen(_pauseHandler);
+    _chromeDebugger?.onResumed?.listen(_resumeHandler);
 
-    handleErrorIfPresent(await _tabConnection.page.enable() as WipResponse);
-    handleErrorIfPresent(await _chromeDebugger.enable() as WipResponse);
+    handleErrorIfPresent(await _tabConnection?.page?.enable() as WipResponse);
+    handleErrorIfPresent(await _chromeDebugger?.enable() as WipResponse);
   }
 
   /// Add a breakpoint at the given position.
@@ -272,6 +274,7 @@ class Debugger extends Domain {
   Future<List<Frame>> dartFramesFor(List<Map<String, dynamic>> frames) async {
     var dartFrames = <Frame>[];
     var index = 0;
+    print(json.encode(frames));
     for (var frame in frames) {
       var location = frame['location'];
       var functionName = frame['functionName'] as String ?? '';
@@ -295,6 +298,8 @@ class Debugger extends Domain {
   Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
     // TODO: Much better logic for which frames to use. This is probably just
     // the dynamically visible variables, so we should omit library scope.
+    // print(scopeChain); ####
+    // print(json.encode(scopeChain));
     return [
       for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)
     ];

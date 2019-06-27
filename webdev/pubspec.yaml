@@ -53,3 +53,22 @@ dev_dependencies:
 
 executables:
   webdev:
+
+dependency_overrides:
+  dwds:
+    path:
+      ../dwds
+  vm_service_lib:
+    path:
+      /usr/local/google/home/alanknight/dart/vm_service_drivers/dart
+  # devtools:
+  #   path:
+  #        /usr/local/google/home/alanknight/dart/devtools/packages/devtools
+  # webkit_inspection_protocol:
+  #   path: /usr/local/google/home/alanknight/dart/webkit_inspection_protocol.dart
+  # build_runner:
+  #   path:
+  #     /usr/local/google/home/alanknight/dart/build/build_runner
+  # build_daemon:
+  #   path:
+  #     /usr/local/google/home/alanknight/dart/build/build_daemon
