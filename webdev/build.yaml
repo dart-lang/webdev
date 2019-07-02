@@ -5,7 +5,7 @@ targets:
         options:
           compiler: dart2js
           dart2js_args:
-            - -O4
+            - -O0
         generate_for:
           - web/client.dart
       webdev|client_js_copy_builder:
