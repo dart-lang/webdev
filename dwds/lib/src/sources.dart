@@ -54,6 +54,8 @@ class Sources {
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = parse(sourceMapContents);
     if (mapping is SingleMapping) {
+      var serverPaths =
+          _sourceToServerPaths.putIfAbsent(script.url, () => Set());
       // Create TokenPos for each entry in the source map.
       for (var lineEntry in mapping.lines) {
         for (var entry in lineEntry.entries) {
@@ -66,20 +68,18 @@ class Sources {
             entry,
             dartUri,
           );
-          noteLocation(dartUri, location, script);
+          serverPaths.add(dartUri.serverPath);
+          noteLocation(dartUri.serverPath, location, script.scriptId);
         }
       }
     }
   }
 
   /// Add [location] to our lookups for both the Dart and JS scripts.
-  void noteLocation(DartUri dartUri, Location location, WipScript script) {
-    _sourceToLocation
-        .putIfAbsent(dartUri.serverPath, () => Set())
-        .add(location);
-    _scriptIdToLocation
-        .putIfAbsent(script.scriptId, () => Set())
-        .add(location);
+  void noteLocation(
+      String dartServerPath, Location location, String wipScriptId) {
+    _sourceToLocation.putIfAbsent(dartServerPath, () => Set()).add(location);
+    _scriptIdToLocation.putIfAbsent(wipScriptId, () => Set()).add(location);
   }
 
   /// Returns the tokenPosTable for the provided Dart script path as defined
