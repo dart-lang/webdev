@@ -10,16 +10,16 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:build_daemon/data/build_status.dart';
+import 'package:dwds/data/connect_request.dart';
+import 'package:dwds/data/devtools_request.dart';
+import 'package:dwds/data/isolate_events.dart';
+import 'package:dwds/data/run_request.dart';
+import 'package:dwds/data/serializers.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:path/path.dart' as p;
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
-import 'package:webdev/src/serve/data/connect_request.dart';
-import 'package:webdev/src/serve/data/devtools_request.dart';
-import 'package:webdev/src/serve/data/isolate_events.dart';
-import 'package:webdev/src/serve/data/run_request.dart';
-import 'package:webdev/src/serve/data/serializers.dart';
 
 import 'module.dart';
 import 'promise.dart';

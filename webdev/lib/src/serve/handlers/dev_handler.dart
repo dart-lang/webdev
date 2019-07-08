@@ -7,6 +7,11 @@ import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart';
+import 'package:dwds/data/connect_request.dart';
+import 'package:dwds/data/devtools_request.dart';
+import 'package:dwds/data/isolate_events.dart';
+import 'package:dwds/data/run_request.dart';
+import 'package:dwds/data/serializers.dart' as dwds;
 import 'package:dwds/service.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
@@ -16,11 +21,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../logging.dart';
 import '../chrome.dart';
-import '../data/connect_request.dart';
-import '../data/devtools_request.dart';
-import '../data/isolate_events.dart';
-import '../data/run_request.dart';
-import '../data/serializers.dart' as webdev;
 import '../debugger/app_debug_services.dart';
 import '../debugger/devtools.dart';
 import '../debugger/webdev_vm_client.dart';
@@ -97,10 +97,10 @@ class DevHandler {
     _connections.add(connection);
     String appId;
     connection.stream.listen((data) async {
-      var message = webdev.serializers.deserialize(jsonDecode(data));
+      var message = dwds.serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
         if (_devTools == null) {
-          connection.sink.add(jsonEncode(webdev.serializers.serialize(
+          connection.sink.add(jsonEncode(dwds.serializers.serialize(
               DevToolsResponse((b) => b
                 ..success = false
                 ..error =
@@ -109,7 +109,7 @@ class DevHandler {
           return;
         }
         if (appId != message.appId) {
-          connection.sink.add(jsonEncode(webdev.serializers.serialize(
+          connection.sink.add(jsonEncode(dwds.serializers.serialize(
               DevToolsResponse((b) => b
                 ..success = false
                 ..error =
@@ -125,7 +125,7 @@ class DevHandler {
               await loadAppServices(message.appId, message.instanceId);
         } catch (_) {
           connection.sink.add(
-              jsonEncode(webdev.serializers.serialize(DevToolsResponse((b) => b
+              jsonEncode(dwds.serializers.serialize(DevToolsResponse((b) => b
                 ..success = false
                 ..error = 'Webdev was unable to connect debug services to your '
                     'application. Most likely this means you are trying to '
@@ -138,7 +138,7 @@ class DevHandler {
         // instance of this app.
         if (appServices.connectedInstanceId != null &&
             appServices.connectedInstanceId != message.instanceId) {
-          connection.sink.add(jsonEncode(webdev.serializers.serialize(
+          connection.sink.add(jsonEncode(dwds.serializers.serialize(
               DevToolsResponse((b) => b
                 ..success = false
                 ..error =
@@ -157,7 +157,7 @@ class DevHandler {
               await loadAppServices(message.appId, message.instanceId);
         }
 
-        connection.sink.add(jsonEncode(webdev.serializers
+        connection.sink.add(jsonEncode(dwds.serializers
             .serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
@@ -261,7 +261,7 @@ class DevConnection {
   void runMain() {
     if (!_isStarted) {
       _connection.sink
-          .add(jsonEncode(webdev.serializers.serialize(RunRequest())));
+          .add(jsonEncode(dwds.serializers.serialize(RunRequest())));
     }
     _isStarted = true;
   }

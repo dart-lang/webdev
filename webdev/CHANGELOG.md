@@ -1,3 +1,7 @@
+## 2.3.0-dev
+
+- Depend on the latest `package:dwds`.
+
 ## 2.2.0
 
 - Added a `fullReload` service extension which performs a full page refresh.
