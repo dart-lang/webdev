@@ -31,8 +31,14 @@ class TestContext {
           'Could not start ChromeDriver. Is it installed?\nError: $e');
     }
 
-    webdev =
-        await Process.start('pub', ['run', 'webdev', 'serve', 'example:$port']);
+    webdev = await Process.start('pub', [
+      'run',
+      'webdev',
+      'serve',
+      'example:$port',
+      '--',
+      '--delete-conflicting-outputs'
+    ]);
     webdev.stderr
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
