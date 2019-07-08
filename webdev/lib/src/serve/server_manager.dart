@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:build_daemon/data/build_status.dart';
+import 'package:dwds/src/devtools.dart'; // ignore: implementation_imports
 
-import 'debugger/devtools.dart';
 import 'webdev_server.dart';
 
 /// Manages a set of [WebDevServer]s.

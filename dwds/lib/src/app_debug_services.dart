@@ -3,18 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:dwds/service.dart';
-// ignore: implementation_imports
-import 'package:dwds/src/chrome_proxy_service.dart' show ChromeProxyService;
 
-import '../../serve/chrome.dart';
-import '../debugger/webdev_vm_client.dart';
+import '../service.dart';
+import 'chrome_proxy_service.dart' show ChromeProxyService;
+import 'dwds_vm_client.dart';
 
 /// A container for all the services required for debugging an application.
 class AppDebugServices {
-  final Chrome chrome;
   final DebugService debugService;
-  final WebdevVmClient webdevClient;
+  final DwdsVmClient dwdsVmClient;
 
   ChromeProxyService get chromeProxyService =>
       debugService.chromeProxyService as ChromeProxyService;
@@ -24,8 +21,8 @@ class AppDebugServices {
   /// We only allow a given app to be debugged in a single tab at a time.
   String connectedInstanceId;
 
-  AppDebugServices(this.chrome, this.debugService, this.webdevClient);
+  AppDebugServices(this.debugService, this.dwdsVmClient);
 
   Future<void> close() =>
-      Future.wait([debugService.close(), webdevClient.close()]);
+      Future.wait([debugService.close(), dwdsVmClient.close()]);
 }

@@ -6,14 +6,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
+import 'package:dwds/src/devtools.dart'; // ignore: implementation_imports
+import 'package:dwds/src/handlers/asset_handler.dart'; // ignore: implementation_imports
+import 'package:dwds/src/handlers/dev_handler.dart'; // ignore: implementation_imports
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import '../command/configuration.dart';
-import 'debugger/devtools.dart';
-import 'handlers/asset_handler.dart';
-import 'handlers/dev_handler.dart';
+import '../logging.dart';
+import 'chrome.dart';
 import 'handlers/favicon_handler.dart';
 import 'middlewares/injected_middleware.dart';
 
@@ -71,6 +73,7 @@ class WebDevServer {
         .addMiddleware(interceptFavicon);
 
     var devHandler = DevHandler(
+      () async => (await Chrome.connectedInstance).chromeConnection,
       // Only provide relevant build results
       buildResults.asyncMap<BuildResult>((results) => results.results
           .firstWhere((result) => result.target == options.target)),
@@ -78,6 +81,7 @@ class WebDevServer {
       assetHandler,
       options.configuration.hostname,
       options.configuration.verbose,
+      logWriter,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
