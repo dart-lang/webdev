@@ -4,15 +4,15 @@
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:built_value/serializer.dart';
-import 'package:webdev/src/serve/data/isolate_events.dart';
 
 import 'connect_request.dart';
 import 'devtools_request.dart';
+import 'isolate_events.dart';
 import 'run_request.dart';
 
 part 'serializers.g.dart';
 
-/// Serializers for all the types used in webdev communication.
+/// Serializers for all the types used in DWDS communication.
 @SerializersFor([
   DevToolsRequest,
   DevToolsResponse,
