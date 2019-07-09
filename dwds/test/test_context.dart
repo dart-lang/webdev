@@ -20,13 +20,15 @@ class TestContext {
   WebDriver webDriver;
   Process chromeDriver;
   int port;
+
   /// The directory in which we run pub serve.
   String directory;
+
   /// The path to pass to webdev serve.
   String pathToServe;
+
   /// The path part of the application URL.
   String path;
-
 
   TestContext({this.directory, this.path = 'hello_world/index.html', this.pathToServe = 'example'});
 
@@ -68,7 +70,7 @@ class TestContext {
     var capabilities = Capabilities.chrome
       ..addAll({
         Capabilities.chromeOptions: {
-          'args': ['remote-debugging-port=$debugPort']
+          'args': ['remote-debugging-port=$debugPort', '--headless']
         }
       });
     webDriver =

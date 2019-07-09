@@ -42,6 +42,7 @@ void main() async {
   print(_libraryPrivate);
   print(nestedFunction(_libraryPrivate.first));
   print(nestedWithClosure(_libraryPrivate.first)());
+  testClass.methodWithVariables();
 }
 
 class MyTestClass {
