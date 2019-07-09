@@ -24,7 +24,7 @@ const _pauseModePauseStates = {
 };
 
 class Debugger extends Domain {
-  WipConnection _tabConnection;
+  final WipConnection _tabConnection;
 
   final AssetHandler _assetHandler;
   final StreamNotify _streamNotify;
@@ -49,7 +49,7 @@ class Debugger extends Domain {
 
   /// The breakpoints we have set so far, indexable by either
   /// Dart or JS ID.
-  _Breakpoints _breakpoints;
+  final _Breakpoints _breakpoints;
 
   /// Allocates Dart breakpoint IDs
   int _nextBreakpointId = 1;
