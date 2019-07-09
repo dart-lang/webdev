@@ -57,9 +57,6 @@ void main() {
     });
 
     test('can hot restart while paused', () async {
-      // TODO(sdk/issues/37364) - Remove once corresponding SDK issue is fixed.
-      if (Platform.isWindows) return;
-
       await fixture.buildAndLoad(['--debug']);
 
       await fixture.webdriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
@@ -102,7 +99,8 @@ void main() {
       expect(isolate.breakpoints.isEmpty, isTrue);
 
       await fixture.webdev.kill();
-    });
+      // TODO(sdk/issues/37364) - Remove once corresponding SDK issue is fixed.
+    }, skip: Platform.isWindows);
 
     test('can live reload changes ', () async {
       await fixture.buildAndLoad(['--auto=refresh']);
@@ -116,5 +114,5 @@ void main() {
 
       await fixture.webdev.kill();
     });
-  }, tags: ['webdriver']);
+  });
 }
