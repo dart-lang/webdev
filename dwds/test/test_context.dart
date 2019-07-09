@@ -6,6 +6,7 @@ import 'package:dwds/service.dart';
 import 'package:dwds/src/chrome_proxy_service.dart';
 import 'package:dwds/src/helpers.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -31,14 +32,9 @@ class TestContext {
           'Could not start ChromeDriver. Is it installed?\nError: $e');
     }
 
-    webdev = await Process.start('pub', [
-      'run',
-      'webdev',
-      'serve',
-      'example:$port',
-      '--',
-      '--delete-conflicting-outputs'
-    ]);
+    webdev = await Process.start(
+        'pub', ['run', 'webdev', 'serve', 'example:$port'],
+        workingDirectory: p.relative('../_test', from: Directory.current.path));
     webdev.stderr
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
