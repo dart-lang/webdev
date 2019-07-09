@@ -13,4 +13,4 @@ stages:
       - dartanalyzer: --fatal-warnings .
       dart: [2.3.2-dev.0.1]
   - unit_test:
-    - test: -j 1 --run-skipped
+    - test: -j 1
