@@ -175,6 +175,7 @@ function($argsString) {
       case 'object':
         // TODO: Actual toString()
         var toString = 'Placeholder for toString() result';
+        // TODO: Make the truncation consistent with the VM.
         var truncated = toString.substring(0, math.min(100, toString.length));
         return InstanceRef()
           ..kind = InstanceKind.kPlainInstance

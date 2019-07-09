@@ -292,7 +292,7 @@ class Debugger extends Domain {
     return dartFrames;
   }
 
-  /// The variables visible in a frame in Dart protocol BoundVariable form.
+  /// The variables visible in a frame in Dart protocol [BoundVariable] form.
   Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
     // TODO: Much better logic for which frames to use. This is probably just
     // the dynamically visible variables, so we should omit library scope.
@@ -304,7 +304,7 @@ class Debugger extends Domain {
   /// The [BoundVariable]s visible in a v8 'scope' object as found in the
   /// 'scopeChain' field of the 'callFrames' in a DebuggerPausedEvent.
   Future<Iterable<BoundVariable>> _boundVariables(dynamic scope) async {
-    var properties = await getProperties(scope['object']['objectId'] as String);
+    var properties = await _getProperties(scope['object']['objectId'] as String);
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
     var refs = properties
@@ -316,7 +316,7 @@ class Debugger extends Domain {
 
   /// Calls the Chrome Runtime.getProperties API for the object
   /// with [id].
-  Future<List<Property>> getProperties(String id) async {
+  Future<List<Property>> _getProperties(String id) async {
     var response = await _tabConnection.runtime
         .sendCommand('Runtime.getProperties', params: {
       'objectId': id,
