@@ -274,7 +274,6 @@ class Debugger extends Domain {
   Future<List<Frame>> dartFramesFor(List<Map<String, dynamic>> frames) async {
     var dartFrames = <Frame>[];
     var index = 0;
-    print(json.encode(frames));
     for (var frame in frames) {
       var location = frame['location'];
       var functionName = frame['functionName'] as String ?? '';
@@ -298,8 +297,6 @@ class Debugger extends Domain {
   Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
     // TODO: Much better logic for which frames to use. This is probably just
     // the dynamically visible variables, so we should omit library scope.
-    // print(scopeChain); ####
-    // print(json.encode(scopeChain));
     return [
       for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)
     ];
@@ -315,8 +312,7 @@ class Debugger extends Domain {
         .map<Future<BoundVariable>>((property) async => BoundVariable()
           ..name = property.name
           ..value = await inspector.instanceRefFor(property.value));
-    var resolved = await Future.wait(refs);
-    return resolved;
+    return Future.wait(refs);
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object
@@ -378,8 +374,9 @@ class Debugger extends Domain {
       }
       event.kind = EventKind.kPauseInterrupted;
     }
-    var frames = await dartFramesFor(
-        (e.params['callFrames'] as List).cast<Map<String, dynamic>>());
+    var jsFrames =
+        (e.params['callFrames'] as List).cast<Map<String, dynamic>>();
+    var frames = await dartFramesFor(jsFrames);
     _pausedStack = Stack()
       ..frames = frames
       ..messages = [];
