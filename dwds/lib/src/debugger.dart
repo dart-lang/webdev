@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';

@@ -86,7 +86,7 @@ List<Map<String, dynamic>> frames1 = [
 ];
 
 /// Data in the form returned from getProperties called twice on successive elements of a scope chain.
-/// 
+///
 /// It has two variables named 'a' and 'b' in the first scope.
 var variables1 = [
   WipResponse({

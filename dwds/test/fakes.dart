@@ -71,7 +71,6 @@ class FakeInspector extends Domain implements AppInspector {
   IsolateRef get isolateRef => null;
 }
 
-
 /// A stub for [WipRuntime].
 ///
 /// This allows you to specify a sequence of results that will be returned from

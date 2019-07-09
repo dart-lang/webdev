@@ -25,7 +25,7 @@ class Property {
 
   /// The name of the property
   String get name => _map['name'] as String;
-  
+
   @override
   String toString() => '$name $value';
 }

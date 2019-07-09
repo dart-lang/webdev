@@ -57,6 +57,7 @@ class AppInspector extends Domain {
         super.forInspector();
 
   @override
+
   /// We are the inspector, so this getter is trivial.
   AppInspector get inspector => this;
 
@@ -188,7 +189,8 @@ function($argsString) {
         // Return unsupported types as a String placeholder for now.
         var unsupported = RemoteObject({
           'type': 'String',
-          'value': 'Unsupported type:${remoteObject.type} (${remoteObject.description})'
+          'value':
+              'Unsupported type:${remoteObject.type} (${remoteObject.description})'
         });
         return _primitiveInstance(InstanceKind.kString, unsupported);
     }
