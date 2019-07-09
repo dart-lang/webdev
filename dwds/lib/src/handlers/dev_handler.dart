@@ -7,23 +7,21 @@ import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart';
-import 'package:dwds/data/connect_request.dart';
-import 'package:dwds/data/devtools_request.dart';
-import 'package:dwds/data/isolate_events.dart';
-import 'package:dwds/data/run_request.dart';
-import 'package:dwds/data/serializers.dart' as dwds;
-import 'package:dwds/service.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../logging.dart';
-import '../chrome.dart';
-import '../debugger/app_debug_services.dart';
-import '../debugger/devtools.dart';
-import '../debugger/webdev_vm_client.dart';
+import '../../data/connect_request.dart';
+import '../../data/devtools_request.dart';
+import '../../data/isolate_events.dart';
+import '../../data/run_request.dart';
+import '../../data/serializers.dart' as dwds;
+import '../../service.dart';
+import '../app_debug_services.dart';
+import '../devtools.dart';
+import '../dwds_vm_client.dart';
 import '../handlers/asset_handler.dart';
 
 /// SSE handler to enable development features like hot reload and
@@ -39,11 +37,20 @@ class DevHandler {
   final _servicesByAppId = <String, Future<AppDebugServices>>{};
   final Stream<BuildResult> buildResults;
   final bool _verbose;
+  final void Function(Level, String) _logWriter;
+  final Future<ChromeConnection> Function() _chromeConnection;
 
   Stream<DevConnection> get connectedApps => _connectedApps.stream;
 
-  DevHandler(this.buildResults, this._devTools, this._assetHandler,
-      this._hostname, this._verbose) {
+  DevHandler(
+    this._chromeConnection,
+    this.buildResults,
+    this._devTools,
+    this._assetHandler,
+    this._hostname,
+    this._verbose,
+    this._logWriter,
+  ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
   }
@@ -82,7 +89,7 @@ class DevHandler {
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
-              logWriter(Level.WARNING,
+              _logWriter(Level.WARNING,
                   'VmService proxy responded with an error:\n$response');
             }
           : null,
@@ -219,22 +226,21 @@ class DevHandler {
 
   Future<AppDebugServices> _createAppDebugServices(
       String appId, String instanceId) async {
-    var chrome = await Chrome.connectedInstance;
     var debugService =
-        await startDebugService(chrome.chromeConnection, instanceId);
-    logWriter(
+        await startDebugService(await _chromeConnection(), instanceId);
+    _logWriter(
         Level.INFO,
         'Debug service listening on '
         '${debugService.wsUri}\n');
 
-    var webdevClient = await WebdevVmClient.create(debugService);
-    var appServices = AppDebugServices(chrome, debugService, webdevClient);
+    var webdevClient = await DwdsVmClient.create(debugService);
+    var appServices = AppDebugServices(debugService, webdevClient);
 
     unawaited(
         appServices.chromeProxyService.tabConnection.onClose.first.then((_) {
       appServices.close();
       _servicesByAppId.remove(appId);
-      logWriter(
+      _logWriter(
           Level.INFO,
           'Stopped debug service on '
           'ws://${debugService.hostname}:${debugService.port}\n');

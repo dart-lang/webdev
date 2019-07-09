@@ -8,10 +8,10 @@ import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:dwds/service.dart';
+import 'package:dwds/src/app_debug_services.dart'; // ignore: implementation_imports
 import 'package:pedantic/pedantic.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
-import '../serve/debugger/app_debug_services.dart';
 import '../serve/server_manager.dart';
 import 'daemon.dart';
 import 'domain.dart';
@@ -24,7 +24,7 @@ class AppDomain extends Domain {
 
   DebugService get _debugService => _appDebugServices?.debugService;
 
-  VmService get _vmService => _appDebugServices?.webdevClient?.client;
+  VmService get _vmService => _appDebugServices?.dwdsVmClient?.client;
   StreamSubscription<BuildResult> _resultSub;
   StreamSubscription<Event> _stdOutSub;
   bool _isShutdown = false;
