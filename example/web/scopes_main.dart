@@ -5,7 +5,6 @@
 /// An example with more complicated scope
 
 import 'dart:async';
-//import 'dart:developer';
 import 'dart:html';
 
 final libraryPublicFinal = MyTestClass();
@@ -62,7 +61,7 @@ class MyTestClass {
 
   var count = 0;
 
-// An easy location to add a breakpoint.
+  // An easy location to add a breakpoint.
   void printCount() {
     print('The count is ${++count}');
   }

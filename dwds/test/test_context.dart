@@ -20,6 +20,15 @@ class TestContext {
   WebDriver webDriver;
   Process chromeDriver;
   int port;
+  /// The directory in which we run pub serve.
+  String directory;
+  /// The path to pass to webdev serve.
+  String pathToServe;
+  /// The path part of the application URL.
+  String path;
+
+
+  TestContext({this.directory, this.path = 'hello_world/index.html', this.pathToServe = 'example'});
 
   Future<void> setUp() async {
     port = await findUnusedPort();
@@ -35,10 +44,10 @@ class TestContext {
       'run',
       'webdev',
       'serve',
-      'example:$port',
+      '$pathToServe:$port',
       '--',
       '--delete-conflicting-outputs'
-    ]);
+    ], workingDirectory: directory);
     webdev.stderr
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
@@ -54,12 +63,12 @@ class TestContext {
       printOnFailure(line);
     });
     await assetReadyCompleter.future.timeout(Duration(seconds: 60));
-    appUrl = 'http://localhost:$port/hello_world/';
+    appUrl = 'http://localhost:$port/$path';
     var debugPort = await findUnusedPort();
     var capabilities = Capabilities.chrome
       ..addAll({
         Capabilities.chromeOptions: {
-          'args': ['remote-debugging-port=$debugPort', '--headless']
+          'args': ['remote-debugging-port=$debugPort']
         }
       });
     webDriver =
