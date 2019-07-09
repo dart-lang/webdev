@@ -39,8 +39,8 @@ for PKG in ${PKGS}; do
       pub run test || EXIT_CODE=$?
       ;;
     test_1)
-      echo 'pub run test -j 1 --run-skipped'
-      pub run test -j 1 --run-skipped || EXIT_CODE=$?
+      echo 'pub run test -j 1'
+      pub run test -j 1 || EXIT_CODE=$?
       ;;
     *)
       echo -e "\033[31mNot expecting TASK '${TASK}'. Error!\033[0m"

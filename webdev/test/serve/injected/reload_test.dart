@@ -114,5 +114,5 @@ void main() {
 
       await fixture.webdev.kill();
     });
-  }, tags: ['webdriver']);
+  });
 }

@@ -48,5 +48,5 @@ void main() {
         expect(await webdev.exitCode, equals(0));
       });
     });
-  }, tags: ['webdriver']);
+  });
 }
