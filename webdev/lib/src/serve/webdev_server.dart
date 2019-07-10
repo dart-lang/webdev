@@ -9,6 +9,7 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:dwds/src/devtools.dart'; // ignore: implementation_imports
 import 'package:dwds/src/handlers/asset_handler.dart'; // ignore: implementation_imports
 import 'package:dwds/src/handlers/dev_handler.dart'; // ignore: implementation_imports
+import 'package:dwds/src/handlers/injected_handler.dart'; // ignore: implementation_imports
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -17,7 +18,6 @@ import '../command/configuration.dart';
 import '../logging.dart';
 import 'chrome.dart';
 import 'handlers/favicon_handler.dart';
-import 'middlewares/injected_middleware.dart';
 
 class ServerOptions {
   final Configuration configuration;

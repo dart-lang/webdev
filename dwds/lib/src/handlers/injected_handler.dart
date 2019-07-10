@@ -21,7 +21,7 @@ const entrypointExtensionMarker = '/* ENTRYPOINT_EXTENTION_MARKER */';
 /// Marker placed by build_web_compilers for where to put injected JS code.
 const mainExtensionMarker = '/* MAIN_EXTENSION_MARKER */';
 
-const _clientScript = 'webdev/src/serve/injected/client';
+const _clientScript = 'dwds/src/injected/client';
 
 Handler Function(Handler) createInjectedHandler(
   ReloadConfiguration configuration,

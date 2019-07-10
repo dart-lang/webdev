@@ -4,12 +4,12 @@
 
 import 'dart:io';
 
+import 'package:dwds/src/handlers/injected_handler.dart';
+import 'package:dwds/src/injected/configuration.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
-import 'package:webdev/src/serve/injected/configuration.dart';
-import 'package:webdev/src/serve/middlewares/injected_middleware.dart';
 
 void main() {
   HttpServer server;

@@ -8,7 +8,7 @@ targets:
             - -O4
         generate_for:
           - web/client.dart
-      webdev|client_js_copy_builder:
+      dwds|client_js_copy_builder:
         enabled: true
 
 builders:
@@ -18,6 +18,6 @@ builders:
         - copyBuilder
     build_extensions:
       web/client.dart.js:
-        - lib/src/serve/injected/client.js
+        - lib/src/injected/client.js
     auto_apply: none
     build_to: source
