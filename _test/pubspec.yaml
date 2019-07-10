@@ -1,8 +1,8 @@
 name: _test
-# Every time this changes you need to run `pub run build_runner build`.
 version: 1.0.0
 description: >-
   A fake package used for testing
+publish_to: none
 
 environment:
   sdk: ">=2.3.2-dev.0.1 <3.0.0"

@@ -33,11 +33,11 @@ class TestContext {
     }
 
     await Process.run('pub', ['get'],
-        workingDirectory: p.relative('../_test', from: Directory.current.path));
+        workingDirectory: p.relative('../_test', from: p.current));
 
     webdev = await Process.start(
         'pub', ['run', 'webdev', 'serve', 'example:$port'],
-        workingDirectory: p.relative('../_test', from: Directory.current.path));
+        workingDirectory: p.relative('../_test', from: p.current));
     webdev.stderr
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
