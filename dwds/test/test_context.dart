@@ -32,6 +32,9 @@ class TestContext {
           'Could not start ChromeDriver. Is it installed?\nError: $e');
     }
 
+    await Process.run('pub', ['get'],
+        workingDirectory: p.relative('../_test', from: Directory.current.path));
+
     webdev = await Process.start(
         'pub', ['run', 'webdev', 'serve', 'example:$port'],
         workingDirectory: p.relative('../_test', from: Directory.current.path));

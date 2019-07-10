@@ -26,6 +26,7 @@ dependencies:
 dev_dependencies:
   args: ^1.0.0
   build_runner: ^1.0.0
+  build_web_compilers: '>=1.0.0 <3.0.0'
   built_value_generator: ^6.4.0
   graphs: ^0.2.0
   js: ^0.6.1
