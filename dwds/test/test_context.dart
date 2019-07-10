@@ -35,8 +35,8 @@ class TestContext {
       {String directory,
       this.path = 'hello_world/index.html',
       this.pathToServe = 'example'}) {
-       this.directory = directory ?? p.relative('../_test', from: p.current);
-      }
+    this.directory = directory ?? p.relative('../_test', from: p.current);
+  }
 
   Future<void> setUp() async {
     port = await findUnusedPort();
@@ -48,8 +48,7 @@ class TestContext {
           'Could not start ChromeDriver. Is it installed?\nError: $e');
     }
 
-    await Process.run('pub', ['get'],
-        workingDirectory: directory);
+    await Process.run('pub', ['get'], workingDirectory: directory);
 
     webdev = await Process.start(
         'pub', ['run', 'webdev', 'serve', '$pathToServe:$port'],
