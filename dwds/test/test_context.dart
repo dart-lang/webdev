@@ -22,6 +22,22 @@ class TestContext {
   Process chromeDriver;
   int port;
 
+  /// The directory in which we run pub serve.
+  String directory;
+
+  /// The path to pass to webdev serve.
+  String pathToServe;
+
+  /// The path part of the application URL.
+  String path;
+
+  TestContext(
+      {String directory,
+      this.path = 'hello_world/index.html',
+      this.pathToServe = 'example'}) {
+    this.directory = directory ?? p.relative('../_test', from: p.current);
+  }
+
   Future<void> setUp() async {
     port = await findUnusedPort();
     try {
@@ -32,12 +48,11 @@ class TestContext {
           'Could not start ChromeDriver. Is it installed?\nError: $e');
     }
 
-    await Process.run('pub', ['get'],
-        workingDirectory: p.relative('../_test', from: p.current));
+    await Process.run('pub', ['get'], workingDirectory: directory);
 
     webdev = await Process.start(
-        'pub', ['run', 'webdev', 'serve', 'example:$port'],
-        workingDirectory: p.relative('../_test', from: p.current));
+        'pub', ['run', 'webdev', 'serve', '$pathToServe:$port'],
+        workingDirectory: directory);
     webdev.stderr
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
@@ -53,7 +68,7 @@ class TestContext {
       printOnFailure(line);
     });
     await assetReadyCompleter.future.timeout(Duration(seconds: 60));
-    appUrl = 'http://localhost:$port/hello_world/';
+    appUrl = 'http://localhost:$port/$path';
     var debugPort = await findUnusedPort();
     var capabilities = Capabilities.chrome
       ..addAll({

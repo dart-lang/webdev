@@ -11,6 +11,7 @@ import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
 import 'domain.dart';
 import 'location.dart';
+import 'objects.dart';
 import 'sources.dart';
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
@@ -146,12 +147,13 @@ class Debugger extends Domain {
     sources = Sources(_assetHandler);
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
-    _chromeDebugger.onScriptParsed.listen(sources.scriptParsed);
-    _chromeDebugger.onPaused.listen(_pauseHandler);
-    _chromeDebugger.onResumed.listen(_resumeHandler);
+    // Allow a null debugger/connection for unit tests.
+    _chromeDebugger?.onScriptParsed?.listen(sources.scriptParsed);
+    _chromeDebugger?.onPaused?.listen(_pauseHandler);
+    _chromeDebugger?.onResumed?.listen(_resumeHandler);
 
-    handleErrorIfPresent(await _tabConnection.page.enable() as WipResponse);
-    handleErrorIfPresent(await _chromeDebugger.enable() as WipResponse);
+    handleErrorIfPresent(await _tabConnection?.page?.enable() as WipResponse);
+    handleErrorIfPresent(await _chromeDebugger?.enable() as WipResponse);
   }
 
   /// Add a breakpoint at the given position.
@@ -268,10 +270,10 @@ class Debugger extends Domain {
 
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
   /// [Frame]s.
-  List<Frame> _dartFramesFor(DebuggerPausedEvent e) {
+  Future<List<Frame>> dartFramesFor(List<Map<String, dynamic>> frames) async {
     var dartFrames = <Frame>[];
     var index = 0;
-    for (var frame in e.params['callFrames']) {
+    for (var frame in frames) {
       var location = frame['location'];
       var functionName = frame['functionName'] as String ?? '';
       functionName = functionName.split('.').last;
@@ -282,10 +284,50 @@ class Debugger extends Domain {
       if (dartFrame != null) {
         dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
         dartFrame.index = index++;
+        dartFrame.vars =
+            await _variablesFor(frame['scopeChain'] as List<dynamic>);
         dartFrames.add(dartFrame);
       }
     }
     return dartFrames;
+  }
+
+  /// The variables visible in a frame in Dart protocol [BoundVariable] form.
+  Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
+    // TODO: Much better logic for which frames to use. This is probably just
+    // the dynamically visible variables, so we should omit library scope.
+    return [
+      for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)
+    ];
+  }
+
+  /// The [BoundVariable]s visible in a v8 'scope' object as found in the
+  /// 'scopeChain' field of the 'callFrames' in a DebuggerPausedEvent.
+  Future<Iterable<BoundVariable>> _boundVariables(dynamic scope) async {
+    var properties =
+        await _getProperties(scope['object']['objectId'] as String);
+    // We return one level of properties from this object. Sub-properties are
+    // another round trip.
+    var refs = properties
+        .map<Future<BoundVariable>>((property) async => BoundVariable()
+          ..name = property.name
+          ..value = await inspector.instanceRefFor(property.value));
+    return Future.wait(refs);
+  }
+
+  /// Calls the Chrome Runtime.getProperties API for the object
+  /// with [id].
+  Future<List<Property>> _getProperties(String id) async {
+    var response = await _tabConnection.runtime
+        .sendCommand('Runtime.getProperties', params: {
+      'objectId': id,
+      'ownProperties': true,
+    });
+    var jsProperties = response.result['result'];
+    var properties = (jsProperties as List)
+        .map<Property>((each) => Property(each as Map<String, dynamic>))
+        .toList();
+    return properties;
   }
 
   /// Returns a Dart [Frame] for a [JsLocation].
@@ -332,7 +374,9 @@ class Debugger extends Domain {
       }
       event.kind = EventKind.kPauseInterrupted;
     }
-    var frames = _dartFramesFor(e);
+    var jsFrames =
+        (e.params['callFrames'] as List).cast<Map<String, dynamic>>();
+    var frames = await dartFramesFor(jsFrames);
     _pausedStack = Stack()
       ..frames = frames
       ..messages = [];

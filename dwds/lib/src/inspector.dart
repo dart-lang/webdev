@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'dart:math' as math show min;
+
 import 'package:path/path.dart' as p;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -9,6 +11,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
 import 'debugger.dart';
+import 'domain.dart';
 import 'helpers.dart';
 
 /// An inspector for a running Dart application contained in the
@@ -16,7 +19,7 @@ import 'helpers.dart';
 ///
 /// Provides information about currently loaded scripts and objects and support
 /// for eval.
-class AppInspector {
+class AppInspector extends Domain {
   /// Map of class ID to [Class].
   final _classes = <String, Class>{};
 
@@ -50,7 +53,13 @@ class AppInspector {
     this._assetHandler,
     this._debugger,
     this._root,
-  ) : isolateRef = _toIsolateRef(isolate);
+  )   : isolateRef = _toIsolateRef(isolate),
+        super.forInspector();
+
+  @override
+
+  /// We are the inspector, so this getter is trivial.
+  AppInspector get inspector => this;
 
   Future<void> _initialize() async {
     isolate.libraries.addAll(await _getLibraryRefs());
@@ -146,9 +155,16 @@ function($argsString) {
             'scope': scope,
           });
     }
-    var remoteObject =
-        RemoteObject(result.result['result'] as Map<String, dynamic>);
+    return await instanceRefFor(
+        RemoteObject(result.result['result'] as Map<String, dynamic>));
+  }
 
+  /// Create an [InstanceRef] for the given Chrome [remoteObject].
+  Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) async {
+    // If we have a null result, treat it as a reference to null.
+    if (remoteObject == null) {
+      return _primitiveInstance(InstanceKind.kNull, remoteObject);
+    }
     switch (remoteObject.type) {
       case 'string':
         return _primitiveInstance(InstanceKind.kString, remoteObject);
@@ -157,16 +173,27 @@ function($argsString) {
       case 'boolean':
         return _primitiveInstance(InstanceKind.kBool, remoteObject);
       case 'object':
+        // TODO: Actual toString()
+        var toString = 'Placeholder for toString() result';
+        // TODO: Make the truncation consistent with the VM.
+        var truncated = toString.substring(0, math.min(100, toString.length));
         return InstanceRef()
           ..kind = InstanceKind.kPlainInstance
           ..id = remoteObject.objectId
+          ..valueAsString = toString
+          ..valueAsStringIsTruncated = truncated.length != toString.length
           // TODO(jakemac): Create a real ClassRef, we need a way of looking
           // up the library for a given instance to create it though.
           // https://github.com/dart-lang/sdk/issues/36771.
           ..classRef = ClassRef();
       default:
-        throw UnsupportedError(
-            'Unsupported response type ${remoteObject.type}');
+        // Return unsupported types as a String placeholder for now.
+        var unsupported = RemoteObject({
+          'type': 'String',
+          'value':
+              'Unsupported type:${remoteObject.type} (${remoteObject.description})'
+        });
+        return _primitiveInstance(InstanceKind.kString, unsupported);
     }
   }
 
@@ -189,7 +216,6 @@ function($argsString) {
     if (clazz != null) return clazz;
     var scriptRef = _scriptRefs[objectId];
     if (scriptRef != null) return await _getScript(isolateId, scriptRef);
-
     throw UnsupportedError(
         'Only libraries and classes are supported for getObject');
   }
@@ -350,10 +376,7 @@ function($argsString) {
 
   /// Returns all scripts in the isolate.
   Future<List<ScriptRef>> scriptRefs(String isolateId) async {
-    if (isolateId != isolate.id) {
-      throw ArgumentError.value(
-          isolateId, 'isolateId', 'Unrecognized isolate id');
-    }
+    checkIsolate(isolateId);
     var scripts = <ScriptRef>[];
     for (var lib in isolate.libraries) {
       // We can't provide the source for `dart:` imports so ignore for now.
