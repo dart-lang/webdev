@@ -25,5 +25,5 @@ class _CopyBuilder extends Builder {
   }
 }
 
-final _clientJsId = AssetId('webdev', 'web/client.dart.js');
-final _clientJsCopyId = AssetId('webdev', 'lib/src/serve/injected/client.js');
+final _clientJsId = AssetId('dwds', 'web/client.dart.js');
+final _clientJsCopyId = AssetId('dwds', 'lib/src/injected/client.js');
