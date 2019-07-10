@@ -18,7 +18,7 @@ abstract class Domain {
 
   /// A constructor for the AppInspector to call which doesn't set
   /// [_appInspectorProvider] as it's not used by the AppInspector.
-  Domain.forInspector();
+  Domain.forInspector() : _appInspectorProvider = null;
 
   AppInspector get inspector => _appInspectorProvider();
 
