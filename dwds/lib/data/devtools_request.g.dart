@@ -19,7 +19,7 @@ class _$DevToolsRequestSerializer
   final String wireName = 'DevToolsRequest';
 
   @override
-  Iterable serialize(Serializers serializers, DevToolsRequest object,
+  Iterable<Object> serialize(Serializers serializers, DevToolsRequest object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'appId',
@@ -34,7 +34,8 @@ class _$DevToolsRequestSerializer
   }
 
   @override
-  DevToolsRequest deserialize(Serializers serializers, Iterable serialized,
+  DevToolsRequest deserialize(
+      Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new DevToolsRequestBuilder();
 
@@ -67,7 +68,7 @@ class _$DevToolsResponseSerializer
   final String wireName = 'DevToolsResponse';
 
   @override
-  Iterable serialize(Serializers serializers, DevToolsResponse object,
+  Iterable<Object> serialize(Serializers serializers, DevToolsResponse object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'success',
@@ -84,7 +85,8 @@ class _$DevToolsResponseSerializer
   }
 
   @override
-  DevToolsResponse deserialize(Serializers serializers, Iterable serialized,
+  DevToolsResponse deserialize(
+      Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new DevToolsResponseBuilder();
 
