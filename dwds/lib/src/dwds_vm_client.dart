@@ -6,19 +6,18 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dwds/service.dart';
-// ignore: implementation_imports
-import 'package:dwds/src/chrome_proxy_service.dart' show ChromeProxyService;
 import 'package:vm_service_lib/vm_service_lib.dart';
+
+import 'chrome_proxy_service.dart' show ChromeProxyService;
 
 // A client of the vm service that registers some custom extensions like
 // hotRestart.
-class WebdevVmClient {
+class DwdsVmClient {
   final VmService client;
   final StreamController<Map<String, Object>> _requestController;
   final StreamController<Map<String, Object>> _responseController;
 
-  WebdevVmClient(
-      this.client, this._requestController, this._responseController);
+  DwdsVmClient(this.client, this._requestController, this._responseController);
 
   Future<void> close() async {
     await _requestController.close();
@@ -26,7 +25,7 @@ class WebdevVmClient {
     client.dispose();
   }
 
-  static Future<WebdevVmClient> create(DebugService debugService) async {
+  static Future<DwdsVmClient> create(DebugService debugService) async {
     // Set up hot restart as an extension.
     var requestController = StreamController<Map<String, Object>>();
     var responseController = StreamController<Map<String, Object>>();
@@ -76,7 +75,7 @@ class WebdevVmClient {
     });
     await client.registerService('ext.webdev.screenshot', 'WebDev');
 
-    return WebdevVmClient(client, requestController, responseController);
+    return DwdsVmClient(client, requestController, responseController);
   }
 }
 

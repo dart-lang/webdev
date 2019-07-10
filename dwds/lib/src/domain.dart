@@ -12,7 +12,7 @@ import 'inspector.dart';
 ///
 /// Subclasses should call the super constructor with the AppInspectorProvider.
 abstract class Domain {
-  AppInspectorProvider _appInspectorProvider;
+  final AppInspectorProvider _appInspectorProvider;
 
   Domain(this._appInspectorProvider);
 

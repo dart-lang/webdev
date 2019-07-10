@@ -1,6 +1,7 @@
 ## 0.4.0-dev
 
 - Move `data` abstractions from `package:webdev` into `package:dwds`.
+- Move debugging related handlers from `package:webdev` into `package:dwds`.
 
 ## 0.3.3
 

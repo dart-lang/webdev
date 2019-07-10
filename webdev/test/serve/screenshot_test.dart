@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 1))
-@Tags(['webdriver'])
 import 'dart:io';
 
 import 'package:test/test.dart';

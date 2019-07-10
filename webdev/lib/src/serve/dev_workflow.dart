@@ -9,13 +9,13 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:build_daemon/data/server_log.dart';
+import 'package:dwds/src/devtools.dart'; // ignore: implementation_imports
 import 'package:logging/logging.dart' as logging;
 
 import '../command/configuration.dart';
 import '../daemon_client.dart';
 import '../logging.dart';
 import 'chrome.dart';
-import 'debugger/devtools.dart';
 import 'server_manager.dart';
 import 'webdev_server.dart';
 

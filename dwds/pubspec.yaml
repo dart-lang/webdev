@@ -10,6 +10,7 @@ environment:
   sdk: ">=2.3.2-dev.0.1 <3.0.0"
 
 dependencies:
+  devtools: ^0.1.0
   http: ^0.12.0
   http_multi_server: ^2.0.0
   path: ^1.6.0
@@ -30,3 +31,7 @@ dev_dependencies:
   test: ^1.6.0
   webdriver: ^2.0.0
   webdev: ^2.0.0
+
+dependency_overrides:
+  webdev:
+    path: ../webdev
