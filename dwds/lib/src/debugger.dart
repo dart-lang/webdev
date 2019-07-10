@@ -304,7 +304,8 @@ class Debugger extends Domain {
   /// The [BoundVariable]s visible in a v8 'scope' object as found in the
   /// 'scopeChain' field of the 'callFrames' in a DebuggerPausedEvent.
   Future<Iterable<BoundVariable>> _boundVariables(dynamic scope) async {
-    var properties = await _getProperties(scope['object']['objectId'] as String);
+    var properties =
+        await _getProperties(scope['object']['objectId'] as String);
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
     var refs = properties

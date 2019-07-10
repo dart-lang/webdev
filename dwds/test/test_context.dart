@@ -30,7 +30,10 @@ class TestContext {
   /// The path part of the application URL.
   String path;
 
-  TestContext({this.directory, this.path = 'hello_world/index.html', this.pathToServe = 'example'});
+  TestContext(
+      {this.directory,
+      this.path = 'hello_world/index.html',
+      this.pathToServe = 'example'});
 
   Future<void> setUp() async {
     port = await findUnusedPort();
@@ -42,14 +45,17 @@ class TestContext {
           'Could not start ChromeDriver. Is it installed?\nError: $e');
     }
 
-    webdev = await Process.start('pub', [
-      'run',
-      'webdev',
-      'serve',
-      '$pathToServe:$port',
-      '--',
-      '--delete-conflicting-outputs'
-    ], workingDirectory: directory);
+    webdev = await Process.start(
+        'pub',
+        [
+          'run',
+          'webdev',
+          'serve',
+          '$pathToServe:$port',
+          '--',
+          '--delete-conflicting-outputs'
+        ],
+        workingDirectory: directory);
     webdev.stderr
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
