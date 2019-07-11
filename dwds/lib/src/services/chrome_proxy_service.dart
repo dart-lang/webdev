@@ -567,6 +567,7 @@ const _stdoutTypes = ['log', 'info', 'warning'];
 /// result.
 void handleErrorIfPresent(WipResponse response,
     {String evalContents, Object additionalDetails}) {
+  if (response == null) return;
   if (response.result.containsKey('exceptionDetails')) {
     throw ChromeDebugException(
         response.result['exceptionDetails'] as Map<String, dynamic>,

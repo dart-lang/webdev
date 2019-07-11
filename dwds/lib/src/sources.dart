@@ -69,15 +69,17 @@ class Sources {
             dartUri,
           );
           serverPaths.add(dartUri.serverPath);
-          _sourceToLocation
-              .putIfAbsent(dartUri.serverPath, () => Set())
-              .add(location);
-          _scriptIdToLocation
-              .putIfAbsent(script.scriptId, () => Set())
-              .add(location);
+          noteLocation(dartUri.serverPath, location, script.scriptId);
         }
       }
     }
+  }
+
+  /// Add [location] to our lookups for both the Dart and JS scripts.
+  void noteLocation(
+      String dartServerPath, Location location, String wipScriptId) {
+    _sourceToLocation.putIfAbsent(dartServerPath, () => Set()).add(location);
+    _scriptIdToLocation.putIfAbsent(wipScriptId, () => Set()).add(location);
   }
 
   /// Returns the tokenPosTable for the provided Dart script path as defined

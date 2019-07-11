@@ -466,8 +466,10 @@ void main() {
       expect(await service.getStack(isolateId), isNull);
     });
 
-    test('returns stack when broken', () async {
-      var bp = await service.addBreakpoint(isolateId, mainScript.id, 63);
+    /// Support function for pausing and returning the stack at a line.
+    Future<Stack> breakAt(int lineNumber) async {
+      var bp =
+          await service.addBreakpoint(isolateId, mainScript.id, lineNumber);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -476,12 +478,32 @@ void main() {
       var stack = await service.getStack(isolateId);
       // Resume as to not impact other tests.
       await service.resume(isolateId);
+      return stack;
+    }
+
+    test('returns stack when broken', () async {
+      var stack = await breakAt(63);
       expect(stack, isNotNull);
       expect(stack.frames.length, 2);
       var first = stack.frames.first;
       expect(first.kind, 'Regular');
       expect(first.code.kind, 'Dart');
       expect(first.code.name, 'printCount');
+    });
+
+    test('stack has a variable', () async {
+      var stack = await breakAt(49);
+      expect(stack, isNotNull);
+      expect(stack.frames.length, 1);
+      var first = stack.frames.first;
+      expect(first.kind, 'Regular');
+      expect(first.code.kind, 'Dart');
+      expect(first.code.name, '<closure>');
+      // TODO: Make this more precise once this case doesn't
+      // also include all the libraries.
+      expect(first.vars.length, greaterThanOrEqualTo(1));
+      var underscore = first.vars.firstWhere((v) => v.name == '_');
+      expect(underscore, isNotNull);
     });
 
     test('returns non-empty stack when paused', () async {
