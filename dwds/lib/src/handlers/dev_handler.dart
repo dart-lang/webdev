@@ -106,7 +106,14 @@ class DevHandler {
     connection.stream.listen((data) async {
       var message = dwds.serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
-        if (_devTools == null) return;
+        if (_devTools == null) {
+          connection.sink.add(
+              jsonEncode(dwds.serializers.serialize(DevToolsResponse((b) => b
+                ..success = false
+                ..error = 'Debugging is not enabled.\n\n'
+                    'If you are using webdev please pass the --debug flag.'))));
+          return;
+        }
 
         if (appId != message.appId) {
           connection.sink.add(jsonEncode(dwds.serializers.serialize(
