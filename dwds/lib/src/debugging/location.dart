@@ -4,7 +4,7 @@
 
 import 'package:source_maps/parser.dart';
 
-import 'dart_uri.dart';
+import '../utilities/dart_uri.dart';
 
 var _startTokenId = 1337;
 
