@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
-import 'package:dwds/src/injected/configuration.dart'; // ignore: implementation_imports
+import 'package:dwds/dwds.dart';
 import 'package:logging/logging.dart';
 
 import '../logging.dart';
