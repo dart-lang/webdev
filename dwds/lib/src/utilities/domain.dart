@@ -4,8 +4,8 @@
 
 import 'package:vm_service_lib/vm_service_lib.dart';
 
-import 'inspector.dart';
-import 'services/chrome_proxy_service.dart';
+import '../debugging/inspector.dart';
+import '../services/chrome_proxy_service.dart';
 
 /// A common superclass to allow implementations of different parts of the
 /// protocol to get access to the inspector and utility functions.

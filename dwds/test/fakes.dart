@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/utilities/domain.dart';
+
 /// A library of fake/stub implementations of our classes and their supporting
 /// classes (e.g. WipConnection) for unit testing.
 import 'package:vm_service_lib/vm_service_lib.dart';
-
-import 'package:dwds/src/domain.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-import 'package:dwds/src/inspector.dart';
 
 class FakeWipConnection implements WipConnection {
   @override

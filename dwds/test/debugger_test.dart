@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
-import 'package:dwds/src/debugger.dart';
-import 'package:dwds/src/dart_uri.dart';
-import 'package:dwds/src/inspector.dart';
-import 'package:dwds/src/location.dart';
+import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/location.dart';
 
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
