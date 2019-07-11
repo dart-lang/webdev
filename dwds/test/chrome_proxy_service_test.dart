@@ -15,7 +15,7 @@ import 'package:test/test.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'test_context.dart';
+import 'fixtures/context.dart';
 
 final context = TestContext();
 ChromeProxyService get service => context.chromeProxyService;

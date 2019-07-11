@@ -2,18 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/dart_uri.dart';
 @TestOn('vm')
 import 'package:dwds/src/debugger.dart';
-import 'package:dwds/src/dart_uri.dart';
 import 'package:dwds/src/inspector.dart';
 import 'package:dwds/src/location.dart';
-
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
 
-import 'debugger_data.dart';
-import 'fakes.dart';
-import 'test_context.dart';
+import 'fixtures/context.dart';
+import 'fixtures/debugger_data.dart';
+import 'fixtures/fakes.dart';
 
 final context = TestContext();
 AppInspector inspector;

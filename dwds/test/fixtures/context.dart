@@ -1,7 +1,14 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
+import 'package:build_daemon/client.dart';
+import 'package:build_daemon/data/build_status.dart';
+import 'package:build_daemon/data/build_target.dart';
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/helpers.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/debug_service.dart';
@@ -11,21 +18,25 @@ import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'server.dart';
+import 'utilities.dart';
+
 class TestContext {
   String appUrl;
   DebugService debugService;
   ChromeProxyService get chromeProxyService =>
       debugService.chromeProxyService as ChromeProxyService;
   WipConnection tabConnection;
-  Process webdev;
+  TestServer testServer;
+  BuildDaemonClient daemonClient;
   WebDriver webDriver;
   Process chromeDriver;
   int port;
 
-  /// The directory in which we run pub serve.
-  String directory;
+  /// Top level directory in which we run the test server..
+  String workingDirectory;
 
-  /// The path to pass to webdev serve.
+  /// The path to build and serve.
   String pathToServe;
 
   /// The path part of the application URL.
@@ -35,7 +46,8 @@ class TestContext {
       {String directory,
       this.path = 'hello_world/index.html',
       this.pathToServe = 'example'}) {
-    this.directory = directory ?? p.relative('../_test', from: p.current);
+    workingDirectory = p.normalize(
+        p.absolute(directory ?? p.relative('../_test', from: p.current)));
   }
 
   Future<void> setUp() async {
@@ -48,26 +60,28 @@ class TestContext {
           'Could not start ChromeDriver. Is it installed?\nError: $e');
     }
 
-    await Process.run('pub', ['get'], workingDirectory: directory);
+    await Process.run('pub', ['get'], workingDirectory: workingDirectory);
 
-    webdev = await Process.start(
-        'pub', ['run', 'webdev', 'serve', '$pathToServe:$port'],
-        workingDirectory: directory);
-    webdev.stderr
-        .transform(const Utf8Decoder())
-        .transform(const LineSplitter())
-        .listen(print);
-    var assetReadyCompleter = Completer();
-    webdev.stdout
-        .transform(const Utf8Decoder())
-        .transform(const LineSplitter())
-        .listen((line) {
-      if (line.contains('$port') && !assetReadyCompleter.isCompleted) {
-        assetReadyCompleter.complete();
-      }
-      printOnFailure(line);
-    });
-    await assetReadyCompleter.future.timeout(Duration(seconds: 60));
+    daemonClient = await connectClient(
+        workingDirectory, [], (log) => printOnFailure(log.toString()));
+    testServer = await TestServer.start(
+      'localhost',
+      port,
+      daemonPort(workingDirectory),
+      pathToServe,
+      ReloadConfiguration.none,
+      false,
+      daemonClient.buildResults,
+    );
+    daemonClient.registerBuildTarget(
+        DefaultBuildTarget((b) => b..target = pathToServe));
+    daemonClient.startBuild();
+
+    await daemonClient.buildResults
+        .firstWhere((results) => results.results
+            .any((result) => result.status == BuildStatus.succeeded))
+        .timeout(Duration(seconds: 60));
+
     appUrl = 'http://localhost:$port/$path';
     var debugPort = await findUnusedPort();
     var capabilities = Capabilities.chrome
@@ -108,8 +122,8 @@ class TestContext {
   }
 
   Future<Null> tearDown() async {
-    webdev.kill();
-    await webdev.exitCode;
+    await daemonClient.close();
+    await testServer.stop();
     await webDriver?.quit();
     chromeDriver.kill();
   }
