@@ -6,18 +6,18 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
-import 'package:build_daemon/data/serializers.dart';
+import 'package:build_daemon/data/serializers.dart' as build_daemon;
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../app_connection.dart';
 import '../../data/connect_request.dart';
 import '../../data/devtools_request.dart';
 import '../../data/isolate_events.dart';
-import '../../data/serializers.dart' as dwds;
+import '../../data/serializers.dart';
+import '../connections/app_connection.dart';
 import '../devtools.dart';
 import '../dwds_vm_client.dart';
 import '../handlers/asset_handler.dart';
@@ -73,7 +73,8 @@ class DevHandler {
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;
     for (var connection in _connections) {
-      connection.sink.add(jsonEncode(serializers.serialize(result)));
+      connection.sink
+          .add(jsonEncode(build_daemon.serializers.serialize(result)));
     }
   }
 
@@ -104,20 +105,21 @@ class DevHandler {
     _connections.add(connection);
     String appId;
     connection.stream.listen((data) async {
-      var message = dwds.serializers.deserialize(jsonDecode(data));
+      var message = serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
         if (_devTools == null) {
-          connection.sink.add(
-              jsonEncode(dwds.serializers.serialize(DevToolsResponse((b) => b
+          connection.sink
+              .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
                 ..success = false
                 ..error = 'Debugging is not enabled.\n\n'
-                    'If you are using webdev please pass the --debug flag.'))));
+                    'If you are using webdev please pass the --debug flag.\n'
+                    'Otherwise check the docs for the tool you are using.'))));
           return;
         }
 
         if (appId != message.appId) {
-          connection.sink.add(jsonEncode(dwds.serializers.serialize(
-              DevToolsResponse((b) => b
+          connection.sink.add(jsonEncode(serializers.serialize(DevToolsResponse(
+              (b) => b
                 ..success = false
                 ..error =
                     'App ID has changed since the connection was established. '
@@ -131,8 +133,8 @@ class DevHandler {
           appServices =
               await loadAppServices(message.appId, message.instanceId);
         } catch (_) {
-          connection.sink.add(
-              jsonEncode(dwds.serializers.serialize(DevToolsResponse((b) => b
+          connection.sink
+              .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
                 ..success = false
                 ..error = 'Unable to connect debug services to your '
                     'application. Most likely this means you are trying to '
@@ -145,8 +147,8 @@ class DevHandler {
         // instance of this app.
         if (appServices.connectedInstanceId != null &&
             appServices.connectedInstanceId != message.instanceId) {
-          connection.sink.add(jsonEncode(dwds.serializers.serialize(
-              DevToolsResponse((b) => b
+          connection.sink.add(jsonEncode(serializers.serialize(DevToolsResponse(
+              (b) => b
                 ..success = false
                 ..error =
                     'This app is already being debugged in a different tab. '
@@ -164,8 +166,8 @@ class DevHandler {
               await loadAppServices(message.appId, message.instanceId);
         }
 
-        connection.sink.add(jsonEncode(dwds.serializers
-            .serialize(DevToolsResponse((b) => b..success = true))));
+        connection.sink.add(jsonEncode(
+            serializers.serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
         await appServices.chromeProxyService.tabConnection

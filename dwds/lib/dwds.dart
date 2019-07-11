@@ -10,12 +10,15 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'app_connection.dart';
-import 'debug_connection.dart';
+import 'src/connections/app_connection.dart';
+import 'src/connections/debug_connection.dart';
 import 'src/devtools.dart';
 import 'src/handlers/asset_handler.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injected_handler.dart';
+
+export 'src/connections/app_connection.dart';
+export 'src/connections/debug_connection.dart';
 
 typedef LogWriter = void Function(Level, String);
 typedef ConnectionProvider = Future<ChromeConnection> Function();

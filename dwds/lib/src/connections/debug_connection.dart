@@ -6,9 +6,12 @@ import 'dart:async';
 
 import 'package:vm_service_lib/vm_service_lib.dart';
 
-import 'src/services/app_debug_services.dart';
+import '../services/app_debug_services.dart';
 
 /// A debug connection between the application in the browser and DWDS.
+///
+/// Supports debugging your running application through the Dart VM Service
+/// Protocol.
 class DebugConnection {
   final AppDebugServices _appDebugServices;
   final _onDoneCompleter = Completer();
@@ -19,10 +22,13 @@ class DebugConnection {
     });
   }
 
+  /// The port of the host Dart VM Service.
   int get port => _appDebugServices.debugService.port;
 
+  /// The websocket endpoint of the Dart VM Service.
   String get wsUri => _appDebugServices.debugService.wsUri;
 
+  /// A client of the Dart VM Service with DWDS specific extensions.
   VmService get vmService => _appDebugServices.dwdsVmClient.client;
 
   Future<void> close() async {
