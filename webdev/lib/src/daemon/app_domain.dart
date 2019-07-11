@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
-import 'package:dwds/debug_connection.dart';
+import 'package:dwds/dwds.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
