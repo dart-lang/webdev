@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/dart_uri.dart';
 @TestOn('vm')
+import 'package:dwds/src/dart_uri.dart';
 import 'package:dwds/src/debugger.dart';
 import 'package:dwds/src/inspector.dart';
 import 'package:dwds/src/location.dart';
