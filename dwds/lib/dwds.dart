@@ -17,8 +17,8 @@ import 'src/handlers/asset_handler.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injected_handler.dart';
 
-export 'src/connections/app_connection.dart';
-export 'src/connections/debug_connection.dart';
+export 'src/connections/app_connection.dart' show AppConnection;
+export 'src/connections/debug_connection.dart' show DebugConnection;
 
 typedef LogWriter = void Function(Level, String);
 typedef ConnectionProvider = Future<ChromeConnection> Function();
