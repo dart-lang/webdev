@@ -11,18 +11,18 @@ import 'package:shelf_proxy/shelf_proxy.dart';
 ///
 /// Proxies requests to the build daemon asset server.
 class AssetHandler {
-  final int _daemonPort;
+  final int _assetServerPort;
   final String _target;
   final int _applicationPort;
   final String _applicationHost;
 
   Handler _handler;
 
-  AssetHandler(this._daemonPort, this._target, this._applicationHost,
+  AssetHandler(this._assetServerPort, this._target, this._applicationHost,
       this._applicationPort);
 
   Handler get handler =>
-      _handler ??= proxyHandler('http://localhost:$_daemonPort/$_target/');
+      _handler ??= proxyHandler('http://localhost:$_assetServerPort/$_target/');
 
   /// Returns the asset from a relative [path].
   ///

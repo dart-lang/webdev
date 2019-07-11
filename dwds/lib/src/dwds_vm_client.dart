@@ -5,10 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/service.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
-import 'chrome_proxy_service.dart' show ChromeProxyService;
+import 'services/chrome_proxy_service.dart' show ChromeProxyService;
+import 'services/debug_service.dart';
 
 // A client of the vm service that registers some custom extensions like
 // hotRestart.
