@@ -7,10 +7,10 @@ import 'dart:async';
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
 import 'domain.dart';
 import 'location.dart';
+import 'services/chrome_proxy_service.dart';
 import 'sources.dart';
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.

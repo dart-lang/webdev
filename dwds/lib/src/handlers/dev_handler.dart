@@ -13,16 +13,16 @@ import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../../app_connection.dart';
 import '../../data/connect_request.dart';
 import '../../data/devtools_request.dart';
 import '../../data/isolate_events.dart';
-import '../../data/run_request.dart';
 import '../../data/serializers.dart' as dwds;
-import '../../service.dart';
-import '../app_debug_services.dart';
 import '../devtools.dart';
 import '../dwds_vm_client.dart';
 import '../handlers/asset_handler.dart';
+import '../services/app_debug_services.dart';
+import '../services/debug_service.dart';
 
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
@@ -33,14 +33,14 @@ class DevHandler {
   final DevTools _devTools;
   final AssetHandler _assetHandler;
   final String _hostname;
-  final _connectedApps = StreamController<DevConnection>.broadcast();
+  final _connectedApps = StreamController<AppConnection>.broadcast();
   final _servicesByAppId = <String, Future<AppDebugServices>>{};
   final Stream<BuildResult> buildResults;
   final bool _verbose;
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
 
-  Stream<DevConnection> get connectedApps => _connectedApps.stream;
+  Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
   DevHandler(
     this._chromeConnection,
@@ -106,15 +106,8 @@ class DevHandler {
     connection.stream.listen((data) async {
       var message = dwds.serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
-        if (_devTools == null) {
-          connection.sink.add(jsonEncode(dwds.serializers.serialize(
-              DevToolsResponse((b) => b
-                ..success = false
-                ..error =
-                    'Debugging is not enabled, please pass the --debug flag '
-                        'when starting webdev.'))));
-          return;
-        }
+        if (_devTools == null) return;
+
         if (appId != message.appId) {
           connection.sink.add(jsonEncode(dwds.serializers.serialize(
               DevToolsResponse((b) => b
@@ -134,10 +127,10 @@ class DevHandler {
           connection.sink.add(
               jsonEncode(dwds.serializers.serialize(DevToolsResponse((b) => b
                 ..success = false
-                ..error = 'Webdev was unable to connect debug services to your '
+                ..error = 'Unable to connect debug services to your '
                     'application. Most likely this means you are trying to '
                     'load in a different Chrome window than was launched by '
-                    'webdev.'))));
+                    'your development tool.'))));
           return;
         }
 
@@ -195,7 +188,7 @@ class DevHandler {
           }
         }
 
-        _connectedApps.add(DevConnection(message, connection));
+        _connectedApps.add(AppConnection(message, connection));
       } else if (message is IsolateExit) {
         (await loadAppServices(message.appId, message.instanceId))
             ?.chromeProxyService
@@ -256,19 +249,4 @@ Future<bool> _isCorrectTab(
   var result =
       await tabConnection.runtime.evaluate(r'window["$dartAppInstanceId"];');
   return result.value == instanceId;
-}
-
-class DevConnection {
-  final ConnectRequest request;
-  final SseConnection _connection;
-  var _isStarted = false;
-  DevConnection(this.request, this._connection);
-
-  void runMain() {
-    if (!_isStarted) {
-      _connection.sink
-          .add(jsonEncode(dwds.serializers.serialize(RunRequest())));
-    }
-    _isStarted = true;
-  }
 }

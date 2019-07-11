@@ -9,7 +9,7 @@ import 'dart:isolate';
 import 'package:crypto/crypto.dart';
 import 'package:shelf/shelf.dart';
 
-import '../injected/configuration.dart';
+import '../../dwds.dart';
 
 /// File extension that build_web_compilers will place the
 /// [entrypointExtensionMarker] in.

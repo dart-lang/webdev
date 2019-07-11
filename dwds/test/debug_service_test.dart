@@ -4,9 +4,8 @@
 
 import 'dart:io';
 
+import 'package:dwds/src/services/debug_service.dart';
 import 'package:test/test.dart';
-
-import 'package:dwds/service.dart';
 
 import 'test_context.dart';
 

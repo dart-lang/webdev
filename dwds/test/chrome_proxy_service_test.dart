@@ -7,8 +7,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/chrome_proxy_service.dart';
 import 'package:dwds/src/dart_uri.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';

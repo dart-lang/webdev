@@ -9,7 +9,6 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:build_daemon/data/server_log.dart';
-import 'package:dwds/src/devtools.dart'; // ignore: implementation_imports
 import 'package:logging/logging.dart' as logging;
 
 import '../command/configuration.dart';
@@ -68,7 +67,6 @@ Future<ServerManager> _startServerManager(
   Map<String, int> targetPorts,
   String workingDirectory,
   BuildDaemonClient client,
-  DevTools devTools,
 ) async {
   var assetPort = daemonPort(workingDirectory);
   var serverOptions = Set<ServerOptions>();
@@ -82,7 +80,7 @@ Future<ServerManager> _startServerManager(
   }
   logWriter(logging.Level.INFO, 'Starting resource servers...');
   var serverManager =
-      await ServerManager.start(serverOptions, client.buildResults, devTools);
+      await ServerManager.start(serverOptions, client.buildResults);
 
   for (var server in serverManager.servers) {
     logWriter(
@@ -92,18 +90,6 @@ Future<ServerManager> _startServerManager(
   }
 
   return serverManager;
-}
-
-Future<DevTools> _startDevTools(
-  Configuration configuration,
-) async {
-  if (configuration.debug) {
-    var devTools = await DevTools.start(configuration.hostname);
-    logWriter(logging.Level.INFO,
-        'Serving DevTools at http://${devTools.hostname}:${devTools.port}\n');
-    return devTools;
-  }
-  return null;
 }
 
 void _registerBuildTargets(
@@ -146,7 +132,6 @@ void _registerBuildTargets(
 class DevWorkflow {
   final _doneCompleter = Completer();
   final BuildDaemonClient _client;
-  final DevTools _devTools;
   final Chrome _chrome;
 
   final ServerManager serverManager;
@@ -157,7 +142,6 @@ class DevWorkflow {
   DevWorkflow._(
     this._client,
     this._chrome,
-    this._devTools,
     this.serverManager,
   ) {
     _resultsSub = _client.buildResults.listen((data) {
@@ -189,18 +173,16 @@ class DevWorkflow {
     _registerBuildTargets(client, configuration, targetPorts);
     logWriter(logging.Level.INFO, 'Starting initial build...');
     client.startBuild();
-    var devTools = await _startDevTools(configuration);
     var serverManager = await _startServerManager(
-        configuration, targetPorts, workingDirectory, client, devTools);
+        configuration, targetPorts, workingDirectory, client);
     var chrome = await _startChrome(configuration, serverManager, client);
-    return DevWorkflow._(client, chrome, devTools, serverManager);
+    return DevWorkflow._(client, chrome, serverManager);
   }
 
   Future<void> shutDown() async {
     await _resultsSub?.cancel();
     await _chrome?.close();
     await _client?.close();
-    await _devTools?.close();
     await serverManager?.stop();
     if (!_doneCompleter.isCompleted) _doneCompleter.complete();
   }

@@ -6,10 +6,10 @@ import 'package:path/path.dart' as p;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'chrome_proxy_service.dart';
 import 'dart_uri.dart';
 import 'debugger.dart';
 import 'helpers.dart';
+import 'services/chrome_proxy_service.dart';
 
 /// An inspector for a running Dart application contained in the
 /// [WipConnection].

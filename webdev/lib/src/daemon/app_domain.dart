@@ -7,8 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
-import 'package:dwds/service.dart';
-import 'package:dwds/src/app_debug_services.dart'; // ignore: implementation_imports
+import 'package:dwds/debug_connection.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
@@ -20,11 +19,11 @@ import 'utilites.dart';
 /// A collection of method and events relevant to the running application.
 class AppDomain extends Domain {
   String _appId;
-  AppDebugServices _appDebugServices;
 
-  DebugService get _debugService => _appDebugServices?.debugService;
+  VmService get _vmService => _debugConnection?.vmService;
 
-  VmService get _vmService => _appDebugServices?.dwdsVmClient?.client;
+  DebugConnection _debugConnection;
+
   StreamSubscription<BuildResult> _resultSub;
   StreamSubscription<Event> _stdOutSub;
   bool _isShutdown = false;
@@ -59,16 +58,15 @@ class AppDomain extends Domain {
   }
 
   void _initialize(ServerManager serverManager) async {
-    var devHandler = serverManager.servers.first.devHandler;
+    var server = serverManager.servers.first;
+    var dwds = server.dwds;
     // The connection is established right before `main()` is called.
-    await for (var connection in devHandler.connectedApps) {
+    await for (var appConnection in dwds.connectedApps) {
       await _stdOutSub?.cancel();
       await _resultSub?.cancel();
-      _appDebugServices = await devHandler.loadAppServices(
-          connection.request.appId, connection.request.instanceId);
-      _appId = connection.request.appId;
-      unawaited(_appDebugServices.chromeProxyService.tabConnection.onClose.first
-          .then((_) {
+      _debugConnection = await dwds.debugConnection(appConnection);
+      _appId = appConnection.request.appId;
+      unawaited(_debugConnection.onDone.then((_) {
         sendEvent('app.log', {
           'appId': _appId,
           'log': 'Lost connection to device.',
@@ -102,12 +100,12 @@ class AppDomain extends Domain {
       });
       sendEvent('app.debugPort', {
         'appId': _appId,
-        'port': _debugService.port,
-        'wsUri': _debugService.wsUri,
+        'port': _debugConnection.port,
+        'wsUri': _debugConnection.wsUri,
       });
-      _resultSub = devHandler.buildResults.listen(_handleBuildResult);
+      _resultSub = server.buildResults.listen(_handleBuildResult);
 
-      connection.runMain();
+      appConnection.runMain();
     }
 
     // Shutdown could have been triggered while awaiting above.
@@ -177,7 +175,7 @@ class AppDomain extends Domain {
     if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
     // Note that this triggers the daemon to shutdown as we listen for the
     // tabConnection to close to initiate a shutdown.
-    await _appDebugServices.chromeProxyService.tabConnection.close();
+    await _debugConnection?.close();
     // Wait for the daemon to gracefully shutdown before sending success.
     await daemon.onExit;
     return true;
@@ -188,6 +186,6 @@ class AppDomain extends Domain {
     _isShutdown = true;
     _stdOutSub?.cancel();
     _resultSub?.cancel();
-    _appDebugServices.close();
+    _debugConnection?.close();
   }
 }

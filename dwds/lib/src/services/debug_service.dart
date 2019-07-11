@@ -16,8 +16,8 @@ import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import './src/chrome_proxy_service.dart';
-import './src/helpers.dart';
+import '../helpers.dart';
+import 'chrome_proxy_service.dart';
 
 void Function(WebSocketChannel, String) _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
