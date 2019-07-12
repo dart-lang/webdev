@@ -108,46 +108,46 @@ class AppInspector extends Domain {
           return require("dart_sdk").dart.dloadRepl(this, "$fieldName");
         }
         ''';
-        return await _callFunctionOn(receiver, load, _marshallArguments([]));
+    return await _callFunctionOn(receiver, load, _marshallArguments([]));
   }
 
   /// Call a method by name on [receiver], with arguments [positionalArgs] and [namedArgs].
-  Future sendMessage(
-      RemoteObject receiver, String methodName, [List positionalArgs = const [], Map namedArgs = const {}]) async {
+  Future sendMessage(RemoteObject receiver, String methodName,
+      [List positionalArgs = const [], Map namedArgs = const {}]) async {
     var send = '''
         function (positional) { 
           return require("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
         }
         ''';
-    // TODO(alanknight): Support named arguments. 
+    // TODO(alanknight): Support named arguments.
     var arguments = _marshallArguments(positionalArgs);
     return _callFunctionOn(receiver, send, arguments);
-    }
+  }
 
-  Future _callFunctionOn(RemoteObject receiver, String evalExpression, List arguments) async {
+  Future _callFunctionOn(
+      RemoteObject receiver, String evalExpression, List arguments) async {
     var result = await _tabConnection.runtime
         .sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': arguments,
       'objectId': receiver.objectId,
     });
-    handleErrorIfPresent(result,
-        evalContents: evalExpression);
+    handleErrorIfPresent(result, evalContents: evalExpression);
     return result.result['result'];
-
   }
 
-
   List _marshallArguments(List arguments) {
-    return [ { 'value' : arguments.map(_marshallOne).toList()}];
+    return [
+      {'value': arguments.map(_marshallOne).toList()}
+    ];
   }
 
   Map<String, dynamic> _marshallOne(dynamic argument) {
-      if (argument is RemoteObject) {
-        return {'objectId' : argument.objectId};
-      } else {
-        return {'value' : argument};
-      }
+    if (argument is RemoteObject) {
+      return {'objectId': argument.objectId};
+    } else {
+      return {'value': argument};
+    }
   }
 
   Future<String> _toString(RemoteObject receiver) async {
@@ -227,6 +227,9 @@ function($argsString) {
         return _primitiveInstance(InstanceKind.kBool, remoteObject);
       case 'object':
         // TODO: Actual toString()
+        if (remoteObject.value == null) {
+          return _primitiveInstance(InstanceKind.kNull, remoteObject);
+        }
         var toString = await _toString(remoteObject);
         // TODO: Make the truncation consistent with the VM.
         var truncated = toString.substring(0, math.min(100, toString.length));

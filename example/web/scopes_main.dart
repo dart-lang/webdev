@@ -19,6 +19,7 @@ void main() async {
   var local = 'local in main';
   var intLocalInMain = 42;
   var testClass = MyTestClass();
+  var localThatsNull = null;
 
   String nestedFunction(String parameter) {
     var another = int.tryParse(parameter);
@@ -34,6 +35,7 @@ void main() async {
     libraryPublicFinal.printCount();
     print('ticking... $ticks (the answer is $intLocalInMain)');
     print(nestedFunction('$ticks ${testClass.message}'));
+    print(localThatsNull);
   });
 
   document.body.append(SpanElement()..text = 'Exercising some scopes');
