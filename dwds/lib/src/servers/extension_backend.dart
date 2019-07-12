@@ -15,9 +15,9 @@ SseHandler _sseHandler = SseHandler(Uri.parse('/test'));
 /// The SSE handler simply sends a simple message and prints the response when
 /// a client connects.
 class ExtensionBackend {
-  String hostname;
-  int port;
-  HttpServer _server;
+  final String hostname;
+  final int port;
+  final HttpServer _server;
 
   ExtensionBackend._(this.hostname, this.port, this._server) {
     _listen();
