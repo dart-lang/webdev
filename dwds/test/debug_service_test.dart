@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:dwds/src/services/debug_service.dart';
 import 'package:test/test.dart';
 
-import 'test_context.dart';
+import 'fixtures/context.dart';
 
 final context = TestContext();
 DebugService get debugService => context.debugService;

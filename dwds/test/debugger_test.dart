@@ -11,9 +11,9 @@ import 'package:dwds/src/debugging/location.dart';
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
 
-import 'debugger_data.dart';
-import 'fakes.dart';
-import 'test_context.dart';
+import 'fixtures/context.dart';
+import 'fixtures/debugger_data.dart';
+import 'fixtures/fakes.dart';
 
 final context = TestContext();
 AppInspector inspector;
