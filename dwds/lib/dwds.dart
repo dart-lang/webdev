@@ -69,7 +69,7 @@ class Dwds {
     String extensionHostname;
     int extensionPort;
 
-    if (enableDebugExtension) {
+    if (enableDebugExtension != null && enableDebugExtension == true) {
       var extensionBackend = await ExtensionBackend.start();
       extensionHostname = extensionBackend.hostname;
       extensionPort = extensionBackend.port;
