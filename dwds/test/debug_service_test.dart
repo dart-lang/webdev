@@ -4,13 +4,11 @@
 
 import 'dart:io';
 
-import 'package:dwds/src/services/debug_service.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
 
 final context = TestContext();
-DebugService get debugService => context.debugService;
 
 void main() {
   setUpAll(() async {
@@ -23,12 +21,11 @@ void main() {
 
   test('Refuses connections without the auth token', () async {
     expect(
-        WebSocket.connect(
-            'ws://${debugService.hostname}:${debugService.port}/ws'),
+        WebSocket.connect('ws://localhost:${context.debugConnection.port}/ws'),
         throwsA(isA<WebSocketException>()));
   });
 
   test('Accepts connections with the auth token', () async {
-    expect(WebSocket.connect('${debugService.wsUri}/ws'), completes);
+    expect(WebSocket.connect('${context.debugConnection.wsUri}/ws'), completes);
   });
 }
