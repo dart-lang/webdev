@@ -12,10 +12,10 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
-import 'src/devtools.dart';
 import 'src/handlers/asset_handler.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injected_handler.dart';
+import 'src/servers/devtools.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
