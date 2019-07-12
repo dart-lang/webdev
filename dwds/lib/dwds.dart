@@ -16,6 +16,7 @@ import 'src/handlers/asset_handler.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injected_handler.dart';
 import 'src/servers/devtools.dart';
+import 'src/servers/extension_backend.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
@@ -45,18 +46,18 @@ class Dwds {
     return DebugConnection(appDebugServices);
   }
 
-  static Future<Dwds> start({
-    @required String hostname,
-    @required int applicationPort,
-    @required int assetServerPort,
-    @required String applicationTarget,
-    @required ReloadConfiguration reloadConfiguration,
-    @required Stream<BuildResult> buildResults,
-    @required ConnectionProvider chromeConnection,
-    @required bool serveDevTools,
-    @required LogWriter logWriter,
-    @required bool verbose,
-  }) async {
+  static Future<Dwds> start(
+      {@required String hostname,
+      @required int applicationPort,
+      @required int assetServerPort,
+      @required String applicationTarget,
+      @required ReloadConfiguration reloadConfiguration,
+      @required Stream<BuildResult> buildResults,
+      @required ConnectionProvider chromeConnection,
+      @required bool serveDevTools,
+      @required LogWriter logWriter,
+      @required bool verbose,
+      @optional bool enableDebugExtension}) async {
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,
@@ -65,9 +66,17 @@ class Dwds {
     );
     var cascade = Cascade();
     var pipeline = const Pipeline();
+    String extensionHostname;
+    int extensionPort;
 
-    pipeline =
-        pipeline.addMiddleware(createInjectedHandler(reloadConfiguration));
+    if (enableDebugExtension) {
+      var extensionBackend = await ExtensionBackend.start();
+      extensionHostname = extensionBackend.hostname;
+      extensionPort = extensionBackend.port;
+    }
+
+    pipeline = pipeline.addMiddleware(createInjectedHandler(reloadConfiguration,
+        extensionHostname: extensionHostname, extensionPort: extensionPort));
 
     DevTools devTools;
     if (serveDevTools) {
