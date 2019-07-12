@@ -1,6 +1,6 @@
 name: webdev
 # Every time this changes you need to run `pub run build_runner build`.
-version: 2.3.0-dev
+version: 2.2.0
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
 description: >-
@@ -16,7 +16,8 @@ dependencies:
   build_daemon: ^1.1.0
   built_value: ^6.3.0
   crypto: ^2.0.6
-  dwds: ^0.4.0
+  dwds: ^0.3.3
+  devtools: ^0.1.0
   http: ^0.12.0
   http_multi_server: ^2.1.0
   io: ^0.3.2+1
@@ -38,11 +39,16 @@ dependencies:
 dev_dependencies:
   build: ^1.0.0
   build_runner: ^1.0.0
+  build_web_compilers: '>=1.0.0 <3.0.0'
   build_verify: ^1.0.0
   build_version: ^2.0.0
+  built_value_generator: ^6.4.0
+  graphs: ^0.2.0
+  js: ^0.6.1
   test: ^1.6.0
   test_descriptor: ^1.0.3
   test_process: ^1.0.1
+  uuid: ^2.0.0
   webdriver: ^2.0.0
 
 executables:
@@ -50,4 +56,19 @@ executables:
 
 dependency_overrides:
   dwds:
-    path: ../dwds
+    path:
+      ../dwds
+  vm_service_lib:
+    path:
+      /usr/local/google/home/alanknight/dart/vm_service_drivers/dart
+  # devtools:
+  #   path:
+  #        /usr/local/google/home/alanknight/dart/devtools/packages/devtools
+  # webkit_inspection_protocol:
+  #   path: /usr/local/google/home/alanknight/dart/webkit_inspection_protocol.dart
+  # build_runner:
+  #   path:
+  #     /usr/local/google/home/alanknight/dart/build/build_runner
+  # build_daemon:
+  #   path:
+  #     /usr/local/google/home/alanknight/dart/build/build_daemon

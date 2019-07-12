@@ -51,7 +51,11 @@ class ChromeProxyService implements VmServiceInterface {
   Debugger _debugger;
 
   AppInspector _inspector;
-  AppInspector _appInspectorProvider() => _inspector;
+
+  /// Public only for testing.
+  /// 
+  /// Returns the [AppInspector] this service uses.
+  AppInspector appInspectorProvider() => _inspector;
 
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 
@@ -100,7 +104,7 @@ class ChromeProxyService implements VmServiceInterface {
       _assetHandler,
       tabConnection,
       _streamNotify,
-      _appInspectorProvider,
+      appInspectorProvider,
       uri,
     );
   }

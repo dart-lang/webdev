@@ -73,7 +73,7 @@ class TestContext {
     var capabilities = Capabilities.chrome
       ..addAll({
         Capabilities.chromeOptions: {
-          'args': ['remote-debugging-port=$debugPort', '--headless']
+          'args': ['remote-debugging-port=$debugPort']
         }
       });
     webDriver =

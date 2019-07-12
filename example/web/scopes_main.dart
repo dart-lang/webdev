@@ -66,4 +66,7 @@ class MyTestClass {
   void printCount() {
     print('The count is ${++count}');
   }
+
+  @override
+  String toString() => 'A test class with message $message';
 }
