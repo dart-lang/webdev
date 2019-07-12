@@ -4,15 +4,16 @@
 
 import 'dart:io';
 
-import 'package:shelf/shelf_io.dart' as io;
+import 'package:http_multi_server/http_multi_server.dart';
+import 'package:shelf/shelf_io.dart';
 import 'package:sse/server/sse_handler.dart';
 
 SseHandler _sseHandler = SseHandler(Uri.parse('/test'));
 
-/// A debug extension backend which sets up an SSE handler.
+/// A backend for the Dart Debug Extension which sets up an SSE handler.
 ///
-/// This is still a skeleton. The SSE handler simply sends a simple message and
-/// prints the response when a client connects.
+/// The SSE handler simply sends a simple message and prints the response when
+/// a client connects.
 class ExtensionBackend {
   String hostname;
   int port;
@@ -24,7 +25,9 @@ class ExtensionBackend {
 
   // Starts the backend on an open port.
   static Future<ExtensionBackend> start() async {
-    var server = await io.serve(_sseHandler.handler, 'localhost', 0);
+    //var server = await io.serve(_sseHandler.handler, 'localhost', 0);
+    var server = await HttpMultiServer.bind('localhost', 0);
+    serveRequests(server, _sseHandler.handler);
     return ExtensionBackend._(server.address.host, server.port, server);
   }
 
