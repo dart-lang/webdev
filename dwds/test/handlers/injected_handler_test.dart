@@ -16,7 +16,7 @@ void main() {
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
 
-  group('InjectedMiddelware', () {
+  group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
       var pipeline = const Pipeline()
           .addMiddleware(createInjectedHandler(ReloadConfiguration.liveReload));
@@ -94,6 +94,38 @@ void main() {
                 originalResponse.headers[HttpHeaders.etagHeader]
           });
       expect(cachedResponse.statusCode, HttpStatus.notModified);
+    });
+
+    test('Does not inject the extension backend port', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('extensionPort'), isFalse);
+    });
+  });
+
+  group('InjectedHandlerWithExtension', () {
+    setUp(() async {
+      var someExtensionPort = 4000;
+      var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
+          ReloadConfiguration.liveReload,
+          extensionPort: someExtensionPort));
+      server = await shelf_io.serve(pipeline.addHandler((request) {
+        return Response.ok(
+            '$entrypointExtensionMarker\n'
+            '$mainExtensionMarker\n'
+            'app.main.main()',
+            headers: {HttpHeaders.etagHeader: entryEtag});
+      }), 'localhost', 0);
+    });
+
+    tearDown(() async {
+      await server.close();
+    });
+
+    test('Injects the extension backend port', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('extensionPort'), isTrue);
     });
   });
 }
