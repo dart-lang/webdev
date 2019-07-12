@@ -25,7 +25,8 @@ const _clientScript = 'dwds/src/injected/client';
 
 Handler Function(Handler) createInjectedHandler(
         ReloadConfiguration configuration,
-        {int extensionPort}) =>
+        {String extensionHostname,
+        int extensionPort}) =>
     (innerHandler) {
       return (Request request) async {
         if (request.url.path == '$_clientScript.js') {
@@ -67,6 +68,7 @@ Handler Function(Handler) createInjectedHandler(
                 .replaceAll(')', '')
                 .trim();
             body += _injectedClientJs(configuration, appId, mainFuntion,
+                extensionHostname: extensionHostname,
                 extensionPort: extensionPort);
             body += bodyLines.sublist(extensionIndex + 2).join('\n');
             // Change the hot restart handler to re-assign
@@ -88,7 +90,7 @@ Handler Function(Handler) createInjectedHandler(
 
 String _injectedClientJs(
     ReloadConfiguration configuration, String appId, String mainFunction,
-    {int extensionPort}) {
+    {String extensionHostname, int extensionPort}) {
   var injectedBody = '''\n
             // Injected by webdev for build results support.
             window.\$dartAppId = "$appId";
@@ -96,8 +98,11 @@ String _injectedClientJs(
             window.\$dartReloadConfiguration = "$configuration";
             window.\$dartLoader.forceLoadModule('$_clientScript');
             ''';
-  if (extensionPort != null) {
-    injectedBody += 'window.\$extensionPort = "$extensionPort";';
+  if (extensionPort != null && extensionHostname != null) {
+    injectedBody += '''
+      window.\$extensionHostname = "$extensionHostname";
+      window.\$extensionPort = "$extensionPort";
+      ''';
   }
   return injectedBody;
 }

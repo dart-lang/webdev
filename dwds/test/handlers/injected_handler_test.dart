@@ -99,15 +99,18 @@ void main() {
     test('Does not inject the extension backend port', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('extensionHostname'), isFalse);
       expect(result.body.contains('extensionPort'), isFalse);
     });
   });
 
   group('InjectedHandlerWithExtension', () {
     setUp(() async {
+      var someExtensionHostname = 'localhost';
       var someExtensionPort = 4000;
       var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
           ReloadConfiguration.liveReload,
+          extensionHostname: someExtensionHostname,
           extensionPort: someExtensionPort));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         return Response.ok(
@@ -125,6 +128,7 @@ void main() {
     test('Injects the extension backend port', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('extensionHostname'), isTrue);
       expect(result.body.contains('extensionPort'), isTrue);
     });
   });
