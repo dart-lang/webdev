@@ -18,9 +18,9 @@ import '../../data/devtools_request.dart';
 import '../../data/isolate_events.dart';
 import '../../data/serializers.dart';
 import '../connections/app_connection.dart';
-import '../devtools.dart';
 import '../dwds_vm_client.dart';
 import '../handlers/asset_handler.dart';
+import '../servers/devtools.dart';
 import '../services/app_debug_services.dart';
 import '../services/debug_service.dart';
 
