@@ -52,12 +52,12 @@ class Dwds {
     @required String applicationTarget,
     @required Stream<BuildResult> buildResults,
     @required ConnectionProvider chromeConnection,
-    @optional String hostname,
-    @optional ReloadConfiguration reloadConfiguration,
-    @optional bool serveDevTools,
-    @optional LogWriter logWriter,
-    @optional bool verbose,
-    @optional bool enableDebugExtension,
+    String hostname,
+    ReloadConfiguration reloadConfiguration,
+    bool serveDevTools,
+    LogWriter logWriter,
+    bool verbose,
+    bool enableDebugExtension,
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
