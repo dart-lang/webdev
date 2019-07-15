@@ -9,6 +9,8 @@ import 'package:dwds/dwds.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:test/test.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 class TestServer {
   final HttpServer _server;
@@ -46,6 +48,7 @@ class TestServer {
     ReloadConfiguration reload,
     bool startDevTools,
     Stream<BuildResults> buildResults,
+    Future<ChromeConnection> Function() chromeConnection,
   ) async {
     var pipeline = const Pipeline();
 
@@ -58,8 +61,8 @@ class TestServer {
       applicationTarget: target,
       assetServerPort: assetServerPort,
       buildResults: filteredBuildResults,
-      chromeConnection: () async => null,
-      logWriter: (level, message) => print(message),
+      chromeConnection: chromeConnection,
+      logWriter: (level, message) => printOnFailure(message),
       reloadConfiguration: reload,
       serveDevTools: startDevTools,
       verbose: true,
