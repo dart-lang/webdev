@@ -68,8 +68,9 @@ class Dwds {
     var pipeline = const Pipeline();
     String extensionHostname;
     int extensionPort;
+    enableDebugExtension ??= false;
 
-    if (enableDebugExtension != null && enableDebugExtension == true) {
+    if (enableDebugExtension) {
       var extensionBackend = await ExtensionBackend.start();
       extensionHostname = extensionBackend.hostname;
       extensionPort = extensionBackend.port;

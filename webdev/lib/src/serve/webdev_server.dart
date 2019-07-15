@@ -74,18 +74,19 @@ class WebDevServer {
             .firstWhere((result) => result.target == options.target));
 
     var dwds = await Dwds.start(
-        hostname: options.configuration.hostname,
-        applicationPort: options.port,
-        applicationTarget: options.target,
-        assetServerPort: options.daemonPort,
-        buildResults: filteredBuildResults,
-        chromeConnection: () async =>
-            (await Chrome.connectedInstance).chromeConnection,
-        logWriter: logWriter,
-        reloadConfiguration: options.configuration.reload,
-        serveDevTools: options.configuration.debug,
-        verbose: options.configuration.verbose,
-        enableDebugExtension: options.configuration.debugExtension);
+      hostname: options.configuration.hostname,
+      applicationPort: options.port,
+      applicationTarget: options.target,
+      assetServerPort: options.daemonPort,
+      buildResults: filteredBuildResults,
+      chromeConnection: () async =>
+          (await Chrome.connectedInstance).chromeConnection,
+      logWriter: logWriter,
+      reloadConfiguration: options.configuration.reload,
+      serveDevTools: options.configuration.debug,
+      verbose: options.configuration.verbose,
+      enableDebugExtension: options.configuration.debugExtension,
+    );
 
     var hostname = options.configuration.hostname;
     var server = await HttpMultiServer.bind(hostname, options.port);
