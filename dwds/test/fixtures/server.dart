@@ -41,12 +41,9 @@ class TestServer {
   }
 
   static Future<TestServer> start(
-    String hostname,
     int port,
     int assetServerPort,
     String target,
-    ReloadConfiguration reload,
-    bool startDevTools,
     Stream<BuildResults> buildResults,
     Future<ChromeConnection> Function() chromeConnection,
   ) async {
@@ -56,19 +53,16 @@ class TestServer {
         results.results.firstWhere((result) => result.target == target));
 
     var dwds = await Dwds.start(
-      hostname: hostname,
       applicationPort: port,
       applicationTarget: target,
       assetServerPort: assetServerPort,
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       logWriter: (level, message) => printOnFailure(message),
-      reloadConfiguration: reload,
-      serveDevTools: startDevTools,
       verbose: true,
     );
 
-    var server = await HttpMultiServer.bind(hostname, port);
+    var server = await HttpMultiServer.bind('localhost', port);
     shelf_io.serveRequests(server, pipeline.addHandler(dwds.handler));
     return TestServer._(
       target,

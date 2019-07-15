@@ -47,20 +47,23 @@ class Dwds {
   }
 
   static Future<Dwds> start({
-    @required String hostname,
     @required int applicationPort,
     @required int assetServerPort,
     @required String applicationTarget,
-    @required ReloadConfiguration reloadConfiguration,
     @required Stream<BuildResult> buildResults,
     @required ConnectionProvider chromeConnection,
-    @required bool serveDevTools,
-    @required LogWriter logWriter,
-    @required bool verbose,
-    @optional bool enableDebugExtension,
+    String hostname,
+    ReloadConfiguration reloadConfiguration,
+    bool serveDevTools,
+    LogWriter logWriter,
+    bool verbose,
+    bool enableDebugExtension,
   }) async {
-    String extensionHostname;
-    int extensionPort;
+    hostname ??= 'localhost';
+    reloadConfiguration ??= ReloadConfiguration.none;
+    serveDevTools ??= false;
+    logWriter ??= (level, message) => print(message);
+    verbose ??= false;
     enableDebugExtension ??= false;
     var assetHandler = AssetHandler(
       assetServerPort,
@@ -71,6 +74,8 @@ class Dwds {
     var cascade = Cascade();
     var pipeline = const Pipeline();
 
+    String extensionHostname;
+    int extensionPort;
     if (enableDebugExtension) {
       var extensionBackend = await ExtensionBackend.start();
       extensionHostname = extensionBackend.hostname;
