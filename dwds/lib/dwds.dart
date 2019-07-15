@@ -59,6 +59,9 @@ class Dwds {
     @required bool verbose,
     @optional bool enableDebugExtension,
   }) async {
+    String extensionHostname;
+    int extensionPort;
+    enableDebugExtension ??= false;
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,
@@ -67,9 +70,6 @@ class Dwds {
     );
     var cascade = Cascade();
     var pipeline = const Pipeline();
-    String extensionHostname;
-    int extensionPort;
-    enableDebugExtension ??= false;
 
     if (enableDebugExtension) {
       var extensionBackend = await ExtensionBackend.start();
