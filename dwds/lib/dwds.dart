@@ -46,18 +46,19 @@ class Dwds {
     return DebugConnection(appDebugServices);
   }
 
-  static Future<Dwds> start(
-      {@required String hostname,
-      @required int applicationPort,
-      @required int assetServerPort,
-      @required String applicationTarget,
-      @required ReloadConfiguration reloadConfiguration,
-      @required Stream<BuildResult> buildResults,
-      @required ConnectionProvider chromeConnection,
-      @required bool serveDevTools,
-      @required LogWriter logWriter,
-      @required bool verbose,
-      @optional bool enableDebugExtension}) async {
+  static Future<Dwds> start({
+    @required String hostname,
+    @required int applicationPort,
+    @required int assetServerPort,
+    @required String applicationTarget,
+    @required ReloadConfiguration reloadConfiguration,
+    @required Stream<BuildResult> buildResults,
+    @required ConnectionProvider chromeConnection,
+    @required bool serveDevTools,
+    @required LogWriter logWriter,
+    @required bool verbose,
+    @optional bool enableDebugExtension,
+  }) async {
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,
