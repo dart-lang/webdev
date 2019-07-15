@@ -56,7 +56,7 @@ class DwdsVmClient {
         return {'result': Success().toJson()};
       }
     });
-    await client.registerService('hotRestart', 'WebDev fullReload');
+    await client.registerService('hotRestart', 'DWDS fullReload');
 
     client.registerServiceCallback('fullReload', (_) async {
       await chromeProxyService.tabConnection.page.enable();
@@ -65,15 +65,15 @@ class DwdsVmClient {
       await chromeProxyService.tabConnection.sendCommand('Page.reload');
       return {'result': Success().toJson()};
     });
-    await client.registerService('fullReload', 'WebDev');
+    await client.registerService('fullReload', 'DWDS');
 
-    client.registerServiceCallback('ext.webdev.screenshot', (_) async {
+    client.registerServiceCallback('ext.dwds.screenshot', (_) async {
       await chromeProxyService.tabConnection.page.enable();
       var response = await chromeProxyService.tabConnection.page
           .sendCommand('Page.captureScreenshot');
       return {'result': response.result};
     });
-    await client.registerService('ext.webdev.screenshot', 'WebDev');
+    await client.registerService('ext.dwds.screenshot', 'DWDS');
 
     return DwdsVmClient(client, requestController, responseController);
   }

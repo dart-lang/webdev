@@ -58,6 +58,8 @@ refresh: Performs a full page refresh.
     ..addFlag(debugFlag,
         help: 'Enable the launching of DevTools (Alt + D / Option + D). '
             'This also enables --$launchInChromeFlag.')
+    ..addFlag(debugExtensionFlag,
+        help: 'Enable the backend for the Dart Debug Extension.', hide: true)
     ..addSeparator('Advanced:')
     ..addOption(chromeDebugPortFlag,
         help: 'Specify which port the Chrome debugger is listening on. '

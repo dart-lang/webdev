@@ -12,10 +12,11 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
-import 'src/devtools.dart';
 import 'src/handlers/asset_handler.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injected_handler.dart';
+import 'src/servers/devtools.dart';
+import 'src/servers/extension_backend.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
@@ -46,17 +47,24 @@ class Dwds {
   }
 
   static Future<Dwds> start({
-    @required String hostname,
     @required int applicationPort,
     @required int assetServerPort,
     @required String applicationTarget,
-    @required ReloadConfiguration reloadConfiguration,
     @required Stream<BuildResult> buildResults,
     @required ConnectionProvider chromeConnection,
-    @required bool serveDevTools,
-    @required LogWriter logWriter,
-    @required bool verbose,
+    String hostname,
+    ReloadConfiguration reloadConfiguration,
+    bool serveDevTools,
+    LogWriter logWriter,
+    bool verbose,
+    bool enableDebugExtension,
   }) async {
+    hostname ??= 'localhost';
+    reloadConfiguration ??= ReloadConfiguration.none;
+    serveDevTools ??= false;
+    logWriter ??= (level, message) => print(message);
+    verbose ??= false;
+    enableDebugExtension ??= false;
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,
@@ -66,8 +74,16 @@ class Dwds {
     var cascade = Cascade();
     var pipeline = const Pipeline();
 
-    pipeline =
-        pipeline.addMiddleware(createInjectedHandler(reloadConfiguration));
+    String extensionHostname;
+    int extensionPort;
+    if (enableDebugExtension) {
+      var extensionBackend = await ExtensionBackend.start();
+      extensionHostname = extensionBackend.hostname;
+      extensionPort = extensionBackend.port;
+    }
+
+    pipeline = pipeline.addMiddleware(createInjectedHandler(reloadConfiguration,
+        extensionHostname: extensionHostname, extensionPort: extensionPort));
 
     DevTools devTools;
     if (serveDevTools) {
