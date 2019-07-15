@@ -58,7 +58,7 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) => null;
   @override
-  ScriptRef scriptRefFor(String uri) => null;
+  Future<ScriptRef> scriptRefFor(String uri) => null;
   @override
   Future<List<ScriptRef>> scriptRefs(String isolateId) => null;
   @override

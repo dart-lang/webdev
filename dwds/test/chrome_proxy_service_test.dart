@@ -49,7 +49,7 @@ void main() {
       var bp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
       // Remove breakpoint so it doesn't impact other tests.
       await service.removeBreakpoint(isolate.id, bp.id);
-      expect(bp.id, '1');
+      expect(bp.id, isNotNull);
     });
 
     test('addBreakpoint on a part file', () async {
@@ -58,16 +58,20 @@ void main() {
       var bp = await service.addBreakpoint(isolate.id, partScript.id, 10);
       // Remove breakpoint so it doesn't impact other tests.
       await service.removeBreakpoint(isolate.id, bp.id);
-      expect(bp.id, '2');
+      expect(bp.id, isNotNull);
     });
 
     test('addBreakpointAtEntry', () {
       expect(() => service.addBreakpointAtEntry(null, null),
           throwsUnimplementedError);
     });
-    test('addBreakpointWithScriptUri', () {
-      expect(() => service.addBreakpointWithScriptUri(null, null, null),
-          throwsUnimplementedError);
+
+    test('addBreakpointWithScriptUri', () async {
+      var bp = await service.addBreakpointWithScriptUri(
+          isolate.id, mainScript.uri, 23);
+      // Remove breakpoint so it doesn't impact other tests.
+      await service.removeBreakpoint(isolate.id, bp.id);
+      expect(bp.id, isNotNull);
     });
 
     test('removeBreakpoint null arguments', () {
@@ -95,7 +99,7 @@ void main() {
           .lastWhere((each) => each.uri.contains('main.dart'));
       var bp = await service.addBreakpoint(isolate.id, refreshedMain.id, 23);
       expect(isolate.breakpoints, [bp]);
-      expect(bp.id, '4');
+      expect(bp.id, isNotNull);
       await service.removeBreakpoint(isolate.id, bp.id);
       expect(isolate.breakpoints, isEmpty);
     });
