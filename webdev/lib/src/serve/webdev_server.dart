@@ -59,9 +59,7 @@ class WebDevServer {
   }
 
   static Future<WebDevServer> start(
-    ServerOptions options,
-    Stream<BuildResults> buildResults,
-  ) async {
+      ServerOptions options, Stream<BuildResults> buildResults) async {
     var pipeline = const Pipeline();
 
     if (options.configuration.logRequests) {
@@ -87,6 +85,7 @@ class WebDevServer {
       reloadConfiguration: options.configuration.reload,
       serveDevTools: options.configuration.debug,
       verbose: options.configuration.verbose,
+      enableDebugExtension: options.configuration.debugExtension,
     );
 
     var hostname = options.configuration.hostname;

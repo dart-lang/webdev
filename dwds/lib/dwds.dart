@@ -16,6 +16,7 @@ import 'src/handlers/asset_handler.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injected_handler.dart';
 import 'src/servers/devtools.dart';
+import 'src/servers/extension_backend.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
@@ -56,12 +57,14 @@ class Dwds {
     @optional bool serveDevTools,
     @optional LogWriter logWriter,
     @optional bool verbose,
+    @optional bool enableDebugExtension,
   }) async {
-    reloadConfiguration ??= ReloadConfiguration.none;
     hostname ??= 'localhost';
+    reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
+    enableDebugExtension ??= false;
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,
@@ -71,8 +74,16 @@ class Dwds {
     var cascade = Cascade();
     var pipeline = const Pipeline();
 
-    pipeline =
-        pipeline.addMiddleware(createInjectedHandler(reloadConfiguration));
+    String extensionHostname;
+    int extensionPort;
+    if (enableDebugExtension) {
+      var extensionBackend = await ExtensionBackend.start();
+      extensionHostname = extensionBackend.hostname;
+      extensionPort = extensionBackend.port;
+    }
+
+    pipeline = pipeline.addMiddleware(createInjectedHandler(reloadConfiguration,
+        extensionHostname: extensionHostname, extensionPort: extensionPort));
 
     DevTools devTools;
     if (serveDevTools) {
