@@ -84,12 +84,9 @@ class TestContext {
     var connection = ChromeConnection('localhost', debugPort);
 
     testServer = await TestServer.start(
-      'localhost',
       port,
       daemonPort(workingDirectory),
       pathToServe,
-      ReloadConfiguration.none,
-      false,
       daemonClient.buildResults,
       () async => connection,
     );

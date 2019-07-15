@@ -46,17 +46,22 @@ class Dwds {
   }
 
   static Future<Dwds> start({
-    @required String hostname,
     @required int applicationPort,
     @required int assetServerPort,
     @required String applicationTarget,
-    @required ReloadConfiguration reloadConfiguration,
     @required Stream<BuildResult> buildResults,
     @required ConnectionProvider chromeConnection,
-    @required bool serveDevTools,
-    @required LogWriter logWriter,
-    @required bool verbose,
+    @optional String hostname,
+    @optional ReloadConfiguration reloadConfiguration,
+    @optional bool serveDevTools,
+    @optional LogWriter logWriter,
+    @optional bool verbose,
   }) async {
+    reloadConfiguration ??= ReloadConfiguration.none;
+    hostname ??= 'localhost';
+    serveDevTools ??= false;
+    logWriter ??= (level, message) => print(message);
+    verbose ??= false;
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,
