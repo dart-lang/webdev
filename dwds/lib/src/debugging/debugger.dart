@@ -280,7 +280,7 @@ class Debugger extends Domain {
       // Chrome is 0 based. Account for this.
       var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
           location['lineNumber'] as int, location['columnNumber'] as int);
-      var dartFrame = _frameFor(jsLocation);
+      var dartFrame = await _frameFor(jsLocation);
       if (dartFrame != null) {
         dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
         dartFrame.index = index++;
@@ -331,7 +331,7 @@ class Debugger extends Domain {
   }
 
   /// Returns a Dart [Frame] for a [JsLocation].
-  Frame _frameFor(JsLocation jsLocation) {
+  Future<Frame> _frameFor(JsLocation jsLocation) async {
     // TODO(sdk/issues/37240) - ideally we look for an exact location instead
     // of the closest location on a given line.
     Location bestLocation;
@@ -346,7 +346,7 @@ class Debugger extends Domain {
     }
     if (bestLocation == null) return null;
     var script =
-        inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
+        await inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
     return Frame()
       ..code = (CodeRef()..kind = CodeKind.kDart)
       ..location = (SourceLocation()

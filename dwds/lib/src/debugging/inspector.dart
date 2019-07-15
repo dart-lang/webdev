@@ -367,7 +367,13 @@ function($argsString) {
   }
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
-  ScriptRef scriptRefFor(String uri) => _serverPathToScriptRef[uri];
+  Future<ScriptRef> scriptRefFor(String uri) async {
+    if (_serverPathToScriptRef.isEmpty) {
+      // TODO(grouma) - populate the server path cache a better way.
+      await getScripts(isolate.id);
+    }
+    return _serverPathToScriptRef[uri];
+  }
 
   Future<ScriptList> getScripts(String isolateId) async {
     var scripts = await scriptRefs(isolateId);

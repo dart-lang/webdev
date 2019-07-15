@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -187,8 +188,10 @@ class ChromeProxyService implements VmServiceInterface {
   @override
   Future<Breakpoint> addBreakpointWithScriptUri(
       String isolateId, String scriptUri, int line,
-      {int column}) {
-    throw UnimplementedError();
+      {int column}) async {
+    var dartUri = DartUri(scriptUri, uri);
+    var ref = await _inspector.scriptRefFor(dartUri.serverPath);
+    return _debugger.addBreakpoint(isolateId, ref.id, line, column: column);
   }
 
   @override
