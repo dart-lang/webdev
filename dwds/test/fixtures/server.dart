@@ -46,6 +46,8 @@ class TestServer {
     String target,
     Stream<BuildResults> buildResults,
     Future<ChromeConnection> Function() chromeConnection,
+    ReloadConfiguration reloadConfiguration,
+    bool serveDevTools,
   ) async {
     var pipeline = const Pipeline();
 
@@ -59,6 +61,8 @@ class TestServer {
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       logWriter: (level, message) => printOnFailure(message),
+      reloadConfiguration: reloadConfiguration,
+      serveDevTools: serveDevTools,
       verbose: true,
     );
 
