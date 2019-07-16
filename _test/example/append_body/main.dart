@@ -13,7 +13,7 @@ void main() {
     print('Count is: ${++count}');
   });
 
-  document.body.appendText('Hello World!!');
+  document.body.appendText('Hello World!');
 
   registerExtension('ext.flutter.disassemble', (_, __) async {
     document.body.appendText('start disassemble ');

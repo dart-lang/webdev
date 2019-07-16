@@ -31,6 +31,8 @@ class TestContext {
   DebugConnection debugConnection;
   ChromeProxyService chromeProxyService;
   int port;
+  File _entryFile;
+  String _entryContents;
 
   /// Top level directory in which we run the test server..
   String workingDirectory;
@@ -47,9 +49,15 @@ class TestContext {
       this.pathToServe = 'example'}) {
     workingDirectory = p.normalize(
         p.absolute(directory ?? p.relative('../_test', from: p.current)));
+    _entryFile = File(p.absolute(p.join(p.relative('../_test', from: p.current),
+        'example', 'append_body', 'main.dart')));
+    _entryContents = _entryFile.readAsStringSync();
   }
 
-  Future<void> setUp() async {
+  Future<void> setUp(
+      {ReloadConfiguration reloadConfiguration, bool serveDevTools}) async {
+    reloadConfiguration ??= ReloadConfiguration.none;
+    serveDevTools ??= false;
     port = await findUnusedPort();
     try {
       chromeDriver = await Process.start(
@@ -70,7 +78,7 @@ class TestContext {
     await daemonClient.buildResults
         .firstWhere((results) => results.results
             .any((result) => result.status == BuildStatus.succeeded))
-        .timeout(Duration(seconds: 60));
+        .timeout(const Duration(seconds: 60));
 
     var debugPort = await findUnusedPort();
     var capabilities = Capabilities.chrome
@@ -89,6 +97,8 @@ class TestContext {
       pathToServe,
       daemonClient.buildResults,
       () async => connection,
+      reloadConfiguration,
+      serveDevTools,
     );
 
     appUrl = 'http://localhost:$port/$path';
@@ -110,9 +120,22 @@ class TestContext {
   }
 
   Future<Null> tearDown() async {
+    _entryFile.writeAsStringSync(_entryContents);
     await daemonClient.close();
     await testServer.stop();
     await webDriver?.quit();
     chromeDriver.kill();
+  }
+
+  Future<void> changeInput() async {
+    _entryFile.writeAsStringSync(
+        _entryContents.replaceAll('Hello World!', 'Gary is awesome!'));
+
+    // Wait for the build.
+    await daemonClient.buildResults.firstWhere((results) => results.results
+        .any((result) => result.status == BuildStatus.succeeded));
+
+    // Allow change to propagate to the browser.
+    await Future.delayed(const Duration(seconds: 2));
   }
 }
