@@ -18,7 +18,7 @@ void main() {
       await context.setUp(serveDevTools: true);
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
       // Wait for DevTools to actually open.
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 2));
     });
 
     tearDown(() async {
@@ -36,7 +36,7 @@ void main() {
       // Open a new tab, select it, and navigate to the app
       await context.webDriver.driver
           .execute("window.open('$appUrl', '_blank');", []);
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 2));
       var windows = await context.webDriver.windows.toList();
       var oldAppWindow = windows[0];
       var newAppWindow = windows[1];
@@ -45,7 +45,7 @@ void main() {
 
       // Try to open devtools and check for the alert.
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 2));
       var alert = context.webDriver.driver.switchTo.alert;
       expect(alert, isNotNull);
       expect(await alert.text,
@@ -59,7 +59,7 @@ void main() {
       await devToolsWindow.close();
       await newAppWindow.setAsActive();
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 2));
       windows = await context.webDriver.windows.toList();
       devToolsWindow = windows.firstWhere((window) => window != newAppWindow);
       await devToolsWindow.setAsActive();
@@ -79,7 +79,7 @@ void main() {
     test('gives a good error if devtools is not served', () async {
       // Try to open devtools and check for the alert.
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 2));
       var alert = context.webDriver.driver.switchTo.alert;
       expect(alert, isNotNull);
       expect(await alert.text, contains('--debug'));
