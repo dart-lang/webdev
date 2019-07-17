@@ -19,7 +19,7 @@ abstract class ExtensionRequest
 
   ExtensionRequest._();
 
-  /// Used to associate a request with an ExtensionResponse.
+  /// Used to associate a request with an [ExtensionResponse].
   int get id;
 
   String get command;
@@ -38,7 +38,7 @@ abstract class ExtensionResponse
 
   ExtensionResponse._();
 
-  /// Used to associate a response with an ExtensionRequest.
+  /// Used to associate a response with an [ExtensionRequest].
   int get id;
 
   bool get success;
