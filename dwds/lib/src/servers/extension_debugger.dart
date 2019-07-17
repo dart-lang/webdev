@@ -1,3 +1,7 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -8,27 +12,34 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../data/serializers.dart';
 
-/// A debugger for Dart Debug Extension.
-///
-/// The SseHandler listens for ExtensionResponse sent from the SseClient in
-/// the background of Dart Debug Extension.
+/// A debugger backed by the Dart Debug Extension
 class ExtensionDebugger implements WipDebugger {
   @override
   WipConnection get connection => throw UnimplementedError();
+
+  /// A connection between the debugger and the background of
+  /// Dart Debug Extension
   final SseConnection _connection;
-  var completers = <int, Completer>{};
+
+  /// A map from [completerId] to a completer associated with
+  /// an [ExtensionRequest]
+  final completers = <int, Completer>{};
+
   var completerId = 0;
+
   ExtensionDebugger(this._connection) {
     _connection.stream.listen((data) {
       var message = serializers.deserialize(jsonDecode(data));
       if (message is ExtensionResponse) {
         var encodedResult = json.decode(message.result);
         if (completers[message.id] == null) {
-          throw Exception('Missing completer.');
+          throw StateError('Missing completer.');
         }
         completers[message.id]
             .complete(WipResponse(encodedResult as Map<String, dynamic>));
       }
+    }, onError: (e) {
+      close();
     });
   }
 
@@ -40,15 +51,21 @@ class ExtensionDebugger implements WipDebugger {
   Future<WipResponse> sendCommand(String command,
       {Map<String, dynamic> params}) {
     var completer = Completer<WipResponse>();
-    completers[completerId] = completer;
+    var id = newId();
+    completers[id] = completer;
     _connection.sink.add(jsonEncode(serializers.serialize(ExtensionRequest(
         (b) => b
-          ..id = completerId
+          ..id = id
           ..command = command
           ..commandParams =
               BuiltMap<String, Object>(params ?? {}).toBuilder()))));
-    completerId += 1;
     return completer.future;
+  }
+
+  int newId() => completerId++;
+
+  Future<void> close() async {
+    await _connection.sink.close();
   }
 
   @override
