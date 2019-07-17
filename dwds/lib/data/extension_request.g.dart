@@ -22,20 +22,17 @@ class _$ExtensionRequestSerializer
   Iterable<Object> serialize(Serializers serializers, ExtensionRequest object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
-      'completerId',
-      serializers.serialize(object.completerId,
-          specifiedType: const FullType(int)),
+      'id',
+      serializers.serialize(object.id, specifiedType: const FullType(int)),
       'command',
       serializers.serialize(object.command,
           specifiedType: const FullType(String)),
+      'commandParams',
+      serializers.serialize(object.commandParams,
+          specifiedType: const FullType(BuiltMap,
+              const [const FullType(String), const FullType(Object)])),
     ];
-    if (object.commandParams != null) {
-      result
-        ..add('commandParams')
-        ..add(serializers.serialize(object.commandParams,
-            specifiedType: const FullType(BuiltMap,
-                const [const FullType(String), const FullType(Object)])));
-    }
+
     return result;
   }
 
@@ -51,8 +48,8 @@ class _$ExtensionRequestSerializer
       iterator.moveNext();
       final dynamic value = iterator.current;
       switch (key) {
-        case 'completerId':
-          result.completerId = serializers.deserialize(value,
+        case 'id':
+          result.id = serializers.deserialize(value,
               specifiedType: const FullType(int)) as int;
           break;
         case 'command':
@@ -84,9 +81,8 @@ class _$ExtensionResponseSerializer
   Iterable<Object> serialize(Serializers serializers, ExtensionResponse object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
-      'completerId',
-      serializers.serialize(object.completerId,
-          specifiedType: const FullType(int)),
+      'id',
+      serializers.serialize(object.id, specifiedType: const FullType(int)),
       'success',
       serializers.serialize(object.success,
           specifiedType: const FullType(bool)),
@@ -115,8 +111,8 @@ class _$ExtensionResponseSerializer
       iterator.moveNext();
       final dynamic value = iterator.current;
       switch (key) {
-        case 'completerId':
-          result.completerId = serializers.deserialize(value,
+        case 'id':
+          result.id = serializers.deserialize(value,
               specifiedType: const FullType(int)) as int;
           break;
         case 'success':
@@ -140,7 +136,7 @@ class _$ExtensionResponseSerializer
 
 class _$ExtensionRequest extends ExtensionRequest {
   @override
-  final int completerId;
+  final int id;
   @override
   final String command;
   @override
@@ -150,13 +146,16 @@ class _$ExtensionRequest extends ExtensionRequest {
           [void Function(ExtensionRequestBuilder) updates]) =>
       (new ExtensionRequestBuilder()..update(updates)).build();
 
-  _$ExtensionRequest._({this.completerId, this.command, this.commandParams})
+  _$ExtensionRequest._({this.id, this.command, this.commandParams})
       : super._() {
-    if (completerId == null) {
-      throw new BuiltValueNullFieldError('ExtensionRequest', 'completerId');
+    if (id == null) {
+      throw new BuiltValueNullFieldError('ExtensionRequest', 'id');
     }
     if (command == null) {
       throw new BuiltValueNullFieldError('ExtensionRequest', 'command');
+    }
+    if (commandParams == null) {
+      throw new BuiltValueNullFieldError('ExtensionRequest', 'commandParams');
     }
   }
 
@@ -172,21 +171,21 @@ class _$ExtensionRequest extends ExtensionRequest {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is ExtensionRequest &&
-        completerId == other.completerId &&
+        id == other.id &&
         command == other.command &&
         commandParams == other.commandParams;
   }
 
   @override
   int get hashCode {
-    return $jf($jc($jc($jc(0, completerId.hashCode), command.hashCode),
-        commandParams.hashCode));
+    return $jf($jc(
+        $jc($jc(0, id.hashCode), command.hashCode), commandParams.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('ExtensionRequest')
-          ..add('completerId', completerId)
+          ..add('id', id)
           ..add('command', command)
           ..add('commandParams', commandParams))
         .toString();
@@ -197,9 +196,9 @@ class ExtensionRequestBuilder
     implements Builder<ExtensionRequest, ExtensionRequestBuilder> {
   _$ExtensionRequest _$v;
 
-  int _completerId;
-  int get completerId => _$this._completerId;
-  set completerId(int completerId) => _$this._completerId = completerId;
+  int _id;
+  int get id => _$this._id;
+  set id(int id) => _$this._id = id;
 
   String _command;
   String get command => _$this._command;
@@ -215,7 +214,7 @@ class ExtensionRequestBuilder
 
   ExtensionRequestBuilder get _$this {
     if (_$v != null) {
-      _completerId = _$v.completerId;
+      _id = _$v.id;
       _command = _$v.command;
       _commandParams = _$v.commandParams?.toBuilder();
       _$v = null;
@@ -242,14 +241,12 @@ class ExtensionRequestBuilder
     try {
       _$result = _$v ??
           new _$ExtensionRequest._(
-              completerId: completerId,
-              command: command,
-              commandParams: _commandParams?.build());
+              id: id, command: command, commandParams: commandParams.build());
     } catch (_) {
       String _$failedField;
       try {
         _$failedField = 'commandParams';
-        _commandParams?.build();
+        commandParams.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'ExtensionRequest', _$failedField, e.toString());
@@ -263,7 +260,7 @@ class ExtensionRequestBuilder
 
 class _$ExtensionResponse extends ExtensionResponse {
   @override
-  final int completerId;
+  final int id;
   @override
   final bool success;
   @override
@@ -275,11 +272,10 @@ class _$ExtensionResponse extends ExtensionResponse {
           [void Function(ExtensionResponseBuilder) updates]) =>
       (new ExtensionResponseBuilder()..update(updates)).build();
 
-  _$ExtensionResponse._(
-      {this.completerId, this.success, this.result, this.error})
+  _$ExtensionResponse._({this.id, this.success, this.result, this.error})
       : super._() {
-    if (completerId == null) {
-      throw new BuiltValueNullFieldError('ExtensionResponse', 'completerId');
+    if (id == null) {
+      throw new BuiltValueNullFieldError('ExtensionResponse', 'id');
     }
     if (success == null) {
       throw new BuiltValueNullFieldError('ExtensionResponse', 'success');
@@ -301,7 +297,7 @@ class _$ExtensionResponse extends ExtensionResponse {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is ExtensionResponse &&
-        completerId == other.completerId &&
+        id == other.id &&
         success == other.success &&
         result == other.result &&
         error == other.error;
@@ -310,15 +306,14 @@ class _$ExtensionResponse extends ExtensionResponse {
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc($jc(0, completerId.hashCode), success.hashCode),
-            result.hashCode),
+        $jc($jc($jc(0, id.hashCode), success.hashCode), result.hashCode),
         error.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('ExtensionResponse')
-          ..add('completerId', completerId)
+          ..add('id', id)
           ..add('success', success)
           ..add('result', result)
           ..add('error', error))
@@ -330,9 +325,9 @@ class ExtensionResponseBuilder
     implements Builder<ExtensionResponse, ExtensionResponseBuilder> {
   _$ExtensionResponse _$v;
 
-  int _completerId;
-  int get completerId => _$this._completerId;
-  set completerId(int completerId) => _$this._completerId = completerId;
+  int _id;
+  int get id => _$this._id;
+  set id(int id) => _$this._id = id;
 
   bool _success;
   bool get success => _$this._success;
@@ -350,7 +345,7 @@ class ExtensionResponseBuilder
 
   ExtensionResponseBuilder get _$this {
     if (_$v != null) {
-      _completerId = _$v.completerId;
+      _id = _$v.id;
       _success = _$v.success;
       _result = _$v.result;
       _error = _$v.error;
@@ -376,10 +371,7 @@ class ExtensionResponseBuilder
   _$ExtensionResponse build() {
     final _$result = _$v ??
         new _$ExtensionResponse._(
-            completerId: completerId,
-            success: success,
-            result: result,
-            error: error);
+            id: id, success: success, result: result, error: error);
     replace(_$result);
     return _$result;
   }
