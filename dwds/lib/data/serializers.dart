@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:build_daemon/data/build_status.dart';
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
+import 'package:dwds/data/extension_request.dart';
 
 import 'connect_request.dart';
 import 'devtools_request.dart';
@@ -20,6 +22,8 @@ part 'serializers.g.dart';
   RunRequest,
   DefaultBuildResult,
   IsolateExit,
-  IsolateStart
+  IsolateStart,
+  ExtensionRequest,
+  ExtensionResponse,
 ])
 final Serializers serializers = _$serializers;
