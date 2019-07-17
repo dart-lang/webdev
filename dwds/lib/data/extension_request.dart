@@ -8,7 +8,7 @@ import 'package:built_value/serializer.dart';
 
 part 'extension_request.g.dart';
 
-/// A request to run a command on Dart Debug Extension.
+/// A request to run a command in the Dart Debug Extension.
 abstract class ExtensionRequest
     implements Built<ExtensionRequest, ExtensionRequestBuilder> {
   static Serializer<ExtensionRequest> get serializer =>
@@ -19,12 +19,11 @@ abstract class ExtensionRequest
 
   ExtensionRequest._();
 
-  /// Identifies which completer sends this request.
-  int get completerId;
+  /// Used to associate a request with an ExtensionResponse.
+  int get id;
 
   String get command;
 
-  @nullable
   BuiltMap<String, Object> get commandParams;
 }
 
@@ -39,11 +38,12 @@ abstract class ExtensionResponse
 
   ExtensionResponse._();
 
-  /// Identifies which completer to receive the response.
-  int get completerId;
+  /// Used to associate a response with an ExtensionRequest.
+  int get id;
 
   bool get success;
 
+  /// Contains a JSON-encoded payload.
   String get result;
 
   @nullable
