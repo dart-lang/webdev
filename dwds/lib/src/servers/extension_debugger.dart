@@ -15,7 +15,7 @@ import '../../data/serializers.dart';
 class ExtensionDebugger implements WipDebugger {
   @override
   WipConnection get connection => throw UnimplementedError();
-  SseConnection _connection;
+  final SseConnection _connection;
   var completers = <int, Completer>{};
   var completerId = 0;
   ExtensionDebugger(this._connection) {
