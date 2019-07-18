@@ -48,6 +48,7 @@ class TestServer {
     Future<ChromeConnection> Function() chromeConnection,
     ReloadConfiguration reloadConfiguration,
     bool serveDevTools,
+    WipDebugger wipDebugger,
   ) async {
     var pipeline = const Pipeline();
 
@@ -64,6 +65,7 @@ class TestServer {
       reloadConfiguration: reloadConfiguration,
       serveDevTools: serveDevTools,
       verbose: true,
+      wipDebugger: wipDebugger,
     );
 
     var server = await HttpMultiServer.bind('localhost', port);

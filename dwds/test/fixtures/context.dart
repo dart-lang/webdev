@@ -9,6 +9,7 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:http/http.dart' as http;
@@ -30,6 +31,8 @@ class TestContext {
   AppConnection appConnection;
   DebugConnection debugConnection;
   ChromeProxyService chromeProxyService;
+  ExtensionBackend extensionBackend;
+  WipDebugger wipDebugger;
   int port;
   File _entryFile;
   String _entryContents;
@@ -99,6 +102,7 @@ class TestContext {
       () async => connection,
       reloadConfiguration,
       serveDevTools,
+      wipDebugger,
     );
 
     appUrl = 'http://localhost:$port/$path';
@@ -115,8 +119,8 @@ class TestContext {
       var result = await http.get('http://localhost:$port/$path');
       return result.body;
     };
-    chromeProxyService = await ChromeProxyService.create(
-        connection, assetHandler, appConnection.request.instanceId);
+    chromeProxyService = await ChromeProxyService.create(connection,
+        assetHandler, appConnection.request.instanceId, wipDebugger);
   }
 
   Future<Null> tearDown() async {

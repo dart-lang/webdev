@@ -58,6 +58,7 @@ class Dwds {
     LogWriter logWriter,
     bool verbose,
     bool enableDebugExtension,
+    WipDebugger wipDebugger,
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
@@ -99,6 +100,7 @@ class Dwds {
       hostname,
       verbose,
       logWriter,
+      wipDebugger,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 

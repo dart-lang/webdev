@@ -46,6 +46,8 @@ class ChromeProxyService implements VmServiceInterface {
   // TODO(grouma) - This should be class private.
   final WipConnection tabConnection;
 
+  final WipDebugger _wipDebugger;
+
   final AssetHandler _assetHandler;
 
   /// Provides debugger-related functionality.
@@ -61,10 +63,14 @@ class ChromeProxyService implements VmServiceInterface {
     this._tab,
     this.tabConnection,
     this._assetHandler,
+    this._wipDebugger,
   );
 
-  static Future<ChromeProxyService> create(ChromeConnection chromeConnection,
-      AssetHandler assetHandler, String appInstanceId) async {
+  static Future<ChromeProxyService> create(
+      ChromeConnection chromeConnection,
+      AssetHandler assetHandler,
+      String appInstanceId,
+      WipDebugger wipDebugger) async {
     ChromeTab appTab;
     for (var tab in await chromeConnection.getTabs()) {
       if (tab.url.startsWith('chrome-extensions:')) continue;
@@ -84,13 +90,16 @@ class ChromeProxyService implements VmServiceInterface {
     var tabConnection = await appTab.connect();
     await tabConnection.runtime.enable();
 
+    wipDebugger = WipDebugger(tabConnection);
+
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
       ..isolates = []
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
-    var service = ChromeProxyService._(vm, appTab, tabConnection, assetHandler);
+    var service = ChromeProxyService._(
+        vm, appTab, tabConnection, assetHandler, wipDebugger);
     await service._initialize();
     await service.createIsolate();
     return service;
@@ -121,7 +130,7 @@ class ChromeProxyService implements VmServiceInterface {
     }
 
     _inspector = await AppInspector.initialize(
-      tabConnection,
+      _wipDebugger,
       _assetHandler,
       _debugger,
       uri,
@@ -206,8 +215,7 @@ class ChromeProxyService implements VmServiceInterface {
 require("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
-    var response =
-        await tabConnection.runtime.sendCommand('Runtime.evaluate', params: {
+    var response = await _wipDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
       'awaitPromise': true,
     });
