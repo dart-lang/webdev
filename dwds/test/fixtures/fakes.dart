@@ -100,7 +100,10 @@ class FakeSseConnection implements SseConnection {
   @override
   StreamChannel<S> cast<S>() => null;
 
+  /// A [StreamController] for incoming messages on SSE connection.
   final controllerIncoming = StreamController<String>();
+
+  /// A [StreamController] for outgoing messages on SSE connection.
   final controllerOutgoing = StreamController<String>();
 
   @override
