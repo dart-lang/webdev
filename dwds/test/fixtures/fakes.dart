@@ -2,8 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
+import 'package:async/src/stream_sink_transformer.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/utilities/domain.dart';
+import 'package:sse/server/sse_handler.dart';
+import 'package:stream_channel/src/stream_channel_transformer.dart';
+import 'package:stream_channel/stream_channel.dart';
 
 /// A library of fake/stub implementations of our classes and their supporting
 /// classes (e.g. WipConnection) for unit testing.
@@ -88,4 +94,47 @@ class FakeRuntime extends WipRuntime {
   }) async {
     return results[resultsReturned++];
   }
+}
+
+class FakeSseConnection implements SseConnection {
+  @override
+  StreamChannel<S> cast<S>() => null;
+
+  final _controller = StreamController<String>();
+
+  StreamController<String> get controller => _controller;
+
+  @override
+  StreamChannel<String> changeSink(
+          StreamSink<String> Function(StreamSink<String> sink) change) =>
+      null;
+
+  @override
+  StreamChannel<String> changeStream(
+          Stream<String> Function(Stream<String> stream) change) =>
+      null;
+
+  @override
+  void pipe(StreamChannel<String> other) {}
+
+  @override
+  StreamSink<String> get sink => controller.sink;
+
+  @override
+  Stream<String> get stream => controller.stream;
+
+  @override
+  StreamChannel<S> transform<S>(
+          StreamChannelTransformer<S, String> transformer) =>
+      null;
+
+  @override
+  StreamChannel<String> transformSink(
+          StreamSinkTransformer<String, String> transformer) =>
+      null;
+
+  @override
+  StreamChannel<String> transformStream(
+          StreamTransformer<String, String> transformer) =>
+      null;
 }
