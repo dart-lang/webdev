@@ -12,7 +12,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../data/serializers.dart';
 
-/// A debugger backed by the Dart Debug Extension
+/// A debugger backed by the Dart Debug Extension.
 class ExtensionDebugger implements WipDebugger {
   @override
   WipConnection get connection => throw UnimplementedError();
@@ -21,21 +21,20 @@ class ExtensionDebugger implements WipDebugger {
   /// Dart Debug Extension
   final SseConnection _connection;
 
-  /// A map from [completerId] to a completer associated with
-  /// an [ExtensionRequest]
-  final completers = <int, Completer>{};
+  /// A map from id to a completer associated with an [ExtensionRequest]
+  final _completers = <int, Completer>{};
 
-  var completerId = 0;
+  var _completerId = 0;
 
   ExtensionDebugger(this._connection) {
     _connection.stream.listen((data) {
       var message = serializers.deserialize(jsonDecode(data));
       if (message is ExtensionResponse) {
         var encodedResult = json.decode(message.result);
-        if (completers[message.id] == null) {
+        if (_completers[message.id] == null) {
           throw StateError('Missing completer.');
         }
-        completers[message.id]
+        _completers[message.id]
             .complete(WipResponse(encodedResult as Map<String, dynamic>));
       }
     }, onError: (e) {
@@ -45,14 +44,12 @@ class ExtensionDebugger implements WipDebugger {
 
   /// Sends a [command] with optional [params] to Dart Debug Extension
   /// over the SSE connection.
-  ///
-  /// Each sent command has a unique id [completerId].
   @override
   Future<WipResponse> sendCommand(String command,
       {Map<String, dynamic> params}) {
     var completer = Completer<WipResponse>();
     var id = newId();
-    completers[id] = completer;
+    _completers[id] = completer;
     _connection.sink.add(jsonEncode(serializers.serialize(ExtensionRequest(
         (b) => b
           ..id = id
@@ -62,7 +59,7 @@ class ExtensionDebugger implements WipDebugger {
     return completer.future;
   }
 
-  int newId() => completerId++;
+  int newId() => _completerId++;
 
   Future<void> close() async {
     await _connection.sink.close();
