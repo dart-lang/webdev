@@ -173,8 +173,8 @@ class DevHandler {
             serializers.serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
-        await appServices.chromeProxyService.wipDebugger.connection
-            .sendCommand('Target.createTarget', {
+        await appServices.chromeProxyService.wipDebugger
+            .sendCommand('Target.createTarget', params: {
           'newWindow': true,
           'url': 'http://${_devTools.hostname}:${_devTools.port}'
               '/?hide=none&uri=${appServices.debugService.wsUri}',

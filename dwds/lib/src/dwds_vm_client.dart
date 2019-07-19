@@ -62,15 +62,14 @@ class DwdsVmClient {
       await chromeProxyService.wipDebugger.connection.page.enable();
       // TODO: use built in `page.reload` once it works,
       // https://github.com/google/webkit_inspection_protocol.dart/issues/44
-      await chromeProxyService.wipDebugger.connection
-          .sendCommand('Page.reload');
+      await chromeProxyService.wipDebugger.sendCommand('Page.reload');
       return {'result': Success().toJson()};
     });
     await client.registerService('fullReload', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.screenshot', (_) async {
       await chromeProxyService.wipDebugger.connection.page.enable();
-      var response = await chromeProxyService.wipDebugger.connection.page
+      var response = await chromeProxyService.wipDebugger
           .sendCommand('Page.captureScreenshot');
       return {'result': response.result};
     });
