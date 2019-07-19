@@ -42,11 +42,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// The actual chrome tab running this app.
   final ChromeTab _tab;
 
-  /// The connection with the chrome debug service for the tab.
-  // TODO(grouma) - This should be class private.
-  final WipConnection tabConnection;
-
-  final WipDebugger _wipDebugger;
+  final WipDebugger wipDebugger;
 
   final AssetHandler _assetHandler;
 
@@ -61,9 +57,8 @@ class ChromeProxyService implements VmServiceInterface {
   ChromeProxyService._(
     this._vm,
     this._tab,
-    this.tabConnection,
     this._assetHandler,
-    this._wipDebugger,
+    this.wipDebugger,
   );
 
   static Future<ChromeProxyService> create(
@@ -98,8 +93,7 @@ class ChromeProxyService implements VmServiceInterface {
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
-    var service = ChromeProxyService._(
-        vm, appTab, tabConnection, assetHandler, wipDebugger);
+    var service = ChromeProxyService._(vm, appTab, assetHandler, wipDebugger);
     await service._initialize();
     await service.createIsolate();
     return service;
@@ -108,7 +102,7 @@ class ChromeProxyService implements VmServiceInterface {
   Future<Null> _initialize() async {
     _debugger = await Debugger.create(
       _assetHandler,
-      tabConnection,
+      wipDebugger.connection,
       _streamNotify,
       _appInspectorProvider,
       uri,
@@ -130,7 +124,7 @@ class ChromeProxyService implements VmServiceInterface {
     }
 
     _inspector = await AppInspector.initialize(
-      _wipDebugger,
+      wipDebugger,
       _assetHandler,
       _debugger,
       uri,
@@ -215,7 +209,7 @@ class ChromeProxyService implements VmServiceInterface {
 require("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
-    var response = await _wipDebugger.sendCommand('Runtime.evaluate', params: {
+    var response = await wipDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
       'awaitPromise': true,
     });
@@ -478,7 +472,7 @@ require("dart_sdk").developer.invokeExtension(
       exceptionsSubscription?.cancel();
     }, onListen: () {
       chromeConsoleSubscription =
-          tabConnection.runtime.onConsoleAPICalled.listen((e) {
+          wipDebugger.connection.runtime.onConsoleAPICalled.listen((e) {
         var isolate = _inspector?.isolate;
         if (isolate == null) return;
         if (!filter(e)) return;
@@ -493,7 +487,7 @@ require("dart_sdk").developer.invokeExtension(
       });
       if (includeExceptions) {
         exceptionsSubscription =
-            tabConnection.runtime.onExceptionThrown.listen((e) {
+            wipDebugger.connection.runtime.onExceptionThrown.listen((e) {
           var isolate = _inspector?.isolate;
           if (isolate == null) return;
           controller.add(Event()
@@ -509,7 +503,7 @@ require("dart_sdk").developer.invokeExtension(
 
   /// Listens for chrome console events and handles the ones we care about.
   void _setUpChromeConsoleListeners(IsolateRef isolateRef) {
-    _consoleSubscription = tabConnection.runtime.onConsoleAPICalled
+    _consoleSubscription = wipDebugger.connection.runtime.onConsoleAPICalled
         .listen((ConsoleAPIEvent event) {
       var isolate = _inspector?.isolate;
       if (isolate == null) return;

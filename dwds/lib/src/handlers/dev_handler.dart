@@ -162,7 +162,7 @@ class DevHandler {
         // If you load the same app in a different tab then we need to throw
         // away our old services and start new ones.
         if (!(await _isCorrectTab(message.instanceId,
-            appServices.chromeProxyService.tabConnection))) {
+            appServices.chromeProxyService.wipDebugger.connection))) {
           unawaited(appServices.close());
           unawaited(_servicesByAppId.remove(message.appId));
           appServices =
@@ -173,7 +173,7 @@ class DevHandler {
             serializers.serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
-        await appServices.chromeProxyService.tabConnection
+        await appServices.chromeProxyService.wipDebugger.connection
             .sendCommand('Target.createTarget', {
           'newWindow': true,
           'url': 'http://${_devTools.hostname}:${_devTools.port}'
@@ -193,8 +193,8 @@ class DevHandler {
         if (services != null && services.connectedInstanceId == null) {
           // Re-connect to the previous instance if its in the same tab,
           // otherwise do nothing for now.
-          if (await _isCorrectTab(
-              message.instanceId, services.chromeProxyService.tabConnection)) {
+          if (await _isCorrectTab(message.instanceId,
+              services.chromeProxyService.wipDebugger.connection)) {
             services.connectedInstanceId = message.instanceId;
             await services.chromeProxyService.createIsolate();
           }
@@ -241,8 +241,9 @@ class DevHandler {
     var webdevClient = await DwdsVmClient.create(debugService);
     var appServices = AppDebugServices(debugService, webdevClient);
 
-    unawaited(
-        appServices.chromeProxyService.tabConnection.onClose.first.then((_) {
+    unawaited(appServices
+        .chromeProxyService.wipDebugger.connection.onClose.first
+        .then((_) {
       appServices.close();
       _servicesByAppId.remove(appId);
       _logWriter(
