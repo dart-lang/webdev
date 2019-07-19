@@ -2,10 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JS('chrome')
+@JS()
 library background;
 
+import 'dart:convert';
+import 'dart:js';
+
+import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/data/serializers.dart';
 import 'package:js/js.dart';
+import 'package:js/js_util.dart' as js_util;
 import 'package:sse/client/sse_client.dart';
 
 // GENERATE:
@@ -18,16 +24,15 @@ void main() {
     // Sends commands to debugger attached to the current tab.
     //
     // Extracts the extension backend port from the injected JS.
-    var callback = allowInterop((List<Tab> tabs) {
+    var callback = allowInterop((List<Tab> tabs) async {
       currentTab = tabs[0];
       attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() {}));
       sendCommand(Debuggee(tabId: currentTab.id), 'Debugger.enable',
-          CommandParams(), allowInterop((e) {}));
+          js_util.jsify({}), allowInterop((e) {}));
       sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.evaluate',
-          CommandParams(expression: '\$extensionPort'),
-          allowInterop((RemoteObject e) {
+          js_util.jsify({'expression': '\$extensionPort'}), allowInterop((e) {
         var port = e.result.value;
-        startSseClient(port);
+        startSseClient(port, currentTab);
       }));
     });
 
@@ -41,32 +46,59 @@ void main() {
 //
 // Creates 2 channels which connect to the SSE handler at the extension
 // backend, send a simple message.
-Future<void> startSseClient(port) async {
-  var channel = SseClient('http://localhost:$port/test');
-  channel.stream.listen((s) {
-    channel.sink.add('This is channel 1.');
+Future<void> startSseClient(port, currentTab) async {
+  var client = SseClient('http://localhost:$port/test');
+  client.stream.listen((data) {
+    var message = serializers.deserialize(jsonDecode(data));
+    if (message is ExtensionRequest) {
+      sendCommand(Debuggee(tabId: currentTab.id), message.command,
+          js_util.jsify(message.commandParams.toMap()), allowInterop((e) {
+        client.sink
+            .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
+              ..id = message.id
+              ..success = true
+              ..result = stringify(e)))));
+      }));
+    }
+
+    // Listens for console events and prints the script being logged.
+    addDebuggerListener((Debuggee source, String method, Object params) {
+      var decodedParam = json.decode(stringify(params));
+      var id = decodedParam['scriptId'];
+      sendCommand(Debuggee(tabId: currentTab.id), 'Debugger.getScriptSource',
+          js_util.jsify({'scriptId': id}), allowInterop((script) {
+        var decodedScript = json.decode(stringify(script));
+        print(decodedScript['scriptSource']);
+      }));
+    });
   }, onError: (e) {
-    channel.close();
+    client.close();
   }, cancelOnError: true);
 
-  var channel2 = SseClient('http://localhost:$port/test');
-  await channel2.onOpen.first;
-  channel2.sink.add('This is channel 2.');
+  var client2 = SseClient('http://localhost:$port/test');
+  await client2.onOpen.first;
+  client2.sink.add('This is channel 2.');
 }
 
-@JS('browserAction.onClicked.addListener')
+@JS('chrome.browserAction.onClicked.addListener')
 external void addListener(Function callback);
 
-@JS('debugger.sendCommand')
-external void sendCommand(Debuggee target, String method,
-    CommandParams commandParams, Function callback);
+@JS('chrome.debugger.sendCommand')
+external void sendCommand(
+    Debuggee target, String method, Object commandParams, Function callback);
 
-@JS('debugger.attach')
+@JS('chrome.debugger.attach')
 external void attach(
     Debuggee target, String requiredVersion, Function callback);
 
-@JS('tabs.query')
-external void queryTabs(QueryInfo queryInfo, Function callback);
+@JS('chrome.debugger.onEvent.addListener')
+external dynamic addDebuggerListener(Function callback);
+
+@JS('chrome.tabs.query')
+external List<Tab> queryTabs(QueryInfo queryInfo, Function callback);
+
+@JS('JSON.stringify')
+external String stringify(o);
 
 @JS()
 @anonymous
@@ -84,13 +116,6 @@ class Debuggee {
   external String get targetId;
   external factory Debuggee(
       {dynamic tabId, String extensionId, String targetId});
-}
-
-@JS()
-@anonymous
-class CommandParams {
-  external String get expression;
-  external factory CommandParams({String expression});
 }
 
 @JS()
