@@ -22,7 +22,7 @@ void main() async {
     extensionDebugger = ExtensionDebugger(connection);
   });
 
-  test('can send a command & receive a response', () async {
+  test('can receive a response', () async {
     var extensionResponse = ExtensionResponse((b) => b
       ..result = jsonEncode({
         'result': {'value': 3.14}
@@ -34,9 +34,19 @@ void main() async {
         params: {'expression': '\$pi'}).then((response) {
       resultCompleter.complete(response);
     }));
-    connection.controller
+    connection.controllerIncoming.sink
         .add(jsonEncode(serializers.serialize(extensionResponse)));
     var response = await resultCompleter.future;
     expect(response.result['value'], 3.14);
+  });
+
+  test('can send a request', () async {
+    var extensionRequest = ExtensionRequest((b) => b
+      ..id = 0
+      ..command = 'Debugger.pause');
+    unawaited(extensionDebugger.pause());
+    var request = serializers.deserialize(
+        jsonDecode(await connection.controllerOutgoing.stream.first));
+    expect(request, extensionRequest);
   });
 }

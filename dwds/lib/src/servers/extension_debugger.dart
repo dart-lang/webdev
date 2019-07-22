@@ -66,17 +66,40 @@ class ExtensionDebugger implements WipDebugger {
   }
 
   @override
-  Future disable() => throw UnimplementedError();
+  Future disable() => sendCommand('Debugger.disable');
 
   @override
-  Future enable() => throw UnimplementedError();
+  Future enable() => sendCommand('Debugger.enable');
+
+  @override
+  Future<String> getScriptSource(String scriptId) async =>
+      (await sendCommand('Debugger.getScriptSource',
+              params: {'scriptId': scriptId}))
+          .result['scriptSource'] as String;
+
+  @override
+  Future pause() => sendCommand('Debugger.pause');
+
+  @override
+  Future resume() => sendCommand('Debugger.resume');
+
+  @override
+  Future setPauseOnExceptions(PauseState state) =>
+      sendCommand('Debugger.setPauseOnExceptions',
+          params: {'state': _pauseStateToString(state)});
+
+  @override
+  Future stepInto() => sendCommand('Debugger.stepInto');
+
+  @override
+  Future stepOut() => sendCommand('Debugger.stepOut');
+
+  @override
+  Future stepOver() => sendCommand('Debugger.stepOver');
 
   @override
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) =>
       throw UnimplementedError();
-
-  @override
-  Future<String> getScriptSource(String scriptId) => throw UnimplementedError();
 
   @override
   Stream<WipDomain> get onClosed => throw UnimplementedError();
@@ -95,23 +118,18 @@ class ExtensionDebugger implements WipDebugger {
   Stream<ScriptParsedEvent> get onScriptParsed => throw UnimplementedError();
 
   @override
-  Future pause() => throw UnimplementedError();
-
-  @override
-  Future resume() => throw UnimplementedError();
-
-  @override
   Map<String, WipScript> get scripts => throw UnimplementedError();
 
-  @override
-  Future setPauseOnExceptions(PauseState state) => throw UnimplementedError();
-
-  @override
-  Future stepInto() => throw UnimplementedError();
-
-  @override
-  Future stepOut() => throw UnimplementedError();
-
-  @override
-  Future stepOver() => throw UnimplementedError();
+  String _pauseStateToString(PauseState state) {
+    switch (state) {
+      case PauseState.all:
+        return 'all';
+      case PauseState.none:
+        return 'none';
+      case PauseState.uncaught:
+        return 'uncaught';
+      default:
+        throw ArgumentError('unknown state: $state');
+    }
+  }
 }
