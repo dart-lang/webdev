@@ -1,4 +1,4 @@
-## 0.4.0-dev
+## 0.4.0
 
 - Move `data` abstractions from `package:webdev` into `package:dwds`.
 - Move debugging related handlers from `package:webdev` into `package:dwds`.

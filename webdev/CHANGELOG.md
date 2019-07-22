@@ -1,6 +1,7 @@
-## 2.3.0-dev
+## 2.3.0
 
 - Depend on the latest `package:dwds`.
+- Depend on the latest `package:build_daemon`.
 
 ## 2.2.0
 
