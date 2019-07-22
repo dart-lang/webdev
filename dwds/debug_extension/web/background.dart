@@ -27,10 +27,10 @@ void main() {
     var callback = allowInterop((List<Tab> tabs) async {
       currentTab = tabs[0];
       attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() {}));
-      sendCommand(Debuggee(tabId: currentTab.id), 'Debugger.enable',
-          js_util.jsify({}), allowInterop((e) {}));
+      sendCommand(Debuggee(tabId: currentTab.id), 'Debugger.enable', EmptyParam,
+          allowInterop((e) {}));
       sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.evaluate',
-          js_util.jsify({'expression': '\$extensionPort'}), allowInterop((e) {
+          ExtensionPortParam(expression: '\$extensionPort'), allowInterop((e) {
         var port = e.result.value;
         startSseClient(port, currentTab);
       }));
@@ -60,27 +60,26 @@ Future<void> startSseClient(port, currentTab) async {
               ..result = stringify(e)))));
       }));
     }
-
-    // Listens for console events and prints the script being logged.
-    var getConsole =
-        allowInterop((Debuggee source, String method, Object params) {
-      var decodedParam = json.decode(stringify(params));
-      var id = decodedParam['scriptId'];
-      sendCommand(Debuggee(tabId: currentTab.id), 'Debugger.getScriptSource',
-          js_util.jsify({'scriptId': id}), allowInterop((script) {
-        var decodedScript = json.decode(stringify(script));
-        print(decodedScript['scriptSource']);
-      }));
-    });
-
-    addDebuggerListener(
-        allowInterop((Debuggee source, String method, Object params) {
-      getConsole(source, method, params);
+    addDebuggerListener(allowInterop(
+        (Debuggee source, String method, ConsoleEventParams params) {
+      console(source, method, params, currentTab.id as int);
     }));
   }, onError: (e) {
     client.close();
   }, cancelOnError: true);
 }
+
+// Listens for console events and prints the script being logged.
+Function console =
+    (Debuggee source, String method, ConsoleEventParams params, int tabId) {
+  var decodedParam = json.decode(stringify(params));
+  var id = decodedParam['scriptId'] as String;
+  sendCommand(Debuggee(tabId: tabId), 'Debugger.getScriptSource',
+      ScriptIdParam(scriptId: id), allowInterop((script) {
+    var decodedScript = json.decode(stringify(script));
+    print(decodedScript['scriptSource']);
+  }));
+};
 
 @JS('chrome.browserAction.onClicked.addListener')
 external void addListener(Function callback);
@@ -136,4 +135,28 @@ class RemoteObject {
 @anonymous
 class EvaluationResult {
   external dynamic get value;
+}
+
+@JS()
+@anonymous
+class ConsoleEventParams {
+  external String get scriptId;
+}
+
+@JS()
+@anonymous
+class EmptyParam {}
+
+@JS()
+@anonymous
+class ExtensionPortParam {
+  external String get extensionPort;
+  external factory ExtensionPortParam({String expression});
+}
+
+@JS()
+@anonymous
+class ScriptIdParam {
+  external String get scriptId;
+  external factory ScriptIdParam({String scriptId});
 }
