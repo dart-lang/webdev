@@ -61,7 +61,7 @@ Future<void> startSseClient(port, currentTab) async {
               ..result = stringify(e)))));
       }));
     }
-    sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam,
+    sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
         allowInterop((e) {}));
     addDebuggerListener(allowInterop(
         (Debuggee source, String method, ConsoleEventParams params) {
