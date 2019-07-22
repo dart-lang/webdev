@@ -62,7 +62,8 @@ Future<void> startSseClient(port, currentTab) async {
     }
 
     // Listens for console events and prints the script being logged.
-    addDebuggerListener((Debuggee source, String method, Object params) {
+    var getConsole =
+        allowInterop((Debuggee source, String method, Object params) {
       var decodedParam = json.decode(stringify(params));
       var id = decodedParam['scriptId'];
       sendCommand(Debuggee(tabId: currentTab.id), 'Debugger.getScriptSource',
@@ -71,13 +72,14 @@ Future<void> startSseClient(port, currentTab) async {
         print(decodedScript['scriptSource']);
       }));
     });
+
+    addDebuggerListener(
+        allowInterop((Debuggee source, String method, Object params) {
+      getConsole(source, method, params);
+    }));
   }, onError: (e) {
     client.close();
   }, cancelOnError: true);
-
-  var client2 = SseClient('http://localhost:$port/test');
-  await client2.onOpen.first;
-  client2.sink.add('This is channel 2.');
 }
 
 @JS('chrome.browserAction.onClicked.addListener')
