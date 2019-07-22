@@ -73,7 +73,7 @@ Future<void> startSseClient(port, currentTab) async {
 }
 
 // Listens for console events.
-Function console = (Debuggee source, String method, ConsoleEventParams params,
+void console(Debuggee source, String method, ConsoleEventParams params,
     int tabId, Stream stream) {
   var decodedParam = json.decode(stringify(params));
   if (method == 'Debugger.scriptParsed') {
@@ -89,7 +89,7 @@ Function console = (Debuggee source, String method, ConsoleEventParams params,
     // Prints logged values.
     print(value);
   }
-};
+}
 
 @JS('chrome.browserAction.onClicked.addListener')
 external void addListener(Function callback);
