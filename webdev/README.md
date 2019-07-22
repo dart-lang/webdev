@@ -14,7 +14,7 @@ similar to:
 ```yaml
 ...
 dev_dependencies:
-  build_runner: ^1.3.0
+  build_runner: ^1.6.2
   build_web_compilers: ^2.0.0
 ...
 ```

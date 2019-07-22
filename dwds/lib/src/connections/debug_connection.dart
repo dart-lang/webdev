@@ -17,7 +17,8 @@ class DebugConnection {
   final _onDoneCompleter = Completer();
 
   DebugConnection(this._appDebugServices) {
-    _appDebugServices.chromeProxyService.tabConnection.onClose.first.then((_) {
+    _appDebugServices.chromeProxyService.wipDebugger.connection.onClose.first
+        .then((_) {
       close();
     });
   }
@@ -33,7 +34,7 @@ class DebugConnection {
 
   Future<void> close() async {
     if (!_onDoneCompleter.isCompleted) _onDoneCompleter.complete();
-    await _appDebugServices.chromeProxyService.tabConnection.close();
+    await _appDebugServices.chromeProxyService.wipDebugger.connection.close();
     await _appDebugServices.close();
   }
 

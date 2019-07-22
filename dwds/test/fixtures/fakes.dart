@@ -100,9 +100,11 @@ class FakeSseConnection implements SseConnection {
   @override
   StreamChannel<S> cast<S>() => null;
 
-  final _controller = StreamController<String>();
+  /// A [StreamController] for incoming messages on SSE connection.
+  final controllerIncoming = StreamController<String>();
 
-  StreamController<String> get controller => _controller;
+  /// A [StreamController] for outgoing messages on SSE connection.
+  final controllerOutgoing = StreamController<String>();
 
   @override
   StreamChannel<String> changeSink(
@@ -118,10 +120,10 @@ class FakeSseConnection implements SseConnection {
   void pipe(StreamChannel<String> other) {}
 
   @override
-  StreamSink<String> get sink => controller.sink;
+  StreamSink<String> get sink => controllerOutgoing.sink;
 
   @override
-  Stream<String> get stream => controller.stream;
+  Stream<String> get stream => controllerIncoming.stream;
 
   @override
   StreamChannel<S> transform<S>(
