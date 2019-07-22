@@ -140,7 +140,7 @@ class PubspecLock {
 
 Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
     PubspecLock pubspecLock) async {
-  var buildDaemonConstraint = '>=1.0.0 <2.0.0';
+  var buildDaemonConstraint = '>=2.0.0 <3.0.0';
 
   var issues = <PackageExceptionDetails>[];
 
@@ -180,7 +180,7 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
   var issues = <PackageExceptionDetails>[];
 
   var buildRunnerIssues = pubspecLock.checkPackage(
-      'build_runner', VersionConstraint.parse('>=1.5.0 <2.0.0'));
+      'build_runner', VersionConstraint.parse('>=1.6.2 <2.0.0'));
 
   issues.addAll(buildRunnerIssues);
 
