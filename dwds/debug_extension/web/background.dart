@@ -5,6 +5,7 @@
 @JS()
 library background;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:js';
 
@@ -60,25 +61,34 @@ Future<void> startSseClient(port, currentTab) async {
               ..result = stringify(e)))));
       }));
     }
+    sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam,
+        allowInterop((e) {}));
     addDebuggerListener(allowInterop(
         (Debuggee source, String method, ConsoleEventParams params) {
-      console(source, method, params, currentTab.id as int);
+      console(source, method, params, currentTab.id as int, client.stream);
     }));
   }, onError: (e) {
     client.close();
   }, cancelOnError: true);
 }
 
-// Listens for console events and prints the script being logged.
-Function console =
-    (Debuggee source, String method, ConsoleEventParams params, int tabId) {
+// Listens for console events.
+Function console = (Debuggee source, String method, ConsoleEventParams params,
+    int tabId, Stream stream) {
   var decodedParam = json.decode(stringify(params));
-  var id = decodedParam['scriptId'] as String;
-  sendCommand(Debuggee(tabId: tabId), 'Debugger.getScriptSource',
-      ScriptIdParam(scriptId: id), allowInterop((script) {
-    var decodedScript = json.decode(stringify(script));
-    print(decodedScript['scriptSource']);
-  }));
+  if (method == 'Debugger.scriptParsed') {
+    var id = decodedParam['scriptId'] as String;
+    sendCommand(Debuggee(tabId: tabId), 'Debugger.getScriptSource',
+        ScriptIdParam(scriptId: id), allowInterop((script) {
+      var decodedScript = json.decode(stringify(script));
+      // Prints the script being evaluated.
+      print(decodedScript['scriptSource']);
+    }));
+  } else if (method == 'Runtime.consoleAPICalled') {
+    var value = decodedParam['args'][0]['value'];
+    // Prints logged values.
+    print(value);
+  }
 };
 
 @JS('chrome.browserAction.onClicked.addListener')
