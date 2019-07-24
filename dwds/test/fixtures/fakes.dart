@@ -16,6 +16,8 @@ import 'package:stream_channel/stream_channel.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'debugger_data.dart';
+
 class FakeWipConnection implements WipConnection {
   @override
   Future close() async {}
@@ -139,4 +141,72 @@ class FakeSseConnection implements SseConnection {
   StreamChannel<String> transformStream(
           StreamTransformer<String, String> transformer) =>
       null;
+}
+
+class FakeWipDebugger implements WipDebugger {
+  @override
+  WipConnection get connection => FakeWipConnection();
+
+  @override
+  Future disable() => null;
+
+  @override
+  Future enable() => null;
+
+  @override
+  Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) =>
+      null;
+
+  @override
+  Future<String> getScriptSource(String scriptId) => null;
+
+  @override
+  Stream<WipDomain> get onClosed => null;
+
+  @override
+  Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => null;
+
+  @override
+  Stream<DebuggerPausedEvent> get onPaused => null;
+
+  @override
+  Stream<DebuggerResumedEvent> get onResumed => null;
+
+  @override
+  Stream<ScriptParsedEvent> get onScriptParsed => null;
+
+  @override
+  Future pause() => null;
+  @override
+  Future resume() => null;
+
+  @override
+  Map<String, WipScript> get scripts => null;
+
+  List<WipResponse> results = variables1;
+  int resultsReturned = 0;
+
+  @override
+  Future<WipResponse> sendCommand(
+    String method, {
+    Map<String, dynamic> params,
+  }) async {
+    // Force the results for that we expect for looking up the variables.
+    if (method == 'Runtime.getProperties') {
+      return results[resultsReturned++];
+    }
+    return null;
+  }
+
+  @override
+  Future setPauseOnExceptions(PauseState state) => null;
+
+  @override
+  Future stepInto() => null;
+
+  @override
+  Future stepOut() => null;
+
+  @override
+  Future stepOver() => null;
 }

@@ -4,10 +4,9 @@
 
 @TestOn('vm')
 import 'package:dwds/src/debugging/debugger.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
-
+import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
 
@@ -19,12 +18,14 @@ final context = TestContext();
 AppInspector inspector;
 Debugger debugger;
 FakeWipConnection connection;
+FakeWipDebugger wipDebugger;
 
 void main() async {
   setUpAll(() async {
     connection = FakeWipConnection();
+    wipDebugger = FakeWipDebugger();
     debugger = await Debugger.create(
-        null, connection, null, () => inspector, 'fakeRoot');
+        null, wipDebugger, null, () => inspector, 'fakeRoot');
     inspector = FakeInspector();
   });
 
@@ -48,8 +49,6 @@ void main() async {
     // Create a single location in the JS script the location in our hard-coded
     // frame.
     debugger.sources.noteLocation('dart', location, '69');
-    // Force the results that we expect for looking up the variables.
-    (connection.runtime as FakeRuntime).results = variables1;
 
     var frames = await debugger.dartFramesFor(frames1);
     expect(frames, isNotNull);

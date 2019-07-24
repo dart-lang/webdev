@@ -25,7 +25,7 @@ const _pauseModePauseStates = {
 };
 
 class Debugger extends Domain {
-  final WipConnection _tabConnection;
+  final WipDebugger _wipDebugger;
 
   final AssetHandler _assetHandler;
   final StreamNotify _streamNotify;
@@ -35,7 +35,7 @@ class Debugger extends Domain {
 
   Debugger._(
     this._assetHandler,
-    this._tabConnection,
+    this._wipDebugger,
     this._streamNotify,
     AppInspectorProvider provider,
     // TODO(401) - Remove.
@@ -43,7 +43,7 @@ class Debugger extends Domain {
   )   : _breakpoints = _Breakpoints(provider),
         super(provider);
 
-  WipDebugger get _chromeDebugger => _tabConnection.debugger;
+  WipDebugger get _chromeDebugger => _wipDebugger;
 
   /// The scripts and sourcemaps for the application, both JS and Dart.
   Sources sources;
@@ -127,13 +127,13 @@ class Debugger extends Domain {
 
   static Future<Debugger> create(
       AssetHandler assetHandler,
-      WipConnection tabConnection,
+      WipDebugger wipDebugger,
       StreamNotify streamNotify,
       AppInspectorProvider appInspectorProvider,
       String root) async {
     var debugger = Debugger._(
       assetHandler,
-      tabConnection,
+      wipDebugger,
       streamNotify,
       appInspectorProvider,
       // TODO(401) - Remove.
@@ -152,7 +152,7 @@ class Debugger extends Domain {
     _chromeDebugger?.onPaused?.listen(_pauseHandler);
     _chromeDebugger?.onResumed?.listen(_resumeHandler);
 
-    handleErrorIfPresent(await _tabConnection?.page?.enable() as WipResponse);
+    handleErrorIfPresent(await _chromeDebugger?.sendCommand('Page.enable'));
     handleErrorIfPresent(await _chromeDebugger?.enable() as WipResponse);
   }
 
@@ -318,8 +318,8 @@ class Debugger extends Domain {
   /// Calls the Chrome Runtime.getProperties API for the object
   /// with [id].
   Future<List<Property>> _getProperties(String id) async {
-    var response = await _tabConnection.runtime
-        .sendCommand('Runtime.getProperties', params: {
+    var response =
+        await _chromeDebugger.sendCommand('Runtime.getProperties', params: {
       'objectId': id,
       'ownProperties': true,
     });
