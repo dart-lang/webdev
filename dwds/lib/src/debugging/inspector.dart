@@ -126,7 +126,7 @@ class AppInspector extends Domain {
 
   Future _callFunctionOn(
       RemoteObject receiver, String evalExpression, List arguments) async {
-    var result = await _tabConnection.runtime
+    var result = await _wipDebugger
         .sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': arguments,
