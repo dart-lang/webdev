@@ -18,8 +18,8 @@ void main() {
     });
 
     test('parses org-dartlang-app paths', () {
-      var uri = DartUri('org-dartlang-app:////web/main.dart');
-      expect(uri.serverPath, 'web/main.dart');
+      var uri = DartUri('org-dartlang-app:////blah/main.dart');
+      expect(uri.serverPath, 'blah/main.dart');
     });
 
     test('parses packages paths', () {
