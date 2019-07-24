@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
@@ -19,13 +17,9 @@ void main() {
     await context.tearDown();
   });
 
-  test('Refuses connections without the auth token', () async {
-    expect(
-        WebSocket.connect('ws://localhost:${context.debugConnection.port}/ws'),
-        throwsA(isA<WebSocketException>()));
-  });
-
-  test('Accepts connections with the auth token', () async {
-    expect(WebSocket.connect('${context.debugConnection.wsUri}/ws'), completes);
+  test('can take screenshots', () async {
+    var response = await context.debugConnection.vmService
+        .callServiceExtension('ext.dwds.screenshot');
+    expect(response.json['data'], isNotNull);
   });
 }

@@ -1,8 +1,10 @@
-## 0.4.0-dev
+## 0.4.0
 
 - Move `data` abstractions from `package:webdev` into `package:dwds`.
 - Move debugging related handlers from `package:webdev` into `package:dwds`.
 - Move injected client from `package:webdev` into `package:dwds`.
+- Create new public entrypoint `dwds.dart`. Existing public API `services.dart`
+  is now private.
 
 ## 0.3.3
 

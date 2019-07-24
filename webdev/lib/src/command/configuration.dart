@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
-import 'package:dwds/src/injected/configuration.dart'; // ignore: implementation_imports
+import 'package:dwds/dwds.dart';
 import 'package:logging/logging.dart';
 
 import '../logging.dart';
 
 const autoOption = 'auto';
 const chromeDebugPortFlag = 'chrome-debug-port';
+const debugExtensionFlag = 'debug-extension';
 const debugFlag = 'debug';
 const hostnameFlag = 'hostname';
 const hotReloadFlag = 'hot-reload';
@@ -70,6 +71,7 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
 class Configuration {
   final bool _autoRun;
   final int _chromeDebugPort;
+  final bool _debugExtension;
   final bool _debug;
   final String _hostname;
   final bool _launchInChrome;
@@ -85,6 +87,7 @@ class Configuration {
   Configuration({
     bool autoRun,
     int chromeDebugPort,
+    bool debugExtension,
     bool debug,
     String hostname,
     bool launchInChrome,
@@ -98,6 +101,7 @@ class Configuration {
     bool verbose,
   })  : _autoRun = autoRun,
         _chromeDebugPort = chromeDebugPort,
+        _debugExtension = debugExtension,
         _debug = debug,
         _hostname = hostname,
         _launchInChrome = launchInChrome,
@@ -112,6 +116,8 @@ class Configuration {
   bool get autoRun => _autoRun ?? true;
 
   int get chromeDebugPort => _chromeDebugPort ?? 0;
+
+  bool get debugExtension => _debugExtension ?? false;
 
   bool get debug => _debug ?? false;
 
@@ -139,6 +145,10 @@ class Configuration {
     var chromeDebugPort = argResults.options.contains(chromeDebugPortFlag)
         ? int.parse(argResults[chromeDebugPortFlag] as String)
         : defaultConfiguration.chromeDebugPort;
+
+    var debugExtension = argResults.options.contains(debugExtensionFlag)
+        ? argResults[debugExtensionFlag] as bool
+        : defaultConfiguration.debugExtension;
 
     var debug = argResults.options.contains(debugFlag)
         ? argResults[debugFlag] as bool
@@ -199,6 +209,7 @@ class Configuration {
 
     return Configuration(
         chromeDebugPort: chromeDebugPort,
+        debugExtension: debugExtension,
         debug: debug,
         hostname: hostname,
         launchInChrome: launchInChrome,

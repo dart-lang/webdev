@@ -6,10 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
-import 'package:dwds/src/devtools.dart'; // ignore: implementation_imports
-import 'package:dwds/src/handlers/asset_handler.dart'; // ignore: implementation_imports
-import 'package:dwds/src/handlers/dev_handler.dart'; // ignore: implementation_imports
-import 'package:dwds/src/handlers/injected_handler.dart'; // ignore: implementation_imports
+import 'package:dwds/dwds.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -35,12 +32,19 @@ class ServerOptions {
 
 class WebDevServer {
   final HttpServer _server;
-  final DevHandler devHandler;
   final String target;
+  final Dwds dwds;
+  final Stream<BuildResult> buildResults;
 
-  WebDevServer._(this.target, this._server, this.devHandler, bool autoRun) {
+  WebDevServer._(
+    this.target,
+    this._server,
+    this.dwds,
+    this.buildResults,
+    bool autoRun,
+  ) {
     if (autoRun) {
-      devHandler.connectedApps.listen((connection) {
+      dwds.connectedApps.listen((connection) {
         connection.runMain();
       });
     }
@@ -50,45 +54,49 @@ class WebDevServer {
   int get port => _server.port;
 
   Future<void> stop() async {
-    await devHandler.close();
+    await dwds.stop();
     await _server.close(force: true);
   }
 
   static Future<WebDevServer> start(
-    ServerOptions options,
-    Stream<BuildResults> buildResults,
-    DevTools devTools,
-  ) async {
-    var assetHandler = AssetHandler(options.daemonPort, options.target,
-        options.configuration.hostname, options.port);
-    var cascade = Cascade();
+      ServerOptions options, Stream<BuildResults> buildResults) async {
     var pipeline = const Pipeline();
 
     if (options.configuration.logRequests) {
       pipeline = pipeline.addMiddleware(logRequests());
     }
 
-    pipeline = pipeline
-        .addMiddleware(createInjectedHandler(options.configuration.reload))
-        .addMiddleware(interceptFavicon);
+    pipeline = pipeline.addMiddleware(interceptFavicon);
 
-    var devHandler = DevHandler(
-      () async => (await Chrome.connectedInstance).chromeConnection,
-      // Only provide relevant build results
-      buildResults.asyncMap<BuildResult>((results) => results.results
-          .firstWhere((result) => result.target == options.target)),
-      devTools,
-      assetHandler,
-      options.configuration.hostname,
-      options.configuration.verbose,
-      logWriter,
+    // Only provide relevant build results
+    var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) =>
+        results.results
+            .firstWhere((result) => result.target == options.target));
+
+    var dwds = await Dwds.start(
+      hostname: options.configuration.hostname,
+      applicationPort: options.port,
+      applicationTarget: options.target,
+      assetServerPort: options.daemonPort,
+      buildResults: filteredBuildResults,
+      chromeConnection: () async =>
+          (await Chrome.connectedInstance).chromeConnection,
+      logWriter: logWriter,
+      reloadConfiguration: options.configuration.reload,
+      serveDevTools: options.configuration.debug,
+      verbose: options.configuration.verbose,
+      enableDebugExtension: options.configuration.debugExtension,
     );
-    cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
     var hostname = options.configuration.hostname;
     var server = await HttpMultiServer.bind(hostname, options.port);
-    shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
+    shelf_io.serveRequests(server, pipeline.addHandler(dwds.handler));
     return WebDevServer._(
-        options.target, server, devHandler, options.configuration.autoRun);
+      options.target,
+      server,
+      dwds,
+      filteredBuildResults,
+      options.configuration.autoRun,
+    );
   }
 }

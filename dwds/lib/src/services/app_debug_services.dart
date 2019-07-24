@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
-import '../service.dart';
+import '../dwds_vm_client.dart';
 import 'chrome_proxy_service.dart' show ChromeProxyService;
-import 'dwds_vm_client.dart';
+import 'debug_service.dart';
 
 /// A container for all the services required for debugging an application.
 class AppDebugServices {

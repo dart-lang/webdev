@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
-import 'package:build_daemon/data/serializers.dart';
+import 'package:build_daemon/data/serializers.dart' as build_daemon;
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -16,13 +16,13 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import '../../data/connect_request.dart';
 import '../../data/devtools_request.dart';
 import '../../data/isolate_events.dart';
-import '../../data/run_request.dart';
-import '../../data/serializers.dart' as dwds;
-import '../../service.dart';
-import '../app_debug_services.dart';
-import '../devtools.dart';
+import '../../data/serializers.dart';
+import '../connections/app_connection.dart';
 import '../dwds_vm_client.dart';
 import '../handlers/asset_handler.dart';
+import '../servers/devtools.dart';
+import '../services/app_debug_services.dart';
+import '../services/debug_service.dart';
 
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
@@ -33,14 +33,15 @@ class DevHandler {
   final DevTools _devTools;
   final AssetHandler _assetHandler;
   final String _hostname;
-  final _connectedApps = StreamController<DevConnection>.broadcast();
+  final _connectedApps = StreamController<AppConnection>.broadcast();
   final _servicesByAppId = <String, Future<AppDebugServices>>{};
   final Stream<BuildResult> buildResults;
   final bool _verbose;
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
+  final WipDebugger _wipDebugger;
 
-  Stream<DevConnection> get connectedApps => _connectedApps.stream;
+  Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
   DevHandler(
     this._chromeConnection,
@@ -50,6 +51,7 @@ class DevHandler {
     this._hostname,
     this._verbose,
     this._logWriter,
+    this._wipDebugger,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
@@ -73,7 +75,8 @@ class DevHandler {
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;
     for (var connection in _connections) {
-      connection.sink.add(jsonEncode(serializers.serialize(result)));
+      connection.sink
+          .add(jsonEncode(build_daemon.serializers.serialize(result)));
     }
   }
 
@@ -86,6 +89,7 @@ class DevHandler {
       chromeConnection,
       _assetHandler.getRelativeAsset,
       appInstanceId,
+      _wipDebugger,
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
@@ -104,20 +108,21 @@ class DevHandler {
     _connections.add(connection);
     String appId;
     connection.stream.listen((data) async {
-      var message = dwds.serializers.deserialize(jsonDecode(data));
+      var message = serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
         if (_devTools == null) {
-          connection.sink.add(jsonEncode(dwds.serializers.serialize(
-              DevToolsResponse((b) => b
+          connection.sink
+              .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
                 ..success = false
-                ..error =
-                    'Debugging is not enabled, please pass the --debug flag '
-                        'when starting webdev.'))));
+                ..error = 'Debugging is not enabled.\n\n'
+                    'If you are using webdev please pass the --debug flag.\n'
+                    'Otherwise check the docs for the tool you are using.'))));
           return;
         }
+
         if (appId != message.appId) {
-          connection.sink.add(jsonEncode(dwds.serializers.serialize(
-              DevToolsResponse((b) => b
+          connection.sink.add(jsonEncode(serializers.serialize(DevToolsResponse(
+              (b) => b
                 ..success = false
                 ..error =
                     'App ID has changed since the connection was established. '
@@ -131,13 +136,13 @@ class DevHandler {
           appServices =
               await loadAppServices(message.appId, message.instanceId);
         } catch (_) {
-          connection.sink.add(
-              jsonEncode(dwds.serializers.serialize(DevToolsResponse((b) => b
+          connection.sink
+              .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
                 ..success = false
-                ..error = 'Webdev was unable to connect debug services to your '
+                ..error = 'Unable to connect debug services to your '
                     'application. Most likely this means you are trying to '
                     'load in a different Chrome window than was launched by '
-                    'webdev.'))));
+                    'your development tool.'))));
           return;
         }
 
@@ -145,8 +150,8 @@ class DevHandler {
         // instance of this app.
         if (appServices.connectedInstanceId != null &&
             appServices.connectedInstanceId != message.instanceId) {
-          connection.sink.add(jsonEncode(dwds.serializers.serialize(
-              DevToolsResponse((b) => b
+          connection.sink.add(jsonEncode(serializers.serialize(DevToolsResponse(
+              (b) => b
                 ..success = false
                 ..error =
                     'This app is already being debugged in a different tab. '
@@ -157,19 +162,19 @@ class DevHandler {
         // If you load the same app in a different tab then we need to throw
         // away our old services and start new ones.
         if (!(await _isCorrectTab(message.instanceId,
-            appServices.chromeProxyService.tabConnection))) {
+            appServices.chromeProxyService.wipDebugger.connection))) {
           unawaited(appServices.close());
           unawaited(_servicesByAppId.remove(message.appId));
           appServices =
               await loadAppServices(message.appId, message.instanceId);
         }
 
-        connection.sink.add(jsonEncode(dwds.serializers
-            .serialize(DevToolsResponse((b) => b..success = true))));
+        connection.sink.add(jsonEncode(
+            serializers.serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
-        await appServices.chromeProxyService.tabConnection
-            .sendCommand('Target.createTarget', {
+        await appServices.chromeProxyService.wipDebugger
+            .sendCommand('Target.createTarget', params: {
           'newWindow': true,
           'url': 'http://${_devTools.hostname}:${_devTools.port}'
               '/?hide=none&uri=${appServices.debugService.wsUri}',
@@ -188,14 +193,14 @@ class DevHandler {
         if (services != null && services.connectedInstanceId == null) {
           // Re-connect to the previous instance if its in the same tab,
           // otherwise do nothing for now.
-          if (await _isCorrectTab(
-              message.instanceId, services.chromeProxyService.tabConnection)) {
+          if (await _isCorrectTab(message.instanceId,
+              services.chromeProxyService.wipDebugger.connection)) {
             services.connectedInstanceId = message.instanceId;
             await services.chromeProxyService.createIsolate();
           }
         }
 
-        _connectedApps.add(DevConnection(message, connection));
+        _connectedApps.add(AppConnection(message, connection));
       } else if (message is IsolateExit) {
         (await loadAppServices(message.appId, message.instanceId))
             ?.chromeProxyService
@@ -236,8 +241,9 @@ class DevHandler {
     var webdevClient = await DwdsVmClient.create(debugService);
     var appServices = AppDebugServices(debugService, webdevClient);
 
-    unawaited(
-        appServices.chromeProxyService.tabConnection.onClose.first.then((_) {
+    unawaited(appServices
+        .chromeProxyService.wipDebugger.connection.onClose.first
+        .then((_) {
       appServices.close();
       _servicesByAppId.remove(appId);
       _logWriter(
@@ -256,19 +262,4 @@ Future<bool> _isCorrectTab(
   var result =
       await tabConnection.runtime.evaluate(r'window["$dartAppInstanceId"];');
   return result.value == instanceId;
-}
-
-class DevConnection {
-  final ConnectRequest request;
-  final SseConnection _connection;
-  var _isStarted = false;
-  DevConnection(this.request, this._connection);
-
-  void runMain() {
-    if (!_isStarted) {
-      _connection.sink
-          .add(jsonEncode(dwds.serializers.serialize(RunRequest())));
-    }
-    _isStarted = true;
-  }
 }

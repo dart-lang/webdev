@@ -16,8 +16,8 @@ import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import './src/chrome_proxy_service.dart';
-import './src/helpers.dart';
+import '../utilities/shared.dart';
+import 'chrome_proxy_service.dart';
 
 void Function(WebSocketChannel, String) _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
@@ -75,12 +75,13 @@ class DebugService {
     String hostname,
     ChromeConnection chromeConnection,
     Future<String> Function(String) assetHandler,
-    String appInstanceId, {
+    String appInstanceId,
+    WipDebugger wipDebugger, {
     void Function(Map<String, dynamic>) onRequest,
     void Function(Map<String, dynamic>) onResponse,
   }) async {
     var chromeProxyService = await ChromeProxyService.create(
-        chromeConnection, assetHandler, appInstanceId);
+        chromeConnection, assetHandler, appInstanceId, wipDebugger);
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     var authToken = _makeAuthToken();
     var innerHandler = webSocketHandler(_createNewConnectionHandler(

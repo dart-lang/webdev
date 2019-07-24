@@ -5,10 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/service.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
-import 'chrome_proxy_service.dart' show ChromeProxyService;
+import 'services/chrome_proxy_service.dart' show ChromeProxyService;
+import 'services/debug_service.dart';
 
 // A client of the vm service that registers some custom extensions like
 // hotRestart.
@@ -40,7 +40,7 @@ class DwdsVmClient {
 
     client.registerServiceCallback('hotRestart', (request) async {
       await _removeBreakpointsAndResume(client);
-      var response = await chromeProxyService.tabConnection.runtime.sendCommand(
+      var response = await chromeProxyService.wipDebugger.sendCommand(
           'Runtime.evaluate',
           params: {'expression': r'$dartHotRestart();', 'awaitPromise': true});
       var exceptionDetails = response.result['exceptionDetails'];
@@ -56,24 +56,24 @@ class DwdsVmClient {
         return {'result': Success().toJson()};
       }
     });
-    await client.registerService('hotRestart', 'WebDev fullReload');
+    await client.registerService('hotRestart', 'DWDS fullReload');
 
     client.registerServiceCallback('fullReload', (_) async {
-      await chromeProxyService.tabConnection.page.enable();
+      await chromeProxyService.wipDebugger.connection.page.enable();
       // TODO: use built in `page.reload` once it works,
       // https://github.com/google/webkit_inspection_protocol.dart/issues/44
-      await chromeProxyService.tabConnection.sendCommand('Page.reload');
+      await chromeProxyService.wipDebugger.sendCommand('Page.reload');
       return {'result': Success().toJson()};
     });
-    await client.registerService('fullReload', 'WebDev');
+    await client.registerService('fullReload', 'DWDS');
 
-    client.registerServiceCallback('ext.webdev.screenshot', (_) async {
-      await chromeProxyService.tabConnection.page.enable();
-      var response = await chromeProxyService.tabConnection.page
+    client.registerServiceCallback('ext.dwds.screenshot', (_) async {
+      await chromeProxyService.wipDebugger.connection.page.enable();
+      var response = await chromeProxyService.wipDebugger
           .sendCommand('Page.captureScreenshot');
       return {'result': response.result};
     });
-    await client.registerService('ext.webdev.screenshot', 'WebDev');
+    await client.registerService('ext.dwds.screenshot', 'DWDS');
 
     return DwdsVmClient(client, requestController, responseController);
   }

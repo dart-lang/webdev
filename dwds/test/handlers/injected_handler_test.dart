@@ -4,8 +4,8 @@
 
 import 'dart:io';
 
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/handlers/injected_handler.dart';
-import 'package:dwds/src/injected/configuration.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -16,7 +16,7 @@ void main() {
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
 
-  group('InjectedMiddelware', () {
+  group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
       var pipeline = const Pipeline()
           .addMiddleware(createInjectedHandler(ReloadConfiguration.liveReload));
@@ -94,6 +94,42 @@ void main() {
                 originalResponse.headers[HttpHeaders.etagHeader]
           });
       expect(cachedResponse.statusCode, HttpStatus.notModified);
+    });
+
+    test('Does not inject the extension backend port', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('extensionHostname'), isFalse);
+      expect(result.body.contains('extensionPort'), isFalse);
+    });
+  });
+
+  group('InjectedHandlerWithExtension', () {
+    setUp(() async {
+      var someExtensionHostname = 'localhost';
+      var someExtensionPort = 4000;
+      var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
+          ReloadConfiguration.liveReload,
+          extensionHostname: someExtensionHostname,
+          extensionPort: someExtensionPort));
+      server = await shelf_io.serve(pipeline.addHandler((request) {
+        return Response.ok(
+            '$entrypointExtensionMarker\n'
+            '$mainExtensionMarker\n'
+            'app.main.main()',
+            headers: {HttpHeaders.etagHeader: entryEtag});
+      }), 'localhost', 0);
+    });
+
+    tearDown(() async {
+      await server.close();
+    });
+
+    test('Injects the extension backend port', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('extensionHostname'), isTrue);
+      expect(result.body.contains('extensionPort'), isTrue);
     });
   });
 }

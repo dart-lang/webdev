@@ -7,15 +7,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/chrome_proxy_service.dart';
-import 'package:dwds/src/dart_uri.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'test_context.dart';
+import 'fixtures/context.dart';
 
 final context = TestContext();
 ChromeProxyService get service => context.chromeProxyService;
@@ -49,7 +49,7 @@ void main() {
       var bp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
       // Remove breakpoint so it doesn't impact other tests.
       await service.removeBreakpoint(isolate.id, bp.id);
-      expect(bp.id, '1');
+      expect(bp.id, isNotNull);
     });
 
     test('addBreakpoint on a part file', () async {
@@ -58,16 +58,20 @@ void main() {
       var bp = await service.addBreakpoint(isolate.id, partScript.id, 10);
       // Remove breakpoint so it doesn't impact other tests.
       await service.removeBreakpoint(isolate.id, bp.id);
-      expect(bp.id, '2');
+      expect(bp.id, isNotNull);
     });
 
     test('addBreakpointAtEntry', () {
       expect(() => service.addBreakpointAtEntry(null, null),
           throwsUnimplementedError);
     });
-    test('addBreakpointWithScriptUri', () {
-      expect(() => service.addBreakpointWithScriptUri(null, null, null),
-          throwsUnimplementedError);
+
+    test('addBreakpointWithScriptUri', () async {
+      var bp = await service.addBreakpointWithScriptUri(
+          isolate.id, mainScript.uri, 23);
+      // Remove breakpoint so it doesn't impact other tests.
+      await service.removeBreakpoint(isolate.id, bp.id);
+      expect(bp.id, isNotNull);
     });
 
     test('removeBreakpoint null arguments', () {
@@ -95,7 +99,7 @@ void main() {
           .lastWhere((each) => each.uri.contains('main.dart'));
       var bp = await service.addBreakpoint(isolate.id, refreshedMain.id, 23);
       expect(isolate.breakpoints, [bp]);
-      expect(bp.id, '4');
+      expect(bp.id, isNotNull);
       await service.removeBreakpoint(isolate.id, bp.id);
       expect(isolate.breakpoints, isEmpty);
     });
