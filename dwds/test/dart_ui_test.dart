@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 void main() {
   group('DartUri', () {
     test('normalizes server paths', () {
-      var uri = DartUri('/packages/blah/src/../foo.dart');
+      var uri = DartUri('../foo.dart', '/packages/blah/src/blah.dart');
       expect(uri.serverPath, 'packages/blah/foo.dart');
     });
 
