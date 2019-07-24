@@ -17,12 +17,10 @@ import 'fixtures/fakes.dart';
 final context = TestContext();
 AppInspector inspector;
 Debugger debugger;
-FakeWipConnection connection;
 FakeWipDebugger wipDebugger;
 
 void main() async {
   setUpAll(() async {
-    connection = FakeWipConnection();
     wipDebugger = FakeWipDebugger();
     debugger = await Debugger.create(
         null, wipDebugger, null, () => inspector, 'fakeRoot');

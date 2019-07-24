@@ -43,8 +43,6 @@ class Debugger extends Domain {
   )   : _breakpoints = _Breakpoints(provider),
         super(provider);
 
-  WipDebugger get _chromeDebugger => _wipDebugger;
-
   /// The scripts and sourcemaps for the application, both JS and Dart.
   Sources sources;
 
@@ -61,7 +59,7 @@ class Debugger extends Domain {
 
   Future<Success> pause() async {
     _isStepping = false;
-    var result = await _chromeDebugger.sendCommand('Debugger.pause');
+    var result = await _wipDebugger.sendCommand('Debugger.pause');
     handleErrorIfPresent(result);
     return Success();
   }
@@ -70,7 +68,7 @@ class Debugger extends Domain {
     checkIsolate(isolateId);
     var pauseState = _pauseModePauseStates[mode.toLowerCase()] ??
         (throw ArgumentError.value('mode', 'Unsupported mode `$mode`'));
-    await _chromeDebugger.setPauseOnExceptions(pauseState);
+    await _wipDebugger.setPauseOnExceptions(pauseState);
     return Success();
   }
 
@@ -98,20 +96,20 @@ class Debugger extends Domain {
       _isStepping = true;
       switch (step) {
         case 'Over':
-          result = await _chromeDebugger.sendCommand('Debugger.stepOver');
+          result = await _wipDebugger.sendCommand('Debugger.stepOver');
           break;
         case 'Out':
-          result = await _chromeDebugger.sendCommand('Debugger.stepOut');
+          result = await _wipDebugger.sendCommand('Debugger.stepOut');
           break;
         case 'Into':
-          result = await _chromeDebugger.sendCommand('Debugger.stepInto');
+          result = await _wipDebugger.sendCommand('Debugger.stepInto');
           break;
         default:
           throw ArgumentError('Unexpected value for step: $step');
       }
     } else {
       _isStepping = false;
-      result = await _chromeDebugger.sendCommand('Debugger.resume');
+      result = await _wipDebugger.sendCommand('Debugger.resume');
     }
     handleErrorIfPresent(result);
     return Success();
@@ -148,12 +146,12 @@ class Debugger extends Domain {
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.
-    _chromeDebugger?.onScriptParsed?.listen(sources.scriptParsed);
-    _chromeDebugger?.onPaused?.listen(_pauseHandler);
-    _chromeDebugger?.onResumed?.listen(_resumeHandler);
+    _wipDebugger?.onScriptParsed?.listen(sources.scriptParsed);
+    _wipDebugger?.onPaused?.listen(_pauseHandler);
+    _wipDebugger?.onResumed?.listen(_resumeHandler);
 
-    handleErrorIfPresent(await _chromeDebugger?.sendCommand('Page.enable'));
-    handleErrorIfPresent(await _chromeDebugger?.enable() as WipResponse);
+    handleErrorIfPresent(await _wipDebugger?.sendCommand('Page.enable'));
+    handleErrorIfPresent(await _wipDebugger?.enable() as WipResponse);
   }
 
   /// Add a breakpoint at the given position.
@@ -219,7 +217,7 @@ class Debugger extends Domain {
     // Location is 0 based according to:
     // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
     var response =
-        await _chromeDebugger.sendCommand('Debugger.setBreakpoint', params: {
+        await _wipDebugger.sendCommand('Debugger.setBreakpoint', params: {
       'location': {
         'scriptId': location.jsLocation.scriptId,
         'lineNumber': location.jsLocation.line - 1,
@@ -231,8 +229,7 @@ class Debugger extends Domain {
 
   /// Call the Chrome protocol removeBreakpoint.
   Future<void> _removeBreakpoint(String breakpointId) async {
-    var response = await _chromeDebugger.sendCommand(
-        'Debugger.removeBreakpoint',
+    var response = await _wipDebugger.sendCommand('Debugger.removeBreakpoint',
         params: {'breakpointId': breakpointId});
     handleErrorIfPresent(response);
   }
@@ -319,7 +316,7 @@ class Debugger extends Domain {
   /// with [id].
   Future<List<Property>> _getProperties(String id) async {
     var response =
-        await _chromeDebugger.sendCommand('Runtime.getProperties', params: {
+        await _wipDebugger.sendCommand('Runtime.getProperties', params: {
       'objectId': id,
       'ownProperties': true,
     });
@@ -369,7 +366,7 @@ class Debugger extends Domain {
     } else {
       // If we don't have source location continue stepping.
       if (_isStepping && _sourceLocation(e) == null) {
-        await _chromeDebugger.sendCommand('Debugger.stepInto');
+        await _wipDebugger.sendCommand('Debugger.stepInto');
         return;
       }
       event.kind = EventKind.kPauseInterrupted;
