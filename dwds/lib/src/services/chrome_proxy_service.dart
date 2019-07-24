@@ -102,7 +102,7 @@ class ChromeProxyService implements VmServiceInterface {
   Future<Null> _initialize() async {
     _debugger = await Debugger.create(
       _assetHandler,
-      wipDebugger.connection,
+      wipDebugger,
       _streamNotify,
       _appInspectorProvider,
       uri,

@@ -16,38 +16,7 @@ import 'package:stream_channel/stream_channel.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-class FakeWipConnection implements WipConnection {
-  @override
-  Future close() async {}
-  @override
-  Future<WipResponse> sendCommand(String method,
-          [Map<String, dynamic> foo]) async =>
-      null;
-
-  WipRuntime _runtime;
-
-  @override
-  WipConsole get console => null; // ignore: deprecated_member_use
-  @override
-  WipDebugger get debugger => null;
-  @override
-  WipDom get dom => null;
-  @override
-  WipLog get log => null;
-  @override
-  Stream<WipConnection> get onClose => null;
-  @override
-  Stream<WipEvent> get onNotification => null;
-  @override
-  WipPage get page => null;
-  @override
-  WipRuntime get runtime =>
-      _runtime == null ? _runtime = FakeRuntime(this) : _runtime;
-  @override
-  WipTarget get target => null;
-  @override
-  String get url => null;
-}
+import 'debugger_data.dart';
 
 class FakeInspector extends Domain implements AppInspector {
   FakeInspector() : super.forInspector();
@@ -75,25 +44,6 @@ class FakeInspector extends Domain implements AppInspector {
   Isolate get isolate => null;
   @override
   IsolateRef get isolateRef => null;
-}
-
-/// A stub for [WipRuntime].
-///
-/// This allows you to specify a sequence of results that will be returned from
-/// sendCommand, if the sendCommand calls are sent in exactly the right order.
-class FakeRuntime extends WipRuntime {
-  FakeRuntime(WipConnection connection) : super(connection);
-
-  List<WipResponse> results = [];
-  int resultsReturned = 0;
-
-  @override
-  Future<WipResponse> sendCommand(
-    String method, {
-    Map<String, dynamic> params,
-  }) async {
-    return results[resultsReturned++];
-  }
 }
 
 class FakeSseConnection implements SseConnection {
@@ -139,4 +89,72 @@ class FakeSseConnection implements SseConnection {
   StreamChannel<String> transformStream(
           StreamTransformer<String, String> transformer) =>
       null;
+}
+
+class FakeWipDebugger implements WipDebugger {
+  @override
+  WipConnection get connection => null;
+
+  @override
+  Future disable() => null;
+
+  @override
+  Future enable() => null;
+
+  @override
+  Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) =>
+      null;
+
+  @override
+  Future<String> getScriptSource(String scriptId) => null;
+
+  @override
+  Stream<WipDomain> get onClosed => null;
+
+  @override
+  Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => null;
+
+  @override
+  Stream<DebuggerPausedEvent> get onPaused => null;
+
+  @override
+  Stream<DebuggerResumedEvent> get onResumed => null;
+
+  @override
+  Stream<ScriptParsedEvent> get onScriptParsed => null;
+
+  @override
+  Future pause() => null;
+  @override
+  Future resume() => null;
+
+  @override
+  Map<String, WipScript> get scripts => null;
+
+  List<WipResponse> results = variables1;
+  int resultsReturned = 0;
+
+  @override
+  Future<WipResponse> sendCommand(
+    String method, {
+    Map<String, dynamic> params,
+  }) async {
+    // Force the results that we expect for looking up the variables.
+    if (method == 'Runtime.getProperties') {
+      return results[resultsReturned++];
+    }
+    return null;
+  }
+
+  @override
+  Future setPauseOnExceptions(PauseState state) => null;
+
+  @override
+  Future stepInto() => null;
+
+  @override
+  Future stepOut() => null;
+
+  @override
+  Future stepOver() => null;
 }
