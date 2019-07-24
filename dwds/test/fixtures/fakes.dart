@@ -139,7 +139,7 @@ class FakeWipDebugger implements WipDebugger {
     String method, {
     Map<String, dynamic> params,
   }) async {
-    // Force the results for that we expect for looking up the variables.
+    // Force the results that we expect for looking up the variables.
     if (method == 'Runtime.getProperties') {
       return results[resultsReturned++];
     }
