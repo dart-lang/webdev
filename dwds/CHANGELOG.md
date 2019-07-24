@@ -1,3 +1,7 @@
+## 0.4.1
+
+- Fix an issue where we source map paths were not normalized.
+
 ## 0.4.0
 
 - Move `data` abstractions from `package:webdev` into `package:dwds`.

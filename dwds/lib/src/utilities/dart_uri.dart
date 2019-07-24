@@ -70,6 +70,7 @@ class DartUri {
   factory DartUri._fromServerPath(String uri) {
     uri = uri[0] == '.' ? uri.substring(1) : uri;
     uri = uri[0] == '/' ? uri.substring(1) : uri;
+    uri = p.normalize(uri);
     return DartUri._(uri);
   }
 }
