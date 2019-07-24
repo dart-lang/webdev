@@ -52,7 +52,7 @@ class ChromeProxyService implements VmServiceInterface {
   AppInspector _inspector;
 
   /// Public only for testing.
-  /// 
+  ///
   /// Returns the [AppInspector] this service uses.
   AppInspector appInspectorProvider() => _inspector;
 

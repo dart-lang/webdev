@@ -17,11 +17,10 @@ ChromeProxyService get service => context.chromeProxyService;
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
-
-      AppInspector inspector;
-    RemoteObject library;
-    RemoteObject testClass;
-    // RemoteObject instance;
+  AppInspector inspector;
+  RemoteObject library;
+  RemoteObject testClass;
+  // RemoteObject instance;
   setUpAll(() async {
     await context.setUp();
     inspector = service.appInspectorProvider();
@@ -31,43 +30,36 @@ void main() {
     await context.tearDown();
   });
 
-
-    // VM vm;
-    // String isolateId;
-    // Stream<Event> stream;
-    // ScriptList scripts;
-    // ScriptRef mainScript;
+  // VM vm;
+  // String isolateId;
+  // Stream<Event> stream;
+  // ScriptList scripts;
+  // ScriptRef mainScript;
 
   test('constructor', () async {
     var url = 'org-dartlang-app:///web/scopes_main.dart';
     library = await evaluate(
-      'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]');
-   testClass = await evaluate(
-     'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["libraryPublicFinal"]'
-   );
-   var stringy = await inspector.sendMessage(testClass, 'toString', []);
-    var testClass2 = await inspector.loadField(library, 'MyTestClass') as RemoteObject;
+        'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]');
+    testClass = await evaluate(
+        'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["libraryPublicFinal"]');
+    var stringy = await inspector.sendMessage(testClass, 'toString', []);
+    var testClass2 =
+        await inspector.loadField(library, 'MyTestClass') as RemoteObject;
     expect(testClass, isNotNull);
     expect(testClass2, isNotNull);
     expect(stringy, '222');
-
   });
-
-      
 }
 
-  /// Evaluates expression on global object.
-  Future<RemoteObject> evaluate(String expression) async {
-    final response = await tabConnection.runtime.sendCommand('Runtime.evaluate', params: {
-      'expression': expression,
-      'objectGroup': 'stuff'
-    });
+/// Evaluates expression on global object.
+Future<RemoteObject> evaluate(String expression) async {
+  final response = await tabConnection.runtime.sendCommand('Runtime.evaluate',
+      params: {'expression': expression, 'objectGroup': 'stuff'});
 
-    if (response.result.containsKey('exceptionDetails')) {
-      throw ArgumentError(
-          '${response.result['exceptionDetails'] as Map<String, dynamic>}');
-    } else {
-      return RemoteObject(
-          response.result['result'] as Map<String, dynamic>);
-    }
+  if (response.result.containsKey('exceptionDetails')) {
+    throw ArgumentError(
+        '${response.result['exceptionDetails'] as Map<String, dynamic>}');
+  } else {
+    return RemoteObject(response.result['result'] as Map<String, dynamic>);
   }
+}

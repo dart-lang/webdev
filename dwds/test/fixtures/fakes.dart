@@ -44,11 +44,12 @@ class FakeInspector extends Domain implements AppInspector {
   Isolate get isolate => null;
   @override
   IsolateRef get isolateRef => null;
-    @override 
+  @override
   Future loadField(RemoteObject receiver, String fieldName) => null;
   @override
-  Future sendMessage(RemoteObject receiver, String methodName, [List positionalArgs = const [], Map namedArgs = const {}]) => null;
-  
+  Future sendMessage(RemoteObject receiver, String methodName,
+          [List positionalArgs = const [], Map namedArgs = const {}]) =>
+      null;
 }
 
 class FakeSseConnection implements SseConnection {
