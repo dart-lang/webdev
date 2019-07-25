@@ -10,6 +10,8 @@ Serializer<ExtensionRequest> _$extensionRequestSerializer =
     new _$ExtensionRequestSerializer();
 Serializer<ExtensionResponse> _$extensionResponseSerializer =
     new _$ExtensionResponseSerializer();
+Serializer<ExtensionConsoleAPIEvent> _$extensionConsoleAPIEventSerializer =
+    new _$ExtensionConsoleAPIEventSerializer();
 
 class _$ExtensionRequestSerializer
     implements StructuredSerializer<ExtensionRequest> {
@@ -86,14 +88,23 @@ class _$ExtensionResponseSerializer
       'success',
       serializers.serialize(object.success,
           specifiedType: const FullType(bool)),
-      'result',
-      serializers.serialize(object.result,
-          specifiedType: const FullType(String)),
     ];
+    if (object.result != null) {
+      result
+        ..add('result')
+        ..add(serializers.serialize(object.result,
+            specifiedType: const FullType(String)));
+    }
     if (object.error != null) {
       result
         ..add('error')
         ..add(serializers.serialize(object.error,
+            specifiedType: const FullType(String)));
+    }
+    if (object.url != null) {
+      result
+        ..add('url')
+        ..add(serializers.serialize(object.url,
             specifiedType: const FullType(String)));
     }
     return result;
@@ -126,6 +137,60 @@ class _$ExtensionResponseSerializer
         case 'error':
           result.error = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
+          break;
+        case 'url':
+          result.url = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
+class _$ExtensionConsoleAPIEventSerializer
+    implements StructuredSerializer<ExtensionConsoleAPIEvent> {
+  @override
+  final Iterable<Type> types = const [
+    ExtensionConsoleAPIEvent,
+    _$ExtensionConsoleAPIEvent
+  ];
+  @override
+  final String wireName = 'ExtensionConsoleAPIEvent';
+
+  @override
+  Iterable<Object> serialize(
+      Serializers serializers, ExtensionConsoleAPIEvent object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[
+      'params',
+      serializers.serialize(object.params,
+          specifiedType: const FullType(
+              Map, const [const FullType(String), const FullType(dynamic)])),
+    ];
+
+    return result;
+  }
+
+  @override
+  ExtensionConsoleAPIEvent deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new ExtensionConsoleAPIEventBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'params':
+          result.params = serializers.deserialize(value,
+              specifiedType: const FullType(Map, const [
+                const FullType(String),
+                const FullType(dynamic)
+              ])) as Map<String, dynamic>;
           break;
       }
     }
@@ -267,21 +332,21 @@ class _$ExtensionResponse extends ExtensionResponse {
   final String result;
   @override
   final String error;
+  @override
+  final String url;
 
   factory _$ExtensionResponse(
           [void Function(ExtensionResponseBuilder) updates]) =>
       (new ExtensionResponseBuilder()..update(updates)).build();
 
-  _$ExtensionResponse._({this.id, this.success, this.result, this.error})
+  _$ExtensionResponse._(
+      {this.id, this.success, this.result, this.error, this.url})
       : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('ExtensionResponse', 'id');
     }
     if (success == null) {
       throw new BuiltValueNullFieldError('ExtensionResponse', 'success');
-    }
-    if (result == null) {
-      throw new BuiltValueNullFieldError('ExtensionResponse', 'result');
     }
   }
 
@@ -300,14 +365,16 @@ class _$ExtensionResponse extends ExtensionResponse {
         id == other.id &&
         success == other.success &&
         result == other.result &&
-        error == other.error;
+        error == other.error &&
+        url == other.url;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc($jc(0, id.hashCode), success.hashCode), result.hashCode),
-        error.hashCode));
+        $jc($jc($jc($jc(0, id.hashCode), success.hashCode), result.hashCode),
+            error.hashCode),
+        url.hashCode));
   }
 
   @override
@@ -316,7 +383,8 @@ class _$ExtensionResponse extends ExtensionResponse {
           ..add('id', id)
           ..add('success', success)
           ..add('result', result)
-          ..add('error', error))
+          ..add('error', error)
+          ..add('url', url))
         .toString();
   }
 }
@@ -341,6 +409,10 @@ class ExtensionResponseBuilder
   String get error => _$this._error;
   set error(String error) => _$this._error = error;
 
+  String _url;
+  String get url => _$this._url;
+  set url(String url) => _$this._url = url;
+
   ExtensionResponseBuilder();
 
   ExtensionResponseBuilder get _$this {
@@ -349,6 +421,7 @@ class ExtensionResponseBuilder
       _success = _$v.success;
       _result = _$v.result;
       _error = _$v.error;
+      _url = _$v.url;
       _$v = null;
     }
     return this;
@@ -371,7 +444,89 @@ class ExtensionResponseBuilder
   _$ExtensionResponse build() {
     final _$result = _$v ??
         new _$ExtensionResponse._(
-            id: id, success: success, result: result, error: error);
+            id: id, success: success, result: result, error: error, url: url);
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$ExtensionConsoleAPIEvent extends ExtensionConsoleAPIEvent {
+  @override
+  final Map<String, dynamic> params;
+
+  factory _$ExtensionConsoleAPIEvent(
+          [void Function(ExtensionConsoleAPIEventBuilder) updates]) =>
+      (new ExtensionConsoleAPIEventBuilder()..update(updates)).build();
+
+  _$ExtensionConsoleAPIEvent._({this.params}) : super._() {
+    if (params == null) {
+      throw new BuiltValueNullFieldError('ExtensionConsoleAPIEvent', 'params');
+    }
+  }
+
+  @override
+  ExtensionConsoleAPIEvent rebuild(
+          void Function(ExtensionConsoleAPIEventBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  ExtensionConsoleAPIEventBuilder toBuilder() =>
+      new ExtensionConsoleAPIEventBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is ExtensionConsoleAPIEvent && params == other.params;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc(0, params.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper('ExtensionConsoleAPIEvent')
+          ..add('params', params))
+        .toString();
+  }
+}
+
+class ExtensionConsoleAPIEventBuilder
+    implements
+        Builder<ExtensionConsoleAPIEvent, ExtensionConsoleAPIEventBuilder> {
+  _$ExtensionConsoleAPIEvent _$v;
+
+  Map<String, dynamic> _params;
+  Map<String, dynamic> get params => _$this._params;
+  set params(Map<String, dynamic> params) => _$this._params = params;
+
+  ExtensionConsoleAPIEventBuilder();
+
+  ExtensionConsoleAPIEventBuilder get _$this {
+    if (_$v != null) {
+      _params = _$v.params;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(ExtensionConsoleAPIEvent other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$ExtensionConsoleAPIEvent;
+  }
+
+  @override
+  void update(void Function(ExtensionConsoleAPIEventBuilder) updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$ExtensionConsoleAPIEvent build() {
+    final _$result = _$v ?? new _$ExtensionConsoleAPIEvent._(params: params);
     replace(_$result);
     return _$result;
   }

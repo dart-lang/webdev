@@ -44,8 +44,28 @@ abstract class ExtensionResponse
   bool get success;
 
   /// Contains a JSON-encoded payload.
+  @nullable
   String get result;
 
   @nullable
   String get error;
+
+  @nullable
+  String get url;
+}
+
+/// A ConsoleAPIEvent for Dart Debug Extension.
+abstract class ExtensionConsoleAPIEvent
+    implements
+        Built<ExtensionConsoleAPIEvent, ExtensionConsoleAPIEventBuilder> {
+  static Serializer<ExtensionConsoleAPIEvent> get serializer =>
+      _$extensionConsoleAPIEventSerializer;
+
+  factory ExtensionConsoleAPIEvent(
+          [Function(ExtensionConsoleAPIEventBuilder) updates]) =
+      _$ExtensionConsoleAPIEvent;
+
+  ExtensionConsoleAPIEvent._();
+
+  Map<String, dynamic> get params;
 }
