@@ -10,8 +10,8 @@ Serializer<ExtensionRequest> _$extensionRequestSerializer =
     new _$ExtensionRequestSerializer();
 Serializer<ExtensionResponse> _$extensionResponseSerializer =
     new _$ExtensionResponseSerializer();
-Serializer<ExtensionConsoleAPIEvent> _$extensionConsoleAPIEventSerializer =
-    new _$ExtensionConsoleAPIEventSerializer();
+Serializer<ExtensionEvent> _$extensionEventSerializer =
+    new _$ExtensionEventSerializer();
 
 class _$ExtensionRequestSerializer
     implements StructuredSerializer<ExtensionRequest> {
@@ -88,13 +88,10 @@ class _$ExtensionResponseSerializer
       'success',
       serializers.serialize(object.success,
           specifiedType: const FullType(bool)),
+      'result',
+      serializers.serialize(object.result,
+          specifiedType: const FullType(String)),
     ];
-    if (object.result != null) {
-      result
-        ..add('result')
-        ..add(serializers.serialize(object.result,
-            specifiedType: const FullType(String)));
-    }
     if (object.error != null) {
       result
         ..add('error')
@@ -139,19 +136,15 @@ class _$ExtensionResponseSerializer
   }
 }
 
-class _$ExtensionConsoleAPIEventSerializer
-    implements StructuredSerializer<ExtensionConsoleAPIEvent> {
+class _$ExtensionEventSerializer
+    implements StructuredSerializer<ExtensionEvent> {
   @override
-  final Iterable<Type> types = const [
-    ExtensionConsoleAPIEvent,
-    _$ExtensionConsoleAPIEvent
-  ];
+  final Iterable<Type> types = const [ExtensionEvent, _$ExtensionEvent];
   @override
-  final String wireName = 'ExtensionConsoleAPIEvent';
+  final String wireName = 'ExtensionEvent';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, ExtensionConsoleAPIEvent object,
+  Iterable<Object> serialize(Serializers serializers, ExtensionEvent object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'params',
@@ -163,10 +156,10 @@ class _$ExtensionConsoleAPIEventSerializer
   }
 
   @override
-  ExtensionConsoleAPIEvent deserialize(
+  ExtensionEvent deserialize(
       Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = new ExtensionConsoleAPIEventBuilder();
+    final result = new ExtensionEventBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -331,6 +324,9 @@ class _$ExtensionResponse extends ExtensionResponse {
     if (success == null) {
       throw new BuiltValueNullFieldError('ExtensionResponse', 'success');
     }
+    if (result == null) {
+      throw new BuiltValueNullFieldError('ExtensionResponse', 'result');
+    }
   }
 
   @override
@@ -425,33 +421,31 @@ class ExtensionResponseBuilder
   }
 }
 
-class _$ExtensionConsoleAPIEvent extends ExtensionConsoleAPIEvent {
+class _$ExtensionEvent extends ExtensionEvent {
   @override
   final String params;
 
-  factory _$ExtensionConsoleAPIEvent(
-          [void Function(ExtensionConsoleAPIEventBuilder) updates]) =>
-      (new ExtensionConsoleAPIEventBuilder()..update(updates)).build();
+  factory _$ExtensionEvent([void Function(ExtensionEventBuilder) updates]) =>
+      (new ExtensionEventBuilder()..update(updates)).build();
 
-  _$ExtensionConsoleAPIEvent._({this.params}) : super._() {
+  _$ExtensionEvent._({this.params}) : super._() {
     if (params == null) {
-      throw new BuiltValueNullFieldError('ExtensionConsoleAPIEvent', 'params');
+      throw new BuiltValueNullFieldError('ExtensionEvent', 'params');
     }
   }
 
   @override
-  ExtensionConsoleAPIEvent rebuild(
-          void Function(ExtensionConsoleAPIEventBuilder) updates) =>
+  ExtensionEvent rebuild(void Function(ExtensionEventBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ExtensionConsoleAPIEventBuilder toBuilder() =>
-      new ExtensionConsoleAPIEventBuilder()..replace(this);
+  ExtensionEventBuilder toBuilder() =>
+      new ExtensionEventBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is ExtensionConsoleAPIEvent && params == other.params;
+    return other is ExtensionEvent && params == other.params;
   }
 
   @override
@@ -461,24 +455,23 @@ class _$ExtensionConsoleAPIEvent extends ExtensionConsoleAPIEvent {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExtensionConsoleAPIEvent')
+    return (newBuiltValueToStringHelper('ExtensionEvent')
           ..add('params', params))
         .toString();
   }
 }
 
-class ExtensionConsoleAPIEventBuilder
-    implements
-        Builder<ExtensionConsoleAPIEvent, ExtensionConsoleAPIEventBuilder> {
-  _$ExtensionConsoleAPIEvent _$v;
+class ExtensionEventBuilder
+    implements Builder<ExtensionEvent, ExtensionEventBuilder> {
+  _$ExtensionEvent _$v;
 
   String _params;
   String get params => _$this._params;
   set params(String params) => _$this._params = params;
 
-  ExtensionConsoleAPIEventBuilder();
+  ExtensionEventBuilder();
 
-  ExtensionConsoleAPIEventBuilder get _$this {
+  ExtensionEventBuilder get _$this {
     if (_$v != null) {
       _params = _$v.params;
       _$v = null;
@@ -487,21 +480,21 @@ class ExtensionConsoleAPIEventBuilder
   }
 
   @override
-  void replace(ExtensionConsoleAPIEvent other) {
+  void replace(ExtensionEvent other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other as _$ExtensionConsoleAPIEvent;
+    _$v = other as _$ExtensionEvent;
   }
 
   @override
-  void update(void Function(ExtensionConsoleAPIEventBuilder) updates) {
+  void update(void Function(ExtensionEventBuilder) updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ExtensionConsoleAPIEvent build() {
-    final _$result = _$v ?? new _$ExtensionConsoleAPIEvent._(params: params);
+  _$ExtensionEvent build() {
+    final _$result = _$v ?? new _$ExtensionEvent._(params: params);
     replace(_$result);
     return _$result;
   }

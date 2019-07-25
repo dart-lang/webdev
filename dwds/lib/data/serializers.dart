@@ -25,6 +25,6 @@ part 'serializers.g.dart';
   IsolateStart,
   ExtensionRequest,
   ExtensionResponse,
-  ExtensionConsoleAPIEvent,
+  ExtensionEvent,
 ])
 final Serializers serializers = _$serializers;
