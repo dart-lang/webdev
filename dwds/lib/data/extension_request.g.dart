@@ -156,8 +156,7 @@ class _$ExtensionConsoleAPIEventSerializer
     final result = <Object>[
       'params',
       serializers.serialize(object.params,
-          specifiedType: const FullType(
-              Map, const [const FullType(String), const FullType(dynamic)])),
+          specifiedType: const FullType(String)),
     ];
 
     return result;
@@ -177,10 +176,7 @@ class _$ExtensionConsoleAPIEventSerializer
       switch (key) {
         case 'params':
           result.params = serializers.deserialize(value,
-              specifiedType: const FullType(Map, const [
-                const FullType(String),
-                const FullType(dynamic)
-              ])) as Map<String, dynamic>;
+              specifiedType: const FullType(String)) as String;
           break;
       }
     }
@@ -431,7 +427,7 @@ class ExtensionResponseBuilder
 
 class _$ExtensionConsoleAPIEvent extends ExtensionConsoleAPIEvent {
   @override
-  final Map<String, dynamic> params;
+  final String params;
 
   factory _$ExtensionConsoleAPIEvent(
           [void Function(ExtensionConsoleAPIEventBuilder) updates]) =>
@@ -476,9 +472,9 @@ class ExtensionConsoleAPIEventBuilder
         Builder<ExtensionConsoleAPIEvent, ExtensionConsoleAPIEventBuilder> {
   _$ExtensionConsoleAPIEvent _$v;
 
-  Map<String, dynamic> _params;
-  Map<String, dynamic> get params => _$this._params;
-  set params(Map<String, dynamic> params) => _$this._params = params;
+  String _params;
+  String get params => _$this._params;
+  set params(String params) => _$this._params = params;
 
   ExtensionConsoleAPIEventBuilder();
 

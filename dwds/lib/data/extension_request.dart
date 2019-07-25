@@ -64,5 +64,6 @@ abstract class ExtensionConsoleAPIEvent
 
   ExtensionConsoleAPIEvent._();
 
-  Map<String, dynamic> get params;
+  /// Contains a JSON-encoded payload.
+  String get params;
 }
