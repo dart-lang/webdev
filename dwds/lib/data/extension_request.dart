@@ -49,9 +49,6 @@ abstract class ExtensionResponse
 
   @nullable
   String get error;
-
-  @nullable
-  String get url;
 }
 
 /// A ConsoleAPIEvent for Dart Debug Extension.

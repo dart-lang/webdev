@@ -101,12 +101,6 @@ class _$ExtensionResponseSerializer
         ..add(serializers.serialize(object.error,
             specifiedType: const FullType(String)));
     }
-    if (object.url != null) {
-      result
-        ..add('url')
-        ..add(serializers.serialize(object.url,
-            specifiedType: const FullType(String)));
-    }
     return result;
   }
 
@@ -136,10 +130,6 @@ class _$ExtensionResponseSerializer
           break;
         case 'error':
           result.error = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
-          break;
-        case 'url':
-          result.url = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
       }
@@ -332,15 +322,12 @@ class _$ExtensionResponse extends ExtensionResponse {
   final String result;
   @override
   final String error;
-  @override
-  final String url;
 
   factory _$ExtensionResponse(
           [void Function(ExtensionResponseBuilder) updates]) =>
       (new ExtensionResponseBuilder()..update(updates)).build();
 
-  _$ExtensionResponse._(
-      {this.id, this.success, this.result, this.error, this.url})
+  _$ExtensionResponse._({this.id, this.success, this.result, this.error})
       : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('ExtensionResponse', 'id');
@@ -365,16 +352,14 @@ class _$ExtensionResponse extends ExtensionResponse {
         id == other.id &&
         success == other.success &&
         result == other.result &&
-        error == other.error &&
-        url == other.url;
+        error == other.error;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc($jc($jc(0, id.hashCode), success.hashCode), result.hashCode),
-            error.hashCode),
-        url.hashCode));
+        $jc($jc($jc(0, id.hashCode), success.hashCode), result.hashCode),
+        error.hashCode));
   }
 
   @override
@@ -383,8 +368,7 @@ class _$ExtensionResponse extends ExtensionResponse {
           ..add('id', id)
           ..add('success', success)
           ..add('result', result)
-          ..add('error', error)
-          ..add('url', url))
+          ..add('error', error))
         .toString();
   }
 }
@@ -409,10 +393,6 @@ class ExtensionResponseBuilder
   String get error => _$this._error;
   set error(String error) => _$this._error = error;
 
-  String _url;
-  String get url => _$this._url;
-  set url(String url) => _$this._url = url;
-
   ExtensionResponseBuilder();
 
   ExtensionResponseBuilder get _$this {
@@ -421,7 +401,6 @@ class ExtensionResponseBuilder
       _success = _$v.success;
       _result = _$v.result;
       _error = _$v.error;
-      _url = _$v.url;
       _$v = null;
     }
     return this;
@@ -444,7 +423,7 @@ class ExtensionResponseBuilder
   _$ExtensionResponse build() {
     final _$result = _$v ??
         new _$ExtensionResponse._(
-            id: id, success: success, result: result, error: error, url: url);
+            id: id, success: success, result: result, error: error);
     replace(_$result);
     return _$result;
   }
