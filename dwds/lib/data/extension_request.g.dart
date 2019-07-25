@@ -19,7 +19,7 @@ class _$ExtensionRequestSerializer
   final String wireName = 'ExtensionRequest';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, ExtensionRequest object,
+  Iterable serialize(Serializers serializers, ExtensionRequest object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'id',
@@ -37,8 +37,7 @@ class _$ExtensionRequestSerializer
   }
 
   @override
-  ExtensionRequest deserialize(
-      Serializers serializers, Iterable<Object> serialized,
+  ExtensionRequest deserialize(Serializers serializers, Iterable serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new ExtensionRequestBuilder();
 
@@ -61,7 +60,7 @@ class _$ExtensionRequestSerializer
               specifiedType: const FullType(BuiltMap, const [
                 const FullType(String),
                 const FullType(Object)
-              ])) as BuiltMap<dynamic, dynamic>);
+              ])) as BuiltMap);
           break;
       }
     }
@@ -78,7 +77,7 @@ class _$ExtensionResponseSerializer
   final String wireName = 'ExtensionResponse';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, ExtensionResponse object,
+  Iterable serialize(Serializers serializers, ExtensionResponse object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'id',
@@ -100,8 +99,7 @@ class _$ExtensionResponseSerializer
   }
 
   @override
-  ExtensionResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
+  ExtensionResponse deserialize(Serializers serializers, Iterable serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new ExtensionResponseBuilder();
 

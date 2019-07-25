@@ -46,7 +46,13 @@ Future<void> main() async {
       (module) => dartLoader.moduleParentsGraph.get(module)?.cast(),
       () => keys(dartLoader.moduleParentsGraph));
 
-  var client = SseClient(r'/$sseHandler');
+  var base = '/';
+  var baseElements = document.getElementsByTagName('base');
+  if (baseElements.isNotEmpty) {
+    base = (baseElements.first as BaseElement).href;
+  }
+
+  var client = SseClient('$base\$sseHandler');
 
   hotRestartJs = allowInterop(() {
     return toPromise(hotRestart(manager, client));

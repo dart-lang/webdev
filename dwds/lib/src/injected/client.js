@@ -2265,7 +2265,7 @@
       if (!J.getInterceptor$(pattern).$isPattern)
         throw H.wrapException(P.ArgumentError$value(pattern, "pattern", "is not a Pattern"));
       for (t1 = pattern.allMatches$1(0, receiver), t1 = new H._AllMatchesIterator(t1._re, t1._string, t1._start), startIndex = 0, t2 = ""; t1.moveNext$0(); t2 = t3) {
-        t3 = t1.__js_helper$_current;
+        t3 = t1._current;
         t4 = t3._match;
         t5 = t4.index;
         t3 = t2 + H.S(H._js_helper___stringIdentity$closure().call$1(C.JSString_methods.substring$2(receiver, startIndex, t5))) + H.S(onMatch.call$1(t3));
@@ -2298,7 +2298,7 @@
     },
     ConstantStringMap: function ConstantStringMap(t0, t1, t2, t3) {
       var _ = this;
-      _.__js_helper$_length = t0;
+      _._length = t0;
       _._jsObject = t1;
       _._keys = t2;
       _.$ti = t3;
@@ -2383,7 +2383,7 @@
     },
     JsLinkedHashMap: function JsLinkedHashMap(t0) {
       var _ = this;
-      _.__js_helper$_length = 0;
+      _._length = 0;
       _._last = _._first = _._rest = _._nums = _._strings = null;
       _._modifications = 0;
       _.$ti = t0;
@@ -2408,7 +2408,7 @@
       var _ = this;
       _._map = t0;
       _._modifications = t1;
-      _.__js_helper$_current = _._cell = null;
+      _._current = _._cell = null;
       _.$ti = t2;
     },
     initHooks_closure: function initHooks_closure(t0) {
@@ -2439,7 +2439,7 @@
       _._regExp = t0;
       _._string = t1;
       _._nextIndex = t2;
-      _.__js_helper$_current = null;
+      _._current = null;
     },
     StringMatch: function StringMatch(t0, t1) {
       this.start = t0;
@@ -2455,7 +2455,7 @@
       _._input = t0;
       _._pattern = t1;
       _.__js_helper$_index = t2;
-      _.__js_helper$_current = null;
+      _._current = null;
     },
     _checkViewArguments: function(buffer, offsetInBytes, $length) {
     },
@@ -4002,7 +4002,7 @@
     },
     _LinkedIdentityHashMap: function _LinkedIdentityHashMap(t0) {
       var _ = this;
-      _.__js_helper$_length = 0;
+      _._length = 0;
       _._last = _._first = _._rest = _._nums = _._strings = null;
       _._modifications = 0;
       _.$ti = t0;
@@ -4012,7 +4012,7 @@
       _._equals = t0;
       _._collection$_hashCode = t1;
       _._validKey = t2;
-      _.__js_helper$_length = 0;
+      _._length = 0;
       _._last = _._first = _._rest = _._nums = _._strings = null;
       _._modifications = 0;
       _.$ti = t3;
@@ -6730,6 +6730,8 @@
     },
     AreaElement: function AreaElement() {
     },
+    BaseElement: function BaseElement() {
+    },
     Blob: function Blob() {
     },
     CharacterData: function CharacterData() {
@@ -6915,9 +6917,9 @@
     FixedSizeListIterator: function FixedSizeListIterator(t0, t1, t2) {
       var _ = this;
       _._array = t0;
-      _._length = t1;
+      _._html$_length = t1;
       _._position = -1;
-      _._current = null;
+      _._html$_current = null;
       _.$ti = t2;
     },
     _CssStyleDeclaration_Interceptor_CssStyleDeclarationBase: function _CssStyleDeclaration_Interceptor_CssStyleDeclarationBase() {
@@ -7233,6 +7235,34 @@
       this._listOwner = this._list = null;
       this.$ti = t0;
     },
+    ExtensionRequest: function ExtensionRequest() {
+    },
+    ExtensionResponse: function ExtensionResponse() {
+    },
+    _$ExtensionRequestSerializer: function _$ExtensionRequestSerializer() {
+    },
+    _$ExtensionResponseSerializer: function _$ExtensionResponseSerializer() {
+    },
+    _$ExtensionRequest: function _$ExtensionRequest(t0, t1, t2) {
+      this.id = t0;
+      this.command = t1;
+      this.commandParams = t2;
+    },
+    ExtensionRequestBuilder: function ExtensionRequestBuilder() {
+      var _ = this;
+      _._commandParams = _._command = _._id = _._extension_request$_$v = null;
+    },
+    _$ExtensionResponse: function _$ExtensionResponse(t0, t1, t2, t3) {
+      var _ = this;
+      _.id = t0;
+      _.success = t1;
+      _.result = t2;
+      _.error = t3;
+    },
+    ExtensionResponseBuilder: function ExtensionResponseBuilder() {
+      var _ = this;
+      _._extension_request$_error = _._extension_request$_result = _._extension_request$_success = _._id = _._extension_request$_$v = null;
+    },
     toPromise: function(future, $T) {
       var t1 = P.allowInterop(new S.toPromise_closure(future, $T), {func: 1, ret: -1, args: [{func: 1, ret: -1, args: [$T]}, {func: 1, ret: -1, args: [,]}]});
       return new self.Promise(t1, $T);
@@ -7265,6 +7295,9 @@
       t1.replace$1(0, C.Map_empty);
       return t1;
     },
+    MapBuilder$_fromBuiltMap: function(map, $K, $V) {
+      return new A.MapBuilder(map._mapFactory, map._map$_map, map, [$K, $V]);
+    },
     BuiltMap: function BuiltMap() {
     },
     BuiltMap_BuiltMap_closure: function BuiltMap_BuiltMap_closure(t0) {
@@ -7288,6 +7321,10 @@
       _.$ti = t3;
     },
     MapBuilder_replace_closure: function MapBuilder_replace_closure(t0, t1) {
+      this.$this = t0;
+      this.replacement = t1;
+    },
+    MapBuilder_replace_closure0: function MapBuilder_replace_closure0(t0, t1) {
       this.$this = t0;
       this.replacement = t1;
     },
@@ -7498,6 +7535,8 @@
   },
   Y = {
     $jc: function(hash, value) {
+      if (typeof value !== "number")
+        return H.iae(value);
       hash = 536870911 & hash + value;
       hash = 536870911 & hash + ((524287 & hash) << 10);
       return hash ^ hash >>> 6;
@@ -7520,6 +7559,11 @@
     BuiltValueNullFieldError: function BuiltValueNullFieldError(t0, t1) {
       this.type = t0;
       this.field = t1;
+    },
+    BuiltValueNestedFieldError: function BuiltValueNestedFieldError(t0, t1, t2) {
+      this.type = t0;
+      this.field = t1;
+      this.error = t2;
     },
     BuiltJsonSerializersBuilder$_: function(_typeToSerializer, _wireNameToSerializer, _typeNameToSerializer, _builderFactories, _plugins) {
       return new Y.BuiltJsonSerializersBuilder(_typeToSerializer, _wireNameToSerializer, _typeNameToSerializer, _builderFactories, _plugins);
@@ -8003,6 +8047,7 @@
       this.types = t0;
     }, RegExpSerializer: function RegExpSerializer(t0) {
       this.types = t0;
+    }, closure0: function closure0() {
     }},
   Z = {DateTimeSerializer: function DateTimeSerializer(t0) {
       this.types = t0;
@@ -8036,7 +8081,7 @@
     main: function() {
       var $async$goto = 0,
         $async$completer = P._makeAsyncAwaitCompleter(-1),
-        t1, t2, t3, manager, t4, client, clientId, t5, $async$temp1;
+        t1, t2, t3, manager, baseElements, t4, t5, client, clientId, $async$temp1;
       var $async$main = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return P._asyncRethrow($async$result, $async$completer);
@@ -8061,20 +8106,23 @@
               t3.complete$0(0);
               manager = new L.ReloadingManager(D.client___reloadModule$closure(), D.client___moduleLibraries$closure(), D.client___reloadPage$closure(), new D.main_closure(), new D.main_closure0(), t2, t3);
               manager.set$_dirtyModules(P.SplayTreeSet$(manager.get$moduleTopologicalCompare(), null, t1));
+              baseElements = document.getElementsByTagName("base");
+              t2 = J.getInterceptor$asx(baseElements);
+              t2 = H.S(!t2.get$isEmpty(baseElements) ? H.interceptedTypeCast(t2.get$first(baseElements), "$isBaseElement").href : "/") + "$sseHandler";
               t3 = P.StreamController_StreamController(t1);
-              t2 = P.StreamController_StreamController(t1);
-              t4 = new O.BrowserClient(P.LinkedHashSet_LinkedHashSet(W.HttpRequest));
-              t4.withCredentials = true;
-              client = new M.SseClient(t3, t2, t4, N.Logger_Logger("SseClient"));
+              t4 = P.StreamController_StreamController(t1);
+              t5 = new O.BrowserClient(P.LinkedHashSet_LinkedHashSet(W.HttpRequest));
+              t5.withCredentials = true;
+              client = new M.SseClient(t3, t4, t5, N.Logger_Logger("SseClient"));
               clientId = F.Uuid$().v1$0();
-              client._eventSource = W.EventSource__factoryEventSource("/$sseHandler?sseClientId=" + clientId, P.LinkedHashMap_LinkedHashMap$_literal(["withCredentials", true], t1, null));
-              client._serverUrl = "/$sseHandler?sseClientId=" + clientId;
-              t1 = H.getTypeArgumentByIndex(t2, 0);
-              new P._ControllerStream(t2, [t1]).listen$2$onDone(client.get$_onOutgoingMessage(), client.get$_onOutgoingDone());
+              client._eventSource = W.EventSource__factoryEventSource(t2 + "?sseClientId=" + clientId, P.LinkedHashMap_LinkedHashMap$_literal(["withCredentials", true], t1, null));
+              client._serverUrl = t2 + "?sseClientId=" + clientId;
+              t2 = H.getTypeArgumentByIndex(t4, 0);
+              new P._ControllerStream(t4, [t2]).listen$2$onDone(client.get$_onOutgoingMessage(), client.get$_onOutgoingDone());
               C.EventSource_methods.addEventListener$2(client._eventSource, "message", client.get$_onIncomingMessage());
               C.EventSource_methods.addEventListener$2(client._eventSource, "control", client.get$_onIncomingControlMessage());
-              t4 = W.Event;
-              W._EventStreamSubscription$(client._eventSource, "error", H.functionTypeCheck(t3.get$addError(), {func: 1, ret: -1, args: [t4]}), false, t4);
+              t1 = W.Event;
+              W._EventStreamSubscription$(client._eventSource, "error", H.functionTypeCheck(t3.get$addError(), {func: 1, ret: -1, args: [t1]}), false, t1);
               t5 = P.allowInterop(new D.main_closure1(manager, client), {func: 1, ret: [S.Promise, -2]});
               self.$dartHotRestart = t5;
               t5 = P.allowInterop(new D.main_closure2(client), {func: 1, ret: -1});
@@ -8086,15 +8134,15 @@
               break;
             case 3:
               // then
-              t3 = new W._EventStream(client._eventSource, "open", false, [t4]);
+              t1 = new W._EventStream(client._eventSource, "open", false, [t1]);
               $async$goto = 6;
-              return P._asyncAwait(t3.get$first(t3), $async$main);
+              return P._asyncAwait(t1.get$first(t1), $async$main);
             case 6:
               // returning from await.
-              t3 = $.$get$serializers();
-              t4 = new E.ConnectRequestBuilder();
-              H.functionTypeCheck(new D.main_closure5(), {func: 1, ret: -1, args: [E.ConnectRequestBuilder]}).call$1(t4);
-              t2.add$1(0, H.assertSubtypeOfRuntimeType(C.C_JsonCodec.encode$2$toEncodable(t3.serialize$1(t4.build$0()), null), t1));
+              t1 = $.$get$serializers();
+              t3 = new E.ConnectRequestBuilder();
+              H.functionTypeCheck(new D.main_closure5(), {func: 1, ret: -1, args: [E.ConnectRequestBuilder]}).call$1(t3);
+              t4.add$1(0, H.assertSubtypeOfRuntimeType(C.C_JsonCodec.encode$2$toEncodable(t1.serialize$1(t3.build$0()), null), t2));
               // goto join
               $async$goto = 4;
               break;
@@ -10320,7 +10368,7 @@
   };
   H.ConstantStringMap.prototype = {
     get$length: function(_) {
-      return this.__js_helper$_length;
+      return this._length;
     },
     containsKey$1: function(_, key) {
       if (typeof key !== "string")
@@ -10416,7 +10464,7 @@
       C.JSArray_methods.add$1(this.$arguments, argument);
       ++t1.argumentCount;
     },
-    $signature: 20
+    $signature: 21
   };
   H.TypeErrorDecoder.prototype = {
     matchTypeError$1: function(message) {
@@ -10584,10 +10632,10 @@
   };
   H.JsLinkedHashMap.prototype = {
     get$length: function(_) {
-      return this.__js_helper$_length;
+      return this._length;
     },
     get$isEmpty: function(_) {
-      return this.__js_helper$_length === 0;
+      return this._length === 0;
     },
     get$isNotEmpty: function(_) {
       return !this.get$isEmpty(this);
@@ -10767,7 +10815,7 @@
         cell._previous = last;
         _this._last = last._next = cell;
       }
-      ++_this.__js_helper$_length;
+      ++_this._length;
       _this._modified$0();
       return cell;
     },
@@ -10783,7 +10831,7 @@
         _this._last = previous;
       else
         next._previous = previous;
-      --_this.__js_helper$_length;
+      --_this._length;
       _this._modified$0();
     },
     internalComputeHashCode$1: function(key) {
@@ -10849,10 +10897,10 @@
   H.LinkedHashMapCell.prototype = {};
   H.LinkedHashMapKeyIterable.prototype = {
     get$length: function(_) {
-      return this._map.__js_helper$_length;
+      return this._map._length;
     },
     get$isEmpty: function(_) {
-      return this._map.__js_helper$_length === 0;
+      return this._map._length === 0;
     },
     get$iterator: function(_) {
       var t1 = this._map,
@@ -10866,7 +10914,7 @@
   };
   H.LinkedHashMapKeyIterator.prototype = {
     get$current: function(_) {
-      return this.__js_helper$_current;
+      return this._current;
     },
     moveNext$0: function() {
       var _this = this,
@@ -10876,17 +10924,17 @@
       else {
         t1 = _this._cell;
         if (t1 == null) {
-          _this.set$__js_helper$_current(null);
+          _this.set$_current(null);
           return false;
         } else {
-          _this.set$__js_helper$_current(t1.hashMapCellKey);
+          _this.set$_current(t1.hashMapCellKey);
           _this._cell = _this._cell._next;
           return true;
         }
       }
     },
-    set$__js_helper$_current: function(_current) {
-      this.__js_helper$_current = H.assertSubtypeOfRuntimeType(_current, H.getTypeArgumentByIndex(this, 0));
+    set$_current: function(_current) {
+      this._current = H.assertSubtypeOfRuntimeType(_current, H.getTypeArgumentByIndex(this, 0));
     },
     $isIterator: 1
   };
@@ -10900,13 +10948,13 @@
     call$2: function(o, tag) {
       return this.getUnknownTag(o, tag);
     },
-    $signature: 70
+    $signature: 43
   };
   H.initHooks_closure1.prototype = {
     call$1: function(tag) {
       return this.prototypeForTag(H.stringTypeCheck(tag));
     },
-    $signature: 56
+    $signature: 71
   };
   H.JSSyntaxRegExp.prototype = {
     toString$0: function(_) {
@@ -10999,7 +11047,7 @@
   };
   H._AllMatchesIterator.prototype = {
     get$current: function(_) {
-      return this.__js_helper$_current;
+      return this._current;
     },
     moveNext$0: function() {
       var t2, t3, match, nextIndex, _this = this,
@@ -11011,7 +11059,7 @@
         t3 = _this._regExp;
         match = t3._execGlobal$2(t1, t2);
         if (match != null) {
-          _this.__js_helper$_current = match;
+          _this._current = match;
           nextIndex = match.get$end(match);
           if (match._match.index === nextIndex) {
             if (t3._nativeRegExp.unicode) {
@@ -11035,7 +11083,7 @@
           return true;
         }
       }
-      _this._string = _this.__js_helper$_current = null;
+      _this._string = _this._current = null;
       return false;
     },
     $isIterator: 1,
@@ -11078,22 +11126,22 @@
         t4 = _this._input,
         t5 = t4.length;
       if (t1 + t3 > t5) {
-        _this.__js_helper$_current = null;
+        _this._current = null;
         return false;
       }
       index = t4.indexOf(t2, t1);
       if (index < 0) {
         _this.__js_helper$_index = t5 + 1;
-        _this.__js_helper$_current = null;
+        _this._current = null;
         return false;
       }
       end = index + t3;
-      _this.__js_helper$_current = new H.StringMatch(index, t2);
+      _this._current = new H.StringMatch(index, t2);
       _this.__js_helper$_index = end === _this.__js_helper$_index ? end + 1 : end;
       return true;
     },
     get$current: function(_) {
-      return this.__js_helper$_current;
+      return this._current;
     },
     $isIterator: 1,
     $asIterator: function() {
@@ -11367,7 +11415,7 @@
       t1.storedCallback = null;
       f.call$0();
     },
-    $signature: 19
+    $signature: 16
   };
   P._AsyncRun__initializeScheduleImmediate_closure.prototype = {
     call$1: function(callback) {
@@ -11377,7 +11425,7 @@
       t2 = this.span;
       t1.firstChild ? t1.removeChild(t2) : t1.appendChild(t2);
     },
-    $signature: 32
+    $signature: 33
   };
   P._AsyncRun__scheduleImmediateJsOverride_internalCallback.prototype = {
     call$0: function() {
@@ -11455,13 +11503,13 @@
     },
     "call*": "call$2",
     $requiredArgCount: 2,
-    $signature: 45
+    $signature: 57
   };
   P._wrapJsFunctionForAsync_closure.prototype = {
     call$2: function(errorCode, result) {
       this.$protected(H.intTypeCheck(errorCode), result);
     },
-    $signature: 33
+    $signature: 35
   };
   P.Future.prototype = {};
   P._Completer.prototype = {
@@ -11732,7 +11780,7 @@
       t1._state = 0;
       t1._complete$1(value);
     },
-    $signature: 19
+    $signature: 16
   };
   P._Future__chainForeignFuture_closure0.prototype = {
     call$2: function(error, stackTrace) {
@@ -11746,7 +11794,7 @@
     $defaultValues: function() {
       return [null];
     },
-    $signature: 74
+    $signature: 75
   };
   P._Future__chainForeignFuture_closure1.prototype = {
     call$0: function() {
@@ -11822,7 +11870,7 @@
     call$1: function(_) {
       return this.originalSource;
     },
-    $signature: 71
+    $signature: 72
   };
   P._Future__propagateToListeners_handleValueCallback.prototype = {
     call$0: function() {
@@ -13039,7 +13087,7 @@
     call$1: function(v) {
       return H.checkSubtypeOfRuntimeType(v, this.K);
     },
-    $signature: 4
+    $signature: 5
   };
   P._HashMapKeyIterable.prototype = {
     get$length: function(_) {
@@ -13135,7 +13183,7 @@
     call$1: function(v) {
       return H.checkSubtypeOfRuntimeType(v, this.K);
     },
-    $signature: 4
+    $signature: 5
   };
   P._HashSet.prototype = {
     get$iterator: function(_) {
@@ -13339,7 +13387,7 @@
     call$1: function(x) {
       return H.checkSubtypeOfRuntimeType(x, this.E);
     },
-    $signature: 4
+    $signature: 5
   };
   P._HashSetIterator.prototype = {
     get$current: function(_) {
@@ -14338,7 +14386,7 @@
     call$1: function(v) {
       return H.checkSubtypeOfRuntimeType(v, this.E);
     },
-    $signature: 4
+    $signature: 5
   };
   P._ListBase_Object_ListMixin.prototype = {};
   P._SplayTreeSet__SplayTree_IterableMixin.prototype = {};
@@ -14460,7 +14508,7 @@
     call$2: function(key, value) {
       this.$this.$indexSet(0, H.stringTypeCheck(key), value);
     },
-    $signature: 20
+    $signature: 21
   };
   P._JsonMapKeyIterable.prototype = {
     get$length: function(_) {
@@ -15250,7 +15298,7 @@
     call$2: function(key, value) {
       this.result.$indexSet(0, H.interceptedTypeCheck(key, "$isSymbol0").__internal$_name, value);
     },
-    $signature: 16
+    $signature: 17
   };
   P.NoSuchMethodError_toString_closure.prototype = {
     call$2: function(key, value) {
@@ -15264,7 +15312,7 @@
       t1._contents += P.Error_safeToString(value);
       t2.comma = ", ";
     },
-    $signature: 16
+    $signature: 17
   };
   P._BigIntImpl.prototype = {
     get$_isZero: function() {
@@ -15856,7 +15904,7 @@
       hash = 536870911 & hash + ((524287 & hash) << 10);
       return hash ^ hash >>> 6;
     },
-    $signature: 17
+    $signature: 18
   };
   P._BigIntImpl_hashCode_finish.prototype = {
     call$1: function(hash) {
@@ -15864,7 +15912,7 @@
       hash ^= hash >>> 11;
       return 536870911 & hash + ((16383 & hash) << 15);
     },
-    $signature: 18
+    $signature: 19
   };
   P._BigIntImpl_toDouble_readBits.prototype = {
     call$1: function(n) {
@@ -15892,7 +15940,7 @@
       t1.cachedBitsLength = t5;
       return result;
     },
-    $signature: 18
+    $signature: 19
   };
   P._BigIntImpl_toDouble_roundUp.prototype = {
     call$0: function() {
@@ -16369,7 +16417,7 @@
     call$2: function(msg, position) {
       throw H.wrapException(P.FormatException$("Illegal IPv4 address, " + msg, this.host, position));
     },
-    $signature: 52
+    $signature: 53
   };
   P.Uri_parseIPv6Address_error.prototype = {
     call$2: function(msg, position) {
@@ -16392,7 +16440,7 @@
         this.error.call$2("each part must be in the range of `0x0..0xFFFF`", start);
       return value;
     },
-    $signature: 17
+    $signature: 18
   };
   P._Uri.prototype = {
     get$userInfo: function() {
@@ -16662,7 +16710,7 @@
     call$1: function(_) {
       throw H.wrapException(P.FormatException$("Invalid port", this.uri, this.portStart + 1));
     },
-    $signature: 14
+    $signature: 20
   };
   P._Uri__checkNonWindowsPathReservedCharacters_closure.prototype = {
     call$1: function(segment) {
@@ -16674,13 +16722,13 @@
         else
           throw H.wrapException(P.UnsupportedError$(_s23_ + segment));
     },
-    $signature: 14
+    $signature: 20
   };
   P._Uri__makePath_closure.prototype = {
     call$1: function(s) {
       return P._Uri__uriEncode(C.List_qg40, s, C.C_Utf8Codec, false);
     },
-    $signature: 5
+    $signature: 4
   };
   P.UriData.prototype = {
     get$uri: function() {
@@ -16715,7 +16763,7 @@
     call$1: function(_) {
       return new Uint8Array(96);
     },
-    $signature: 43
+    $signature: 44
   };
   P._createTables_build.prototype = {
     call$2: function(state, defaultTransition) {
@@ -16726,7 +16774,7 @@
       J.fillRange$3$x(t1, 0, 96, defaultTransition);
       return t1;
     },
-    $signature: 34
+    $signature: 36
   };
   P._createTables_setChars.prototype = {
     call$3: function(target, chars, transition) {
@@ -16738,7 +16786,7 @@
         target[t3] = transition;
       }
     },
-    $signature: 21
+    $signature: 22
   };
   P._createTables_setRange.prototype = {
     call$3: function(target, range, transition) {
@@ -16750,7 +16798,7 @@
         target[t2] = transition;
       }
     },
-    $signature: 21
+    $signature: 22
   };
   P._SimpleUri.prototype = {
     get$hasAuthority: function() {
@@ -17111,6 +17159,7 @@
       return String(receiver);
     }
   };
+  W.BaseElement.prototype = {$isBaseElement: 1};
   W.Blob.prototype = {$isBlob: 1};
   W.CharacterData.prototype = {
     get$length: function(receiver) {
@@ -17999,13 +18048,13 @@
     call$2: function(k, v) {
       this.$this.setItem(H.stringTypeCheck(k), H.stringTypeCheck(v));
     },
-    $signature: 31
+    $signature: 32
   };
   W.Storage_keys_closure.prototype = {
     call$2: function(k, v) {
       return C.JSArray_methods.add$1(this.keys, k);
     },
-    $signature: 22
+    $signature: 23
   };
   W.StyleSheet.prototype = {$isStyleSheet: 1};
   W.TextTrack.prototype = {$isTextTrack: 1};
@@ -18523,7 +18572,7 @@
     call$1: function(e) {
       return this.onData.call$1(H.interceptedTypeCheck(e, "$isEvent"));
     },
-    $signature: 44
+    $signature: 34
   };
   W.ImmutableListMixin.prototype = {
     get$iterator: function(receiver) {
@@ -18539,21 +18588,21 @@
     moveNext$0: function() {
       var _this = this,
         nextPosition = _this._position + 1,
-        t1 = _this._length;
+        t1 = _this._html$_length;
       if (nextPosition < t1) {
-        _this.set$_current(J.$index$asx(_this._array, nextPosition));
+        _this.set$_html$_current(J.$index$asx(_this._array, nextPosition));
         _this._position = nextPosition;
         return true;
       }
-      _this.set$_current(null);
+      _this.set$_html$_current(null);
       _this._position = t1;
       return false;
     },
     get$current: function(_) {
-      return this._current;
+      return this._html$_current;
     },
-    set$_current: function(_current) {
-      this._current = H.assertSubtypeOfRuntimeType(_current, H.getTypeArgumentByIndex(this, 0));
+    set$_html$_current: function(_current) {
+      this._html$_current = H.assertSubtypeOfRuntimeType(_current, H.getTypeArgumentByIndex(this, 0));
     },
     $isIterator: 1
   };
@@ -18682,7 +18731,7 @@
       J.$indexSet$ax(t1, key, t2);
       return t2;
     },
-    $signature: 35
+    $signature: 45
   };
   P.convertDartToNative_Dictionary_closure.prototype = {
     call$2: function(key, value) {
@@ -19811,15 +19860,35 @@
       return _this._mapOwner;
     },
     replace$1: function(_, map) {
-      var replacement, _this = this,
+      var t2, replacement, _this = this,
         t1 = _this.$ti;
-      if (H.checkSubtype(map, "$is_BuiltMap", t1, null))
-        map.get$_mapFactory();
-      replacement = _this._createMap$0();
-      map.forEach$1(0, new A.MapBuilder_replace_closure(_this, replacement));
-      H.assertSubtype(replacement, "$isMap", t1, "$asMap");
-      _this.set$_mapOwner(null);
-      _this.set$_map$_map(replacement);
+      if (H.checkSubtype(map, "$is_BuiltMap", t1, null)) {
+        map._mapFactory;
+        t2 = true;
+      } else
+        t2 = false;
+      if (t2) {
+        H.assertSubtype(map, "$is_BuiltMap", t1, "$as_BuiltMap");
+        _this.set$_mapOwner(map);
+        _this.set$_map$_map(map._map$_map);
+      } else {
+        t2 = J.getInterceptor$(map);
+        if (!!t2.$isBuiltMap) {
+          replacement = _this._createMap$0();
+          t2 = H.functionTypeCheck(new A.MapBuilder_replace_closure(_this, replacement), {func: 1, ret: -1, args: [H.getTypeArgumentByIndex(map, 0), H.getTypeArgumentByIndex(map, 1)]});
+          J.forEach$1$ax(map._map$_map, t2);
+          H.assertSubtype(replacement, "$isMap", t1, "$asMap");
+          _this.set$_mapOwner(null);
+          _this.set$_map$_map(replacement);
+        } else if (!!t2.$isMap) {
+          replacement = _this._createMap$0();
+          map.forEach$1(0, new A.MapBuilder_replace_closure0(_this, replacement));
+          H.assertSubtype(replacement, "$isMap", t1, "$asMap");
+          _this.set$_mapOwner(null);
+          _this.set$_map$_map(replacement);
+        } else
+          throw H.wrapException(P.ArgumentError$("expected Map or BuiltMap, got " + t2.get$runtimeType(map).toString$0(0)));
+      }
     },
     $index: function(_, key) {
       return J.$index$asx(this._map$_map, key);
@@ -19869,7 +19938,14 @@
       var t1 = this.$this;
       J.$indexSet$ax(this.replacement, H.subtypeOfRuntimeTypeCast(key, H.getTypeArgumentByIndex(t1, 0)), H.subtypeOfRuntimeTypeCast(value, H.getTypeArgumentByIndex(t1, 1)));
     },
-    $signature: 36
+    $signature: 28
+  };
+  A.MapBuilder_replace_closure0.prototype = {
+    call$2: function(key, value) {
+      var t1 = this.$this;
+      J.$indexSet$ax(this.replacement, H.subtypeOfRuntimeTypeCast(key, H.getTypeArgumentByIndex(t1, 0)), H.subtypeOfRuntimeTypeCast(value, H.getTypeArgumentByIndex(t1, 1)));
+    },
+    $signature: 28
   };
   L.BuiltSet.prototype = {
     get$hashCode: function(_) {
@@ -20276,6 +20352,11 @@
     toString$0: function(_) {
       var t1 = this.field;
       return 'Tried to construct class "' + this.type + '" with null field "' + t1 + '". This is forbidden; to allow it, mark "' + t1 + '" with @nullable.';
+    }
+  };
+  Y.BuiltValueNestedFieldError.prototype = {
+    toString$0: function(_) {
+      return 'Tried to build class "' + this.type + '" but nested builder for field "' + H.S(this.field) + '" threw: ' + H.S(this.error);
     }
   };
   A.JsonObject.prototype = {
@@ -20697,6 +20778,9 @@
         H.assertSubtypeOfRuntimeType(serializer, H.getTypeArgumentByIndex(t2, 1));
         J.$indexSet$ax(t2.get$_safeMap(), t6, serializer);
       }
+    },
+    addBuilderFactory$2: function(types, $function) {
+      this._builderFactories.$indexSet(0, types, $function);
     },
     build$0: function() {
       var _this = this;
@@ -21698,7 +21782,7 @@
     call$1: function(e) {
       return this.o === e;
     },
-    $signature: 4
+    $signature: 5
   };
   U.DefaultEquality.prototype = {$isEquality: 1};
   U.IterableEquality.prototype = {
@@ -22257,6 +22341,281 @@
       return _this;
     }
   };
+  S.ExtensionRequest.prototype = {};
+  S.ExtensionResponse.prototype = {};
+  S._$ExtensionRequestSerializer.prototype = {
+    serialize$3$specifiedType: function(serializers, object, specifiedType) {
+      H.interceptedTypeCheck(object, "$isExtensionRequest");
+      return H.setRuntimeTypeInfo(["id", serializers.serialize$2$specifiedType(object.id, C.FullType_kaS), "command", serializers.serialize$2$specifiedType(object.command, C.FullType_aZ8), "commandParams", serializers.serialize$2$specifiedType(object.commandParams, C.FullType_2jN)], [P.Object]);
+    },
+    serialize$2: function(serializers, object) {
+      return this.serialize$3$specifiedType(serializers, object, C.FullType_null_List_empty);
+    },
+    deserialize$3$specifiedType: function(serializers, serialized, specifiedType) {
+      var t1, t2, t3, key, value, t4, t5,
+        result = new S.ExtensionRequestBuilder(),
+        iterator = J.get$iterator$ax(H.listSuperNativeTypeCheck(serialized, "$isIterable"));
+      for (t1 = P.String, t2 = P.Object, t3 = [t1, t2]; iterator.moveNext$0();) {
+        key = H.stringTypeCast(iterator.get$current(iterator));
+        iterator.moveNext$0();
+        value = iterator.get$current(iterator);
+        switch (key) {
+          case "id":
+            t4 = H.intTypeCast(serializers.deserialize$2$specifiedType(value, C.FullType_kaS));
+            result.get$_extension_request$_$this()._id = t4;
+            break;
+          case "command":
+            t4 = H.stringTypeCast(serializers.deserialize$2$specifiedType(value, C.FullType_aZ8));
+            result.get$_extension_request$_$this()._command = t4;
+            break;
+          case "commandParams":
+            t4 = result.get$_extension_request$_$this();
+            t5 = t4._commandParams;
+            if (t5 == null) {
+              t5 = new A.MapBuilder(null, null, null, t3);
+              if (new H.TypeImpl(t1).$eq(0, C.Type_dynamic_0Rz))
+                H.throwExpression(P.UnsupportedError$('explicit key type required, for example "new MapBuilder<int, int>"'));
+              if (new H.TypeImpl(t2).$eq(0, C.Type_dynamic_0Rz))
+                H.throwExpression(P.UnsupportedError$('explicit value type required, for example "new MapBuilder<int, int>"'));
+              t5.replace$1(0, C.Map_empty);
+              t4.set$_commandParams(t5);
+              t4 = t5;
+            } else
+              t4 = t5;
+            t4.replace$1(0, H.interceptedTypeCast(serializers.deserialize$2$specifiedType(value, C.FullType_2jN), "$isBuiltMap"));
+            break;
+        }
+      }
+      return result.build$0();
+    },
+    deserialize$2: function(serializers, serialized) {
+      return this.deserialize$3$specifiedType(serializers, serialized, C.FullType_null_List_empty);
+    },
+    $isSerializer: 1,
+    $asSerializer: function() {
+      return [S.ExtensionRequest];
+    },
+    $isStructuredSerializer: 1,
+    $asStructuredSerializer: function() {
+      return [S.ExtensionRequest];
+    },
+    get$types: function() {
+      return C.List_evd;
+    },
+    get$wireName: function() {
+      return "ExtensionRequest";
+    }
+  };
+  S._$ExtensionResponseSerializer.prototype = {
+    serialize$3$specifiedType: function(serializers, object, specifiedType) {
+      var result, t1;
+      H.interceptedTypeCheck(object, "$isExtensionResponse");
+      result = H.setRuntimeTypeInfo(["id", serializers.serialize$2$specifiedType(object.id, C.FullType_kaS), "success", serializers.serialize$2$specifiedType(object.success, C.FullType_6bM), "result", serializers.serialize$2$specifiedType(object.result, C.FullType_aZ8)], [P.Object]);
+      t1 = object.error;
+      if (t1 != null) {
+        C.JSArray_methods.add$1(result, "error");
+        C.JSArray_methods.add$1(result, serializers.serialize$2$specifiedType(t1, C.FullType_aZ8));
+      }
+      return result;
+    },
+    serialize$2: function(serializers, object) {
+      return this.serialize$3$specifiedType(serializers, object, C.FullType_null_List_empty);
+    },
+    deserialize$3$specifiedType: function(serializers, serialized, specifiedType) {
+      var key, value, t1, _$result, t2, t3,
+        _s17_ = "ExtensionResponse",
+        result = new S.ExtensionResponseBuilder(),
+        iterator = J.get$iterator$ax(H.listSuperNativeTypeCheck(serialized, "$isIterable"));
+      for (; iterator.moveNext$0();) {
+        key = H.stringTypeCast(iterator.get$current(iterator));
+        iterator.moveNext$0();
+        value = iterator.get$current(iterator);
+        switch (key) {
+          case "id":
+            t1 = H.intTypeCast(serializers.deserialize$2$specifiedType(value, C.FullType_kaS));
+            result.get$_extension_request$_$this()._id = t1;
+            break;
+          case "success":
+            t1 = H.boolTypeCast(serializers.deserialize$2$specifiedType(value, C.FullType_6bM));
+            result.get$_extension_request$_$this()._extension_request$_success = t1;
+            break;
+          case "result":
+            t1 = H.stringTypeCast(serializers.deserialize$2$specifiedType(value, C.FullType_aZ8));
+            result.get$_extension_request$_$this()._extension_request$_result = t1;
+            break;
+          case "error":
+            t1 = H.stringTypeCast(serializers.deserialize$2$specifiedType(value, C.FullType_aZ8));
+            result.get$_extension_request$_$this()._extension_request$_error = t1;
+            break;
+        }
+      }
+      _$result = result._extension_request$_$v;
+      if (_$result == null) {
+        t1 = result.get$_extension_request$_$this()._id;
+        t2 = result.get$_extension_request$_$this()._extension_request$_success;
+        t3 = result.get$_extension_request$_$this()._extension_request$_result;
+        _$result = new S._$ExtensionResponse(t1, t2, t3, result.get$_extension_request$_$this()._extension_request$_error);
+        if (t1 == null)
+          H.throwExpression(Y.BuiltValueNullFieldError$(_s17_, "id"));
+        if (t2 == null)
+          H.throwExpression(Y.BuiltValueNullFieldError$(_s17_, "success"));
+        if (t3 == null)
+          H.throwExpression(Y.BuiltValueNullFieldError$(_s17_, "result"));
+      }
+      return result._extension_request$_$v = _$result;
+    },
+    deserialize$2: function(serializers, serialized) {
+      return this.deserialize$3$specifiedType(serializers, serialized, C.FullType_null_List_empty);
+    },
+    $isSerializer: 1,
+    $asSerializer: function() {
+      return [S.ExtensionResponse];
+    },
+    $isStructuredSerializer: 1,
+    $asStructuredSerializer: function() {
+      return [S.ExtensionResponse];
+    },
+    get$types: function() {
+      return C.List_tQ0;
+    },
+    get$wireName: function() {
+      return "ExtensionResponse";
+    }
+  };
+  S._$ExtensionRequest.prototype = {
+    $eq: function(_, other) {
+      var _this = this;
+      if (other == null)
+        return false;
+      if (other === _this)
+        return true;
+      return other instanceof S.ExtensionRequest && _this.id == other.id && _this.command == other.command && J.$eq$(_this.commandParams, other.commandParams);
+    },
+    get$hashCode: function(_) {
+      return Y.$jf(Y.$jc(Y.$jc(Y.$jc(0, J.get$hashCode$(this.id)), J.get$hashCode$(this.command)), J.get$hashCode$(this.commandParams)));
+    },
+    toString$0: function(_) {
+      var t1 = $.$get$newBuiltValueToStringHelper().call$1("ExtensionRequest"),
+        t2 = J.getInterceptor$ax(t1);
+      t2.add$2(t1, "id", this.id);
+      t2.add$2(t1, "command", this.command);
+      t2.add$2(t1, "commandParams", this.commandParams);
+      return t2.toString$0(t1);
+    }
+  };
+  S.ExtensionRequestBuilder.prototype = {
+    get$commandParams: function() {
+      var t1 = this.get$_extension_request$_$this(),
+        t2 = t1._commandParams;
+      if (t2 == null) {
+        t2 = A.MapBuilder_MapBuilder(P.String, P.Object);
+        t1.set$_commandParams(t2);
+        t1 = t2;
+      } else
+        t1 = t2;
+      return t1;
+    },
+    get$_extension_request$_$this: function() {
+      var t2, t3, _this = this,
+        t1 = _this._extension_request$_$v;
+      if (t1 != null) {
+        _this._id = t1.id;
+        _this._command = t1.command;
+        t1 = t1.commandParams;
+        if (t1 == null)
+          t1 = null;
+        else {
+          t2 = H.getTypeArgumentByIndex(t1, 0);
+          t3 = H.getTypeArgumentByIndex(t1, 1);
+          t3 = A.MapBuilder$_fromBuiltMap(H.assertSubtype(t1, "$is_BuiltMap", [t2, t3], "$as_BuiltMap"), t2, t3);
+          t1 = t3;
+        }
+        _this.set$_commandParams(t1);
+        _this._extension_request$_$v = null;
+      }
+      return _this;
+    },
+    build$0: function() {
+      var _$failedField, e, _$result0, t1, t2, t3, exception, _this = this,
+        _s16_ = "ExtensionRequest",
+        _$result = null;
+      try {
+        _$result0 = _this._extension_request$_$v;
+        if (_$result0 == null) {
+          t1 = _this.get$_extension_request$_$this()._id;
+          t2 = _this.get$_extension_request$_$this()._command;
+          t3 = _this.get$commandParams().build$0();
+          _$result0 = new S._$ExtensionRequest(t1, t2, t3);
+          if (t1 == null)
+            H.throwExpression(Y.BuiltValueNullFieldError$(_s16_, "id"));
+          if (t2 == null)
+            H.throwExpression(Y.BuiltValueNullFieldError$(_s16_, "command"));
+          if (t3 == null)
+            H.throwExpression(Y.BuiltValueNullFieldError$(_s16_, "commandParams"));
+        }
+        _$result = _$result0;
+      } catch (exception) {
+        H.unwrapException(exception);
+        _$failedField = null;
+        try {
+          _$failedField = "commandParams";
+          _this.get$commandParams().build$0();
+        } catch (exception) {
+          e = H.unwrapException(exception);
+          t1 = _$failedField;
+          t2 = J.toString$0$(e);
+          throw H.wrapException(new Y.BuiltValueNestedFieldError(_s16_, t1, t2));
+        }
+        throw exception;
+      }
+      t1 = H.interceptedTypeCheck(_$result, "$isExtensionRequest");
+      if (t1 == null)
+        H.throwExpression(P.ArgumentError$notNull("other"));
+      _this._extension_request$_$v = t1;
+      return _$result;
+    },
+    set$_commandParams: function(_commandParams) {
+      this._commandParams = H.assertSubtype(_commandParams, "$isMapBuilder", [P.String, P.Object], "$asMapBuilder");
+    }
+  };
+  S._$ExtensionResponse.prototype = {
+    $eq: function(_, other) {
+      var _this = this;
+      if (other == null)
+        return false;
+      if (other === _this)
+        return true;
+      return other instanceof S.ExtensionResponse && _this.id == other.id && _this.success == other.success && _this.result == other.result && _this.error == other.error;
+    },
+    get$hashCode: function(_) {
+      var _this = this;
+      return Y.$jf(Y.$jc(Y.$jc(Y.$jc(Y.$jc(0, J.get$hashCode$(_this.id)), J.get$hashCode$(_this.success)), J.get$hashCode$(_this.result)), J.get$hashCode$(_this.error)));
+    },
+    toString$0: function(_) {
+      var _this = this,
+        t1 = $.$get$newBuiltValueToStringHelper().call$1("ExtensionResponse"),
+        t2 = J.getInterceptor$ax(t1);
+      t2.add$2(t1, "id", _this.id);
+      t2.add$2(t1, "success", _this.success);
+      t2.add$2(t1, "result", _this.result);
+      t2.add$2(t1, "error", _this.error);
+      return t2.toString$0(t1);
+    }
+  };
+  S.ExtensionResponseBuilder.prototype = {
+    get$_extension_request$_$this: function() {
+      var _this = this,
+        t1 = _this._extension_request$_$v;
+      if (t1 != null) {
+        _this._id = t1.id;
+        _this._extension_request$_success = t1.success;
+        _this._extension_request$_result = t1.result;
+        _this._extension_request$_error = t1.error;
+        _this._extension_request$_$v = null;
+      }
+      return _this;
+    }
+  };
   M.IsolateExit.prototype = {};
   M.IsolateStart.prototype = {};
   M._$IsolateExitSerializer.prototype = {
@@ -22492,6 +22851,14 @@
     }
   };
   A.RunRequestBuilder.prototype = {};
+  K.closure0.prototype = {
+    call$0: function() {
+      return A.MapBuilder_MapBuilder(P.String, P.Object);
+    },
+    "call*": "call$0",
+    $requiredArgCount: 0,
+    $signature: 47
+  };
   V.Int64.prototype = {
     $add: function(_, other) {
       var o = V.Int64__promote(other),
@@ -22780,13 +23147,13 @@
     },
     "call*": "call$2",
     $requiredArgCount: 2,
-    $signature: 47
+    $signature: 48
   };
   G.BaseRequest_closure0.prototype = {
     call$1: function(key) {
       return C.JSString_methods.get$hashCode(H.stringTypeCheck(key).toLowerCase());
     },
-    $signature: 48
+    $signature: 49
   };
   T.BaseResponse.prototype = {
     BaseResponse$7$contentLength$headers$isRedirect$persistentConnection$reasonPhrase$request: function(statusCode, contentLength, headers, isRedirect, persistentConnection, reasonPhrase, request) {
@@ -22949,7 +23316,7 @@
     call$1: function(bytes) {
       return this.completer.complete$1(0, new Uint8Array(H._ensureNativeList(H.assertSubtype(bytes, "$isList", [P.int], "$asList"))));
     },
-    $signature: 75
+    $signature: 76
   };
   E.ClientException.prototype = {
     toString$0: function(_) {
@@ -23008,7 +23375,7 @@
       t6.BaseResponse$7$contentLength$headers$isRedirect$persistentConnection$reasonPhrase$request(t2, t5, t4, false, true, t1, t3);
       return t6;
     },
-    $signature: 50
+    $signature: 51
   };
   X.StreamedResponse.prototype = {};
   Z.CaseInsensitiveMap.prototype = {
@@ -23023,7 +23390,7 @@
     call$1: function(key) {
       return H.stringTypeCheck(key).toLowerCase();
     },
-    $signature: 5
+    $signature: 4
   };
   Z.CaseInsensitiveMap$from_closure0.prototype = {
     call$1: function(key) {
@@ -23108,7 +23475,7 @@
       scanner.expectDone$0();
       return R.MediaType$(type, subtype, parameters);
     },
-    $signature: 51
+    $signature: 52
   };
   R.MediaType_toString_closure.prototype = {
     call$2: function(attribute, value) {
@@ -23129,19 +23496,19 @@
       } else
         t1._contents += H.S(value);
     },
-    $signature: 31
+    $signature: 32
   };
   R.MediaType_toString__closure.prototype = {
     call$1: function(match) {
       return C.JSString_methods.$add("\\", match.$index(0, 0));
     },
-    $signature: 23
+    $signature: 30
   };
   N.expectQuotedString_closure.prototype = {
     call$1: function(match) {
       return match.$index(0, 1);
     },
-    $signature: 23
+    $signature: 30
   };
   N.Logger.prototype = {
     get$fullName: function() {
@@ -23187,7 +23554,7 @@
         $parent._children.$indexSet(0, thisName, t1);
       return t1;
     },
-    $signature: 53
+    $signature: 54
   };
   N.Level.prototype = {
     $eq: function(_, other) {
@@ -23424,7 +23791,7 @@
       H.stringTypeCheck(arg);
       return arg == null ? "null" : '"' + arg + '"';
     },
-    $signature: 5
+    $signature: 4
   };
   B.InternalStyle.prototype = {
     getRoot$1: function(path) {
@@ -23730,7 +24097,7 @@
     call$2: function(h, i) {
       return X._combine(H.intTypeCheck(h), J.get$hashCode$(i));
     },
-    $signature: 55
+    $signature: 56
   };
   Y.SourceFile.prototype = {
     get$length: function(_) {
@@ -24734,14 +25101,14 @@
       t1 = J.$get$1$x(J.get$moduleParentsGraph$x(self.$dartLoader), module);
       return t1 == null ? null : J.cast$1$0$ax(t1, P.String);
     },
-    $signature: 57
+    $signature: 58
   };
   D.main_closure0.prototype = {
     call$0: function() {
       var t1 = J.keys$0$x(J.get$moduleParentsGraph$x(self.$dartLoader));
       return P.List_List$from(self.Array.from(t1), true, P.String);
     },
-    $signature: 58
+    $signature: 59
   };
   D.main_closure1.prototype = {
     call$0: function() {
@@ -24749,7 +25116,7 @@
     },
     "call*": "call$0",
     $requiredArgCount: 0,
-    $signature: 59
+    $signature: 60
   };
   D.main_closure2.prototype = {
     call$0: function() {
@@ -24776,7 +25143,7 @@
       b.get$_devtools_request$_$this()._devtools_request$_instanceId = t1;
       return b;
     },
-    $signature: 60
+    $signature: 61
   };
   D.main_closure3.prototype = {
     call$1: function(serialized) {
@@ -24846,7 +25213,7 @@
       });
       return P._asyncStartSync($async$call$1, $async$completer);
     },
-    $signature: 61
+    $signature: 62
   };
   D.main_closure4.prototype = {
     call$1: function(e) {
@@ -24856,7 +25223,7 @@
         self.$launchDevTools.call$0();
       }
     },
-    $signature: 62
+    $signature: 63
   };
   D.main_closure5.prototype = {
     call$1: function(b) {
@@ -24866,7 +25233,7 @@
       b.get$_$this()._instanceId = t1;
       return b;
     },
-    $signature: 63
+    $signature: 64
   };
   D.hotRestart_rerunApp.prototype = {
     call$0: function() {
@@ -24893,7 +25260,7 @@
       b.get$_isolate_events$_$this()._isolate_events$_instanceId = t1;
       return b;
     },
-    $signature: 64
+    $signature: 65
   };
   D.hotRestart_rerunApp_closure0.prototype = {
     call$1: function(b) {
@@ -24903,13 +25270,13 @@
       b.get$_isolate_events$_$this()._isolate_events$_instanceId = t1;
       return b;
     },
-    $signature: 65
+    $signature: 66
   };
   D._moduleLibraries_closure.prototype = {
     call$1: function(x) {
       return new D.LibraryWrapper(H.interceptedTypeCheck(x, "$isHotReloadableLibrary"));
     },
-    $signature: 66
+    $signature: 67
   };
   D._reloadModule_closure.prototype = {
     call$0: function() {
@@ -24923,7 +25290,7 @@
     call$1: function(e) {
       return this.completer.completeError$2(new L.HotReloadFailedException(J.get$message$x(H.interceptedTypeCheck(e, "$isJsError"))), this.stackTrace);
     },
-    $signature: 67
+    $signature: 68
   };
   D.DartLoader.prototype = {};
   D.HotReloadableLibrary.prototype = {};
@@ -25226,7 +25593,7 @@
       });
       return P._asyncStartSync($async$call$0, $async$completer);
     },
-    $signature: 69
+    $signature: 70
   };
   (function aliases() {
     var _ = J.Interceptor.prototype;
@@ -25272,8 +25639,8 @@
       _instance_1_i = hunkHelpers._instance_1i,
       _instance_0_i = hunkHelpers._instance_0i,
       _instance_2_i = hunkHelpers._instance_2i;
-    _static_2(J, "_interceptors_JSArray__compareAny$closure", "JSArray__compareAny", 25);
-    _static_1(H, "_js_helper___stringIdentity$closure", "_stringIdentity", 5);
+    _static_2(J, "_interceptors_JSArray__compareAny$closure", "JSArray__compareAny", 26);
+    _static_1(H, "_js_helper___stringIdentity$closure", "_stringIdentity", 4);
     _static_1(P, "async__AsyncRun__scheduleImmediateJsOverride$closure", "_AsyncRun__scheduleImmediateJsOverride", 11);
     _static_1(P, "async__AsyncRun__scheduleImmediateWithSetImmediate$closure", "_AsyncRun__scheduleImmediateWithSetImmediate", 11);
     _static_1(P, "async__AsyncRun__scheduleImmediateWithTimer$closure", "_AsyncRun__scheduleImmediateWithTimer", 11);
@@ -25287,8 +25654,8 @@
     }, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 8, 0);
     _instance(P._AsyncCompleter.prototype, "get$complete", 1, 0, function() {
       return [null];
-    }, ["call$1", "call$0"], ["complete$1", "complete$0"], 27, 0);
-    _instance(P._SyncCompleter.prototype, "get$complete", 1, 0, null, ["call$1", "call$0"], ["complete$1", "complete$0"], 27, 0);
+    }, ["call$1", "call$0"], ["complete$1", "complete$0"], 14, 0);
+    _instance(P._SyncCompleter.prototype, "get$complete", 1, 0, null, ["call$1", "call$0"], ["complete$1", "complete$0"], 14, 0);
     _instance(P._Future.prototype, "get$_completeError", 0, 1, function() {
       return [null];
     }, ["call$2", "call$1"], ["_completeError$2", "_completeError$1"], 8, 0);
@@ -25300,38 +25667,38 @@
     _instance_0_u(_, "get$_onResume", "_onResume$0", 0);
     _instance_0_u(_ = P._ForwardingStreamSubscription.prototype, "get$_onPause", "_onPause$0", 0);
     _instance_0_u(_, "get$_onResume", "_onResume$0", 0);
-    _instance_1_u(_, "get$_handleData", "_handleData$1", 28);
-    _instance_2_u(_, "get$_handleError", "_handleError$2", 72);
+    _instance_1_u(_, "get$_handleData", "_handleData$1", 31);
+    _instance_2_u(_, "get$_handleError", "_handleError$2", 73);
     _instance_0_u(_, "get$_handleDone", "_handleDone$0", 0);
-    _static_2(P, "collection___defaultEquals$closure", "_defaultEquals", 30);
-    _static_1(P, "collection___defaultHashCode$closure", "_defaultHashCode", 73);
-    _static_2(P, "collection_ListMixin__compareAny$closure", "ListMixin__compareAny", 25);
+    _static_2(P, "collection___defaultEquals$closure", "_defaultEquals", 25);
+    _static_1(P, "collection___defaultHashCode$closure", "_defaultHashCode", 74);
+    _static_2(P, "collection_ListMixin__compareAny$closure", "ListMixin__compareAny", 26);
     _static_1(P, "convert___defaultToEncodable$closure", "_defaultToEncodable", 3);
-    _instance_1_i(_ = P._ByteCallbackSink.prototype, "get$add", "add$1", 28);
+    _instance_1_i(_ = P._ByteCallbackSink.prototype, "get$add", "add$1", 31);
     _instance_0_i(_, "get$close", "close$0", 0);
-    _static_1(P, "core__identityHashCode$closure", "identityHashCode", 26);
-    _static_2(P, "core__identical$closure", "identical", 15);
-    _static_1(P, "core_Uri_decodeComponent$closure", "Uri_decodeComponent", 5);
-    _instance_2_i(W.HttpRequest.prototype, "get$setRequestHeader", "setRequestHeader$2", 22);
-    _instance_2_u(_ = U.DeepCollectionEquality.prototype, "get$equals", "equals$2", 15);
-    _instance_1_i(_, "get$hash", "hash$1", 26);
+    _static_1(P, "core__identityHashCode$closure", "identityHashCode", 15);
+    _static_2(P, "core__identical$closure", "identical", 27);
+    _static_1(P, "core_Uri_decodeComponent$closure", "Uri_decodeComponent", 4);
+    _instance_2_i(W.HttpRequest.prototype, "get$setRequestHeader", "setRequestHeader$2", 23);
+    _instance_2_u(_ = U.DeepCollectionEquality.prototype, "get$equals", "equals$2", 27);
+    _instance_1_i(_, "get$hash", "hash$1", 15);
     _instance_1_u(_, "get$isValidKey", "isValidKey$1", 24);
-    _static_2(L, "strongly_connected_components___defaultEquals$closure", "_defaultEquals0", 30);
+    _static_2(L, "strongly_connected_components___defaultEquals$closure", "_defaultEquals0", 25);
     _instance_1_u(_ = M.SseClient.prototype, "get$_onIncomingControlMessage", "_onIncomingControlMessage$1", 29);
     _instance_1_u(_, "get$_onIncomingMessage", "_onIncomingMessage$1", 29);
     _instance_0_u(_, "get$_onOutgoingDone", "_onOutgoingDone$0", 0);
     _instance_1_u(_, "get$_onOutgoingMessage", "_onOutgoingMessage$1", 7);
-    _static_1(D, "client___moduleLibraries$closure", "_moduleLibraries", 54);
-    _static_1(D, "client___reloadModule$closure", "_reloadModule", 49);
+    _static_1(D, "client___moduleLibraries$closure", "_moduleLibraries", 55);
+    _static_1(D, "client___reloadModule$closure", "_reloadModule", 50);
     _static_0(D, "client___reloadPage$closure", "_reloadPage", 0);
-    _instance_2_u(L.ReloadingManager.prototype, "get$moduleTopologicalCompare", "moduleTopologicalCompare$2", 68);
+    _instance_2_u(L.ReloadingManager.prototype, "get$moduleTopologicalCompare", "moduleTopologicalCompare$2", 69);
   })();
   (function inheritance() {
     var _mixin = hunkHelpers.mixin,
       _inherit = hunkHelpers.inherit,
       _inheritMany = hunkHelpers.inheritMany;
     _inherit(P.Object, null);
-    _inheritMany(P.Object, [H.JS_CONST, J.Interceptor, J.JSObject, J.ArrayIterator, P.Iterable, H.CastIterator, H.Closure, P.MapMixin, P._ListBase_Object_ListMixin, H.ListIterator, P.Iterator, H.EmptyIterator, H.FixedLengthListMixin, H.UnmodifiableListMixin, H.Symbol, P.MapView, H.ConstantMap, H.JSInvocationMirror, H.TypeErrorDecoder, P.Error, H.ExceptionAndStackTrace, H._StackTrace, H.TypeImpl, H.LinkedHashMapCell, H.LinkedHashMapKeyIterator, H.JSSyntaxRegExp, H._MatchImplementation, H._AllMatchesIterator, H.StringMatch, H._StringAllMatchesIterator, P._TimerImpl, P._AsyncAwaitCompleter, P.Future, P._Completer, P._FutureListener, P._Future, P._AsyncCallbackEntry, P.Stream, P.StreamSubscription, P.StreamTransformerBase, P._StreamController, P._AsyncStreamControllerDispatch, P._BufferingStreamSubscription, P._StreamSinkWrapper, P._PendingEvents, P._DelayedEvent, P._DelayedDone, P._StreamIterator, P.AsyncError, P._Zone, P._HashMapKeyIterator, P._SetBase, P._HashSetIterator, P._LinkedHashSetCell, P._LinkedHashSetIterator, P.IterableMixin, P.ListMixin, P._UnmodifiableMapMixin, P._ListQueueIterator, P.SetMixin, P._SplayTreeNode, P._SplayTree, P._SplayTreeIterator, P.Codec, P._Base64Encoder, P.ChunkedConversionSink, P._JsonStringifier, P._Utf8Encoder, P._Utf8Decoder, P._BigIntImpl, P.BigInt, P.bool, P.DateTime, P.num, P.Duration, P.OutOfMemoryError, P.StackOverflowError, P._Exception, P.FormatException, P.IntegerDivisionByZeroException, P.Function, P.List, P.Map, P.MapEntry, P.Null, P.Match, P.RegExp, P.RegExpMatch, P.StackTrace, P.String, P.StringBuffer, P.Symbol0, P.Type, P.Uri, P._Uri, P.UriData, P._SimpleUri, W.CssStyleDeclarationBase, W.ImmutableListMixin, W.FixedSizeListIterator, P._AcceptStructuredClone, P._JSRandom, P._RectangleBase, P.ByteBuffer, P.ByteData, P.Int8List, P.Uint8List, P.Uint8ClampedList, P.Int16List, P.Uint16List, P.Int32List, P.Uint32List, P.Float32List, P.Float64List, Y.EnumClass, M.DefaultBuildResult, M._$BuildStatusSerializer, M._$DefaultBuildResultSerializer, M.DefaultBuildResultBuilder, S.BuiltList, S.ListBuilder, M.BuiltListMultimap, M.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, L.BuiltSet, L.SetBuilder, E.BuiltSetMultimap, E.SetMultimapBuilder, Y.IndentingBuiltValueToStringHelper, A.JsonObject, U.SerializerPlugin, U.FullType, U.Serializer, O.BigIntSerializer, R.BoolSerializer, Y.BuiltJsonSerializers, Y.BuiltJsonSerializersBuilder, R.BuiltListMultimapSerializer, K.BuiltListSerializer, K.BuiltMapSerializer, R.BuiltSetMultimapSerializer, O.BuiltSetSerializer, Z.DateTimeSerializer, D.DoubleSerializer, K.DurationSerializer, Q.Int64Serializer, B.IntSerializer, O.JsonObjectSerializer, K.NumSerializer, K.RegExpSerializer, M.StringSerializer, O.UriSerializer, M.CanonicalizedMap, U.DefaultEquality, U.IterableEquality, U.ListEquality, U._UnorderedEquality, U._MapEntry, U.MapEquality, U.DeepCollectionEquality, B.Pair, E.ConnectRequest, E._$ConnectRequestSerializer, E.ConnectRequestBuilder, M.DevToolsRequest, M.DevToolsResponse, M._$DevToolsRequestSerializer, M._$DevToolsResponseSerializer, M.DevToolsRequestBuilder, M.DevToolsResponseBuilder, M.IsolateExit, M.IsolateStart, M._$IsolateExitSerializer, M._$IsolateStartSerializer, M.IsolateExitBuilder, M.IsolateStartBuilder, A.RunRequest, A._$RunRequestSerializer, A.RunRequestBuilder, V.Int64, E.BaseClient, G.BaseRequest, T.BaseResponse, E.ClientException, R.MediaType, N.Logger, N.Level, N.LogRecord, M.Context, O.Style, X.ParsedPath, X.PathException, Y.SourceFile, D.SourceLocationMixin, Y.SourceSpanMixin, U.Highlighter, V.SourceLocation, V.SourceSpan, G.SourceSpanException, R.StreamChannelMixin, X.StringScanner, F.Uuid, D.LibraryWrapper, G.Library, G.Module, L.HotReloadFailedException, L.ReloadingManager]);
+    _inheritMany(P.Object, [H.JS_CONST, J.Interceptor, J.JSObject, J.ArrayIterator, P.Iterable, H.CastIterator, H.Closure, P.MapMixin, P._ListBase_Object_ListMixin, H.ListIterator, P.Iterator, H.EmptyIterator, H.FixedLengthListMixin, H.UnmodifiableListMixin, H.Symbol, P.MapView, H.ConstantMap, H.JSInvocationMirror, H.TypeErrorDecoder, P.Error, H.ExceptionAndStackTrace, H._StackTrace, H.TypeImpl, H.LinkedHashMapCell, H.LinkedHashMapKeyIterator, H.JSSyntaxRegExp, H._MatchImplementation, H._AllMatchesIterator, H.StringMatch, H._StringAllMatchesIterator, P._TimerImpl, P._AsyncAwaitCompleter, P.Future, P._Completer, P._FutureListener, P._Future, P._AsyncCallbackEntry, P.Stream, P.StreamSubscription, P.StreamTransformerBase, P._StreamController, P._AsyncStreamControllerDispatch, P._BufferingStreamSubscription, P._StreamSinkWrapper, P._PendingEvents, P._DelayedEvent, P._DelayedDone, P._StreamIterator, P.AsyncError, P._Zone, P._HashMapKeyIterator, P._SetBase, P._HashSetIterator, P._LinkedHashSetCell, P._LinkedHashSetIterator, P.IterableMixin, P.ListMixin, P._UnmodifiableMapMixin, P._ListQueueIterator, P.SetMixin, P._SplayTreeNode, P._SplayTree, P._SplayTreeIterator, P.Codec, P._Base64Encoder, P.ChunkedConversionSink, P._JsonStringifier, P._Utf8Encoder, P._Utf8Decoder, P._BigIntImpl, P.BigInt, P.bool, P.DateTime, P.num, P.Duration, P.OutOfMemoryError, P.StackOverflowError, P._Exception, P.FormatException, P.IntegerDivisionByZeroException, P.Function, P.List, P.Map, P.MapEntry, P.Null, P.Match, P.RegExp, P.RegExpMatch, P.StackTrace, P.String, P.StringBuffer, P.Symbol0, P.Type, P.Uri, P._Uri, P.UriData, P._SimpleUri, W.CssStyleDeclarationBase, W.ImmutableListMixin, W.FixedSizeListIterator, P._AcceptStructuredClone, P._JSRandom, P._RectangleBase, P.ByteBuffer, P.ByteData, P.Int8List, P.Uint8List, P.Uint8ClampedList, P.Int16List, P.Uint16List, P.Int32List, P.Uint32List, P.Float32List, P.Float64List, Y.EnumClass, M.DefaultBuildResult, M._$BuildStatusSerializer, M._$DefaultBuildResultSerializer, M.DefaultBuildResultBuilder, S.BuiltList, S.ListBuilder, M.BuiltListMultimap, M.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, L.BuiltSet, L.SetBuilder, E.BuiltSetMultimap, E.SetMultimapBuilder, Y.IndentingBuiltValueToStringHelper, A.JsonObject, U.SerializerPlugin, U.FullType, U.Serializer, O.BigIntSerializer, R.BoolSerializer, Y.BuiltJsonSerializers, Y.BuiltJsonSerializersBuilder, R.BuiltListMultimapSerializer, K.BuiltListSerializer, K.BuiltMapSerializer, R.BuiltSetMultimapSerializer, O.BuiltSetSerializer, Z.DateTimeSerializer, D.DoubleSerializer, K.DurationSerializer, Q.Int64Serializer, B.IntSerializer, O.JsonObjectSerializer, K.NumSerializer, K.RegExpSerializer, M.StringSerializer, O.UriSerializer, M.CanonicalizedMap, U.DefaultEquality, U.IterableEquality, U.ListEquality, U._UnorderedEquality, U._MapEntry, U.MapEquality, U.DeepCollectionEquality, B.Pair, E.ConnectRequest, E._$ConnectRequestSerializer, E.ConnectRequestBuilder, M.DevToolsRequest, M.DevToolsResponse, M._$DevToolsRequestSerializer, M._$DevToolsResponseSerializer, M.DevToolsRequestBuilder, M.DevToolsResponseBuilder, S.ExtensionRequest, S.ExtensionResponse, S._$ExtensionRequestSerializer, S._$ExtensionResponseSerializer, S.ExtensionRequestBuilder, S.ExtensionResponseBuilder, M.IsolateExit, M.IsolateStart, M._$IsolateExitSerializer, M._$IsolateStartSerializer, M.IsolateExitBuilder, M.IsolateStartBuilder, A.RunRequest, A._$RunRequestSerializer, A.RunRequestBuilder, V.Int64, E.BaseClient, G.BaseRequest, T.BaseResponse, E.ClientException, R.MediaType, N.Logger, N.Level, N.LogRecord, M.Context, O.Style, X.ParsedPath, X.PathException, Y.SourceFile, D.SourceLocationMixin, Y.SourceSpanMixin, U.Highlighter, V.SourceLocation, V.SourceSpan, G.SourceSpanException, R.StreamChannelMixin, X.StringScanner, F.Uuid, D.LibraryWrapper, G.Library, G.Module, L.HotReloadFailedException, L.ReloadingManager]);
     _inheritMany(J.Interceptor, [J.JSBool, J.JSNull, J.JavaScriptObject, J.JSArray, J.JSNumber, J.JSString, H.NativeByteBuffer, H.NativeTypedData, W.EventTarget, W.AccessibleNodeList, W.Blob, W.CssStyleValue, W.CssTransformComponent, W.CssRule, W._CssStyleDeclaration_Interceptor_CssStyleDeclarationBase, W.DataTransferItemList, W.DomException, W._DomRectList_Interceptor_ListMixin, W.DomRectReadOnly, W._DomStringList_Interceptor_ListMixin, W.DomTokenList, W.Event, W._FileList_Interceptor_ListMixin, W.Gamepad, W.History, W._HtmlCollection_Interceptor_ListMixin, W.Location, W.MediaList, W._MidiInputMap_Interceptor_MapMixin, W._MidiOutputMap_Interceptor_MapMixin, W.MimeType, W._MimeTypeArray_Interceptor_ListMixin, W._NodeList_Interceptor_ListMixin, W.Plugin, W._PluginArray_Interceptor_ListMixin, W._RtcStatsReport_Interceptor_MapMixin, W.SpeechGrammar, W._SpeechGrammarList_Interceptor_ListMixin, W.SpeechRecognitionResult, W._Storage_Interceptor_MapMixin, W.StyleSheet, W._TextTrackCueList_Interceptor_ListMixin, W.TimeRanges, W.Touch, W._TouchList_Interceptor_ListMixin, W.TrackDefaultList, W.Url, W.__CssRuleList_Interceptor_ListMixin, W.__GamepadList_Interceptor_ListMixin, W.__NamedNodeMap_Interceptor_ListMixin, W.__SpeechRecognitionResultList_Interceptor_ListMixin, W.__StyleSheetList_Interceptor_ListMixin, P.Length, P._LengthList_Interceptor_ListMixin, P.Number, P._NumberList_Interceptor_ListMixin, P.PointList, P._StringList_Interceptor_ListMixin, P.Transform, P._TransformList_Interceptor_ListMixin, P.AudioBuffer, P._AudioParamMap_Interceptor_MapMixin, P._SqlResultSetRowList_Interceptor_ListMixin]);
     _inheritMany(J.JavaScriptObject, [J.PlainJavaScriptObject, J.UnknownJavaScriptObject, J.JavaScriptFunction, D.DartLoader, D.HotReloadableLibrary, D.JsError, D.JsMap, S.Promise]);
     _inherit(J.JSUnmodifiableArray, J.JSArray);
@@ -25340,7 +25707,7 @@
     _inheritMany(H._CastIterableBase, [H.CastIterable, H.__CastListBase__CastIterableBase_ListMixin]);
     _inherit(H._EfficientLengthCastIterable, H.CastIterable);
     _inherit(H._CastListBase, H.__CastListBase__CastIterableBase_ListMixin);
-    _inheritMany(H.Closure, [H._CastListBase_sort_closure, H.CastMap_forEach_closure, H.ConstantMap_map_closure, H.Primitives_functionNoSuchMethod_closure, H.unwrapException_saveStackTrace, H.TearOffClosure, H.JsLinkedHashMap_values_closure, H.JsLinkedHashMap_addAll_closure, H.initHooks_closure, H.initHooks_closure0, H.initHooks_closure1, P._AsyncRun__initializeScheduleImmediate_internalCallback, P._AsyncRun__initializeScheduleImmediate_closure, P._AsyncRun__scheduleImmediateJsOverride_internalCallback, P._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, P._TimerImpl_internalCallback, P._AsyncAwaitCompleter_complete_closure, P._AsyncAwaitCompleter_completeError_closure, P._awaitOnObject_closure, P._awaitOnObject_closure0, P._wrapJsFunctionForAsync_closure, P._Future__addListener_closure, P._Future__prependListeners_closure, P._Future__chainForeignFuture_closure, P._Future__chainForeignFuture_closure0, P._Future__chainForeignFuture_closure1, P._Future__asyncComplete_closure, P._Future__chainFuture_closure, P._Future__asyncCompleteError_closure, P._Future__propagateToListeners_handleWhenCompleteCallback, P._Future__propagateToListeners_handleWhenCompleteCallback_closure, P._Future__propagateToListeners_handleValueCallback, P._Future__propagateToListeners_handleError, P.Stream_Stream$fromIterable_closure, P.Stream_length_closure, P.Stream_length_closure0, P.Stream_first_closure, P.Stream_first_closure0, P._StreamController__subscribe_closure, P._StreamController__recordCancel_complete, P._BufferingStreamSubscription__sendError_sendError, P._BufferingStreamSubscription__sendDone_sendDone, P._PendingEvents_schedule_closure, P._cancelAndValue_closure, P._rootHandleUncaughtError_closure, P._RootZone_bindCallback_closure, P._RootZone_bindCallbackGuarded_closure, P._RootZone_bindUnaryCallbackGuarded_closure, P._HashMap_addAll_closure, P._CustomHashMap_closure, P._LinkedCustomHashMap_closure, P._CustomHashSet_closure, P.LinkedHashMap_LinkedHashMap$from_closure, P.MapBase_mapToString_closure, P.SplayTreeSet_closure, P._JsonMap_addAll_closure, P._JsonStringifier_writeMap_closure, P._symbolMapToStringMap_closure, P.NoSuchMethodError_toString_closure, P._BigIntImpl_hashCode_combine, P._BigIntImpl_hashCode_finish, P._BigIntImpl_toDouble_readBits, P._BigIntImpl_toDouble_roundUp, P.Duration_toString_sixDigits, P.Duration_toString_twoDigits, P.Uri__parseIPv4Address_error, P.Uri_parseIPv6Address_error, P.Uri_parseIPv6Address_parseHex, P._Uri__Uri$notSimple_closure, P._Uri__checkNonWindowsPathReservedCharacters_closure, P._Uri__makePath_closure, P._createTables_closure, P._createTables_build, P._createTables_setChars, P._createTables_setRange, W.HttpRequest_request_closure, W.MidiInputMap_keys_closure, W.MidiOutputMap_keys_closure, W.RtcStatsReport_keys_closure, W.Storage_addAll_closure, W.Storage_keys_closure, W._EventStreamSubscription_closure, P._AcceptStructuredClone_walk_closure, P.convertDartToNative_Dictionary_closure, P.convertNativePromiseToDartFuture_closure, P.convertNativePromiseToDartFuture_closure0, P.AudioParamMap_keys_closure, M.BuiltListMultimap_BuiltListMultimap_closure, M.BuiltListMultimap_hashCode_closure, M.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.MapBuilder_replace_closure, L.BuiltSet_hashCode_closure, E.BuiltSetMultimap_hashCode_closure, E.SetMultimapBuilder_replace_closure, Y.closure, U.Serializers_Serializers_closure, U.Serializers_Serializers_closure0, U.Serializers_Serializers_closure1, U.Serializers_Serializers_closure2, U.Serializers_Serializers_closure3, R.BuiltListMultimapSerializer_serialize_closure, R.BuiltListMultimapSerializer_deserialize_closure, K.BuiltListSerializer_serialize_closure, K.BuiltListSerializer_deserialize_closure, R.BuiltSetMultimapSerializer_serialize_closure, R.BuiltSetMultimapSerializer_deserialize_closure, O.BuiltSetSerializer_serialize_closure, O.BuiltSetSerializer_deserialize_closure, M.CanonicalizedMap_addAll_closure, M.CanonicalizedMap_forEach_closure, M.CanonicalizedMap_keys_closure, M.CanonicalizedMap_map_closure, M.CanonicalizedMap_toString_closure, M._isToStringVisiting_closure, L.stronglyConnectedComponents_strongConnect, G.BaseRequest_closure, G.BaseRequest_closure0, O.BrowserClient_send_closure, O.BrowserClient_send__closure, O.BrowserClient_send__closure0, O.BrowserClient_send_closure0, Z.ByteStream_toBytes_closure, U.Response_fromStream_closure, Z.CaseInsensitiveMap$from_closure, Z.CaseInsensitiveMap$from_closure0, R.MediaType_MediaType$parse_closure, R.MediaType_toString_closure, R.MediaType_toString__closure, N.expectQuotedString_closure, N.Logger_Logger_closure, M.Context_join_closure, M.Context_joinAll_closure, M.Context_split_closure, M._validateArgList_closure, X.ParsedPath_normalize_closure, X.hashObjects_closure, U.Highlighter__writeFirstLine_closure, U.Highlighter__writeFirstLine_closure0, U.Highlighter__writeFirstLine_closure1, U.Highlighter__writeFirstLine_closure2, U.Highlighter__writeIntermediateLines_closure, U.Highlighter__writeLastLine_closure, U.Highlighter__writeLastLine_closure0, U.Highlighter__writeLastLine_closure1, U.Highlighter__writeSidebar_closure, D.main_closure, D.main_closure0, D.main_closure1, D.main_closure2, D.main__closure, D.main_closure3, D.main_closure4, D.main_closure5, D.hotRestart_rerunApp, D.hotRestart_rerunApp_closure, D.hotRestart_rerunApp_closure0, D._moduleLibraries_closure, D._reloadModule_closure, D._reloadModule_closure0, S.toPromise_closure, L.ReloadingManager_reload_closure]);
+    _inheritMany(H.Closure, [H._CastListBase_sort_closure, H.CastMap_forEach_closure, H.ConstantMap_map_closure, H.Primitives_functionNoSuchMethod_closure, H.unwrapException_saveStackTrace, H.TearOffClosure, H.JsLinkedHashMap_values_closure, H.JsLinkedHashMap_addAll_closure, H.initHooks_closure, H.initHooks_closure0, H.initHooks_closure1, P._AsyncRun__initializeScheduleImmediate_internalCallback, P._AsyncRun__initializeScheduleImmediate_closure, P._AsyncRun__scheduleImmediateJsOverride_internalCallback, P._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, P._TimerImpl_internalCallback, P._AsyncAwaitCompleter_complete_closure, P._AsyncAwaitCompleter_completeError_closure, P._awaitOnObject_closure, P._awaitOnObject_closure0, P._wrapJsFunctionForAsync_closure, P._Future__addListener_closure, P._Future__prependListeners_closure, P._Future__chainForeignFuture_closure, P._Future__chainForeignFuture_closure0, P._Future__chainForeignFuture_closure1, P._Future__asyncComplete_closure, P._Future__chainFuture_closure, P._Future__asyncCompleteError_closure, P._Future__propagateToListeners_handleWhenCompleteCallback, P._Future__propagateToListeners_handleWhenCompleteCallback_closure, P._Future__propagateToListeners_handleValueCallback, P._Future__propagateToListeners_handleError, P.Stream_Stream$fromIterable_closure, P.Stream_length_closure, P.Stream_length_closure0, P.Stream_first_closure, P.Stream_first_closure0, P._StreamController__subscribe_closure, P._StreamController__recordCancel_complete, P._BufferingStreamSubscription__sendError_sendError, P._BufferingStreamSubscription__sendDone_sendDone, P._PendingEvents_schedule_closure, P._cancelAndValue_closure, P._rootHandleUncaughtError_closure, P._RootZone_bindCallback_closure, P._RootZone_bindCallbackGuarded_closure, P._RootZone_bindUnaryCallbackGuarded_closure, P._HashMap_addAll_closure, P._CustomHashMap_closure, P._LinkedCustomHashMap_closure, P._CustomHashSet_closure, P.LinkedHashMap_LinkedHashMap$from_closure, P.MapBase_mapToString_closure, P.SplayTreeSet_closure, P._JsonMap_addAll_closure, P._JsonStringifier_writeMap_closure, P._symbolMapToStringMap_closure, P.NoSuchMethodError_toString_closure, P._BigIntImpl_hashCode_combine, P._BigIntImpl_hashCode_finish, P._BigIntImpl_toDouble_readBits, P._BigIntImpl_toDouble_roundUp, P.Duration_toString_sixDigits, P.Duration_toString_twoDigits, P.Uri__parseIPv4Address_error, P.Uri_parseIPv6Address_error, P.Uri_parseIPv6Address_parseHex, P._Uri__Uri$notSimple_closure, P._Uri__checkNonWindowsPathReservedCharacters_closure, P._Uri__makePath_closure, P._createTables_closure, P._createTables_build, P._createTables_setChars, P._createTables_setRange, W.HttpRequest_request_closure, W.MidiInputMap_keys_closure, W.MidiOutputMap_keys_closure, W.RtcStatsReport_keys_closure, W.Storage_addAll_closure, W.Storage_keys_closure, W._EventStreamSubscription_closure, P._AcceptStructuredClone_walk_closure, P.convertDartToNative_Dictionary_closure, P.convertNativePromiseToDartFuture_closure, P.convertNativePromiseToDartFuture_closure0, P.AudioParamMap_keys_closure, M.BuiltListMultimap_BuiltListMultimap_closure, M.BuiltListMultimap_hashCode_closure, M.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.MapBuilder_replace_closure, A.MapBuilder_replace_closure0, L.BuiltSet_hashCode_closure, E.BuiltSetMultimap_hashCode_closure, E.SetMultimapBuilder_replace_closure, Y.closure, U.Serializers_Serializers_closure, U.Serializers_Serializers_closure0, U.Serializers_Serializers_closure1, U.Serializers_Serializers_closure2, U.Serializers_Serializers_closure3, R.BuiltListMultimapSerializer_serialize_closure, R.BuiltListMultimapSerializer_deserialize_closure, K.BuiltListSerializer_serialize_closure, K.BuiltListSerializer_deserialize_closure, R.BuiltSetMultimapSerializer_serialize_closure, R.BuiltSetMultimapSerializer_deserialize_closure, O.BuiltSetSerializer_serialize_closure, O.BuiltSetSerializer_deserialize_closure, M.CanonicalizedMap_addAll_closure, M.CanonicalizedMap_forEach_closure, M.CanonicalizedMap_keys_closure, M.CanonicalizedMap_map_closure, M.CanonicalizedMap_toString_closure, M._isToStringVisiting_closure, K.closure0, L.stronglyConnectedComponents_strongConnect, G.BaseRequest_closure, G.BaseRequest_closure0, O.BrowserClient_send_closure, O.BrowserClient_send__closure, O.BrowserClient_send__closure0, O.BrowserClient_send_closure0, Z.ByteStream_toBytes_closure, U.Response_fromStream_closure, Z.CaseInsensitiveMap$from_closure, Z.CaseInsensitiveMap$from_closure0, R.MediaType_MediaType$parse_closure, R.MediaType_toString_closure, R.MediaType_toString__closure, N.expectQuotedString_closure, N.Logger_Logger_closure, M.Context_join_closure, M.Context_joinAll_closure, M.Context_split_closure, M._validateArgList_closure, X.ParsedPath_normalize_closure, X.hashObjects_closure, U.Highlighter__writeFirstLine_closure, U.Highlighter__writeFirstLine_closure0, U.Highlighter__writeFirstLine_closure1, U.Highlighter__writeFirstLine_closure2, U.Highlighter__writeIntermediateLines_closure, U.Highlighter__writeLastLine_closure, U.Highlighter__writeLastLine_closure0, U.Highlighter__writeLastLine_closure1, U.Highlighter__writeSidebar_closure, D.main_closure, D.main_closure0, D.main_closure1, D.main_closure2, D.main__closure, D.main_closure3, D.main_closure4, D.main_closure5, D.hotRestart_rerunApp, D.hotRestart_rerunApp_closure, D.hotRestart_rerunApp_closure0, D._moduleLibraries_closure, D._reloadModule_closure, D._reloadModule_closure0, S.toPromise_closure, L.ReloadingManager_reload_closure]);
     _inherit(H.CastList, H._CastListBase);
     _inherit(P.MapBase, P.MapMixin);
     _inheritMany(P.MapBase, [H.CastMap, H.JsLinkedHashMap, P._HashMap, P._JsonMap]);
@@ -25356,7 +25723,7 @@
     _inherit(P.UnmodifiableMapView, P._UnmodifiableMapView_MapView__UnmodifiableMapMixin);
     _inherit(H.ConstantMapView, P.UnmodifiableMapView);
     _inherit(H.ConstantStringMap, H.ConstantMap);
-    _inheritMany(P.Error, [H.NullError, H.JsNoSuchMethodError, H.UnknownJsTypeError, H.TypeErrorImplementation, H.CastErrorImplementation, H.RuntimeError, P.AssertionError, P.JsonUnsupportedObjectError, P.NullThrownError, P.ArgumentError, P.NoSuchMethodError, P.UnsupportedError, P.UnimplementedError, P.StateError, P.ConcurrentModificationError, P.CyclicInitializationError, Y.BuiltValueNullFieldError, U.DeserializationError]);
+    _inheritMany(P.Error, [H.NullError, H.JsNoSuchMethodError, H.UnknownJsTypeError, H.TypeErrorImplementation, H.CastErrorImplementation, H.RuntimeError, P.AssertionError, P.JsonUnsupportedObjectError, P.NullThrownError, P.ArgumentError, P.NoSuchMethodError, P.UnsupportedError, P.UnimplementedError, P.StateError, P.ConcurrentModificationError, P.CyclicInitializationError, Y.BuiltValueNullFieldError, Y.BuiltValueNestedFieldError, U.DeserializationError]);
     _inheritMany(H.TearOffClosure, [H.StaticClosure, H.BoundClosure]);
     _inherit(H._AssertionError, P.AssertionError);
     _inherit(H._AllMatchesIterable, P.IterableBase);
@@ -25401,7 +25768,7 @@
     _inheritMany(W.EventTarget, [W.Node, W.EventSource, W.FileReader, W.FileWriter, W.HttpRequestEventTarget, W.SourceBuffer, W._SourceBufferList_EventTarget_ListMixin, W.TextTrack, W.TextTrackCue, W._TextTrackList_EventTarget_ListMixin, W.VideoTrackList, P.AudioTrackList, P.BaseAudioContext]);
     _inheritMany(W.Node, [W.Element, W.CharacterData, W.Document]);
     _inherit(W.HtmlElement, W.Element);
-    _inheritMany(W.HtmlElement, [W.AnchorElement, W.AreaElement, W.FormElement, W.SelectElement]);
+    _inheritMany(W.HtmlElement, [W.AnchorElement, W.AreaElement, W.BaseElement, W.FormElement, W.SelectElement]);
     _inheritMany(W.CssStyleValue, [W.CssNumericValue, W.CssTransformValue, W.CssUnparsedValue]);
     _inherit(W.CssPerspective, W.CssTransformComponent);
     _inherit(W.CssStyleDeclaration, W._CssStyleDeclaration_Interceptor_CssStyleDeclarationBase);
@@ -25475,6 +25842,8 @@
     _inherit(E._$ConnectRequest, E.ConnectRequest);
     _inherit(M._$DevToolsRequest, M.DevToolsRequest);
     _inherit(M._$DevToolsResponse, M.DevToolsResponse);
+    _inherit(S._$ExtensionRequest, S.ExtensionRequest);
+    _inherit(S._$ExtensionResponse, S.ExtensionResponse);
     _inherit(M._$IsolateExit, M.IsolateExit);
     _inherit(M._$IsolateStart, M.IsolateStart);
     _inherit(A._$RunRequest, A.RunRequest);
@@ -25553,7 +25922,7 @@
     _mixin(P._SqlResultSetRowList_Interceptor_ListMixin, P.ListMixin);
     _mixin(P._SqlResultSetRowList_Interceptor_ListMixin_ImmutableListMixin, W.ImmutableListMixin);
   })();
-  var init = {mangledGlobalNames: {int: "int", double: "double", num: "num", String: "String", bool: "bool", Null: "Null", List: "List"}, mangledNames: {}, getTypeFromName: getGlobalFromName, metadata: [], types: [{func: 1, ret: -1}, {func: 1, ret: P.Null}, {func: 1, ret: P.Object, args: [,]}, {func: 1, args: [,]}, {func: 1, ret: P.bool, args: [,]}, {func: 1, ret: P.String, args: [P.String]}, {func: 1, ret: P.Null, args: [W.ProgressEvent]}, {func: 1, ret: -1, args: [,]}, {func: 1, ret: -1, args: [P.Object], opt: [P.StackTrace]}, {func: 1, ret: P.Null, args: [,,]}, {func: 1, ret: -1, args: [P.String,,]}, {func: 1, ret: -1, args: [{func: 1, ret: -1}]}, {func: 1, ret: P.String, args: [P.int]}, {func: 1, ret: P.bool, args: [P.String]}, {func: 1, ret: P.Null, args: [P.String]}, {func: 1, ret: P.bool, args: [P.Object, P.Object]}, {func: 1, ret: P.Null, args: [P.Symbol0,,]}, {func: 1, ret: P.int, args: [P.int, P.int]}, {func: 1, ret: P.int, args: [P.int]}, {func: 1, ret: P.Null, args: [,]}, {func: 1, ret: P.Null, args: [P.String,,]}, {func: 1, ret: -1, args: [P.Uint8List, P.String, P.int]}, {func: 1, ret: -1, args: [P.String, P.String]}, {func: 1, ret: P.String, args: [P.Match]}, {func: 1, ret: P.bool, args: [P.Object]}, {func: 1, ret: P.int, args: [,,]}, {func: 1, ret: P.int, args: [P.Object]}, {func: 1, ret: -1, opt: [P.Object]}, {func: 1, ret: -1, args: [P.Object]}, {func: 1, ret: -1, args: [W.Event]}, {func: 1, ret: P.bool, args: [,,]}, {func: 1, ret: P.Null, args: [P.String, P.String]}, {func: 1, ret: P.Null, args: [{func: 1, ret: -1}]}, {func: 1, ret: P.Null, args: [P.int,,]}, {func: 1, ret: P.Uint8List, args: [,,]}, {func: 1, args: [,,]}, {func: 1, ret: P.Null, args: [P.Object, P.Object]}, {func: 1, ret: Y.IndentingBuiltValueToStringHelper, args: [P.String]}, {func: 1, ret: [S.ListBuilder, P.Object]}, {func: 1, ret: [M.ListMultimapBuilder, P.Object, P.Object]}, {func: 1, ret: [A.MapBuilder, P.Object, P.Object]}, {func: 1, ret: [L.SetBuilder, P.Object]}, {func: 1, ret: [E.SetMultimapBuilder, P.Object, P.Object]}, {func: 1, ret: P.Uint8List, args: [P.int]}, {func: 1, args: [W.Event]}, {func: 1, ret: P.Null, args: [, P.StackTrace]}, {func: 1, ret: -1, args: [P.String], opt: [,]}, {func: 1, ret: P.bool, args: [P.String, P.String]}, {func: 1, ret: P.int, args: [P.String]}, {func: 1, ret: [P.Future, G.Module], args: [P.String]}, {func: 1, ret: U.Response, args: [P.Uint8List]}, {func: 1, ret: R.MediaType}, {func: 1, ret: -1, args: [P.String, P.int]}, {func: 1, ret: N.Logger}, {func: 1, ret: G.Module, args: [P.String]}, {func: 1, ret: P.int, args: [P.int,,]}, {func: 1, args: [P.String]}, {func: 1, ret: [P.List, P.String], args: [P.String]}, {func: 1, ret: [P.List, P.String]}, {func: 1, ret: [S.Promise, -2]}, {func: 1, ret: M.DevToolsRequestBuilder, args: [M.DevToolsRequestBuilder]}, {func: 1, ret: [P.Future, P.Null], args: [P.String]}, {func: 1, ret: P.Null, args: [W.KeyboardEvent]}, {func: 1, ret: E.ConnectRequestBuilder, args: [E.ConnectRequestBuilder]}, {func: 1, ret: M.IsolateExitBuilder, args: [M.IsolateExitBuilder]}, {func: 1, ret: M.IsolateStartBuilder, args: [M.IsolateStartBuilder]}, {func: 1, ret: D.LibraryWrapper, args: [D.HotReloadableLibrary]}, {func: 1, ret: -1, args: [D.JsError]}, {func: 1, ret: P.int, args: [P.String, P.String]}, {func: 1, ret: [P.Future, P.bool]}, {func: 1, args: [, P.String]}, {func: 1, ret: [P._Future,,], args: [,]}, {func: 1, ret: -1, args: [, P.StackTrace]}, {func: 1, ret: P.int, args: [,]}, {func: 1, ret: P.Null, args: [,], opt: [P.StackTrace]}, {func: 1, ret: -1, args: [[P.List, P.int]]}], interceptorsByTag: null, leafTags: null};
+  var init = {mangledGlobalNames: {int: "int", double: "double", num: "num", String: "String", bool: "bool", Null: "Null", List: "List"}, mangledNames: {}, getTypeFromName: getGlobalFromName, metadata: [], types: [{func: 1, ret: -1}, {func: 1, ret: P.Null}, {func: 1, ret: P.Object, args: [,]}, {func: 1, args: [,]}, {func: 1, ret: P.String, args: [P.String]}, {func: 1, ret: P.bool, args: [,]}, {func: 1, ret: P.Null, args: [W.ProgressEvent]}, {func: 1, ret: -1, args: [,]}, {func: 1, ret: -1, args: [P.Object], opt: [P.StackTrace]}, {func: 1, ret: P.Null, args: [,,]}, {func: 1, ret: -1, args: [P.String,,]}, {func: 1, ret: -1, args: [{func: 1, ret: -1}]}, {func: 1, ret: P.String, args: [P.int]}, {func: 1, ret: P.bool, args: [P.String]}, {func: 1, ret: -1, opt: [P.Object]}, {func: 1, ret: P.int, args: [P.Object]}, {func: 1, ret: P.Null, args: [,]}, {func: 1, ret: P.Null, args: [P.Symbol0,,]}, {func: 1, ret: P.int, args: [P.int, P.int]}, {func: 1, ret: P.int, args: [P.int]}, {func: 1, ret: P.Null, args: [P.String]}, {func: 1, ret: P.Null, args: [P.String,,]}, {func: 1, ret: -1, args: [P.Uint8List, P.String, P.int]}, {func: 1, ret: -1, args: [P.String, P.String]}, {func: 1, ret: P.bool, args: [P.Object]}, {func: 1, ret: P.bool, args: [,,]}, {func: 1, ret: P.int, args: [,,]}, {func: 1, ret: P.bool, args: [P.Object, P.Object]}, {func: 1, ret: P.Null, args: [P.Object, P.Object]}, {func: 1, ret: -1, args: [W.Event]}, {func: 1, ret: P.String, args: [P.Match]}, {func: 1, ret: -1, args: [P.Object]}, {func: 1, ret: P.Null, args: [P.String, P.String]}, {func: 1, ret: P.Null, args: [{func: 1, ret: -1}]}, {func: 1, args: [W.Event]}, {func: 1, ret: P.Null, args: [P.int,,]}, {func: 1, ret: P.Uint8List, args: [,,]}, {func: 1, ret: Y.IndentingBuiltValueToStringHelper, args: [P.String]}, {func: 1, ret: [S.ListBuilder, P.Object]}, {func: 1, ret: [M.ListMultimapBuilder, P.Object, P.Object]}, {func: 1, ret: [A.MapBuilder, P.Object, P.Object]}, {func: 1, ret: [L.SetBuilder, P.Object]}, {func: 1, ret: [E.SetMultimapBuilder, P.Object, P.Object]}, {func: 1, args: [, P.String]}, {func: 1, ret: P.Uint8List, args: [P.int]}, {func: 1, args: [,,]}, {func: 1, ret: -1, args: [P.String], opt: [,]}, {func: 1, ret: [A.MapBuilder, P.String, P.Object]}, {func: 1, ret: P.bool, args: [P.String, P.String]}, {func: 1, ret: P.int, args: [P.String]}, {func: 1, ret: [P.Future, G.Module], args: [P.String]}, {func: 1, ret: U.Response, args: [P.Uint8List]}, {func: 1, ret: R.MediaType}, {func: 1, ret: -1, args: [P.String, P.int]}, {func: 1, ret: N.Logger}, {func: 1, ret: G.Module, args: [P.String]}, {func: 1, ret: P.int, args: [P.int,,]}, {func: 1, ret: P.Null, args: [, P.StackTrace]}, {func: 1, ret: [P.List, P.String], args: [P.String]}, {func: 1, ret: [P.List, P.String]}, {func: 1, ret: [S.Promise, -2]}, {func: 1, ret: M.DevToolsRequestBuilder, args: [M.DevToolsRequestBuilder]}, {func: 1, ret: [P.Future, P.Null], args: [P.String]}, {func: 1, ret: P.Null, args: [W.KeyboardEvent]}, {func: 1, ret: E.ConnectRequestBuilder, args: [E.ConnectRequestBuilder]}, {func: 1, ret: M.IsolateExitBuilder, args: [M.IsolateExitBuilder]}, {func: 1, ret: M.IsolateStartBuilder, args: [M.IsolateStartBuilder]}, {func: 1, ret: D.LibraryWrapper, args: [D.HotReloadableLibrary]}, {func: 1, ret: -1, args: [D.JsError]}, {func: 1, ret: P.int, args: [P.String, P.String]}, {func: 1, ret: [P.Future, P.bool]}, {func: 1, args: [P.String]}, {func: 1, ret: [P._Future,,], args: [,]}, {func: 1, ret: -1, args: [, P.StackTrace]}, {func: 1, ret: P.int, args: [,]}, {func: 1, ret: P.Null, args: [,], opt: [P.StackTrace]}, {func: 1, ret: -1, args: [[P.List, P.int]]}], interceptorsByTag: null, leafTags: null};
   (function constants() {
     var makeConstList = hunkHelpers.makeConstList;
     C.EventSource_methods = W.EventSource.prototype;
@@ -25714,12 +26083,17 @@
     C.C__DelayedDone = new P._DelayedDone();
     C.C__JSRandom = new P._JSRandom();
     C.C__RootZone = new P._RootZone();
-    C.Type_bool_lhE = H.createRuntimeType(P.bool);
+    C.Type_BuiltMap_qd4 = H.createRuntimeType([A.BuiltMap,,,]);
+    C.Type_String_k8F = H.createRuntimeType(P.String);
     C.List_empty2 = H.setRuntimeTypeInfo(makeConstList([]), [U.FullType]);
-    C.FullType_6bM = new U.FullType(C.Type_bool_lhE, C.List_empty2);
-    C.Type_BuiltSetMultimap_9Fi = H.createRuntimeType([E.BuiltSetMultimap,,,]);
+    C.FullType_aZ8 = new U.FullType(C.Type_String_k8F, C.List_empty2);
     C.Type_Object_xQ6 = H.createRuntimeType(P.Object);
     C.FullType_sIv = new U.FullType(C.Type_Object_xQ6, C.List_empty2);
+    C.List_CPs = H.setRuntimeTypeInfo(makeConstList([C.FullType_aZ8, C.FullType_sIv]), [U.FullType]);
+    C.FullType_2jN = new U.FullType(C.Type_BuiltMap_qd4, C.List_CPs);
+    C.Type_bool_lhE = H.createRuntimeType(P.bool);
+    C.FullType_6bM = new U.FullType(C.Type_bool_lhE, C.List_empty2);
+    C.Type_BuiltSetMultimap_9Fi = H.createRuntimeType([E.BuiltSetMultimap,,,]);
     C.List_Ult = H.setRuntimeTypeInfo(makeConstList([C.FullType_sIv, C.FullType_sIv]), [U.FullType]);
     C.FullType_C1B = new U.FullType(C.Type_BuiltSetMultimap_9Fi, C.List_Ult);
     C.Type_BuiltSet_fcN = H.createRuntimeType([L.BuiltSet,,]);
@@ -25731,10 +26105,9 @@
     C.FullType_GJj = new U.FullType(C.Type_BuildStatus_qBS, C.List_empty2);
     C.Type_BuiltListMultimap_2Mt = H.createRuntimeType([M.BuiltListMultimap,,,]);
     C.FullType_UGJ = new U.FullType(C.Type_BuiltListMultimap_2Mt, C.List_Ult);
-    C.Type_String_k8F = H.createRuntimeType(P.String);
-    C.FullType_aZ8 = new U.FullType(C.Type_String_k8F, C.List_empty2);
+    C.Type_int_tHn = H.createRuntimeType(P.int);
+    C.FullType_kaS = new U.FullType(C.Type_int_tHn, C.List_empty2);
     C.FullType_null_List_empty = new U.FullType(null, C.List_empty2);
-    C.Type_BuiltMap_qd4 = H.createRuntimeType([A.BuiltMap,,,]);
     C.FullType_sEu = new U.FullType(C.Type_BuiltMap_qd4, C.List_Ult);
     C.Int64_0_0_0 = new V.Int64(0, 0, 0);
     C.Int64_4194303_4194303_1048575 = new V.Int64(4194303, 4194303, 1048575);
@@ -25764,6 +26137,9 @@
     C.List_empty1 = H.setRuntimeTypeInfo(makeConstList([]), [P.Null]);
     C.List_empty = H.setRuntimeTypeInfo(makeConstList([]), [P.String]);
     C.List_empty0 = makeConstList([]);
+    C.Type_ExtensionRequest_BMe = H.createRuntimeType(S.ExtensionRequest);
+    C.Type__$ExtensionRequest_1Ej = H.createRuntimeType(S._$ExtensionRequest);
+    C.List_evd = H.setRuntimeTypeInfo(makeConstList([C.Type_ExtensionRequest_BMe, C.Type__$ExtensionRequest_1Ej]), [P.Type]);
     C.List_gRj = H.setRuntimeTypeInfo(makeConstList([0, 0, 32722, 12287, 65534, 34815, 65534, 18431]), [P.int]);
     C.Type_DefaultBuildResult_2J4 = H.createRuntimeType(M.DefaultBuildResult);
     C.Type__$DefaultBuildResult_aUS = H.createRuntimeType(M._$DefaultBuildResult);
@@ -25775,6 +26151,9 @@
     C.Type_ConnectRequest_UGQ = H.createRuntimeType(E.ConnectRequest);
     C.Type__$ConnectRequest_cJC = H.createRuntimeType(E._$ConnectRequest);
     C.List_ssp = H.setRuntimeTypeInfo(makeConstList([C.Type_ConnectRequest_UGQ, C.Type__$ConnectRequest_cJC]), [P.Type]);
+    C.Type_ExtensionResponse_CC0 = H.createRuntimeType(S.ExtensionResponse);
+    C.Type__$ExtensionResponse_Ddl = H.createRuntimeType(S._$ExtensionResponse);
+    C.List_tQ0 = H.setRuntimeTypeInfo(makeConstList([C.Type_ExtensionResponse_CC0, C.Type__$ExtensionResponse_Ddl]), [P.Type]);
     C.Type_RunRequest_Pkw = H.createRuntimeType(A.RunRequest);
     C.Type__$RunRequest_Im4 = H.createRuntimeType(A._$RunRequest);
     C.List_wsa = H.setRuntimeTypeInfo(makeConstList([C.Type_RunRequest_Pkw, C.Type__$RunRequest_Im4]), [P.Type]);
@@ -25811,7 +26190,6 @@
     C.Type_Uri_EFX = H.createRuntimeType(P.Uri);
     C.Type_double_K1J = H.createRuntimeType(P.double);
     C.Type_dynamic_0Rz = H.createRuntimeType(null);
-    C.Type_int_tHn = H.createRuntimeType(P.int);
     C.Type_num_cv7 = H.createRuntimeType(P.num);
   })();
   (function staticFields() {
@@ -25979,6 +26357,12 @@
     _lazy($, "_$devToolsResponseSerializer", "$get$_$devToolsResponseSerializer", function() {
       return new M._$DevToolsResponseSerializer();
     });
+    _lazy($, "_$extensionRequestSerializer", "$get$_$extensionRequestSerializer", function() {
+      return new S._$ExtensionRequestSerializer();
+    });
+    _lazy($, "_$extensionResponseSerializer", "$get$_$extensionResponseSerializer", function() {
+      return new S._$ExtensionResponseSerializer();
+    });
     _lazy($, "_$isolateExitSerializer", "$get$_$isolateExitSerializer", function() {
       return new M._$IsolateExitSerializer();
     });
@@ -25999,9 +26383,12 @@
       t1.add$1(0, $.$get$_$defaultBuildResultSerializer());
       t1.add$1(0, $.$get$_$devToolsRequestSerializer());
       t1.add$1(0, $.$get$_$devToolsResponseSerializer());
+      t1.add$1(0, $.$get$_$extensionRequestSerializer());
+      t1.add$1(0, $.$get$_$extensionResponseSerializer());
       t1.add$1(0, $.$get$_$isolateExitSerializer());
       t1.add$1(0, $.$get$_$isolateStartSerializer());
       t1.add$1(0, $.$get$_$runRequestSerializer());
+      t1.addBuilderFactory$2(C.FullType_2jN, new K.closure0());
       return t1.build$0();
     });
     _lazy($, "_escapedChar", "$get$_escapedChar", function() {
@@ -26077,8 +26464,8 @@
       }
       init.dispatchPropertyName = init.getIsolateTag("dispatch_record");
     }();
-    hunkHelpers.setOrUpdateInterceptorsByTag({AnimationEffectReadOnly: J.Interceptor, AnimationEffectTiming: J.Interceptor, AnimationEffectTimingReadOnly: J.Interceptor, AnimationTimeline: J.Interceptor, AnimationWorkletGlobalScope: J.Interceptor, AuthenticatorAssertionResponse: J.Interceptor, AuthenticatorAttestationResponse: J.Interceptor, AuthenticatorResponse: J.Interceptor, BackgroundFetchFetch: J.Interceptor, BackgroundFetchManager: J.Interceptor, BackgroundFetchSettledFetch: J.Interceptor, BarProp: J.Interceptor, BarcodeDetector: J.Interceptor, BluetoothRemoteGATTDescriptor: J.Interceptor, Body: J.Interceptor, BudgetState: J.Interceptor, CacheStorage: J.Interceptor, CanvasGradient: J.Interceptor, CanvasPattern: J.Interceptor, CanvasRenderingContext2D: J.Interceptor, Client: J.Interceptor, Clients: J.Interceptor, CookieStore: J.Interceptor, Coordinates: J.Interceptor, Credential: J.Interceptor, CredentialUserData: J.Interceptor, CredentialsContainer: J.Interceptor, Crypto: J.Interceptor, CryptoKey: J.Interceptor, CSS: J.Interceptor, CSSVariableReferenceValue: J.Interceptor, CustomElementRegistry: J.Interceptor, DataTransfer: J.Interceptor, DataTransferItem: J.Interceptor, DeprecatedStorageInfo: J.Interceptor, DeprecatedStorageQuota: J.Interceptor, DeprecationReport: J.Interceptor, DetectedBarcode: J.Interceptor, DetectedFace: J.Interceptor, DetectedText: J.Interceptor, DeviceAcceleration: J.Interceptor, DeviceRotationRate: J.Interceptor, DirectoryEntry: J.Interceptor, DirectoryReader: J.Interceptor, DocumentOrShadowRoot: J.Interceptor, DocumentTimeline: J.Interceptor, DOMError: J.Interceptor, DOMImplementation: J.Interceptor, Iterator: J.Interceptor, DOMMatrix: J.Interceptor, DOMMatrixReadOnly: J.Interceptor, DOMParser: J.Interceptor, DOMPoint: J.Interceptor, DOMPointReadOnly: J.Interceptor, DOMQuad: J.Interceptor, DOMStringMap: J.Interceptor, Entry: J.Interceptor, External: J.Interceptor, FaceDetector: J.Interceptor, FederatedCredential: J.Interceptor, FileEntry: J.Interceptor, DOMFileSystem: J.Interceptor, FontFace: J.Interceptor, FontFaceSource: J.Interceptor, FormData: J.Interceptor, GamepadButton: J.Interceptor, GamepadPose: J.Interceptor, Geolocation: J.Interceptor, Position: J.Interceptor, Headers: J.Interceptor, HTMLHyperlinkElementUtils: J.Interceptor, IdleDeadline: J.Interceptor, ImageBitmap: J.Interceptor, ImageBitmapRenderingContext: J.Interceptor, ImageCapture: J.Interceptor, ImageData: J.Interceptor, InputDeviceCapabilities: J.Interceptor, IntersectionObserver: J.Interceptor, IntersectionObserverEntry: J.Interceptor, InterventionReport: J.Interceptor, KeyframeEffect: J.Interceptor, KeyframeEffectReadOnly: J.Interceptor, MediaCapabilities: J.Interceptor, MediaCapabilitiesInfo: J.Interceptor, MediaDeviceInfo: J.Interceptor, MediaError: J.Interceptor, MediaKeyStatusMap: J.Interceptor, MediaKeySystemAccess: J.Interceptor, MediaKeys: J.Interceptor, MediaKeysPolicy: J.Interceptor, MediaMetadata: J.Interceptor, MediaSession: J.Interceptor, MediaSettingsRange: J.Interceptor, MemoryInfo: J.Interceptor, MessageChannel: J.Interceptor, Metadata: J.Interceptor, MutationObserver: J.Interceptor, WebKitMutationObserver: J.Interceptor, MutationRecord: J.Interceptor, NavigationPreloadManager: J.Interceptor, Navigator: J.Interceptor, NavigatorAutomationInformation: J.Interceptor, NavigatorConcurrentHardware: J.Interceptor, NavigatorCookies: J.Interceptor, NavigatorUserMediaError: J.Interceptor, NodeFilter: J.Interceptor, NodeIterator: J.Interceptor, NonDocumentTypeChildNode: J.Interceptor, NonElementParentNode: J.Interceptor, NoncedElement: J.Interceptor, OffscreenCanvasRenderingContext2D: J.Interceptor, OverconstrainedError: J.Interceptor, PaintRenderingContext2D: J.Interceptor, PaintSize: J.Interceptor, PaintWorkletGlobalScope: J.Interceptor, PasswordCredential: J.Interceptor, Path2D: J.Interceptor, PaymentAddress: J.Interceptor, PaymentInstruments: J.Interceptor, PaymentManager: J.Interceptor, PaymentResponse: J.Interceptor, PerformanceEntry: J.Interceptor, PerformanceLongTaskTiming: J.Interceptor, PerformanceMark: J.Interceptor, PerformanceMeasure: J.Interceptor, PerformanceNavigation: J.Interceptor, PerformanceNavigationTiming: J.Interceptor, PerformanceObserver: J.Interceptor, PerformanceObserverEntryList: J.Interceptor, PerformancePaintTiming: J.Interceptor, PerformanceResourceTiming: J.Interceptor, PerformanceServerTiming: J.Interceptor, PerformanceTiming: J.Interceptor, Permissions: J.Interceptor, PhotoCapabilities: J.Interceptor, PositionError: J.Interceptor, Presentation: J.Interceptor, PresentationReceiver: J.Interceptor, PublicKeyCredential: J.Interceptor, PushManager: J.Interceptor, PushMessageData: J.Interceptor, PushSubscription: J.Interceptor, PushSubscriptionOptions: J.Interceptor, Range: J.Interceptor, RelatedApplication: J.Interceptor, ReportBody: J.Interceptor, ReportingObserver: J.Interceptor, ResizeObserver: J.Interceptor, ResizeObserverEntry: J.Interceptor, RTCCertificate: J.Interceptor, RTCIceCandidate: J.Interceptor, mozRTCIceCandidate: J.Interceptor, RTCLegacyStatsReport: J.Interceptor, RTCRtpContributingSource: J.Interceptor, RTCRtpReceiver: J.Interceptor, RTCRtpSender: J.Interceptor, RTCSessionDescription: J.Interceptor, mozRTCSessionDescription: J.Interceptor, RTCStatsResponse: J.Interceptor, Screen: J.Interceptor, ScrollState: J.Interceptor, ScrollTimeline: J.Interceptor, Selection: J.Interceptor, SharedArrayBuffer: J.Interceptor, SpeechRecognitionAlternative: J.Interceptor, SpeechSynthesisVoice: J.Interceptor, StaticRange: J.Interceptor, StorageManager: J.Interceptor, StyleMedia: J.Interceptor, StylePropertyMap: J.Interceptor, StylePropertyMapReadonly: J.Interceptor, SyncManager: J.Interceptor, TaskAttributionTiming: J.Interceptor, TextDetector: J.Interceptor, TextMetrics: J.Interceptor, TrackDefault: J.Interceptor, TreeWalker: J.Interceptor, TrustedHTML: J.Interceptor, TrustedScriptURL: J.Interceptor, TrustedURL: J.Interceptor, UnderlyingSourceBase: J.Interceptor, URLSearchParams: J.Interceptor, VRCoordinateSystem: J.Interceptor, VRDisplayCapabilities: J.Interceptor, VREyeParameters: J.Interceptor, VRFrameData: J.Interceptor, VRFrameOfReference: J.Interceptor, VRPose: J.Interceptor, VRStageBounds: J.Interceptor, VRStageBoundsPoint: J.Interceptor, VRStageParameters: J.Interceptor, ValidityState: J.Interceptor, VideoPlaybackQuality: J.Interceptor, VideoTrack: J.Interceptor, VTTRegion: J.Interceptor, WindowClient: J.Interceptor, WorkletAnimation: J.Interceptor, WorkletGlobalScope: J.Interceptor, XPathEvaluator: J.Interceptor, XPathExpression: J.Interceptor, XPathNSResolver: J.Interceptor, XPathResult: J.Interceptor, XMLSerializer: J.Interceptor, XSLTProcessor: J.Interceptor, Bluetooth: J.Interceptor, BluetoothCharacteristicProperties: J.Interceptor, BluetoothRemoteGATTServer: J.Interceptor, BluetoothRemoteGATTService: J.Interceptor, BluetoothUUID: J.Interceptor, BudgetService: J.Interceptor, Cache: J.Interceptor, DOMFileSystemSync: J.Interceptor, DirectoryEntrySync: J.Interceptor, DirectoryReaderSync: J.Interceptor, EntrySync: J.Interceptor, FileEntrySync: J.Interceptor, FileReaderSync: J.Interceptor, FileWriterSync: J.Interceptor, HTMLAllCollection: J.Interceptor, Mojo: J.Interceptor, MojoHandle: J.Interceptor, MojoWatcher: J.Interceptor, NFC: J.Interceptor, PagePopupController: J.Interceptor, Report: J.Interceptor, Request: J.Interceptor, Response: J.Interceptor, SubtleCrypto: J.Interceptor, USBAlternateInterface: J.Interceptor, USBConfiguration: J.Interceptor, USBDevice: J.Interceptor, USBEndpoint: J.Interceptor, USBInTransferResult: J.Interceptor, USBInterface: J.Interceptor, USBIsochronousInTransferPacket: J.Interceptor, USBIsochronousInTransferResult: J.Interceptor, USBIsochronousOutTransferPacket: J.Interceptor, USBIsochronousOutTransferResult: J.Interceptor, USBOutTransferResult: J.Interceptor, WorkerLocation: J.Interceptor, WorkerNavigator: J.Interceptor, Worklet: J.Interceptor, IDBCursor: J.Interceptor, IDBCursorWithValue: J.Interceptor, IDBFactory: J.Interceptor, IDBIndex: J.Interceptor, IDBKeyRange: J.Interceptor, IDBObjectStore: J.Interceptor, IDBObservation: J.Interceptor, IDBObserver: J.Interceptor, IDBObserverChanges: J.Interceptor, SVGAngle: J.Interceptor, SVGAnimatedAngle: J.Interceptor, SVGAnimatedBoolean: J.Interceptor, SVGAnimatedEnumeration: J.Interceptor, SVGAnimatedInteger: J.Interceptor, SVGAnimatedLength: J.Interceptor, SVGAnimatedLengthList: J.Interceptor, SVGAnimatedNumber: J.Interceptor, SVGAnimatedNumberList: J.Interceptor, SVGAnimatedPreserveAspectRatio: J.Interceptor, SVGAnimatedRect: J.Interceptor, SVGAnimatedString: J.Interceptor, SVGAnimatedTransformList: J.Interceptor, SVGMatrix: J.Interceptor, SVGPoint: J.Interceptor, SVGPreserveAspectRatio: J.Interceptor, SVGRect: J.Interceptor, SVGUnitTypes: J.Interceptor, AudioListener: J.Interceptor, AudioParam: J.Interceptor, AudioTrack: J.Interceptor, AudioWorkletGlobalScope: J.Interceptor, AudioWorkletProcessor: J.Interceptor, PeriodicWave: J.Interceptor, WebGLActiveInfo: J.Interceptor, ANGLEInstancedArrays: J.Interceptor, ANGLE_instanced_arrays: J.Interceptor, WebGLBuffer: J.Interceptor, WebGLCanvas: J.Interceptor, WebGLColorBufferFloat: J.Interceptor, WebGLCompressedTextureASTC: J.Interceptor, WebGLCompressedTextureATC: J.Interceptor, WEBGL_compressed_texture_atc: J.Interceptor, WebGLCompressedTextureETC1: J.Interceptor, WEBGL_compressed_texture_etc1: J.Interceptor, WebGLCompressedTextureETC: J.Interceptor, WebGLCompressedTexturePVRTC: J.Interceptor, WEBGL_compressed_texture_pvrtc: J.Interceptor, WebGLCompressedTextureS3TC: J.Interceptor, WEBGL_compressed_texture_s3tc: J.Interceptor, WebGLCompressedTextureS3TCsRGB: J.Interceptor, WebGLDebugRendererInfo: J.Interceptor, WEBGL_debug_renderer_info: J.Interceptor, WebGLDebugShaders: J.Interceptor, WEBGL_debug_shaders: J.Interceptor, WebGLDepthTexture: J.Interceptor, WEBGL_depth_texture: J.Interceptor, WebGLDrawBuffers: J.Interceptor, WEBGL_draw_buffers: J.Interceptor, EXTsRGB: J.Interceptor, EXT_sRGB: J.Interceptor, EXTBlendMinMax: J.Interceptor, EXT_blend_minmax: J.Interceptor, EXTColorBufferFloat: J.Interceptor, EXTColorBufferHalfFloat: J.Interceptor, EXTDisjointTimerQuery: J.Interceptor, EXTDisjointTimerQueryWebGL2: J.Interceptor, EXTFragDepth: J.Interceptor, EXT_frag_depth: J.Interceptor, EXTShaderTextureLOD: J.Interceptor, EXT_shader_texture_lod: J.Interceptor, EXTTextureFilterAnisotropic: J.Interceptor, EXT_texture_filter_anisotropic: J.Interceptor, WebGLFramebuffer: J.Interceptor, WebGLGetBufferSubDataAsync: J.Interceptor, WebGLLoseContext: J.Interceptor, WebGLExtensionLoseContext: J.Interceptor, WEBGL_lose_context: J.Interceptor, OESElementIndexUint: J.Interceptor, OES_element_index_uint: J.Interceptor, OESStandardDerivatives: J.Interceptor, OES_standard_derivatives: J.Interceptor, OESTextureFloat: J.Interceptor, OES_texture_float: J.Interceptor, OESTextureFloatLinear: J.Interceptor, OES_texture_float_linear: J.Interceptor, OESTextureHalfFloat: J.Interceptor, OES_texture_half_float: J.Interceptor, OESTextureHalfFloatLinear: J.Interceptor, OES_texture_half_float_linear: J.Interceptor, OESVertexArrayObject: J.Interceptor, OES_vertex_array_object: J.Interceptor, WebGLProgram: J.Interceptor, WebGLQuery: J.Interceptor, WebGLRenderbuffer: J.Interceptor, WebGLRenderingContext: J.Interceptor, WebGL2RenderingContext: J.Interceptor, WebGLSampler: J.Interceptor, WebGLShader: J.Interceptor, WebGLShaderPrecisionFormat: J.Interceptor, WebGLSync: J.Interceptor, WebGLTexture: J.Interceptor, WebGLTimerQueryEXT: J.Interceptor, WebGLTransformFeedback: J.Interceptor, WebGLUniformLocation: J.Interceptor, WebGLVertexArrayObject: J.Interceptor, WebGLVertexArrayObjectOES: J.Interceptor, WebGL: J.Interceptor, WebGL2RenderingContextBase: J.Interceptor, Database: J.Interceptor, SQLError: J.Interceptor, SQLResultSet: J.Interceptor, SQLTransaction: J.Interceptor, ArrayBuffer: H.NativeByteBuffer, ArrayBufferView: H.NativeTypedData, DataView: H.NativeByteData, Float32Array: H.NativeFloat32List, Float64Array: H.NativeFloat64List, Int16Array: H.NativeInt16List, Int32Array: H.NativeInt32List, Int8Array: H.NativeInt8List, Uint16Array: H.NativeUint16List, Uint32Array: H.NativeUint32List, Uint8ClampedArray: H.NativeUint8ClampedList, CanvasPixelArray: H.NativeUint8ClampedList, Uint8Array: H.NativeUint8List, HTMLAudioElement: W.HtmlElement, HTMLBRElement: W.HtmlElement, HTMLBaseElement: W.HtmlElement, HTMLBodyElement: W.HtmlElement, HTMLButtonElement: W.HtmlElement, HTMLCanvasElement: W.HtmlElement, HTMLContentElement: W.HtmlElement, HTMLDListElement: W.HtmlElement, HTMLDataElement: W.HtmlElement, HTMLDataListElement: W.HtmlElement, HTMLDetailsElement: W.HtmlElement, HTMLDialogElement: W.HtmlElement, HTMLDivElement: W.HtmlElement, HTMLEmbedElement: W.HtmlElement, HTMLFieldSetElement: W.HtmlElement, HTMLHRElement: W.HtmlElement, HTMLHeadElement: W.HtmlElement, HTMLHeadingElement: W.HtmlElement, HTMLHtmlElement: W.HtmlElement, HTMLIFrameElement: W.HtmlElement, HTMLImageElement: W.HtmlElement, HTMLInputElement: W.HtmlElement, HTMLLIElement: W.HtmlElement, HTMLLabelElement: W.HtmlElement, HTMLLegendElement: W.HtmlElement, HTMLLinkElement: W.HtmlElement, HTMLMapElement: W.HtmlElement, HTMLMediaElement: W.HtmlElement, HTMLMenuElement: W.HtmlElement, HTMLMetaElement: W.HtmlElement, HTMLMeterElement: W.HtmlElement, HTMLModElement: W.HtmlElement, HTMLOListElement: W.HtmlElement, HTMLObjectElement: W.HtmlElement, HTMLOptGroupElement: W.HtmlElement, HTMLOptionElement: W.HtmlElement, HTMLOutputElement: W.HtmlElement, HTMLParagraphElement: W.HtmlElement, HTMLParamElement: W.HtmlElement, HTMLPictureElement: W.HtmlElement, HTMLPreElement: W.HtmlElement, HTMLProgressElement: W.HtmlElement, HTMLQuoteElement: W.HtmlElement, HTMLScriptElement: W.HtmlElement, HTMLShadowElement: W.HtmlElement, HTMLSlotElement: W.HtmlElement, HTMLSourceElement: W.HtmlElement, HTMLSpanElement: W.HtmlElement, HTMLStyleElement: W.HtmlElement, HTMLTableCaptionElement: W.HtmlElement, HTMLTableCellElement: W.HtmlElement, HTMLTableDataCellElement: W.HtmlElement, HTMLTableHeaderCellElement: W.HtmlElement, HTMLTableColElement: W.HtmlElement, HTMLTableElement: W.HtmlElement, HTMLTableRowElement: W.HtmlElement, HTMLTableSectionElement: W.HtmlElement, HTMLTemplateElement: W.HtmlElement, HTMLTextAreaElement: W.HtmlElement, HTMLTimeElement: W.HtmlElement, HTMLTitleElement: W.HtmlElement, HTMLTrackElement: W.HtmlElement, HTMLUListElement: W.HtmlElement, HTMLUnknownElement: W.HtmlElement, HTMLVideoElement: W.HtmlElement, HTMLDirectoryElement: W.HtmlElement, HTMLFontElement: W.HtmlElement, HTMLFrameElement: W.HtmlElement, HTMLFrameSetElement: W.HtmlElement, HTMLMarqueeElement: W.HtmlElement, HTMLElement: W.HtmlElement, AccessibleNodeList: W.AccessibleNodeList, HTMLAnchorElement: W.AnchorElement, HTMLAreaElement: W.AreaElement, Blob: W.Blob, CDATASection: W.CharacterData, CharacterData: W.CharacterData, Comment: W.CharacterData, ProcessingInstruction: W.CharacterData, Text: W.CharacterData, CSSNumericValue: W.CssNumericValue, CSSUnitValue: W.CssNumericValue, CSSPerspective: W.CssPerspective, CSSCharsetRule: W.CssRule, CSSConditionRule: W.CssRule, CSSFontFaceRule: W.CssRule, CSSGroupingRule: W.CssRule, CSSImportRule: W.CssRule, CSSKeyframeRule: W.CssRule, MozCSSKeyframeRule: W.CssRule, WebKitCSSKeyframeRule: W.CssRule, CSSKeyframesRule: W.CssRule, MozCSSKeyframesRule: W.CssRule, WebKitCSSKeyframesRule: W.CssRule, CSSMediaRule: W.CssRule, CSSNamespaceRule: W.CssRule, CSSPageRule: W.CssRule, CSSRule: W.CssRule, CSSStyleRule: W.CssRule, CSSSupportsRule: W.CssRule, CSSViewportRule: W.CssRule, CSSStyleDeclaration: W.CssStyleDeclaration, MSStyleCSSProperties: W.CssStyleDeclaration, CSS2Properties: W.CssStyleDeclaration, CSSImageValue: W.CssStyleValue, CSSKeywordValue: W.CssStyleValue, CSSPositionValue: W.CssStyleValue, CSSResourceValue: W.CssStyleValue, CSSURLImageValue: W.CssStyleValue, CSSStyleValue: W.CssStyleValue, CSSMatrixComponent: W.CssTransformComponent, CSSRotation: W.CssTransformComponent, CSSScale: W.CssTransformComponent, CSSSkew: W.CssTransformComponent, CSSTranslation: W.CssTransformComponent, CSSTransformComponent: W.CssTransformComponent, CSSTransformValue: W.CssTransformValue, CSSUnparsedValue: W.CssUnparsedValue, DataTransferItemList: W.DataTransferItemList, Document: W.Document, HTMLDocument: W.Document, XMLDocument: W.Document, DOMException: W.DomException, ClientRectList: W.DomRectList, DOMRectList: W.DomRectList, DOMRectReadOnly: W.DomRectReadOnly, DOMStringList: W.DomStringList, DOMTokenList: W.DomTokenList, SVGAElement: W.Element, SVGAnimateElement: W.Element, SVGAnimateMotionElement: W.Element, SVGAnimateTransformElement: W.Element, SVGAnimationElement: W.Element, SVGCircleElement: W.Element, SVGClipPathElement: W.Element, SVGDefsElement: W.Element, SVGDescElement: W.Element, SVGDiscardElement: W.Element, SVGEllipseElement: W.Element, SVGFEBlendElement: W.Element, SVGFEColorMatrixElement: W.Element, SVGFEComponentTransferElement: W.Element, SVGFECompositeElement: W.Element, SVGFEConvolveMatrixElement: W.Element, SVGFEDiffuseLightingElement: W.Element, SVGFEDisplacementMapElement: W.Element, SVGFEDistantLightElement: W.Element, SVGFEFloodElement: W.Element, SVGFEFuncAElement: W.Element, SVGFEFuncBElement: W.Element, SVGFEFuncGElement: W.Element, SVGFEFuncRElement: W.Element, SVGFEGaussianBlurElement: W.Element, SVGFEImageElement: W.Element, SVGFEMergeElement: W.Element, SVGFEMergeNodeElement: W.Element, SVGFEMorphologyElement: W.Element, SVGFEOffsetElement: W.Element, SVGFEPointLightElement: W.Element, SVGFESpecularLightingElement: W.Element, SVGFESpotLightElement: W.Element, SVGFETileElement: W.Element, SVGFETurbulenceElement: W.Element, SVGFilterElement: W.Element, SVGForeignObjectElement: W.Element, SVGGElement: W.Element, SVGGeometryElement: W.Element, SVGGraphicsElement: W.Element, SVGImageElement: W.Element, SVGLineElement: W.Element, SVGLinearGradientElement: W.Element, SVGMarkerElement: W.Element, SVGMaskElement: W.Element, SVGMetadataElement: W.Element, SVGPathElement: W.Element, SVGPatternElement: W.Element, SVGPolygonElement: W.Element, SVGPolylineElement: W.Element, SVGRadialGradientElement: W.Element, SVGRectElement: W.Element, SVGScriptElement: W.Element, SVGSetElement: W.Element, SVGStopElement: W.Element, SVGStyleElement: W.Element, SVGElement: W.Element, SVGSVGElement: W.Element, SVGSwitchElement: W.Element, SVGSymbolElement: W.Element, SVGTSpanElement: W.Element, SVGTextContentElement: W.Element, SVGTextElement: W.Element, SVGTextPathElement: W.Element, SVGTextPositioningElement: W.Element, SVGTitleElement: W.Element, SVGUseElement: W.Element, SVGViewElement: W.Element, SVGGradientElement: W.Element, SVGComponentTransferFunctionElement: W.Element, SVGFEDropShadowElement: W.Element, SVGMPathElement: W.Element, Element: W.Element, AbortPaymentEvent: W.Event, AnimationEvent: W.Event, AnimationPlaybackEvent: W.Event, ApplicationCacheErrorEvent: W.Event, BackgroundFetchClickEvent: W.Event, BackgroundFetchEvent: W.Event, BackgroundFetchFailEvent: W.Event, BackgroundFetchedEvent: W.Event, BeforeInstallPromptEvent: W.Event, BeforeUnloadEvent: W.Event, BlobEvent: W.Event, CanMakePaymentEvent: W.Event, ClipboardEvent: W.Event, CloseEvent: W.Event, CustomEvent: W.Event, DeviceMotionEvent: W.Event, DeviceOrientationEvent: W.Event, ErrorEvent: W.Event, ExtendableEvent: W.Event, ExtendableMessageEvent: W.Event, FetchEvent: W.Event, FontFaceSetLoadEvent: W.Event, ForeignFetchEvent: W.Event, GamepadEvent: W.Event, HashChangeEvent: W.Event, InstallEvent: W.Event, MediaEncryptedEvent: W.Event, MediaKeyMessageEvent: W.Event, MediaQueryListEvent: W.Event, MediaStreamEvent: W.Event, MediaStreamTrackEvent: W.Event, MIDIConnectionEvent: W.Event, MIDIMessageEvent: W.Event, MutationEvent: W.Event, NotificationEvent: W.Event, PageTransitionEvent: W.Event, PaymentRequestEvent: W.Event, PaymentRequestUpdateEvent: W.Event, PopStateEvent: W.Event, PresentationConnectionAvailableEvent: W.Event, PresentationConnectionCloseEvent: W.Event, PromiseRejectionEvent: W.Event, PushEvent: W.Event, RTCDataChannelEvent: W.Event, RTCDTMFToneChangeEvent: W.Event, RTCPeerConnectionIceEvent: W.Event, RTCTrackEvent: W.Event, SecurityPolicyViolationEvent: W.Event, SensorErrorEvent: W.Event, SpeechRecognitionError: W.Event, SpeechRecognitionEvent: W.Event, SpeechSynthesisEvent: W.Event, StorageEvent: W.Event, SyncEvent: W.Event, TrackEvent: W.Event, TransitionEvent: W.Event, WebKitTransitionEvent: W.Event, VRDeviceEvent: W.Event, VRDisplayEvent: W.Event, VRSessionEvent: W.Event, MojoInterfaceRequestEvent: W.Event, USBConnectionEvent: W.Event, IDBVersionChangeEvent: W.Event, AudioProcessingEvent: W.Event, OfflineAudioCompletionEvent: W.Event, WebGLContextEvent: W.Event, Event: W.Event, InputEvent: W.Event, EventSource: W.EventSource, AbsoluteOrientationSensor: W.EventTarget, Accelerometer: W.EventTarget, AccessibleNode: W.EventTarget, AmbientLightSensor: W.EventTarget, Animation: W.EventTarget, ApplicationCache: W.EventTarget, DOMApplicationCache: W.EventTarget, OfflineResourceList: W.EventTarget, BackgroundFetchRegistration: W.EventTarget, BatteryManager: W.EventTarget, BroadcastChannel: W.EventTarget, CanvasCaptureMediaStreamTrack: W.EventTarget, DedicatedWorkerGlobalScope: W.EventTarget, FontFaceSet: W.EventTarget, Gyroscope: W.EventTarget, LinearAccelerationSensor: W.EventTarget, Magnetometer: W.EventTarget, MediaDevices: W.EventTarget, MediaKeySession: W.EventTarget, MediaQueryList: W.EventTarget, MediaRecorder: W.EventTarget, MediaSource: W.EventTarget, MediaStream: W.EventTarget, MediaStreamTrack: W.EventTarget, MessagePort: W.EventTarget, MIDIAccess: W.EventTarget, MIDIInput: W.EventTarget, MIDIOutput: W.EventTarget, MIDIPort: W.EventTarget, NetworkInformation: W.EventTarget, Notification: W.EventTarget, OffscreenCanvas: W.EventTarget, OrientationSensor: W.EventTarget, PaymentRequest: W.EventTarget, Performance: W.EventTarget, PermissionStatus: W.EventTarget, PresentationAvailability: W.EventTarget, PresentationConnection: W.EventTarget, PresentationConnectionList: W.EventTarget, PresentationRequest: W.EventTarget, RelativeOrientationSensor: W.EventTarget, RemotePlayback: W.EventTarget, RTCDataChannel: W.EventTarget, DataChannel: W.EventTarget, RTCDTMFSender: W.EventTarget, RTCPeerConnection: W.EventTarget, webkitRTCPeerConnection: W.EventTarget, mozRTCPeerConnection: W.EventTarget, ScreenOrientation: W.EventTarget, Sensor: W.EventTarget, ServiceWorker: W.EventTarget, ServiceWorkerContainer: W.EventTarget, ServiceWorkerGlobalScope: W.EventTarget, ServiceWorkerRegistration: W.EventTarget, SharedWorker: W.EventTarget, SharedWorkerGlobalScope: W.EventTarget, SpeechRecognition: W.EventTarget, SpeechSynthesis: W.EventTarget, SpeechSynthesisUtterance: W.EventTarget, VR: W.EventTarget, VRDevice: W.EventTarget, VRDisplay: W.EventTarget, VRSession: W.EventTarget, VisualViewport: W.EventTarget, WebSocket: W.EventTarget, Window: W.EventTarget, DOMWindow: W.EventTarget, Worker: W.EventTarget, WorkerGlobalScope: W.EventTarget, WorkerPerformance: W.EventTarget, BluetoothDevice: W.EventTarget, BluetoothRemoteGATTCharacteristic: W.EventTarget, Clipboard: W.EventTarget, MojoInterfaceInterceptor: W.EventTarget, USB: W.EventTarget, IDBDatabase: W.EventTarget, IDBOpenDBRequest: W.EventTarget, IDBVersionChangeRequest: W.EventTarget, IDBRequest: W.EventTarget, IDBTransaction: W.EventTarget, AnalyserNode: W.EventTarget, RealtimeAnalyserNode: W.EventTarget, AudioBufferSourceNode: W.EventTarget, AudioDestinationNode: W.EventTarget, AudioNode: W.EventTarget, AudioScheduledSourceNode: W.EventTarget, AudioWorkletNode: W.EventTarget, BiquadFilterNode: W.EventTarget, ChannelMergerNode: W.EventTarget, AudioChannelMerger: W.EventTarget, ChannelSplitterNode: W.EventTarget, AudioChannelSplitter: W.EventTarget, ConstantSourceNode: W.EventTarget, ConvolverNode: W.EventTarget, DelayNode: W.EventTarget, DynamicsCompressorNode: W.EventTarget, GainNode: W.EventTarget, AudioGainNode: W.EventTarget, IIRFilterNode: W.EventTarget, MediaElementAudioSourceNode: W.EventTarget, MediaStreamAudioDestinationNode: W.EventTarget, MediaStreamAudioSourceNode: W.EventTarget, OscillatorNode: W.EventTarget, Oscillator: W.EventTarget, PannerNode: W.EventTarget, AudioPannerNode: W.EventTarget, webkitAudioPannerNode: W.EventTarget, ScriptProcessorNode: W.EventTarget, JavaScriptAudioNode: W.EventTarget, StereoPannerNode: W.EventTarget, WaveShaperNode: W.EventTarget, EventTarget: W.EventTarget, File: W.File, FileList: W.FileList, FileReader: W.FileReader, FileWriter: W.FileWriter, HTMLFormElement: W.FormElement, Gamepad: W.Gamepad, History: W.History, HTMLCollection: W.HtmlCollection, HTMLFormControlsCollection: W.HtmlCollection, HTMLOptionsCollection: W.HtmlCollection, XMLHttpRequest: W.HttpRequest, XMLHttpRequestUpload: W.HttpRequestEventTarget, XMLHttpRequestEventTarget: W.HttpRequestEventTarget, KeyboardEvent: W.KeyboardEvent, Location: W.Location, MediaList: W.MediaList, MessageEvent: W.MessageEvent, MIDIInputMap: W.MidiInputMap, MIDIOutputMap: W.MidiOutputMap, MimeType: W.MimeType, MimeTypeArray: W.MimeTypeArray, DocumentFragment: W.Node, ShadowRoot: W.Node, Attr: W.Node, DocumentType: W.Node, Node: W.Node, NodeList: W.NodeList, RadioNodeList: W.NodeList, Plugin: W.Plugin, PluginArray: W.PluginArray, ProgressEvent: W.ProgressEvent, ResourceProgressEvent: W.ProgressEvent, RTCStatsReport: W.RtcStatsReport, HTMLSelectElement: W.SelectElement, SourceBuffer: W.SourceBuffer, SourceBufferList: W.SourceBufferList, SpeechGrammar: W.SpeechGrammar, SpeechGrammarList: W.SpeechGrammarList, SpeechRecognitionResult: W.SpeechRecognitionResult, Storage: W.Storage, CSSStyleSheet: W.StyleSheet, StyleSheet: W.StyleSheet, TextTrack: W.TextTrack, TextTrackCue: W.TextTrackCue, VTTCue: W.TextTrackCue, TextTrackCueList: W.TextTrackCueList, TextTrackList: W.TextTrackList, TimeRanges: W.TimeRanges, Touch: W.Touch, TouchList: W.TouchList, TrackDefaultList: W.TrackDefaultList, CompositionEvent: W.UIEvent, FocusEvent: W.UIEvent, MouseEvent: W.UIEvent, DragEvent: W.UIEvent, PointerEvent: W.UIEvent, TextEvent: W.UIEvent, TouchEvent: W.UIEvent, WheelEvent: W.UIEvent, UIEvent: W.UIEvent, URL: W.Url, VideoTrackList: W.VideoTrackList, CSSRuleList: W._CssRuleList, ClientRect: W._DomRect, DOMRect: W._DomRect, GamepadList: W._GamepadList, NamedNodeMap: W._NamedNodeMap, MozNamedAttrMap: W._NamedNodeMap, SpeechRecognitionResultList: W._SpeechRecognitionResultList, StyleSheetList: W._StyleSheetList, SVGLength: P.Length, SVGLengthList: P.LengthList, SVGNumber: P.Number, SVGNumberList: P.NumberList, SVGPointList: P.PointList, SVGStringList: P.StringList, SVGTransform: P.Transform, SVGTransformList: P.TransformList, AudioBuffer: P.AudioBuffer, AudioParamMap: P.AudioParamMap, AudioTrackList: P.AudioTrackList, AudioContext: P.BaseAudioContext, webkitAudioContext: P.BaseAudioContext, BaseAudioContext: P.BaseAudioContext, OfflineAudioContext: P.OfflineAudioContext, SQLResultSetRowList: P.SqlResultSetRowList});
-    hunkHelpers.setOrUpdateLeafTags({AnimationEffectReadOnly: true, AnimationEffectTiming: true, AnimationEffectTimingReadOnly: true, AnimationTimeline: true, AnimationWorkletGlobalScope: true, AuthenticatorAssertionResponse: true, AuthenticatorAttestationResponse: true, AuthenticatorResponse: true, BackgroundFetchFetch: true, BackgroundFetchManager: true, BackgroundFetchSettledFetch: true, BarProp: true, BarcodeDetector: true, BluetoothRemoteGATTDescriptor: true, Body: true, BudgetState: true, CacheStorage: true, CanvasGradient: true, CanvasPattern: true, CanvasRenderingContext2D: true, Client: true, Clients: true, CookieStore: true, Coordinates: true, Credential: true, CredentialUserData: true, CredentialsContainer: true, Crypto: true, CryptoKey: true, CSS: true, CSSVariableReferenceValue: true, CustomElementRegistry: true, DataTransfer: true, DataTransferItem: true, DeprecatedStorageInfo: true, DeprecatedStorageQuota: true, DeprecationReport: true, DetectedBarcode: true, DetectedFace: true, DetectedText: true, DeviceAcceleration: true, DeviceRotationRate: true, DirectoryEntry: true, DirectoryReader: true, DocumentOrShadowRoot: true, DocumentTimeline: true, DOMError: true, DOMImplementation: true, Iterator: true, DOMMatrix: true, DOMMatrixReadOnly: true, DOMParser: true, DOMPoint: true, DOMPointReadOnly: true, DOMQuad: true, DOMStringMap: true, Entry: true, External: true, FaceDetector: true, FederatedCredential: true, FileEntry: true, DOMFileSystem: true, FontFace: true, FontFaceSource: true, FormData: true, GamepadButton: true, GamepadPose: true, Geolocation: true, Position: true, Headers: true, HTMLHyperlinkElementUtils: true, IdleDeadline: true, ImageBitmap: true, ImageBitmapRenderingContext: true, ImageCapture: true, ImageData: true, InputDeviceCapabilities: true, IntersectionObserver: true, IntersectionObserverEntry: true, InterventionReport: true, KeyframeEffect: true, KeyframeEffectReadOnly: true, MediaCapabilities: true, MediaCapabilitiesInfo: true, MediaDeviceInfo: true, MediaError: true, MediaKeyStatusMap: true, MediaKeySystemAccess: true, MediaKeys: true, MediaKeysPolicy: true, MediaMetadata: true, MediaSession: true, MediaSettingsRange: true, MemoryInfo: true, MessageChannel: true, Metadata: true, MutationObserver: true, WebKitMutationObserver: true, MutationRecord: true, NavigationPreloadManager: true, Navigator: true, NavigatorAutomationInformation: true, NavigatorConcurrentHardware: true, NavigatorCookies: true, NavigatorUserMediaError: true, NodeFilter: true, NodeIterator: true, NonDocumentTypeChildNode: true, NonElementParentNode: true, NoncedElement: true, OffscreenCanvasRenderingContext2D: true, OverconstrainedError: true, PaintRenderingContext2D: true, PaintSize: true, PaintWorkletGlobalScope: true, PasswordCredential: true, Path2D: true, PaymentAddress: true, PaymentInstruments: true, PaymentManager: true, PaymentResponse: true, PerformanceEntry: true, PerformanceLongTaskTiming: true, PerformanceMark: true, PerformanceMeasure: true, PerformanceNavigation: true, PerformanceNavigationTiming: true, PerformanceObserver: true, PerformanceObserverEntryList: true, PerformancePaintTiming: true, PerformanceResourceTiming: true, PerformanceServerTiming: true, PerformanceTiming: true, Permissions: true, PhotoCapabilities: true, PositionError: true, Presentation: true, PresentationReceiver: true, PublicKeyCredential: true, PushManager: true, PushMessageData: true, PushSubscription: true, PushSubscriptionOptions: true, Range: true, RelatedApplication: true, ReportBody: true, ReportingObserver: true, ResizeObserver: true, ResizeObserverEntry: true, RTCCertificate: true, RTCIceCandidate: true, mozRTCIceCandidate: true, RTCLegacyStatsReport: true, RTCRtpContributingSource: true, RTCRtpReceiver: true, RTCRtpSender: true, RTCSessionDescription: true, mozRTCSessionDescription: true, RTCStatsResponse: true, Screen: true, ScrollState: true, ScrollTimeline: true, Selection: true, SharedArrayBuffer: true, SpeechRecognitionAlternative: true, SpeechSynthesisVoice: true, StaticRange: true, StorageManager: true, StyleMedia: true, StylePropertyMap: true, StylePropertyMapReadonly: true, SyncManager: true, TaskAttributionTiming: true, TextDetector: true, TextMetrics: true, TrackDefault: true, TreeWalker: true, TrustedHTML: true, TrustedScriptURL: true, TrustedURL: true, UnderlyingSourceBase: true, URLSearchParams: true, VRCoordinateSystem: true, VRDisplayCapabilities: true, VREyeParameters: true, VRFrameData: true, VRFrameOfReference: true, VRPose: true, VRStageBounds: true, VRStageBoundsPoint: true, VRStageParameters: true, ValidityState: true, VideoPlaybackQuality: true, VideoTrack: true, VTTRegion: true, WindowClient: true, WorkletAnimation: true, WorkletGlobalScope: true, XPathEvaluator: true, XPathExpression: true, XPathNSResolver: true, XPathResult: true, XMLSerializer: true, XSLTProcessor: true, Bluetooth: true, BluetoothCharacteristicProperties: true, BluetoothRemoteGATTServer: true, BluetoothRemoteGATTService: true, BluetoothUUID: true, BudgetService: true, Cache: true, DOMFileSystemSync: true, DirectoryEntrySync: true, DirectoryReaderSync: true, EntrySync: true, FileEntrySync: true, FileReaderSync: true, FileWriterSync: true, HTMLAllCollection: true, Mojo: true, MojoHandle: true, MojoWatcher: true, NFC: true, PagePopupController: true, Report: true, Request: true, Response: true, SubtleCrypto: true, USBAlternateInterface: true, USBConfiguration: true, USBDevice: true, USBEndpoint: true, USBInTransferResult: true, USBInterface: true, USBIsochronousInTransferPacket: true, USBIsochronousInTransferResult: true, USBIsochronousOutTransferPacket: true, USBIsochronousOutTransferResult: true, USBOutTransferResult: true, WorkerLocation: true, WorkerNavigator: true, Worklet: true, IDBCursor: true, IDBCursorWithValue: true, IDBFactory: true, IDBIndex: true, IDBKeyRange: true, IDBObjectStore: true, IDBObservation: true, IDBObserver: true, IDBObserverChanges: true, SVGAngle: true, SVGAnimatedAngle: true, SVGAnimatedBoolean: true, SVGAnimatedEnumeration: true, SVGAnimatedInteger: true, SVGAnimatedLength: true, SVGAnimatedLengthList: true, SVGAnimatedNumber: true, SVGAnimatedNumberList: true, SVGAnimatedPreserveAspectRatio: true, SVGAnimatedRect: true, SVGAnimatedString: true, SVGAnimatedTransformList: true, SVGMatrix: true, SVGPoint: true, SVGPreserveAspectRatio: true, SVGRect: true, SVGUnitTypes: true, AudioListener: true, AudioParam: true, AudioTrack: true, AudioWorkletGlobalScope: true, AudioWorkletProcessor: true, PeriodicWave: true, WebGLActiveInfo: true, ANGLEInstancedArrays: true, ANGLE_instanced_arrays: true, WebGLBuffer: true, WebGLCanvas: true, WebGLColorBufferFloat: true, WebGLCompressedTextureASTC: true, WebGLCompressedTextureATC: true, WEBGL_compressed_texture_atc: true, WebGLCompressedTextureETC1: true, WEBGL_compressed_texture_etc1: true, WebGLCompressedTextureETC: true, WebGLCompressedTexturePVRTC: true, WEBGL_compressed_texture_pvrtc: true, WebGLCompressedTextureS3TC: true, WEBGL_compressed_texture_s3tc: true, WebGLCompressedTextureS3TCsRGB: true, WebGLDebugRendererInfo: true, WEBGL_debug_renderer_info: true, WebGLDebugShaders: true, WEBGL_debug_shaders: true, WebGLDepthTexture: true, WEBGL_depth_texture: true, WebGLDrawBuffers: true, WEBGL_draw_buffers: true, EXTsRGB: true, EXT_sRGB: true, EXTBlendMinMax: true, EXT_blend_minmax: true, EXTColorBufferFloat: true, EXTColorBufferHalfFloat: true, EXTDisjointTimerQuery: true, EXTDisjointTimerQueryWebGL2: true, EXTFragDepth: true, EXT_frag_depth: true, EXTShaderTextureLOD: true, EXT_shader_texture_lod: true, EXTTextureFilterAnisotropic: true, EXT_texture_filter_anisotropic: true, WebGLFramebuffer: true, WebGLGetBufferSubDataAsync: true, WebGLLoseContext: true, WebGLExtensionLoseContext: true, WEBGL_lose_context: true, OESElementIndexUint: true, OES_element_index_uint: true, OESStandardDerivatives: true, OES_standard_derivatives: true, OESTextureFloat: true, OES_texture_float: true, OESTextureFloatLinear: true, OES_texture_float_linear: true, OESTextureHalfFloat: true, OES_texture_half_float: true, OESTextureHalfFloatLinear: true, OES_texture_half_float_linear: true, OESVertexArrayObject: true, OES_vertex_array_object: true, WebGLProgram: true, WebGLQuery: true, WebGLRenderbuffer: true, WebGLRenderingContext: true, WebGL2RenderingContext: true, WebGLSampler: true, WebGLShader: true, WebGLShaderPrecisionFormat: true, WebGLSync: true, WebGLTexture: true, WebGLTimerQueryEXT: true, WebGLTransformFeedback: true, WebGLUniformLocation: true, WebGLVertexArrayObject: true, WebGLVertexArrayObjectOES: true, WebGL: true, WebGL2RenderingContextBase: true, Database: true, SQLError: true, SQLResultSet: true, SQLTransaction: true, ArrayBuffer: true, ArrayBufferView: false, DataView: true, Float32Array: true, Float64Array: true, Int16Array: true, Int32Array: true, Int8Array: true, Uint16Array: true, Uint32Array: true, Uint8ClampedArray: true, CanvasPixelArray: true, Uint8Array: false, HTMLAudioElement: true, HTMLBRElement: true, HTMLBaseElement: true, HTMLBodyElement: true, HTMLButtonElement: true, HTMLCanvasElement: true, HTMLContentElement: true, HTMLDListElement: true, HTMLDataElement: true, HTMLDataListElement: true, HTMLDetailsElement: true, HTMLDialogElement: true, HTMLDivElement: true, HTMLEmbedElement: true, HTMLFieldSetElement: true, HTMLHRElement: true, HTMLHeadElement: true, HTMLHeadingElement: true, HTMLHtmlElement: true, HTMLIFrameElement: true, HTMLImageElement: true, HTMLInputElement: true, HTMLLIElement: true, HTMLLabelElement: true, HTMLLegendElement: true, HTMLLinkElement: true, HTMLMapElement: true, HTMLMediaElement: true, HTMLMenuElement: true, HTMLMetaElement: true, HTMLMeterElement: true, HTMLModElement: true, HTMLOListElement: true, HTMLObjectElement: true, HTMLOptGroupElement: true, HTMLOptionElement: true, HTMLOutputElement: true, HTMLParagraphElement: true, HTMLParamElement: true, HTMLPictureElement: true, HTMLPreElement: true, HTMLProgressElement: true, HTMLQuoteElement: true, HTMLScriptElement: true, HTMLShadowElement: true, HTMLSlotElement: true, HTMLSourceElement: true, HTMLSpanElement: true, HTMLStyleElement: true, HTMLTableCaptionElement: true, HTMLTableCellElement: true, HTMLTableDataCellElement: true, HTMLTableHeaderCellElement: true, HTMLTableColElement: true, HTMLTableElement: true, HTMLTableRowElement: true, HTMLTableSectionElement: true, HTMLTemplateElement: true, HTMLTextAreaElement: true, HTMLTimeElement: true, HTMLTitleElement: true, HTMLTrackElement: true, HTMLUListElement: true, HTMLUnknownElement: true, HTMLVideoElement: true, HTMLDirectoryElement: true, HTMLFontElement: true, HTMLFrameElement: true, HTMLFrameSetElement: true, HTMLMarqueeElement: true, HTMLElement: false, AccessibleNodeList: true, HTMLAnchorElement: true, HTMLAreaElement: true, Blob: false, CDATASection: true, CharacterData: true, Comment: true, ProcessingInstruction: true, Text: true, CSSNumericValue: true, CSSUnitValue: true, CSSPerspective: true, CSSCharsetRule: true, CSSConditionRule: true, CSSFontFaceRule: true, CSSGroupingRule: true, CSSImportRule: true, CSSKeyframeRule: true, MozCSSKeyframeRule: true, WebKitCSSKeyframeRule: true, CSSKeyframesRule: true, MozCSSKeyframesRule: true, WebKitCSSKeyframesRule: true, CSSMediaRule: true, CSSNamespaceRule: true, CSSPageRule: true, CSSRule: true, CSSStyleRule: true, CSSSupportsRule: true, CSSViewportRule: true, CSSStyleDeclaration: true, MSStyleCSSProperties: true, CSS2Properties: true, CSSImageValue: true, CSSKeywordValue: true, CSSPositionValue: true, CSSResourceValue: true, CSSURLImageValue: true, CSSStyleValue: false, CSSMatrixComponent: true, CSSRotation: true, CSSScale: true, CSSSkew: true, CSSTranslation: true, CSSTransformComponent: false, CSSTransformValue: true, CSSUnparsedValue: true, DataTransferItemList: true, Document: true, HTMLDocument: true, XMLDocument: true, DOMException: true, ClientRectList: true, DOMRectList: true, DOMRectReadOnly: false, DOMStringList: true, DOMTokenList: true, SVGAElement: true, SVGAnimateElement: true, SVGAnimateMotionElement: true, SVGAnimateTransformElement: true, SVGAnimationElement: true, SVGCircleElement: true, SVGClipPathElement: true, SVGDefsElement: true, SVGDescElement: true, SVGDiscardElement: true, SVGEllipseElement: true, SVGFEBlendElement: true, SVGFEColorMatrixElement: true, SVGFEComponentTransferElement: true, SVGFECompositeElement: true, SVGFEConvolveMatrixElement: true, SVGFEDiffuseLightingElement: true, SVGFEDisplacementMapElement: true, SVGFEDistantLightElement: true, SVGFEFloodElement: true, SVGFEFuncAElement: true, SVGFEFuncBElement: true, SVGFEFuncGElement: true, SVGFEFuncRElement: true, SVGFEGaussianBlurElement: true, SVGFEImageElement: true, SVGFEMergeElement: true, SVGFEMergeNodeElement: true, SVGFEMorphologyElement: true, SVGFEOffsetElement: true, SVGFEPointLightElement: true, SVGFESpecularLightingElement: true, SVGFESpotLightElement: true, SVGFETileElement: true, SVGFETurbulenceElement: true, SVGFilterElement: true, SVGForeignObjectElement: true, SVGGElement: true, SVGGeometryElement: true, SVGGraphicsElement: true, SVGImageElement: true, SVGLineElement: true, SVGLinearGradientElement: true, SVGMarkerElement: true, SVGMaskElement: true, SVGMetadataElement: true, SVGPathElement: true, SVGPatternElement: true, SVGPolygonElement: true, SVGPolylineElement: true, SVGRadialGradientElement: true, SVGRectElement: true, SVGScriptElement: true, SVGSetElement: true, SVGStopElement: true, SVGStyleElement: true, SVGElement: true, SVGSVGElement: true, SVGSwitchElement: true, SVGSymbolElement: true, SVGTSpanElement: true, SVGTextContentElement: true, SVGTextElement: true, SVGTextPathElement: true, SVGTextPositioningElement: true, SVGTitleElement: true, SVGUseElement: true, SVGViewElement: true, SVGGradientElement: true, SVGComponentTransferFunctionElement: true, SVGFEDropShadowElement: true, SVGMPathElement: true, Element: false, AbortPaymentEvent: true, AnimationEvent: true, AnimationPlaybackEvent: true, ApplicationCacheErrorEvent: true, BackgroundFetchClickEvent: true, BackgroundFetchEvent: true, BackgroundFetchFailEvent: true, BackgroundFetchedEvent: true, BeforeInstallPromptEvent: true, BeforeUnloadEvent: true, BlobEvent: true, CanMakePaymentEvent: true, ClipboardEvent: true, CloseEvent: true, CustomEvent: true, DeviceMotionEvent: true, DeviceOrientationEvent: true, ErrorEvent: true, ExtendableEvent: true, ExtendableMessageEvent: true, FetchEvent: true, FontFaceSetLoadEvent: true, ForeignFetchEvent: true, GamepadEvent: true, HashChangeEvent: true, InstallEvent: true, MediaEncryptedEvent: true, MediaKeyMessageEvent: true, MediaQueryListEvent: true, MediaStreamEvent: true, MediaStreamTrackEvent: true, MIDIConnectionEvent: true, MIDIMessageEvent: true, MutationEvent: true, NotificationEvent: true, PageTransitionEvent: true, PaymentRequestEvent: true, PaymentRequestUpdateEvent: true, PopStateEvent: true, PresentationConnectionAvailableEvent: true, PresentationConnectionCloseEvent: true, PromiseRejectionEvent: true, PushEvent: true, RTCDataChannelEvent: true, RTCDTMFToneChangeEvent: true, RTCPeerConnectionIceEvent: true, RTCTrackEvent: true, SecurityPolicyViolationEvent: true, SensorErrorEvent: true, SpeechRecognitionError: true, SpeechRecognitionEvent: true, SpeechSynthesisEvent: true, StorageEvent: true, SyncEvent: true, TrackEvent: true, TransitionEvent: true, WebKitTransitionEvent: true, VRDeviceEvent: true, VRDisplayEvent: true, VRSessionEvent: true, MojoInterfaceRequestEvent: true, USBConnectionEvent: true, IDBVersionChangeEvent: true, AudioProcessingEvent: true, OfflineAudioCompletionEvent: true, WebGLContextEvent: true, Event: false, InputEvent: false, EventSource: true, AbsoluteOrientationSensor: true, Accelerometer: true, AccessibleNode: true, AmbientLightSensor: true, Animation: true, ApplicationCache: true, DOMApplicationCache: true, OfflineResourceList: true, BackgroundFetchRegistration: true, BatteryManager: true, BroadcastChannel: true, CanvasCaptureMediaStreamTrack: true, DedicatedWorkerGlobalScope: true, FontFaceSet: true, Gyroscope: true, LinearAccelerationSensor: true, Magnetometer: true, MediaDevices: true, MediaKeySession: true, MediaQueryList: true, MediaRecorder: true, MediaSource: true, MediaStream: true, MediaStreamTrack: true, MessagePort: true, MIDIAccess: true, MIDIInput: true, MIDIOutput: true, MIDIPort: true, NetworkInformation: true, Notification: true, OffscreenCanvas: true, OrientationSensor: true, PaymentRequest: true, Performance: true, PermissionStatus: true, PresentationAvailability: true, PresentationConnection: true, PresentationConnectionList: true, PresentationRequest: true, RelativeOrientationSensor: true, RemotePlayback: true, RTCDataChannel: true, DataChannel: true, RTCDTMFSender: true, RTCPeerConnection: true, webkitRTCPeerConnection: true, mozRTCPeerConnection: true, ScreenOrientation: true, Sensor: true, ServiceWorker: true, ServiceWorkerContainer: true, ServiceWorkerGlobalScope: true, ServiceWorkerRegistration: true, SharedWorker: true, SharedWorkerGlobalScope: true, SpeechRecognition: true, SpeechSynthesis: true, SpeechSynthesisUtterance: true, VR: true, VRDevice: true, VRDisplay: true, VRSession: true, VisualViewport: true, WebSocket: true, Window: true, DOMWindow: true, Worker: true, WorkerGlobalScope: true, WorkerPerformance: true, BluetoothDevice: true, BluetoothRemoteGATTCharacteristic: true, Clipboard: true, MojoInterfaceInterceptor: true, USB: true, IDBDatabase: true, IDBOpenDBRequest: true, IDBVersionChangeRequest: true, IDBRequest: true, IDBTransaction: true, AnalyserNode: true, RealtimeAnalyserNode: true, AudioBufferSourceNode: true, AudioDestinationNode: true, AudioNode: true, AudioScheduledSourceNode: true, AudioWorkletNode: true, BiquadFilterNode: true, ChannelMergerNode: true, AudioChannelMerger: true, ChannelSplitterNode: true, AudioChannelSplitter: true, ConstantSourceNode: true, ConvolverNode: true, DelayNode: true, DynamicsCompressorNode: true, GainNode: true, AudioGainNode: true, IIRFilterNode: true, MediaElementAudioSourceNode: true, MediaStreamAudioDestinationNode: true, MediaStreamAudioSourceNode: true, OscillatorNode: true, Oscillator: true, PannerNode: true, AudioPannerNode: true, webkitAudioPannerNode: true, ScriptProcessorNode: true, JavaScriptAudioNode: true, StereoPannerNode: true, WaveShaperNode: true, EventTarget: false, File: true, FileList: true, FileReader: true, FileWriter: true, HTMLFormElement: true, Gamepad: true, History: true, HTMLCollection: true, HTMLFormControlsCollection: true, HTMLOptionsCollection: true, XMLHttpRequest: true, XMLHttpRequestUpload: true, XMLHttpRequestEventTarget: false, KeyboardEvent: true, Location: true, MediaList: true, MessageEvent: true, MIDIInputMap: true, MIDIOutputMap: true, MimeType: true, MimeTypeArray: true, DocumentFragment: true, ShadowRoot: true, Attr: true, DocumentType: true, Node: false, NodeList: true, RadioNodeList: true, Plugin: true, PluginArray: true, ProgressEvent: true, ResourceProgressEvent: true, RTCStatsReport: true, HTMLSelectElement: true, SourceBuffer: true, SourceBufferList: true, SpeechGrammar: true, SpeechGrammarList: true, SpeechRecognitionResult: true, Storage: true, CSSStyleSheet: true, StyleSheet: true, TextTrack: true, TextTrackCue: true, VTTCue: true, TextTrackCueList: true, TextTrackList: true, TimeRanges: true, Touch: true, TouchList: true, TrackDefaultList: true, CompositionEvent: true, FocusEvent: true, MouseEvent: true, DragEvent: true, PointerEvent: true, TextEvent: true, TouchEvent: true, WheelEvent: true, UIEvent: false, URL: true, VideoTrackList: true, CSSRuleList: true, ClientRect: true, DOMRect: true, GamepadList: true, NamedNodeMap: true, MozNamedAttrMap: true, SpeechRecognitionResultList: true, StyleSheetList: true, SVGLength: true, SVGLengthList: true, SVGNumber: true, SVGNumberList: true, SVGPointList: true, SVGStringList: true, SVGTransform: true, SVGTransformList: true, AudioBuffer: true, AudioParamMap: true, AudioTrackList: true, AudioContext: true, webkitAudioContext: true, BaseAudioContext: false, OfflineAudioContext: true, SQLResultSetRowList: true});
+    hunkHelpers.setOrUpdateInterceptorsByTag({AnimationEffectReadOnly: J.Interceptor, AnimationEffectTiming: J.Interceptor, AnimationEffectTimingReadOnly: J.Interceptor, AnimationTimeline: J.Interceptor, AnimationWorkletGlobalScope: J.Interceptor, AuthenticatorAssertionResponse: J.Interceptor, AuthenticatorAttestationResponse: J.Interceptor, AuthenticatorResponse: J.Interceptor, BackgroundFetchFetch: J.Interceptor, BackgroundFetchManager: J.Interceptor, BackgroundFetchSettledFetch: J.Interceptor, BarProp: J.Interceptor, BarcodeDetector: J.Interceptor, BluetoothRemoteGATTDescriptor: J.Interceptor, Body: J.Interceptor, BudgetState: J.Interceptor, CacheStorage: J.Interceptor, CanvasGradient: J.Interceptor, CanvasPattern: J.Interceptor, CanvasRenderingContext2D: J.Interceptor, Client: J.Interceptor, Clients: J.Interceptor, CookieStore: J.Interceptor, Coordinates: J.Interceptor, Credential: J.Interceptor, CredentialUserData: J.Interceptor, CredentialsContainer: J.Interceptor, Crypto: J.Interceptor, CryptoKey: J.Interceptor, CSS: J.Interceptor, CSSVariableReferenceValue: J.Interceptor, CustomElementRegistry: J.Interceptor, DataTransfer: J.Interceptor, DataTransferItem: J.Interceptor, DeprecatedStorageInfo: J.Interceptor, DeprecatedStorageQuota: J.Interceptor, DeprecationReport: J.Interceptor, DetectedBarcode: J.Interceptor, DetectedFace: J.Interceptor, DetectedText: J.Interceptor, DeviceAcceleration: J.Interceptor, DeviceRotationRate: J.Interceptor, DirectoryEntry: J.Interceptor, DirectoryReader: J.Interceptor, DocumentOrShadowRoot: J.Interceptor, DocumentTimeline: J.Interceptor, DOMError: J.Interceptor, DOMImplementation: J.Interceptor, Iterator: J.Interceptor, DOMMatrix: J.Interceptor, DOMMatrixReadOnly: J.Interceptor, DOMParser: J.Interceptor, DOMPoint: J.Interceptor, DOMPointReadOnly: J.Interceptor, DOMQuad: J.Interceptor, DOMStringMap: J.Interceptor, Entry: J.Interceptor, External: J.Interceptor, FaceDetector: J.Interceptor, FederatedCredential: J.Interceptor, FileEntry: J.Interceptor, DOMFileSystem: J.Interceptor, FontFace: J.Interceptor, FontFaceSource: J.Interceptor, FormData: J.Interceptor, GamepadButton: J.Interceptor, GamepadPose: J.Interceptor, Geolocation: J.Interceptor, Position: J.Interceptor, Headers: J.Interceptor, HTMLHyperlinkElementUtils: J.Interceptor, IdleDeadline: J.Interceptor, ImageBitmap: J.Interceptor, ImageBitmapRenderingContext: J.Interceptor, ImageCapture: J.Interceptor, ImageData: J.Interceptor, InputDeviceCapabilities: J.Interceptor, IntersectionObserver: J.Interceptor, IntersectionObserverEntry: J.Interceptor, InterventionReport: J.Interceptor, KeyframeEffect: J.Interceptor, KeyframeEffectReadOnly: J.Interceptor, MediaCapabilities: J.Interceptor, MediaCapabilitiesInfo: J.Interceptor, MediaDeviceInfo: J.Interceptor, MediaError: J.Interceptor, MediaKeyStatusMap: J.Interceptor, MediaKeySystemAccess: J.Interceptor, MediaKeys: J.Interceptor, MediaKeysPolicy: J.Interceptor, MediaMetadata: J.Interceptor, MediaSession: J.Interceptor, MediaSettingsRange: J.Interceptor, MemoryInfo: J.Interceptor, MessageChannel: J.Interceptor, Metadata: J.Interceptor, MutationObserver: J.Interceptor, WebKitMutationObserver: J.Interceptor, MutationRecord: J.Interceptor, NavigationPreloadManager: J.Interceptor, Navigator: J.Interceptor, NavigatorAutomationInformation: J.Interceptor, NavigatorConcurrentHardware: J.Interceptor, NavigatorCookies: J.Interceptor, NavigatorUserMediaError: J.Interceptor, NodeFilter: J.Interceptor, NodeIterator: J.Interceptor, NonDocumentTypeChildNode: J.Interceptor, NonElementParentNode: J.Interceptor, NoncedElement: J.Interceptor, OffscreenCanvasRenderingContext2D: J.Interceptor, OverconstrainedError: J.Interceptor, PaintRenderingContext2D: J.Interceptor, PaintSize: J.Interceptor, PaintWorkletGlobalScope: J.Interceptor, PasswordCredential: J.Interceptor, Path2D: J.Interceptor, PaymentAddress: J.Interceptor, PaymentInstruments: J.Interceptor, PaymentManager: J.Interceptor, PaymentResponse: J.Interceptor, PerformanceEntry: J.Interceptor, PerformanceLongTaskTiming: J.Interceptor, PerformanceMark: J.Interceptor, PerformanceMeasure: J.Interceptor, PerformanceNavigation: J.Interceptor, PerformanceNavigationTiming: J.Interceptor, PerformanceObserver: J.Interceptor, PerformanceObserverEntryList: J.Interceptor, PerformancePaintTiming: J.Interceptor, PerformanceResourceTiming: J.Interceptor, PerformanceServerTiming: J.Interceptor, PerformanceTiming: J.Interceptor, Permissions: J.Interceptor, PhotoCapabilities: J.Interceptor, PositionError: J.Interceptor, Presentation: J.Interceptor, PresentationReceiver: J.Interceptor, PublicKeyCredential: J.Interceptor, PushManager: J.Interceptor, PushMessageData: J.Interceptor, PushSubscription: J.Interceptor, PushSubscriptionOptions: J.Interceptor, Range: J.Interceptor, RelatedApplication: J.Interceptor, ReportBody: J.Interceptor, ReportingObserver: J.Interceptor, ResizeObserver: J.Interceptor, ResizeObserverEntry: J.Interceptor, RTCCertificate: J.Interceptor, RTCIceCandidate: J.Interceptor, mozRTCIceCandidate: J.Interceptor, RTCLegacyStatsReport: J.Interceptor, RTCRtpContributingSource: J.Interceptor, RTCRtpReceiver: J.Interceptor, RTCRtpSender: J.Interceptor, RTCSessionDescription: J.Interceptor, mozRTCSessionDescription: J.Interceptor, RTCStatsResponse: J.Interceptor, Screen: J.Interceptor, ScrollState: J.Interceptor, ScrollTimeline: J.Interceptor, Selection: J.Interceptor, SharedArrayBuffer: J.Interceptor, SpeechRecognitionAlternative: J.Interceptor, SpeechSynthesisVoice: J.Interceptor, StaticRange: J.Interceptor, StorageManager: J.Interceptor, StyleMedia: J.Interceptor, StylePropertyMap: J.Interceptor, StylePropertyMapReadonly: J.Interceptor, SyncManager: J.Interceptor, TaskAttributionTiming: J.Interceptor, TextDetector: J.Interceptor, TextMetrics: J.Interceptor, TrackDefault: J.Interceptor, TreeWalker: J.Interceptor, TrustedHTML: J.Interceptor, TrustedScriptURL: J.Interceptor, TrustedURL: J.Interceptor, UnderlyingSourceBase: J.Interceptor, URLSearchParams: J.Interceptor, VRCoordinateSystem: J.Interceptor, VRDisplayCapabilities: J.Interceptor, VREyeParameters: J.Interceptor, VRFrameData: J.Interceptor, VRFrameOfReference: J.Interceptor, VRPose: J.Interceptor, VRStageBounds: J.Interceptor, VRStageBoundsPoint: J.Interceptor, VRStageParameters: J.Interceptor, ValidityState: J.Interceptor, VideoPlaybackQuality: J.Interceptor, VideoTrack: J.Interceptor, VTTRegion: J.Interceptor, WindowClient: J.Interceptor, WorkletAnimation: J.Interceptor, WorkletGlobalScope: J.Interceptor, XPathEvaluator: J.Interceptor, XPathExpression: J.Interceptor, XPathNSResolver: J.Interceptor, XPathResult: J.Interceptor, XMLSerializer: J.Interceptor, XSLTProcessor: J.Interceptor, Bluetooth: J.Interceptor, BluetoothCharacteristicProperties: J.Interceptor, BluetoothRemoteGATTServer: J.Interceptor, BluetoothRemoteGATTService: J.Interceptor, BluetoothUUID: J.Interceptor, BudgetService: J.Interceptor, Cache: J.Interceptor, DOMFileSystemSync: J.Interceptor, DirectoryEntrySync: J.Interceptor, DirectoryReaderSync: J.Interceptor, EntrySync: J.Interceptor, FileEntrySync: J.Interceptor, FileReaderSync: J.Interceptor, FileWriterSync: J.Interceptor, HTMLAllCollection: J.Interceptor, Mojo: J.Interceptor, MojoHandle: J.Interceptor, MojoWatcher: J.Interceptor, NFC: J.Interceptor, PagePopupController: J.Interceptor, Report: J.Interceptor, Request: J.Interceptor, Response: J.Interceptor, SubtleCrypto: J.Interceptor, USBAlternateInterface: J.Interceptor, USBConfiguration: J.Interceptor, USBDevice: J.Interceptor, USBEndpoint: J.Interceptor, USBInTransferResult: J.Interceptor, USBInterface: J.Interceptor, USBIsochronousInTransferPacket: J.Interceptor, USBIsochronousInTransferResult: J.Interceptor, USBIsochronousOutTransferPacket: J.Interceptor, USBIsochronousOutTransferResult: J.Interceptor, USBOutTransferResult: J.Interceptor, WorkerLocation: J.Interceptor, WorkerNavigator: J.Interceptor, Worklet: J.Interceptor, IDBCursor: J.Interceptor, IDBCursorWithValue: J.Interceptor, IDBFactory: J.Interceptor, IDBIndex: J.Interceptor, IDBKeyRange: J.Interceptor, IDBObjectStore: J.Interceptor, IDBObservation: J.Interceptor, IDBObserver: J.Interceptor, IDBObserverChanges: J.Interceptor, SVGAngle: J.Interceptor, SVGAnimatedAngle: J.Interceptor, SVGAnimatedBoolean: J.Interceptor, SVGAnimatedEnumeration: J.Interceptor, SVGAnimatedInteger: J.Interceptor, SVGAnimatedLength: J.Interceptor, SVGAnimatedLengthList: J.Interceptor, SVGAnimatedNumber: J.Interceptor, SVGAnimatedNumberList: J.Interceptor, SVGAnimatedPreserveAspectRatio: J.Interceptor, SVGAnimatedRect: J.Interceptor, SVGAnimatedString: J.Interceptor, SVGAnimatedTransformList: J.Interceptor, SVGMatrix: J.Interceptor, SVGPoint: J.Interceptor, SVGPreserveAspectRatio: J.Interceptor, SVGRect: J.Interceptor, SVGUnitTypes: J.Interceptor, AudioListener: J.Interceptor, AudioParam: J.Interceptor, AudioTrack: J.Interceptor, AudioWorkletGlobalScope: J.Interceptor, AudioWorkletProcessor: J.Interceptor, PeriodicWave: J.Interceptor, WebGLActiveInfo: J.Interceptor, ANGLEInstancedArrays: J.Interceptor, ANGLE_instanced_arrays: J.Interceptor, WebGLBuffer: J.Interceptor, WebGLCanvas: J.Interceptor, WebGLColorBufferFloat: J.Interceptor, WebGLCompressedTextureASTC: J.Interceptor, WebGLCompressedTextureATC: J.Interceptor, WEBGL_compressed_texture_atc: J.Interceptor, WebGLCompressedTextureETC1: J.Interceptor, WEBGL_compressed_texture_etc1: J.Interceptor, WebGLCompressedTextureETC: J.Interceptor, WebGLCompressedTexturePVRTC: J.Interceptor, WEBGL_compressed_texture_pvrtc: J.Interceptor, WebGLCompressedTextureS3TC: J.Interceptor, WEBGL_compressed_texture_s3tc: J.Interceptor, WebGLCompressedTextureS3TCsRGB: J.Interceptor, WebGLDebugRendererInfo: J.Interceptor, WEBGL_debug_renderer_info: J.Interceptor, WebGLDebugShaders: J.Interceptor, WEBGL_debug_shaders: J.Interceptor, WebGLDepthTexture: J.Interceptor, WEBGL_depth_texture: J.Interceptor, WebGLDrawBuffers: J.Interceptor, WEBGL_draw_buffers: J.Interceptor, EXTsRGB: J.Interceptor, EXT_sRGB: J.Interceptor, EXTBlendMinMax: J.Interceptor, EXT_blend_minmax: J.Interceptor, EXTColorBufferFloat: J.Interceptor, EXTColorBufferHalfFloat: J.Interceptor, EXTDisjointTimerQuery: J.Interceptor, EXTDisjointTimerQueryWebGL2: J.Interceptor, EXTFragDepth: J.Interceptor, EXT_frag_depth: J.Interceptor, EXTShaderTextureLOD: J.Interceptor, EXT_shader_texture_lod: J.Interceptor, EXTTextureFilterAnisotropic: J.Interceptor, EXT_texture_filter_anisotropic: J.Interceptor, WebGLFramebuffer: J.Interceptor, WebGLGetBufferSubDataAsync: J.Interceptor, WebGLLoseContext: J.Interceptor, WebGLExtensionLoseContext: J.Interceptor, WEBGL_lose_context: J.Interceptor, OESElementIndexUint: J.Interceptor, OES_element_index_uint: J.Interceptor, OESStandardDerivatives: J.Interceptor, OES_standard_derivatives: J.Interceptor, OESTextureFloat: J.Interceptor, OES_texture_float: J.Interceptor, OESTextureFloatLinear: J.Interceptor, OES_texture_float_linear: J.Interceptor, OESTextureHalfFloat: J.Interceptor, OES_texture_half_float: J.Interceptor, OESTextureHalfFloatLinear: J.Interceptor, OES_texture_half_float_linear: J.Interceptor, OESVertexArrayObject: J.Interceptor, OES_vertex_array_object: J.Interceptor, WebGLProgram: J.Interceptor, WebGLQuery: J.Interceptor, WebGLRenderbuffer: J.Interceptor, WebGLRenderingContext: J.Interceptor, WebGL2RenderingContext: J.Interceptor, WebGLSampler: J.Interceptor, WebGLShader: J.Interceptor, WebGLShaderPrecisionFormat: J.Interceptor, WebGLSync: J.Interceptor, WebGLTexture: J.Interceptor, WebGLTimerQueryEXT: J.Interceptor, WebGLTransformFeedback: J.Interceptor, WebGLUniformLocation: J.Interceptor, WebGLVertexArrayObject: J.Interceptor, WebGLVertexArrayObjectOES: J.Interceptor, WebGL: J.Interceptor, WebGL2RenderingContextBase: J.Interceptor, Database: J.Interceptor, SQLError: J.Interceptor, SQLResultSet: J.Interceptor, SQLTransaction: J.Interceptor, ArrayBuffer: H.NativeByteBuffer, ArrayBufferView: H.NativeTypedData, DataView: H.NativeByteData, Float32Array: H.NativeFloat32List, Float64Array: H.NativeFloat64List, Int16Array: H.NativeInt16List, Int32Array: H.NativeInt32List, Int8Array: H.NativeInt8List, Uint16Array: H.NativeUint16List, Uint32Array: H.NativeUint32List, Uint8ClampedArray: H.NativeUint8ClampedList, CanvasPixelArray: H.NativeUint8ClampedList, Uint8Array: H.NativeUint8List, HTMLAudioElement: W.HtmlElement, HTMLBRElement: W.HtmlElement, HTMLBodyElement: W.HtmlElement, HTMLButtonElement: W.HtmlElement, HTMLCanvasElement: W.HtmlElement, HTMLContentElement: W.HtmlElement, HTMLDListElement: W.HtmlElement, HTMLDataElement: W.HtmlElement, HTMLDataListElement: W.HtmlElement, HTMLDetailsElement: W.HtmlElement, HTMLDialogElement: W.HtmlElement, HTMLDivElement: W.HtmlElement, HTMLEmbedElement: W.HtmlElement, HTMLFieldSetElement: W.HtmlElement, HTMLHRElement: W.HtmlElement, HTMLHeadElement: W.HtmlElement, HTMLHeadingElement: W.HtmlElement, HTMLHtmlElement: W.HtmlElement, HTMLIFrameElement: W.HtmlElement, HTMLImageElement: W.HtmlElement, HTMLInputElement: W.HtmlElement, HTMLLIElement: W.HtmlElement, HTMLLabelElement: W.HtmlElement, HTMLLegendElement: W.HtmlElement, HTMLLinkElement: W.HtmlElement, HTMLMapElement: W.HtmlElement, HTMLMediaElement: W.HtmlElement, HTMLMenuElement: W.HtmlElement, HTMLMetaElement: W.HtmlElement, HTMLMeterElement: W.HtmlElement, HTMLModElement: W.HtmlElement, HTMLOListElement: W.HtmlElement, HTMLObjectElement: W.HtmlElement, HTMLOptGroupElement: W.HtmlElement, HTMLOptionElement: W.HtmlElement, HTMLOutputElement: W.HtmlElement, HTMLParagraphElement: W.HtmlElement, HTMLParamElement: W.HtmlElement, HTMLPictureElement: W.HtmlElement, HTMLPreElement: W.HtmlElement, HTMLProgressElement: W.HtmlElement, HTMLQuoteElement: W.HtmlElement, HTMLScriptElement: W.HtmlElement, HTMLShadowElement: W.HtmlElement, HTMLSlotElement: W.HtmlElement, HTMLSourceElement: W.HtmlElement, HTMLSpanElement: W.HtmlElement, HTMLStyleElement: W.HtmlElement, HTMLTableCaptionElement: W.HtmlElement, HTMLTableCellElement: W.HtmlElement, HTMLTableDataCellElement: W.HtmlElement, HTMLTableHeaderCellElement: W.HtmlElement, HTMLTableColElement: W.HtmlElement, HTMLTableElement: W.HtmlElement, HTMLTableRowElement: W.HtmlElement, HTMLTableSectionElement: W.HtmlElement, HTMLTemplateElement: W.HtmlElement, HTMLTextAreaElement: W.HtmlElement, HTMLTimeElement: W.HtmlElement, HTMLTitleElement: W.HtmlElement, HTMLTrackElement: W.HtmlElement, HTMLUListElement: W.HtmlElement, HTMLUnknownElement: W.HtmlElement, HTMLVideoElement: W.HtmlElement, HTMLDirectoryElement: W.HtmlElement, HTMLFontElement: W.HtmlElement, HTMLFrameElement: W.HtmlElement, HTMLFrameSetElement: W.HtmlElement, HTMLMarqueeElement: W.HtmlElement, HTMLElement: W.HtmlElement, AccessibleNodeList: W.AccessibleNodeList, HTMLAnchorElement: W.AnchorElement, HTMLAreaElement: W.AreaElement, HTMLBaseElement: W.BaseElement, Blob: W.Blob, CDATASection: W.CharacterData, CharacterData: W.CharacterData, Comment: W.CharacterData, ProcessingInstruction: W.CharacterData, Text: W.CharacterData, CSSNumericValue: W.CssNumericValue, CSSUnitValue: W.CssNumericValue, CSSPerspective: W.CssPerspective, CSSCharsetRule: W.CssRule, CSSConditionRule: W.CssRule, CSSFontFaceRule: W.CssRule, CSSGroupingRule: W.CssRule, CSSImportRule: W.CssRule, CSSKeyframeRule: W.CssRule, MozCSSKeyframeRule: W.CssRule, WebKitCSSKeyframeRule: W.CssRule, CSSKeyframesRule: W.CssRule, MozCSSKeyframesRule: W.CssRule, WebKitCSSKeyframesRule: W.CssRule, CSSMediaRule: W.CssRule, CSSNamespaceRule: W.CssRule, CSSPageRule: W.CssRule, CSSRule: W.CssRule, CSSStyleRule: W.CssRule, CSSSupportsRule: W.CssRule, CSSViewportRule: W.CssRule, CSSStyleDeclaration: W.CssStyleDeclaration, MSStyleCSSProperties: W.CssStyleDeclaration, CSS2Properties: W.CssStyleDeclaration, CSSImageValue: W.CssStyleValue, CSSKeywordValue: W.CssStyleValue, CSSPositionValue: W.CssStyleValue, CSSResourceValue: W.CssStyleValue, CSSURLImageValue: W.CssStyleValue, CSSStyleValue: W.CssStyleValue, CSSMatrixComponent: W.CssTransformComponent, CSSRotation: W.CssTransformComponent, CSSScale: W.CssTransformComponent, CSSSkew: W.CssTransformComponent, CSSTranslation: W.CssTransformComponent, CSSTransformComponent: W.CssTransformComponent, CSSTransformValue: W.CssTransformValue, CSSUnparsedValue: W.CssUnparsedValue, DataTransferItemList: W.DataTransferItemList, Document: W.Document, HTMLDocument: W.Document, XMLDocument: W.Document, DOMException: W.DomException, ClientRectList: W.DomRectList, DOMRectList: W.DomRectList, DOMRectReadOnly: W.DomRectReadOnly, DOMStringList: W.DomStringList, DOMTokenList: W.DomTokenList, SVGAElement: W.Element, SVGAnimateElement: W.Element, SVGAnimateMotionElement: W.Element, SVGAnimateTransformElement: W.Element, SVGAnimationElement: W.Element, SVGCircleElement: W.Element, SVGClipPathElement: W.Element, SVGDefsElement: W.Element, SVGDescElement: W.Element, SVGDiscardElement: W.Element, SVGEllipseElement: W.Element, SVGFEBlendElement: W.Element, SVGFEColorMatrixElement: W.Element, SVGFEComponentTransferElement: W.Element, SVGFECompositeElement: W.Element, SVGFEConvolveMatrixElement: W.Element, SVGFEDiffuseLightingElement: W.Element, SVGFEDisplacementMapElement: W.Element, SVGFEDistantLightElement: W.Element, SVGFEFloodElement: W.Element, SVGFEFuncAElement: W.Element, SVGFEFuncBElement: W.Element, SVGFEFuncGElement: W.Element, SVGFEFuncRElement: W.Element, SVGFEGaussianBlurElement: W.Element, SVGFEImageElement: W.Element, SVGFEMergeElement: W.Element, SVGFEMergeNodeElement: W.Element, SVGFEMorphologyElement: W.Element, SVGFEOffsetElement: W.Element, SVGFEPointLightElement: W.Element, SVGFESpecularLightingElement: W.Element, SVGFESpotLightElement: W.Element, SVGFETileElement: W.Element, SVGFETurbulenceElement: W.Element, SVGFilterElement: W.Element, SVGForeignObjectElement: W.Element, SVGGElement: W.Element, SVGGeometryElement: W.Element, SVGGraphicsElement: W.Element, SVGImageElement: W.Element, SVGLineElement: W.Element, SVGLinearGradientElement: W.Element, SVGMarkerElement: W.Element, SVGMaskElement: W.Element, SVGMetadataElement: W.Element, SVGPathElement: W.Element, SVGPatternElement: W.Element, SVGPolygonElement: W.Element, SVGPolylineElement: W.Element, SVGRadialGradientElement: W.Element, SVGRectElement: W.Element, SVGScriptElement: W.Element, SVGSetElement: W.Element, SVGStopElement: W.Element, SVGStyleElement: W.Element, SVGElement: W.Element, SVGSVGElement: W.Element, SVGSwitchElement: W.Element, SVGSymbolElement: W.Element, SVGTSpanElement: W.Element, SVGTextContentElement: W.Element, SVGTextElement: W.Element, SVGTextPathElement: W.Element, SVGTextPositioningElement: W.Element, SVGTitleElement: W.Element, SVGUseElement: W.Element, SVGViewElement: W.Element, SVGGradientElement: W.Element, SVGComponentTransferFunctionElement: W.Element, SVGFEDropShadowElement: W.Element, SVGMPathElement: W.Element, Element: W.Element, AbortPaymentEvent: W.Event, AnimationEvent: W.Event, AnimationPlaybackEvent: W.Event, ApplicationCacheErrorEvent: W.Event, BackgroundFetchClickEvent: W.Event, BackgroundFetchEvent: W.Event, BackgroundFetchFailEvent: W.Event, BackgroundFetchedEvent: W.Event, BeforeInstallPromptEvent: W.Event, BeforeUnloadEvent: W.Event, BlobEvent: W.Event, CanMakePaymentEvent: W.Event, ClipboardEvent: W.Event, CloseEvent: W.Event, CustomEvent: W.Event, DeviceMotionEvent: W.Event, DeviceOrientationEvent: W.Event, ErrorEvent: W.Event, ExtendableEvent: W.Event, ExtendableMessageEvent: W.Event, FetchEvent: W.Event, FontFaceSetLoadEvent: W.Event, ForeignFetchEvent: W.Event, GamepadEvent: W.Event, HashChangeEvent: W.Event, InstallEvent: W.Event, MediaEncryptedEvent: W.Event, MediaKeyMessageEvent: W.Event, MediaQueryListEvent: W.Event, MediaStreamEvent: W.Event, MediaStreamTrackEvent: W.Event, MIDIConnectionEvent: W.Event, MIDIMessageEvent: W.Event, MutationEvent: W.Event, NotificationEvent: W.Event, PageTransitionEvent: W.Event, PaymentRequestEvent: W.Event, PaymentRequestUpdateEvent: W.Event, PopStateEvent: W.Event, PresentationConnectionAvailableEvent: W.Event, PresentationConnectionCloseEvent: W.Event, PromiseRejectionEvent: W.Event, PushEvent: W.Event, RTCDataChannelEvent: W.Event, RTCDTMFToneChangeEvent: W.Event, RTCPeerConnectionIceEvent: W.Event, RTCTrackEvent: W.Event, SecurityPolicyViolationEvent: W.Event, SensorErrorEvent: W.Event, SpeechRecognitionError: W.Event, SpeechRecognitionEvent: W.Event, SpeechSynthesisEvent: W.Event, StorageEvent: W.Event, SyncEvent: W.Event, TrackEvent: W.Event, TransitionEvent: W.Event, WebKitTransitionEvent: W.Event, VRDeviceEvent: W.Event, VRDisplayEvent: W.Event, VRSessionEvent: W.Event, MojoInterfaceRequestEvent: W.Event, USBConnectionEvent: W.Event, IDBVersionChangeEvent: W.Event, AudioProcessingEvent: W.Event, OfflineAudioCompletionEvent: W.Event, WebGLContextEvent: W.Event, Event: W.Event, InputEvent: W.Event, EventSource: W.EventSource, AbsoluteOrientationSensor: W.EventTarget, Accelerometer: W.EventTarget, AccessibleNode: W.EventTarget, AmbientLightSensor: W.EventTarget, Animation: W.EventTarget, ApplicationCache: W.EventTarget, DOMApplicationCache: W.EventTarget, OfflineResourceList: W.EventTarget, BackgroundFetchRegistration: W.EventTarget, BatteryManager: W.EventTarget, BroadcastChannel: W.EventTarget, CanvasCaptureMediaStreamTrack: W.EventTarget, DedicatedWorkerGlobalScope: W.EventTarget, FontFaceSet: W.EventTarget, Gyroscope: W.EventTarget, LinearAccelerationSensor: W.EventTarget, Magnetometer: W.EventTarget, MediaDevices: W.EventTarget, MediaKeySession: W.EventTarget, MediaQueryList: W.EventTarget, MediaRecorder: W.EventTarget, MediaSource: W.EventTarget, MediaStream: W.EventTarget, MediaStreamTrack: W.EventTarget, MessagePort: W.EventTarget, MIDIAccess: W.EventTarget, MIDIInput: W.EventTarget, MIDIOutput: W.EventTarget, MIDIPort: W.EventTarget, NetworkInformation: W.EventTarget, Notification: W.EventTarget, OffscreenCanvas: W.EventTarget, OrientationSensor: W.EventTarget, PaymentRequest: W.EventTarget, Performance: W.EventTarget, PermissionStatus: W.EventTarget, PresentationAvailability: W.EventTarget, PresentationConnection: W.EventTarget, PresentationConnectionList: W.EventTarget, PresentationRequest: W.EventTarget, RelativeOrientationSensor: W.EventTarget, RemotePlayback: W.EventTarget, RTCDataChannel: W.EventTarget, DataChannel: W.EventTarget, RTCDTMFSender: W.EventTarget, RTCPeerConnection: W.EventTarget, webkitRTCPeerConnection: W.EventTarget, mozRTCPeerConnection: W.EventTarget, ScreenOrientation: W.EventTarget, Sensor: W.EventTarget, ServiceWorker: W.EventTarget, ServiceWorkerContainer: W.EventTarget, ServiceWorkerGlobalScope: W.EventTarget, ServiceWorkerRegistration: W.EventTarget, SharedWorker: W.EventTarget, SharedWorkerGlobalScope: W.EventTarget, SpeechRecognition: W.EventTarget, SpeechSynthesis: W.EventTarget, SpeechSynthesisUtterance: W.EventTarget, VR: W.EventTarget, VRDevice: W.EventTarget, VRDisplay: W.EventTarget, VRSession: W.EventTarget, VisualViewport: W.EventTarget, WebSocket: W.EventTarget, Window: W.EventTarget, DOMWindow: W.EventTarget, Worker: W.EventTarget, WorkerGlobalScope: W.EventTarget, WorkerPerformance: W.EventTarget, BluetoothDevice: W.EventTarget, BluetoothRemoteGATTCharacteristic: W.EventTarget, Clipboard: W.EventTarget, MojoInterfaceInterceptor: W.EventTarget, USB: W.EventTarget, IDBDatabase: W.EventTarget, IDBOpenDBRequest: W.EventTarget, IDBVersionChangeRequest: W.EventTarget, IDBRequest: W.EventTarget, IDBTransaction: W.EventTarget, AnalyserNode: W.EventTarget, RealtimeAnalyserNode: W.EventTarget, AudioBufferSourceNode: W.EventTarget, AudioDestinationNode: W.EventTarget, AudioNode: W.EventTarget, AudioScheduledSourceNode: W.EventTarget, AudioWorkletNode: W.EventTarget, BiquadFilterNode: W.EventTarget, ChannelMergerNode: W.EventTarget, AudioChannelMerger: W.EventTarget, ChannelSplitterNode: W.EventTarget, AudioChannelSplitter: W.EventTarget, ConstantSourceNode: W.EventTarget, ConvolverNode: W.EventTarget, DelayNode: W.EventTarget, DynamicsCompressorNode: W.EventTarget, GainNode: W.EventTarget, AudioGainNode: W.EventTarget, IIRFilterNode: W.EventTarget, MediaElementAudioSourceNode: W.EventTarget, MediaStreamAudioDestinationNode: W.EventTarget, MediaStreamAudioSourceNode: W.EventTarget, OscillatorNode: W.EventTarget, Oscillator: W.EventTarget, PannerNode: W.EventTarget, AudioPannerNode: W.EventTarget, webkitAudioPannerNode: W.EventTarget, ScriptProcessorNode: W.EventTarget, JavaScriptAudioNode: W.EventTarget, StereoPannerNode: W.EventTarget, WaveShaperNode: W.EventTarget, EventTarget: W.EventTarget, File: W.File, FileList: W.FileList, FileReader: W.FileReader, FileWriter: W.FileWriter, HTMLFormElement: W.FormElement, Gamepad: W.Gamepad, History: W.History, HTMLCollection: W.HtmlCollection, HTMLFormControlsCollection: W.HtmlCollection, HTMLOptionsCollection: W.HtmlCollection, XMLHttpRequest: W.HttpRequest, XMLHttpRequestUpload: W.HttpRequestEventTarget, XMLHttpRequestEventTarget: W.HttpRequestEventTarget, KeyboardEvent: W.KeyboardEvent, Location: W.Location, MediaList: W.MediaList, MessageEvent: W.MessageEvent, MIDIInputMap: W.MidiInputMap, MIDIOutputMap: W.MidiOutputMap, MimeType: W.MimeType, MimeTypeArray: W.MimeTypeArray, DocumentFragment: W.Node, ShadowRoot: W.Node, Attr: W.Node, DocumentType: W.Node, Node: W.Node, NodeList: W.NodeList, RadioNodeList: W.NodeList, Plugin: W.Plugin, PluginArray: W.PluginArray, ProgressEvent: W.ProgressEvent, ResourceProgressEvent: W.ProgressEvent, RTCStatsReport: W.RtcStatsReport, HTMLSelectElement: W.SelectElement, SourceBuffer: W.SourceBuffer, SourceBufferList: W.SourceBufferList, SpeechGrammar: W.SpeechGrammar, SpeechGrammarList: W.SpeechGrammarList, SpeechRecognitionResult: W.SpeechRecognitionResult, Storage: W.Storage, CSSStyleSheet: W.StyleSheet, StyleSheet: W.StyleSheet, TextTrack: W.TextTrack, TextTrackCue: W.TextTrackCue, VTTCue: W.TextTrackCue, TextTrackCueList: W.TextTrackCueList, TextTrackList: W.TextTrackList, TimeRanges: W.TimeRanges, Touch: W.Touch, TouchList: W.TouchList, TrackDefaultList: W.TrackDefaultList, CompositionEvent: W.UIEvent, FocusEvent: W.UIEvent, MouseEvent: W.UIEvent, DragEvent: W.UIEvent, PointerEvent: W.UIEvent, TextEvent: W.UIEvent, TouchEvent: W.UIEvent, WheelEvent: W.UIEvent, UIEvent: W.UIEvent, URL: W.Url, VideoTrackList: W.VideoTrackList, CSSRuleList: W._CssRuleList, ClientRect: W._DomRect, DOMRect: W._DomRect, GamepadList: W._GamepadList, NamedNodeMap: W._NamedNodeMap, MozNamedAttrMap: W._NamedNodeMap, SpeechRecognitionResultList: W._SpeechRecognitionResultList, StyleSheetList: W._StyleSheetList, SVGLength: P.Length, SVGLengthList: P.LengthList, SVGNumber: P.Number, SVGNumberList: P.NumberList, SVGPointList: P.PointList, SVGStringList: P.StringList, SVGTransform: P.Transform, SVGTransformList: P.TransformList, AudioBuffer: P.AudioBuffer, AudioParamMap: P.AudioParamMap, AudioTrackList: P.AudioTrackList, AudioContext: P.BaseAudioContext, webkitAudioContext: P.BaseAudioContext, BaseAudioContext: P.BaseAudioContext, OfflineAudioContext: P.OfflineAudioContext, SQLResultSetRowList: P.SqlResultSetRowList});
+    hunkHelpers.setOrUpdateLeafTags({AnimationEffectReadOnly: true, AnimationEffectTiming: true, AnimationEffectTimingReadOnly: true, AnimationTimeline: true, AnimationWorkletGlobalScope: true, AuthenticatorAssertionResponse: true, AuthenticatorAttestationResponse: true, AuthenticatorResponse: true, BackgroundFetchFetch: true, BackgroundFetchManager: true, BackgroundFetchSettledFetch: true, BarProp: true, BarcodeDetector: true, BluetoothRemoteGATTDescriptor: true, Body: true, BudgetState: true, CacheStorage: true, CanvasGradient: true, CanvasPattern: true, CanvasRenderingContext2D: true, Client: true, Clients: true, CookieStore: true, Coordinates: true, Credential: true, CredentialUserData: true, CredentialsContainer: true, Crypto: true, CryptoKey: true, CSS: true, CSSVariableReferenceValue: true, CustomElementRegistry: true, DataTransfer: true, DataTransferItem: true, DeprecatedStorageInfo: true, DeprecatedStorageQuota: true, DeprecationReport: true, DetectedBarcode: true, DetectedFace: true, DetectedText: true, DeviceAcceleration: true, DeviceRotationRate: true, DirectoryEntry: true, DirectoryReader: true, DocumentOrShadowRoot: true, DocumentTimeline: true, DOMError: true, DOMImplementation: true, Iterator: true, DOMMatrix: true, DOMMatrixReadOnly: true, DOMParser: true, DOMPoint: true, DOMPointReadOnly: true, DOMQuad: true, DOMStringMap: true, Entry: true, External: true, FaceDetector: true, FederatedCredential: true, FileEntry: true, DOMFileSystem: true, FontFace: true, FontFaceSource: true, FormData: true, GamepadButton: true, GamepadPose: true, Geolocation: true, Position: true, Headers: true, HTMLHyperlinkElementUtils: true, IdleDeadline: true, ImageBitmap: true, ImageBitmapRenderingContext: true, ImageCapture: true, ImageData: true, InputDeviceCapabilities: true, IntersectionObserver: true, IntersectionObserverEntry: true, InterventionReport: true, KeyframeEffect: true, KeyframeEffectReadOnly: true, MediaCapabilities: true, MediaCapabilitiesInfo: true, MediaDeviceInfo: true, MediaError: true, MediaKeyStatusMap: true, MediaKeySystemAccess: true, MediaKeys: true, MediaKeysPolicy: true, MediaMetadata: true, MediaSession: true, MediaSettingsRange: true, MemoryInfo: true, MessageChannel: true, Metadata: true, MutationObserver: true, WebKitMutationObserver: true, MutationRecord: true, NavigationPreloadManager: true, Navigator: true, NavigatorAutomationInformation: true, NavigatorConcurrentHardware: true, NavigatorCookies: true, NavigatorUserMediaError: true, NodeFilter: true, NodeIterator: true, NonDocumentTypeChildNode: true, NonElementParentNode: true, NoncedElement: true, OffscreenCanvasRenderingContext2D: true, OverconstrainedError: true, PaintRenderingContext2D: true, PaintSize: true, PaintWorkletGlobalScope: true, PasswordCredential: true, Path2D: true, PaymentAddress: true, PaymentInstruments: true, PaymentManager: true, PaymentResponse: true, PerformanceEntry: true, PerformanceLongTaskTiming: true, PerformanceMark: true, PerformanceMeasure: true, PerformanceNavigation: true, PerformanceNavigationTiming: true, PerformanceObserver: true, PerformanceObserverEntryList: true, PerformancePaintTiming: true, PerformanceResourceTiming: true, PerformanceServerTiming: true, PerformanceTiming: true, Permissions: true, PhotoCapabilities: true, PositionError: true, Presentation: true, PresentationReceiver: true, PublicKeyCredential: true, PushManager: true, PushMessageData: true, PushSubscription: true, PushSubscriptionOptions: true, Range: true, RelatedApplication: true, ReportBody: true, ReportingObserver: true, ResizeObserver: true, ResizeObserverEntry: true, RTCCertificate: true, RTCIceCandidate: true, mozRTCIceCandidate: true, RTCLegacyStatsReport: true, RTCRtpContributingSource: true, RTCRtpReceiver: true, RTCRtpSender: true, RTCSessionDescription: true, mozRTCSessionDescription: true, RTCStatsResponse: true, Screen: true, ScrollState: true, ScrollTimeline: true, Selection: true, SharedArrayBuffer: true, SpeechRecognitionAlternative: true, SpeechSynthesisVoice: true, StaticRange: true, StorageManager: true, StyleMedia: true, StylePropertyMap: true, StylePropertyMapReadonly: true, SyncManager: true, TaskAttributionTiming: true, TextDetector: true, TextMetrics: true, TrackDefault: true, TreeWalker: true, TrustedHTML: true, TrustedScriptURL: true, TrustedURL: true, UnderlyingSourceBase: true, URLSearchParams: true, VRCoordinateSystem: true, VRDisplayCapabilities: true, VREyeParameters: true, VRFrameData: true, VRFrameOfReference: true, VRPose: true, VRStageBounds: true, VRStageBoundsPoint: true, VRStageParameters: true, ValidityState: true, VideoPlaybackQuality: true, VideoTrack: true, VTTRegion: true, WindowClient: true, WorkletAnimation: true, WorkletGlobalScope: true, XPathEvaluator: true, XPathExpression: true, XPathNSResolver: true, XPathResult: true, XMLSerializer: true, XSLTProcessor: true, Bluetooth: true, BluetoothCharacteristicProperties: true, BluetoothRemoteGATTServer: true, BluetoothRemoteGATTService: true, BluetoothUUID: true, BudgetService: true, Cache: true, DOMFileSystemSync: true, DirectoryEntrySync: true, DirectoryReaderSync: true, EntrySync: true, FileEntrySync: true, FileReaderSync: true, FileWriterSync: true, HTMLAllCollection: true, Mojo: true, MojoHandle: true, MojoWatcher: true, NFC: true, PagePopupController: true, Report: true, Request: true, Response: true, SubtleCrypto: true, USBAlternateInterface: true, USBConfiguration: true, USBDevice: true, USBEndpoint: true, USBInTransferResult: true, USBInterface: true, USBIsochronousInTransferPacket: true, USBIsochronousInTransferResult: true, USBIsochronousOutTransferPacket: true, USBIsochronousOutTransferResult: true, USBOutTransferResult: true, WorkerLocation: true, WorkerNavigator: true, Worklet: true, IDBCursor: true, IDBCursorWithValue: true, IDBFactory: true, IDBIndex: true, IDBKeyRange: true, IDBObjectStore: true, IDBObservation: true, IDBObserver: true, IDBObserverChanges: true, SVGAngle: true, SVGAnimatedAngle: true, SVGAnimatedBoolean: true, SVGAnimatedEnumeration: true, SVGAnimatedInteger: true, SVGAnimatedLength: true, SVGAnimatedLengthList: true, SVGAnimatedNumber: true, SVGAnimatedNumberList: true, SVGAnimatedPreserveAspectRatio: true, SVGAnimatedRect: true, SVGAnimatedString: true, SVGAnimatedTransformList: true, SVGMatrix: true, SVGPoint: true, SVGPreserveAspectRatio: true, SVGRect: true, SVGUnitTypes: true, AudioListener: true, AudioParam: true, AudioTrack: true, AudioWorkletGlobalScope: true, AudioWorkletProcessor: true, PeriodicWave: true, WebGLActiveInfo: true, ANGLEInstancedArrays: true, ANGLE_instanced_arrays: true, WebGLBuffer: true, WebGLCanvas: true, WebGLColorBufferFloat: true, WebGLCompressedTextureASTC: true, WebGLCompressedTextureATC: true, WEBGL_compressed_texture_atc: true, WebGLCompressedTextureETC1: true, WEBGL_compressed_texture_etc1: true, WebGLCompressedTextureETC: true, WebGLCompressedTexturePVRTC: true, WEBGL_compressed_texture_pvrtc: true, WebGLCompressedTextureS3TC: true, WEBGL_compressed_texture_s3tc: true, WebGLCompressedTextureS3TCsRGB: true, WebGLDebugRendererInfo: true, WEBGL_debug_renderer_info: true, WebGLDebugShaders: true, WEBGL_debug_shaders: true, WebGLDepthTexture: true, WEBGL_depth_texture: true, WebGLDrawBuffers: true, WEBGL_draw_buffers: true, EXTsRGB: true, EXT_sRGB: true, EXTBlendMinMax: true, EXT_blend_minmax: true, EXTColorBufferFloat: true, EXTColorBufferHalfFloat: true, EXTDisjointTimerQuery: true, EXTDisjointTimerQueryWebGL2: true, EXTFragDepth: true, EXT_frag_depth: true, EXTShaderTextureLOD: true, EXT_shader_texture_lod: true, EXTTextureFilterAnisotropic: true, EXT_texture_filter_anisotropic: true, WebGLFramebuffer: true, WebGLGetBufferSubDataAsync: true, WebGLLoseContext: true, WebGLExtensionLoseContext: true, WEBGL_lose_context: true, OESElementIndexUint: true, OES_element_index_uint: true, OESStandardDerivatives: true, OES_standard_derivatives: true, OESTextureFloat: true, OES_texture_float: true, OESTextureFloatLinear: true, OES_texture_float_linear: true, OESTextureHalfFloat: true, OES_texture_half_float: true, OESTextureHalfFloatLinear: true, OES_texture_half_float_linear: true, OESVertexArrayObject: true, OES_vertex_array_object: true, WebGLProgram: true, WebGLQuery: true, WebGLRenderbuffer: true, WebGLRenderingContext: true, WebGL2RenderingContext: true, WebGLSampler: true, WebGLShader: true, WebGLShaderPrecisionFormat: true, WebGLSync: true, WebGLTexture: true, WebGLTimerQueryEXT: true, WebGLTransformFeedback: true, WebGLUniformLocation: true, WebGLVertexArrayObject: true, WebGLVertexArrayObjectOES: true, WebGL: true, WebGL2RenderingContextBase: true, Database: true, SQLError: true, SQLResultSet: true, SQLTransaction: true, ArrayBuffer: true, ArrayBufferView: false, DataView: true, Float32Array: true, Float64Array: true, Int16Array: true, Int32Array: true, Int8Array: true, Uint16Array: true, Uint32Array: true, Uint8ClampedArray: true, CanvasPixelArray: true, Uint8Array: false, HTMLAudioElement: true, HTMLBRElement: true, HTMLBodyElement: true, HTMLButtonElement: true, HTMLCanvasElement: true, HTMLContentElement: true, HTMLDListElement: true, HTMLDataElement: true, HTMLDataListElement: true, HTMLDetailsElement: true, HTMLDialogElement: true, HTMLDivElement: true, HTMLEmbedElement: true, HTMLFieldSetElement: true, HTMLHRElement: true, HTMLHeadElement: true, HTMLHeadingElement: true, HTMLHtmlElement: true, HTMLIFrameElement: true, HTMLImageElement: true, HTMLInputElement: true, HTMLLIElement: true, HTMLLabelElement: true, HTMLLegendElement: true, HTMLLinkElement: true, HTMLMapElement: true, HTMLMediaElement: true, HTMLMenuElement: true, HTMLMetaElement: true, HTMLMeterElement: true, HTMLModElement: true, HTMLOListElement: true, HTMLObjectElement: true, HTMLOptGroupElement: true, HTMLOptionElement: true, HTMLOutputElement: true, HTMLParagraphElement: true, HTMLParamElement: true, HTMLPictureElement: true, HTMLPreElement: true, HTMLProgressElement: true, HTMLQuoteElement: true, HTMLScriptElement: true, HTMLShadowElement: true, HTMLSlotElement: true, HTMLSourceElement: true, HTMLSpanElement: true, HTMLStyleElement: true, HTMLTableCaptionElement: true, HTMLTableCellElement: true, HTMLTableDataCellElement: true, HTMLTableHeaderCellElement: true, HTMLTableColElement: true, HTMLTableElement: true, HTMLTableRowElement: true, HTMLTableSectionElement: true, HTMLTemplateElement: true, HTMLTextAreaElement: true, HTMLTimeElement: true, HTMLTitleElement: true, HTMLTrackElement: true, HTMLUListElement: true, HTMLUnknownElement: true, HTMLVideoElement: true, HTMLDirectoryElement: true, HTMLFontElement: true, HTMLFrameElement: true, HTMLFrameSetElement: true, HTMLMarqueeElement: true, HTMLElement: false, AccessibleNodeList: true, HTMLAnchorElement: true, HTMLAreaElement: true, HTMLBaseElement: true, Blob: false, CDATASection: true, CharacterData: true, Comment: true, ProcessingInstruction: true, Text: true, CSSNumericValue: true, CSSUnitValue: true, CSSPerspective: true, CSSCharsetRule: true, CSSConditionRule: true, CSSFontFaceRule: true, CSSGroupingRule: true, CSSImportRule: true, CSSKeyframeRule: true, MozCSSKeyframeRule: true, WebKitCSSKeyframeRule: true, CSSKeyframesRule: true, MozCSSKeyframesRule: true, WebKitCSSKeyframesRule: true, CSSMediaRule: true, CSSNamespaceRule: true, CSSPageRule: true, CSSRule: true, CSSStyleRule: true, CSSSupportsRule: true, CSSViewportRule: true, CSSStyleDeclaration: true, MSStyleCSSProperties: true, CSS2Properties: true, CSSImageValue: true, CSSKeywordValue: true, CSSPositionValue: true, CSSResourceValue: true, CSSURLImageValue: true, CSSStyleValue: false, CSSMatrixComponent: true, CSSRotation: true, CSSScale: true, CSSSkew: true, CSSTranslation: true, CSSTransformComponent: false, CSSTransformValue: true, CSSUnparsedValue: true, DataTransferItemList: true, Document: true, HTMLDocument: true, XMLDocument: true, DOMException: true, ClientRectList: true, DOMRectList: true, DOMRectReadOnly: false, DOMStringList: true, DOMTokenList: true, SVGAElement: true, SVGAnimateElement: true, SVGAnimateMotionElement: true, SVGAnimateTransformElement: true, SVGAnimationElement: true, SVGCircleElement: true, SVGClipPathElement: true, SVGDefsElement: true, SVGDescElement: true, SVGDiscardElement: true, SVGEllipseElement: true, SVGFEBlendElement: true, SVGFEColorMatrixElement: true, SVGFEComponentTransferElement: true, SVGFECompositeElement: true, SVGFEConvolveMatrixElement: true, SVGFEDiffuseLightingElement: true, SVGFEDisplacementMapElement: true, SVGFEDistantLightElement: true, SVGFEFloodElement: true, SVGFEFuncAElement: true, SVGFEFuncBElement: true, SVGFEFuncGElement: true, SVGFEFuncRElement: true, SVGFEGaussianBlurElement: true, SVGFEImageElement: true, SVGFEMergeElement: true, SVGFEMergeNodeElement: true, SVGFEMorphologyElement: true, SVGFEOffsetElement: true, SVGFEPointLightElement: true, SVGFESpecularLightingElement: true, SVGFESpotLightElement: true, SVGFETileElement: true, SVGFETurbulenceElement: true, SVGFilterElement: true, SVGForeignObjectElement: true, SVGGElement: true, SVGGeometryElement: true, SVGGraphicsElement: true, SVGImageElement: true, SVGLineElement: true, SVGLinearGradientElement: true, SVGMarkerElement: true, SVGMaskElement: true, SVGMetadataElement: true, SVGPathElement: true, SVGPatternElement: true, SVGPolygonElement: true, SVGPolylineElement: true, SVGRadialGradientElement: true, SVGRectElement: true, SVGScriptElement: true, SVGSetElement: true, SVGStopElement: true, SVGStyleElement: true, SVGElement: true, SVGSVGElement: true, SVGSwitchElement: true, SVGSymbolElement: true, SVGTSpanElement: true, SVGTextContentElement: true, SVGTextElement: true, SVGTextPathElement: true, SVGTextPositioningElement: true, SVGTitleElement: true, SVGUseElement: true, SVGViewElement: true, SVGGradientElement: true, SVGComponentTransferFunctionElement: true, SVGFEDropShadowElement: true, SVGMPathElement: true, Element: false, AbortPaymentEvent: true, AnimationEvent: true, AnimationPlaybackEvent: true, ApplicationCacheErrorEvent: true, BackgroundFetchClickEvent: true, BackgroundFetchEvent: true, BackgroundFetchFailEvent: true, BackgroundFetchedEvent: true, BeforeInstallPromptEvent: true, BeforeUnloadEvent: true, BlobEvent: true, CanMakePaymentEvent: true, ClipboardEvent: true, CloseEvent: true, CustomEvent: true, DeviceMotionEvent: true, DeviceOrientationEvent: true, ErrorEvent: true, ExtendableEvent: true, ExtendableMessageEvent: true, FetchEvent: true, FontFaceSetLoadEvent: true, ForeignFetchEvent: true, GamepadEvent: true, HashChangeEvent: true, InstallEvent: true, MediaEncryptedEvent: true, MediaKeyMessageEvent: true, MediaQueryListEvent: true, MediaStreamEvent: true, MediaStreamTrackEvent: true, MIDIConnectionEvent: true, MIDIMessageEvent: true, MutationEvent: true, NotificationEvent: true, PageTransitionEvent: true, PaymentRequestEvent: true, PaymentRequestUpdateEvent: true, PopStateEvent: true, PresentationConnectionAvailableEvent: true, PresentationConnectionCloseEvent: true, PromiseRejectionEvent: true, PushEvent: true, RTCDataChannelEvent: true, RTCDTMFToneChangeEvent: true, RTCPeerConnectionIceEvent: true, RTCTrackEvent: true, SecurityPolicyViolationEvent: true, SensorErrorEvent: true, SpeechRecognitionError: true, SpeechRecognitionEvent: true, SpeechSynthesisEvent: true, StorageEvent: true, SyncEvent: true, TrackEvent: true, TransitionEvent: true, WebKitTransitionEvent: true, VRDeviceEvent: true, VRDisplayEvent: true, VRSessionEvent: true, MojoInterfaceRequestEvent: true, USBConnectionEvent: true, IDBVersionChangeEvent: true, AudioProcessingEvent: true, OfflineAudioCompletionEvent: true, WebGLContextEvent: true, Event: false, InputEvent: false, EventSource: true, AbsoluteOrientationSensor: true, Accelerometer: true, AccessibleNode: true, AmbientLightSensor: true, Animation: true, ApplicationCache: true, DOMApplicationCache: true, OfflineResourceList: true, BackgroundFetchRegistration: true, BatteryManager: true, BroadcastChannel: true, CanvasCaptureMediaStreamTrack: true, DedicatedWorkerGlobalScope: true, FontFaceSet: true, Gyroscope: true, LinearAccelerationSensor: true, Magnetometer: true, MediaDevices: true, MediaKeySession: true, MediaQueryList: true, MediaRecorder: true, MediaSource: true, MediaStream: true, MediaStreamTrack: true, MessagePort: true, MIDIAccess: true, MIDIInput: true, MIDIOutput: true, MIDIPort: true, NetworkInformation: true, Notification: true, OffscreenCanvas: true, OrientationSensor: true, PaymentRequest: true, Performance: true, PermissionStatus: true, PresentationAvailability: true, PresentationConnection: true, PresentationConnectionList: true, PresentationRequest: true, RelativeOrientationSensor: true, RemotePlayback: true, RTCDataChannel: true, DataChannel: true, RTCDTMFSender: true, RTCPeerConnection: true, webkitRTCPeerConnection: true, mozRTCPeerConnection: true, ScreenOrientation: true, Sensor: true, ServiceWorker: true, ServiceWorkerContainer: true, ServiceWorkerGlobalScope: true, ServiceWorkerRegistration: true, SharedWorker: true, SharedWorkerGlobalScope: true, SpeechRecognition: true, SpeechSynthesis: true, SpeechSynthesisUtterance: true, VR: true, VRDevice: true, VRDisplay: true, VRSession: true, VisualViewport: true, WebSocket: true, Window: true, DOMWindow: true, Worker: true, WorkerGlobalScope: true, WorkerPerformance: true, BluetoothDevice: true, BluetoothRemoteGATTCharacteristic: true, Clipboard: true, MojoInterfaceInterceptor: true, USB: true, IDBDatabase: true, IDBOpenDBRequest: true, IDBVersionChangeRequest: true, IDBRequest: true, IDBTransaction: true, AnalyserNode: true, RealtimeAnalyserNode: true, AudioBufferSourceNode: true, AudioDestinationNode: true, AudioNode: true, AudioScheduledSourceNode: true, AudioWorkletNode: true, BiquadFilterNode: true, ChannelMergerNode: true, AudioChannelMerger: true, ChannelSplitterNode: true, AudioChannelSplitter: true, ConstantSourceNode: true, ConvolverNode: true, DelayNode: true, DynamicsCompressorNode: true, GainNode: true, AudioGainNode: true, IIRFilterNode: true, MediaElementAudioSourceNode: true, MediaStreamAudioDestinationNode: true, MediaStreamAudioSourceNode: true, OscillatorNode: true, Oscillator: true, PannerNode: true, AudioPannerNode: true, webkitAudioPannerNode: true, ScriptProcessorNode: true, JavaScriptAudioNode: true, StereoPannerNode: true, WaveShaperNode: true, EventTarget: false, File: true, FileList: true, FileReader: true, FileWriter: true, HTMLFormElement: true, Gamepad: true, History: true, HTMLCollection: true, HTMLFormControlsCollection: true, HTMLOptionsCollection: true, XMLHttpRequest: true, XMLHttpRequestUpload: true, XMLHttpRequestEventTarget: false, KeyboardEvent: true, Location: true, MediaList: true, MessageEvent: true, MIDIInputMap: true, MIDIOutputMap: true, MimeType: true, MimeTypeArray: true, DocumentFragment: true, ShadowRoot: true, Attr: true, DocumentType: true, Node: false, NodeList: true, RadioNodeList: true, Plugin: true, PluginArray: true, ProgressEvent: true, ResourceProgressEvent: true, RTCStatsReport: true, HTMLSelectElement: true, SourceBuffer: true, SourceBufferList: true, SpeechGrammar: true, SpeechGrammarList: true, SpeechRecognitionResult: true, Storage: true, CSSStyleSheet: true, StyleSheet: true, TextTrack: true, TextTrackCue: true, VTTCue: true, TextTrackCueList: true, TextTrackList: true, TimeRanges: true, Touch: true, TouchList: true, TrackDefaultList: true, CompositionEvent: true, FocusEvent: true, MouseEvent: true, DragEvent: true, PointerEvent: true, TextEvent: true, TouchEvent: true, WheelEvent: true, UIEvent: false, URL: true, VideoTrackList: true, CSSRuleList: true, ClientRect: true, DOMRect: true, GamepadList: true, NamedNodeMap: true, MozNamedAttrMap: true, SpeechRecognitionResultList: true, StyleSheetList: true, SVGLength: true, SVGLengthList: true, SVGNumber: true, SVGNumberList: true, SVGPointList: true, SVGStringList: true, SVGTransform: true, SVGTransformList: true, AudioBuffer: true, AudioParamMap: true, AudioTrackList: true, AudioContext: true, webkitAudioContext: true, BaseAudioContext: false, OfflineAudioContext: true, SQLResultSetRowList: true});
     H.NativeTypedArray.$nativeSuperclassTag = "ArrayBufferView";
     H._NativeTypedArrayOfDouble_NativeTypedArray_ListMixin.$nativeSuperclassTag = "ArrayBufferView";
     H._NativeTypedArrayOfDouble_NativeTypedArray_ListMixin_FixedLengthListMixin.$nativeSuperclassTag = "ArrayBufferView";
