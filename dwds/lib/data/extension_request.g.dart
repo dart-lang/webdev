@@ -10,6 +10,8 @@ Serializer<ExtensionRequest> _$extensionRequestSerializer =
     new _$ExtensionRequestSerializer();
 Serializer<ExtensionResponse> _$extensionResponseSerializer =
     new _$ExtensionResponseSerializer();
+Serializer<ExtensionEvent> _$extensionEventSerializer =
+    new _$ExtensionEventSerializer();
 
 class _$ExtensionRequestSerializer
     implements StructuredSerializer<ExtensionRequest> {
@@ -125,6 +127,48 @@ class _$ExtensionResponseSerializer
           break;
         case 'error':
           result.error = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
+class _$ExtensionEventSerializer
+    implements StructuredSerializer<ExtensionEvent> {
+  @override
+  final Iterable<Type> types = const [ExtensionEvent, _$ExtensionEvent];
+  @override
+  final String wireName = 'ExtensionEvent';
+
+  @override
+  Iterable<Object> serialize(Serializers serializers, ExtensionEvent object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[
+      'params',
+      serializers.serialize(object.params,
+          specifiedType: const FullType(String)),
+    ];
+
+    return result;
+  }
+
+  @override
+  ExtensionEvent deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new ExtensionEventBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'params':
+          result.params = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
       }
@@ -372,6 +416,85 @@ class ExtensionResponseBuilder
     final _$result = _$v ??
         new _$ExtensionResponse._(
             id: id, success: success, result: result, error: error);
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$ExtensionEvent extends ExtensionEvent {
+  @override
+  final String params;
+
+  factory _$ExtensionEvent([void Function(ExtensionEventBuilder) updates]) =>
+      (new ExtensionEventBuilder()..update(updates)).build();
+
+  _$ExtensionEvent._({this.params}) : super._() {
+    if (params == null) {
+      throw new BuiltValueNullFieldError('ExtensionEvent', 'params');
+    }
+  }
+
+  @override
+  ExtensionEvent rebuild(void Function(ExtensionEventBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  ExtensionEventBuilder toBuilder() =>
+      new ExtensionEventBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is ExtensionEvent && params == other.params;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc(0, params.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper('ExtensionEvent')
+          ..add('params', params))
+        .toString();
+  }
+}
+
+class ExtensionEventBuilder
+    implements Builder<ExtensionEvent, ExtensionEventBuilder> {
+  _$ExtensionEvent _$v;
+
+  String _params;
+  String get params => _$this._params;
+  set params(String params) => _$this._params = params;
+
+  ExtensionEventBuilder();
+
+  ExtensionEventBuilder get _$this {
+    if (_$v != null) {
+      _params = _$v.params;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(ExtensionEvent other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$ExtensionEvent;
+  }
+
+  @override
+  void update(void Function(ExtensionEventBuilder) updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$ExtensionEvent build() {
+    final _$result = _$v ?? new _$ExtensionEvent._(params: params);
     replace(_$result);
     return _$result;
   }

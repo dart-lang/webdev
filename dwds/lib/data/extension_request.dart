@@ -49,3 +49,18 @@ abstract class ExtensionResponse
   @nullable
   String get error;
 }
+
+/// An event for Dart Debug Extension.
+abstract class ExtensionEvent
+    implements Built<ExtensionEvent, ExtensionEventBuilder> {
+  static Serializer<ExtensionEvent> get serializer =>
+      _$extensionEventSerializer;
+
+  factory ExtensionEvent([Function(ExtensionEventBuilder) updates]) =
+      _$ExtensionEvent;
+
+  ExtensionEvent._();
+
+  /// Contains a JSON-encoded payload.
+  String get params;
+}
