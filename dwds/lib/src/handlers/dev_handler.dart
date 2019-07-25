@@ -29,7 +29,7 @@ import '../services/debug_service.dart';
 class DevHandler {
   StreamSubscription _sub;
   final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'));
-  final _connections = Set<SseConnection>();
+  final _injectedConnections = Set<SseConnection>();
   final DevTools _devTools;
   final AssetHandler _assetHandler;
   final String _hostname;
@@ -64,8 +64,8 @@ class DevHandler {
     // We listen for connections to close and remove them from the connections
     // set. Therefore we shouldn't asynchronously iterate through the
     // connections.
-    await Future.wait(
-        _connections.map((connection) => connection.sink.close()));
+    await Future.wait(_injectedConnections
+        .map((injectedConnection) => injectedConnection.sink.close()));
     await Future.wait(_servicesByAppId.values.map((futureServices) async {
       await (await futureServices).close();
     }));
@@ -74,8 +74,8 @@ class DevHandler {
 
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;
-    for (var connection in _connections) {
-      connection.sink
+    for (var injectedConnection in _injectedConnections) {
+      injectedConnection.sink
           .add(jsonEncode(build_daemon.serializers.serialize(result)));
     }
   }
@@ -104,14 +104,14 @@ class DevHandler {
       _servicesByAppId.putIfAbsent(
           appId, () => _createAppDebugServices(appId, instanceId));
 
-  void _handleConnection(SseConnection connection) {
-    _connections.add(connection);
+  void _handleConnection(SseConnection injectedConnection) {
+    _injectedConnections.add(injectedConnection);
     String appId;
-    connection.stream.listen((data) async {
+    injectedConnection.stream.listen((data) async {
       var message = serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
         if (_devTools == null) {
-          connection.sink
+          injectedConnection.sink
               .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
                 ..success = false
                 ..error = 'Debugging is not enabled.\n\n'
@@ -121,8 +121,8 @@ class DevHandler {
         }
 
         if (appId != message.appId) {
-          connection.sink.add(jsonEncode(serializers.serialize(DevToolsResponse(
-              (b) => b
+          injectedConnection.sink.add(jsonEncode(serializers.serialize(
+              DevToolsResponse((b) => b
                 ..success = false
                 ..error =
                     'App ID has changed since the connection was established. '
@@ -136,7 +136,7 @@ class DevHandler {
           appServices =
               await loadAppServices(message.appId, message.instanceId);
         } catch (_) {
-          connection.sink
+          injectedConnection.sink
               .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
                 ..success = false
                 ..error = 'Unable to connect debug services to your '
@@ -150,8 +150,8 @@ class DevHandler {
         // instance of this app.
         if (appServices.connectedInstanceId != null &&
             appServices.connectedInstanceId != message.instanceId) {
-          connection.sink.add(jsonEncode(serializers.serialize(DevToolsResponse(
-              (b) => b
+          injectedConnection.sink.add(jsonEncode(serializers.serialize(
+              DevToolsResponse((b) => b
                 ..success = false
                 ..error =
                     'This app is already being debugged in a different tab. '
@@ -169,7 +169,7 @@ class DevHandler {
               await loadAppServices(message.appId, message.instanceId);
         }
 
-        connection.sink.add(jsonEncode(
+        injectedConnection.sink.add(jsonEncode(
             serializers.serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
@@ -200,7 +200,7 @@ class DevHandler {
           }
         }
 
-        _connectedApps.add(AppConnection(message, connection));
+        _connectedApps.add(AppConnection(message, injectedConnection));
       } else if (message is IsolateExit) {
         (await loadAppServices(message.appId, message.instanceId))
             ?.chromeProxyService
@@ -212,8 +212,8 @@ class DevHandler {
       }
     });
 
-    unawaited(connection.sink.done.then((_) async {
-      _connections.remove(connection);
+    unawaited(injectedConnection.sink.done.then((_) async {
+      _injectedConnections.remove(injectedConnection);
       if (appId != null) {
         var services = await _servicesByAppId[appId];
         services?.connectedInstanceId = null;
@@ -223,9 +223,9 @@ class DevHandler {
   }
 
   void _listen() async {
-    var connections = _sseHandler.connections;
-    while (await connections.hasNext) {
-      _handleConnection(await connections.next);
+    var injectedConnections = _sseHandler.connections;
+    while (await injectedConnections.hasNext) {
+      _handleConnection(await injectedConnections.next);
     }
   }
 
