@@ -102,7 +102,6 @@ class TestContext {
       () async => connection,
       reloadConfiguration,
       serveDevTools,
-      wipDebugger,
     );
 
     appUrl = 'http://localhost:$port/$path';
