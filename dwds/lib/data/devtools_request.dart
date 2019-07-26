@@ -23,6 +23,10 @@ abstract class DevToolsRequest
 
   /// Identifies a given instance of an application, unique per tab/window.
   String get instanceId;
+
+  /// Belongs to the tab that requests the DevTools
+  @nullable
+  String get tabUrl;
 }
 
 /// A response to a [DevToolsRequest].
