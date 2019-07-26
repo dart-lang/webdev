@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js';
 
+import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:js/js.dart';
@@ -28,12 +29,20 @@ void main() {
     var callback = allowInterop((List<Tab> tabs) async {
       currentTab = tabs[0];
       attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() {}));
-      sendCommand(Debuggee(tabId: currentTab.id), 'Debugger.enable', EmptyParam,
-          allowInterop((e) {}));
-      sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.evaluate',
-          ExtensionPortParam(expression: '\$extensionPort'), allowInterop((e) {
-        var port = e.result.value;
-        startSseClient(port, currentTab);
+      sendCommand(Debuggee(tabId: currentTab.id), 'Debugger.enable',
+          EmptyParam(), allowInterop((e) {}));
+      sendCommand(
+          Debuggee(tabId: currentTab.id),
+          'Runtime.evaluate',
+          ExtensionPortParam(
+              expression:
+                  '[\$extensionPort, \$extensionHostname, \$dartAppId, \$dartAppInstanceId]',
+              returnByValue: true), allowInterop((e) {
+        var port = e.result.value[0];
+        var hostname = e.result.value[1];
+        var appId = e.result.value[2];
+        var instanceId = e.result.value[3];
+        startSseClient(hostname, port, appId, instanceId, currentTab);
       }));
     });
 
@@ -47,8 +56,14 @@ void main() {
 //
 // Creates 2 channels which connect to the SSE handler at the extension
 // backend, send a simple message.
-Future<void> startSseClient(port, currentTab) async {
-  var client = SseClient('http://localhost:$port/test');
+Future<void> startSseClient(
+    hostname, port, appId, instanceId, currentTab) async {
+  var client = SseClient('http://$hostname:$port/test');
+  await client.onOpen.first;
+  client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
+    ..appId = appId as String
+    ..instanceId = instanceId as String
+    ..tabUrl = currentTab.url as String))));
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
     if (message is ExtensionRequest) {
@@ -155,13 +170,16 @@ class ConsoleEventParams {
 
 @JS()
 @anonymous
-class EmptyParam {}
+class EmptyParam {
+  external factory EmptyParam();
+}
 
 @JS()
 @anonymous
 class ExtensionPortParam {
   external String get extensionPort;
-  external factory ExtensionPortParam({String expression});
+  external bool get returnByValue;
+  external factory ExtensionPortParam({String expression, bool returnByValue});
 }
 
 @JS()
