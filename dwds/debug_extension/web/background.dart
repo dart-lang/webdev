@@ -34,14 +34,21 @@ void main() {
       sendCommand(
           Debuggee(tabId: currentTab.id),
           'Runtime.evaluate',
-          ExtensionPortParam(
+          InjectedParams(
               expression:
                   '[\$extensionPort, \$extensionHostname, \$dartAppId, \$dartAppInstanceId]',
               returnByValue: true), allowInterop((e) {
-        var port = e.result.value[0];
-        var hostname = e.result.value[1];
-        var appId = e.result.value[2];
-        var instanceId = e.result.value[3];
+        String port, hostname, appId, instanceId;
+        try {
+          port = e.result.value[0] as String;
+          hostname = e.result.value[1] as String;
+          appId = e.result.value[2] as String;
+          instanceId = e.result.value[3] as String;
+        } catch (_) {
+          alert('Unable to launch DevTools. This is not Dart application.');
+          detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+          return;
+        }
         startSseClient(hostname, port, appId, instanceId, currentTab);
       }));
     });
@@ -117,6 +124,9 @@ external void sendCommand(
 external void attach(
     Debuggee target, String requiredVersion, Function callback);
 
+@JS('chrome.debugger.detach')
+external void detach(Debuggee target, Function callback);
+
 @JS('chrome.debugger.onEvent.addListener')
 external dynamic addDebuggerListener(Function callback);
 
@@ -125,6 +135,9 @@ external List<Tab> queryTabs(QueryInfo queryInfo, Function callback);
 
 @JS('JSON.stringify')
 external String stringify(o);
+
+@JS('window.alert')
+external void alert([String message]);
 
 @JS()
 @anonymous
@@ -148,6 +161,7 @@ class Debuggee {
 @anonymous
 class Tab {
   external int get id;
+  external String get url;
 }
 
 @JS()
@@ -176,10 +190,10 @@ class EmptyParam {
 
 @JS()
 @anonymous
-class ExtensionPortParam {
-  external String get extensionPort;
+class InjectedParams {
+  external String get expresion;
   external bool get returnByValue;
-  external factory ExtensionPortParam({String expression, bool returnByValue});
+  external factory InjectedParams({String expression, bool returnByValue});
 }
 
 @JS()
