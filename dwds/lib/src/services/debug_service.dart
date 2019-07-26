@@ -73,15 +73,16 @@ class DebugService {
   /// application available through `window.$dartAppInstanceId`.
   static Future<DebugService> start(
     String hostname,
-    ChromeConnection chromeConnection,
     Future<String> Function(String) assetHandler,
     String appInstanceId,
     WipDebugger wipDebugger, {
+    ChromeConnection chromeConnection,
     void Function(Map<String, dynamic>) onRequest,
     void Function(Map<String, dynamic>) onResponse,
   }) async {
     var chromeProxyService = await ChromeProxyService.create(
-        chromeConnection, assetHandler, appInstanceId, wipDebugger);
+        assetHandler, appInstanceId, wipDebugger,
+        chromeConnection: chromeConnection);
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     var authToken = _makeAuthToken();
     var innerHandler = webSocketHandler(_createNewConnectionHandler(

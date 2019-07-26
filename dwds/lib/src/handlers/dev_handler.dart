@@ -82,14 +82,14 @@ class DevHandler {
 
   // TODO(https://github.com/dart-lang/webdev/issues/202) - Refactor so this is
   // a getter and is created immediately.
-  Future<DebugService> startDebugService(
-      ChromeConnection chromeConnection, String appInstanceId) async {
+  Future<DebugService> startDebugService(String appInstanceId,
+      {ChromeConnection chromeConnection}) async {
     return DebugService.start(
       _hostname,
-      chromeConnection,
       _assetHandler.getRelativeAsset,
       appInstanceId,
       _wipDebugger,
+      chromeConnection: chromeConnection,
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
@@ -231,8 +231,8 @@ class DevHandler {
 
   Future<AppDebugServices> _createAppDebugServices(
       String appId, String instanceId) async {
-    var debugService =
-        await startDebugService(await _chromeConnection(), instanceId);
+    var debugService = await startDebugService(instanceId,
+        chromeConnection: await _chromeConnection());
     _logWriter(
         Level.INFO,
         'Debug service listening on '

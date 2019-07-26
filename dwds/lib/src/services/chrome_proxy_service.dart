@@ -62,10 +62,8 @@ class ChromeProxyService implements VmServiceInterface {
   );
 
   static Future<ChromeProxyService> create(
-      ChromeConnection chromeConnection,
-      AssetHandler assetHandler,
-      String appInstanceId,
-      WipDebugger wipDebugger) async {
+      AssetHandler assetHandler, String appInstanceId, WipDebugger wipDebugger,
+      {ChromeConnection chromeConnection}) async {
     ChromeTab appTab;
     for (var tab in await chromeConnection.getTabs()) {
       if (tab.url.startsWith('chrome-extensions:')) continue;
