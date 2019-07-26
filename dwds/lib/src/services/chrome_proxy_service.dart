@@ -560,6 +560,11 @@ require("dart_sdk").developer.invokeExtension(
     if (controller == null) return;
     controller.add(event);
   }
+
+  @override
+  Future<Timestamp> getVMTimelineMicros() {
+    throw UnimplementedError();
+  }
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.

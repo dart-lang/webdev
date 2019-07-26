@@ -31,7 +31,7 @@ dependencies:
   source_maps: ^0.10.0
   sse: ^2.0.2
   stream_channel: ^2.0.0
-  vm_service_lib: 3.20.0+02
+  vm_service_lib: 3.21.0
   web_socket_channel: ^1.0.0
   webkit_inspection_protocol: ^0.4.0
 

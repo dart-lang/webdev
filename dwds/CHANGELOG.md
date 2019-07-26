@@ -1,6 +1,7 @@
 ## 0.4.1
 
 - Fix an issue where we source map paths were not normalized.
+- Depend on latest `package:vm_service_lib`.
 
 ## 0.4.0
 
