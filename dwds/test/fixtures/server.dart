@@ -65,7 +65,6 @@ class TestServer {
       reloadConfiguration: reloadConfiguration,
       serveDevTools: serveDevTools,
       verbose: true,
-      wipDebugger: wipDebugger,
     );
 
     var server = await HttpMultiServer.bind('localhost', port);

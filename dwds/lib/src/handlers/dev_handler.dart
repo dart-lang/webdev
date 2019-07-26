@@ -39,7 +39,6 @@ class DevHandler {
   final bool _verbose;
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
-  final WipDebugger _wipDebugger;
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -51,7 +50,6 @@ class DevHandler {
     this._hostname,
     this._verbose,
     this._logWriter,
-    this._wipDebugger,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
@@ -89,7 +87,6 @@ class DevHandler {
       chromeConnection,
       _assetHandler.getRelativeAsset,
       appInstanceId,
-      _wipDebugger,
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
