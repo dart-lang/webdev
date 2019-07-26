@@ -116,6 +116,7 @@ class AppInspector extends Domain {
       [List positionalArgs = const [], Map namedArgs = const {}]) async {
     var send = '''
         function (positional) { 
+          if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
           return require("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
         }
         ''';
@@ -150,9 +151,8 @@ class AppInspector extends Domain {
     }
   }
 
-  Future<String> _toString(RemoteObject receiver) async {
-    return (await sendMessage(receiver, 'toString', []))['value'] as String;
-  }
+  Future<String> _toString(RemoteObject receiver) async =>
+      (await sendMessage(receiver, 'toString', []))['value'] as String;
 
   Future evaluate(String isolateId, String targetId, String expression,
       {Map<String, String> scope, bool disableBreakpoints}) async {
@@ -227,7 +227,7 @@ function($argsString) {
         return _primitiveInstance(InstanceKind.kBool, remoteObject);
       case 'object':
         // TODO: Actual toString()
-        if (remoteObject.value == null) {
+        if (remoteObject.value == null && remoteObject.objectId == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
         var toString = await _toString(remoteObject);
