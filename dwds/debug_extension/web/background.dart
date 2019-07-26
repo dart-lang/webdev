@@ -39,16 +39,16 @@ void main() {
                   '[\$extensionPort, \$extensionHostname, \$dartAppId, \$dartAppInstanceId]',
               returnByValue: true), allowInterop((e) {
         String port, hostname, appId, instanceId;
-        try {
-          port = e.result.value[0] as String;
-          hostname = e.result.value[1] as String;
-          appId = e.result.value[2] as String;
-          instanceId = e.result.value[3] as String;
-        } catch (_) {
+        if (e.result.value == null) {
           alert('Unable to launch DevTools. This is not Dart application.');
           detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
           return;
         }
+        port = e.result.value[0] as String;
+        hostname = e.result.value[1] as String;
+        appId = e.result.value[2] as String;
+        instanceId = e.result.value[3] as String;
+
         startSseClient(hostname, port, appId, instanceId, currentTab);
       }));
     });
