@@ -28,10 +28,14 @@ class ExtensionDebugger implements WipDebugger {
   var _completerId = 0;
 
   String _tabUrl;
+  String _appId;
+  String _instanceId;
 
   final _devToolsRequestController = StreamController<DevToolsRequest>();
 
   String get tabUrl => _tabUrl;
+  String get appId => _appId;
+  String get instanceId => _instanceId;
 
   Stream<DevToolsRequest> get devToolsRequestStream =>
       _devToolsRequestController.stream;
@@ -48,6 +52,8 @@ class ExtensionDebugger implements WipDebugger {
             .complete(WipResponse(encodedResult as Map<String, dynamic>));
       } else if (message is DevToolsRequest) {
         _tabUrl = message.tabUrl;
+        _appId = message.appId;
+        _instanceId = message.instanceId;
         _devToolsRequestController.sink.add(message);
       }
     }, onError: (e) {
