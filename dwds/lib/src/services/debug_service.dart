@@ -75,13 +75,12 @@ class DebugService {
     String hostname,
     ChromeConnection chromeConnection,
     Future<String> Function(String) assetHandler,
-    String appInstanceId,
-    WipDebugger wipDebugger, {
+    String appInstanceId, {
     void Function(Map<String, dynamic>) onRequest,
     void Function(Map<String, dynamic>) onResponse,
   }) async {
     var chromeProxyService = await ChromeProxyService.create(
-        chromeConnection, assetHandler, appInstanceId, wipDebugger);
+        chromeConnection, assetHandler, appInstanceId);
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     var authToken = _makeAuthToken();
     var innerHandler = webSocketHandler(_createNewConnectionHandler(

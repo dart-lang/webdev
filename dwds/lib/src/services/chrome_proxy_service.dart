@@ -62,10 +62,10 @@ class ChromeProxyService implements VmServiceInterface {
   );
 
   static Future<ChromeProxyService> create(
-      ChromeConnection chromeConnection,
-      AssetHandler assetHandler,
-      String appInstanceId,
-      WipDebugger wipDebugger) async {
+    ChromeConnection chromeConnection,
+    AssetHandler assetHandler,
+    String appInstanceId,
+  ) async {
     ChromeTab appTab;
     for (var tab in await chromeConnection.getTabs()) {
       if (tab.url.startsWith('chrome-extensions:')) continue;
@@ -85,7 +85,7 @@ class ChromeProxyService implements VmServiceInterface {
     var tabConnection = await appTab.connect();
     await tabConnection.runtime.enable();
 
-    wipDebugger = WipDebugger(tabConnection);
+    var wipDebugger = WipDebugger(tabConnection);
 
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()

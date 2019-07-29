@@ -102,7 +102,6 @@ class TestContext {
       () async => connection,
       reloadConfiguration,
       serveDevTools,
-      wipDebugger,
     );
 
     appUrl = 'http://localhost:$port/$path';
@@ -119,8 +118,8 @@ class TestContext {
       var result = await http.get('http://localhost:$port/$path');
       return result.body;
     };
-    chromeProxyService = await ChromeProxyService.create(connection,
-        assetHandler, appConnection.request.instanceId, wipDebugger);
+    chromeProxyService = await ChromeProxyService.create(
+        connection, assetHandler, appConnection.request.instanceId);
   }
 
   Future<Null> tearDown() async {
