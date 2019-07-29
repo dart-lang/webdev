@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:async/src/stream_sink_transformer.dart';
+import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -50,6 +51,10 @@ class FakeInspector extends Domain implements AppInspector {
   Future sendMessage(RemoteObject receiver, String methodName,
           [List positionalArgs = const [], Map namedArgs = const {}]) =>
       null;
+  @override
+  Debugger get debugger => null;
+  @override
+  WipDebugger get wipDebugger => null;
 }
 
 class FakeSseConnection implements SseConnection {

@@ -24,6 +24,8 @@ void main() {
   setUpAll(() async {
     await context.setUp();
     inspector = service.appInspectorProvider();
+    handleErrorIfPresent(await inspector.wipDebugger?.enable() as WipResponse);
+
   });
 
   tearDownAll(() async {
@@ -37,12 +39,29 @@ void main() {
   // ScriptRef mainScript;
 
   test('constructor', () async {
+       var a = await tabConnection.runtime.enable();
+    var b = await tabConnection.debugger.enable();
+        // await inspector.debugger.pause();
     var url = 'org-dartlang-app:///web/scopes_main.dart';
-    library = await evaluate(
-        'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]');
-    testClass = await evaluate(
-        'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["libraryPublicFinal"]');
-    var stringy = await inspector.sendMessage(testClass, 'toString', []);
+    // library = await evaluate(
+    //     'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]');
+    // testClass = await evaluate(
+    //     'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["libraryPublicFinal"];');
+    testClass = await evaluate("window");
+
+        var properties;
+        for (var i = 0; i < 10; i++) {
+        try {
+          var fred = await inspector.instanceRefFor(testClass);
+          print(fred);
+           properties = await inspector.debugger.getProperties(testClass.objectId);
+        } catch (e) {
+          print(e);
+        }
+        }
+        print(properties);
+        var stringy = (await inspector.sendMessage(testClass, 'toString', []))['value'] as String;
+    // var stringy = await inspector.sendMessage(testClass, 'toString', []);
     var testClass2 =
         await inspector.loadField(library, 'MyTestClass') as RemoteObject;
     expect(testClass, isNotNull);
@@ -54,7 +73,7 @@ void main() {
 /// Evaluates expression on global object.
 Future<RemoteObject> evaluate(String expression) async {
   final response = await tabConnection.runtime.sendCommand('Runtime.evaluate',
-      params: {'expression': expression, 'objectGroup': 'stuff'});
+      params: {'expression': expression, 'objectGroup': 'console', 'includeCommandLineAPI': true, 'generatePreview': true});
 
   if (response.result.containsKey('exceptionDetails')) {
     throw ArgumentError(

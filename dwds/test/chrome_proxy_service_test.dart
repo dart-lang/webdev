@@ -213,9 +213,10 @@ void main() {
       });
 
       test('can return objects with ids', () async {
+        var object =  await service.evaluate(
+                isolate.id, isolate.rootLib.id, 'createObject("cool")');
         expect(
-            await service.evaluate(
-                isolate.id, isolate.rootLib.id, 'createObject("cool")'),
+           object,
             const TypeMatcher<InstanceRef>()
                 .having((instance) => instance.id, 'id', isNotNull));
         // TODO(jakemac): Add tests for the ClassRef once we create one,

@@ -38,9 +38,9 @@ class AppInspector extends Domain {
   /// Map of [ScriptRef] id to containing [LibraryRef] id.
   final _scriptIdToLibraryId = <String, String>{};
 
-  final WipDebugger _wipDebugger;
+  final WipDebugger wipDebugger;
   final AssetHandler _assetHandler;
-  final Debugger _debugger;
+  final Debugger debugger;
   final Isolate isolate;
   final IsolateRef isolateRef;
 
@@ -50,9 +50,9 @@ class AppInspector extends Domain {
   AppInspector._(
     this.isolate,
     this._assetHandler,
-    this._debugger,
+    this.debugger,
     this._root,
-    this._wipDebugger,
+    this.wipDebugger,
   )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
@@ -128,7 +128,7 @@ class AppInspector extends Domain {
   Future _callFunctionOn(
       RemoteObject receiver, String evalExpression, List arguments) async {
     var result =
-        await _wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
+        await wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': arguments,
       'objectId': receiver.objectId,
@@ -176,7 +176,7 @@ class AppInspector extends Domain {
   return library.$expression;
 })();
     ''';
-      result = await _wipDebugger.sendCommand('Runtime.evaluate',
+      result = await wipDebugger.sendCommand('Runtime.evaluate',
           params: {'expression': evalExpression});
       handleErrorIfPresent(result,
           evalContents: evalExpression,
@@ -193,7 +193,7 @@ function($argsString) {
 }
     ''';
       result =
-          await _wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
+          await wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
         'functionDeclaration': evalExpression,
         'arguments': arguments,
         // TODO(jakemac): Use the executionContext instead, or possibly the
@@ -321,7 +321,7 @@ function($argsString) {
       return result;
     })()
     ''';
-    var result = await _wipDebugger.sendCommand('Runtime.evaluate',
+    var result = await wipDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(result, evalContents: expression);
     var classDescriptors = (result.result['result']['value']['classes'] as List)
@@ -418,7 +418,7 @@ function($argsString) {
       ..library = _libraryRefs[libraryId]
       ..id = scriptRef.id
       ..uri = scriptRef.uri
-      ..tokenPosTable = _debugger.sources.tokenPosTableFor(serverPath)
+      ..tokenPosTable = debugger.sources.tokenPosTableFor(serverPath)
       ..source = script;
   }
 
@@ -461,7 +461,7 @@ function($argsString) {
   Future<List<LibraryRef>> _getLibraryRefs() async {
     if (_libraryRefs.isNotEmpty) return _libraryRefs.values.toList();
     var expression = "require('dart_sdk').dart.getLibraries();";
-    var librariesResult = await _wipDebugger.sendCommand('Runtime.evaluate',
+    var librariesResult = await wipDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(librariesResult, evalContents: expression);
     var libraries =
@@ -479,7 +479,7 @@ function($argsString) {
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
     var expression = "require('dart_sdk').developer._extensions.keys.toList();";
-    var extensionsResult = await _wipDebugger.sendCommand('Runtime.evaluate',
+    var extensionsResult = await wipDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(extensionsResult, evalContents: expression);
     return List.from(extensionsResult.result['result']['value'] as List);

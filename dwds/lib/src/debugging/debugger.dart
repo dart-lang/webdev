@@ -302,7 +302,7 @@ class Debugger extends Domain {
   /// 'scopeChain' field of the 'callFrames' in a DebuggerPausedEvent.
   Future<Iterable<BoundVariable>> _boundVariables(dynamic scope) async {
     var properties =
-        await _getProperties(scope['object']['objectId'] as String);
+        await getProperties(scope['object']['objectId'] as String);
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
     var refs = properties
@@ -314,7 +314,7 @@ class Debugger extends Domain {
 
   /// Calls the Chrome Runtime.getProperties API for the object
   /// with [id].
-  Future<List<Property>> _getProperties(String id) async {
+  Future<List<Property>> getProperties(String id) async {
     var response =
         await _wipDebugger.sendCommand('Runtime.getProperties', params: {
       'objectId': id,

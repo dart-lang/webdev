@@ -19,7 +19,7 @@ void main() async {
   var local = 'local in main';
   var intLocalInMain = 42;
   var testClass = MyTestClass();
-  var localThatsNull = null;
+  Object localThatsNull;
 
   String nestedFunction(String parameter) {
     var another = int.tryParse(parameter);
