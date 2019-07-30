@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:build_daemon/client.dart';
@@ -62,6 +63,7 @@ class TestContext {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     port = await findUnusedPort();
+
     try {
       chromeDriver = await Process.start(
           'chromedriver', ['--port=4444', '--url-base=wd/hub']);

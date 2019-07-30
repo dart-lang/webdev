@@ -213,12 +213,16 @@ void main() {
       });
 
       test('can return objects with ids', () async {
-        var object =  await service.evaluate(
-                isolate.id, isolate.rootLib.id, 'createObject("cool")');
+        var object = await service.evaluate(
+            isolate.id, isolate.rootLib.id, 'createObject("cool")');
         expect(
-           object,
+            object,
             const TypeMatcher<InstanceRef>()
                 .having((instance) => instance.id, 'id', isNotNull));
+        var remote = RemoteObject({'objectId': object.id, 'type': 'object'});
+        var fred = await service.appInspectorProvider().instanceRefFor(remote);
+        print(fred);
+
         // TODO(jakemac): Add tests for the ClassRef once we create one,
         // https://github.com/dart-lang/sdk/issues/36771.
       });
@@ -782,3 +786,16 @@ final _isSuccess = isA<Success>();
 
 TypeMatcher _libRef(uriMatcher) =>
     isA<LibraryRef>().having((l) => l.uri, 'uri', uriMatcher);
+
+/// Evaluates expression on global object.
+Future<RemoteObject> evaluate(String expression) async {
+  final response = await tabConnection.runtime
+      .sendCommand('Runtime.evaluate', params: {'expression': expression});
+
+  if (response.result.containsKey('exceptionDetails')) {
+    throw ArgumentError(
+        '${response.result['exceptionDetails'] as Map<String, dynamic>}');
+  } else {
+    return RemoteObject(response.result['result'] as Map<String, dynamic>);
+  }
+}

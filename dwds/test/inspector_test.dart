@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 // import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'debugger_test.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext(
@@ -18,67 +19,57 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   AppInspector inspector;
-  RemoteObject library;
   RemoteObject testClass;
   // RemoteObject instance;
   setUpAll(() async {
     await context.setUp();
     inspector = service.appInspectorProvider();
-    handleErrorIfPresent(await inspector.wipDebugger?.enable() as WipResponse);
-
   });
 
   tearDownAll(() async {
     await context.tearDown();
   });
 
-  // VM vm;
-  // String isolateId;
-  // Stream<Event> stream;
-  // ScriptList scripts;
-  // ScriptRef mainScript;
+  test('constructor2', () async {
+    var url = 'org-dartlang-app:///web/scopes_main.dart';
+
+    testClass = await inspector.evaluateJsExpression(
+        'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["libraryPublicFinal"];');
+    var fred = await inspector.instanceRefFor(testClass);
+    print(fred);
+    var properties = await inspector.debugger.getProperties(testClass.objectId);
+    print(properties);
+    var stringy = (await inspector
+        .sendMessage(testClass, 'toString', []))['value'] as String;
+    expect(stringy, 'A test class with message world');
+  });
 
   test('constructor', () async {
-       var a = await tabConnection.runtime.enable();
-    var b = await tabConnection.debugger.enable();
-        // await inspector.debugger.pause();
     var url = 'org-dartlang-app:///web/scopes_main.dart';
-    // library = await evaluate(
-    //     'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]');
-    // testClass = await evaluate(
-    //     'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["libraryPublicFinal"];');
-    testClass = await evaluate("window");
+    var library = await inspector.evaluateJsExpression(
+        'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]');
+    testClass = await inspector.evaluateJsExpression(
+        'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["libraryPublicFinal"];');
 
-        var properties;
-        for (var i = 0; i < 10; i++) {
-        try {
-          var fred = await inspector.instanceRefFor(testClass);
-          print(fred);
-           properties = await inspector.debugger.getProperties(testClass.objectId);
-        } catch (e) {
-          print(e);
-        }
-        }
-        print(properties);
-        var stringy = (await inspector.sendMessage(testClass, 'toString', []))['value'] as String;
+    var properties;
+    // for (var i = 0; i < 10; i++) {
+    // try {
+    var fred = await inspector.instanceRefFor(testClass);
+    print(fred);
+    properties = await inspector.debugger.getProperties(testClass.objectId);
+    // } catch (e) {
+    //   print(e);
+    // }
+    // }
+    print(properties);
+    var stringy = (await inspector
+        .sendMessage(testClass, 'toString', []))['value'] as String;
     // var stringy = await inspector.sendMessage(testClass, 'toString', []);
-    var testClass2 =
-        await inspector.loadField(library, 'MyTestClass') as RemoteObject;
-    expect(testClass, isNotNull);
-    expect(testClass2, isNotNull);
-    expect(stringy, '222');
+    // var testClass2 =
+    //     await inspector.loadField(library, 'MyTestClass') as RemoteObject;
+    // expect(testClass, isNotNull);
+    // expect(testClass2, isNotNull);
+    // expect(stringy, '222');
   });
 }
 
-/// Evaluates expression on global object.
-Future<RemoteObject> evaluate(String expression) async {
-  final response = await tabConnection.runtime.sendCommand('Runtime.evaluate',
-      params: {'expression': expression, 'objectGroup': 'console', 'includeCommandLineAPI': true, 'generatePreview': true});
-
-  if (response.result.containsKey('exceptionDetails')) {
-    throw ArgumentError(
-        '${response.result['exceptionDetails'] as Map<String, dynamic>}');
-  } else {
-    return RemoteObject(response.result['result'] as Map<String, dynamic>);
-  }
-}

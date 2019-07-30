@@ -22,7 +22,7 @@ import 'debugger_data.dart';
 class FakeInspector extends Domain implements AppInspector {
   FakeInspector() : super.forInspector();
   @override
-  Future evaluate(String isolateId, String targetId, String expression,
+  Future<RemoteObject> evaluate(String isolateId, String targetId, String expression,
           {Map<String, String> scope, bool disableBreakpoints}) =>
       null;
   @override
@@ -55,6 +55,14 @@ class FakeInspector extends Domain implements AppInspector {
   Debugger get debugger => null;
   @override
   WipDebugger get wipDebugger => null;
+  @override
+  Future<RemoteObject> callJsFunctionOn(
+          Library library, Map<String, String> scope, String expression) =>
+      null;
+  @override
+  Future<RemoteObject> evaluateJsExpression(String expression) => null;
+  @override 
+  Future<RemoteObject> evaluateJsExpressionOnLibrary(String expression, String libraryUri) => null;
 }
 
 class FakeSseConnection implements SseConnection {

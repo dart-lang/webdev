@@ -154,7 +154,8 @@ class AppInspector extends Domain {
   Future<String> _toString(RemoteObject receiver) async =>
       (await sendMessage(receiver, 'toString', []))['value'] as String;
 
-  Future evaluate(String isolateId, String targetId, String expression,
+  Future<RemoteObject> evaluate(
+      String isolateId, String targetId, String expression,
       {Map<String, String> scope, bool disableBreakpoints}) async {
     scope ??= {};
     disableBreakpoints ??= false;
@@ -163,53 +164,59 @@ class AppInspector extends Domain {
       throw UnsupportedError(
           'Evaluate is only supported when `targetId` is a library.');
     }
-    WipResponse result;
+    if (scope.isNotEmpty) {
+      return callJsFunctionOn(library, scope, expression);
+    } else {
+      return evaluateJsExpressionOnLibrary(expression, library.uri);
+    }
+  }
 
-    // If there is scope, we use `callFunctionOn` because that accepts the
-    // `arguments` option.
-    //
-    // If there is no scope we run a normal evaluate call.
-    if (scope.isEmpty) {
+  Future<RemoteObject> evaluateJsExpressionOnLibrary(String expression, String libraryUri) {
       var evalExpression = '''
 (function() {
-  ${_getLibrarySnippet(library.uri)};
+  ${_getLibrarySnippet(libraryUri)};
   return library.$expression;
 })();
-    ''';
-      result = await wipDebugger.sendCommand('Runtime.evaluate',
-          params: {'expression': evalExpression});
-      handleErrorIfPresent(result,
-          evalContents: evalExpression,
-          additionalDetails: {
-            'Dart expression': expression,
-          });
-    } else {
-      var argsString = scope.keys.join(', ');
-      var arguments = scope.values.map((id) => {'objectId': id}).toList();
-      var evalExpression = '''
+''';
+   return evaluateJsExpression(evalExpression);
+  }
+
+  Future<RemoteObject> evaluateJsExpression(String expression) async {
+    WipResponse result;
+    result = await wipDebugger
+        .sendCommand('Runtime.evaluate', params: {'expression': expression});
+    handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
+      'Dart expression': expression,
+    });
+    return RemoteObject(result.result['result'] as Map<String, dynamic>);
+  }
+
+  Future<RemoteObject> callJsFunctionOn(
+      Library library, Map<String, String> scope, String expression) async {
+    var argsString = scope.keys.join(', ');
+    var arguments = scope.values.map((id) => {'objectId': id}).toList();
+    var evalExpression = '''
 function($argsString) {
   ${_getLibrarySnippet(library.uri)};
   return library.$expression;
 }
     ''';
-      result =
-          await wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
-        'functionDeclaration': evalExpression,
-        'arguments': arguments,
-        // TODO(jakemac): Use the executionContext instead, or possibly the
-        // library object. This will get weird if people try to use `this` in
-        // their expression.
-        'objectId': scope.values.first,
-      });
-      handleErrorIfPresent(result,
-          evalContents: evalExpression,
-          additionalDetails: {
-            'Dart expression': expression,
-            'scope': scope,
-          });
-    }
-    return await instanceRefFor(
-        RemoteObject(result.result['result'] as Map<String, dynamic>));
+    var result =
+        await wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
+      'functionDeclaration': evalExpression,
+      'arguments': arguments,
+      // TODO(jakemac): Use the executionContext instead, or possibly the
+      // library object. This will get weird if people try to use `this` in
+      // their expression.
+      'objectId': scope.values.first,
+    });
+    handleErrorIfPresent(result,
+        evalContents: evalExpression,
+        additionalDetails: {
+          'Dart expression': expression,
+          'scope': scope,
+        });
+    return RemoteObject(result.result['result'] as Map<String, dynamic>);
   }
 
   /// Create an [InstanceRef] for the given Chrome [remoteObject].
