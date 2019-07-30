@@ -37,59 +37,77 @@ void main() {
     ScriptRef mainScript;
 
     setUp(() async {
-      vm = await service.getVM();
-      isolate = await service.getIsolate(vm.isolates.first.id);
-      scripts = await service.getScripts(isolate.id);
+      vm = await context.debugConnection.chromeProxyService.getVM();
+      isolate = await context.debugConnection.chromeProxyService
+          .getIsolate(vm.isolates.first.id);
+      scripts = await context.debugConnection.chromeProxyService
+          .getScripts(isolate.id);
       mainScript =
           scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
     });
 
     test('addBreakpoint', () async {
       // TODO: Much more testing.
-      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
+      var bp = await context.debugConnection.chromeProxyService
+          .addBreakpoint(isolate.id, mainScript.id, 23);
       // Remove breakpoint so it doesn't impact other tests.
-      await service.removeBreakpoint(isolate.id, bp.id);
+      await context.debugConnection.chromeProxyService
+          .removeBreakpoint(isolate.id, bp.id);
       expect(bp.id, isNotNull);
     });
 
     test('addBreakpoint on a part file', () async {
       var partScript = scripts.scripts
           .firstWhere((script) => script.uri.contains('part.dart'));
-      var bp = await service.addBreakpoint(isolate.id, partScript.id, 10);
+      var bp = await context.debugConnection.chromeProxyService
+          .addBreakpoint(isolate.id, partScript.id, 10);
       // Remove breakpoint so it doesn't impact other tests.
-      await service.removeBreakpoint(isolate.id, bp.id);
+      await context.debugConnection.chromeProxyService
+          .removeBreakpoint(isolate.id, bp.id);
       expect(bp.id, isNotNull);
     });
 
     test('addBreakpointAtEntry', () {
-      expect(() => service.addBreakpointAtEntry(null, null),
+      expect(
+          () => context.debugConnection.chromeProxyService
+              .addBreakpointAtEntry(null, null),
           throwsUnimplementedError);
     });
 
     test('addBreakpointWithScriptUri', () async {
-      var bp = await service.addBreakpointWithScriptUri(
-          isolate.id, mainScript.uri, 23);
+      var bp = await context.debugConnection.chromeProxyService
+          .addBreakpointWithScriptUri(isolate.id, mainScript.uri, 23);
       // Remove breakpoint so it doesn't impact other tests.
-      await service.removeBreakpoint(isolate.id, bp.id);
+      await context.debugConnection.chromeProxyService
+          .removeBreakpoint(isolate.id, bp.id);
       expect(bp.id, isNotNull);
     });
 
     test('removeBreakpoint null arguments', () {
-      expect(() => service.removeBreakpoint(null, null), throwsArgumentError);
+      expect(
+          () => context.debugConnection.chromeProxyService
+              .removeBreakpoint(null, null),
+          throwsArgumentError);
     });
 
     test("removeBreakpoint doesn't exist", () {
-      expect(() => service.removeBreakpoint(isolate.id, '1234'),
+      expect(
+          () => context.debugConnection.chromeProxyService
+              .removeBreakpoint(isolate.id, '1234'),
           throwsArgumentError);
     });
     test('add and remove breakpoint', () async {
-      var bp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
+      var bp = await context.debugConnection.chromeProxyService
+          .addBreakpoint(isolate.id, mainScript.id, 23);
       expect(isolate.breakpoints, [bp]);
-      await service.removeBreakpoint(isolate.id, bp.id);
+      await context.debugConnection.chromeProxyService
+          .removeBreakpoint(isolate.id, bp.id);
       expect(isolate.breakpoints, isEmpty);
     });
 
     test('can add and remove after a refresh', () async {
+      vm = await service.getVM();
+      isolate = await service.getIsolate(vm.isolates.first.id);
       var stream = service.onEvent('Isolate');
       await context.webDriver.refresh();
       // Wait for the refresh to propagate through.

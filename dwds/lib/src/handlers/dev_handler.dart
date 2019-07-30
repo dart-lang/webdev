@@ -82,9 +82,31 @@ class DevHandler {
   // a getter and is created immediately.
   Future<DebugService> startDebugService(
       ChromeConnection chromeConnection, String appInstanceId) async {
+    ChromeTab appTab;
+    for (var tab in await chromeConnection.getTabs()) {
+      if (tab.url.startsWith('chrome-extensions:')) continue;
+      var tabConnection = await tab.connect();
+      var result = await tabConnection.runtime
+          .evaluate(r'window["$dartAppInstanceId"];');
+      if (result.value == appInstanceId) {
+        appTab = tab;
+        break;
+      }
+      unawaited(tabConnection.close());
+    }
+    if (appTab == null) {
+      throw StateError('Could not connect to application with appInstanceId: '
+          '$appInstanceId');
+    }
+    var tabConnection = await appTab.connect();
+    await tabConnection.runtime.enable();
+
+    var wipDebugger = WipDebugger(tabConnection);
+
     return DebugService.start(
       _hostname,
-      chromeConnection,
+      wipDebugger,
+      appTab.url,
       _assetHandler.getRelativeAsset,
       appInstanceId,
       onResponse: _verbose

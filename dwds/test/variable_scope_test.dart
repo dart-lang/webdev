@@ -12,7 +12,7 @@ import 'fixtures/context.dart';
 
 final context = TestContext(
     directory: '../example', path: 'scopes.html', pathToServe: 'web');
-ChromeProxyService get service => context.chromeProxyService;
+ChromeProxyService get service => context.debugConnection.chromeProxyService;
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
