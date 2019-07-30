@@ -39,8 +39,6 @@ void main() {
     });
 
     test('can add and remove after a refresh', () async {
-      // vm = await service.getVM();
-      // isolate = await service.getIsolate(vm.isolates.first.id);
       var stream = newService.onEvent('Isolate');
       await context.webDriver.refresh();
       // Wait for the refresh to propagate through.
