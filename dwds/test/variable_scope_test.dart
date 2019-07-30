@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/connections/debug_connection.dart';
 @TestOn('vm')
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
@@ -12,7 +13,8 @@ import 'fixtures/context.dart';
 
 final context = TestContext(
     directory: '../example', path: 'scopes.html', pathToServe: 'web');
-ChromeProxyService get service => context.debugConnection.chromeProxyService;
+ChromeProxyService get service =>
+    fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {

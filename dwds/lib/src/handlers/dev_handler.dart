@@ -83,9 +83,10 @@ class DevHandler {
   Future<DebugService> startDebugService(
       ChromeConnection chromeConnection, String appInstanceId) async {
     ChromeTab appTab;
+    WipConnection tabConnection;
     for (var tab in await chromeConnection.getTabs()) {
       if (tab.url.startsWith('chrome-extensions:')) continue;
-      var tabConnection = await tab.connect();
+      tabConnection = await tab.connect();
       var result = await tabConnection.runtime
           .evaluate(r'window["$dartAppInstanceId"];');
       if (result.value == appInstanceId) {
@@ -98,7 +99,7 @@ class DevHandler {
       throw StateError('Could not connect to application with appInstanceId: '
           '$appInstanceId');
     }
-    var tabConnection = await appTab.connect();
+
     await tabConnection.runtime.enable();
 
     var wipDebugger = WipDebugger(tabConnection);

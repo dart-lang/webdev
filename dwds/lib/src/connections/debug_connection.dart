@@ -40,7 +40,7 @@ class DebugConnection {
   }
 
   Future<void> get onDone => _onDoneCompleter.future;
-
-  ChromeProxyService get chromeProxyService =>
-      _appDebugServices.debugService.chromeProxyService as ChromeProxyService;
 }
+
+ChromeProxyService fetchChromeProxyService(DebugConnection debugConnection) =>
+    debugConnection._appDebugServices.chromeProxyService;

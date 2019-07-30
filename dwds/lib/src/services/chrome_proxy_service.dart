@@ -38,8 +38,8 @@ class ChromeProxyService implements VmServiceInterface {
   /// are dynamic and roughly map to chrome tabs.
   final VM _vm;
 
-  /// The actual chrome tab running this app.
-  final String _tabUrl;
+  /// The root URI at which we're serving.
+  final String uri;
 
   final WipDebugger wipDebugger;
 
@@ -55,7 +55,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   ChromeProxyService._(
     this._vm,
-    this._tabUrl,
+    this.uri,
     this._assetHandler,
     this.wipDebugger,
   );
@@ -87,9 +87,6 @@ class ChromeProxyService implements VmServiceInterface {
       uri,
     );
   }
-
-  /// The root URI at which we're serving.
-  String get uri => _tabUrl;
 
   /// Creates a new isolate.
   ///
