@@ -249,12 +249,11 @@ require("dart_sdk").developer.invokeExtension(
 
   @override
   Future evaluate(String isolateId, String targetId, String expression,
-          {Map<String, String> scope, bool disableBreakpoints}) async {
-            var remote = 
-      await _inspector?.evaluate(isolateId, targetId, expression,
-          scope: scope, disableBreakpoints: disableBreakpoints);
-          return _inspector ?.instanceRefFor(remote);
-          }
+      {Map<String, String> scope, bool disableBreakpoints}) async {
+    var remote = await _inspector?.evaluate(isolateId, targetId, expression,
+        scope: scope, disableBreakpoints: disableBreakpoints);
+    return _inspector?.instanceRefFor(remote);
+  }
 
   @override
   Future evaluateInFrame(String isolateId, int frameIndex, String expression,

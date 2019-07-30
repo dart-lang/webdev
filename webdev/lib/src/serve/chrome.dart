@@ -85,7 +85,7 @@ class Chrome {
   ///
   /// Each url in [urls] will be loaded in a separate tab.
   static Future<Chrome> start(List<String> urls, {int port}) async {
-    var dataDir = Directory('/tmp/foo');
+    var dataDir = Directory.systemTemp.createTempSync();
     port = port == null || port == 0 ? await findUnusedPort() : port;
     var args = [
       // Using a tmp directory ensures that a new instance of chrome launches
@@ -102,7 +102,7 @@ class Chrome {
       '--no-first-run',
       '--no-default-browser-check',
       '--disable-default-apps',
-      '--disable-translate', '--enable-devtools-experiments',
+      '--disable-translate',
     ]..addAll(urls);
 
     var process = await Process.start(_executable, args);

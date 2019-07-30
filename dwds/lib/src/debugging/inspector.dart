@@ -171,14 +171,15 @@ class AppInspector extends Domain {
     }
   }
 
-  Future<RemoteObject> evaluateJsExpressionOnLibrary(String expression, String libraryUri) {
-      var evalExpression = '''
+  Future<RemoteObject> evaluateJsExpressionOnLibrary(
+      String expression, String libraryUri) {
+    var evalExpression = '''
 (function() {
   ${_getLibrarySnippet(libraryUri)};
   return library.$expression;
 })();
 ''';
-   return evaluateJsExpression(evalExpression);
+    return evaluateJsExpression(evalExpression);
   }
 
   Future<RemoteObject> evaluateJsExpression(String expression) async {
