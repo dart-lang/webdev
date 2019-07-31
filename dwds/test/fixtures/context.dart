@@ -84,10 +84,16 @@ class TestContext {
         .timeout(const Duration(seconds: 60));
 
     var debugPort = await findUnusedPort();
+    // If the environment variable DWDS_DEBUG_CHROME is set to the string true
+    // then Chrome will be launched with a UI rather than headless.
+    var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true';
     var capabilities = Capabilities.chrome
       ..addAll({
         Capabilities.chromeOptions: {
-          'args': ['remote-debugging-port=$debugPort', '--headless']
+          'args': [
+            'remote-debugging-port=$debugPort',
+            if (headless) '--headless'
+          ]
         }
       });
     webDriver =
