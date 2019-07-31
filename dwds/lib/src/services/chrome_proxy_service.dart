@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -39,8 +38,8 @@ class ChromeProxyService implements VmServiceInterface {
   /// are dynamic and roughly map to chrome tabs.
   final VM _vm;
 
-  /// The actual chrome tab running this app.
-  final ChromeTab _tab;
+  /// The root URI at which we're serving.
+  final String uri;
 
   final WipDebugger wipDebugger;
 
@@ -56,44 +55,24 @@ class ChromeProxyService implements VmServiceInterface {
 
   ChromeProxyService._(
     this._vm,
-    this._tab,
+    this.uri,
     this._assetHandler,
     this.wipDebugger,
   );
 
   static Future<ChromeProxyService> create(
-    ChromeConnection chromeConnection,
+    WipDebugger wipDebugger,
+    String tabUrl,
     AssetHandler assetHandler,
     String appInstanceId,
   ) async {
-    ChromeTab appTab;
-    for (var tab in await chromeConnection.getTabs()) {
-      if (tab.url.startsWith('chrome-extensions:')) continue;
-      var tabConnection = await tab.connect();
-      var result = await tabConnection.runtime
-          .evaluate(r'window["$dartAppInstanceId"];');
-      if (result.value == appInstanceId) {
-        appTab = tab;
-        break;
-      }
-      unawaited(tabConnection.close());
-    }
-    if (appTab == null) {
-      throw StateError('Could not connect to application with appInstanceId: '
-          '$appInstanceId');
-    }
-    var tabConnection = await appTab.connect();
-    await tabConnection.runtime.enable();
-
-    var wipDebugger = WipDebugger(tabConnection);
-
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
       ..isolates = []
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
-    var service = ChromeProxyService._(vm, appTab, assetHandler, wipDebugger);
+    var service = ChromeProxyService._(vm, tabUrl, assetHandler, wipDebugger);
     await service._initialize();
     await service.createIsolate();
     return service;
@@ -108,9 +87,6 @@ class ChromeProxyService implements VmServiceInterface {
       uri,
     );
   }
-
-  /// The root URI at which we're serving.
-  String get uri => _tab.url;
 
   /// Creates a new isolate.
   ///

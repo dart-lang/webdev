@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
 import '../services/app_debug_services.dart';
@@ -40,3 +41,7 @@ class DebugConnection {
 
   Future<void> get onDone => _onDoneCompleter.future;
 }
+
+/// [ChromeProxyService] of a [DebugConnection] for internal use only.
+ChromeProxyService fetchChromeProxyService(DebugConnection debugConnection) =>
+    debugConnection._appDebugServices.chromeProxyService;

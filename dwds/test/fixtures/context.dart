@@ -113,13 +113,14 @@ class TestContext {
 
     appConnection = await testServer.dwds.connectedApps.first;
     debugConnection = await testServer.dwds.debugConnection(appConnection);
-
     var assetHandler = (String path) async {
       var result = await http.get('http://localhost:$port/$path');
       return result.body;
     };
+
+    wipDebugger = WipDebugger(tabConnection);
     chromeProxyService = await ChromeProxyService.create(
-        connection, assetHandler, appConnection.request.instanceId);
+        wipDebugger, appUrl, assetHandler, appConnection.request.instanceId);
   }
 
   Future<Null> tearDown() async {
