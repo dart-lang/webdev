@@ -29,16 +29,48 @@ void main() {
   tearDownAll(() async {
     await context.tearDown();
   });
+    final url = 'org-dartlang-app:///web/scopes_main.dart';
+
+    String libraryVariableExpression(String variable) => 'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["$variable"];';
+
+
+  test('send toString', () async {
+    testClass = await inspector.evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+    var toString = await inspector.sendMessage(testClass, 'toString', []);
+    var actualString = toString['value'] as String;
+    expect(actualString, 'A test class with message world');
+  });
+
+    test('instanceRef toString', () async {
+    testClass = await inspector.evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+    var ref = await inspector.instanceRefFor(testClass);
+    expect(ref.valueAsString, 'A test class with message world');
+  });
+
+  test('get field', () async {
+        testClass = await inspector.evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+        var message = await inspector.loadField(testClass, 'message');
+        var actualMessage = message['value'] as String;
+        expect(actualMessage, 'world');
+  });
+
+  test('properties', () async {
+            testClass = await inspector.evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+    var properties = await inspector.debugger.getProperties(testClass.objectId);
+    var names = properties.map((p) => p.name).where((x) => x != '__proto__').toList();
+    var expected = ['Symbol(MyTestClass.count)', 'Symbol(MyTestClass.message)', 'Symbol(MyTestClass.notFinal)'];
+    names.sort();
+    expect(expected, names);
+  });
+
+
 
   test('constructor2', () async {
-    var url = 'org-dartlang-app:///web/scopes_main.dart';
 
     testClass = await inspector.evaluateJsExpression(
         'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["libraryPublicFinal"];');
     var fred = await inspector.instanceRefFor(testClass);
-    print(fred);
     var properties = await inspector.debugger.getProperties(testClass.objectId);
-    print(properties);
     var stringy = (await inspector
         .sendMessage(testClass, 'toString', []))['value'] as String;
     expect(stringy, 'A test class with message world');
