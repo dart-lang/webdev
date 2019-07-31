@@ -121,8 +121,22 @@ class DevHandler {
   }
 
   Future<AppDebugServices> loadAppServices(String appId, String instanceId) =>
-      _servicesByAppId.putIfAbsent(
-          appId, () => _createAppDebugServices(appId, instanceId));
+      _servicesByAppId.putIfAbsent(appId, () async {
+        var debugService =
+            await startDebugService(await _chromeConnection(), instanceId);
+        var appServices = await _createAppDebugServices(appId, debugService);
+        unawaited(appServices
+            .chromeProxyService.wipDebugger.connection.onClose.first
+            .whenComplete(() {
+          appServices.close();
+          _servicesByAppId.remove(appId);
+          _logWriter(
+              Level.INFO,
+              'Stopped debug service on '
+              'ws://${debugService.hostname}:${debugService.port}\n');
+        }));
+        return appServices;
+      });
 
   void _handleConnection(SseConnection injectedConnection) {
     _injectedConnections.add(injectedConnection);
@@ -181,8 +195,8 @@ class DevHandler {
 
         // If you load the same app in a different tab then we need to throw
         // away our old services and start new ones.
-        if (!(await _isCorrectTab(message.instanceId,
-            appServices.chromeProxyService.wipDebugger.connection))) {
+        if (!(await _isCorrectTab(
+            message.instanceId, appServices.chromeProxyService.wipDebugger))) {
           unawaited(appServices.close());
           unawaited(_servicesByAppId.remove(message.appId));
           appServices =
@@ -213,8 +227,8 @@ class DevHandler {
         if (services != null && services.connectedInstanceId == null) {
           // Re-connect to the previous instance if its in the same tab,
           // otherwise do nothing for now.
-          if (await _isCorrectTab(message.instanceId,
-              services.chromeProxyService.wipDebugger.connection)) {
+          if (await _isCorrectTab(
+              message.instanceId, services.chromeProxyService.wipDebugger)) {
             services.connectedInstanceId = message.instanceId;
             await services.chromeProxyService.createIsolate();
           }
@@ -250,36 +264,19 @@ class DevHandler {
   }
 
   Future<AppDebugServices> _createAppDebugServices(
-      String appId, String instanceId) async {
-    var debugService =
-        await startDebugService(await _chromeConnection(), instanceId);
+      String appId, DebugService debugService) async {
     _logWriter(
         Level.INFO,
         'Debug service listening on '
         '${debugService.wsUri}\n');
-
     var webdevClient = await DwdsVmClient.create(debugService);
-    var appServices = AppDebugServices(debugService, webdevClient);
-
-    unawaited(appServices
-        .chromeProxyService.wipDebugger.connection.onClose.first
-        .then((_) {
-      appServices.close();
-      _servicesByAppId.remove(appId);
-      _logWriter(
-          Level.INFO,
-          'Stopped debug service on '
-          'ws://${debugService.hostname}:${debugService.port}\n');
-    }));
-
-    return appServices;
+    return AppDebugServices(debugService, webdevClient);
   }
 }
 
-/// Checks if [tabConnection] is running the app with [instanceId].
-Future<bool> _isCorrectTab(
-    String instanceId, WipConnection tabConnection) async {
-  var result =
-      await tabConnection.runtime.evaluate(r'window["$dartAppInstanceId"];');
+/// Checks if connection of [wipDebugger] is running the app with [instanceId].
+Future<bool> _isCorrectTab(String instanceId, WipDebugger wipDebugger) async {
+  var result = await wipDebugger.connection.runtime
+      .evaluate(r'window["$dartAppInstanceId"];');
   return result.value == instanceId;
 }
