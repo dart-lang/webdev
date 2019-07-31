@@ -120,24 +120,23 @@ class DevHandler {
     );
   }
 
-  Future<AppDebugServices> loadAppServices(
-      String appId, String instanceId) async {
-    var debugService =
-        await startDebugService(await _chromeConnection(), instanceId);
-    var appServices = await _servicesByAppId.putIfAbsent(
-        appId, () => _createAppDebugServices(appId, debugService));
-    unawaited(appServices
-        .chromeProxyService.wipDebugger.connection.onClose.first
-        .then((_) {
-      appServices.close();
-      _servicesByAppId.remove(appId);
-      _logWriter(
-          Level.INFO,
-          'Stopped debug service on '
-          'ws://${debugService.hostname}:${debugService.port}\n');
-    }));
-    return appServices;
-  }
+  Future<AppDebugServices> loadAppServices(String appId, String instanceId) =>
+      _servicesByAppId.putIfAbsent(appId, () async {
+        var debugService =
+            await startDebugService(await _chromeConnection(), instanceId);
+        var appServices = await _createAppDebugServices(appId, debugService);
+        unawaited(appServices
+            .chromeProxyService.wipDebugger.connection.onClose.first
+            .then((_) {
+          appServices.close();
+          _servicesByAppId.remove(appId);
+          _logWriter(
+              Level.INFO,
+              'Stopped debug service on '
+              'ws://${debugService.hostname}:${debugService.port}\n');
+        }));
+        return appServices;
+      });
 
   void _handleConnection(SseConnection injectedConnection) {
     _injectedConnections.add(injectedConnection);
