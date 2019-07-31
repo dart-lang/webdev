@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:build_daemon/data/build_status.dart';
-import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
@@ -77,12 +76,10 @@ class Dwds {
 
     String extensionHostname;
     int extensionPort;
-    ExtensionDebugger extensionDebugger;
     if (enableDebugExtension) {
       var extensionBackend = await ExtensionBackend.start();
       extensionHostname = extensionBackend.hostname;
       extensionPort = extensionBackend.port;
-      extensionDebugger = await extensionBackend.extensionDebugger;
     }
 
     pipeline = pipeline.addMiddleware(createInjectedHandler(reloadConfiguration,
@@ -102,7 +99,6 @@ class Dwds {
       hostname,
       verbose,
       logWriter,
-      extensionDebugger,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 

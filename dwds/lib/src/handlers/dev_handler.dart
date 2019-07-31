@@ -7,7 +7,6 @@ import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart' as build_daemon;
-import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -40,7 +39,6 @@ class DevHandler {
   final bool _verbose;
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
-  final ExtensionDebugger _extensionDebugger;
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -52,7 +50,6 @@ class DevHandler {
     this._hostname,
     this._verbose,
     this._logWriter,
-    this._extensionDebugger,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
