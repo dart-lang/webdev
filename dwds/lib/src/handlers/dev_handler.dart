@@ -276,33 +276,6 @@ class DevHandler {
     var webdevClient = await DwdsVmClient.create(debugService);
     return AppDebugServices(debugService, webdevClient);
   }
-
-  /// Starts [DebugService] for Dart Debug Extension
-  void _startExtensionDebugService() async {
-    await _extensionDebugger
-        .devToolsRequestStream.first; // Waits for the tab URL.
-    var debugService = await DebugService.start(
-      _hostname,
-      _extensionDebugger,
-      _extensionDebugger.tabUrl,
-      _assetHandler.getRelativeAsset,
-      _extensionDebugger.appId,
-      onResponse: _verbose
-          ? (response) {
-              if (response['error'] == null) return;
-              _logWriter(Level.WARNING,
-                  'VmService proxy responded with an error:\n$response');
-            }
-          : null,
-    );
-    var appServices =
-        await _createAppDebugServices(_extensionDebugger.appId, debugService);
-    await _extensionDebugger.sendCommand('Target.createTarget', params: {
-      'newWindow': true,
-      'url': 'http://${_devTools.hostname}:${_devTools.port}'
-          '/?hide=none&uri=${appServices.debugService.wsUri}',
-    });
-  }
 }
 
 /// Checks if connection of [wipDebugger] is running the app with [instanceId].
