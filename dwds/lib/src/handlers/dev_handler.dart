@@ -127,7 +127,7 @@ class DevHandler {
         var appServices = await _createAppDebugServices(appId, debugService);
         unawaited(appServices
             .chromeProxyService.wipDebugger.connection.onClose.first
-            .then((_) {
+            .whenComplete(() {
           appServices.close();
           _servicesByAppId.remove(appId);
           _logWriter(
