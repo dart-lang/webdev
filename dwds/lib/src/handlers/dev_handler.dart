@@ -173,7 +173,7 @@ class DevHandler {
         try {
           appServices =
               await loadAppServices(message.appId, message.instanceId);
-        } catch (e) {
+        } catch (_) {
           injectedConnection.sink
               .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
                 ..success = false
@@ -305,7 +305,7 @@ class DevHandler {
   }
 }
 
-/// Checks if [tabConnection] is running the app with [instanceId].
+/// Checks if connection of [wipDebugger] is running the app with [instanceId].
 Future<bool> _isCorrectTab(String instanceId, WipDebugger wipDebugger) async {
   var result = await wipDebugger.connection.runtime
       .evaluate(r'window["$dartAppInstanceId"];');

@@ -17,14 +17,10 @@ class ExtensionBackend {
   final String hostname;
   final int port;
   final HttpServer _server;
-  ExtensionBackend._(this.hostname, this.port, this._server) {
-    print('listening!');
-    // _listen();
-  }
+  ExtensionBackend._(this.hostname, this.port, this._server);
 
   // Starts the backend on an open port.
   static Future<ExtensionBackend> start() async {
-    print('ext backend starting');
     var server = await HttpMultiServer.bind('localhost', 0);
     serveRequests(server, _sseHandler.handler);
     return ExtensionBackend._(server.address.host, server.port, server);
