@@ -42,5 +42,6 @@ class DebugConnection {
   Future<void> get onDone => _onDoneCompleter.future;
 }
 
+/// [ChromeProxyService] of a [DebugConnection] for internal use only.
 ChromeProxyService fetchChromeProxyService(DebugConnection debugConnection) =>
     debugConnection._appDebugServices.chromeProxyService;
