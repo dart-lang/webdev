@@ -1,6 +1,8 @@
 ## 0.4.1
 
 - Fix an issue where we source map paths were not normalized.
+- Added a check to tests for the variable DWDS_DEBUG_CHROME to run Chrome with a
+  UI rather than headless.
 
 ## 0.4.0
 
