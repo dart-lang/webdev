@@ -136,7 +136,11 @@ class AppInspector extends Domain {
   /// it as a RemoteObject.
   Object _asDartObject(RemoteObject remote) {
     if (remote.type == 'object') {
-      return remote;
+      if (remote.objectId == null) {
+        return null;
+      } else {
+        return remote;
+      }
     } else {
       return remote.value;
     }
@@ -260,8 +264,7 @@ function($argsString) {
       case 'boolean':
         return _primitiveInstance(InstanceKind.kBool, remoteObject);
       case 'object':
-        // TODO: Actual toString()
-        if (remoteObject.value == null && remoteObject.objectId == null) {
+        if (_asDartObject(remoteObject) == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
         var toString = await toStringOf(remoteObject);

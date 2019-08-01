@@ -6,6 +6,7 @@
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:test/test.dart';
+import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
@@ -47,6 +48,14 @@ void main() {
     instance = await libraryPublicFinal();
     var ref = await inspector.instanceRefFor(instance);
     expect(ref.valueAsString, 'A test class with message world');
+  });
+
+  test('instanceRef for null', () async {
+    instance = await inspector.evaluateJsExpression(
+        libraryVariableExpression('libraryNull'));
+    var ref = await inspector.instanceRefFor(instance);
+    expect(ref.valueAsString, 'null');
+    expect(ref.kind, InstanceKind.kNull);
   });
 
   test('get string field', () async {
