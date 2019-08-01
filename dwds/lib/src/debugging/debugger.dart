@@ -311,8 +311,10 @@ class Debugger extends Domain {
     return Future.wait(refs);
   }
 
-  /// Calls the Chrome Runtime.getProperties API for the object
-  /// with [id].
+  /// Calls the Chrome Runtime.getProperties API for the object with [id].
+  ///
+  /// Note that the property names are JS names, e.g.
+  /// Symbol(DartClass.actualName) and will need to be converted.
   Future<List<Property>> getProperties(String id) async {
     var response =
         await _wipDebugger.sendCommand('Runtime.getProperties', params: {

@@ -52,7 +52,9 @@ class MyTestClass {
 
   String notFinal;
 
-  MyTestClass({this.message = 'world'});
+  MyTestClass({this.message = 'world'}) {
+   myselfField = this; 
+  }
 
   String hello() => message;
 
@@ -61,6 +63,11 @@ class MyTestClass {
     print(local);
     return local;
   }
+
+  //ignore: avoid_returning_this
+  MyTestClass get myselfGetter => this;
+
+  MyTestClass myselfField;
 
   var count = 0;
 

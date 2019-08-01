@@ -49,13 +49,12 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   Future loadField(RemoteObject receiver, String fieldName) => null;
   @override
-  Future sendMessage(RemoteObject receiver, String methodName,
+  Future<Map<String, Object>> sendMessage(
+          RemoteObject receiver, String methodName,
           [List positionalArgs = const [], Map namedArgs = const {}]) =>
       null;
   @override
   Debugger get debugger => null;
-  @override
-  WipDebugger get wipDebugger => null;
   @override
   Future<RemoteObject> callJsFunctionOn(
           Library library, Map<String, String> scope, String expression) =>
@@ -66,6 +65,8 @@ class FakeInspector extends Domain implements AppInspector {
   Future<RemoteObject> evaluateJsExpressionOnLibrary(
           String expression, String libraryUri) =>
       null;
+  @override
+  Future<String> toStringOf(RemoteObject receiver) async => '';
 }
 
 class FakeSseConnection implements SseConnection {

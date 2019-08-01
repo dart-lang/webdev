@@ -38,7 +38,7 @@ class AppInspector extends Domain {
   /// Map of [ScriptRef] id to containing [LibraryRef] id.
   final _scriptIdToLibraryId = <String, String>{};
 
-  final WipDebugger wipDebugger;
+  final WipDebugger _wipDebugger;
   final AssetHandler _assetHandler;
   final Debugger debugger;
   final Isolate isolate;
@@ -52,7 +52,7 @@ class AppInspector extends Domain {
     this._assetHandler,
     this.debugger,
     this._root,
-    this.wipDebugger,
+    this._wipDebugger,
   )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
@@ -101,18 +101,24 @@ class AppInspector extends Domain {
     return inspector;
   }
 
-  Future loadField(RemoteObject receiver, String fieldName) async {
-    // TODO: What does this return? Always a remoteObject? Or can it be a simple object? ###
+  /// Get the value of the field named [fieldName] from [receiver].
+  ///
+  /// Returns either a [RemoteObject] or a simple object.
+  Future<Object> loadField(RemoteObject receiver, String fieldName) async {
     var load = '''
         function() {
           return require("dart_sdk").dart.dloadRepl(this, "$fieldName");
         }
         ''';
-    return await _callFunctionOn(receiver, load, _marshallArguments([]));
+    var remoteObject =
+        await _callFunctionOn(receiver, load, _marshallArguments([]));
+    return _asDartObject(remoteObject);
   }
 
   /// Call a method by name on [receiver], with arguments [positionalArgs] and [namedArgs].
-  Future sendMessage(RemoteObject receiver, String methodName,
+  ///
+  /// Returns either a [RemoteObject] or a simple object.
+  Future<Object> sendMessage(RemoteObject receiver, String methodName,
       [List positionalArgs = const [], Map namedArgs = const {}]) async {
     var send = '''
         function (positional) { 
@@ -122,28 +128,47 @@ class AppInspector extends Domain {
         ''';
     // TODO(alanknight): Support named arguments.
     var arguments = _marshallArguments(positionalArgs);
-    return _callFunctionOn(receiver, send, arguments);
+    var response = await _callFunctionOn(receiver, send, arguments);
+    return _asDartObject(response);
   }
 
-  Future _callFunctionOn(
+  /// Given [remote], if it's a simple type, return the value, otherwise leave
+  /// it as a RemoteObject.
+  Object _asDartObject(RemoteObject remote) {
+    if (remote.type == 'object') {
+      return remote;
+    } else {
+      return remote.value;
+    }
+  }
+
+  /// Calls Chrome's Runtime.callFunctionOn method.
+  ///
+  /// [arguments] is expected to be in the form returned by [_marshallArguments].
+  Future<RemoteObject> _callFunctionOn(
       RemoteObject receiver, String evalExpression, List arguments) async {
     var result =
-        await wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
+        await _wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': arguments,
       'objectId': receiver.objectId,
     });
     handleErrorIfPresent(result, evalContents: evalExpression);
-    return result.result['result'];
+    return RemoteObject(result.result['result'] as Map<String, Object>);
   }
 
-  List _marshallArguments(List arguments) {
+  /// Convert [arguments] to a form usable in WIP evaluation calls.
+  List<Map<String, Object>> _marshallArguments(List arguments) {
     return [
       {'value': arguments.map(_marshallOne).toList()}
     ];
   }
 
-  Map<String, dynamic> _marshallOne(dynamic argument) {
+  /// Convert [argument] to a form usable in WIP evaluation calls.
+  ///
+  /// The [argument] should be either a RemoteObject or a simple
+  /// object that can be passed through the protocol directly.
+  Map<String, Object> _marshallOne(Object argument) {
     if (argument is RemoteObject) {
       return {'objectId': argument.objectId};
     } else {
@@ -151,8 +176,9 @@ class AppInspector extends Domain {
     }
   }
 
-  Future<String> _toString(RemoteObject receiver) async =>
-      (await sendMessage(receiver, 'toString', []))['value'] as String;
+  /// Call the Dart toString for [receiver].
+  Future<String> toStringOf(RemoteObject receiver) async =>
+      await sendMessage(receiver, 'toString', []) as String;
 
   Future<RemoteObject> evaluate(
       String isolateId, String targetId, String expression,
@@ -184,7 +210,7 @@ class AppInspector extends Domain {
 
   Future<RemoteObject> evaluateJsExpression(String expression) async {
     WipResponse result;
-    result = await wipDebugger
+    result = await _wipDebugger
         .sendCommand('Runtime.evaluate', params: {'expression': expression});
     handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
       'Dart expression': expression,
@@ -203,7 +229,7 @@ function($argsString) {
 }
     ''';
     var result =
-        await wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
+        await _wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': arguments,
       // TODO(jakemac): Use the executionContext instead, or possibly the
@@ -238,7 +264,7 @@ function($argsString) {
         if (remoteObject.value == null && remoteObject.objectId == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
-        var toString = await _toString(remoteObject);
+        var toString = await toStringOf(remoteObject);
         // TODO: Make the truncation consistent with the VM.
         var truncated = toString.substring(0, math.min(100, toString.length));
         return InstanceRef()
@@ -329,7 +355,7 @@ function($argsString) {
       return result;
     })()
     ''';
-    var result = await wipDebugger.sendCommand('Runtime.evaluate',
+    var result = await _wipDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(result, evalContents: expression);
     var classDescriptors = (result.result['result']['value']['classes'] as List)
@@ -469,7 +495,7 @@ function($argsString) {
   Future<List<LibraryRef>> _getLibraryRefs() async {
     if (_libraryRefs.isNotEmpty) return _libraryRefs.values.toList();
     var expression = "require('dart_sdk').dart.getLibraries();";
-    var librariesResult = await wipDebugger.sendCommand('Runtime.evaluate',
+    var librariesResult = await _wipDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(librariesResult, evalContents: expression);
     var libraries =
@@ -487,7 +513,7 @@ function($argsString) {
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
     var expression = "require('dart_sdk').developer._extensions.keys.toList();";
-    var extensionsResult = await wipDebugger.sendCommand('Runtime.evaluate',
+    var extensionsResult = await _wipDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(extensionsResult, evalContents: expression);
     return List.from(extensionsResult.result['result']['value'] as List);

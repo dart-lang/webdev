@@ -34,13 +34,13 @@ void main() {
   String libraryVariableExpression(String variable) =>
       'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["$variable"];';
 
-  Future<RemoteObject> libraryPublicFinal() => inspector.evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+  Future<RemoteObject> libraryPublicFinal() => inspector
+      .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
 
   test('send toString', () async {
     instance = await libraryPublicFinal();
     var toString = await inspector.sendMessage(instance, 'toString', []);
-    var actualString = toString['value'] as String;
-    expect(actualString, 'A test class with message world');
+    expect(toString, 'A test class with message world');
   });
 
   test('instanceRef toString', () async {
@@ -49,12 +49,19 @@ void main() {
     expect(ref.valueAsString, 'A test class with message world');
   });
 
-  test('get field', () async {
+  test('get string field', () async {
     instance = await inspector
         .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
     var message = await inspector.loadField(instance, 'message');
-    var actualMessage = message['value'] as String;
-    expect(actualMessage, 'world');
+    expect(message, 'world');
+  });
+
+  test('get Object field', () async {
+    instance = await inspector
+        .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+    var message = await inspector.loadField(instance, 'myselfField');
+    var toString = await inspector.toStringOf(message as RemoteObject);
+    expect(toString, 'A test class with message world');
   });
 
   test('properties', () async {
@@ -66,47 +73,10 @@ void main() {
     var expected = [
       'Symbol(MyTestClass.count)',
       'Symbol(MyTestClass.message)',
+      'Symbol(MyTestClass.myselfField)',
       'Symbol(MyTestClass.notFinal)'
     ];
     names.sort();
     expect(expected, names);
-  });
-
-  test('constructor2', () async {
-    var myTestClass = await inspector.evaluateJsExpression(libraryVariableExpression('MyTestClass'));
-    print(myTestClass);
-    // var instance = await inspector.evaluateJsExpression(
-    // var fred = await inspector.instanceRefFor(instance);
-    // var properties = await inspector.debugger.getProperties(instance.objectId);
-    // var stringy = (await inspector
-    //     .sendMessage(instance, 'toString', []))['value'] as String;
-    // expect(stringy, 'A test class with message world');
-  });
-
-  test('constructor', () async {
-    var url = 'org-dartlang-app:///web/scopes_main.dart';
-    var library = await inspector.evaluateJsExpression(
-        'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]');
-    instance = await libraryPublicFinal();
-
-    var properties;
-    // for (var i = 0; i < 10; i++) {
-    // try {
-    var fred = await inspector.instanceRefFor(instance);
-    print(fred);
-    properties = await inspector.debugger.getProperties(instance.objectId);
-    // } catch (e) {
-    //   print(e);
-    // }
-    // }
-    print(properties);
-    var stringy = (await inspector
-        .sendMessage(instance, 'toString', []))['value'] as String;
-    // var stringy = await inspector.sendMessage(testClass, 'toString', []);
-    // var testClass2 =
-    //     await inspector.loadField(library, 'MyTestClass') as RemoteObject;
-    // expect(testClass, isNotNull);
-    // expect(testClass2, isNotNull);
-    // expect(stringy, '222');
   });
 }
