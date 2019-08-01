@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:built_collection/built_collection.dart';
+import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -26,6 +27,19 @@ class ExtensionDebugger implements WipDebugger {
 
   var _completerId = 0;
 
+  String _tabUrl;
+  String _appId;
+  String _instanceId;
+
+  final _devToolsRequestController = StreamController<DevToolsRequest>();
+
+  String get tabUrl => _tabUrl;
+  String get appId => _appId;
+  String get instanceId => _instanceId;
+
+  Stream<DevToolsRequest> get devToolsRequestStream =>
+      _devToolsRequestController.stream;
+
   ExtensionDebugger(this._connection) {
     _connection.stream.listen((data) {
       var message = serializers.deserialize(jsonDecode(data));
@@ -36,6 +50,11 @@ class ExtensionDebugger implements WipDebugger {
         }
         _completers[message.id]
             .complete(WipResponse(encodedResult as Map<String, dynamic>));
+      } else if (message is DevToolsRequest) {
+        _tabUrl = message.tabUrl;
+        _appId = message.appId;
+        _instanceId = message.instanceId;
+        _devToolsRequestController.sink.add(message);
       }
     }, onError: (e) {
       close();

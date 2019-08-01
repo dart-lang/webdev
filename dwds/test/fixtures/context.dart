@@ -84,10 +84,16 @@ class TestContext {
         .timeout(const Duration(seconds: 60));
 
     var debugPort = await findUnusedPort();
+    // If the environment variable DWDS_DEBUG_CHROME is set to the string true
+    // then Chrome will be launched with a UI rather than headless.
+    var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true';
     var capabilities = Capabilities.chrome
       ..addAll({
         Capabilities.chromeOptions: {
-          'args': ['remote-debugging-port=$debugPort', '--headless']
+          'args': [
+            'remote-debugging-port=$debugPort',
+            if (headless) '--headless'
+          ]
         }
       });
     webDriver =
@@ -102,7 +108,6 @@ class TestContext {
       () async => connection,
       reloadConfiguration,
       serveDevTools,
-      wipDebugger,
     );
 
     appUrl = 'http://localhost:$port/$path';
@@ -114,13 +119,14 @@ class TestContext {
 
     appConnection = await testServer.dwds.connectedApps.first;
     debugConnection = await testServer.dwds.debugConnection(appConnection);
-
     var assetHandler = (String path) async {
       var result = await http.get('http://localhost:$port/$path');
       return result.body;
     };
-    chromeProxyService = await ChromeProxyService.create(connection,
-        assetHandler, appConnection.request.instanceId, wipDebugger);
+
+    wipDebugger = WipDebugger(tabConnection);
+    chromeProxyService = await ChromeProxyService.create(
+        wipDebugger, appUrl, assetHandler, appConnection.request.instanceId);
   }
 
   Future<Null> tearDown() async {

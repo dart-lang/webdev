@@ -19,7 +19,7 @@ class _$DevToolsRequestSerializer
   final String wireName = 'DevToolsRequest';
 
   @override
-  Iterable serialize(Serializers serializers, DevToolsRequest object,
+  Iterable<Object> serialize(Serializers serializers, DevToolsRequest object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'appId',
@@ -29,12 +29,18 @@ class _$DevToolsRequestSerializer
       serializers.serialize(object.instanceId,
           specifiedType: const FullType(String)),
     ];
-
+    if (object.tabUrl != null) {
+      result
+        ..add('tabUrl')
+        ..add(serializers.serialize(object.tabUrl,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
   @override
-  DevToolsRequest deserialize(Serializers serializers, Iterable serialized,
+  DevToolsRequest deserialize(
+      Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new DevToolsRequestBuilder();
 
@@ -52,6 +58,10 @@ class _$DevToolsRequestSerializer
           result.instanceId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'tabUrl':
+          result.tabUrl = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
       }
     }
 
@@ -67,7 +77,7 @@ class _$DevToolsResponseSerializer
   final String wireName = 'DevToolsResponse';
 
   @override
-  Iterable serialize(Serializers serializers, DevToolsResponse object,
+  Iterable<Object> serialize(Serializers serializers, DevToolsResponse object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'success',
@@ -84,7 +94,8 @@ class _$DevToolsResponseSerializer
   }
 
   @override
-  DevToolsResponse deserialize(Serializers serializers, Iterable serialized,
+  DevToolsResponse deserialize(
+      Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new DevToolsResponseBuilder();
 
@@ -114,11 +125,13 @@ class _$DevToolsRequest extends DevToolsRequest {
   final String appId;
   @override
   final String instanceId;
+  @override
+  final String tabUrl;
 
   factory _$DevToolsRequest([void Function(DevToolsRequestBuilder) updates]) =>
       (new DevToolsRequestBuilder()..update(updates)).build();
 
-  _$DevToolsRequest._({this.appId, this.instanceId}) : super._() {
+  _$DevToolsRequest._({this.appId, this.instanceId, this.tabUrl}) : super._() {
     if (appId == null) {
       throw new BuiltValueNullFieldError('DevToolsRequest', 'appId');
     }
@@ -140,19 +153,22 @@ class _$DevToolsRequest extends DevToolsRequest {
     if (identical(other, this)) return true;
     return other is DevToolsRequest &&
         appId == other.appId &&
-        instanceId == other.instanceId;
+        instanceId == other.instanceId &&
+        tabUrl == other.tabUrl;
   }
 
   @override
   int get hashCode {
-    return $jf($jc($jc(0, appId.hashCode), instanceId.hashCode));
+    return $jf(
+        $jc($jc($jc(0, appId.hashCode), instanceId.hashCode), tabUrl.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('DevToolsRequest')
           ..add('appId', appId)
-          ..add('instanceId', instanceId))
+          ..add('instanceId', instanceId)
+          ..add('tabUrl', tabUrl))
         .toString();
   }
 }
@@ -169,12 +185,17 @@ class DevToolsRequestBuilder
   String get instanceId => _$this._instanceId;
   set instanceId(String instanceId) => _$this._instanceId = instanceId;
 
+  String _tabUrl;
+  String get tabUrl => _$this._tabUrl;
+  set tabUrl(String tabUrl) => _$this._tabUrl = tabUrl;
+
   DevToolsRequestBuilder();
 
   DevToolsRequestBuilder get _$this {
     if (_$v != null) {
       _appId = _$v.appId;
       _instanceId = _$v.instanceId;
+      _tabUrl = _$v.tabUrl;
       _$v = null;
     }
     return this;
@@ -195,8 +216,9 @@ class DevToolsRequestBuilder
 
   @override
   _$DevToolsRequest build() {
-    final _$result =
-        _$v ?? new _$DevToolsRequest._(appId: appId, instanceId: instanceId);
+    final _$result = _$v ??
+        new _$DevToolsRequest._(
+            appId: appId, instanceId: instanceId, tabUrl: tabUrl);
     replace(_$result);
     return _$result;
   }

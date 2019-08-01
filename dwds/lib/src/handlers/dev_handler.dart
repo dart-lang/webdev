@@ -29,7 +29,7 @@ import '../services/debug_service.dart';
 class DevHandler {
   StreamSubscription _sub;
   final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'));
-  final _connections = Set<SseConnection>();
+  final _injectedConnections = Set<SseConnection>();
   final DevTools _devTools;
   final AssetHandler _assetHandler;
   final String _hostname;
@@ -39,7 +39,6 @@ class DevHandler {
   final bool _verbose;
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
-  final WipDebugger _wipDebugger;
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -51,7 +50,6 @@ class DevHandler {
     this._hostname,
     this._verbose,
     this._logWriter,
-    this._wipDebugger,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
@@ -64,8 +62,8 @@ class DevHandler {
     // We listen for connections to close and remove them from the connections
     // set. Therefore we shouldn't asynchronously iterate through the
     // connections.
-    await Future.wait(
-        _connections.map((connection) => connection.sink.close()));
+    await Future.wait(_injectedConnections
+        .map((injectedConnection) => injectedConnection.sink.close()));
     await Future.wait(_servicesByAppId.values.map((futureServices) async {
       await (await futureServices).close();
     }));
@@ -74,8 +72,8 @@ class DevHandler {
 
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;
-    for (var connection in _connections) {
-      connection.sink
+    for (var injectedConnection in _injectedConnections) {
+      injectedConnection.sink
           .add(jsonEncode(build_daemon.serializers.serialize(result)));
     }
   }
@@ -84,12 +82,34 @@ class DevHandler {
   // a getter and is created immediately.
   Future<DebugService> startDebugService(
       ChromeConnection chromeConnection, String appInstanceId) async {
+    ChromeTab appTab;
+    WipConnection tabConnection;
+    for (var tab in await chromeConnection.getTabs()) {
+      if (tab.url.startsWith('chrome-extensions:')) continue;
+      tabConnection = await tab.connect();
+      var result = await tabConnection.runtime
+          .evaluate(r'window["$dartAppInstanceId"];');
+      if (result.value == appInstanceId) {
+        appTab = tab;
+        break;
+      }
+      unawaited(tabConnection.close());
+    }
+    if (appTab == null) {
+      throw StateError('Could not connect to application with appInstanceId: '
+          '$appInstanceId');
+    }
+
+    await tabConnection.runtime.enable();
+
+    var wipDebugger = WipDebugger(tabConnection);
+
     return DebugService.start(
       _hostname,
-      chromeConnection,
+      wipDebugger,
+      appTab.url,
       _assetHandler.getRelativeAsset,
       appInstanceId,
-      _wipDebugger,
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
@@ -101,17 +121,31 @@ class DevHandler {
   }
 
   Future<AppDebugServices> loadAppServices(String appId, String instanceId) =>
-      _servicesByAppId.putIfAbsent(
-          appId, () => _createAppDebugServices(appId, instanceId));
+      _servicesByAppId.putIfAbsent(appId, () async {
+        var debugService =
+            await startDebugService(await _chromeConnection(), instanceId);
+        var appServices = await _createAppDebugServices(appId, debugService);
+        unawaited(appServices
+            .chromeProxyService.wipDebugger.connection.onClose.first
+            .whenComplete(() {
+          appServices.close();
+          _servicesByAppId.remove(appId);
+          _logWriter(
+              Level.INFO,
+              'Stopped debug service on '
+              'ws://${debugService.hostname}:${debugService.port}\n');
+        }));
+        return appServices;
+      });
 
-  void _handleConnection(SseConnection connection) {
-    _connections.add(connection);
+  void _handleConnection(SseConnection injectedConnection) {
+    _injectedConnections.add(injectedConnection);
     String appId;
-    connection.stream.listen((data) async {
+    injectedConnection.stream.listen((data) async {
       var message = serializers.deserialize(jsonDecode(data));
       if (message is DevToolsRequest) {
         if (_devTools == null) {
-          connection.sink
+          injectedConnection.sink
               .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
                 ..success = false
                 ..error = 'Debugging is not enabled.\n\n'
@@ -121,8 +155,8 @@ class DevHandler {
         }
 
         if (appId != message.appId) {
-          connection.sink.add(jsonEncode(serializers.serialize(DevToolsResponse(
-              (b) => b
+          injectedConnection.sink.add(jsonEncode(serializers.serialize(
+              DevToolsResponse((b) => b
                 ..success = false
                 ..error =
                     'App ID has changed since the connection was established. '
@@ -136,7 +170,7 @@ class DevHandler {
           appServices =
               await loadAppServices(message.appId, message.instanceId);
         } catch (_) {
-          connection.sink
+          injectedConnection.sink
               .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
                 ..success = false
                 ..error = 'Unable to connect debug services to your '
@@ -150,8 +184,8 @@ class DevHandler {
         // instance of this app.
         if (appServices.connectedInstanceId != null &&
             appServices.connectedInstanceId != message.instanceId) {
-          connection.sink.add(jsonEncode(serializers.serialize(DevToolsResponse(
-              (b) => b
+          injectedConnection.sink.add(jsonEncode(serializers.serialize(
+              DevToolsResponse((b) => b
                 ..success = false
                 ..error =
                     'This app is already being debugged in a different tab. '
@@ -161,15 +195,15 @@ class DevHandler {
 
         // If you load the same app in a different tab then we need to throw
         // away our old services and start new ones.
-        if (!(await _isCorrectTab(message.instanceId,
-            appServices.chromeProxyService.wipDebugger.connection))) {
+        if (!(await _isCorrectTab(
+            message.instanceId, appServices.chromeProxyService.wipDebugger))) {
           unawaited(appServices.close());
           unawaited(_servicesByAppId.remove(message.appId));
           appServices =
               await loadAppServices(message.appId, message.instanceId);
         }
 
-        connection.sink.add(jsonEncode(
+        injectedConnection.sink.add(jsonEncode(
             serializers.serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
@@ -193,14 +227,14 @@ class DevHandler {
         if (services != null && services.connectedInstanceId == null) {
           // Re-connect to the previous instance if its in the same tab,
           // otherwise do nothing for now.
-          if (await _isCorrectTab(message.instanceId,
-              services.chromeProxyService.wipDebugger.connection)) {
+          if (await _isCorrectTab(
+              message.instanceId, services.chromeProxyService.wipDebugger)) {
             services.connectedInstanceId = message.instanceId;
             await services.chromeProxyService.createIsolate();
           }
         }
 
-        _connectedApps.add(AppConnection(message, connection));
+        _connectedApps.add(AppConnection(message, injectedConnection));
       } else if (message is IsolateExit) {
         (await loadAppServices(message.appId, message.instanceId))
             ?.chromeProxyService
@@ -212,8 +246,8 @@ class DevHandler {
       }
     });
 
-    unawaited(connection.sink.done.then((_) async {
-      _connections.remove(connection);
+    unawaited(injectedConnection.sink.done.then((_) async {
+      _injectedConnections.remove(injectedConnection);
       if (appId != null) {
         var services = await _servicesByAppId[appId];
         services?.connectedInstanceId = null;
@@ -223,43 +257,26 @@ class DevHandler {
   }
 
   void _listen() async {
-    var connections = _sseHandler.connections;
-    while (await connections.hasNext) {
-      _handleConnection(await connections.next);
+    var injectedConnections = _sseHandler.connections;
+    while (await injectedConnections.hasNext) {
+      _handleConnection(await injectedConnections.next);
     }
   }
 
   Future<AppDebugServices> _createAppDebugServices(
-      String appId, String instanceId) async {
-    var debugService =
-        await startDebugService(await _chromeConnection(), instanceId);
+      String appId, DebugService debugService) async {
     _logWriter(
         Level.INFO,
         'Debug service listening on '
         '${debugService.wsUri}\n');
-
     var webdevClient = await DwdsVmClient.create(debugService);
-    var appServices = AppDebugServices(debugService, webdevClient);
-
-    unawaited(appServices
-        .chromeProxyService.wipDebugger.connection.onClose.first
-        .then((_) {
-      appServices.close();
-      _servicesByAppId.remove(appId);
-      _logWriter(
-          Level.INFO,
-          'Stopped debug service on '
-          'ws://${debugService.hostname}:${debugService.port}\n');
-    }));
-
-    return appServices;
+    return AppDebugServices(debugService, webdevClient);
   }
 }
 
-/// Checks if [tabConnection] is running the app with [instanceId].
-Future<bool> _isCorrectTab(
-    String instanceId, WipConnection tabConnection) async {
-  var result =
-      await tabConnection.runtime.evaluate(r'window["$dartAppInstanceId"];');
+/// Checks if connection of [wipDebugger] is running the app with [instanceId].
+Future<bool> _isCorrectTab(String instanceId, WipDebugger wipDebugger) async {
+  var result = await wipDebugger.connection.runtime
+      .evaluate(r'window["$dartAppInstanceId"];');
   return result.value == instanceId;
 }
