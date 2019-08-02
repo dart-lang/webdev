@@ -15,8 +15,6 @@ var libraryPublic = ['library', 'public', 'variable'];
 
 var _libraryPrivate = ['library', 'private', 'variable'];
 
-Object libraryNull;
-
 void main() async {
   var local = 'local in main';
   var intLocalInMain = 42;

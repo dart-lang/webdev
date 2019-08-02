@@ -103,22 +103,22 @@ class AppInspector extends Domain {
 
   /// Get the value of the field named [fieldName] from [receiver].
   ///
-  /// Returns either a [RemoteObject] or a simple object.
-  Future<Object> loadField(RemoteObject receiver, String fieldName) async {
+  /// Note that the returned [RemoteObject] might be for a simple value, and
+  /// [AppInspector._asDartObject] can be used to get the value.
+  Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
     var load = '''
         function() {
           return require("dart_sdk").dart.dloadRepl(this, "$fieldName");
         }
         ''';
-    var remoteObject =
-        await _callFunctionOn(receiver, load, _marshallArguments([]));
-    return _asDartObject(remoteObject);
+    return _callFunctionOn(receiver, load, _marshallArguments([]));
   }
 
   /// Call a method by name on [receiver], with arguments [positionalArgs] and [namedArgs].
   ///
-  /// Returns either a [RemoteObject] or a simple object.
-  Future<Object> sendMessage(RemoteObject receiver, String methodName,
+  /// Note that the returned [RemoteObject] might be for a simple value, and
+  /// [AppInspector._asDartObject] can be used to get the value.
+  Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
       [List positionalArgs = const [], Map namedArgs = const {}]) async {
     var send = '''
         function (positional) { 
@@ -128,12 +128,14 @@ class AppInspector extends Domain {
         ''';
     // TODO(alanknight): Support named arguments.
     var arguments = _marshallArguments(positionalArgs);
-    var response = await _callFunctionOn(receiver, send, arguments);
-    return _asDartObject(response);
+    var remote = await _callFunctionOn(receiver, send, arguments);
+    return remote;
   }
 
   /// Given [remote], if it's a simple type, return the value, otherwise leave
   /// it as a RemoteObject.
+  // TODO(alanknight): Consider our own RemoteObject class where we could add
+  // methods to do things like this.
   Object _asDartObject(RemoteObject remote) {
     if (remote.type == 'object') {
       if (remote.objectId == null) {
@@ -181,8 +183,10 @@ class AppInspector extends Domain {
   }
 
   /// Call the Dart toString for [receiver].
-  Future<String> toStringOf(RemoteObject receiver) async =>
-      await sendMessage(receiver, 'toString', []) as String;
+  Future<String> toStringOf(RemoteObject receiver) async {
+    var remote = await sendMessage(receiver, 'toString', []);
+    return _asDartObject(remote) as String;
+  }
 
   Future<RemoteObject> evaluate(
       String isolateId, String targetId, String expression,

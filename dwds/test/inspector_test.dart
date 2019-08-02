@@ -41,7 +41,7 @@ void main() {
   test('send toString', () async {
     instance = await libraryPublicFinal();
     var toString = await inspector.sendMessage(instance, 'toString', []);
-    expect(toString, 'A test class with message world');
+    expect(toString.value, 'A test class with message world');
   });
 
   test('instanceRef toString', () async {
@@ -51,31 +51,28 @@ void main() {
   });
 
   test('instanceRef for null', () async {
-    instance = await inspector.evaluateJsExpression(
-        libraryVariableExpression('libraryNull'));
-    var ref = await inspector.instanceRefFor(instance);
+    instance = await libraryPublicFinal();
+    var nullVariable = await inspector.loadField(instance, 'notFinal'); 
+    var ref = await inspector.instanceRefFor(nullVariable);
     expect(ref.valueAsString, 'null');
     expect(ref.kind, InstanceKind.kNull);
   });
 
   test('get string field', () async {
-    instance = await inspector
-        .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+    instance = await libraryPublicFinal();
     var message = await inspector.loadField(instance, 'message');
-    expect(message, 'world');
+    expect(message.value, 'world');
   });
 
   test('get Object field', () async {
-    instance = await inspector
-        .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+    instance = await libraryPublicFinal();
     var message = await inspector.loadField(instance, 'myselfField');
-    var toString = await inspector.toStringOf(message as RemoteObject);
+    var toString = await inspector.toStringOf(message);
     expect(toString, 'A test class with message world');
   });
 
   test('properties', () async {
-    instance = await inspector
-        .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+    instance = await libraryPublicFinal();
     var properties = await inspector.debugger.getProperties(instance.objectId);
     var names =
         properties.map((p) => p.name).where((x) => x != '__proto__').toList();
