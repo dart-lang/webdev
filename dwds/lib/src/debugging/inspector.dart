@@ -242,8 +242,8 @@ class AppInspector extends Domain {
   }
 
   /// Call the function named [expression] from [library] with [scope] as
-  /// arguments, with 'this' bound to the first object in [scope]. 
-  /// 
+  /// arguments, with 'this' bound to the first object in [scope].
+  ///
   /// But we're not really using 'this', just using Runtime.callFunctionOn
   /// because it accepts arguments.
   // TODO(alanknight): Make this API cleaner.
