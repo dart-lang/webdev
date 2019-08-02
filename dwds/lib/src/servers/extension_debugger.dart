@@ -133,15 +133,7 @@ class ExtensionDebugger implements WipDebugger {
             method,
             () => onNotification
                 .where((event) => event.method == method)
-                .map(transformer)
-            // () => StreamTransformer.fromHandlers(
-            //   handleData: (WipEvent event, EventSink<T> sink) {
-            //     if (event.method == method) {
-            //       sink.add(transformer(event));
-            //     }
-            //   },
-            // ).bind(onNotification),
-            )
+                .map(transformer))
         .cast();
   }
 
