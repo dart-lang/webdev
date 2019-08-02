@@ -70,6 +70,7 @@ void main() {
         'another',
         'intLocalInMain',
         'local',
+        'localThatsNull',
         'nestedFunction',
         'parameter',
         'testClass'

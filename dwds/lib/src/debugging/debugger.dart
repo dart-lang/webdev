@@ -301,8 +301,7 @@ class Debugger extends Domain {
   /// The [BoundVariable]s visible in a v8 'scope' object as found in the
   /// 'scopeChain' field of the 'callFrames' in a DebuggerPausedEvent.
   Future<Iterable<BoundVariable>> _boundVariables(dynamic scope) async {
-    var properties =
-        await _getProperties(scope['object']['objectId'] as String);
+    var properties = await getProperties(scope['object']['objectId'] as String);
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
     var refs = properties
@@ -312,9 +311,11 @@ class Debugger extends Domain {
     return Future.wait(refs);
   }
 
-  /// Calls the Chrome Runtime.getProperties API for the object
-  /// with [id].
-  Future<List<Property>> _getProperties(String id) async {
+  /// Calls the Chrome Runtime.getProperties API for the object with [id].
+  ///
+  /// Note that the property names are JS names, e.g.
+  /// Symbol(DartClass.actualName) and will need to be converted.
+  Future<List<Property>> getProperties(String id) async {
     var response =
         await _wipDebugger.sendCommand('Runtime.getProperties', params: {
       'objectId': id,

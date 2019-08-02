@@ -49,7 +49,11 @@ class ChromeProxyService implements VmServiceInterface {
   Debugger _debugger;
 
   AppInspector _inspector;
-  AppInspector _appInspectorProvider() => _inspector;
+
+  /// Public only for testing.
+  ///
+  /// Returns the [AppInspector] this service uses.
+  AppInspector appInspectorProvider() => _inspector;
 
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 
@@ -83,7 +87,7 @@ class ChromeProxyService implements VmServiceInterface {
       _assetHandler,
       wipDebugger,
       _streamNotify,
-      _appInspectorProvider,
+      appInspectorProvider,
       uri,
     );
   }
@@ -221,9 +225,11 @@ require("dart_sdk").developer.invokeExtension(
 
   @override
   Future evaluate(String isolateId, String targetId, String expression,
-          {Map<String, String> scope, bool disableBreakpoints}) =>
-      _inspector?.evaluate(isolateId, targetId, expression,
-          scope: scope, disableBreakpoints: disableBreakpoints);
+      {Map<String, String> scope, bool disableBreakpoints}) async {
+    var remote = await _inspector?.evaluate(isolateId, targetId, expression,
+        scope: scope, disableBreakpoints: disableBreakpoints);
+    return _inspector?.instanceRefFor(remote);
+  }
 
   @override
   Future evaluateInFrame(String isolateId, int frameIndex, String expression,

@@ -19,6 +19,7 @@ void main() async {
   var local = 'local in main';
   var intLocalInMain = 42;
   var testClass = MyTestClass();
+  Object localThatsNull;
 
   String nestedFunction(String parameter) {
     var another = int.tryParse(parameter);
@@ -34,6 +35,7 @@ void main() async {
     libraryPublicFinal.printCount();
     print('ticking... $ticks (the answer is $intLocalInMain)');
     print(nestedFunction('$ticks ${testClass.message}'));
+    print(localThatsNull);
   });
 
   document.body.append(SpanElement()..text = 'Exercising some scopes');
@@ -50,7 +52,9 @@ class MyTestClass {
 
   String notFinal;
 
-  MyTestClass({this.message = 'world'});
+  MyTestClass({this.message = 'world'}) {
+    myselfField = this;
+  }
 
   String hello() => message;
 
@@ -60,10 +64,18 @@ class MyTestClass {
     return local;
   }
 
+  //ignore: avoid_returning_this
+  MyTestClass get myselfGetter => this;
+
+  MyTestClass myselfField;
+
   var count = 0;
 
   // An easy location to add a breakpoint.
   void printCount() {
     print('The count is ${++count}');
   }
+
+  @override
+  String toString() => 'A test class with message $message';
 }
