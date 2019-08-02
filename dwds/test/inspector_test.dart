@@ -52,7 +52,7 @@ void main() {
 
   test('instanceRef for null', () async {
     instance = await libraryPublicFinal();
-    var nullVariable = await inspector.loadField(instance, 'notFinal'); 
+    var nullVariable = await inspector.loadField(instance, 'notFinal');
     var ref = await inspector.instanceRefFor(nullVariable);
     expect(ref.valueAsString, 'null');
     expect(ref.kind, InstanceKind.kNull);

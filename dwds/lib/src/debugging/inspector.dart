@@ -121,7 +121,7 @@ class AppInspector extends Domain {
   Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
       [List positionalArgs = const [], Map namedArgs = const {}]) async {
     var send = '''
-        function (positional) { 
+        function (positional) {
           if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
           return require("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
         }
@@ -175,6 +175,9 @@ class AppInspector extends Domain {
   /// The [argument] should be either a RemoteObject or a simple
   /// object that can be passed through the protocol directly.
   Map<String, Object> _marshallOne(Object argument) {
+    // TODO(alanknight): Handle the case of RemoteObjects that represent values.
+    // This doesn't come up yet, but will if we get a result and pass it back as
+    // an argument.
     if (argument is RemoteObject) {
       return {'objectId': argument.objectId};
     } else {
@@ -205,6 +208,10 @@ class AppInspector extends Domain {
     }
   }
 
+  /// Evaluate [expression] as a member/message of the library identified by
+  /// [libraryUri].
+  ///
+  /// That is, we will just do 'library.$expression'
   Future<RemoteObject> evaluateJsExpressionOnLibrary(
       String expression, String libraryUri) {
     var evalExpression = '''
@@ -216,7 +223,9 @@ class AppInspector extends Domain {
     return evaluateJsExpression(evalExpression);
   }
 
+  /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
   Future<RemoteObject> evaluateJsExpression(String expression) async {
+    // TODO(alanknight): Support a version with arguments if needed.
     WipResponse result;
     result = await _wipDebugger
         .sendCommand('Runtime.evaluate', params: {'expression': expression});
@@ -226,9 +235,12 @@ class AppInspector extends Domain {
     return RemoteObject(result.result['result'] as Map<String, dynamic>);
   }
 
+  /// Call the function named [expression] from [library] with [scope] as
+  /// arguments.
   Future<RemoteObject> callJsFunctionOn(
       Library library, Map<String, String> scope, String expression) async {
     var argsString = scope.keys.join(', ');
+    // TODO(alanknight): Can we use _marshallOne or similar.
     var arguments = scope.values.map((id) => {'objectId': id}).toList();
     var evalExpression = '''
 function($argsString) {

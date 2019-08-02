@@ -47,10 +47,10 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   IsolateRef get isolateRef => null;
   @override
-  Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) => null;
+  Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) =>
+      null;
   @override
-  Future<RemoteObject> sendMessage(
-          RemoteObject receiver, String methodName,
+  Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
           [List positionalArgs = const [], Map namedArgs = const {}]) =>
       null;
   @override
