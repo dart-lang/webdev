@@ -114,19 +114,23 @@ class AppInspector extends Domain {
     return _callFunctionOn(receiver, load, _marshallArguments([]));
   }
 
-  /// Call a method by name on [receiver], with arguments [positionalArgs] and [namedArgs].
+  /// Call a method by name on [receiver], with arguments [positionalArgs] and
+  /// [namedArgs].
   ///
   /// Note that the returned [RemoteObject] might be for a simple value, and
   /// [AppInspector._asDartObject] can be used to get the value.
   Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
       [List positionalArgs = const [], Map namedArgs = const {}]) async {
+    // TODO(alanknight): Support named arguments.
+    if (namedArgs.isNotEmpty) {
+      throw UnsupportedError('Named arguments are not yet supported');
+    }
     var send = '''
         function (positional) {
           if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
           return require("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
         }
         ''';
-    // TODO(alanknight): Support named arguments.
     var arguments = _marshallArguments(positionalArgs);
     var remote = await _callFunctionOn(receiver, send, arguments);
     return remote;
@@ -150,7 +154,9 @@ class AppInspector extends Domain {
 
   /// Calls Chrome's Runtime.callFunctionOn method.
   ///
-  /// [arguments] is expected to be in the form returned by [_marshallArguments].
+  /// [arguments] is expected to be in the form returned by
+  /// [_marshallArguments]. [evalExpression] should be a function definition
+  /// that can accept [arguments].
   Future<RemoteObject> _callFunctionOn(
       RemoteObject receiver, String evalExpression, List arguments) async {
     var result =
@@ -236,7 +242,11 @@ class AppInspector extends Domain {
   }
 
   /// Call the function named [expression] from [library] with [scope] as
-  /// arguments.
+  /// arguments, with 'this' bound to the first object in [scope]. 
+  /// 
+  /// But we're not really using 'this', just using Runtime.callFunctionOn
+  /// because it accepts arguments.
+  // TODO(alanknight): Make this API cleaner.
   Future<RemoteObject> callJsFunctionOn(
       Library library, Map<String, String> scope, String expression) async {
     var argsString = scope.keys.join(', ');

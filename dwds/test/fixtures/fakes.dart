@@ -48,23 +48,24 @@ class FakeInspector extends Domain implements AppInspector {
   IsolateRef get isolateRef => null;
   @override
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) =>
-      null;
+      throw UnsupportedError('This is a fake');
   @override
   Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
           [List positionalArgs = const [], Map namedArgs = const {}]) =>
-      null;
+      throw UnsupportedError('This is a fake');
   @override
-  Debugger get debugger => null;
+  Debugger get debugger => throw UnsupportedError('This is a fake');
   @override
   Future<RemoteObject> callJsFunctionOn(
           Library library, Map<String, String> scope, String expression) =>
       null;
   @override
-  Future<RemoteObject> evaluateJsExpression(String expression) => null;
+  Future<RemoteObject> evaluateJsExpression(String expression) =>
+      throw UnsupportedError('This is a fake');
   @override
   Future<RemoteObject> evaluateJsExpressionOnLibrary(
           String expression, String libraryUri) =>
-      null;
+      throw UnsupportedError('This is a fake');
   @override
   Future<String> toStringOf(RemoteObject receiver) async => '';
 }
