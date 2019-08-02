@@ -16,24 +16,25 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 class ExtensionDebugger implements WipDebugger {
   /// A connection between the debugger and the background of
   /// Dart Debug Extension
-  final SseConnection _connection;
+  final SseConnection sseConnection;
 
   /// A map from id to a completer associated with an [ExtensionRequest]
   final _completers = <int, Completer>{};
   final _eventStreams = <String, Stream>{};
-  final _notificationController = StreamController<WipEvent>.broadcast();
-  final _devToolsRequestController = StreamController<DevToolsRequest>();
   var _completerId = 0;
 
   @override
   WipConnection get connection => throw UnimplementedError();
 
-  String _tabUrl;
-  String _appId;
-  String _instanceId;
+  String tabUrl;
+  String appId;
+  String instanceId;
 
-  SseConnection get sseConnection => _connection;
+  final _devToolsRequestController = StreamController<DevToolsRequest>();
+  Stream<DevToolsRequest> get devToolsRequestStream =>
+      _devToolsRequestController.stream;
 
+  final _notificationController = StreamController<WipEvent>.broadcast();
   Stream<WipEvent> get onNotification => _notificationController.stream;
 
   Stream<ConsoleAPIEvent> get onConsoleAPICalled => eventStream(
@@ -43,15 +44,8 @@ class ExtensionDebugger implements WipDebugger {
       'Runtime.exceptionThrown',
       (WipEvent event) => ExceptionThrownEvent(event));
 
-  Stream<DevToolsRequest> get devToolsRequestStream =>
-      _devToolsRequestController.stream;
-
-  String get tabUrl => _tabUrl;
-  String get appId => _appId;
-  String get instanceId => _instanceId;
-
-  ExtensionDebugger(this._connection) {
-    _connection.stream.listen((data) {
+  ExtensionDebugger(this.sseConnection) {
+    sseConnection.stream.listen((data) {
       var message = serializers.deserialize(jsonDecode(data));
       if (message is ExtensionResponse) {
         var encodedResult = {
@@ -69,9 +63,9 @@ class ExtensionDebugger implements WipDebugger {
         };
         _notificationController.sink.add(WipEvent(map));
       } else if (message is DevToolsRequest) {
-        _tabUrl = message.tabUrl;
-        _appId = message.appId;
-        _instanceId = message.instanceId;
+        tabUrl = message.tabUrl;
+        appId = message.appId;
+        instanceId = message.instanceId;
         _devToolsRequestController.sink.add(message);
       }
     }, onError: (_) {
@@ -87,7 +81,7 @@ class ExtensionDebugger implements WipDebugger {
     var completer = Completer<WipResponse>();
     var id = newId();
     _completers[id] = completer;
-    _connection.sink.add(jsonEncode(serializers.serialize(ExtensionRequest(
+    sseConnection.sink.add(jsonEncode(serializers.serialize(ExtensionRequest(
         (b) => b
           ..id = id
           ..command = command
@@ -98,7 +92,7 @@ class ExtensionDebugger implements WipDebugger {
 
   int newId() => _completerId++;
 
-  Future<void> close() async => await _connection.sink.close();
+  Future<void> close() => sseConnection.sink.close();
 
   @override
   Future disable() => sendCommand('Debugger.disable');
@@ -136,15 +130,18 @@ class ExtensionDebugger implements WipDebugger {
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) {
     return _eventStreams
         .putIfAbsent(
-          method,
-          () => StreamTransformer.fromHandlers(
-            handleData: (WipEvent event, EventSink<T> sink) {
-              if (event.method == method) {
-                sink.add(transformer(event));
-              }
-            },
-          ).bind(onNotification),
-        )
+            method,
+            () => onNotification
+                .where((event) => event.method == method)
+                .map(transformer)
+            // () => StreamTransformer.fromHandlers(
+            //   handleData: (WipEvent event, EventSink<T> sink) {
+            //     if (event.method == method) {
+            //       sink.add(transformer(event));
+            //     }
+            //   },
+            // ).bind(onNotification),
+            )
         .cast();
   }
 
