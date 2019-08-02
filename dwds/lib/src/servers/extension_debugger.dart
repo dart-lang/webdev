@@ -8,55 +8,67 @@ import 'dart:convert';
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/data/serializers.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../data/serializers.dart';
-
 /// A debugger backed by the Dart Debug Extension.
 class ExtensionDebugger implements WipDebugger {
-  @override
-  WipConnection get connection => throw UnimplementedError();
-
   /// A connection between the debugger and the background of
   /// Dart Debug Extension
-  final SseConnection _connection;
+  final SseConnection sseConnection;
 
   /// A map from id to a completer associated with an [ExtensionRequest]
   final _completers = <int, Completer>{};
-
+  final _eventStreams = <String, Stream>{};
   var _completerId = 0;
 
-  String _tabUrl;
-  String _appId;
-  String _instanceId;
+  @override
+  WipConnection get connection => throw UnimplementedError();
+
+  String tabUrl;
+  String appId;
+  String instanceId;
 
   final _devToolsRequestController = StreamController<DevToolsRequest>();
-
-  String get tabUrl => _tabUrl;
-  String get appId => _appId;
-  String get instanceId => _instanceId;
-
   Stream<DevToolsRequest> get devToolsRequestStream =>
       _devToolsRequestController.stream;
 
-  ExtensionDebugger(this._connection) {
-    _connection.stream.listen((data) {
+  final _notificationController = StreamController<WipEvent>.broadcast();
+  Stream<WipEvent> get onNotification => _notificationController.stream;
+
+  Stream<ConsoleAPIEvent> get onConsoleAPICalled => eventStream(
+      'Runtime.consoleAPICalled', (WipEvent event) => ConsoleAPIEvent(event));
+
+  Stream<ExceptionThrownEvent> get onExceptionThrown => eventStream(
+      'Runtime.exceptionThrown',
+      (WipEvent event) => ExceptionThrownEvent(event));
+
+  ExtensionDebugger(this.sseConnection) {
+    sseConnection.stream.listen((data) {
       var message = serializers.deserialize(jsonDecode(data));
       if (message is ExtensionResponse) {
-        var encodedResult = json.decode(message.result);
+        var encodedResult = {
+          'result': json.decode(message.result),
+          'id': message.id
+        };
         if (_completers[message.id] == null) {
           throw StateError('Missing completer.');
         }
-        _completers[message.id]
-            .complete(WipResponse(encodedResult as Map<String, dynamic>));
+        _completers[message.id].complete(WipResponse(encodedResult));
+      } else if (message is ExtensionEvent) {
+        var map = {
+          'method': json.decode(message.method),
+          'params': json.decode(message.params)
+        };
+        _notificationController.sink.add(WipEvent(map));
       } else if (message is DevToolsRequest) {
-        _tabUrl = message.tabUrl;
-        _appId = message.appId;
-        _instanceId = message.instanceId;
+        tabUrl = message.tabUrl;
+        appId = message.appId;
+        instanceId = message.instanceId;
         _devToolsRequestController.sink.add(message);
       }
-    }, onError: (e) {
+    }, onError: (_) {
       close();
     });
   }
@@ -69,7 +81,7 @@ class ExtensionDebugger implements WipDebugger {
     var completer = Completer<WipResponse>();
     var id = newId();
     _completers[id] = completer;
-    _connection.sink.add(jsonEncode(serializers.serialize(ExtensionRequest(
+    sseConnection.sink.add(jsonEncode(serializers.serialize(ExtensionRequest(
         (b) => b
           ..id = id
           ..command = command
@@ -80,9 +92,7 @@ class ExtensionDebugger implements WipDebugger {
 
   int newId() => _completerId++;
 
-  Future<void> close() async {
-    await _connection.sink.close();
-  }
+  Future<void> close() => sseConnection.sink.close();
 
   @override
   Future disable() => sendCommand('Debugger.disable');
@@ -97,44 +107,54 @@ class ExtensionDebugger implements WipDebugger {
           .result['scriptSource'] as String;
 
   @override
-  Future pause() => sendCommand('Debugger.pause');
+  Future<WipResponse> pause() => sendCommand('Debugger.pause');
 
   @override
-  Future resume() => sendCommand('Debugger.resume');
+  Future<WipResponse> resume() => sendCommand('Debugger.resume');
 
   @override
-  Future setPauseOnExceptions(PauseState state) =>
+  Future<WipResponse> setPauseOnExceptions(PauseState state) =>
       sendCommand('Debugger.setPauseOnExceptions',
           params: {'state': _pauseStateToString(state)});
 
   @override
-  Future stepInto() => sendCommand('Debugger.stepInto');
+  Future<WipResponse> stepInto() => sendCommand('Debugger.stepInto');
 
   @override
-  Future stepOut() => sendCommand('Debugger.stepOut');
+  Future<WipResponse> stepOut() => sendCommand('Debugger.stepOut');
 
   @override
-  Future stepOver() => sendCommand('Debugger.stepOver');
+  Future<WipResponse> stepOver() => sendCommand('Debugger.stepOver');
 
   @override
-  Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) =>
-      throw UnimplementedError();
+  Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) {
+    return _eventStreams
+        .putIfAbsent(
+            method,
+            () => onNotification
+                .where((event) => event.method == method)
+                .map(transformer))
+        .cast();
+  }
 
   @override
   Stream<WipDomain> get onClosed => throw UnimplementedError();
 
   @override
-  Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared =>
-      throw UnimplementedError();
+  Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => eventStream(
+      'Debugger.globalObjectCleared',
+      (WipEvent event) => GlobalObjectClearedEvent(event));
 
   @override
-  Stream<DebuggerPausedEvent> get onPaused => throw UnimplementedError();
+  Stream<DebuggerPausedEvent> get onPaused => eventStream(
+      'Debugger.paused', (WipEvent event) => DebuggerPausedEvent(event));
 
   @override
-  Stream<DebuggerResumedEvent> get onResumed => throw UnimplementedError();
-
+  Stream<DebuggerResumedEvent> get onResumed => eventStream(
+      'Debugger.resumed', (WipEvent event) => DebuggerResumedEvent(event));
   @override
-  Stream<ScriptParsedEvent> get onScriptParsed => throw UnimplementedError();
+  Stream<ScriptParsedEvent> get onScriptParsed => eventStream(
+      'Debugger.scriptParsed', (WipEvent event) => ScriptParsedEvent(event));
 
   @override
   Map<String, WipScript> get scripts => throw UnimplementedError();

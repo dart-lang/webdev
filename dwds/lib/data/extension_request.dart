@@ -63,4 +63,6 @@ abstract class ExtensionEvent
 
   /// Contains a JSON-encoded payload.
   String get params;
+
+  String get method;
 }
