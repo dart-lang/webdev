@@ -150,6 +150,9 @@ class _$ExtensionEventSerializer
       'params',
       serializers.serialize(object.params,
           specifiedType: const FullType(String)),
+      'method',
+      serializers.serialize(object.method,
+          specifiedType: const FullType(String)),
     ];
 
     return result;
@@ -169,6 +172,10 @@ class _$ExtensionEventSerializer
       switch (key) {
         case 'params':
           result.params = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'method':
+          result.method = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
       }
@@ -424,13 +431,18 @@ class ExtensionResponseBuilder
 class _$ExtensionEvent extends ExtensionEvent {
   @override
   final String params;
+  @override
+  final String method;
 
   factory _$ExtensionEvent([void Function(ExtensionEventBuilder) updates]) =>
       (new ExtensionEventBuilder()..update(updates)).build();
 
-  _$ExtensionEvent._({this.params}) : super._() {
+  _$ExtensionEvent._({this.params, this.method}) : super._() {
     if (params == null) {
       throw new BuiltValueNullFieldError('ExtensionEvent', 'params');
+    }
+    if (method == null) {
+      throw new BuiltValueNullFieldError('ExtensionEvent', 'method');
     }
   }
 
@@ -445,18 +457,21 @@ class _$ExtensionEvent extends ExtensionEvent {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is ExtensionEvent && params == other.params;
+    return other is ExtensionEvent &&
+        params == other.params &&
+        method == other.method;
   }
 
   @override
   int get hashCode {
-    return $jf($jc(0, params.hashCode));
+    return $jf($jc($jc(0, params.hashCode), method.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('ExtensionEvent')
-          ..add('params', params))
+          ..add('params', params)
+          ..add('method', method))
         .toString();
   }
 }
@@ -469,11 +484,16 @@ class ExtensionEventBuilder
   String get params => _$this._params;
   set params(String params) => _$this._params = params;
 
+  String _method;
+  String get method => _$this._method;
+  set method(String method) => _$this._method = method;
+
   ExtensionEventBuilder();
 
   ExtensionEventBuilder get _$this {
     if (_$v != null) {
       _params = _$v.params;
+      _method = _$v.method;
       _$v = null;
     }
     return this;
@@ -494,7 +514,8 @@ class ExtensionEventBuilder
 
   @override
   _$ExtensionEvent build() {
-    final _$result = _$v ?? new _$ExtensionEvent._(params: params);
+    final _$result =
+        _$v ?? new _$ExtensionEvent._(params: params, method: method);
     replace(_$result);
     return _$result;
   }

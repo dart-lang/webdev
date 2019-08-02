@@ -29,8 +29,6 @@ void main() {
     var callback = allowInterop((List<Tab> tabs) async {
       currentTab = tabs[0];
       attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() {}));
-      sendCommand(Debuggee(tabId: currentTab.id), 'Debugger.enable',
-          EmptyParam(), allowInterop((e) {}));
       sendCommand(
           Debuggee(tabId: currentTab.id),
           'Runtime.evaluate',
@@ -61,8 +59,8 @@ void main() {
 
 // Starts an SSE client.
 //
-// Creates 2 channels which connect to the SSE handler at the extension
-// backend, send a simple message.
+// Initiates a [DevToolsRequest], handles an [ExtensionRequest],
+// and sends an [ExtensionEvent].
 Future<void> startSseClient(
     hostname, port, appId, instanceId, currentTab) async {
   var client = SseClient('http://$hostname:$port/test');
@@ -85,32 +83,17 @@ Future<void> startSseClient(
     }
     sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
         allowInterop((e) {}));
-    addDebuggerListener(allowInterop(
-        (Debuggee source, String method, ConsoleEventParams params) {
-      console(source, method, params, currentTab.id as int, client.stream);
+
+    // Notifies the backend of debugger events.
+    addDebuggerListener(
+        allowInterop((Debuggee source, String method, Object params) {
+      client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
+        ..params = jsonEncode(json.decode(stringify(params)))
+        ..method = jsonEncode(method)))));
     }));
   }, onError: (e) {
     client.close();
   }, cancelOnError: true);
-}
-
-// Listens for console events.
-void console(Debuggee source, String method, ConsoleEventParams params,
-    int tabId, Stream stream) {
-  var decodedParam = json.decode(stringify(params));
-  if (method == 'Debugger.scriptParsed') {
-    var id = decodedParam['scriptId'] as String;
-    sendCommand(Debuggee(tabId: tabId), 'Debugger.getScriptSource',
-        ScriptIdParam(scriptId: id), allowInterop((script) {
-      var decodedScript = json.decode(stringify(script));
-      // Prints the script being evaluated.
-      print(decodedScript['scriptSource']);
-    }));
-  } else if (method == 'Runtime.consoleAPICalled') {
-    var value = decodedParam['args'][0]['value'];
-    // Prints logged values.
-    print(value);
-  }
 }
 
 @JS('chrome.browserAction.onClicked.addListener')
@@ -174,12 +157,6 @@ class RemoteObject {
 @anonymous
 class EvaluationResult {
   external dynamic get value;
-}
-
-@JS()
-@anonymous
-class ConsoleEventParams {
-  external String get scriptId;
 }
 
 @JS()
