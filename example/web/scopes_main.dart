@@ -53,7 +53,7 @@ class MyTestClass {
   String notFinal;
 
   MyTestClass({this.message = 'world'}) {
-   myselfField = this; 
+    myselfField = this;
   }
 
   String hello() => message;
