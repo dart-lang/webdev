@@ -71,7 +71,8 @@ void main() async {
   test('can send a request', () async {
     var extensionRequest = ExtensionRequest((b) => b
       ..id = 0
-      ..command = 'Debugger.pause');
+      ..command = 'Debugger.pause'
+      ..commandParams = jsonEncode({}));
     unawaited(extensionDebugger.pause());
     var request = serializers.deserialize(
         jsonDecode(await connection.controllerOutgoing.stream.first));

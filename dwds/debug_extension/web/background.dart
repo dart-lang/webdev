@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js';
 
+import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
@@ -69,11 +70,24 @@ Future<void> startSseClient(
     ..appId = appId as String
     ..instanceId = instanceId as String
     ..tabUrl = currentTab.url as String))));
+  sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
+      allowInterop((e) {}));
+
+  // Notifies the backend of debugger events.
+  addDebuggerListener(
+      allowInterop((Debuggee source, String method, Object params) {
+    client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
+      ..params = jsonEncode(json.decode(stringify(params)))
+      ..method = jsonEncode(method)))));
+  }));
+
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
     if (message is ExtensionRequest) {
+      var params =
+          BuiltMap<String, Object>(json.decode(message.commandParams)).toMap();
       sendCommand(Debuggee(tabId: currentTab.id), message.command,
-          js_util.jsify(message.commandParams.toMap()), allowInterop((e) {
+          js_util.jsify(params), allowInterop((e) {
         client.sink
             .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
               ..id = message.id
@@ -81,16 +95,6 @@ Future<void> startSseClient(
               ..result = stringify(e)))));
       }));
     }
-    sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
-        allowInterop((e) {}));
-
-    // Notifies the backend of debugger events.
-    addDebuggerListener(
-        allowInterop((Debuggee source, String method, Object params) {
-      client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
-        ..params = jsonEncode(json.decode(stringify(params)))
-        ..method = jsonEncode(method)))));
-    }));
   }, onError: (e) {
     client.close();
   }, cancelOnError: true);
