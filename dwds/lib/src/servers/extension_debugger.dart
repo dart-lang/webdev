@@ -137,13 +137,6 @@ class ExtensionDebugger implements WipDebugger {
 
   @override
   Stream<WipDomain> get onClosed => throw UnimplementedError();
-  // {
-  //   print('No onclose...........');
-  //   return StreamTransformer.fromHandlers(
-  //       handleData: (event, EventSink<WipDomain> sink) {
-  //     sink.add(this);
-  //   }).bind(connection.onClose);
-  // }
 
   @override
   Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => eventStream(
