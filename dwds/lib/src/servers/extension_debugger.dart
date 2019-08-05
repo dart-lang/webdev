@@ -153,7 +153,7 @@ class ExtensionDebugger implements WipDebugger {
 
   @override
   Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => eventStream(
-      'Debugger.globalObjectCleared',
+      'Page.frameStartedLoading',
       (WipEvent event) => GlobalObjectClearedEvent(event));
 
   @override
