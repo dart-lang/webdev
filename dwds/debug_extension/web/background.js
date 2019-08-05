@@ -2679,7 +2679,7 @@ nM:function(){var u=P.b1(new M.kT())
 self.chrome.browserAction.onClicked.addListener(u)},
 kW:function(a,b,c,d,e){var u=0,t=P.eh(-1),s,r,q,p,o,n,m
 var $async$kW=P.ei(function(f,g){if(f===1)return P.ec(g,t)
-while(true)switch(u){case 0:q="http://"+H.b(a)+":"+H.b(b)+"/debug"
+while(true)switch(u){case 0:q="http://"+H.b(a)+":"+H.b(b)+"/$debug"
 p=P.e
 o=P.mK(p)
 n=P.mK(p)

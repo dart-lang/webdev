@@ -64,7 +64,7 @@ void main() {
 // and sends an [ExtensionEvent].
 Future<void> startSseClient(
     hostname, port, appId, instanceId, currentTab) async {
-  var client = SseClient('http://$hostname:$port/debug');
+  var client = SseClient('http://$hostname:$port/\$debug');
   await client.onOpen.first;
   client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
     ..appId = appId as String
