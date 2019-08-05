@@ -153,6 +153,7 @@ class Sources {
     }
   }
 
+  /// Black boxes the SDK excluding the range which includes exception logic.
   Future<void> _blackBoxSdk(WipScript script) async {
     var sdkSourceLines =
         (await _assetHandler(DartUri(script.url).serverPath)).split('\n');
