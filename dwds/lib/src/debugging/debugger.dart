@@ -293,8 +293,12 @@ class Debugger extends Domain {
   Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
     // TODO: Much better logic for which frames to use. This is probably just
     // the dynamically visible variables, so we should omit library scope.
+
+    // Include scopes up to and including the closure scope named 'main'.
+    var mainIndex = scopeChain.indexWhere((scope) => scope['name'] == 'main');
+    var interestingScopes = scopeChain.sublist(0, mainIndex + 1);
     return [
-      for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)
+      for (var scope in interestingScopes) ...await _boundVariables(scope)
     ];
   }
 
