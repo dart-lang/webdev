@@ -76,6 +76,7 @@ class ExtensionDebugger implements WipDebugger {
     onScriptParsed.listen((event) {
       _scripts[event.script.scriptId] = event.script;
     });
+    // Listens for a page reload.
     onGlobalObjectCleared.listen((_) {
       _scripts.clear();
     });
