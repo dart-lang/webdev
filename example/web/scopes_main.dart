@@ -10,7 +10,7 @@ import 'dart:html';
 final libraryPublicFinal = MyTestClass();
 
 final _libraryPrivateFinal = 1;
-
+Object libraryNull;
 var libraryPublic = ['library', 'public', 'variable'];
 
 var _libraryPrivate = ['library', 'private', 'variable'];
@@ -32,10 +32,12 @@ void main() async {
 
   Timer.periodic(Duration(seconds: 1), (Timer t) {
     var ticks = t.tick;
+    var closureLocal;
     libraryPublicFinal.printCount();
     print('ticking... $ticks (the answer is $intLocalInMain)');
     print(nestedFunction('$ticks ${testClass.message}'));
     print(localThatsNull);
+    print(libraryNull);
   });
 
   document.body.append(SpanElement()..text = 'Exercising some scopes');

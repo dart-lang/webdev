@@ -289,6 +289,8 @@ function($argsString) {
         return _primitiveInstance(InstanceKind.kDouble, remoteObject);
       case 'boolean':
         return _primitiveInstance(InstanceKind.kBool, remoteObject);
+      case 'undefined':
+        return _primitiveInstance(InstanceKind.kNull, remoteObject);
       case 'object':
         if (_asDartObject(remoteObject) == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
@@ -304,6 +306,14 @@ function($argsString) {
           // TODO(jakemac): Create a real ClassRef, we need a way of looking
           // up the library for a given instance to create it though.
           // https://github.com/dart-lang/sdk/issues/36771.
+          ..classRef = ClassRef();
+      case 'function':
+        var crudeAttemptAtName =
+            remoteObject.description.split('(').first;
+        return InstanceRef()
+          ..kind = InstanceKind.kPlainInstance
+          ..id = remoteObject.objectId
+          ..valueAsString = crudeAttemptAtName
           ..classRef = ClassRef();
       default:
         // Return unsupported types as a String placeholder for now.
