@@ -142,7 +142,7 @@ class Debugger extends Domain {
   }
 
   Future<Null> _initialize() async {
-    sources = Sources(_assetHandler);
+    sources = Sources(_assetHandler, _wipDebugger);
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.
@@ -244,12 +244,10 @@ class Debugger extends Domain {
 
   /// Find the [Location] for the given JS source position.
   ///
-  /// The [line] and [column] are 1-based.
-  Location _locationForJs(String scriptId, int line, int column) =>
-      sources.locationsForJs(scriptId).firstWhere(
-          (location) =>
-              location.jsLocation.line == line &&
-              location.jsLocation.column == column,
+  /// The [line] number is 1-based.
+  Location _locationForJs(String scriptId, int line) => sources
+      .locationsForJs(scriptId)
+      .firstWhere((location) => location.jsLocation.line == line,
           orElse: () => null);
 
   /// Returns source [Location] for the paused event.
@@ -261,8 +259,7 @@ class Debugger extends Domain {
     var location = frame['location'];
     var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
         location['lineNumber'] as int, location['columnNumber'] as int);
-    return _locationForJs(
-        jsLocation.scriptId, jsLocation.line, jsLocation.column);
+    return _locationForJs(jsLocation.scriptId, jsLocation.line);
   }
 
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart

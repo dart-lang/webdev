@@ -31,9 +31,13 @@ class Sources {
   /// Map from JS source url to Chrome script ID.
   final _sourceToScriptId = <String, String>{};
 
-  final AssetHandler _assetHandler;
+  /// Paths to black box in the Chrome debugger.
+  final _blackBoxPaths = {'/packages/stack_trace/'};
 
-  Sources(this._assetHandler);
+  final AssetHandler _assetHandler;
+  final WipDebugger _wipDebugger;
+
+  Sources(this._assetHandler, this._wipDebugger);
 
   /// Returns all [Location] data for a provided Dart source.
   Set<Location> locationsForDart(String serverPath) =>
@@ -47,6 +51,8 @@ class Sources {
   /// and add its sourcemap information.
   Future<Null> scriptParsed(ScriptParsedEvent e) async {
     var script = e.script;
+    // TODO(grouma) - This should be configurable.
+    await _blackBoxIfNecessary(script);
     var sourceMapContents = await _sourceMap(script);
     if (sourceMapContents == null) return;
     _clearCacheFor(script);
@@ -134,5 +140,36 @@ class Sources {
     var scriptPath = DartUri(script.url).serverPath;
     var sourcemapPath = p.join(p.dirname(scriptPath), sourceMapUrl);
     return _assetHandler(sourcemapPath);
+  }
+
+  /// Black boxes the Dart SDK and paths in [_blackBoxPaths].
+  Future<void> _blackBoxIfNecessary(WipScript script) async {
+    if (script.url.endsWith('dart_sdk.js')) {
+      await _blackBoxSdk(script);
+    } else if (_blackBoxPaths.any((path) => script.url.contains(path))) {
+      var lines =
+          (await _assetHandler(DartUri(script.url).serverPath)).split('\n');
+      await _blackBoxRanges(script.scriptId, [lines.length]);
+    }
+  }
+
+  Future<void> _blackBoxSdk(WipScript script) async {
+    var sdkSourceLines =
+        (await _assetHandler(DartUri(script.url).serverPath)).split('\n');
+    var throwIndex = sdkSourceLines.indexWhere(
+        (line) => line.contains('dart.throw = function throw_(exception) {'));
+    if (throwIndex != -1) {
+      await _blackBoxRanges(script.scriptId, [throwIndex, throwIndex + 6]);
+    }
+  }
+
+  Future<void> _blackBoxRanges(String scriptId, List<int> lineNumbers) async {
+    await _wipDebugger.sendCommand('Debugger.setBlackboxedRanges', params: {
+      'scriptId': scriptId,
+      'positions': [
+        {'lineNumber': 0, 'columnNumber': 0},
+        for (var line in lineNumbers) {'lineNumber': line, 'columnNumber': 0},
+      ]
+    });
   }
 }
