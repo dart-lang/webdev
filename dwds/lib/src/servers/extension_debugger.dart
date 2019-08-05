@@ -9,11 +9,13 @@ import 'dart:convert';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-/// A debugger backed by the Dart Debug Extension.
-class ExtensionDebugger implements WipDebugger {
+/// A remote debugger backed by the Dart Debug Extension
+/// with an SSE connection.
+class ExtensionDebugger implements RemoteDebugger {
   /// A connection between the debugger and the background of
   /// Dart Debug Extension
   final SseConnection sseConnection;
@@ -22,9 +24,6 @@ class ExtensionDebugger implements WipDebugger {
   final _completers = <int, Completer>{};
   final _eventStreams = <String, Stream>{};
   var _completerId = 0;
-
-  @override
-  WipConnection get connection => throw UnimplementedError();
 
   String tabUrl;
   String appId;
@@ -37,9 +36,11 @@ class ExtensionDebugger implements WipDebugger {
   final _notificationController = StreamController<WipEvent>.broadcast();
   Stream<WipEvent> get onNotification => _notificationController.stream;
 
+  @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled => eventStream(
       'Runtime.consoleAPICalled', (WipEvent event) => ConsoleAPIEvent(event));
 
+  @override
   Stream<ExceptionThrownEvent> get onExceptionThrown => eventStream(
       'Runtime.exceptionThrown',
       (WipEvent event) => ExceptionThrownEvent(event));
@@ -150,9 +151,6 @@ class ExtensionDebugger implements WipDebugger {
   }
 
   @override
-  Stream<WipDomain> get onClosed => throw UnimplementedError();
-
-  @override
   Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => eventStream(
       'Page.frameStartedLoading',
       (WipEvent event) => GlobalObjectClearedEvent(event));
@@ -164,6 +162,7 @@ class ExtensionDebugger implements WipDebugger {
   @override
   Stream<DebuggerResumedEvent> get onResumed => eventStream(
       'Debugger.resumed', (WipEvent event) => DebuggerResumedEvent(event));
+
   @override
   Stream<ScriptParsedEvent> get onScriptParsed => eventStream(
       'Debugger.scriptParsed', (WipEvent event) => ScriptParsedEvent(event));

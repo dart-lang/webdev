@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -25,7 +26,7 @@ const _pauseModePauseStates = {
 };
 
 class Debugger extends Domain {
-  final WipDebugger _wipDebugger;
+  final RemoteDebugger _remoteDebugger;
 
   final AssetHandler _assetHandler;
   final StreamNotify _streamNotify;
@@ -35,7 +36,7 @@ class Debugger extends Domain {
 
   Debugger._(
     this._assetHandler,
-    this._wipDebugger,
+    this._remoteDebugger,
     this._streamNotify,
     AppInspectorProvider provider,
     // TODO(401) - Remove.
@@ -59,7 +60,7 @@ class Debugger extends Domain {
 
   Future<Success> pause() async {
     _isStepping = false;
-    var result = await _wipDebugger.sendCommand('Debugger.pause');
+    var result = await _remoteDebugger.sendCommand('Debugger.pause');
     handleErrorIfPresent(result);
     return Success();
   }
@@ -68,7 +69,7 @@ class Debugger extends Domain {
     checkIsolate(isolateId);
     var pauseState = _pauseModePauseStates[mode.toLowerCase()] ??
         (throw ArgumentError.value('mode', 'Unsupported mode `$mode`'));
-    await _wipDebugger.setPauseOnExceptions(pauseState);
+    await _remoteDebugger.setPauseOnExceptions(pauseState);
     return Success();
   }
 
@@ -96,20 +97,20 @@ class Debugger extends Domain {
       _isStepping = true;
       switch (step) {
         case 'Over':
-          result = await _wipDebugger.sendCommand('Debugger.stepOver');
+          result = await _remoteDebugger.sendCommand('Debugger.stepOver');
           break;
         case 'Out':
-          result = await _wipDebugger.sendCommand('Debugger.stepOut');
+          result = await _remoteDebugger.sendCommand('Debugger.stepOut');
           break;
         case 'Into':
-          result = await _wipDebugger.sendCommand('Debugger.stepInto');
+          result = await _remoteDebugger.sendCommand('Debugger.stepInto');
           break;
         default:
           throw ArgumentError('Unexpected value for step: $step');
       }
     } else {
       _isStepping = false;
-      result = await _wipDebugger.sendCommand('Debugger.resume');
+      result = await _remoteDebugger.sendCommand('Debugger.resume');
     }
     handleErrorIfPresent(result);
     return Success();
@@ -125,13 +126,13 @@ class Debugger extends Domain {
 
   static Future<Debugger> create(
       AssetHandler assetHandler,
-      WipDebugger wipDebugger,
+      RemoteDebugger remoteDebugger,
       StreamNotify streamNotify,
       AppInspectorProvider appInspectorProvider,
       String root) async {
     var debugger = Debugger._(
       assetHandler,
-      wipDebugger,
+      remoteDebugger,
       streamNotify,
       appInspectorProvider,
       // TODO(401) - Remove.
@@ -146,12 +147,12 @@ class Debugger extends Domain {
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.
-    _wipDebugger?.onScriptParsed?.listen(sources.scriptParsed);
-    _wipDebugger?.onPaused?.listen(_pauseHandler);
-    _wipDebugger?.onResumed?.listen(_resumeHandler);
+    _remoteDebugger?.onScriptParsed?.listen(sources.scriptParsed);
+    _remoteDebugger?.onPaused?.listen(_pauseHandler);
+    _remoteDebugger?.onResumed?.listen(_resumeHandler);
 
-    handleErrorIfPresent(await _wipDebugger?.sendCommand('Page.enable'));
-    handleErrorIfPresent(await _wipDebugger?.enable() as WipResponse);
+    handleErrorIfPresent(await _remoteDebugger?.sendCommand('Page.enable'));
+    handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
   }
 
   /// Add a breakpoint at the given position.
@@ -217,7 +218,7 @@ class Debugger extends Domain {
     // Location is 0 based according to:
     // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
     var response =
-        await _wipDebugger.sendCommand('Debugger.setBreakpoint', params: {
+        await _remoteDebugger.sendCommand('Debugger.setBreakpoint', params: {
       'location': {
         'scriptId': location.jsLocation.scriptId,
         'lineNumber': location.jsLocation.line - 1,
@@ -229,7 +230,8 @@ class Debugger extends Domain {
 
   /// Call the Chrome protocol removeBreakpoint.
   Future<void> _removeBreakpoint(String breakpointId) async {
-    var response = await _wipDebugger.sendCommand('Debugger.removeBreakpoint',
+    var response = await _remoteDebugger.sendCommand(
+        'Debugger.removeBreakpoint',
         params: {'breakpointId': breakpointId});
     handleErrorIfPresent(response);
   }
@@ -317,7 +319,7 @@ class Debugger extends Domain {
   /// Symbol(DartClass.actualName) and will need to be converted.
   Future<List<Property>> getProperties(String id) async {
     var response =
-        await _wipDebugger.sendCommand('Runtime.getProperties', params: {
+        await _remoteDebugger.sendCommand('Runtime.getProperties', params: {
       'objectId': id,
       'ownProperties': true,
     });
@@ -367,7 +369,7 @@ class Debugger extends Domain {
     } else {
       // If we don't have source location continue stepping.
       if (_isStepping && _sourceLocation(e) == null) {
-        await _wipDebugger.sendCommand('Debugger.stepInto');
+        await _remoteDebugger.sendCommand('Debugger.stepInto');
         return;
       }
       event.kind = EventKind.kPauseInterrupted;

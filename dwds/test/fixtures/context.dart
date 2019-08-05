@@ -9,6 +9,7 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
@@ -32,7 +33,7 @@ class TestContext {
   DebugConnection debugConnection;
   ChromeProxyService chromeProxyService;
   ExtensionBackend extensionBackend;
-  WipDebugger wipDebugger;
+  WebkitDebugger webkitDebugger;
   int port;
   File _entryFile;
   String _entryContents;
@@ -124,9 +125,9 @@ class TestContext {
       return result.body;
     };
 
-    wipDebugger = WipDebugger(tabConnection);
+    webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
     chromeProxyService = await ChromeProxyService.create(
-        wipDebugger, appUrl, assetHandler, appConnection.request.instanceId);
+        webkitDebugger, appUrl, assetHandler, appConnection.request.instanceId);
   }
 
   Future<Null> tearDown() async {

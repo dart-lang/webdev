@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
 import 'services/chrome_proxy_service.dart' show ChromeProxyService;
@@ -40,7 +41,7 @@ class DwdsVmClient {
 
     client.registerServiceCallback('hotRestart', (request) async {
       await _removeBreakpointsAndResume(client);
-      var response = await chromeProxyService.wipDebugger.sendCommand(
+      var response = await chromeProxyService.remoteDebugger.sendCommand(
           'Runtime.evaluate',
           params: {'expression': r'$dartHotRestart();', 'awaitPromise': true});
       var exceptionDetails = response.result['exceptionDetails'];
@@ -59,17 +60,23 @@ class DwdsVmClient {
     await client.registerService('hotRestart', 'DWDS fullReload');
 
     client.registerServiceCallback('fullReload', (_) async {
-      await chromeProxyService.wipDebugger.connection.page.enable();
+      await (chromeProxyService.remoteDebugger as WebkitDebugger)
+          .connection
+          .page
+          .enable();
       // TODO: use built in `page.reload` once it works,
       // https://github.com/google/webkit_inspection_protocol.dart/issues/44
-      await chromeProxyService.wipDebugger.sendCommand('Page.reload');
+      await chromeProxyService.remoteDebugger.sendCommand('Page.reload');
       return {'result': Success().toJson()};
     });
     await client.registerService('fullReload', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.screenshot', (_) async {
-      await chromeProxyService.wipDebugger.connection.page.enable();
-      var response = await chromeProxyService.wipDebugger
+      await (chromeProxyService.remoteDebugger as WebkitDebugger)
+          .connection
+          .page
+          .enable();
+      var response = await chromeProxyService.remoteDebugger
           .sendCommand('Page.captureScreenshot');
       return {'result': response.result};
     });
