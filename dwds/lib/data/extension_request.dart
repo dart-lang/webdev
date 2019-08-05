@@ -23,7 +23,7 @@ abstract class ExtensionRequest
 
   String get command;
 
-  /// Contains a JSON-encoded parameters.
+  /// Contains JSON-encoded parameters.
   @nullable
   String get commandParams;
 }

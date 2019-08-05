@@ -69,7 +69,7 @@ void main() async {
   });
 
   group('can send', () {
-    test('a request with empty param', () async {
+    test('a request with empty params', () async {
       var extensionRequest = ExtensionRequest((b) => b
         ..id = 0
         ..command = 'Debugger.pause'
@@ -80,7 +80,7 @@ void main() async {
       expect(request, extensionRequest);
     });
 
-    test('a request with some param', () async {
+    test('a request with some params', () async {
       var params = {
         'location': {'scriptId': '555', 'lineNumber': 28}
       };
