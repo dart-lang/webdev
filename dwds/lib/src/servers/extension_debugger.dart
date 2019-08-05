@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:dwds/data/devtools_request.dart';
@@ -43,6 +44,8 @@ class ExtensionDebugger implements WipDebugger {
       'Runtime.exceptionThrown',
       (WipEvent event) => ExceptionThrownEvent(event));
 
+  final _scripts = <String, WipScript>{};
+
   ExtensionDebugger(this.sseConnection) {
     sseConnection.stream.listen((data) {
       var message = serializers.deserialize(jsonDecode(data));
@@ -70,6 +73,12 @@ class ExtensionDebugger implements WipDebugger {
     }, onError: (_) {
       close();
     });
+    onScriptParsed.listen((event) {
+      _scripts[event.script.scriptId] = event.script;
+    });
+    onGlobalObjectCleared.listen((_) {
+      _scripts.clear();
+    });
   }
 
   /// Sends a [command] with optional [params] to Dart Debug Extension
@@ -90,7 +99,11 @@ class ExtensionDebugger implements WipDebugger {
 
   int newId() => _completerId++;
 
-  Future<void> close() => sseConnection.sink.close();
+  void close() {
+    sseConnection.sink.close();
+    _notificationController.close();
+    _devToolsRequestController.close();
+  }
 
   @override
   Future disable() => sendCommand('Debugger.disable');
@@ -155,7 +168,7 @@ class ExtensionDebugger implements WipDebugger {
       'Debugger.scriptParsed', (WipEvent event) => ScriptParsedEvent(event));
 
   @override
-  Map<String, WipScript> get scripts => throw UnimplementedError();
+  Map<String, WipScript> get scripts => UnmodifiableMapView(_scripts);
 
   String _pauseStateToString(PauseState state) {
     switch (state) {
