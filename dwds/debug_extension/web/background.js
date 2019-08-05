@@ -2679,7 +2679,7 @@ nM:function(){var u=P.b1(new M.kT())
 self.chrome.browserAction.onClicked.addListener(u)},
 kW:function(a,b,c,d,e){var u=0,t=P.eh(-1),s,r,q,p,o,n,m
 var $async$kW=P.ei(function(f,g){if(f===1)return P.ec(g,t)
-while(true)switch(u){case 0:q="http://"+H.b(a)+":"+H.b(b)+"/test"
+while(true)switch(u){case 0:q="http://"+H.b(a)+":"+H.b(b)+"/$debug"
 p=P.e
 o=P.mK(p)
 n=P.mK(p)
@@ -2890,7 +2890,7 @@ return a^a>>>6},
 aM:function(a){a=536870911&a+((67108863&a)<<3)
 a^=a>>>11
 return 536870911&a+((16383&a)<<15)},
-V:function(a,b){return new Y.f0(a,b)},
+W:function(a,b){return new Y.f0(a,b)},
 fE:function fE(){},
 kB:function kB(){},
 ci:function ci(a){this.a=a},
@@ -2926,7 +2926,7 @@ this.b=b
 this.c=c},
 cw:function cw(){}},U={
 pH:function(){var u=P.a8,t=[U.l,,],s=P.e
-t=Y.mj(A.co(u,t),A.co(s,t),A.co(s,t),A.co(U.W,P.bH),S.bM(C.i,U.i1))
+t=Y.mj(A.co(u,t),A.co(s,t),A.co(s,t),A.co(U.V,P.bH),S.bM(C.i,U.i1))
 t.w(0,new O.ez(S.S([C.aR,J.l9($.ai())],u)))
 t.w(0,new R.eA(S.S([C.G],u)))
 s=P.f
@@ -2962,7 +2962,7 @@ i4:function i4(){},
 i5:function i5(){},
 i6:function i6(){},
 i1:function i1(){},
-W:function W(a,b){this.a=a
+V:function V(a,b){this.a=a
 this.b=b},
 l:function l(){},
 fv:function fv(a,b,c){this.a=a
@@ -6694,8 +6694,8 @@ break}}r=o.a
 if(r==null){s=o.gav().b
 q=o.gav().c
 r=new M.dI(s,q,o.gav().d,o.gav().e,o.gav().f)
-if(s==null)H.h(Y.V(p,"status"))
-if(q==null)H.h(Y.V(p,"target"))}return o.a=r},
+if(s==null)H.h(Y.W(p,"status"))
+if(q==null)H.h(Y.W(p,"target"))}return o.a=r},
 L:function(a,b){return this.v(a,b,C.c)},
 $il:1,
 $al:function(){return[M.ba]},
@@ -7222,11 +7222,11 @@ $C:"$0",
 $R:0,
 $S:39}
 U.i1.prototype={}
-U.W.prototype={
+U.V.prototype={
 n:function(a,b){var u,t,s,r
 if(b==null)return!1
 if(b===this)return!0
-if(!(b instanceof U.W))return!1
+if(!(b instanceof U.V))return!1
 if(!J.B(this.a,b.a))return!1
 u=this.b
 t=u.length
@@ -7811,8 +7811,8 @@ break}}r=o.a
 if(r==null){s=o.gbP().b
 q=o.gbP().c
 r=new E.dH(s,q)
-if(s==null)H.h(Y.V(p,"appId"))
-if(q==null)H.h(Y.V(p,"instanceId"))}return o.a=r},
+if(s==null)H.h(Y.W(p,"appId"))
+if(q==null)H.h(Y.W(p,"instanceId"))}return o.a=r},
 L:function(a,b){return this.v(a,b,C.c)},
 $il:1,
 $al:function(){return[E.b9]},
@@ -7878,7 +7878,7 @@ q.gaf().c=s
 break}}r=q.a
 if(r==null){s=q.gaf().b
 r=new M.dK(s,q.gaf().c)
-if(s==null)H.h(Y.V("DevToolsResponse","success"))}return q.a=r},
+if(s==null)H.h(Y.W("DevToolsResponse","success"))}return q.a=r},
 L:function(a,b){return this.v(a,b,C.c)},
 $il:1,
 $al:function(){return[M.bc]},
@@ -7907,8 +7907,8 @@ T:function(){var u,t,s=this,r="DevToolsRequest",q=s.a
 if(q==null){u=s.gaf().b
 t=s.gaf().c
 q=new M.dJ(u,t,s.gaf().d)
-if(u==null)H.h(Y.V(r,"appId"))
-if(t==null)H.h(Y.V(r,"instanceId"))}return s.a=q}}
+if(u==null)H.h(Y.W(r,"appId"))
+if(t==null)H.h(Y.W(r,"instanceId"))}return s.a=q}}
 M.dK.prototype={
 n:function(a,b){if(b==null)return!1
 if(b===this)return!0
@@ -7927,28 +7927,28 @@ S.aR.prototype={}
 S.bf.prototype={}
 S.be.prototype={}
 S.iY.prototype={
-u:function(a,b,c){return H.j(["id",a.E(b.a,C.t),"command",a.E(b.b,C.e),"commandParams",a.E(b.c,C.e)],[P.f])},
+u:function(a,b,c){var u=H.j(["id",a.E(b.a,C.t),"command",a.E(b.b,C.e)],[P.f]),t=b.c
+if(t!=null){u.push("commandParams")
+u.push(a.E(t,C.e))}return u},
 I:function(a,b){return this.u(a,b,C.c)},
-v:function(a,b,c){var u,t,s,r,q,p,o="ExtensionRequest",n=new S.fF(),m=J.C(b)
-for(;m.l();){u=H.u(m.gm())
-m.l()
-t=m.gm()
+v:function(a,b,c){var u,t,s,r,q,p="ExtensionRequest",o=new S.fF(),n=J.C(b)
+for(;n.l();){u=H.u(n.gm())
+n.l()
+t=n.gm()
 switch(u){case"id":s=H.ek(a.G(t,C.t))
-n.gS().b=s
+o.gS().b=s
 break
 case"command":s=H.u(a.G(t,C.e))
-n.gS().c=s
+o.gS().c=s
 break
 case"commandParams":s=H.u(a.G(t,C.e))
-n.gS().d=s
-break}}r=n.a
-if(r==null){s=n.gS().b
-q=n.gS().c
-p=n.gS().d
-r=new S.dM(s,q,p)
-if(s==null)H.h(Y.V(o,"id"))
-if(q==null)H.h(Y.V(o,"command"))
-if(p==null)H.h(Y.V(o,"commandParams"))}return n.a=r},
+o.gS().d=s
+break}}r=o.a
+if(r==null){s=o.gS().b
+q=o.gS().c
+r=new S.dM(s,q,o.gS().d)
+if(s==null)H.h(Y.W(p,"id"))
+if(q==null)H.h(Y.W(p,"command"))}return o.a=r},
 L:function(a,b){return this.v(a,b,C.c)},
 $il:1,
 $al:function(){return[S.aR]},
@@ -8048,9 +8048,9 @@ if(p==null){u=r.gS().b
 t=r.gS().c
 s=r.gS().d
 p=new S.dN(u,t,s,r.gS().e)
-if(u==null)H.h(Y.V(q,"id"))
-if(t==null)H.h(Y.V(q,"success"))
-if(s==null)H.h(Y.V(q,"result"))}return r.a=p}}
+if(u==null)H.h(Y.W(q,"id"))
+if(t==null)H.h(Y.W(q,"success"))
+if(s==null)H.h(Y.W(q,"result"))}return r.a=p}}
 S.dL.prototype={
 n:function(a,b){if(b==null)return!1
 if(b===this)return!0
@@ -8069,8 +8069,8 @@ T:function(){var u,t,s=this,r="ExtensionEvent",q=s.a
 if(q==null){u=s.gS().b
 t=s.gS().c
 q=new S.dL(u,t)
-if(u==null)H.h(Y.V(r,"params"))
-if(t==null)H.h(Y.V(r,"method"))}return s.a=q}}
+if(u==null)H.h(Y.W(r,"params"))
+if(t==null)H.h(Y.W(r,"method"))}return s.a=q}}
 M.bi.prototype={}
 M.bj.prototype={}
 M.j_.prototype={
@@ -8089,8 +8089,8 @@ break}}r=o.a
 if(r==null){s=o.gaF().b
 q=o.gaF().c
 r=new M.dO(s,q)
-if(s==null)H.h(Y.V(p,"appId"))
-if(q==null)H.h(Y.V(p,"instanceId"))}return o.a=r},
+if(s==null)H.h(Y.W(p,"appId"))
+if(q==null)H.h(Y.W(p,"instanceId"))}return o.a=r},
 L:function(a,b){return this.v(a,b,C.c)},
 $il:1,
 $al:function(){return[M.bi]},
@@ -8114,8 +8114,8 @@ break}}r=o.a
 if(r==null){s=o.gaF().b
 q=o.gaF().c
 r=new M.dP(s,q)
-if(s==null)H.h(Y.V(p,"appId"))
-if(q==null)H.h(Y.V(p,"instanceId"))}return o.a=r},
+if(s==null)H.h(Y.W(p,"appId"))
+if(q==null)H.h(Y.W(p,"instanceId"))}return o.a=r},
 L:function(a,b){return this.v(a,b,C.c)},
 $il:1,
 $al:function(){return[M.bj]},
@@ -9353,7 +9353,7 @@ o(j,"gfF","fG",25)
 p(j,"gfH","fI",1)
 o(j,"gfJ","bT",6)})();(function inheritance(){var u=hunkHelpers.mixin,t=hunkHelpers.inherit,s=hunkHelpers.inheritMany
 t(P.f,null)
-s(P.f,[H.ll,J.ab,J.h8,J.aj,P.e5,P.o,H.al,P.h6,H.fD,H.db,H.iE,H.cA,P.hx,H.fi,H.bF,H.h7,H.ix,P.ak,H.cg,H.e6,H.A,P.dn,H.hj,H.hl,H.di,H.cJ,H.dR,H.dD,H.ka,P.kb,P.j5,P.a3,P.dX,P.e0,P.R,P.dS,P.aF,P.ih,P.ii,P.e7,P.jc,P.aI,P.jZ,P.jr,P.jq,P.k8,P.bE,P.kk,P.jL,P.k4,P.jW,P.e4,P.a4,P.ke,P.ff,P.jd,P.fe,P.jR,P.kj,P.ki,P.O,P.c9,P.U,P.aO,P.b5,P.as,P.hO,P.dC,P.ju,P.ch,P.h1,P.bH,P.t,P.N,P.hw,P.q,P.aY,P.bp,P.hW,P.a7,P.e,P.J,P.au,P.a8,P.aw,P.bx,P.iH,P.ao,P.j2,P.jN,P.cc,P.f3,P.h_,P.a5,P.iB,P.fX,P.iz,P.fY,P.iA,P.fH,P.fI,Y.fE,M.ba,M.iS,M.iU,M.ft,S.fq,S.aa,S.aX,M.b6,M.bN,A.ar,A.bl,L.aA,L.aE,E.b7,E.bT,Y.ci,A.bJ,U.i1,U.W,U.l,O.ez,R.eA,Y.eG,Y.eH,R.eI,K.eN,K.eQ,R.eT,O.eX,Z.fs,D.fz,K.fA,Q.fZ,B.h0,O.hg,K.hN,K.hX,M.it,O.iI,M.M,U.fu,U.de,U.dl,U.cO,U.c_,U.dm,U.d4,B.bm,E.b9,E.iT,E.fh,M.bb,M.bc,M.iV,M.iW,M.aP,M.fx,S.aR,S.bf,S.be,S.iY,S.iZ,S.iX,S.fF,S.aS,S.aQ,M.bi,M.bj,M.j_,M.j0,M.h3,M.h4,A.br,A.j1,A.lu,V.Q,E.ev,G.d0,T.ey,E.d2,R.cr,N.bk,N.cm,N.hq,M.fl,O.iu,X.hP,X.hR,Y.i9,D.ia,Y.cw,U.fL,V.bU,V.dA,G.ic,R.ig,X.ir,F.iQ])
+s(P.f,[H.ll,J.ab,J.h8,J.aj,P.e5,P.o,H.al,P.h6,H.fD,H.db,H.iE,H.cA,P.hx,H.fi,H.bF,H.h7,H.ix,P.ak,H.cg,H.e6,H.A,P.dn,H.hj,H.hl,H.di,H.cJ,H.dR,H.dD,H.ka,P.kb,P.j5,P.a3,P.dX,P.e0,P.R,P.dS,P.aF,P.ih,P.ii,P.e7,P.jc,P.aI,P.jZ,P.jr,P.jq,P.k8,P.bE,P.kk,P.jL,P.k4,P.jW,P.e4,P.a4,P.ke,P.ff,P.jd,P.fe,P.jR,P.kj,P.ki,P.O,P.c9,P.U,P.aO,P.b5,P.as,P.hO,P.dC,P.ju,P.ch,P.h1,P.bH,P.t,P.N,P.hw,P.q,P.aY,P.bp,P.hW,P.a7,P.e,P.J,P.au,P.a8,P.aw,P.bx,P.iH,P.ao,P.j2,P.jN,P.cc,P.f3,P.h_,P.a5,P.iB,P.fX,P.iz,P.fY,P.iA,P.fH,P.fI,Y.fE,M.ba,M.iS,M.iU,M.ft,S.fq,S.aa,S.aX,M.b6,M.bN,A.ar,A.bl,L.aA,L.aE,E.b7,E.bT,Y.ci,A.bJ,U.i1,U.V,U.l,O.ez,R.eA,Y.eG,Y.eH,R.eI,K.eN,K.eQ,R.eT,O.eX,Z.fs,D.fz,K.fA,Q.fZ,B.h0,O.hg,K.hN,K.hX,M.it,O.iI,M.M,U.fu,U.de,U.dl,U.cO,U.c_,U.dm,U.d4,B.bm,E.b9,E.iT,E.fh,M.bb,M.bc,M.iV,M.iW,M.aP,M.fx,S.aR,S.bf,S.be,S.iY,S.iZ,S.iX,S.fF,S.aS,S.aQ,M.bi,M.bj,M.j_,M.j0,M.h3,M.h4,A.br,A.j1,A.lu,V.Q,E.ev,G.d0,T.ey,E.d2,R.cr,N.bk,N.cm,N.hq,M.fl,O.iu,X.hP,X.hR,Y.i9,D.ia,Y.cw,U.fL,V.bU,V.dA,G.ic,R.ig,X.ir,F.iQ])
 s(J.ab,[J.ck,J.dh,J.dj,J.aT,J.aU,J.aV,H.hC,H.ds,W.cf,W.fy,W.i])
 s(J.dj,[J.hT,J.aH,J.aW,M.ls,M.ce,M.bW,M.lt,M.ld,M.lc,M.lg,M.lv])
 t(J.lk,J.aT)
@@ -9614,29 +9614,29 @@ C.y=new P.jq()
 C.ak=new P.jN()
 C.h=new P.k0()
 C.G=H.n(P.U)
-C.p=H.j(u([]),[U.W])
-C.o=new U.W(C.G,C.p)
+C.p=H.j(u([]),[U.V])
+C.o=new U.V(C.G,C.p)
 C.a1=H.n([E.b7,,,])
 C.bh=H.n(P.f)
-C.z=new U.W(C.bh,C.p)
-C.B=H.j(u([C.z,C.z]),[U.W])
-C.am=new U.W(C.a1,C.B)
+C.z=new U.V(C.bh,C.p)
+C.B=H.j(u([C.z,C.z]),[U.V])
+C.am=new U.V(C.a1,C.B)
 C.a2=H.n([L.aA,,])
-C.S=H.j(u([C.z]),[U.W])
-C.an=new U.W(C.a2,C.S)
+C.S=H.j(u([C.z]),[U.V])
+C.an=new U.V(C.a2,C.S)
 C.a_=H.n([S.aa,,])
-C.ao=new U.W(C.a_,C.S)
+C.ao=new U.V(C.a_,C.S)
 C.Y=H.n(M.az)
-C.O=new U.W(C.Y,C.p)
+C.O=new U.V(C.Y,C.p)
 C.Z=H.n([M.b6,,,])
-C.ap=new U.W(C.Z,C.B)
+C.ap=new U.V(C.Z,C.B)
 C.F=H.n(P.e)
-C.e=new U.W(C.F,C.p)
+C.e=new U.V(C.F,C.p)
 C.H=H.n(P.d)
-C.t=new U.W(C.H,C.p)
-C.c=new U.W(null,C.p)
+C.t=new U.V(C.H,C.p)
+C.c=new U.V(null,C.p)
 C.a0=H.n([A.ar,,,])
-C.aq=new U.W(C.a0,C.B)
+C.aq=new U.V(C.a0,C.B)
 C.u=new V.Q(0,0,0)
 C.ar=new V.Q(4194303,4194303,1048575)
 C.av=new P.he(null)
