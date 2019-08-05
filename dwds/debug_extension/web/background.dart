@@ -76,7 +76,6 @@ Future<void> startSseClient(
   // Notifies the backend of debugger events.
   addDebuggerListener(
       allowInterop((Debuggee source, String method, Object params) {
-    print('DEBUGGER EVENT: $method');
     client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
       ..params = jsonEncode(json.decode(stringify(params)))
       ..method = jsonEncode(method)))));
@@ -84,7 +83,6 @@ Future<void> startSseClient(
 
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
-    print(message);
     if (message is ExtensionRequest) {
       var params =
           BuiltMap<String, Object>(json.decode(message.commandParams)).toMap();
