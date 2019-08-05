@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
@@ -446,6 +447,14 @@ require("dart_sdk").developer.invokeExtension(
     StreamController<Event> controller;
     StreamSubscription chromeConsoleSubscription;
     StreamSubscription exceptionsSubscription;
+
+    var onConsoleAPICalled = wipDebugger is ExtensionDebugger
+        ? (wipDebugger as ExtensionDebugger).onConsoleAPICalled
+        : wipDebugger.connection.runtime.onConsoleAPICalled;
+    var onExceptionThrown = wipDebugger is ExtensionDebugger
+        ? (wipDebugger as ExtensionDebugger).onExceptionThrown
+        : wipDebugger.connection.runtime.onExceptionThrown;
+
     // This is an edge case for this lint apparently
     //
     // ignore: join_return_with_assignment
@@ -453,8 +462,7 @@ require("dart_sdk").developer.invokeExtension(
       chromeConsoleSubscription?.cancel();
       exceptionsSubscription?.cancel();
     }, onListen: () {
-      chromeConsoleSubscription =
-          wipDebugger.connection.runtime.onConsoleAPICalled.listen((e) {
+      chromeConsoleSubscription = onConsoleAPICalled.listen((e) {
         var isolate = _inspector?.isolate;
         if (isolate == null) return;
         if (!filter(e)) return;
@@ -468,8 +476,7 @@ require("dart_sdk").developer.invokeExtension(
           ..timestamp = e.timestamp.toInt());
       });
       if (includeExceptions) {
-        exceptionsSubscription =
-            wipDebugger.connection.runtime.onExceptionThrown.listen((e) {
+        exceptionsSubscription = onExceptionThrown.listen((e) {
           var isolate = _inspector?.isolate;
           if (isolate == null) return;
           controller.add(Event()
@@ -485,8 +492,10 @@ require("dart_sdk").developer.invokeExtension(
 
   /// Listens for chrome console events and handles the ones we care about.
   void _setUpChromeConsoleListeners(IsolateRef isolateRef) {
-    _consoleSubscription = wipDebugger.connection.runtime.onConsoleAPICalled
-        .listen((ConsoleAPIEvent event) {
+    var onConsoleAPICalled = wipDebugger is ExtensionDebugger
+        ? (wipDebugger as ExtensionDebugger).onConsoleAPICalled
+        : wipDebugger.connection.runtime.onConsoleAPICalled;
+    _consoleSubscription = onConsoleAPICalled.listen((event) {
       var isolate = _inspector?.isolate;
       if (isolate == null) return;
       if (event.type != 'debug') return;
