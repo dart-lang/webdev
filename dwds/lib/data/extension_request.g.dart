@@ -29,12 +29,13 @@ class _$ExtensionRequestSerializer
       'command',
       serializers.serialize(object.command,
           specifiedType: const FullType(String)),
-      'commandParams',
-      serializers.serialize(object.commandParams,
-          specifiedType: const FullType(BuiltMap,
-              const [const FullType(String), const FullType(Object)])),
     ];
-
+    if (object.commandParams != null) {
+      result
+        ..add('commandParams')
+        ..add(serializers.serialize(object.commandParams,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
@@ -59,11 +60,8 @@ class _$ExtensionRequestSerializer
               specifiedType: const FullType(String)) as String;
           break;
         case 'commandParams':
-          result.commandParams.replace(serializers.deserialize(value,
-              specifiedType: const FullType(BuiltMap, const [
-                const FullType(String),
-                const FullType(Object)
-              ])) as BuiltMap<dynamic, dynamic>);
+          result.commandParams = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
           break;
       }
     }
@@ -191,7 +189,7 @@ class _$ExtensionRequest extends ExtensionRequest {
   @override
   final String command;
   @override
-  final BuiltMap<String, Object> commandParams;
+  final String commandParams;
 
   factory _$ExtensionRequest(
           [void Function(ExtensionRequestBuilder) updates]) =>
@@ -204,9 +202,6 @@ class _$ExtensionRequest extends ExtensionRequest {
     }
     if (command == null) {
       throw new BuiltValueNullFieldError('ExtensionRequest', 'command');
-    }
-    if (commandParams == null) {
-      throw new BuiltValueNullFieldError('ExtensionRequest', 'commandParams');
     }
   }
 
@@ -255,10 +250,9 @@ class ExtensionRequestBuilder
   String get command => _$this._command;
   set command(String command) => _$this._command = command;
 
-  MapBuilder<String, Object> _commandParams;
-  MapBuilder<String, Object> get commandParams =>
-      _$this._commandParams ??= new MapBuilder<String, Object>();
-  set commandParams(MapBuilder<String, Object> commandParams) =>
+  String _commandParams;
+  String get commandParams => _$this._commandParams;
+  set commandParams(String commandParams) =>
       _$this._commandParams = commandParams;
 
   ExtensionRequestBuilder();
@@ -267,7 +261,7 @@ class ExtensionRequestBuilder
     if (_$v != null) {
       _id = _$v.id;
       _command = _$v.command;
-      _commandParams = _$v.commandParams?.toBuilder();
+      _commandParams = _$v.commandParams;
       _$v = null;
     }
     return this;
@@ -288,22 +282,9 @@ class ExtensionRequestBuilder
 
   @override
   _$ExtensionRequest build() {
-    _$ExtensionRequest _$result;
-    try {
-      _$result = _$v ??
-          new _$ExtensionRequest._(
-              id: id, command: command, commandParams: commandParams.build());
-    } catch (_) {
-      String _$failedField;
-      try {
-        _$failedField = 'commandParams';
-        commandParams.build();
-      } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'ExtensionRequest', _$failedField, e.toString());
-      }
-      rethrow;
-    }
+    final _$result = _$v ??
+        new _$ExtensionRequest._(
+            id: id, command: command, commandParams: commandParams);
     replace(_$result);
     return _$result;
   }

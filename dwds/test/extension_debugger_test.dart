@@ -68,13 +68,31 @@ void main() async {
     });
   });
 
-  test('can send a request', () async {
-    var extensionRequest = ExtensionRequest((b) => b
-      ..id = 0
-      ..command = 'Debugger.pause');
-    unawaited(extensionDebugger.pause());
-    var request = serializers.deserialize(
-        jsonDecode(await connection.controllerOutgoing.stream.first));
-    expect(request, extensionRequest);
+  group('can send', () {
+    test('a request with empty params', () async {
+      var extensionRequest = ExtensionRequest((b) => b
+        ..id = 0
+        ..command = 'Debugger.pause'
+        ..commandParams = jsonEncode({}));
+      unawaited(extensionDebugger.pause());
+      var request = serializers.deserialize(
+          jsonDecode(await connection.controllerOutgoing.stream.first));
+      expect(request, extensionRequest);
+    });
+
+    test('a request with some params', () async {
+      var params = {
+        'location': {'scriptId': '555', 'lineNumber': 28}
+      };
+      var extensionRequest = ExtensionRequest((b) => b
+        ..id = 0
+        ..command = 'Debugger.setBreakpoint'
+        ..commandParams = jsonEncode(params));
+      unawaited(extensionDebugger.sendCommand('Debugger.setBreakpoint',
+          params: params));
+      var request = serializers.deserialize(
+          jsonDecode(await connection.controllerOutgoing.stream.first));
+      expect(request, extensionRequest);
+    });
   });
 }

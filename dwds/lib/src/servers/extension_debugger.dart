@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
@@ -81,12 +80,11 @@ class ExtensionDebugger implements WipDebugger {
     var completer = Completer<WipResponse>();
     var id = newId();
     _completers[id] = completer;
-    sseConnection.sink.add(jsonEncode(serializers.serialize(ExtensionRequest(
-        (b) => b
+    sseConnection.sink
+        .add(jsonEncode(serializers.serialize(ExtensionRequest((b) => b
           ..id = id
           ..command = command
-          ..commandParams =
-              BuiltMap<String, Object>(params ?? {}).toBuilder()))));
+          ..commandParams = jsonEncode(params ?? {})))));
     return completer.future;
   }
 
