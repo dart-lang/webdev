@@ -61,10 +61,11 @@ class Dwds {
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
-    serveDevTools ??= false;
+    enableDebugExtension ??= false;
+    // [serveDevTools] is true by default when the extension is enabled.
+    serveDevTools ??= enableDebugExtension;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
-    enableDebugExtension ??= false;
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,
@@ -79,7 +80,7 @@ class Dwds {
     int extensionPort;
     ExtensionBackend extensionBackend;
     if (enableDebugExtension) {
-      extensionBackend = await ExtensionBackend.start();
+      extensionBackend = await ExtensionBackend.start(hostname);
       extensionHostname = extensionBackend.hostname;
       extensionPort = extensionBackend.port;
     }
@@ -87,7 +88,7 @@ class Dwds {
     pipeline = pipeline.addMiddleware(createInjectedHandler(reloadConfiguration,
         extensionHostname: extensionHostname, extensionPort: extensionPort));
 
-    if (serveDevTools || enableDebugExtension) {
+    if (serveDevTools) {
       devTools = await DevTools.start(hostname);
       logWriter(Level.INFO,
           'Serving DevTools at http://${devTools.hostname}:${devTools.port}\n');

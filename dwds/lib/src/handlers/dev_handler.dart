@@ -58,8 +58,9 @@ class DevHandler {
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
-    if (_extensionBackend == null) return;
-    _startExtensionDebugService();
+    if (_extensionBackend != null) {
+      _startExtensionDebugService();
+    }
   }
 
   Handler get handler => _sseHandler.handler;
