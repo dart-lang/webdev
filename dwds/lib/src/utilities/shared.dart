@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 
 VMRef toVMRef(VM vm) => VMRef()..name = vm.name;
 

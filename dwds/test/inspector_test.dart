@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
