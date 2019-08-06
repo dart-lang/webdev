@@ -65,9 +65,7 @@ Future<void> _handleSseConnections(
     var sub = responseController.stream.map((response) {
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
-    }).listen((event) {
-      connection.sink.add(event);
-    });
+    }).listen(connection.sink.add);
     var inputStream = connection.stream.map((value) {
       var request = jsonDecode(value) as Map<String, Object>;
       if (onRequest != null) onRequest(request);
@@ -75,7 +73,7 @@ Future<void> _handleSseConnections(
     });
     var vmServerConnection = VmServerConnection(inputStream,
         responseController.sink, serviceExtensionRegistry, chromeProxyService);
-    unawaited(vmServerConnection.done.then((_) => sub.cancel()));
+    unawaited(vmServerConnection.done.whenComplete(sub.cancel));
   }
 }
 
