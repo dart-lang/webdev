@@ -297,7 +297,7 @@ class Debugger extends Domain {
     // We assume the last two scopes are global and library, and we don't want
     // to show those. We will show the first two, allowing for a single level of
     // nested functions, except if that runs into the last two.
-    var withoutLibraryOrGlobal = scopeChain.length - 2; 
+    var withoutLibraryOrGlobal = scopeChain.length - 2;
     var interesting = math.min(withoutLibraryOrGlobal, 2);
     var interestingScopes = scopeChain.sublist(0, interesting);
     return [
