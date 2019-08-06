@@ -5,6 +5,7 @@
   UI rather than headless.
 - Catch unhandled errors in `client.js` and recommend using the
   `--no-injected-client` flag for webdev users.
+- Depend on latest `package:vm_service`.
 
 ## 0.4.0
 

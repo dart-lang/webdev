@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../debugging/debugger.dart';
@@ -212,17 +212,7 @@ require("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> clearCpuProfile(String isolateId) {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Success> clearVMTimeline() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Success> collectAllGarbage(String isolateId) {
     throw UnimplementedError();
   }
 
@@ -243,11 +233,6 @@ require("dart_sdk").developer.invokeExtension(
   @override
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool gc, bool reset}) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<CpuProfile> getCpuProfile(String isolateId, String tags) {
     throw UnimplementedError();
   }
 
@@ -380,12 +365,6 @@ require("dart_sdk").developer.invokeExtension(
   @override
   Future<Success> removeBreakpoint(String isolateId, String breakpointId) =>
       _debugger.removeBreakpoint(isolateId, breakpointId);
-
-  @override
-  Future<Success> requestHeapSnapshot(
-      String isolateId, String roots, bool collectGarbage) {
-    throw UnimplementedError();
-  }
 
   @override
   Future<Success> resume(String isolateId,
@@ -542,6 +521,22 @@ require("dart_sdk").developer.invokeExtension(
     var controller = _streamControllers[streamId];
     if (controller == null) return;
     controller.add(event);
+  }
+
+  @override
+  Future<Timestamp> getVMTimelineMicros() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future getInboundReferences(String isolateId, String targetId, int limit) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<RetainingPath> getRetainingPath(
+      String isolateId, String targetId, int limit) {
+    throw UnimplementedError();
   }
 }
 
