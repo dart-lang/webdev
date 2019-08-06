@@ -24,8 +24,8 @@ class ExtensionBackend {
   ExtensionBackend._(this.hostname, this.port, this._server);
 
   // Starts the backend on an open port.
-  static Future<ExtensionBackend> start() async {
-    var server = await HttpMultiServer.bind('localhost', 0);
+  static Future<ExtensionBackend> start(String hostname) async {
+    var server = await HttpMultiServer.bind(hostname, 0);
     serveRequests(server, _sseHandler.handler);
     return ExtensionBackend._(server.address.host, server.port, server);
   }

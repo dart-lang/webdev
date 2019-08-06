@@ -9,6 +9,7 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart' as build_daemon;
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
+import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -41,6 +42,7 @@ class DevHandler {
   final bool _verbose;
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
+  final ExtensionBackend _extensionBackend;
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -52,9 +54,13 @@ class DevHandler {
     this._hostname,
     this._verbose,
     this._logWriter,
+    this._extensionBackend,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
+    if (_extensionBackend != null) {
+      _startExtensionDebugService();
+    }
   }
 
   Handler get handler => _sseHandler.handler;
@@ -272,6 +278,36 @@ class DevHandler {
         '${debugService.wsUri}\n');
     var webdevClient = await DwdsVmClient.create(debugService);
     return AppDebugServices(debugService, webdevClient);
+  }
+
+  /// Starts a [DebugService] for Dart Debug Extension.
+  void _startExtensionDebugService() async {
+    var _extensionDebugger = await _extensionBackend.extensionDebugger;
+    // Waits for a `DevToolsRequest` to be sent from the extension background
+    // when the extension is clicked.
+    // TODO(pisong): Handle multiple `devToolsRequest`.
+    await _extensionDebugger.devToolsRequestStream.first;
+    var debugService = await DebugService.start(
+      _hostname,
+      _extensionDebugger,
+      _extensionDebugger.tabUrl,
+      _assetHandler.getRelativeAsset,
+      _extensionDebugger.appId,
+      onResponse: _verbose
+          ? (response) {
+              if (response['error'] == null) return;
+              _logWriter(Level.WARNING,
+                  'VmService proxy responded with an error:\n$response');
+            }
+          : null,
+    );
+    var appServices =
+        await _createAppDebugServices(_extensionDebugger.appId, debugService);
+    await _extensionDebugger.sendCommand('Target.createTarget', params: {
+      'newWindow': true,
+      'url': 'http://${_devTools.hostname}:${_devTools.port}'
+          '/?hide=none&uri=${appServices.debugService.wsUri}',
+    });
   }
 }
 
