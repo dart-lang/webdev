@@ -9,6 +9,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:js/js.dart';
@@ -28,12 +30,25 @@ void main() {
     var callback = allowInterop((List<Tab> tabs) async {
       currentTab = tabs[0];
       attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() {}));
-      sendCommand(Debuggee(tabId: currentTab.id), 'Debugger.enable', EmptyParam,
-          allowInterop((e) {}));
-      sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.evaluate',
-          ExtensionPortParam(expression: '\$extensionPort'), allowInterop((e) {
-        var port = e.result.value;
-        startSseClient(port, currentTab);
+      sendCommand(
+          Debuggee(tabId: currentTab.id),
+          'Runtime.evaluate',
+          InjectedParams(
+              expression:
+                  '[\$extensionPort, \$extensionHostname, \$dartAppId, \$dartAppInstanceId]',
+              returnByValue: true), allowInterop((e) {
+        String port, hostname, appId, instanceId;
+        if (e.result.value == null) {
+          alert('Unable to launch DevTools. This is not Dart application.');
+          detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+          return;
+        }
+        port = e.result.value[0] as String;
+        hostname = e.result.value[1] as String;
+        appId = e.result.value[2] as String;
+        instanceId = e.result.value[3] as String;
+
+        startSseClient(hostname, port, appId, instanceId, currentTab);
       }));
     });
 
@@ -45,15 +60,34 @@ void main() {
 
 // Starts an SSE client.
 //
-// Creates 2 channels which connect to the SSE handler at the extension
-// backend, send a simple message.
-Future<void> startSseClient(port, currentTab) async {
-  var client = SseClient('http://localhost:$port/test');
+// Initiates a [DevToolsRequest], handles an [ExtensionRequest],
+// and sends an [ExtensionEvent].
+Future<void> startSseClient(
+    hostname, port, appId, instanceId, currentTab) async {
+  var client = SseClient('http://$hostname:$port/\$debug');
+  await client.onOpen.first;
+  client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
+    ..appId = appId as String
+    ..instanceId = instanceId as String
+    ..tabUrl = currentTab.url as String))));
+  sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
+      allowInterop((e) {}));
+
+  // Notifies the backend of debugger events.
+  addDebuggerListener(
+      allowInterop((Debuggee source, String method, Object params) {
+    client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
+      ..params = jsonEncode(json.decode(stringify(params)))
+      ..method = jsonEncode(method)))));
+  }));
+
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
     if (message is ExtensionRequest) {
+      var params =
+          BuiltMap<String, Object>(json.decode(message.commandParams)).toMap();
       sendCommand(Debuggee(tabId: currentTab.id), message.command,
-          js_util.jsify(message.commandParams.toMap()), allowInterop((e) {
+          js_util.jsify(params), allowInterop((e) {
         client.sink
             .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
               ..id = message.id
@@ -61,34 +95,9 @@ Future<void> startSseClient(port, currentTab) async {
               ..result = stringify(e)))));
       }));
     }
-    sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
-        allowInterop((e) {}));
-    addDebuggerListener(allowInterop(
-        (Debuggee source, String method, ConsoleEventParams params) {
-      console(source, method, params, currentTab.id as int, client.stream);
-    }));
   }, onError: (e) {
     client.close();
   }, cancelOnError: true);
-}
-
-// Listens for console events.
-void console(Debuggee source, String method, ConsoleEventParams params,
-    int tabId, Stream stream) {
-  var decodedParam = json.decode(stringify(params));
-  if (method == 'Debugger.scriptParsed') {
-    var id = decodedParam['scriptId'] as String;
-    sendCommand(Debuggee(tabId: tabId), 'Debugger.getScriptSource',
-        ScriptIdParam(scriptId: id), allowInterop((script) {
-      var decodedScript = json.decode(stringify(script));
-      // Prints the script being evaluated.
-      print(decodedScript['scriptSource']);
-    }));
-  } else if (method == 'Runtime.consoleAPICalled') {
-    var value = decodedParam['args'][0]['value'];
-    // Prints logged values.
-    print(value);
-  }
 }
 
 @JS('chrome.browserAction.onClicked.addListener')
@@ -102,6 +111,9 @@ external void sendCommand(
 external void attach(
     Debuggee target, String requiredVersion, Function callback);
 
+@JS('chrome.debugger.detach')
+external void detach(Debuggee target, Function callback);
+
 @JS('chrome.debugger.onEvent.addListener')
 external dynamic addDebuggerListener(Function callback);
 
@@ -110,6 +122,9 @@ external List<Tab> queryTabs(QueryInfo queryInfo, Function callback);
 
 @JS('JSON.stringify')
 external String stringify(o);
+
+@JS('window.alert')
+external void alert([String message]);
 
 @JS()
 @anonymous
@@ -133,6 +148,7 @@ class Debuggee {
 @anonymous
 class Tab {
   external int get id;
+  external String get url;
 }
 
 @JS()
@@ -149,19 +165,16 @@ class EvaluationResult {
 
 @JS()
 @anonymous
-class ConsoleEventParams {
-  external String get scriptId;
+class EmptyParam {
+  external factory EmptyParam();
 }
 
 @JS()
 @anonymous
-class EmptyParam {}
-
-@JS()
-@anonymous
-class ExtensionPortParam {
-  external String get extensionPort;
-  external factory ExtensionPortParam({String expression});
+class InjectedParams {
+  external String get expresion;
+  external bool get returnByValue;
+  external factory InjectedParams({String expression, bool returnByValue});
 }
 
 @JS()

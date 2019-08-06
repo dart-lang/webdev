@@ -9,6 +9,7 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
@@ -32,7 +33,7 @@ class TestContext {
   DebugConnection debugConnection;
   ChromeProxyService chromeProxyService;
   ExtensionBackend extensionBackend;
-  WipDebugger wipDebugger;
+  WebkitDebugger webkitDebugger;
   int port;
   File _entryFile;
   String _entryContents;
@@ -58,9 +59,12 @@ class TestContext {
   }
 
   Future<void> setUp(
-      {ReloadConfiguration reloadConfiguration, bool serveDevTools}) async {
+      {ReloadConfiguration reloadConfiguration,
+      bool serveDevTools,
+      bool enableDebugExtension}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
+    enableDebugExtension ??= false;
     port = await findUnusedPort();
     try {
       chromeDriver = await Process.start(
@@ -84,10 +88,16 @@ class TestContext {
         .timeout(const Duration(seconds: 60));
 
     var debugPort = await findUnusedPort();
+    // If the environment variable DWDS_DEBUG_CHROME is set to the string true
+    // then Chrome will be launched with a UI rather than headless.
+    var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true';
     var capabilities = Capabilities.chrome
       ..addAll({
         Capabilities.chromeOptions: {
-          'args': ['remote-debugging-port=$debugPort', '--headless']
+          'args': [
+            'remote-debugging-port=$debugPort',
+            if (headless) '--headless'
+          ]
         }
       });
     webDriver =
@@ -102,7 +112,7 @@ class TestContext {
       () async => connection,
       reloadConfiguration,
       serveDevTools,
-      wipDebugger,
+      enableDebugExtension,
     );
 
     appUrl = 'http://localhost:$port/$path';
@@ -114,13 +124,14 @@ class TestContext {
 
     appConnection = await testServer.dwds.connectedApps.first;
     debugConnection = await testServer.dwds.debugConnection(appConnection);
-
     var assetHandler = (String path) async {
       var result = await http.get('http://localhost:$port/$path');
       return result.body;
     };
-    chromeProxyService = await ChromeProxyService.create(connection,
-        assetHandler, appConnection.request.instanceId, wipDebugger);
+
+    webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
+    chromeProxyService = await ChromeProxyService.create(
+        webkitDebugger, appUrl, assetHandler, appConnection.request.instanceId);
   }
 
   Future<Null> tearDown() async {

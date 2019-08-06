@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -39,10 +39,10 @@ class ChromeProxyService implements VmServiceInterface {
   /// are dynamic and roughly map to chrome tabs.
   final VM _vm;
 
-  /// The actual chrome tab running this app.
-  final ChromeTab _tab;
+  /// The root URI at which we're serving.
+  final String uri;
 
-  final WipDebugger wipDebugger;
+  final RemoteDebugger remoteDebugger;
 
   final AssetHandler _assetHandler;
 
@@ -50,50 +50,35 @@ class ChromeProxyService implements VmServiceInterface {
   Debugger _debugger;
 
   AppInspector _inspector;
-  AppInspector _appInspectorProvider() => _inspector;
+
+  /// Public only for testing.
+  ///
+  /// Returns the [AppInspector] this service uses.
+  AppInspector appInspectorProvider() => _inspector;
 
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 
   ChromeProxyService._(
     this._vm,
-    this._tab,
+    this.uri,
     this._assetHandler,
-    this.wipDebugger,
+    this.remoteDebugger,
   );
 
   static Future<ChromeProxyService> create(
-      ChromeConnection chromeConnection,
-      AssetHandler assetHandler,
-      String appInstanceId,
-      WipDebugger wipDebugger) async {
-    ChromeTab appTab;
-    for (var tab in await chromeConnection.getTabs()) {
-      if (tab.url.startsWith('chrome-extensions:')) continue;
-      var tabConnection = await tab.connect();
-      var result = await tabConnection.runtime
-          .evaluate(r'window["$dartAppInstanceId"];');
-      if (result.value == appInstanceId) {
-        appTab = tab;
-        break;
-      }
-      unawaited(tabConnection.close());
-    }
-    if (appTab == null) {
-      throw StateError('Could not connect to application with appInstanceId: '
-          '$appInstanceId');
-    }
-    var tabConnection = await appTab.connect();
-    await tabConnection.runtime.enable();
-
-    wipDebugger = WipDebugger(tabConnection);
-
+    RemoteDebugger remoteDebugger,
+    String tabUrl,
+    AssetHandler assetHandler,
+    String appInstanceId,
+  ) async {
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
       ..isolates = []
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
-    var service = ChromeProxyService._(vm, appTab, assetHandler, wipDebugger);
+    var service =
+        ChromeProxyService._(vm, tabUrl, assetHandler, remoteDebugger);
     await service._initialize();
     await service.createIsolate();
     return service;
@@ -102,15 +87,12 @@ class ChromeProxyService implements VmServiceInterface {
   Future<Null> _initialize() async {
     _debugger = await Debugger.create(
       _assetHandler,
-      wipDebugger,
+      remoteDebugger,
       _streamNotify,
-      _appInspectorProvider,
+      appInspectorProvider,
       uri,
     );
   }
-
-  /// The root URI at which we're serving.
-  String get uri => _tab.url;
 
   /// Creates a new isolate.
   ///
@@ -124,7 +106,7 @@ class ChromeProxyService implements VmServiceInterface {
     }
 
     _inspector = await AppInspector.initialize(
-      wipDebugger,
+      remoteDebugger,
       _assetHandler,
       _debugger,
       uri,
@@ -209,7 +191,8 @@ class ChromeProxyService implements VmServiceInterface {
 require("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
-    var response = await wipDebugger.sendCommand('Runtime.evaluate', params: {
+    var response =
+        await remoteDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
       'awaitPromise': true,
     });
@@ -245,9 +228,11 @@ require("dart_sdk").developer.invokeExtension(
 
   @override
   Future evaluate(String isolateId, String targetId, String expression,
-          {Map<String, String> scope, bool disableBreakpoints}) =>
-      _inspector?.evaluate(isolateId, targetId, expression,
-          scope: scope, disableBreakpoints: disableBreakpoints);
+      {Map<String, String> scope, bool disableBreakpoints}) async {
+    var remote = await _inspector?.evaluate(isolateId, targetId, expression,
+        scope: scope, disableBreakpoints: disableBreakpoints);
+    return _inspector?.instanceRefFor(remote);
+  }
 
   @override
   Future evaluateInFrame(String isolateId, int frameIndex, String expression,
@@ -464,6 +449,7 @@ require("dart_sdk").developer.invokeExtension(
     StreamController<Event> controller;
     StreamSubscription chromeConsoleSubscription;
     StreamSubscription exceptionsSubscription;
+
     // This is an edge case for this lint apparently
     //
     // ignore: join_return_with_assignment
@@ -471,8 +457,7 @@ require("dart_sdk").developer.invokeExtension(
       chromeConsoleSubscription?.cancel();
       exceptionsSubscription?.cancel();
     }, onListen: () {
-      chromeConsoleSubscription =
-          wipDebugger.connection.runtime.onConsoleAPICalled.listen((e) {
+      chromeConsoleSubscription = remoteDebugger.onConsoleAPICalled.listen((e) {
         var isolate = _inspector?.isolate;
         if (isolate == null) return;
         if (!filter(e)) return;
@@ -486,8 +471,7 @@ require("dart_sdk").developer.invokeExtension(
           ..timestamp = e.timestamp.toInt());
       });
       if (includeExceptions) {
-        exceptionsSubscription =
-            wipDebugger.connection.runtime.onExceptionThrown.listen((e) {
+        exceptionsSubscription = remoteDebugger.onExceptionThrown.listen((e) {
           var isolate = _inspector?.isolate;
           if (isolate == null) return;
           controller.add(Event()
@@ -503,8 +487,7 @@ require("dart_sdk").developer.invokeExtension(
 
   /// Listens for chrome console events and handles the ones we care about.
   void _setUpChromeConsoleListeners(IsolateRef isolateRef) {
-    _consoleSubscription = wipDebugger.connection.runtime.onConsoleAPICalled
-        .listen((ConsoleAPIEvent event) {
+    _consoleSubscription = remoteDebugger.onConsoleAPICalled.listen((event) {
       var isolate = _inspector?.isolate;
       if (isolate == null) return;
       if (event.type != 'debug') return;

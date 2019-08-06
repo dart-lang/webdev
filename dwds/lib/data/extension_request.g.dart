@@ -29,12 +29,13 @@ class _$ExtensionRequestSerializer
       'command',
       serializers.serialize(object.command,
           specifiedType: const FullType(String)),
-      'commandParams',
-      serializers.serialize(object.commandParams,
-          specifiedType: const FullType(BuiltMap,
-              const [const FullType(String), const FullType(Object)])),
     ];
-
+    if (object.commandParams != null) {
+      result
+        ..add('commandParams')
+        ..add(serializers.serialize(object.commandParams,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
@@ -59,11 +60,8 @@ class _$ExtensionRequestSerializer
               specifiedType: const FullType(String)) as String;
           break;
         case 'commandParams':
-          result.commandParams.replace(serializers.deserialize(value,
-              specifiedType: const FullType(BuiltMap, const [
-                const FullType(String),
-                const FullType(Object)
-              ])) as BuiltMap<dynamic, dynamic>);
+          result.commandParams = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
           break;
       }
     }
@@ -150,6 +148,9 @@ class _$ExtensionEventSerializer
       'params',
       serializers.serialize(object.params,
           specifiedType: const FullType(String)),
+      'method',
+      serializers.serialize(object.method,
+          specifiedType: const FullType(String)),
     ];
 
     return result;
@@ -171,6 +172,10 @@ class _$ExtensionEventSerializer
           result.params = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'method':
+          result.method = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
       }
     }
 
@@ -184,7 +189,7 @@ class _$ExtensionRequest extends ExtensionRequest {
   @override
   final String command;
   @override
-  final BuiltMap<String, Object> commandParams;
+  final String commandParams;
 
   factory _$ExtensionRequest(
           [void Function(ExtensionRequestBuilder) updates]) =>
@@ -197,9 +202,6 @@ class _$ExtensionRequest extends ExtensionRequest {
     }
     if (command == null) {
       throw new BuiltValueNullFieldError('ExtensionRequest', 'command');
-    }
-    if (commandParams == null) {
-      throw new BuiltValueNullFieldError('ExtensionRequest', 'commandParams');
     }
   }
 
@@ -248,10 +250,9 @@ class ExtensionRequestBuilder
   String get command => _$this._command;
   set command(String command) => _$this._command = command;
 
-  MapBuilder<String, Object> _commandParams;
-  MapBuilder<String, Object> get commandParams =>
-      _$this._commandParams ??= new MapBuilder<String, Object>();
-  set commandParams(MapBuilder<String, Object> commandParams) =>
+  String _commandParams;
+  String get commandParams => _$this._commandParams;
+  set commandParams(String commandParams) =>
       _$this._commandParams = commandParams;
 
   ExtensionRequestBuilder();
@@ -260,7 +261,7 @@ class ExtensionRequestBuilder
     if (_$v != null) {
       _id = _$v.id;
       _command = _$v.command;
-      _commandParams = _$v.commandParams?.toBuilder();
+      _commandParams = _$v.commandParams;
       _$v = null;
     }
     return this;
@@ -281,22 +282,9 @@ class ExtensionRequestBuilder
 
   @override
   _$ExtensionRequest build() {
-    _$ExtensionRequest _$result;
-    try {
-      _$result = _$v ??
-          new _$ExtensionRequest._(
-              id: id, command: command, commandParams: commandParams.build());
-    } catch (_) {
-      String _$failedField;
-      try {
-        _$failedField = 'commandParams';
-        commandParams.build();
-      } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'ExtensionRequest', _$failedField, e.toString());
-      }
-      rethrow;
-    }
+    final _$result = _$v ??
+        new _$ExtensionRequest._(
+            id: id, command: command, commandParams: commandParams);
     replace(_$result);
     return _$result;
   }
@@ -424,13 +412,18 @@ class ExtensionResponseBuilder
 class _$ExtensionEvent extends ExtensionEvent {
   @override
   final String params;
+  @override
+  final String method;
 
   factory _$ExtensionEvent([void Function(ExtensionEventBuilder) updates]) =>
       (new ExtensionEventBuilder()..update(updates)).build();
 
-  _$ExtensionEvent._({this.params}) : super._() {
+  _$ExtensionEvent._({this.params, this.method}) : super._() {
     if (params == null) {
       throw new BuiltValueNullFieldError('ExtensionEvent', 'params');
+    }
+    if (method == null) {
+      throw new BuiltValueNullFieldError('ExtensionEvent', 'method');
     }
   }
 
@@ -445,18 +438,21 @@ class _$ExtensionEvent extends ExtensionEvent {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is ExtensionEvent && params == other.params;
+    return other is ExtensionEvent &&
+        params == other.params &&
+        method == other.method;
   }
 
   @override
   int get hashCode {
-    return $jf($jc(0, params.hashCode));
+    return $jf($jc($jc(0, params.hashCode), method.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('ExtensionEvent')
-          ..add('params', params))
+          ..add('params', params)
+          ..add('method', method))
         .toString();
   }
 }
@@ -469,11 +465,16 @@ class ExtensionEventBuilder
   String get params => _$this._params;
   set params(String params) => _$this._params = params;
 
+  String _method;
+  String get method => _$this._method;
+  set method(String method) => _$this._method = method;
+
   ExtensionEventBuilder();
 
   ExtensionEventBuilder get _$this {
     if (_$v != null) {
       _params = _$v.params;
+      _method = _$v.method;
       _$v = null;
     }
     return this;
@@ -494,7 +495,8 @@ class ExtensionEventBuilder
 
   @override
   _$ExtensionEvent build() {
-    final _$result = _$v ?? new _$ExtensionEvent._(params: params);
+    final _$result =
+        _$v ?? new _$ExtensionEvent._(params: params, method: method);
     replace(_$result);
     return _$result;
   }

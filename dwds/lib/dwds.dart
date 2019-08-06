@@ -58,14 +58,14 @@ class Dwds {
     LogWriter logWriter,
     bool verbose,
     bool enableDebugExtension,
-    WipDebugger wipDebugger,
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
-    serveDevTools ??= false;
+    enableDebugExtension ??= false;
+    // `serveDevTools` is true by default when the extension is enabled.
+    serveDevTools ??= enableDebugExtension;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
-    enableDebugExtension ??= false;
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,
@@ -75,10 +75,12 @@ class Dwds {
     var cascade = Cascade();
     var pipeline = const Pipeline();
 
+    DevTools devTools;
     String extensionHostname;
     int extensionPort;
+    ExtensionBackend extensionBackend;
     if (enableDebugExtension) {
-      var extensionBackend = await ExtensionBackend.start();
+      extensionBackend = await ExtensionBackend.start(hostname);
       extensionHostname = extensionBackend.hostname;
       extensionPort = extensionBackend.port;
     }
@@ -86,7 +88,6 @@ class Dwds {
     pipeline = pipeline.addMiddleware(createInjectedHandler(reloadConfiguration,
         extensionHostname: extensionHostname, extensionPort: extensionPort));
 
-    DevTools devTools;
     if (serveDevTools) {
       devTools = await DevTools.start(hostname);
       logWriter(Level.INFO,
@@ -100,7 +101,7 @@ class Dwds {
       hostname,
       verbose,
       logWriter,
-      wipDebugger,
+      extensionBackend,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 

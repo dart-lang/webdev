@@ -7,6 +7,9 @@ import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart' as build_daemon;
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/debugging/webkit_debugger.dart';
+import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -39,7 +42,7 @@ class DevHandler {
   final bool _verbose;
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
-  final WipDebugger _wipDebugger;
+  final ExtensionBackend _extensionBackend;
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -51,10 +54,13 @@ class DevHandler {
     this._hostname,
     this._verbose,
     this._logWriter,
-    this._wipDebugger,
+    this._extensionBackend,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
+    if (_extensionBackend != null) {
+      _startExtensionDebugService();
+    }
   }
 
   Handler get handler => _sseHandler.handler;
@@ -84,12 +90,34 @@ class DevHandler {
   // a getter and is created immediately.
   Future<DebugService> startDebugService(
       ChromeConnection chromeConnection, String appInstanceId) async {
+    ChromeTab appTab;
+    WipConnection tabConnection;
+    for (var tab in await chromeConnection.getTabs()) {
+      if (tab.url.startsWith('chrome-extensions:')) continue;
+      tabConnection = await tab.connect();
+      var result = await tabConnection.runtime
+          .evaluate(r'window["$dartAppInstanceId"];');
+      if (result.value == appInstanceId) {
+        appTab = tab;
+        break;
+      }
+      unawaited(tabConnection.close());
+    }
+    if (appTab == null) {
+      throw StateError('Could not connect to application with appInstanceId: '
+          '$appInstanceId');
+    }
+
+    await tabConnection.runtime.enable();
+
+    var webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
+
     return DebugService.start(
       _hostname,
-      chromeConnection,
+      webkitDebugger,
+      appTab.url,
       _assetHandler.getRelativeAsset,
       appInstanceId,
-      _wipDebugger,
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
@@ -101,8 +129,21 @@ class DevHandler {
   }
 
   Future<AppDebugServices> loadAppServices(String appId, String instanceId) =>
-      _servicesByAppId.putIfAbsent(
-          appId, () => _createAppDebugServices(appId, instanceId));
+      _servicesByAppId.putIfAbsent(appId, () async {
+        var debugService =
+            await startDebugService(await _chromeConnection(), instanceId);
+        var appServices = await _createAppDebugServices(appId, debugService);
+        unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
+            .whenComplete(() {
+          appServices.close();
+          _servicesByAppId.remove(appId);
+          _logWriter(
+              Level.INFO,
+              'Stopped debug service on '
+              'ws://${debugService.hostname}:${debugService.port}\n');
+        }));
+        return appServices;
+      });
 
   void _handleConnection(SseConnection injectedConnection) {
     _injectedConnections.add(injectedConnection);
@@ -162,7 +203,7 @@ class DevHandler {
         // If you load the same app in a different tab then we need to throw
         // away our old services and start new ones.
         if (!(await _isCorrectTab(message.instanceId,
-            appServices.chromeProxyService.wipDebugger.connection))) {
+            appServices.chromeProxyService.remoteDebugger))) {
           unawaited(appServices.close());
           unawaited(_servicesByAppId.remove(message.appId));
           appServices =
@@ -173,7 +214,7 @@ class DevHandler {
             serializers.serialize(DevToolsResponse((b) => b..success = true))));
 
         appServices.connectedInstanceId = message.instanceId;
-        await appServices.chromeProxyService.wipDebugger
+        await appServices.chromeProxyService.remoteDebugger
             .sendCommand('Target.createTarget', params: {
           'newWindow': true,
           'url': 'http://${_devTools.hostname}:${_devTools.port}'
@@ -193,8 +234,8 @@ class DevHandler {
         if (services != null && services.connectedInstanceId == null) {
           // Re-connect to the previous instance if its in the same tab,
           // otherwise do nothing for now.
-          if (await _isCorrectTab(message.instanceId,
-              services.chromeProxyService.wipDebugger.connection)) {
+          if (await _isCorrectTab(
+              message.instanceId, services.chromeProxyService.remoteDebugger)) {
             services.connectedInstanceId = message.instanceId;
             await services.chromeProxyService.createIsolate();
           }
@@ -230,36 +271,49 @@ class DevHandler {
   }
 
   Future<AppDebugServices> _createAppDebugServices(
-      String appId, String instanceId) async {
-    var debugService =
-        await startDebugService(await _chromeConnection(), instanceId);
+      String appId, DebugService debugService) async {
     _logWriter(
         Level.INFO,
         'Debug service listening on '
         '${debugService.wsUri}\n');
-
     var webdevClient = await DwdsVmClient.create(debugService);
-    var appServices = AppDebugServices(debugService, webdevClient);
+    return AppDebugServices(debugService, webdevClient);
+  }
 
-    unawaited(appServices
-        .chromeProxyService.wipDebugger.connection.onClose.first
-        .then((_) {
-      appServices.close();
-      _servicesByAppId.remove(appId);
-      _logWriter(
-          Level.INFO,
-          'Stopped debug service on '
-          'ws://${debugService.hostname}:${debugService.port}\n');
-    }));
-
-    return appServices;
+  /// Starts a [DebugService] for Dart Debug Extension.
+  void _startExtensionDebugService() async {
+    var _extensionDebugger = await _extensionBackend.extensionDebugger;
+    // Waits for a `DevToolsRequest` to be sent from the extension background
+    // when the extension is clicked.
+    // TODO(pisong): Handle multiple `devToolsRequest`.
+    await _extensionDebugger.devToolsRequestStream.first;
+    var debugService = await DebugService.start(
+      _hostname,
+      _extensionDebugger,
+      _extensionDebugger.tabUrl,
+      _assetHandler.getRelativeAsset,
+      _extensionDebugger.appId,
+      onResponse: _verbose
+          ? (response) {
+              if (response['error'] == null) return;
+              _logWriter(Level.WARNING,
+                  'VmService proxy responded with an error:\n$response');
+            }
+          : null,
+    );
+    var appServices =
+        await _createAppDebugServices(_extensionDebugger.appId, debugService);
+    await _extensionDebugger.sendCommand('Target.createTarget', params: {
+      'newWindow': true,
+      'url': 'http://${_devTools.hostname}:${_devTools.port}'
+          '/?hide=none&uri=${appServices.debugService.wsUri}',
+    });
   }
 }
 
-/// Checks if [tabConnection] is running the app with [instanceId].
+/// Checks if connection of [remoteDebugger] is running the app with [instanceId].
 Future<bool> _isCorrectTab(
-    String instanceId, WipConnection tabConnection) async {
-  var result =
-      await tabConnection.runtime.evaluate(r'window["$dartAppInstanceId"];');
+    String instanceId, RemoteDebugger remoteDebugger) async {
+  var result = await remoteDebugger.evaluate(r'window["$dartAppInstanceId"];');
   return result.value == instanceId;
 }

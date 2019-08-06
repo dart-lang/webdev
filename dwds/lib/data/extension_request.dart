@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -24,7 +23,9 @@ abstract class ExtensionRequest
 
   String get command;
 
-  BuiltMap<String, Object> get commandParams;
+  /// Contains JSON-encoded parameters.
+  @nullable
+  String get commandParams;
 }
 
 /// A response to an [ExtensionRequest].
@@ -63,4 +64,6 @@ abstract class ExtensionEvent
 
   /// Contains a JSON-encoded payload.
   String get params;
+
+  String get method;
 }

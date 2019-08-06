@@ -4,6 +4,7 @@
 
 import 'dart:math' as math show min;
 
+import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:path/path.dart' as p;
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -38,9 +39,9 @@ class AppInspector extends Domain {
   /// Map of [ScriptRef] id to containing [LibraryRef] id.
   final _scriptIdToLibraryId = <String, String>{};
 
-  final WipDebugger _wipDebugger;
+  final RemoteDebugger _remoteDebugger;
   final AssetHandler _assetHandler;
-  final Debugger _debugger;
+  final Debugger debugger;
   final Isolate isolate;
   final IsolateRef isolateRef;
 
@@ -50,9 +51,9 @@ class AppInspector extends Domain {
   AppInspector._(
     this.isolate,
     this._assetHandler,
-    this._debugger,
+    this.debugger,
     this._root,
-    this._wipDebugger,
+    this._remoteDebugger,
   )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
@@ -81,7 +82,7 @@ class AppInspector extends Domain {
     ..number = isolate.number;
 
   static Future<AppInspector> initialize(
-    WipDebugger wipDebugger,
+    RemoteDebugger remoteDebugger,
     AssetHandler assetHandler,
     Debugger debugger,
     String root,
@@ -96,12 +97,109 @@ class AppInspector extends Domain {
       ..libraries = []
       ..extensionRPCs = [];
     var inspector =
-        AppInspector._(isolate, assetHandler, debugger, root, wipDebugger);
+        AppInspector._(isolate, assetHandler, debugger, root, remoteDebugger);
     await inspector._initialize();
     return inspector;
   }
 
-  Future evaluate(String isolateId, String targetId, String expression,
+  /// Get the value of the field named [fieldName] from [receiver].
+  ///
+  /// Note that the returned [RemoteObject] might be for a simple value, and
+  /// [AppInspector._asDartObject] can be used to get the value.
+  Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
+    var load = '''
+        function() {
+          return require("dart_sdk").dart.dloadRepl(this, "$fieldName");
+        }
+        ''';
+    return _callFunctionOn(receiver, load, _marshallArguments([]));
+  }
+
+  /// Call a method by name on [receiver], with arguments [positionalArgs] and
+  /// [namedArgs].
+  ///
+  /// Note that the returned [RemoteObject] might be for a simple value, and
+  /// [AppInspector._asDartObject] can be used to get the value.
+  Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
+      [List positionalArgs = const [], Map namedArgs = const {}]) async {
+    // TODO(alanknight): Support named arguments.
+    if (namedArgs.isNotEmpty) {
+      throw UnsupportedError('Named arguments are not yet supported');
+    }
+    var send = '''
+        function (positional) {
+          if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
+          return require("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
+        }
+        ''';
+    var arguments = _marshallArguments(positionalArgs);
+    var remote = await _callFunctionOn(receiver, send, arguments);
+    return remote;
+  }
+
+  /// Given [remote], if it's a simple type, return the value, otherwise leave
+  /// it as a RemoteObject.
+  // TODO(alanknight): Consider our own RemoteObject class where we could add
+  // methods to do things like this.
+  Object _asDartObject(RemoteObject remote) {
+    if (remote.type == 'object') {
+      if (remote.objectId == null) {
+        return null;
+      } else {
+        return remote;
+      }
+    } else {
+      return remote.value;
+    }
+  }
+
+  /// Calls Chrome's Runtime.callFunctionOn method.
+  ///
+  /// [arguments] is expected to be in the form returned by
+  /// [_marshallArguments]. [evalExpression] should be a function definition
+  /// that can accept [arguments].
+  Future<RemoteObject> _callFunctionOn(
+      RemoteObject receiver, String evalExpression, List arguments) async {
+    var result =
+        await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
+      'functionDeclaration': evalExpression,
+      'arguments': arguments,
+      'objectId': receiver.objectId,
+    });
+    handleErrorIfPresent(result, evalContents: evalExpression);
+    return RemoteObject(result.result['result'] as Map<String, Object>);
+  }
+
+  /// Convert [arguments] to a form usable in WIP evaluation calls.
+  List<Map<String, Object>> _marshallArguments(List arguments) {
+    return [
+      {'value': arguments.map(_marshallOne).toList()}
+    ];
+  }
+
+  /// Convert [argument] to a form usable in WIP evaluation calls.
+  ///
+  /// The [argument] should be either a RemoteObject or a simple
+  /// object that can be passed through the protocol directly.
+  Map<String, Object> _marshallOne(Object argument) {
+    // TODO(alanknight): Handle the case of RemoteObjects that represent values.
+    // This doesn't come up yet, but will if we get a result and pass it back as
+    // an argument.
+    if (argument is RemoteObject) {
+      return {'objectId': argument.objectId};
+    } else {
+      return {'value': argument};
+    }
+  }
+
+  /// Call the Dart toString for [receiver].
+  Future<String> toStringOf(RemoteObject receiver) async {
+    var remote = await sendMessage(receiver, 'toString', []);
+    return _asDartObject(remote) as String;
+  }
+
+  Future<RemoteObject> evaluate(
+      String isolateId, String targetId, String expression,
       {Map<String, String> scope, bool disableBreakpoints}) async {
     scope ??= {};
     disableBreakpoints ??= false;
@@ -110,53 +208,73 @@ class AppInspector extends Domain {
       throw UnsupportedError(
           'Evaluate is only supported when `targetId` is a library.');
     }
-    WipResponse result;
+    if (scope.isNotEmpty) {
+      return callJsFunctionOn(library, scope, expression);
+    } else {
+      return evaluateJsExpressionOnLibrary(expression, library.uri);
+    }
+  }
 
-    // If there is scope, we use `callFunctionOn` because that accepts the
-    // `arguments` option.
-    //
-    // If there is no scope we run a normal evaluate call.
-    if (scope.isEmpty) {
-      var evalExpression = '''
+  /// Evaluate [expression] as a member/message of the library identified by
+  /// [libraryUri].
+  ///
+  /// That is, we will just do 'library.$expression'
+  Future<RemoteObject> evaluateJsExpressionOnLibrary(
+      String expression, String libraryUri) {
+    var evalExpression = '''
 (function() {
-  ${_getLibrarySnippet(library.uri)};
+  ${_getLibrarySnippet(libraryUri)};
   return library.$expression;
 })();
-    ''';
-      result = await _wipDebugger.sendCommand('Runtime.evaluate',
-          params: {'expression': evalExpression});
-      handleErrorIfPresent(result,
-          evalContents: evalExpression,
-          additionalDetails: {
-            'Dart expression': expression,
-          });
-    } else {
-      var argsString = scope.keys.join(', ');
-      var arguments = scope.values.map((id) => {'objectId': id}).toList();
-      var evalExpression = '''
+''';
+    return evaluateJsExpression(evalExpression);
+  }
+
+  /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
+  Future<RemoteObject> evaluateJsExpression(String expression) async {
+    // TODO(alanknight): Support a version with arguments if needed.
+    WipResponse result;
+    result = await _remoteDebugger
+        .sendCommand('Runtime.evaluate', params: {'expression': expression});
+    handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
+      'Dart expression': expression,
+    });
+    return RemoteObject(result.result['result'] as Map<String, dynamic>);
+  }
+
+  /// Call the function named [expression] from [library] with [scope] as
+  /// arguments, with 'this' bound to the first object in [scope].
+  ///
+  /// But we're not really using 'this', just using Runtime.callFunctionOn
+  /// because it accepts arguments.
+  // TODO(alanknight): Make this API cleaner.
+  Future<RemoteObject> callJsFunctionOn(
+      Library library, Map<String, String> scope, String expression) async {
+    var argsString = scope.keys.join(', ');
+    // TODO(alanknight): Can we use _marshallOne or similar.
+    var arguments = scope.values.map((id) => {'objectId': id}).toList();
+    var evalExpression = '''
 function($argsString) {
   ${_getLibrarySnippet(library.uri)};
   return library.$expression;
 }
     ''';
-      result =
-          await _wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
-        'functionDeclaration': evalExpression,
-        'arguments': arguments,
-        // TODO(jakemac): Use the executionContext instead, or possibly the
-        // library object. This will get weird if people try to use `this` in
-        // their expression.
-        'objectId': scope.values.first,
-      });
-      handleErrorIfPresent(result,
-          evalContents: evalExpression,
-          additionalDetails: {
-            'Dart expression': expression,
-            'scope': scope,
-          });
-    }
-    return await instanceRefFor(
-        RemoteObject(result.result['result'] as Map<String, dynamic>));
+    var result =
+        await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
+      'functionDeclaration': evalExpression,
+      'arguments': arguments,
+      // TODO(jakemac): Use the executionContext instead, or possibly the
+      // library object. This will get weird if people try to use `this` in
+      // their expression.
+      'objectId': scope.values.first,
+    });
+    handleErrorIfPresent(result,
+        evalContents: evalExpression,
+        additionalDetails: {
+          'Dart expression': expression,
+          'scope': scope,
+        });
+    return RemoteObject(result.result['result'] as Map<String, dynamic>);
   }
 
   /// Create an [InstanceRef] for the given Chrome [remoteObject].
@@ -173,8 +291,10 @@ function($argsString) {
       case 'boolean':
         return _primitiveInstance(InstanceKind.kBool, remoteObject);
       case 'object':
-        // TODO: Actual toString()
-        var toString = 'Placeholder for toString() result';
+        if (_asDartObject(remoteObject) == null) {
+          return _primitiveInstance(InstanceKind.kNull, remoteObject);
+        }
+        var toString = await toStringOf(remoteObject);
         // TODO: Make the truncation consistent with the VM.
         var truncated = toString.substring(0, math.min(100, toString.length));
         return InstanceRef()
@@ -265,7 +385,7 @@ function($argsString) {
       return result;
     })()
     ''';
-    var result = await _wipDebugger.sendCommand('Runtime.evaluate',
+    var result = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(result, evalContents: expression);
     var classDescriptors = (result.result['result']['value']['classes'] as List)
@@ -362,7 +482,7 @@ function($argsString) {
       ..library = _libraryRefs[libraryId]
       ..id = scriptRef.id
       ..uri = scriptRef.uri
-      ..tokenPosTable = _debugger.sources.tokenPosTableFor(serverPath)
+      ..tokenPosTable = debugger.sources.tokenPosTableFor(serverPath)
       ..source = script;
   }
 
@@ -405,7 +525,7 @@ function($argsString) {
   Future<List<LibraryRef>> _getLibraryRefs() async {
     if (_libraryRefs.isNotEmpty) return _libraryRefs.values.toList();
     var expression = "require('dart_sdk').dart.getLibraries();";
-    var librariesResult = await _wipDebugger.sendCommand('Runtime.evaluate',
+    var librariesResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(librariesResult, evalContents: expression);
     var libraries =
@@ -423,7 +543,7 @@ function($argsString) {
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
     var expression = "require('dart_sdk').developer._extensions.keys.toList();";
-    var extensionsResult = await _wipDebugger.sendCommand('Runtime.evaluate',
+    var extensionsResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(extensionsResult, evalContents: expression);
     return List.from(extensionsResult.result['result']['value'] as List);

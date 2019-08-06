@@ -5,7 +5,9 @@
 import 'dart:async';
 
 import 'package:async/src/stream_sink_transformer.dart';
+import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:stream_channel/src/stream_channel_transformer.dart';
@@ -21,7 +23,8 @@ import 'debugger_data.dart';
 class FakeInspector extends Domain implements AppInspector {
   FakeInspector() : super.forInspector();
   @override
-  Future evaluate(String isolateId, String targetId, String expression,
+  Future<RemoteObject> evaluate(
+          String isolateId, String targetId, String expression,
           {Map<String, String> scope, bool disableBreakpoints}) =>
       null;
   @override
@@ -44,6 +47,28 @@ class FakeInspector extends Domain implements AppInspector {
   Isolate get isolate => null;
   @override
   IsolateRef get isolateRef => null;
+  @override
+  Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) =>
+      throw UnsupportedError('This is a fake');
+  @override
+  Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
+          [List positionalArgs = const [], Map namedArgs = const {}]) =>
+      throw UnsupportedError('This is a fake');
+  @override
+  Debugger get debugger => throw UnsupportedError('This is a fake');
+  @override
+  Future<RemoteObject> callJsFunctionOn(
+          Library library, Map<String, String> scope, String expression) =>
+      null;
+  @override
+  Future<RemoteObject> evaluateJsExpression(String expression) =>
+      throw UnsupportedError('This is a fake');
+  @override
+  Future<RemoteObject> evaluateJsExpressionOnLibrary(
+          String expression, String libraryUri) =>
+      throw UnsupportedError('This is a fake');
+  @override
+  Future<String> toStringOf(RemoteObject receiver) async => '';
 }
 
 class FakeSseConnection implements SseConnection {
@@ -91,10 +116,7 @@ class FakeSseConnection implements SseConnection {
       null;
 }
 
-class FakeWipDebugger implements WipDebugger {
-  @override
-  WipConnection get connection => null;
-
+class FakeWebkitDebugger implements WebkitDebugger {
   @override
   Future disable() => null;
 
@@ -108,7 +130,6 @@ class FakeWipDebugger implements WipDebugger {
   @override
   Future<String> getScriptSource(String scriptId) => null;
 
-  @override
   Stream<WipDomain> get onClosed => null;
 
   @override
@@ -157,4 +178,24 @@ class FakeWipDebugger implements WipDebugger {
 
   @override
   Future stepOver() => null;
+
+  @override
+  Stream<ConsoleAPIEvent> get onConsoleAPICalled => null;
+
+  @override
+  Stream<ExceptionThrownEvent> get onExceptionThrown => null;
+
+  @override
+  void close() {
+    return;
+  }
+
+  @override
+  Stream<WipConnection> get onClose => null;
+
+  @override
+  Future<RemoteObject> evaluate(String expression) => null;
+
+  @override
+  Future<void> enablePage() => null;
 }
