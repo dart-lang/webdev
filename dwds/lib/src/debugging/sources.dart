@@ -11,6 +11,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import 'location.dart';
+import 'remote_debugger.dart';
 
 /// The scripts and sourcemaps for the application, both JS and Dart.
 class Sources {
@@ -35,9 +36,9 @@ class Sources {
   final _pathsToBlackBox = {'/packages/stack_trace/'};
 
   final AssetHandler _assetHandler;
-  final WipDebugger _wipDebugger;
+  final RemoteDebugger _remoteDebugger;
 
-  Sources(this._assetHandler, this._wipDebugger);
+  Sources(this._assetHandler, this._remoteDebugger);
 
   /// Returns all [Location] data for a provided Dart source.
   Set<Location> locationsForDart(String serverPath) =>
@@ -166,7 +167,7 @@ class Sources {
   }
 
   Future<void> _blackBoxRanges(String scriptId, List<int> lineNumbers) async {
-    await _wipDebugger.sendCommand('Debugger.setBlackboxedRanges', params: {
+    await _remoteDebugger.sendCommand('Debugger.setBlackboxedRanges', params: {
       'scriptId': scriptId,
       'positions': [
         {'lineNumber': 0, 'columnNumber': 0},

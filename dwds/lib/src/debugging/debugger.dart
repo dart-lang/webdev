@@ -143,7 +143,7 @@ class Debugger extends Domain {
   }
 
   Future<Null> _initialize() async {
-    sources = Sources(_assetHandler, _wipDebugger);
+    sources = Sources(_assetHandler, _remoteDebugger);
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.
