@@ -142,7 +142,7 @@ class Sources {
     return _assetHandler(sourcemapPath);
   }
 
-  /// Black boxes the Dart SDK and paths in [_blackBoxPaths].
+  /// Black boxes the Dart SDK and paths in [_pathsToBlackBox].
   Future<void> _blackBoxIfNecessary(WipScript script) async {
     if (script.url.endsWith('dart_sdk.js')) {
       await _blackBoxSdk(script);
