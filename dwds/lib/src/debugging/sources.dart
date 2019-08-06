@@ -32,7 +32,7 @@ class Sources {
   final _sourceToScriptId = <String, String>{};
 
   /// Paths to black box in the Chrome debugger.
-  final _blackBoxPaths = {'/packages/stack_trace/'};
+  final _pathsToBlackBox = {'/packages/stack_trace/'};
 
   final AssetHandler _assetHandler;
   final WipDebugger _wipDebugger;
@@ -146,7 +146,7 @@ class Sources {
   Future<void> _blackBoxIfNecessary(WipScript script) async {
     if (script.url.endsWith('dart_sdk.js')) {
       await _blackBoxSdk(script);
-    } else if (_blackBoxPaths.any((path) => script.url.contains(path))) {
+    } else if (_pathsToBlackBox.any((path) => script.url.contains(path))) {
       var lines =
           (await _assetHandler(DartUri(script.url).serverPath)).split('\n');
       await _blackBoxRanges(script.scriptId, [lines.length]);
@@ -157,6 +157,7 @@ class Sources {
   Future<void> _blackBoxSdk(WipScript script) async {
     var sdkSourceLines =
         (await _assetHandler(DartUri(script.url).serverPath)).split('\n');
+    // TODO(grouma) - Find a more robust way to identify this location.
     var throwIndex = sdkSourceLines.indexWhere(
         (line) => line.contains('dart.throw = function throw_(exception) {'));
     if (throwIndex != -1) {
