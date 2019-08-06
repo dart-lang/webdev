@@ -279,11 +279,12 @@ class DevHandler {
     return AppDebugServices(debugService, webdevClient);
   }
 
-  /// Listens to incoming SSE requests for Dart Debug Extension
+  /// Starts a [DebugService] for Dart Debug Extension.
   void _startExtensionDebugService() async {
     var _extensionDebugger = await _extensionBackend.extensionDebugger;
-    await _extensionDebugger
-        .devToolsRequestStream.first; // Waits for the tab URL.
+    // Waits for a [DevToolsRequest] to be sent from the extension background
+    // when the extension is clicked.
+    await _extensionDebugger.devToolsRequestStream.first;
     var debugService = await DebugService.start(
       _hostname,
       _extensionDebugger,
