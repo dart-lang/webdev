@@ -15,9 +15,9 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
+import 'package:sse/server/sse_handler.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:sse/server/sse_handler.dart';
 
 import '../utilities/shared.dart';
 import 'chrome_proxy_service.dart';
@@ -118,6 +118,7 @@ class DebugService {
     void Function(Map<String, dynamic>) onResponse,
     bool useSse,
   }) async {
+    useSse = true;
     var chromeProxyService = await ChromeProxyService.create(
         remoteDebugger, tabUrl, assetHandler, appInstanceId);
     var authToken = _makeAuthToken();
