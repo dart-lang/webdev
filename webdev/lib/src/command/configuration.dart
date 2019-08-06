@@ -12,6 +12,7 @@ const autoOption = 'auto';
 const chromeDebugPortFlag = 'chrome-debug-port';
 const debugExtensionFlag = 'debug-extension';
 const debugFlag = 'debug';
+const enableInjectedClientFlag = 'injected-client';
 const hostnameFlag = 'hostname';
 const hotReloadFlag = 'hot-reload';
 const hotRestartFlag = 'hot-restart';
@@ -73,6 +74,7 @@ class Configuration {
   final int _chromeDebugPort;
   final bool _debugExtension;
   final bool _debug;
+  final bool _enableInjectedClient;
   final String _hostname;
   final bool _launchInChrome;
   final bool _logRequests;
@@ -89,6 +91,7 @@ class Configuration {
     int chromeDebugPort,
     bool debugExtension,
     bool debug,
+    bool enableInjectedClient,
     String hostname,
     bool launchInChrome,
     bool logRequests,
@@ -103,6 +106,7 @@ class Configuration {
         _chromeDebugPort = chromeDebugPort,
         _debugExtension = debugExtension,
         _debug = debug,
+        _enableInjectedClient = enableInjectedClient,
         _hostname = hostname,
         _launchInChrome = launchInChrome,
         _logRequests = logRequests,
@@ -112,6 +116,9 @@ class Configuration {
         _requireBuildWebCompilers = requireBuildWebCompilers,
         _verbose = verbose;
 
+  factory Configuration.noInjectedClientDefaults() =>
+      Configuration(autoRun: false, debug: false, debugExtension: false);
+
   // Whether the application should automatically run when loaded.
   bool get autoRun => _autoRun ?? true;
 
@@ -120,6 +127,8 @@ class Configuration {
   bool get debugExtension => _debugExtension ?? false;
 
   bool get debug => _debug ?? false;
+
+  bool get enableInjectedClient => _enableInjectedClient ?? true;
 
   String get hostname => _hostname ?? 'localhost';
 
@@ -141,6 +150,19 @@ class Configuration {
   static Configuration fromArgs(ArgResults argResults) {
     var defaultConfiguration = Configuration();
     if (argResults == null) return defaultConfiguration;
+
+    var enableInjectedClient =
+        argResults.options.contains(enableInjectedClientFlag)
+            ? argResults[enableInjectedClientFlag] as bool
+            : defaultConfiguration.enableInjectedClient;
+
+    // Change the defaults when we have no injected client to disable all
+    // debugging features.
+    //
+    // After parsing we check these defaults weren't overridden as well.
+    if (!enableInjectedClient) {
+      defaultConfiguration = Configuration.noInjectedClientDefaults();
+    }
 
     var chromeDebugPort = argResults.options.contains(chromeDebugPortFlag)
         ? int.parse(argResults[chromeDebugPortFlag] as String)
@@ -207,10 +229,28 @@ class Configuration {
           'with --$debugFlag.');
     }
 
+    // Check that no debugging options were passed if the injected client is
+    // disabled.
+    if (!enableInjectedClient) {
+      if (debug) {
+        throw InvalidConfiguration(
+            '--$debugFlag cannot be used with --no-$enableInjectedClientFlag');
+      }
+      if (debugExtension) {
+        throw InvalidConfiguration('--$debugExtension cannot be used with '
+            '--no-$enableInjectedClientFlag');
+      }
+      if (chromeDebugPort != defaultConfiguration.chromeDebugPort) {
+        throw InvalidConfiguration('--$chromeDebugPort cannot be used with '
+            '--no-$enableInjectedClientFlag');
+      }
+    }
+
     return Configuration(
         chromeDebugPort: chromeDebugPort,
         debugExtension: debugExtension,
         debug: debug,
+        enableInjectedClient: enableInjectedClient,
         hostname: hostname,
         launchInChrome: launchInChrome,
         logRequests: logRequests,
