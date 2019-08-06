@@ -11,6 +11,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import 'location.dart';
+import 'remote_debugger.dart';
 
 /// The scripts and sourcemaps for the application, both JS and Dart.
 class Sources {
@@ -31,9 +32,13 @@ class Sources {
   /// Map from JS source url to Chrome script ID.
   final _sourceToScriptId = <String, String>{};
 
-  final AssetHandler _assetHandler;
+  /// Paths to black box in the Chrome debugger.
+  final _pathsToBlackBox = {'/packages/stack_trace/'};
 
-  Sources(this._assetHandler);
+  final AssetHandler _assetHandler;
+  final RemoteDebugger _remoteDebugger;
+
+  Sources(this._assetHandler, this._remoteDebugger);
 
   /// Returns all [Location] data for a provided Dart source.
   Set<Location> locationsForDart(String serverPath) =>
@@ -47,6 +52,8 @@ class Sources {
   /// and add its sourcemap information.
   Future<Null> scriptParsed(ScriptParsedEvent e) async {
     var script = e.script;
+    // TODO(grouma) - This should be configurable.
+    await _blackBoxIfNecessary(script);
     var sourceMapContents = await _sourceMap(script);
     if (sourceMapContents == null) return;
     _clearCacheFor(script);
@@ -134,5 +141,38 @@ class Sources {
     var scriptPath = DartUri(script.url).serverPath;
     var sourcemapPath = p.join(p.dirname(scriptPath), sourceMapUrl);
     return _assetHandler(sourcemapPath);
+  }
+
+  /// Black boxes the Dart SDK and paths in [_pathsToBlackBox].
+  Future<void> _blackBoxIfNecessary(WipScript script) async {
+    if (script.url.endsWith('dart_sdk.js')) {
+      await _blackBoxSdk(script);
+    } else if (_pathsToBlackBox.any((path) => script.url.contains(path))) {
+      var lines =
+          (await _assetHandler(DartUri(script.url).serverPath)).split('\n');
+      await _blackBoxRanges(script.scriptId, [lines.length]);
+    }
+  }
+
+  /// Black boxes the SDK excluding the range which includes exception logic.
+  Future<void> _blackBoxSdk(WipScript script) async {
+    var sdkSourceLines =
+        (await _assetHandler(DartUri(script.url).serverPath)).split('\n');
+    // TODO(grouma) - Find a more robust way to identify this location.
+    var throwIndex = sdkSourceLines.indexWhere(
+        (line) => line.contains('dart.throw = function throw_(exception) {'));
+    if (throwIndex != -1) {
+      await _blackBoxRanges(script.scriptId, [throwIndex, throwIndex + 6]);
+    }
+  }
+
+  Future<void> _blackBoxRanges(String scriptId, List<int> lineNumbers) async {
+    await _remoteDebugger.sendCommand('Debugger.setBlackboxedRanges', params: {
+      'scriptId': scriptId,
+      'positions': [
+        {'lineNumber': 0, 'columnNumber': 0},
+        for (var line in lineNumbers) {'lineNumber': line, 'columnNumber': 0},
+      ]
+    });
   }
 }
