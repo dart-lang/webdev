@@ -287,28 +287,29 @@ class DevHandler {
     var _extensionDebugger = await _extensionBackend.extensionDebugger;
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
-    // TODO(pisong): Handle multiple `devToolsRequest`.
-    await _extensionDebugger.devToolsRequestStream.first;
-    var debugService = await DebugService.start(
-      _hostname,
-      _extensionDebugger,
-      _extensionDebugger.tabUrl,
-      _assetHandler.getRelativeAsset,
-      _extensionDebugger.appId,
-      onResponse: _verbose
-          ? (response) {
-              if (response['error'] == null) return;
-              _logWriter(Level.WARNING,
-                  'VmService proxy responded with an error:\n$response');
-            }
-          : null,
-    );
-    var appServices =
-        await _createAppDebugServices(_extensionDebugger.appId, debugService);
-    await _extensionDebugger.sendCommand('Target.createTarget', params: {
-      'newWindow': true,
-      'url': 'http://${_devTools.hostname}:${_devTools.port}'
-          '/?hide=none&uri=${appServices.debugService.uri}',
+    String appId;
+    _extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
+      appId = devToolsRequest.appId;
+      var debugService = await DebugService.start(
+        _hostname,
+        _extensionDebugger,
+        devToolsRequest.tabUrl,
+        _assetHandler.getRelativeAsset,
+        appId,
+        onResponse: _verbose
+            ? (response) {
+                if (response['error'] == null) return;
+                _logWriter(Level.WARNING,
+                    'VmService proxy responded with an error:\n$response');
+              }
+            : null,
+      );
+      var appServices = await _createAppDebugServices(appId, debugService);
+      await _extensionDebugger.sendCommand('Target.createTarget', params: {
+        'newWindow': true,
+        'url': 'http://${_devTools.hostname}:${_devTools.port}'
+            '/?hide=none&uri=${appServices.debugService.uri}',
+      });
     });
   }
 }

@@ -76,9 +76,11 @@ Future<void> startSseClient(
   // Notifies the backend of debugger events.
   addDebuggerListener(
       allowInterop((Debuggee source, String method, Object params) {
-    client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
-      ..params = jsonEncode(json.decode(stringify(params)))
-      ..method = jsonEncode(method)))));
+    if (source.tabId == currentTab.id) {
+      client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
+        ..params = jsonEncode(json.decode(stringify(params)))
+        ..method = jsonEncode(method)))));
+    }
   }));
 
   client.stream.listen((data) {
