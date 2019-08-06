@@ -74,10 +74,12 @@ class Dwds {
     var cascade = Cascade();
     var pipeline = const Pipeline();
 
+    DevTools devTools;
     String extensionHostname;
     int extensionPort;
+    ExtensionBackend extensionBackend;
     if (enableDebugExtension) {
-      var extensionBackend = await ExtensionBackend.start();
+      extensionBackend = await ExtensionBackend.start();
       extensionHostname = extensionBackend.hostname;
       extensionPort = extensionBackend.port;
     }
@@ -85,8 +87,7 @@ class Dwds {
     pipeline = pipeline.addMiddleware(createInjectedHandler(reloadConfiguration,
         extensionHostname: extensionHostname, extensionPort: extensionPort));
 
-    DevTools devTools;
-    if (serveDevTools) {
+    if (serveDevTools || enableDebugExtension) {
       devTools = await DevTools.start(hostname);
       logWriter(Level.INFO,
           'Serving DevTools at http://${devTools.hostname}:${devTools.port}\n');
@@ -99,6 +100,7 @@ class Dwds {
       hostname,
       verbose,
       logWriter,
+      extensionBackend,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
