@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:async/src/stream_sink_transformer.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:stream_channel/src/stream_channel_transformer.dart';
@@ -115,10 +116,7 @@ class FakeSseConnection implements SseConnection {
       null;
 }
 
-class FakeWipDebugger implements WipDebugger {
-  @override
-  WipConnection get connection => null;
-
+class FakeWebkitDebugger implements WebkitDebugger {
   @override
   Future disable() => null;
 
@@ -132,7 +130,6 @@ class FakeWipDebugger implements WipDebugger {
   @override
   Future<String> getScriptSource(String scriptId) => null;
 
-  @override
   Stream<WipDomain> get onClosed => null;
 
   @override
@@ -181,4 +178,24 @@ class FakeWipDebugger implements WipDebugger {
 
   @override
   Future stepOver() => null;
+
+  @override
+  Stream<ConsoleAPIEvent> get onConsoleAPICalled => null;
+
+  @override
+  Stream<ExceptionThrownEvent> get onExceptionThrown => null;
+
+  @override
+  void close() {
+    return;
+  }
+
+  @override
+  Stream<WipConnection> get onClose => null;
+
+  @override
+  Future<RemoteObject> evaluate(String expression) => null;
+
+  @override
+  Future<void> enablePage() => null;
 }
