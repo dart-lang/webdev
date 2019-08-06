@@ -32,8 +32,7 @@ void main() async {
 
   Timer.periodic(Duration(seconds: 1), (Timer t) {
     var ticks = t.tick;
-    // ignore: unused_local_variable
-    // ignore: prefer_typing_uninitialized_variables
+    // ignore: unused_local_variable, prefer_typing_uninitialized_variables
     var closureLocal;
     libraryPublicFinal.printCount();
     print('ticking... $ticks (the answer is $intLocalInMain)');
