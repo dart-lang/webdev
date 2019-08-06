@@ -283,9 +283,9 @@ class DevHandler {
   /// Starts a [DebugService] for Dart Debug Extension.
   void _startExtensionDebugService() async {
     var _extensionDebugger = await _extensionBackend.extensionDebugger;
-    // Waits for a [DevToolsRequest] to be sent from the extension background
+    // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
-    // TODO(pisong): Handle multiple [devToolsRequest].
+    // TODO(pisong): Handle multiple `devToolsRequest`.
     await _extensionDebugger.devToolsRequestStream.first;
     var debugService = await DebugService.start(
       _hostname,

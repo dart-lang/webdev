@@ -62,7 +62,7 @@ class Dwds {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
     enableDebugExtension ??= false;
-    // [serveDevTools] is true by default when the extension is enabled.
+    // `serveDevTools` is true by default when the extension is enabled.
     serveDevTools ??= enableDebugExtension;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
