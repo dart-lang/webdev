@@ -308,7 +308,7 @@ class DevHandler {
     await _extensionDebugger.sendCommand('Target.createTarget', params: {
       'newWindow': true,
       'url': 'http://${_devTools.hostname}:${_devTools.port}'
-          '/?hide=none&uri=${appServices.debugService.wsUri}',
+          '/?hide=none&uri=${appServices.debugService.uri}',
     });
   }
 }
