@@ -64,6 +64,7 @@ class TestContext {
       bool enableDebugExtension}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
+    enableDebugExtension ??= false;
     port = await findUnusedPort();
     try {
       chromeDriver = await Process.start(
