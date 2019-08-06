@@ -6,6 +6,7 @@
 - Add support for an SSE connection with Dart DevTools.
 - Rename `wsUri` to `uri` on `DebugConnection` to reflect that the uri may not
   be a websocket.
+- Depend on latest `package:vm_service`.
 
 ## 0.4.0
 

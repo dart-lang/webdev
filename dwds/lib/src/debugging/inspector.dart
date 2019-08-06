@@ -6,7 +6,7 @@ import 'dart:math' as math show min;
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:path/path.dart' as p;
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../services/chrome_proxy_service.dart';
@@ -290,6 +290,8 @@ function($argsString) {
         return _primitiveInstance(InstanceKind.kDouble, remoteObject);
       case 'boolean':
         return _primitiveInstance(InstanceKind.kBool, remoteObject);
+      case 'undefined':
+        return _primitiveInstance(InstanceKind.kNull, remoteObject);
       case 'object':
         if (_asDartObject(remoteObject) == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
@@ -305,6 +307,13 @@ function($argsString) {
           // TODO(jakemac): Create a real ClassRef, we need a way of looking
           // up the library for a given instance to create it though.
           // https://github.com/dart-lang/sdk/issues/36771.
+          ..classRef = ClassRef();
+      case 'function':
+        var crudeAttemptAtName = remoteObject.description.split('(').first;
+        return InstanceRef()
+          ..kind = InstanceKind.kPlainInstance
+          ..id = remoteObject.objectId
+          ..valueAsString = crudeAttemptAtName
           ..classRef = ClassRef();
       default:
         // Return unsupported types as a String placeholder for now.
