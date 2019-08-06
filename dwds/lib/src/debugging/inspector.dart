@@ -6,7 +6,7 @@ import 'dart:math' as math show min;
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:path/path.dart' as p;
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../services/chrome_proxy_service.dart';

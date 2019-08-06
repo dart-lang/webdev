@@ -15,7 +15,7 @@ import 'package:stream_channel/stream_channel.dart';
 
 /// A library of fake/stub implementations of our classes and their supporting
 /// classes (e.g. WipConnection) for unit testing.
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'debugger_data.dart';

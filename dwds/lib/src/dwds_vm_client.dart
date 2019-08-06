@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'services/chrome_proxy_service.dart' show ChromeProxyService;
 import 'services/debug_service.dart';

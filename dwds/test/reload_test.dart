@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:dwds/dwds.dart';
 import 'package:test/test.dart';
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 
