@@ -1,3 +1,9 @@
+## 2.4.0
+
+- Add a `--no-injected-client` option which can be used to work around issues
+  relating to the injected `client.js` file. All debugging features must be
+  disabled if you use this option.
+
 ## 2.3.0
 
 - Depend on the latest `package:dwds`.
