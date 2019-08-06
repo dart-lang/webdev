@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
 import 'dart:async';
+import 'dart:math' as math show min;
 
 import 'package:vm_service_lib/vm_service_lib.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -212,9 +213,9 @@ class Debugger extends Domain {
     return Success();
   }
 
-  /// Call the Chrome protocol setBreakpoint and return the breakpoint ID.
+  /// Call the Chrome protocol setBreakpmainIndext and return the breakpoint ID.
   Future<String> _setBreakpoint(Location location) async {
-    // Location is 0 based according to:
+    // Location is 0 based according to:mainIndex
     // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
     var response =
         await _wipDebugger.sendCommand('Debugger.setBreakpoint', params: {
@@ -294,9 +295,12 @@ class Debugger extends Domain {
     // TODO: Much better logic for which frames to use. This is probably just
     // the dynamically visible variables, so we should omit library scope.
 
-    // Include scopes up to and including the closure scope named 'main'.
-    var mainIndex = scopeChain.indexWhere((scope) => scope['name'] == 'main');
-    var interestingScopes = scopeChain.sublist(0, mainIndex + 1);
+    // We assume the last two scopes are global and library, and we don't want
+    // to show those. We will show the first two, allowing for a single level of
+    // nested functions, except if that runs into the last two.
+    var withoutLibraryOrGlobal = scopeChain.length - 2; 
+    var interesting = math.min(withoutLibraryOrGlobal, 2);
+    var interestingScopes = scopeChain.sublist(0, interesting);
     return [
       for (var scope in interestingScopes) ...await _boundVariables(scope)
     ];
@@ -306,7 +310,7 @@ class Debugger extends Domain {
   /// 'scopeChain' field of the 'callFrames' in a DebuggerPausedEvent.
   Future<Iterable<BoundVariable>> _boundVariables(dynamic scope) async {
     var properties = await getProperties(scope['object']['objectId'] as String);
-    // We return one level of properties from this object. Sub-properties are
+    // We return one level of properties from this object. Sub-prsoperties are
     // another round trip.
     var refs = properties
         .map<Future<BoundVariable>>((property) async => BoundVariable()
