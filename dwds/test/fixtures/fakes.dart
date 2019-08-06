@@ -118,9 +118,6 @@ class FakeSseConnection implements SseConnection {
 
 class FakeWebkitDebugger implements WebkitDebugger {
   @override
-  WipConnection get connection => null;
-
-  @override
   Future disable() => null;
 
   @override
@@ -198,9 +195,6 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   @override
   Future<RemoteObject> evaluate(String expression) => null;
-
-  @override
-  WipDebugger get wipDebugger => null;
 
   @override
   Future<void> enablePage() => null;

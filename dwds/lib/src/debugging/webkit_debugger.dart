@@ -11,10 +11,6 @@ class WebkitDebugger implements RemoteDebugger {
 
   WebkitDebugger(this._wipDebugger);
 
-  WipConnection get connection => _wipDebugger.connection;
-
-  WipDebugger get wipDebugger => _wipDebugger;
-
   @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled =>
       _wipDebugger.connection.runtime.onConsoleAPICalled;
