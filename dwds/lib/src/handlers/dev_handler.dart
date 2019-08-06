@@ -119,6 +119,8 @@ class DevHandler {
                   'VmService proxy responded with an error:\n$response');
             }
           : null,
+      // TODO(grouma) - Use SSE for Dart Debug Extension workflow.
+      useSse: false,
     );
   }
 
@@ -212,7 +214,7 @@ class DevHandler {
             .sendCommand('Target.createTarget', params: {
           'newWindow': true,
           'url': 'http://${_devTools.hostname}:${_devTools.port}'
-              '/?hide=none&uri=${appServices.debugService.wsUri}',
+              '/?hide=none&uri=${appServices.debugService.uri}',
         });
       } else if (message is ConnectRequest) {
         if (appId != null) {
@@ -269,7 +271,7 @@ class DevHandler {
     _logWriter(
         Level.INFO,
         'Debug service listening on '
-        '${debugService.wsUri}\n');
+        '${debugService.uri}\n');
     var webdevClient = await DwdsVmClient.create(debugService);
     return AppDebugServices(debugService, webdevClient);
   }

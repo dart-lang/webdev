@@ -26,6 +26,6 @@ void main() {
   });
 
   test('Accepts connections with the auth token', () async {
-    expect(WebSocket.connect('${context.debugConnection.wsUri}/ws'), completes);
+    expect(WebSocket.connect('${context.debugConnection.uri}/ws'), completes);
   });
 }

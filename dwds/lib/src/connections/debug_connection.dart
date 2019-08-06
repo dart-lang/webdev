@@ -26,8 +26,8 @@ class DebugConnection {
   /// The port of the host Dart VM Service.
   int get port => _appDebugServices.debugService.port;
 
-  /// The websocket endpoint of the Dart VM Service.
-  String get wsUri => _appDebugServices.debugService.wsUri;
+  /// The endpoint of the Dart VM Service.
+  String get uri => _appDebugServices.debugService.uri;
 
   /// A client of the Dart VM Service with DWDS specific extensions.
   VmService get vmService => _appDebugServices.dwdsVmClient.client;
