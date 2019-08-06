@@ -59,9 +59,12 @@ class TestContext {
   }
 
   Future<void> setUp(
-      {ReloadConfiguration reloadConfiguration, bool serveDevTools}) async {
+      {ReloadConfiguration reloadConfiguration,
+      bool serveDevTools,
+      bool enableDebugExtension}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
+    enableDebugExtension ??= false;
     port = await findUnusedPort();
     try {
       chromeDriver = await Process.start(
@@ -109,6 +112,7 @@ class TestContext {
       () async => connection,
       reloadConfiguration,
       serveDevTools,
+      enableDebugExtension,
     );
 
     appUrl = 'http://localhost:$port/$path';
