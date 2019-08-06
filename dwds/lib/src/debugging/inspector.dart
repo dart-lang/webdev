@@ -308,8 +308,7 @@ function($argsString) {
           // https://github.com/dart-lang/sdk/issues/36771.
           ..classRef = ClassRef();
       case 'function':
-        var crudeAttemptAtName =
-            remoteObject.description.split('(').first;
+        var crudeAttemptAtName = remoteObject.description.split('(').first;
         return InstanceRef()
           ..kind = InstanceKind.kPlainInstance
           ..id = remoteObject.objectId
