@@ -8,13 +8,13 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../utilities/shared.dart';
 import 'chrome_proxy_service.dart';
@@ -73,7 +73,7 @@ class DebugService {
   /// application available through `window.$dartAppInstanceId`.
   static Future<DebugService> start(
     String hostname,
-    WipDebugger wipDebugger,
+    RemoteDebugger remoteDebugger,
     String tabUrl,
     Future<String> Function(String) assetHandler,
     String appInstanceId, {
@@ -81,7 +81,7 @@ class DebugService {
     void Function(Map<String, dynamic>) onResponse,
   }) async {
     var chromeProxyService = await ChromeProxyService.create(
-        wipDebugger, tabUrl, assetHandler, appInstanceId);
+        remoteDebugger, tabUrl, assetHandler, appInstanceId);
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     var authToken = _makeAuthToken();
     var innerHandler = webSocketHandler(_createNewConnectionHandler(

@@ -48,6 +48,7 @@ class TestServer {
     Future<ChromeConnection> Function() chromeConnection,
     ReloadConfiguration reloadConfiguration,
     bool serveDevTools,
+    bool enableDebugExtension,
   ) async {
     var pipeline = const Pipeline();
 
@@ -63,6 +64,7 @@ class TestServer {
       logWriter: (level, message) => printOnFailure(message),
       reloadConfiguration: reloadConfiguration,
       serveDevTools: serveDevTools,
+      enableDebugExtension: enableDebugExtension,
       verbose: true,
     );
 

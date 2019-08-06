@@ -6,9 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../debugging/debugger.dart';
@@ -41,7 +42,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// The root URI at which we're serving.
   final String uri;
 
-  final WipDebugger wipDebugger;
+  final RemoteDebugger remoteDebugger;
 
   final AssetHandler _assetHandler;
 
@@ -61,11 +62,11 @@ class ChromeProxyService implements VmServiceInterface {
     this._vm,
     this.uri,
     this._assetHandler,
-    this.wipDebugger,
+    this.remoteDebugger,
   );
 
   static Future<ChromeProxyService> create(
-    WipDebugger wipDebugger,
+    RemoteDebugger remoteDebugger,
     String tabUrl,
     AssetHandler assetHandler,
     String appInstanceId,
@@ -76,7 +77,8 @@ class ChromeProxyService implements VmServiceInterface {
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
-    var service = ChromeProxyService._(vm, tabUrl, assetHandler, wipDebugger);
+    var service =
+        ChromeProxyService._(vm, tabUrl, assetHandler, remoteDebugger);
     await service._initialize();
     await service.createIsolate();
     return service;
@@ -85,7 +87,7 @@ class ChromeProxyService implements VmServiceInterface {
   Future<Null> _initialize() async {
     _debugger = await Debugger.create(
       _assetHandler,
-      wipDebugger,
+      remoteDebugger,
       _streamNotify,
       appInspectorProvider,
       uri,
@@ -104,7 +106,7 @@ class ChromeProxyService implements VmServiceInterface {
     }
 
     _inspector = await AppInspector.initialize(
-      wipDebugger,
+      remoteDebugger,
       _assetHandler,
       _debugger,
       uri,
@@ -189,7 +191,8 @@ class ChromeProxyService implements VmServiceInterface {
 require("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
-    var response = await wipDebugger.sendCommand('Runtime.evaluate', params: {
+    var response =
+        await remoteDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
       'awaitPromise': true,
     });
@@ -209,17 +212,7 @@ require("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> clearCpuProfile(String isolateId) {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Success> clearVMTimeline() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Success> collectAllGarbage(String isolateId) {
     throw UnimplementedError();
   }
 
@@ -240,11 +233,6 @@ require("dart_sdk").developer.invokeExtension(
   @override
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool gc, bool reset}) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<CpuProfile> getCpuProfile(String isolateId, String tags) {
     throw UnimplementedError();
   }
 
@@ -379,12 +367,6 @@ require("dart_sdk").developer.invokeExtension(
       _debugger.removeBreakpoint(isolateId, breakpointId);
 
   @override
-  Future<Success> requestHeapSnapshot(
-      String isolateId, String roots, bool collectGarbage) {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Success> resume(String isolateId,
           {String step, int frameIndex}) async =>
       _debugger.resume(isolateId, step: step, frameIndex: frameIndex);
@@ -446,6 +428,7 @@ require("dart_sdk").developer.invokeExtension(
     StreamController<Event> controller;
     StreamSubscription chromeConsoleSubscription;
     StreamSubscription exceptionsSubscription;
+
     // This is an edge case for this lint apparently
     //
     // ignore: join_return_with_assignment
@@ -453,8 +436,7 @@ require("dart_sdk").developer.invokeExtension(
       chromeConsoleSubscription?.cancel();
       exceptionsSubscription?.cancel();
     }, onListen: () {
-      chromeConsoleSubscription =
-          wipDebugger.connection.runtime.onConsoleAPICalled.listen((e) {
+      chromeConsoleSubscription = remoteDebugger.onConsoleAPICalled.listen((e) {
         var isolate = _inspector?.isolate;
         if (isolate == null) return;
         if (!filter(e)) return;
@@ -468,8 +450,7 @@ require("dart_sdk").developer.invokeExtension(
           ..timestamp = e.timestamp.toInt());
       });
       if (includeExceptions) {
-        exceptionsSubscription =
-            wipDebugger.connection.runtime.onExceptionThrown.listen((e) {
+        exceptionsSubscription = remoteDebugger.onExceptionThrown.listen((e) {
           var isolate = _inspector?.isolate;
           if (isolate == null) return;
           controller.add(Event()
@@ -485,8 +466,7 @@ require("dart_sdk").developer.invokeExtension(
 
   /// Listens for chrome console events and handles the ones we care about.
   void _setUpChromeConsoleListeners(IsolateRef isolateRef) {
-    _consoleSubscription = wipDebugger.connection.runtime.onConsoleAPICalled
-        .listen((ConsoleAPIEvent event) {
+    _consoleSubscription = remoteDebugger.onConsoleAPICalled.listen((event) {
       var isolate = _inspector?.isolate;
       if (isolate == null) return;
       if (event.type != 'debug') return;
@@ -541,6 +521,22 @@ require("dart_sdk").developer.invokeExtension(
     var controller = _streamControllers[streamId];
     if (controller == null) return;
     controller.add(event);
+  }
+
+  @override
+  Future<Timestamp> getVMTimelineMicros() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future getInboundReferences(String isolateId, String targetId, int limit) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<RetainingPath> getRetainingPath(
+      String isolateId, String targetId, int limit) {
+    throw UnimplementedError();
   }
 }
 
