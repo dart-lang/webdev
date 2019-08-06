@@ -284,6 +284,7 @@ class DevHandler {
     var _extensionDebugger = await _extensionBackend.extensionDebugger;
     // Waits for a [DevToolsRequest] to be sent from the extension background
     // when the extension is clicked.
+    // TODO(pisong): Handle multiple [devToolsRequest].
     await _extensionDebugger.devToolsRequestStream.first;
     var debugService = await DebugService.start(
       _hostname,
