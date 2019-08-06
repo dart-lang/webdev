@@ -58,6 +58,13 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
                                   Option + D). This also enables
                                   --launch-in-chrome.
 
+    --[no-]injected-client        Whether or not to inject the client.js script
+                                  in web apps. This is required for all
+                                  debugging related features, but may interact
+                                  poorly with proxy servers or other
+                                  environments.
+                                  (defaults to on)
+
 Advanced:
     --chrome-debug-port           Specify which port the Chrome debugger is
                                   listening on. If used with launch-in-chrome
