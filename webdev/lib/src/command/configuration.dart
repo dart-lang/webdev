@@ -237,12 +237,12 @@ class Configuration {
             '--$debugFlag cannot be used with --no-$enableInjectedClientFlag');
       }
       if (debugExtension) {
-        throw InvalidConfiguration('--$debugExtension cannot be used with '
+        throw InvalidConfiguration('--$debugExtensionFlag cannot be used with '
             '--no-$enableInjectedClientFlag');
       }
       if (chromeDebugPort != defaultConfiguration.chromeDebugPort) {
-        throw InvalidConfiguration('--$chromeDebugPort cannot be used with '
-            '--no-$enableInjectedClientFlag');
+        throw InvalidConfiguration('--$chromeDebugPortFlag cannot be used '
+            'with --no-$enableInjectedClientFlag');
       }
     }
 
