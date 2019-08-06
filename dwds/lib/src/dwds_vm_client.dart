@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:vm_service_lib/vm_service_lib.dart';
 
 import 'services/chrome_proxy_service.dart' show ChromeProxyService;
@@ -60,10 +59,7 @@ class DwdsVmClient {
     await client.registerService('hotRestart', 'DWDS fullReload');
 
     client.registerServiceCallback('fullReload', (_) async {
-      await (chromeProxyService.remoteDebugger as WebkitDebugger)
-          .connection
-          .page
-          .enable();
+      await chromeProxyService.remoteDebugger.enablePage();
       // TODO: use built in `page.reload` once it works,
       // https://github.com/google/webkit_inspection_protocol.dart/issues/44
       await chromeProxyService.remoteDebugger.sendCommand('Page.reload');
@@ -72,10 +68,7 @@ class DwdsVmClient {
     await client.registerService('fullReload', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.screenshot', (_) async {
-      await (chromeProxyService.remoteDebugger as WebkitDebugger)
-          .connection
-          .page
-          .enable();
+      await chromeProxyService.remoteDebugger.enablePage();
       var response = await chromeProxyService.remoteDebugger
           .sendCommand('Page.captureScreenshot');
       return {'result': response.result};

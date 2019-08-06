@@ -10,19 +10,23 @@ abstract class RemoteDebugger {
   Stream<ExceptionThrownEvent> get onExceptionThrown;
   Future<WipResponse> sendCommand(String command,
       {Map<String, dynamic> params});
-  Future disable();
-  Future enable();
+  void close();
+  Future<void> disable();
+  Future<void> enable();
   Future<String> getScriptSource(String scriptId);
-  Future pause();
-  Future resume();
-  Future setPauseOnExceptions(PauseState state);
-  Future stepInto();
-  Future stepOut();
-  Future stepOver();
+  Future<void> pause();
+  Future<void> resume();
+  Future<void> setPauseOnExceptions(PauseState state);
+  Future<void> stepInto();
+  Future<void> stepOut();
+  Future<void> stepOver();
+  Future<void> enablePage();
+  Future<RemoteObject> evaluate(String expression);
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer);
   Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared;
   Stream<DebuggerPausedEvent> get onPaused;
   Stream<DebuggerResumedEvent> get onResumed;
   Stream<ScriptParsedEvent> get onScriptParsed;
   Map<String, WipScript> get scripts;
+  Stream<WipConnection> get onClose;
 }

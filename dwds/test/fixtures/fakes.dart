@@ -133,7 +133,6 @@ class FakeWebkitDebugger implements WebkitDebugger {
   @override
   Future<String> getScriptSource(String scriptId) => null;
 
-  @override
   Stream<WipDomain> get onClosed => null;
 
   @override
@@ -188,4 +187,21 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   @override
   Stream<ExceptionThrownEvent> get onExceptionThrown => null;
+
+  @override
+  void close() {
+    return;
+  }
+
+  @override
+  Stream<WipConnection> get onClose => null;
+
+  @override
+  Future<RemoteObject> evaluate(String expression) => null;
+
+  @override
+  WipDebugger get wipDebugger => null;
+
+  @override
+  Future<void> enablePage() => null;
 }

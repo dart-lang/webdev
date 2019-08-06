@@ -13,6 +13,8 @@ class WebkitDebugger implements RemoteDebugger {
 
   WipConnection get connection => _wipDebugger.connection;
 
+  WipDebugger get wipDebugger => _wipDebugger;
+
   @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled =>
       _wipDebugger.connection.runtime.onConsoleAPICalled;
@@ -27,33 +29,43 @@ class WebkitDebugger implements RemoteDebugger {
       _wipDebugger.sendCommand(command, params: params);
 
   @override
-  Future disable() => _wipDebugger.disable();
+  void close() => _wipDebugger.connection.close();
 
   @override
-  Future enable() => _wipDebugger.enable();
+  Future<void> disable() => _wipDebugger.disable();
+
+  @override
+  Future<void> enable() => _wipDebugger.enable();
 
   @override
   Future<String> getScriptSource(String scriptId) =>
       _wipDebugger.getScriptSource(scriptId);
 
   @override
-  Future pause() => _wipDebugger.pause();
+  Future<void> pause() => _wipDebugger.pause();
 
   @override
-  Future resume() => _wipDebugger.resume();
+  Future<void> resume() => _wipDebugger.resume();
 
   @override
-  Future setPauseOnExceptions(PauseState state) =>
+  Future<void> setPauseOnExceptions(PauseState state) =>
       _wipDebugger.setPauseOnExceptions(state);
 
   @override
-  Future stepInto() => _wipDebugger.stepInto();
+  Future<void> stepInto() => _wipDebugger.stepInto();
 
   @override
-  Future stepOut() => _wipDebugger.stepOut();
+  Future<void> stepOut() => _wipDebugger.stepOut();
 
   @override
-  Future stepOver() => _wipDebugger.stepOver();
+  Future<void> stepOver() => _wipDebugger.stepOver();
+
+  @override
+  Future<void> enablePage() => _wipDebugger.connection.page.enable();
+
+  @override
+  Future<RemoteObject> evaluate(String expression) =>
+      _wipDebugger.connection.runtime.evaluate(expression);
 
   @override
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) =>
@@ -74,4 +86,7 @@ class WebkitDebugger implements RemoteDebugger {
 
   @override
   Map<String, WipScript> get scripts => _wipDebugger.scripts;
+
+  @override
+  Stream<WipConnection> get onClose => _wipDebugger.connection.onClose;
 }

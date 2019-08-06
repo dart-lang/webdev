@@ -101,6 +101,7 @@ class ExtensionDebugger implements RemoteDebugger {
 
   int newId() => _completerId++;
 
+  @override
   void close() {
     sseConnection.sink.close();
     _notificationController.close();
@@ -140,6 +141,13 @@ class ExtensionDebugger implements RemoteDebugger {
   Future<WipResponse> stepOver() => sendCommand('Debugger.stepOver');
 
   @override
+  Future<void> enablePage() => throw UnimplementedError();
+
+  @override
+  Future<RemoteObject> evaluate(String expression) =>
+      throw UnimplementedError();
+
+  @override
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) {
     return _eventStreams
         .putIfAbsent(
@@ -169,6 +177,9 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   Map<String, WipScript> get scripts => UnmodifiableMapView(_scripts);
+
+  @override
+  Stream<WipConnection> get onClose => throw UnimplementedError();
 
   String _pauseStateToString(PauseState state) {
     switch (state) {

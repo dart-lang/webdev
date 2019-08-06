@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart' as build_daemon;
+import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
@@ -126,12 +127,8 @@ class DevHandler {
         var debugService =
             await startDebugService(await _chromeConnection(), instanceId);
         var appServices = await _createAppDebugServices(appId, debugService);
-        unawaited(
-            (appServices.chromeProxyService.remoteDebugger as WebkitDebugger)
-                .connection
-                .onClose
-                .first
-                .whenComplete(() {
+        unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
+            .whenComplete(() {
           appServices.close();
           _servicesByAppId.remove(appId);
           _logWriter(
@@ -200,7 +197,7 @@ class DevHandler {
         // If you load the same app in a different tab then we need to throw
         // away our old services and start new ones.
         if (!(await _isCorrectTab(message.instanceId,
-            appServices.chromeProxyService.remoteDebugger as WebkitDebugger))) {
+            appServices.chromeProxyService.remoteDebugger))) {
           unawaited(appServices.close());
           unawaited(_servicesByAppId.remove(message.appId));
           appServices =
@@ -231,8 +228,8 @@ class DevHandler {
         if (services != null && services.connectedInstanceId == null) {
           // Re-connect to the previous instance if its in the same tab,
           // otherwise do nothing for now.
-          if (await _isCorrectTab(message.instanceId,
-              services.chromeProxyService.remoteDebugger as WebkitDebugger)) {
+          if (await _isCorrectTab(
+              message.instanceId, services.chromeProxyService.remoteDebugger)) {
             services.connectedInstanceId = message.instanceId;
             await services.chromeProxyService.createIsolate();
           }
@@ -278,10 +275,9 @@ class DevHandler {
   }
 }
 
-/// Checks if connection of [webkitDebugger] is running the app with [instanceId].
+/// Checks if connection of [remoteDebugger] is running the app with [instanceId].
 Future<bool> _isCorrectTab(
-    String instanceId, WebkitDebugger webkitDebugger) async {
-  var result = await webkitDebugger.connection.runtime
-      .evaluate(r'window["$dartAppInstanceId"];');
+    String instanceId, RemoteDebugger remoteDebugger) async {
+  var result = await remoteDebugger.evaluate(r'window["$dartAppInstanceId"];');
   return result.value == instanceId;
 }
