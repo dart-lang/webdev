@@ -14,9 +14,8 @@ dependencies:
   args: ^1.5.0
   async: ^2.2.0
   build_daemon: ^2.0.0
-  built_value: ^6.3.0
   crypto: ^2.0.6
-  dwds: ^0.4.0
+  dwds: ^0.5.0
   http: ^0.12.0
   http_multi_server: ^2.1.0
   io: ^0.3.2+1
@@ -29,9 +28,8 @@ dependencies:
   shelf: ^0.7.4
   shelf_proxy: ^0.1.0+5
   shelf_static: ^0.2.8
-  stack_trace: ^1.9.2
   sse: ^2.0.0
-  vm_service: 1.1.0
+  vm_service: ^1.1.0
   webkit_inspection_protocol: ^0.4.0
   yaml: ^2.1.13
 
