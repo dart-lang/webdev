@@ -101,7 +101,7 @@ class AppDomain extends Domain {
       sendEvent('app.debugPort', {
         'appId': _appId,
         'port': _debugConnection.port,
-        'wsUri': _debugConnection.wsUri,
+        'wsUri': _debugConnection.uri,
       });
       _resultSub = server.buildResults.listen(_handleBuildResult);
 
