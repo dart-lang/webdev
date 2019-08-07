@@ -38,7 +38,7 @@ void main() {
     test('can add and remove after a refresh', () async {
       var stream = service.onEvent('Isolate');
       // Wait for the page to be fully loaded before refreshing.
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 1));
       await context.webDriver.refresh();
       // Wait for the refresh to propagate through.
       var isolateStart =
