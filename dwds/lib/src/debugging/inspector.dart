@@ -356,7 +356,9 @@ function($argsString) {
       ${_getLibrarySnippet(libraryRef.uri)}
       var parts = sdkUtils.getParts('${libraryRef.uri}');
       var result = {'parts' : parts}
-      var classes = Object.values(library)
+      var classes = Object.values(Object.getOwnPropertyDescriptors(library))
+        .filter((p) => "value" in p)
+        .map((p) => p.value)
         .filter((l) => l && sdkUtils.isType(l));
       var classList = classes.map(function(clazz) {
         var descriptor = {'name': clazz.name};
