@@ -19,7 +19,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext();
-ChromeProxyService get newService => context.chromeProxyService;
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
@@ -27,11 +26,9 @@ WipConnection get tabConnection => context.tabConnection;
 void main() {
   group('fresh context', () {
     VM vm;
-    Isolate isolate;
     setUp(() async {
       await context.setUp();
-      vm = await newService.getVM();
-      isolate = await newService.getIsolate(vm.isolates.first.id);
+      vm = await service.getVM();
     });
 
     tearDown(() async {
@@ -39,19 +36,22 @@ void main() {
     });
 
     test('can add and remove after a refresh', () async {
-      var stream = newService.onEvent('Isolate');
+      var stream = service.onEvent('Isolate');
+      // Wait for the page to be fully loaded before refreshing.
+      await Future.delayed(Duration(seconds: 1));
       await context.webDriver.refresh();
       // Wait for the refresh to propagate through.
       var isolateStart =
           await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
       var isolateId = isolateStart.isolate.id;
-      var refreshedScriptList = await newService.getScripts(isolateId);
+      var refreshedScriptList = await service.getScripts(isolateId);
       var refreshedMain = refreshedScriptList.scripts
           .lastWhere((each) => each.uri.contains('main.dart'));
-      var bp = await newService.addBreakpoint(isolateId, refreshedMain.id, 23);
+      var bp = await service.addBreakpoint(isolateId, refreshedMain.id, 23);
+      var isolate = await service.getIsolate(vm.isolates.first.id);
       expect(isolate.breakpoints, [bp]);
       expect(bp.id, isNotNull);
-      await newService.removeBreakpoint(isolateId, bp.id);
+      await service.removeBreakpoint(isolateId, bp.id);
       expect(isolate.breakpoints, isEmpty);
     });
   });

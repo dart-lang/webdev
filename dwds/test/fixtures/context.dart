@@ -11,9 +11,7 @@ import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
@@ -31,7 +29,6 @@ class TestContext {
   Process chromeDriver;
   AppConnection appConnection;
   DebugConnection debugConnection;
-  ChromeProxyService chromeProxyService;
   ExtensionBackend extensionBackend;
   WebkitDebugger webkitDebugger;
   int port;
@@ -124,14 +121,7 @@ class TestContext {
 
     appConnection = await testServer.dwds.connectedApps.first;
     debugConnection = await testServer.dwds.debugConnection(appConnection);
-    var assetHandler = (String path) async {
-      var result = await http.get('http://localhost:$port/$path');
-      return result.body;
-    };
-
     webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
-    chromeProxyService = await ChromeProxyService.create(
-        webkitDebugger, appUrl, assetHandler, appConnection.request.instanceId);
   }
 
   Future<Null> tearDown() async {
