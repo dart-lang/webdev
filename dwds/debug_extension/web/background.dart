@@ -74,11 +74,17 @@ Future<void> startSseClient(
       allowInterop((e) {}));
 
   // Notifies the backend of debugger events.
+  //
+  // The listener of the `currentTab` receives events from all tabs.
+  // We want to forward an event only if it originates from `currentTab`.
+  // We know that if `source.tabId` and `currentTab.id` are the same.
   addDebuggerListener(
       allowInterop((Debuggee source, String method, Object params) {
-    client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
-      ..params = jsonEncode(json.decode(stringify(params)))
-      ..method = jsonEncode(method)))));
+    if (source.tabId == currentTab.id) {
+      client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
+        ..params = jsonEncode(json.decode(stringify(params)))
+        ..method = jsonEncode(method)))));
+    }
   }));
 
   client.stream.listen((data) {
