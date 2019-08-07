@@ -288,7 +288,7 @@ class DevHandler {
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
     _extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
-      await DebugService.start(
+      var debugService = await DebugService.start(
         _hostname,
         _extensionDebugger,
         devToolsRequest.tabUrl,
@@ -301,14 +301,13 @@ class DevHandler {
                     'VmService proxy responded with an error:\n$response');
               }
             : null,
-      ).then((debugService) async {
-        var appServices =
-            await _createAppDebugServices(devToolsRequest.appId, debugService);
-        await _extensionDebugger.sendCommand('Target.createTarget', params: {
-          'newWindow': true,
-          'url': 'http://${_devTools.hostname}:${_devTools.port}'
-              '/?hide=none&uri=${appServices.debugService.uri}',
-        });
+      );
+      var appServices =
+          await _createAppDebugServices(devToolsRequest.appId, debugService);
+      await _extensionDebugger.sendCommand('Target.createTarget', params: {
+        'newWindow': true,
+        'url': 'http://${_devTools.hostname}:${_devTools.port}'
+            '/?hide=none&uri=${appServices.debugService.uri}',
       });
     });
   }
