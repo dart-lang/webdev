@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
+import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/inspector.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -13,16 +13,18 @@ import 'fixtures/context.dart';
 
 final context = TestContext(
     directory: '../example', path: 'scopes.html', pathToServe: 'web');
-ChromeProxyService get service => context.chromeProxyService;
+
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   AppInspector inspector;
   RemoteObject instance;
+
   setUpAll(() async {
     await context.setUp();
     // TODO(alanknight): A nicer way of getting the inspector.
-    inspector = service.appInspectorProvider();
+    inspector =
+        fetchChromeProxyService(context.debugConnection).appInspectorProvider();
   });
 
   tearDownAll(() async {

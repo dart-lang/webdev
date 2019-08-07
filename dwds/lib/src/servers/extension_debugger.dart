@@ -25,8 +25,6 @@ class ExtensionDebugger implements RemoteDebugger {
   final _eventStreams = <String, Stream>{};
   var _completerId = 0;
 
-  String tabUrl;
-  String appId;
   String instanceId;
 
   final _devToolsRequestController = StreamController<DevToolsRequest>();
@@ -66,8 +64,6 @@ class ExtensionDebugger implements RemoteDebugger {
         };
         _notificationController.sink.add(WipEvent(map));
       } else if (message is DevToolsRequest) {
-        tabUrl = message.tabUrl;
-        appId = message.appId;
         instanceId = message.instanceId;
         _devToolsRequestController.sink.add(message);
       }
