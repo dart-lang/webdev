@@ -27,7 +27,6 @@ void main() async {
   tearDown(() {
     connection.controllerIncoming.close();
     connection.controllerOutgoing.close();
-    extensionDebugger.close();
   });
 
   group('can receive', () {
