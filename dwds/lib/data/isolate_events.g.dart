@@ -17,7 +17,7 @@ class _$IsolateExitSerializer implements StructuredSerializer<IsolateExit> {
   final String wireName = 'IsolateExit';
 
   @override
-  Iterable serialize(Serializers serializers, IsolateExit object,
+  Iterable<Object> serialize(Serializers serializers, IsolateExit object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'appId',
@@ -32,7 +32,7 @@ class _$IsolateExitSerializer implements StructuredSerializer<IsolateExit> {
   }
 
   @override
-  IsolateExit deserialize(Serializers serializers, Iterable serialized,
+  IsolateExit deserialize(Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new IsolateExitBuilder();
 
@@ -64,7 +64,7 @@ class _$IsolateStartSerializer implements StructuredSerializer<IsolateStart> {
   final String wireName = 'IsolateStart';
 
   @override
-  Iterable serialize(Serializers serializers, IsolateStart object,
+  Iterable<Object> serialize(Serializers serializers, IsolateStart object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'appId',
@@ -79,7 +79,7 @@ class _$IsolateStartSerializer implements StructuredSerializer<IsolateStart> {
   }
 
   @override
-  IsolateStart deserialize(Serializers serializers, Iterable serialized,
+  IsolateStart deserialize(Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new IsolateStartBuilder();
 
