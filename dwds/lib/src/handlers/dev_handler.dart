@@ -287,15 +287,13 @@ class DevHandler {
     var _extensionDebugger = await _extensionBackend.extensionDebugger;
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
-    String appId;
     _extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
-      appId = devToolsRequest.appId;
       var debugService = await DebugService.start(
         _hostname,
         _extensionDebugger,
         devToolsRequest.tabUrl,
         _assetHandler.getRelativeAsset,
-        appId,
+        devToolsRequest.appId,
         onResponse: _verbose
             ? (response) {
                 if (response['error'] == null) return;
@@ -304,7 +302,8 @@ class DevHandler {
               }
             : null,
       );
-      var appServices = await _createAppDebugServices(appId, debugService);
+      var appServices =
+          await _createAppDebugServices(devToolsRequest.appId, debugService);
       await _extensionDebugger.sendCommand('Target.createTarget', params: {
         'newWindow': true,
         'url': 'http://${_devTools.hostname}:${_devTools.port}'
