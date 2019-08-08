@@ -63,11 +63,10 @@ Handler Function(Handler) createInjectedHandler(
             body = bodyLines.sublist(0, extensionIndex).join('\n');
             // The line after the marker calls `main`. We prevent `main` from
             // being called and make it runnable through a global variable.
-            var mainFuntion = bodyLines[extensionIndex + 1]
-                .replaceAll('(', '')
-                .replaceAll(')', '')
+            var mainFunction = bodyLines[extensionIndex + 1]
+                .replaceAll('main()', 'main')
                 .trim();
-            body += _injectedClientJs(configuration, appId, mainFuntion,
+            body += _injectedClientJs(configuration, appId, mainFunction,
                 extensionHostname: extensionHostname,
                 extensionPort: extensionPort);
             body += bodyLines.sublist(extensionIndex + 2).join('\n');
