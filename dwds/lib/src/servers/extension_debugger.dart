@@ -10,6 +10,7 @@ import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -143,11 +144,20 @@ class ExtensionDebugger implements RemoteDebugger {
   Future<WipResponse> stepOver() => sendCommand('Debugger.stepOver');
 
   @override
-  Future<void> enablePage() => throw UnimplementedError();
+  Future<void> enablePage() => sendCommand('Page.enable');
 
   @override
-  Future<RemoteObject> evaluate(String expression) =>
-      throw UnimplementedError();
+  Future<RemoteObject> evaluate(String expression) async {
+    final response = await sendCommand('Runtime.evaluate', params: {
+      'expression': expression,
+    });
+    if (response.result.containsKey('exceptionDetails')) {
+      throw ChromeDebugException(
+          response.result['exceptionDetails'] as Map<String, dynamic>);
+    } else {
+      return RemoteObject(response.result['result'] as Map<String, dynamic>);
+    }
+  }
 
   @override
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) {
