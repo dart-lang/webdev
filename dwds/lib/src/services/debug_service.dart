@@ -118,7 +118,6 @@ class DebugService {
     void Function(Map<String, dynamic>) onResponse,
     bool useSse,
   }) async {
-    useSse = true;
     var chromeProxyService = await ChromeProxyService.create(
         remoteDebugger, tabUrl, assetHandler, appInstanceId);
     var authToken = _makeAuthToken();
