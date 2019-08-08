@@ -87,6 +87,12 @@ Future<void> startSseClient(
     }
   }));
 
+  onRemovedAddListener(allowInterop((int tabId, RemoveInfo removeInfo) {
+    if (tabId == currentTab.id) {
+      client.close();
+    }
+  }));
+
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
     if (message is ExtensionRequest) {
@@ -126,6 +132,9 @@ external dynamic addDebuggerListener(Function callback);
 @JS('chrome.tabs.query')
 external List<Tab> queryTabs(QueryInfo queryInfo, Function callback);
 
+@JS('chrome.tabs.onRemoved.addListener')
+external void onRemovedAddListener(Function callback);
+
 @JS('JSON.stringify')
 external String stringify(o);
 
@@ -138,6 +147,13 @@ class QueryInfo {
   external bool get active;
   external bool get currentWindow;
   external factory QueryInfo({bool active, bool currentWindow});
+}
+
+@JS()
+@anonymous
+class RemoveInfo {
+  external int get windowId;
+  external bool get isWindowClosing;
 }
 
 @JS()
