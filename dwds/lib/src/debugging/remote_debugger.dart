@@ -28,5 +28,5 @@ abstract class RemoteDebugger {
   Stream<DebuggerResumedEvent> get onResumed;
   Stream<ScriptParsedEvent> get onScriptParsed;
   Map<String, WipScript> get scripts;
-  Stream<WipConnection> get onClose;
+  Stream<void> get onClose;
 }
