@@ -277,6 +277,35 @@ function($argsString) {
     return RemoteObject(result.result['result'] as Map<String, dynamic>);
   }
 
+  Future<_ClassMetaData> _getClassMetaData(RemoteObject remoteObject) async {
+    var arguments = [
+      {'objectId': remoteObject.objectId}
+    ];
+    var evalExpression = '''
+function(arg) {
+  var sdkUtils = require('dart_sdk').dart;
+  var classObject = sdkUtils.getType(arg);
+  var result = {};
+  result['name'] = classObject.name;
+  result['libraryId'] = sdkUtils.getLibraryUri(classObject);
+  return result;
+}
+    ''';
+    var result =
+        await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
+      'functionDeclaration': evalExpression,
+      'arguments': arguments,
+      'objectId': remoteObject.objectId,
+      'returnByValue': true,
+    });
+    handleErrorIfPresent(
+      result,
+      evalContents: evalExpression,
+    );
+    return _ClassMetaData(result.result['result']['value']['name'] as String,
+        result.result['result']['value']['libraryId'] as String);
+  }
+
   /// Create an [InstanceRef] for the given Chrome [remoteObject].
   Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) async {
     // If we have a null result, treat it as a reference to null.
@@ -296,18 +325,13 @@ function($argsString) {
         if (_asDartObject(remoteObject) == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
-        var toString = await toStringOf(remoteObject);
-        // TODO: Make the truncation consistent with the VM.
-        var truncated = toString.substring(0, math.min(100, toString.length));
+        var metaData = await _getClassMetaData(remoteObject);
         return InstanceRef()
           ..kind = InstanceKind.kPlainInstance
           ..id = remoteObject.objectId
-          ..valueAsString = toString
-          ..valueAsStringIsTruncated = truncated.length != toString.length
-          // TODO(jakemac): Create a real ClassRef, we need a way of looking
-          // up the library for a given instance to create it though.
-          // https://github.com/dart-lang/sdk/issues/36771.
-          ..classRef = ClassRef();
+          ..classRef = (ClassRef()
+            ..name = metaData.name
+            ..id = '${metaData.libraryId}:${metaData.name}');
       case 'function':
         var crudeAttemptAtName = remoteObject.description.split('(').first;
         return InstanceRef()
@@ -345,8 +369,30 @@ function($argsString) {
     if (clazz != null) return clazz;
     var scriptRef = _scriptRefs[objectId];
     if (scriptRef != null) return await _getScript(isolateId, scriptRef);
-    throw UnsupportedError(
-        'Only libraries and classes are supported for getObject');
+    return _mustBeAnInstance(objectId);
+  }
+
+  Future<Instance> _mustBeAnInstance(String objectId) async {
+    if (!objectId.contains('"injectedScriptId"')) return null;
+    var remoteObject = RemoteObject({'objectId': objectId});
+    var metaData = await _getClassMetaData(remoteObject);
+    var classRef = ClassRef()
+      ..id = '${metaData.libraryId}:${metaData.name}'
+      ..name = metaData.name;
+    var properties = await debugger.getProperties(objectId);
+    var fields = await Future.wait(
+        properties.map<Future<BoundField>>((property) async => BoundField()
+          ..decl = (FieldRef()
+            // TODO(grouma) - Convert JS name to Dart.
+            ..name = property.name
+            ..owner = classRef
+            ..declaredType = (InstanceRef()..classRef = ClassRef()))
+          ..value = await instanceRefFor(property.value)));
+    var result = Instance()
+      ..id = objectId
+      ..fields = fields
+      ..classRef = classRef;
+    return result;
   }
 
   Future<Library> _constructLibrary(LibraryRef libraryRef) async {
@@ -356,8 +402,9 @@ function($argsString) {
       ${_getLibrarySnippet(libraryRef.uri)}
       var parts = sdkUtils.getParts('${libraryRef.uri}');
       var result = {'parts' : parts}
-      var classes = Object.values(library)
-        .filter((l) => l && sdkUtils.isType(l));
+      var classes = Object.values(Object.getOwnPropertyDescriptors(library))
+        .filter((p) => 'value' in p)
+        .map((p) => p.value)
       var classList = classes.map(function(clazz) {
         var descriptor = {'name': clazz.name};
 
@@ -587,4 +634,10 @@ InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
     ..valueAsString = '${remoteObject.value}'
     ..classRef = classRef
     ..kind = kind;
+}
+
+class _ClassMetaData {
+  final String name;
+  final String libraryId;
+  _ClassMetaData(this.name, this.libraryId);
 }
