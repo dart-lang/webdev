@@ -50,6 +50,13 @@ void main() async {
   testClass.methodWithVariables();
 }
 
+String libraryFunction(String arg) {
+  print('calling a library function with $arg');
+  var concat = 'some constant plus $arg plus whatever';
+  print(concat);
+  return concat;
+}
+
 class MyTestClass {
   final String message;
 
@@ -77,6 +84,7 @@ class MyTestClass {
   // An easy location to add a breakpoint.
   void printCount() {
     print('The count is ${++count}');
+    libraryFunction('abc');
   }
 
   @override

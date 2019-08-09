@@ -13,6 +13,7 @@ import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
+import 'dart_scope.dart';
 import 'location.dart';
 import 'sources.dart';
 
@@ -282,7 +283,7 @@ class Debugger extends Domain {
         dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
         dartFrame.index = index++;
         dartFrame.vars =
-            await _variablesFor(frame['scopeChain'] as List<dynamic>);
+            await _variablesFor(frame['scopeChain'] as List<dynamic>, frame['callFrameId'] as String);
         dartFrames.add(dartFrame);
       }
     }
@@ -290,7 +291,7 @@ class Debugger extends Domain {
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
-  Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
+  Future<List<BoundVariable>> _variablesFor1(List<dynamic> scopeChain) async {
     // TODO: Much better logic for which frames to use. This is probably just
     // the dynamically visible variables, so we should omit library scope.
 
@@ -305,6 +306,33 @@ class Debugger extends Domain {
     ];
   }
 
+    /// The variables visible in a frame in Dart protocol [BoundVariable] form.
+  Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain, String callFrameId) async {
+    var jsScopes = await JsScopeChain.fromJs(scopeChain.cast<Map<String, dynamic>>(), 'fred', this, callFrameId);
+    var dartScopes = await jsScopes.toDartScopeChain();
+    return [
+      for (var scope in dartScopes.allScopes()) ...await _boundVariables2(scope)
+    ];
+  }
+
+  Future<Iterable<BoundVariable>> _boundVariables2(Scope scope) async {
+    // We return one level of properties from this object. Sub-prsoperties are
+    // another round trip.
+    var refs = scope.properties
+        .map<Future<BoundVariable>>((property) async {
+                    var instanceRef = await inspector.instanceRefFor(property.value);
+          // Skip null instance refs, which we get for weird objects, e.g.
+          // properties that are getter/setter pairs. 
+          // TODO(alanknight): Handle these properly.
+          if (instanceRef == null) return null;
+           return BoundVariable()
+          ..name = property.name
+          ..value = instanceRef;
+        });
+      return (await Future.wait(refs)).where((variable) => variable != null);
+  }
+
+
   /// The [BoundVariable]s visible in a v8 'scope' object as found in the
   /// 'scopeChain' field of the 'callFrames' in a DebuggerPausedEvent.
   Future<Iterable<BoundVariable>> _boundVariables(dynamic scope) async {
@@ -312,10 +340,17 @@ class Debugger extends Domain {
     // We return one level of properties from this object. Sub-prsoperties are
     // another round trip.
     var refs = properties
-        .map<Future<BoundVariable>>((property) async => BoundVariable()
+        .map<Future<BoundVariable>>((property) async {
+          var instanceRef = await inspector.instanceRefFor(property.value);
+          // Skip null instance refs, which we get for weird objects, e.g.
+          // properties that are getter/setter pairs. 
+          // TODO(alanknight): Handle these properly.
+          if (instanceRef == null) return null;
+          return BoundVariable()
           ..name = property.name
-          ..value = await inspector.instanceRefFor(property.value));
-    return Future.wait(refs);
+          ..value = instanceRef;
+        });
+    return (await Future.wait(refs)).where((variable) => variable != null);
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [id].
