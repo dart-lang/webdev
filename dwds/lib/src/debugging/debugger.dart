@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/debugging/instance.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -13,7 +11,9 @@ import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
+import 'instance.dart';
 import 'location.dart';
+import 'remote_debugger.dart';
 import 'sources.dart';
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
