@@ -36,7 +36,6 @@ const _namesToIgnore = <String>{
 /// Returns null if there isn't a corresponding instance.
 Future<Instance> instanceFor(
     Debugger debugger, RemoteDebugger remoteDebugger, String objectId) async {
-  // if (!objectId.contains('"injectedScriptId"')) return null;
   var remoteObject = RemoteObject({'objectId': objectId});
   var metaData = await classMetaDataFor(remoteDebugger, remoteObject);
   var classRef = ClassRef()
@@ -56,7 +55,7 @@ Future<Instance> instanceFor(
       .toList()
         ..sort((a, b) => a.decl.name.compareTo(b.decl.name));
   var result = Instance()
-    ..type = InstanceKind.kPlainInstance
+    ..kind = InstanceKind.kPlainInstance
     ..id = objectId
     ..fields = fields
     ..classRef = classRef;

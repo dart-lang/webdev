@@ -38,7 +38,6 @@ void main() {
 
   final url = 'org-dartlang-app:///web/scopes_main.dart';
 
-  /// A convenient way to get a library variable without boilerplate.
   String libraryVariableExpression(String variable) =>
       'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["$variable"];';
 
