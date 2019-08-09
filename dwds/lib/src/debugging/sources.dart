@@ -64,10 +64,10 @@ class Sources {
     var script = e.script;
     // TODO(grouma) - This should be configurable.
     await _blackBoxIfNecessary(script);
-    var sourceMapContents = await _sourceMapOrNull(script);
-    if (sourceMapContents == null) return;
     _clearCacheFor(script);
     _sourceToScriptId[script.url] = script.scriptId;
+    var sourceMapContents = await _sourceMapOrNull(script);
+    if (sourceMapContents == null) return;
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = parse(sourceMapContents);
     if (mapping is SingleMapping) {
