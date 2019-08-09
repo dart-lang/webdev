@@ -44,6 +44,7 @@ class AppInspector extends Domain {
   final Debugger debugger;
   final Isolate isolate;
   final IsolateRef isolateRef;
+  final InstanceHelper instanceHelper;
 
   /// The root URI from which the application is served.
   final String _root;
@@ -55,6 +56,7 @@ class AppInspector extends Domain {
     this._root,
     this._remoteDebugger,
   )   : isolateRef = _toIsolateRef(isolate),
+        instanceHelper = InstanceHelper(debugger, _remoteDebugger),
         super.forInspector();
 
   @override
@@ -268,9 +270,8 @@ function($argsString) {
     if (clazz != null) return clazz;
     var scriptRef = _scriptRefs[objectId];
     if (scriptRef != null) return await _getScript(isolateId, scriptRef);
-    // TODO(grouma) - store debuggers in instance.dart to simplify the API.
-    var instance = instanceFor(
-        debugger, _remoteDebugger, RemoteObject({'objectId': objectId}));
+    var instance =
+        instanceHelper.instanceFor(RemoteObject({'objectId': objectId}));
     if (instance != null) return instance;
     throw UnsupportedError('Only libraries, instances, classes, and scripts '
         'are supported for getObject');

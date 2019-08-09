@@ -11,7 +11,6 @@ import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
-import 'instance.dart';
 import 'location.dart';
 import 'remote_debugger.dart';
 import 'sources.dart';
@@ -304,10 +303,10 @@ class Debugger extends Domain {
     var properties = await getProperties(scope['object']['objectId'] as String);
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
-    var refs = properties
-        .map<Future<BoundVariable>>((property) async => BoundVariable()
-          ..name = property.name
-          ..value = await instanceRefFor(_remoteDebugger, property.value));
+    var refs = properties.map<
+        Future<BoundVariable>>((property) async => BoundVariable()
+      ..name = property.name
+      ..value = await inspector.instanceHelper.instanceRefFor(property.value));
     // Actual null values will still have a variable value of an InstanceRef.
     return (await Future.wait(refs))
         .where((variable) => variable.value != null);

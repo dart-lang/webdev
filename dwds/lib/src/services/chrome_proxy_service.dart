@@ -12,7 +12,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../debugging/debugger.dart';
 import '../debugging/inspector.dart';
-import '../debugging/instance.dart';
 import '../debugging/remote_debugger.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
@@ -222,7 +221,7 @@ require("dart_sdk").developer.invokeExtension(
       {Map<String, String> scope, bool disableBreakpoints}) async {
     var remote = await _inspector?.evaluate(isolateId, targetId, expression,
         scope: scope, disableBreakpoints: disableBreakpoints);
-    return instanceRefFor(remoteDebugger, remote);
+    return _inspector?.instanceHelper?.instanceRefFor(remote);
   }
 
   @override
