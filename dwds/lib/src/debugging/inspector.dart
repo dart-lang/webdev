@@ -428,6 +428,7 @@ function(arg) {
       var classes = Object.values(Object.getOwnPropertyDescriptors(library))
         .filter((p) => 'value' in p)
         .map((p) => p.value)
+        .filter((l) => l && sdkUtils.isType(l));
       var classList = classes.map(function(clazz) {
         var descriptor = {'name': clazz.name};
 
