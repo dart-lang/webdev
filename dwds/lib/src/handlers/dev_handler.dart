@@ -116,7 +116,7 @@ class DevHandler {
       _hostname,
       webkitDebugger,
       appTab.url,
-      _assetHandler.getRelativeAsset,
+      _assetHandler,
       appInstanceId,
       onResponse: _verbose
           ? (response) {
@@ -300,7 +300,7 @@ class DevHandler {
           _hostname,
           _extensionDebugger,
           devToolsRequest.tabUrl,
-          _assetHandler.getRelativeAsset,
+          _assetHandler,
           devToolsRequest.appId,
           onResponse: _verbose
               ? (response) {

@@ -14,10 +14,8 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../debugging/debugger.dart';
 import '../debugging/inspector.dart';
+import '../handlers/asset_handler.dart';
 import '../utilities/shared.dart';
-
-/// A handler for application assets, e.g. Dart sources.
-typedef AssetHandler = Future<String> Function(String);
 
 /// Adds [event] to the stream with [streamId] if there is anybody listening
 /// on that stream.

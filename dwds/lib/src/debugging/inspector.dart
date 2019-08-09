@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'dart:io';
 import 'dart:math' as math show min;
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
@@ -9,11 +10,13 @@ import 'package:path/path.dart' as p;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../handlers/asset_handler.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
 import 'debugger.dart';
+import 'exceptions.dart';
 
 /// An inspector for a running Dart application contained in the
 /// [WipConnection].
@@ -488,7 +491,11 @@ function($argsString) {
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
     var libraryId = _scriptIdToLibraryId[scriptRef.id];
     var serverPath = DartUri(scriptRef.uri, _root).serverPath;
-    var script = await _assetHandler(serverPath);
+    var response = await _assetHandler.getRelativeAsset(serverPath);
+    if (response.statusCode != HttpStatus.ok) {
+      throw ScriptNotFound(serverPath, response);
+    }
+    var script = await response.readAsString();
     return Script()
       ..library = _libraryRefs[libraryId]
       ..id = scriptRef.id

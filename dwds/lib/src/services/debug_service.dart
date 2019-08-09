@@ -12,13 +12,14 @@ import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf.dart' hide Response;
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../handlers/asset_handler.dart';
 import '../utilities/shared.dart';
 import 'chrome_proxy_service.dart';
 
@@ -112,7 +113,7 @@ class DebugService {
     String hostname,
     RemoteDebugger remoteDebugger,
     String tabUrl,
-    Future<String> Function(String) assetHandler,
+    AssetHandler assetHandler,
     String appInstanceId, {
     void Function(Map<String, dynamic>) onRequest,
     void Function(Map<String, dynamic>) onResponse,
