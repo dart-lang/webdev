@@ -35,7 +35,8 @@ class JsScopeChain {
   //   dartThisScope = null;
   // }
 
-  JsScopeChain(this.methodScopes, this.libraryScope, this.libraryName, this.callFrameId);
+  JsScopeChain(
+      this.methodScopes, this.libraryScope, this.libraryName, this.callFrameId);
 
   /// We expect the [scopeList] to be a List of maps corresponding to Chrome Scope objects.
   ///
@@ -45,13 +46,17 @@ class JsScopeChain {
     JsScopeChain.debugger = theDebugger;
     var numberOfMethods = scopeList.length - 2;
     var futureScopes = scopeList.take(numberOfMethods).map((x) =>
-        MethodScope.fromId(
-            (x['name'] ?? 'unnamed') as String, x['object']['objectId'] as String, null));
+        MethodScope.fromId((x['name'] ?? 'unnamed') as String,
+            x['object']['objectId'] as String, null));
     var methodScopes = await Future.wait(futureScopes);
     var library = scopeList[numberOfMethods];
-    var libraryScope = await LibraryScope.fromId((library['name'] ?? 'unknown library') as String,
-        library['object']['objectId'] as String, libraryName, null);
-    var result = JsScopeChain(methodScopes, libraryScope, libraryName, callFrameId);
+    var libraryScope = await LibraryScope.fromId(
+        (library['name'] ?? 'unknown library') as String,
+        library['object']['objectId'] as String,
+        libraryName,
+        null);
+    var result =
+        JsScopeChain(methodScopes, libraryScope, libraryName, callFrameId);
     for (var scope in methodScopes) {
       scope.context = result;
     }
@@ -170,17 +175,20 @@ class MethodScope extends Scope {
   ///     properties in this particular scope
   /// @param {string} aliasForThis. The name to use to replace the reserved
   /// word 'this' in parameter lists.
-  MethodScope(Scope scope, String name, List<Property> properties, JsScopeChain context)
+  MethodScope(
+      Scope scope, String name, List<Property> properties, JsScopeChain context)
       : super(scope, name, properties, context) {
     self = properties.firstWhere((x) => x.name == 'this', orElse: () => null);
   }
 
-  static Future<MethodScope> fromId(String name, String objectId, JsScopeChain context) async {
+  static Future<MethodScope> fromId(
+      String name, String objectId, JsScopeChain context) async {
     var properties = await JsScopeChain.debugger.getProperties(objectId);
     return MethodScope(null, name, properties, context);
   }
 
-  static Future<MethodScope> fromJs(Map<String, dynamic> jsScope, JsScopeChain context) async {
+  static Future<MethodScope> fromJs(
+      Map<String, dynamic> jsScope, JsScopeChain context) async {
     var properties = await JsScopeChain.debugger
         .getProperties(jsScope['object']['objectId'] as String);
     return MethodScope(null, jsScope['name'] as String, properties, context);
@@ -218,7 +226,8 @@ class MethodScope extends Scope {
             }
             } return THIS; })(this)''';
 
-    var actualThis = await JsScopeChain.debugger.inspector.evaluateJsOnCallFrame(context.callFrameId, findCurrent);
+    var actualThis = await JsScopeChain.debugger.inspector
+        .evaluateJsOnCallFrame(context.callFrameId, findCurrent);
 
     // Guard against a null result, particularly in tests
     // actualThis = actualThis?.object;
@@ -233,7 +242,8 @@ class MethodScope extends Scope {
 }
 
 class ThisScope extends Scope {
-  ThisScope(Scope scope, String name, List<Property> properties, JsScopeChain context)
+  ThisScope(
+      Scope scope, String name, List<Property> properties, JsScopeChain context)
       : super(scope, name, properties, context);
 
   /// Returns a scope which includes fields of the current object, which are
@@ -246,19 +256,15 @@ class ThisScope extends Scope {
     for (var property in properties) {
       if (property.name.startsWith('Symbol(_')) {
         newProperties.add(Property({
-          name: property.name
-              .substring('Symbol('.length, property.name.length - 1)
-        })); // #### Don't we want a value here?
+          'name': property.name
+              .substring('Symbol('.length, property.name.length - 1),
+          'value': property.rawValue
+        }));
       } else {
         newProperties.add(property);
       }
     }
-    var newScope = ThisScope(
-      null,
-      name,
-      newProperties,
-      context
-    );
+    var newScope = ThisScope(null, name, newProperties, context);
 
     /// Remove all remaining symbols and other things we don't want visible.
     return newScope.withoutSymbols().withoutIgnored();
@@ -299,16 +305,16 @@ class ThisScope extends Scope {
     // TODO(alanknight): Will this handle private superclass fields. Do we
     // see those symbols?  They might be in a separate package, but we may
     // want to include them and assume that dloadRepl will handle them.
-    return ThisScope(
-        this, null, properties.where((p) => !isIgnoredProperty(p)).toList(), context);
+    return ThisScope(this, null,
+        properties.where((p) => !isIgnoredProperty(p)).toList(), context);
   }
 }
 
 class LibraryScope extends Scope {
   String activeLibraryName;
 
-  static Future<LibraryScope> fromId(
-      String name, String objectId, String libraryName, JsScopeChain context) async {
+  static Future<LibraryScope> fromId(String name, String objectId,
+      String libraryName, JsScopeChain context) async {
     var properties = await JsScopeChain.debugger.getProperties(objectId);
     return LibraryScope(null, name, properties, libraryName, context);
   }
@@ -353,8 +359,8 @@ class LibraryScope extends Scope {
     var newScopes = <LibraryScope>[];
     for (var library in otherLibraries) {
       var libraryProperties = await expand(library);
-      var libraryVariables =
-          LibraryScope(null, 'library', libraryProperties, library.name, context);
+      var libraryVariables = LibraryScope(
+          null, 'library', libraryProperties, library.name, context);
       newScopes.add(libraryVariables);
     }
     return newScopes;
