@@ -15,13 +15,13 @@ class _$RunRequestSerializer implements StructuredSerializer<RunRequest> {
   final String wireName = 'RunRequest';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, RunRequest object,
+  Iterable serialize(Serializers serializers, RunRequest object,
       {FullType specifiedType = FullType.unspecified}) {
     return <Object>[];
   }
 
   @override
-  RunRequest deserialize(Serializers serializers, Iterable<Object> serialized,
+  RunRequest deserialize(Serializers serializers, Iterable serialized,
       {FullType specifiedType = FullType.unspecified}) {
     return new RunRequestBuilder().build();
   }

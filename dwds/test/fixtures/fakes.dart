@@ -69,6 +69,11 @@ class FakeInspector extends Domain implements AppInspector {
       throw UnsupportedError('This is a fake');
   @override
   Future<String> toStringOf(RemoteObject receiver) async => '';
+  @override
+  Future<RemoteObject> evaluateJsOnCallFrame(
+      String callFrameId, String expression) {
+    throw UnsupportedError('This is a fake');
+  }
 }
 
 class FakeSseConnection implements SseConnection {

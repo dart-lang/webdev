@@ -17,7 +17,7 @@ class _$ConnectRequestSerializer
   final String wireName = 'ConnectRequest';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, ConnectRequest object,
+  Iterable serialize(Serializers serializers, ConnectRequest object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'appId',
@@ -32,8 +32,7 @@ class _$ConnectRequestSerializer
   }
 
   @override
-  ConnectRequest deserialize(
-      Serializers serializers, Iterable<Object> serialized,
+  ConnectRequest deserialize(Serializers serializers, Iterable serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new ConnectRequestBuilder();
 
