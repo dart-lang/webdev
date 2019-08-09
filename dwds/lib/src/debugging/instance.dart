@@ -45,8 +45,8 @@ InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper {
-  Debugger _debugger;
-  RemoteDebugger _remoteDebugger;
+  final Debugger _debugger;
+  final RemoteDebugger _remoteDebugger;
 
   InstanceHelper(this._debugger, this._remoteDebugger);
 
