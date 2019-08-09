@@ -246,7 +246,7 @@ class AppInspector extends Domain {
   Future<RemoteObject> evaluateJsOnCallFrame(String callFrameId, String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.
     WipResponse result;
-    result = await _wipDebugger
+    result = await _remoteDebugger
         .sendCommand('Debugger.evaluateOnCallFrame', params: {'callFrameId': callFrameId, 'expression': expression});
     handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
       'Dart expression': expression,

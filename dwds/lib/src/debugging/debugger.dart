@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
 import 'dart:async';
-import 'dart:math' as math show min;
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:vm_service/vm_service.dart';
@@ -282,8 +281,9 @@ class Debugger extends Domain {
       if (dartFrame != null) {
         dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
         dartFrame.index = index++;
-        dartFrame.vars =
-            await _variablesFor(frame['scopeChain'] as List<dynamic>, frame['callFrameId'] as String);
+        dartFrame.vars = await _variablesFor(
+            frame['scopeChain'] as List<dynamic>,
+            frame['callFrameId'] as String);
         dartFrames.add(dartFrame);
       }
     }
@@ -291,65 +291,29 @@ class Debugger extends Domain {
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
-  Future<List<BoundVariable>> _variablesFor1(List<dynamic> scopeChain) async {
-    // TODO: Much better logic for which frames to use. This is probably just
-    // the dynamically visible variables, so we should omit library scope.
-
-    // We assume the last two scopes are global and library, and we don't want
-    // to show those. We will show the first two, allowing for a single level of
-    // nested functions, except if that runs into the last two.
-    var withoutLibraryOrGlobal = scopeChain.length - 2;
-    var interesting = math.min(withoutLibraryOrGlobal, 2);
-    var interestingScopes = scopeChain.sublist(0, interesting);
-    return [
-      for (var scope in interestingScopes) ...await _boundVariables(scope)
-    ];
-  }
-
-    /// The variables visible in a frame in Dart protocol [BoundVariable] form.
-  Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain, String callFrameId) async {
-    var jsScopes = await JsScopeChain.fromJs(scopeChain.cast<Map<String, dynamic>>(), 'fred', this, callFrameId);
+  Future<List<BoundVariable>> _variablesFor(
+      List<dynamic> scopeChain, String callFrameId) async {
+    var jsScopes = await JsScopeChain.fromJs(
+        scopeChain.cast<Map<String, dynamic>>(), 'fred', this, callFrameId);
     var dartScopes = await jsScopes.toDartScopeChain();
     return [
-      for (var scope in dartScopes.allScopes()) ...await _boundVariables2(scope)
+      for (var scope in dartScopes.allScopes()) ...await _boundVariables(scope)
     ];
   }
 
-  Future<Iterable<BoundVariable>> _boundVariables2(Scope scope) async {
+  Future<Iterable<BoundVariable>> _boundVariables(Scope scope) async {
     // We return one level of properties from this object. Sub-prsoperties are
     // another round trip.
-    var refs = scope.properties
-        .map<Future<BoundVariable>>((property) async {
-                    var instanceRef = await inspector.instanceRefFor(property.value);
-          // Skip null instance refs, which we get for weird objects, e.g.
-          // properties that are getter/setter pairs. 
-          // TODO(alanknight): Handle these properly.
-          if (instanceRef == null) return null;
-           return BoundVariable()
-          ..name = property.name
-          ..value = instanceRef;
-        });
-      return (await Future.wait(refs)).where((variable) => variable != null);
-  }
-
-
-  /// The [BoundVariable]s visible in a v8 'scope' object as found in the
-  /// 'scopeChain' field of the 'callFrames' in a DebuggerPausedEvent.
-  Future<Iterable<BoundVariable>> _boundVariables(dynamic scope) async {
-    var properties = await getProperties(scope['object']['objectId'] as String);
-    // We return one level of properties from this object. Sub-prsoperties are
-    // another round trip.
-    var refs = properties
-        .map<Future<BoundVariable>>((property) async {
-          var instanceRef = await inspector.instanceRefFor(property.value);
-          // Skip null instance refs, which we get for weird objects, e.g.
-          // properties that are getter/setter pairs. 
-          // TODO(alanknight): Handle these properly.
-          if (instanceRef == null) return null;
-          return BoundVariable()
-          ..name = property.name
-          ..value = instanceRef;
-        });
+    var refs = scope.properties.map<Future<BoundVariable>>((property) async {
+      var instanceRef = await inspector.instanceRefFor(property.value);
+      // Skip null instance refs, which we get for weird objects, e.g.
+      // properties that are getter/setter pairs.
+      // TODO(alanknight): Handle these properly.
+      if (instanceRef == null) return null;
+      return BoundVariable()
+        ..name = property.name
+        ..value = instanceRef;
+    });
     return (await Future.wait(refs)).where((variable) => variable != null);
   }
 
