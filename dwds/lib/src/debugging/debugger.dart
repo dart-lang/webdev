@@ -307,7 +307,8 @@ class Debugger extends Domain {
         .map<Future<BoundVariable>>((property) async => BoundVariable()
           ..name = property.name
           ..value = await inspector.instanceRefFor(property.value));
-    return Future.wait(refs);
+    var bounds = await Future.wait(refs);
+    return bounds.where((bound) => bound.value != null);
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [id].

@@ -278,10 +278,11 @@ function($argsString) {
   }
 
   Future<_ClassMetaData> _getClassMetaData(RemoteObject remoteObject) async {
-    var arguments = [
-      {'objectId': remoteObject.objectId}
-    ];
-    var evalExpression = '''
+    try {
+      var arguments = [
+        {'objectId': remoteObject.objectId}
+      ];
+      var evalExpression = '''
 function(arg) {
   var sdkUtils = require('dart_sdk').dart;
   var classObject = sdkUtils.getType(arg);
@@ -291,19 +292,22 @@ function(arg) {
   return result;
 }
     ''';
-    var result =
-        await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
-      'functionDeclaration': evalExpression,
-      'arguments': arguments,
-      'objectId': remoteObject.objectId,
-      'returnByValue': true,
-    });
-    handleErrorIfPresent(
-      result,
-      evalContents: evalExpression,
-    );
-    return _ClassMetaData(result.result['result']['value']['name'] as String,
-        result.result['result']['value']['libraryId'] as String);
+      var result =
+          await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
+        'functionDeclaration': evalExpression,
+        'arguments': arguments,
+        'objectId': remoteObject.objectId,
+        'returnByValue': true,
+      });
+      handleErrorIfPresent(
+        result,
+        evalContents: evalExpression,
+      );
+      return _ClassMetaData(result.result['result']['value']['name'] as String,
+          result.result['result']['value']['libraryId'] as String);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Create an [InstanceRef] for the given Chrome [remoteObject].
@@ -326,6 +330,7 @@ function(arg) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
         var metaData = await _getClassMetaData(remoteObject);
+        if (metaData == null) return null;
         return InstanceRef()
           ..kind = InstanceKind.kPlainInstance
           ..id = remoteObject.objectId
@@ -340,13 +345,7 @@ function(arg) {
           ..valueAsString = crudeAttemptAtName
           ..classRef = ClassRef();
       default:
-        // Return unsupported types as a String placeholder for now.
-        var unsupported = RemoteObject({
-          'type': 'String',
-          'value':
-              'Unsupported type:${remoteObject.type} (${remoteObject.description})'
-        });
-        return _primitiveInstance(InstanceKind.kString, unsupported);
+        return null;
     }
   }
 
@@ -388,12 +387,36 @@ function(arg) {
             ..owner = classRef
             ..declaredType = (InstanceRef()..classRef = ClassRef()))
           ..value = await instanceRefFor(property.value)));
+    fields = fields
+        .where((f) => f.value != null && !_namesToIgnore.contains(f.decl.name))
+        .toList();
     var result = Instance()
       ..id = objectId
       ..fields = fields
       ..classRef = classRef;
     return result;
   }
+
+  Set<String> _namesToIgnore = {
+    'constructor',
+    'noSuchMethod',
+    'runtimeType',
+    'toString',
+    '_equals',
+    '__defineGetter__',
+    '__defineSetter__',
+    '__lookupGetter__',
+    '__lookupSetter__',
+    '__proto__',
+    'classGetter',
+    'hasOwnProperty',
+    'hashCode',
+    'isPrototypeOf',
+    'propertyIsEnumerable',
+    'toLocaleString',
+    'valueOf',
+    '_identityHashCode'
+  };
 
   Future<Library> _constructLibrary(LibraryRef libraryRef) async {
     // Fetch information about all the classes in this library.
