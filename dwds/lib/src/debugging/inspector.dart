@@ -4,8 +4,9 @@
 
 import 'dart:math' as math show min;
 
+import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:path/path.dart' as p;
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../services/chrome_proxy_service.dart';
@@ -38,7 +39,7 @@ class AppInspector extends Domain {
   /// Map of [ScriptRef] id to containing [LibraryRef] id.
   final _scriptIdToLibraryId = <String, String>{};
 
-  final WipDebugger _wipDebugger;
+  final RemoteDebugger _remoteDebugger;
   final AssetHandler _assetHandler;
   final Debugger debugger;
   final Isolate isolate;
@@ -52,7 +53,7 @@ class AppInspector extends Domain {
     this._assetHandler,
     this.debugger,
     this._root,
-    this._wipDebugger,
+    this._remoteDebugger,
   )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
@@ -81,7 +82,7 @@ class AppInspector extends Domain {
     ..number = isolate.number;
 
   static Future<AppInspector> initialize(
-    WipDebugger wipDebugger,
+    RemoteDebugger remoteDebugger,
     AssetHandler assetHandler,
     Debugger debugger,
     String root,
@@ -96,7 +97,7 @@ class AppInspector extends Domain {
       ..libraries = []
       ..extensionRPCs = [];
     var inspector =
-        AppInspector._(isolate, assetHandler, debugger, root, wipDebugger);
+        AppInspector._(isolate, assetHandler, debugger, root, remoteDebugger);
     await inspector._initialize();
     return inspector;
   }
@@ -160,7 +161,7 @@ class AppInspector extends Domain {
   Future<RemoteObject> _callFunctionOn(
       RemoteObject receiver, String evalExpression, List arguments) async {
     var result =
-        await _wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
+        await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': arguments,
       'objectId': receiver.objectId,
@@ -233,7 +234,7 @@ class AppInspector extends Domain {
   Future<RemoteObject> evaluateJsExpression(String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.
     WipResponse result;
-    result = await _wipDebugger
+    result = await _remoteDebugger
         .sendCommand('Runtime.evaluate', params: {'expression': expression});
     handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
       'Dart expression': expression,
@@ -271,7 +272,7 @@ function($argsString) {
 }
     ''';
     var result =
-        await _wipDebugger.sendCommand('Runtime.callFunctionOn', params: {
+        await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': arguments,
       // TODO(jakemac): Use the executionContext instead, or possibly the
@@ -301,6 +302,8 @@ function($argsString) {
         return _primitiveInstance(InstanceKind.kDouble, remoteObject);
       case 'boolean':
         return _primitiveInstance(InstanceKind.kBool, remoteObject);
+      case 'undefined':
+        return _primitiveInstance(InstanceKind.kNull, remoteObject);
       case 'object':
         if (_asDartObject(remoteObject) == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
@@ -316,6 +319,13 @@ function($argsString) {
           // TODO(jakemac): Create a real ClassRef, we need a way of looking
           // up the library for a given instance to create it though.
           // https://github.com/dart-lang/sdk/issues/36771.
+          ..classRef = ClassRef();
+      case 'function':
+        var crudeAttemptAtName = remoteObject.description.split('(').first;
+        return InstanceRef()
+          ..kind = InstanceKind.kPlainInstance
+          ..id = remoteObject.objectId
+          ..valueAsString = crudeAttemptAtName
           ..classRef = ClassRef();
       default:
         // Return unsupported types as a String placeholder for now.
@@ -358,7 +368,9 @@ function($argsString) {
       ${_getLibrarySnippet(libraryRef.uri)}
       var parts = sdkUtils.getParts('${libraryRef.uri}');
       var result = {'parts' : parts}
-      var classes = Object.values(library)
+      var classes = Object.values(Object.getOwnPropertyDescriptors(library))
+        .filter((p) => 'value' in p)
+        .map((p) => p.value)
         .filter((l) => l && sdkUtils.isType(l));
       var classList = classes.map(function(clazz) {
         var descriptor = {'name': clazz.name};
@@ -396,7 +408,7 @@ function($argsString) {
       return result;
     })()
     ''';
-    var result = await _wipDebugger.sendCommand('Runtime.evaluate',
+    var result = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(result, evalContents: expression);
     var classDescriptors = (result.result['result']['value']['classes'] as List)
@@ -536,7 +548,7 @@ function($argsString) {
   Future<List<LibraryRef>> _getLibraryRefs() async {
     if (_libraryRefs.isNotEmpty) return _libraryRefs.values.toList();
     var expression = "require('dart_sdk').dart.getLibraries();";
-    var librariesResult = await _wipDebugger.sendCommand('Runtime.evaluate',
+    var librariesResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(librariesResult, evalContents: expression);
     var libraries =
@@ -554,7 +566,7 @@ function($argsString) {
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
     var expression = "require('dart_sdk').developer._extensions.keys.toList();";
-    var extensionsResult = await _wipDebugger.sendCommand('Runtime.evaluate',
+    var extensionsResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(extensionsResult, evalContents: expression);
     return List.from(extensionsResult.result['result']['value'] as List);

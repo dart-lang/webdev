@@ -10,6 +10,7 @@ import 'package:dwds/dwds.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:shelf_proxy/shelf_proxy.dart';
 
 import '../command/configuration.dart';
 import '../logging.dart';
@@ -32,19 +33,23 @@ class ServerOptions {
 
 class WebDevServer {
   final HttpServer _server;
-  final String target;
-  final Dwds dwds;
+
   final Stream<BuildResult> buildResults;
+
+  /// Can be null if client.js injection is disabled.
+  final Dwds dwds;
+
+  final String target;
 
   WebDevServer._(
     this.target,
     this._server,
-    this.dwds,
     this.buildResults,
-    bool autoRun,
-  ) {
+    bool autoRun, {
+    this.dwds,
+  }) {
     if (autoRun) {
-      dwds.connectedApps.listen((connection) {
+      dwds?.connectedApps?.listen((connection) {
         connection.runMain();
       });
     }
@@ -54,7 +59,7 @@ class WebDevServer {
   int get port => _server.port;
 
   Future<void> stop() async {
-    await dwds.stop();
+    await dwds?.stop();
     await _server.close(force: true);
   }
 
@@ -73,30 +78,38 @@ class WebDevServer {
         results.results
             .firstWhere((result) => result.target == options.target));
 
-    var dwds = await Dwds.start(
-      hostname: options.configuration.hostname,
-      applicationPort: options.port,
-      applicationTarget: options.target,
-      assetServerPort: options.daemonPort,
-      buildResults: filteredBuildResults,
-      chromeConnection: () async =>
-          (await Chrome.connectedInstance).chromeConnection,
-      logWriter: logWriter,
-      reloadConfiguration: options.configuration.reload,
-      serveDevTools: options.configuration.debug,
-      verbose: options.configuration.verbose,
-      enableDebugExtension: options.configuration.debugExtension,
-    );
+    Handler assetHandler;
+    Dwds dwds;
+    if (options.configuration.enableInjectedClient) {
+      dwds = await Dwds.start(
+        hostname: options.configuration.hostname,
+        applicationPort: options.port,
+        applicationTarget: options.target,
+        assetServerPort: options.daemonPort,
+        buildResults: filteredBuildResults,
+        chromeConnection: () async =>
+            (await Chrome.connectedInstance).chromeConnection,
+        logWriter: logWriter,
+        reloadConfiguration: options.configuration.reload,
+        serveDevTools: options.configuration.debug,
+        verbose: options.configuration.verbose,
+        enableDebugExtension: options.configuration.debugExtension,
+      );
+      assetHandler = dwds.handler;
+    } else {
+      assetHandler = proxyHandler(
+          'http://localhost:${options.daemonPort}/${options.target}/');
+    }
 
     var hostname = options.configuration.hostname;
     var server = await HttpMultiServer.bind(hostname, options.port);
-    shelf_io.serveRequests(server, pipeline.addHandler(dwds.handler));
+    shelf_io.serveRequests(server, pipeline.addHandler(assetHandler));
     return WebDevServer._(
       options.target,
       server,
-      dwds,
       filteredBuildResults,
       options.configuration.autoRun,
+      dwds: dwds,
     );
   }
 }

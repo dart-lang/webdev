@@ -24,6 +24,11 @@ void main() async {
     extensionDebugger = ExtensionDebugger(connection);
   });
 
+  tearDown(() {
+    connection.controllerIncoming.close();
+    connection.controllerOutgoing.close();
+  });
+
   group('can receive', () {
     test('an ExtensionResponse', () async {
       var extensionResponse = ExtensionResponse((b) => b

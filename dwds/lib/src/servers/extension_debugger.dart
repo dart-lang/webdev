@@ -3,16 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-/// A debugger backed by the Dart Debug Extension.
-class ExtensionDebugger implements WipDebugger {
+/// A remote debugger backed by the Dart Debug Extension
+/// with an SSE connection.
+class ExtensionDebugger implements RemoteDebugger {
   /// A connection between the debugger and the background of
   /// Dart Debug Extension
   final SseConnection sseConnection;
@@ -22,11 +26,6 @@ class ExtensionDebugger implements WipDebugger {
   final _eventStreams = <String, Stream>{};
   var _completerId = 0;
 
-  @override
-  WipConnection get connection => throw UnimplementedError();
-
-  String tabUrl;
-  String appId;
   String instanceId;
 
   final _devToolsRequestController = StreamController<DevToolsRequest>();
@@ -36,12 +35,20 @@ class ExtensionDebugger implements WipDebugger {
   final _notificationController = StreamController<WipEvent>.broadcast();
   Stream<WipEvent> get onNotification => _notificationController.stream;
 
+  final _closeController = StreamController<WipEvent>.broadcast();
+  @override
+  Stream<WipEvent> get onClose => _closeController.stream;
+
+  @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled => eventStream(
       'Runtime.consoleAPICalled', (WipEvent event) => ConsoleAPIEvent(event));
 
+  @override
   Stream<ExceptionThrownEvent> get onExceptionThrown => eventStream(
       'Runtime.exceptionThrown',
       (WipEvent event) => ExceptionThrownEvent(event));
+
+  final _scripts = <String, WipScript>{};
 
   ExtensionDebugger(this.sseConnection) {
     sseConnection.stream.listen((data) {
@@ -62,13 +69,18 @@ class ExtensionDebugger implements WipDebugger {
         };
         _notificationController.sink.add(WipEvent(map));
       } else if (message is DevToolsRequest) {
-        tabUrl = message.tabUrl;
-        appId = message.appId;
         instanceId = message.instanceId;
         _devToolsRequestController.sink.add(message);
       }
     }, onError: (_) {
       close();
+    }, onDone: close);
+    onScriptParsed.listen((event) {
+      _scripts[event.script.scriptId] = event.script;
+    });
+    // Listens for a page reload.
+    onGlobalObjectCleared.listen((_) {
+      _scripts.clear();
     });
   }
 
@@ -90,7 +102,14 @@ class ExtensionDebugger implements WipDebugger {
 
   int newId() => _completerId++;
 
-  Future<void> close() => sseConnection.sink.close();
+  @override
+  void close() {
+    _closeController.add(WipEvent({}));
+    sseConnection.sink.close();
+    _notificationController.close();
+    _devToolsRequestController.close();
+    _closeController.close();
+  }
 
   @override
   Future disable() => sendCommand('Debugger.disable');
@@ -125,6 +144,22 @@ class ExtensionDebugger implements WipDebugger {
   Future<WipResponse> stepOver() => sendCommand('Debugger.stepOver');
 
   @override
+  Future<void> enablePage() => sendCommand('Page.enable');
+
+  @override
+  Future<RemoteObject> evaluate(String expression) async {
+    final response = await sendCommand('Runtime.evaluate', params: {
+      'expression': expression,
+    });
+    if (response.result.containsKey('exceptionDetails')) {
+      throw ChromeDebugException(
+          response.result['exceptionDetails'] as Map<String, dynamic>);
+    } else {
+      return RemoteObject(response.result['result'] as Map<String, dynamic>);
+    }
+  }
+
+  @override
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) {
     return _eventStreams
         .putIfAbsent(
@@ -136,11 +171,8 @@ class ExtensionDebugger implements WipDebugger {
   }
 
   @override
-  Stream<WipDomain> get onClosed => throw UnimplementedError();
-
-  @override
   Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => eventStream(
-      'Debugger.globalObjectCleared',
+      'Page.frameStartedLoading',
       (WipEvent event) => GlobalObjectClearedEvent(event));
 
   @override
@@ -150,12 +182,13 @@ class ExtensionDebugger implements WipDebugger {
   @override
   Stream<DebuggerResumedEvent> get onResumed => eventStream(
       'Debugger.resumed', (WipEvent event) => DebuggerResumedEvent(event));
+
   @override
   Stream<ScriptParsedEvent> get onScriptParsed => eventStream(
       'Debugger.scriptParsed', (WipEvent event) => ScriptParsedEvent(event));
 
   @override
-  Map<String, WipScript> get scripts => throw UnimplementedError();
+  Map<String, WipScript> get scripts => UnmodifiableMapView(_scripts);
 
   String _pauseStateToString(PauseState state) {
     switch (state) {

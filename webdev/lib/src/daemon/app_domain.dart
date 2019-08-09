@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:dwds/dwds.dart';
 import 'package:pedantic/pedantic.dart';
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 
 import '../serve/server_manager.dart';
 import 'daemon.dart';
@@ -101,7 +101,7 @@ class AppDomain extends Domain {
       sendEvent('app.debugPort', {
         'appId': _appId,
         'port': _debugConnection.port,
-        'wsUri': _debugConnection.wsUri,
+        'wsUri': _debugConnection.uri,
       });
       _resultSub = server.buildResults.listen(_handleBuildResult);
 

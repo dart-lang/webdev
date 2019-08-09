@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:dwds/src/services/chrome_proxy_service.dart';
-import 'package:vm_service_lib/vm_service_lib.dart';
+import 'package:vm_service/vm_service.dart';
 
 import '../services/app_debug_services.dart';
 
@@ -18,8 +18,7 @@ class DebugConnection {
   final _onDoneCompleter = Completer();
 
   DebugConnection(this._appDebugServices) {
-    _appDebugServices.chromeProxyService.wipDebugger.connection.onClose.first
-        .then((_) {
+    _appDebugServices.chromeProxyService.remoteDebugger.onClose.first.then((_) {
       close();
     });
   }
@@ -27,15 +26,15 @@ class DebugConnection {
   /// The port of the host Dart VM Service.
   int get port => _appDebugServices.debugService.port;
 
-  /// The websocket endpoint of the Dart VM Service.
-  String get wsUri => _appDebugServices.debugService.wsUri;
+  /// The endpoint of the Dart VM Service.
+  String get uri => _appDebugServices.debugService.uri;
 
   /// A client of the Dart VM Service with DWDS specific extensions.
   VmService get vmService => _appDebugServices.dwdsVmClient.client;
 
   Future<void> close() async {
     if (!_onDoneCompleter.isCompleted) _onDoneCompleter.complete();
-    await _appDebugServices.chromeProxyService.wipDebugger.connection.close();
+    _appDebugServices.chromeProxyService.remoteDebugger.close();
     await _appDebugServices.close();
   }
 

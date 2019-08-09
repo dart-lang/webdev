@@ -64,7 +64,11 @@ void main() {
 // and sends an [ExtensionEvent].
 Future<void> startSseClient(
     hostname, port, appId, instanceId, currentTab) async {
-  var client = SseClient('http://$hostname:$port/test');
+  // Specifies whether the debugger is detached.
+  //
+  // A debugger is detached if it is closed by user or the target is closed.
+  var detached = false;
+  var client = SseClient('http://$hostname:$port/\$debug');
   await client.onOpen.first;
   client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
     ..appId = appId as String
@@ -74,11 +78,34 @@ Future<void> startSseClient(
       allowInterop((e) {}));
 
   // Notifies the backend of debugger events.
+  //
+  // The listener of the `currentTab` receives events from all tabs.
+  // We want to forward an event only if it originates from `currentTab`.
+  // We know that if `source.tabId` and `currentTab.id` are the same.
   addDebuggerListener(
       allowInterop((Debuggee source, String method, Object params) {
-    client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
-      ..params = jsonEncode(json.decode(stringify(params)))
-      ..method = jsonEncode(method)))));
+    if (source.tabId == currentTab.id && !detached) {
+      client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
+        ..params = jsonEncode(json.decode(stringify(params)))
+        ..method = jsonEncode(method)))));
+    }
+  }));
+
+  onRemovedAddListener(allowInterop((int tabId, RemoveInfo removeInfo) {
+    if (tabId == currentTab.id) {
+      client.close();
+      detached = true;
+    }
+  }));
+
+  onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
+    if (source.tabId == currentTab.id &&
+        reason.toString() == 'canceled_by_user' &&
+        !detached) {
+      alert('Debugger detached. Click the extension to relaunch DevTools.');
+      client.close();
+      detached = true;
+    }
   }));
 
   client.stream.listen((data) {
@@ -95,7 +122,7 @@ Future<void> startSseClient(
               ..result = stringify(e)))));
       }));
     }
-  }, onError: (e) {
+  }, onError: (_) {
     client.close();
   }, cancelOnError: true);
 }
@@ -117,8 +144,14 @@ external void detach(Debuggee target, Function callback);
 @JS('chrome.debugger.onEvent.addListener')
 external dynamic addDebuggerListener(Function callback);
 
+@JS('chrome.debugger.onDetach.addListener')
+external dynamic onDetachAddListener(Function callback);
+
 @JS('chrome.tabs.query')
 external List<Tab> queryTabs(QueryInfo queryInfo, Function callback);
+
+@JS('chrome.tabs.onRemoved.addListener')
+external void onRemovedAddListener(Function callback);
 
 @JS('JSON.stringify')
 external String stringify(o);
@@ -132,6 +165,13 @@ class QueryInfo {
   external bool get active;
   external bool get currentWindow;
   external factory QueryInfo({bool active, bool currentWindow});
+}
+
+@JS()
+@anonymous
+class RemoveInfo {
+  external int get windowId;
+  external bool get isWindowClosing;
 }
 
 @JS()
@@ -183,3 +223,7 @@ class ScriptIdParam {
   external String get scriptId;
   external factory ScriptIdParam({String scriptId});
 }
+
+@JS()
+@anonymous
+class DetachReason {}

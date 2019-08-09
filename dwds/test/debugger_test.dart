@@ -17,13 +17,13 @@ import 'fixtures/fakes.dart';
 final context = TestContext();
 AppInspector inspector;
 Debugger debugger;
-FakeWipDebugger wipDebugger;
+FakeWebkitDebugger webkitDebugger;
 
 void main() async {
   setUpAll(() async {
-    wipDebugger = FakeWipDebugger();
+    webkitDebugger = FakeWebkitDebugger();
     debugger = await Debugger.create(
-        null, wipDebugger, null, () => inspector, 'fakeRoot');
+        null, webkitDebugger, null, () => inspector, 'fakeRoot');
     inspector = FakeInspector();
   });
 

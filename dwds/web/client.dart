@@ -32,80 +32,96 @@ Map<String, String> _lastKnownDigests;
 
 // GENERATE:
 // pub run build_runner build web
-Future<void> main() async {
-  // Set the unique id for this instance of the app.
-  // Test apps may already have this set.
-  dartAppInstanceId ??= Uuid().v1();
+Future<void> main() {
+  return runZoned(() async {
+    // Set the unique id for this instance of the app.
+    // Test apps may already have this set.
+    dartAppInstanceId ??= Uuid().v1();
 
-  _lastKnownDigests = await _getDigests();
+    _lastKnownDigests = await _getDigests();
 
-  var manager = ReloadingManager(
-      _reloadModule,
-      _moduleLibraries,
-      _reloadPage,
-      (module) => dartLoader.moduleParentsGraph.get(module)?.cast(),
-      () => keys(dartLoader.moduleParentsGraph));
+    var manager = ReloadingManager(
+        _reloadModule,
+        _moduleLibraries,
+        _reloadPage,
+        (module) => dartLoader.moduleParentsGraph.get(module)?.cast(),
+        () => keys(dartLoader.moduleParentsGraph));
 
-  var client = SseClient(r'/$sseHandler');
+    var client = SseClient(r'/$sseHandler');
 
-  hotRestartJs = allowInterop(() {
-    return toPromise(hotRestart(manager, client));
-  });
+    hotRestartJs = allowInterop(() {
+      return toPromise(hotRestart(manager, client));
+    });
 
-  launchDevToolsJs = allowInterop(() {
-    if (!_isChrome) {
-      window.alert('Dart DevTools is only supported on Chrome');
-      return;
-    }
-    client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
-      ..appId = dartAppId
-      ..instanceId = dartAppInstanceId))));
-  });
-
-  client.stream.listen((serialized) async {
-    var event = serializers.deserialize(jsonDecode(serialized));
-    if (event is DefaultBuildResult) {
-      if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
-        window.location.reload();
-      } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
-        await hotRestart(manager, client);
-      } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
-        print('Hot reload is currently unsupported. Ignoring change.');
+    launchDevToolsJs = allowInterop(() {
+      if (!_isChrome) {
+        window.alert('Dart DevTools is only supported on Chrome');
+        return;
       }
-    } else if (event is DevToolsResponse) {
-      if (!event.success) {
-        window.alert('DevTools failed to open with: ${event.error}');
+      client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
+        ..appId = dartAppId
+        ..instanceId = dartAppInstanceId))));
+    });
+
+    client.stream.listen((serialized) async {
+      var event = serializers.deserialize(jsonDecode(serialized));
+      if (event is DefaultBuildResult) {
+        if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
+          window.location.reload();
+        } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
+          await hotRestart(manager, client);
+        } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
+          print('Hot reload is currently unsupported. Ignoring change.');
+        }
+      } else if (event is DevToolsResponse) {
+        if (!event.success) {
+          window.alert('DevTools failed to open with: ${event.error}');
+        }
+      } else if (event is RunRequest) {
+        runMain();
       }
-    } else if (event is RunRequest) {
+    });
+
+    window.onKeyDown.listen((e) {
+      if (const [
+            'd',
+            'D',
+            '∂', // alt-d output on Mac
+            'Î', // shift-alt-D output on Mac
+          ].contains(e.key) &&
+          e.altKey &&
+          !e.ctrlKey &&
+          !e.metaKey) {
+        e.preventDefault();
+        launchDevToolsJs();
+      }
+    });
+
+    if (_isChrome) {
+      // Wait for the connection to be estabilished before sending the AppId.
+      await client.onOpen.first;
+      client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
+        ..appId = dartAppId
+        ..instanceId = dartAppInstanceId))));
+    } else {
+      // If not chrome we just invoke main, devtools aren't supported.
       runMain();
     }
-  });
+  }, onError: (error, stackTrace) {
+    print('''
+Unhandled error detected in the injected client.js script.
 
-  window.onKeyDown.listen((e) {
-    if (const [
-          'd',
-          'D',
-          '∂', // alt-d output on Mac
-          'Î', // shift-alt-D output on Mac
-        ].contains(e.key) &&
-        e.altKey &&
-        !e.ctrlKey &&
-        !e.metaKey) {
-      e.preventDefault();
-      launchDevToolsJs();
-    }
-  });
+You can disable this script in webdev by passing --no-injected-client if it
+is preventing your app from loading, but note that this will also prevent
+all debugging and hot reload/restart functionality from working.
 
-  if (_isChrome) {
-    // Wait for the connection to be estabilished before sending the AppId.
-    await client.onOpen.first;
-    client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
-      ..appId = dartAppId
-      ..instanceId = dartAppInstanceId))));
-  } else {
-    // If not chrome we just invoke main, devtools aren't supported.
-    runMain();
-  }
+The original error is below, please file an issue at
+https://github.com/dart-lang/webdev/issues/new and attach this output:
+
+$error
+$stackTrace
+''');
+  });
 }
 
 /// Attemps to perform a hot restart, and returns whether it was successful or

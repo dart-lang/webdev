@@ -9,10 +9,9 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
@@ -30,9 +29,8 @@ class TestContext {
   Process chromeDriver;
   AppConnection appConnection;
   DebugConnection debugConnection;
-  ChromeProxyService chromeProxyService;
   ExtensionBackend extensionBackend;
-  WipDebugger wipDebugger;
+  WebkitDebugger webkitDebugger;
   int port;
   File _entryFile;
   String _entryContents;
@@ -58,9 +56,12 @@ class TestContext {
   }
 
   Future<void> setUp(
-      {ReloadConfiguration reloadConfiguration, bool serveDevTools}) async {
+      {ReloadConfiguration reloadConfiguration,
+      bool serveDevTools,
+      bool enableDebugExtension}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
+    enableDebugExtension ??= false;
     port = await findUnusedPort();
     try {
       chromeDriver = await Process.start(
@@ -108,6 +109,7 @@ class TestContext {
       () async => connection,
       reloadConfiguration,
       serveDevTools,
+      enableDebugExtension,
     );
 
     appUrl = 'http://localhost:$port/$path';
@@ -119,14 +121,7 @@ class TestContext {
 
     appConnection = await testServer.dwds.connectedApps.first;
     debugConnection = await testServer.dwds.debugConnection(appConnection);
-    var assetHandler = (String path) async {
-      var result = await http.get('http://localhost:$port/$path');
-      return result.body;
-    };
-
-    wipDebugger = WipDebugger(tabConnection);
-    chromeProxyService = await ChromeProxyService.create(
-        wipDebugger, appUrl, assetHandler, appConnection.request.instanceId);
+    webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
   }
 
   Future<Null> tearDown() async {
