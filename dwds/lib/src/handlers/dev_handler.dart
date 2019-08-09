@@ -220,7 +220,7 @@ class DevHandler {
             .sendCommand('Target.createTarget', params: {
           'newWindow': true,
           'url': 'http://${_devTools.hostname}:${_devTools.port}'
-              '/?hide=none&uri=${appServices.debugService.uri}',
+              '/?uri=${appServices.debugService.uri}',
         });
       } else if (message is ConnectRequest) {
         if (appId != null) {
@@ -327,7 +327,7 @@ class DevHandler {
       await _extensionDebugger.sendCommand('Target.createTarget', params: {
         'newWindow': true,
         'url': 'http://${_devTools.hostname}:${_devTools.port}'
-            '/?hide=none&uri=${appServices.debugService.uri}',
+            '/?uri=${appServices.debugService.uri}',
       });
     });
   }

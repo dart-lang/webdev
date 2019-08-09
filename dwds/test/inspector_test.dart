@@ -6,7 +6,6 @@
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:test/test.dart';
-import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
@@ -18,7 +17,6 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   AppInspector inspector;
-  RemoteObject instance;
 
   setUpAll(() async {
     await context.setUp();
@@ -41,41 +39,29 @@ void main() {
       .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
 
   test('send toString', () async {
-    instance = await libraryPublicFinal();
-    var toString = await inspector.sendMessage(instance, 'toString', []);
+    var remoteObject = await libraryPublicFinal();
+    var toString = await inspector.sendMessage(remoteObject, 'toString', []);
     expect(toString.value, 'A test class with message world');
   });
 
-  test('instanceRef toString', () async {
-    instance = await libraryPublicFinal();
-    var ref = await inspector.instanceRefFor(instance);
-    expect(ref.valueAsString, 'A test class with message world');
-  });
+  group('loadField', () {
+    test('for string', () async {
+      var remoteObject = await libraryPublicFinal();
+      var message = await inspector.loadField(remoteObject, 'message');
+      expect(message.value, 'world');
+    });
 
-  test('instanceRef for null', () async {
-    instance = await libraryPublicFinal();
-    var nullVariable = await inspector.loadField(instance, 'notFinal');
-    var ref = await inspector.instanceRefFor(nullVariable);
-    expect(ref.valueAsString, 'null');
-    expect(ref.kind, InstanceKind.kNull);
-  });
-
-  test('get string field', () async {
-    instance = await libraryPublicFinal();
-    var message = await inspector.loadField(instance, 'message');
-    expect(message.value, 'world');
-  });
-
-  test('get Object field', () async {
-    instance = await libraryPublicFinal();
-    var message = await inspector.loadField(instance, 'myselfField');
-    var toString = await inspector.toStringOf(message);
-    expect(toString, 'A test class with message world');
+    test('for num', () async {
+      var remoteObject = await libraryPublicFinal();
+      var count = await inspector.loadField(remoteObject, 'count');
+      expect(count.value, 0);
+    });
   });
 
   test('properties', () async {
-    instance = await libraryPublicFinal();
-    var properties = await inspector.debugger.getProperties(instance.objectId);
+    var remoteObject = await libraryPublicFinal();
+    var properties =
+        await inspector.debugger.getProperties(remoteObject.objectId);
     var names =
         properties.map((p) => p.name).where((x) => x != '__proto__').toList();
     var expected = [

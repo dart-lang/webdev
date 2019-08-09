@@ -6,14 +6,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../debugging/debugger.dart';
 import '../debugging/inspector.dart';
+import '../debugging/remote_debugger.dart';
+import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
 
 /// A handler for application assets, e.g. Dart sources.
@@ -221,7 +221,7 @@ require("dart_sdk").developer.invokeExtension(
       {Map<String, String> scope, bool disableBreakpoints}) async {
     var remote = await _inspector?.evaluate(isolateId, targetId, expression,
         scope: scope, disableBreakpoints: disableBreakpoints);
-    return _inspector?.instanceRefFor(remote);
+    return _inspector?.instanceHelper?.instanceRefFor(remote);
   }
 
   @override

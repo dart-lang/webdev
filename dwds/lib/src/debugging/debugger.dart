@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -13,6 +12,7 @@ import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
 import 'location.dart';
+import 'remote_debugger.dart';
 import 'sources.dart';
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
@@ -294,7 +294,7 @@ class Debugger extends Domain {
     // the dynamically visible variables, so we should omit library scope.
     return [
       for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)
-    ];
+    ]..sort((a, b) => a.name.compareTo(b.name));
   }
 
   /// The [BoundVariable]s visible in a v8 'scope' object as found in the
@@ -303,11 +303,13 @@ class Debugger extends Domain {
     var properties = await getProperties(scope['object']['objectId'] as String);
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
-    var refs = properties
-        .map<Future<BoundVariable>>((property) async => BoundVariable()
-          ..name = property.name
-          ..value = await inspector.instanceRefFor(property.value));
-    return Future.wait(refs);
+    var refs = properties.map<
+        Future<BoundVariable>>((property) async => BoundVariable()
+      ..name = property.name
+      ..value = await inspector.instanceHelper.instanceRefFor(property.value));
+    // Actual null values will still have a variable value of an InstanceRef.
+    return (await Future.wait(refs))
+        .where((variable) => variable.value != null);
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [id].

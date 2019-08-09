@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:async/src/stream_sink_transformer.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -33,8 +34,6 @@ class FakeInspector extends Domain implements AppInspector {
       null;
   @override
   Future<ScriptList> getScripts(String isolateId) => null;
-  @override
-  Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) => null;
   @override
   Future<ScriptRef> scriptRefFor(String uri) => null;
   @override
@@ -67,8 +66,9 @@ class FakeInspector extends Domain implements AppInspector {
   Future<RemoteObject> evaluateJsExpressionOnLibrary(
           String expression, String libraryUri) =>
       throw UnsupportedError('This is a fake');
+
   @override
-  Future<String> toStringOf(RemoteObject receiver) async => '';
+  InstanceHelper get instanceHelper => InstanceHelper(null, null);
 }
 
 class FakeSseConnection implements SseConnection {
