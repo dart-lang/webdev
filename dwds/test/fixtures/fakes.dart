@@ -34,8 +34,6 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   Future<ScriptList> getScripts(String isolateId) => null;
   @override
-  Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) => null;
-  @override
   Future<ScriptRef> scriptRefFor(String uri) => null;
   @override
   Future<List<ScriptRef>> scriptRefs(String isolateId) => null;
@@ -67,8 +65,6 @@ class FakeInspector extends Domain implements AppInspector {
   Future<RemoteObject> evaluateJsExpressionOnLibrary(
           String expression, String libraryUri) =>
       throw UnsupportedError('This is a fake');
-  @override
-  Future<String> toStringOf(RemoteObject receiver) async => '';
 }
 
 class FakeSseConnection implements SseConnection {
