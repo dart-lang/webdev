@@ -17,16 +17,7 @@ void main() {
   document.body.append(SpanElement()..text = 'Hello World!!');
 
   var count = 0;
-  var a = 0;
-  var z = 0;
-  var b = 0;
   Timer.periodic(Duration(seconds: 1), (_) {
-    var foo = Foo(5);
-    print('Counter is: ${++count} $foo $a $b $z');
+    print('Counter is: ${++count}');
   });
-}
-
-class Foo {
-  int something;
-  Foo(this.something);
 }
