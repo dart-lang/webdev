@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/dwds.dart' show LogWriter;
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
@@ -28,6 +29,8 @@ typedef AppInspectorProvider = AppInspector Function();
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
+  final LogWriter _logWriter;
+
   /// Cache of all existing StreamControllers.
   ///
   /// These are all created through [onEvent].
@@ -61,6 +64,7 @@ class ChromeProxyService implements VmServiceInterface {
     this.uri,
     this._assetHandler,
     this.remoteDebugger,
+    this._logWriter,
   );
 
   static Future<ChromeProxyService> create(
@@ -68,6 +72,7 @@ class ChromeProxyService implements VmServiceInterface {
     String tabUrl,
     AssetHandler assetHandler,
     String appInstanceId,
+    LogWriter logWriter,
   ) async {
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
@@ -75,8 +80,8 @@ class ChromeProxyService implements VmServiceInterface {
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
-    var service =
-        ChromeProxyService._(vm, tabUrl, assetHandler, remoteDebugger);
+    var service = ChromeProxyService._(
+        vm, tabUrl, assetHandler, remoteDebugger, logWriter);
     await service._initialize();
     await service.createIsolate();
     return service;
@@ -89,6 +94,7 @@ class ChromeProxyService implements VmServiceInterface {
       _streamNotify,
       appInspectorProvider,
       uri,
+      _logWriter,
     );
   }
 

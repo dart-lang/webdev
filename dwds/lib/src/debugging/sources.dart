@@ -6,9 +6,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import 'package:dwds/dwds.dart' show LogWriter;
 
 import '../handlers/asset_handler.dart';
 import '../utilities/dart_uri.dart';
@@ -41,9 +44,11 @@ class Sources {
   /// logging unsuccessful responses.
   final AssetHandler _assetHandler;
 
+  final LogWriter _logWriter;
+
   final RemoteDebugger _remoteDebugger;
 
-  Sources(this._assetHandler, this._remoteDebugger);
+  Sources(this._assetHandler, this._remoteDebugger, this._logWriter);
 
   /// Returns all [Location] data for a provided Dart source.
   Set<Location> locationsForDart(String serverPath) =>
@@ -146,7 +151,7 @@ class Sources {
     if (response.statusCode == HttpStatus.ok) {
       return response.readAsString();
     }
-    print('''
+    _logWriter(Level.WARNING, '''
 Failed to load asset at path: $path.
 
 Status code: ${response.statusCode}

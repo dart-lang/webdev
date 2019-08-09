@@ -118,6 +118,7 @@ class DevHandler {
       appTab.url,
       _assetHandler,
       appInstanceId,
+      _logWriter,
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
@@ -302,6 +303,7 @@ class DevHandler {
           devToolsRequest.tabUrl,
           _assetHandler,
           devToolsRequest.appId,
+          _logWriter,
           onResponse: _verbose
               ? (response) {
                   if (response['error'] == null) return;
