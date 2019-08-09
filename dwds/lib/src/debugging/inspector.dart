@@ -268,10 +268,12 @@ function($argsString) {
     if (clazz != null) return clazz;
     var scriptRef = _scriptRefs[objectId];
     if (scriptRef != null) return await _getScript(isolateId, scriptRef);
-    var instance = instanceFor(debugger, _remoteDebugger, objectId);
+    // TODO(grouma) - store debuggers in instance.dart to simplify the API.
+    var instance = instanceFor(
+        debugger, _remoteDebugger, RemoteObject({'objectId': objectId}));
     if (instance != null) return instance;
-    throw UnsupportedError(
-        'Only libraries, classes, and scripts are supported for getObject');
+    throw UnsupportedError('Only libraries, instances, classes, and scripts '
+        'are supported for getObject');
   }
 
   Future<Library> _constructLibrary(LibraryRef libraryRef) async {

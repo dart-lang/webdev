@@ -39,7 +39,8 @@ void main() {
   final url = 'org-dartlang-app:///web/scopes_main.dart';
 
   String libraryVariableExpression(String variable) =>
-      'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["$variable"];';
+      'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
+      '["$url"]["$variable"];';
 
   Future<RemoteObject> libraryPublicFinal() => inspector
       .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
@@ -82,8 +83,7 @@ void main() {
   group('instance', () {
     test('for class object', () async {
       var remoteObject = await libraryPublicFinal();
-      var instance =
-          await instanceFor(debugger, remoteDebugger, remoteObject.objectId);
+      var instance = await instanceFor(debugger, remoteDebugger, remoteObject);
       expect(instance.kind, InstanceKind.kPlainInstance);
       var classRef = instance.classRef;
       expect(classRef, isNotNull);
@@ -94,8 +94,8 @@ void main() {
       var libraryRemoteObject = await libraryPublicFinal();
       var fieldRemoteObject =
           await inspector.loadField(libraryRemoteObject, 'myselfField');
-      var instance = await instanceFor(
-          debugger, remoteDebugger, fieldRemoteObject.objectId);
+      var instance =
+          await instanceFor(debugger, remoteDebugger, fieldRemoteObject);
       expect(instance.kind, InstanceKind.kPlainInstance);
       var classRef = instance.classRef;
       expect(classRef, isNotNull);

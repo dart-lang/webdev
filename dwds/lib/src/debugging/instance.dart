@@ -31,17 +31,16 @@ const _namesToIgnore = <String>{
   '_identityHashCode'
 };
 
-/// Create an [Instance] for the given [objectId].
+/// Create an [Instance] for the given [remoteObject].
 ///
 /// Returns null if there isn't a corresponding instance.
-Future<Instance> instanceFor(
-    Debugger debugger, RemoteDebugger remoteDebugger, String objectId) async {
-  var remoteObject = RemoteObject({'objectId': objectId});
-  var metaData = await classMetaDataFor(remoteDebugger, remoteObject);
+Future<Instance> instanceFor(Debugger debugger, RemoteDebugger remoteDebugger,
+    RemoteObject remoteObject) async {
+  var metaData = await ClassMetaData.metaDataFor(remoteDebugger, remoteObject);
   var classRef = ClassRef()
     ..id = metaData.id
     ..name = metaData.name;
-  var properties = await debugger.getProperties(objectId);
+  var properties = await debugger.getProperties(remoteObject.objectId);
   var fields = await Future.wait(
       properties.map<Future<BoundField>>((property) async => BoundField()
         ..decl = (FieldRef()
@@ -56,7 +55,7 @@ Future<Instance> instanceFor(
         ..sort((a, b) => a.decl.name.compareTo(b.decl.name));
   var result = Instance()
     ..kind = InstanceKind.kPlainInstance
-    ..id = objectId
+    ..id = remoteObject.objectId
     ..fields = fields
     ..classRef = classRef;
   return result;
@@ -82,7 +81,8 @@ Future<InstanceRef> instanceRefFor(
       if (remoteObject.type == 'object' && remoteObject.objectId == null) {
         return _primitiveInstance(InstanceKind.kNull, remoteObject);
       }
-      var metaData = await classMetaDataFor(remoteDebugger, remoteObject);
+      var metaData =
+          await ClassMetaData.metaDataFor(remoteDebugger, remoteObject);
       if (metaData == null) return null;
       return InstanceRef()
         ..kind = InstanceKind.kPlainInstance
@@ -106,6 +106,7 @@ Future<InstanceRef> instanceRefFor(
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
   var classRef = ClassRef()
+    // TODO(grouma) - is this ID correct?
     ..id = 'dart:core:${remoteObject.type}'
     ..name = kind;
   return InstanceRef()

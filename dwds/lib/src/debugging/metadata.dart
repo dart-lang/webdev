@@ -7,20 +7,24 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import '../services/chrome_proxy_service.dart';
 import 'remote_debugger.dart';
 
+/// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
   final String name;
   final String libraryId;
   ClassMetaData(this.name, this.libraryId);
-  String get id => '$libraryId:$name';
-}
 
-/// Returns the [ClassMetaData] for the Chrome [remoteObject].
-///
-/// Returns null if the [remoteObject] is not a Dart class.
-Future<ClassMetaData> classMetaDataFor(
-    RemoteDebugger remoteDebugger, RemoteObject remoteObject) async {
-  try {
-    var evalExpression = '''
+  /// Returns the ID of the class.
+  ///
+  /// Takes the form of 'libraryId:name'.
+  String get id => '$libraryId:$name';
+
+  /// Returns the [ClassMetaData] for the Chrome [remoteObject].
+  ///
+  /// Returns null if the [remoteObject] is not a Dart class.
+  static Future<ClassMetaData> metaDataFor(
+      RemoteDebugger remoteDebugger, RemoteObject remoteObject) async {
+    try {
+      var evalExpression = '''
       function(arg) {
         var sdkUtils = require('dart_sdk').dart;
         var classObject = sdkUtils.getType(arg);
@@ -30,23 +34,24 @@ Future<ClassMetaData> classMetaDataFor(
         return result;
       }
     ''';
-    var arguments = [
-      {'objectId': remoteObject.objectId}
-    ];
-    var result =
-        await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
-      'functionDeclaration': evalExpression,
-      'arguments': arguments,
-      'objectId': remoteObject.objectId,
-      'returnByValue': true,
-    });
-    handleErrorIfPresent(
-      result,
-      evalContents: evalExpression,
-    );
-    return ClassMetaData(result.result['result']['value']['name'] as String,
-        result.result['result']['value']['libraryId'] as String);
-  } on ChromeDebugException {
-    return null;
+      var arguments = [
+        {'objectId': remoteObject.objectId}
+      ];
+      var result =
+          await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
+        'functionDeclaration': evalExpression,
+        'arguments': arguments,
+        'objectId': remoteObject.objectId,
+        'returnByValue': true,
+      });
+      handleErrorIfPresent(
+        result,
+        evalContents: evalExpression,
+      );
+      return ClassMetaData(result.result['result']['value']['name'] as String,
+          result.result['result']['value']['libraryId'] as String);
+    } on ChromeDebugException {
+      return null;
+    }
   }
 }
