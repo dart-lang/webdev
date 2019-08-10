@@ -92,7 +92,8 @@ refresh: Performs a full page refresh.
         negatable: false,
         help: 'Enables logging for each request to the server.')
     ..addOption(tlsCertChainFlag,
-        help: 'The file location to a TLS Certificate to create an HTTPs server.\n'
+        help:
+            'The file location to a TLS Certificate to create an HTTPs server.\n'
             'Must be used with $tlsCertKeyFlag.',
         defaultsTo: '')
     ..addOption(tlsCertKeyFlag,
