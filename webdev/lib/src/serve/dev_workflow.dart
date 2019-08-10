@@ -86,7 +86,7 @@ Future<ServerManager> _startServerManager(
     logWriter(
         logging.Level.INFO,
         'Serving `${server.target}` on '
-        'http://${server.host}:${server.port}\n');
+        '${server.protocol}://${server.host}:${server.port}\n');
   }
 
   return serverManager;

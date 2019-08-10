@@ -34,6 +34,8 @@ class ServerOptions {
 class WebDevServer {
   final HttpServer _server;
 
+  final String _protocol;
+
   final Stream<BuildResult> buildResults;
 
   /// Can be null if client.js injection is disabled.
@@ -44,6 +46,7 @@ class WebDevServer {
   WebDevServer._(
     this.target,
     this._server,
+    this._protocol,
     this.buildResults,
     bool autoRun, {
     this.dwds,
@@ -57,6 +60,7 @@ class WebDevServer {
 
   String get host => _server.address.host;
   int get port => _server.port;
+  String get protocol => _protocol;
 
   Future<void> stop() async {
     await dwds?.stop();
@@ -102,11 +106,26 @@ class WebDevServer {
     }
 
     var hostname = options.configuration.hostname;
-    var server = await HttpMultiServer.bind(hostname, options.port);
+    var tlsCertChain = options.configuration.tlsCertChain;
+    var tlsCertKey = options.configuration.tlsCertKey;
+
+    var server;
+    String protocol = 'http';
+    if (tlsCertChain != '' && tlsCertKey != '') {
+      SecurityContext serverContext = SecurityContext()
+        ..useCertificateChain(tlsCertChain)
+        ..usePrivateKey(tlsCertKey);
+      server = await HttpMultiServer.loopbackSecure(options.port, serverContext);
+      protocol = 'https';
+    } else {
+      server = await HttpMultiServer.bind(hostname, options.port);
+    }
+
     shelf_io.serveRequests(server, pipeline.addHandler(assetHandler));
     return WebDevServer._(
       options.target,
       server,
+      protocol,
       filteredBuildResults,
       options.configuration.autoRun,
       dwds: dwds,
