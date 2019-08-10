@@ -109,14 +109,13 @@ class WebDevServer {
     var tlsCertChain = options.configuration.tlsCertChain;
     var tlsCertKey = options.configuration.tlsCertKey;
 
-    var server;
-    String protocol = 'http';
-    if (tlsCertChain != '' && tlsCertKey != '') {
-      SecurityContext serverContext = SecurityContext()
+    HttpServer server;
+    var protocol = (tlsCertChain != '' && tlsCertKey != '') ? 'https' : 'http';
+    if  (protocol == 'https') {
+      var serverContext = SecurityContext()
         ..useCertificateChain(tlsCertChain)
         ..usePrivateKey(tlsCertKey);
       server = await HttpMultiServer.loopbackSecure(options.port, serverContext);
-      protocol = 'https';
     } else {
       server = await HttpMultiServer.bind(hostname, options.port);
     }

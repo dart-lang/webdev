@@ -93,11 +93,11 @@ refresh: Performs a full page refresh.
         help: 'Enables logging for each request to the server.')
     ..addOption(tlsCertChainFlag,
         help: 'The file location to a TLS Certificate to create an HTTPs server.\n'
-            "Must be used with $tlsCertKeyFlag.",
+            'Must be used with $tlsCertKeyFlag.',
         defaultsTo: '')
     ..addOption(tlsCertKeyFlag,
         help: 'The file location to a TLS Key to create an HTTPs server.\n'
-            "Must be used with $tlsCertChainFlag.",
+            'Must be used with $tlsCertChainFlag.',
         defaultsTo: '')
     ..addSeparator('Common:');
 
