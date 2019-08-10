@@ -1,3 +1,7 @@
+## Unreleased
+
+- Depend on the latest `package:webkit_inspection_protocol`.
+
 ## 0.5.0
 
 - Fix an issue where we source map paths were not normalized.
