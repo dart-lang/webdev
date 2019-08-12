@@ -166,7 +166,6 @@ class Scope {
   }
 }
 
-/// ##### We may need to distinguish between the equivalent of RemoteObjectProperty and our outgoing property
 class MethodScope extends Scope {
   ThisScope _thisScope;
   Property self;
@@ -231,7 +230,7 @@ class MethodScope extends Scope {
             }
             } return THIS; })(this)''';
 
-    var actualThis = await JsScopeChain.debugger.inspector
+    var actualThis = await JsScopeChain.debugger
         .evaluateJsOnCallFrame(context.callFrameId, findCurrent);
 
     // Guard against a null result, particularly in tests

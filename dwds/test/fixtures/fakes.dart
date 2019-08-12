@@ -78,11 +78,6 @@ class FakeInspector extends Domain implements AppInspector {
       throw UnsupportedError('This is a fake');
   @override
   Future<String> toStringOf(RemoteObject receiver) async => '';
-  @override
-  Future<RemoteObject> evaluateJsOnCallFrame(
-      String callFrameId, String expression) async {
-    return RemoteObject({'objectId': 'fake', 'type': 'undefined'});
-  }
 }
 
 class FakeSseConnection implements SseConnection {
@@ -176,7 +171,6 @@ class FakeWebkitDebugger implements WebkitDebugger {
   }) async {
     // Force the results that we expect for looking up the variables.
     if (method == 'Runtime.getProperties') {
-      print("Calling sendCommand with $params");
       return results[resultsReturned++];
     }
     return null;
