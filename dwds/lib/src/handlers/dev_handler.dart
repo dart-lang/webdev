@@ -311,6 +311,7 @@ class DevHandler {
                       'VmService proxy responded with an error:\n$response');
                 }
               : null,
+          useSse: true,
         );
         var appServices =
             await _createAppDebugServices(devToolsRequest.appId, debugService);
