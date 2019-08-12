@@ -12,7 +12,6 @@ import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
-import 'dart_scope.dart';
 import 'location.dart';
 import 'sources.dart';
 
@@ -290,9 +289,8 @@ class Debugger extends Domain {
       if (dartFrame != null) {
         dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
         dartFrame.index = index++;
-        dartFrame.vars = await _variablesFor(
-            frame['scopeChain'] as List<dynamic>,
-            frame['callFrameId'] as String);
+        dartFrame.vars = 
+            await _variablesFor(frame['scopeChain'] as List<dynamic>);
         dartFrames.add(dartFrame);
       }
     }
@@ -300,35 +298,25 @@ class Debugger extends Domain {
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
-  Future<List<BoundVariable>> _variablesFor(
-      List<dynamic> scopeChain, String callFrameId) async {
-    var jsScopes = await JsScopeChain.fromJs(
-        scopeChain.cast<Map<String, dynamic>>().toList(),
-        'fred',
-        this,
-        callFrameId);
-    var dartScopes = await jsScopes.toDartScopeChain();
+  Future<List<BoundVariable>> _variablesFor(List<dynamic> scopeChain) async {
+    // TODO: Much better logic for which frames to use. This is probably just
+    // the dynamically visible variables, so we should omit library scope.
     return [
-      for (var scope in dartScopes.allScopes()) ...await _boundVariables(scope)
+      for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)
     ];
   }
 
-  Future<Iterable<BoundVariable>> _boundVariables(Scope scope) async {
-    // We return one level of properties from this object. Sub-prsoperties are
+  /// The [BoundVariable]s visible in a v8 'scope' object as found in the
+  /// 'scopeChain' field of the 'callFrames' in a DebuggerPausedEvent.
+  Future<Iterable<BoundVariable>> _boundVariables(dynamic scope) async {
+    var properties = await getProperties(scope['object']['objectId'] as String);
+    // We return one level of properties from this object. Sub-properties are
     // another round trip.
-    var refs = scope.properties.map<Future<BoundVariable>>((property) async {
-      var instanceRef = await inspector.instanceRefFor(property.value);
-      // Skip null instance refs, which we get for weird objects, e.g.
-      // properties that are getter/setter pairs.
-      // TODO(alanknight): Handle these properly.
-      if (instanceRef == null) return null;
-      return BoundVariable()
-        ..name = property.name
-        ..value = instanceRef;
-    });
-    var things = await Future.wait(refs);
-    var moreThings = things.where((variable) => variable != null);
-    return moreThings;
+    var refs = properties
+        .map<Future<BoundVariable>>((property) async => BoundVariable()
+          ..name = property.name
+          ..value = await inspector.instanceRefFor(property.value));
+    return Future.wait(refs);
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [id].
@@ -420,12 +408,20 @@ class Debugger extends Domain {
   }
 
 
+  /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on
+  /// the call frame with index [frameIndex] in the currently saved stack.
+  ///
+  /// If the program is not paused, so there is no current stack, throws a
+  /// [StateError].
   Future<RemoteObject> evaluateJsOnCallFrameIndex(int frameIndex, String expression) {
-    if (_pausedJsStack == null) return null; // TODO(alanknight): Throw if not paused?
+    if (_pausedJsStack == null) {
+      throw StateError('Cannot evaluate on a call frame when the program is not paused');
+     }
     return evaluateJsOnCallFrame(_pausedJsStack[frameIndex]['callFrameId'] as String, expression);
   }
 
-  /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame.
+  /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on
+  /// the call frame with id [callFrameId].
   Future<RemoteObject> evaluateJsOnCallFrame(
       String callFrameId, String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.

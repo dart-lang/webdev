@@ -583,10 +583,10 @@ String _getLibrarySnippet(String libraryUri) => '''
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
   var classRef = ClassRef()
-    ..id = 'dart:core:${remoteObject?.type}'
+    ..id = 'dart:core:${remoteObject.type}'
     ..name = kind;
   return InstanceRef()
-    ..valueAsString = '${remoteObject?.value}'
+    ..valueAsString = '${remoteObject.value}'
     ..classRef = classRef
     ..kind = kind;
 }
