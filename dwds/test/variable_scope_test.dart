@@ -66,7 +66,7 @@ void main() {
     });
 
     tearDown(() async {
-       await service.resume(isolateId);
+      await service.resume(isolateId);
     });
 
     test('variables in method', () async {
@@ -86,12 +86,12 @@ void main() {
 
     test('evaluateJsOnCallFrame', () async {
       var debugger = service.appInspectorProvider().debugger;
-        var parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
-     expect(parameter.value, matches(RegExp(r'\d+ world')));
-     var ticks = await debugger.evaluateJsOnCallFrameIndex(1, 'ticks');
-     // We don't know how many ticks there were before we stopped, but it should
-     // be a positive number.
-     expect(ticks.value, isPositive);
+      var parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
+      expect(parameter.value, matches(RegExp(r'\d+ world')));
+      var ticks = await debugger.evaluateJsOnCallFrameIndex(1, 'ticks');
+      // We don't know how many ticks there were before we stopped, but it should
+      // be a positive number.
+      expect(ticks.value, isPositive);
     });
   });
 }
