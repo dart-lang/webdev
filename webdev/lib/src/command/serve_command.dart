@@ -94,12 +94,10 @@ refresh: Performs a full page refresh.
     ..addOption(tlsCertChainFlag,
         help:
             'The file location to a TLS Certificate to create an HTTPs server.\n'
-            'Must be used with $tlsCertKeyFlag.',
-        defaultsTo: '')
+            'Must be used with $tlsCertKeyFlag.')
     ..addOption(tlsCertKeyFlag,
         help: 'The file location to a TLS Key to create an HTTPs server.\n'
-            'Must be used with $tlsCertChainFlag.',
-        defaultsTo: '')
+            'Must be used with $tlsCertChainFlag.')
     ..addSeparator('Common:');
 
   ServeCommand() {

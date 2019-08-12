@@ -86,12 +86,10 @@ Advanced:
     --tls-cert-chain              The file location to a TLS Certificate to
                                   create an HTTPs server.
                                   Must be used with tls-cert-key.
-                                  (defaults to "")
 
     --tls-cert-key                The file location to a TLS Key to create an
                                   HTTPs server.
                                   Must be used with tls-cert-chain.
-                                  (defaults to "")
 
 Common:
 -h, --help                        Print this usage information.
