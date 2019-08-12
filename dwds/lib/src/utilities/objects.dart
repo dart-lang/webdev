@@ -12,11 +12,7 @@ class Property {
   final Map<String, dynamic> _map;
   RemoteObject _remoteObjectValue;
 
-  Property(this._map) {
-    if (_map['this'] == '_random') {
-      print("hey");
-    }  
-  }
+  Property(this._map);
 
   /// The remote object value in unwrapped form.
   ///
