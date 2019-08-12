@@ -173,7 +173,7 @@ ${await response.readAsString()}
       return null;
     }
     var scriptPath = DartUri(script.url).serverPath;
-    var sourcemapPath = p.join(p.dirname(scriptPath), sourceMapUrl);
+    var sourcemapPath = p.url.join(p.url.dirname(scriptPath), sourceMapUrl);
     return _readAssetOrNull(sourcemapPath);
   }
 
