@@ -56,13 +56,20 @@ void main() {
       // Remove breakpoint so it doesn't impact other tests.
       await service.removeBreakpoint(isolateId, bp.id);
       var stack = await service.getStack(isolateId);
-      // Resume as to not impact other tests.
-      await service.resume(isolateId);
       return stack;
     }
 
+    Stack stack;
+
+    setUp(() async {
+      stack = await breakAt(25);
+    });
+
+    tearDown(() async {
+       await service.resume(isolateId);
+    });
+
     test('variables in method', () async {
-      var stack = await breakAt(25);
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
@@ -75,6 +82,16 @@ void main() {
         'parameter',
         'testClass'
       ]);
+    });
+
+    test('evaluateJsOnCallFrame', () async {
+      var debugger = service.appInspectorProvider().debugger;
+        var parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
+     expect(parameter.value, matches(RegExp(r'\d+ world')));
+     var ticks = await debugger.evaluateJsOnCallFrameIndex(1, 'ticks');
+     // We don't know how many ticks there were before we stopped, but it should
+     // be a positive number.
+     expect(ticks.value, isPositive);
     });
   });
 }

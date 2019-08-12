@@ -57,6 +57,15 @@ class Debugger extends Domain {
 
   Stack _pausedStack;
 
+  /// The JS frames corresponding to [_pausedStack].
+  /// 
+  /// The most important thing here is that frames are identified by
+  /// frameIndex in the Dart API, but by frame Id in Chrome, so we need
+  /// to keep the JS frames and their Ids around.
+  // TODO(alanknight): It would be nice to keep these as CallFrame instances,
+  // but they don't map enough of the data yet.
+  List<Map<String, dynamic>> _pausedJsStack;
+
   bool _isStepping = false;
 
   Future<Success> pause() async {
@@ -214,9 +223,9 @@ class Debugger extends Domain {
     return Success();
   }
 
-  /// Call the Chrome protocol setBreakpmainIndext and return the breakpoint ID.
+  /// Call the Chrome protocol setBreakpoint and return the breakpoint ID.
   Future<String> _setBreakpoint(Location location) async {
-    // Location is 0 based according to:mainIndex
+    // Location is 0 based according to:
     // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
     var response =
         await _remoteDebugger.sendCommand('Debugger.setBreakpoint', params: {
@@ -389,6 +398,7 @@ class Debugger extends Domain {
     _pausedStack = Stack()
       ..frames = frames
       ..messages = [];
+    _pausedJsStack = jsFrames;
     if (frames.isNotEmpty) event.topFrame = frames.first;
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
@@ -401,11 +411,31 @@ class Debugger extends Domain {
     var isolate = inspector?.isolate;
     if (isolate == null) return;
     _pausedStack = null;
+    _pausedJsStack = null;
     var event = Event()
       ..kind = EventKind.kResume
       ..isolate = inspector.isolateRef;
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
+  }
+
+
+  Future<RemoteObject> evaluateJsOnCallFrameIndex(int frameIndex, String expression) {
+    if (_pausedJsStack == null) return null; // TODO(alanknight): Throw if not paused?
+    return evaluateJsOnCallFrame(_pausedJsStack[frameIndex]['callFrameId'] as String, expression);
+  }
+
+  /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame.
+  Future<RemoteObject> evaluateJsOnCallFrame(
+      String callFrameId, String expression) async {
+    // TODO(alanknight): Support a version with arguments if needed.
+    WipResponse result;
+    result = await _remoteDebugger.sendCommand('Debugger.evaluateOnCallFrame',
+        params: {'callFrameId': callFrameId, 'expression': expression});
+    handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
+      'Dart expression': expression,
+    });
+    return RemoteObject(result.result['result'] as Map<String, dynamic>);
   }
 }
 
