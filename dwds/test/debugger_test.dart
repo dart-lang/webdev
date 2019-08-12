@@ -23,7 +23,15 @@ void main() async {
   setUpAll(() async {
     webkitDebugger = FakeWebkitDebugger();
     debugger = await Debugger.create(
-        null, webkitDebugger, null, () => inspector, 'fakeRoot');
+      null,
+      webkitDebugger,
+      null,
+      () => inspector,
+      'fakeRoot',
+      (level, message) {
+        printOnFailure('[$level]: $message');
+      },
+    );
     inspector = FakeInspector();
   });
 

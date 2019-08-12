@@ -93,8 +93,14 @@ var variables1 = [
     'id': 1,
     'result': {
       'result': [
-        {'name': 'a', 'value': null},
-        {'name': 'b', 'value': null}
+        {
+          'name': 'a',
+          'value': {'type': 'string', 'value': 'foo'}
+        },
+        {
+          'name': 'b',
+          'value': {'type': 'string', 'value': 'bar'}
+        }
       ]
     }
   }),

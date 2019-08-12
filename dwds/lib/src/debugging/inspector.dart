@@ -2,18 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-import 'dart:math' as math show min;
+import 'dart:io';
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:path/path.dart' as p;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../handlers/asset_handler.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
 import 'debugger.dart';
+import 'exceptions.dart';
+import 'instance.dart';
+import 'metadata.dart';
 
 /// An inspector for a running Dart application contained in the
 /// [WipConnection].
@@ -44,6 +48,7 @@ class AppInspector extends Domain {
   final Debugger debugger;
   final Isolate isolate;
   final IsolateRef isolateRef;
+  final InstanceHelper instanceHelper;
 
   /// The root URI from which the application is served.
   final String _root;
@@ -55,6 +60,7 @@ class AppInspector extends Domain {
     this._root,
     this._remoteDebugger,
   )   : isolateRef = _toIsolateRef(isolate),
+        instanceHelper = InstanceHelper(debugger, _remoteDebugger),
         super.forInspector();
 
   @override
@@ -103,9 +109,6 @@ class AppInspector extends Domain {
   }
 
   /// Get the value of the field named [fieldName] from [receiver].
-  ///
-  /// Note that the returned [RemoteObject] might be for a simple value, and
-  /// [AppInspector._asDartObject] can be used to get the value.
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
     var load = '''
         function() {
@@ -117,9 +120,6 @@ class AppInspector extends Domain {
 
   /// Call a method by name on [receiver], with arguments [positionalArgs] and
   /// [namedArgs].
-  ///
-  /// Note that the returned [RemoteObject] might be for a simple value, and
-  /// [AppInspector._asDartObject] can be used to get the value.
   Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
       [List positionalArgs = const [], Map namedArgs = const {}]) async {
     // TODO(alanknight): Support named arguments.
@@ -135,22 +135,6 @@ class AppInspector extends Domain {
     var arguments = _marshallArguments(positionalArgs);
     var remote = await _callFunctionOn(receiver, send, arguments);
     return remote;
-  }
-
-  /// Given [remote], if it's a simple type, return the value, otherwise leave
-  /// it as a RemoteObject.
-  // TODO(alanknight): Consider our own RemoteObject class where we could add
-  // methods to do things like this.
-  Object _asDartObject(RemoteObject remote) {
-    if (remote.type == 'object') {
-      if (remote.objectId == null) {
-        return null;
-      } else {
-        return remote;
-      }
-    } else {
-      return remote.value;
-    }
   }
 
   /// Calls Chrome's Runtime.callFunctionOn method.
@@ -190,12 +174,6 @@ class AppInspector extends Domain {
     } else {
       return {'value': argument};
     }
-  }
-
-  /// Call the Dart toString for [receiver].
-  Future<String> toStringOf(RemoteObject receiver) async {
-    var remote = await sendMessage(receiver, 'toString', []);
-    return _asDartObject(remote) as String;
   }
 
   Future<RemoteObject> evaluate(
@@ -277,55 +255,6 @@ function($argsString) {
     return RemoteObject(result.result['result'] as Map<String, dynamic>);
   }
 
-  /// Create an [InstanceRef] for the given Chrome [remoteObject].
-  Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) async {
-    // If we have a null result, treat it as a reference to null.
-    if (remoteObject == null) {
-      return _primitiveInstance(InstanceKind.kNull, remoteObject);
-    }
-    switch (remoteObject.type) {
-      case 'string':
-        return _primitiveInstance(InstanceKind.kString, remoteObject);
-      case 'number':
-        return _primitiveInstance(InstanceKind.kDouble, remoteObject);
-      case 'boolean':
-        return _primitiveInstance(InstanceKind.kBool, remoteObject);
-      case 'undefined':
-        return _primitiveInstance(InstanceKind.kNull, remoteObject);
-      case 'object':
-        if (_asDartObject(remoteObject) == null) {
-          return _primitiveInstance(InstanceKind.kNull, remoteObject);
-        }
-        var toString = await toStringOf(remoteObject);
-        // TODO: Make the truncation consistent with the VM.
-        var truncated = toString.substring(0, math.min(100, toString.length));
-        return InstanceRef()
-          ..kind = InstanceKind.kPlainInstance
-          ..id = remoteObject.objectId
-          ..valueAsString = toString
-          ..valueAsStringIsTruncated = truncated.length != toString.length
-          // TODO(jakemac): Create a real ClassRef, we need a way of looking
-          // up the library for a given instance to create it though.
-          // https://github.com/dart-lang/sdk/issues/36771.
-          ..classRef = ClassRef();
-      case 'function':
-        var crudeAttemptAtName = remoteObject.description.split('(').first;
-        return InstanceRef()
-          ..kind = InstanceKind.kPlainInstance
-          ..id = remoteObject.objectId
-          ..valueAsString = crudeAttemptAtName
-          ..classRef = ClassRef();
-      default:
-        // Return unsupported types as a String placeholder for now.
-        var unsupported = RemoteObject({
-          'type': 'String',
-          'value':
-              'Unsupported type:${remoteObject.type} (${remoteObject.description})'
-        });
-        return _primitiveInstance(InstanceKind.kString, unsupported);
-    }
-  }
-
   Future<Library> _getLibrary(String isolateId, String objectId) async {
     if (isolateId != isolate.id) return null;
     var libraryRef = _libraryRefs[objectId];
@@ -345,8 +274,11 @@ function($argsString) {
     if (clazz != null) return clazz;
     var scriptRef = _scriptRefs[objectId];
     if (scriptRef != null) return await _getScript(isolateId, scriptRef);
-    throw UnsupportedError(
-        'Only libraries and classes are supported for getObject');
+    var instance =
+        instanceHelper.instanceFor(RemoteObject({'objectId': objectId}));
+    if (instance != null) return instance;
+    throw UnsupportedError('Only libraries, instances, classes, and scripts '
+        'are supported for getObject');
   }
 
   Future<Library> _constructLibrary(LibraryRef libraryRef) async {
@@ -403,18 +335,18 @@ function($argsString) {
         .cast<Map<String, Object>>();
     var classRefs = <ClassRef>[];
     for (var classDescriptor in classDescriptors) {
-      var name = classDescriptor['name'] as String;
-      var classId = '${libraryRef.id}:$name';
+      var classMetaData =
+          ClassMetaData(classDescriptor['name'] as String, libraryRef.id);
       var classRef = ClassRef()
-        ..name = name
-        ..id = classId;
+        ..name = classMetaData.name
+        ..id = classMetaData.id;
       classRefs.add(classRef);
 
       var methodRefs = <FuncRef>[];
       var methodDescriptors =
           classDescriptor['methods'] as Map<String, dynamic>;
       methodDescriptors.forEach((name, descriptor) {
-        var methodId = '$classId:$name';
+        var methodId = '${classMetaData.id}:$name';
         methodRefs.add(FuncRef()
           ..id = methodId
           ..name = name
@@ -437,13 +369,13 @@ function($argsString) {
 
       // TODO: Implement the rest of these
       // https://github.com/dart-lang/webdev/issues/176.
-      _classes[classId] = Class()
+      _classes[classMetaData.id] = Class()
         ..classRef = classRef
         ..fields = fieldRefs
         ..functions = methodRefs
-        ..id = classId
+        ..id = classMetaData.id
         ..library = libraryRef
-        ..name = name
+        ..name = classMetaData.name
         ..interfaces = []
         ..subclasses = [];
     }
@@ -488,7 +420,11 @@ function($argsString) {
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
     var libraryId = _scriptIdToLibraryId[scriptRef.id];
     var serverPath = DartUri(scriptRef.uri, _root).serverPath;
-    var script = await _assetHandler(serverPath);
+    var response = await _assetHandler.getRelativeAsset(serverPath);
+    if (response.statusCode != HttpStatus.ok) {
+      throw ScriptNotFound(serverPath, response);
+    }
+    var script = await response.readAsString();
     return Script()
       ..library = _libraryRefs[libraryId]
       ..id = scriptRef.id
@@ -579,14 +515,3 @@ String _getLibrarySnippet(String libraryUri) => '''
   var library = sdkUtils.getModuleLibraries(moduleName)[libraryName];
   if (!library) throw 'cannot find library for ' + libraryName + ' under ' + moduleName;
 ''';
-
-/// Creates an [InstanceRef] for a primitive [RemoteObject].
-InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
-  var classRef = ClassRef()
-    ..id = 'dart:core:${remoteObject?.type}'
-    ..name = kind;
-  return InstanceRef()
-    ..valueAsString = '${remoteObject?.value}'
-    ..classRef = classRef
-    ..kind = kind;
-}

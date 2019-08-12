@@ -116,8 +116,9 @@ class DevHandler {
       _hostname,
       webkitDebugger,
       appTab.url,
-      _assetHandler.getRelativeAsset,
+      _assetHandler,
       appInstanceId,
+      _logWriter,
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
@@ -220,7 +221,7 @@ class DevHandler {
             .sendCommand('Target.createTarget', params: {
           'newWindow': true,
           'url': 'http://${_devTools.hostname}:${_devTools.port}'
-              '/?hide=none&uri=${appServices.debugService.uri}',
+              '/?uri=${appServices.debugService.uri}',
         });
       } else if (message is ConnectRequest) {
         if (appId != null) {
@@ -300,8 +301,9 @@ class DevHandler {
           _hostname,
           _extensionDebugger,
           devToolsRequest.tabUrl,
-          _assetHandler.getRelativeAsset,
+          _assetHandler,
           devToolsRequest.appId,
+          _logWriter,
           onResponse: _verbose
               ? (response) {
                   if (response['error'] == null) return;
@@ -327,7 +329,7 @@ class DevHandler {
       await _extensionDebugger.sendCommand('Target.createTarget', params: {
         'newWindow': true,
         'url': 'http://${_devTools.hostname}:${_devTools.port}'
-            '/?hide=none&uri=${appServices.debugService.uri}',
+            '/?uri=${appServices.debugService.uri}',
       });
     });
   }

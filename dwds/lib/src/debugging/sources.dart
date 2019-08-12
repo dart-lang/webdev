@@ -3,12 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../services/chrome_proxy_service.dart';
+import '../../dwds.dart' show LogWriter;
+import '../handlers/asset_handler.dart';
 import '../utilities/dart_uri.dart';
 import 'location.dart';
 import 'remote_debugger.dart';
@@ -35,10 +39,15 @@ class Sources {
   /// Paths to black box in the Chrome debugger.
   final _pathsToBlackBox = {'/packages/stack_trace/'};
 
+  /// Use `_readAssetOrNull` instead of using this directly, as it handles
+  /// logging unsuccessful responses.
   final AssetHandler _assetHandler;
+
+  final LogWriter _logWriter;
+
   final RemoteDebugger _remoteDebugger;
 
-  Sources(this._assetHandler, this._remoteDebugger);
+  Sources(this._assetHandler, this._remoteDebugger, this._logWriter);
 
   /// Returns all [Location] data for a provided Dart source.
   Set<Location> locationsForDart(String serverPath) =>
@@ -54,10 +63,10 @@ class Sources {
     var script = e.script;
     // TODO(grouma) - This should be configurable.
     await _blackBoxIfNecessary(script);
-    var sourceMapContents = await _sourceMap(script);
-    if (sourceMapContents == null) return;
     _clearCacheFor(script);
     _sourceToScriptId[script.url] = script.scriptId;
+    var sourceMapContents = await _sourceMapOrNull(script);
+    if (sourceMapContents == null) return;
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = parse(sourceMapContents);
     if (mapping is SingleMapping) {
@@ -132,15 +141,40 @@ class Sources {
     _sourceToScriptId.remove(script.url);
   }
 
+  /// Reads an asset at [path] relative to the server root.
+  ///
+  /// Returns `null` and logs the response if the status is anything other than
+  /// [HttpStatus.ok].
+  Future<String> _readAssetOrNull(String path) async {
+    var response = await _assetHandler.getRelativeAsset(path);
+    if (response.statusCode == HttpStatus.ok) {
+      return response.readAsString();
+    }
+    _logWriter(Level.WARNING, '''
+Failed to load asset at path: $path.
+
+Status code: ${response.statusCode}
+
+Headers:
+${const JsonEncoder.withIndent('  ').convert(response.headers)}
+
+Content:
+${await response.readAsString()}
+''');
+    return null;
+  }
+
   /// The source map for a DDC-compiled JS [script].
-  Future<String> _sourceMap(WipScript script) {
+  ///
+  /// Returns `null` and logs if it can't be read.
+  Future<String> _sourceMapOrNull(WipScript script) {
     var sourceMapUrl = script.sourceMapURL;
     if (sourceMapUrl == null || !sourceMapUrl.endsWith('.ddc.js.map')) {
       return null;
     }
     var scriptPath = DartUri(script.url).serverPath;
-    var sourcemapPath = p.join(p.dirname(scriptPath), sourceMapUrl);
-    return _assetHandler(sourcemapPath);
+    var sourcemapPath = p.url.join(p.url.dirname(scriptPath), sourceMapUrl);
+    return _readAssetOrNull(sourcemapPath);
   }
 
   /// Black boxes the Dart SDK and paths in [_pathsToBlackBox].
@@ -148,16 +182,18 @@ class Sources {
     if (script.url.endsWith('dart_sdk.js')) {
       await _blackBoxSdk(script);
     } else if (_pathsToBlackBox.any((path) => script.url.contains(path))) {
-      var lines =
-          (await _assetHandler(DartUri(script.url).serverPath)).split('\n');
+      var content = await _readAssetOrNull(DartUri(script.url).serverPath);
+      if (content == null) return;
+      var lines = content.split('\n');
       await _blackBoxRanges(script.scriptId, [lines.length]);
     }
   }
 
   /// Black boxes the SDK excluding the range which includes exception logic.
   Future<void> _blackBoxSdk(WipScript script) async {
-    var sdkSourceLines =
-        (await _assetHandler(DartUri(script.url).serverPath)).split('\n');
+    var content = await _readAssetOrNull(DartUri(script.url).serverPath);
+    if (content == null) return;
+    var sdkSourceLines = content.split('\n');
     // TODO(grouma) - Find a more robust way to identify this location.
     var throwIndex = sdkSourceLines.indexWhere(
         (line) => line.contains('dart.throw = function throw_(exception) {'));
