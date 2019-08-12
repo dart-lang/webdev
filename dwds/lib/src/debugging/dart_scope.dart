@@ -45,9 +45,9 @@ class JsScopeChain {
       String libraryName, Debugger theDebugger, String callFrameId) async {
     JsScopeChain.debugger = theDebugger;
     var numberOfMethods = scopeList.length - 2;
-    var futureScopes = scopeList.take(numberOfMethods).map((x) =>
-        MethodScope.fromId((x['name'] ?? 'unnamed') as String,
-            x['object']['objectId'] as String, null));
+    var futureScopes = scopeList.take(numberOfMethods).toList().map((x) async =>
+        await MethodScope.fromId((x['name'] ?? 'unnamed') as String,
+            x['object']['objectId'] as String, null)).toList();
     var methodScopes = await Future.wait(futureScopes);
     var library = scopeList[numberOfMethods];
     var libraryScope = await LibraryScope.fromId(
