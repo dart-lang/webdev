@@ -45,9 +45,13 @@ class JsScopeChain {
       String libraryName, Debugger theDebugger, String callFrameId) async {
     JsScopeChain.debugger = theDebugger;
     var numberOfMethods = scopeList.length - 2;
-    var futureScopes = scopeList.take(numberOfMethods).toList().map((x) async =>
-        await MethodScope.fromId((x['name'] ?? 'unnamed') as String,
-            x['object']['objectId'] as String, null)).toList();
+    var flirp = scopeList.take(numberOfMethods).toList();
+    var futureScopes = flirp
+        .map((x) async => await MethodScope.fromId(
+            (x['name'] ?? 'unnamed') as String,
+            x['object']['objectId'] as String,
+            null))
+        .toList();
     var methodScopes = await Future.wait(futureScopes);
     var library = scopeList[numberOfMethods];
     var libraryScope = await LibraryScope.fromId(
@@ -153,8 +157,9 @@ class Scope {
   ///
   /// The [property] represents either a library or the current 'this'.
   Future<List<Property>> expand(Property property) async {
-    // #### not sure this is a RemoteObject so much as a BoundVariable or Property already????
-    if (property == null || (property.name).startsWith('_')) {
+    if (property == null ||
+        (property.name).startsWith('_') ||
+        property.value.objectId == null) {
       return [];
     }
     return await JsScopeChain.debugger.getProperties(property.value.objectId);
