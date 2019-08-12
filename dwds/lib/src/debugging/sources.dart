@@ -11,8 +11,7 @@ import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'package:dwds/dwds.dart' show LogWriter;
-
+import '../../dwds.dart' show LogWriter;
 import '../handlers/asset_handler.dart';
 import '../utilities/dart_uri.dart';
 import 'location.dart';
