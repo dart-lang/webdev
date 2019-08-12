@@ -116,8 +116,9 @@ class DevHandler {
       _hostname,
       webkitDebugger,
       appTab.url,
-      _assetHandler.getRelativeAsset,
+      _assetHandler,
       appInstanceId,
+      _logWriter,
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
@@ -300,8 +301,9 @@ class DevHandler {
           _hostname,
           _extensionDebugger,
           devToolsRequest.tabUrl,
-          _assetHandler.getRelativeAsset,
+          _assetHandler,
           devToolsRequest.appId,
+          _logWriter,
           onResponse: _verbose
               ? (response) {
                   if (response['error'] == null) return;
