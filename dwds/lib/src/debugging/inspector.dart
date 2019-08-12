@@ -242,12 +242,13 @@ class AppInspector extends Domain {
     return RemoteObject(result.result['result'] as Map<String, dynamic>);
   }
 
-    /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame.
-  Future<RemoteObject> evaluateJsOnCallFrame(String callFrameId, String expression) async {
+  /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame.
+  Future<RemoteObject> evaluateJsOnCallFrame(
+      String callFrameId, String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.
     WipResponse result;
-    result = await _remoteDebugger
-        .sendCommand('Debugger.evaluateOnCallFrame', params: {'callFrameId': callFrameId, 'expression': expression});
+    result = await _remoteDebugger.sendCommand('Debugger.evaluateOnCallFrame',
+        params: {'callFrameId': callFrameId, 'expression': expression});
     handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
       'Dart expression': expression,
     });

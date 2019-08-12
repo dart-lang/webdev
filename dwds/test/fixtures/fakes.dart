@@ -34,7 +34,16 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   Future<ScriptList> getScripts(String isolateId) => null;
   @override
-  Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) => null;
+  Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) async {
+    var classRef = ClassRef()
+      ..id = 'dart:core:undefined'
+      ..name = 'Null';
+    return InstanceRef()
+      ..valueAsString = 'null'
+      ..classRef = classRef
+      ..kind = InstanceKind.kNull;
+  }
+
   @override
   Future<ScriptRef> scriptRefFor(String uri) => null;
   @override
@@ -71,8 +80,8 @@ class FakeInspector extends Domain implements AppInspector {
   Future<String> toStringOf(RemoteObject receiver) async => '';
   @override
   Future<RemoteObject> evaluateJsOnCallFrame(
-      String callFrameId, String expression) {
-    throw UnsupportedError('This is a fake');
+      String callFrameId, String expression) async {
+    return RemoteObject({'objectId': 'fake', 'type': 'undefined'});
   }
 }
 
@@ -167,6 +176,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   }) async {
     // Force the results that we expect for looking up the variables.
     if (method == 'Runtime.getProperties') {
+      print("Calling sendCommand with $params");
       return results[resultsReturned++];
     }
     return null;

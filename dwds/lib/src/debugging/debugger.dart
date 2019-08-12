@@ -294,7 +294,10 @@ class Debugger extends Domain {
   Future<List<BoundVariable>> _variablesFor(
       List<dynamic> scopeChain, String callFrameId) async {
     var jsScopes = await JsScopeChain.fromJs(
-        scopeChain.cast<Map<String, dynamic>>().toList(), 'fred', this, callFrameId);
+        scopeChain.cast<Map<String, dynamic>>().toList(),
+        'fred',
+        this,
+        callFrameId);
     var dartScopes = await jsScopes.toDartScopeChain();
     return [
       for (var scope in dartScopes.allScopes()) ...await _boundVariables(scope)
@@ -314,7 +317,9 @@ class Debugger extends Domain {
         ..name = property.name
         ..value = instanceRef;
     });
-    return (await Future.wait(refs)).where((variable) => variable != null);
+    var things = await Future.wait(refs);
+    var moreThings = things.where((variable) => variable != null);
+    return moreThings;
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [id].
