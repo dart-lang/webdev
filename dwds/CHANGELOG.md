@@ -1,3 +1,8 @@
+## 0.5.1
+
+- Fix an issue where missing source maps would cause a crash. A warning will
+  now be logged to the console instead.
+
 ## 0.5.0
 
 - Fix an issue where we source map paths were not normalized.

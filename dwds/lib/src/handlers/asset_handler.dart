@@ -28,9 +28,6 @@ class AssetHandler {
   ///
   /// For example the path `main.dart` should return the raw text value of that
   /// corresponding file.
-  Future<String> getRelativeAsset(String path) async {
-    var response = await handler(Request(
-        'GET', Uri.parse('http://$_applicationHost:$_applicationPort/$path')));
-    return await response.readAsString();
-  }
+  Future<Response> getRelativeAsset(String path) async => handler(Request(
+      'GET', Uri.parse('http://$_applicationHost:$_applicationPort/$path')));
 }

@@ -4,15 +4,17 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../../dwds.dart' show LogWriter;
+import '../handlers/asset_handler.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
 import 'location.dart';
+import 'remote_debugger.dart';
 import 'sources.dart';
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
@@ -26,13 +28,13 @@ const _pauseModePauseStates = {
 };
 
 class Debugger extends Domain {
-  final RemoteDebugger _remoteDebugger;
-
   final AssetHandler _assetHandler;
-  final StreamNotify _streamNotify;
+  final LogWriter _logWriter;
+  final RemoteDebugger _remoteDebugger;
 
   /// The root URI from which the application is served.
   final String _root;
+  final StreamNotify _streamNotify;
 
   Debugger._(
     this._assetHandler,
@@ -41,6 +43,7 @@ class Debugger extends Domain {
     AppInspectorProvider provider,
     // TODO(401) - Remove.
     this._root,
+    this._logWriter,
   )   : _breakpoints = _Breakpoints(provider),
         super(provider);
 
@@ -138,7 +141,8 @@ class Debugger extends Domain {
       RemoteDebugger remoteDebugger,
       StreamNotify streamNotify,
       AppInspectorProvider appInspectorProvider,
-      String root) async {
+      String root,
+      LogWriter logWriter) async {
     var debugger = Debugger._(
       assetHandler,
       remoteDebugger,
@@ -146,13 +150,14 @@ class Debugger extends Domain {
       appInspectorProvider,
       // TODO(401) - Remove.
       root,
+      logWriter,
     );
     await debugger._initialize();
     return debugger;
   }
 
   Future<Null> _initialize() async {
-    sources = Sources(_assetHandler, _remoteDebugger);
+    sources = Sources(_assetHandler, _remoteDebugger, _logWriter);
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.
@@ -303,7 +308,7 @@ class Debugger extends Domain {
     // the dynamically visible variables, so we should omit library scope.
     return [
       for (var scope in scopeChain.take(2)) ...await _boundVariables(scope)
-    ];
+    ]..sort((a, b) => a.name.compareTo(b.name));
   }
 
   /// The [BoundVariable]s visible in a v8 'scope' object as found in the
@@ -312,11 +317,13 @@ class Debugger extends Domain {
     var properties = await getProperties(scope['object']['objectId'] as String);
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
-    var refs = properties
-        .map<Future<BoundVariable>>((property) async => BoundVariable()
-          ..name = property.name
-          ..value = await inspector.instanceRefFor(property.value));
-    return Future.wait(refs);
+    var refs = properties.map<
+        Future<BoundVariable>>((property) async => BoundVariable()
+      ..name = property.name
+      ..value = await inspector.instanceHelper.instanceRefFor(property.value));
+    // Actual null values will still have a variable value of an InstanceRef.
+    return (await Future.wait(refs))
+        .where((variable) => variable.value != null);
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [id].
