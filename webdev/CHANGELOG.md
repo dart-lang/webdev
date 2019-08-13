@@ -1,4 +1,4 @@
-## Unreleased
+## 2.4.1
 
 - Depend on the latest `package:webkit_inspection_protocol`.
 
