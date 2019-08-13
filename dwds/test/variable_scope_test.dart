@@ -32,19 +32,10 @@ void main() {
     Stream<Event> stream;
     ScriptList scripts;
     ScriptRef mainScript;
+    Stack stack;
 
     // TODO: Be able to set breakpoints before start/reload so we can exercise
     // things that aren't in recurring loops.
-
-    setUp(() async {
-      vm = await service.getVM();
-      isolateId = vm.isolates.first.id;
-      scripts = await service.getScripts(isolateId);
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
-      mainScript = scripts.scripts
-          .firstWhere((each) => each.uri.contains('scopes_main.dart'));
-    });
 
     /// Support function for pausing and returning the stack at a line.
     Future<Stack> breakAt(int lineNumber) async {
@@ -59,9 +50,14 @@ void main() {
       return stack;
     }
 
-    Stack stack;
-
     setUp(() async {
+      vm = await service.getVM();
+      isolateId = vm.isolates.first.id;
+      scripts = await service.getScripts(isolateId);
+      await service.streamListen('Debug');
+      stream = service.onEvent('Debug');
+      mainScript = scripts.scripts
+          .firstWhere((each) => each.uri.contains('scopes_main.dart'));
       stack = await breakAt(25);
     });
 

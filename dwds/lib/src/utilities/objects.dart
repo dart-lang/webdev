@@ -25,11 +25,11 @@ class Property {
   RemoteObject get value {
     if (_remoteObjectValue != null) return _remoteObjectValue;
     if (rawValue == null) return null;
-    var value = _map['value'];
-    if (value is RemoteObject) {
-      _remoteObjectValue = value;
+    var val = _map['value'];
+    if (val is RemoteObject) {
+      _remoteObjectValue = val;
     } else {
-      _remoteObjectValue = RemoteObject(value as Map<String, dynamic>);
+      _remoteObjectValue = RemoteObject(val as Map<String, dynamic>);
     }
     return _remoteObjectValue;
   }
