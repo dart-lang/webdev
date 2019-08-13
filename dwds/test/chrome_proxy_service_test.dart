@@ -39,9 +39,11 @@ void main() {
       var stream = service.onEvent('Isolate');
       // Wait for the page to be fully loaded before refreshing.
       await Future.delayed(const Duration(seconds: 1));
+      var exitEvent =
+          stream.firstWhere((e) => e.kind != EventKind.kIsolateExit);
       await context.webDriver.refresh();
+      await exitEvent;
       // Wait for the refresh to propagate through.
-      await stream.firstWhere((e) => e.kind != EventKind.kIsolateExit);
       var isolateStart =
           await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
       var isolateId = isolateStart.isolate.id;
