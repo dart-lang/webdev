@@ -1,3 +1,8 @@
+## 2.5.0-dev
+
+- TLS support has been added to the `serve` command through the addition of two
+  new options `tls-cert-chain` and `tls-cert-key`.
+
 ## 2.4.0
 
 - Add a `--no-injected-client` option which can be used to work around issues
