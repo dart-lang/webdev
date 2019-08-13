@@ -41,9 +41,9 @@ void main() {
       await Future.delayed(const Duration(seconds: 1));
       await context.webDriver.refresh();
       // Wait for the refresh to propagate through.
-      await stream.firstWhere((e) => e.kind != EventKind.kIsolateExit); 
+      await stream.firstWhere((e) => e.kind != EventKind.kIsolateExit);
       var isolateStart =
-          await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart); 
+          await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
       var isolateId = isolateStart.isolate.id;
       var refreshedScriptList = await service.getScripts(isolateId);
       var refreshedMain = refreshedScriptList.scripts
