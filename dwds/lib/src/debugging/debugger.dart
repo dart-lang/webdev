@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../../dwds.dart' show LogWriter;
+import '../handlers/asset_handler.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
@@ -26,13 +28,13 @@ const _pauseModePauseStates = {
 };
 
 class Debugger extends Domain {
-  final RemoteDebugger _remoteDebugger;
-
   final AssetHandler _assetHandler;
-  final StreamNotify _streamNotify;
+  final LogWriter _logWriter;
+  final RemoteDebugger _remoteDebugger;
 
   /// The root URI from which the application is served.
   final String _root;
+  final StreamNotify _streamNotify;
 
   Debugger._(
     this._assetHandler,
@@ -41,6 +43,7 @@ class Debugger extends Domain {
     AppInspectorProvider provider,
     // TODO(401) - Remove.
     this._root,
+    this._logWriter,
   )   : _breakpoints = _Breakpoints(provider),
         super(provider);
 
@@ -55,6 +58,15 @@ class Debugger extends Domain {
   int _nextBreakpointId = 1;
 
   Stack _pausedStack;
+
+  /// The JS frames corresponding to [_pausedStack].
+  ///
+  /// The most important thing here is that frames are identified by
+  /// frameIndex in the Dart API, but by frame Id in Chrome, so we need
+  /// to keep the JS frames and their Ids around.
+  // TODO(alanknight): It would be nice to keep these as CallFrame instances,
+  // but they don't map enough of the data yet.
+  List<Map<String, dynamic>> _pausedJsStack;
 
   bool _isStepping = false;
 
@@ -129,7 +141,8 @@ class Debugger extends Domain {
       RemoteDebugger remoteDebugger,
       StreamNotify streamNotify,
       AppInspectorProvider appInspectorProvider,
-      String root) async {
+      String root,
+      LogWriter logWriter) async {
     var debugger = Debugger._(
       assetHandler,
       remoteDebugger,
@@ -137,13 +150,14 @@ class Debugger extends Domain {
       appInspectorProvider,
       // TODO(401) - Remove.
       root,
+      logWriter,
     );
     await debugger._initialize();
     return debugger;
   }
 
   Future<Null> _initialize() async {
-    sources = Sources(_assetHandler, _remoteDebugger);
+    sources = Sources(_assetHandler, _remoteDebugger, _logWriter);
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.
@@ -379,6 +393,7 @@ class Debugger extends Domain {
     _pausedStack = Stack()
       ..frames = frames
       ..messages = [];
+    _pausedJsStack = jsFrames;
     if (frames.isNotEmpty) event.topFrame = frames.first;
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
@@ -391,11 +406,41 @@ class Debugger extends Domain {
     var isolate = inspector?.isolate;
     if (isolate == null) return;
     _pausedStack = null;
+    _pausedJsStack = null;
     var event = Event()
       ..kind = EventKind.kResume
       ..isolate = inspector.isolateRef;
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
+  }
+
+  /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on
+  /// the call frame with index [frameIndex] in the currently saved stack.
+  ///
+  /// If the program is not paused, so there is no current stack, throws a
+  /// [StateError].
+  Future<RemoteObject> evaluateJsOnCallFrameIndex(
+      int frameIndex, String expression) {
+    if (_pausedJsStack == null) {
+      throw StateError(
+          'Cannot evaluate on a call frame when the program is not paused');
+    }
+    return evaluateJsOnCallFrame(
+        _pausedJsStack[frameIndex]['callFrameId'] as String, expression);
+  }
+
+  /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on
+  /// the call frame with id [callFrameId].
+  Future<RemoteObject> evaluateJsOnCallFrame(
+      String callFrameId, String expression) async {
+    // TODO(alanknight): Support a version with arguments if needed.
+    WipResponse result;
+    result = await _remoteDebugger.sendCommand('Debugger.evaluateOnCallFrame',
+        params: {'callFrameId': callFrameId, 'expression': expression});
+    handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
+      'Dart expression': expression,
+    });
+    return RemoteObject(result.result['result'] as Map<String, dynamic>);
   }
 }
 

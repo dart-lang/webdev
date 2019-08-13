@@ -13,7 +13,7 @@
     ],
     "background": {
         "scripts": [
-            "background.dart.js"
+            "background.js"
         ]
     }
 }

@@ -10,14 +10,13 @@ import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../../dwds.dart' show LogWriter;
 import '../debugging/debugger.dart';
 import '../debugging/inspector.dart';
 import '../debugging/remote_debugger.dart';
+import '../handlers/asset_handler.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
-
-/// A handler for application assets, e.g. Dart sources.
-typedef AssetHandler = Future<String> Function(String);
 
 /// Adds [event] to the stream with [streamId] if there is anybody listening
 /// on that stream.
@@ -30,6 +29,8 @@ typedef AppInspectorProvider = AppInspector Function();
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
+  final LogWriter _logWriter;
+
   /// Cache of all existing StreamControllers.
   ///
   /// These are all created through [onEvent].
@@ -63,6 +64,7 @@ class ChromeProxyService implements VmServiceInterface {
     this.uri,
     this._assetHandler,
     this.remoteDebugger,
+    this._logWriter,
   );
 
   static Future<ChromeProxyService> create(
@@ -70,6 +72,7 @@ class ChromeProxyService implements VmServiceInterface {
     String tabUrl,
     AssetHandler assetHandler,
     String appInstanceId,
+    LogWriter logWriter,
   ) async {
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
@@ -77,8 +80,8 @@ class ChromeProxyService implements VmServiceInterface {
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
-    var service =
-        ChromeProxyService._(vm, tabUrl, assetHandler, remoteDebugger);
+    var service = ChromeProxyService._(
+        vm, tabUrl, assetHandler, remoteDebugger, logWriter);
     await service._initialize();
     await service.createIsolate();
     return service;
@@ -91,6 +94,7 @@ class ChromeProxyService implements VmServiceInterface {
       _streamNotify,
       appInspectorProvider,
       uri,
+      _logWriter,
     );
   }
 
