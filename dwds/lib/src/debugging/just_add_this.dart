@@ -15,7 +15,7 @@ import 'package:dwds/src/utilities/objects.dart';
 /// We create this mostly to enable converting it into a corresponding DartScopeChain which
 /// has variable visibility determined by Dart semantics.
 class JsScopeChain {
-  static Debugger debugger; // ####
+  Debugger debugger; // ####
 
   /// All of the visible method (i.e. not global or Dart library) scopes.
   List<MethodScope> methodScopes;
@@ -23,7 +23,7 @@ class JsScopeChain {
   /// The ID of the call frame for which these are the visible scopes.
   String callFrameId;
 
-  JsScopeChain(this.methodScopes, this.callFrameId);
+  JsScopeChain(this.methodScopes, this.debugger, this.callFrameId);
 
   /// The [scopeList] is a List of maps corresponding to Chrome Scope objects.
   ///
@@ -32,7 +32,6 @@ class JsScopeChain {
       {List<Map<String, dynamic>> scopeList,
       Debugger debugger,
       String callFrameId}) async {
-    JsScopeChain.debugger = debugger;
     // We skip the global and the outer library scope and assume everything before
     // that is a method scope.
     var numberOfMethods = scopeList.length - 2;
@@ -41,10 +40,10 @@ class JsScopeChain {
         .map((x) async => await MethodScope.create(
             name: (x['name'] ?? 'unnamed') as String,
             objectId: x['object']['objectId'] as String,
-            chain: null))
+            debugger: debugger))
         .toList();
     var methodScopes = await Future.wait(futureScopes);
-    var scopeChain = JsScopeChain(methodScopes, callFrameId);
+    var scopeChain = JsScopeChain(methodScopes, debugger, callFrameId);
     // Now we can set the containing scopeChain for the created scopes. We
     // couldn't do this earlier because we hadn't created it yet.
     for (var scope in methodScopes) {
@@ -62,7 +61,7 @@ class JsScopeChain {
         .toList();
     // Add a scope for [this] if present, even if it wasn't in Chrome.
     var jsThis = await thisScope();
-    return [... methodScopes, jsThis.toDartScope()];
+    return [...methodScopes, jsThis.toDartScope()];
   }
 
   /// The scope corresponding to `this`.
@@ -71,12 +70,11 @@ class JsScopeChain {
     // one that has a valid [this], to avoid including its values more than
     // once.
     for (var scope in methodScopes) {
-      await scope._addThisIfMissing();
-      var thisScope = await scope.thisScope();
+      var thisScope = await scope._addThisIfMissing();
       if (thisScope.isNotEmpty()) return thisScope;
     }
     // We didn't find a non-empty [ThisScope]. Return one of the empty ones.
-    return methodScopes[0].thisScope();
+    return methodScopes[0].thisScope;
   }
 }
 
@@ -94,6 +92,8 @@ class Scope {
 
   /// The containing scope chain.
   JsScopeChain chain;
+
+  Debugger get _debugger => chain.debugger;
 
   Scope(this.name, this.properties, this.chain);
 
@@ -116,80 +116,80 @@ class Scope {
   bool propertyIsSymbol(Property property) =>
       property.name.startsWith('Symbol(');
 
+  /// Convert a symbol name to its non-symbol form.
+  String nonSymbolName(String name) =>
+      name.substring('Symbol('.length, name.length - 1);
+
   /// Returns a new scope modified to reflect Dart visibility for a scope of
   /// this type.
   // ignore: avoid_returning_this
   Scope toDartScope() => this;
 
-  /// Get all the internal properties of the object, because they should be
+  /// Get all the internal properties of [property], because they should be
   /// visible in Dart scope.
   ///
-  /// The [property] represents either a library or the current 'this'.
+  /// This can apply to either `this` or to a library.
   Future<List<Property>> expand(Property property) async {
     if (property == null ||
         (property.name).startsWith('_') ||
         property.value.objectId == null) {
       return [];
     }
-    return await JsScopeChain.debugger.getProperties(property.value.objectId);
+    return await _debugger.getProperties(property.value.objectId);
   }
 }
 
 class MethodScope extends Scope {
+  /// The scope corresponding to the `this` of the method.
+  ///
+  /// If there is no `this`, e.g. if it's a function, there will
+  /// still be an empty scope.
   ThisScope _thisScope;
+
+  /// The property for `this`.
+  ///
+  /// Will be null if there is no `this` for this method/function.
   Property self;
 
-  /// @param {!Dart.Scope || Object} scope. Either one of our scopes or one of
-  ///     the anonymous objects that are returned from the devtools scopeChain
-  ///     calls.
-  /// @param {string} name. Comes from the Devtools scopes. We don't use it,
-  ///     but it's useful for debugging.
-  /// @param {!List<SDK.RemoteObjectProperty || Object>} properties. The
-  ///     properties in this particular scope
-  /// @param {string} aliasForThis. The name to use to replace the reserved
-  /// word 'this' in parameter lists.
-  MethodScope(String name, List<Property> properties, JsScopeChain chain)
+  MethodScope._(String name, List<Property> properties, JsScopeChain chain)
       : super(name, properties, chain) {
     self = properties.firstWhere((x) => x.name == 'this', orElse: () => null);
   }
 
   /// A static creation method, which is the normal path because we want to do
   /// async operations.
+  ///
+  /// Either [chain] or [debugger] may be omitted. The [debugger] parameter is
+  /// for the case of creating a MethodScope when we don't yet have the
+  /// containing [JsScopeChain].
   static Future<MethodScope> create(
-      {String name, String objectId, JsScopeChain chain}) async {
-    var properties = await JsScopeChain.debugger.getProperties(objectId);
-    return MethodScope(name, properties, chain);
-  }
-
-  static Future<MethodScope> fromJs(
-      Map<String, dynamic> jsScope, JsScopeChain chain) async {
-    var properties = await JsScopeChain.debugger
-        .getProperties(jsScope['object']['objectId'] as String);
-    return MethodScope(jsScope['name'] as String, properties, chain);
+      {String name,
+      String objectId,
+      JsScopeChain chain,
+      Debugger debugger}) async {
+    var properties =
+        await (chain?.debugger ?? debugger).getProperties(objectId);
+    return MethodScope._(name, properties, chain);
   }
 
   @override
   MethodScope toDartScope() => this;
 
-  Future<ThisScope> thisScope() async {
-    if (_thisScope != null) return _thisScope;
-    var properties = (await expand(self)) ?? [];
-    return _thisScope = ThisScope('this', properties, chain);
-  }
-
-  /// Fill in the 'this' scope if it wasn't in the original call.
+  /// Return the scope of `this` for the method.
   ///
-  /// If we were not given a 'this' value in the devtools scopes that might mean
+  /// If called after _addThisIfMissing, this should always have a value, though
+  /// it may be an artificial empty scope.
+  ThisScope get thisScope => _thisScope;
+
+  /// Fill in the 'this' scope if it wasn't in the original scope.
+  ///
+  /// If we were not given a 'this' value in the Chrome scopes that might mean
   /// we're in a nested closure, or we might be a top-level function.
   /// Construct a 'this'. If it turns out to be null/undefined, make it empty.
   /// If it just duplicates the containing library, ignore it. Otherwise insert
   /// it into the scope where it will get expanded normally.
-  ///
-  /// @param {string} libraryName. Used when we have to find a 'this' which wasn't
-  ///     in the original scopes, but we want to avoid just duplicating the library.
-  /// @return {void}  Modifies this.self and this._thisScope
-  Future<void> _addThisIfMissing() async {
-    if (_thisScope != null || self != null) return;
+  Future<ThisScope> _addThisIfMissing() async {
+    if (_thisScope != null) return _thisScope;
     // If 'this' is a library return null, otherwise
     // return 'this'.
     const findCurrent = '''
@@ -203,18 +203,18 @@ class MethodScope extends Scope {
             }
             } return THIS; })(this)''';
 
-    var actualThis = await JsScopeChain.debugger
-        .evaluateJsOnCallFrame(chain.callFrameId, findCurrent);
+    var actualThis =
+        await _debugger.evaluateJsOnCallFrame(chain.callFrameId, findCurrent);
 
-    // Guard against a null result, particularly in tests
-    // actualThis = actualThis?.object;
     if (actualThis.type != 'undefined') {
-      // Construct something that looks like a RemoteObjectProperty
+      /// Construct a property for `this`.
       self = Property({'name': 'this', 'value': actualThis});
       properties.add(self);
+      _thisScope = ThisScope('this', await expand(self), chain);
     } else {
       _thisScope = ThisScope('empty', [], chain);
     }
+    return _thisScope;
   }
 }
 
@@ -226,14 +226,13 @@ class ThisScope extends Scope {
   /// visible without a prefix in Dart.
   @override
   ThisScope toDartScope() {
-    // Private instance fields have a name that's a symbol. Strip it down to
+    // Private instance fields have a name that's a  symbol. Strip it down to
     // just the private name.
     var newProperties = <Property>[];
     for (var property in properties) {
-      if (property.name.startsWith('Symbol(_')) {
+      if (propertyIsSymbol(property)) {
         newProperties.add(Property({
-          'name': property.name
-              .substring('Symbol('.length, property.name.length - 1),
+          'name': nonSymbolName(property.name),
           'value': property.rawValue
         }));
       } else {
@@ -279,7 +278,7 @@ class ThisScope extends Scope {
   /// These are typically either from JS, or additional methods that DDC adds,
   /// e.g. the _is_ tests for classes.
   ThisScope withoutIgnored() {
-    return ThisScope(name,
-        properties.where((p) => !isIgnoredProperty(p)).toList(), chain);
+    return ThisScope(
+        name, properties.where((p) => !isIgnoredProperty(p)).toList(), chain);
   }
 }
