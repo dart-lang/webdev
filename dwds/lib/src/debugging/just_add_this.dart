@@ -15,7 +15,9 @@ import 'package:dwds/src/utilities/objects.dart';
 /// We create this mostly to enable converting it into a corresponding DartScopeChain which
 /// has variable visibility determined by Dart semantics.
 class JsScopeChain {
-  Debugger debugger; // ####
+  /// We keep hold of the current [Debugger] in order to be able to fetch
+  /// information about the scopes.
+  Debugger debugger;
 
   /// All of the visible method (i.e. not global or Dart library) scopes.
   List<MethodScope> methodScopes;
