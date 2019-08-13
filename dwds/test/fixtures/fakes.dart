@@ -34,7 +34,8 @@ class FakeInspector extends Domain implements AppInspector {
       null;
   @override
   Future<ScriptList> getScripts(String isolateId) => null;
-/// ###### This is deleted in master. Do we still need it?
+
+  /// ###### This is deleted in master. Do we still need it?
   Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) async {
     print("hey!");
     var classRef = ClassRef()
@@ -47,7 +48,6 @@ class FakeInspector extends Domain implements AppInspector {
   }
 
   @override
-
   Future<ScriptRef> scriptRefFor(String uri) => null;
   @override
   Future<List<ScriptRef>> scriptRefs(String isolateId) => null;
@@ -176,6 +176,12 @@ class FakeWebkitDebugger implements WebkitDebugger {
     // Force the results that we expect for looking up the variables.
     if (method == 'Runtime.getProperties') {
       return results[resultsReturned++];
+    }
+    if (method == 'Debugger.evaluateOnCallFrame') {
+      return WipResponse({
+        'id': 999,
+        'result': {'result': {'objectId': 'fake', 'type': 'undefined', 'value': null}}
+      });
     }
     return null;
   }
