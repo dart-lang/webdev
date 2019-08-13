@@ -140,9 +140,9 @@ class Configuration {
 
   String get hostname => _hostname ?? 'localhost';
 
-  String get tlsCertChain => _tlsCertChain ?? '';
+  String get tlsCertChain => _tlsCertChain;
 
-  String get tlsCertKey => _tlsCertKey ?? '';
+  String get tlsCertKey => _tlsCertKey;
 
   bool get launchInChrome => _launchInChrome ?? false;
 
