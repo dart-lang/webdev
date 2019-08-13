@@ -47,15 +47,6 @@ class JsScopeChain {
   /// Convert to a scope chain that represents the variables visible under
   /// Dart semantics.
   Future<DartScopeChain> toDartScopeChain() async {
-    // In the scope of the surrounding libraries, most of the variables
-    // aren't visible to Dart. We have objects for Dart libraries, but we
-    // need to promote their variables to make them visible. We find those
-    // as the remote properties whose description is Object or Proxy. For
-    // code completion we want to expand those. For compilation visibility
-    // we ignore them, as the compiler will reference them directly.
-    // TODO(alanknight): Should we expand all libraries? Skip dart:core?
-    // Should libraries with a $ suffix, (e.g. fixnum) be expanded?
-
     // Method scope.
     methodScopes = methodScopes
         .map((scope) => scope.toDartScope())
@@ -170,6 +161,9 @@ class MethodScope extends Scope {
         .getProperties(jsScope['object']['objectId'] as String);
     return MethodScope(null, jsScope['name'] as String, properties, chain);
   }
+
+  @override
+  MethodScope toDartScope() => this;
 
   Future<ThisScope> thisScope(String libraryName) async {
     if (_thisScope != null) return _thisScope;
