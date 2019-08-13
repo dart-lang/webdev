@@ -13,7 +13,7 @@ import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
-import 'dart_scope.dart';
+import 'just_add_this.dart';
 import 'location.dart';
 import 'remote_debugger.dart';
 import 'sources.dart';
