@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
 import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/utilities/objects.dart';
 
 
@@ -17,25 +18,28 @@ class JsScopeChain {
   JsScopeChain(
       this.methodScopes, this.libraryName, this.callFrameId);
 
-  /// We expect the [scopeList] to be a List of maps corresponding to Chrome Scope objects.
+  /// The [scopeList] is a List of maps corresponding to Chrome Scope objects.
   ///
   /// https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Scope
   static Future<JsScopeChain> fromJs(List<Map<String, dynamic>> scopeList,
       String libraryName, Debugger theDebugger, String callFrameId) async {
     JsScopeChain.debugger = theDebugger;
+    // We skip the global and the outer library scope and assume everything before
+    // that is a method scope.
     var numberOfMethods = scopeList.length - 2;
-    var rawMethodScopes = scopeList.take(numberOfMethods).toList();
-    var futureScopes = rawMethodScopes
-        .map((x) async => await MethodScope.fromId(
-            (x['name'] ?? 'unnamed') as String,
-            x['object']['objectId'] as String,
-            null))
+    var futureScopes = scopeList.sublist(0, numberOfMethods)
+        .map((x) async => await MethodScope.create(
+            name: (x['name'] ?? 'unnamed') as String,
+            objectId: x['object']['objectId'] as String,
+            chain: null))
         .toList();
     var methodScopes = await Future.wait(futureScopes);
     var scopeChain =
         JsScopeChain(methodScopes, libraryName, callFrameId);
+    // Now we can set the containing scopeChain for the created scopes. We
+    // couldn't do this earlier because we hadn't created it yet.
     for (var scope in methodScopes) {
-      scope.context = scopeChain;
+      scope.chain = scopeChain;
     }
     return scopeChain;
   }
@@ -90,8 +94,8 @@ class DartScopeChain {
 class Scope {
   String name;
   List<Property> properties;
-  JsScopeChain context;
-  Scope(Scope scope, String name, List<Property> properties, this.context) {
+  JsScopeChain chain;
+  Scope(Scope scope, String name, List<Property> properties, this.chain) {
     this.name = name ?? scope.name;
     this.properties = properties ?? scope.properties;
   }
@@ -147,28 +151,30 @@ class MethodScope extends Scope {
   /// @param {string} aliasForThis. The name to use to replace the reserved
   /// word 'this' in parameter lists.
   MethodScope(
-      Scope scope, String name, List<Property> properties, JsScopeChain context)
-      : super(scope, name, properties, context) {
+      Scope scope, String name, List<Property> properties, JsScopeChain chain)
+      : super(scope, name, properties, chain) {
     self = properties.firstWhere((x) => x.name == 'this', orElse: () => null);
   }
 
-  static Future<MethodScope> fromId(
-      String name, String objectId, JsScopeChain context) async {
+  /// A static creation method, which is the normal path because we want to do
+  /// async operations.
+  static Future<MethodScope> create({
+      String name, String objectId, JsScopeChain chain}) async {
     var properties = await JsScopeChain.debugger.getProperties(objectId);
-    return MethodScope(null, name, properties, context);
+    return MethodScope(null, name, properties, chain);
   }
 
   static Future<MethodScope> fromJs(
-      Map<String, dynamic> jsScope, JsScopeChain context) async {
+      Map<String, dynamic> jsScope, JsScopeChain chain) async {
     var properties = await JsScopeChain.debugger
         .getProperties(jsScope['object']['objectId'] as String);
-    return MethodScope(null, jsScope['name'] as String, properties, context);
+    return MethodScope(null, jsScope['name'] as String, properties, chain);
   }
 
   Future<ThisScope> thisScope(String libraryName) async {
     if (_thisScope != null) return _thisScope;
     var properties = (await expand(self)) ?? [];
-    return _thisScope = ThisScope(null, 'this', properties, context);
+    return _thisScope = ThisScope(null, 'this', properties, chain);
   }
 
   /// Fill in the 'this' scope if it wasn't in the original call.
@@ -198,7 +204,7 @@ class MethodScope extends Scope {
             } return THIS; })(this)''';
 
     var actualThis = await JsScopeChain.debugger
-        .evaluateJsOnCallFrame(context.callFrameId, findCurrent);
+        .evaluateJsOnCallFrame(chain.callFrameId, findCurrent);
 
     // Guard against a null result, particularly in tests
     // actualThis = actualThis?.object;
@@ -207,15 +213,15 @@ class MethodScope extends Scope {
       self = Property({'name': 'this', 'value': actualThis});
       properties.add(self);
     } else {
-      _thisScope = ThisScope(null, 'empty', [], context);
+      _thisScope = ThisScope(null, 'empty', [], chain);
     }
   }
 }
 
 class ThisScope extends Scope {
   ThisScope(
-      Scope scope, String name, List<Property> properties, JsScopeChain context)
-      : super(scope, name, properties, context);
+      Scope scope, String name, List<Property> properties, JsScopeChain chain)
+      : super(scope, name, properties, chain);
 
   /// Returns a scope which includes fields of the current object, which are
   /// visible without a prefix in Dart.
@@ -235,7 +241,7 @@ class ThisScope extends Scope {
         newProperties.add(property);
       }
     }
-    var newScope = ThisScope(null, name, newProperties, context);
+    var newScope = ThisScope(null, name, newProperties, chain);
 
     /// Remove all remaining symbols and other things we don't want visible.
     return newScope.withoutSymbols().withoutIgnored();
@@ -254,13 +260,13 @@ class ThisScope extends Scope {
   /// Return a scope based on this one without properties whose names are
   /// symbols.
   ThisScope withoutSymbols() {
-    return ThisScope(this, null, propertiesWithoutSymbols(), context);
+    return ThisScope(this, null, propertiesWithoutSymbols(), chain);
   }
 
   /// Is the property named [property] one that we should ignore.
   bool isIgnoredProperty(Property property) {
     return property.name.startsWith('_is_') ||
-        _namesToIgnore.contains(property.name);
+        fieldNamesToIgnore.contains(property.name);
   }
 
   /// Return a scope based on this one but without names that we don't want to
@@ -277,86 +283,6 @@ class ThisScope extends Scope {
     // see those symbols?  They might be in a separate package, but we may
     // want to include them and assume that dloadRepl will handle them.
     return ThisScope(this, null,
-        properties.where((p) => !isIgnoredProperty(p)).toList(), context);
+        properties.where((p) => !isIgnoredProperty(p)).toList(), chain);
   }
 }
-
-class LibraryScope extends Scope {
-  String activeLibraryName;
-
-  static Future<LibraryScope> fromId(String name, String objectId,
-      String libraryName, JsScopeChain context) async {
-    var properties = await JsScopeChain.debugger.getProperties(objectId);
-    return LibraryScope(null, name, properties, libraryName, context);
-  }
-
-  LibraryScope(Scope scope, String name, List<Property> properties,
-      this.activeLibraryName, JsScopeChain context)
-      : super(scope, name, properties, context);
-
-  /// Does this property look like it contains another library.
-  bool _isLibrary(Property property) {
-    if (property.value == null) return false;
-    if (property.name == activeLibraryName) return false;
-    return property.value.description == 'Object' ||
-        property.value.description == 'Proxy';
-  }
-
-  /// The property representing the active library.
-  Property activeLibrary() {
-    return propertyNamed(activeLibraryName);
-  }
-
-  /// Expand this into a list of the visible library scopes.
-  Future<List<LibraryScope>> expanded() async {
-    var lib = activeLibrary();
-    var allLibraries = <LibraryScope>[];
-    if (lib != null) {
-      var expanded = await _expandThisLibrary();
-      allLibraries.add(expanded);
-    }
-    return [...allLibraries, ...await _expandOthers()];
-  }
-
-  Future<LibraryScope> _expandThisLibrary() async {
-    var library = activeLibrary();
-    if (library == null) return null;
-    var expanded = await expand(library);
-    return LibraryScope(null, name, expanded, activeLibraryName, context);
-  }
-
-  Future<List<LibraryScope>> _expandOthers() async {
-    var otherLibraries = properties.where(_isLibrary);
-    var newScopes = <LibraryScope>[];
-    for (var library in otherLibraries) {
-      var libraryProperties = await expand(library);
-      var libraryVariables = LibraryScope(
-          null, 'library', libraryProperties, library.name, context);
-      newScopes.add(libraryVariables);
-    }
-    return newScopes;
-  }
-}
-
-/// JS names that we don't want to show up in autocomplete or to pass to
-/// evaluation.
-const Set<String> _namesToIgnore = {
-  'constructor',
-  'noSuchMethod',
-  'runtimeType',
-  'toString',
-  '_equals',
-  '__defineGetter__',
-  '__defineSetter__',
-  '__lookupGetter__',
-  '__lookupSetter__',
-  '__proto__',
-  'classGetter',
-  'hasOwnProperty',
-  'hashCode',
-  'isPrototypeOf',
-  'propertyIsEnumerable',
-  'toLocaleString',
-  'valueOf',
-  '_identityHashCode'
-};

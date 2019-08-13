@@ -36,16 +36,16 @@ class FakeInspector extends Domain implements AppInspector {
   Future<ScriptList> getScripts(String isolateId) => null;
 
   /// ###### This is deleted in master. Do we still need it?
-  Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) async {
-    print("hey!");
-    var classRef = ClassRef()
-      ..id = 'dart:core:undefined'
-      ..name = 'Null';
-    return InstanceRef()
-      ..valueAsString = 'null'
-      ..classRef = classRef
-      ..kind = InstanceKind.kNull;
-  }
+  // Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) async {
+  //   print("hey!");
+  //   var classRef = ClassRef()
+  //     ..id = 'dart:core:undefined'
+  //     ..name = 'Null';
+  //   return InstanceRef()
+  //     ..valueAsString = 'null'
+  //     ..classRef = classRef
+  //     ..kind = InstanceKind.kNull;
+  // }
 
   @override
   Future<ScriptRef> scriptRefFor(String uri) => null;
