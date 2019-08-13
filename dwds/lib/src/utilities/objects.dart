@@ -10,6 +10,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// Represents a property of an object.
 class Property {
   final Map<String, dynamic> _map;
+  RemoteObject _remoteObjectValue;
 
   Property(this._map);
 
@@ -17,11 +18,21 @@ class Property {
   ///
   /// Useful for getting access to properties of particular types of
   /// RemoteObject.
-  Map<String, dynamic> get rawValue => _map['value'] as Map<String, dynamic>;
+  Object get rawValue => _map == null ? null : _map['value'];
 
   /// Remote object value in case of primitive values or JSON values (if it was
   /// requested). (optional)
-  RemoteObject get value => RemoteObject(rawValue);
+  RemoteObject get value {
+    if (_remoteObjectValue != null) return _remoteObjectValue;
+    if (rawValue == null) return null;
+    var val = _map['value'];
+    if (val is RemoteObject) {
+      _remoteObjectValue = val;
+    } else {
+      _remoteObjectValue = RemoteObject(val as Map<String, dynamic>);
+    }
+    return _remoteObjectValue;
+  }
 
   /// The name of the property
   String get name => _map['name'] as String;
