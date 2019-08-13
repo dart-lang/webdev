@@ -110,7 +110,7 @@ class WebDevServer {
     var tlsCertKey = options.configuration.tlsCertKey;
 
     HttpServer server;
-    var protocol = (tlsCertChain != '' && tlsCertKey != '') ? 'https': 'http';
+    var protocol = (tlsCertChain != '' && tlsCertKey != '') ? 'https' : 'http';
     if (protocol == 'https') {
       var serverContext = SecurityContext()
         ..useCertificateChain(tlsCertChain.toString())
