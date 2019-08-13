@@ -39,7 +39,11 @@ void main() {
       var stream = service.onEvent('Isolate');
       // Wait for the page to be fully loaded before refreshing.
       await Future.delayed(const Duration(seconds: 1));
+      // Now wait for the shutdown event.
+      var exitEvent =
+          stream.firstWhere((e) => e.kind != EventKind.kIsolateExit);
       await context.webDriver.refresh();
+      await exitEvent;
       // Wait for the refresh to propagate through.
       var isolateStart =
           await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
