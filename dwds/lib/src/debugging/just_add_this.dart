@@ -6,36 +6,45 @@ import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/utilities/objects.dart';
 
-
+/// A JS Scope Chain, representing the scopeChain attribute of a Chrome
+/// CallFrame.
+///
+/// See
+/// https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-CallFrame
+///
+/// We create this mostly to enable converting it into a corresponding DartScopeChain which
+/// has variable visibility determined by Dart semantics.
 class JsScopeChain {
-  static Debugger debugger;  // ####
+  static Debugger debugger; // ####
 
-  List<Scope> scopes;
-  String libraryName;
+  /// All of the visible method (i.e. not global or Dart library) scopes.
   List<MethodScope> methodScopes;
+
+  /// The ID of the call frame for which these are the visible scopes.
   String callFrameId;
 
-  JsScopeChain(
-      this.methodScopes, this.libraryName, this.callFrameId);
+  JsScopeChain(this.methodScopes, this.callFrameId);
 
   /// The [scopeList] is a List of maps corresponding to Chrome Scope objects.
   ///
   /// https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Scope
-  static Future<JsScopeChain> fromJs(List<Map<String, dynamic>> scopeList,
-      String libraryName, Debugger theDebugger, String callFrameId) async {
-    JsScopeChain.debugger = theDebugger;
+  static Future<JsScopeChain> fromJs(
+      {List<Map<String, dynamic>> scopeList,
+      Debugger debugger,
+      String callFrameId}) async {
+    JsScopeChain.debugger = debugger;
     // We skip the global and the outer library scope and assume everything before
     // that is a method scope.
     var numberOfMethods = scopeList.length - 2;
-    var futureScopes = scopeList.sublist(0, numberOfMethods)
+    var futureScopes = scopeList
+        .sublist(0, numberOfMethods)
         .map((x) async => await MethodScope.create(
             name: (x['name'] ?? 'unnamed') as String,
             objectId: x['object']['objectId'] as String,
             chain: null))
         .toList();
     var methodScopes = await Future.wait(futureScopes);
-    var scopeChain =
-        JsScopeChain(methodScopes, libraryName, callFrameId);
+    var scopeChain = JsScopeChain(methodScopes, callFrameId);
     // Now we can set the containing scopeChain for the created scopes. We
     // couldn't do this earlier because we hadn't created it yet.
     for (var scope in methodScopes) {
@@ -46,30 +55,30 @@ class JsScopeChain {
 
   /// Convert to a scope chain that represents the variables visible under
   /// Dart semantics.
+  ///
+  /// Note that this does not include library variables at the moment.
   Future<DartScopeChain> toDartScopeChain() async {
-    // Method scope.
     methodScopes = methodScopes
         .map((scope) => scope.toDartScope())
         .cast<MethodScope>()
         .toList();
-
-    // Add a scope for [this] if present.
-    var dartThisScope = (await thisScope(libraryName)).toDartScope();
+    // Add a scope for [this] if present, even if it wasn't in v8.
+    var dartThisScope = (await thisScope()).toDartScope();
     return DartScopeChain(methodScopes, dartThisScope);
   }
 
   /// The scope corresponding to `this`.
-  Future<ThisScope> thisScope(String libraryName) async {
+  Future<ThisScope> thisScope() async {
     // We may have nested closures. Return the scope of [this] for the first
     // one that has a valid [this], to avoid including its values more than
     // once.
     for (var scope in methodScopes) {
-      await scope._addThisIfMissing(libraryName);
-      var thisScope = await scope.thisScope(libraryName);
+      await scope._addThisIfMissing();
+      var thisScope = await scope.thisScope();
       if (thisScope.isNotEmpty()) return thisScope;
     }
-    // We didn't find a non-empty [_ThisScope]. Return the first (empty) one.
-    return methodScopes[0].thisScope(libraryName);
+    // We didn't find a non-empty [ThisScope]. Return one of the empty ones.
+    return methodScopes[0].thisScope();
   }
 }
 
@@ -149,8 +158,8 @@ class MethodScope extends Scope {
 
   /// A static creation method, which is the normal path because we want to do
   /// async operations.
-  static Future<MethodScope> create({
-      String name, String objectId, JsScopeChain chain}) async {
+  static Future<MethodScope> create(
+      {String name, String objectId, JsScopeChain chain}) async {
     var properties = await JsScopeChain.debugger.getProperties(objectId);
     return MethodScope(null, name, properties, chain);
   }
@@ -165,7 +174,7 @@ class MethodScope extends Scope {
   @override
   MethodScope toDartScope() => this;
 
-  Future<ThisScope> thisScope(String libraryName) async {
+  Future<ThisScope> thisScope() async {
     if (_thisScope != null) return _thisScope;
     var properties = (await expand(self)) ?? [];
     return _thisScope = ThisScope(null, 'this', properties, chain);
@@ -182,7 +191,7 @@ class MethodScope extends Scope {
   /// @param {string} libraryName. Used when we have to find a 'this' which wasn't
   ///     in the original scopes, but we want to avoid just duplicating the library.
   /// @return {void}  Modifies this.self and this._thisScope
-  Future<void> _addThisIfMissing(String libraryName) async {
+  Future<void> _addThisIfMissing() async {
     if (_thisScope != null || self != null) return;
     // If 'this' is a library return null, otherwise
     // return 'this'.

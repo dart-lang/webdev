@@ -308,10 +308,9 @@ class Debugger extends Domain {
   Future<List<BoundVariable>> _variablesFor(
       List<dynamic> scopeChain, String callFrameId) async {
     var jsScopes = await JsScopeChain.fromJs(
-        scopeChain.cast<Map<String, dynamic>>().toList(),
-        'fred',
-        this,
-        callFrameId);
+        scopeList: scopeChain.cast<Map<String, dynamic>>().toList(),
+        debugger: this,
+        callFrameId: callFrameId);
     var dartScopes = await jsScopes.toDartScopeChain();
     return [
       for (var scope in dartScopes.allScopes()) ...await _boundVariables(scope)
