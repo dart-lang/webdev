@@ -6,7 +6,6 @@
 ## 2.4.1
 
 - Depend on the latest `package:webkit_inspection_protocol`.
->>>>>>> fed56f4c80c3e1d81bc45ad91c4dcce3694ca7d1
 
 ## 2.4.0
 
