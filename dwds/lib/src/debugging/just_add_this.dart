@@ -53,18 +53,16 @@ class JsScopeChain {
     return scopeChain;
   }
 
-  /// Convert to a scope chain that represents the variables visible under
-  /// Dart semantics.
-  ///
-  /// Note that this does not include library variables at the moment.
-  Future<DartScopeChain> toDartScopeChain() async {
+  /// Convert to a scope chain that represents the method and `this` scope
+  /// variables visible under Dart semantics.
+  Future<List<Scope>> toDartScopeChain() async {
     methodScopes = methodScopes
         .map((scope) => scope.toDartScope())
         .cast<MethodScope>()
         .toList();
-    // Add a scope for [this] if present, even if it wasn't in v8.
-    var dartThisScope = (await thisScope()).toDartScope();
-    return DartScopeChain(methodScopes, dartThisScope);
+    // Add a scope for [this] if present, even if it wasn't in Chrome.
+    var jsThis = await thisScope();
+    return [... methodScopes, jsThis.toDartScope()];
   }
 
   /// The scope corresponding to `this`.
@@ -82,25 +80,25 @@ class JsScopeChain {
   }
 }
 
-class DartScopeChain {
-  List<MethodScope> methodScopes;
-  ThisScope thisScope;
-
-  DartScopeChain(this.methodScopes, this.thisScope);
-
-  List<Scope> allScopes() => [...methodScopes, thisScope];
-}
-
+/// Variables in scope from a particular call frame.
 class Scope {
+  /// The name of this kind of scope. Comes from the JS [chain] and is only used
+  /// for debugging purposes.
+  ///
+  /// It may contain the name of the method, or may just say it's a closure, or
+  /// global.
   String name;
-  List<Property> properties;
-  JsScopeChain chain;
-  Scope(Scope scope, String name, List<Property> properties, this.chain) {
-    this.name = name ?? scope.name;
-    this.properties = properties ?? scope.properties;
-  }
 
-  Property propertyNamed(propertyName) {
+  /// All the visible variables, with their names.
+  List<Property> properties;
+
+  /// The containing scope chain.
+  JsScopeChain chain;
+
+  Scope(this.name, this.properties, this.chain);
+
+  /// Look up a property by name.
+  Property propertyNamed(String propertyName) {
     return properties.firstWhere((prop) => prop.name == propertyName,
         orElse: () => null);
   }
@@ -150,9 +148,8 @@ class MethodScope extends Scope {
   ///     properties in this particular scope
   /// @param {string} aliasForThis. The name to use to replace the reserved
   /// word 'this' in parameter lists.
-  MethodScope(
-      Scope scope, String name, List<Property> properties, JsScopeChain chain)
-      : super(scope, name, properties, chain) {
+  MethodScope(String name, List<Property> properties, JsScopeChain chain)
+      : super(name, properties, chain) {
     self = properties.firstWhere((x) => x.name == 'this', orElse: () => null);
   }
 
@@ -161,14 +158,14 @@ class MethodScope extends Scope {
   static Future<MethodScope> create(
       {String name, String objectId, JsScopeChain chain}) async {
     var properties = await JsScopeChain.debugger.getProperties(objectId);
-    return MethodScope(null, name, properties, chain);
+    return MethodScope(name, properties, chain);
   }
 
   static Future<MethodScope> fromJs(
       Map<String, dynamic> jsScope, JsScopeChain chain) async {
     var properties = await JsScopeChain.debugger
         .getProperties(jsScope['object']['objectId'] as String);
-    return MethodScope(null, jsScope['name'] as String, properties, chain);
+    return MethodScope(jsScope['name'] as String, properties, chain);
   }
 
   @override
@@ -177,7 +174,7 @@ class MethodScope extends Scope {
   Future<ThisScope> thisScope() async {
     if (_thisScope != null) return _thisScope;
     var properties = (await expand(self)) ?? [];
-    return _thisScope = ThisScope(null, 'this', properties, chain);
+    return _thisScope = ThisScope('this', properties, chain);
   }
 
   /// Fill in the 'this' scope if it wasn't in the original call.
@@ -216,15 +213,14 @@ class MethodScope extends Scope {
       self = Property({'name': 'this', 'value': actualThis});
       properties.add(self);
     } else {
-      _thisScope = ThisScope(null, 'empty', [], chain);
+      _thisScope = ThisScope('empty', [], chain);
     }
   }
 }
 
 class ThisScope extends Scope {
-  ThisScope(
-      Scope scope, String name, List<Property> properties, JsScopeChain chain)
-      : super(scope, name, properties, chain);
+  ThisScope(String name, List<Property> properties, JsScopeChain chain)
+      : super(name, properties, chain);
 
   /// Returns a scope which includes fields of the current object, which are
   /// visible without a prefix in Dart.
@@ -244,7 +240,7 @@ class ThisScope extends Scope {
         newProperties.add(property);
       }
     }
-    var newScope = ThisScope(null, name, newProperties, chain);
+    var newScope = ThisScope(name, newProperties, chain);
 
     /// Remove all remaining symbols and other things we don't want visible.
     return newScope.withoutSymbols().withoutIgnored();
@@ -263,11 +259,16 @@ class ThisScope extends Scope {
   /// Return a scope based on this one without properties whose names are
   /// symbols.
   ThisScope withoutSymbols() {
-    return ThisScope(this, null, propertiesWithoutSymbols(), chain);
+    return ThisScope(name, propertiesWithoutSymbols(), chain);
   }
 
   /// Is the property named [property] one that we should ignore.
   bool isIgnoredProperty(Property property) {
+    // TODO(alanknight): Make this more rigorous, especially the
+    // _is_<className> check.
+    // TODO(alanknight): Will this handle private superclass fields. Do we
+    // see those symbols?  They might be in a separate package, but we may
+    // want to include them and assume that dloadRepl will handle them.
     return property.name.startsWith('_is_') ||
         fieldNamesToIgnore.contains(property.name);
   }
@@ -277,15 +278,8 @@ class ThisScope extends Scope {
   ///
   /// These are typically either from JS, or additional methods that DDC adds,
   /// e.g. the _is_ tests for classes.
-  ///
-  /// @return {Dart._ThisScope}
   ThisScope withoutIgnored() {
-    // TODO(alanknight): Make this more rigorous, especially the
-    // _is_<className> check.
-    // TODO(alanknight): Will this handle private superclass fields. Do we
-    // see those symbols?  They might be in a separate package, but we may
-    // want to include them and assume that dloadRepl will handle them.
-    return ThisScope(this, null,
+    return ThisScope(name,
         properties.where((p) => !isIgnoredProperty(p)).toList(), chain);
   }
 }

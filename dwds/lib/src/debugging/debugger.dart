@@ -61,7 +61,7 @@ class Debugger extends Domain {
   Stack _pausedStack;
 
   /// The JS frames corresponding to [_pausedStack].
-  /// 
+  ///
   /// The most important thing here is that frames are identified by
   /// frameIndex in the Dart API, but by frame Id in Chrome, so we need
   /// to keep the JS frames and their Ids around.
@@ -313,7 +313,7 @@ class Debugger extends Domain {
         callFrameId: callFrameId);
     var dartScopes = await jsScopes.toDartScopeChain();
     return [
-      for (var scope in dartScopes.allScopes()) ...await _boundVariables(scope)
+      for (var scope in dartScopes) ...await _boundVariables(scope)
     ]..sort((a, b) => a.name.compareTo(b.name));
   }
 
@@ -423,13 +423,23 @@ class Debugger extends Domain {
     _streamNotify('Debug', event);
   }
 
-
-  Future<RemoteObject> evaluateJsOnCallFrameIndex(int frameIndex, String expression) {
-    if (_pausedJsStack == null) return null; // TODO(alanknight): Throw if not paused?
-    return evaluateJsOnCallFrame(_pausedJsStack[frameIndex]['callFrameId'] as String, expression);
+  /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on
+  /// the call frame with index [frameIndex] in the currently saved stack.
+  ///
+  /// If the program is not paused, so there is no current stack, throws a
+  /// [StateError].
+  Future<RemoteObject> evaluateJsOnCallFrameIndex(
+      int frameIndex, String expression) {
+    if (_pausedJsStack == null) {
+      throw StateError(
+          'Cannot evaluate on a call frame when the program is not paused');
+    }
+    return evaluateJsOnCallFrame(
+        _pausedJsStack[frameIndex]['callFrameId'] as String, expression);
   }
 
-  /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame.
+  /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on
+  /// the call frame with id [callFrameId].
   Future<RemoteObject> evaluateJsOnCallFrame(
       String callFrameId, String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.

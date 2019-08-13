@@ -1,3 +1,7 @@
+## Unreleased
+
+- Depend on the latest `package:webkit_inspection_protocol`.
+
 ## 2.4.0
 
 - Add a `--no-injected-client` option which can be used to work around issues

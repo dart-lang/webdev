@@ -2,6 +2,7 @@
 
 - Fix an issue where missing source maps would cause a crash. A warning will
   now be logged to the console instead.
+- Depend on the latest `package:webkit_inspection_protocol`.
 
 ## 0.5.0
 

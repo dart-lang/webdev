@@ -32,19 +32,10 @@ void main() {
     Stream<Event> stream;
     ScriptList scripts;
     ScriptRef mainScript;
+    Stack stack;
 
     // TODO: Be able to set breakpoints before start/reload so we can exercise
     // things that aren't in recurring loops.
-
-    setUp(() async {
-      vm = await service.getVM();
-      isolateId = vm.isolates.first.id;
-      scripts = await service.getScripts(isolateId);
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
-      mainScript = scripts.scripts
-          .firstWhere((each) => each.uri.contains('scopes_main.dart'));
-    });
 
     /// Support function for pausing and returning the stack at a line.
     Future<Stack> breakAt(int lineNumber) async {
@@ -59,14 +50,19 @@ void main() {
       return stack;
     }
 
-    Stack stack;
-
     setUp(() async {
+      vm = await service.getVM();
+      isolateId = vm.isolates.first.id;
+      scripts = await service.getScripts(isolateId);
+      await service.streamListen('Debug');
+      stream = service.onEvent('Debug');
+      mainScript = scripts.scripts
+          .firstWhere((each) => each.uri.contains('scopes_main.dart'));
       stack = await breakAt(25);
     });
 
     tearDown(() async {
-       await service.resume(isolateId);
+      await service.resume(isolateId);
     });
 
     test('variables in method', () async {
@@ -86,12 +82,12 @@ void main() {
 
     test('evaluateJsOnCallFrame', () async {
       var debugger = service.appInspectorProvider().debugger;
-        var parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
-     expect(parameter.value, matches(RegExp(r'\d+ world')));
-     var ticks = await debugger.evaluateJsOnCallFrameIndex(1, 'ticks');
-     // We don't know how many ticks there were before we stopped, but it should
-     // be a positive number.
-     expect(ticks.value, isPositive);
+      var parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
+      expect(parameter.value, matches(RegExp(r'\d+ world')));
+      var ticks = await debugger.evaluateJsOnCallFrameIndex(1, 'ticks');
+      // We don't know how many ticks there were before we stopped, but it should
+      // be a positive number.
+      expect(ticks.value, isPositive);
     });
   });
 }
