@@ -14,6 +14,8 @@ const debugExtensionFlag = 'debug-extension';
 const debugFlag = 'debug';
 const enableInjectedClientFlag = 'injected-client';
 const hostnameFlag = 'hostname';
+const tlsCertChainFlag = 'tls-cert-chain';
+const tlsCertKeyFlag = 'tls-cert-key';
 const hotReloadFlag = 'hot-reload';
 const hotRestartFlag = 'hot-restart';
 const launchInChromeFlag = 'launch-in-chrome';
@@ -76,6 +78,8 @@ class Configuration {
   final bool _debug;
   final bool _enableInjectedClient;
   final String _hostname;
+  final String _tlsCertChain;
+  final String _tlsCertKey;
   final bool _launchInChrome;
   final bool _logRequests;
   final String _output;
@@ -93,6 +97,8 @@ class Configuration {
     bool debug,
     bool enableInjectedClient,
     String hostname,
+    String tlsCertChain,
+    String tlsCertKey,
     bool launchInChrome,
     bool logRequests,
     String output,
@@ -108,6 +114,8 @@ class Configuration {
         _debug = debug,
         _enableInjectedClient = enableInjectedClient,
         _hostname = hostname,
+        _tlsCertChain = tlsCertChain,
+        _tlsCertKey = tlsCertKey,
         _launchInChrome = launchInChrome,
         _logRequests = logRequests,
         _output = output,
@@ -131,6 +139,10 @@ class Configuration {
   bool get enableInjectedClient => _enableInjectedClient ?? true;
 
   String get hostname => _hostname ?? 'localhost';
+
+  String get tlsCertChain => _tlsCertChain;
+
+  String get tlsCertKey => _tlsCertKey;
 
   bool get launchInChrome => _launchInChrome ?? false;
 
@@ -179,6 +191,14 @@ class Configuration {
     var hostname = argResults.options.contains(hostnameFlag)
         ? argResults[hostnameFlag] as String
         : defaultConfiguration.hostname;
+
+    var tlsCertChain = argResults.options.contains(tlsCertChainFlag)
+        ? argResults[tlsCertChainFlag] as String
+        : defaultConfiguration.tlsCertChain;
+
+    var tlsCertKey = argResults.options.contains(tlsCertKeyFlag)
+        ? argResults[tlsCertKeyFlag] as String
+        : defaultConfiguration.tlsCertKey;
 
     var launchInChrome = argResults.options.contains(launchInChromeFlag) &&
             argResults.wasParsed(launchInChromeFlag)
@@ -252,6 +272,8 @@ class Configuration {
         debug: debug,
         enableInjectedClient: enableInjectedClient,
         hostname: hostname,
+        tlsCertChain: tlsCertChain,
+        tlsCertKey: tlsCertKey,
         launchInChrome: launchInChrome,
         logRequests: logRequests,
         output: output,

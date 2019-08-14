@@ -83,6 +83,14 @@ Advanced:
     --log-requests                Enables logging for each request to the
                                   server.
 
+    --tls-cert-chain              The file location to a TLS Certificate to
+                                  create an HTTPs server.
+                                  Must be used with tls-cert-key.
+
+    --tls-cert-key                The file location to a TLS Key to create an
+                                  HTTPs server.
+                                  Must be used with tls-cert-chain.
+
 Common:
 -h, --help                        Print this usage information.
 -o, --output                      A directory to write the result of a build to.

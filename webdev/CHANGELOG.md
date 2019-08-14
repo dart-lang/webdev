@@ -1,3 +1,8 @@
+## 2.5.0-dev
+
+- TLS support has been added to the `serve` command through the addition of two
+  new options `tls-cert-chain` and `tls-cert-key`.
+
 ## 2.4.1
 
 - Depend on the latest `package:webkit_inspection_protocol`.
