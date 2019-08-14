@@ -28,6 +28,7 @@ Map<String, int> _parseDirectoryArgs(List<String> args) {
   } else {
     for (var arg in args) {
       var splitOption = arg.split(':');
+      ensureIsTopLevelDir(splitOption.first);
       if (splitOption.length == 2) {
         result[splitOption.first] = int.parse(splitOption.last);
       } else {

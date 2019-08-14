@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:path/path.dart' as p;
 
 import '../pubspec.dart';
 import 'configuration.dart';
@@ -63,4 +64,23 @@ Future<PubspecLock> readPubspecLock(Configuration configuration) async {
   await checkPubspecLock(pubspecLock,
       requireBuildWebCompilers: configuration.requireBuildWebCompilers);
   return pubspecLock;
+}
+
+/// Checks that the normalized form of [path] is a top level directory under
+/// such as `web` or `test`.
+///
+/// If it is not then an [InvalidConfiguration] error will be thrown.
+void ensureIsTopLevelDir(String path) {
+  path = p.normalize(path);
+  if (path.isEmpty ||
+      path == '.' ||
+      path == '..' ||
+      path.contains(r'\') ||
+      path.contains(r'/') ||
+      path == '.') {
+    throw InvalidConfiguration(
+        'Only top level directories under the package can be built or served '
+        '(such as `web` or `test`), but was given `$path`.');
+  }
+  print(path);
 }

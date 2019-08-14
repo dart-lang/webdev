@@ -24,4 +24,17 @@ void main() {
     var argConfiguration = Configuration.fromArgs(argResults);
     expect(argConfiguration.release, isTrue);
   });
+
+  test('only top level directories are allowed for outputInput', () {
+    expect(() => Configuration(outputInput: '.'),
+        throwsA(isA<InvalidConfiguration>()));
+    expect(() => Configuration(outputInput: '../'),
+        throwsA(isA<InvalidConfiguration>()));
+    expect(() => Configuration(outputInput: '../foo'),
+        throwsA(isA<InvalidConfiguration>()));
+    expect(() => Configuration(outputInput: 'foo/bar'),
+        throwsA(isA<InvalidConfiguration>()));
+    expect(() => Configuration(outputInput: 'foo/../'),
+        throwsA(isA<InvalidConfiguration>()));
+  });
 }
