@@ -7,6 +7,7 @@ import 'package:dwds/dwds.dart';
 import 'package:logging/logging.dart';
 
 import '../logging.dart';
+import 'shared.dart';
 
 const autoOption = 'auto';
 const chromeDebugPortFlag = 'chrome-debug-port';
@@ -226,6 +227,7 @@ class Configuration {
         outputPath = output;
       } else {
         outputInput = splitOutput.first;
+        ensureIsTopLevelDir(outputInput);
         outputPath = splitOutput.skip(1).join(':');
       }
     }
