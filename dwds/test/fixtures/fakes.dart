@@ -34,19 +34,6 @@ class FakeInspector extends Domain implements AppInspector {
       null;
   @override
   Future<ScriptList> getScripts(String isolateId) => null;
-
-  /// ###### This is deleted in master. Do we still need it?
-  // Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) async {
-  //   print("hey!");
-  //   var classRef = ClassRef()
-  //     ..id = 'dart:core:undefined'
-  //     ..name = 'Null';
-  //   return InstanceRef()
-  //     ..valueAsString = 'null'
-  //     ..classRef = classRef
-  //     ..kind = InstanceKind.kNull;
-  // }
-
   @override
   Future<ScriptRef> scriptRefFor(String uri) => null;
   @override
@@ -179,8 +166,8 @@ class FakeWebkitDebugger implements WebkitDebugger {
     }
     if (method == 'Debugger.evaluateOnCallFrame') {
       return WipResponse({
-        'id': 999,
-        'result': {'result': {'objectId': 'fake', 'type': 'undefined', 'value': null}}
+        'id': 42,
+        'result': {'result': <String, dynamic>{}}
       });
     }
     return null;

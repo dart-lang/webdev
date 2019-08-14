@@ -13,7 +13,7 @@ import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
-import 'just_add_this.dart';
+import 'even_smaller.dart';
 import 'location.dart';
 import 'remote_debugger.dart';
 import 'sources.dart';
@@ -307,20 +307,20 @@ class Debugger extends Domain {
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
   Future<List<BoundVariable>> _variablesFor(
       List<dynamic> scopeChain, String callFrameId) async {
-    var jsScopes = await JsScopeChain.fromJs(
+    var properties = await visibleProperties(
         scopeList: scopeChain.cast<Map<String, dynamic>>().toList(),
         debugger: this,
         callFrameId: callFrameId);
-    var dartScopes = await jsScopes.toDartScopeChain();
-    return [
-      for (var scope in dartScopes) ...await _boundVariables(scope)
-    ]..sort((a, b) => a.name.compareTo(b.name));
+    var boundVariables = await Future.wait(properties.map((property) async => await _boundVariable(property)
+    ));
+    boundVariables = boundVariables.where((bv) => bv != null).toList();
+    boundVariables.sort((a, b) => a.name.compareTo(b.name));
+    return boundVariables;
   }
 
-  Future<Iterable<BoundVariable>> _boundVariables(Scope scope) async {
-    // We return one level of properties from this object. Sub-prsoperties are
+  Future<BoundVariable> _boundVariable(Property property) async {
+    // We return one level of properties from this object. Sub-properties are
     // another round trip.
-    var refs = scope.properties.map<Future<BoundVariable>>((property) async {
       var instanceRef = await inspector.instanceHelper.instanceRefFor(property.value);
       // Skip null instance refs, which we get for weird objects, e.g.
       // properties that are getter/setter pairs.
@@ -329,10 +329,6 @@ class Debugger extends Domain {
       return BoundVariable()
         ..name = property.name
         ..value = instanceRef;
-    });
-    var things = await Future.wait(refs);
-    var moreThings = things.where((variable) => variable != null);
-    return moreThings;
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [id].
