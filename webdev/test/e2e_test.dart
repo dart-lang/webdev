@@ -6,6 +6,7 @@
 
 import 'dart:io';
 
+import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
@@ -143,6 +144,29 @@ void main() {
         await process.kill();
         await process.shouldExit();
       });
+    }
+  });
+
+  group('Should fail with invalid build directories', () {
+    var invalidServeDirs = ['.', '../', '../foo', 'foo/bar', 'foo/../'];
+    for (var dir in invalidServeDirs) {
+      for (var command in ['build', 'serve']) {
+        test('cannot $command directory: `$dir`', () async {
+          var args = [
+            command,
+            if (command == 'build') '--output=$dir:foo' else dir
+          ];
+
+          var process =
+              await runWebDev(args, workingDirectory: exampleDirectory);
+          await expectLater(
+              process.stdout,
+              emitsThrough(contains(
+                  'Invalid configuration: Only top level directories under the '
+                  'package can be built')));
+          await expectLater(process.exitCode, completion(ExitCode.config.code));
+        });
+      }
     }
   });
 }

@@ -7,6 +7,7 @@ import 'package:dwds/dwds.dart';
 import 'package:logging/logging.dart';
 
 import '../logging.dart';
+import 'shared.dart';
 
 const autoOption = 'auto';
 const chromeDebugPortFlag = 'chrome-debug-port';
@@ -122,7 +123,9 @@ class Configuration {
         _release = release,
         _reload = reload,
         _requireBuildWebCompilers = requireBuildWebCompilers,
-        _verbose = verbose;
+        _verbose = verbose {
+    if (outputInput != null) ensureIsTopLevelDir(outputInput);
+  }
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
