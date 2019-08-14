@@ -123,7 +123,9 @@ class Configuration {
         _release = release,
         _reload = reload,
         _requireBuildWebCompilers = requireBuildWebCompilers,
-        _verbose = verbose;
+        _verbose = verbose {
+    if (outputInput != null) ensureIsTopLevelDir(outputInput);
+  }
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
@@ -227,7 +229,6 @@ class Configuration {
         outputPath = output;
       } else {
         outputInput = splitOutput.first;
-        ensureIsTopLevelDir(outputInput);
         outputPath = splitOutput.skip(1).join(':');
       }
     }
