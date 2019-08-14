@@ -124,7 +124,39 @@ class Configuration {
         _reload = reload,
         _requireBuildWebCompilers = requireBuildWebCompilers,
         _verbose = verbose {
+    _validateConfiguration();
+  }
+
+  void _validateConfiguration() {
     if (outputInput != null) ensureIsTopLevelDir(outputInput);
+
+    if ((tlsCertKey != null && tlsCertChain == null) ||
+        (tlsCertKey == null && tlsCertChain != null)) {
+      throw InvalidConfiguration(
+          'Must use --$tlsCertKey with --$tlsCertChain.');
+    }
+    if (debug && chromeDebugPort == 0 && !launchInChrome) {
+      throw InvalidConfiguration(
+          'Must either use --$chromeDebugPortFlag or --$launchInChromeFlag '
+          'with --$debugFlag.');
+    }
+
+    // Check that no debugging options were passed if the injected client is
+    // disabled.
+    if (!enableInjectedClient) {
+      if (debug) {
+        throw InvalidConfiguration(
+            '--$debugFlag cannot be used with --no-$enableInjectedClientFlag');
+      }
+      if (debugExtension) {
+        throw InvalidConfiguration('--$debugExtensionFlag cannot be used with '
+            '--no-$enableInjectedClientFlag');
+      }
+      if (chromeDebugPort != 0) {
+        throw InvalidConfiguration('--$chromeDebugPortFlag cannot be used '
+            'with --no-$enableInjectedClientFlag');
+      }
+    }
   }
 
   factory Configuration.noInjectedClientDefaults() =>
@@ -245,29 +277,6 @@ class Configuration {
     var verbose = argResults.options.contains(verboseFlag)
         ? argResults[verboseFlag] as bool
         : defaultConfiguration.verbose;
-
-    if (debug && chromeDebugPort == 0 && !launchInChrome) {
-      throw InvalidConfiguration(
-          'Must either use --$chromeDebugPortFlag or --$launchInChromeFlag '
-          'with --$debugFlag.');
-    }
-
-    // Check that no debugging options were passed if the injected client is
-    // disabled.
-    if (!enableInjectedClient) {
-      if (debug) {
-        throw InvalidConfiguration(
-            '--$debugFlag cannot be used with --no-$enableInjectedClientFlag');
-      }
-      if (debugExtension) {
-        throw InvalidConfiguration('--$debugExtensionFlag cannot be used with '
-            '--no-$enableInjectedClientFlag');
-      }
-      if (chromeDebugPort != defaultConfiguration.chromeDebugPort) {
-        throw InvalidConfiguration('--$chromeDebugPortFlag cannot be used '
-            'with --no-$enableInjectedClientFlag');
-      }
-    }
 
     return Configuration(
         chromeDebugPort: chromeDebugPort,

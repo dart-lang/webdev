@@ -25,6 +25,31 @@ void main() {
     expect(argConfiguration.release, isTrue);
   });
 
+  test('tlsCertKey and tlsCertChain must be provided together', () {
+    expect(() => Configuration(tlsCertKey: 'blah'),
+        throwsA(isA<InvalidConfiguration>()));
+    expect(() => Configuration(tlsCertChain: 'blah'),
+        throwsA(isA<InvalidConfiguration>()));
+  });
+
+  test('must provide a debug port when launchInChrome is false ', () {
+    expect(() => Configuration(debug: true, launchInChrome: false),
+        throwsA(isA<InvalidConfiguration>()));
+  });
+
+  test(
+      'must not provide debug related configuartion when enableInjectedClient '
+      'is false', () {
+    expect(() => Configuration(enableInjectedClient: false, debug: true),
+        throwsA(isA<InvalidConfiguration>()));
+    expect(
+        () => Configuration(enableInjectedClient: false, debugExtension: true),
+        throwsA(isA<InvalidConfiguration>()));
+    expect(
+        () => Configuration(enableInjectedClient: false, chromeDebugPort: 8080),
+        throwsA(isA<InvalidConfiguration>()));
+  });
+
   test('only top level directories are allowed for outputInput', () {
     expect(() => Configuration(outputInput: '.'),
         throwsA(isA<InvalidConfiguration>()));
