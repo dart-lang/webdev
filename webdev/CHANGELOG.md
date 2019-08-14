@@ -2,6 +2,9 @@
 
 - TLS support has been added to the `serve` command through the addition of two
   new options `tls-cert-chain` and `tls-cert-key`.
+- Added an explicit error if asked to build or serve anything other than a top
+  level directory under a package. This never worked before but silently didn't
+  actually do what the user expected.
 
 ## 2.4.1
 
