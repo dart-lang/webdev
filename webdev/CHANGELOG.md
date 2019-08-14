@@ -1,4 +1,4 @@
-## 2.5.0-dev
+## 2.5.0
 
 - TLS support has been added to the `serve` command through the addition of two
   new options `tls-cert-chain` and `tls-cert-key`.
