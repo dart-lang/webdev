@@ -200,6 +200,12 @@ class Configuration {
         ? argResults[tlsCertKeyFlag] as String
         : defaultConfiguration.tlsCertKey;
 
+    if ((tlsCertKey != null && tlsCertChain == null) ||
+        (tlsCertKey == null && tlsCertChain != null)) {
+      throw InvalidConfiguration(
+          'Must use --$tlsCertKey with --$tlsCertChain.');
+    }
+
     var launchInChrome = argResults.options.contains(launchInChromeFlag) &&
             argResults.wasParsed(launchInChromeFlag)
         ? argResults[launchInChromeFlag] as bool
