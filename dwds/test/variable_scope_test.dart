@@ -85,7 +85,8 @@ void main() {
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
-      expect(variableNames, ['closureLocalInsideMethod', 'local', 'parameter', 'this']);
+      expect(variableNames,
+          ['closureLocalInsideMethod', 'local', 'parameter', 'this']);
     });
 
     test('variables in method', () async {
