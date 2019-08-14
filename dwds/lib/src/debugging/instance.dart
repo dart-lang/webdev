@@ -70,7 +70,8 @@ class InstanceHelper {
             ..declaredType = (InstanceRef()..classRef = ClassRef()))
           ..value = await instanceRefFor(property.value)));
     fields = fields
-        .where((f) => f.value != null && !fieldNamesToIgnore.contains(f.decl.name))
+        .where(
+            (f) => f.value != null && !fieldNamesToIgnore.contains(f.decl.name))
         .toList()
           ..sort((a, b) => a.decl.name.compareTo(b.decl.name));
     var result = Instance()

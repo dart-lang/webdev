@@ -311,8 +311,8 @@ class Debugger extends Domain {
         scopeList: scopeChain.cast<Map<String, dynamic>>().toList(),
         debugger: this,
         callFrameId: callFrameId);
-    var boundVariables = await Future.wait(properties.map((property) async => await _boundVariable(property)
-    ));
+    var boundVariables = await Future.wait(
+        properties.map((property) async => await _boundVariable(property)));
     boundVariables = boundVariables.where((bv) => bv != null).toList();
     boundVariables.sort((a, b) => a.name.compareTo(b.name));
     return boundVariables;
@@ -321,14 +321,15 @@ class Debugger extends Domain {
   Future<BoundVariable> _boundVariable(Property property) async {
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
-      var instanceRef = await inspector.instanceHelper.instanceRefFor(property.value);
-      // Skip null instance refs, which we get for weird objects, e.g.
-      // properties that are getter/setter pairs.
-      // TODO(alanknight): Handle these properly.
-      if (instanceRef == null) return null;
-      return BoundVariable()
-        ..name = property.name
-        ..value = instanceRef;
+    var instanceRef =
+        await inspector.instanceHelper.instanceRefFor(property.value);
+    // Skip null instance refs, which we get for weird objects, e.g.
+    // properties that are getter/setter pairs.
+    // TODO(alanknight): Handle these properly.
+    if (instanceRef == null) return null;
+    return BoundVariable()
+      ..name = property.name
+      ..value = instanceRef;
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [id].
