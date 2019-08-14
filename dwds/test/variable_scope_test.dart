@@ -58,14 +58,14 @@ void main() {
       stream = service.onEvent('Debug');
       mainScript = scripts.scripts
           .firstWhere((each) => each.uri.contains('scopes_main.dart'));
-      stack = await breakAt(25);
     });
 
     tearDown(() async {
       await service.resume(isolateId);
     });
 
-    test('variables in method', () async {
+    test('variables in function', () async {
+      stack = await breakAt(25);
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
@@ -80,7 +80,24 @@ void main() {
       ]);
     });
 
+    test('variables in closure nested in method', () async {
+      stack = await breakAt(78);
+      var frame = stack.frames.first;
+      var variableNames = frame.vars.map((variable) => variable.name).toList()
+        ..sort();
+      expect(variableNames, ['closureLocalInsideMethod', 'local', 'parameter', 'this']);
+    });
+
+    test('variables in method', () async {
+      stack = await breakAt(92);
+      var frame = stack.frames.first;
+      var variableNames = frame.vars.map((variable) => variable.name).toList()
+        ..sort();
+      expect(variableNames, ['this']);
+    });
+
     test('evaluateJsOnCallFrame', () async {
+      stack = await breakAt(25);
       var debugger = service.appInspectorProvider().debugger;
       var parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
       expect(parameter.value, matches(RegExp(r'\d+ world')));
