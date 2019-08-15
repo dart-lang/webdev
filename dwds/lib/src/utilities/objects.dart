@@ -43,9 +43,9 @@ class Property {
     return nonSymbol.split('.').last;
   }
 
-  /// The name of the property.
+  /// The raw name of the property in JS.
   ///
-  /// May be of the form 'Symbol(_actualName)'.
+  /// Will be of the form 'Symbol(_actualName)' for private fields.
   String get rawName => _map['name'] as String;
 
   @override

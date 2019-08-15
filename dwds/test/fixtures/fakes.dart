@@ -69,6 +69,11 @@ class FakeInspector extends Domain implements AppInspector {
 
   @override
   InstanceHelper get instanceHelper => InstanceHelper(null, null);
+  @override
+  Future<RemoteObject> callFunctionOn(
+      RemoteObject receiver, String evalExpression, List arguments) {
+    throw UnsupportedError('This is a fake');
+  }
 }
 
 class FakeSseConnection implements SseConnection {

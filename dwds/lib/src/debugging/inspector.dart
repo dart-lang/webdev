@@ -209,8 +209,8 @@ class AppInspector extends Domain {
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
-  Future<RemoteObject> evaluateJsExpression(String expression,
-      [List<Object> arguments = const []]) async {
+  Future<RemoteObject> evaluateJsExpression(String expression) async {
+    // TODO(alanknight): Support a version with arguments if needed.
     WipResponse result;
     result = await _remoteDebugger
         .sendCommand('Runtime.evaluate', params: {'expression': expression});

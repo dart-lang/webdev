@@ -65,10 +65,11 @@ void main() {
     var names =
         properties.map((p) => p.name).where((x) => x != '__proto__').toList();
     var expected = [
-      'Symbol(MyTestClass.count)',
-      'Symbol(MyTestClass.message)',
-      'Symbol(MyTestClass.myselfField)',
-      'Symbol(MyTestClass.notFinal)'
+      '_privateField',
+      'count',
+      'message',
+      'myselfField',
+      'notFinal'
     ];
     names.sort();
     expect(expected, names);
