@@ -20,6 +20,7 @@ Future<List<Property>> visibleProperties(
   // We skip the global and the outer library scope and assume everything before
   // that is a method scope.
   var numberOfMethods = scopeList.length - 2;
+  if (numberOfMethods <= 0) return [];
   var methodScopes = scopeList.sublist(0, numberOfMethods);
   var propertyLists = methodScopes
       .map((scope) async =>

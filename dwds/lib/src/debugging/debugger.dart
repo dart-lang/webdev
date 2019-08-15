@@ -295,7 +295,7 @@ class Debugger extends Domain {
       if (dartFrame != null) {
         dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
         dartFrame.index = index++;
-        dartFrame.vars = await _variablesFor(
+        dartFrame.vars = await variablesFor(
             frame['scopeChain'] as List<dynamic>,
             frame['callFrameId'] as String);
         dartFrames.add(dartFrame);
@@ -305,8 +305,9 @@ class Debugger extends Domain {
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
-  Future<List<BoundVariable>> _variablesFor(
+  Future<List<BoundVariable>> variablesFor(
       List<dynamic> scopeChain, String callFrameId) async {
+    // TODO(alanknight): Can these be moved to dart_scope.dart?
     var properties = await visibleProperties(
         scopeList: scopeChain.cast<Map<String, dynamic>>().toList(),
         debugger: this,
