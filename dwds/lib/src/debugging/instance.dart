@@ -32,7 +32,7 @@ const _namesToIgnore = <String>{
 };
 
 /// Chrome doesn't give us an objectId for a String. So we use the string
-/// as its own ID, with a prefix. 
+/// as its own ID, with a prefix.
 ///
 /// This should not be confused with any
 /// other object Ids, as those will be Chrome objectIds, which are
