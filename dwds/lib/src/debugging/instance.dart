@@ -31,6 +31,15 @@ const _fieldNamesToIgnore = <String>{
   '_identityHashCode'
 };
 
+/// Chrome doesn't give us an objectId for a String. So we use the string
+/// as its own ID, with a prefix.
+///
+/// This should not be confused with any
+/// other object Ids, as those will be Chrome objectIds, which are
+/// opaque, but are JSON serialized objects of the form
+/// "{\"injectedScriptId\":1,\"id\":1}".
+const prefixHackForStringIds = '#StringInstanceRef#';
+
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
   var classRef = ClassRef()
@@ -42,6 +51,11 @@ InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
     ..classRef = classRef
     ..kind = kind;
 }
+
+/// A hard-coded ClassRef for the String class.
+final ClassRef _classRefForString = ClassRef()
+  ..id = 'dart:core:String'
+  ..name = InstanceKind.kString;
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper {
@@ -55,6 +69,16 @@ class InstanceHelper {
   /// Does a remote eval to get instance information. Returns null if there
   /// isn't a corresponding instance.
   Future<Instance> instanceFor(RemoteObject remoteObject) async {
+    // Special case for String, which doesn't have a Chrome objectId.
+    if (remoteObject.objectId.startsWith(prefixHackForStringIds)) {
+      var actualString =
+          remoteObject.objectId.substring(prefixHackForStringIds.length);
+      return Instance()
+        ..kind = InstanceKind.kString
+        ..classRef = _classRefForString
+        ..valueAsString = actualString
+        ..length = actualString.length;
+    }
     var metaData =
         await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject);
     var classRef = ClassRef()
@@ -90,7 +114,12 @@ class InstanceHelper {
     }
     switch (remoteObject.type) {
       case 'string':
-        return _primitiveInstance(InstanceKind.kString, remoteObject);
+        return InstanceRef()
+          // See comment for [prefixHackForStringIds].
+          ..id = '$prefixHackForStringIds${remoteObject.value}'
+          ..valueAsString = remoteObject.value as String
+          ..classRef = _classRefForString
+          ..kind = InstanceKind.kString;
       case 'number':
         return _primitiveInstance(InstanceKind.kDouble, remoteObject);
       case 'boolean':
