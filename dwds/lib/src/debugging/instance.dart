@@ -10,7 +10,7 @@ import 'metadata.dart';
 import 'remote_debugger.dart';
 
 /// JS field names to ignore when constructing a Dart [Instance].
-const _namesToIgnore = <String>{
+const _fieldNamesToIgnore = <String>{
   'constructor',
   'noSuchMethod',
   'runtimeType',
@@ -35,10 +35,10 @@ const _namesToIgnore = <String>{
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
   var classRef = ClassRef()
     // TODO(grouma) - is this ID correct?
-    ..id = 'dart:core:${remoteObject.type}'
+    ..id = 'dart:core:${remoteObject?.type}'
     ..name = kind;
   return InstanceRef()
-    ..valueAsString = '${remoteObject.value}'
+    ..valueAsString = '${remoteObject?.value}'
     ..classRef = classRef
     ..kind = kind;
 }
@@ -70,7 +70,8 @@ class InstanceHelper {
             ..declaredType = (InstanceRef()..classRef = ClassRef()))
           ..value = await instanceRefFor(property.value)));
     fields = fields
-        .where((f) => f.value != null && !_namesToIgnore.contains(f.decl.name))
+        .where((f) =>
+            f.value != null && !_fieldNamesToIgnore.contains(f.decl.name))
         .toList()
           ..sort((a, b) => a.decl.name.compareTo(b.decl.name));
     var result = Instance()

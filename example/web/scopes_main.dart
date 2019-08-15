@@ -39,6 +39,8 @@ void main() async {
     print(nestedFunction('$ticks ${testClass.message}'));
     print(localThatsNull);
     print(libraryNull);
+    var f = testClass.methodWithVariables();
+    print(f('parameter'));
   });
 
   document.body.append(SpanElement()..text = 'Exercising some scopes');
@@ -47,7 +49,13 @@ void main() async {
   print(_libraryPrivate);
   print(nestedFunction(_libraryPrivate.first));
   print(nestedWithClosure(_libraryPrivate.first)());
-  testClass.methodWithVariables();
+}
+
+String libraryFunction(String arg) {
+  print('calling a library function with $arg');
+  var concat = 'some constant plus $arg plus whatever';
+  print(concat);
+  return concat;
 }
 
 class MyTestClass {
@@ -61,10 +69,15 @@ class MyTestClass {
 
   String hello() => message;
 
-  String methodWithVariables() {
+  String Function(String) methodWithVariables() {
     var local = '$message + something';
     print(local);
-    return local;
+    return (String parameter) {
+      // Be sure to use a field from this, so it isn't entirely optimized away.
+      var closureLocalInsideMethod = '$message/$local/$parameter';
+      print(closureLocalInsideMethod);
+      return closureLocalInsideMethod;
+    };
   }
 
   //ignore: avoid_returning_this
@@ -77,6 +90,7 @@ class MyTestClass {
   // An easy location to add a breakpoint.
   void printCount() {
     print('The count is ${++count}');
+    libraryFunction('abc');
   }
 
   @override

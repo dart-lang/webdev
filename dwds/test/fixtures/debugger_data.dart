@@ -108,4 +108,8 @@ var variables1 = [
     'id': 2,
     'result': {'result': []}
   }),
+  WipResponse({
+    'id': 3,
+    'result': {'result': []}
+  }),
 ];

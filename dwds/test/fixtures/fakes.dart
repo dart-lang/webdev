@@ -164,6 +164,12 @@ class FakeWebkitDebugger implements WebkitDebugger {
     if (method == 'Runtime.getProperties') {
       return results[resultsReturned++];
     }
+    if (method == 'Debugger.evaluateOnCallFrame') {
+      return WipResponse({
+        'id': 42,
+        'result': {'result': <String, dynamic>{}}
+      });
+    }
     return null;
   }
 
