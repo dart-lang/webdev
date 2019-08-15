@@ -5,6 +5,7 @@
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../utilities/objects.dart';
 import 'debugger.dart';
 import 'metadata.dart';
 import 'remote_debugger.dart';
@@ -61,8 +62,10 @@ class InstanceHelper {
       ..id = metaData.id
       ..name = metaData.name;
     var properties = await _debugger.getProperties(remoteObject.objectId);
+    var propertiesThatWeCareAbout = await fieldsFor(properties, remoteObject);
+    print(propertiesThatWeCareAbout);
     var fields = await Future.wait(
-        properties.map<Future<BoundField>>((property) async => BoundField()
+        propertiesThatWeCareAbout.map<Future<BoundField>>((property) async => BoundField()
           ..decl = (FieldRef()
             // TODO(grouma) - Convert JS name to Dart.
             ..name = property.name
@@ -80,6 +83,28 @@ class InstanceHelper {
       ..fields = fields
       ..classRef = classRef;
     return result;
+  }
+
+  Future<List<Property>> fieldsFor(
+      List<Property> properties, RemoteObject remoteObject) async {
+    const fieldNameExpression = '''function() {
+      const sdk_utils = require("dart_sdk").dart;
+      const type = sdk_utils.getType(this);
+      const fields = sdk_utils.getFields(sdk_utils.getType(this));
+      const symbols = Object.getOwnPropertySymbols(fields);
+      const publicFields = Object.getOwnPropertyNames(fields);
+      const names = symbols.map(sym => sym.description);
+      const joined = names.concat(publicFields).join(',');
+      return joined;
+    }
+    ''';
+    var allNames = (await _debugger.inspector
+            .callFunctionOn(remoteObject, fieldNameExpression, []))
+        .value as String;
+    var names = allNames.split(',').toSet();
+    return properties
+        .where((property) => names.contains(property.name))
+        .toList();
   }
 
   /// Create an [InstanceRef] for the given Chrome [remoteObject].

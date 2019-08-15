@@ -115,7 +115,7 @@ class AppInspector extends Domain {
           return require("dart_sdk").dart.dloadRepl(this, "$fieldName");
         }
         ''';
-    return _callFunctionOn(receiver, load, _marshallArguments([]));
+    return callFunctionOn(receiver, load, _marshallArguments([]));
   }
 
   /// Call a method by name on [receiver], with arguments [positionalArgs] and
@@ -133,7 +133,7 @@ class AppInspector extends Domain {
         }
         ''';
     var arguments = _marshallArguments(positionalArgs);
-    var remote = await _callFunctionOn(receiver, send, arguments);
+    var remote = await callFunctionOn(receiver, send, arguments);
     return remote;
   }
 
@@ -142,7 +142,7 @@ class AppInspector extends Domain {
   /// [arguments] is expected to be in the form returned by
   /// [_marshallArguments]. [evalExpression] should be a function definition
   /// that can accept [arguments].
-  Future<RemoteObject> _callFunctionOn(
+  Future<RemoteObject> callFunctionOn(
       RemoteObject receiver, String evalExpression, List arguments) async {
     var result =
         await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
@@ -209,8 +209,8 @@ class AppInspector extends Domain {
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
-  Future<RemoteObject> evaluateJsExpression(String expression) async {
-    // TODO(alanknight): Support a version with arguments if needed.
+  Future<RemoteObject> evaluateJsExpression(String expression,
+      [List<Object> arguments = const []]) async {
     WipResponse result;
     result = await _remoteDebugger
         .sendCommand('Runtime.evaluate', params: {'expression': expression});
