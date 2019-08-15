@@ -372,6 +372,15 @@ void main() {
             ]));
       });
 
+      test('Strings', () async {
+        var worldRef = await service.evaluate(
+                isolate.id, isolate.rootLib.id, "helloString('world')")
+            as InstanceRef;
+        var world =
+            await service.getObject(isolate.id, worldRef.id) as Instance;
+        expect(world.valueAsString, 'world');
+      });
+
       test('Scripts', () async {
         var scripts = await service.getScripts(isolate.id);
         assert(scripts.scripts.isNotEmpty);
