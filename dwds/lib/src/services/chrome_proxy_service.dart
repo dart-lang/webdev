@@ -311,8 +311,8 @@ require("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future invoke(String isolateId, String targetId, String selector,
-      List<String> argumentIds,
+  Future invoke(
+      String isolateId, String targetId, String selector, List argumentIds,
       {bool disableBreakpoints}) {
     throw UnimplementedError();
   }

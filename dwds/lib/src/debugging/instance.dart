@@ -5,31 +5,10 @@
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../utilities/objects.dart';
 import 'debugger.dart';
 import 'metadata.dart';
 import 'remote_debugger.dart';
-
-/// JS field names to ignore when constructing a Dart [Instance].
-const _fieldNamesToIgnore = <String>{
-  'constructor',
-  'noSuchMethod',
-  'runtimeType',
-  'toString',
-  '_equals',
-  '__defineGetter__',
-  '__defineSetter__',
-  '__lookupGetter__',
-  '__lookupSetter__',
-  '__proto__',
-  'classGetter',
-  'hasOwnProperty',
-  'hashCode',
-  'isPrototypeOf',
-  'propertyIsEnumerable',
-  'toLocaleString',
-  'valueOf',
-  '_identityHashCode'
-};
 
 /// Chrome doesn't give us an objectId for a String. So we use the string
 /// as its own ID, with a prefix.
@@ -85,25 +64,49 @@ class InstanceHelper {
       ..id = metaData.id
       ..name = metaData.name;
     var properties = await _debugger.getProperties(remoteObject.objectId);
+    var dartProperties = await dartPropertiesFor(properties, remoteObject);
     var fields = await Future.wait(
-        properties.map<Future<BoundField>>((property) async => BoundField()
+        dartProperties.map<Future<BoundField>>((property) async => BoundField()
           ..decl = (FieldRef()
             // TODO(grouma) - Convert JS name to Dart.
             ..name = property.name
             ..owner = classRef
             ..declaredType = (InstanceRef()..classRef = ClassRef()))
           ..value = await instanceRefFor(property.value)));
-    fields = fields
-        .where((f) =>
-            f.value != null && !_fieldNamesToIgnore.contains(f.decl.name))
-        .toList()
-          ..sort((a, b) => a.decl.name.compareTo(b.decl.name));
+    fields.sort((a, b) => a.decl.name.compareTo(b.decl.name));
     var result = Instance()
       ..kind = InstanceKind.kPlainInstance
       ..id = remoteObject.objectId
       ..fields = fields
       ..classRef = classRef;
     return result;
+  }
+
+  /// Filter [allJsProperties] and return a list containing only those
+  /// that correspond to Dart fields on the object.
+  Future<List<Property>> dartPropertiesFor(
+      List<Property> allJsProperties, RemoteObject remoteObject) async {
+    // An expression to find the field names from the types, extract both
+    // private (named by symbols) and public (named by strings) and return them
+    // as a comma-separated single string, so we can return it by value and not
+    // need to make multiple round trips.
+    // TODO(alanknight): Handle superclass fields.
+    const fieldNameExpression = '''function() {
+      const sdk_utils = require("dart_sdk").dart;
+      const fields = sdk_utils.getFields(sdk_utils.getType(this));
+      const privateFields = Object.getOwnPropertySymbols(fields);
+      const nonSymbolNames = privateFields.map(sym => sym.description);
+      const publicFieldNames = Object.getOwnPropertyNames(fields);
+      return nonSymbolNames.concat(publicFieldNames).join(',');
+    }
+    ''';
+    var allNames = (await _debugger.inspector
+            .callFunctionOn(remoteObject, fieldNameExpression, []))
+        .value as String;
+    var names = allNames.split(',');
+    return allJsProperties
+        .where((property) => names.contains(property.name))
+        .toList();
   }
 
   /// Create an [InstanceRef] for the given Chrome [remoteObject].

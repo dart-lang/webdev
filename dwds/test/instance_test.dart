@@ -90,6 +90,10 @@ void main() {
       var classRef = instance.classRef;
       expect(classRef, isNotNull);
       expect(classRef.name, 'MyTestClass');
+      var fieldNames =
+          instance.fields.map((boundField) => boundField.decl.name).toList();
+      expect(fieldNames,
+          ['_privateField', 'count', 'message', 'myselfField', 'notFinal']);
     });
 
     test('for a nested class ', () async {

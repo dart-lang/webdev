@@ -93,6 +93,9 @@ class MyTestClass {
     libraryFunction('abc');
   }
 
+  // ignore: unused_field
+  final _privateField = 'a private field';
+
   @override
   String toString() => 'A test class with message $message';
 }

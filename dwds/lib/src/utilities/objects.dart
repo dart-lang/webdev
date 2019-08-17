@@ -35,7 +35,18 @@ class Property {
   }
 
   /// The name of the property
-  String get name => _map['name'] as String;
+  String get name {
+    const prefix = 'Symbol(';
+    var nonSymbol = (rawName.startsWith(prefix))
+        ? rawName.substring(prefix.length, rawName.length - 1)
+        : rawName;
+    return nonSymbol.split('.').last;
+  }
+
+  /// The raw name of the property in JS.
+  ///
+  /// Will be of the form 'Symbol(_actualName)' for private fields.
+  String get rawName => _map['name'] as String;
 
   @override
   String toString() => '$name $value';
