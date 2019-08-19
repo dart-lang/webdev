@@ -83,7 +83,8 @@ Future<void> main() {
     });
 
     window.onKeyDown.listen((Event e) {
-      if ((e is KeyboardEvent) && const [
+      if (e is KeyboardEvent &&
+          const [
             'd',
             'D',
             '∂', // alt-d output on Mac
