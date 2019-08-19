@@ -76,11 +76,9 @@ void ensureIsTopLevelDir(String path) {
       path == '.' ||
       path == '..' ||
       path.contains(r'\') ||
-      path.contains(r'/') ||
-      path == '.') {
+      path.contains(r'/')) {
     throw InvalidConfiguration(
         'Only top level directories under the package can be built or served '
         '(such as `web` or `test`), but was given `$path`.');
   }
-  print(path);
 }
