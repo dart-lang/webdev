@@ -4,7 +4,7 @@
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../dwds.dart' show config;
+import '../../dwds.dart' show loadModule;
 import '../services/chrome_proxy_service.dart';
 import 'remote_debugger.dart';
 
@@ -27,7 +27,7 @@ class ClassMetaData {
     try {
       var evalExpression = '''
       function(arg) {
-        var sdkUtils = $config('dart_sdk').dart;
+        var sdkUtils = $loadModule('dart_sdk').dart;
         var classObject = sdkUtils.getType(arg);
         var result = {};
         result['name'] = classObject.name;

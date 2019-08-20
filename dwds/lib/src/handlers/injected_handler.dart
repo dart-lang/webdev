@@ -96,7 +96,7 @@ String _injectedClientJs(
             window.\$dartRunMain = $mainFunction;
             window.\$dartReloadConfiguration = "$configuration";
             window.\$dartLoader.forceLoadModule('$_clientScript');
-            window.\$loadModuleConfig = "$config";
+            window.\$loadModuleConfig = "$loadModule";
             ''';
   if (extensionPort != null && extensionHostname != null) {
     injectedBody += '''

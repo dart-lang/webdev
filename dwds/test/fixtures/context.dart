@@ -54,7 +54,7 @@ class TestContext {
     _entryFile = File(p.absolute(p.join(p.relative('../_test', from: p.current),
         'example', 'append_body', 'main.dart')));
     _entryContents = _entryFile.readAsStringSync();
-    loadModuleConfig = config;
+    loadModuleConfig = loadModule;
   }
 
   Future<void> setUp(

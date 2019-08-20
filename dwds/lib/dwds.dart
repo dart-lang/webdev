@@ -38,17 +38,15 @@ String loadModuleConfiguration(LoadModuleConfiguration config) {
 
 final externalConfig = LoadModuleConfiguration.requireJS;
 final internalConfig = LoadModuleConfiguration.amd;
-final config = loadModuleConfiguration(externalConfig);
+final loadModule = loadModuleConfiguration(externalConfig);
 
 /// The Dart Web Debug Service.
 class Dwds {
   final Handler handler;
   final DevTools _devTools;
   final DevHandler _devHandler;
-  final LoadModuleConfiguration loadModuleConfiguration;
 
-  Dwds._(this.handler, this._devTools, this._devHandler,
-      this.loadModuleConfiguration);
+  Dwds._(this.handler, this._devTools, this._devHandler);
 
   Stream<AppConnection> get connectedApps => _devHandler.connectedApps;
 
@@ -122,7 +120,6 @@ class Dwds {
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
-    return Dwds._(pipeline.addHandler(cascade.handler), devTools, devHandler,
-        LoadModuleConfiguration.requireJS);
+    return Dwds._(pipeline.addHandler(cascade.handler), devTools, devHandler);
   }
 }
