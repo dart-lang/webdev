@@ -1,3 +1,7 @@
+## 0.5.2
+
+- Report that `package:dwds` supports the `Service` stream.
+
 ## 0.5.1
 
 - Fix an issue where missing source maps would cause a crash. A warning will
