@@ -20,7 +20,7 @@ import 'package:sse/client/sse_client.dart';
 // GENERATE:
 // pub run build_runner build web -o build -r
 void main() {
-  var startDebug = allowInterop((e) {
+  var startDebug = allowInterop((_) {
     var query = QueryInfo(active: true, currentWindow: true);
     Tab currentTab;
 
