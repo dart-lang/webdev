@@ -15,12 +15,11 @@ void main() {
   HttpServer server;
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
-  final loadModule = fetchModuleStrategy(ModuleStrategy.requireJS);
 
   group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
-      var pipeline = const Pipeline().addMiddleware(
-          createInjectedHandler(ReloadConfiguration.liveReload, loadModule));
+      var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
+          ReloadConfiguration.liveReload, ModuleStrategy.requireJS));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok(
@@ -110,7 +109,7 @@ void main() {
       var someExtensionHostname = 'localhost';
       var someExtensionPort = 4000;
       var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
-          ReloadConfiguration.liveReload, loadModule,
+          ReloadConfiguration.liveReload, ModuleStrategy.requireJS,
           extensionHostname: someExtensionHostname,
           extensionPort: someExtensionPort));
       server = await shelf_io.serve(pipeline.addHandler((request) {

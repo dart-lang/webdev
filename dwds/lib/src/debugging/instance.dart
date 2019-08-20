@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:dwds/dwds.dart' show fetchModuleStrategy;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -59,7 +60,7 @@ class InstanceHelper {
         ..length = actualString.length;
     }
     var metaData = await ClassMetaData.metaDataFor(
-        _remoteDebugger, remoteObject, _debugger.loadModule);
+        _remoteDebugger, remoteObject, _debugger.moduleStrategy);
     var classRef = ClassRef()
       ..id = metaData.id
       ..name = metaData.name;
@@ -86,13 +87,14 @@ class InstanceHelper {
   /// that correspond to Dart fields on the object.
   Future<List<Property>> dartPropertiesFor(
       List<Property> allJsProperties, RemoteObject remoteObject) async {
+    var loadModule = fetchModuleStrategy(_debugger.moduleStrategy);
     // An expression to find the field names from the types, extract both
     // private (named by symbols) and public (named by strings) and return them
     // as a comma-separated single string, so we can return it by value and not
     // need to make multiple round trips.
     // TODO(alanknight): Handle superclass fields.
     final fieldNameExpression = '''function() {
-      const sdk_utils = ${_debugger.loadModule}("dart_sdk").dart;
+      const sdk_utils = $loadModule("dart_sdk").dart;
       const fields = sdk_utils.getFields(sdk_utils.getType(this));
       const privateFields = Object.getOwnPropertySymbols(fields);
       const nonSymbolNames = privateFields.map(sym => sym.description);
@@ -134,7 +136,7 @@ class InstanceHelper {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
         var metaData = await ClassMetaData.metaDataFor(
-            _remoteDebugger, remoteObject, _debugger.loadModule);
+            _remoteDebugger, remoteObject, _debugger.moduleStrategy);
         if (metaData == null) return null;
         return InstanceRef()
           ..kind = InstanceKind.kPlainInstance

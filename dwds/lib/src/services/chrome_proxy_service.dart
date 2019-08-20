@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/dwds.dart' show ModuleStrategy, fetchModuleStrategy;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -47,7 +48,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   final AssetHandler _assetHandler;
 
-  final String loadModule;
+  final ModuleStrategy moduleStrategy;
 
   /// Provides debugger-related functionality.
   Debugger _debugger;
@@ -67,7 +68,7 @@ class ChromeProxyService implements VmServiceInterface {
     this._assetHandler,
     this.remoteDebugger,
     this._logWriter,
-    this.loadModule,
+    this.moduleStrategy,
   );
 
   static Future<ChromeProxyService> create(
@@ -76,7 +77,7 @@ class ChromeProxyService implements VmServiceInterface {
     AssetHandler assetHandler,
     String appInstanceId,
     LogWriter logWriter,
-    String loadModule,
+    ModuleStrategy moduleStrategy,
   ) async {
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
@@ -85,7 +86,7 @@ class ChromeProxyService implements VmServiceInterface {
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
     var service = ChromeProxyService._(
-        vm, tabUrl, assetHandler, remoteDebugger, logWriter, loadModule);
+        vm, tabUrl, assetHandler, remoteDebugger, logWriter, moduleStrategy);
     await service._initialize();
     await service.createIsolate();
     return service;
@@ -99,7 +100,7 @@ class ChromeProxyService implements VmServiceInterface {
       appInspectorProvider,
       uri,
       _logWriter,
-      loadModule,
+      moduleStrategy,
     );
   }
 
@@ -191,6 +192,7 @@ class ChromeProxyService implements VmServiceInterface {
   @override
   Future<Response> callServiceExtension(String method,
       {String isolateId, Map args}) async {
+    var loadModule = fetchModuleStrategy(moduleStrategy);
     // Validate the isolate id is correct, _getIsolate throws if not.
     if (isolateId != null) _getIsolate(isolateId);
     args ??= <String, String>{};

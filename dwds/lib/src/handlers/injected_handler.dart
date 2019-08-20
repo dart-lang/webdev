@@ -24,7 +24,7 @@ const mainExtensionMarker = '/* MAIN_EXTENSION_MARKER */';
 const _clientScript = 'dwds/src/injected/client';
 
 Handler Function(Handler) createInjectedHandler(
-        ReloadConfiguration configuration, String loadModule,
+        ReloadConfiguration configuration, ModuleStrategy moduleStrategy,
         {String extensionHostname, int extensionPort}) =>
     (innerHandler) {
       return (Request request) async {
@@ -65,6 +65,7 @@ Handler Function(Handler) createInjectedHandler(
             var mainFunction = bodyLines[extensionIndex + 1]
                 .replaceAll('main()', 'main')
                 .trim();
+            var loadModule = fetchModuleStrategy(moduleStrategy);
             body += _injectedClientJs(
                 configuration, appId, mainFunction, loadModule,
                 extensionHostname: extensionHostname,

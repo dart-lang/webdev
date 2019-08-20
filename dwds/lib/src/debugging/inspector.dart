@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:dwds/dwds.dart' show fetchModuleStrategy;
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:path/path.dart' as p;
 import 'package:vm_service/vm_service.dart';
@@ -53,6 +54,8 @@ class AppInspector extends Domain {
   /// The root URI from which the application is served.
   final String _root;
 
+  final String loadModule;
+
   AppInspector._(
     this.isolate,
     this._assetHandler,
@@ -61,6 +64,7 @@ class AppInspector extends Domain {
     this._remoteDebugger,
   )   : isolateRef = _toIsolateRef(isolate),
         instanceHelper = InstanceHelper(debugger, _remoteDebugger),
+        loadModule = fetchModuleStrategy(debugger.moduleStrategy),
         super.forInspector();
 
   @override
@@ -112,7 +116,7 @@ class AppInspector extends Domain {
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
     var load = '''
         function() {
-          return ${debugger.loadModule}("dart_sdk").dart.dloadRepl(this, "$fieldName");
+          return $loadModule("dart_sdk").dart.dloadRepl(this, "$fieldName");
         }
         ''';
     return callFunctionOn(receiver, load, _marshallArguments([]));
@@ -129,7 +133,7 @@ class AppInspector extends Domain {
     var send = '''
         function (positional) {
           if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
-          return ${debugger.loadModule}("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
+          return $loadModule("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
         }
         ''';
     var arguments = _marshallArguments(positionalArgs);
@@ -201,7 +205,7 @@ class AppInspector extends Domain {
       String expression, String libraryUri) {
     var evalExpression = '''
 (function() {
-  ${_getLibrarySnippet(libraryUri, debugger.loadModule)};
+  ${_getLibrarySnippet(libraryUri, loadModule)};
   return library.$expression;
 })();
 ''';
@@ -233,7 +237,7 @@ class AppInspector extends Domain {
     var arguments = scope.values.map((id) => {'objectId': id}).toList();
     var evalExpression = '''
 function($argsString) {
-  ${_getLibrarySnippet(library.uri, debugger.loadModule)};
+  ${_getLibrarySnippet(library.uri, loadModule)};
   return library.$expression;
 }
     ''';
@@ -285,7 +289,7 @@ function($argsString) {
     // Fetch information about all the classes in this library.
     var expression = '''
     (function() {
-      ${_getLibrarySnippet(libraryRef.uri, debugger.loadModule)}
+      ${_getLibrarySnippet(libraryRef.uri, loadModule)}
       var parts = sdkUtils.getParts('${libraryRef.uri}');
       var result = {'parts' : parts}
       var classes = Object.values(Object.getOwnPropertyDescriptors(library))
@@ -471,7 +475,7 @@ function($argsString) {
   /// Note this can return a cached result.
   Future<List<LibraryRef>> _getLibraryRefs() async {
     if (_libraryRefs.isNotEmpty) return _libraryRefs.values.toList();
-    var expression = "${debugger.loadModule}('dart_sdk').dart.getLibraries();";
+    var expression = "$loadModule('dart_sdk').dart.getLibraries();";
     var librariesResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(librariesResult, evalContents: expression);
@@ -490,7 +494,7 @@ function($argsString) {
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
     var expression =
-        "${debugger.loadModule}('dart_sdk').developer._extensions.keys.toList();";
+        "$loadModule('dart_sdk').developer._extensions.keys.toList();";
     var extensionsResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(extensionsResult, evalContents: expression);

@@ -96,10 +96,9 @@ class Dwds {
       extensionHostname = extensionBackend.hostname;
       extensionPort = extensionBackend.port;
     }
-    var loadModule = fetchModuleStrategy(moduleStrategy);
 
     pipeline = pipeline.addMiddleware(createInjectedHandler(
-        reloadConfiguration, loadModule,
+        reloadConfiguration, moduleStrategy,
         extensionHostname: extensionHostname, extensionPort: extensionPort));
 
     if (serveDevTools) {
@@ -116,7 +115,7 @@ class Dwds {
       verbose,
       logWriter,
       extensionBackend,
-      loadModule,
+      moduleStrategy,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 

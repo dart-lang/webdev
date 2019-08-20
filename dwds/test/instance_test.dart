@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/dwds.dart';
 @TestOn('vm')
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
@@ -39,9 +40,10 @@ void main() {
   });
 
   final url = 'org-dartlang-app:///web/scopes_main.dart';
+  final loadModule = fetchModuleStrategy(context.moduleStrategy);
 
   String libraryVariableExpression(String variable) =>
-      '${debugger.loadModule}("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
+      '$loadModule("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
       '["$url"]["$variable"];';
 
   Future<RemoteObject> libraryPublicFinal() => inspector

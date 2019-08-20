@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:dwds/dwds.dart' show fetchModuleStrategy, ModuleStrategy;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../services/chrome_proxy_service.dart';
@@ -22,8 +23,9 @@ class ClassMetaData {
   ///
   /// Returns null if the [remoteObject] is not a Dart class.
   static Future<ClassMetaData> metaDataFor(RemoteDebugger remoteDebugger,
-      RemoteObject remoteObject, String loadModule) async {
+      RemoteObject remoteObject, ModuleStrategy moduleStrategy) async {
     try {
+      var loadModule = fetchModuleStrategy(moduleStrategy);
       var evalExpression = '''
       function(arg) {
         var sdkUtils = $loadModule('dart_sdk').dart;
