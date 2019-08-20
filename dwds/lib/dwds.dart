@@ -32,7 +32,7 @@ String loadModuleConfiguration(LoadModuleConfiguration config) {
     case LoadModuleConfiguration.requireJS:
       return 'require';
   }
-  return null;
+  throw StateError('Unreachable code');
 }
 
 final externalConfig = LoadModuleConfiguration.requireJS;
