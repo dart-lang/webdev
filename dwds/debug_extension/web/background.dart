@@ -153,9 +153,6 @@ external dynamic addDebuggerListener(Function callback);
 @JS('chrome.debugger.onDetach.addListener')
 external dynamic onDetachAddListener(Function callback);
 
-@JS('chrome.runtime.onInstalled.addListener')
-external dynamic onInstalledAddListener(Function callback);
-
 @JS('chrome.tabs.query')
 external List<Tab> queryTabs(QueryInfo queryInfo, Function callback);
 
