@@ -57,10 +57,6 @@ void main() {
     }));
   });
   addListener(startDebug);
-  onInstalledAddListener(allowInterop((e) {
-    alert(
-        'Dart Debug Extension is successfully installed. Make sure to disable chrome://flags/#expensive-background-timer-throttling ');
-  }));
 
   // For testing only.
   onFakeClicked = allowInterop(() {
