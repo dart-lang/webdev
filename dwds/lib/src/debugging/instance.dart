@@ -5,7 +5,6 @@
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../dwds.dart' show loadModule;
 import '../utilities/objects.dart';
 import 'debugger.dart';
 import 'metadata.dart';
@@ -59,8 +58,8 @@ class InstanceHelper {
         ..valueAsString = actualString
         ..length = actualString.length;
     }
-    var metaData =
-        await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject);
+    var metaData = await ClassMetaData.metaDataFor(
+        _remoteDebugger, remoteObject, _debugger.loadModule);
     var classRef = ClassRef()
       ..id = metaData.id
       ..name = metaData.name;
@@ -93,7 +92,7 @@ class InstanceHelper {
     // need to make multiple round trips.
     // TODO(alanknight): Handle superclass fields.
     final fieldNameExpression = '''function() {
-      const sdk_utils = $loadModule("dart_sdk").dart;
+      const sdk_utils = ${_debugger.loadModule}("dart_sdk").dart;
       const fields = sdk_utils.getFields(sdk_utils.getType(this));
       const privateFields = Object.getOwnPropertySymbols(fields);
       const nonSymbolNames = privateFields.map(sym => sym.description);
@@ -134,8 +133,8 @@ class InstanceHelper {
         if (remoteObject.type == 'object' && remoteObject.objectId == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
-        var metaData =
-            await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject);
+        var metaData = await ClassMetaData.metaDataFor(
+            _remoteDebugger, remoteObject, _debugger.loadModule);
         if (metaData == null) return null;
         return InstanceRef()
           ..kind = InstanceKind.kPlainInstance

@@ -116,14 +116,15 @@ class DebugService {
     String tabUrl,
     AssetHandler assetHandler,
     String appInstanceId,
-    LogWriter logWriter, {
+    LogWriter logWriter,
+    String loadModule, {
     void Function(Map<String, dynamic>) onRequest,
     void Function(Map<String, dynamic>) onResponse,
     bool useSse,
   }) async {
     useSse ??= false;
-    var chromeProxyService = await ChromeProxyService.create(
-        remoteDebugger, tabUrl, assetHandler, appInstanceId, logWriter);
+    var chromeProxyService = await ChromeProxyService.create(remoteDebugger,
+        tabUrl, assetHandler, appInstanceId, logWriter, loadModule);
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;

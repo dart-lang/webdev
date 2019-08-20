@@ -37,6 +37,8 @@ class Debugger extends Domain {
   final String _root;
   final StreamNotify _streamNotify;
 
+  final String loadModule;
+
   Debugger._(
     this._assetHandler,
     this._remoteDebugger,
@@ -45,6 +47,7 @@ class Debugger extends Domain {
     // TODO(401) - Remove.
     this._root,
     this._logWriter,
+    this.loadModule,
   )   : _breakpoints = _Breakpoints(provider),
         super(provider);
 
@@ -138,12 +141,14 @@ class Debugger extends Domain {
   }
 
   static Future<Debugger> create(
-      AssetHandler assetHandler,
-      RemoteDebugger remoteDebugger,
-      StreamNotify streamNotify,
-      AppInspectorProvider appInspectorProvider,
-      String root,
-      LogWriter logWriter) async {
+    AssetHandler assetHandler,
+    RemoteDebugger remoteDebugger,
+    StreamNotify streamNotify,
+    AppInspectorProvider appInspectorProvider,
+    String root,
+    LogWriter logWriter,
+    String loadModule,
+  ) async {
     var debugger = Debugger._(
       assetHandler,
       remoteDebugger,
@@ -152,6 +157,7 @@ class Debugger extends Domain {
       // TODO(401) - Remove.
       root,
       logWriter,
+      loadModule,
     );
     await debugger._initialize();
     return debugger;
@@ -308,7 +314,7 @@ class Debugger extends Domain {
   Future<List<BoundVariable>> variablesFor(
       List<dynamic> scopeChain, String callFrameId) async {
     // TODO(alanknight): Can these be moved to dart_scope.dart?
-    var properties = await visibleProperties(
+    var properties = await visibleProperties(loadModule,
         scopeList: scopeChain.cast<Map<String, dynamic>>().toList(),
         debugger: this,
         callFrameId: callFrameId);

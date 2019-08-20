@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../dwds.dart' show loadModule;
 import '../utilities/objects.dart';
 import 'debugger.dart';
 
@@ -14,7 +13,7 @@ import 'debugger.dart';
 ///
 /// The [scopeList] is a List of Maps corresponding to Chrome Scope objects.
 /// https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Scope
-Future<List<Property>> visibleProperties(
+Future<List<Property>> visibleProperties(String loadModule,
     {List<Map<String, dynamic>> scopeList,
     Debugger debugger,
     String callFrameId}) async {
@@ -31,7 +30,8 @@ Future<List<Property>> visibleProperties(
   var existingThis =
       allProperties.firstWhere((x) => x.name == 'this', orElse: () => null);
   if (existingThis == null) {
-    var syntheticThis = await _findMissingThis(callFrameId, debugger);
+    var syntheticThis =
+        await _findMissingThis(callFrameId, debugger, loadModule);
     if (syntheticThis != null) {
       allProperties.add(syntheticThis);
     }
@@ -45,7 +45,8 @@ Future<List<Property>> visibleProperties(
 /// we're in a nested closure, or we might be a top-level function. Find it by evaluating
 /// code in the JS frame. If it's null/undefined or is a Dart library scope, then
 /// return null. Otherwise make a property for `this` and return it.
-Future<Property> _findMissingThis(String callFrameId, Debugger debugger) async {
+Future<Property> _findMissingThis(
+    String callFrameId, Debugger debugger, String loadModule) async {
   // If 'this' is a library return null, otherwise
   // return 'this'.
   final findCurrent = '''

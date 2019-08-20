@@ -4,7 +4,6 @@
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../dwds.dart' show loadModule;
 import '../services/chrome_proxy_service.dart';
 import 'remote_debugger.dart';
 
@@ -22,8 +21,8 @@ class ClassMetaData {
   /// Returns the [ClassMetaData] for the Chrome [remoteObject].
   ///
   /// Returns null if the [remoteObject] is not a Dart class.
-  static Future<ClassMetaData> metaDataFor(
-      RemoteDebugger remoteDebugger, RemoteObject remoteObject) async {
+  static Future<ClassMetaData> metaDataFor(RemoteDebugger remoteDebugger,
+      RemoteObject remoteObject, String loadModule) async {
     try {
       var evalExpression = '''
       function(arg) {

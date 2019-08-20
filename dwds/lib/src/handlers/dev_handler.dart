@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart' as build_daemon;
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
@@ -43,6 +44,7 @@ class DevHandler {
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
   final ExtensionBackend _extensionBackend;
+  final String loadModule;
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -55,6 +57,7 @@ class DevHandler {
     this._verbose,
     this._logWriter,
     this._extensionBackend,
+    this.loadModule,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
@@ -119,6 +122,7 @@ class DevHandler {
       _assetHandler,
       appInstanceId,
       _logWriter,
+      loadModule,
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
@@ -304,6 +308,7 @@ class DevHandler {
           _assetHandler,
           devToolsRequest.appId,
           _logWriter,
+          loadModule,
           onResponse: _verbose
               ? (response) {
                   if (response['error'] == null) return;

@@ -24,10 +24,10 @@ export 'src/connections/debug_connection.dart' show DebugConnection;
 typedef LogWriter = void Function(Level, String);
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
-enum LoadModuleConfiguration { requireJS, amd }
+enum LoadModuleConfiguration { requireJS, legacy }
 String loadModuleConfiguration(LoadModuleConfiguration config) {
   switch (config) {
-    case LoadModuleConfiguration.amd:
+    case LoadModuleConfiguration.legacy:
       return 'dart_library.import';
     case LoadModuleConfiguration.requireJS:
       return 'require';
@@ -37,8 +37,7 @@ String loadModuleConfiguration(LoadModuleConfiguration config) {
 }
 
 final externalConfig = LoadModuleConfiguration.requireJS;
-final internalConfig = LoadModuleConfiguration.amd;
-final loadModule = loadModuleConfiguration(externalConfig);
+final internalConfig = LoadModuleConfiguration.legacy;
 
 /// The Dart Web Debug Service.
 class Dwds {
@@ -73,6 +72,7 @@ class Dwds {
     LogWriter logWriter,
     bool verbose,
     bool enableDebugExtension,
+    String loadModule,
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
@@ -81,6 +81,7 @@ class Dwds {
     serveDevTools = serveDevTools || enableDebugExtension;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
+    loadModule ??= loadModuleConfiguration(externalConfig);
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,
@@ -100,7 +101,8 @@ class Dwds {
       extensionPort = extensionBackend.port;
     }
 
-    pipeline = pipeline.addMiddleware(createInjectedHandler(reloadConfiguration,
+    pipeline = pipeline.addMiddleware(createInjectedHandler(
+        reloadConfiguration, loadModule,
         extensionHostname: extensionHostname, extensionPort: extensionPort));
 
     if (serveDevTools) {
@@ -117,6 +119,7 @@ class Dwds {
       verbose,
       logWriter,
       extensionBackend,
+      loadModule,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 

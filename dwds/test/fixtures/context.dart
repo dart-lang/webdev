@@ -34,7 +34,7 @@ class TestContext {
   int port;
   File _entryFile;
   String _entryContents;
-  String loadModuleConfig;
+  String loadModule;
 
   /// Top level directory in which we run the test server..
   String workingDirectory;
@@ -54,7 +54,7 @@ class TestContext {
     _entryFile = File(p.absolute(p.join(p.relative('../_test', from: p.current),
         'example', 'append_body', 'main.dart')));
     _entryContents = _entryFile.readAsStringSync();
-    loadModuleConfig = loadModule;
+    loadModule = loadModuleConfiguration(externalConfig);
   }
 
   Future<void> setUp(

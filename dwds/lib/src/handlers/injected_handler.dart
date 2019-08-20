@@ -24,9 +24,8 @@ const mainExtensionMarker = '/* MAIN_EXTENSION_MARKER */';
 const _clientScript = 'dwds/src/injected/client';
 
 Handler Function(Handler) createInjectedHandler(
-        ReloadConfiguration configuration,
-        {String extensionHostname,
-        int extensionPort}) =>
+        ReloadConfiguration configuration, String loadModule,
+        {String extensionHostname, int extensionPort}) =>
     (innerHandler) {
       return (Request request) async {
         if (request.url.path == '$_clientScript.js') {
@@ -66,7 +65,8 @@ Handler Function(Handler) createInjectedHandler(
             var mainFunction = bodyLines[extensionIndex + 1]
                 .replaceAll('main()', 'main')
                 .trim();
-            body += _injectedClientJs(configuration, appId, mainFunction,
+            body += _injectedClientJs(
+                configuration, appId, mainFunction, loadModule,
                 extensionHostname: extensionHostname,
                 extensionPort: extensionPort);
             body += bodyLines.sublist(extensionIndex + 2).join('\n');
@@ -87,8 +87,8 @@ Handler Function(Handler) createInjectedHandler(
       };
     };
 
-String _injectedClientJs(
-    ReloadConfiguration configuration, String appId, String mainFunction,
+String _injectedClientJs(ReloadConfiguration configuration, String appId,
+    String mainFunction, String loadModule,
     {String extensionHostname, int extensionPort}) {
   var injectedBody = '''\n
             // Injected by webdev for build results support.

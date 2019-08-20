@@ -10,7 +10,7 @@ import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../dwds.dart' show LogWriter, loadModule;
+import '../../dwds.dart' show LogWriter;
 import '../debugging/debugger.dart';
 import '../debugging/inspector.dart';
 import '../debugging/remote_debugger.dart';
@@ -47,6 +47,8 @@ class ChromeProxyService implements VmServiceInterface {
 
   final AssetHandler _assetHandler;
 
+  final String loadModule;
+
   /// Provides debugger-related functionality.
   Debugger _debugger;
 
@@ -65,6 +67,7 @@ class ChromeProxyService implements VmServiceInterface {
     this._assetHandler,
     this.remoteDebugger,
     this._logWriter,
+    this.loadModule,
   );
 
   static Future<ChromeProxyService> create(
@@ -73,6 +76,7 @@ class ChromeProxyService implements VmServiceInterface {
     AssetHandler assetHandler,
     String appInstanceId,
     LogWriter logWriter,
+    String loadModule,
   ) async {
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
@@ -81,7 +85,7 @@ class ChromeProxyService implements VmServiceInterface {
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
     var service = ChromeProxyService._(
-        vm, tabUrl, assetHandler, remoteDebugger, logWriter);
+        vm, tabUrl, assetHandler, remoteDebugger, logWriter, loadModule);
     await service._initialize();
     await service.createIsolate();
     return service;
@@ -95,6 +99,7 @@ class ChromeProxyService implements VmServiceInterface {
       appInspectorProvider,
       uri,
       _logWriter,
+      loadModule,
     );
   }
 

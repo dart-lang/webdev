@@ -31,6 +31,7 @@ void main() async {
       (level, message) {
         printOnFailure('[$level]: $message');
       },
+      context.loadModule,
     );
     inspector = FakeInspector();
   });
