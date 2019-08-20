@@ -59,7 +59,7 @@ void main() {
   addListener(startDebug);
 
   // For testing only.
-  onFakeClicked = allowInterop(() {
+  onFakeClick = allowInterop(() {
     startDebug(null);
   });
 }
@@ -240,4 +240,4 @@ class DetachReason {}
 /// We initiate a fake click from the `debug_extension_test`
 /// after the extension is loaded.
 @JS('fakeClick')
-external set onFakeClicked(void Function() f);
+external set onFakeClick(void Function() f);
