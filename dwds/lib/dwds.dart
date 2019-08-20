@@ -68,7 +68,7 @@ class Dwds {
     LogWriter logWriter,
     bool verbose,
     bool enableDebugExtension,
-    String loadModule,
+    ModuleStrategy moduleStrategy,
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
@@ -77,7 +77,7 @@ class Dwds {
     serveDevTools = serveDevTools || enableDebugExtension;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
-    loadModule ??= fetchModuleStrategy(ModuleStrategy.requireJS);
+    moduleStrategy ??= ModuleStrategy.requireJS;
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,
@@ -96,6 +96,7 @@ class Dwds {
       extensionHostname = extensionBackend.hostname;
       extensionPort = extensionBackend.port;
     }
+    var loadModule = fetchModuleStrategy(moduleStrategy);
 
     pipeline = pipeline.addMiddleware(createInjectedHandler(
         reloadConfiguration, loadModule,
