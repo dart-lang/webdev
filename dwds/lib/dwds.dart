@@ -31,9 +31,8 @@ String loadModuleConfiguration(LoadModuleConfiguration config) {
       return 'dart_library.import';
     case LoadModuleConfiguration.requireJS:
       return 'require';
-    default:
-      return 'require';
   }
+  return null;
 }
 
 final externalConfig = LoadModuleConfiguration.requireJS;
