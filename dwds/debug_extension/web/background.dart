@@ -57,6 +57,10 @@ void main() {
     }));
   });
   addListener(startDebug);
+  onInstalledAddListener(allowInterop((e) {
+    alert(
+        'Dart Debug Extension is successfully installed. Make sure to disable chrome://flags/#expensive-background-timer-throttling ');
+  }));
 
   // For testing only.
   onFakeClicked = allowInterop(() {
@@ -98,7 +102,6 @@ Future<void> startSseClient(
   }));
 
   onRemovedAddListener(allowInterop((int tabId, RemoveInfo removeInfo) {
-    print('reason: ${removeInfo.toString()}');
     if (tabId == currentTab.id) {
       client.close();
       detached = true;
@@ -106,7 +109,6 @@ Future<void> startSseClient(
   }));
 
   onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
-    print('reason: ${reason.toString()}');
     if (source.tabId == currentTab.id &&
         reason.toString() == 'canceled_by_user' &&
         !detached) {
