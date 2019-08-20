@@ -10,7 +10,6 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
-import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -22,14 +21,15 @@ import 'utilities.dart';
 
 class TestContext {
   String appUrl;
+  String extensionUrl;
   WipConnection tabConnection;
+  WipConnection extensionConnection;
   TestServer testServer;
   BuildDaemonClient daemonClient;
   WebDriver webDriver;
   Process chromeDriver;
   AppConnection appConnection;
   DebugConnection debugConnection;
-  ExtensionBackend extensionBackend;
   WebkitDebugger webkitDebugger;
   int port;
   File _entryFile;
@@ -93,8 +93,12 @@ class TestContext {
         Capabilities.chromeOptions: {
           'args': [
             'remote-debugging-port=$debugPort',
-            if (headless) '--headless'
-          ]
+            if (enableDebugExtension)
+              '--load-extension=debug_extension/web',
+            // Headless Chrome does not support extensions.
+            if (headless && !enableDebugExtension)
+              '--headless'
+          ],
         }
       });
     webDriver =
@@ -118,6 +122,15 @@ class TestContext {
     tabConnection = await tab.connect();
     await tabConnection.runtime.enable();
     await tabConnection.debugger.enable();
+
+    if (enableDebugExtension) {
+      var extensionId = 'pebbhcjfokadbgbnlmogdkkaahmamnap';
+      extensionUrl =
+          'chrome-extension://$extensionId/_generated_background_page.html';
+      var extensionTab = await connection.getTab((t) => t.url == extensionUrl);
+      extensionConnection = await extensionTab.connect();
+      await extensionConnection.runtime.enable();
+    }
 
     appConnection = await testServer.dwds.connectedApps.first;
     debugConnection = await testServer.dwds.debugConnection(appConnection);

@@ -20,7 +20,7 @@ import 'package:sse/client/sse_client.dart';
 // GENERATE:
 // pub run build_runner build web -o build -r
 void main() {
-  addListener(allowInterop((e) {
+  var startDebug = allowInterop((e) {
     var query = QueryInfo(active: true, currentWindow: true);
     Tab currentTab;
 
@@ -55,7 +55,13 @@ void main() {
     queryTabs(query, allowInterop((List tabs) {
       callback(List.from(tabs));
     }));
-  }));
+  });
+  addListener(startDebug);
+
+  // For testing only.
+  onFakeClicked = allowInterop(() {
+    startDebug(null);
+  });
 }
 
 // Starts an SSE client.
@@ -92,6 +98,7 @@ Future<void> startSseClient(
   }));
 
   onRemovedAddListener(allowInterop((int tabId, RemoveInfo removeInfo) {
+    print('reason: ${removeInfo.toString()}');
     if (tabId == currentTab.id) {
       client.close();
       detached = true;
@@ -99,6 +106,7 @@ Future<void> startSseClient(
   }));
 
   onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
+    print('reason: ${reason.toString()}');
     if (source.tabId == currentTab.id &&
         reason.toString() == 'canceled_by_user' &&
         !detached) {
@@ -146,6 +154,9 @@ external dynamic addDebuggerListener(Function callback);
 
 @JS('chrome.debugger.onDetach.addListener')
 external dynamic onDetachAddListener(Function callback);
+
+@JS('chrome.runtime.onInstalled.addListener')
+external dynamic onInstalledAddListener(Function callback);
 
 @JS('chrome.tabs.query')
 external List<Tab> queryTabs(QueryInfo queryInfo, Function callback);
@@ -227,3 +238,11 @@ class ScriptIdParam {
 @JS()
 @anonymous
 class DetachReason {}
+
+/// For testing only.
+//
+/// An automated click on the extension icon is not supported by WebDriver.
+/// We initiate a fake click from the `debug_extension_test`
+/// after the extension is loaded.
+@JS('fakeClick')
+external set onFakeClicked(void Function() f);
