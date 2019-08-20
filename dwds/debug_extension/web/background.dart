@@ -20,11 +20,7 @@ import 'package:sse/client/sse_client.dart';
 // GENERATE:
 // pub run build_runner build web -o build -r
 void main() {
-<<<<<<< HEAD
-  var startDebug = allowInterop((e) {
-=======
   var startDebug = allowInterop((_) {
->>>>>>> upstream/master
     var query = QueryInfo(active: true, currentWindow: true);
     Tab currentTab;
 
@@ -63,11 +59,7 @@ void main() {
   addListener(startDebug);
 
   // For testing only.
-<<<<<<< HEAD
-  onFakeClicked = allowInterop(() {
-=======
   onFakeClick = allowInterop(() {
->>>>>>> upstream/master
     startDebug(null);
   });
 }
