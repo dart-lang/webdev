@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:dwds/dwds.dart' show ModuleStrategy;
 import 'package:vm_service/vm_service.dart';
 
 VMRef toVMRef(VM vm) => VMRef()..name = vm.name;
@@ -30,4 +31,14 @@ Future<int> findUnusedPort() async {
   port = socket.port;
   await socket.close();
   return port;
+}
+
+String fetchModuleStrategy(ModuleStrategy config) {
+  switch (config) {
+    case ModuleStrategy.legacy:
+      return 'dart_library.import';
+    case ModuleStrategy.requireJS:
+      return 'require';
+  }
+  throw StateError('Unreachable code');
 }

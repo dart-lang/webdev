@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:dwds/dwds.dart' show fetchModuleStrategy;
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:path/path.dart' as p;
 import 'package:vm_service/vm_service.dart';

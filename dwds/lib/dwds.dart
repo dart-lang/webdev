@@ -25,15 +25,6 @@ typedef LogWriter = void Function(Level, String);
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
 enum ModuleStrategy { requireJS, legacy }
-String fetchModuleStrategy(ModuleStrategy config) {
-  switch (config) {
-    case ModuleStrategy.legacy:
-      return 'dart_library.import';
-    case ModuleStrategy.requireJS:
-      return 'require';
-  }
-  throw StateError('Unreachable code');
-}
 
 /// The Dart Web Debug Service.
 class Dwds {

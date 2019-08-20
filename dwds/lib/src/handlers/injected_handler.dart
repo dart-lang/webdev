@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:shelf/shelf.dart';
 
 import '../../dwds.dart';

@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-import 'package:dwds/dwds.dart' show fetchModuleStrategy, ModuleStrategy;
+import 'package:dwds/dwds.dart' show ModuleStrategy;
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../services/chrome_proxy_service.dart';
