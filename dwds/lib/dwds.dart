@@ -24,19 +24,16 @@ export 'src/connections/debug_connection.dart' show DebugConnection;
 typedef LogWriter = void Function(Level, String);
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
-enum LoadModuleConfiguration { requireJS, legacy }
-String loadModuleConfiguration(LoadModuleConfiguration config) {
+enum ModuleStrategy { requireJS, legacy }
+String fetchModuleStrategy(ModuleStrategy config) {
   switch (config) {
-    case LoadModuleConfiguration.legacy:
+    case ModuleStrategy.legacy:
       return 'dart_library.import';
-    case LoadModuleConfiguration.requireJS:
+    case ModuleStrategy.requireJS:
       return 'require';
   }
   throw StateError('Unreachable code');
 }
-
-final externalConfig = LoadModuleConfiguration.requireJS;
-final internalConfig = LoadModuleConfiguration.legacy;
 
 /// The Dart Web Debug Service.
 class Dwds {
@@ -80,7 +77,7 @@ class Dwds {
     serveDevTools = serveDevTools || enableDebugExtension;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
-    loadModule ??= loadModuleConfiguration(externalConfig);
+    loadModule ??= fetchModuleStrategy(ModuleStrategy.requireJS);
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,

@@ -15,7 +15,7 @@ void main() {
   HttpServer server;
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
-  final loadModule = loadModuleConfiguration(externalConfig);
+  final loadModule = fetchModuleStrategy(ModuleStrategy.requireJS);
 
   group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
