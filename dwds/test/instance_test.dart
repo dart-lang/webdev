@@ -41,7 +41,7 @@ void main() {
   final url = 'org-dartlang-app:///web/scopes_main.dart';
 
   String libraryVariableExpression(String variable) =>
-      'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
+      '${context.loadModuleConfig}("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
       '["$url"]["$variable"];';
 
   Future<RemoteObject> libraryPublicFinal() => inspector

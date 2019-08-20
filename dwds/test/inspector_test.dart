@@ -33,7 +33,7 @@ void main() {
 
   /// A convenient way to get a library variable without boilerplate.
   String libraryVariableExpression(String variable) =>
-      'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["$variable"];';
+      '${context.loadModuleConfig}("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["$variable"];';
 
   Future<RemoteObject> libraryPublicFinal() => inspector
       .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));

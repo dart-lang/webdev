@@ -24,14 +24,31 @@ export 'src/connections/debug_connection.dart' show DebugConnection;
 typedef LogWriter = void Function(Level, String);
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
+enum LoadModuleConfiguration { requireJS, amd }
+String loadModuleConfiguration(LoadModuleConfiguration config) {
+  switch (config) {
+    case LoadModuleConfiguration.amd:
+      return 'dart_library.import';
+    case LoadModuleConfiguration.requireJS:
+      return 'require';
+    default:
+      return 'require';
+  }
+}
+
+final externalConfig = LoadModuleConfiguration.requireJS;
+final internalConfig = LoadModuleConfiguration.amd;
+final config = loadModuleConfiguration(externalConfig);
 
 /// The Dart Web Debug Service.
 class Dwds {
   final Handler handler;
   final DevTools _devTools;
   final DevHandler _devHandler;
+  final LoadModuleConfiguration loadModuleConfiguration;
 
-  Dwds._(this.handler, this._devTools, this._devHandler);
+  Dwds._(this.handler, this._devTools, this._devHandler,
+      this.loadModuleConfiguration);
 
   Stream<AppConnection> get connectedApps => _devHandler.connectedApps;
 
@@ -105,6 +122,7 @@ class Dwds {
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
-    return Dwds._(pipeline.addHandler(cascade.handler), devTools, devHandler);
+    return Dwds._(pipeline.addHandler(cascade.handler), devTools, devHandler,
+        LoadModuleConfiguration.requireJS);
   }
 }

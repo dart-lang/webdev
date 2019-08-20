@@ -5,6 +5,7 @@
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../../dwds.dart' show config;
 import '../utilities/objects.dart';
 import 'debugger.dart';
 import 'metadata.dart';
@@ -91,8 +92,8 @@ class InstanceHelper {
     // as a comma-separated single string, so we can return it by value and not
     // need to make multiple round trips.
     // TODO(alanknight): Handle superclass fields.
-    const fieldNameExpression = '''function() {
-      const sdk_utils = require("dart_sdk").dart;
+    final fieldNameExpression = '''function() {
+      const sdk_utils = $config("dart_sdk").dart;
       const fields = sdk_utils.getFields(sdk_utils.getType(this));
       const privateFields = Object.getOwnPropertySymbols(fields);
       const nonSymbolNames = privateFields.map(sym => sym.description);

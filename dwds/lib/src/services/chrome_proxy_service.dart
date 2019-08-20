@@ -10,7 +10,7 @@ import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../dwds.dart' show LogWriter;
+import '../../dwds.dart' show LogWriter, config;
 import '../debugging/debugger.dart';
 import '../debugging/inspector.dart';
 import '../debugging/remote_debugger.dart';
@@ -192,7 +192,7 @@ class ChromeProxyService implements VmServiceInterface {
     var stringArgs = args.map((k, v) => MapEntry(
         k is String ? k : jsonEncode(k), v is String ? v : jsonEncode(v)));
     var expression = '''
-require("dart_sdk").developer.invokeExtension(
+$config("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
     var response =

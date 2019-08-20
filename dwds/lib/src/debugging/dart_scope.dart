@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../dwds.dart' show config;
 import '../utilities/objects.dart';
 import 'debugger.dart';
 
@@ -47,10 +48,10 @@ Future<List<Property>> visibleProperties(
 Future<Property> _findMissingThis(String callFrameId, Debugger debugger) async {
   // If 'this' is a library return null, otherwise
   // return 'this'.
-  const findCurrent = '''
+  final findCurrent = '''
         (function (THIS) { 
            if (THIS === window) { return null; }
-           let dart = require('dart_sdk').dart
+           let dart = $config('dart_sdk').dart
            let libs = dart.getLibraries().map(dart.getLibrary);
            for (let lib of libs) {
              if (lib === THIS) {
