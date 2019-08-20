@@ -101,7 +101,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// Creates a new isolate.
   ///
   /// Only one isolate at a time is supported, but they should be cleaned up
-  /// with [destroyIsolate] and recreated with this method there is a hot
+  /// with [destroyIsolate] and recreated with this method when there is a hot
   /// restart or full page refresh.
   Future<void> createIsolate() async {
     if (_inspector?.isolate != null) {
@@ -335,7 +335,7 @@ require("dart_sdk").developer.invokeExtension(
         case 'GC':
         // TODO: https://github.com/dart-lang/webdev/issues/168
         case 'Timeline':
-        case '_Service':
+        case 'Service':
           return StreamController<Event>.broadcast();
         case 'Debug':
           return StreamController<Event>.broadcast();
