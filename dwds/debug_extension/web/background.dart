@@ -20,7 +20,7 @@ import 'package:sse/client/sse_client.dart';
 // GENERATE:
 // pub run build_runner build web -o build -r
 void main() {
-  addListener(allowInterop((e) {
+  var startDebug = allowInterop((_) {
     var query = QueryInfo(active: true, currentWindow: true);
     Tab currentTab;
 
@@ -55,7 +55,13 @@ void main() {
     queryTabs(query, allowInterop((List tabs) {
       callback(List.from(tabs));
     }));
-  }));
+  });
+  addListener(startDebug);
+
+  // For testing only.
+  onFakeClick = allowInterop(() {
+    startDebug(null);
+  });
 }
 
 // Starts an SSE client.
@@ -227,3 +233,11 @@ class ScriptIdParam {
 @JS()
 @anonymous
 class DetachReason {}
+
+/// For testing only.
+//
+/// An automated click on the extension icon is not supported by WebDriver.
+/// We initiate a fake click from the `debug_extension_test`
+/// after the extension is loaded.
+@JS('fakeClick')
+external set onFakeClick(void Function() f);
