@@ -192,7 +192,7 @@ class ChromeProxyService implements VmServiceInterface {
     var stringArgs = args.map((k, v) => MapEntry(
         k is String ? k : jsonEncode(k), v is String ? v : jsonEncode(v)));
     var expression = '''
-require("dart_sdk").developer.invokeExtension(
+$loadModule("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
     var response =

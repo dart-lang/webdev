@@ -139,12 +139,13 @@ class Debugger extends Domain {
   }
 
   static Future<Debugger> create(
-      AssetHandler assetHandler,
-      RemoteDebugger remoteDebugger,
-      StreamNotify streamNotify,
-      AppInspectorProvider appInspectorProvider,
-      String root,
-      LogWriter logWriter) async {
+    AssetHandler assetHandler,
+    RemoteDebugger remoteDebugger,
+    StreamNotify streamNotify,
+    AppInspectorProvider appInspectorProvider,
+    String root,
+    LogWriter logWriter,
+  ) async {
     var debugger = Debugger._(
       assetHandler,
       remoteDebugger,

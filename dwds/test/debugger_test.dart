@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
+import 'package:dwds/dwds.dart' show ModuleStrategy;
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
 
@@ -21,6 +23,7 @@ FakeWebkitDebugger webkitDebugger;
 
 void main() async {
   setUpAll(() async {
+    globalModuleStrategy = ModuleStrategy.requireJS;
     webkitDebugger = FakeWebkitDebugger();
     debugger = await Debugger.create(
       null,

@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:build_daemon/data/build_status.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
@@ -24,6 +25,7 @@ export 'src/connections/debug_connection.dart' show DebugConnection;
 typedef LogWriter = void Function(Level, String);
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
+enum ModuleStrategy { requireJS, legacy }
 
 /// The Dart Web Debug Service.
 class Dwds {
@@ -58,6 +60,7 @@ class Dwds {
     LogWriter logWriter,
     bool verbose,
     bool enableDebugExtension,
+    ModuleStrategy moduleStrategy,
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
@@ -66,6 +69,7 @@ class Dwds {
     serveDevTools = serveDevTools || enableDebugExtension;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
+    globalModuleStrategy = moduleStrategy ?? ModuleStrategy.requireJS;
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,

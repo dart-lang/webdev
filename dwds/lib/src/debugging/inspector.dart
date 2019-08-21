@@ -112,7 +112,7 @@ class AppInspector extends Domain {
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
     var load = '''
         function() {
-          return require("dart_sdk").dart.dloadRepl(this, "$fieldName");
+          return $loadModule("dart_sdk").dart.dloadRepl(this, "$fieldName");
         }
         ''';
     return callFunctionOn(receiver, load, _marshallArguments([]));
@@ -129,7 +129,7 @@ class AppInspector extends Domain {
     var send = '''
         function (positional) {
           if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
-          return require("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
+          return $loadModule("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
         }
         ''';
     var arguments = _marshallArguments(positionalArgs);
@@ -470,7 +470,7 @@ function($argsString) {
   /// Note this can return a cached result.
   Future<List<LibraryRef>> _getLibraryRefs() async {
     if (_libraryRefs.isNotEmpty) return _libraryRefs.values.toList();
-    var expression = "require('dart_sdk').dart.getLibraries();";
+    var expression = "$loadModule('dart_sdk').dart.getLibraries();";
     var librariesResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(librariesResult, evalContents: expression);
@@ -488,7 +488,8 @@ function($argsString) {
 
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
-    var expression = "require('dart_sdk').developer._extensions.keys.toList();";
+    var expression =
+        "$loadModule('dart_sdk').developer._extensions.keys.toList();";
     var extensionsResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(extensionsResult, evalContents: expression);
@@ -508,7 +509,7 @@ function($argsString) {
 /// Dart-specific scheme URIs, and we set `library` the corresponding library.
 String _getLibrarySnippet(String libraryUri) => '''
   var libraryName = '$libraryUri';
-  var sdkUtils = require('dart_sdk').dart;
+  var sdkUtils = $loadModule('dart_sdk').dart;
   var moduleName = sdkUtils.getModuleNames().find(
     (name) => sdkUtils.getModuleLibraries(name)[libraryName]);
   var library = sdkUtils.getModuleLibraries(moduleName)[libraryName];

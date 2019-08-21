@@ -5,6 +5,7 @@
 @TestOn('vm')
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -33,7 +34,7 @@ void main() {
 
   /// A convenient way to get a library variable without boilerplate.
   String libraryVariableExpression(String variable) =>
-      'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["$variable"];';
+      '$loadModule("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["$variable"];';
 
   Future<RemoteObject> libraryPublicFinal() => inspector
       .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));

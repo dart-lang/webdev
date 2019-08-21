@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../services/chrome_proxy_service.dart';
@@ -26,7 +27,7 @@ class ClassMetaData {
     try {
       var evalExpression = '''
       function(arg) {
-        var sdkUtils = require('dart_sdk').dart;
+        var sdkUtils = $loadModule('dart_sdk').dart;
         var classObject = sdkUtils.getType(arg);
         var result = {};
         result['name'] = classObject.name;
