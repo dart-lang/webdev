@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dwds/dwds.dart' show LogWriter, ModuleStrategy;
+import 'package:dwds/dwds.dart' show LogWriter;
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:pedantic/pedantic.dart';
@@ -116,15 +116,14 @@ class DebugService {
     String tabUrl,
     AssetHandler assetHandler,
     String appInstanceId,
-    LogWriter logWriter,
-    ModuleStrategy moduleStrategy, {
+    LogWriter logWriter, {
     void Function(Map<String, dynamic>) onRequest,
     void Function(Map<String, dynamic>) onResponse,
     bool useSse,
   }) async {
     useSse ??= false;
-    var chromeProxyService = await ChromeProxyService.create(remoteDebugger,
-        tabUrl, assetHandler, appInstanceId, logWriter, moduleStrategy);
+    var chromeProxyService = await ChromeProxyService.create(
+        remoteDebugger, tabUrl, assetHandler, appInstanceId, logWriter);
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;

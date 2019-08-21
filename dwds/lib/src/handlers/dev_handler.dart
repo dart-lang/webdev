@@ -44,7 +44,6 @@ class DevHandler {
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
   final ExtensionBackend _extensionBackend;
-  final ModuleStrategy moduleStrategy;
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -57,7 +56,6 @@ class DevHandler {
     this._verbose,
     this._logWriter,
     this._extensionBackend,
-    this.moduleStrategy,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
@@ -122,7 +120,6 @@ class DevHandler {
       _assetHandler,
       appInstanceId,
       _logWriter,
-      moduleStrategy,
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
@@ -308,7 +305,6 @@ class DevHandler {
           _assetHandler,
           devToolsRequest.appId,
           _logWriter,
-          moduleStrategy,
           onResponse: _verbose
               ? (response) {
                   if (response['error'] == null) return;

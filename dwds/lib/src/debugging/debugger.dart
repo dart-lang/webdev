@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:dwds/dwds.dart' show ModuleStrategy;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -38,8 +37,6 @@ class Debugger extends Domain {
   final String _root;
   final StreamNotify _streamNotify;
 
-  final ModuleStrategy moduleStrategy;
-
   Debugger._(
     this._assetHandler,
     this._remoteDebugger,
@@ -48,7 +45,6 @@ class Debugger extends Domain {
     // TODO(401) - Remove.
     this._root,
     this._logWriter,
-    this.moduleStrategy,
   )   : _breakpoints = _Breakpoints(provider),
         super(provider);
 
@@ -148,7 +144,6 @@ class Debugger extends Domain {
     AppInspectorProvider appInspectorProvider,
     String root,
     LogWriter logWriter,
-    ModuleStrategy moduleStrategy,
   ) async {
     var debugger = Debugger._(
       assetHandler,
@@ -158,7 +153,6 @@ class Debugger extends Domain {
       // TODO(401) - Remove.
       root,
       logWriter,
-      moduleStrategy,
     );
     await debugger._initialize();
     return debugger;
@@ -315,7 +309,7 @@ class Debugger extends Domain {
   Future<List<BoundVariable>> variablesFor(
       List<dynamic> scopeChain, String callFrameId) async {
     // TODO(alanknight): Can these be moved to dart_scope.dart?
-    var properties = await visibleProperties(moduleStrategy,
+    var properties = await visibleProperties(
         scopeList: scopeChain.cast<Map<String, dynamic>>().toList(),
         debugger: this,
         callFrameId: callFrameId);

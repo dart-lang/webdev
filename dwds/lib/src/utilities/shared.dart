@@ -42,3 +42,11 @@ String fetchModuleStrategy(ModuleStrategy config) {
   }
   throw StateError('Unreachable code');
 }
+
+ModuleStrategy _moduleStrategy;
+
+ModuleStrategy get moduleStrategy => _moduleStrategy;
+
+set moduleStrategy(ModuleStrategy moduleStrategy) {
+  _moduleStrategy = moduleStrategy;
+}

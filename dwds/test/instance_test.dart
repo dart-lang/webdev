@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
@@ -25,6 +24,7 @@ void main() {
   RemoteDebugger remoteDebugger;
   Debugger debugger;
   InstanceHelper instanceHelper;
+  String loadModule;
 
   setUpAll(() async {
     await context.setUp();
@@ -33,6 +33,7 @@ void main() {
     remoteDebugger = chromeProxyService.remoteDebugger;
     debugger = inspector.debugger;
     instanceHelper = InstanceHelper(debugger, remoteDebugger);
+    loadModule = fetchModuleStrategy(moduleStrategy);
   });
 
   tearDownAll(() async {
@@ -40,7 +41,6 @@ void main() {
   });
 
   final url = 'org-dartlang-app:///web/scopes_main.dart';
-  final loadModule = fetchModuleStrategy(context.moduleStrategy);
 
   String libraryVariableExpression(String variable) =>
       '$loadModule("dart_sdk").dart.getModuleLibraries("web/scopes_main")'

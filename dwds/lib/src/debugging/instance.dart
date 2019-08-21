@@ -59,8 +59,8 @@ class InstanceHelper {
         ..valueAsString = actualString
         ..length = actualString.length;
     }
-    var metaData = await ClassMetaData.metaDataFor(
-        _remoteDebugger, remoteObject, _debugger.moduleStrategy);
+    var metaData =
+        await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject);
     var classRef = ClassRef()
       ..id = metaData.id
       ..name = metaData.name;
@@ -87,7 +87,7 @@ class InstanceHelper {
   /// that correspond to Dart fields on the object.
   Future<List<Property>> dartPropertiesFor(
       List<Property> allJsProperties, RemoteObject remoteObject) async {
-    var loadModule = fetchModuleStrategy(_debugger.moduleStrategy);
+    var loadModule = fetchModuleStrategy(moduleStrategy);
     // An expression to find the field names from the types, extract both
     // private (named by symbols) and public (named by strings) and return them
     // as a comma-separated single string, so we can return it by value and not
@@ -135,8 +135,8 @@ class InstanceHelper {
         if (remoteObject.type == 'object' && remoteObject.objectId == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
-        var metaData = await ClassMetaData.metaDataFor(
-            _remoteDebugger, remoteObject, _debugger.moduleStrategy);
+        var metaData =
+            await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject);
         if (metaData == null) return null;
         return InstanceRef()
           ..kind = InstanceKind.kPlainInstance

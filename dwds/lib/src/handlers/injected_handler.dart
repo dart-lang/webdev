@@ -25,8 +25,9 @@ const mainExtensionMarker = '/* MAIN_EXTENSION_MARKER */';
 const _clientScript = 'dwds/src/injected/client';
 
 Handler Function(Handler) createInjectedHandler(
-        ReloadConfiguration configuration, ModuleStrategy moduleStrategy,
-        {String extensionHostname, int extensionPort}) =>
+        ReloadConfiguration configuration,
+        {String extensionHostname,
+        int extensionPort}) =>
     (innerHandler) {
       return (Request request) async {
         if (request.url.path == '$_clientScript.js') {
@@ -66,9 +67,7 @@ Handler Function(Handler) createInjectedHandler(
             var mainFunction = bodyLines[extensionIndex + 1]
                 .replaceAll('main()', 'main')
                 .trim();
-            var loadModule = fetchModuleStrategy(moduleStrategy);
-            body += _injectedClientJs(
-                configuration, appId, mainFunction, loadModule,
+            body += _injectedClientJs(configuration, appId, mainFunction,
                 extensionHostname: extensionHostname,
                 extensionPort: extensionPort);
             body += bodyLines.sublist(extensionIndex + 2).join('\n');
@@ -89,9 +88,10 @@ Handler Function(Handler) createInjectedHandler(
       };
     };
 
-String _injectedClientJs(ReloadConfiguration configuration, String appId,
-    String mainFunction, String loadModule,
+String _injectedClientJs(
+    ReloadConfiguration configuration, String appId, String mainFunction,
     {String extensionHostname, int extensionPort}) {
+  var loadModule = fetchModuleStrategy(moduleStrategy);
   var injectedBody = '''\n
             // Injected by webdev for build results support.
             window.\$dartAppId = "$appId";

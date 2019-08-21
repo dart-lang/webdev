@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-import 'package:dwds/dwds.dart' show ModuleStrategy;
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -23,8 +22,8 @@ class ClassMetaData {
   /// Returns the [ClassMetaData] for the Chrome [remoteObject].
   ///
   /// Returns null if the [remoteObject] is not a Dart class.
-  static Future<ClassMetaData> metaDataFor(RemoteDebugger remoteDebugger,
-      RemoteObject remoteObject, ModuleStrategy moduleStrategy) async {
+  static Future<ClassMetaData> metaDataFor(
+      RemoteDebugger remoteDebugger, RemoteObject remoteObject) async {
     try {
       var loadModule = fetchModuleStrategy(moduleStrategy);
       var evalExpression = '''

@@ -18,12 +18,14 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   AppInspector inspector;
+  String loadModule;
 
   setUpAll(() async {
     await context.setUp();
     // TODO(alanknight): A nicer way of getting the inspector.
     inspector =
         fetchChromeProxyService(context.debugConnection).appInspectorProvider();
+    loadModule = fetchModuleStrategy(moduleStrategy);
   });
 
   tearDownAll(() async {
@@ -31,7 +33,6 @@ void main() {
   });
 
   final url = 'org-dartlang-app:///web/scopes_main.dart';
-  final loadModule = fetchModuleStrategy(context.moduleStrategy);
 
   /// A convenient way to get a library variable without boilerplate.
   String libraryVariableExpression(String variable) =>

@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/handlers/injected_handler.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -18,8 +19,9 @@ void main() {
 
   group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
-      var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
-          ReloadConfiguration.liveReload, ModuleStrategy.requireJS));
+      moduleStrategy = ModuleStrategy.requireJS;
+      var pipeline = const Pipeline()
+          .addMiddleware(createInjectedHandler(ReloadConfiguration.liveReload));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok(
@@ -109,7 +111,7 @@ void main() {
       var someExtensionHostname = 'localhost';
       var someExtensionPort = 4000;
       var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
-          ReloadConfiguration.liveReload, ModuleStrategy.requireJS,
+          ReloadConfiguration.liveReload,
           extensionHostname: someExtensionHostname,
           extensionPort: someExtensionPort));
       server = await shelf_io.serve(pipeline.addHandler((request) {

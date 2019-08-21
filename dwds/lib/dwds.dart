@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:build_daemon/data/build_status.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
@@ -59,7 +60,6 @@ class Dwds {
     LogWriter logWriter,
     bool verbose,
     bool enableDebugExtension,
-    ModuleStrategy moduleStrategy,
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
@@ -68,7 +68,7 @@ class Dwds {
     serveDevTools = serveDevTools || enableDebugExtension;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
-    moduleStrategy ??= ModuleStrategy.requireJS;
+    moduleStrategy = ModuleStrategy.requireJS;
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,
@@ -88,8 +88,7 @@ class Dwds {
       extensionPort = extensionBackend.port;
     }
 
-    pipeline = pipeline.addMiddleware(createInjectedHandler(
-        reloadConfiguration, moduleStrategy,
+    pipeline = pipeline.addMiddleware(createInjectedHandler(reloadConfiguration,
         extensionHostname: extensionHostname, extensionPort: extensionPort));
 
     if (serveDevTools) {
@@ -106,7 +105,6 @@ class Dwds {
       verbose,
       logWriter,
       extensionBackend,
-      moduleStrategy,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
