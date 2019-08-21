@@ -60,7 +60,7 @@ class Dwds {
     LogWriter logWriter,
     bool verbose,
     bool enableDebugExtension,
-    ModuleStrategy globalModuleStrategy,
+    ModuleStrategy moduleStrategy,
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
@@ -69,8 +69,7 @@ class Dwds {
     serveDevTools = serveDevTools || enableDebugExtension;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
-    globalModuleStrategy ??= ModuleStrategy.requireJS;
-    moduleStrategy = globalModuleStrategy;
+    globalModuleStrategy = moduleStrategy ?? ModuleStrategy.requireJS;
     var assetHandler = AssetHandler(
       assetServerPort,
       applicationTarget,

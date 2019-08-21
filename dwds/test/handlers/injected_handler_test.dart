@@ -19,7 +19,7 @@ void main() {
 
   group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
-      moduleStrategy = ModuleStrategy.requireJS;
+      globalModuleStrategy = ModuleStrategy.requireJS;
       var pipeline = const Pipeline()
           .addMiddleware(createInjectedHandler(ReloadConfiguration.liveReload));
       server = await shelf_io.serve(pipeline.addHandler((request) {

@@ -23,7 +23,7 @@ FakeWebkitDebugger webkitDebugger;
 
 void main() async {
   setUpAll(() async {
-    moduleStrategy = ModuleStrategy.requireJS;
+    globalModuleStrategy = ModuleStrategy.requireJS;
     webkitDebugger = FakeWebkitDebugger();
     debugger = await Debugger.create(
       null,

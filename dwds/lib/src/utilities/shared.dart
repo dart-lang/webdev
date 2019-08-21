@@ -33,7 +33,7 @@ Future<int> findUnusedPort() async {
   return port;
 }
 
-String fetchModuleStrategy(ModuleStrategy config) {
+String _fetchModuleStrategy(ModuleStrategy config) {
   switch (config) {
     case ModuleStrategy.legacy:
       return 'dart_library.import';
@@ -43,10 +43,10 @@ String fetchModuleStrategy(ModuleStrategy config) {
   throw StateError('Unreachable code');
 }
 
-ModuleStrategy _moduleStrategy;
+String _loadModule;
 
-String loadModule = fetchModuleStrategy(_moduleStrategy);
+String get loadModule => _loadModule;
 
-set moduleStrategy(ModuleStrategy moduleStrategy) {
-  _moduleStrategy = moduleStrategy;
+set globalModuleStrategy(ModuleStrategy moduleStrategy) {
+  _loadModule = _fetchModuleStrategy(moduleStrategy);
 }
