@@ -5,13 +5,11 @@
 import 'dart:async';
 
 import 'package:async/src/stream_sink_transformer.dart';
-import 'package:dwds/dwds.dart' show ModuleStrategy;
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/utilities/domain.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:stream_channel/src/stream_channel_transformer.dart';
 import 'package:stream_channel/stream_channel.dart';
@@ -76,9 +74,6 @@ class FakeInspector extends Domain implements AppInspector {
       RemoteObject receiver, String evalExpression, List arguments) {
     throw UnsupportedError('This is a fake');
   }
-
-  @override
-  String get loadModule => fetchModuleStrategy(ModuleStrategy.requireJS);
 }
 
 class FakeSseConnection implements SseConnection {
