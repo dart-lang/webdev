@@ -28,7 +28,7 @@ dependencies:
   shelf_web_socket: ^0.2.0
   source_maps: ^0.10.0
   sse: ^2.0.2
-  vm_service: 1.1.0
+  vm_service: 1.1.1
   web_socket_channel: ^1.0.0
   webkit_inspection_protocol: '>=0.4.0 <0.6.0'
 

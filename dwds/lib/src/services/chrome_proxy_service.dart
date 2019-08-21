@@ -538,6 +538,11 @@ require("dart_sdk").developer.invokeExtension(
       String isolateId, String targetId, int limit) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<Success> requestHeapSnapshot(String isolateId) {
+    throw UnimplementedError();
+  }
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
