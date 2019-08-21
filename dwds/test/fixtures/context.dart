@@ -124,10 +124,7 @@ class TestContext {
     await tabConnection.debugger.enable();
 
     if (enableDebugExtension) {
-      var extensionId = 'pebbhcjfokadbgbnlmogdkkaahmamnap';
-      extensionUrl =
-          'chrome-extension://$extensionId/_generated_background_page.html';
-      var extensionTab = await connection.getTab((t) => t.url == extensionUrl);
+      var extensionTab = await fetchExtensionTab(connection);
       extensionConnection = await extensionTab.connect();
       await extensionConnection.runtime.enable();
     }
@@ -155,5 +152,17 @@ class TestContext {
 
     // Allow change to propagate to the browser.
     await Future.delayed(const Duration(seconds: 2));
+  }
+
+  Future<ChromeTab> fetchExtensionTab(ChromeConnection connection) async {
+    for (var tab in await connection.getTabs()) {
+      var tabConnection = await tab.connect();
+      var response =
+          await tabConnection.runtime.evaluate('window.isDartDebugExtension');
+      if (response.value == true) {
+        return tab;
+      }
+    }
+    throw StateError('No extension installed.');
   }
 }

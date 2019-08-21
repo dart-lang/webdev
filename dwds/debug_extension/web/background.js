@@ -2666,7 +2666,8 @@ _.f=_.e=null},
 nS:function(){var u,t=P.aq(new M.kV())
 self.chrome.browserAction.onClicked.addListener(t)
 u=P.aq(new M.kW(t))
-self.fakeClick=u},
+self.fakeClick=u
+self.window.isDartDebugExtension=!0},
 kZ:function(a,b,c,d,e){return M.rl(a,b,c,d,e)},
 rl:function(a,b,c,d,e){var u=0,t=P.ej(-1),s,r,q,p,o,n,m,l
 var $async$kZ=P.ek(function(f,g){if(f===1)return P.ee(g,t)
