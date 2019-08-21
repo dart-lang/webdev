@@ -91,7 +91,6 @@ Handler Function(Handler) createInjectedHandler(
 String _injectedClientJs(
     ReloadConfiguration configuration, String appId, String mainFunction,
     {String extensionHostname, int extensionPort}) {
-  var loadModule = fetchModuleStrategy(moduleStrategy);
   var injectedBody = '''\n
             // Injected by webdev for build results support.
             window.\$dartAppId = "$appId";

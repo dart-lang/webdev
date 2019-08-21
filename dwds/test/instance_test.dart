@@ -24,7 +24,6 @@ void main() {
   RemoteDebugger remoteDebugger;
   Debugger debugger;
   InstanceHelper instanceHelper;
-  String loadModule;
 
   setUpAll(() async {
     await context.setUp();
@@ -33,7 +32,6 @@ void main() {
     remoteDebugger = chromeProxyService.remoteDebugger;
     debugger = inspector.debugger;
     instanceHelper = InstanceHelper(debugger, remoteDebugger);
-    loadModule = fetchModuleStrategy(moduleStrategy);
   });
 
   tearDownAll(() async {

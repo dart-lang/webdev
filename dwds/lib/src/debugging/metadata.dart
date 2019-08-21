@@ -25,7 +25,6 @@ class ClassMetaData {
   static Future<ClassMetaData> metaDataFor(
       RemoteDebugger remoteDebugger, RemoteObject remoteObject) async {
     try {
-      var loadModule = fetchModuleStrategy(moduleStrategy);
       var evalExpression = '''
       function(arg) {
         var sdkUtils = $loadModule('dart_sdk').dart;

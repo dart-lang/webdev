@@ -87,7 +87,6 @@ class InstanceHelper {
   /// that correspond to Dart fields on the object.
   Future<List<Property>> dartPropertiesFor(
       List<Property> allJsProperties, RemoteObject remoteObject) async {
-    var loadModule = fetchModuleStrategy(moduleStrategy);
     // An expression to find the field names from the types, extract both
     // private (named by symbols) and public (named by strings) and return them
     // as a comma-separated single string, so we can return it by value and not

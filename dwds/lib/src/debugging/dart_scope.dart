@@ -47,7 +47,6 @@ Future<List<Property>> visibleProperties(
 /// code in the JS frame. If it's null/undefined or is a Dart library scope, then
 /// return null. Otherwise make a property for `this` and return it.
 Future<Property> _findMissingThis(String callFrameId, Debugger debugger) async {
-  var loadModule = fetchModuleStrategy(moduleStrategy);
   // If 'this' is a library return null, otherwise
   // return 'this'.
   final findCurrent = '''

@@ -186,7 +186,6 @@ class ChromeProxyService implements VmServiceInterface {
   @override
   Future<Response> callServiceExtension(String method,
       {String isolateId, Map args}) async {
-    var loadModule = fetchModuleStrategy(moduleStrategy);
     // Validate the isolate id is correct, _getIsolate throws if not.
     if (isolateId != null) _getIsolate(isolateId);
     args ??= <String, String>{};

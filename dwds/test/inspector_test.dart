@@ -18,14 +18,12 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   AppInspector inspector;
-  String loadModule;
 
   setUpAll(() async {
     await context.setUp();
     // TODO(alanknight): A nicer way of getting the inspector.
     inspector =
         fetchChromeProxyService(context.debugConnection).appInspectorProvider();
-    loadModule = fetchModuleStrategy(moduleStrategy);
   });
 
   tearDownAll(() async {

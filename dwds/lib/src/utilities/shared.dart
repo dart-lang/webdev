@@ -45,7 +45,7 @@ String fetchModuleStrategy(ModuleStrategy config) {
 
 ModuleStrategy _moduleStrategy;
 
-ModuleStrategy get moduleStrategy => _moduleStrategy;
+String loadModule = fetchModuleStrategy(_moduleStrategy);
 
 set moduleStrategy(ModuleStrategy moduleStrategy) {
   _moduleStrategy = moduleStrategy;

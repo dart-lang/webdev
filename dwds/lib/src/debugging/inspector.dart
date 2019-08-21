@@ -53,8 +53,6 @@ class AppInspector extends Domain {
   /// The root URI from which the application is served.
   final String _root;
 
-  final String loadModule;
-
   AppInspector._(
     this.isolate,
     this._assetHandler,
@@ -63,7 +61,6 @@ class AppInspector extends Domain {
     this._remoteDebugger,
   )   : isolateRef = _toIsolateRef(isolate),
         instanceHelper = InstanceHelper(debugger, _remoteDebugger),
-        loadModule = fetchModuleStrategy(moduleStrategy),
         super.forInspector();
 
   @override
