@@ -201,7 +201,7 @@ class AppInspector extends Domain {
       String expression, String libraryUri) {
     var evalExpression = '''
 (function() {
-  ${_getLibrarySnippet(libraryUri, loadModule)};
+  ${_getLibrarySnippet(libraryUri)};
   return library.$expression;
 })();
 ''';
@@ -233,7 +233,7 @@ class AppInspector extends Domain {
     var arguments = scope.values.map((id) => {'objectId': id}).toList();
     var evalExpression = '''
 function($argsString) {
-  ${_getLibrarySnippet(library.uri, loadModule)};
+  ${_getLibrarySnippet(library.uri)};
   return library.$expression;
 }
     ''';
@@ -285,7 +285,7 @@ function($argsString) {
     // Fetch information about all the classes in this library.
     var expression = '''
     (function() {
-      ${_getLibrarySnippet(libraryRef.uri, loadModule)}
+      ${_getLibrarySnippet(libraryRef.uri)}
       var parts = sdkUtils.getParts('${libraryRef.uri}');
       var result = {'parts' : parts}
       var classes = Object.values(Object.getOwnPropertyDescriptors(library))
@@ -508,7 +508,7 @@ function($argsString) {
 /// from the URI with a Dart-specific scheme (package: or org-dartlang-app:) to
 /// the library objects. The [libraryUri] parameter should be one of these
 /// Dart-specific scheme URIs, and we set `library` the corresponding library.
-String _getLibrarySnippet(String libraryUri, String loadModule) => '''
+String _getLibrarySnippet(String libraryUri) => '''
   var libraryName = '$libraryUri';
   var sdkUtils = $loadModule('dart_sdk').dart;
   var moduleName = sdkUtils.getModuleNames().find(
