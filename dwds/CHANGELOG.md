@@ -1,3 +1,8 @@
+## 0.5.2
+
+- Fix issue where certain required fields of VM service protocol objects were
+  null.
+
 ## 0.5.1
 
 - Fix an issue where missing source maps would cause a crash. A warning will

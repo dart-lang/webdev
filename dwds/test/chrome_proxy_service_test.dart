@@ -390,11 +390,7 @@ void main() {
           var serverPath = DartUri(script.uri, 'hello_world/').serverPath;
           var result =
               await http.get('http://localhost:${context.port}/$serverPath');
-          // TODO(527): Fix encoding for Dart Script source.
-          // Skip intl scripts because of the incorrect encoding.
-          if (!serverPath.contains('intl')) {
-            expect(script.source, result.body);
-          }
+          expect(script.source, result.body);
           expect(scriptRef.uri, endsWith('.dart'));
           expect(script.tokenPosTable, isNotEmpty);
         }

@@ -211,7 +211,7 @@ external DartLoader get dartLoader;
 @JS(r'$dartReloadConfiguration')
 external String get reloadConfiguration;
 
-@JS(r'require')
+@JS(r'$loadModuleConfig')
 external Object Function(String module) get require;
 
 List<K> keys<K, V>(JsMap<K, V> map) {

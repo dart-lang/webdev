@@ -192,7 +192,7 @@ class ChromeProxyService implements VmServiceInterface {
     var stringArgs = args.map((k, v) => MapEntry(
         k is String ? k : jsonEncode(k), v is String ? v : jsonEncode(v)));
     var expression = '''
-require("dart_sdk").developer.invokeExtension(
+$loadModule("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
     var response =
@@ -470,7 +470,8 @@ require("dart_sdk").developer.invokeExtension(
 
   /// Listens for chrome console events and handles the ones we care about.
   void _setUpChromeConsoleListeners(IsolateRef isolateRef) {
-    _consoleSubscription = remoteDebugger.onConsoleAPICalled.listen((event) {
+    _consoleSubscription =
+        remoteDebugger.onConsoleAPICalled.listen((event) async {
       var isolate = _inspector?.isolate;
       if (isolate == null) return;
       if (event.type != 'debug') return;
@@ -500,13 +501,8 @@ require("dart_sdk").developer.invokeExtension(
           // All inspected objects should be real objects.
           if (event.args[1].type != 'object') break;
 
-          var inspectee = InstanceRef()
-            ..kind = InstanceKind.kPlainInstance
-            ..id = event.args[1].objectId
-            // TODO(jakemac): Create a real ClassRef, we need a way of looking
-            // up the library for a given instance to create it though.
-            // https://github.com/dart-lang/sdk/issues/36771.
-            ..classRef = ClassRef();
+          var inspectee =
+              await _inspector.instanceHelper.instanceRefFor(event.args[1]);
           _streamNotify(
               'Debug',
               Event()

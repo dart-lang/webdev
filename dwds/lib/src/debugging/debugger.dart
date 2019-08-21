@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -138,12 +139,13 @@ class Debugger extends Domain {
   }
 
   static Future<Debugger> create(
-      AssetHandler assetHandler,
-      RemoteDebugger remoteDebugger,
-      StreamNotify streamNotify,
-      AppInspectorProvider appInspectorProvider,
-      String root,
-      LogWriter logWriter) async {
+    AssetHandler assetHandler,
+    RemoteDebugger remoteDebugger,
+    StreamNotify streamNotify,
+    AppInspectorProvider appInspectorProvider,
+    String root,
+    LogWriter logWriter,
+  ) async {
     var debugger = Debugger._(
       assetHandler,
       remoteDebugger,
@@ -330,7 +332,9 @@ class Debugger extends Domain {
     if (instanceRef == null) return null;
     return BoundVariable()
       ..name = property.name
-      ..value = instanceRef;
+      ..value = instanceRef
+      // TODO(grouma) - Provide an actual token position.
+      ..declarationTokenPos = -1;
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [id].
@@ -368,7 +372,9 @@ class Debugger extends Domain {
     var script =
         await inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
     return Frame()
-      ..code = (CodeRef()..kind = CodeKind.kDart)
+      ..code = (CodeRef()
+        ..id = createId()
+        ..kind = CodeKind.kDart)
       ..location = (SourceLocation()
         ..tokenPos = bestLocation.tokenPos
         ..script = script)

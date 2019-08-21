@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -41,7 +41,7 @@ void main() {
   final url = 'org-dartlang-app:///web/scopes_main.dart';
 
   String libraryVariableExpression(String variable) =>
-      'require("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
+      '$loadModule("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
       '["$url"]["$variable"];';
 
   Future<RemoteObject> libraryPublicFinal() => inspector

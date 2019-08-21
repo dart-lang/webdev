@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 5))
-import 'dart:io';
 
 import 'package:dwds/dwds.dart';
 import 'package:test/test.dart';
@@ -139,9 +138,7 @@ void main() {
       var isolate = await client.getIsolate(isolateId) as Isolate;
       expect(isolate.pauseEvent.kind, EventKind.kResume);
       expect(isolate.breakpoints.isEmpty, isTrue);
-
-      // TODO(sdk/issues/37364) - Remove once corresponding SDK issue is fixed.
-    }, skip: Platform.isWindows);
+    });
   });
 
   group('Injected client with hot restart', () {
