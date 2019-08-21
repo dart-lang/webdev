@@ -87,17 +87,17 @@ class TestContext {
     var debugPort = await findUnusedPort();
     // If the environment variable DWDS_DEBUG_CHROME is set to the string true
     // then Chrome will be launched with a UI rather than headless.
-    var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true';
+    // If the extension is enabled, then Chrome will be launched with a UI
+    // since headless Chrome does not support extensions.
+    var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
+        !enableDebugExtension;
     var capabilities = Capabilities.chrome
       ..addAll({
         Capabilities.chromeOptions: {
           'args': [
             'remote-debugging-port=$debugPort',
-            if (enableDebugExtension)
-              '--load-extension=debug_extension/web',
-            // Headless Chrome does not support extensions.
-            if (headless && !enableDebugExtension)
-              '--headless'
+            if (enableDebugExtension) '--load-extension=debug_extension/web',
+            if (headless) '--headless'
           ],
         }
       });
