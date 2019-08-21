@@ -70,8 +70,7 @@ class InstanceHelper {
           ..decl = (FieldRef()
             // TODO(grouma) - Convert JS name to Dart.
             ..name = property.name
-            ..owner = classRef
-            ..declaredType = (InstanceRef()..classRef = ClassRef()))
+            ..owner = classRef)
           ..value = await instanceRefFor(property.value)));
     fields.sort((a, b) => a.decl.name.compareTo(b.decl.name));
     var result = Instance()

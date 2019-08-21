@@ -360,7 +360,6 @@ function($argsString) {
       fieldDescriptors.forEach((name, descriptor) {
         fieldRefs.add(FieldRef()
           ..name = name
-          ..declaredType = (InstanceRef()..classRef = ClassRef())
           ..owner = classRef
           ..isConst = descriptor['isConst'] as bool
           ..isFinal = descriptor['isFinal'] as bool
