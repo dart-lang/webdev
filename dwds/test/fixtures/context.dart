@@ -123,7 +123,7 @@ class TestContext {
     await tabConnection.debugger.enable();
 
     if (enableDebugExtension) {
-      var extensionTab = await fetchExtensionTab(connection);
+      var extensionTab = await fetchDartDebugExtensionTab(connection);
       extensionConnection = await extensionTab.connect();
       await extensionConnection.runtime.enable();
     }
@@ -153,8 +153,12 @@ class TestContext {
     await Future.delayed(const Duration(seconds: 2));
   }
 
-  Future<ChromeTab> fetchExtensionTab(ChromeConnection connection) async {
-    for (var tab in await connection.getTabs()) {
+  Future<ChromeTab> fetchDartDebugExtensionTab(
+      ChromeConnection connection) async {
+    var extensionTabs = (await connection.getTabs()).where((t) {
+      return t.isChromeExtension;
+    });
+    for (var tab in extensionTabs) {
       var tabConnection = await tab.connect();
       var response =
           await tabConnection.runtime.evaluate('window.isDartDebugExtension');
