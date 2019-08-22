@@ -18,7 +18,9 @@ import 'remote_debugger.dart';
 /// other object Ids, as those will be Chrome objectIds, which are
 /// opaque, but are JSON serialized objects of the form
 /// "{\"injectedScriptId\":1,\"id\":1}".
-const prefixHackForStringIds = '#StringInstanceRef#';
+const _prefixForStringIds = '#StringInstanceRef#';
+
+const _prefixForClosureIds = '#ClosureInstanceRef#';
 
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
@@ -33,9 +35,14 @@ InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
 }
 
 /// A hard-coded ClassRef for the String class.
-final ClassRef _classRefForString = ClassRef()
+var _classRefForString = ClassRef()
   ..id = 'dart:core:String'
   ..name = InstanceKind.kString;
+
+/// A hard-coded ClassRef for the Closure class.
+var _classRefForClosure = ClassRef()
+  ..name = 'Closure'
+  ..id = createId();
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper {
@@ -44,21 +51,40 @@ class InstanceHelper {
 
   InstanceHelper(this._debugger, this._remoteDebugger);
 
-  /// Create an [Instance] for the given [remoteObject].
-  ///
-  /// Does a remote eval to get instance information. Returns null if there
-  /// isn't a corresponding instance.
-  Future<Instance> instanceFor(RemoteObject remoteObject) async {
-    // Special case for String, which doesn't have a Chrome objectId.
-    if (remoteObject.objectId.startsWith(prefixHackForStringIds)) {
-      var actualString =
-          remoteObject.objectId.substring(prefixHackForStringIds.length);
-      return Instance()
-        ..kind = InstanceKind.kString
-        ..classRef = _classRefForString
-        ..valueAsString = actualString
-        ..length = actualString.length;
-    }
+  Future<Instance> _stringInstanceFor(RemoteObject remoteObject) async {
+    var actualString =
+        remoteObject.objectId.substring(_prefixForStringIds.length);
+    return Instance()
+      ..kind = InstanceKind.kString
+      ..classRef = _classRefForString
+      ..valueAsString = actualString
+      ..length = actualString.length;
+  }
+
+  Future<Instance> _closureInstanceFor(RemoteObject remoteObject) async {
+    var functionMetaData = await FunctionMetaData.metaDataFor(
+        _remoteDebugger,
+        RemoteObject({
+          'objectId':
+              remoteObject.objectId.substring(_prefixForClosureIds.length)
+        }));
+    var result = Instance()
+      ..kind = InstanceKind.kClosure
+      ..id = remoteObject.objectId
+      ..closureFunction = (FuncRef()
+            ..name = functionMetaData.name
+            ..id = createId()
+          // TODO(grouma) - fill these in.
+          //..owner = ?
+          //..isConst = ?
+          //..isStatic = ?
+          )
+      ..closureContext = ContextRef()
+      ..classRef = _classRefForClosure;
+    return result;
+  }
+
+  Future<Instance> _plainInstanceFor(RemoteObject remoteObject) async {
     var metaData =
         await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject);
     var classRef = ClassRef()
@@ -67,12 +93,18 @@ class InstanceHelper {
     var properties = await _debugger.getProperties(remoteObject.objectId);
     var dartProperties = await dartPropertiesFor(properties, remoteObject);
     var fields = await Future.wait(
-        dartProperties.map<Future<BoundField>>((property) async => BoundField()
-          ..decl = (FieldRef()
-            // TODO(grouma) - Convert JS name to Dart.
-            ..name = property.name
-            ..owner = classRef)
-          ..value = await instanceRefFor(property.value)));
+        dartProperties.map<Future<BoundField>>((property) async {
+      var instance = await instanceRefFor(property.value);
+      return BoundField()
+        ..decl = (FieldRef()
+          // TODO(grouma) - Convert JS name to Dart.
+          ..name = property.name
+          ..declaredType = (InstanceRef()
+            ..type = InstanceKind.kType
+            ..classRef = instance.classRef)
+          ..owner = classRef)
+        ..value = instance;
+    }));
     fields.sort((a, b) => a.decl.name.compareTo(b.decl.name));
     var result = Instance()
       ..kind = InstanceKind.kPlainInstance
@@ -80,6 +112,20 @@ class InstanceHelper {
       ..fields = fields
       ..classRef = classRef;
     return result;
+  }
+
+  /// Create an [Instance] for the given [remoteObject].
+  ///
+  /// Does a remote eval to get instance information. Returns null if there
+  /// isn't a corresponding instance.
+  Future<Instance> instanceFor(RemoteObject remoteObject) async {
+    if (remoteObject.objectId.startsWith(_prefixForStringIds)) {
+      return _stringInstanceFor(remoteObject);
+    } else if (remoteObject.objectId.startsWith(_prefixForClosureIds)) {
+      return _closureInstanceFor(remoteObject);
+    } else {
+      return _plainInstanceFor(remoteObject);
+    }
   }
 
   /// Filter [allJsProperties] and return a list containing only those
@@ -119,7 +165,7 @@ class InstanceHelper {
       case 'string':
         return InstanceRef()
           // See comment for [prefixHackForStringIds].
-          ..id = '$prefixHackForStringIds${remoteObject.value}'
+          ..id = '$_prefixForStringIds${remoteObject.value}'
           ..valueAsString = remoteObject.value as String
           ..classRef = _classRefForString
           ..kind = InstanceKind.kString;
@@ -141,14 +187,12 @@ class InstanceHelper {
           ..id = remoteObject.objectId
           ..classRef = (ClassRef()
             ..name = metaData.name
-            ..id = '${metaData.libraryId}:${metaData.name}');
+            ..id = metaData.id);
       case 'function':
-        var crudeAttemptAtName = remoteObject.description.split('(').first;
         return InstanceRef()
-          ..kind = InstanceKind.kPlainInstance
-          ..id = remoteObject.objectId
-          ..valueAsString = crudeAttemptAtName
-          ..classRef = ClassRef();
+          ..kind = InstanceKind.kClosure
+          ..id = '$_prefixForClosureIds${remoteObject.objectId}'
+          ..classRef = _classRefForClosure;
       default:
         // Return null for an unsupported type. This is likely a JS construct.
         return null;

@@ -98,4 +98,8 @@ class MyTestClass {
 
   @override
   String toString() => 'A test class with message $message';
+
+  Function closure = someFunction;
 }
+
+Function someFunction() => null;
