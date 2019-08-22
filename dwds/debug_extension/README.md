@@ -2,12 +2,8 @@ A Chrome extension for enabling Dart application debugging over an SSE connectio
 
 ## Installation
 
-The extension is available on [Chrome Web Store](https://chrome.google.com/webstore/detail/dart-debug-extension/eljbmlghnomdjgdjmbdekegdkbabckhm).
+The extension is available on the [Chrome Web Store](https://chrome.google.com/webstore/detail/dart-debug-extension/eljbmlghnomdjgdjmbdekegdkbabckhm).
 
 ## Usage
 
-The extension requires disabling 'Throttle expensive background timers' in `chrome://flags`.
-
-## Deployment
-
-This repository does not host the Chrome extension. `web/manifest.json` and `web/background.js` are zipped and uploaded to the web store.
+The extension requires disabling 'Throttle expensive background timers' in `chrome://flags` for performance.
