@@ -20,3 +20,4 @@ builders:
         - web/background.js
     auto_apply: none
     build_to: source
+    
