@@ -155,8 +155,8 @@ class TestContext {
 
   Future<ChromeTab> fetchDartDebugExtensionTab(
       ChromeConnection connection) async {
-    var extensionTabs = (await connection.getTabs()).where((t) {
-      return t.isChromeExtension;
+    var extensionTabs = (await connection.getTabs()).where((tab) {
+      return tab.isChromeExtension;
     });
     for (var tab in extensionTabs) {
       var tabConnection = await tab.connect();
