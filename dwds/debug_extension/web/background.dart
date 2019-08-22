@@ -130,6 +130,9 @@ Future<void> startSseClient(
               ..result = stringify(e)))));
       }));
     }
+  }, onDone: () {
+    alert('Lost app connection.');
+    client.close();
   }, onError: (_) {
     client.close();
   }, cancelOnError: true);
