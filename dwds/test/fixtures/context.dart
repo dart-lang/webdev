@@ -21,7 +21,6 @@ import 'utilities.dart';
 
 class TestContext {
   String appUrl;
-  String extensionUrl;
   WipConnection tabConnection;
   WipConnection extensionConnection;
   TestServer testServer;
@@ -98,7 +97,7 @@ class TestContext {
             'remote-debugging-port=$debugPort',
             if (enableDebugExtension) '--load-extension=debug_extension/web',
             if (headless) '--headless'
-          ],
+          ]
         }
       });
     webDriver =
