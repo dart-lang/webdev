@@ -20,4 +20,4 @@ pub run build_runner build web -o build
 
 ## [For Googlers] Local Development
 
-The developer key is needed for local development and testing. Add the key to `web/manifest.json`.
+The developer key is needed for local development and testing. Add one of the whitelisted keys to `web/manifest.json`.
