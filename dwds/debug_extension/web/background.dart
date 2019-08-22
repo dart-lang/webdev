@@ -132,9 +132,12 @@ Future<void> startSseClient(
     }
   }, onDone: () {
     alert('Lost app connection.');
+    detached = true;
     client.close();
   }, onError: (_) {
     alert('Lost app connection.');
+    detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+    detached = true;
     client.close();
   }, cancelOnError: true);
 }
