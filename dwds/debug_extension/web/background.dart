@@ -134,6 +134,7 @@ Future<void> startSseClient(
     alert('Lost app connection.');
     client.close();
   }, onError: (_) {
+    alert('Lost app connection.');
     client.close();
   }, cancelOnError: true);
 }

@@ -9301,7 +9301,8 @@ $C:"$0",
 $R:0,
 $S:0}
 M.l9.prototype={
-$1:function(a){this.a.aj(0)},
+$1:function(a){self.window.alert("Lost app connection.")
+this.a.aj(0)},
 $S:4}
 M.ly.prototype={}
 M.cx.prototype={}
