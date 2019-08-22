@@ -62,6 +62,8 @@ void main() {
   onFakeClick = allowInterop(() {
     startDebug(null);
   });
+
+  isDartDebugExtension = true;
 }
 
 // Starts an SSE client.
@@ -241,3 +243,6 @@ class DetachReason {}
 /// after the extension is loaded.
 @JS('fakeClick')
 external set onFakeClick(void Function() f);
+
+@JS('window.isDartDebugExtension')
+external set isDartDebugExtension(_);

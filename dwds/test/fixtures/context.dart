@@ -10,7 +10,6 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
-import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -23,13 +22,13 @@ import 'utilities.dart';
 class TestContext {
   String appUrl;
   WipConnection tabConnection;
+  WipConnection extensionConnection;
   TestServer testServer;
   BuildDaemonClient daemonClient;
   WebDriver webDriver;
   Process chromeDriver;
   AppConnection appConnection;
   DebugConnection debugConnection;
-  ExtensionBackend extensionBackend;
   WebkitDebugger webkitDebugger;
   int port;
   File _entryFile;
@@ -87,12 +86,16 @@ class TestContext {
     var debugPort = await findUnusedPort();
     // If the environment variable DWDS_DEBUG_CHROME is set to the string true
     // then Chrome will be launched with a UI rather than headless.
-    var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true';
+    // If the extension is enabled, then Chrome will be launched with a UI
+    // since headless Chrome does not support extensions.
+    var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
+        !enableDebugExtension;
     var capabilities = Capabilities.chrome
       ..addAll({
         Capabilities.chromeOptions: {
           'args': [
             'remote-debugging-port=$debugPort',
+            if (enableDebugExtension) '--load-extension=debug_extension/web',
             if (headless) '--headless'
           ]
         }
@@ -119,6 +122,12 @@ class TestContext {
     await tabConnection.runtime.enable();
     await tabConnection.debugger.enable();
 
+    if (enableDebugExtension) {
+      var extensionTab = await _fetchDartDebugExtensionTab(connection);
+      extensionConnection = await extensionTab.connect();
+      await extensionConnection.runtime.enable();
+    }
+
     appConnection = await testServer.dwds.connectedApps.first;
     debugConnection = await testServer.dwds.debugConnection(appConnection);
     webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
@@ -142,5 +151,21 @@ class TestContext {
 
     // Allow change to propagate to the browser.
     await Future.delayed(const Duration(seconds: 2));
+  }
+
+  Future<ChromeTab> _fetchDartDebugExtensionTab(
+      ChromeConnection connection) async {
+    var extensionTabs = (await connection.getTabs()).where((tab) {
+      return tab.isChromeExtension;
+    });
+    for (var tab in extensionTabs) {
+      var tabConnection = await tab.connect();
+      var response =
+          await tabConnection.runtime.evaluate('window.isDartDebugExtension');
+      if (response.value == true) {
+        return tab;
+      }
+    }
+    throw StateError('No extension installed.');
   }
 }
