@@ -7,6 +7,7 @@ library background;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:html';
 import 'dart:js';
 
 import 'package:built_collection/built_collection.dart';
@@ -77,6 +78,18 @@ Future<void> startSseClient(
   // A debugger is detached if it is closed by user or the target is closed.
   var detached = false;
   var client = SseClient('http://$hostname:$port/\$debug');
+
+  // Displays an alert when app server is not running.
+  var _eventSource =
+      EventSource('http://$hostname:$port/\$debug', withCredentials: true);
+  _eventSource.onError.listen((e) {
+    alert('No app connection.');
+    detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+    client.close();
+    _eventSource.close();
+    return;
+  });
+
   await client.onOpen.first;
   client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
     ..appId = appId as String
@@ -131,7 +144,6 @@ Future<void> startSseClient(
       }));
     }
   }, onDone: () {
-    alert('Lost app connection.');
     detached = true;
     client.close();
   }, onError: (_) {
