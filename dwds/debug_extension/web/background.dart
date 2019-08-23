@@ -7,7 +7,6 @@ library background;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
 import 'dart:js';
 
 import 'package:built_collection/built_collection.dart';
@@ -79,22 +78,36 @@ Future<void> startSseClient(
   var detached = false;
   var client = SseClient('http://$hostname:$port/\$debug');
 
-  // Displays an alert when app server is not running.
-  var _eventSource =
-      EventSource('http://$hostname:$port/\$debug', withCredentials: true);
-  _eventSource.onError.listen((e) {
-    alert('No app connection.');
-    detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+  client.stream.listen((data) {
+    var message = serializers.deserialize(jsonDecode(data));
+    if (message is ExtensionRequest) {
+      var params =
+          BuiltMap<String, Object>(json.decode(message.commandParams)).toMap();
+      sendCommand(Debuggee(tabId: currentTab.id), message.command,
+          js_util.jsify(params), allowInterop((e) {
+        client.sink
+            .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
+              ..id = message.id
+              ..success = true
+              ..result = stringify(e)))));
+      }));
+    }
+  }, onDone: () {
+    detached = true;
     client.close();
-    _eventSource.close();
-    return;
-  });
+  }, onError: (_) {
+    alert('Lost app connection.');
+    detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+    detached = true;
+    client.close();
+  }, cancelOnError: true);
 
   await client.onOpen.first;
   client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
     ..appId = appId as String
     ..instanceId = instanceId as String
     ..tabUrl = currentTab.url as String))));
+
   sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
       allowInterop((e) {}));
 
@@ -128,30 +141,6 @@ Future<void> startSseClient(
       detached = true;
     }
   }));
-
-  client.stream.listen((data) {
-    var message = serializers.deserialize(jsonDecode(data));
-    if (message is ExtensionRequest) {
-      var params =
-          BuiltMap<String, Object>(json.decode(message.commandParams)).toMap();
-      sendCommand(Debuggee(tabId: currentTab.id), message.command,
-          js_util.jsify(params), allowInterop((e) {
-        client.sink
-            .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
-              ..id = message.id
-              ..success = true
-              ..result = stringify(e)))));
-      }));
-    }
-  }, onDone: () {
-    detached = true;
-    client.close();
-  }, onError: (_) {
-    alert('Lost app connection.');
-    detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
-    detached = true;
-    client.close();
-  }, cancelOnError: true);
 }
 
 @JS('chrome.browserAction.onClicked.addListener')
