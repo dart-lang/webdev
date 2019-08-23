@@ -14,7 +14,7 @@ dependencies:
   build_daemon: ^2.0.0
   built_value: ^6.7.0
   crypto: ^2.0.6
-  devtools: ^0.1.6-dev.2
+  devtools: ^0.1.6-dev.3
   http: ^0.12.0
   http_multi_server: ^2.0.0
   logging: ^0.11.3
@@ -28,7 +28,7 @@ dependencies:
   shelf_web_socket: ^0.2.0
   source_maps: ^0.10.0
   sse: ^2.0.2
-  vm_service: 1.1.0
+  vm_service: 1.1.1
   web_socket_channel: ^1.0.0
   webkit_inspection_protocol: '>=0.4.0 <0.6.0'
 
