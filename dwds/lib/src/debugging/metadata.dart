@@ -66,12 +66,12 @@ class FunctionMetaData {
   static Future<FunctionMetaData> metaDataFor(
       RemoteDebugger remoteDebugger, RemoteObject remoteObject) async {
     var evalExpression = '''
-      function(arg) {
+      function(remoteObject) {
         var sdkUtils = $loadModule('dart_sdk').dart;
-        var name = arg.name;
-        if(arg._boundObject) {
-         name = sdkUtils.getType(arg._boundObject).name +
-                 '.' + arg._boundMethod.name;
+        var name = remoteObject.name;
+        if(remoteObject._boundObject) {
+         name = sdkUtils.getType(remoteObject._boundObject).name +
+                 '.' + remoteObject._boundMethod.name;
         }
         return name;
       }
