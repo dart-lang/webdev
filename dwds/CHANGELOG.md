@@ -2,6 +2,7 @@
 
 - Fix issue where certain required fields of VM service protocol objects were
   null.
+- Properly display `Closure` names in the debug view.
 
 ## 0.5.1
 

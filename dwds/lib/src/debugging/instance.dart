@@ -20,6 +20,10 @@ import 'remote_debugger.dart';
 /// "{\"injectedScriptId\":1,\"id\":1}".
 const _prefixForStringIds = '#StringInstanceRef#';
 
+/// Prefix for closure IDs.
+///
+/// This allows us to differentiate between plain instances and closure
+/// instances.
 const _prefixForClosureIds = '#ClosureInstanceRef#';
 
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
