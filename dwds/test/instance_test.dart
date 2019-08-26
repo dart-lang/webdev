@@ -119,11 +119,7 @@ void main() {
       var properties = await debugger.getProperties(remoteObject.objectId);
       var closure =
           properties.firstWhere((property) => property.name == 'closure');
-      //  Functions have special IDs so use the instanceRef to grab the
-      // actual instance.
-      var instanceRef = await instanceHelper.instanceRefFor(closure.value);
-      var instance = await instanceHelper
-          .instanceFor(RemoteObject({'objectId': instanceRef.id}));
+      var instance = await instanceHelper.instanceFor(closure.value);
       expect(instance.kind, InstanceKind.kClosure);
       expect(instance.closureFunction.name, 'someFunction');
       expect(instance.classRef.name, 'Closure');
