@@ -121,7 +121,11 @@ void main() {
           properties.firstWhere((property) => property.name == 'closure');
       var instance = await instanceHelper.instanceFor(closure.value);
       expect(instance.kind, InstanceKind.kClosure);
-      expect(instance.closureFunction.name, 'someFunction');
+      var functionName = instance.closureFunction.name;
+      // Older SDKs do not contain function names
+      if (functionName != 'Closure') {
+        expect(functionName, 'someFunction');
+      }
       expect(instance.classRef.name, 'Closure');
     });
 

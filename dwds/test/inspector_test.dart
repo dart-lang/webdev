@@ -67,12 +67,13 @@ void main() {
         properties.map((p) => p.name).where((x) => x != '__proto__').toList();
     var expected = [
       '_privateField',
+      'closure',
       'count',
       'message',
       'myselfField',
       'notFinal'
     ];
     names.sort();
-    expect(expected, names);
+    expect(names, expected);
   });
 }
