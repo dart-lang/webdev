@@ -77,11 +77,35 @@ Future<void> startSseClient(
   // A debugger is detached if it is closed by user or the target is closed.
   var detached = false;
   var client = SseClient('http://$hostname:$port/\$debug');
+
+  client.stream.listen((data) {
+    var message = serializers.deserialize(jsonDecode(data));
+    if (message is ExtensionRequest) {
+      var params =
+          BuiltMap<String, Object>(json.decode(message.commandParams)).toMap();
+      sendCommand(Debuggee(tabId: currentTab.id), message.command,
+          js_util.jsify(params), allowInterop((e) {
+        client.sink
+            .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
+              ..id = message.id
+              ..success = true
+              ..result = stringify(e)))));
+      }));
+    }
+  }, onDone: () {
+    detached = true;
+    client.close();
+  }, onError: (_) {
+    alert('Lost app connection.');
+    detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+  }, cancelOnError: true);
+
   await client.onOpen.first;
   client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
     ..appId = appId as String
     ..instanceId = instanceId as String
     ..tabUrl = currentTab.url as String))));
+
   sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
       allowInterop((e) {}));
 
@@ -115,24 +139,6 @@ Future<void> startSseClient(
       detached = true;
     }
   }));
-
-  client.stream.listen((data) {
-    var message = serializers.deserialize(jsonDecode(data));
-    if (message is ExtensionRequest) {
-      var params =
-          BuiltMap<String, Object>(json.decode(message.commandParams)).toMap();
-      sendCommand(Debuggee(tabId: currentTab.id), message.command,
-          js_util.jsify(params), allowInterop((e) {
-        client.sink
-            .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
-              ..id = message.id
-              ..success = true
-              ..result = stringify(e)))));
-      }));
-    }
-  }, onError: (_) {
-    client.close();
-  }, cancelOnError: true);
 }
 
 @JS('chrome.browserAction.onClicked.addListener')
