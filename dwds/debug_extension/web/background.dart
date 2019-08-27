@@ -72,10 +72,10 @@ void main() {
 // and sends an [ExtensionEvent].
 Future<void> startSseClient(
     hostname, port, appId, instanceId, currentTab) async {
-  // Specifies whether the debugger is detached.
+  // Specifies whether the debugger is attached.
   //
   // A debugger is detached if it is closed by user or the target is closed.
-  var detached = false;
+  var attached = true;
   var client = SseClient('http://$hostname:$port/\$debug');
 
   client.stream.listen((data) {
@@ -93,8 +93,9 @@ Future<void> startSseClient(
       }));
     }
   }, onDone: () {
-    detached = true;
+    attached = false;
     client.close();
+    return;
   }, onError: (_) {
     alert('Lost app connection.');
     detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
@@ -116,27 +117,27 @@ Future<void> startSseClient(
   // We know that if `source.tabId` and `currentTab.id` are the same.
   addDebuggerListener(
       allowInterop((Debuggee source, String method, Object params) {
-    if (source.tabId == currentTab.id && !detached) {
+    if (source.tabId == currentTab.id && attached) {
       client.sink.add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
         ..params = jsonEncode(json.decode(stringify(params)))
         ..method = jsonEncode(method)))));
     }
   }));
 
-  onRemovedAddListener(allowInterop((int tabId, RemoveInfo removeInfo) {
-    if (tabId == currentTab.id) {
-      client.close();
-      detached = true;
-    }
-  }));
-
   onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
-    if (source.tabId == currentTab.id &&
-        reason.toString() == 'canceled_by_user' &&
-        !detached) {
-      alert('Debugger detached. Click the extension to relaunch DevTools.');
+    if (attached) {
+      if (source.tabId == currentTab.id) {
+        if (reason.toString() == 'canceled_by_user') {
+          alert('Debugger detached.'
+              'Click the extension to relaunch DevTools.');
+        } else if (reason.toString() == 'target_closed') {
+          alert('Debugger detached because a Dart app tab'
+              'using the debugger is closed.');
+        }
+      }
+      attached = false;
       client.close();
-      detached = true;
+      return;
     }
   }));
 }
@@ -163,9 +164,6 @@ external dynamic onDetachAddListener(Function callback);
 
 @JS('chrome.tabs.query')
 external List<Tab> queryTabs(QueryInfo queryInfo, Function callback);
-
-@JS('chrome.tabs.onRemoved.addListener')
-external void onRemovedAddListener(Function callback);
 
 @JS('JSON.stringify')
 external String stringify(o);
