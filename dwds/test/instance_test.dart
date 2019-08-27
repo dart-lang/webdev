@@ -80,6 +80,15 @@ void main() {
       expect(
           classRef.id, 'org-dartlang-app:///web/scopes_main.dart:MyTestClass');
     });
+
+    test('for closure', () async {
+      var remoteObject = await libraryPublicFinal();
+      var properties = await debugger.getProperties(remoteObject.objectId);
+      var closure =
+          properties.firstWhere((property) => property.name == 'closure');
+      var instanceRef = await instanceHelper.instanceRefFor(closure.value);
+      expect(instanceRef.kind, InstanceKind.kClosure);
+    });
   });
 
   group('instance', () {
@@ -92,8 +101,32 @@ void main() {
       expect(classRef.name, 'MyTestClass');
       var fieldNames =
           instance.fields.map((boundField) => boundField.decl.name).toList();
-      expect(fieldNames,
-          ['_privateField', 'count', 'message', 'myselfField', 'notFinal']);
+      expect(fieldNames, [
+        '_privateField',
+        'closure',
+        'count',
+        'message',
+        'myselfField',
+        'notFinal'
+      ]);
+      for (var field in instance.fields) {
+        expect(field.decl.declaredType, isNotNull);
+      }
+    });
+
+    test('for closure', () async {
+      var remoteObject = await libraryPublicFinal();
+      var properties = await debugger.getProperties(remoteObject.objectId);
+      var closure =
+          properties.firstWhere((property) => property.name == 'closure');
+      var instance = await instanceHelper.instanceFor(closure.value);
+      expect(instance.kind, InstanceKind.kClosure);
+      var functionName = instance.closureFunction.name;
+      // Older SDKs do not contain function names
+      if (functionName != 'Closure') {
+        expect(functionName, 'someFunction');
+      }
+      expect(instance.classRef.name, 'Closure');
     });
 
     test('for a nested class ', () async {
