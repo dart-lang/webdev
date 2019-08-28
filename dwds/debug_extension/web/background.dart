@@ -82,7 +82,7 @@ Future<void> startSseClient(
   // A debugger is detached if it is closed by user or the target is closed.
   var attached = true;
   var client = SseClient('http://$hostname:$port/\$debug');
-  int devToolsWindow;
+  int devToolsTab;
 
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
@@ -153,14 +153,14 @@ Future<void> startSseClient(
     }
   }));
 
-  // Remembers the ID of the DevTools window.
-  windowsOnCreatedAddListener(allowInterop((Window window) async {
-    devToolsWindow ??= window.id;
+  // Remembers the ID of the DevTools tab.
+  tabsOnCreatedAddListener(allowInterop((Tab tab) async {
+    devToolsTab ??= tab.id;
   }));
 
-  // Stops debug service when DevTools window is closed.
-  windowsOnRemovedAddListener(allowInterop((int windowId) {
-    if (windowId == devToolsWindow && attached) {
+  // Stops debug service when DevTools tab closed.
+  tabsOnRemovedAddListener(allowInterop((int tabId, _) {
+    if (tabId == devToolsTab && attached) {
       detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
       attached = false;
       client.close();
@@ -198,11 +198,11 @@ external String stringify(o);
 @JS('window.alert')
 external void alert([String message]);
 
-@JS('chrome.windows.onCreated.addListener')
-external void windowsOnCreatedAddListener(Function callback);
+@JS('chrome.tabs.onCreated.addListener')
+external void tabsOnCreatedAddListener(Function callback);
 
-@JS('chrome.windows.onRemoved.addListener')
-external void windowsOnRemovedAddListener(Function callback);
+@JS('chrome.tabs.onRemoved.addListener')
+external void tabsOnRemovedAddListener(Function callback);
 
 @JS('chrome.runtime.lastError')
 external ChromeError get lastError;
@@ -210,13 +210,6 @@ external ChromeError get lastError;
 @JS()
 class ChromeError {
   external String get message;
-}
-
-@JS()
-@anonymous
-class Window {
-  external int get id;
-  external String get sessionId;
 }
 
 @JS()
