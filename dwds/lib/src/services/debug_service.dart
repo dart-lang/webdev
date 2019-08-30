@@ -64,18 +64,10 @@ Future<void> _handleSseConnections(
   while (await handler.connections.hasNext) {
     var connection = await handler.connections.next;
     var responseController = StreamController<Map<String, Object>>();
-    StreamSubscription sub;
-    sub = responseController.stream.map((response) {
+    var sub = responseController.stream.map((response) {
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
-    }).listen((d) {
-      unawaited(
-          chromeProxyService.remoteDebugger.onClose.first.whenComplete(() {
-        connection.sink.close();
-        sub.cancel();
-      }));
-      connection.sink.add(d);
-    });
+    }).listen(connection.sink.add);
     var inputStream = connection.stream.map((value) {
       var request = jsonDecode(value) as Map<String, Object>;
       if (onRequest != null) onRequest(request);
@@ -157,7 +149,6 @@ class DebugService {
         ? await HttpMultiServer.loopback(port)
         : await HttpMultiServer.bind(hostname, port);
     serveRequests(server, handler);
-    print('DebugService hostname : ${server.address.host}');
     var debugServiceHostname = server.address.host == '::' ? '[::]' : hostname;
     return DebugService._(
       chromeProxyService,

@@ -53,7 +53,6 @@ class DevTools {
         ? await HttpMultiServer.loopback(0)
         : await HttpMultiServer.bind(hostname, 0);
     serveRequests(server, handler);
-    print('DevTools hostname: ${server.address}');
     var devToolsHostname =
         server.address.host == '::' ? '[::]' : server.address.host;
 
