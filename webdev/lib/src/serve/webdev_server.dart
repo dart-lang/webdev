@@ -58,7 +58,8 @@ class WebDevServer {
     }
   }
 
-  String get host => _server.address.host;
+  String get host =>
+      _server.address.host == '::' ? '[::]' : _server.address.host;
   int get port => _server.port;
   String get protocol => _protocol;
 

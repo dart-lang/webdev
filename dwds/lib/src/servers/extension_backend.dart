@@ -27,7 +27,9 @@ class ExtensionBackend {
   static Future<ExtensionBackend> start(String hostname) async {
     var server = await HttpMultiServer.bind(hostname, 0);
     serveRequests(server, _sseHandler.handler);
-    return ExtensionBackend._(server.address.host, server.port, server);
+    var serverHostname =
+        server.address.host == '::' ? '[::]' : server.address.host;
+    return ExtensionBackend._(serverHostname, server.port, server);
   }
 
   Future<void> close() async => await _server.close();

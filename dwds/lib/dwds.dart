@@ -94,8 +94,10 @@ class Dwds {
 
     if (serveDevTools) {
       devTools = await DevTools.start(hostname);
+      var devToolsHostname =
+          devTools.hostname == '::' ? '[::]' : devTools.hostname;
       logWriter(Level.INFO,
-          'Serving DevTools at http://${devTools.hostname}:${devTools.port}\n');
+          'Serving DevTools at http://$devToolsHostname:${devTools.port}\n');
     }
     var devHandler = DevHandler(
       chromeConnection,
