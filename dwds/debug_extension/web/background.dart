@@ -29,26 +29,31 @@ void main() {
     // Extracts the extension backend port from the injected JS.
     var callback = allowInterop((List<Tab> tabs) async {
       currentTab = tabs[0];
-      attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() {}));
-      sendCommand(
-          Debuggee(tabId: currentTab.id),
-          'Runtime.evaluate',
-          InjectedParams(
-              expression:
-                  '[\$extensionPort, \$extensionHostname, \$dartAppId, \$dartAppInstanceId]',
-              returnByValue: true), allowInterop((e) {
-        String port, hostname, appId, instanceId;
-        if (e.result.value == null) {
-          alert('Unable to launch DevTools. This is not Dart application.');
-          detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+      attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() {
+        if (lastError != null) {
+          alert('DevTools is already opened on a different window.');
           return;
         }
-        port = e.result.value[0] as String;
-        hostname = e.result.value[1] as String;
-        appId = e.result.value[2] as String;
-        instanceId = e.result.value[3] as String;
+        sendCommand(
+            Debuggee(tabId: currentTab.id),
+            'Runtime.evaluate',
+            InjectedParams(
+                expression:
+                    '[\$extensionPort, \$extensionHostname, \$dartAppId, \$dartAppInstanceId]',
+                returnByValue: true), allowInterop((e) {
+          String port, hostname, appId, instanceId;
+          if (e.result.value == null) {
+            alert('Unable to launch DevTools. This is not Dart application.');
+            detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+            return;
+          }
+          port = e.result.value[0] as String;
+          hostname = e.result.value[1] as String;
+          appId = e.result.value[2] as String;
+          instanceId = e.result.value[3] as String;
 
-        startSseClient(hostname, port, appId, instanceId, currentTab);
+          startSseClient(hostname, port, appId, instanceId, currentTab);
+        }));
       }));
     });
 
@@ -77,6 +82,7 @@ Future<void> startSseClient(
   // A debugger is detached if it is closed by user or the target is closed.
   var attached = true;
   var client = SseClient('http://$hostname:$port/\$debug');
+  int devToolsTab;
 
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
@@ -125,16 +131,37 @@ Future<void> startSseClient(
   }));
 
   onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
-    if (attached) {
+    // Detach debugger from all tabs if debugger is cancelled by user.
+    // Only one alert is displayed if there are multiple app tabs.
+    if (reason.toString() == 'canceled_by_user' && attached) {
       if (source.tabId == currentTab.id) {
-        if (reason.toString() == 'canceled_by_user') {
-          alert('Debugger detached.'
-              'Click the extension to relaunch DevTools.');
-        } else if (reason.toString() == 'target_closed') {
-          alert('Debugger detached because a Dart app tab'
-              'using the debugger is closed.');
-        }
+        alert('Debugger detached from all tabs. '
+            'Click the extension to relaunch DevTools.');
       }
+      attached = false;
+      client.close();
+      return;
+    }
+
+    // Detach debugger only from a tab that is closed.
+    if (reason.toString() == 'target_closed' &&
+        source.tabId == currentTab.id &&
+        attached) {
+      attached = false;
+      client.close();
+      return;
+    }
+  }));
+
+  // Remembers the ID of the DevTools tab.
+  tabsOnCreatedAddListener(allowInterop((Tab tab) async {
+    devToolsTab ??= tab.id;
+  }));
+
+  // Stops debug service when DevTools tab closed.
+  tabsOnRemovedAddListener(allowInterop((int tabId, _) {
+    if (tabId == devToolsTab && attached) {
+      detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
       attached = false;
       client.close();
       return;
@@ -170,6 +197,20 @@ external String stringify(o);
 
 @JS('window.alert')
 external void alert([String message]);
+
+@JS('chrome.tabs.onCreated.addListener')
+external void tabsOnCreatedAddListener(Function callback);
+
+@JS('chrome.tabs.onRemoved.addListener')
+external void tabsOnRemovedAddListener(Function callback);
+
+@JS('chrome.runtime.lastError')
+external ChromeError get lastError;
+
+@JS()
+class ChromeError {
+  external String get message;
+}
 
 @JS()
 @anonymous
