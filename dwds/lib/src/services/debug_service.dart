@@ -64,10 +64,18 @@ Future<void> _handleSseConnections(
   while (await handler.connections.hasNext) {
     var connection = await handler.connections.next;
     var responseController = StreamController<Map<String, Object>>();
-    var sub = responseController.stream.map((response) {
+    StreamSubscription sub;
+    sub = responseController.stream.map((response) {
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
-    }).listen(connection.sink.add);
+    }).listen((d) {
+      unawaited(
+          chromeProxyService.remoteDebugger.onClose.first.whenComplete(() {
+        connection.sink.close();
+        sub.cancel();
+      }));
+      connection.sink.add(d);
+    });
     var inputStream = connection.stream.map((value) {
       var request = jsonDecode(value) as Map<String, Object>;
       if (onRequest != null) onRequest(request);
