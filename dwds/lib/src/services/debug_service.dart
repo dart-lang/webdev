@@ -64,8 +64,7 @@ Future<void> _handleSseConnections(
   while (await handler.connections.hasNext) {
     var connection = await handler.connections.next;
     var responseController = StreamController<Map<String, Object>>();
-    StreamSubscription sub;
-    sub = responseController.stream.map((response) {
+    var sub = responseController.stream.map((response) {
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
     }).listen(connection.sink.add);
