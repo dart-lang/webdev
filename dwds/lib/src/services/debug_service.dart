@@ -152,13 +152,11 @@ class DebugService {
     var port = await findUnusedPort();
     var server = hostname == 'localhost'
         ? await HttpMultiServer.loopback(port)
-        : await HttpMultiServer.bind(hostname, port);
+        : await HttpServer.bind(hostname, port);
     serveRequests(server, handler);
-    print('DebugService hostname : ${server.address.host}');
-    var debugServiceHostname = server.address.host == '::' ? '[::]' : hostname;
     return DebugService._(
       chromeProxyService,
-      debugServiceHostname,
+      hostname,
       port,
       authToken,
       serviceExtensionRegistry,
