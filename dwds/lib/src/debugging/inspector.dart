@@ -314,7 +314,6 @@ function($argsString) {
         descriptor['fields'] = {};
         for (var name of fieldNames) {
           var field = fields[name];
-          // TODO(grouma): Do something more performant.
           var libraryUri = Object.getOwnPropertySymbols(fields[name]["type"])
           .find(x => x.description == "libraryUri");
           descriptor['fields'][name] = {
