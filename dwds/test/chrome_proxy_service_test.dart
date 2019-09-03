@@ -361,11 +361,13 @@ void main() {
             unorderedEquals([
               predicate((FieldRef f) =>
                   f.name == 'message' &&
+                  f.declaredType != null &&
                   !f.isStatic &&
                   !f.isConst &&
                   f.isFinal),
               predicate((FieldRef f) =>
                   f.name == 'notFinal' &&
+                  f.declaredType != null &&
                   !f.isStatic &&
                   !f.isConst &&
                   !f.isFinal),

@@ -1,3 +1,8 @@
+## 0.5.3
+
+- Fix issue where certain required fields of VM service protocol objects were
+  null.
+
 ## 0.5.2
 
 - Fix issue where certain required fields of VM service protocol objects were
