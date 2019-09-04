@@ -367,17 +367,18 @@ function($argsString) {
           descriptor['classRefName'] as String,
           descriptor['classRefLibraryId'] as String,
         );
-        fieldRefs.add(FieldRef()
-          ..name = name
-          ..owner = classRef
-          ..declaredType = (InstanceRef(
-              id: createId(),
-              kind: InstanceKind.kType,
-              classRef:
-                  (ClassRef(name: classMetaData.name, id: classMetaData.id))))
-          ..isConst = descriptor['isConst'] as bool
-          ..isFinal = descriptor['isFinal'] as bool
-          ..isStatic = descriptor['isStatic'] as bool);
+        fieldRefs.add(FieldRef(
+            name: name,
+            owner: classRef,
+            declaredType: InstanceRef(
+                id: createId(),
+                kind: InstanceKind.kType,
+                classRef:
+                    ClassRef(name: classMetaData.name, id: classMetaData.id)),
+            isConst: descriptor['isConst'] as bool,
+            isFinal: descriptor['isFinal'] as bool,
+            isStatic: descriptor['isStatic'] as bool,
+            id: createId()));
       });
 
       // TODO: Implement the rest of these

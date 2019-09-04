@@ -95,14 +95,19 @@ class InstanceHelper {
           dartProperties.map<Future<BoundField>>((property) async {
         var instance = await instanceRefFor(property.value);
         return BoundField()
-          ..decl = (FieldRef()
-            // TODO(grouma) - Convert JS name to Dart.
-            ..name = property.name
-            ..declaredType = (InstanceRef(
-                kind: InstanceKind.kType,
-                classRef: instance.classRef,
-                id: createId()))
-            ..owner = classRef)
+          ..decl = (FieldRef(
+              // TODO(grouma) - Convert JS name to Dart.
+              name: property.name,
+              declaredType: (InstanceRef(
+                  kind: InstanceKind.kType,
+                  classRef: instance.classRef,
+                  id: createId())),
+              owner: classRef,
+              // TODO(grouma) - Fill these in.
+              isConst: false,
+              isFinal: false,
+              isStatic: false,
+              id: createId()))
           ..value = instance;
       }));
       fields.sort((a, b) => a.decl.name.compareTo(b.decl.name));

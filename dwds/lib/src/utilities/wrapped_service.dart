@@ -25,17 +25,21 @@ class FieldRef extends vm_service.FieldRef {
 
   factory FieldRef({
     @required String name,
-    @required owner,
-    @required bool isStatic,
+    @required vm_service.ObjRef owner,
+    @required vm_service.InstanceRef declaredType,
     @required bool isConst,
+    @required bool isFinal,
+    @required bool isStatic,
     @required String id,
   }) {
     var fieldRef = FieldRef._();
     fieldRef
       ..name = name
       ..owner = owner
-      ..isStatic = isStatic
+      ..declaredType = declaredType
       ..isConst = isConst
+      ..isStatic = isStatic
+      ..isFinal = isFinal
       ..id = id;
     return fieldRef;
   }
