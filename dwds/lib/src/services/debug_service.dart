@@ -109,8 +109,14 @@ class DebugService {
   }
 
   String get uri => _useSse
-      ? '${Uri(scheme: 'sse', host: hostname, port: port)}/$_authToken/\$debugHandler'
-      : '${Uri(scheme: 'ws', host: hostname, port: port)}/$_authToken';
+      ? Uri(
+              scheme: 'sse',
+              host: hostname,
+              port: port,
+              path: '$_authToken/\$debugHandler')
+          .toString()
+      : Uri(scheme: 'ws', host: hostname, port: port, path: '/$_authToken')
+          .toString();
 
   /// [appInstanceId] is a unique String embedded in the instance of the
   /// application available through `window.$dartAppInstanceId`.

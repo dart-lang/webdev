@@ -51,8 +51,12 @@ void main() {
           hostname = e.result.value[1] as String;
           appId = e.result.value[2] as String;
           instanceId = e.result.value[3] as String;
-
-          startSseClient(hostname, port, appId, instanceId, currentTab);
+          var uri = Uri(
+              scheme: 'http',
+              host: hostname,
+              port: int.parse(port),
+              path: r'$debug');
+          startSseClient(uri, appId, instanceId, currentTab);
         }));
       }));
     });
@@ -76,16 +80,12 @@ void main() {
 // Initiates a [DevToolsRequest], handles an [ExtensionRequest],
 // and sends an [ExtensionEvent].
 Future<void> startSseClient(
-    hostname, port, appId, instanceId, currentTab) async {
+    Uri uri, String appId, String instanceId, Tab currentTab) async {
   // Specifies whether the debugger is attached.
   //
   // A debugger is detached if it is closed by user or the target is closed.
   var attached = true;
-  var uri = Uri(
-      scheme: 'http',
-      host: hostname as String,
-      port: int.parse(port as String));
-  var client = SseClient('$uri/\$debug');
+  var client = SseClient(uri.toString());
   int devToolsTab;
 
   client.stream.listen((data) {

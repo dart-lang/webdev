@@ -2012,7 +2012,7 @@ else q=!1
 if(q)a=""
 q=a==null
 p=!q
-b=P.nm(b,0,b==null?0:b.length,n,d,p)
+b=P.nm(b,0,b.length,n,d,p)
 o=d.length===0
 if(o&&q&&!C.a.aa(b,"/"))b=P.lV(b,!o||p)
 else b=P.bB(b)
@@ -2687,12 +2687,12 @@ self.chrome.browserAction.onClicked.addListener(t)
 u=P.aa(new M.kV(t))
 self.fakeClick=u
 self.window.isDartDebugExtension=!0},
-kY:function(a,b,c,d,e){return M.rp(a,b,c,d,e)},
-rp:function(a,b,c,d,e){var u=0,t=P.cX(-1),s,r,q,p,o,n,m,l
-var $async$kY=P.cZ(function(f,g){if(f===1)return P.cS(g,t)
+kY:function(a,b,c,d){return M.rp(a,b,c,d)},
+rp:function(a,b,c,d){var u=0,t=P.cX(-1),s,r,q,p,o,n,m,l
+var $async$kY=P.cZ(function(e,f){if(e===1)return P.cS(f,t)
 while(true)switch(u){case 0:l={}
 l.a=!0
-s=P.nf(a,null,P.d0(b,null,null),"http").i(0)+"/$debug"
+s=a.i(0)
 r=P.e
 q=P.mV(r)
 p=P.mV(r)
@@ -2708,25 +2708,25 @@ C.N.dY(n.e,"control",n.gfF())
 s=W.i
 W.nb(n.e,"error",q.gh6(),!1,s)
 l.b=null
-new P.cH(q,[H.c(q,0)]).ak(new M.l3(e,n),!0,new M.l4(l,n),new M.l5(e))
+new P.cH(q,[H.c(q,0)]).ak(new M.l3(d,n),!0,new M.l4(l,n),new M.l5(d))
 s=new W.bz(n.e,"open",!1,[s])
 u=2
 return P.ei(s.gap(s),$async$kY)
 case 2:s=$.eo()
 q=new M.aS()
-new M.l6(c,d,e).$1(q)
+new M.l6(b,c,d).$1(q)
 p.w(0,C.l.ba(s.bK(q.T()),null))
-s={tabId:J.ar(e)}
+s={tabId:J.ar(d)}
 r={}
 q=P.aa(new M.l7())
 self.chrome.debugger.sendCommand(s,"Runtime.enable",r,q)
-q=P.aa(new M.l8(l,e,n))
+q=P.aa(new M.l8(l,d,n))
 self.chrome.debugger.onEvent.addListener(q)
-q=P.aa(new M.l9(l,e,n))
+q=P.aa(new M.l9(l,d,n))
 self.chrome.debugger.onDetach.addListener(q)
 q=P.aa(new M.la(l))
 self.chrome.tabs.onCreated.addListener(q)
-l=P.aa(new M.lb(l,e,n))
+l=P.aa(new M.lb(l,d,n))
 self.chrome.tabs.onRemoved.addListener(l)
 return P.cT(null,t)}})
 return P.cU($async$kY,t)},
@@ -9220,13 +9220,16 @@ $C:"$0",
 $R:0,
 $S:0}
 M.kQ.prototype={
-$1:function(a){var u,t,s=J.aN(a)
-if(J.d5(s.gaC(a))==null){self.window.alert("Unable to launch DevTools. This is not Dart application.")
-s={tabId:J.ar(this.a.a)}
+$1:function(a){var u,t,s,r,q,p=J.aN(a)
+if(J.d5(p.gaC(a))==null){self.window.alert("Unable to launch DevTools. This is not Dart application.")
+p={tabId:J.ar(this.a.a)}
 u=P.aa(new M.kP())
-self.chrome.debugger.detach(s,u)
-return}t=H.u(J.ae(J.d5(s.gaC(a)),0))
-M.kY(H.u(J.ae(J.d5(s.gaC(a)),1)),t,H.u(J.ae(J.d5(s.gaC(a)),2)),H.u(J.ae(J.d5(s.gaC(a)),3)),this.a.a)},
+self.chrome.debugger.detach(p,u)
+return}t=H.u(J.ae(J.d5(p.gaC(a)),0))
+s=H.u(J.ae(J.d5(p.gaC(a)),1))
+r=H.u(J.ae(J.d5(p.gaC(a)),2))
+q=H.u(J.ae(J.d5(p.gaC(a)),3))
+M.kY(P.nf(s,"$debug",P.d0(t,null,null),"http"),r,q,this.a.a)},
 $S:4}
 M.kP.prototype={
 $0:function(){},

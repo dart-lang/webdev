@@ -220,9 +220,11 @@ class DevHandler {
         await appServices.chromeProxyService.remoteDebugger
             .sendCommand('Target.createTarget', params: {
           'newWindow': true,
-          'url':
-              '${Uri(scheme: 'http', host: _devTools.hostname, port: _devTools.port)}'
-                  '/?uri=${appServices.debugService.uri}',
+          'url': Uri(
+              scheme: 'http',
+              host: _devTools.hostname,
+              port: _devTools.port,
+              queryParameters: {'uri': appServices.debugService.uri}).toString()
         });
       } else if (message is ConnectRequest) {
         if (appId != null) {
