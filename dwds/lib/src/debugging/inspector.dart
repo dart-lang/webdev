@@ -77,8 +77,9 @@ class AppInspector extends Domain {
 
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());
 
-    isolate.pauseEvent = Event()
-      ..kind = EventKind.kResume
+    isolate.pauseEvent = Event(
+        kind: EventKind.kResume,
+        timestamp: DateTime.now().millisecondsSinceEpoch)
       ..isolate = isolateRef;
   }
 
@@ -92,14 +93,15 @@ class AppInspector extends Domain {
     String root,
   ) async {
     var id = createId();
+    var time = DateTime.now().millisecondsSinceEpoch;
     var isolate = Isolate(
         id: id,
         number: id,
         name: '$root:main()',
-        startTime: DateTime.now().millisecondsSinceEpoch,
+        startTime: time,
         runnable: true,
         pauseOnExit: false,
-        pauseEvent: null,
+        pauseEvent: Event(kind: EventKind.kPauseStart, timestamp: time),
         livePorts: 0,
         libraries: [],
         breakpoints: [],

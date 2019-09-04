@@ -19,7 +19,23 @@ export 'package:vm_service/vm_service.dart'
         InstanceRef,
         FuncRef,
         FieldRef,
-        CodeRef;
+        CodeRef,
+        Event;
+
+class Event extends vm_service.Event {
+  Event._();
+
+  factory Event({
+    @required String kind,
+    @required int timestamp,
+  }) {
+    var event = Event._();
+    event
+      ..kind = kind
+      ..timestamp = timestamp;
+    return event;
+  }
+}
 
 class FieldRef extends vm_service.FieldRef {
   FieldRef._();
