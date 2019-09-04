@@ -18,7 +18,8 @@ export 'package:vm_service/vm_service.dart'
         Instance,
         InstanceRef,
         FuncRef,
-        FieldRef;
+        FieldRef,
+        CodeRef;
 
 class FieldRef extends vm_service.FieldRef {
   FieldRef._();
@@ -113,6 +114,23 @@ class Isolate extends vm_service.Isolate {
       ..name = name
       ..id = id;
     return isolate;
+  }
+}
+
+class CodeRef extends vm_service.CodeRef {
+  CodeRef._();
+
+  factory CodeRef({
+    @required String name,
+    @required String kind,
+    @required String id,
+  }) {
+    var codeRef = CodeRef._();
+    codeRef
+      ..name = name
+      ..kind = kind
+      ..id = id;
+    return codeRef;
   }
 }
 

@@ -372,9 +372,7 @@ class Debugger extends Domain {
     var script =
         await inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
     return Frame()
-      ..code = (CodeRef()
-        ..id = createId()
-        ..kind = CodeKind.kDart)
+      ..code = (CodeRef(id: createId(), name: 'DartCode', kind: CodeKind.kDart))
       ..location = (SourceLocation()
         ..tokenPos = bestLocation.tokenPos
         ..script = script)
