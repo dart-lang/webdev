@@ -220,8 +220,9 @@ class DevHandler {
         await appServices.chromeProxyService.remoteDebugger
             .sendCommand('Target.createTarget', params: {
           'newWindow': true,
-          'url': 'http://${_devTools.hostname}:${_devTools.port}'
-              '/?uri=${appServices.debugService.uri}',
+          'url':
+              '${Uri(scheme: 'http', host: _devTools.hostname, port: _devTools.port)}'
+                  '/?uri=${appServices.debugService.uri}',
         });
       } else if (message is ConnectRequest) {
         if (appId != null) {
@@ -323,14 +324,15 @@ class DevHandler {
           _logWriter(
               Level.INFO,
               'Stopped debug service on '
-              'ws://${appServices.debugService.hostname}:${appServices.debugService.port}\n');
+              '${appServices.debugService.uri}\n');
         }));
         return appServices;
       });
       await _extensionDebugger.sendCommand('Target.createTarget', params: {
         'newWindow': true,
-        'url': 'http://${_devTools.hostname}:${_devTools.port}'
-            '/?uri=${appServices.debugService.uri}',
+        'url':
+            '${Uri(scheme: 'http', host: _devTools.hostname, port: _devTools.port)}'
+                '/?uri=${appServices.debugService.uri}',
       });
     });
   }

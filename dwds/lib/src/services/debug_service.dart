@@ -109,8 +109,8 @@ class DebugService {
   }
 
   String get uri => _useSse
-      ? 'sse://$hostname:$port/$_authToken/\$debugHandler'
-      : 'ws://$hostname:$port/$_authToken';
+      ? '${Uri(scheme: 'sse', host: hostname, port: port)}/$_authToken/\$debugHandler'
+      : '${Uri(scheme: 'ws', host: hostname, port: port)}/$_authToken';
 
   /// [appInstanceId] is a unique String embedded in the instance of the
   /// application available through `window.$dartAppInstanceId`.
@@ -153,10 +153,9 @@ class DebugService {
         ? await HttpMultiServer.loopback(port)
         : await HttpMultiServer.bind(hostname, port);
     serveRequests(server, handler);
-    var debugServiceHostname = server.address.host == '::' ? '[::]' : hostname;
     return DebugService._(
       chromeProxyService,
-      debugServiceHostname,
+      server.address.host,
       port,
       authToken,
       serviceExtensionRegistry,

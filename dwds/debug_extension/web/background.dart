@@ -81,7 +81,11 @@ Future<void> startSseClient(
   //
   // A debugger is detached if it is closed by user or the target is closed.
   var attached = true;
-  var client = SseClient('http://$hostname:$port/\$debug');
+  var uri = Uri(
+      scheme: 'http',
+      host: hostname as String,
+      port: int.parse(port as String));
+  var client = SseClient('$uri/\$debug');
   int devToolsTab;
 
   client.stream.listen((data) {
