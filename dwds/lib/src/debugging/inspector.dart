@@ -370,11 +370,11 @@ function($argsString) {
         fieldRefs.add(FieldRef()
           ..name = name
           ..owner = classRef
-          ..declaredType = (InstanceRef()
-            ..type = InstanceKind.kType
-            ..classRef = (ClassRef()
-              ..name = classMetaData.name
-              ..id = classMetaData.id))
+          ..declaredType = (InstanceRef(
+              id: createId(),
+              kind: InstanceKind.kType,
+              classRef:
+                  (ClassRef(name: classMetaData.name, id: classMetaData.id))))
           ..isConst = descriptor['isConst'] as bool
           ..isFinal = descriptor['isFinal'] as bool
           ..isStatic = descriptor['isStatic'] as bool);
