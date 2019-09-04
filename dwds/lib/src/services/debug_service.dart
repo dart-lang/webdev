@@ -115,7 +115,7 @@ class DebugService {
               port: port,
               path: '$_authToken/\$debugHandler')
           .toString()
-      : Uri(scheme: 'ws', host: hostname, port: port, path: '/$_authToken')
+      : Uri(scheme: 'ws', host: hostname, port: port, path: '$_authToken')
           .toString();
 
   /// [appInstanceId] is a unique String embedded in the instance of the
@@ -155,9 +155,7 @@ class DebugService {
       };
     }
     var port = await findUnusedPort();
-    var server = hostname == 'localhost'
-        ? await HttpMultiServer.loopback(port)
-        : await HttpMultiServer.bind(hostname, port);
+    var server = await HttpMultiServer.bind(hostname, port);
     serveRequests(server, handler);
     return DebugService._(
       chromeProxyService,
