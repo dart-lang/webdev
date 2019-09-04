@@ -49,9 +49,7 @@ class DevTools {
           : buildHandler(request);
     };
 
-    var server = hostname == 'localhost'
-        ? await HttpMultiServer.loopback(0)
-        : await HttpServer.bind(hostname, 0);
+    var server = await HttpMultiServer.bind(hostname, 0);
     serveRequests(server, handler);
 
     return DevTools._(server.address.host, server.port, server);

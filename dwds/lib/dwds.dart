@@ -95,7 +95,7 @@ class Dwds {
     if (serveDevTools) {
       devTools = await DevTools.start(hostname);
       logWriter(Level.INFO,
-          'Serving DevTools at http://${devTools.hostname}:${devTools.port}\n');
+          'Serving DevTools at ${Uri(scheme: 'http', host: devTools.hostname, port: devTools.port)}\n');
     }
     var devHandler = DevHandler(
       chromeConnection,
