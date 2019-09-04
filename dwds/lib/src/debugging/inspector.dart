@@ -103,7 +103,7 @@ class AppInspector extends Domain {
         livePorts: 0,
         libraries: [],
         breakpoints: [],
-        exceptionPauseMode: null)
+        exceptionPauseMode: null /* TODO(grouma) - provide. */)
       ..extensionRPCs = [];
     var inspector =
         AppInspector._(isolate, assetHandler, debugger, root, remoteDebugger);
@@ -348,12 +348,12 @@ function($argsString) {
           classDescriptor['methods'] as Map<String, dynamic>;
       methodDescriptors.forEach((name, descriptor) {
         var methodId = '${classMetaData.id}:$name';
-        methodRefs.add(FuncRef()
-          ..id = methodId
-          ..name = name
-          ..owner = classRef
-          ..isConst = descriptor['isConst'] as bool
-          ..isStatic = descriptor['isStatic'] as bool);
+        methodRefs.add(FuncRef(
+            id: methodId,
+            name: name,
+            owner: classRef,
+            isConst: descriptor['isConst'] as bool,
+            isStatic: descriptor['isStatic'] as bool));
       });
 
       var fieldRefs = <FieldRef>[];

@@ -63,13 +63,13 @@ class InstanceHelper {
         kind: InstanceKind.kClosure,
         id: remoteObject.objectId,
         classRef: _classRefForClosure)
-      ..closureFunction = (FuncRef()
-        ..name = functionMetaData.name
-        ..id = createId()
-        // TODO(grouma) - fill these in properly.
-        ..owner = null // TODO(grouma)
-        ..isConst = false
-        ..isStatic = false)
+      ..closureFunction = (FuncRef(
+          name: functionMetaData.name,
+          id: createId(),
+          // TODO(grouma) - fill these in properly.
+          owner: null, // TODO(grouma)
+          isConst: false,
+          isStatic: false))
       // TODO(grouma) - construct a valid context.
       ..closureContext = (ContextRef()..length = 0);
     return result;
