@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:path/path.dart' as p;
-import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../handlers/asset_handler.dart';
@@ -14,6 +13,7 @@ import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
+import '../utilities/wrapped_service.dart';
 import 'debugger.dart';
 import 'exceptions.dart';
 import 'instance.dart';
@@ -82,10 +82,8 @@ class AppInspector extends Domain {
       ..isolate = isolateRef;
   }
 
-  static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef()
-    ..id = isolate.id
-    ..name = isolate.name
-    ..number = isolate.number;
+  static IsolateRef _toIsolateRef(Isolate isolate) =>
+      IsolateRef(id: isolate.id, name: isolate.name, number: isolate.number);
 
   static Future<AppInspector> initialize(
     RemoteDebugger remoteDebugger,
@@ -94,13 +92,18 @@ class AppInspector extends Domain {
     String root,
   ) async {
     var id = createId();
-    var isolate = Isolate()
-      ..id = id
-      ..number = id
-      ..name = '$root:main()'
-      ..runnable = true
-      ..breakpoints = []
-      ..libraries = []
+    var isolate = Isolate(
+        id: id,
+        number: id,
+        name: '$root:main()',
+        startTime: DateTime.now().millisecondsSinceEpoch,
+        runnable: true,
+        pauseOnExit: false,
+        pauseEvent: null,
+        livePorts: 0,
+        libraries: [],
+        breakpoints: [],
+        exceptionPauseMode: null)
       ..extensionRPCs = [];
     var inspector =
         AppInspector._(isolate, assetHandler, debugger, root, remoteDebugger);
@@ -337,9 +340,7 @@ function($argsString) {
     for (var classDescriptor in classDescriptors) {
       var classMetaData =
           ClassMetaData(classDescriptor['name'] as String, libraryRef.id);
-      var classRef = ClassRef()
-        ..name = classMetaData.name
-        ..id = classMetaData.id;
+      var classRef = ClassRef(name: classMetaData.name, id: classMetaData.id);
       classRefs.add(classRef);
 
       var methodRefs = <FuncRef>[];
@@ -368,15 +369,16 @@ function($argsString) {
 
       // TODO: Implement the rest of these
       // https://github.com/dart-lang/webdev/issues/176.
-      _classes[classMetaData.id] = Class()
-        ..classRef = classRef
-        ..fields = fieldRefs
-        ..functions = methodRefs
-        ..id = classMetaData.id
-        ..library = libraryRef
-        ..name = classMetaData.name
-        ..interfaces = []
-        ..subclasses = [];
+      _classes[classMetaData.id] = Class(
+          name: classMetaData.name,
+          isAbstract: false, // TODO(grouma) - properly supply.
+          isConst: false,
+          library: libraryRef,
+          interfaces: [],
+          fields: fieldRefs,
+          functions: methodRefs,
+          subclasses: [],
+          id: classMetaData.id);
     }
 
     // Parts are relative paths from the libraryRef uri.
@@ -388,13 +390,9 @@ function($argsString) {
     // fixed.
     var parent = libraryRef.uri.substring(0, libraryRef.uri.lastIndexOf('/'));
     var scriptRefs = [
-      ScriptRef()
-        ..uri = libraryRef.uri
-        ..id = createId(),
+      ScriptRef(uri: libraryRef.uri, id: createId()),
       for (var part in parts)
-        ScriptRef()
-          ..uri = p.join(parent, part)
-          ..id = createId()
+        ScriptRef(uri: p.join(parent, part), id: createId())
     ];
 
     for (var scriptRef in scriptRefs) {
@@ -404,16 +402,16 @@ function($argsString) {
           scriptRef;
     }
 
-    return Library()
-      ..id = libraryRef.id
-      ..name = libraryRef.name
-      ..uri = libraryRef.uri
-      ..classes = classRefs
-      ..debuggable = true
-      ..dependencies = []
-      ..functions = []
-      ..scripts = scriptRefs
-      ..variables = [];
+    return Library(
+        name: libraryRef.name,
+        uri: libraryRef.uri,
+        debuggable: true,
+        dependencies: [],
+        scripts: scriptRefs,
+        variables: [],
+        functions: [],
+        classes: classRefs,
+        id: libraryRef.id);
   }
 
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
@@ -424,10 +422,11 @@ function($argsString) {
       throw ScriptNotFound(serverPath, response);
     }
     var script = await response.readAsString();
-    return Script()
-      ..library = _libraryRefs[libraryId]
-      ..id = scriptRef.id
-      ..uri = scriptRef.uri
+    return Script(
+      uri: scriptRef.uri,
+      library: _libraryRefs[libraryId],
+      id: scriptRef.id,
+    )
       ..tokenPosTable = debugger.sources.tokenPosTableFor(serverPath)
       ..source = script;
   }
@@ -454,7 +453,9 @@ function($argsString) {
       // We can't provide the source for `dart:` imports so ignore for now.
       // Also `main.dart.bootstrap` does not have a corresponding script.
       if (lib.id.startsWith('dart:') || lib.id.endsWith('.bootstrap')) continue;
-      scripts.addAll((await _getLibrary(isolateId, lib.id)).scripts);
+      for (var script in (await _getLibrary(isolateId, lib.id)).scripts) {
+        scripts.add(ScriptRef(uri: script.uri, id: script.id));
+      }
     }
     // TODO(alanknight): Is this the same as the values in _scriptRefs after
     // constructing all the libraries? Make that clearer.
@@ -477,10 +478,7 @@ function($argsString) {
     var libraries =
         List<String>.from(librariesResult.result['result']['value'] as List);
     for (var library in libraries) {
-      var ref = LibraryRef()
-        ..id = library
-        ..name = library
-        ..uri = library;
+      var ref = LibraryRef(id: library, name: library, uri: library);
       _libraryRefs[ref.id] = ref;
     }
     return _libraryRefs.values.toList();
