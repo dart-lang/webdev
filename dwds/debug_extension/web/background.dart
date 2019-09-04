@@ -113,9 +113,9 @@ Future<void> startSseClient(
 
   await client.onOpen.first;
   client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
-    ..appId = appId as String
-    ..instanceId = instanceId as String
-    ..tabUrl = currentTab.url as String))));
+    ..appId = appId
+    ..instanceId = instanceId
+    ..tabUrl = currentTab.url))));
 
   sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
       allowInterop((e) {}));
