@@ -317,11 +317,15 @@ function($argsString) {
         descriptor['fields'] = {};
         for (var name of fieldNames) {
           var field = fields[name];
+          var libraryUri = Object.getOwnPropertySymbols(fields[name]["type"])
+          .find(x => x.description == "libraryUri");
           descriptor['fields'][name] = {
             // TODO(jakemac): how can we get actual const info?
             "isConst": false,
             "isFinal": field.isFinal,
             "isStatic": false,
+            "classRefName": fields[name]["type"]["name"],
+            "classRefLibraryId" : field["type"][libraryUri],
           }
         }
 
@@ -358,10 +362,19 @@ function($argsString) {
 
       var fieldRefs = <FieldRef>[];
       var fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
-      fieldDescriptors.forEach((name, descriptor) {
+      fieldDescriptors.forEach((name, descriptor) async {
+        var classMetaData = ClassMetaData(
+          descriptor['classRefName'] as String,
+          descriptor['classRefLibraryId'] as String,
+        );
         fieldRefs.add(FieldRef()
           ..name = name
           ..owner = classRef
+          ..declaredType = (InstanceRef()
+            ..type = InstanceKind.kType
+            ..classRef = (ClassRef()
+              ..name = classMetaData.name
+              ..id = classMetaData.id))
           ..isConst = descriptor['isConst'] as bool
           ..isFinal = descriptor['isFinal'] as bool
           ..isStatic = descriptor['isStatic'] as bool);

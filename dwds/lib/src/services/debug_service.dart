@@ -68,6 +68,10 @@ Future<void> _handleSseConnections(
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
     }).listen(connection.sink.add);
+    unawaited(chromeProxyService.remoteDebugger.onClose.first.whenComplete(() {
+      connection.sink.close();
+      sub.cancel();
+    }));
     var inputStream = connection.stream.map((value) {
       var request = jsonDecode(value) as Map<String, Object>;
       if (onRequest != null) onRequest(request);
