@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/utilities/shared.dart';
-import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../dwds.dart' show LogWriter;
@@ -14,6 +12,8 @@ import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
+import '../utilities/shared.dart';
+import '../utilities/wrapped_service.dart';
 import 'dart_scope.dart';
 import 'location.dart';
 import 'remote_debugger.dart';
@@ -372,9 +372,7 @@ class Debugger extends Domain {
     var script =
         await inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
     return Frame()
-      ..code = (CodeRef()
-        ..id = createId()
-        ..kind = CodeKind.kDart)
+      ..code = (CodeRef(id: createId(), name: 'DartCode', kind: CodeKind.kDart))
       ..location = (SourceLocation()
         ..tokenPos = bestLocation.tokenPos
         ..script = script)
