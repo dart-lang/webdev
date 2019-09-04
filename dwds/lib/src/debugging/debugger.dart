@@ -61,6 +61,12 @@ class Debugger extends Domain {
 
   Stack _pausedStack;
 
+  PauseState _pauseState = PauseState.none;
+
+  String get pauseState => _pauseModePauseStates.entries
+      .firstWhere((entry) => entry.value == _pauseState)
+      .key;
+
   /// The JS frames corresponding to [_pausedStack].
   ///
   /// The most important thing here is that frames are identified by
@@ -81,9 +87,9 @@ class Debugger extends Domain {
 
   Future<Success> setExceptionPauseMode(String isolateId, String mode) async {
     checkIsolate(isolateId);
-    var pauseState = _pauseModePauseStates[mode.toLowerCase()] ??
+    _pauseState = _pauseModePauseStates[mode.toLowerCase()] ??
         (throw ArgumentError.value('mode', 'Unsupported mode `$mode`'));
-    await _remoteDebugger.setPauseOnExceptions(pauseState);
+    await _remoteDebugger.setPauseOnExceptions(_pauseState);
     return Success();
   }
 

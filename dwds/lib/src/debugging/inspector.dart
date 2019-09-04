@@ -103,7 +103,7 @@ class AppInspector extends Domain {
         livePorts: 0,
         libraries: [],
         breakpoints: [],
-        exceptionPauseMode: null /* TODO(grouma) - provide. */)
+        exceptionPauseMode: debugger.pauseState)
       ..extensionRPCs = [];
     var inspector =
         AppInspector._(isolate, assetHandler, debugger, root, remoteDebugger);
@@ -385,7 +385,7 @@ function($argsString) {
       // https://github.com/dart-lang/webdev/issues/176.
       _classes[classMetaData.id] = Class(
           name: classMetaData.name,
-          isAbstract: false, // TODO(grouma) - properly supply.
+          isAbstract: false,
           isConst: false,
           library: libraryRef,
           interfaces: [],

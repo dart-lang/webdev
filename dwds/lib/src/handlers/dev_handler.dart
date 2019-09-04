@@ -126,7 +126,6 @@ class DevHandler {
                   'VmService proxy responded with an error:\n$response');
             }
           : null,
-      // TODO(grouma) - Use SSE for Dart Debug Extension workflow.
       useSse: false,
     );
   }

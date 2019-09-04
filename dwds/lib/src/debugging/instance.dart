@@ -67,7 +67,7 @@ class InstanceHelper {
           name: functionMetaData.name,
           id: createId(),
           // TODO(grouma) - fill these in properly.
-          owner: null, // TODO(grouma)
+          owner: null,
           isConst: false,
           isStatic: false))
       // TODO(grouma) - construct a valid context.
