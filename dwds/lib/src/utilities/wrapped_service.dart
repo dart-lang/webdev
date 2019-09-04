@@ -17,7 +17,29 @@ export 'package:vm_service/vm_service.dart'
         Class,
         Instance,
         InstanceRef,
-        FuncRef;
+        FuncRef,
+        FieldRef;
+
+class FieldRef extends vm_service.FieldRef {
+  FieldRef._();
+
+  factory FieldRef({
+    @required String name,
+    @required owner,
+    @required bool isStatic,
+    @required bool isConst,
+    @required String id,
+  }) {
+    var fieldRef = FieldRef._();
+    fieldRef
+      ..name = name
+      ..owner = owner
+      ..isStatic = isStatic
+      ..isConst = isConst
+      ..id = id;
+    return fieldRef;
+  }
+}
 
 class FuncRef extends vm_service.FuncRef {
   FuncRef._();
