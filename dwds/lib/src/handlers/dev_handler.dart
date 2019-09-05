@@ -127,7 +127,6 @@ class DevHandler {
                   'VmService proxy responded with an error:\n$response');
             }
           : null,
-      // TODO(grouma) - Use SSE for Dart Debug Extension workflow.
       useSse: false,
     );
   }
@@ -221,8 +220,12 @@ class DevHandler {
         await appServices.chromeProxyService.remoteDebugger
             .sendCommand('Target.createTarget', params: {
           'newWindow': true,
-          'url': 'http://${_devTools.hostname}:${_devTools.port}'
-              '/?uri=${appServices.debugService.uri}',
+          'url': Uri(
+                  scheme: 'http',
+                  host: _devTools.hostname,
+                  port: _devTools.port,
+                  queryParameters: {'uri': appServices.debugService.uri})
+              .toString(),
         });
       } else if (message is ConnectRequest) {
         if (appId != null) {
@@ -286,12 +289,12 @@ class DevHandler {
 
   void _listenForDebugExtension() async {
     while (await _extensionBackend.connections.hasNext) {
-      startExtensionDebugService();
+      _startExtensionDebugService();
     }
   }
 
   /// Starts a [DebugService] for Dart Debug Extension.
-  void startExtensionDebugService() async {
+  void _startExtensionDebugService() async {
     var _extensionDebugger = await _extensionBackend.extensionDebugger;
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
@@ -324,17 +327,19 @@ class DevHandler {
           _logWriter(
               Level.INFO,
               'Stopped debug service on '
-              'ws://${appServices.debugService.hostname}:${appServices.debugService.port}\n');
+              '${appServices.debugService.uri}\n');
         }));
         appServicesStream.add(appServices);
         return appServices;
       });
       await _extensionDebugger.sendCommand('Target.createTarget', params: {
         'newWindow': true,
-        'url': 'http://${_devTools.hostname}:${_devTools.port}'
-            '/?uri=${appServices.debugService.uri}',
+        'url': Uri(
+            scheme: 'http',
+            host: _devTools.hostname,
+            port: _devTools.port,
+            queryParameters: {'uri': appServices.debugService.uri}).toString(),
       });
-      
     });
   }
 }
