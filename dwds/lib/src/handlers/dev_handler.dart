@@ -43,6 +43,7 @@ class DevHandler {
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
   final ExtensionBackend _extensionBackend;
+  final StreamController appServicesStream = StreamController<AppDebugServices>();
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -126,6 +127,7 @@ class DevHandler {
                   'VmService proxy responded with an error:\n$response');
             }
           : null,
+      // TODO(grouma) - Use SSE for Dart Debug Extension workflow.
       useSse: false,
     );
   }
@@ -219,12 +221,8 @@ class DevHandler {
         await appServices.chromeProxyService.remoteDebugger
             .sendCommand('Target.createTarget', params: {
           'newWindow': true,
-          'url': Uri(
-                  scheme: 'http',
-                  host: _devTools.hostname,
-                  port: _devTools.port,
-                  queryParameters: {'uri': appServices.debugService.uri})
-              .toString(),
+          'url': 'http://${_devTools.hostname}:${_devTools.port}'
+              '/?uri=${appServices.debugService.uri}',
         });
       } else if (message is ConnectRequest) {
         if (appId != null) {
@@ -288,12 +286,12 @@ class DevHandler {
 
   void _listenForDebugExtension() async {
     while (await _extensionBackend.connections.hasNext) {
-      _startExtensionDebugService();
+      startExtensionDebugService();
     }
   }
 
   /// Starts a [DebugService] for Dart Debug Extension.
-  void _startExtensionDebugService() async {
+  void startExtensionDebugService() async {
     var _extensionDebugger = await _extensionBackend.extensionDebugger;
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
@@ -326,18 +324,17 @@ class DevHandler {
           _logWriter(
               Level.INFO,
               'Stopped debug service on '
-              '${appServices.debugService.uri}\n');
+              'ws://${appServices.debugService.hostname}:${appServices.debugService.port}\n');
         }));
+        appServicesStream.add(appServices);
         return appServices;
       });
       await _extensionDebugger.sendCommand('Target.createTarget', params: {
         'newWindow': true,
-        'url': Uri(
-            scheme: 'http',
-            host: _devTools.hostname,
-            port: _devTools.port,
-            queryParameters: {'uri': appServices.debugService.uri}).toString(),
+        'url': 'http://${_devTools.hostname}:${_devTools.port}'
+            '/?uri=${appServices.debugService.uri}',
       });
+      
     });
   }
 }

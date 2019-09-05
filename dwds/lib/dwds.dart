@@ -48,6 +48,11 @@ class Dwds {
     return DebugConnection(appDebugServices);
   }
 
+  Future<DebugConnection> extensionDebugConnection(AppConnection appConnection) async {
+    var appDebugServices = await _devHandler.appServicesStream.stream.first;
+    return DebugConnection(appDebugServices);
+  }
+
   static Future<Dwds> start({
     @required int applicationPort,
     @required int assetServerPort,
@@ -94,8 +99,10 @@ class Dwds {
 
     if (serveDevTools) {
       devTools = await DevTools.start(hostname);
+      var devToolsHostname =
+          devTools.hostname == '::' ? '[::]' : devTools.hostname;
       logWriter(Level.INFO,
-          'Serving DevTools at ${Uri(scheme: 'http', host: devTools.hostname, port: devTools.port)}\n');
+          'Serving DevTools at http://$devToolsHostname:${devTools.port}\n');
     }
     var devHandler = DevHandler(
       chromeConnection,
