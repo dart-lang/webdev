@@ -178,10 +178,10 @@ class Debugger extends Domain {
     handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
   }
 
-  /// Sends the appropriate resume event.
+  /// Resumes the Isolate from start.
   ///
-  /// Since [Isolate]s always start with kPauseStart we must send the
-  /// appropriate events when starting the isolate.
+  /// The JS VM is technically not paused at the start of the Isolate so there
+  /// will not be a corresponding [DebuggerResumedEvent].
   Future<void> resumeFromStart() => _resumeHandler(null);
 
   /// Add a breakpoint at the given position.
