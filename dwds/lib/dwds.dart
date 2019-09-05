@@ -48,7 +48,8 @@ class Dwds {
     return DebugConnection(appDebugServices);
   }
 
-  Future<DebugConnection> extensionDebugConnection(AppConnection appConnection) async {
+  Future<DebugConnection> extensionDebugConnection(
+      AppConnection appConnection) async {
     var appDebugServices = await _devHandler.appServicesStream.stream.first;
     return DebugConnection(appDebugServices);
   }

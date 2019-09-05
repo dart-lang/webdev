@@ -43,7 +43,8 @@ class DevHandler {
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
   final ExtensionBackend _extensionBackend;
-  final StreamController<AppDebugServices> appServicesStream = StreamController<AppDebugServices>();
+  final StreamController<AppDebugServices> appServicesStream =
+      StreamController<AppDebugServices>();
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
