@@ -184,6 +184,13 @@ class Debugger extends Domain {
   /// will not be a corresponding [DebuggerResumedEvent].
   Future<void> resumeFromStart() => _resumeHandler(null);
 
+  /// Notify the debugger the [Isolate] is paused at the application start.
+  void notifyPausedAtStart() async {
+    _pausedStack = Stack()
+      ..frames = []
+      ..messages = [];
+  }
+
   /// Add a breakpoint at the given position.
   ///
   /// Note that line and column are Dart source locations and one-based.

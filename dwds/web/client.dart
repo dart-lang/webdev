@@ -78,10 +78,9 @@ Future<void> main() {
           window.alert('DevTools failed to open with: ${event.error}');
         }
       } else if (event is RunRequest) {
-        client.sink.add(
-            jsonEncode(serializers.serialize(IsolateResumeFromStart((b) => b
-              ..appId = dartAppId
-              ..instanceId = dartAppInstanceId))));
+        client.sink.add(jsonEncode(serializers.serialize(RunResponse((b) => b
+          ..appId = dartAppId
+          ..instanceId = dartAppInstanceId))));
         runMain();
       }
     });
@@ -173,11 +172,6 @@ Future<bool> hotRestart(ReloadingManager manager, SseClient sseClient) async {
     sseClient.sink.add(jsonEncode(serializers.serialize(IsolateStart((b) => b
       ..appId = dartAppId
       ..instanceId = dartAppInstanceId))));
-    // Notify that the app has immeidately started execution.
-    sseClient.sink
-        .add(jsonEncode(serializers.serialize(IsolateResumeFromStart((b) => b
-          ..appId = dartAppId
-          ..instanceId = dartAppInstanceId))));
     runMain();
   }
 

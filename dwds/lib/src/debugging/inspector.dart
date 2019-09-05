@@ -102,6 +102,7 @@ class AppInspector extends Domain {
         breakpoints: [],
         exceptionPauseMode: debugger.pauseState)
       ..extensionRPCs = [];
+    debugger.notifyPausedAtStart();
     var inspector =
         AppInspector._(isolate, assetHandler, debugger, root, remoteDebugger);
     await inspector._initialize();

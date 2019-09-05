@@ -38,22 +38,3 @@ abstract class IsolateStart
   /// Identifies a given instance of an application, unique per tab/window.
   String get instanceId;
 }
-
-/// An event that signifies the main isolate has been resumed from start.
-abstract class IsolateResumeFromStart
-    implements Built<IsolateResumeFromStart, IsolateResumeFromStartBuilder> {
-  static Serializer<IsolateResumeFromStart> get serializer =>
-      _$isolateResumeFromStartSerializer;
-
-  factory IsolateResumeFromStart(
-          [Function(IsolateResumeFromStartBuilder) updates]) =
-      _$IsolateResumeFromStart;
-
-  IsolateResumeFromStart._();
-
-  /// Identifies a given application, across tabs/windows.
-  String get appId;
-
-  /// Identifies a given instance of an application, unique per tab/window.
-  String get instanceId;
-}

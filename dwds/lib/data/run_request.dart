@@ -14,3 +14,17 @@ abstract class RunRequest implements Built<RunRequest, RunRequestBuilder> {
 
   RunRequest._();
 }
+
+abstract class RunResponse implements Built<RunResponse, RunResponseBuilder> {
+  static Serializer<RunResponse> get serializer => _$runResponseSerializer;
+
+  factory RunResponse([Function(RunResponseBuilder) updates]) = _$RunResponse;
+
+  RunResponse._();
+
+  /// Identifies a given application, across tabs/windows.
+  String get appId;
+
+  /// Identifies a given instance of an application, unique per tab/window.
+  String get instanceId;
+}
