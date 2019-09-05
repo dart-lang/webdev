@@ -20,7 +20,8 @@ export 'package:vm_service/vm_service.dart'
         FuncRef,
         FieldRef,
         CodeRef,
-        Event;
+        Event,
+        Stack;
 
 class Event extends vm_service.Event {
   Event._();
@@ -34,6 +35,21 @@ class Event extends vm_service.Event {
       ..kind = kind
       ..timestamp = timestamp;
     return event;
+  }
+}
+
+class Stack extends vm_service.Stack {
+  Stack._();
+
+  factory Stack({
+    @required List<vm_service.Frame> frames,
+    @required List<vm_service.Message> messages,
+  }) {
+    var stack = Stack._();
+    stack
+      ..frames = frames
+      ..messages = messages;
+    return stack;
   }
 }
 

@@ -186,9 +186,7 @@ class Debugger extends Domain {
 
   /// Notify the debugger the [Isolate] is paused at the application start.
   void notifyPausedAtStart() async {
-    _pausedStack = Stack()
-      ..frames = []
-      ..messages = [];
+    _pausedStack = Stack(frames: [], messages: []);
   }
 
   /// Add a breakpoint at the given position.
@@ -424,9 +422,7 @@ class Debugger extends Domain {
     var jsFrames =
         (e.params['callFrames'] as List).cast<Map<String, dynamic>>();
     var frames = await dartFramesFor(jsFrames);
-    _pausedStack = Stack()
-      ..frames = frames
-      ..messages = [];
+    _pausedStack = Stack(frames: frames, messages: []);
     _pausedJsStack = jsFrames;
     if (frames.isNotEmpty) event.topFrame = frames.first;
     isolate.pauseEvent = event;
