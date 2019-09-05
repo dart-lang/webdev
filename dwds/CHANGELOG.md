@@ -3,6 +3,7 @@
 - Fix issue where certain required fields of VM service protocol objects were
   null.
 - Properly set the `exceptionPauseMode` on the `Isolate`.
+- Depend on the latest `DevTools`.
 
 ## 0.5.3
 
