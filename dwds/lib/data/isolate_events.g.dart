@@ -9,6 +9,8 @@ part of 'isolate_events.dart';
 Serializer<IsolateExit> _$isolateExitSerializer = new _$IsolateExitSerializer();
 Serializer<IsolateStart> _$isolateStartSerializer =
     new _$IsolateStartSerializer();
+Serializer<IsolateResumeFromStart> _$isolateResumeFromStartSerializer =
+    new _$IsolateResumeFromStartSerializer();
 
 class _$IsolateExitSerializer implements StructuredSerializer<IsolateExit> {
   @override
@@ -82,6 +84,59 @@ class _$IsolateStartSerializer implements StructuredSerializer<IsolateStart> {
   IsolateStart deserialize(Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new IsolateStartBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'appId':
+          result.appId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'instanceId':
+          result.instanceId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
+class _$IsolateResumeFromStartSerializer
+    implements StructuredSerializer<IsolateResumeFromStart> {
+  @override
+  final Iterable<Type> types = const [
+    IsolateResumeFromStart,
+    _$IsolateResumeFromStart
+  ];
+  @override
+  final String wireName = 'IsolateResumeFromStart';
+
+  @override
+  Iterable<Object> serialize(
+      Serializers serializers, IsolateResumeFromStart object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[
+      'appId',
+      serializers.serialize(object.appId,
+          specifiedType: const FullType(String)),
+      'instanceId',
+      serializers.serialize(object.instanceId,
+          specifiedType: const FullType(String)),
+    ];
+
+    return result;
+  }
+
+  @override
+  IsolateResumeFromStart deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new IsolateResumeFromStartBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -282,6 +337,102 @@ class IsolateStartBuilder
   _$IsolateStart build() {
     final _$result =
         _$v ?? new _$IsolateStart._(appId: appId, instanceId: instanceId);
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$IsolateResumeFromStart extends IsolateResumeFromStart {
+  @override
+  final String appId;
+  @override
+  final String instanceId;
+
+  factory _$IsolateResumeFromStart(
+          [void Function(IsolateResumeFromStartBuilder) updates]) =>
+      (new IsolateResumeFromStartBuilder()..update(updates)).build();
+
+  _$IsolateResumeFromStart._({this.appId, this.instanceId}) : super._() {
+    if (appId == null) {
+      throw new BuiltValueNullFieldError('IsolateResumeFromStart', 'appId');
+    }
+    if (instanceId == null) {
+      throw new BuiltValueNullFieldError(
+          'IsolateResumeFromStart', 'instanceId');
+    }
+  }
+
+  @override
+  IsolateResumeFromStart rebuild(
+          void Function(IsolateResumeFromStartBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  IsolateResumeFromStartBuilder toBuilder() =>
+      new IsolateResumeFromStartBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is IsolateResumeFromStart &&
+        appId == other.appId &&
+        instanceId == other.instanceId;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc($jc(0, appId.hashCode), instanceId.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper('IsolateResumeFromStart')
+          ..add('appId', appId)
+          ..add('instanceId', instanceId))
+        .toString();
+  }
+}
+
+class IsolateResumeFromStartBuilder
+    implements Builder<IsolateResumeFromStart, IsolateResumeFromStartBuilder> {
+  _$IsolateResumeFromStart _$v;
+
+  String _appId;
+  String get appId => _$this._appId;
+  set appId(String appId) => _$this._appId = appId;
+
+  String _instanceId;
+  String get instanceId => _$this._instanceId;
+  set instanceId(String instanceId) => _$this._instanceId = instanceId;
+
+  IsolateResumeFromStartBuilder();
+
+  IsolateResumeFromStartBuilder get _$this {
+    if (_$v != null) {
+      _appId = _$v.appId;
+      _instanceId = _$v.instanceId;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(IsolateResumeFromStart other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$IsolateResumeFromStart;
+  }
+
+  @override
+  void update(void Function(IsolateResumeFromStartBuilder) updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$IsolateResumeFromStart build() {
+    final _$result = _$v ??
+        new _$IsolateResumeFromStart._(appId: appId, instanceId: instanceId);
     replace(_$result);
     return _$result;
   }

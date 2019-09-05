@@ -178,6 +178,12 @@ class Debugger extends Domain {
     handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
   }
 
+  /// Sends the appropriate resume event.
+  ///
+  /// Since [Isolate]s always start with kPauseStart we must send the
+  /// appropriate events when starting the isolate.
+  Future<void> resumeFromStart() => _resumeHandler(null);
+
   /// Add a breakpoint at the given position.
   ///
   /// Note that line and column are Dart source locations and one-based.
@@ -421,7 +427,7 @@ class Debugger extends Domain {
   }
 
   /// Handles resume events coming from the Chrome connection.
-  Future<void> _resumeHandler(DebuggerResumedEvent e) async {
+  Future<void> _resumeHandler(DebuggerResumedEvent _) async {
     // We can receive a resume event in the middle of a reload which will
     // result in a null isolate.
     var isolate = inspector?.isolate;

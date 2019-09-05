@@ -424,6 +424,12 @@ $loadModule("dart_sdk").developer.invokeExtension(
     return Success();
   }
 
+  /// Resumes the Isolate from start.
+  ///
+  /// The JS VM is technically not paused at the start of the Isolate so a
+  /// regular resume is not sufficient.
+  Future<void> resumeFromStart() async => _debugger.resumeFromStart();
+
   /// Returns a streamController that listens for console logs from chrome and
   /// adds all events passing [filter] to the stream.
   StreamController<Event> _chromeConsoleStreamController(

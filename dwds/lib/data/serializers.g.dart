@@ -16,6 +16,7 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(ExtensionRequest.serializer)
       ..add(ExtensionResponse.serializer)
       ..add(IsolateExit.serializer)
+      ..add(IsolateResumeFromStart.serializer)
       ..add(IsolateStart.serializer)
       ..add(RunRequest.serializer))
     .build();

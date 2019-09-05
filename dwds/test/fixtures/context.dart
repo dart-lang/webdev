@@ -57,10 +57,12 @@ class TestContext {
   Future<void> setUp(
       {ReloadConfiguration reloadConfiguration,
       bool serveDevTools,
-      bool enableDebugExtension}) async {
+      bool enableDebugExtension,
+      bool autoRun}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
+    autoRun ??= true;
     port = await findUnusedPort();
     try {
       chromeDriver = await Process.start(
@@ -105,15 +107,15 @@ class TestContext {
     var connection = ChromeConnection('localhost', debugPort);
 
     testServer = await TestServer.start(
-      port,
-      daemonPort(workingDirectory),
-      pathToServe,
-      daemonClient.buildResults,
-      () async => connection,
-      reloadConfiguration,
-      serveDevTools,
-      enableDebugExtension,
-    );
+        port,
+        daemonPort(workingDirectory),
+        pathToServe,
+        daemonClient.buildResults,
+        () async => connection,
+        reloadConfiguration,
+        serveDevTools,
+        enableDebugExtension,
+        autoRun);
 
     appUrl = 'http://localhost:$port/$path';
     await webDriver.get(appUrl);

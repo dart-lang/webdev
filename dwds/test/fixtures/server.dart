@@ -49,6 +49,7 @@ class TestServer {
     ReloadConfiguration reloadConfiguration,
     bool serveDevTools,
     bool enableDebugExtension,
+    bool autoRun,
   ) async {
     var pipeline = const Pipeline();
 
@@ -75,7 +76,7 @@ class TestServer {
       server,
       dwds,
       filteredBuildResults,
-      true,
+      autoRun,
     );
   }
 }

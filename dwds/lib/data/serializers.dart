@@ -22,6 +22,7 @@ part 'serializers.g.dart';
   DefaultBuildResult,
   IsolateExit,
   IsolateStart,
+  IsolateResumeFromStart,
   ExtensionRequest,
   ExtensionResponse,
   ExtensionEvent,

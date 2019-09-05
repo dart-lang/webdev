@@ -76,11 +76,6 @@ class AppInspector extends Domain {
     isolate.rootLib = isolate.libraries[isolate.libraries.length - 2];
 
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());
-
-    isolate.pauseEvent = Event(
-        kind: EventKind.kResume,
-        timestamp: DateTime.now().millisecondsSinceEpoch)
-      ..isolate = isolateRef;
   }
 
   static IsolateRef _toIsolateRef(Isolate isolate) =>

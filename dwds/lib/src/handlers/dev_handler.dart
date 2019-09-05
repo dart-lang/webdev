@@ -256,6 +256,10 @@ class DevHandler {
         await (await loadAppServices(message.appId, message.instanceId))
             ?.chromeProxyService
             ?.createIsolate();
+      } else if (message is IsolateResumeFromStart) {
+        await (await loadAppServices(message.appId, message.instanceId))
+            ?.chromeProxyService
+            ?.resumeFromStart();
       }
     });
 
