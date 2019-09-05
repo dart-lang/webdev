@@ -31,7 +31,7 @@ void main() {
     inspector = chromeProxyService.appInspectorProvider();
     remoteDebugger = chromeProxyService.remoteDebugger;
     debugger = inspector.debugger;
-    instanceHelper = InstanceHelper(debugger, remoteDebugger);
+    instanceHelper = InstanceHelper(debugger, remoteDebugger, chromeProxyService.appInspectorProvider);
   });
 
   tearDownAll(() async {

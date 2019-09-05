@@ -48,7 +48,9 @@ class AppInspector extends Domain {
   final Debugger debugger;
   final Isolate isolate;
   final IsolateRef isolateRef;
-  final InstanceHelper instanceHelper;
+  InstanceHelper _instanceHelper;
+  InstanceHelper get instanceHelper =>
+      _instanceHelper ??= InstanceHelper(debugger, _remoteDebugger, () => this);
 
   /// The root URI from which the application is served.
   final String _root;
@@ -60,7 +62,6 @@ class AppInspector extends Domain {
     this._root,
     this._remoteDebugger,
   )   : isolateRef = _toIsolateRef(isolate),
-        instanceHelper = InstanceHelper(debugger, _remoteDebugger),
         super.forInspector();
 
   @override
@@ -161,6 +162,16 @@ class AppInspector extends Domain {
     ];
   }
 
+  /// For a primitive value, find the type to use in a RemoteObject.
+  String _jsTypeOf(Object o) {
+    if (o == null) return 'undefined';
+    if (o is String) return 'string';
+    if (o is num) return 'num';
+    // TODO(alanknight): Is it meaningful to have a case for 'function'?
+    if (o is bool) return 'bool';
+    return 'object';
+  }
+
   /// Convert [argument] to a form usable in WIP evaluation calls.
   ///
   /// The [argument] should be either a RemoteObject or a simple
@@ -170,9 +181,13 @@ class AppInspector extends Domain {
     // This doesn't come up yet, but will if we get a result and pass it back as
     // an argument.
     if (argument is RemoteObject) {
-      return {'objectId': argument.objectId};
+      if (argument.objectId == null) {
+        return {'type': _jsTypeOf(argument.value), 'value': argument.value};
+      } else {
+        return {'type': 'object', 'objectId': argument.objectId};
+      }
     } else {
-      return {'value': argument};
+      return {'type': _jsTypeOf(argument), 'value': argument};
     }
   }
 
@@ -187,11 +202,42 @@ class AppInspector extends Domain {
           'Evaluate is only supported when `targetId` is a library.');
     }
     if (scope.isNotEmpty) {
-      return callJsFunctionOn(library, scope, expression);
+      return evaluateWithJsScope(library, scope, expression);
     } else {
       return evaluateJsExpressionOnLibrary(expression, library.uri);
     }
   }
+
+  /// Invoke the Dart function named [selector] on the object identified by
+  /// [targetId].
+  ///
+  /// I think targetId might be able to be a library. The [arguments] are always
+  /// string Dart objectIds, even though the list comes in as dynamic.
+  Future<RemoteObject> invoke(String isolateId, String targetId,
+      String selector, List<dynamic> arguments) async {
+    checkIsolate(isolateId);
+    var remoteArguments = await Future.wait(
+        arguments.cast<String>().map(instanceHelper.remoteObjectFor));
+    if (_isLibraryId(targetId)) {
+      return callJsFunctionOn(
+          Library()..uri = targetId,
+          // TODO(alanknight): It makes no sense that we have to wrap args in a 
+          // list here, and won't work for more than one argument. Is this list 
+          // somehow getting destructured into the function args? If we have to
+          // construct a remoteObject for the list, how do we do that? Yet another round trip?
+          'function () { return this.$selector.apply(this, arguments);}',
+                    // 'function () { return this.$selector.apply(this, ["abc", "xyz"]);}',
+          // 'function () { var args = [...arguments]; return "it is " + args.join(",");}',
+          remoteArguments);
+    } else {
+      return sendMessage(await instanceHelper.remoteObjectFor(targetId),
+          selector, remoteArguments);
+    }
+  }
+
+  bool _isLibraryId(String dartId) => _uriPrefixes.any(dartId.startsWith);
+
+  static const _uriPrefixes = ['dart:', 'package:', 'org-dartlang-app:'];
 
   /// Evaluate [expression] as a member/message of the library identified by
   /// [libraryUri].
@@ -220,39 +266,56 @@ class AppInspector extends Domain {
     return RemoteObject(result.result['result'] as Map<String, dynamic>);
   }
 
+  /// Call the function named [expression] from [library] with [arguments].
+  ///
+  /// But we're not really using 'this', just using Runtime.callFunctionOn
+  /// because it accepts arguments.
+  // TODO(alanknight): Make this API cleaner.
+  Future<RemoteObject> callJsFunctionOn(
+      Library library, String expression, List<RemoteObject> arguments) async {
+    var rawArguments = arguments.map(_marshallOne).toList();
+    var libraryPlease = '''
+(function() {
+  ${_getLibrarySnippet(library.uri)};
+  return library;
+})();
+''';
+    var remoteLibrary = await evaluateJsExpression(libraryPlease);
+
+    var result =
+        await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
+      'functionDeclaration': expression,
+      'arguments': rawArguments,
+      'objectId': remoteLibrary.objectId,
+    });
+    handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
+      'Dart expression': expression,
+      'arguments': arguments,
+    });
+    return RemoteObject(result.result['result'] as Map<String, dynamic>);
+  }
+
   /// Call the function named [expression] from [library] with [scope] as
   /// arguments, with 'this' bound to the first object in [scope].
   ///
   /// But we're not really using 'this', just using Runtime.callFunctionOn
   /// because it accepts arguments.
   // TODO(alanknight): Make this API cleaner.
-  Future<RemoteObject> callJsFunctionOn(
+  Future<RemoteObject> evaluateWithJsScope(
       Library library, Map<String, String> scope, String expression) async {
     var argsString = scope.keys.join(', ');
     // TODO(alanknight): Can we use _marshallOne or similar.
-    var arguments = scope.values.map((id) => {'objectId': id}).toList();
+    var arguments = scope.values
+        .map((id) => {'objectId': id})
+        .map((data) => RemoteObject(data))
+        .toList();
     var evalExpression = '''
 function($argsString) {
   ${_getLibrarySnippet(library.uri)};
   return library.$expression;
 }
     ''';
-    var result =
-        await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
-      'functionDeclaration': evalExpression,
-      'arguments': arguments,
-      // TODO(jakemac): Use the executionContext instead, or possibly the
-      // library object. This will get weird if people try to use `this` in
-      // their expression.
-      'objectId': scope.values.first,
-    });
-    handleErrorIfPresent(result,
-        evalContents: evalExpression,
-        additionalDetails: {
-          'Dart expression': expression,
-          'scope': scope,
-        });
-    return RemoteObject(result.result['result'] as Map<String, dynamic>);
+    return callJsFunctionOn(library, evalExpression, arguments);
   }
 
   Future<Library> _getLibrary(String isolateId, String objectId) async {
@@ -507,11 +570,16 @@ function($argsString) {
 /// from the URI with a Dart-specific scheme (package: or org-dartlang-app:) to
 /// the library objects. The [libraryUri] parameter should be one of these
 /// Dart-specific scheme URIs, and we set `library` the corresponding library.
+// String _getLibrarySnippet(String libraryUri) => '''
+//   var libraryName = '$libraryUri';
+//   var sdkUtils = $loadModule('dart_sdk').dart;
+//   var moduleName = sdkUtils.getModuleNames().find(
+//     (name) => sdkUtils.getModuleLibraries(name)[libraryName]);
+//   var library = sdkUtils.getModuleLibraries(moduleName)[libraryName];
+//   if (!library) throw 'cannot find library for ' + libraryName + ' under ' + moduleName;
+// ''';
 String _getLibrarySnippet(String libraryUri) => '''
-  var libraryName = '$libraryUri';
-  var sdkUtils = $loadModule('dart_sdk').dart;
-  var moduleName = sdkUtils.getModuleNames().find(
-    (name) => sdkUtils.getModuleLibraries(name)[libraryName]);
-  var library = sdkUtils.getModuleLibraries(moduleName)[libraryName];
-  if (!library) throw 'cannot find library for ' + libraryName + ' under ' + moduleName;
-''';
+   var sdkUtils = $loadModule('dart_sdk').dart;
+   var library = sdkUtils.getLibrary('$libraryUri');
+   if (!library) throw 'cannot find library for $libraryUri';
+  ''';

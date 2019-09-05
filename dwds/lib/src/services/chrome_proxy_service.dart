@@ -313,8 +313,11 @@ $loadModule("dart_sdk").developer.invokeExtension(
   @override
   Future invoke(
       String isolateId, String targetId, String selector, List argumentIds,
-      {bool disableBreakpoints}) {
-    throw UnimplementedError();
+      {bool disableBreakpoints}) async {
+
+    
+    var remote = await _inspector?.invoke(isolateId, targetId, selector, argumentIds);
+    return _inspector?.instanceHelper?.instanceRefFor(remote);
   }
 
   @override

@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../utilities/objects.dart';
 import 'debugger.dart';
+import 'inspector.dart';
 import 'metadata.dart';
 import 'remote_debugger.dart';
 
@@ -19,6 +21,10 @@ import 'remote_debugger.dart';
 /// opaque, but are JSON serialized objects of the form
 /// "{\"injectedScriptId\":1,\"id\":1}".
 const _prefixForStringIds = '#StringInstanceRef#';
+
+const _prefixForIntIds = 'objects/int-';
+const _prefixForBoolIds = 'objects/bool-';
+const _nullId = 'objects/null';
 
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
@@ -44,15 +50,56 @@ final _classRefForClosure = ClassRef()
   ..id = createId();
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
-class InstanceHelper {
+class InstanceHelper extends Domain {
   final Debugger _debugger;
   final RemoteDebugger _remoteDebugger;
 
-  InstanceHelper(this._debugger, this._remoteDebugger);
+  InstanceHelper(
+      this._debugger, this._remoteDebugger, AppInspector Function() provider)
+      : super(provider);
+
+  /// Create a Chrome reference from a Dart object Id.
+  ///
+  /// We expect Dart object Ids to be one of the following forms.
+  ///   * Chrome objectId - e.g. '{"injectedScriptId":1,"id":1}'
+  ///   * Our fabricated string Id - e.g. '#StringInstanceRef#actualString'
+  ///   * Dart fabricated IDs - e.g.  objects/int-8765
+  ///   * ##### NOT A Dart library URI
+  ///
+  /// We return either a RemoteObject or a serializable value.
+  Future<RemoteObject> remoteObjectFor(String dartId) async {
+    var data = <String, Object>{};
+    if (dartId.startsWith(_prefixForStringIds)) {
+      data['type'] = 'string';
+      data['value'] = _stringFromDartId(dartId);
+    } else if (dartId.startsWith(_prefixForIntIds)) {
+      data['type'] = 'number';
+      data['value'] = _intFromDartId(dartId);
+    } else if (dartId.startsWith(_prefixForBoolIds)) {
+      data['type'] = 'boolean';
+      data['value'] = dartId.endsWith('true');
+    } else if (dartId == _nullId) {
+      data['type'] = 'undefined';
+      data['value'] = null;
+    } else {
+      data['type'] = 'object';
+      data['objectId'] = dartId;
+    }
+    return RemoteObject(data);
+  }
+
+  Map<String, dynamic> remoteObjectMapFor(RemoteObject remote) {
+//    ###
+  }
+
+  String _stringFromDartId(String dartIdForString) =>
+      dartIdForString.substring(_prefixForStringIds.length);
+
+  int _intFromDartId(String dartIdForInt) =>
+      int.tryParse(dartIdForInt.substring(_prefixForIntIds.length));
 
   Future<Instance> _stringInstanceFor(RemoteObject remoteObject) async {
-    var actualString =
-        remoteObject.objectId.substring(_prefixForStringIds.length);
+    var actualString = _stringFromDartId(remoteObject.objectId);
     return Instance()
       ..kind = InstanceKind.kString
       ..classRef = _classRefForString
