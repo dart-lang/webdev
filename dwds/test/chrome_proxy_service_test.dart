@@ -292,8 +292,8 @@ void main() {
           () => service.getAllocationProfile(null), throwsUnimplementedError);
     });
 
-    test('getFlagList', () {
-      expect(() => service.getFlagList(), throwsUnimplementedError);
+    test('getFlagList', () async {
+      expect(await service.getFlagList(), isA<FlagList>());
     });
 
     test('getInstances', () {
