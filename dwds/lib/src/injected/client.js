@@ -26112,7 +26112,6 @@
       t4 = new M.IsolateStartBuilder();
       H.functionTypeCheck(new D.hotRestart_rerunApp_closure0(), {func: 1, ret: -1, args: [M.IsolateStartBuilder]}).call$1(t4);
       t1.add$1(0, H.assertSubtypeOfRuntimeType(C.C_JsonCodec.encode$2$toEncodable(t3.serialize$1(t4.build$0()), null), t2));
-      self.$dartRunMain.call$0();
     },
     $signature: 0
   };

@@ -257,11 +257,10 @@ class DevHandler {
         await (await loadAppServices(message.appId, message.instanceId))
             ?.chromeProxyService
             ?.createIsolate();
-        // IsolateStart events are the result of Hot Restarts which immediately
-        // resume execution.
-        await (await loadAppServices(message.appId, message.instanceId))
-            ?.chromeProxyService
-            ?.resumeFromStart();
+        // [IsolateStart] events are the result of a Hot Restart.
+        // Run the application after the Isolate has been created.
+        injectedConnection.sink
+            .add(jsonEncode(serializers.serialize(RunRequest())));
       } else if (message is RunResponse) {
         await (await loadAppServices(message.appId, message.instanceId))
             ?.chromeProxyService
