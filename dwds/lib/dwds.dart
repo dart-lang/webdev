@@ -37,6 +37,9 @@ class Dwds {
 
   Stream<AppConnection> get connectedApps => _devHandler.connectedApps;
 
+  StreamController<DebugConnection> get extensionDebugConnections =>
+      _devHandler.extensionDebugConnections;
+
   Future<void> stop() async {
     await _devTools?.close();
     await _devHandler.close();
