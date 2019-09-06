@@ -78,6 +78,9 @@ Future<void> main() {
           window.alert('DevTools failed to open with: ${event.error}');
         }
       } else if (event is RunRequest) {
+        client.sink.add(jsonEncode(serializers.serialize(RunResponse((b) => b
+          ..appId = dartAppId
+          ..instanceId = dartAppInstanceId))));
         runMain();
       }
     });

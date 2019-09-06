@@ -76,10 +76,6 @@ class AppInspector extends Domain {
     isolate.rootLib = isolate.libraries[isolate.libraries.length - 2];
 
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());
-
-    isolate.pauseEvent = Event()
-      ..kind = EventKind.kResume
-      ..isolate = isolateRef;
   }
 
   static IsolateRef _toIsolateRef(Isolate isolate) =>
@@ -92,19 +88,21 @@ class AppInspector extends Domain {
     String root,
   ) async {
     var id = createId();
+    var time = DateTime.now().millisecondsSinceEpoch;
     var isolate = Isolate(
         id: id,
         number: id,
         name: '$root:main()',
-        startTime: DateTime.now().millisecondsSinceEpoch,
+        startTime: time,
         runnable: true,
         pauseOnExit: false,
-        pauseEvent: null,
+        pauseEvent: Event(kind: EventKind.kPauseStart, timestamp: time),
         livePorts: 0,
         libraries: [],
         breakpoints: [],
         exceptionPauseMode: debugger.pauseState)
       ..extensionRPCs = [];
+    debugger.notifyPausedAtStart();
     var inspector =
         AppInspector._(isolate, assetHandler, debugger, root, remoteDebugger);
     await inspector._initialize();

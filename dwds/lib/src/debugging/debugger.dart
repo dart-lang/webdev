@@ -178,6 +178,17 @@ class Debugger extends Domain {
     handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
   }
 
+  /// Resumes the Isolate from start.
+  ///
+  /// The JS VM is technically not paused at the start of the Isolate so there
+  /// will not be a corresponding [DebuggerResumedEvent].
+  Future<void> resumeFromStart() => _resumeHandler(null);
+
+  /// Notify the debugger the [Isolate] is paused at the application start.
+  void notifyPausedAtStart() async {
+    _pausedStack = Stack(frames: [], messages: []);
+  }
+
   /// Add a breakpoint at the given position.
   ///
   /// Note that line and column are Dart source locations and one-based.
@@ -206,8 +217,9 @@ class Debugger extends Domain {
         ..tokenPos = location.tokenPos);
     _streamNotify(
         'Debug',
-        Event()
-          ..kind = EventKind.kBreakpointAdded
+        Event(
+            kind: EventKind.kBreakpointAdded,
+            timestamp: DateTime.now().millisecondsSinceEpoch)
           ..isolate = inspector.isolateRef
           ..breakpoint = breakpoint);
     return breakpoint;
@@ -228,8 +240,9 @@ class Debugger extends Domain {
     }
     _streamNotify(
         'Debug',
-        Event()
-          ..kind = EventKind.kBreakpointRemoved
+        Event(
+            kind: EventKind.kBreakpointRemoved,
+            timestamp: DateTime.now().millisecondsSinceEpoch)
           ..isolate = inspector.isolateRef
           ..breakpoint = bp);
     await _removeBreakpoint(jsId);
@@ -389,27 +402,27 @@ class Debugger extends Domain {
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
     var isolate = inspector.isolate;
     if (isolate == null) return;
-    var event = Event()..isolate = inspector.isolateRef;
+    Event event;
+    var timestamp = DateTime.now().millisecondsSinceEpoch;
     var params = e.params;
     var breakpoints = params['hitBreakpoints'] as List;
     if (breakpoints.isNotEmpty) {
-      event.kind = EventKind.kPauseBreakpoint;
+      event = Event(kind: EventKind.kPauseBreakpoint, timestamp: timestamp);
     } else if (e.reason == 'exception' || e.reason == 'assert') {
-      event.kind = EventKind.kPauseException;
+      event = Event(kind: EventKind.kPauseException, timestamp: timestamp);
     } else {
       // If we don't have source location continue stepping.
       if (_isStepping && _sourceLocation(e) == null) {
         await _remoteDebugger.sendCommand('Debugger.stepInto');
         return;
       }
-      event.kind = EventKind.kPauseInterrupted;
+      event = Event(kind: EventKind.kPauseInterrupted, timestamp: timestamp);
     }
+    event.isolate = inspector.isolateRef;
     var jsFrames =
         (e.params['callFrames'] as List).cast<Map<String, dynamic>>();
     var frames = await dartFramesFor(jsFrames);
-    _pausedStack = Stack()
-      ..frames = frames
-      ..messages = [];
+    _pausedStack = Stack(frames: frames, messages: []);
     _pausedJsStack = jsFrames;
     if (frames.isNotEmpty) event.topFrame = frames.first;
     isolate.pauseEvent = event;
@@ -417,15 +430,16 @@ class Debugger extends Domain {
   }
 
   /// Handles resume events coming from the Chrome connection.
-  Future<void> _resumeHandler(DebuggerResumedEvent e) async {
+  Future<void> _resumeHandler(DebuggerResumedEvent _) async {
     // We can receive a resume event in the middle of a reload which will
     // result in a null isolate.
     var isolate = inspector?.isolate;
     if (isolate == null) return;
     _pausedStack = null;
     _pausedJsStack = null;
-    var event = Event()
-      ..kind = EventKind.kResume
+    var event = Event(
+        kind: EventKind.kResume,
+        timestamp: DateTime.now().millisecondsSinceEpoch)
       ..isolate = inspector.isolateRef;
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
