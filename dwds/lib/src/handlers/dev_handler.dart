@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart' as build_daemon;
 import 'package:dwds/data/run_request.dart';
+import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
@@ -44,8 +45,8 @@ class DevHandler {
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
   final ExtensionBackend _extensionBackend;
-  final StreamController<AppDebugServices> appServicesStream =
-      StreamController<AppDebugServices>();
+  final StreamController<DebugConnection> extensionDebugConnections =
+      StreamController<DebugConnection>();
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -340,7 +341,7 @@ class DevHandler {
               'Stopped debug service on '
               '${appServices.debugService.uri}\n');
         }));
-        appServicesStream.add(appServices);
+        extensionDebugConnections.add(DebugConnection(appServices));
         return appServices;
       });
       await _extensionDebugger.sendCommand('Target.createTarget', params: {

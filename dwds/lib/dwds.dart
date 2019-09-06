@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:build_daemon/data/build_status.dart';
-import 'package:dwds/src/services/app_debug_services.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -38,8 +37,8 @@ class Dwds {
 
   Stream<AppConnection> get connectedApps => _devHandler.connectedApps;
 
-  StreamController<AppDebugServices> get appDebugServicesStream =>
-      _devHandler.appServicesStream;
+  StreamController<DebugConnection> get extensionDebugConnections =>
+      _devHandler.extensionDebugConnections;
 
   Future<void> stop() async {
     await _devTools?.close();
