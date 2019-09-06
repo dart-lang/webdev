@@ -1,3 +1,6 @@
+## 0.5.5
+- Properly set the `pauseEvent` on the `Isolate`.
+
 ## 0.5.4
 
 - Fix issue where certain required fields of VM service protocol objects were

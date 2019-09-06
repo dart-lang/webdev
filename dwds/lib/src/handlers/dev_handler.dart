@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart' as build_daemon;
+import 'package:dwds/data/run_request.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
@@ -258,6 +259,15 @@ class DevHandler {
         await (await loadAppServices(message.appId, message.instanceId))
             ?.chromeProxyService
             ?.createIsolate();
+        // IsolateStart events are the result of Hot Restarts which immediately
+        // resume execution.
+        await (await loadAppServices(message.appId, message.instanceId))
+            ?.chromeProxyService
+            ?.resumeFromStart();
+      } else if (message is RunResponse) {
+        await (await loadAppServices(message.appId, message.instanceId))
+            ?.chromeProxyService
+            ?.resumeFromStart();
       }
     });
 

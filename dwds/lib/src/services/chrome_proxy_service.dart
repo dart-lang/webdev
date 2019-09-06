@@ -117,6 +117,7 @@ class ChromeProxyService implements VmServiceInterface {
     );
 
     var isolateRef = _inspector.isolateRef;
+    var timestamp = DateTime.now().millisecondsSinceEpoch;
 
     // Listen for `registerExtension` and `postEvent` calls.
     _setUpChromeConsoleListeners(isolateRef);
@@ -125,13 +126,11 @@ class ChromeProxyService implements VmServiceInterface {
 
     _streamNotify(
         'Isolate',
-        Event()
-          ..kind = EventKind.kIsolateStart
+        Event(kind: EventKind.kIsolateStart, timestamp: timestamp)
           ..isolate = isolateRef);
     _streamNotify(
         'Isolate',
-        Event()
-          ..kind = EventKind.kIsolateRunnable
+        Event(kind: EventKind.kIsolateRunnable, timestamp: timestamp)
           ..isolate = isolateRef);
 
     // TODO: We shouldn't need to fire these events since they exist on the
@@ -140,8 +139,7 @@ class ChromeProxyService implements VmServiceInterface {
     for (var extensionRpc in _inspector.isolate.extensionRPCs) {
       _streamNotify(
           'Isolate',
-          Event()
-            ..kind = EventKind.kServiceExtensionAdded
+          Event(kind: EventKind.kServiceExtensionAdded, timestamp: timestamp)
             ..extensionRPC = extensionRpc
             ..isolate = isolateRef);
     }
@@ -155,8 +153,9 @@ class ChromeProxyService implements VmServiceInterface {
     if (isolate == null) return;
     _streamNotify(
         'Isolate',
-        Event()
-          ..kind = EventKind.kIsolateExit
+        Event(
+            kind: EventKind.kIsolateExit,
+            timestamp: DateTime.now().millisecondsSinceEpoch)
           ..isolate = _inspector.isolateRef);
     _vm.isolates.removeWhere((ref) => ref.id == isolate.id);
     _inspector = null;
@@ -402,8 +401,9 @@ $loadModule("dart_sdk").developer.invokeExtension(
     _vm.name = name;
     _streamNotify(
         'VM',
-        Event()
-          ..kind = EventKind.kVMUpdate
+        Event(
+            kind: EventKind.kVMUpdate,
+            timestamp: DateTime.now().millisecondsSinceEpoch)
           ..vm = toVMRef(_vm));
     return Success();
   }
@@ -423,6 +423,9 @@ $loadModule("dart_sdk").developer.invokeExtension(
     onEvent(streamId);
     return Success();
   }
+
+  /// Resumes the [Isolate] from start.
+  Future<void> resumeFromStart() async => _debugger.resumeFromStart();
 
   /// Returns a streamController that listens for console logs from chrome and
   /// adds all events passing [filter] to the stream.
@@ -447,8 +450,9 @@ $loadModule("dart_sdk").developer.invokeExtension(
         var args = e.params['args'] as List;
         var item = args[0] as Map;
         var value = '${item["value"]}\n';
-        controller.add(Event()
-          ..kind = EventKind.kWriteEvent
+        controller.add(Event(
+            kind: EventKind.kWriteEvent,
+            timestamp: DateTime.now().millisecondsSinceEpoch)
           ..isolate = _inspector.isolateRef
           ..bytes = base64.encode(utf8.encode(value))
           ..timestamp = e.timestamp.toInt());
@@ -457,8 +461,9 @@ $loadModule("dart_sdk").developer.invokeExtension(
         exceptionsSubscription = remoteDebugger.onExceptionThrown.listen((e) {
           var isolate = _inspector?.isolate;
           if (isolate == null) return;
-          controller.add(Event()
-            ..kind = EventKind.kWriteEvent
+          controller.add(Event(
+              kind: EventKind.kWriteEvent,
+              timestamp: DateTime.now().millisecondsSinceEpoch)
             ..isolate = _inspector.isolateRef
             ..bytes = base64
                 .encode(utf8.encode(e.exceptionDetails.exception.description)));
@@ -482,16 +487,18 @@ $loadModule("dart_sdk").developer.invokeExtension(
           isolate.extensionRPCs.add(service);
           _streamNotify(
               'Isolate',
-              Event()
-                ..kind = EventKind.kServiceExtensionAdded
+              Event(
+                  kind: EventKind.kServiceExtensionAdded,
+                  timestamp: DateTime.now().millisecondsSinceEpoch)
                 ..extensionRPC = service
                 ..isolate = isolateRef);
           break;
         case 'dart.developer.postEvent':
           _streamNotify(
               'Extension',
-              Event()
-                ..kind = EventKind.kExtension
+              Event(
+                  kind: EventKind.kExtension,
+                  timestamp: DateTime.now().millisecondsSinceEpoch)
                 ..extensionKind = event.args[1].value as String
                 ..extensionData = ExtensionData.parse(
                     jsonDecode(event.args[2].value as String) as Map)
@@ -505,8 +512,9 @@ $loadModule("dart_sdk").developer.invokeExtension(
               await _inspector.instanceHelper.instanceRefFor(event.args[1]);
           _streamNotify(
               'Debug',
-              Event()
-                ..kind = EventKind.kInspect
+              Event(
+                  kind: EventKind.kInspect,
+                  timestamp: DateTime.now().millisecondsSinceEpoch)
                 ..inspectee = inspectee
                 ..timestamp = event.timestamp.toInt()
                 ..isolate = isolateRef);
