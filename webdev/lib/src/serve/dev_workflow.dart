@@ -46,8 +46,9 @@ Future<Chrome> _startChrome(
   ServerManager serverManager,
   BuildDaemonClient client,
 ) async {
-  var uris =
-      serverManager.servers.map((s) => 'http://${s.host}:${s.port}/').toList();
+  var uris = serverManager.servers
+      .map((s) => Uri(scheme: 'http', host: s.host, port: s.port).toString())
+      .toList();
   try {
     if (configuration.launchInChrome) {
       return await Chrome.start(uris, port: configuration.chromeDebugPort);
