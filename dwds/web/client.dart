@@ -169,10 +169,10 @@ Future<bool> hotRestart(ReloadingManager manager, SseClient sseClient) async {
       ..instanceId = dartAppInstanceId))));
     callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
     // Notify webdev that the isolate has been created.
+    // package:dwds will respond with a [RunRequest].
     sseClient.sink.add(jsonEncode(serializers.serialize(IsolateStart((b) => b
       ..appId = dartAppId
       ..instanceId = dartAppInstanceId))));
-    runMain();
   }
 
   if (modulesToLoad.isNotEmpty) {
