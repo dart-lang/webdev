@@ -11,6 +11,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../handlers/asset_handler.dart';
 import '../services/chrome_proxy_service.dart';
+import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
@@ -48,9 +49,7 @@ class AppInspector extends Domain {
   final Debugger debugger;
   final Isolate isolate;
   final IsolateRef isolateRef;
-  InstanceHelper _instanceHelper;
-  InstanceHelper get instanceHelper =>
-      _instanceHelper ??= InstanceHelper(debugger, _remoteDebugger, () => this);
+  final InstanceHelper instanceHelper;
 
   /// The root URI from which the application is served.
   final String _root;
@@ -61,6 +60,7 @@ class AppInspector extends Domain {
     this.debugger,
     this._root,
     this._remoteDebugger,
+    this.instanceHelper,
   )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
@@ -93,6 +93,7 @@ class AppInspector extends Domain {
     AssetHandler assetHandler,
     Debugger debugger,
     String root,
+    InstanceHelper instanceHelper
   ) async {
     var id = createId();
     var isolate = Isolate()
@@ -104,7 +105,7 @@ class AppInspector extends Domain {
       ..libraries = []
       ..extensionRPCs = [];
     var inspector =
-        AppInspector._(isolate, assetHandler, debugger, root, remoteDebugger);
+        AppInspector._(isolate, assetHandler, debugger, root, remoteDebugger, instanceHelper);
     await inspector._initialize();
     return inspector;
   }
@@ -158,38 +159,10 @@ class AppInspector extends Domain {
   /// Convert [arguments] to a form usable in WIP evaluation calls.
   List<Map<String, Object>> _marshallArguments(List arguments) {
     return [
-      {'value': arguments.map(_marshallOne).toList()}
+      {'value': arguments.map(mapForObject).toList()}
     ];
   }
 
-  /// For a primitive value, find the type to use in a RemoteObject.
-  String _jsTypeOf(Object o) {
-    if (o == null) return 'undefined';
-    if (o is String) return 'string';
-    if (o is num) return 'num';
-    // TODO(alanknight): Is it meaningful to have a case for 'function'?
-    if (o is bool) return 'bool';
-    return 'object';
-  }
-
-  /// Convert [argument] to a form usable in WIP evaluation calls.
-  ///
-  /// The [argument] should be either a RemoteObject or a simple
-  /// object that can be passed through the protocol directly.
-  Map<String, Object> _marshallOne(Object argument) {
-    // TODO(alanknight): Handle the case of RemoteObjects that represent values.
-    // This doesn't come up yet, but will if we get a result and pass it back as
-    // an argument.
-    if (argument is RemoteObject) {
-      if (argument.objectId == null) {
-        return {'type': _jsTypeOf(argument.value), 'value': argument.value};
-      } else {
-        return {'type': 'object', 'objectId': argument.objectId};
-      }
-    } else {
-      return {'type': _jsTypeOf(argument), 'value': argument};
-    }
-  }
 
   Future<RemoteObject> evaluate(
       String isolateId, String targetId, String expression,
@@ -211,33 +184,27 @@ class AppInspector extends Domain {
   /// Invoke the Dart function named [selector] on the object identified by
   /// [targetId].
   ///
-  /// I think targetId might be able to be a library. The [arguments] are always
-  /// string Dart objectIds, even though the list comes in as dynamic.
+  /// The [targetId] can be the URL of a Dart library, in which case this means
+  /// invoking a top-level function. The [arguments] are always strings that are
+  /// Dart object Ids.
   Future<RemoteObject> invoke(String isolateId, String targetId,
       String selector, List<dynamic> arguments) async {
     checkIsolate(isolateId);
     var remoteArguments = await Future.wait(
-        arguments.cast<String>().map(instanceHelper.remoteObjectFor));
-    if (_isLibraryId(targetId)) {
+        arguments.cast<String>().map(remoteObjectFor));
+    // We special case the Dart library, where sendMessage won't work because
+    // it's not really a Dart object. 
+    if (isLibraryId(targetId)) {
       return callJsFunctionOn(
           Library()..uri = targetId,
-          // TODO(alanknight): It makes no sense that we have to wrap args in a 
-          // list here, and won't work for more than one argument. Is this list 
-          // somehow getting destructured into the function args? If we have to
-          // construct a remoteObject for the list, how do we do that? Yet another round trip?
           'function () { return this.$selector.apply(this, arguments);}',
-                    // 'function () { return this.$selector.apply(this, ["abc", "xyz"]);}',
-          // 'function () { var args = [...arguments]; return "it is " + args.join(",");}',
           remoteArguments);
     } else {
-      return sendMessage(await instanceHelper.remoteObjectFor(targetId),
+      return sendMessage(await remoteObjectFor(targetId),
           selector, remoteArguments);
     }
   }
 
-  bool _isLibraryId(String dartId) => _uriPrefixes.any(dartId.startsWith);
-
-  static const _uriPrefixes = ['dart:', 'package:', 'org-dartlang-app:'];
 
   /// Evaluate [expression] as a member/message of the library identified by
   /// [libraryUri].
@@ -267,40 +234,23 @@ class AppInspector extends Domain {
   }
 
   /// Call the function named [expression] from [library] with [arguments].
-  ///
-  /// But we're not really using 'this', just using Runtime.callFunctionOn
-  /// because it accepts arguments.
   // TODO(alanknight): Make this API cleaner.
   Future<RemoteObject> callJsFunctionOn(
       Library library, String expression, List<RemoteObject> arguments) async {
-    var rawArguments = arguments.map(_marshallOne).toList();
-    var libraryPlease = '''
+    var rawArguments = arguments.map(mapForObject).toList();
+    var findLibrary = '''
 (function() {
   ${_getLibrarySnippet(library.uri)};
   return library;
 })();
 ''';
-    var remoteLibrary = await evaluateJsExpression(libraryPlease);
-
-    var result =
-        await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
-      'functionDeclaration': expression,
-      'arguments': rawArguments,
-      'objectId': remoteLibrary.objectId,
-    });
-    handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
-      'Dart expression': expression,
-      'arguments': arguments,
-    });
-    return RemoteObject(result.result['result'] as Map<String, dynamic>);
+    var remoteLibrary = await evaluateJsExpression(findLibrary);
+    var result = callFunctionOn(remoteLibrary, expression, rawArguments);
+    return result;
   }
 
   /// Call the function named [expression] from [library] with [scope] as
   /// arguments, with 'this' bound to the first object in [scope].
-  ///
-  /// But we're not really using 'this', just using Runtime.callFunctionOn
-  /// because it accepts arguments.
-  // TODO(alanknight): Make this API cleaner.
   Future<RemoteObject> evaluateWithJsScope(
       Library library, Map<String, String> scope, String expression) async {
     var argsString = scope.keys.join(', ');

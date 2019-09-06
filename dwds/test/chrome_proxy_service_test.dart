@@ -673,6 +673,8 @@ void main() {
             const TypeMatcher<InstanceRef>()
                 .having((instance) => instance.kind, 'kind', 'String'));
       });
+
+      // #### Test private.
     });
 
     test('kill', () {

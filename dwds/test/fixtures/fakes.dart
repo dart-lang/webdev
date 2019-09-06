@@ -55,10 +55,19 @@ class FakeInspector extends Domain implements AppInspector {
       throw UnsupportedError('This is a fake');
   @override
   Debugger get debugger => throw UnsupportedError('This is a fake');
+
   @override
   Future<RemoteObject> callJsFunctionOn(
-          Library library, Map<String, String> scope, String expression) =>
-      null;
+      Library library, String expression, List<RemoteObject> arguments) {
+    throw UnsupportedError('This is a fake');
+  }
+
+  @override
+  Future<RemoteObject> evaluateWithJsScope(
+      Library library, Map<String, String> scope, String expression) {
+    throw UnsupportedError('This is a fake');
+  }
+
   @override
   Future<RemoteObject> evaluateJsExpression(String expression) =>
       throw UnsupportedError('This is a fake');
@@ -74,11 +83,12 @@ class FakeInspector extends Domain implements AppInspector {
       RemoteObject receiver, String evalExpression, List arguments) {
     throw UnsupportedError('This is a fake');
   }
+
   @override
-  Future<RemoteObject> invoke(String isolateId, String targetId, String selector, List arguments) {
+  Future<RemoteObject> invoke(
+      String isolateId, String targetId, String selector, List arguments) {
     throw UnsupportedError('This is a fake');
   }
-
 }
 
 class FakeSseConnection implements SseConnection {

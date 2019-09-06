@@ -6,7 +6,8 @@ import 'package:dwds/src/utilities/shared.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../services/chrome_proxy_service.dart';
-import 'remote_debugger.dart';
+import '../debugging/inspector.dart';
+ import 'remote_debugger.dart';
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
@@ -38,8 +39,8 @@ class ClassMetaData {
       var arguments = [
         {'objectId': remoteObject.objectId}
       ];
-      var result =
-          await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
+      // var result = inspector.callFunctionOn(remoteObject, evalExpression, arguments);
+      var result = await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
         'functionDeclaration': evalExpression,
         'arguments': arguments,
         'objectId': remoteObject.objectId,

@@ -7,30 +7,19 @@ import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../utilities/conversions.dart';
 import '../utilities/objects.dart';
 import 'debugger.dart';
 import 'inspector.dart';
 import 'metadata.dart';
 import 'remote_debugger.dart';
 
-/// Chrome doesn't give us an objectId for a String. So we use the string
-/// as its own ID, with a prefix.
-///
-/// This should not be confused with any
-/// other object Ids, as those will be Chrome objectIds, which are
-/// opaque, but are JSON serialized objects of the form
-/// "{\"injectedScriptId\":1,\"id\":1}".
-const _prefixForStringIds = '#StringInstanceRef#';
 
-const _prefixForIntIds = 'objects/int-';
-const _prefixForBoolIds = 'objects/bool-';
-const _nullId = 'objects/null';
 
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
   var classRef = ClassRef()
-    // TODO(grouma) - is this ID correct?
-    ..id = 'dart:core:${remoteObject?.type}'
+    ..id = dartIdFor(remoteObject?.value)
     ..name = kind;
   return InstanceRef()
     ..valueAsString = '${remoteObject?.value}'
@@ -58,48 +47,10 @@ class InstanceHelper extends Domain {
       this._debugger, this._remoteDebugger, AppInspector Function() provider)
       : super(provider);
 
-  /// Create a Chrome reference from a Dart object Id.
-  ///
-  /// We expect Dart object Ids to be one of the following forms.
-  ///   * Chrome objectId - e.g. '{"injectedScriptId":1,"id":1}'
-  ///   * Our fabricated string Id - e.g. '#StringInstanceRef#actualString'
-  ///   * Dart fabricated IDs - e.g.  objects/int-8765
-  ///   * ##### NOT A Dart library URI
-  ///
-  /// We return either a RemoteObject or a serializable value.
-  Future<RemoteObject> remoteObjectFor(String dartId) async {
-    var data = <String, Object>{};
-    if (dartId.startsWith(_prefixForStringIds)) {
-      data['type'] = 'string';
-      data['value'] = _stringFromDartId(dartId);
-    } else if (dartId.startsWith(_prefixForIntIds)) {
-      data['type'] = 'number';
-      data['value'] = _intFromDartId(dartId);
-    } else if (dartId.startsWith(_prefixForBoolIds)) {
-      data['type'] = 'boolean';
-      data['value'] = dartId.endsWith('true');
-    } else if (dartId == _nullId) {
-      data['type'] = 'undefined';
-      data['value'] = null;
-    } else {
-      data['type'] = 'object';
-      data['objectId'] = dartId;
-    }
-    return RemoteObject(data);
-  }
 
-  Map<String, dynamic> remoteObjectMapFor(RemoteObject remote) {
-//    ###
-  }
-
-  String _stringFromDartId(String dartIdForString) =>
-      dartIdForString.substring(_prefixForStringIds.length);
-
-  int _intFromDartId(String dartIdForInt) =>
-      int.tryParse(dartIdForInt.substring(_prefixForIntIds.length));
 
   Future<Instance> _stringInstanceFor(RemoteObject remoteObject) async {
-    var actualString = _stringFromDartId(remoteObject.objectId);
+    var actualString = stringFromDartId(remoteObject.objectId);
     return Instance()
       ..kind = InstanceKind.kString
       ..classRef = _classRefForString
@@ -131,7 +82,7 @@ class InstanceHelper extends Domain {
   /// Does a remote eval to get instance information. Returns null if there
   /// isn't a corresponding instance.
   Future<Instance> instanceFor(RemoteObject remoteObject) async {
-    if (remoteObject.objectId.startsWith(_prefixForStringIds)) {
+    if (isStringId(remoteObject.objectId)) {
       return _stringInstanceFor(remoteObject);
     }
     var metaData =
@@ -203,8 +154,7 @@ class InstanceHelper extends Domain {
     switch (remoteObject.type) {
       case 'string':
         return InstanceRef()
-          // See comment for [_prefixForStringIds].
-          ..id = '$_prefixForStringIds${remoteObject.value}'
+          ..id = dartIdFor(remoteObject.value)
           ..valueAsString = remoteObject.value as String
           ..classRef = _classRefForString
           ..kind = InstanceKind.kString;
