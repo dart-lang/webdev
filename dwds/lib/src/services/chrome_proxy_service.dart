@@ -240,8 +240,9 @@ $loadModule("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<FlagList> getFlagList() {
-    throw UnimplementedError();
+  Future<FlagList> getFlagList() async {
+    // VM flags do not apply to web apps.
+    return FlagList()..flags = [];
   }
 
   @override
