@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/utilities/shared.dart';
-import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../dwds.dart' show LogWriter;
@@ -14,6 +12,8 @@ import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
+import '../utilities/shared.dart';
+import '../utilities/wrapped_service.dart';
 import 'dart_scope.dart';
 import 'location.dart';
 import 'remote_debugger.dart';
@@ -61,6 +61,12 @@ class Debugger extends Domain {
 
   Stack _pausedStack;
 
+  PauseState _pauseState = PauseState.none;
+
+  String get pauseState => _pauseModePauseStates.entries
+      .firstWhere((entry) => entry.value == _pauseState)
+      .key;
+
   /// The JS frames corresponding to [_pausedStack].
   ///
   /// The most important thing here is that frames are identified by
@@ -81,9 +87,9 @@ class Debugger extends Domain {
 
   Future<Success> setExceptionPauseMode(String isolateId, String mode) async {
     checkIsolate(isolateId);
-    var pauseState = _pauseModePauseStates[mode.toLowerCase()] ??
+    _pauseState = _pauseModePauseStates[mode.toLowerCase()] ??
         (throw ArgumentError.value('mode', 'Unsupported mode `$mode`'));
-    await _remoteDebugger.setPauseOnExceptions(pauseState);
+    await _remoteDebugger.setPauseOnExceptions(_pauseState);
     return Success();
   }
 
@@ -372,9 +378,7 @@ class Debugger extends Domain {
     var script =
         await inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
     return Frame()
-      ..code = (CodeRef()
-        ..id = createId()
-        ..kind = CodeKind.kDart)
+      ..code = (CodeRef(id: createId(), name: 'DartCode', kind: CodeKind.kDart))
       ..location = (SourceLocation()
         ..tokenPos = bestLocation.tokenPos
         ..script = script)

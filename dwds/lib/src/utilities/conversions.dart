@@ -79,6 +79,9 @@ String dartIdFor(Object argument) {
   if (argument is String) {
     return '$_prefixForStringIds$argument';
   }
+  if (argument is double) {
+    return '$_prefixForDoubleIds$argument';
+  } 
   if (argument is int) {
     return '$_prefixForIntIds$argument';
   }
@@ -169,6 +172,10 @@ const _prefixForStringIds = '#StringInstanceRef#';
 /// The prefix the Dart VM uses for ints, followed by a string representation of
 /// the number.
 const _prefixForIntIds = 'objects/int-';
+
+/// The prefix we use for doubles, followed by a string representation of
+/// the number.
+const _prefixForDoubleIds = 'objects/double-';
 
 /// The prefix the Dart VM uses for booleans, followed by 'true' or 'false'.
 const _prefixForBoolIds = 'objects/bool-';

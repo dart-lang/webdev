@@ -5,7 +5,8 @@
 import 'dart:io';
 
 import 'package:dwds/dwds.dart' show ModuleStrategy;
-import 'package:vm_service/vm_service.dart';
+
+import '../utilities/wrapped_service.dart';
 
 VMRef toVMRef(VM vm) => VMRef()..name = vm.name;
 

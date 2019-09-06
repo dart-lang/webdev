@@ -17,11 +17,11 @@ import 'package:shelf/shelf.dart' hide Response;
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
-import 'package:vm_service/vm_service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../handlers/asset_handler.dart';
 import '../utilities/shared.dart';
+import '../utilities/wrapped_service.dart';
 import 'chrome_proxy_service.dart';
 
 void Function(WebSocketChannel, String) _createNewConnectionHandler(
@@ -68,6 +68,10 @@ Future<void> _handleSseConnections(
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
     }).listen(connection.sink.add);
+    unawaited(chromeProxyService.remoteDebugger.onClose.first.whenComplete(() {
+      connection.sink.close();
+      sub.cancel();
+    }));
     var inputStream = connection.stream.map((value) {
       var request = jsonDecode(value) as Map<String, Object>;
       if (onRequest != null) onRequest(request);
@@ -105,8 +109,14 @@ class DebugService {
   }
 
   String get uri => _useSse
-      ? 'sse://$hostname:$port/$_authToken/\$debugHandler'
-      : 'ws://$hostname:$port/$_authToken';
+      ? Uri(
+              scheme: 'sse',
+              host: hostname,
+              port: port,
+              path: '$_authToken/\$debugHandler')
+          .toString()
+      : Uri(scheme: 'ws', host: hostname, port: port, path: '$_authToken')
+          .toString();
 
   /// [appInstanceId] is a unique String embedded in the instance of the
   /// application available through `window.$dartAppInstanceId`.
@@ -145,13 +155,11 @@ class DebugService {
       };
     }
     var port = await findUnusedPort();
-    var server = hostname == 'localhost'
-        ? await HttpMultiServer.loopback(port)
-        : await HttpServer.bind(hostname, port);
+    var server = await HttpMultiServer.bind(hostname, port);
     serveRequests(server, handler);
     return DebugService._(
       chromeProxyService,
-      hostname,
+      server.address.host,
       port,
       authToken,
       serviceExtensionRegistry,

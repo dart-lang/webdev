@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
-import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../dwds.dart' show LogWriter;
@@ -18,6 +17,7 @@ import '../debugging/remote_debugger.dart';
 import '../handlers/asset_handler.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
+import '../utilities/wrapped_service.dart';
 
 /// Adds [event] to the stream with [streamId] if there is anybody listening
 /// on that stream.

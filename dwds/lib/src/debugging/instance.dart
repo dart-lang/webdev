@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-import 'package:dwds/src/utilities/domain.dart';
-import 'package:dwds/src/utilities/shared.dart';
-import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../utilities/conversions.dart';
+import '../utilities/domain.dart';
 import '../utilities/objects.dart';
+import '../utilities/shared.dart';
+import '../utilities/wrapped_service.dart';
 import 'debugger.dart';
 import 'inspector.dart';
 import 'metadata.dart';
@@ -18,25 +18,21 @@ import 'remote_debugger.dart';
 
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
-  var classRef = ClassRef()
-    ..id = dartIdFor(remoteObject?.value)
-    ..name = kind;
-  return InstanceRef()
-    ..valueAsString = '${remoteObject?.value}'
-    ..classRef = classRef
-    ..kind = kind;
+  var classRef = ClassRef(
+      // TODO(grouma) - is this ID correct?
+      id: 'dart:core:${remoteObject?.type}',
+      name: kind);
+  return InstanceRef(kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
+    ..valueAsString = '${remoteObject?.value}';
 }
 
 /// A hard-coded ClassRef for the String class.
-final _classRefForString = ClassRef()
-  ..id = 'dart:core:String'
-  ..name = InstanceKind.kString;
+final _classRefForString =
+    ClassRef(id: 'dart:core:String', name: InstanceKind.kString);
 
 /// A hard-coded ClassRef for the Closure class.
 // TODO(grouma) - orgnaize our static classRefs better.
-final _classRefForClosure = ClassRef()
-  ..name = 'Closure'
-  ..id = createId();
+final _classRefForClosure = ClassRef(name: 'Closure', id: createId());
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
@@ -50,10 +46,13 @@ class InstanceHelper extends Domain {
 
 
   Future<Instance> _stringInstanceFor(RemoteObject remoteObject) async {
-    var actualString = stringFromDartId(remoteObject.objectId);
-    return Instance()
-      ..kind = InstanceKind.kString
-      ..classRef = _classRefForString
+
+    var actualString =
+         stringFromDartId(remoteObject.objectId);
+    return Instance(
+        kind: InstanceKind.kString,
+        classRef: _classRefForString,
+        id: createId())
       ..valueAsString = actualString
       ..length = actualString.length;
   }
@@ -61,19 +60,19 @@ class InstanceHelper extends Domain {
   Future<Instance> _closureInstanceFor(RemoteObject remoteObject) async {
     var functionMetaData =
         await FunctionMetaData.metaDataFor(_remoteDebugger, remoteObject);
-    var result = Instance()
-      ..kind = InstanceKind.kClosure
-      ..id = remoteObject.objectId
-      ..closureFunction = (FuncRef()
-            ..name = functionMetaData.name
-            ..id = createId()
-          // TODO(grouma) - fill these in.
-          //..owner = ?
-          //..isConst = ?
-          //..isStatic = ?
-          )
-      ..closureContext = ContextRef()
-      ..classRef = _classRefForClosure;
+    var result = Instance(
+        kind: InstanceKind.kClosure,
+        id: remoteObject.objectId,
+        classRef: _classRefForClosure)
+      ..closureFunction = (FuncRef(
+          name: functionMetaData.name,
+          id: createId(),
+          // TODO(grouma) - fill these in properly.
+          owner: null,
+          isConst: false,
+          isStatic: false))
+      // TODO(grouma) - construct a valid context.
+      ..closureContext = (ContextRef()..length = 0);
     return result;
   }
 
@@ -90,30 +89,34 @@ class InstanceHelper extends Domain {
     if (metaData.name == 'Function') {
       return _closureInstanceFor(remoteObject);
     } else {
-      var classRef = ClassRef()
-        ..id = metaData.id
-        ..name = metaData.name;
+      var classRef = ClassRef(id: metaData.id, name: metaData.name);
       var properties = await _debugger.getProperties(remoteObject.objectId);
       var dartProperties = await dartPropertiesFor(properties, remoteObject);
       var fields = await Future.wait(
           dartProperties.map<Future<BoundField>>((property) async {
         var instance = await instanceRefFor(property.value);
         return BoundField()
-          ..decl = (FieldRef()
-            // TODO(grouma) - Convert JS name to Dart.
-            ..name = property.name
-            ..declaredType = (InstanceRef()
-              ..type = InstanceKind.kType
-              ..classRef = instance.classRef)
-            ..owner = classRef)
+          ..decl = (FieldRef(
+              // TODO(grouma) - Convert JS name to Dart.
+              name: property.name,
+              declaredType: (InstanceRef(
+                  kind: InstanceKind.kType,
+                  classRef: instance.classRef,
+                  id: createId())),
+              owner: classRef,
+              // TODO(grouma) - Fill these in.
+              isConst: false,
+              isFinal: false,
+              isStatic: false,
+              id: createId()))
           ..value = instance;
       }));
       fields.sort((a, b) => a.decl.name.compareTo(b.decl.name));
-      var result = Instance()
-        ..kind = InstanceKind.kPlainInstance
-        ..id = remoteObject.objectId
-        ..fields = fields
-        ..classRef = classRef;
+      var result = Instance(
+          kind: InstanceKind.kPlainInstance,
+          id: remoteObject.objectId,
+          classRef: classRef)
+        ..fields = fields;
       return result;
     }
   }
@@ -153,11 +156,11 @@ class InstanceHelper extends Domain {
     }
     switch (remoteObject.type) {
       case 'string':
-        return InstanceRef()
-          ..id = dartIdFor(remoteObject.value)
-          ..valueAsString = remoteObject.value as String
-          ..classRef = _classRefForString
-          ..kind = InstanceKind.kString;
+        return InstanceRef(
+           id: dartIdFor(remoteObject.value),
+          classRef: _classRefForString,
+          kind: InstanceKind.kString)
+          ..valueAsString = remoteObject.value as String;
       case 'number':
         return _primitiveInstance(InstanceKind.kDouble, remoteObject);
       case 'boolean':
@@ -171,17 +174,15 @@ class InstanceHelper extends Domain {
         var metaData =
             await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject);
         if (metaData == null) return null;
-        return InstanceRef()
-          ..kind = InstanceKind.kPlainInstance
-          ..id = remoteObject.objectId
-          ..classRef = (ClassRef()
-            ..name = metaData.name
-            ..id = metaData.id);
+        return InstanceRef(
+            kind: InstanceKind.kPlainInstance,
+            id: remoteObject.objectId,
+            classRef: ClassRef(name: metaData.name, id: metaData.id));
       case 'function':
-        return InstanceRef()
-          ..kind = InstanceKind.kClosure
-          ..id = remoteObject.objectId
-          ..classRef = _classRefForClosure;
+        return InstanceRef(
+            kind: InstanceKind.kClosure,
+            id: remoteObject.objectId,
+            classRef: _classRefForClosure);
       default:
         // Return null for an unsupported type. This is likely a JS construct.
         return null;

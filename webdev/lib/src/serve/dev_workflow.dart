@@ -86,7 +86,7 @@ Future<ServerManager> _startServerManager(
     logWriter(
         logging.Level.INFO,
         'Serving `${server.target}` on '
-        '${server.protocol}://${server.host}:${server.port}\n');
+        '${Uri(scheme: server.protocol, host: server.host, port: server.port)}\n');
   }
 
   return serverManager;
