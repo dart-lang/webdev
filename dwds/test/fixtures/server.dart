@@ -50,6 +50,7 @@ class TestServer {
     bool serveDevTools,
     bool enableDebugExtension,
     bool autoRun,
+    bool enableDebugging,
   ) async {
     var pipeline = const Pipeline();
 
@@ -66,6 +67,7 @@ class TestServer {
       reloadConfiguration: reloadConfiguration,
       serveDevTools: serveDevTools,
       enableDebugExtension: enableDebugExtension,
+      enableDebugging: enableDebugging,
       verbose: true,
     );
 

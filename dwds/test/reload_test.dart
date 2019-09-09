@@ -16,22 +16,47 @@ final context = TestContext(
 
 void main() {
   group('Injected client with live reload', () {
-    setUp(() async {
-      await context.setUp(reloadConfiguration: ReloadConfiguration.liveReload);
+    group('and with debugging', () {
+      setUp(() async {
+        await context.setUp(
+            reloadConfiguration: ReloadConfiguration.liveReload);
+      });
+
+      tearDown(() async {
+        await context.tearDown();
+      });
+
+      test('can live reload changes ', () async {
+        await context.changeInput();
+
+        var source = await context.webDriver.pageSource;
+
+        // A full reload should clear the state.
+        expect(source.contains('Hello World!'), isFalse);
+        expect(source.contains('Gary is awesome!'), isTrue);
+      });
     });
 
-    tearDown(() async {
-      await context.tearDown();
-    });
+    group('and without debugging', () {
+      setUp(() async {
+        await context.setUp(
+            reloadConfiguration: ReloadConfiguration.liveReload,
+            enableDebugging: false);
+      });
 
-    test('can live reload changes ', () async {
-      await context.changeInput();
+      tearDown(() async {
+        await context.tearDown();
+      });
 
-      var source = await context.webDriver.pageSource;
+      test('can live reload changes ', () async {
+        await context.changeInput();
 
-      // A full reload should clear the state.
-      expect(source.contains('Hello World!'), isFalse);
-      expect(source.contains('Gary is awesome!'), isTrue);
+        var source = await context.webDriver.pageSource;
+
+        // A full reload should clear the state.
+        expect(source.contains('Hello World!'), isFalse);
+        expect(source.contains('Gary is awesome!'), isTrue);
+      });
     });
   });
 
@@ -142,42 +167,70 @@ void main() {
   });
 
   group('Injected client with hot restart', () {
-    setUp(() async {
-      await context.setUp(reloadConfiguration: ReloadConfiguration.hotRestart);
+    group('and with debugging', () {
+      setUp(() async {
+        await context.setUp(
+            reloadConfiguration: ReloadConfiguration.hotRestart);
+      });
+
+      tearDown(() async {
+        await context.tearDown();
+      });
+
+      test('can hot restart changes ', () async {
+        await context.changeInput();
+
+        var source = await context.webDriver.pageSource;
+
+        // Main is re-invoked which shouldn't clear the state.
+        expect(source.contains('Hello World!'), isTrue);
+        expect(source.contains('Gary is awesome!'), isTrue);
+        // The ext.flutter.disassemble callback is invoked and waited for.
+        expect(source,
+            contains('start disassemble end disassemble Gary is awesome'));
+      });
+
+      test('fires isolate create/destroy events during hot restart', () async {
+        var client = context.debugConnection.vmService;
+        await client.streamListen('Isolate');
+
+        var eventsDone = expectLater(
+            client.onIsolateEvent,
+            emitsThrough(emitsInOrder([
+              _hasKind(EventKind.kIsolateExit),
+              _hasKind(EventKind.kIsolateStart),
+              _hasKind(EventKind.kIsolateRunnable),
+            ])));
+
+        await context.changeInput();
+
+        await eventsDone;
+      });
     });
 
-    tearDown(() async {
-      await context.tearDown();
-    });
+    group('and without debugging', () {
+      setUp(() async {
+        await context.setUp(
+            reloadConfiguration: ReloadConfiguration.hotRestart,
+            enableDebugging: false);
+      });
 
-    test('can hot restart changes ', () async {
-      await context.changeInput();
+      tearDown(() async {
+        await context.tearDown();
+      });
 
-      var source = await context.webDriver.pageSource;
+      test('can hot restart changes ', () async {
+        await context.changeInput();
 
-      // Main is re-invoked which shouldn't clear the state.
-      expect(source.contains('Hello World!'), isTrue);
-      expect(source.contains('Gary is awesome!'), isTrue);
-      // The ext.flutter.disassemble callback is invoked and waited for.
-      expect(source,
-          contains('start disassemble end disassemble Gary is awesome'));
-    });
+        var source = await context.webDriver.pageSource;
 
-    test('fires isolate create/destroy events during hot restart', () async {
-      var client = context.debugConnection.vmService;
-      await client.streamListen('Isolate');
-
-      var eventsDone = expectLater(
-          client.onIsolateEvent,
-          emitsThrough(emitsInOrder([
-            _hasKind(EventKind.kIsolateExit),
-            _hasKind(EventKind.kIsolateStart),
-            _hasKind(EventKind.kIsolateRunnable),
-          ])));
-
-      await context.changeInput();
-
-      await eventsDone;
+        // Main is re-invoked which shouldn't clear the state.
+        expect(source.contains('Hello World!'), isTrue);
+        expect(source.contains('Gary is awesome!'), isTrue);
+        // The ext.flutter.disassemble callback is invoked and waited for.
+        expect(source,
+            contains('start disassemble end disassemble Gary is awesome'));
+      });
     });
   });
 }

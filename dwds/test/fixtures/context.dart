@@ -58,11 +58,13 @@ class TestContext {
       {ReloadConfiguration reloadConfiguration,
       bool serveDevTools,
       bool enableDebugExtension,
-      bool autoRun}) async {
+      bool autoRun,
+      bool enableDebugging}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
     autoRun ??= true;
+    enableDebugging ??= true;
     port = await findUnusedPort();
     try {
       chromeDriver = await Process.start(
@@ -115,7 +117,8 @@ class TestContext {
         reloadConfiguration,
         serveDevTools,
         enableDebugExtension,
-        autoRun);
+        autoRun,
+        enableDebugging);
 
     appUrl = 'http://localhost:$port/$path';
     await webDriver.get(appUrl);
@@ -131,8 +134,10 @@ class TestContext {
     }
 
     appConnection = await testServer.dwds.connectedApps.first;
-    debugConnection = await testServer.dwds.debugConnection(appConnection);
-    webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
+    if (enableDebugging) {
+      debugConnection = await testServer.dwds.debugConnection(appConnection);
+      webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
+    }
   }
 
   Future<Null> tearDown() async {
