@@ -126,7 +126,7 @@ class AppInspector extends Domain {
   /// Call a method by name on [receiver], with arguments [positionalArgs] and
   /// [namedArgs].
   Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
-      [List positionalArgs = const [], Map namedArgs = const {}]) async {
+      [List<RemoteObject> positionalArgs = const [], Map namedArgs = const {}]) async {
     // TODO(alanknight): Support named arguments.
     if (namedArgs.isNotEmpty) {
       throw UnsupportedError('Named arguments are not yet supported');
@@ -134,6 +134,10 @@ class AppInspector extends Domain {
     var send = '''
         function (positional) {
           if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
+          // var answer = 'arguments are (' + positional.length + ') : ';
+          // for (var i of positional) {
+          //   answer = answer + JSON.stringify(i);
+          // } return answer;
           return $loadModule("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
         }
         ''';
@@ -160,10 +164,29 @@ class AppInspector extends Domain {
   }
 
   /// Convert [arguments] to a form usable in WIP evaluation calls.
-  List<Map<String, Object>> _marshallArguments(List arguments) {
-    return [
-      {'value': arguments.map(mapForObject).toList()}
-    ];
+  List _marshallArguments(List<RemoteObject> arguments) {
+  // #### This is weird. IT says pass a list of callargument, but it appears
+  // we want a list with one, which is the list of the actual ones??
+  // OT does that only work for the zero-arg case?
+         // return [{'value': arguments. map(callArgumentFor).toList()}];
+        // sees the object.
+
+      
+return [{'value': arguments. map(callArgumentFor).toList()}];
+
+         // return arguments. map(callArgumentFor).toList(); //expects object
+         // Sees ["s" "o", ...]
+
+        // return [arguments.map(callArgumentFor).toList()];
+        // WipError (WipError 9: {code: -32602, message: Invalid parameters, data: arguments.0: object expected})
+         
+        // return [ {'value': arguments. map(callArgumentFor).toList()}]; 
+         // Sees {'value' : 'some string'}. expected string, got Native JSObject from dsendrepl
+
+    // return [
+      
+    //   // {'value': arguments.map(mapForObject).toList()}
+    // ];
   }
 
 
@@ -178,18 +201,19 @@ class AppInspector extends Domain {
           'Evaluate is only supported when `targetId` is a library.');
     }
     if (scope.isNotEmpty) {
-      return evaluateWithJsScope(library, scope, expression);
+      return evaluateWithScope(library, scope, expression);
     } else {
       return evaluateJsExpressionOnLibrary(expression, library.uri);
     }
   }
 
-  /// Invoke the Dart function named [selector] on the object identified by
+  /// Invoke the function named [selector] on the object identified by
   /// [targetId].
   ///
   /// The [targetId] can be the URL of a Dart library, in which case this means
   /// invoking a top-level function. The [arguments] are always strings that are
-  /// Dart object Ids.
+  /// Dart object Ids (which can also be Chrome RemoteObject objectIds that are 
+  /// for non-Dart JS objects.)
   Future<RemoteObject> invoke(String isolateId, String targetId,
       String selector, List<dynamic> arguments) async {
     checkIsolate(isolateId);
@@ -208,7 +232,6 @@ class AppInspector extends Domain {
           selector, remoteArguments);
     }
   }
-
 
   /// Evaluate [expression] as a member/message of the library identified by
   /// [libraryUri].
@@ -253,9 +276,9 @@ class AppInspector extends Domain {
     return result;
   }
 
-  /// Call the function named [expression] from [library] with [scope] as
+  /// Evaluate [expression] from [library] with [scope] as
   /// arguments, with 'this' bound to the first object in [scope].
-  Future<RemoteObject> evaluateWithJsScope(
+  Future<RemoteObject> evaluateWithScope(
       Library library, Map<String, String> scope, String expression) async {
     var argsString = scope.keys.join(', ');
     // TODO(alanknight): Can we use _marshallOne or similar.

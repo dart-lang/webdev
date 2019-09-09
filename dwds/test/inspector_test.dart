@@ -4,6 +4,7 @@
 
 @TestOn('vm')
 import 'package:dwds/src/connections/debug_connection.dart';
+import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:test/test.dart';
@@ -76,4 +77,32 @@ void main() {
     names.sort();
     expect(names, expected);
   });
+
+  // We test these here because the test fixture has private members.
+  test('invoke top-level private', () async {
+    var remote = await inspector.invoke(
+        inspector.isolate.id,
+        inspector.isolate.rootLib.id,
+        '_libraryPrivateFunction',
+        [dartIdFor(2), dartIdFor(3)]);
+    expect(
+        remote,
+        const TypeMatcher<RemoteObject>()
+            .having((instance) => instance.value, 'result', 5));
+  });
+
+  test('invoke instance private', () async {
+    // We test these here because the test fixture has private members.
+    var instance = await inspector.evaluate(inspector.isolate.id,
+        inspector.isolate.rootLib.id, 'libraryPublicFinal');
+
+    var remote = await inspector.invoke(inspector.isolate.id, instance.objectId,
+        'privateMethod', [dartIdFor('some string')]);
+    expect(
+        remote,
+        const TypeMatcher<RemoteObject>().having((instance) => instance.value,
+            'result', 'some string : a private field'));
+  });
+
+  // #### You also need to test with an object argument
 }

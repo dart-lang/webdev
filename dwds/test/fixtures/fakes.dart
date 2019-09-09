@@ -63,7 +63,7 @@ class FakeInspector extends Domain implements AppInspector {
   }
 
   @override
-  Future<RemoteObject> evaluateWithJsScope(
+  Future<RemoteObject> evaluateWithScope(
       Library library, Map<String, String> scope, String expression) {
     throw UnsupportedError('This is a fake');
   }

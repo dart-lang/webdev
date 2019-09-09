@@ -5,25 +5,6 @@
 /// Functions for converting between the different object references we use.
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-/// A Map representing a RemoteObject for a primitive object.
-Map<String, Object> _mapForPrimitive(Object primitive) {
-  return {'type': jsTypeOf(primitive), 'value': primitive};
-}
-
-/// A Map representing a RemoteObject from an actual RemoteObject.
-Map<String, Object> _mapForRemote(RemoteObject remote) {
-  return {'type': 'object', 'objectId': remote.objectId};
-}
-
-/// The JS type name to use in a RemoteObject reference to [object].
-String jsTypeOf(Object object) {
-  if (object == null) return 'undefined';
-  if (object is String) return 'string';
-  if (object is num) return 'num';
-  if (object is bool) return 'bool';
-  return 'object';
-}
-
 /// Convert [argument] to a form usable in WIP evaluation calls.
 ///
 /// The [argument] should be either a RemoteObject or a simple
@@ -38,26 +19,30 @@ Map<String, Object> mapForObject(Object argument) {
   }
 }
 
-/// A Chrome RemoteObject from a Dart object Id.
+/// A Chrome RemoteObject from a Dart object Id [dartId].
 ///
-/// We expect Dart object Ids to be one of the following forms.
+/// We expect [dartId] to be one of the following forms.
 ///   * Chrome objectId - e.g. '{"injectedScriptId":1,"id":1}'
 ///   * Our fabricated string Id - e.g. '#StringInstanceRef#actualString'
 ///   * Dart fabricated IDs - e.g.  objects/int-8765
-/// ##### NOT Library IDs Where are those handled?
 ///
-/// We return either a RemoteObject or a serializable value.
+/// Note that this does NOT accept a Dart library URI, which can be used as an
+/// InstanceRef identifier in the protocol. Libraries aren't first class, and
+/// must be handled separately.
 Future<RemoteObject> remoteObjectFor(String dartId) async {
   var data = <String, Object>{};
   if (dartId.startsWith(_prefixForStringIds)) {
     data['type'] = 'string';
     data['value'] = _stringFromDartId(dartId);
+  } else if (dartId.startsWith(_prefixForDoubleIds)) {
+    data['type'] = 'number';
+    data['value'] = _doubleFromDartId(dartId);
   } else if (dartId.startsWith(_prefixForIntIds)) {
     data['type'] = 'number';
     data['value'] = _intFromDartId(dartId);
   } else if (dartId.startsWith(_prefixForBoolIds)) {
     data['type'] = 'boolean';
-    data['value'] = dartId.endsWith('true');
+    data['value'] = _boolFromDartId(dartId);
   } else if (dartId == _nullId) {
     data['type'] = 'undefined';
     data['value'] = null;
@@ -68,10 +53,20 @@ Future<RemoteObject> remoteObjectFor(String dartId) async {
   return RemoteObject(data);
 }
 
+/// Convert a RemoteObject to a Chrome CallArgument.
+///  ###### Should this just replace mapFor???
+/// https://chromedevtools.github.io/devtools-protocol/tot/Runtime#type-CallArgument
+Object callArgumentFor(RemoteObject remote) {
+  if (remote == null) return null;
+  if (remote.type == 'object') return { 'objectId' : remote.objectId};
+  return remote.value;
+  //return {'value' :remote.value};
+}
+
 /// A dart object Id appropriate for [argument].
 ///
-/// This will work for simple values, RemoteObject, and Maps 
-/// representing RemoteObjects.
+/// This will work for simple values, RemoteObject, and Maps
+/// representations of RemoteObjects.
 String dartIdFor(Object argument) {
   if (argument == null) {
     return '$_nullId';
@@ -81,7 +76,7 @@ String dartIdFor(Object argument) {
   }
   if (argument is double) {
     return '$_prefixForDoubleIds$argument';
-  } 
+  }
   if (argument is int) {
     return '$_prefixForIntIds$argument';
   }
@@ -104,11 +99,11 @@ String dartIdFor(Object argument) {
   throw ArgumentError.value(argument, 'objectId', 'No objectId found');
 }
 
-/// Given a Dart object Id for a String, return the String.
+/// Converts a Dart object Id for a String to the underlying string.
 ///
 /// If the ID is not for a String, throws ArgumentError. If you don't know what
 /// the ID represents, use a more general API like [remoteObjectFor] and if it
-/// is a primitive, you can get the value.
+/// is a primitive, you can get the value from the resulting [RemoteObject].
 String stringFromDartId(String dartId) {
   if (!isStringId(dartId)) {
     throw ArgumentError.value(
@@ -117,48 +112,58 @@ String stringFromDartId(String dartId) {
   return _stringFromDartId(dartId);
 }
 
-/// Given a Dart object Id for a boolean, return the boolean.
-///
-/// If the ID is not for a boolean, throws ArgumentError. If you don't know what
-/// the ID represents, use a more general API like [remoteObjectFor] and if it
-/// is a primitive, you can get the value.
-bool boolFromDartId(String dartId) {
-  if (!isBoolId(dartId)) {
-    throw ArgumentError.value(
-        dartId, 'dart object ID', 'Expected a valid ID for a boolean');
-  }
-  return _boolFromDartId(dartId);
-}
-
-/// Given a Dart object Id for an int, return the int.
-///
-/// If the ID is not for an int, throws ArgumentError. If you don't know what
-/// the ID represents, use a more general API like [remoteObjectFor] and if it
-/// is a primitive, you can get the value.
-int intFromDartId(String dartId) {
-  if (!isIntId(dartId)) {
-    throw ArgumentError.value(
-        dartId, 'dart object ID', 'Expected a valid ID for an int');
-  }
-  return _intFromDartId(dartId);
-}
-
+/// Is [dartId] an Id for a String.
 bool isStringId(String dartId) => dartId.startsWith(_prefixForStringIds);
+
+/// Is [dartId] an Id for a boolean.
 bool isBoolId(String dartId) => dartId.startsWith(_prefixForBoolIds);
+
+/// Is [dartId] an Id for a int.
 bool isIntId(String dartId) => dartId.startsWith(_prefixForIntIds);
+
+/// Is [dartId] an Id for a double.
+bool isDoubleId(String dartId) => dartId.startsWith(_prefixForDoubleIds);
+
+/// Is [dartId] an Id for a Dart library.
 bool isLibraryId(String dartId) => _uriPrefixes.any(dartId.startsWith);
+
+/// A Map representing a RemoteObject for a primitive object.
+Map<String, Object> _mapForPrimitive(Object primitive) {
+  return {'type': _jsTypeOf(primitive), 'value': primitive};
+}
+
+/// A Map representing a RemoteObject from an actual RemoteObject.
+Map<String, Object> _mapForRemote(RemoteObject remote) {
+  return {'type': 'object', 'objectId': remote.objectId};
+}
+
+/// The JS type name to use in a RemoteObject reference to [object].
+String _jsTypeOf(Object object) {
+  if (object == null) return 'undefined';
+  if (object is String) return 'string';
+  if (object is num) return 'num';
+  if (object is bool) return 'bool';
+  return 'object';
+}
 
 /// Prefixes we use to identify if a Dart ID is a library URI.
 const _uriPrefixes = ['dart:', 'package:', 'org-dartlang-app:'];
 
+/// Convert [dartIdForString] to its corresponding String.
 String _stringFromDartId(String dartIdForString) =>
     dartIdForString.substring(_prefixForStringIds.length);
 
+/// Convert [dartIdForInt] to its corresponding int.
 int _intFromDartId(String dartIdForInt) =>
     int.tryParse(dartIdForInt.substring(_prefixForIntIds.length));
 
-bool _boolFromDartId(String dartId) =>
-    dartId.substring(_prefixForIntIds.length) == 'true';
+/// Convert [dartIdForDouble] to its corresponding double.
+double _doubleFromDartId(String dartIdForDouble) =>
+    double.tryParse(dartIdForDouble.substring(_prefixForDoubleIds.length));
+
+/// Convert [dartIdForBool] to its corresponding boolean.
+bool _boolFromDartId(String dartIdForBool) =>
+    dartIdForBool.substring(_prefixForBoolIds.length) == 'true';
 
 /// Chrome doesn't give us an objectId for a String. So we use the string
 /// as its own ID, with a prefix.

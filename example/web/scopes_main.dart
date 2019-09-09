@@ -93,8 +93,10 @@ class MyTestClass {
     libraryFunction('abc');
   }
 
-  // ignore: unused_field
   final _privateField = 'a private field';
+
+  // ignore: unused_element
+  String privateMethod(String s) => '$s : $_privateField';
 
   @override
   String toString() => 'A test class with message $message';
@@ -103,3 +105,6 @@ class MyTestClass {
 }
 
 Function someFunction() => null;
+
+// ignore: unused_element
+int _libraryPrivateFunction(int a, int b) => a + b;
