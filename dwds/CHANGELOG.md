@@ -1,3 +1,6 @@
+## 0.5.6
+- Handle injected client SSE errors.
+
 ## 0.5.5
 - Properly set the `pauseEvent` on the `Isolate`.
 - Fix a race condition with Hot Restarts where the Isolate was not created in

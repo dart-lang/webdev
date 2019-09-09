@@ -67,7 +67,7 @@ Future<void> main() {
       var event = serializers.deserialize(jsonDecode(serialized));
       if (event is DefaultBuildResult) {
         if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
-          window.location.reload();
+          _reloadPage();
         } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
           await hotRestart(manager, client);
         } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
@@ -83,6 +83,11 @@ Future<void> main() {
           ..instanceId = dartAppInstanceId))));
         runMain();
       }
+    }, onError: (error) {
+      // An error is propagated on a full page reload as Chrome presumably
+      // forces the SSE connection to close in a bad state. This does not cause
+      // any adverse effects so simply swallow this error as to not print the
+      // misleading unhandled error message.
     });
 
     window.onKeyDown.listen((Event e) {
