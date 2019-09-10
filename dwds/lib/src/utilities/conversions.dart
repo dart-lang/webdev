@@ -3,13 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Functions for converting between the different object references we use.
+
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Convert [argument] to a form usable in WIP evaluation calls.
 ///
-/// The [argument] should be either a RemoteObject or a simple
-/// object that can be passed through the protocol directly.
-Map<String, Object> mapForObject(Object argument) {
+/// The [argument] should be either a RemoteObject or a simple object that can
+/// be passed through the protocol directly.
+///
+/// Note that this doesn't agree with the Chrome Protocol type CallArgument -
+/// it's just a Map corresponding to a RemoteObject.
+Map<String, Object> callArgumentFor(Object argument) {
   if (argument is RemoteObject) {
     return argument.objectId == null
         ? _mapForPrimitive(argument.value)
@@ -17,6 +21,13 @@ Map<String, Object> mapForObject(Object argument) {
   } else {
     return _mapForPrimitive(argument);
   }
+}
+
+/// A List of Chrome RemoteObjects from Dart object Ids [dartIds].
+/// 
+/// See [remoteObjectFor] for the accepted ID format.
+List<RemoteObject> remoteObjectsFor(Iterable<String> dartIds) {
+  return dartIds.map(remoteObjectFor).toList();
 }
 
 /// A Chrome RemoteObject from a Dart object Id [dartId].
@@ -29,7 +40,7 @@ Map<String, Object> mapForObject(Object argument) {
 /// Note that this does NOT accept a Dart library URI, which can be used as an
 /// InstanceRef identifier in the protocol. Libraries aren't first class, and
 /// must be handled separately.
-Future<RemoteObject> remoteObjectFor(String dartId) async {
+RemoteObject remoteObjectFor(String dartId) {
   var data = <String, Object>{};
   if (dartId.startsWith(_prefixForStringIds)) {
     data['type'] = 'string';
@@ -53,20 +64,7 @@ Future<RemoteObject> remoteObjectFor(String dartId) async {
   return RemoteObject(data);
 }
 
-/// Convert a RemoteObject to a Chrome CallArgument.
-/// 
-/// Note that this returns the value if it's JS serializable, rather
-/// than wrapping it as described in the link below, because that's
-/// what seems to work.
-/// 
-/// https://chromedevtools.github.io/devtools-protocol/tot/Runtime#type-CallArgument
-Object callArgumentFor(RemoteObject remote) {
-  if (remote == null) return null;
-  if (remote.type == 'object') return { 'objectId' : remote.objectId};
-  return remote.value;
-}
-
-/// A dart object Id appropriate for [argument].
+/// A Dart object Id appropriate for [argument].
 ///
 /// This will work for simple values, RemoteObject, and Maps
 /// representations of RemoteObjects.

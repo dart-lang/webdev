@@ -6,7 +6,6 @@ import 'package:dwds/src/utilities/shared.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../services/chrome_proxy_service.dart';
-import '../debugging/inspector.dart';
  import 'remote_debugger.dart';
 
 /// Meta data for a remote Dart class in Chrome.
