@@ -45,16 +45,16 @@ List<RemoteObject> remoteObjectsFor(Iterable<String> dartIds) {
 /// must be handled separately.
 RemoteObject remoteObjectFor(String dartId) {
   var data = <String, Object>{};
-  if (dartId.startsWith(_prefixForStringIds)) {
+  if (isStringId(dartId)) {
     data['type'] = 'string';
     data['value'] = _stringFromDartId(dartId);
-  } else if (dartId.startsWith(_prefixForDoubleIds)) {
+  } else if (isDoubleId(dartId)) {
     data['type'] = 'number';
     data['value'] = _doubleFromDartId(dartId);
-  } else if (dartId.startsWith(_prefixForIntIds)) {
+  } else if (isIntId(dartId)) {
     data['type'] = 'number';
     data['value'] = _intFromDartId(dartId);
-  } else if (dartId.startsWith(_prefixForBoolIds)) {
+  } else if (isBoolId(dartId)) {
     data['type'] = 'boolean';
     data['value'] = _boolFromDartId(dartId);
   } else if (dartId == _nullId) {
