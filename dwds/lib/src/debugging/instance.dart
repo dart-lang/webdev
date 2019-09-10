@@ -43,8 +43,6 @@ class InstanceHelper extends Domain {
       this._debugger, this._remoteDebugger, AppInspector Function() provider)
       : super(provider);
 
-
-
   Future<Instance> _stringInstanceFor(RemoteObject remoteObject) async {
 
     var actualString =
@@ -85,7 +83,7 @@ class InstanceHelper extends Domain {
       return _stringInstanceFor(remoteObject);
     }
     var metaData =
-        await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject);
+        await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject, inspector);
     if (metaData.name == 'Function') {
       return _closureInstanceFor(remoteObject);
     } else {
@@ -139,7 +137,7 @@ class InstanceHelper extends Domain {
       return nonSymbolNames.concat(publicFieldNames).join(',');
     }
     ''';
-    var allNames = (await _debugger.inspector
+    var allNames = (await inspector
             .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
         .value as String;
     var names = allNames.split(',');
@@ -172,7 +170,7 @@ class InstanceHelper extends Domain {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
         var metaData =
-            await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject);
+            await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject, inspector);
         if (metaData == null) return null;
         return InstanceRef(
             kind: InstanceKind.kPlainInstance,

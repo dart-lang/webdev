@@ -52,42 +52,7 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   IsolateRef get isolateRef => null;
   @override
-  Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) =>
-      throw UnsupportedError('This is a fake');
-  @override
-  Future<RemoteObject> invokeMethod(RemoteObject receiver, String methodName,
-          [List positionalArgs = const [], Map namedArgs = const {}]) =>
-      throw UnsupportedError('This is a fake');
-  @override
-  Debugger get debugger => throw UnsupportedError('This is a fake');
-
-  @override
-  Future<RemoteObject> evaluateInLibrary(
-      Library library, Map<String, String> scope, String expression) {
-    throw UnsupportedError('This is a fake');
-  }
-
-  @override
-  Future<RemoteObject> jsEvaluate(String expression) =>
-      throw UnsupportedError('This is a fake');
-  @override
-  Future<RemoteObject> evaluateJsExpressionOnLibrary(
-          String expression, String libraryUri) =>
-      throw UnsupportedError('This is a fake');
-
-  @override
   InstanceHelper get instanceHelper => InstanceHelper(null, null, null);
-  @override
-  Future<RemoteObject> jsCallFunctionOn(
-      RemoteObject receiver, String evalExpression, List arguments) {
-    throw UnsupportedError('This is a fake');
-  }
-
-  @override
-  Future<RemoteObject> invoke(
-      String isolateId, String targetId, String selector, List arguments) {
-    throw UnsupportedError('This is a fake');
-  }
 }
 
 class FakeSseConnection implements SseConnection {

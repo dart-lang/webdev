@@ -129,6 +129,7 @@ class AppInspector extends Domain {
     if (namedArgs.isNotEmpty) {
       throw UnsupportedError('Named arguments are not yet supported');
     }
+    // We use the JS pseudo-variable 'arguments' to get the list of all arguments.
     var send = '''
         function () {
           if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
@@ -141,16 +142,17 @@ class AppInspector extends Domain {
 
   /// Calls Chrome's Runtime.callFunctionOn method.
   ///
-  /// [evalExpression] should be a function definition
-  /// that can accept [arguments].
+  /// [evalExpression] should be a JS function definition that can accept
+  /// [arguments].
   Future<RemoteObject> jsCallFunctionOn(
-      RemoteObject receiver, String evalExpression, List<RemoteObject> arguments) async {
+      RemoteObject receiver, String evalExpression, List<RemoteObject> arguments, {bool returnByValue = false}) async {
     var jsArguments = arguments.map(callArgumentFor).toList();
     var result =
         await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': jsArguments,
       'objectId': receiver.objectId,
+      'returnByValue': returnByValue,
     });
     handleErrorIfPresent(result, evalContents: evalExpression);
     return RemoteObject(result.result['result'] as Map<String, Object>);
@@ -183,20 +185,20 @@ class AppInspector extends Domain {
   Future<RemoteObject> invoke(String isolateId, String targetId,
       String selector, List<dynamic> arguments) async {
     checkIsolate(isolateId);
-    var remoteArguments =      arguments.cast<String>().map(remoteObjectFor).toList();
+    var remoteArguments = arguments.cast<String>().map(remoteObjectFor).toList();
     // We special case the Dart library, where invokeMethod won't work because
     // it's not really a Dart object. 
     if (isLibraryId(targetId)) {
-
         var library = await getObject(isolateId, targetId) as Library;
-        return await invokeFunction(library, selector, remoteArguments);
+        return await _invokeFunction(library, selector, remoteArguments);
     } else {
       return invokeMethod(remoteObjectFor(targetId),
           selector, remoteArguments);
     }
   }
 
-Future<RemoteObject> invokeFunction(Library library, String selector, List<RemoteObject> arguments) {
+/// Invoke the function named [selector] from [library] with [arguments].
+Future<RemoteObject> _invokeFunction(Library library, String selector, List<RemoteObject> arguments) {
       return _evaluateInLibrary(
           library,
           'function () { return this.$selector.apply(this, arguments);}',
@@ -241,12 +243,11 @@ Future<RemoteObject> invokeFunction(Library library, String selector, List<Remot
 })();
 ''';
     var remoteLibrary = await jsEvaluate(findLibrary);
-    var result = jsCallFunctionOn(remoteLibrary, jsFunction, arguments);
-    return result;
+    return jsCallFunctionOn(remoteLibrary, jsFunction, arguments);
   }
 
   /// Evaluate [expression] from [library] with [scope] as
-  /// arguments, with 'this' bound to the first object in [scope].
+  /// arguments.
   Future<RemoteObject> evaluateInLibrary(
       Library library, Map<String, String> scope, String expression) async {
     var argsString = scope.keys.join(', ');
@@ -522,14 +523,6 @@ function($argsString) {
 /// from the URI with a Dart-specific scheme (package: or org-dartlang-app:) to
 /// the library objects. The [libraryUri] parameter should be one of these
 /// Dart-specific scheme URIs, and we set `library` the corresponding library.
-// String _getLibrarySnippet(String libraryUri) => '''
-//   var libraryName = '$libraryUri';
-//   var sdkUtils = $loadModule('dart_sdk').dart;
-//   var moduleName = sdkUtils.getModuleNames().find(
-//     (name) => sdkUtils.getModuleLibraries(name)[libraryName]);
-//   var library = sdkUtils.getModuleLibraries(moduleName)[libraryName];
-//   if (!library) throw 'cannot find library for ' + libraryName + ' under ' + moduleName;
-// ''';
 String _getLibrarySnippet(String libraryUri) => '''
    var sdkUtils = $loadModule('dart_sdk').dart;
    var library = sdkUtils.getLibrary('$libraryUri');
