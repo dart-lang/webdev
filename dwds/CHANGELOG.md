@@ -4,6 +4,8 @@
   provided, debug services will not run. However, reload logic will continue
   to work with the injected client.
 - Handle injected client SSE errors.
+- Handle a race condition when the browser is refreshed in the middle of setting
+  up the debug services.
 
 ## 0.5.5
 
