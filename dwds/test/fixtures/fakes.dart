@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:async/src/stream_sink_transformer.dart';
-import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';

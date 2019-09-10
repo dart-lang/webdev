@@ -13,7 +13,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 ///
 /// Note that this doesn't agree with the Chrome Protocol type CallArgument -
 /// it's just a Map corresponding to a RemoteObject. But this seems to work
-/// consistently where the callArgument format doesn't, at least if we're 
+/// consistently where the callArgument format doesn't, at least if we're
 /// using the `arguments` pseudo-variable in JS instead of passing directly
 /// as real arguments.
 Map<String, Object> callArgumentFor(Object argument) {
