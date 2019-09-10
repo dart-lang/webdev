@@ -47,6 +47,7 @@ class DevHandler {
   final ExtensionBackend _extensionBackend;
   final StreamController<DebugConnection> extensionDebugConnections =
       StreamController<DebugConnection>();
+  final bool _enableDebugging;
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -59,6 +60,7 @@ class DevHandler {
     this._verbose,
     this._logWriter,
     this._extensionBackend,
+    this._enableDebugging,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
@@ -257,17 +259,21 @@ class DevHandler {
             ?.chromeProxyService
             ?.destroyIsolate();
       } else if (message is IsolateStart) {
-        await (await loadAppServices(message.appId, message.instanceId))
-            ?.chromeProxyService
-            ?.createIsolate();
+        if (_enableDebugging) {
+          await (await loadAppServices(message.appId, message.instanceId))
+              ?.chromeProxyService
+              ?.createIsolate();
+        }
         // [IsolateStart] events are the result of a Hot Restart.
         // Run the application after the Isolate has been created.
         injectedConnection.sink
             .add(jsonEncode(serializers.serialize(RunRequest())));
       } else if (message is RunResponse) {
-        await (await loadAppServices(message.appId, message.instanceId))
-            ?.chromeProxyService
-            ?.resumeFromStart();
+        if (_enableDebugging) {
+          await (await loadAppServices(message.appId, message.instanceId))
+              ?.chromeProxyService
+              ?.resumeFromStart();
+        }
       }
     });
 

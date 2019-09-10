@@ -1,3 +1,7 @@
+## 2.5.1
+
+- Depend on the latest `package:dwds`.
+
 ## 2.5.0
 
 - TLS support has been added to the `serve` command through the addition of two
