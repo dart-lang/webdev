@@ -1,6 +1,10 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// When run locally this test may require a manifest key. This makes it easy to
+// just skip it.
+@Tags(['extension'])
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
