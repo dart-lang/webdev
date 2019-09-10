@@ -140,7 +140,7 @@ class InstanceHelper extends Domain {
     }
     ''';
     var allNames = (await _debugger.inspector
-            .callFunctionOn(remoteObject, fieldNameExpression, []))
+            .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
         .value as String;
     var names = allNames.split(',');
     return allJsProperties

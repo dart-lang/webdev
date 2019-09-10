@@ -45,7 +45,7 @@ void main() {
       '["$url"]["$variable"];';
 
   Future<RemoteObject> libraryPublicFinal() => inspector
-      .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+      .jsEvaluate(libraryVariableExpression('libraryPublicFinal'));
 
   group('instanceRef', () {
     test('for a null', () async {

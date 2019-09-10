@@ -120,12 +120,12 @@ class AppInspector extends Domain {
           return $loadModule("dart_sdk").dart.dloadRepl(this, "$fieldName");
         }
         ''';
-    return callFunctionOn(receiver, load, _marshallArguments([]));
+    return jsCallFunctionOn(receiver, load, _marshallArguments([]));
   }
 
   /// Call a method by name on [receiver], with arguments [positionalArgs] and
   /// [namedArgs].
-  Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
+  Future<RemoteObject> invokeMethod(RemoteObject receiver, String methodName,
       [List<RemoteObject> positionalArgs = const [], Map namedArgs = const {}]) async {
     // TODO(alanknight): Support named arguments.
     if (namedArgs.isNotEmpty) {
@@ -134,15 +134,11 @@ class AppInspector extends Domain {
     var send = '''
         function (positional) {
           if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
-          // var answer = 'arguments are (' + positional.length + ') : ';
-          // for (var i of positional) {
-          //   answer = answer + JSON.stringify(i);
-          // } return answer;
           return $loadModule("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
         }
         ''';
     var arguments = _marshallArguments(positionalArgs);
-    var remote = await callFunctionOn(receiver, send, arguments);
+    var remote = await jsCallFunctionOn(receiver, send, arguments);
     return remote;
   }
 
@@ -151,7 +147,7 @@ class AppInspector extends Domain {
   /// [arguments] is expected to be in the form returned by
   /// [_marshallArguments]. [evalExpression] should be a function definition
   /// that can accept [arguments].
-  Future<RemoteObject> callFunctionOn(
+  Future<RemoteObject> jsCallFunctionOn(
       RemoteObject receiver, String evalExpression, List arguments) async {
     var result =
         await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
@@ -164,29 +160,12 @@ class AppInspector extends Domain {
   }
 
   /// Convert [arguments] to a form usable in WIP evaluation calls.
+  ///
+  /// That is: `[{'value' : List<CallArgument|primitive>}]`. This is
+  /// not what the protocol docs describe, but it's what seems to work
+  /// in some circumstances.
   List _marshallArguments(List<RemoteObject> arguments) {
-  // #### This is weird. IT says pass a list of callargument, but it appears
-  // we want a list with one, which is the list of the actual ones??
-  // OT does that only work for the zero-arg case?
-         // return [{'value': arguments. map(callArgumentFor).toList()}];
-        // sees the object.
-
-      
-return [{'value': arguments. map(callArgumentFor).toList()}];
-
-         // return arguments. map(callArgumentFor).toList(); //expects object
-         // Sees ["s" "o", ...]
-
-        // return [arguments.map(callArgumentFor).toList()];
-        // WipError (WipError 9: {code: -32602, message: Invalid parameters, data: arguments.0: object expected})
-         
-        // return [ {'value': arguments. map(callArgumentFor).toList()}]; 
-         // Sees {'value' : 'some string'}. expected string, got Native JSObject from dsendrepl
-
-    // return [
-      
-    //   // {'value': arguments.map(mapForObject).toList()}
-    // ];
+      return [{'value': arguments. map(callArgumentFor).toList()}];
   }
 
 
@@ -201,7 +180,7 @@ return [{'value': arguments. map(callArgumentFor).toList()}];
           'Evaluate is only supported when `targetId` is a library.');
     }
     if (scope.isNotEmpty) {
-      return evaluateWithScope(library, scope, expression);
+      return evaluateInLibrary(library, scope, expression);
     } else {
       return evaluateJsExpressionOnLibrary(expression, library.uri);
     }
@@ -219,19 +198,24 @@ return [{'value': arguments. map(callArgumentFor).toList()}];
     checkIsolate(isolateId);
     var remoteArguments = await Future.wait(
         arguments.cast<String>().map(remoteObjectFor));
-    // We special case the Dart library, where sendMessage won't work because
+    // We special case the Dart library, where invokeMethod won't work because
     // it's not really a Dart object. 
     if (isLibraryId(targetId)) {
-      var library = await getObject(isolateId, targetId) as Library;
-      return callJsFunctionOn(
-          library,
-          'function () { return this.$selector.apply(this, arguments);}',
-          remoteArguments);
+
+        var library = await getObject(isolateId, targetId) as Library;
+        return await invokeFunction(library, selector, remoteArguments);
     } else {
-      return sendMessage(await remoteObjectFor(targetId),
+      return invokeMethod(await remoteObjectFor(targetId),
           selector, remoteArguments);
     }
   }
+
+Future<RemoteObject> invokeFunction(Library library, String selector, List<RemoteObject> arguments) {
+      return _evaluateInLibrary(
+          library,
+          'function () { return this.$selector.apply(this, arguments);}',
+          arguments);
+}
 
   /// Evaluate [expression] as a member/message of the library identified by
   /// [libraryUri].
@@ -245,11 +229,11 @@ return [{'value': arguments. map(callArgumentFor).toList()}];
   return library.$expression;
 })();
 ''';
-    return evaluateJsExpression(evalExpression);
+    return jsEvaluate(evalExpression);
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
-  Future<RemoteObject> evaluateJsExpression(String expression) async {
+  Future<RemoteObject> jsEvaluate(String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.
     WipResponse result;
     result = await _remoteDebugger
@@ -260,10 +244,10 @@ return [{'value': arguments. map(callArgumentFor).toList()}];
     return RemoteObject(result.result['result'] as Map<String, dynamic>);
   }
 
-  /// Call the function named [expression] from [library] with [arguments].
-  // TODO(alanknight): Make this API cleaner.
-  Future<RemoteObject> callJsFunctionOn(
-      Library library, String expression, List<RemoteObject> arguments) async {
+  /// Evaluate the JS function with source [jsFunction] in the context of
+  /// [library] with [arguments].
+  Future<RemoteObject> _evaluateInLibrary(
+      Library library, String jsFunction, List<RemoteObject> arguments) async {
     var rawArguments = arguments.map(mapForObject).toList();
     var findLibrary = '''
 (function() {
@@ -271,14 +255,14 @@ return [{'value': arguments. map(callArgumentFor).toList()}];
   return library;
 })();
 ''';
-    var remoteLibrary = await evaluateJsExpression(findLibrary);
-    var result = callFunctionOn(remoteLibrary, expression, rawArguments);
+    var remoteLibrary = await jsEvaluate(findLibrary);
+    var result = jsCallFunctionOn(remoteLibrary, jsFunction, rawArguments);
     return result;
   }
 
   /// Evaluate [expression] from [library] with [scope] as
   /// arguments, with 'this' bound to the first object in [scope].
-  Future<RemoteObject> evaluateWithScope(
+  Future<RemoteObject> evaluateInLibrary(
       Library library, Map<String, String> scope, String expression) async {
     var argsString = scope.keys.join(', ');
     // TODO(alanknight): Can we use _marshallOne or similar.
@@ -292,7 +276,7 @@ function($argsString) {
   return library.$expression;
 }
     ''';
-    return callJsFunctionOn(library, evalExpression, arguments);
+    return _evaluateInLibrary(library, evalExpression, arguments);
   }
 
   Future<Library> _getLibrary(String isolateId, String objectId) async {

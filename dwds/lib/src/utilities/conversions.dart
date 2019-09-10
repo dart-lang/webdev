@@ -54,13 +54,16 @@ Future<RemoteObject> remoteObjectFor(String dartId) async {
 }
 
 /// Convert a RemoteObject to a Chrome CallArgument.
-///  ###### Should this just replace mapFor???
+/// 
+/// Note that this returns the value if it's JS serializable, rather
+/// than wrapping it as described in the link below, because that's
+/// what seems to work.
+/// 
 /// https://chromedevtools.github.io/devtools-protocol/tot/Runtime#type-CallArgument
 Object callArgumentFor(RemoteObject remote) {
   if (remote == null) return null;
   if (remote.type == 'object') return { 'objectId' : remote.objectId};
   return remote.value;
-  //return {'value' :remote.value};
 }
 
 /// A dart object Id appropriate for [argument].

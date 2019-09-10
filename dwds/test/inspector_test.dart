@@ -38,11 +38,11 @@ void main() {
       '$loadModule("dart_sdk").dart.getModuleLibraries("web/scopes_main")["$url"]["$variable"];';
 
   Future<RemoteObject> libraryPublicFinal() => inspector
-      .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+      .jsEvaluate(libraryVariableExpression('libraryPublicFinal'));
 
   test('send toString', () async {
     var remoteObject = await libraryPublicFinal();
-    var toString = await inspector.sendMessage(remoteObject, 'toString', []);
+    var toString = await inspector.invokeMethod(remoteObject, 'toString', []);
     expect(toString.value, 'A test class with message world');
   });
 
