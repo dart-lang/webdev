@@ -67,7 +67,7 @@ class Chrome {
       // Chrome starts another process as soon as it dies that modifies the
       // profile information. Give it some time before attempting to delete
       // the directory.
-      await Future.delayed(Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 500));
       await _dataDir?.delete(recursive: true);
     } catch (_) {
       // Silently fail if we can't clean up the profile information.
@@ -112,7 +112,7 @@ class Chrome {
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .firstWhere((line) => line.startsWith('DevTools listening'))
-        .timeout(Duration(seconds: 60),
+        .timeout(const Duration(seconds: 60),
             onTimeout: () =>
                 throw Exception('Unable to connect to Chrome DevTools.'));
 
