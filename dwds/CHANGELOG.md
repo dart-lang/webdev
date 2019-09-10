@@ -1,6 +1,8 @@
 ## 0.6.0
 
 - Handle injected client SSE errors.
+- Handle a race condition when the browser is refreshed in the middle of setting
+  up the debug services.
 
 ## 0.5.5
 
