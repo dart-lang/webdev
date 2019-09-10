@@ -31,7 +31,8 @@ void main() {
     inspector = chromeProxyService.appInspectorProvider();
     remoteDebugger = chromeProxyService.remoteDebugger;
     debugger = inspector.debugger;
-    instanceHelper = InstanceHelper(debugger, remoteDebugger, chromeProxyService.appInspectorProvider);
+    instanceHelper = InstanceHelper(
+        debugger, remoteDebugger, chromeProxyService.appInspectorProvider);
   });
 
   tearDownAll(() async {
@@ -44,8 +45,8 @@ void main() {
       '$loadModule("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
       '["$url"]["$variable"];';
 
-  Future<RemoteObject> libraryPublicFinal() => inspector
-      .jsEvaluate(libraryVariableExpression('libraryPublicFinal'));
+  Future<RemoteObject> libraryPublicFinal() =>
+      inspector.jsEvaluate(libraryVariableExpression('libraryPublicFinal'));
 
   group('instanceRef', () {
     test('for a null', () async {

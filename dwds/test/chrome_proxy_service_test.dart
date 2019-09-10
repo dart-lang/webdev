@@ -623,9 +623,9 @@ void main() {
                 .having((instance) => instance.kind, 'kind', 'String'));
       });
 
-            test('null argument', () async {
-        var remote = await service.invoke(isolate.id, isolate.rootLib.id,
-            'helloString', ['objects/null']);
+      test('null argument', () async {
+        var remote = await service.invoke(
+            isolate.id, isolate.rootLib.id, 'helloString', ['objects/null']);
         expect(
             remote,
             const TypeMatcher<InstanceRef>().having(
@@ -637,8 +637,8 @@ void main() {
       });
 
       test('helloBool', () async {
-        var remote = await service.invoke(isolate.id, isolate.rootLib.id,
-            'helloBool', ['objects/bool-true']);
+        var remote = await service.invoke(
+            isolate.id, isolate.rootLib.id, 'helloBool', ['objects/bool-true']);
         expect(
             remote,
             const TypeMatcher<InstanceRef>().having(
@@ -649,9 +649,9 @@ void main() {
                 .having((instance) => instance.kind, 'kind', 'Bool'));
       });
 
-            test('helloNum', () async {
-        var remote = await service.invoke(isolate.id, isolate.rootLib.id,
-            'helloNum', ['objects/int-123']);
+      test('helloNum', () async {
+        var remote = await service.invoke(
+            isolate.id, isolate.rootLib.id, 'helloNum', ['objects/int-123']);
         expect(
             remote,
             const TypeMatcher<InstanceRef>().having(
@@ -662,14 +662,15 @@ void main() {
                 .having((instance) => instance.kind, 'kind', 'Double'));
       });
 
-
       test('two object arguments', () async {
         var remote = await service.invoke(isolate.id, isolate.rootLib.id,
             'messagesCombined', [testInstance.id, testInstance.id]);
         expect(
             remote,
             const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'messagesCombined', 'worldworld'));
+                (instance) => instance.valueAsString,
+                'messagesCombined',
+                'worldworld'));
         expect(
             remote,
             const TypeMatcher<InstanceRef>()

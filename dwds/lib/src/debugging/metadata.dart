@@ -24,8 +24,8 @@ class ClassMetaData {
   /// Returns the [ClassMetaData] for the Chrome [remoteObject].
   ///
   /// Returns null if the [remoteObject] is not a Dart class.
-  static Future<ClassMetaData> metaDataFor(
-      RemoteDebugger remoteDebugger, RemoteObject remoteObject, AppInspector inspector) async {
+  static Future<ClassMetaData> metaDataFor(RemoteDebugger remoteDebugger,
+      RemoteObject remoteObject, AppInspector inspector) async {
     try {
       var evalExpression = '''
       function(arg) {
@@ -37,10 +37,12 @@ class ClassMetaData {
         return result;
       }
     ''';
-      var result = await inspector.jsCallFunctionOn(remoteObject, evalExpression, [remoteObject], returnByValue: true);
+      var result = await inspector.jsCallFunctionOn(
+          remoteObject, evalExpression, [remoteObject],
+          returnByValue: true);
       var metadata = result.value as Map;
-      return ClassMetaData(metadata['name'] as String,
-          metadata['libraryId'] as String);
+      return ClassMetaData(
+          metadata['name'] as String, metadata['libraryId'] as String);
     } on ChromeDebugException {
       return null;
     }

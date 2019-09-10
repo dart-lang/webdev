@@ -119,10 +119,11 @@ void main() {
           const TypeMatcher<RemoteObject>()
               .having((instance) => instance.value, 'result', true));
     });
-        test('invoke instance method with object parameter 2', () async {
-      var libraryPrivateList = await inspector.evaluate(isolateId, libraryId, '_libraryPrivate');
-      var remote = await inspector
-          .invoke(isolateId, instance.objectId, 'equals', [libraryPrivateList.objectId]);
+    test('invoke instance method with object parameter 2', () async {
+      var libraryPrivateList =
+          await inspector.evaluate(isolateId, libraryId, '_libraryPrivate');
+      var remote = await inspector.invoke(isolateId, instance.objectId,
+          'equals', [libraryPrivateList.objectId]);
       expect(
           remote,
           const TypeMatcher<RemoteObject>()

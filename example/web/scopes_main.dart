@@ -105,7 +105,7 @@ class MyTestClass {
     if (other is MyTestClass) return message == other.hello();
     return false;
   }
-  
+
   Function closure = someFunction;
 }
 

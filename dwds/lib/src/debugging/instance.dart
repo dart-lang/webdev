@@ -14,15 +14,14 @@ import 'inspector.dart';
 import 'metadata.dart';
 import 'remote_debugger.dart';
 
-
-
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
   var classRef = ClassRef(
       // TODO(grouma) - is this ID correct?
       id: 'dart:core:${remoteObject?.type}',
       name: kind);
-  return InstanceRef(kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
+  return InstanceRef(
+      kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
     ..valueAsString = '${remoteObject?.value}';
 }
 
@@ -44,9 +43,7 @@ class InstanceHelper extends Domain {
       : super(provider);
 
   Future<Instance> _stringInstanceFor(RemoteObject remoteObject) async {
-
-    var actualString =
-         stringFromDartId(remoteObject.objectId);
+    var actualString = stringFromDartId(remoteObject.objectId);
     return Instance(
         kind: InstanceKind.kString,
         classRef: _classRefForString,
@@ -82,8 +79,8 @@ class InstanceHelper extends Domain {
     if (isStringId(remoteObject.objectId)) {
       return _stringInstanceFor(remoteObject);
     }
-    var metaData =
-        await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject, inspector);
+    var metaData = await ClassMetaData.metaDataFor(
+        _remoteDebugger, remoteObject, inspector);
     if (metaData.name == 'Function') {
       return _closureInstanceFor(remoteObject);
     } else {
@@ -155,9 +152,9 @@ class InstanceHelper extends Domain {
     switch (remoteObject.type) {
       case 'string':
         return InstanceRef(
-           id: dartIdFor(remoteObject.value),
-          classRef: _classRefForString,
-          kind: InstanceKind.kString)
+            id: dartIdFor(remoteObject.value),
+            classRef: _classRefForString,
+            kind: InstanceKind.kString)
           ..valueAsString = remoteObject.value as String;
       case 'number':
         return _primitiveInstance(InstanceKind.kDouble, remoteObject);
@@ -169,8 +166,8 @@ class InstanceHelper extends Domain {
         if (remoteObject.type == 'object' && remoteObject.objectId == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
-        var metaData =
-            await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject, inspector);
+        var metaData = await ClassMetaData.metaDataFor(
+            _remoteDebugger, remoteObject, inspector);
         if (metaData == null) return null;
         return InstanceRef(
             kind: InstanceKind.kPlainInstance,

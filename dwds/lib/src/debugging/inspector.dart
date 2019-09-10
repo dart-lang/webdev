@@ -83,12 +83,11 @@ class AppInspector extends Domain {
       IsolateRef(id: isolate.id, name: isolate.name, number: isolate.number);
 
   static Future<AppInspector> initialize(
-    RemoteDebugger remoteDebugger,
-    AssetHandler assetHandler,
-    Debugger debugger,
-    String root,
-    InstanceHelper instanceHelper
-  ) async {
+      RemoteDebugger remoteDebugger,
+      AssetHandler assetHandler,
+      Debugger debugger,
+      String root,
+      InstanceHelper instanceHelper) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;
     var isolate = Isolate(
@@ -105,8 +104,8 @@ class AppInspector extends Domain {
         exceptionPauseMode: debugger.pauseState)
       ..extensionRPCs = [];
     debugger.notifyPausedAtStart();
-    var inspector =
-        AppInspector._(isolate, assetHandler, debugger, root, remoteDebugger, instanceHelper);
+    var inspector = AppInspector._(
+        isolate, assetHandler, debugger, root, remoteDebugger, instanceHelper);
     await inspector._initialize();
     return inspector;
   }
@@ -124,7 +123,8 @@ class AppInspector extends Domain {
   /// Call a method by name on [receiver], with arguments [positionalArgs] and
   /// [namedArgs].
   Future<RemoteObject> invokeMethod(RemoteObject receiver, String methodName,
-      [List<RemoteObject> positionalArgs = const [], Map namedArgs = const {}]) async {
+      [List<RemoteObject> positionalArgs = const [],
+      Map namedArgs = const {}]) async {
     // TODO(alanknight): Support named arguments.
     if (namedArgs.isNotEmpty) {
       throw UnsupportedError('Named arguments are not yet supported');
@@ -144,8 +144,9 @@ class AppInspector extends Domain {
   ///
   /// [evalExpression] should be a JS function definition that can accept
   /// [arguments].
-  Future<RemoteObject> jsCallFunctionOn(
-      RemoteObject receiver, String evalExpression, List<RemoteObject> arguments, {bool returnByValue = false}) async {
+  Future<RemoteObject> jsCallFunctionOn(RemoteObject receiver,
+      String evalExpression, List<RemoteObject> arguments,
+      {bool returnByValue = false}) async {
     var jsArguments = arguments.map(callArgumentFor).toList();
     var result =
         await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
@@ -180,30 +181,31 @@ class AppInspector extends Domain {
   ///
   /// The [targetId] can be the URL of a Dart library, in which case this means
   /// invoking a top-level function. The [arguments] are always strings that are
-  /// Dart object Ids (which can also be Chrome RemoteObject objectIds that are 
+  /// Dart object Ids (which can also be Chrome RemoteObject objectIds that are
   /// for non-Dart JS objects.)
   Future<RemoteObject> invoke(String isolateId, String targetId,
       String selector, List<dynamic> arguments) async {
     checkIsolate(isolateId);
-    var remoteArguments = arguments.cast<String>().map(remoteObjectFor).toList();
+    var remoteArguments =
+        arguments.cast<String>().map(remoteObjectFor).toList();
     // We special case the Dart library, where invokeMethod won't work because
-    // it's not really a Dart object. 
+    // it's not really a Dart object.
     if (isLibraryId(targetId)) {
-        var library = await getObject(isolateId, targetId) as Library;
-        return await _invokeFunction(library, selector, remoteArguments);
+      var library = await getObject(isolateId, targetId) as Library;
+      return await _invokeFunction(library, selector, remoteArguments);
     } else {
-      return invokeMethod(remoteObjectFor(targetId),
-          selector, remoteArguments);
+      return invokeMethod(remoteObjectFor(targetId), selector, remoteArguments);
     }
   }
 
-/// Invoke the function named [selector] from [library] with [arguments].
-Future<RemoteObject> _invokeFunction(Library library, String selector, List<RemoteObject> arguments) {
-      return _evaluateInLibrary(
-          library,
-          'function () { return this.$selector.apply(this, arguments);}',
-          arguments);
-}
+  /// Invoke the function named [selector] from [library] with [arguments].
+  Future<RemoteObject> _invokeFunction(
+      Library library, String selector, List<RemoteObject> arguments) {
+    return _evaluateInLibrary(
+        library,
+        'function () { return this.$selector.apply(this, arguments);}',
+        arguments);
+  }
 
   /// Evaluate [expression] as a member/message of the library identified by
   /// [libraryUri].
@@ -251,8 +253,7 @@ Future<RemoteObject> _invokeFunction(Library library, String selector, List<Remo
   Future<RemoteObject> evaluateInLibrary(
       Library library, Map<String, String> scope, String expression) async {
     var argsString = scope.keys.join(', ');
-    var arguments = scope.values
-        .map(remoteObjectFor).toList();
+    var arguments = scope.values.map(remoteObjectFor).toList();
     var evalExpression = '''
 function($argsString) {
   ${_getLibrarySnippet(library.uri)};

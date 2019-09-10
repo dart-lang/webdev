@@ -110,15 +110,11 @@ class ChromeProxyService implements VmServiceInterface {
           'Cannot create multiple isolates for the same app');
     }
 
-    var instanceHelper = InstanceHelper(_debugger, remoteDebugger, appInspectorProvider);
+    var instanceHelper =
+        InstanceHelper(_debugger, remoteDebugger, appInspectorProvider);
 
     _inspector = await AppInspector.initialize(
-      remoteDebugger,
-      _assetHandler,
-      _debugger,
-      uri,
-      instanceHelper
-    );
+        remoteDebugger, _assetHandler, _debugger, uri, instanceHelper);
 
     var isolateRef = _inspector.isolateRef;
     var timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -318,9 +314,8 @@ $loadModule("dart_sdk").developer.invokeExtension(
   Future invoke(
       String isolateId, String targetId, String selector, List argumentIds,
       {bool disableBreakpoints}) async {
-
-    
-    var remote = await _inspector?.invoke(isolateId, targetId, selector, argumentIds);
+    var remote =
+        await _inspector?.invoke(isolateId, targetId, selector, argumentIds);
     return _inspector?.instanceHelper?.instanceRefFor(remote);
   }
 

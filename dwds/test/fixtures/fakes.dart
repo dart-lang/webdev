@@ -28,6 +28,7 @@ class FakeInspector extends Domain implements AppInspector {
   Object noSuchMethod(Invocation invocation) {
     throw UnsupportedError('This is a fake');
   }
+
   @override
   Future<RemoteObject> evaluate(
           String isolateId, String targetId, String expression,

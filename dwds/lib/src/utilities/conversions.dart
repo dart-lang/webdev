@@ -12,19 +12,22 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// be passed through the protocol directly.
 ///
 /// Note that this doesn't agree with the Chrome Protocol type CallArgument -
-/// it's just a Map corresponding to a RemoteObject.
+/// it's just a Map corresponding to a RemoteObject. But this seems to work
+/// consistently where the callArgument format doesn't, at least if we're 
+/// using the `arguments` pseudo-variable in JS instead of passing directly
+/// as real arguments.
 Map<String, Object> callArgumentFor(Object argument) {
   if (argument is RemoteObject) {
     return argument.objectId == null
-        ? _mapForPrimitive(argument.value)
-        : _mapForRemote(argument);
+        ? _callArgumentForPrimitive(argument.value)
+        : _callArgumentForRemote(argument);
   } else {
-    return _mapForPrimitive(argument);
+    return _callArgumentForPrimitive(argument);
   }
 }
 
 /// A List of Chrome RemoteObjects from Dart object Ids [dartIds].
-/// 
+///
 /// See [remoteObjectFor] for the accepted ID format.
 List<RemoteObject> remoteObjectsFor(Iterable<String> dartIds) {
   return dartIds.map(remoteObjectFor).toList();
@@ -129,12 +132,12 @@ bool isDoubleId(String dartId) => dartId.startsWith(_prefixForDoubleIds);
 bool isLibraryId(String dartId) => _uriPrefixes.any(dartId.startsWith);
 
 /// A Map representing a RemoteObject for a primitive object.
-Map<String, Object> _mapForPrimitive(Object primitive) {
+Map<String, Object> _callArgumentForPrimitive(Object primitive) {
   return {'type': _jsTypeOf(primitive), 'value': primitive};
 }
 
 /// A Map representing a RemoteObject from an actual RemoteObject.
-Map<String, Object> _mapForRemote(RemoteObject remote) {
+Map<String, Object> _callArgumentForRemote(RemoteObject remote) {
   return {'type': 'object', 'objectId': remote.objectId};
 }
 
