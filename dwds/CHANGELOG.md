@@ -1,3 +1,18 @@
+## 0.6.0
+
+- Add new required parameter `enableDebugging` to `Dwds.start`. If `false` is
+  provided, debug services will not run. However, reload logic will continue
+  to work with the injected client.
+- Handle injected client SSE errors.
+- Handle a race condition when the browser is refreshed in the middle of setting
+  up the debug services.
+
+## 0.5.5
+
+- Properly set the `pauseEvent` on the `Isolate`.
+- Fix a race condition with Hot Restarts where the Isolate was not created in
+  time for pause events.
+
 ## 0.5.4
 
 - Fix issue where certain required fields of VM service protocol objects were

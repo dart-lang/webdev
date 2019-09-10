@@ -32,10 +32,14 @@ class Dwds {
   final Handler handler;
   final DevTools _devTools;
   final DevHandler _devHandler;
+  final bool _enableDebugging;
 
-  Dwds._(this.handler, this._devTools, this._devHandler);
+  Dwds._(this.handler, this._devTools, this._devHandler, this._enableDebugging);
 
   Stream<AppConnection> get connectedApps => _devHandler.connectedApps;
+
+  StreamController<DebugConnection> get extensionDebugConnections =>
+      _devHandler.extensionDebugConnections;
 
   Future<void> stop() async {
     await _devTools?.close();
@@ -43,6 +47,7 @@ class Dwds {
   }
 
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
+    if (!_enableDebugging) throw StateError('Debugging is not enabled.');
     var appDebugServices = await _devHandler.loadAppServices(
         appConnection.request.appId, appConnection.request.instanceId);
     return DebugConnection(appDebugServices);
@@ -54,6 +59,7 @@ class Dwds {
     @required String applicationTarget,
     @required Stream<BuildResult> buildResults,
     @required ConnectionProvider chromeConnection,
+    @required bool enableDebugging,
     String hostname,
     ReloadConfiguration reloadConfiguration,
     bool serveDevTools,
@@ -64,6 +70,7 @@ class Dwds {
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
+    enableDebugging ??= true;
     enableDebugExtension ??= false;
     // `serveDevTools` is true by default when the extension is enabled.
     serveDevTools = serveDevTools || enableDebugExtension;
@@ -106,9 +113,15 @@ class Dwds {
       verbose,
       logWriter,
       extensionBackend,
+      enableDebugging,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
-    return Dwds._(pipeline.addHandler(cascade.handler), devTools, devHandler);
+    return Dwds._(
+      pipeline.addHandler(cascade.handler),
+      devTools,
+      devHandler,
+      enableDebugging,
+    );
   }
 }

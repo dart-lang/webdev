@@ -9,6 +9,13 @@ import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
 
+// [For Googlers]
+// A whitelisted developer key is needed to run these tests locally.
+// Add a developer key to dwds/debug_extension/web/manifest.json.
+// Otherwise, you will get 'Error Loading Extension' alert.
+// Remove the key before pushing code to GitHub.
+// See go/extension-identification.
+
 final context = TestContext();
 void main() async {
   setUpAll(() async {

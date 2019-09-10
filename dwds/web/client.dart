@@ -67,7 +67,7 @@ Future<void> main() {
       var event = serializers.deserialize(jsonDecode(serialized));
       if (event is DefaultBuildResult) {
         if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
-          window.location.reload();
+          _reloadPage();
         } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {
           await hotRestart(manager, client);
         } else if (reloadConfiguration == 'ReloadConfiguration.hotReload') {
@@ -78,8 +78,16 @@ Future<void> main() {
           window.alert('DevTools failed to open with: ${event.error}');
         }
       } else if (event is RunRequest) {
+        client.sink.add(jsonEncode(serializers.serialize(RunResponse((b) => b
+          ..appId = dartAppId
+          ..instanceId = dartAppInstanceId))));
         runMain();
       }
+    }, onError: (error) {
+      // An error is propagated on a full page reload as Chrome presumably
+      // forces the SSE connection to close in a bad state. This does not cause
+      // any adverse effects so simply swallow this error as to not print the
+      // misleading unhandled error message.
     });
 
     window.onKeyDown.listen((Event e) {
@@ -166,10 +174,10 @@ Future<bool> hotRestart(ReloadingManager manager, SseClient sseClient) async {
       ..instanceId = dartAppInstanceId))));
     callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
     // Notify webdev that the isolate has been created.
+    // package:dwds will respond with a [RunRequest].
     sseClient.sink.add(jsonEncode(serializers.serialize(IsolateStart((b) => b
       ..appId = dartAppId
       ..instanceId = dartAppInstanceId))));
-    runMain();
   }
 
   if (modulesToLoad.isNotEmpty) {

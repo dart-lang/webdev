@@ -7,6 +7,8 @@ import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart' as build_daemon;
+import 'package:dwds/data/run_request.dart';
+import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
@@ -43,6 +45,9 @@ class DevHandler {
   final void Function(Level, String) _logWriter;
   final Future<ChromeConnection> Function() _chromeConnection;
   final ExtensionBackend _extensionBackend;
+  final StreamController<DebugConnection> extensionDebugConnections =
+      StreamController<DebugConnection>();
+  final bool _enableDebugging;
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -55,6 +60,7 @@ class DevHandler {
     this._verbose,
     this._logWriter,
     this._extensionBackend,
+    this._enableDebugging,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
@@ -253,9 +259,21 @@ class DevHandler {
             ?.chromeProxyService
             ?.destroyIsolate();
       } else if (message is IsolateStart) {
-        await (await loadAppServices(message.appId, message.instanceId))
-            ?.chromeProxyService
-            ?.createIsolate();
+        if (_enableDebugging) {
+          await (await loadAppServices(message.appId, message.instanceId))
+              ?.chromeProxyService
+              ?.createIsolate();
+        }
+        // [IsolateStart] events are the result of a Hot Restart.
+        // Run the application after the Isolate has been created.
+        injectedConnection.sink
+            .add(jsonEncode(serializers.serialize(RunRequest())));
+      } else if (message is RunResponse) {
+        if (_enableDebugging) {
+          await (await loadAppServices(message.appId, message.instanceId))
+              ?.chromeProxyService
+              ?.resumeFromStart();
+        }
       }
     });
 
@@ -328,6 +346,7 @@ class DevHandler {
               'Stopped debug service on '
               '${appServices.debugService.uri}\n');
         }));
+        extensionDebugConnections.add(DebugConnection(appServices));
         return appServices;
       });
       await _extensionDebugger.sendCommand('Target.createTarget', params: {

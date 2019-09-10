@@ -203,12 +203,19 @@ ${await response.readAsString()}
   }
 
   Future<void> _blackBoxRanges(String scriptId, List<int> lineNumbers) async {
-    await _remoteDebugger.sendCommand('Debugger.setBlackboxedRanges', params: {
-      'scriptId': scriptId,
-      'positions': [
-        {'lineNumber': 0, 'columnNumber': 0},
-        for (var line in lineNumbers) {'lineNumber': line, 'columnNumber': 0},
-      ]
-    });
+    try {
+      await _remoteDebugger
+          .sendCommand('Debugger.setBlackboxedRanges', params: {
+        'scriptId': scriptId,
+        'positions': [
+          {'lineNumber': 0, 'columnNumber': 0},
+          for (var line in lineNumbers) {'lineNumber': line, 'columnNumber': 0},
+        ]
+      });
+    } catch (_) {
+      // Attempting to set ranges immediately after a refresh can cause issues
+      // as the corresponding script will no longer exist. Silently ignore
+      // these failures.
+    }
   }
 }

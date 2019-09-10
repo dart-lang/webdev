@@ -98,6 +98,7 @@ class WebDevServer {
         serveDevTools: options.configuration.debug,
         verbose: options.configuration.verbose,
         enableDebugExtension: options.configuration.debugExtension,
+        enableDebugging: options.configuration.debug,
       );
       assetHandler = dwds.handler;
     } else {
