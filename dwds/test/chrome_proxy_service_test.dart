@@ -663,7 +663,7 @@ void main() {
       });
 
 
-      test('two arguments', () async {
+      test('two object arguments', () async {
         var remote = await service.invoke(isolate.id, isolate.rootLib.id,
             'messagesCombined', [testInstance.id, testInstance.id]);
         expect(

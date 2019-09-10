@@ -101,6 +101,11 @@ class MyTestClass {
   @override
   String toString() => 'A test class with message $message';
 
+  bool equals(Object other) {
+    if (other is MyTestClass) return message == other.hello();
+    return false;
+  }
+  
   Function closure = someFunction;
 }
 
