@@ -30,7 +30,7 @@ void main() async {
     return () => '$local + $banana';
   }
 
-  Timer.periodic(Duration(seconds: 1), (Timer t) {
+  Timer.periodic(const Duration(seconds: 1), (Timer t) {
     var ticks = t.tick;
     // ignore: unused_local_variable, prefer_typing_uninitialized_variables
     var closureLocal;
