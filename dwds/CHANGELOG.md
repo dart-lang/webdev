@@ -1,3 +1,7 @@
+## 0.6.1
+
+- Add `isolateRef` to `Isolate`s `pauseEvent`s.
+
 ## 0.6.0
 
 - Add new required parameter `enableDebugging` to `Dwds.start`. If `false` is
