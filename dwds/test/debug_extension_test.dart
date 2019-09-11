@@ -5,7 +5,7 @@
 // When run locally this test may require a manifest key. This makes it easy to
 // just skip it.
 @Tags(['extension'])
-@Skip("currently failing (see issue 661)")
+@Skip('currently failing (see issue 661)')
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
