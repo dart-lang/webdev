@@ -29,7 +29,8 @@ class Event extends vm_service.Event {
   factory Event({
     @required String kind,
     @required int timestamp,
-    // Technically not required by the spec but is required by VS Code.
+    // This is provided for all event kinds except for:
+    //   VMUpdate, VMFlagUpdate
     @required vm_service.IsolateRef isolate,
   }) {
     var event = Event._();
