@@ -192,14 +192,14 @@ class AppInspector extends Domain {
     // it's not really a Dart object.
     if (isLibraryId(targetId)) {
       var library = await getObject(isolateId, targetId) as Library;
-      return await _invokeFunction(library, selector, remoteArguments);
+      return await _invokeLibraryFunction(library, selector, remoteArguments);
     } else {
       return invokeMethod(remoteObjectFor(targetId), selector, remoteArguments);
     }
   }
 
   /// Invoke the function named [selector] from [library] with [arguments].
-  Future<RemoteObject> _invokeFunction(
+  Future<RemoteObject> _invokeLibraryFunction(
       Library library, String selector, List<RemoteObject> arguments) {
     return _evaluateInLibrary(
         library,

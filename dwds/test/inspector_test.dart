@@ -72,7 +72,8 @@ void main() {
       'count',
       'message',
       'myselfField',
-      'notFinal'
+      'notFinal',
+      'tornOff',
     ];
     names.sort();
     expect(names, expected);
@@ -128,6 +129,25 @@ void main() {
           remote,
           const TypeMatcher<RemoteObject>()
               .having((instance) => instance.value, 'result', false));
+    });
+
+    test('invoke closure stored in an instance field', () async {
+      var remote =
+          await inspector.invoke(isolateId, instance.objectId, 'closure', []);
+      expect(
+          remote,
+          const TypeMatcher<RemoteObject>()
+              .having((instance) => instance.value, 'result', null));
+    });
+
+    test('invoke a torn-off method', () async {
+      var toString = await inspector.loadField(instance, 'tornOff');
+      var result =
+          await inspector.invoke(isolateId, toString.objectId, 'call', []);
+      expect(
+          result,
+          const TypeMatcher<RemoteObject>().having((instance) => instance.value,
+              'toString', 'A test class with message world'));
     });
   });
 }

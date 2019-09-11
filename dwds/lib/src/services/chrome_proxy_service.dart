@@ -314,9 +314,18 @@ $loadModule("dart_sdk").developer.invokeExtension(
   Future invoke(
       String isolateId, String targetId, String selector, List argumentIds,
       {bool disableBreakpoints}) async {
+    if (disableBreakpoints != null) {
+      throw UnimplementedError(
+          'The "disableBreakpoints" parameter to "invoke" is not supported');
+    }
     var remote =
         await _inspector?.invoke(isolateId, targetId, selector, argumentIds);
-    return _inspector?.instanceHelper?.instanceRefFor(remote);
+    var result = _inspector?.instanceHelper?.instanceRefFor(remote);
+    if (result == null) {
+      throw ChromeDebugException(
+          {'text': 'null result from invoke of $selector'});
+    }
+    return result;
   }
 
   @override

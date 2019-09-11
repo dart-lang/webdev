@@ -65,6 +65,7 @@ class MyTestClass {
 
   MyTestClass({this.message = 'world'}) {
     myselfField = this;
+    tornOff = toString;
   }
 
   String hello() => message;
@@ -107,6 +108,8 @@ class MyTestClass {
   }
 
   Function closure = someFunction;
+
+  String Function() tornOff;
 }
 
 Function someFunction() => null;

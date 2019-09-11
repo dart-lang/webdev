@@ -108,7 +108,8 @@ void main() {
         'count',
         'message',
         'myselfField',
-        'notFinal'
+        'notFinal',
+        'tornOff',
       ]);
       for (var field in instance.fields) {
         expect(field.decl.declaredType, isNotNull);
