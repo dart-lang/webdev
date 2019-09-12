@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:async/src/stream_sink_transformer.dart';
-import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
@@ -23,6 +22,12 @@ import 'debugger_data.dart';
 
 class FakeInspector extends Domain implements AppInspector {
   FakeInspector() : super.forInspector();
+
+  @override
+  Object noSuchMethod(Invocation invocation) {
+    throw UnsupportedError('This is a fake');
+  }
+
   @override
   Future<RemoteObject> evaluate(
           String isolateId, String targetId, String expression,
@@ -47,33 +52,7 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   IsolateRef get isolateRef => null;
   @override
-  Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) =>
-      throw UnsupportedError('This is a fake');
-  @override
-  Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
-          [List positionalArgs = const [], Map namedArgs = const {}]) =>
-      throw UnsupportedError('This is a fake');
-  @override
-  Debugger get debugger => throw UnsupportedError('This is a fake');
-  @override
-  Future<RemoteObject> callJsFunctionOn(
-          Library library, Map<String, String> scope, String expression) =>
-      null;
-  @override
-  Future<RemoteObject> evaluateJsExpression(String expression) =>
-      throw UnsupportedError('This is a fake');
-  @override
-  Future<RemoteObject> evaluateJsExpressionOnLibrary(
-          String expression, String libraryUri) =>
-      throw UnsupportedError('This is a fake');
-
-  @override
-  InstanceHelper get instanceHelper => InstanceHelper(null, null);
-  @override
-  Future<RemoteObject> callFunctionOn(
-      RemoteObject receiver, String evalExpression, List arguments) {
-    throw UnsupportedError('This is a fake');
-  }
+  InstanceHelper get instanceHelper => InstanceHelper(null, null, null);
 }
 
 class FakeSseConnection implements SseConnection {

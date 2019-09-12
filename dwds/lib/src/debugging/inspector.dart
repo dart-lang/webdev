@@ -10,6 +10,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../handlers/asset_handler.dart';
 import '../services/chrome_proxy_service.dart';
+import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
@@ -59,8 +60,8 @@ class AppInspector extends Domain {
     this.debugger,
     this._root,
     this._remoteDebugger,
+    this.instanceHelper,
   )   : isolateRef = _toIsolateRef(isolate),
-        instanceHelper = InstanceHelper(debugger, _remoteDebugger),
         super.forInspector();
 
   @override
@@ -82,11 +83,11 @@ class AppInspector extends Domain {
       IsolateRef(id: isolate.id, name: isolate.name, number: isolate.number);
 
   static Future<AppInspector> initialize(
-    RemoteDebugger remoteDebugger,
-    AssetHandler assetHandler,
-    Debugger debugger,
-    String root,
-  ) async {
+      RemoteDebugger remoteDebugger,
+      AssetHandler assetHandler,
+      Debugger debugger,
+      String root,
+      InstanceHelper instanceHelper) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;
     var isolate = Isolate(
@@ -103,8 +104,8 @@ class AppInspector extends Domain {
         exceptionPauseMode: debugger.pauseState)
       ..extensionRPCs = [];
     debugger.notifyPausedAtStart();
-    var inspector =
-        AppInspector._(isolate, assetHandler, debugger, root, remoteDebugger);
+    var inspector = AppInspector._(
+        isolate, assetHandler, debugger, root, remoteDebugger, instanceHelper);
     await inspector._initialize();
     return inspector;
   }
@@ -116,65 +117,46 @@ class AppInspector extends Domain {
           return $loadModule("dart_sdk").dart.dloadRepl(this, "$fieldName");
         }
         ''';
-    return callFunctionOn(receiver, load, _marshallArguments([]));
+    return jsCallFunctionOn(receiver, load, []);
   }
 
   /// Call a method by name on [receiver], with arguments [positionalArgs] and
   /// [namedArgs].
-  Future<RemoteObject> sendMessage(RemoteObject receiver, String methodName,
-      [List positionalArgs = const [], Map namedArgs = const {}]) async {
+  Future<RemoteObject> invokeMethod(RemoteObject receiver, String methodName,
+      [List<RemoteObject> positionalArgs = const [],
+      Map namedArgs = const {}]) async {
     // TODO(alanknight): Support named arguments.
     if (namedArgs.isNotEmpty) {
       throw UnsupportedError('Named arguments are not yet supported');
     }
+    // We use the JS pseudo-variable 'arguments' to get the list of all arguments.
     var send = '''
-        function (positional) {
+        function () {
           if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
-          return $loadModule("dart_sdk").dart.dsendRepl(this, "$methodName", positional);
+          return $loadModule("dart_sdk").dart.dsendRepl(this, "$methodName", arguments);
         }
         ''';
-    var arguments = _marshallArguments(positionalArgs);
-    var remote = await callFunctionOn(receiver, send, arguments);
+    var remote = await jsCallFunctionOn(receiver, send, positionalArgs);
     return remote;
   }
 
   /// Calls Chrome's Runtime.callFunctionOn method.
   ///
-  /// [arguments] is expected to be in the form returned by
-  /// [_marshallArguments]. [evalExpression] should be a function definition
-  /// that can accept [arguments].
-  Future<RemoteObject> callFunctionOn(
-      RemoteObject receiver, String evalExpression, List arguments) async {
+  /// [evalExpression] should be a JS function definition that can accept
+  /// [arguments].
+  Future<RemoteObject> jsCallFunctionOn(RemoteObject receiver,
+      String evalExpression, List<RemoteObject> arguments,
+      {bool returnByValue = false}) async {
+    var jsArguments = arguments.map(callArgumentFor).toList();
     var result =
         await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
-      'arguments': arguments,
+      'arguments': jsArguments,
       'objectId': receiver.objectId,
+      'returnByValue': returnByValue,
     });
     handleErrorIfPresent(result, evalContents: evalExpression);
     return RemoteObject(result.result['result'] as Map<String, Object>);
-  }
-
-  /// Convert [arguments] to a form usable in WIP evaluation calls.
-  List<Map<String, Object>> _marshallArguments(List arguments) {
-    return [
-      {'value': arguments.map(_marshallOne).toList()}
-    ];
-  }
-
-  /// Convert [argument] to a form usable in WIP evaluation calls.
-  ///
-  /// The [argument] should be either a RemoteObject or a simple
-  /// object that can be passed through the protocol directly.
-  Map<String, Object> _marshallOne(Object argument) {
-    // TODO(alanknight): Handle the case of RemoteObjects that represent values.
-    // This doesn't come up yet, but will if we get a result and pass it back as
-    // an argument.
-    if (argument is RemoteObject) {
-      return {'objectId': argument.objectId};
-    } else {
-      return {'value': argument};
-    }
   }
 
   Future<RemoteObject> evaluate(
@@ -188,10 +170,41 @@ class AppInspector extends Domain {
           'Evaluate is only supported when `targetId` is a library.');
     }
     if (scope.isNotEmpty) {
-      return callJsFunctionOn(library, scope, expression);
+      return evaluateInLibrary(library, scope, expression);
     } else {
       return evaluateJsExpressionOnLibrary(expression, library.uri);
     }
+  }
+
+  /// Invoke the function named [selector] on the object identified by
+  /// [targetId].
+  ///
+  /// The [targetId] can be the URL of a Dart library, in which case this means
+  /// invoking a top-level function. The [arguments] are always strings that are
+  /// Dart object Ids (which can also be Chrome RemoteObject objectIds that are
+  /// for non-Dart JS objects.)
+  Future<RemoteObject> invoke(String isolateId, String targetId,
+      String selector, List<dynamic> arguments) async {
+    checkIsolate(isolateId);
+    var remoteArguments =
+        arguments.cast<String>().map(remoteObjectFor).toList();
+    // We special case the Dart library, where invokeMethod won't work because
+    // it's not really a Dart object.
+    if (isLibraryId(targetId)) {
+      var library = await getObject(isolateId, targetId) as Library;
+      return await _invokeLibraryFunction(library, selector, remoteArguments);
+    } else {
+      return invokeMethod(remoteObjectFor(targetId), selector, remoteArguments);
+    }
+  }
+
+  /// Invoke the function named [selector] from [library] with [arguments].
+  Future<RemoteObject> _invokeLibraryFunction(
+      Library library, String selector, List<RemoteObject> arguments) {
+    return _evaluateInLibrary(
+        library,
+        'function () { return this.$selector.apply(this, arguments);}',
+        arguments);
   }
 
   /// Evaluate [expression] as a member/message of the library identified by
@@ -206,11 +219,11 @@ class AppInspector extends Domain {
   return library.$expression;
 })();
 ''';
-    return evaluateJsExpression(evalExpression);
+    return jsEvaluate(evalExpression);
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
-  Future<RemoteObject> evaluateJsExpression(String expression) async {
+  Future<RemoteObject> jsEvaluate(String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.
     WipResponse result;
     result = await _remoteDebugger
@@ -221,39 +234,33 @@ class AppInspector extends Domain {
     return RemoteObject(result.result['result'] as Map<String, dynamic>);
   }
 
-  /// Call the function named [expression] from [library] with [scope] as
-  /// arguments, with 'this' bound to the first object in [scope].
-  ///
-  /// But we're not really using 'this', just using Runtime.callFunctionOn
-  /// because it accepts arguments.
-  // TODO(alanknight): Make this API cleaner.
-  Future<RemoteObject> callJsFunctionOn(
+  /// Evaluate the JS function with source [jsFunction] in the context of
+  /// [library] with [arguments].
+  Future<RemoteObject> _evaluateInLibrary(
+      Library library, String jsFunction, List<RemoteObject> arguments) async {
+    var findLibrary = '''
+(function() {
+  ${_getLibrarySnippet(library.uri)};
+  return library;
+})();
+''';
+    var remoteLibrary = await jsEvaluate(findLibrary);
+    return jsCallFunctionOn(remoteLibrary, jsFunction, arguments);
+  }
+
+  /// Evaluate [expression] from [library] with [scope] as
+  /// arguments.
+  Future<RemoteObject> evaluateInLibrary(
       Library library, Map<String, String> scope, String expression) async {
     var argsString = scope.keys.join(', ');
-    // TODO(alanknight): Can we use _marshallOne or similar.
-    var arguments = scope.values.map((id) => {'objectId': id}).toList();
+    var arguments = scope.values.map(remoteObjectFor).toList();
     var evalExpression = '''
 function($argsString) {
   ${_getLibrarySnippet(library.uri)};
   return library.$expression;
 }
     ''';
-    var result =
-        await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
-      'functionDeclaration': evalExpression,
-      'arguments': arguments,
-      // TODO(jakemac): Use the executionContext instead, or possibly the
-      // library object. This will get weird if people try to use `this` in
-      // their expression.
-      'objectId': scope.values.first,
-    });
-    handleErrorIfPresent(result,
-        evalContents: evalExpression,
-        additionalDetails: {
-          'Dart expression': expression,
-          'scope': scope,
-        });
-    return RemoteObject(result.result['result'] as Map<String, dynamic>);
+    return _evaluateInLibrary(library, evalExpression, arguments);
   }
 
   Future<Library> _getLibrary(String isolateId, String objectId) async {
@@ -518,10 +525,7 @@ function($argsString) {
 /// the library objects. The [libraryUri] parameter should be one of these
 /// Dart-specific scheme URIs, and we set `library` the corresponding library.
 String _getLibrarySnippet(String libraryUri) => '''
-  var libraryName = '$libraryUri';
-  var sdkUtils = $loadModule('dart_sdk').dart;
-  var moduleName = sdkUtils.getModuleNames().find(
-    (name) => sdkUtils.getModuleLibraries(name)[libraryName]);
-  var library = sdkUtils.getModuleLibraries(moduleName)[libraryName];
-  if (!library) throw 'cannot find library for ' + libraryName + ' under ' + moduleName;
-''';
+   var sdkUtils = $loadModule('dart_sdk').dart;
+   var library = sdkUtils.getLibrary('$libraryUri');
+   if (!library) throw 'cannot find library for $libraryUri';
+  ''';

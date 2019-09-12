@@ -1,3 +1,9 @@
+## 0.6.1
+
+ - Implements `invoke`.
+ - Adds support for VM object IDs for things that don't have Chrome object Ids
+   (e.g. int, double, bool, null).
+
 ## 0.6.0
 
 - Add new required parameter `enableDebugging` to `Dwds.start`. If `false` is

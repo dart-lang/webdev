@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/debugging/instance.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -109,12 +110,11 @@ class ChromeProxyService implements VmServiceInterface {
           'Cannot create multiple isolates for the same app');
     }
 
+    var instanceHelper =
+        InstanceHelper(_debugger, remoteDebugger, appInspectorProvider);
+
     _inspector = await AppInspector.initialize(
-      remoteDebugger,
-      _assetHandler,
-      _debugger,
-      uri,
-    );
+        remoteDebugger, _assetHandler, _debugger, uri, instanceHelper);
 
     var isolateRef = _inspector.isolateRef;
     var timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -313,8 +313,19 @@ $loadModule("dart_sdk").developer.invokeExtension(
   @override
   Future invoke(
       String isolateId, String targetId, String selector, List argumentIds,
-      {bool disableBreakpoints}) {
-    throw UnimplementedError();
+      {bool disableBreakpoints}) async {
+    if (disableBreakpoints != null) {
+      throw UnimplementedError(
+          'The "disableBreakpoints" parameter to "invoke" is not supported');
+    }
+    var remote =
+        await _inspector?.invoke(isolateId, targetId, selector, argumentIds);
+    var result = _inspector?.instanceHelper?.instanceRefFor(remote);
+    if (result == null) {
+      throw ChromeDebugException(
+          {'text': 'null result from invoke of $selector'});
+    }
+    return result;
   }
 
   @override

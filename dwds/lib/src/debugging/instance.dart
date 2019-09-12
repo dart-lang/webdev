@@ -4,21 +4,15 @@
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../utilities/conversions.dart';
+import '../utilities/domain.dart';
 import '../utilities/objects.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'debugger.dart';
+import 'inspector.dart';
 import 'metadata.dart';
 import 'remote_debugger.dart';
-
-/// Chrome doesn't give us an objectId for a String. So we use the string
-/// as its own ID, with a prefix.
-///
-/// This should not be confused with any
-/// other object Ids, as those will be Chrome objectIds, which are
-/// opaque, but are JSON serialized objects of the form
-/// "{\"injectedScriptId\":1,\"id\":1}".
-const _prefixForStringIds = '#StringInstanceRef#';
 
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
@@ -26,7 +20,8 @@ InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
       // TODO(grouma) - is this ID correct?
       id: 'dart:core:${remoteObject?.type}',
       name: kind);
-  return InstanceRef(kind: kind, classRef: classRef, id: createId())
+  return InstanceRef(
+      kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
     ..valueAsString = '${remoteObject?.value}';
 }
 
@@ -39,15 +34,16 @@ final _classRefForString =
 final _classRefForClosure = ClassRef(name: 'Closure', id: createId());
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
-class InstanceHelper {
+class InstanceHelper extends Domain {
   final Debugger _debugger;
   final RemoteDebugger _remoteDebugger;
 
-  InstanceHelper(this._debugger, this._remoteDebugger);
+  InstanceHelper(
+      this._debugger, this._remoteDebugger, AppInspector Function() provider)
+      : super(provider);
 
   Future<Instance> _stringInstanceFor(RemoteObject remoteObject) async {
-    var actualString =
-        remoteObject.objectId.substring(_prefixForStringIds.length);
+    var actualString = stringFromDartId(remoteObject.objectId);
     return Instance(
         kind: InstanceKind.kString,
         classRef: _classRefForString,
@@ -80,11 +76,11 @@ class InstanceHelper {
   /// Does a remote eval to get instance information. Returns null if there
   /// isn't a corresponding instance.
   Future<Instance> instanceFor(RemoteObject remoteObject) async {
-    if (remoteObject.objectId.startsWith(_prefixForStringIds)) {
+    if (isStringId(remoteObject.objectId)) {
       return _stringInstanceFor(remoteObject);
     }
-    var metaData =
-        await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject);
+    var metaData = await ClassMetaData.metaDataFor(
+        _remoteDebugger, remoteObject, inspector);
     if (metaData.name == 'Function') {
       return _closureInstanceFor(remoteObject);
     } else {
@@ -138,8 +134,8 @@ class InstanceHelper {
       return nonSymbolNames.concat(publicFieldNames).join(',');
     }
     ''';
-    var allNames = (await _debugger.inspector
-            .callFunctionOn(remoteObject, fieldNameExpression, []))
+    var allNames = (await inspector
+            .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
         .value as String;
     var names = allNames.split(',');
     return allJsProperties
@@ -156,8 +152,7 @@ class InstanceHelper {
     switch (remoteObject.type) {
       case 'string':
         return InstanceRef(
-            // See comment for [_prefixForStringIds].
-            id: '$_prefixForStringIds${remoteObject.value}',
+            id: dartIdFor(remoteObject.value),
             classRef: _classRefForString,
             kind: InstanceKind.kString)
           ..valueAsString = remoteObject.value as String;
@@ -171,8 +166,8 @@ class InstanceHelper {
         if (remoteObject.type == 'object' && remoteObject.objectId == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
-        var metaData =
-            await ClassMetaData.metaDataFor(_remoteDebugger, remoteObject);
+        var metaData = await ClassMetaData.metaDataFor(
+            _remoteDebugger, remoteObject, inspector);
         if (metaData == null) return null;
         return InstanceRef(
             kind: InstanceKind.kPlainInstance,

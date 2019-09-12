@@ -18,7 +18,7 @@ final myInstance = MyTestClass();
 void main() async {
   print(DateFormat());
   // Long running so that we can test the pause / resume behavior.
-  Timer.periodic(Duration(seconds: 1), (_) {});
+  Timer.periodic(const Duration(seconds: 1), (_) {});
 
   print(p.join('Hello', 'World'));
 
@@ -45,7 +45,7 @@ void main() async {
     });
   };
 
-  Timer.periodic(Duration(seconds: 1), (_) {
+  Timer.periodic(const Duration(seconds: 1), (_) {
     printCount();
   });
 

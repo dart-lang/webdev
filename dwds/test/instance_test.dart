@@ -31,7 +31,8 @@ void main() {
     inspector = chromeProxyService.appInspectorProvider();
     remoteDebugger = chromeProxyService.remoteDebugger;
     debugger = inspector.debugger;
-    instanceHelper = InstanceHelper(debugger, remoteDebugger);
+    instanceHelper = InstanceHelper(
+        debugger, remoteDebugger, chromeProxyService.appInspectorProvider);
   });
 
   tearDownAll(() async {
@@ -44,8 +45,8 @@ void main() {
       '$loadModule("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
       '["$url"]["$variable"];';
 
-  Future<RemoteObject> libraryPublicFinal() => inspector
-      .evaluateJsExpression(libraryVariableExpression('libraryPublicFinal'));
+  Future<RemoteObject> libraryPublicFinal() =>
+      inspector.jsEvaluate(libraryVariableExpression('libraryPublicFinal'));
 
   group('instanceRef', () {
     test('for a null', () async {
@@ -107,7 +108,8 @@ void main() {
         'count',
         'message',
         'myselfField',
-        'notFinal'
+        'notFinal',
+        'tornOff',
       ]);
       for (var field in instance.fields) {
         expect(field.decl.declaredType, isNotNull);
