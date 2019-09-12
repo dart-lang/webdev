@@ -53,21 +53,22 @@ class InstanceHelper extends Domain {
   }
 
   Future<Instance> _closureInstanceFor(RemoteObject remoteObject) async {
-    var functionMetaData =
-        await FunctionMetaData.metaDataFor(_remoteDebugger, remoteObject);
+    // var functionMetaData =
+    //     await FunctionMetaData.metaDataFor(_remoteDebugger, remoteObject);
     var result = Instance(
         kind: InstanceKind.kClosure,
         id: remoteObject.objectId,
-        classRef: _classRefForClosure)
-      ..closureFunction = (FuncRef(
-          name: functionMetaData.name,
-          id: createId(),
-          // TODO(grouma) - fill these in properly.
-          owner: null,
-          isConst: false,
-          isStatic: false))
-      // TODO(grouma) - construct a valid context.
-      ..closureContext = (ContextRef()..length = 0);
+        classRef: _classRefForClosure);
+      // TODO: These are only part of instanceRef in the new version of vmservice.
+      // ..closureFunction = (FuncRef(
+      //     name: functionMetaData.name,
+      //     id: createId(),
+      //     // TODO(grouma) - fill these in properly.
+      //     owner: null,
+      //     isConst: false,
+      //     isStatic: false))
+      // // TODO(grouma) - construct a valid context.
+      // ..closureContext = (ContextRef()..length = 0);
     return result;
   }
 

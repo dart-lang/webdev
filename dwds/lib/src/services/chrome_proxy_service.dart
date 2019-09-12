@@ -563,6 +563,16 @@ $loadModule("dart_sdk").developer.invokeExtension(
   Future<Success> requestHeapSnapshot(String isolateId) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<Success> clearCpuSamples(String isolateId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CpuSamples> getCpuSamples(String isolateId, int timeOriginMicros, int timeExtentMicros) {
+    throw UnimplementedError();
+  }
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
