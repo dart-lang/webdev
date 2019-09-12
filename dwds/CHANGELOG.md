@@ -1,5 +1,6 @@
 ## 0.6.1
 
+ - Add `isolateRef` to `Isolate`s `pauseEvent`s.
  - Implements `invoke`.
  - Adds support for VM object IDs for things that don't have Chrome object Ids
    (e.g. int, double, bool, null).

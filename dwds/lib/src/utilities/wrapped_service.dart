@@ -29,11 +29,15 @@ class Event extends vm_service.Event {
   factory Event({
     @required String kind,
     @required int timestamp,
+    // This is provided for all event kinds except for:
+    //   VMUpdate, VMFlagUpdate
+    @required vm_service.IsolateRef isolate,
   }) {
     var event = Event._();
     event
       ..kind = kind
-      ..timestamp = timestamp;
+      ..timestamp = timestamp
+      ..isolate = isolate;
     return event;
   }
 }

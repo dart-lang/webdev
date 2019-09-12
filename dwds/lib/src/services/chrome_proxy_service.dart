@@ -126,12 +126,16 @@ class ChromeProxyService implements VmServiceInterface {
 
     _streamNotify(
         'Isolate',
-        Event(kind: EventKind.kIsolateStart, timestamp: timestamp)
-          ..isolate = isolateRef);
+        Event(
+            kind: EventKind.kIsolateStart,
+            timestamp: timestamp,
+            isolate: isolateRef));
     _streamNotify(
         'Isolate',
-        Event(kind: EventKind.kIsolateRunnable, timestamp: timestamp)
-          ..isolate = isolateRef);
+        Event(
+            kind: EventKind.kIsolateRunnable,
+            timestamp: timestamp,
+            isolate: isolateRef));
 
     // TODO: We shouldn't need to fire these events since they exist on the
     // isolate, but devtools doesn't recognize extensions after a page refresh
@@ -139,9 +143,11 @@ class ChromeProxyService implements VmServiceInterface {
     for (var extensionRpc in _inspector.isolate.extensionRPCs) {
       _streamNotify(
           'Isolate',
-          Event(kind: EventKind.kServiceExtensionAdded, timestamp: timestamp)
-            ..extensionRPC = extensionRpc
-            ..isolate = isolateRef);
+          Event(
+              kind: EventKind.kServiceExtensionAdded,
+              timestamp: timestamp,
+              isolate: isolateRef)
+            ..extensionRPC = extensionRpc);
     }
   }
 
@@ -155,8 +161,8 @@ class ChromeProxyService implements VmServiceInterface {
         'Isolate',
         Event(
             kind: EventKind.kIsolateExit,
-            timestamp: DateTime.now().millisecondsSinceEpoch)
-          ..isolate = _inspector.isolateRef);
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            isolate: _inspector.isolateRef));
     _vm.isolates.removeWhere((ref) => ref.id == isolate.id);
     _inspector = null;
     _consoleSubscription.cancel();
@@ -415,7 +421,9 @@ $loadModule("dart_sdk").developer.invokeExtension(
         'VM',
         Event(
             kind: EventKind.kVMUpdate,
-            timestamp: DateTime.now().millisecondsSinceEpoch)
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            // We are not guaranteed to have an isolate at this point an time.
+            isolate: null)
           ..vm = toVMRef(_vm));
     return Success();
   }
@@ -464,8 +472,8 @@ $loadModule("dart_sdk").developer.invokeExtension(
         var value = '${item["value"]}\n';
         controller.add(Event(
             kind: EventKind.kWriteEvent,
-            timestamp: DateTime.now().millisecondsSinceEpoch)
-          ..isolate = _inspector.isolateRef
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            isolate: _inspector.isolateRef)
           ..bytes = base64.encode(utf8.encode(value))
           ..timestamp = e.timestamp.toInt());
       });
@@ -475,8 +483,8 @@ $loadModule("dart_sdk").developer.invokeExtension(
           if (isolate == null) return;
           controller.add(Event(
               kind: EventKind.kWriteEvent,
-              timestamp: DateTime.now().millisecondsSinceEpoch)
-            ..isolate = _inspector.isolateRef
+              timestamp: DateTime.now().millisecondsSinceEpoch,
+              isolate: _inspector.isolateRef)
             ..bytes = base64
                 .encode(utf8.encode(e.exceptionDetails.exception.description)));
         });
@@ -501,20 +509,20 @@ $loadModule("dart_sdk").developer.invokeExtension(
               'Isolate',
               Event(
                   kind: EventKind.kServiceExtensionAdded,
-                  timestamp: DateTime.now().millisecondsSinceEpoch)
-                ..extensionRPC = service
-                ..isolate = isolateRef);
+                  timestamp: DateTime.now().millisecondsSinceEpoch,
+                  isolate: isolateRef)
+                ..extensionRPC = service);
           break;
         case 'dart.developer.postEvent':
           _streamNotify(
               'Extension',
               Event(
                   kind: EventKind.kExtension,
-                  timestamp: DateTime.now().millisecondsSinceEpoch)
+                  timestamp: DateTime.now().millisecondsSinceEpoch,
+                  isolate: isolateRef)
                 ..extensionKind = event.args[1].value as String
                 ..extensionData = ExtensionData.parse(
-                    jsonDecode(event.args[2].value as String) as Map)
-                ..isolate = isolateRef);
+                    jsonDecode(event.args[2].value as String) as Map));
           break;
         case 'dart.developer.inspect':
           // All inspected objects should be real objects.
@@ -526,10 +534,10 @@ $loadModule("dart_sdk").developer.invokeExtension(
               'Debug',
               Event(
                   kind: EventKind.kInspect,
-                  timestamp: DateTime.now().millisecondsSinceEpoch)
+                  timestamp: DateTime.now().millisecondsSinceEpoch,
+                  isolate: isolateRef)
                 ..inspectee = inspectee
-                ..timestamp = event.timestamp.toInt()
-                ..isolate = isolateRef);
+                ..timestamp = event.timestamp.toInt());
           break;
         default:
           break;

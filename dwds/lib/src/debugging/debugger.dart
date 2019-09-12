@@ -219,8 +219,8 @@ class Debugger extends Domain {
         'Debug',
         Event(
             kind: EventKind.kBreakpointAdded,
-            timestamp: DateTime.now().millisecondsSinceEpoch)
-          ..isolate = inspector.isolateRef
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            isolate: inspector.isolateRef)
           ..breakpoint = breakpoint);
     return breakpoint;
   }
@@ -242,8 +242,8 @@ class Debugger extends Domain {
         'Debug',
         Event(
             kind: EventKind.kBreakpointRemoved,
-            timestamp: DateTime.now().millisecondsSinceEpoch)
-          ..isolate = inspector.isolateRef
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            isolate: inspector.isolateRef)
           ..breakpoint = bp);
     await _removeBreakpoint(jsId);
     return Success();
@@ -407,18 +407,26 @@ class Debugger extends Domain {
     var params = e.params;
     var breakpoints = params['hitBreakpoints'] as List;
     if (breakpoints.isNotEmpty) {
-      event = Event(kind: EventKind.kPauseBreakpoint, timestamp: timestamp);
+      event = Event(
+          kind: EventKind.kPauseBreakpoint,
+          timestamp: timestamp,
+          isolate: inspector.isolateRef);
     } else if (e.reason == 'exception' || e.reason == 'assert') {
-      event = Event(kind: EventKind.kPauseException, timestamp: timestamp);
+      event = Event(
+          kind: EventKind.kPauseException,
+          timestamp: timestamp,
+          isolate: inspector.isolateRef);
     } else {
       // If we don't have source location continue stepping.
       if (_isStepping && _sourceLocation(e) == null) {
         await _remoteDebugger.sendCommand('Debugger.stepInto');
         return;
       }
-      event = Event(kind: EventKind.kPauseInterrupted, timestamp: timestamp);
+      event = Event(
+          kind: EventKind.kPauseInterrupted,
+          timestamp: timestamp,
+          isolate: inspector.isolateRef);
     }
-    event.isolate = inspector.isolateRef;
     var jsFrames =
         (e.params['callFrames'] as List).cast<Map<String, dynamic>>();
     var frames = await dartFramesFor(jsFrames);
@@ -439,8 +447,8 @@ class Debugger extends Domain {
     _pausedJsStack = null;
     var event = Event(
         kind: EventKind.kResume,
-        timestamp: DateTime.now().millisecondsSinceEpoch)
-      ..isolate = inspector.isolateRef;
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isolate: inspector.isolateRef);
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
   }

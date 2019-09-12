@@ -90,14 +90,18 @@ class AppInspector extends Domain {
       InstanceHelper instanceHelper) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;
+    var name = '$root:main()';
     var isolate = Isolate(
         id: id,
         number: id,
-        name: '$root:main()',
+        name: name,
         startTime: time,
         runnable: true,
         pauseOnExit: false,
-        pauseEvent: Event(kind: EventKind.kPauseStart, timestamp: time),
+        pauseEvent: Event(
+            kind: EventKind.kPauseStart,
+            timestamp: time,
+            isolate: IsolateRef(id: id, name: name, number: id)),
         livePorts: 0,
         libraries: [],
         breakpoints: [],
