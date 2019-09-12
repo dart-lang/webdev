@@ -81,7 +81,7 @@ void main() {
     });
 
     test('variables in closure nested in method', () async {
-      stack = await breakAt(78);
+      stack = await breakAt(80);
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
@@ -90,7 +90,7 @@ void main() {
     });
 
     test('variables in method', () async {
-      stack = await breakAt(92);
+      stack = await breakAt(94);
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();

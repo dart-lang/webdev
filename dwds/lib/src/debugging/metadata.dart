@@ -5,7 +5,9 @@
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../debugging/inspector.dart';
 import '../services/chrome_proxy_service.dart';
+
 import 'remote_debugger.dart';
 
 /// Meta data for a remote Dart class in Chrome.
@@ -22,8 +24,8 @@ class ClassMetaData {
   /// Returns the [ClassMetaData] for the Chrome [remoteObject].
   ///
   /// Returns null if the [remoteObject] is not a Dart class.
-  static Future<ClassMetaData> metaDataFor(
-      RemoteDebugger remoteDebugger, RemoteObject remoteObject) async {
+  static Future<ClassMetaData> metaDataFor(RemoteDebugger remoteDebugger,
+      RemoteObject remoteObject, AppInspector inspector) async {
     try {
       var evalExpression = '''
       function(arg) {
@@ -35,22 +37,12 @@ class ClassMetaData {
         return result;
       }
     ''';
-      var arguments = [
-        {'objectId': remoteObject.objectId}
-      ];
-      var result =
-          await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
-        'functionDeclaration': evalExpression,
-        'arguments': arguments,
-        'objectId': remoteObject.objectId,
-        'returnByValue': true,
-      });
-      handleErrorIfPresent(
-        result,
-        evalContents: evalExpression,
-      );
-      return ClassMetaData(result.result['result']['value']['name'] as String,
-          result.result['result']['value']['libraryId'] as String);
+      var result = await inspector.jsCallFunctionOn(
+          remoteObject, evalExpression, [remoteObject],
+          returnByValue: true);
+      var metadata = result.value as Map;
+      return ClassMetaData(
+          metadata['name'] as String, metadata['libraryId'] as String);
     } on ChromeDebugException {
       return null;
     }
