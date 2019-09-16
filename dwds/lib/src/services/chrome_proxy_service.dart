@@ -496,8 +496,8 @@ $loadModule("dart_sdk").developer.invokeExtension(
               kind: EventKind.kWriteEvent,
               timestamp: DateTime.now().millisecondsSinceEpoch,
               isolate: _inspector.isolateRef)
-            ..bytes = base64
-                .encode(utf8.encode(e.exceptionDetails.exception.description)));
+            ..bytes = base64.encode(
+                utf8.encode(e.exceptionDetails.exception.description ?? '')));
         });
       }
     });
