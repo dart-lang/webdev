@@ -1,3 +1,7 @@
+## 0.6.2-dev
+
+ - Handle empty Chrome exception descriptions.
+
 ## 0.6.1
 
  - Add `isolateRef` to `Isolate`s `pauseEvent`s.
