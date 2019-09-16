@@ -2,17 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
+// import 'package:package_config/discovery.dart';
+// import 'package:package_config/packages.dart';
+import 'package:package_resolver/package_resolver.dart';
+
 
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
 class DartUri {
   /// The canonical web server path part of the URI.
   ///
-  /// This is a relative path, which can be used to fetch the corresponding file
+/// This is a relative path, which can be used to fetch the corresponding file
   /// from the server. For example, 'hello_world/main.dart' or
   /// 'packages/path/src/utils.dart'.
   final String serverPath;
+
+  // /// #####################
+  // static Packages packages;
+
+  // static Future<void> loadPackages() async { 
+  //   packages = await findPackages(Uri.file('${Directory.current.path}/')); 
+  // }
+  static SyncPackageResolver packageResolver = SyncPackageResolver.root(Uri.file(Directory.current.path));
+
 
   /// Accepts various forms of URI and can convert between forms.
   ///
@@ -36,6 +51,7 @@ class DartUri {
     // TODO(401): Remove serverUri after D24 is stable.
     if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
     if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
+    if (uri.startsWith('file:')) return DartUri._fromFileUri(uri);
     if (uri.startsWith('/packages/')) return DartUri._fromServerPath(uri);
     if (uri.startsWith('/')) return DartUri._fromServerPath(uri);
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
@@ -53,6 +69,16 @@ class DartUri {
   /// Construct from a package: URI
   factory DartUri._fromPackageUri(String uri) {
     return DartUri._('packages/${uri.substring("package:".length)}');
+  }
+
+
+
+  /// Construct from a file: URI
+  factory DartUri._fromFileUri(String uri) {
+    var foo = packageResolver.packageUriFor(uri);
+    print(foo);
+    print(uri);
+    return DartUri('$foo');
   }
 
   /// Construct from an org-dartlang-app: URI.

@@ -11,6 +11,7 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -114,6 +115,20 @@ void main() {
         await service.removeBreakpoint(isolate.id, bp.id);
         expect(bp.id, isNotNull);
       });
+
+            test('addBreakpointWithScriptUri absolute file URI', () async {
+       // await DartUri.loadPackages();
+        var current = Directory.current.path;
+        var scriptPath = Uri.parse(mainScript.uri).path.substring(1);
+        var fullPath = path.join(current, scriptPath);
+        var fileUri = Uri.file(fullPath);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, '$fileUri', 23);
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+        expect(bp.id, isNotNull);
+      });
+ 
 
       test('removeBreakpoint null arguments', () {
         expect(() => service.removeBreakpoint(null, null), throwsArgumentError);
