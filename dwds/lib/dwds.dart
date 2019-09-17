@@ -72,6 +72,7 @@ class Dwds {
     reloadConfiguration ??= ReloadConfiguration.none;
     enableDebugging ??= true;
     enableDebugExtension ??= false;
+    serveDevTools ??= true;
     // `serveDevTools` is true by default when the extension is enabled.
     serveDevTools = serveDevTools || enableDebugExtension;
     logWriter ??= (level, message) => print(message);
