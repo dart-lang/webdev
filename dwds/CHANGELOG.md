@@ -3,14 +3,15 @@
 - Capture any errors that happen when handling SSE requests in the DevHandler
   and return an error response to the client code.
   - Log error responses in the client to the console.
+- Handle empty Chrome exception descriptions.
 
 ## 0.6.1
 
- - Add `isolateRef` to `Isolate`s `pauseEvent`s.
- - Depend on the latest `package:vm_service`.
- - Implements `invoke`.
- - Adds support for VM object IDs for things that don't have Chrome object Ids
-   (e.g. int, double, bool, null).
+- Add `isolateRef` to `Isolate`s `pauseEvent`s.
+- Depend on the latest `package:vm_service`.
+- Implements `invoke`.
+- Adds support for VM object IDs for things that don't have Chrome object Ids
+  (e.g. int, double, bool, null).
 
 ## 0.6.0
 
