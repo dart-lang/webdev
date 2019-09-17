@@ -46,3 +46,9 @@ dev_dependencies:
   test: ^1.6.0
   uuid: ^2.0.0
   webdriver: ^2.0.0
+
+dependency_overrides:
+  http_multi_server:
+    git:
+      url: https://github.com/dart-lang/http_multi_server.git
+      ref: bind-secure

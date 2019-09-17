@@ -49,3 +49,8 @@ executables:
 dependency_overrides:
   dwds:
     path: ../dwds
+  http_multi_server:
+    git:
+      url: https://github.com/dart-lang/http_multi_server.git
+      ref: bind-secure
+
