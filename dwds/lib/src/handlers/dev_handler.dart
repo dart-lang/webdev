@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart' as build_daemon;
+import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
@@ -157,122 +158,40 @@ class DevHandler {
     _injectedConnections.add(injectedConnection);
     String appId;
     injectedConnection.stream.listen((data) async {
-      var message = serializers.deserialize(jsonDecode(data));
-      if (message is DevToolsRequest) {
-        if (_devTools == null) {
-          injectedConnection.sink
-              .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
-                ..success = false
-                ..error = 'Debugging is not enabled.\n\n'
-                    'If you are using webdev please pass the --debug flag.\n'
-                    'Otherwise check the docs for the tool you are using.'))));
-          return;
-        }
-
-        if (appId != message.appId) {
-          injectedConnection.sink.add(jsonEncode(serializers.serialize(
-              DevToolsResponse((b) => b
-                ..success = false
-                ..error =
-                    'App ID has changed since the connection was established. '
-                        'Please file an issue at '
-                        'https://github.com/dart-lang/webdev/issues/new.'))));
-          return;
-        }
-
-        AppDebugServices appServices;
-        try {
-          appServices =
-              await loadAppServices(message.appId, message.instanceId);
-        } catch (_) {
-          injectedConnection.sink
-              .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
-                ..success = false
-                ..error = 'Unable to connect debug services to your '
-                    'application. Most likely this means you are trying to '
-                    'load in a different Chrome window than was launched by '
-                    'your development tool.'))));
-          return;
-        }
-
-        // Check if we are already running debug services for a different
-        // instance of this app.
-        if (appServices.connectedInstanceId != null &&
-            appServices.connectedInstanceId != message.instanceId) {
-          injectedConnection.sink.add(jsonEncode(serializers.serialize(
-              DevToolsResponse((b) => b
-                ..success = false
-                ..error =
-                    'This app is already being debugged in a different tab. '
-                        'Please close that tab or switch to it.'))));
-          return;
-        }
-
-        // If you load the same app in a different tab then we need to throw
-        // away our old services and start new ones.
-        if (!(await _isCorrectTab(message.instanceId,
-            appServices.chromeProxyService.remoteDebugger))) {
-          unawaited(appServices.close());
-          unawaited(_servicesByAppId.remove(message.appId));
-          appServices =
-              await loadAppServices(message.appId, message.instanceId);
-        }
-
-        injectedConnection.sink.add(jsonEncode(
-            serializers.serialize(DevToolsResponse((b) => b..success = true))));
-
-        appServices.connectedInstanceId = message.instanceId;
-        await appServices.chromeProxyService.remoteDebugger
-            .sendCommand('Target.createTarget', params: {
-          'newWindow': true,
-          'url': Uri(
-                  scheme: 'http',
-                  host: _devTools.hostname,
-                  port: _devTools.port,
-                  queryParameters: {'uri': appServices.debugService.uri})
-              .toString(),
-        });
-      } else if (message is ConnectRequest) {
-        if (appId != null) {
-          throw StateError('Duplicate connection request from the same app. '
-              'Please file an issue at '
-              'https://github.com/dart-lang/webdev/issues/new.');
-        }
-        appId = message.appId;
-
-        // After a page refresh, reconnect to the same app services if they
-        // were previously launched and create the new isolate.
-        var services = await _servicesByAppId[message.appId];
-        if (services != null && services.connectedInstanceId == null) {
-          // Re-connect to the previous instance if its in the same tab,
-          // otherwise do nothing for now.
-          if (await _isCorrectTab(
-              message.instanceId, services.chromeProxyService.remoteDebugger)) {
-            services.connectedInstanceId = message.instanceId;
-            await services.chromeProxyService.createIsolate();
+      try {
+        var message = serializers.deserialize(jsonDecode(data));
+        if (message is DevToolsRequest) {
+          await _handleDebugRequest(message, injectedConnection, appId);
+        } else if (message is ConnectRequest) {
+          // We need to handle this error state synchronously and assign to
+          // [appId] so we do it outside of the `_handleConnectRequest` method.
+          if (appId != null) {
+            throw StateError('Duplicate connection request from the same app. '
+                'Please file an issue at '
+                'https://github.com/dart-lang/webdev/issues/new.');
           }
-        }
+          appId = message.appId;
 
-        _connectedApps.add(AppConnection(message, injectedConnection));
-      } else if (message is IsolateExit) {
-        (await loadAppServices(message.appId, message.instanceId))
-            ?.chromeProxyService
-            ?.destroyIsolate();
-      } else if (message is IsolateStart) {
-        if (_enableDebugging) {
-          await (await loadAppServices(message.appId, message.instanceId))
-              ?.chromeProxyService
-              ?.createIsolate();
+          await _handleConnectRequest(message, injectedConnection);
+        } else if (message is IsolateExit) {
+          await _handleIsolateExit(message);
+        } else if (message is IsolateStart) {
+          await _handleIsolateStart(message, injectedConnection);
+        } else if (message is RunResponse) {
+          await _handleRunResponse(message);
         }
-        // [IsolateStart] events are the result of a Hot Restart.
-        // Run the application after the Isolate has been created.
-        injectedConnection.sink
-            .add(jsonEncode(serializers.serialize(RunRequest())));
-      } else if (message is RunResponse) {
-        if (_enableDebugging) {
-          await (await loadAppServices(message.appId, message.instanceId))
-              ?.chromeProxyService
-              ?.resumeFromStart();
+      } catch (e, s) {
+        // Most likely the app disconnected in the middle of us responding,
+        // but we will try and send an error response back to the page just in
+        // case it is still running.
+        try {
+          injectedConnection.sink
+              .add(jsonEncode(serializers.serialize(ErrorResponse((b) => b
+                ..error = '$e'
+                ..stackTrace = '$s'))));
+        } on StateError catch (_) {
+          // The sink has already closed (app is disconnected), swallow the
+          // error.
         }
       }
     });
@@ -285,6 +204,123 @@ class DevHandler {
         services?.chromeProxyService?.destroyIsolate();
       }
     }));
+  }
+
+  Future<void> _handleDebugRequest(DevToolsRequest message,
+      SseConnection sseConnection, String connectedAppId) async {
+    if (_devTools == null) {
+      sseConnection.sink
+          .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
+            ..success = false
+            ..error = 'Debugging is not enabled.\n\n'
+                'If you are using webdev please pass the --debug flag.\n'
+                'Otherwise check the docs for the tool you are using.'))));
+      return;
+    }
+
+    if (connectedAppId != message.appId) {
+      sseConnection.sink.add(jsonEncode(serializers.serialize(DevToolsResponse(
+          (b) => b
+            ..success = false
+            ..error =
+                'App ID has changed since the connection was established. '
+                    'Please file an issue at '
+                    'https://github.com/dart-lang/webdev/issues/new.'))));
+      return;
+    }
+
+    AppDebugServices appServices;
+    try {
+      appServices = await loadAppServices(message.appId, message.instanceId);
+    } catch (_) {
+      sseConnection.sink
+          .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
+            ..success = false
+            ..error = 'Unable to connect debug services to your '
+                'application. Most likely this means you are trying to '
+                'load in a different Chrome window than was launched by '
+                'your development tool.'))));
+      return;
+    }
+
+    // Check if we are already running debug services for a different
+    // instance of this app.
+    if (appServices.connectedInstanceId != null &&
+        appServices.connectedInstanceId != message.instanceId) {
+      sseConnection.sink
+          .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
+            ..success = false
+            ..error = 'This app is already being debugged in a different tab. '
+                'Please close that tab or switch to it.'))));
+      return;
+    }
+
+    // If you load the same app in a different tab then we need to throw
+    // away our old services and start new ones.
+    if (!(await _isCorrectTab(
+        message.instanceId, appServices.chromeProxyService.remoteDebugger))) {
+      unawaited(appServices.close());
+      unawaited(_servicesByAppId.remove(message.appId));
+      appServices = await loadAppServices(message.appId, message.instanceId);
+    }
+
+    sseConnection.sink.add(jsonEncode(
+        serializers.serialize(DevToolsResponse((b) => b..success = true))));
+
+    appServices.connectedInstanceId = message.instanceId;
+    await appServices.chromeProxyService.remoteDebugger
+        .sendCommand('Target.createTarget', params: {
+      'newWindow': true,
+      'url': Uri(
+          scheme: 'http',
+          host: _devTools.hostname,
+          port: _devTools.port,
+          queryParameters: {'uri': appServices.debugService.uri}).toString(),
+    });
+  }
+
+  Future<void> _handleConnectRequest(
+      ConnectRequest message, SseConnection sseConnection) async {
+    // After a page refresh, reconnect to the same app services if they
+    // were previously launched and create the new isolate.
+    var services = await _servicesByAppId[message.appId];
+    if (services != null && services.connectedInstanceId == null) {
+      // Re-connect to the previous instance if its in the same tab,
+      // otherwise do nothing for now.
+      if (await _isCorrectTab(
+          message.instanceId, services.chromeProxyService.remoteDebugger)) {
+        services.connectedInstanceId = message.instanceId;
+        await services.chromeProxyService.createIsolate();
+      }
+    }
+
+    _connectedApps.add(AppConnection(message, sseConnection));
+  }
+
+  Future<void> _handleIsolateExit(IsolateExit message) async {
+    (await loadAppServices(message.appId, message.instanceId))
+        ?.chromeProxyService
+        ?.destroyIsolate();
+  }
+
+  Future<void> _handleIsolateStart(
+      IsolateStart message, SseConnection sseConnection) async {
+    if (_enableDebugging) {
+      await (await loadAppServices(message.appId, message.instanceId))
+          ?.chromeProxyService
+          ?.createIsolate();
+    }
+    // [IsolateStart] events are the result of a Hot Restart.
+    // Run the application after the Isolate has been created.
+    sseConnection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
+  }
+
+  Future<void> _handleRunResponse(RunResponse message) async {
+    if (_enableDebugging) {
+      await (await loadAppServices(message.appId, message.instanceId))
+          ?.chromeProxyService
+          ?.resumeFromStart();
+    }
   }
 
   void _listen() async {
