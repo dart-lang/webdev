@@ -1,3 +1,9 @@
+## 0.6.2
+
+- Capture any errors that happen when handling SSE requests in the DevHandler
+  and return an error response to the client code.
+  - Log error responses in the client to the console.
+
 ## 0.6.1
 
  - Add `isolateRef` to `Isolate`s `pauseEvent`s.

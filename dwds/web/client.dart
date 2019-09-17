@@ -12,6 +12,7 @@ import 'dart:html';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/devtools_request.dart';
+import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
@@ -82,6 +83,9 @@ Future<void> main() {
           ..appId = dartAppId
           ..instanceId = dartAppInstanceId))));
         runMain();
+      } else if (event is ErrorResponse) {
+        window.console.error('Error from backend:\n\nError: ${event.error}\n\n'
+            'Stack Trace:\n${event.stackTrace}');
       }
     }, onError: (error) {
       // An error is propagated on a full page reload as Chrome presumably
