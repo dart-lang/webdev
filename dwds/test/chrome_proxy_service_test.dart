@@ -117,10 +117,10 @@ void main() {
       });
 
             test('addBreakpointWithScriptUri absolute file URI', () async {
-       // await DartUri.loadPackages();
-        var current = Directory.current.path;
+        var current = context.workingDirectory;
+        var _test = path.join(path.dirname(current), '_test');
         var scriptPath = Uri.parse(mainScript.uri).path.substring(1);
-        var fullPath = path.join(current, scriptPath);
+        var fullPath = path.join(_test, scriptPath);
         var fileUri = Uri.file(fullPath);
         var bp = await service.addBreakpointWithScriptUri(
             isolate.id, '$fileUri', 23);

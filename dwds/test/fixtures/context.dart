@@ -11,6 +11,7 @@ import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
@@ -43,12 +44,20 @@ class TestContext {
   /// The path part of the application URL.
   String path;
 
+  /// Should we set the current directory.
+  ///
+  /// This is required for some tests involving file paths, but can confuse the
+  /// test infrastructure for others.
+  bool changeDirectory;
+
   TestContext(
       {String directory,
       this.path = 'hello_world/index.html',
-      this.pathToServe = 'example'}) {
+      this.pathToServe = 'example',
+      this.changeDirectory = false}) {
     workingDirectory = p.normalize(
         p.absolute(directory ?? p.relative('../_test', from: p.current)));
+    DartUri.currentDirectory = workingDirectory;
     _entryFile = File(p.absolute(p.join(p.relative('../_test', from: p.current),
         'example', 'append_body', 'main.dart')));
     _entryContents = _entryFile.readAsStringSync();
@@ -141,6 +150,7 @@ class TestContext {
   }
 
   Future<Null> tearDown() async {
+    DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
     await daemonClient.close();
     await testServer.stop();
