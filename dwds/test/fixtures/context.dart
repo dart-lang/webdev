@@ -44,17 +44,10 @@ class TestContext {
   /// The path part of the application URL.
   String path;
 
-  /// Should we set the current directory.
-  ///
-  /// This is required for some tests involving file paths, but can confuse the
-  /// test infrastructure for others.
-  bool changeDirectory;
-
   TestContext(
       {String directory,
       this.path = 'hello_world/index.html',
-      this.pathToServe = 'example',
-      this.changeDirectory = false}) {
+      this.pathToServe = 'example'}) {
     workingDirectory = p.normalize(
         p.absolute(directory ?? p.relative('../_test', from: p.current)));
     DartUri.currentDirectory = workingDirectory;

@@ -116,7 +116,7 @@ void main() {
         expect(bp.id, isNotNull);
       });
 
-            test('addBreakpointWithScriptUri absolute file URI', () async {
+      test('addBreakpointWithScriptUri absolute file URI', () async {
         var current = context.workingDirectory;
         var _test = path.join(path.dirname(current), '_test');
         var scriptPath = Uri.parse(mainScript.uri).path.substring(1);
@@ -128,7 +128,6 @@ void main() {
         await service.removeBreakpoint(isolate.id, bp.id);
         expect(bp.id, isNotNull);
       });
- 
 
       test('removeBreakpoint null arguments', () {
         expect(() => service.removeBreakpoint(null, null), throwsArgumentError);

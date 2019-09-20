@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/utilities/wrapped_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:package_resolver/package_resolver.dart';
 
@@ -16,27 +15,39 @@ class DartUri {
   /// 'packages/path/src/utils.dart'.
   final String serverPath;
 
+  /// The directory in which we're running.
+  ///
+  /// We store this here because for tests we may want to act as if we're
+  /// running in the directory of a target package, even if the current
+  /// directory of the tests is actually the main dwds directory.
   static String currentDirectory = p.current;
 
-  static Future<void> loadPackages() async {
-    packageResolver ??= await SyncPackageResolver.loadConfig(p.join(currentDirectory, '.packages'));
+  /// Load the .packages file associated with the running application so we can
+  /// resolve file URLs into package: URLs appropriately.
+  static Future<void> loadPackageConfig() async {
+    _packageResolver ??= await SyncPackageResolver.loadConfig(
+        p.join(currentDirectory, '.packages'));
   }
-  static SyncPackageResolver packageResolver;
 
-  static final Map<String, String> libraryNamesByPath = {};
+  /// The way we resolve file: URLs into package: URLs
+  static SyncPackageResolver _packageResolver;
 
-  static Future<Null> noteLibraries(List<LibraryRef> libraries) async {
-    await loadPackages();
-    for (var library in libraries) {
-      if (library.uri.startsWith('org-dartlang-app:')) {
-        var uriPath = Uri.parse(library.uri).path;
+  /// All of the known libraries, indexed by their absolute file URL.
+  static final Map<String, String> _libraryNamesByPath = {};
+
+  /// Record all of the libraries, indexed by their absolute file: URL.
+  static Future<Null> noteLibraries(Iterable<String> libraryUris) async {
+    await loadPackageConfig();
+    for (var uri in libraryUris) {
+      if (uri.startsWith('org-dartlang-app:')) {
+        var uriPath = Uri.parse(uri).path;
         // The Uri's path will be absolute, remove the leading slash.
         var libraryPath = p.join(currentDirectory, uriPath.substring(1));
-        libraryNamesByPath[Uri.file(libraryPath).toString()] = library.uri;
+        _libraryNamesByPath[Uri.file(libraryPath).toString()] = uri;
       }
-      if (library.uri.startsWith('package:')) {
-        var libraryPath = packageResolver.resolveUri(library.uri);
-        libraryNamesByPath['$libraryPath'] = library.uri;
+      if (uri.startsWith('package:')) {
+        var libraryPath = _packageResolver.resolveUri(uri);
+        _libraryNamesByPath['$libraryPath'] = uri;
       }
     }
   }
@@ -85,10 +96,10 @@ class DartUri {
 
   /// Construct from a file: URI
   factory DartUri._fromFileUri(String uri) {
-    var libraryName = libraryNamesByPath[uri];
+    var libraryName = _libraryNamesByPath[uri];
     if (libraryName != null) return DartUri(libraryName);
-
-    throw ArgumentError.value(uri, 'uri', 'Unknown file');
+    // This is not one of our recorded libraries.
+    throw ArgumentError.value(uri, 'uri', 'Unknown library');
   }
 
   /// Construct from an org-dartlang-app: URI.
