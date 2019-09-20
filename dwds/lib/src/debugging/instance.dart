@@ -53,21 +53,10 @@ class InstanceHelper extends Domain {
   }
 
   Future<Instance> _closureInstanceFor(RemoteObject remoteObject) async {
-    var functionMetaData =
-        await FunctionMetaData.metaDataFor(_remoteDebugger, remoteObject);
     var result = Instance(
         kind: InstanceKind.kClosure,
         id: remoteObject.objectId,
-        classRef: _classRefForClosure)
-      ..closureFunction = (FuncRef(
-          name: functionMetaData.name,
-          id: createId(),
-          // TODO(grouma) - fill these in properly.
-          owner: null,
-          isConst: false,
-          isStatic: false))
-      // TODO(grouma) - construct a valid context.
-      ..closureContext = (ContextRef()..length = 0);
+        classRef: _classRefForClosure);
     return result;
   }
 
@@ -174,10 +163,20 @@ class InstanceHelper extends Domain {
             id: remoteObject.objectId,
             classRef: ClassRef(name: metaData.name, id: metaData.id));
       case 'function':
+        var functionMetaData =
+            await FunctionMetaData.metaDataFor(_remoteDebugger, remoteObject);
         return InstanceRef(
             kind: InstanceKind.kClosure,
             id: remoteObject.objectId,
-            classRef: _classRefForClosure);
+            classRef: _classRefForClosure)
+          // TODO(grouma) - fill this in properly.
+          ..closureFunction = FuncRef(
+              name: functionMetaData.name,
+              id: createId(),
+              owner: null,
+              isConst: false,
+              isStatic: false)
+          ..closureContext = (ContextRef()..length = 0);
       default:
         // Return null for an unsupported type. This is likely a JS construct.
         return null;

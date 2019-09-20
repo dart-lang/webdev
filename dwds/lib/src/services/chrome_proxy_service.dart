@@ -444,6 +444,17 @@ $loadModule("dart_sdk").developer.invokeExtension(
     return Success();
   }
 
+  @override
+  Future<Success> clearCpuSamples(String isolateId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CpuSamples> getCpuSamples(
+      String isolateId, int timeOriginMicros, int timeExtentMicros) {
+    throw UnimplementedError();
+  }
+
   /// Resumes the [Isolate] from start.
   Future<void> resumeFromStart() async => _debugger.resumeFromStart();
 
@@ -485,8 +496,8 @@ $loadModule("dart_sdk").developer.invokeExtension(
               kind: EventKind.kWriteEvent,
               timestamp: DateTime.now().millisecondsSinceEpoch,
               isolate: _inspector.isolateRef)
-            ..bytes = base64
-                .encode(utf8.encode(e.exceptionDetails.exception.description)));
+            ..bytes = base64.encode(
+                utf8.encode(e.exceptionDetails.exception.description ?? '')));
         });
       }
     });

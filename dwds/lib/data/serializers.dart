@@ -4,6 +4,7 @@
 
 import 'package:build_daemon/data/build_status.dart';
 import 'package:built_value/serializer.dart';
+import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/extension_request.dart';
 
 import 'connect_request.dart';
@@ -26,5 +27,6 @@ part 'serializers.g.dart';
   ExtensionRequest,
   ExtensionResponse,
   ExtensionEvent,
+  ErrorResponse,
 ])
 final Serializers serializers = _$serializers;
