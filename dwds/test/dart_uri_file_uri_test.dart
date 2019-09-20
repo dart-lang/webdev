@@ -9,13 +9,13 @@ import 'package:test/test.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext(
-    directory: '_testPackage',
-    path: 'index.html',
-    pathToServe: 'web');
+    directory: '_testPackage', path: 'index.html', pathToServe: 'web');
 
 String get dwdsDir => Directory.current.absolute.path;
+
 /// The directory for the general _test package.
 String get testDir => p.join(p.dirname(dwdsDir), '_test');
+
 /// The directory for the _testPackage packagwe (contained within dwds), which imports _test.
 String get testPackageDir => context.workingDirectory;
 
@@ -39,7 +39,8 @@ void main() {
   });
 
   test('file path to this package', () {
-    var testPackageLib = Uri.file(p.join(testPackageDir, 'lib', 'test_library.dart'));
+    var testPackageLib =
+        Uri.file(p.join(testPackageDir, 'lib', 'test_library.dart'));
     var uri = DartUri('$testPackageLib');
     expect(uri.serverPath, 'packages/_testPackage/test_library.dart');
   });
