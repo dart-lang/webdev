@@ -1,3 +1,7 @@
+## 0.6.3
+
+- Update SDK dependency to minimum of 2.5.0.
+
 ## 0.6.2
 
 - Capture any errors that happen when handling SSE requests in the DevHandler
