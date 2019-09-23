@@ -11,7 +11,9 @@ import 'package:test/test.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext(
-    directory: '../fixtures/_testPackage', path: 'index.html', pathToServe: 'web');
+    directory: '../fixtures/_testPackage',
+    path: 'index.html',
+    pathToServe: 'web');
 
 String get dwdsDir => Directory.current.absolute.path;
 
