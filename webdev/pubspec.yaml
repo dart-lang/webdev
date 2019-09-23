@@ -8,7 +8,7 @@ description: >-
   features for users and tools to build and deploy web applications with Dart.
 
 environment:
-  sdk: ">=2.3.2-dev.0.1 <3.0.0"
+  sdk: ">=2.3.2 <3.0.0"
 
 dependencies:
   args: ^1.5.0

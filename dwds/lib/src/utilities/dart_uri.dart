@@ -26,7 +26,7 @@ class DartUri {
   /// resolve file URLs into package: URLs appropriately.
   static Future<void> _loadPackageConfig() async {
     _packageResolver ??= await SyncPackageResolver.loadConfig(
-        p.join(currentDirectory, '.packages'));
+        p.toUri(p.join(currentDirectory, '.packages')));
   }
 
   /// The way we resolve file: URLs into package: URLs
