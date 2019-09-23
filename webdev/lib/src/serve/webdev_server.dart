@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
+import 'package:dwds/asset_handler.dart';
 import 'package:dwds/dwds.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
@@ -87,9 +88,12 @@ class WebDevServer {
     if (options.configuration.enableInjectedClient) {
       dwds = await Dwds.start(
         hostname: options.configuration.hostname,
-        applicationPort: options.port,
-        applicationTarget: options.target,
-        assetServerPort: options.daemonPort,
+        assetHandler: BuildRunnerAssetHandler(
+          options.daemonPort,
+          options.target,
+          options.configuration.hostname,
+          options.port,
+        ),
         buildResults: filteredBuildResults,
         chromeConnection: () async =>
             (await Chrome.connectedInstance).chromeConnection,

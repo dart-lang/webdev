@@ -1,5 +1,9 @@
-## 0.7.0
+## 0.7.0-dev
 
+- `DWDS.start` now requires an `AssetHandler` instead of `applicationPort`,
+  `assetServerPort` and `applicationTarget`.
+- Expose a `BuildRunnerAssetHandler` which proxies request to the asset server
+  running within build runner.
 - Update SDK dependency to minimum of 2.5.0.
 
 ## 0.6.2

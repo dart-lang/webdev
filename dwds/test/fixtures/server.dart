@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart';
+import 'package:dwds/asset_handler.dart';
 import 'package:dwds/dwds.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
@@ -58,9 +59,8 @@ class TestServer {
         results.results.firstWhere((result) => result.target == target));
 
     var dwds = await Dwds.start(
-      applicationPort: port,
-      applicationTarget: target,
-      assetServerPort: assetServerPort,
+      assetHandler:
+          BuildRunnerAssetHandler(assetServerPort, target, 'localhost', port),
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       logWriter: (level, message) => printOnFailure(message),

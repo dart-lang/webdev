@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/asset_handler.dart';
+import 'package:dwds/src/debugging/sources.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'package:dwds/src/debugging/sources.dart';
-import 'package:dwds/src/handlers/asset_handler.dart';
 
 void main() {
   test('Gracefully handles missing source maps', () async {
