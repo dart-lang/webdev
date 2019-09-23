@@ -1,3 +1,7 @@
+## 2.5.2-dev
+
+- Depend on the latest `package:dwds`.
+
 ## 2.5.1
 
 - Depend on the latest `package:dwds`.

@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../../asset_handler.dart';
 import '../../dwds.dart' show LogWriter;
-import '../handlers/asset_handler.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
