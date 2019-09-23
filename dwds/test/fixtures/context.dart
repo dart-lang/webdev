@@ -49,9 +49,9 @@ class TestContext {
       this.path = 'hello_world/index.html',
       this.pathToServe = 'example'}) {
     workingDirectory = p.normalize(
-        p.absolute(directory ?? p.relative('../_test', from: p.current)));
+        p.absolute(directory ?? p.relative('../fixtures/_test', from: p.current)));
     DartUri.currentDirectory = workingDirectory;
-    _entryFile = File(p.absolute(p.join(p.relative('../_test', from: p.current),
+    _entryFile = File(p.absolute(p.join(p.relative('../fixtures/_test', from: p.current),
         'example', 'append_body', 'main.dart')));
     _entryContents = _entryFile.readAsStringSync();
   }

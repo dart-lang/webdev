@@ -1,20 +1,22 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'dart:io';
-import 'package:path/path.dart' as p;
 
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:test/test.dart';
+
 import 'fixtures/context.dart';
 
 final context = TestContext(
-    directory: '_testPackage', path: 'index.html', pathToServe: 'web');
+    directory: '../fixtures/_testPackage', path: 'index.html', pathToServe: 'web');
 
 String get dwdsDir => Directory.current.absolute.path;
 
 /// The directory for the general _test package.
-String get testDir => p.join(p.dirname(dwdsDir), '_test');
+String get testDir => p.join(p.dirname(dwdsDir), 'fixtures', '_test');
 
 /// The directory for the _testPackage packagwe (contained within dwds), which imports _test.
 String get testPackageDir => context.workingDirectory;
@@ -49,5 +51,12 @@ void main() {
     var testLib = Uri.file(p.join(testDir, 'lib', 'library.dart'));
     var dartUri = DartUri('$testLib');
     expect(dartUri.serverPath, 'packages/_test/library.dart');
+  });
+
+  test('Combining Windows current directory with URI path', () {
+    var windowsPath = r'C:\foo\bar';
+    var fileUri = p.windows.toUri(windowsPath);
+    var joined = p.url.join(fileUri.path, 'baz/qux');
+    expect(joined, '/C:/foo/bar/baz/qux');
   });
 }

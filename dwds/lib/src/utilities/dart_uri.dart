@@ -24,7 +24,7 @@ class DartUri {
 
   /// Load the .packages file associated with the running application so we can
   /// resolve file URLs into package: URLs appropriately.
-  static Future<void> loadPackageConfig() async {
+  static Future<void> _loadPackageConfig() async {
     _packageResolver ??= await SyncPackageResolver.loadConfig(
         p.join(currentDirectory, '.packages'));
   }
@@ -35,20 +35,31 @@ class DartUri {
   /// All of the known libraries, indexed by their absolute file URL.
   static final Map<String, String> _libraryNamesByPath = {};
 
-  /// Record all of the libraries, indexed by their absolute file: URL.
-  static Future<Null> noteLibraries(Iterable<String> libraryUris) async {
-    await loadPackageConfig();
+  /// Record all of the libraries, indexed by their absolute file: URI.
+  static Future<void> recordAbsoluteUris(Iterable<String> libraryUris) async {
+    await _loadPackageConfig();
     for (var uri in libraryUris) {
-      if (uri.startsWith('org-dartlang-app:')) {
-        var uriPath = Uri.parse(uri).path;
-        // The Uri's path will be absolute, remove the leading slash.
-        var libraryPath = p.join(currentDirectory, uriPath.substring(1));
-        _libraryNamesByPath[Uri.file(libraryPath).toString()] = uri;
-      }
-      if (uri.startsWith('package:')) {
-        var libraryPath = _packageResolver.resolveUri(uri);
-        _libraryNamesByPath['$libraryPath'] = uri;
-      }
+      recordAbsoluteUri(uri);
+    }
+  }
+
+  /// Record the library represented by package: or org-dartlang-app: uris
+  /// indexed by absolute file: URI.
+  static void recordAbsoluteUri(String libraryUri) {
+    var uri = Uri.parse(libraryUri);
+    if (uri.scheme == 'dart' ||
+        (uri.scheme == '' && !uri.path.endsWith('.dart'))) {
+      /// We ignore dart: libraries, and non-Dart libraries referenced by path.
+    } else if (uri.scheme == 'org-dartlang-app') {
+      var currentAsFileUri = p.toUri(currentDirectory);
+      // The Uri's path will be absolute, remove the leading slash.
+      var libraryPath = p.join(currentAsFileUri.path, uri.path.substring(1));
+      _libraryNamesByPath[Uri.file(libraryPath).toString()] = libraryUri;
+    } else if (uri.scheme == 'package') {
+      var libraryPath = _packageResolver.resolveUri(uri);
+      _libraryNamesByPath['$libraryPath'] = libraryUri;
+    } else {
+      throw ArgumentError.value(libraryUri, 'URI scheme not allowed');
     }
   }
 
