@@ -10,11 +10,11 @@ import 'package:dwds/src/debugging/instance.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../../asset_handler.dart';
 import '../../dwds.dart' show LogWriter;
 import '../debugging/debugger.dart';
 import '../debugging/inspector.dart';
 import '../debugging/remote_debugger.dart';
-import '../handlers/asset_handler.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';

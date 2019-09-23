@@ -11,9 +11,9 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'asset_handler.dart';
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
-import 'src/handlers/asset_handler.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injected_handler.dart';
 import 'src/servers/devtools.dart';
@@ -54,9 +54,7 @@ class Dwds {
   }
 
   static Future<Dwds> start({
-    @required int applicationPort,
-    @required int assetServerPort,
-    @required String applicationTarget,
+    @required AssetHandler assetHandler,
     @required Stream<BuildResult> buildResults,
     @required ConnectionProvider chromeConnection,
     @required bool enableDebugging,
@@ -78,12 +76,7 @@ class Dwds {
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
     globalModuleStrategy = moduleStrategy ?? ModuleStrategy.requireJS;
-    var assetHandler = AssetHandler(
-      assetServerPort,
-      applicationTarget,
-      hostname,
-      applicationPort,
-    );
+
     var cascade = Cascade();
     var pipeline = const Pipeline();
 
