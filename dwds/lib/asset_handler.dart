@@ -8,8 +8,6 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
 /// A handler for a build target's assets.
-///
-/// Proxies requests to the build daemon asset server.
 abstract class AssetHandler {
   Handler get handler;
 
