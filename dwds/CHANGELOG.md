@@ -1,4 +1,4 @@
-## 0.6.3
+## 0.7.0
 
 - Update SDK dependency to minimum of 2.5.0.
 
