@@ -149,7 +149,7 @@ class TestContext {
     DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
     await daemonClient?.close();
-    await testServer.stop();
+    await testServer?.stop();
     await webDriver?.quit();
     chromeDriver.kill();
   }
