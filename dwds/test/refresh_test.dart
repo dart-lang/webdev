@@ -25,12 +25,12 @@ WipConnection get tabConnection => context.tabConnection;
 void main() {
   group('fresh context', () {
     VM vm;
-    setUp(() async {
+    setUpAll(() async {
       await context.setUp();
       vm = await service.getVM();
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await context.tearDown();
     });
 
