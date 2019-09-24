@@ -19,7 +19,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext();
+TestContext context;
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
@@ -28,12 +28,14 @@ void main() {
   group('fresh context', () {
     VM vm;
     setUp(() async {
+      context = TestContext();
       await context.setUp();
       vm = await service.getVM();
     });
 
     tearDown(() async {
       await context.tearDown();
+      context = null;
     });
 
     test('can add and remove after a refresh', () async {
@@ -63,11 +65,13 @@ void main() {
 
   group('shared context', () {
     setUpAll(() async {
+      context = TestContext();
       await context.setUp();
     });
 
     tearDownAll(() async {
       await context.tearDown();
+      context = null;
     });
 
     group('breakpoints', () {
