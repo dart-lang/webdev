@@ -4,6 +4,7 @@
   `assetServerPort` and `applicationTarget`.
 - Expose a `BuildRunnerAssetHandler` which proxies request to the asset server
   running within build runner.
+- Support the Legacy Module strategy through the injected client.
 
 ## 0.6.2
 

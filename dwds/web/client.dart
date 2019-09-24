@@ -37,7 +37,7 @@ Future<void> main() {
     // Ensure the SSE connection is established before proceeding.
     // Note that `onOpen` is a broadcast stream so we must listen for this
     // immediately.
-    // await client.onOpen.first;
+    await client.onOpen.first;
 
     Restarter restarter;
     if (dartModuleStrategy == 'require') {
