@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:path/path.dart' as p;
+import 'package:package_resolver/package_resolver.dart';
 
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
@@ -13,6 +14,58 @@ class DartUri {
   /// from the server. For example, 'hello_world/main.dart' or
   /// 'packages/path/src/utils.dart'.
   final String serverPath;
+
+  /// The directory in which we're running.
+  ///
+  /// We store this here because for tests we may want to act as if we're
+  /// running in the directory of a target package, even if the current
+  /// directory of the tests is actually the main dwds directory.
+  static String currentDirectory = p.current;
+
+  /// Load the .packages file associated with the running application so we can
+  /// resolve file URLs into package: URLs appropriately.
+  static Future<void> _loadPackageConfig() async {
+    _packageResolver ??= await SyncPackageResolver.loadConfig(
+        p.toUri(p.join(currentDirectory, '.packages')));
+  }
+
+  /// The way we resolve file: URLs into package: URLs
+  static SyncPackageResolver _packageResolver;
+
+  /// All of the known libraries, indexed by their absolute file URL.
+  static final Map<String, String> _libraryNamesByPath = {};
+
+  /// Record all of the libraries, indexed by their absolute file: URI.
+  static Future<void> recordAbsoluteUris(Iterable<String> libraryUris) async {
+    await _loadPackageConfig();
+    _libraryNamesByPath.clear();
+    for (var uri in libraryUris) {
+      recordAbsoluteUri(uri);
+    }
+  }
+
+  /// Record the library represented by package: or org-dartlang-app: uris
+  /// indexed by absolute file: URI.
+  static void recordAbsoluteUri(String libraryUri) {
+    var uri = Uri.parse(libraryUri);
+    if (uri.scheme == 'dart' ||
+        (uri.scheme == '' && !uri.path.endsWith('.dart'))) {
+      // We ignore dart: libraries, and non-Dart libraries referenced by path.
+      // e.g. main.dart.bootstrap
+      // TODO(alanknight): These should not be showing up in the library list,
+      // fix _getLibraryRefs and then remove this check.
+    } else if (uri.scheme == 'org-dartlang-app' || uri.scheme == 'google3') {
+      var currentAsFileUri = p.toUri(currentDirectory);
+      // The Uri's path will be absolute, remove the leading slash.
+      var libraryPath = p.join(currentAsFileUri.path, uri.path.substring(1));
+      _libraryNamesByPath[p.toUri(libraryPath).toString()] = libraryUri;
+    } else if (uri.scheme == 'package') {
+      var libraryPath = _packageResolver.resolveUri(uri);
+      _libraryNamesByPath['$libraryPath'] = libraryUri;
+    } else {
+      throw ArgumentError.value(libraryUri, 'URI scheme not allowed');
+    }
+  }
 
   /// Accepts various forms of URI and can convert between forms.
   ///
@@ -36,6 +89,7 @@ class DartUri {
     // TODO(401): Remove serverUri after D24 is stable.
     if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
     if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
+    if (uri.startsWith('file:')) return DartUri._fromFileUri(uri);
     if (uri.startsWith('/packages/')) return DartUri._fromServerPath(uri);
     if (uri.startsWith('/')) return DartUri._fromServerPath(uri);
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
@@ -53,6 +107,14 @@ class DartUri {
   /// Construct from a package: URI
   factory DartUri._fromPackageUri(String uri) {
     return DartUri._('packages/${uri.substring("package:".length)}');
+  }
+
+  /// Construct from a file: URI
+  factory DartUri._fromFileUri(String uri) {
+    var libraryName = _libraryNamesByPath[uri];
+    if (libraryName != null) return DartUri(libraryName);
+    // This is not one of our recorded libraries.
+    throw ArgumentError.value(uri, 'uri', 'Unknown library');
   }
 
   /// Construct from an org-dartlang-app: URI.

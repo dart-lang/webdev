@@ -70,7 +70,9 @@ class AppInspector extends Domain {
   AppInspector get inspector => this;
 
   Future<void> _initialize() async {
-    isolate.libraries.addAll(await _getLibraryRefs());
+    var libraries = await _getLibraryRefs();
+    isolate.libraries.addAll(libraries);
+    await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
 
     // TODO: Something more robust here, right now we rely on the 2nd to last
     // library being the root one (the last library is the bootstrap lib).

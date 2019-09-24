@@ -11,6 +11,7 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -24,42 +25,6 @@ ChromeProxyService get service =>
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
-  group('fresh context', () {
-    VM vm;
-    setUp(() async {
-      await context.setUp();
-      vm = await service.getVM();
-    });
-
-    tearDown(() async {
-      await context.tearDown();
-    });
-
-    test('can add and remove after a refresh', () async {
-      var stream = service.onEvent('Isolate');
-      // Wait for the page to be fully loaded before refreshing.
-      await Future.delayed(const Duration(seconds: 1));
-      // Now wait for the shutdown event.
-      var exitEvent =
-          stream.firstWhere((e) => e.kind != EventKind.kIsolateExit);
-      await context.webDriver.refresh();
-      await exitEvent;
-      // Wait for the refresh to propagate through.
-      var isolateStart =
-          await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
-      var isolateId = isolateStart.isolate.id;
-      var refreshedScriptList = await service.getScripts(isolateId);
-      var refreshedMain = refreshedScriptList.scripts
-          .lastWhere((each) => each.uri.contains('main.dart'));
-      var bp = await service.addBreakpoint(isolateId, refreshedMain.id, 23);
-      var isolate = await service.getIsolate(vm.isolates.first.id);
-      expect(isolate.breakpoints, [bp]);
-      expect(bp.id, isNotNull);
-      await service.removeBreakpoint(isolateId, bp.id);
-      expect(isolate.breakpoints, isEmpty);
-    });
-  });
-
   group('shared context', () {
     setUpAll(() async {
       await context.setUp();
@@ -110,6 +75,19 @@ void main() {
       test('addBreakpointWithScriptUri', () async {
         var bp = await service.addBreakpointWithScriptUri(
             isolate.id, mainScript.uri, 23);
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+        expect(bp.id, isNotNull);
+      });
+
+      test('addBreakpointWithScriptUri absolute file URI', () async {
+        var current = context.workingDirectory;
+        var _test = path.join(path.dirname(current), '_test');
+        var scriptPath = Uri.parse(mainScript.uri).path.substring(1);
+        var fullPath = path.join(_test, scriptPath);
+        var fileUri = Uri.file(fullPath);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, '$fileUri', 23);
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
         expect(bp.id, isNotNull);
