@@ -91,19 +91,16 @@ Handler Function(Handler) createInjectedHandler(
 String _injectedClientJs(
     ReloadConfiguration configuration, String appId, String mainFunction,
     {String extensionHostname, int extensionPort}) {
-  var injectedBody = '''\n
-            // Injected by webdev for build results support.
-            window.\$dartAppId = "$appId";
-            window.\$dartRunMain = $mainFunction;
-            window.\$dartReloadConfiguration = "$configuration";
-            window.\$dartLoader.forceLoadModule('$_clientScript');
-            window.\$loadModuleConfig = $loadModule;
-            ''';
+  var injectedBody = '// Injected by webdev for build results support.\n'
+      'window.\$dartAppId = "$appId";\n'
+      'window.\$dartRunMain = $mainFunction;\n'
+      'window.\$dartReloadConfiguration = "$configuration";\n'
+      'window.\$dartLoader.forceLoadModule("$_clientScript");\n'
+      'window.\$dartModuleStrategy = "$loadModule";\n'
+      'window.\$loadModuleConfig = $loadModule;\n';
   if (extensionPort != null && extensionHostname != null) {
-    injectedBody += '''
-      window.\$extensionHostname = "$extensionHostname";
-      window.\$extensionPort = "$extensionPort";
-      ''';
+    injectedBody += 'window.\$extensionHostname = "$extensionHostname";\n'
+        'window.\$extensionPort = "$extensionPort";\n';
   }
   return injectedBody;
 }
