@@ -34,6 +34,10 @@ Future<void> main() {
     dartAppInstanceId ??= Uuid().v1();
 
     var client = SseClient(r'/$sseHandler');
+    // Ensure the SSE connection is established before proceeding.
+    // Note that `onOpen` is a broadcast stream so we must listen for this
+    // immediately.
+    await client.onOpen.first;
 
     Restarter restarter;
     if (dartModuleStrategy == 'require') {
@@ -108,8 +112,6 @@ Future<void> main() {
     });
 
     if (_isChrome) {
-      // Wait for the connection to be estabilished before sending the AppId.
-      await client.onOpen.first;
       client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
         ..appId = dartAppId
         ..instanceId = dartAppInstanceId))));

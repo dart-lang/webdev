@@ -26185,7 +26185,7 @@
     call$0: function() {
       var $async$goto = 0,
         $async$completer = P._makeAsyncAwaitCompleter(P.Null),
-        t1, t2, t3, t4, client, clientId, restarter, manager, t5;
+        t1, t2, t3, t4, client, clientId, restarter, manager;
       var $async$call$0 = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return P._asyncRethrow($async$result, $async$completer);
@@ -26213,55 +26213,46 @@
               t4 = W.Event;
               W._EventStreamSubscription$(client._eventSource, "error", H.functionTypeCheck(t2.get$addError(), {func: 1, ret: -1, args: [t4]}), false, t4);
               client._startPostingMessages$0();
-              $async$goto = J.$eq$(self.$dartModuleStrategy, "require") ? 2 : 4;
-              break;
+              t4 = new W._EventStream(client._eventSource, "open", false, [t4]);
+              $async$goto = 2;
+              return P._asyncAwait(t4.get$first(t4), $async$call$0);
             case 2:
+              // returning from await.
+              $async$goto = J.$eq$(self.$dartModuleStrategy, "require") ? 3 : 5;
+              break;
+            case 3:
               // then
-              $async$goto = 5;
+              $async$goto = 6;
               return P._asyncAwait(X.RequireRestarter_create(), $async$call$0);
-            case 5:
+            case 6:
               // returning from await.
               restarter = $async$result;
               // goto join
-              $async$goto = 3;
+              $async$goto = 4;
               break;
-            case 4:
+            case 5:
               // else
               if (J.$eq$(self.$dartModuleStrategy, "dart_library.import"))
                 restarter = new Z.LegacyRestarter();
               else
                 throw H.wrapException(P.StateError$("Unknown module strategy: " + H.S(self.$dartModuleStrategy)));
-            case 3:
+            case 4:
               // join
               manager = new Q.ReloadingManager(client, self.$dartAppId, self.$dartAppInstanceId, restarter);
-              t5 = P.allowInterop(new D.main__closure(manager), {func: 1, ret: [S.Promise, -2]});
-              self.$dartHotRestart = t5;
-              t5 = P.allowInterop(new D.main__closure0(client), {func: 1, ret: -1});
-              self.$launchDevTools = t5;
+              t4 = P.allowInterop(new D.main__closure(manager), {func: 1, ret: [S.Promise, -2]});
+              self.$dartHotRestart = t4;
+              t4 = P.allowInterop(new D.main__closure0(client), {func: 1, ret: -1});
+              self.$launchDevTools = t4;
               new P._ControllerStream(t2, [H.getTypeArgumentByIndex(t2, 0)]).listen$2$onError(new D.main__closure1(manager, client), new D.main__closure2());
               t2 = W.KeyboardEvent;
               W._EventStreamSubscription$(window, "keydown", H.functionTypeCheck(new D.main__closure3(), {func: 1, ret: -1, args: [t2]}), false, t2);
-              $async$goto = D._isChrome() ? 6 : 8;
-              break;
-            case 6:
-              // then
-              t2 = new W._EventStream(client._eventSource, "open", false, [t4]);
-              $async$goto = 9;
-              return P._asyncAwait(t2.get$first(t2), $async$call$0);
-            case 9:
-              // returning from await.
-              t2 = $.$get$serializers();
-              t4 = new E.ConnectRequestBuilder();
-              H.functionTypeCheck(new D.main__closure4(), {func: 1, ret: -1, args: [E.ConnectRequestBuilder]}).call$1(t4);
-              t3.add$1(0, H.assertSubtypeOfRuntimeType(C.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t4.build$0()), null), t1));
-              // goto join
-              $async$goto = 7;
-              break;
-            case 8:
-              // else
-              self.$dartRunMain.call$0();
-            case 7:
-              // join
+              if (D._isChrome()) {
+                t2 = $.$get$serializers();
+                t4 = new E.ConnectRequestBuilder();
+                H.functionTypeCheck(new D.main__closure4(), {func: 1, ret: -1, args: [E.ConnectRequestBuilder]}).call$1(t4);
+                t3.add$1(0, H.assertSubtypeOfRuntimeType(C.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t4.build$0()), null), t1));
+              } else
+                self.$dartRunMain.call$0();
               // implicit return
               return P._asyncReturn(null, $async$completer);
           }
