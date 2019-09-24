@@ -51,7 +51,7 @@ class DartUri {
     if (uri.scheme == 'dart' ||
         (uri.scheme == '' && !uri.path.endsWith('.dart'))) {
       // We ignore dart: libraries, and non-Dart libraries referenced by path.
-      // e.g. main.dart.bootstrap 
+      // e.g. main.dart.bootstrap
       // TODO(alanknight): These should not be showing up in the library list,
       // fix _getLibraryRefs and then remove this check.
     } else if (uri.scheme == 'org-dartlang-app' || uri.scheme == 'google3') {
