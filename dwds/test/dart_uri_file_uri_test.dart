@@ -20,13 +20,14 @@ String get dwdsDir => Directory.current.absolute.path;
 /// The directory for the general _test package.
 String get testDir => p.join(p.dirname(dwdsDir), 'fixtures', '_test');
 
-/// The directory for the _testPackage packagwe (contained within dwds), which imports _test.
+/// The directory for the _testPackage package (contained within dwds), which
+/// imports _test.
 String get testPackageDir => context.workingDirectory;
 
-/// This tests converting file Uris into our internal paths.
-///
-/// These tests are separated out because we need a running isolate in order to
-/// look up packages.
+// This tests converting file Uris into our internal paths.
+//
+// These tests are separated out because we need a running isolate in order to
+// look up packages.
 void main() {
   setUpAll(() async {
     await context.setUp();
@@ -53,12 +54,5 @@ void main() {
     var testLib = Uri.file(p.join(testDir, 'lib', 'library.dart'));
     var dartUri = DartUri('$testLib');
     expect(dartUri.serverPath, 'packages/_test/library.dart');
-  });
-
-  test('Combining Windows current directory with URI path', () {
-    var windowsPath = r'C:\foo\bar';
-    var fileUri = p.windows.toUri(windowsPath);
-    var joined = p.url.join(fileUri.path, 'baz/qux');
-    expect(joined, '/C:/foo/bar/baz/qux');
   });
 }

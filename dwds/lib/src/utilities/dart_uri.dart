@@ -38,6 +38,7 @@ class DartUri {
   /// Record all of the libraries, indexed by their absolute file: URI.
   static Future<void> recordAbsoluteUris(Iterable<String> libraryUris) async {
     await _loadPackageConfig();
+    _libraryNamesByPath.clear();
     for (var uri in libraryUris) {
       recordAbsoluteUri(uri);
     }
@@ -49,8 +50,11 @@ class DartUri {
     var uri = Uri.parse(libraryUri);
     if (uri.scheme == 'dart' ||
         (uri.scheme == '' && !uri.path.endsWith('.dart'))) {
-      /// We ignore dart: libraries, and non-Dart libraries referenced by path.
-    } else if (uri.scheme == 'org-dartlang-app') {
+      // We ignore dart: libraries, and non-Dart libraries referenced by path.
+      // e.g. main.dart.bootstrap 
+      // TODO(alanknight): These should not be showing up in the library list,
+      // fix _getLibraryRefs and then remove this check.
+    } else if (uri.scheme == 'org-dartlang-app' || uri.scheme == 'google3') {
       var currentAsFileUri = p.toUri(currentDirectory);
       // The Uri's path will be absolute, remove the leading slash.
       var libraryPath = p.join(currentAsFileUri.path, uri.path.substring(1));
