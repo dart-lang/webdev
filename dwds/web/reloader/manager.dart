@@ -13,19 +13,19 @@ import 'package:sse/client/sse_client.dart';
 import 'restarter.dart';
 
 class ReloadingManager {
-  SseClient _client;
-  String _appId;
-  String _appInstanceId;
-  Restarter _restarter;
+  final SseClient _client;
+  final String _appId;
+  final String _appInstanceId;
+  final Restarter _restarter;
 
   ReloadingManager(
       this._client, this._appId, this._appInstanceId, this._restarter);
 
   /// Attemps to perform a hot restart and returns whether it was successful or
   /// not.
-  Future<bool> hotRestart() {
+  Future<bool> hotRestart() async {
     _beforeRestart();
-    var result = _restarter.restart();
+    var result = await _restarter.restart();
     _afterRestart();
     return result;
   }

@@ -26213,30 +26213,25 @@
               t4 = W.Event;
               W._EventStreamSubscription$(client._eventSource, "error", H.functionTypeCheck(t2.get$addError(), {func: 1, ret: -1, args: [t4]}), false, t4);
               client._startPostingMessages$0();
-              t4 = new W._EventStream(client._eventSource, "open", false, [t4]);
-              $async$goto = 2;
-              return P._asyncAwait(t4.get$first(t4), $async$call$0);
-            case 2:
-              // returning from await.
-              $async$goto = J.$eq$(self.$dartModuleStrategy, "require") ? 3 : 5;
+              $async$goto = J.$eq$(self.$dartModuleStrategy, "require") ? 2 : 4;
               break;
-            case 3:
+            case 2:
               // then
-              $async$goto = 6;
+              $async$goto = 5;
               return P._asyncAwait(X.RequireRestarter_create(), $async$call$0);
-            case 6:
+            case 5:
               // returning from await.
               restarter = $async$result;
               // goto join
-              $async$goto = 4;
+              $async$goto = 3;
               break;
-            case 5:
+            case 4:
               // else
               if (J.$eq$(self.$dartModuleStrategy, "dart_library.import"))
                 restarter = new Z.LegacyRestarter();
               else
                 throw H.wrapException(P.StateError$("Unknown module strategy: " + H.S(self.$dartModuleStrategy)));
-            case 4:
+            case 3:
               // join
               manager = new Q.ReloadingManager(client, self.$dartAppId, self.$dartAppInstanceId, restarter);
               t4 = P.allowInterop(new D.main__closure(manager), {func: 1, ret: [S.Promise, -2]});
@@ -26448,10 +26443,33 @@
   };
   Q.ReloadingManager.prototype = {
     hotRestart$0: function() {
-      this._beforeRestart$0();
-      var result = this._restarter.restart$0();
-      this._afterRestart$0();
-      return result;
+      var $async$goto = 0,
+        $async$completer = P._makeAsyncAwaitCompleter(P.bool),
+        $async$returnValue, $async$self = this, result;
+      var $async$hotRestart$0 = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
+        if ($async$errorCode === 1)
+          return P._asyncRethrow($async$result, $async$completer);
+        while (true)
+          switch ($async$goto) {
+            case 0:
+              // Function start
+              $async$self._beforeRestart$0();
+              $async$goto = 3;
+              return P._asyncAwait($async$self._restarter.restart$0(), $async$hotRestart$0);
+            case 3:
+              // returning from await.
+              result = $async$result;
+              $async$self._afterRestart$0();
+              $async$returnValue = result;
+              // goto return
+              $async$goto = 1;
+              break;
+            case 1:
+              // return
+              return P._asyncReturn($async$returnValue, $async$completer);
+          }
+      });
+      return P._asyncStartSync($async$hotRestart$0, $async$completer);
     },
     _afterRestart$0: function() {
       var t1 = this._client._outgoingController,
