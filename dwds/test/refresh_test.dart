@@ -23,7 +23,6 @@ ChromeProxyService get service =>
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
-  group('fresh context', () {
     VM vm;
     setUp(() async {
       await context.setUp();
@@ -57,5 +56,4 @@ void main() {
       await service.removeBreakpoint(isolateId, bp.id);
       expect(isolate.breakpoints, isEmpty);
     });
-  });
 }
