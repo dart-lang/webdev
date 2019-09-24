@@ -22,7 +22,7 @@ import 'restarter.dart';
 
 /// The last known digests of all the modules in the application.
 ///
-/// This is updated in place during calls to [hotRestart].
+/// This is updated in place during calls to hotRestart.
 Map<String, String> _lastKnownDigests;
 
 @JS(r'$dartLoader')
