@@ -19,59 +19,19 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 
-TestContext context;
+final context = TestContext();
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
-  group('fresh context', () {
-    VM vm;
-    setUp(() async {
-      context = TestContext();
-      await context.setUp();
-      vm = await service.getVM();
-    });
-
-    tearDown(() async {
-      await context.tearDown();
-      context = null;
-    });
-
-    test('can add and remove after a refresh', () async {
-      var stream = service.onEvent('Isolate');
-      // Wait for the page to be fully loaded before refreshing.
-      await Future.delayed(const Duration(seconds: 1));
-      // Now wait for the shutdown event.
-      var exitEvent =
-          stream.firstWhere((e) => e.kind != EventKind.kIsolateExit);
-      await context.webDriver.refresh();
-      await exitEvent;
-      // Wait for the refresh to propagate through.
-      var isolateStart =
-          await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
-      var isolateId = isolateStart.isolate.id;
-      var refreshedScriptList = await service.getScripts(isolateId);
-      var refreshedMain = refreshedScriptList.scripts
-          .lastWhere((each) => each.uri.contains('main.dart'));
-      var bp = await service.addBreakpoint(isolateId, refreshedMain.id, 23);
-      var isolate = await service.getIsolate(vm.isolates.first.id);
-      expect(isolate.breakpoints, [bp]);
-      expect(bp.id, isNotNull);
-      await service.removeBreakpoint(isolateId, bp.id);
-      expect(isolate.breakpoints, isEmpty);
-    });
-  });
-
   group('shared context', () {
     setUpAll(() async {
-      context = TestContext();
       await context.setUp();
     });
 
     tearDownAll(() async {
       await context.tearDown();
-      context = null;
     });
 
     group('breakpoints', () {

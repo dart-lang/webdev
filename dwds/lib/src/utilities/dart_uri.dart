@@ -58,7 +58,6 @@ class DartUri {
       var currentAsFileUri = p.toUri(currentDirectory);
       // The Uri's path will be absolute, remove the leading slash.
       var libraryPath = p.join(currentAsFileUri.path, uri.path.substring(1));
-
       _libraryNamesByPath[p.toUri(libraryPath).toString()] = libraryUri;
     } else if (uri.scheme == 'package') {
       var libraryPath = _packageResolver.resolveUri(uri);
