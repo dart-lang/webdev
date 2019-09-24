@@ -104,7 +104,7 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   void close() {
-    _closeController.add(WipEvent({}));
+    if (!_closeController.isClosed) _closeController.add(WipEvent({}));
     sseConnection.sink.close();
     _notificationController.close();
     _devToolsRequestController.close();

@@ -37,8 +37,8 @@ jobs:
       env: PKGS="dwds"
       script: ./tool/travis.sh test_0
     - stage: unit_test
-      name: "SDK: dev; PKG: dwds; TASKS: `pub run test`"
-      dart: dev
+      name: "SDK: stable; PKG: dwds; TASKS: `pub run test`"
+      dart: stable
       env: PKGS="dwds"
       script: ./tool/travis.sh test_0
     - stage: unit_test
@@ -47,8 +47,8 @@ jobs:
       env: PKGS="webdev"
       script: ./tool/travis.sh test_1
     - stage: unit_test
-      name: "SDK: dev; PKG: webdev; TASKS: `pub run test -j 1`"
-      dart: dev
+      name: "SDK: stable; PKG: webdev; TASKS: `pub run test -j 1`"
+      dart: stable
       env: PKGS="webdev"
       script: ./tool/travis.sh test_1
 
