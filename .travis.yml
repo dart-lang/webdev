@@ -1,4 +1,4 @@
-# Created with package:mono_repo v2.1.0
+# Created with package:mono_repo v2.2.0
 language: dart
 
 # Custom configuration
@@ -27,8 +27,8 @@ jobs:
       env: PKGS="dwds example webdev"
       script: ./tool/travis.sh dartanalyzer_1
     - stage: analyzer_and_format
-      name: "SDK: dev; PKGS: dwds, example, webdev; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
-      dart: dev
+      name: "SDK: stable; PKGS: dwds, example, webdev; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
+      dart: stable
       env: PKGS="dwds example webdev"
       script: ./tool/travis.sh dartfmt dartanalyzer_0
     - stage: unit_test
