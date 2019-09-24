@@ -23,37 +23,36 @@ ChromeProxyService get service =>
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
-    VM vm;
-    setUp(() async {
-      await context.setUp();
-      vm = await service.getVM();
-    });
+  VM vm;
+  setUp(() async {
+    await context.setUp();
+    vm = await service.getVM();
+  });
 
-    tearDown(() async {
-      await context.tearDown();
-    });
+  tearDown(() async {
+    await context.tearDown();
+  });
 
-    test('can add and remove after a refresh', () async {
-      var stream = service.onEvent('Isolate');
-      // Wait for the page to be fully loaded before refreshing.
-      await Future.delayed(const Duration(seconds: 1));
-      // Now wait for the shutdown event.
-      var exitEvent =
-          stream.firstWhere((e) => e.kind != EventKind.kIsolateExit);
-      await context.webDriver.refresh();
-      await exitEvent;
-      // Wait for the refresh to propagate through.
-      var isolateStart =
-          await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
-      var isolateId = isolateStart.isolate.id;
-      var refreshedScriptList = await service.getScripts(isolateId);
-      var refreshedMain = refreshedScriptList.scripts
-          .lastWhere((each) => each.uri.contains('main.dart'));
-      var bp = await service.addBreakpoint(isolateId, refreshedMain.id, 23);
-      var isolate = await service.getIsolate(vm.isolates.first.id);
-      expect(isolate.breakpoints, [bp]);
-      expect(bp.id, isNotNull);
-      await service.removeBreakpoint(isolateId, bp.id);
-      expect(isolate.breakpoints, isEmpty);
-    });
+  test('can add and remove after a refresh', () async {
+    var stream = service.onEvent('Isolate');
+    // Wait for the page to be fully loaded before refreshing.
+    await Future.delayed(const Duration(seconds: 1));
+    // Now wait for the shutdown event.
+    var exitEvent = stream.firstWhere((e) => e.kind != EventKind.kIsolateExit);
+    await context.webDriver.refresh();
+    await exitEvent;
+    // Wait for the refresh to propagate through.
+    var isolateStart =
+        await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
+    var isolateId = isolateStart.isolate.id;
+    var refreshedScriptList = await service.getScripts(isolateId);
+    var refreshedMain = refreshedScriptList.scripts
+        .lastWhere((each) => each.uri.contains('main.dart'));
+    var bp = await service.addBreakpoint(isolateId, refreshedMain.id, 23);
+    var isolate = await service.getIsolate(vm.isolates.first.id);
+    expect(isolate.breakpoints, [bp]);
+    expect(bp.id, isNotNull);
+    await service.removeBreakpoint(isolateId, bp.id);
+    expect(isolate.breakpoints, isEmpty);
+  });
 }
