@@ -148,7 +148,7 @@ class TestContext {
   Future<Null> tearDown() async {
     DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
-    await daemonClient.close();
+    await daemonClient?.close();
     await testServer.stop();
     await webDriver?.quit();
     chromeDriver.kill();
