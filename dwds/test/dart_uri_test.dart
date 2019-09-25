@@ -31,5 +31,10 @@ void main() {
       var uri = DartUri('http://localhost:8080/web/main.dart');
       expect(uri.serverPath, 'web/main.dart');
     });
+
+    test('parses google3 paths', () {
+      var uri = DartUri('google3:///some/path/foo.dart');
+      expect(uri.serverPath, 'some/path/foo.dart');
+    });
   });
 }

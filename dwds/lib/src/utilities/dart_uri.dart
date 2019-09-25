@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
 import 'package:package_resolver/package_resolver.dart';
 
@@ -24,10 +26,17 @@ class DartUri {
 
   /// Load the .packages file associated with the running application so we can
   /// resolve file URLs into package: URLs appropriately.
-  static Future<void> _loadPackageConfig() async {
-    _packageResolver ??= await SyncPackageResolver.loadConfig(
-        p.toUri(p.join(currentDirectory, '.packages')));
+  static Future<void> _loadPackageConfig(Uri uri) async {
+    _packageResolver ??= await SyncPackageResolver.loadConfig(uri);
   }
+
+  static Uri get _packagesUri => p.toUri(p.join(currentDirectory, '.packages'));
+
+  /// Whether the `.packages` file exists.
+  static bool _packagesExist;
+
+  static bool get _shouldRecord =>
+      _packagesExist ??= File.fromUri(_packagesUri).existsSync();
 
   /// The way we resolve file: URLs into package: URLs
   static SyncPackageResolver _packageResolver;
@@ -37,16 +46,18 @@ class DartUri {
 
   /// Record all of the libraries, indexed by their absolute file: URI.
   static Future<void> recordAbsoluteUris(Iterable<String> libraryUris) async {
-    await _loadPackageConfig();
-    _libraryNamesByPath.clear();
-    for (var uri in libraryUris) {
-      recordAbsoluteUri(uri);
+    if (_shouldRecord) {
+      await _loadPackageConfig(_packagesUri);
+      _libraryNamesByPath.clear();
+      for (var uri in libraryUris) {
+        _recordAbsoluteUri(uri);
+      }
     }
   }
 
   /// Record the library represented by package: or org-dartlang-app: uris
   /// indexed by absolute file: URI.
-  static void recordAbsoluteUri(String libraryUri) {
+  static void _recordAbsoluteUri(String libraryUri) {
     var uri = Uri.parse(libraryUri);
     if (uri.scheme == 'dart' ||
         (uri.scheme == '' && !uri.path.endsWith('.dart'))) {
@@ -89,6 +100,7 @@ class DartUri {
     // TODO(401): Remove serverUri after D24 is stable.
     if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
     if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
+    if (uri.startsWith('google3:')) return DartUri._fromGoogleUri(uri);
     if (uri.startsWith('file:')) return DartUri._fromFileUri(uri);
     if (uri.startsWith('/packages/')) return DartUri._fromServerPath(uri);
     if (uri.startsWith('/')) return DartUri._fromServerPath(uri);
@@ -115,6 +127,11 @@ class DartUri {
     if (libraryName != null) return DartUri(libraryName);
     // This is not one of our recorded libraries.
     throw ArgumentError.value(uri, 'uri', 'Unknown library');
+  }
+
+  /// Construct from an google3: URI.
+  factory DartUri._fromGoogleUri(String uri) {
+    return DartUri._(Uri.parse(uri).path.substring(1));
   }
 
   /// Construct from an org-dartlang-app: URI.
