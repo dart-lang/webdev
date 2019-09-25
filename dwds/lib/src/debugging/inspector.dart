@@ -502,7 +502,11 @@ function($argsString) {
     handleErrorIfPresent(librariesResult, evalContents: expression);
     var libraries =
         List<String>.from(librariesResult.result['result']['value'] as List);
-    for (var library in libraries) {
+    // Filter out any non-Dart libraries, which basically means the .bootstrap
+    // library from build_web_runners.
+    var dartLibraries = libraries
+        .where((name) => name.startsWith('dart:') || name.endsWith('.dart'));
+    for (var library in dartLibraries) {
       var ref = LibraryRef(id: library, name: library, uri: library);
       _libraryRefs[ref.id] = ref;
     }
