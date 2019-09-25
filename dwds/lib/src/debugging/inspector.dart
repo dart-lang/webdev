@@ -74,9 +74,9 @@ class AppInspector extends Domain {
     isolate.libraries.addAll(libraries);
     await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
 
-    // TODO: Something more robust here, right now we rely on the 2nd to last
-    // library being the root one (the last library is the bootstrap lib).
-    isolate.rootLib = isolate.libraries[isolate.libraries.length - 2];
+    // TODO: Something more robust here, right now we rely on the last
+    // library being the root one.
+    isolate.rootLib = isolate.libraries[isolate.libraries.length - 1];
 
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());
   }
