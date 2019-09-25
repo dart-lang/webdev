@@ -476,8 +476,7 @@ function($argsString) {
     var scripts = <ScriptRef>[];
     for (var lib in isolate.libraries) {
       // We can't provide the source for `dart:` imports so ignore for now.
-      // Also `main.dart.bootstrap` does not have a corresponding script.
-      if (lib.id.startsWith('dart:') || lib.id.endsWith('.bootstrap')) continue;
+      if (lib.id.startsWith('dart:')) continue;
       for (var script in (await _getLibrary(isolateId, lib.id)).scripts) {
         scripts.add(ScriptRef(uri: script.uri, id: script.id));
       }
