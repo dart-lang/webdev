@@ -169,7 +169,9 @@ ${await response.readAsString()}
   /// Returns `null` and logs if it can't be read.
   Future<String> _sourceMapOrNull(WipScript script) {
     var sourceMapUrl = script.sourceMapURL;
-    if (sourceMapUrl == null || !sourceMapUrl.endsWith('.ddc.js.map')) {
+    if (sourceMapUrl == null ||
+        !(sourceMapUrl.endsWith('.ddc.js.map') ||
+            sourceMapUrl.endsWith('.ddk.js.map'))) {
       return null;
     }
     var scriptPath = DartUri(script.url).serverPath;
