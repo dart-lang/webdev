@@ -74,9 +74,9 @@ class AppInspector extends Domain {
     isolate.libraries.addAll(libraries);
     await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
 
-    // TODO: Something more robust here, right now we rely on the 2nd to last
-    // library being the root one (the last library is the bootstrap lib).
-    isolate.rootLib = isolate.libraries[isolate.libraries.length - 2];
+    // TODO: Something more robust here, right now we rely on the last
+    // library being the root one.
+    isolate.rootLib = isolate.libraries[isolate.libraries.length - 1];
 
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());
   }
@@ -476,8 +476,7 @@ function($argsString) {
     var scripts = <ScriptRef>[];
     for (var lib in isolate.libraries) {
       // We can't provide the source for `dart:` imports so ignore for now.
-      // Also `main.dart.bootstrap` does not have a corresponding script.
-      if (lib.id.startsWith('dart:') || lib.id.endsWith('.bootstrap')) continue;
+      if (lib.id.startsWith('dart:')) continue;
       for (var script in (await _getLibrary(isolateId, lib.id)).scripts) {
         scripts.add(ScriptRef(uri: script.uri, id: script.id));
       }
@@ -502,7 +501,11 @@ function($argsString) {
     handleErrorIfPresent(librariesResult, evalContents: expression);
     var libraries =
         List<String>.from(librariesResult.result['result']['value'] as List);
-    for (var library in libraries) {
+    // Filter out any non-Dart libraries, which basically means the .bootstrap
+    // library from build_web_runners.
+    var dartLibraries = libraries
+        .where((name) => name.startsWith('dart:') || name.endsWith('.dart'));
+    for (var library in dartLibraries) {
       var ref = LibraryRef(id: library, name: library, uri: library);
       _libraryRefs[ref.id] = ref;
     }
