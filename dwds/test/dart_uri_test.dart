@@ -17,6 +17,12 @@ void main() {
       expect(uri.serverPath, 'packages/path/path.dart');
     });
 
+    test('parses package : paths with root', () {
+      var uri = DartUri(
+          'package:path/path.dart', 'http://localhost:8080/foo/bar/blah');
+      expect(uri.serverPath, 'foo/bar/packages/path/path.dart');
+    });
+
     test('parses org-dartlang-app paths', () {
       var uri = DartUri('org-dartlang-app:////blah/main.dart');
       expect(uri.serverPath, 'blah/main.dart');

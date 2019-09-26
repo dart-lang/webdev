@@ -4,8 +4,8 @@
 
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
 import 'package:package_resolver/package_resolver.dart';
+import 'package:path/path.dart' as p;
 
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
@@ -98,7 +98,9 @@ class DartUri {
   /// JS script. The dirname of that path should give us the missing prefix.
   factory DartUri(String uri, [String serverUri]) {
     // TODO(401): Remove serverUri after D24 is stable.
-    if (uri.startsWith('package:')) return DartUri._fromPackageUri(uri);
+    if (uri.startsWith('package:')) {
+      return DartUri._fromPackageUri(uri, serverUri);
+    }
     if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
     if (uri.startsWith('google3:')) return DartUri._fromGoogleUri(uri);
     if (uri.startsWith('file:')) return DartUri._fromFileUri(uri);
@@ -109,16 +111,22 @@ class DartUri {
     }
     // Work around short paths if we have been provided the context.
     if (serverUri != null) {
-      var path = Uri.parse(serverUri).path;
-      var dir = p.dirname(path);
-      return DartUri._fromServerPath(p.normalize(p.join(dir, uri)));
+      return DartUri._fromServerPath(
+          p.normalize(p.join(_dirForServerUri(serverUri), uri)));
     }
     throw FormatException('Unsupported URI form', uri);
   }
 
+  static String _dirForServerUri(String uri) => p.dirname(Uri.parse(uri).path);
+
   /// Construct from a package: URI
-  factory DartUri._fromPackageUri(String uri) {
-    return DartUri._('packages/${uri.substring("package:".length)}');
+  factory DartUri._fromPackageUri(String uri, String serverUri) {
+    var packagePath = 'packages/${uri.substring("package:".length)}';
+    if (serverUri != null) {
+      return DartUri._fromServerPath(
+          p.normalize(p.join(_dirForServerUri(serverUri), packagePath)));
+    }
+    return DartUri._(packagePath);
   }
 
   /// Construct from a file: URI
