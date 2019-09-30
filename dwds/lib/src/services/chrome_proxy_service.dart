@@ -81,10 +81,14 @@ class ChromeProxyService implements VmServiceInterface {
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
+    print("Started VM");
     var service = ChromeProxyService._(
         vm, tabUrl, assetHandler, remoteDebugger, logWriter);
     await service._initialize();
+    var serviceInit = DateTime.now().millisecondsSinceEpoch;
+    print("Service initialized after a total of ${serviceInit - vm.startTime}");
     await service.createIsolate();
+    print("Isolate created after of ${DateTime.now().millisecondsSinceEpoch - serviceInit}");
     return service;
   }
 

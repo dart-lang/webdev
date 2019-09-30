@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
@@ -31,6 +32,8 @@ class AppInspector extends Domain {
 
   /// Map of scriptRef ID to [ScriptRef].
   final _scriptRefs = <String, ScriptRef>{};
+
+  Completer<void> _scriptRefsCompleter;
 
   /// Map of Dart server path to [ScriptRef].
   final _serverPathToScriptRef = <String, ScriptRef>{};
@@ -70,15 +73,27 @@ class AppInspector extends Domain {
   AppInspector get inspector => this;
 
   Future<void> _initialize() async {
+    // isolate.extensionRPCs.addAll(await _getExtensionRpcs());
+    var start = DateTime.now().millisecondsSinceEpoch;
+    print("Starting initialization");
     var libraries = await _getLibraryRefs();
+    var gotLibraries = DateTime.now().millisecondsSinceEpoch;
+    print("Got libraries after ${gotLibraries - start} ms");
     isolate.libraries.addAll(libraries);
     await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
+    var recorded = DateTime.now().millisecondsSinceEpoch;
+    print("Recorded URIs after ${recorded - gotLibraries}");
 
-    // TODO: Something more robust here, right now we rely on the last
-    // library being the root one.
+    // TODO: Something more robust here, right now we rely on the 2nd to last
+    // library being the root one (the last library is the bootstrap lib).
     isolate.rootLib = isolate.libraries[isolate.libraries.length - 1];
-
-    isolate.extensionRPCs.addAll(await _getExtensionRpcs());
+    var preRpcs = DateTime.now().millisecondsSinceEpoch;
+    var foo = await _getExtensionRpcs();
+    print(
+        "got extension rpcs after ${DateTime.now().millisecondsSinceEpoch - preRpcs}");
+    isolate.extensionRPCs.addAll(foo);
+    print(
+        "Done inspector initialize after ${DateTime.now().millisecondsSinceEpoch - preRpcs}");
   }
 
   static IsolateRef _toIsolateRef(Isolate isolate) =>
@@ -473,17 +488,62 @@ function($argsString) {
   /// Returns all scripts in the isolate.
   Future<List<ScriptRef>> scriptRefs(String isolateId) async {
     checkIsolate(isolateId);
-    var scripts = <ScriptRef>[];
+    if (_scriptRefsCompleter == null) {
+      _scriptRefsCompleter = Completer();
+    } else {
+      await _scriptRefsCompleter.future;
+      return _scriptRefs.values.toList();
+    }
+// 
     for (var lib in isolate.libraries) {
       // We can't provide the source for `dart:` imports so ignore for now.
       if (lib.id.startsWith('dart:')) continue;
-      for (var script in (await _getLibrary(isolateId, lib.id)).scripts) {
-        scripts.add(ScriptRef(uri: script.uri, id: script.id));
-      }
+      // var libraryScripts = (await _getLibrary(isolateId, lib.id)).scripts;
+      await _scriptsForLibrary(lib.uri);
+      // print('old version = $libraryScripts');
+      // print('new version = $supposedlyFaster');
+      // for (var script in supposedlyFaster) {
+      //   scripts.add(ScriptRef(uri: script.uri, id: script.id));
+      // }
     }
     // TODO(alanknight): Is this the same as the values in _scriptRefs after
     // constructing all the libraries? Make that clearer.
-    return scripts;
+    _scriptRefsCompleter.complete();
+    return _scriptRefs.values.toList();
+  }
+
+  Future<List<ScriptRef>> _scriptsForLibrary(String uri) async {
+    var expression = '''
+    (function() {
+      ${_getLibrarySnippet(uri)}
+      var parts = sdkUtils.getParts('$uri');
+      var result = {'parts' : parts}
+      return result;
+    })()
+    ''';
+    var result = await _remoteDebugger.sendCommand('Runtime.evaluate',
+        params: {'expression': expression, 'returnByValue': true});
+    handleErrorIfPresent(result, evalContents: expression);
+    // Parts are relative paths from the libraryRef uri.
+    var parts =
+        (result.result['result']['value']['parts'] as List).cast<String>();
+    // Note that uris here are scheme based
+    // e.g. org-dartlang-app:///web/main.dart
+    var parent = uri.substring(0, uri.lastIndexOf('/'));
+    var scriptRefs = [
+      ScriptRef(uri: uri, id: createId()),
+      for (var part in parts)
+        ScriptRef(uri: p.join(parent, part), id: createId())
+    ];
+    var libraryRef = _libraryRefs[uri];
+
+    for (var scriptRef in scriptRefs) {
+      _scriptRefs[scriptRef.id] = scriptRef;
+      _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
+      _serverPathToScriptRef[DartUri(scriptRef.uri, _root).serverPath] =
+          scriptRef;
+    }
+    return scriptRefs;
   }
 
   /// Look up the script by id in an isolate.
