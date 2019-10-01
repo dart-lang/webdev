@@ -33,6 +33,9 @@ final _classRefForString =
 // TODO(grouma) - orgnaize our static classRefs better.
 final _classRefForClosure = ClassRef(name: 'Closure', id: createId());
 
+/// A hard-coded ClassRef for a (non-existent) class called Unknown.
+final _classRefForUnknown = ClassRef(name: 'Unknown', id: createId());
+
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
   final Debugger _debugger;
@@ -173,7 +176,8 @@ class InstanceHelper extends Domain {
           ..closureFunction = FuncRef(
               name: functionMetaData.name,
               id: createId(),
-              owner: null,
+              // TODO(alanknight): The right ClassRef
+              owner: _classRefForUnknown,
               isConst: false,
               isStatic: false)
           ..closureContext = (ContextRef()..length = 0);
