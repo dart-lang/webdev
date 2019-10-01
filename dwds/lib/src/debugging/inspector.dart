@@ -31,11 +31,13 @@ class AppInspector extends Domain {
   /// Map of class ID to [Class].
   final _classes = <String, Class>{};
 
-  /// Map of scriptRef ID to [ScriptRef].
-  final _scriptRefs = <String, ScriptRef>{};
+  Future<List<ScriptRef>> _cachedScriptRefs;
 
-  /// Guards against race conditions when computing [_scriptRefs].
-  Completer<void> _scriptRefsCompleter;
+  Future<List<ScriptRef>> get _scriptRefs =>
+      _cachedScriptRefs ??= _getScripts();
+
+  /// Map of scriptRef ID to [ScriptRef].
+  final _scriptRefsById = <String, ScriptRef>{};
 
   /// Map of Dart server path to [ScriptRef].
   final _serverPathToScriptRef = <String, ScriptRef>{};
@@ -291,7 +293,7 @@ function($argsString) {
     if (library != null) return library;
     var clazz = _classes[objectId];
     if (clazz != null) return clazz;
-    var scriptRef = _scriptRefs[objectId];
+    var scriptRef = _scriptRefsById[objectId];
     if (scriptRef != null) return await _getScript(isolateId, scriptRef);
     var instance =
         instanceHelper.instanceFor(RemoteObject({'objectId': objectId}));
@@ -409,10 +411,7 @@ function($argsString) {
           subclasses: [],
           id: classMetaData.id);
     }
-
-    // Make sure that we have the scripts.
-    var scripts = await _getScripts(isolate.id);
-
+    var scripts = await _getScripts();
     return Library(
         name: libraryRef.name,
         uri: libraryRef.uri,
@@ -453,45 +452,31 @@ function($argsString) {
 
   /// All the scripts in the isolate.
   Future<ScriptList> getScripts(String isolateId) async {
-    var scripts = await _getScripts(isolateId);
-    return ScriptList()..scripts = scripts;
+    checkIsolate(isolateId);
+    return ScriptList()..scripts = await _scriptRefs;
   }
 
-  Future<List<ScriptRef>> _getScripts(String isolateId) async {
-    checkIsolate(isolateId);
-    // Guard against a possible race condition loading the scripts.
-    if (_scriptRefsCompleter != null) {
-      await _scriptRefsCompleter.future;
-    } else {
-      _scriptRefsCompleter = Completer();
-      try {
-        await _populateScriptCaches();
-        _scriptRefsCompleter.complete();
-      } catch (e) {
-        _scriptRefsCompleter.completeError(e);
-        rethrow;
-      }
-    }
-    return _scriptRefs.values.toList();
+  Future<List<ScriptRef>> _getScripts() async {
+    await _populateScriptCaches();
+    return _scriptRefsById.values.toList();
   }
 
   /// Request and cache <ScriptRef>s for all the scripts in the application.
   ///
-  /// This populates [_scriptRefs], [_scriptIdToLibraryId] and
+  /// This populates [_scriptRefsById], [_scriptIdToLibraryId] and
   /// [_serverPathToScriptRef]. It is a one-time operation, because if we do a
   /// reload the inspector will get re-created.
   Future<void> _populateScriptCaches() async {
-    var libraryUris = isolate.libraries.map((lib) => lib.uri).toList();
+    var libraryUris = [for (var library in isolate.libraries) library.uri];
     // We can't pass parameters to an eval, so encode the list and inline it in
     // the expression.
-    var listAsJson = json.encode(libraryUris);
+    var listAsJson = jsonEncode(libraryUris);
     var expression = '''
     (function() {
       var uris = JSON.parse('$listAsJson');
       var allScripts = {};
       var sdkUtils = $loadModule('dart_sdk').dart;
       for (var uri of uris) {
-        var library = sdkUtils.getLibrary(uri);
         var parts = sdkUtils.getParts(uri);
         allScripts[uri] = parts;
       }
@@ -501,14 +486,14 @@ function($argsString) {
     var result = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(result, evalContents: expression);
-    var allParts = result.result['result']['value'];
+    var allScripts = result.result['result']['value'];
 
     // For all the non-dart: libraries, find their parts and create scriptRefs
     // for them.
     var userLibraries = libraryUris.where((uri) => !uri.startsWith('dart:'));
     for (var uri in userLibraries) {
       var parent = uri.substring(0, uri.lastIndexOf('/'));
-      var parts = (allParts[uri] as List).cast<String>();
+      var parts = (allScripts[uri] as List).cast<String>();
       var scriptRefs = [
         ScriptRef(uri: uri, id: createId()),
         for (var part in parts)
@@ -516,7 +501,7 @@ function($argsString) {
       ];
       var libraryRef = _libraryRefs[uri];
       for (var scriptRef in scriptRefs) {
-        _scriptRefs[scriptRef.id] = scriptRef;
+        _scriptRefsById[scriptRef.id] = scriptRef;
         _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
         _serverPathToScriptRef[DartUri(scriptRef.uri, _root).serverPath] =
             scriptRef;
@@ -526,7 +511,7 @@ function($argsString) {
 
   /// Look up the script by id in an isolate.
   Future<ScriptRef> scriptWithId(String scriptId) async =>
-      (await _getScripts(isolate.id)).firstWhere((ref) => ref.id == scriptId);
+      _scriptRefsById[scriptId];
 
   /// Returns all libraryRefs in the app.
   ///
