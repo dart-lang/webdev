@@ -38,7 +38,7 @@ void main() {
       VM vm;
       Isolate isolate;
       ScriptList scripts;
-      ScriptRef mainScript; 
+      ScriptRef mainScript;
 
       setUp(() async {
         vm = await fetchChromeProxyService(context.debugConnection).getVM();
