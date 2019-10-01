@@ -1,4 +1,4 @@
-## 0.7.0-dev
+## 0.7.0
 
 - `DWDS.start` now requires an `AssetHandler` instead of `applicationPort`,
   `assetServerPort` and `applicationTarget`.
