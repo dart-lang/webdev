@@ -400,6 +400,7 @@ class Debugger extends Domain {
 
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
+    if (inspector == null) return;
     var isolate = inspector.isolate;
     if (isolate == null) return;
     Event event;
