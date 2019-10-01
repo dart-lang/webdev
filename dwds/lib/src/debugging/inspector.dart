@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
@@ -494,30 +495,25 @@ function($argsString) {
       await _scriptRefsCompleter.future;
       return _scriptRefs.values.toList();
     }
-// 
-    for (var lib in isolate.libraries) {
-      // We can't provide the source for `dart:` imports so ignore for now.
-      if (lib.id.startsWith('dart:')) continue;
-      // var libraryScripts = (await _getLibrary(isolateId, lib.id)).scripts;
-      await _scriptsForLibrary(lib.uri);
-      // print('old version = $libraryScripts');
-      // print('new version = $supposedlyFaster');
-      // for (var script in supposedlyFaster) {
-      //   scripts.add(ScriptRef(uri: script.uri, id: script.id));
-      // }
-    }
-    // TODO(alanknight): Is this the same as the values in _scriptRefs after
-    // constructing all the libraries? Make that clearer.
+
+    var libraryUris = isolate.libraries.map((lib) => lib.uri).toList();
+    await _scriptsForLibraries(libraryUris);
     _scriptRefsCompleter.complete();
     return _scriptRefs.values.toList();
   }
 
-  Future<List<ScriptRef>> _scriptsForLibrary(String uri) async {
+  Future<void> _scriptsForLibraries(List<String> uris) async {
+    var listAsJson = json.encode(uris);
     var expression = '''
     (function() {
-      ${_getLibrarySnippet(uri)}
-      var parts = sdkUtils.getParts('$uri');
-      var result = {'parts' : parts}
+      var uris = JSON.parse('$listAsJson');
+      var result = {};
+      var sdkUtils = $loadModule('dart_sdk').dart;
+      for (var uri of uris) {
+        var library = sdkUtils.getLibrary(uri);
+        var parts = sdkUtils.getParts(uri);
+        result[uri] = parts;
+    }
       return result;
     })()
     ''';
@@ -525,25 +521,26 @@ function($argsString) {
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(result, evalContents: expression);
     // Parts are relative paths from the libraryRef uri.
-    var parts =
-        (result.result['result']['value']['parts'] as List).cast<String>();
+    var allParts = result.result['result']['value'];
     // Note that uris here are scheme based
     // e.g. org-dartlang-app:///web/main.dart
-    var parent = uri.substring(0, uri.lastIndexOf('/'));
-    var scriptRefs = [
-      ScriptRef(uri: uri, id: createId()),
-      for (var part in parts)
-        ScriptRef(uri: p.join(parent, part), id: createId())
-    ];
-    var libraryRef = _libraryRefs[uri];
-
-    for (var scriptRef in scriptRefs) {
-      _scriptRefs[scriptRef.id] = scriptRef;
-      _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
-      _serverPathToScriptRef[DartUri(scriptRef.uri, _root).serverPath] =
-          scriptRef;
+    var userLibraries = uris.where((uri) => !uri.startsWith('dart:')); 
+    for (var uri in userLibraries) {
+      var parent = uri.substring(0, uri.lastIndexOf('/'));
+      var parts = (allParts[uri] as List).cast<String>();
+      var scriptRefs = [
+        ScriptRef(uri: uri, id: createId()),
+        for (var part in parts)
+          ScriptRef(uri: p.join(parent, part), id: createId())
+      ];
+      var libraryRef = _libraryRefs[uri];
+      for (var scriptRef in scriptRefs) {
+        _scriptRefs[scriptRef.id] = scriptRef;
+        _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
+        _serverPathToScriptRef[DartUri(scriptRef.uri, _root).serverPath] =
+            scriptRef;
+      }
     }
-    return scriptRefs;
   }
 
   /// Look up the script by id in an isolate.
