@@ -411,13 +411,12 @@ function($argsString) {
           subclasses: [],
           id: classMetaData.id);
     }
-    var scripts = await _getScripts();
     return Library(
         name: libraryRef.name,
         uri: libraryRef.uri,
         debuggable: true,
         dependencies: [],
-        scripts: scripts,
+        scripts: await _scriptRefs,
         variables: [],
         functions: [],
         classes: classRefs,
