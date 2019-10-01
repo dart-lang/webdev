@@ -390,6 +390,10 @@ class Debugger extends Domain {
     if (bestLocation == null) return null;
     var script =
         await inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
+    // We think we found a location, but for some reason we can't find the script.
+    // Just drop the frame.
+    // TODO(#700): Understand when this can happen and have a better fix.
+    if (script == null) return null;
     return Frame()
       ..code = (CodeRef(id: createId(), name: 'DartCode', kind: CodeKind.kDart))
       ..location = (SourceLocation()
@@ -400,6 +404,7 @@ class Debugger extends Domain {
 
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
+    if (inspector == null) return;
     var isolate = inspector.isolate;
     if (isolate == null) return;
     Event event;

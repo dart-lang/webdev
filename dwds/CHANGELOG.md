@@ -8,6 +8,10 @@
 - Support DDK sourcemap URIs.
 - Update SDK dependency to minimum of 2.5.0.
 
+### Bug Fixes:
+
+- Fix handling of chrome pause events when we have no isolate loaded yet.
+
 ## 0.6.2
 
 - Capture any errors that happen when handling SSE requests in the DevHandler
