@@ -1,5 +1,7 @@
 ## 0.7.1-dev
 
+- Don't attempt to write a vm service request to a closed connection.
+  - Instead we log a warning with the attempted request message and return.
 - Make all `close` methods more robust by allowing them to be called more than
   once and returning the cached future from previous calls.
 
