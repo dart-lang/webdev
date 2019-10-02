@@ -26,7 +26,7 @@ class ReloadingManager {
   Future<bool> hotRestart() async {
     _beforeRestart();
     var result = await _restarter.restart();
-    _afterRestart();
+    _afterRestart(result);
     return result;
   }
 
@@ -35,7 +35,8 @@ class ReloadingManager {
     window.location.reload();
   }
 
-  void _afterRestart() {
+  void _afterRestart(bool succeeded) {
+    if (!succeeded) return;
     // Notify package:dwds that the isolate has been created.
     // package:dwds will respond with a [RunRequest].
     _client.sink.add(jsonEncode(serializers.serialize(IsolateStart((b) => b
