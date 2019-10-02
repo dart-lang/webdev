@@ -26,6 +26,11 @@ class ExtensionDebugger implements RemoteDebugger {
   final _eventStreams = <String, Stream>{};
   var _completerId = 0;
 
+  /// Null until [close] is called.
+  ///
+  /// All subsequent calls to [close] will return this future.
+  Future<void> _closed;
+
   String instanceId;
 
   final _devToolsRequestController = StreamController<DevToolsRequest>();
@@ -103,13 +108,15 @@ class ExtensionDebugger implements RemoteDebugger {
   int newId() => _completerId++;
 
   @override
-  void close() {
-    if (!_closeController.isClosed) _closeController.add(WipEvent({}));
-    sseConnection.sink.close();
-    _notificationController.close();
-    _devToolsRequestController.close();
-    _closeController.close();
-  }
+  void close() => _closed ??= () {
+        _closeController.add(WipEvent({}));
+        return Future.wait([
+          sseConnection.sink.close(),
+          _notificationController.close(),
+          _devToolsRequestController.close(),
+          _closeController.close(),
+        ]);
+      }();
 
   @override
   Future disable() => sendCommand('Debugger.disable');

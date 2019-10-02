@@ -9,6 +9,11 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 class WebkitDebugger implements RemoteDebugger {
   final WipDebugger _wipDebugger;
 
+  /// Null until [close] is called.
+  ///
+  /// All subsequent calls to [close] will return this future.
+  Future<void> _closed;
+
   WebkitDebugger(this._wipDebugger);
 
   @override
@@ -25,7 +30,7 @@ class WebkitDebugger implements RemoteDebugger {
       _wipDebugger.sendCommand(command, params: params);
 
   @override
-  void close() => _wipDebugger.connection.close();
+  void close() => _closed ??= _wipDebugger.connection.close();
 
   @override
   Future<void> disable() => _wipDebugger.disable();

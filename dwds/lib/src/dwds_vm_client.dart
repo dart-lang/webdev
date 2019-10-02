@@ -20,13 +20,18 @@ class DwdsVmClient {
   final StreamController<Map<String, Object>> _requestController;
   final StreamController<Map<String, Object>> _responseController;
 
+  /// Null until [close] is called.
+  ///
+  /// All subsequent calls to [close] will return this future.
+  Future<void> _closed;
+
   DwdsVmClient(this.client, this._requestController, this._responseController);
 
-  Future<void> close() async {
-    await _requestController.close();
-    await _responseController.close();
-    client.dispose();
-  }
+  Future<void> close() => _closed ??= () async {
+        await _requestController.close();
+        await _responseController.close();
+        client.dispose();
+      }();
 
   static Future<DwdsVmClient> create(DebugService debugService) async {
     // Set up hot restart as an extension.

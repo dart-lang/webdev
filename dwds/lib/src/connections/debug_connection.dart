@@ -17,6 +17,11 @@ class DebugConnection {
   final AppDebugServices _appDebugServices;
   final _onDoneCompleter = Completer();
 
+  /// Null until [close] is called.
+  ///
+  /// All subsequent calls to [close] will return this future.
+  Future<void> _closed;
+
   DebugConnection(this._appDebugServices) {
     _appDebugServices.chromeProxyService.remoteDebugger.onClose.first.then((_) {
       close();
@@ -32,11 +37,11 @@ class DebugConnection {
   /// A client of the Dart VM Service with DWDS specific extensions.
   VmService get vmService => _appDebugServices.dwdsVmClient.client;
 
-  Future<void> close() async {
-    if (!_onDoneCompleter.isCompleted) _onDoneCompleter.complete();
-    _appDebugServices.chromeProxyService.remoteDebugger.close();
-    await _appDebugServices.close();
-  }
+  Future<void> close() => _closed ??= () async {
+        _appDebugServices.chromeProxyService.remoteDebugger.close();
+        await _appDebugServices.close();
+        _onDoneCompleter.complete();
+      }();
 
   Future<void> get onDone => _onDoneCompleter.future;
 }

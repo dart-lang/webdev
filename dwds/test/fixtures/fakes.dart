@@ -175,9 +175,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<ExceptionThrownEvent> get onExceptionThrown => null;
 
   @override
-  void close() {
-    return;
-  }
+  void close() {}
 
   @override
   Stream<WipConnection> get onClose => null;
