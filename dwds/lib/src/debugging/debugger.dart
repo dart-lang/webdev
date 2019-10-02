@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../asset_handler.dart';
@@ -18,6 +19,8 @@ import 'dart_scope.dart';
 import 'location.dart';
 import 'remote_debugger.dart';
 import 'sources.dart';
+
+final _logger = Logger('Debugger');
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
 ///
@@ -434,12 +437,23 @@ class Debugger extends Domain {
     }
     var jsFrames =
         (e.params['callFrames'] as List).cast<Map<String, dynamic>>();
-    var frames = await dartFramesFor(jsFrames);
-    _pausedStack = Stack(frames: frames, messages: []);
-    _pausedJsStack = jsFrames;
-    if (frames.isNotEmpty) event.topFrame = frames.first;
-    isolate.pauseEvent = event;
-    _streamNotify('Debug', event);
+    try {
+      var frames = await dartFramesFor(jsFrames);
+      _pausedStack = Stack(frames: frames, messages: []);
+      _pausedJsStack = jsFrames;
+      if (frames.isNotEmpty) event.topFrame = frames.first;
+      isolate.pauseEvent = event;
+      _streamNotify('Debug', event);
+    } on ChromeDebugException catch (e, s) {
+      if (e.exception.description.contains('require is not defined')) {
+        _logger.warning(
+            'Error handling pause event, app does not appear to be loaded',
+            e,
+            s);
+      } else {
+        rethrow;
+      }
+    }
   }
 
   /// Handles resume events coming from the Chrome connection.
