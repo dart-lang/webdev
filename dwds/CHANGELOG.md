@@ -1,3 +1,8 @@
+## 0.7.1-dev
+
+- Don't attempt to write a vm service request to a closed connection.
+  - Instead we log a warning with the attempted request message and return.
+
 ## 0.7.0
 
 - `DWDS.start` now requires an `AssetHandler` instead of `applicationPort`,
