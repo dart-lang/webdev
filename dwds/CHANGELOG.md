@@ -1,3 +1,8 @@
+## 0.7.1-dev
+
+- Fix a bug where we would try to create a new isolate even for a failed
+  hot restart. This created a race condition that would lead to a crash.
+
 ## 0.7.0
 
 - `DWDS.start` now requires an `AssetHandler` instead of `applicationPort`,
