@@ -6,6 +6,8 @@
   - Instead we log a warning with the attempted request message and return.
 - Make all `close` methods more robust by allowing them to be called more than
   once and returning the cached future from previous calls.
+- Add explicit handling of app not loaded errors when handling chrome pause
+  events.
 
 ## 0.7.0
 
