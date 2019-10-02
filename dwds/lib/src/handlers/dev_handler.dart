@@ -50,6 +50,11 @@ class DevHandler {
       StreamController<DebugConnection>();
   final bool _enableDebugging;
 
+  /// Null until [close] is called.
+  ///
+  /// All subsequent calls to [close] will return this future.
+  Future<void> _closed;
+
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
   DevHandler(
@@ -72,18 +77,18 @@ class DevHandler {
 
   Handler get handler => _sseHandler.handler;
 
-  Future<void> close() async {
-    await _sub.cancel();
-    // We listen for connections to close and remove them from the connections
-    // set. Therefore we shouldn't asynchronously iterate through the
-    // connections.
-    await Future.wait(_injectedConnections
-        .map((injectedConnection) => injectedConnection.sink.close()));
-    await Future.wait(_servicesByAppId.values.map((futureServices) async {
-      await (await futureServices).close();
-    }));
-    _servicesByAppId.clear();
-  }
+  Future<void> close() => _closed ??= () async {
+        await _sub.cancel();
+        // We listen for connections to close and remove them from the connections
+        // set. Therefore we shouldn't asynchronously iterate through the
+        // connections.
+        await Future.wait(_injectedConnections
+            .map((injectedConnection) => injectedConnection.sink.close()));
+        await Future.wait(_servicesByAppId.values.map((futureServices) async {
+          await (await futureServices).close();
+        }));
+        _servicesByAppId.clear();
+      }();
 
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;

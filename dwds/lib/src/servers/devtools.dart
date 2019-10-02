@@ -13,11 +13,14 @@ class DevTools {
   final int port;
   final HttpServer _server;
 
+  /// Null until [close] is called.
+  ///
+  /// All subsequent calls to [close] will return this future.
+  Future<void> _closed;
+
   DevTools._(this.hostname, this.port, this._server);
 
-  Future<void> close() async {
-    await _server.close();
-  }
+  Future<void> close() => _closed ??= _server.close();
 
   static Future<DevTools> start(String hostname) async {
     var server =

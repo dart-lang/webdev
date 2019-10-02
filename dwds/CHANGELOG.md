@@ -1,3 +1,8 @@
+## 0.7.1-dev
+
+- Make all `close` methods more robust by allowing them to be called more than
+  once and returning the cached future from previous calls.
+
 ## 0.7.0
 
 - `DWDS.start` now requires an `AssetHandler` instead of `applicationPort`,

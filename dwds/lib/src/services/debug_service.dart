@@ -95,6 +95,11 @@ class DebugService {
   final String _authToken;
   final bool _useSse;
 
+  /// Null until [close] is called.
+  ///
+  /// All subsequent calls to [close] will return this future.
+  Future<void> _closed;
+
   DebugService._(
       this.chromeProxyService,
       this.hostname,
@@ -104,9 +109,7 @@ class DebugService {
       this._server,
       this._useSse);
 
-  Future<void> close() async {
-    await _server.close();
-  }
+  Future<void> close() => _closed ??= _server.close();
 
   String get uri => _useSse
       ? Uri(

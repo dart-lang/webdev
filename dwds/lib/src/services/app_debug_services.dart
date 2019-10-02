@@ -16,6 +16,11 @@ class AppDebugServices {
   ChromeProxyService get chromeProxyService =>
       debugService.chromeProxyService as ChromeProxyService;
 
+  /// Null until [close] is called.
+  ///
+  /// All subsequent calls to [close] will return this future.
+  Future<void> _closed;
+
   /// The instance ID for the currently connected application, if there is one.
   ///
   /// We only allow a given app to be debugged in a single tab at a time.
@@ -24,5 +29,5 @@ class AppDebugServices {
   AppDebugServices(this.debugService, this.dwdsVmClient);
 
   Future<void> close() =>
-      Future.wait([debugService.close(), dwdsVmClient.close()]);
+      _closed ??= Future.wait([debugService.close(), dwdsVmClient.close()]);
 }
