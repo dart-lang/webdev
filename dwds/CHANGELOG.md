@@ -2,6 +2,8 @@
 
 - Fix a bug where we would try to create a new isolate even for a failed
   hot restart. This created a race condition that would lead to a crash.
+- Don't attempt to write a vm service request to a closed connection.
+  - Instead we log a warning with the attempted request message and return.
 
 ## 0.7.0
 
