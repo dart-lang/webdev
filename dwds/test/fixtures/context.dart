@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:build_daemon/client.dart';
@@ -19,6 +20,9 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'server.dart';
 import 'utilities.dart';
+
+final _batExt = Platform.isWindows ? '.bat' : '';
+final _exeExt = Platform.isWindows ? '.exe' : '';
 
 class TestContext {
   String appUrl;
@@ -70,16 +74,24 @@ class TestContext {
     enableDebugExtension ??= false;
     autoRun ??= true;
     enableDebugging ??= true;
-    port = await findUnusedPort();
+    var chromeDriverPort = await findUnusedPort();
+    var chromeDriverUrlBase = 'wd/hub';
     try {
-      chromeDriver = await Process.start(
-          'chromedriver', ['--port=4444', '--url-base=wd/hub']);
+      chromeDriver = await Process.start('chromedriver$_exeExt',
+          ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase']);
+      // On windows this takes a while to boot up, wait for the first line
+      // of stdout as a signal that it is ready.
+      await chromeDriver.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .first;
     } catch (e) {
       throw StateError(
           'Could not start ChromeDriver. Is it installed?\nError: $e');
     }
 
-    await Process.run('pub', ['get'], workingDirectory: workingDirectory);
+    await Process.run('pub$_batExt', ['upgrade'],
+        workingDirectory: workingDirectory);
 
     daemonClient = await connectClient(
         workingDirectory, [], (log) => printOnFailure(log.toString()));
@@ -109,10 +121,14 @@ class TestContext {
           ]
         }
       });
-    webDriver =
-        await createDriver(spec: WebDriverSpec.JsonWire, desired: capabilities);
+    webDriver = await createDriver(
+        spec: WebDriverSpec.JsonWire,
+        desired: capabilities,
+        uri: Uri.parse(
+            'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
     var connection = ChromeConnection('localhost', debugPort);
 
+    port = await findUnusedPort();
     testServer = await TestServer.start(
         port,
         daemonPort(workingDirectory),
@@ -146,12 +162,12 @@ class TestContext {
   }
 
   Future<Null> tearDown() async {
+    await webDriver?.quit();
+    chromeDriver?.kill();
     DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
     await daemonClient?.close();
     await testServer?.stop();
-    await webDriver?.quit();
-    chromeDriver.kill();
   }
 
   Future<void> changeInput() async {

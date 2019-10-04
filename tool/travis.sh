@@ -1,5 +1,28 @@
 #!/bin/bash
-# Created with package:mono_repo v2.2.0
+# Created with package:mono_repo v2.3.0
+
+# Support built in commands on windows out of the box.
+function pub {
+       if [[ $TRAVIS_OS_NAME == "windows" ]]; then
+        command pub.bat "$@"
+    else
+        command pub "$@"
+    fi
+}
+function dartfmt {
+       if [[ $TRAVIS_OS_NAME == "windows" ]]; then
+        command dartfmt.bat "$@"
+    else
+        command dartfmt "$@"
+    fi
+}
+function dartanalyzer {
+       if [[ $TRAVIS_OS_NAME == "windows" ]]; then
+        command dartanalyzer.bat "$@"
+    else
+        command dartanalyzer "$@"
+    fi
+}
 
 if [[ -z ${PKGS} ]]; then
   echo -e '\033[31mPKGS environment variable must be set!\033[0m'
@@ -43,11 +66,7 @@ for PKG in ${PKGS}; do
       echo 'dartfmt -n --set-exit-if-changed .'
       dartfmt -n --set-exit-if-changed . || EXIT_CODE=$?
       ;;
-    test_0)
-      echo 'pub run test'
-      pub run test || EXIT_CODE=$?
-      ;;
-    test_1)
+    test)
       echo 'pub run test -j 1'
       pub run test -j 1 || EXIT_CODE=$?
       ;;

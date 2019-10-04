@@ -4,9 +4,12 @@
 
 /// Tests that require a fresh context to run, and can interfere with other
 /// tests.
+@TestOn('vm')
+@OnPlatform({
+  'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
+})
 library refresh_test;
 
-@TestOn('vm')
 import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';

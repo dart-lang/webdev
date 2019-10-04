@@ -13,4 +13,7 @@ stages:
       - dartanalyzer: --fatal-warnings .
       dart: [2.5.0]
   - unit_test:
-    - test:
+    - test: -j 1
+      os:
+        - windows
+        - linux

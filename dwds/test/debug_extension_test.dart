@@ -5,6 +5,9 @@
 // When run locally this test may require a manifest key. This makes it easy to
 // just skip it.
 @Tags(['extension'])
+@OnPlatform({
+  'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
+})
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
