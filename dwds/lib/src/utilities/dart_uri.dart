@@ -115,9 +115,7 @@ class DartUri {
   }
 
   /// Returns the dirname for the server URI.
-  static String _dirForServerUri(String uri) =>
-      // Path will be of the form `/foo/bar` so ignore the leading `/`.
-      p.dirname(Uri.parse(uri).path.substring(1));
+  static String _dirForServerUri(String uri) => p.dirname(Uri.parse(uri).path);
 
   /// Construct from a package: URI
   factory DartUri._fromPackageUri(String uri, {String serverUri}) {
