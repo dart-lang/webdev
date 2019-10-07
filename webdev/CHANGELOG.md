@@ -1,4 +1,4 @@
-## 2.5.2-dev
+## 2.5.2
 
 - Update SDK dependency to minimum of 2.5.0.
 - Support absolute file: URIs for libraries.

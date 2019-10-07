@@ -21,6 +21,12 @@ class ExtensionBackend {
   final String hostname;
   final int port;
   final HttpServer _server;
+
+  /// Null until [close] is called.
+  ///
+  /// All subsequent calls to [close] will return this future.
+  Future<void> _closed;
+
   ExtensionBackend._(this.hostname, this.port, this._server);
 
   // Starts the backend on an open port.
@@ -30,7 +36,7 @@ class ExtensionBackend {
     return ExtensionBackend._(server.address.host, server.port, server);
   }
 
-  Future<void> close() async => await _server.close();
+  Future<void> close() => _closed ??= _server.close();
 
   StreamQueue<SseConnection> connections = _sseHandler.connections;
 

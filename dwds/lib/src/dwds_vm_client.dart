@@ -5,10 +5,13 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'services/chrome_proxy_service.dart' show ChromeProxyService;
 import 'services/debug_service.dart';
+
+final _logger = Logger('DwdsVmClient');
 
 // A client of the vm service that registers some custom extensions like
 // hotRestart.
@@ -17,13 +20,18 @@ class DwdsVmClient {
   final StreamController<Map<String, Object>> _requestController;
   final StreamController<Map<String, Object>> _responseController;
 
+  /// Null until [close] is called.
+  ///
+  /// All subsequent calls to [close] will return this future.
+  Future<void> _closed;
+
   DwdsVmClient(this.client, this._requestController, this._responseController);
 
-  Future<void> close() async {
-    await _requestController.close();
-    await _responseController.close();
-    client.dispose();
-  }
+  Future<void> close() => _closed ??= () async {
+        await _requestController.close();
+        await _responseController.close();
+        client.dispose();
+      }();
 
   static Future<DwdsVmClient> create(DebugService debugService) async {
     // Set up hot restart as an extension.
@@ -31,10 +39,16 @@ class DwdsVmClient {
     var responseController = StreamController<Map<String, Object>>();
     VmServerConnection(requestController.stream, responseController.sink,
         debugService.serviceExtensionRegistry, debugService.chromeProxyService);
-    var client = VmService(
-        responseController.stream.map(jsonEncode),
-        (request) => requestController.sink
-            .add(jsonDecode(request) as Map<String, dynamic>));
+    var client =
+        VmService(responseController.stream.map(jsonEncode), (request) {
+      if (requestController.isClosed) {
+        _logger.warning(
+            'Attempted to send a request but the connection is closed:\n\n'
+            '$request');
+        return;
+      }
+      requestController.sink.add(jsonDecode(request) as Map<String, dynamic>);
+    });
     var chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
 

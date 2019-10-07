@@ -1,4 +1,15 @@
-## 0.7.0-dev
+## 0.7.1
+
+- Fix a bug where we would try to create a new isolate even for a failed
+  hot restart. This created a race condition that would lead to a crash.
+- Don't attempt to write a vm service request to a closed connection.
+  - Instead we log a warning with the attempted request message and return.
+- Make all `close` methods more robust by allowing them to be called more than
+  once and returning the cached future from previous calls.
+- Add explicit handling of app not loaded errors when handling chrome pause
+  events.
+
+## 0.7.0
 
 - `DWDS.start` now requires an `AssetHandler` instead of `applicationPort`,
   `assetServerPort` and `applicationTarget`.
@@ -8,6 +19,10 @@
 - Support the Legacy Module strategy through the injected client.
 - Support DDK sourcemap URIs.
 - Update SDK dependency to minimum of 2.5.0.
+
+### Bug Fixes:
+
+- Fix handling of chrome pause events when we have no isolate loaded yet.
 
 ## 0.6.2
 
