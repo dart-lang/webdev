@@ -1,4 +1,5 @@
 ## 0.7.2
+
 - Account for root directory path when using `package:` URIs with `DartUri`.
 
 ## 0.7.1

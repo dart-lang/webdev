@@ -98,10 +98,10 @@ class DartUri {
   /// JS script. The dirname of that path should give us the missing prefix.
   factory DartUri(String uri, [String serverUri]) {
     if (uri.startsWith('package:')) {
-      return DartUri._fromPackageUri(uri, serverUri);
+      return DartUri._fromPackageUri(uri, serverUri: serverUri);
     }
     if (uri.startsWith('org-dartlang-app:')) {
-      return DartUri._fromAppUri(uri, serverUri);
+      return DartUri._fromAppUri(uri, serverUri: serverUri);
     }
     if (uri.startsWith('google3:')) return DartUri._fromGoogleUri(uri);
     if (uri.startsWith('file:')) return DartUri._fromFileUri(uri);
@@ -127,7 +127,7 @@ class DartUri {
       p.dirname(Uri.parse(uri).path.substring(1));
 
   /// Construct from a package: URI
-  factory DartUri._fromPackageUri(String uri, String serverUri) {
+  factory DartUri._fromPackageUri(String uri, {String serverUri}) {
     var packagePath = 'packages/${uri.substring("package:".length)}';
     if (serverUri != null) {
       return DartUri._fromServerPath(
@@ -150,7 +150,7 @@ class DartUri {
   }
 
   /// Construct from an org-dartlang-app: URI.
-  factory DartUri._fromAppUri(String uri, String serverUri) {
+  factory DartUri._fromAppUri(String uri, {String serverUri}) {
     // We ignore the first segment of the path, which is the root
     // from which we're serving.
     var path = Uri.parse(uri).pathSegments.skip(1).join('/').toString();
