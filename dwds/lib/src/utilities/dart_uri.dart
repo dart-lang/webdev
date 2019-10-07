@@ -100,25 +100,18 @@ class DartUri {
     if (uri.startsWith('package:')) {
       return DartUri._fromPackageUri(uri, serverUri: serverUri);
     }
-    if (uri.startsWith('org-dartlang-app:')) {
-      return DartUri._fromAppUri(uri, serverUri: serverUri);
-    }
+    if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
     if (uri.startsWith('google3:')) return DartUri._fromGoogleUri(uri);
     if (uri.startsWith('file:')) return DartUri._fromFileUri(uri);
-    if (uri.startsWith('/packages/')) return DartUri._fromServerPath(uri);
+    if (uri.startsWith('/packages/')) {
+      return DartUri._fromServerPath(uri, serverUri: serverUri);
+    }
     if (uri.startsWith('/')) return DartUri._fromServerPath(uri);
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
       return DartUri(Uri.parse(uri).path);
     }
-    if (serverUri != null) return DartUri._fromSourceMapUri(uri, serverUri);
 
     throw FormatException('Unsupported URI form', uri);
-  }
-
-  /// Construct from a sourceMap URI.
-  factory DartUri._fromSourceMapUri(String uri, String serverUri) {
-    return DartUri._fromServerPath(
-        p.normalize(p.join(_dirForServerUri(serverUri), uri)));
   }
 
   /// Returns the dirname for the server URI.
@@ -150,24 +143,25 @@ class DartUri {
   }
 
   /// Construct from an org-dartlang-app: URI.
-  factory DartUri._fromAppUri(String uri, {String serverUri}) {
+  factory DartUri._fromAppUri(String uri) {
     // We ignore the first segment of the path, which is the root
     // from which we're serving.
     var path = Uri.parse(uri).pathSegments.skip(1).join('/').toString();
     // TODO: To be able to convert to an org-dartlang-app: URI we will
     // need to know the root - possibly keep it as a static?
-    if (serverUri != null) {
-      return DartUri._(p.normalize(p.join(_dirForServerUri(serverUri), path)));
-    }
     return DartUri._(path);
   }
 
   DartUri._(this.serverPath);
 
   /// Construct from a path, relative to the directory being served.
-  factory DartUri._fromServerPath(String uri) {
+  factory DartUri._fromServerPath(String uri, {String serverUri}) {
     uri = uri[0] == '.' ? uri.substring(1) : uri;
     uri = uri[0] == '/' ? uri.substring(1) : uri;
+
+    if (serverUri != null) {
+      return DartUri._fromServerPath(p.join(_dirForServerUri(serverUri), uri));
+    }
     return DartUri._(uri);
   }
 }

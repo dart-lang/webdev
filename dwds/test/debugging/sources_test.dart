@@ -18,7 +18,7 @@ void main() {
     };
     var logs = <LogRecord>[];
     var sources = Sources(TestingAssetHandler(assets), null,
-        (level, message) => logs.add(LogRecord(level, message, '')));
+        (level, message) => logs.add(LogRecord(level, message, '')), '');
     var serverUri = 'http://localhost:1234/';
     await sources.scriptParsed(ScriptParsedEvent(WipEvent({
       'params': {
