@@ -1,3 +1,6 @@
+## 0.7.2
+- Account for root directory path when using `package:` URIs with `DartUri`.
+
 ## 0.7.1
 
 - Fix a bug where we would try to create a new isolate even for a failed
@@ -15,7 +18,6 @@
   `assetServerPort` and `applicationTarget`.
 - Expose a `BuildRunnerAssetHandler` which proxies request to the asset server
   running within build runner.
-- Account for root directory path when using `package:` URIs with `DartUri`.
 - Support the Legacy Module strategy through the injected client.
 - Support DDK sourcemap URIs.
 - Update SDK dependency to minimum of 2.5.0.

@@ -97,11 +97,12 @@ class DartUri {
   /// packages/path/src/path.dart. The optional [serverUri] is the full URI of the
   /// JS script. The dirname of that path should give us the missing prefix.
   factory DartUri(String uri, [String serverUri]) {
-    // TODO(401): Remove serverUri after D24 is stable.
     if (uri.startsWith('package:')) {
       return DartUri._fromPackageUri(uri, serverUri);
     }
-    if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
+    if (uri.startsWith('org-dartlang-app:')) {
+      return DartUri._fromAppUri(uri, serverUri);
+    }
     if (uri.startsWith('google3:')) return DartUri._fromGoogleUri(uri);
     if (uri.startsWith('file:')) return DartUri._fromFileUri(uri);
     if (uri.startsWith('/packages/')) return DartUri._fromServerPath(uri);
@@ -109,6 +110,7 @@ class DartUri {
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
       return DartUri(Uri.parse(uri).path);
     }
+
     // Work around short paths if we have been provided the context.
     if (serverUri != null) {
       return DartUri._fromServerPath(
@@ -117,14 +119,17 @@ class DartUri {
     throw FormatException('Unsupported URI form', uri);
   }
 
-  static String _dirForServerUri(String uri) => p.dirname(Uri.parse(uri).path);
+  /// Returns the dirname for the server URI.
+  static String _dirForServerUri(String uri) =>
+      // Path will be of the form `/foo/bar` so ignore the leading `/`.
+      p.dirname(Uri.parse(uri).path.substring(1));
 
   /// Construct from a package: URI
   factory DartUri._fromPackageUri(String uri, String serverUri) {
     var packagePath = 'packages/${uri.substring("package:".length)}';
     if (serverUri != null) {
       return DartUri._fromServerPath(
-          p.normalize(p.join(_dirForServerUri(serverUri), packagePath)));
+          p.join(_dirForServerUri(serverUri), packagePath));
     }
     return DartUri._(packagePath);
   }
@@ -143,12 +148,16 @@ class DartUri {
   }
 
   /// Construct from an org-dartlang-app: URI.
-  factory DartUri._fromAppUri(String uri) {
+  factory DartUri._fromAppUri(String uri, String serverUri) {
     // We ignore the first segment of the path, which is the root
     // from which we're serving.
+    var path = Uri.parse(uri).pathSegments.skip(1).join('/').toString();
     // TODO: To be able to convert to an org-dartlang-app: URI we will
     // need to know the root - possibly keep it as a static?
-    return DartUri._(Uri.parse(uri).pathSegments.skip(1).join('/').toString());
+    if (serverUri != null) {
+      return DartUri._(p.normalize(p.join(_dirForServerUri(serverUri), path)));
+    }
+    return DartUri._(path);
   }
 
   DartUri._(this.serverPath);
