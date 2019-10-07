@@ -110,13 +110,15 @@ class DartUri {
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
       return DartUri(Uri.parse(uri).path);
     }
+    if (serverUri != null) return DartUri._fromSourceMapUri(uri, serverUri);
 
-    // Work around short paths if we have been provided the context.
-    if (serverUri != null) {
-      return DartUri._fromServerPath(
-          p.normalize(p.join(_dirForServerUri(serverUri), uri)));
-    }
     throw FormatException('Unsupported URI form', uri);
+  }
+
+  /// Construct from a sourceMap URI.
+  factory DartUri._fromSourceMapUri(String uri, String serverUri) {
+    return DartUri._fromServerPath(
+        p.normalize(p.join(_dirForServerUri(serverUri), uri)));
   }
 
   /// Returns the dirname for the server URI.
