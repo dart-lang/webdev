@@ -1,4 +1,4 @@
-# Created with package:mono_repo v2.2.0
+# Created with package:mono_repo v2.3.0
 language: dart
 
 # Custom configuration
@@ -6,13 +6,7 @@ sudo: required
 addons:
   chrome: stable
 before_install:
-  - "export CHROMEDRIVER_BINARY=/usr/bin/google-chrome"
-  - "export CHROMEDRIVER_ARGS=--no-sandbox"
-  - "/usr/bin/google-chrome --version"
-  - "export CHROME_LATEST_VERSION=$(/usr/bin/google-chrome --version | cut -d' ' -f3 | cut -d'.' -f1)"
-  - "export CHROME_DRIVER_VERSION=$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_LATEST_VERSION)"
-  - "wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip"
-  - unzip chromedriver_linux64.zip
+  - tool/travis_setup.sh
   - "export PATH=$PATH:$PWD"
 after_failure:
   - tool/report_failure.sh
@@ -24,31 +18,49 @@ jobs:
     - stage: analyzer_and_format
       name: "SDK: 2.5.0; PKGS: dwds, example, webdev; TASKS: `dartanalyzer --fatal-warnings .`"
       dart: "2.5.0"
+      os: linux
       env: PKGS="dwds example webdev"
       script: ./tool/travis.sh dartanalyzer_1
     - stage: analyzer_and_format
       name: "SDK: dev; PKGS: dwds, example, webdev; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
       dart: dev
+      os: linux
       env: PKGS="dwds example webdev"
       script: ./tool/travis.sh dartfmt dartanalyzer_0
     - stage: unit_test
       name: "SDK: 2.5.0; PKG: dwds; TASKS: `pub run test`"
       dart: "2.5.0"
+      os: linux
       env: PKGS="dwds"
       script: ./tool/travis.sh test_0
     - stage: unit_test
       name: "SDK: stable; PKG: dwds; TASKS: `pub run test`"
       dart: stable
+      os: linux
+      env: PKGS="dwds"
+      script: ./tool/travis.sh test_0
+    - stage: unit_test
+      name: "SDK: stable; PKG: dwds; TASKS: `pub run test`"
+      dart: stable
+      os: windows
       env: PKGS="dwds"
       script: ./tool/travis.sh test_0
     - stage: unit_test
       name: "SDK: 2.5.0; PKG: webdev; TASKS: `pub run test -j 1`"
       dart: "2.5.0"
+      os: linux
       env: PKGS="webdev"
       script: ./tool/travis.sh test_1
     - stage: unit_test
       name: "SDK: stable; PKG: webdev; TASKS: `pub run test -j 1`"
       dart: stable
+      os: linux
+      env: PKGS="webdev"
+      script: ./tool/travis.sh test_1
+    - stage: unit_test
+      name: "SDK: stable; PKG: webdev; TASKS: `pub run test -j 1`"
+      dart: stable
+      os: windows
       env: PKGS="webdev"
       script: ./tool/travis.sh test_1
 
