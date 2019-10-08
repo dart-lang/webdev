@@ -80,11 +80,11 @@ class Sources {
         for (var entry in lineEntry.entries) {
           var index = entry.sourceUrlId;
           if (index == null) continue;
-          // TODO(grouma) - This work seems expensive and likely should be
-          // cached.
           // We expect the source map URLs to be relative to the script, with
-          // platform-dependent separators.
+          // platform separators. Split and re-join to get URL separators.
           var relativeSegments = p.split(mapping.urls[index]);
+          // TODO(grouma) - The Uri.parse seems expensive and likely should be
+          // cached.
           var scriptLocation = p.dirname(Uri.parse(script.url).path);
           var path = p.url.joinAll([scriptLocation, ...relativeSegments]);
           var dartUri = DartUri(path, _root);
