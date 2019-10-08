@@ -80,6 +80,8 @@ class Sources {
         for (var entry in lineEntry.entries) {
           var index = entry.sourceUrlId;
           if (index == null) continue;
+          // TODO(grouma) - This work seems expensive and likely should be
+          // cached.
           var path = p.join(
               p.dirname(Uri.parse(script.url).path), mapping.urls[index]);
           var dartUri = DartUri(path, _root);
