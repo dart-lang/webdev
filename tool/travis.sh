@@ -66,7 +66,11 @@ for PKG in ${PKGS}; do
       echo 'dartfmt -n --set-exit-if-changed .'
       dartfmt -n --set-exit-if-changed . || EXIT_CODE=$?
       ;;
-    test)
+    test_0)
+      echo 'pub run test'
+      pub run test || EXIT_CODE=$?
+      ;;
+    test_1)
       echo 'pub run test -j 1'
       pub run test -j 1 || EXIT_CODE=$?
       ;;
