@@ -1,6 +1,6 @@
 name: webdev
 # Every time this changes you need to run `pub run build_runner build`.
-version: 2.5.2
+version: 2.5.3-dev
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
 description: >-
@@ -46,3 +46,7 @@ dev_dependencies:
 
 executables:
   webdev:
+
+dependency_overrides:
+  dwds:
+    path: ../dwds

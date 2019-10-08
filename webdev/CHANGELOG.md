@@ -1,3 +1,7 @@
+## 2.5.3-dev
+
+- Depend on the latest `package:dwds`.
+
 ## 2.5.2
 
 - Update SDK dependency to minimum of 2.5.0.

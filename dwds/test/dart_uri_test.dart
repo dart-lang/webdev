@@ -7,14 +7,15 @@ import 'package:test/test.dart';
 
 void main() {
   group('DartUri', () {
-    test('normalizes server paths', () {
-      var uri = DartUri('../foo.dart', '/packages/blah/src/blah.dart');
-      expect(uri.serverPath, 'packages/blah/foo.dart');
-    });
-
     test('parses package : paths', () {
       var uri = DartUri('package:path/path.dart');
       expect(uri.serverPath, 'packages/path/path.dart');
+    });
+
+    test('parses package : paths with root', () {
+      var uri = DartUri(
+          'package:path/path.dart', 'http://localhost:8080/foo/bar/blah');
+      expect(uri.serverPath, 'foo/bar/packages/path/path.dart');
     });
 
     test('parses org-dartlang-app paths', () {

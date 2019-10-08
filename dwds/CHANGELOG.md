@@ -1,3 +1,7 @@
+## 0.7.2
+
+- Account for root directory path when using `package:` URIs with `DartUri`.
+
 ## 0.7.1
 
 - Fix a bug where we would try to create a new isolate even for a failed

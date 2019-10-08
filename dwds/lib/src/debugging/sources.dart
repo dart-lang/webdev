@@ -47,7 +47,10 @@ class Sources {
 
   final RemoteDebugger _remoteDebugger;
 
-  Sources(this._assetHandler, this._remoteDebugger, this._logWriter);
+  final String _root;
+
+  Sources(
+      this._assetHandler, this._remoteDebugger, this._logWriter, this._root);
 
   /// Returns all [Location] data for a provided Dart source.
   Set<Location> locationsForDart(String serverPath) =>
@@ -77,7 +80,11 @@ class Sources {
         for (var entry in lineEntry.entries) {
           var index = entry.sourceUrlId;
           if (index == null) continue;
-          var dartUri = DartUri(mapping.urls[index], script.url);
+          // TODO(grouma) - This work seems expensive and likely should be
+          // cached.
+          var path = p.join(
+              p.dirname(Uri.parse(script.url).path), mapping.urls[index]);
+          var dartUri = DartUri(path, _root);
           var location = Location.from(
             script.scriptId,
             lineEntry,
