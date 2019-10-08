@@ -210,8 +210,7 @@ class Debugger extends Domain {
   }
 
   /// Create a Dart breakpoint at [location] in [dartScript].
-  Breakpoint _dartBreakpoint(
-      ScriptRef dartScript, Location location) {
+  Breakpoint _dartBreakpoint(ScriptRef dartScript, Location location) {
     var breakpoint = Breakpoint()
       ..resolved = true
       ..id = '${_nextBreakpointId++}'
