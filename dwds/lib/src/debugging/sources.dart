@@ -82,8 +82,11 @@ class Sources {
           if (index == null) continue;
           // TODO(grouma) - This work seems expensive and likely should be
           // cached.
-          var path = p.join(
-              p.dirname(Uri.parse(script.url).path), mapping.urls[index]);
+          // We expect the source map URLs to be relative to the script, with
+          // platform-dependent separators.
+          var relativeSegments = p.split(mapping.urls[index]);
+          var scriptLocation = p.dirname(Uri.parse(script.url).path);
+          var path = p.url.joinAll([scriptLocation, ...relativeSegments]);
           var dartUri = DartUri(path, _root);
           var location = Location.from(
             script.scriptId,

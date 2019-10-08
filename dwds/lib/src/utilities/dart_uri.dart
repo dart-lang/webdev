@@ -30,6 +30,8 @@ class DartUri {
     _packageResolver ??= await SyncPackageResolver.loadConfig(uri);
   }
 
+  // Note that this is the only place we join using the platform separator, since
+  // currentDirectory is a platform path, not a URI path.
   static Uri get _packagesUri => p.toUri(p.join(currentDirectory, '.packages'));
 
   /// Whether the `.packages` file exists.
@@ -68,8 +70,9 @@ class DartUri {
     } else if (uri.scheme == 'org-dartlang-app' || uri.scheme == 'google3') {
       var currentAsFileUri = p.toUri(currentDirectory);
       // The Uri's path will be absolute, remove the leading slash.
-      var libraryPath = p.join(currentAsFileUri.path, uri.path.substring(1));
-      _libraryNamesByPath[p.toUri(libraryPath).toString()] = libraryUri;
+      var uriAsFilePath = p.fromUri(uri.path.substring(1));
+      var libraryPath = p.join(currentAsFileUri.toFilePath(), uriAsFilePath);
+      _libraryNamesByPath['${p.toUri(libraryPath)}'] = libraryUri;
     } else if (uri.scheme == 'package') {
       var libraryPath = _packageResolver.resolveUri(uri);
       _libraryNamesByPath['$libraryPath'] = libraryUri;
@@ -122,7 +125,7 @@ class DartUri {
     var packagePath = 'packages/${uri.substring("package:".length)}';
     if (serverUri != null) {
       return DartUri._fromRelativePath(
-          p.join(_dirForServerUri(serverUri), packagePath));
+          p.url.join(_dirForServerUri(serverUri), packagePath));
     }
     return DartUri._(packagePath);
   }
@@ -157,7 +160,7 @@ class DartUri {
 
     if (serverUri != null) {
       return DartUri._fromRelativePath(
-          p.join(_dirForServerUri(serverUri), uri));
+          p.url.join(_dirForServerUri(serverUri), uri));
     }
     return DartUri._(uri);
   }

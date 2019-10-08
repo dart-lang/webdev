@@ -197,21 +197,21 @@ class Debugger extends Domain {
   /// Note that line and column are Dart source locations and one-based.
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
-    var isolate = checkIsolate(isolateId);
+    checkIsolate(isolateId);
     var dartScript = await inspector.scriptWithId(scriptId);
     var dartUri = DartUri(dartScript.uri, _root);
     var location = _locationForDart(dartUri, line);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) return null;
     var jsBreakpointId = await _setBreakpoint(location);
-    var dartBreakpoint = _dartBreakpoint(dartScript, location, isolate);
+    var dartBreakpoint = _dartBreakpoint(dartScript, location);
     _breakpoints.noteBreakpoint(js: jsBreakpointId, bp: dartBreakpoint);
     return dartBreakpoint;
   }
 
   /// Create a Dart breakpoint at [location] in [dartScript].
   Breakpoint _dartBreakpoint(
-      ScriptRef dartScript, Location location, Isolate isolate) {
+      ScriptRef dartScript, Location location) {
     var breakpoint = Breakpoint()
       ..resolved = true
       ..id = '${_nextBreakpointId++}'

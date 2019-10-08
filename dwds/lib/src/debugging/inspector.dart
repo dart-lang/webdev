@@ -496,7 +496,7 @@ function($argsString) {
       var scriptRefs = [
         ScriptRef(uri: uri, id: createId()),
         for (var part in parts)
-          ScriptRef(uri: p.join(parent, part), id: createId())
+          ScriptRef(uri: p.url.join(parent, part), id: createId())
       ];
       var libraryRef = _libraryRefs[uri];
       for (var scriptRef in scriptRefs) {
