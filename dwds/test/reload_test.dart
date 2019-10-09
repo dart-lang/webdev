@@ -4,9 +4,6 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 5))
-@OnPlatform({
-  'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
-})
 
 import 'package:dwds/dwds.dart';
 import 'package:test/test.dart';
