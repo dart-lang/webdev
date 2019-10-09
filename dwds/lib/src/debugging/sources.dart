@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
@@ -160,6 +161,11 @@ class Sources {
     if (response.statusCode == HttpStatus.ok) {
       return response.readAsString();
     }
+    var responseText = '';
+    try {responseText = await response.readAsString();
+    } on ClientException {
+      responseText = '<response content not available>';
+    }
     _logWriter(Level.WARNING, '''
 Failed to load asset at path: $path.
 
@@ -169,7 +175,7 @@ Headers:
 ${const JsonEncoder.withIndent('  ').convert(response.headers)}
 
 Content:
-${await response.readAsString()}
+$responseText}
 ''');
     return null;
   }
