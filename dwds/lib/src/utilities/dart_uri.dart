@@ -24,12 +24,17 @@ class DartUri {
   /// directory of the tests is actually the main dwds directory.
   static String currentDirectory = p.current;
 
+  /// The current directory as a file: Uri, saved here to avoid re-computing.
+  static String currentDirectoryUri = '${p.toUri(currentDirectory)}';
+
   /// Load the .packages file associated with the running application so we can
   /// resolve file URLs into package: URLs appropriately.
   static Future<void> _loadPackageConfig(Uri uri) async {
     _packageResolver ??= await SyncPackageResolver.loadConfig(uri);
   }
 
+  // Note that we join using the platform separator, since currentDirectory is a
+  // platform path, not a URI path. Then the toUri should convert them.
   static Uri get _packagesUri => p.toUri(p.join(currentDirectory, '.packages'));
 
   /// Whether the `.packages` file exists.
@@ -66,10 +71,12 @@ class DartUri {
       // TODO(alanknight): These should not be showing up in the library list,
       // fix _getLibraryRefs and then remove this check.
     } else if (uri.scheme == 'org-dartlang-app' || uri.scheme == 'google3') {
-      var currentAsFileUri = p.toUri(currentDirectory);
-      // The Uri's path will be absolute, remove the leading slash.
-      var libraryPath = p.join(currentAsFileUri.path, uri.path.substring(1));
-      _libraryNamesByPath[p.toUri(libraryPath).toString()] = libraryUri;
+      // Both currentDirectoryUri and the libraryUri path should have '/'
+      // separators, so we can join them as url paths to get the absolute file
+      // url.
+      var libraryPath =
+          p.url.join('$currentDirectoryUri', uri.path.substring(1));
+      _libraryNamesByPath[libraryPath] = libraryUri;
     } else if (uri.scheme == 'package') {
       var libraryPath = _packageResolver.resolveUri(uri);
       _libraryNamesByPath['$libraryPath'] = libraryUri;
@@ -122,7 +129,7 @@ class DartUri {
     var packagePath = 'packages/${uri.substring("package:".length)}';
     if (serverUri != null) {
       return DartUri._fromRelativePath(
-          p.join(_dirForServerUri(serverUri), packagePath));
+          p.url.join(_dirForServerUri(serverUri), packagePath));
     }
     return DartUri._(packagePath);
   }
@@ -157,7 +164,7 @@ class DartUri {
 
     if (serverUri != null) {
       return DartUri._fromRelativePath(
-          p.join(_dirForServerUri(serverUri), uri));
+          p.url.join(_dirForServerUri(serverUri), uri));
     }
     return DartUri._(uri);
   }

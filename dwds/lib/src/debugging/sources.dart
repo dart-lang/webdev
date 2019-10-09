@@ -70,6 +70,7 @@ class Sources {
     _sourceToScriptId[script.url] = script.scriptId;
     var sourceMapContents = await _sourceMapOrNull(script);
     if (sourceMapContents == null) return;
+    var scriptLocation = p.url.dirname(Uri.parse(script.url).path);
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = parse(sourceMapContents);
     if (mapping is SingleMapping) {
@@ -80,10 +81,12 @@ class Sources {
         for (var entry in lineEntry.entries) {
           var index = entry.sourceUrlId;
           if (index == null) continue;
-          // TODO(grouma) - This work seems expensive and likely should be
-          // cached.
-          var path = p.join(
-              p.dirname(Uri.parse(script.url).path), mapping.urls[index]);
+          // Source map URLS are relative to the script. They may have platform separators
+          // or they may use URL semantics. To be sure, we split and re-join them.
+          // This works on Windows because path treats both / and \ as separators.
+          // It will fail if the path has both separators in it.
+          var relativeSegments = p.split(mapping.urls[index]);
+          var path = p.url.joinAll([scriptLocation, ...relativeSegments]);
           var dartUri = DartUri(path, _root);
           var location = Location.from(
             script.scriptId,

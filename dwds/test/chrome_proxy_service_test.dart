@@ -107,8 +107,6 @@ void main() {
         await service.removeBreakpoint(isolate.id, bp.id);
         expect(isolate.breakpoints, isEmpty);
       });
-    }, onPlatform: {
-      'windows': const Skip('https://github.com/dart-lang/webdev/issues/711'),
     });
 
     group('callServiceExtension', () {
@@ -376,8 +374,6 @@ void main() {
           expect(scriptRef.uri, endsWith('.dart'));
           expect(script.tokenPosTable, isNotEmpty);
         }
-      }, onPlatform: {
-        'windows': const Skip('https://github.com/dart-lang/webdev/issues/711'),
       });
     });
 
@@ -395,8 +391,6 @@ void main() {
           scripts.scripts.map((s) => s.uri), contains(endsWith('part.dart')));
       expect(scripts.scripts.map((s) => s.uri),
           contains('package:intl/src/intl/date_format_helpers.dart'));
-    }, onPlatform: {
-      'windows': const Skip('https://github.com/dart-lang/webdev/issues/711'),
     });
 
     test('clearVMTimeline', () {
@@ -472,8 +466,6 @@ void main() {
         expect(first.code.kind, 'Dart');
         expect(first.code.name, '<closure>');
       });
-    }, onPlatform: {
-      'windows': const Skip('https://github.com/dart-lang/webdev/issues/711'),
     });
 
     group('getStack', () {
@@ -545,8 +537,6 @@ void main() {
         // Resume the isolate to not impact other tests.
         await service.resume(isolateId);
       });
-    }, onPlatform: {
-      'windows': const Skip('https://github.com/dart-lang/webdev/issues/711'),
     });
 
     test('getVM', () async {
