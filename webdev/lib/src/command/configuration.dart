@@ -132,7 +132,9 @@ class Configuration {
   }
 
   void _validateConfiguration() {
-    if (outputInput != null) ensureIsTopLevelDir(outputInput);
+    // Both null and an empty string are valid values for outputInput. For any
+    // other value, we need to ensure it's a top-level dir.
+    if (outputInput?.isNotEmpty ?? false) ensureIsTopLevelDir(outputInput);
 
     if ((tlsCertKey != null && tlsCertChain == null) ||
         (tlsCertKey == null && tlsCertChain != null)) {
@@ -296,9 +298,13 @@ class Configuration {
 
     String outputPath;
     String outputInput;
-    if (output != 'NONE') {
+    if (output == 'NONE') {
+      // The empty string means build everything.
+      outputInput = '';
+    } else {
       var splitOutput = output.split(':');
       if (splitOutput.length == 1) {
+        // The empty string means build everything.
         outputInput = '';
         outputPath = output;
       } else {
