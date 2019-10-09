@@ -25,7 +25,7 @@ class DartUri {
   static String currentDirectory = p.current;
 
   /// The current directory as a file: Uri, saved here to avoid re-computing.
-  static Uri currentDirectoryUri = p.toUri(currentDirectory);
+  static String currentDirectoryUri = '${p.toUri(currentDirectory)}';
 
   /// Load the .packages file associated with the running application so we can
   /// resolve file URLs into package: URLs appropriately.
