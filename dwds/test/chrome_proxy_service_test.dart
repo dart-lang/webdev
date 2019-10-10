@@ -125,11 +125,8 @@ void main() {
           1: 2,
           false: true,
         };
-        print('Calling service extension');
         var result =
             await service.callServiceExtension(serviceMethod, args: args);
-        print('two - $result');
-        print('response = ${result.json}');
         expect(
             result.json,
             args.map((k, v) => MapEntry(k is String ? k : jsonEncode(k),
