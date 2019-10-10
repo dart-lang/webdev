@@ -485,6 +485,13 @@ void main() {
       });
 
       test('returns null if not paused', () async {
+        // In case we haven't started yet, try to resume.
+        try {
+          await service.resume(isolateId);
+        } on WipError {
+          // Ignore, probably means we are already running, which is what we
+          // want.
+        }
         expect(await service.getStack(isolateId), isNull);
       });
 
