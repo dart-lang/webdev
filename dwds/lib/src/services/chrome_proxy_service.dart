@@ -200,7 +200,6 @@ class ChromeProxyService implements VmServiceInterface {
 $loadModule("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
-    print('evaluating');
     var response =
         await remoteDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
