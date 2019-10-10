@@ -162,7 +162,8 @@ class Sources {
       return response.readAsString();
     }
     var responseText = '';
-    try {responseText = await response.readAsString();
+    try {
+      responseText = await response.readAsString();
     } on ClientException {
       responseText = '<response content not available>';
     }
