@@ -158,16 +158,18 @@ class Sources {
   /// [HttpStatus.ok].
   Future<String> _readAssetOrNull(String path) async {
     var response = await _assetHandler.getRelativeAsset(path);
-    if (response.statusCode == HttpStatus.ok) {
-      return response.readAsString();
-    }
     var responseText = '';
+    var hasError = false;
     try {
       responseText = await response.readAsString();
     } on ClientException {
-      responseText = '<response content not available>';
+      hasError = true;
+      responseText = '<response not available>';
     }
-    _logWriter(Level.WARNING, '''
+    if (response.statusCode == HttpStatus.ok && !hasError) {
+      return responseText;
+    } else {
+      _logWriter(Level.WARNING, '''
 Failed to load asset at path: $path.
 
 Status code: ${response.statusCode}
@@ -178,7 +180,8 @@ ${const JsonEncoder.withIndent('  ').convert(response.headers)}
 Content:
 $responseText}
 ''');
-    return null;
+      return null;
+    }
   }
 
   /// The source map for a DDC-compiled JS [script].
