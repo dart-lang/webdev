@@ -112,11 +112,8 @@ void main() {
     group('callServiceExtension', () {
       test('success', () async {
         var serviceMethod = 'ext.test.callServiceExtension';
-        var x = await tabConnection.runtime
+        await tabConnection.runtime
             .evaluate('registerExtension("$serviceMethod");');
-        print('one - $x');
-        print('text =  ${x.value}');
-
         // The non-string keys/values get auto json-encoded to match the vm
         // behavior.
         var args = {
