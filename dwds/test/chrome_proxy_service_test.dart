@@ -130,6 +130,7 @@ void main() {
           result =
               await service.callServiceExtension(serviceMethod, args: args);
         } on RPCError catch (e) {
+          print('service extension RPC failed: $e');
           throw Exception('Exception $e');
         }
         expect(
