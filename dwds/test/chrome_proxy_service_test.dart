@@ -126,7 +126,7 @@ void main() {
           false: true,
         };
         Response result;
-        expect(() async {
+        await expectLater(() async {
           result =
               await service.callServiceExtension(serviceMethod, args: args);
         }, returnsNormally);
