@@ -127,6 +127,9 @@ void main() {
         };
         var result =
             await service.callServiceExtension(serviceMethod, args: args);
+        // If we include this, the test passes on Windows on Travis.
+        // If we don't, it fails and leaves the application in a bad state.
+        print('This is a load-bearing print statement');
         expect(
             result.json,
             args.map((k, v) => MapEntry(k is String ? k : jsonEncode(k),

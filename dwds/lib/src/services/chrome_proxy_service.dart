@@ -209,7 +209,6 @@ $loadModule("dart_sdk").developer.invokeExtension(
     var decodedResponse =
         jsonDecode(response.result['result']['value'] as String)
             as Map<String, dynamic>;
-    print('got response');
     if (decodedResponse.containsKey('code') &&
         decodedResponse.containsKey('message') &&
         decodedResponse.containsKey('data')) {
