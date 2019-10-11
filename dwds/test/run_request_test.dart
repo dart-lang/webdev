@@ -15,21 +15,39 @@ ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 
 void main() {
-  setUpAll(() async {
-    await context.setUp(autoRun: false);
+  group('while debugger is attached', () {
+    setUp(() async {
+      await context.setUp(autoRun: false);
+    });
+
+    tearDown(() async {
+      await context.tearDown();
+    });
+    test('correctly sets the isolate pauseEvent', () async {
+      var vm = await service.getVM();
+      var isolate = await service.getIsolate(vm.isolates.first.id);
+      expect(isolate.pauseEvent.kind, EventKind.kPauseStart);
+      var stream = service.onEvent('Debug');
+      context.appConnection.runMain();
+      await stream.firstWhere((event) => event.kind == EventKind.kResume);
+      expect(isolate.pauseEvent.kind, EventKind.kResume);
+    });
   });
 
-  tearDownAll(() async {
-    await context.tearDown();
-  });
+  group('while debugger is not attached', () {
+    setUp(() async {
+      await context.setUp(autoRun: false, waitToDebug: true);
+    });
 
-  test('correctly sets the isolate pauseEvent', () async {
-    var vm = await service.getVM();
-    var isolate = await service.getIsolate(vm.isolates.first.id);
-    expect(isolate.pauseEvent.kind, EventKind.kPauseStart);
-    var stream = service.onEvent('Debug');
-    context.appConnection.runMain();
-    await stream.firstWhere((event) => event.kind == EventKind.kResume);
-    expect(isolate.pauseEvent.kind, EventKind.kResume);
+    tearDown(() async {
+      await context.tearDown();
+    });
+    test('correctly sets the isolate pauseEvent if already running', () async {
+      context.appConnection.runMain();
+      await context.startDebugging();
+      var vm = await service.getVM();
+      var isolate = await service.getIsolate(vm.isolates.first.id);
+      expect(isolate.pauseEvent.kind, EventKind.kResume);
+    });
   });
 }

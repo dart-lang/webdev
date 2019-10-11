@@ -48,8 +48,7 @@ class Dwds {
 
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
     if (!_enableDebugging) throw StateError('Debugging is not enabled.');
-    var appDebugServices = await _devHandler.loadAppServices(
-        appConnection.request.appId, appConnection.request.instanceId);
+    var appDebugServices = await _devHandler.loadAppServices(appConnection);
     return DebugConnection(appDebugServices);
   }
 
@@ -107,7 +106,6 @@ class Dwds {
       verbose,
       logWriter,
       extensionBackend,
-      enableDebugging,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
