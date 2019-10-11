@@ -538,11 +538,14 @@ class _Breakpoints extends Domain {
   String jsId(String dartId) => _byDartId[dartId];
 }
 
+final escapedPipe = '\$124';
+final escapedPound = '\$35';
+
 /// Reformats a JS member name to make it look more Dart-like.
 ///
 /// Logic copied from build/build_web_compilers/web/stack_trace_mapper.dart.
 String _prettifyMember(String member) {
-  member = member.replaceAll('\$124', '|');
+  member = member.replaceAll(escapedPipe, '|');
   return member.contains('|') ? _prettifyExtension(member) : member;
 }
 
@@ -551,19 +554,19 @@ String _prettifyExtension(String member) {
   var isSetter = false;
   var pipeIndex = member.indexOf('|');
   var spaceIndex = member.indexOf(' ');
-  var poundIndex = member.indexOf('\$35');
+  var poundIndex = member.indexOf(escapedPound);
   if (spaceIndex >= 0) {
-    // member is a static field or static getter/setter
+    // Here member is a static field or static getter/setter.
     isSetter = member.substring(0, spaceIndex) == 'set';
     member = member.substring(spaceIndex + 1, member.length);
   } else if (poundIndex >= 0) {
-    // member is a tearoff or local property getter/setter
+    // Here member is a tearoff or local property getter/setter.
     isSetter = member.substring(pipeIndex + 1, poundIndex) == 'set';
     member = member.replaceRange(pipeIndex + 1, poundIndex + 3, '');
   } else {
     var body = member.substring(pipeIndex + 1, member.length);
     if (body.startsWith('unary') || body.startsWith('\$')) {
-      // member is an operator, so it's safe to unescape everything lazily
+      // Here member's an operator, so it's safe to unescape everything lazily.
       member = _unescape(member);
     }
   }
@@ -573,7 +576,8 @@ String _prettifyExtension(String member) {
 
 /// Unescapes a DDC-escaped JS identifier name.
 ///
-/// Assumes decimal-to-UTF16.
+/// Identifier names that contain illegal JS characters are escaped by DDC to a
+/// decimal representation of the symbol's UTF-16 value.
 /// Warning: this greedily escapes characters, so it can be unsafe in the event
 /// that an escaped sequence precedes a number literal in the JS name.
 String _unescape(String name) {
