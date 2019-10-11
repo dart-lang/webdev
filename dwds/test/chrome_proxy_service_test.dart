@@ -126,13 +126,10 @@ void main() {
           false: true,
         };
         Response result;
-        try {
+        expect(() async {
           result =
               await service.callServiceExtension(serviceMethod, args: args);
-        } on RPCError catch (e, s) {
-          print(s);
-          throw StateError('$e');
-        }
+        }, returnsNormally);
         expect(
             result.json,
             args.map((k, v) => MapEntry(k is String ? k : jsonEncode(k),

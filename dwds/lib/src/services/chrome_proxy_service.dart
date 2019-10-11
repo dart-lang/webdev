@@ -212,7 +212,6 @@ $loadModule("dart_sdk").developer.invokeExtension(
     if (decodedResponse.containsKey('code') &&
         decodedResponse.containsKey('message') &&
         decodedResponse.containsKey('data')) {
-      print('throwing non-exception');
       // ignore: only_throw_errors
       throw RPCError(method, decodedResponse['code'] as int,
           decodedResponse['message'] as String, decodedResponse['data'] as Map);
