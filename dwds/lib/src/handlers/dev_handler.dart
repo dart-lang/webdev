@@ -211,9 +211,13 @@ class DevHandler {
       _injectedConnections.remove(injectedConnection);
       if (appId != null && appConnection != null) {
         var services = await _servicesByAppId[appId];
-        if (services?.connectedInstanceId == appConnection.request.instanceId) {
-          services?.connectedInstanceId = null;
-          services?.chromeProxyService?.destroyIsolate();
+        if (services != null) {
+          if (services.connectedInstanceId == null ||
+              services.connectedInstanceId ==
+                  appConnection.request.instanceId) {
+            services.connectedInstanceId = null;
+            services.chromeProxyService?.destroyIsolate();
+          }
         }
       }
     }));
