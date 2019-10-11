@@ -125,8 +125,14 @@ void main() {
           1: 2,
           false: true,
         };
-        var result =
-            await service.callServiceExtension(serviceMethod, args: args);
+        Response result;
+        try {
+          result =
+              await service.callServiceExtension(serviceMethod, args: args);
+        } on RPCError catch (e, s) {
+          print(s);
+          throw StateError('$e');
+        }
         expect(
             result.json,
             args.map((k, v) => MapEntry(k is String ? k : jsonEncode(k),
