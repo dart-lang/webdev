@@ -34,9 +34,6 @@ void main() {
 
         // A full reload should clear the state.
         expect(source.contains('Hello World!'), isFalse);
-        if (!source.contains('Gary is awesome!')) {
-          print('source = $source');
-        }
         expect(source.contains('Gary is awesome!'), isTrue);
       });
     });

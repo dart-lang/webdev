@@ -179,7 +179,11 @@ class TestContext {
         .any((result) => result.status == BuildStatus.succeeded));
 
     // Allow change to propagate to the browser.
-    await Future.delayed(const Duration(seconds: 2));
+    // Windows, or at least Travis on Windows, seems to need more time.
+    var delay = Platform.isWindows
+        ? const Duration(seconds: 5)
+        : const Duration(seconds: 2);
+    await Future.delayed(delay);
   }
 
   Future<ChromeTab> _fetchDartDebugExtensionTab(
