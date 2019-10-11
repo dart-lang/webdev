@@ -20,6 +20,8 @@ class AppConnection {
 
   AppConnection(this.request, this._connection);
 
+  bool get isStarted => _isStarted;
+
   void runMain() {
     if (_isStarted) throw StateError('Main has already started.');
     _connection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
