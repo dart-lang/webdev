@@ -205,7 +205,6 @@ $loadModule("dart_sdk").developer.invokeExtension(
       'expression': expression,
       'awaitPromise': true,
     });
-    print('got response');
     handleErrorIfPresent(response, evalContents: expression);
     var decodedResponse =
         jsonDecode(response.result['result']['value'] as String)
