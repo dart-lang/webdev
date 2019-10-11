@@ -68,12 +68,14 @@ class TestContext {
       bool serveDevTools,
       bool enableDebugExtension,
       bool autoRun,
-      bool enableDebugging}) async {
+      bool enableDebugging,
+      bool waitToDebug}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
     autoRun ??= true;
     enableDebugging ??= true;
+    waitToDebug ??= false;
     var chromeDriverPort = await findUnusedPort();
     var chromeDriverUrlBase = 'wd/hub';
     try {
@@ -155,10 +157,14 @@ class TestContext {
     }
 
     appConnection = await testServer.dwds.connectedApps.first;
-    if (enableDebugging) {
-      debugConnection = await testServer.dwds.debugConnection(appConnection);
-      webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
+    if (enableDebugging && !waitToDebug) {
+      await startDebugging();
     }
+  }
+
+  Future<void> startDebugging() async {
+    debugConnection = await testServer.dwds.debugConnection(appConnection);
+    webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
   }
 
   Future<Null> tearDown() async {
