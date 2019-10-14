@@ -488,13 +488,7 @@ void main() {
       });
 
       test('returns null if not paused', () async {
-        // In case we haven't started yet, try to resume.
-        try {
-          await service.resume(isolateId);
-        } on WipError {
-          // Ignore, probably means we are already running, which is what we
-          // want.
-        }
+        await stream.firstWhere((event) => event.kind == EventKind.kResume);
         expect(await service.getStack(isolateId), isNull);
       });
 
