@@ -488,7 +488,6 @@ void main() {
       });
 
       test('returns null if not paused', () async {
-        await stream.firstWhere((event) => event.kind == EventKind.kResume);
         expect(await service.getStack(isolateId), isNull);
       });
 
