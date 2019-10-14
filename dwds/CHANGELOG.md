@@ -1,3 +1,12 @@
+## 0.7.4
+
+- Deobfuscate DDC extension method stack traces.
+
+## 0.7.3
+
+- Correctly set `Isolate` state if debugging is initiated after the application
+  has already started.
+
 ## 0.7.2
 
 - Account for root directory path when using `package:` URIs with `DartUri`.
