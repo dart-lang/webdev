@@ -519,8 +519,8 @@ function($argsString) {
     if (_libraryRefs.isNotEmpty) return _libraryRefs.values.toList();
     var expression = '''
       (function() {
-              $getLibraries
-              return libs;
+        $getLibraries
+        return libs;
       })()
      ''';
     var librariesResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
