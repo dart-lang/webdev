@@ -114,6 +114,7 @@ void main() {
         var serviceMethod = 'ext.test.callServiceExtension';
         await tabConnection.runtime
             .evaluate('registerExtension("$serviceMethod");');
+
         // The non-string keys/values get auto json-encoded to match the vm
         // behavior.
         var args = {
@@ -125,18 +126,15 @@ void main() {
           1: 2,
           false: true,
         };
-        Response result;
-        try {
-          result =
-              await service.callServiceExtension(serviceMethod, args: args);
-        } on RPCError catch (e) {
-          print('service extension RPC failed: $e');
-          throw Exception('Exception $e');
-        }
+
+        var result =
+            await service.callServiceExtension(serviceMethod, args: args);
         expect(
             result.json,
             args.map((k, v) => MapEntry(k is String ? k : jsonEncode(k),
                 v is String ? v : jsonEncode(v))));
+      }, onPlatform: {
+        'windows': const Skip('https://github.com/dart-lang/webdev/issues/711'),
       });
 
       test('failure', () async {
