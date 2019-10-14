@@ -367,7 +367,12 @@ class Debugger extends Domain {
         await _remoteDebugger.sendCommand('Runtime.getProperties', params: {
       'objectId': id,
       'ownProperties': true,
-    });
+    });  
+    if (response.result.containsKey('exceptionDetails')) {
+      // This probably indicates that the object (particularly if it's a scope)
+      // has disappeared and the result is no longer relevant.
+      return [];
+    }
     var jsProperties = response.result['result'];
     var properties = (jsProperties as List)
         .map<Property>((each) => Property(each as Map<String, dynamic>))
