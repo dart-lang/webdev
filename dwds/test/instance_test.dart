@@ -141,5 +141,10 @@ void main() {
       expect(classRef, isNotNull);
       expect(classRef.name, 'MyTestClass');
     });
+    test('for a non-existent object', () async {
+      var properties =
+          await debugger.getProperties('{"injectedScriptId":1,"id":999999999}');
+      expect(properties, isEmpty);
+    });
   });
 }

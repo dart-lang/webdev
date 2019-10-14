@@ -363,12 +363,14 @@ class Debugger extends Domain {
   /// Note that the property names are JS names, e.g.
   /// Symbol(DartClass.actualName) and will need to be converted.
   Future<List<Property>> getProperties(String id) async {
-    var response =
-        await _remoteDebugger.sendCommand('Runtime.getProperties', params: {
-      'objectId': id,
-      'ownProperties': true,
-    });  
-    if (response.result.containsKey('exceptionDetails')) {
+    WipResponse response;
+    try {
+      response =
+          await _remoteDebugger.sendCommand('Runtime.getProperties', params: {
+        'objectId': id,
+        'ownProperties': true,
+      });
+    } on WipError {
       // This probably indicates that the object (particularly if it's a scope)
       // has disappeared and the result is no longer relevant.
       return [];
