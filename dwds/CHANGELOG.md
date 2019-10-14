@@ -1,3 +1,7 @@
+## 0.7.4
+
+- Properly get all libraries with the `legacy` module system.
+
 ## 0.7.3
 
 - Correctly set `Isolate` state if debugging is initiated after the application

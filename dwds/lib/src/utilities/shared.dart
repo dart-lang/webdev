@@ -44,10 +44,16 @@ String _fetchModuleStrategy(ModuleStrategy config) {
   throw StateError('Unreachable code');
 }
 
-String _loadModule;
+ModuleStrategy globalModuleStrategy;
+String get loadModule => _fetchModuleStrategy(globalModuleStrategy);
 
-String get loadModule => _loadModule;
-
-set globalModuleStrategy(ModuleStrategy moduleStrategy) {
-  _loadModule = _fetchModuleStrategy(moduleStrategy);
+String get getLibraries {
+  var expression = '';
+  if (globalModuleStrategy == ModuleStrategy.legacy) {
+    expression += 'for(let module of dart_library.libraries()) {\n'
+        'dart_library.import(module)[module];\n'
+        '}\n';
+  }
+  return expression +=
+      "let libs = $loadModule('dart_sdk').dart.getLibraries();\n";
 }
