@@ -5,7 +5,8 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    hide StackTrace;
 
 import '../../asset_handler.dart';
 import '../../dwds.dart' show LogWriter;
@@ -173,9 +174,13 @@ class Debugger extends Domain {
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.
-    _remoteDebugger?.onScriptParsed?.listen(sources.scriptParsed);
-    _remoteDebugger?.onPaused?.listen(_pauseHandler);
-    _remoteDebugger?.onResumed?.listen(_resumeHandler);
+    runZoned(() {
+      _remoteDebugger?.onScriptParsed?.listen(sources.scriptParsed);
+      _remoteDebugger?.onPaused?.listen(_pauseHandler);
+      _remoteDebugger?.onResumed?.listen(_resumeHandler);
+    }, onError: (e, StackTrace s) {
+      _logger.warning('Error handling Chrome event', e, s);
+    });
 
     handleErrorIfPresent(await _remoteDebugger?.sendCommand('Page.enable'));
     handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
