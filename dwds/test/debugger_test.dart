@@ -9,6 +9,7 @@ import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:logging/logging.dart';
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
 
@@ -20,6 +21,7 @@ final context = TestContext();
 AppInspector inspector;
 Debugger debugger;
 FakeWebkitDebugger webkitDebugger;
+List<LogRecord> logs = [];
 
 void main() async {
   setUpAll(() async {
@@ -32,6 +34,7 @@ void main() async {
       () => inspector,
       'fakeRoot',
       (level, message) {
+        logs.add(LogRecord(level, message, ''));
         printOnFailure('[$level]: $message');
       },
     );
@@ -65,4 +68,16 @@ void main() async {
     var frame1Variables = firstFrame.vars.map((each) => each.name).toList();
     expect(frame1Variables, ['a', 'b']);
   });
+
+ group('errors', () {
+   setUp(() {
+     inspector = FakeInspector(causeErrors: true);
+     logs = [];
+   });
+
+  test('errors in getting frames', () async {
+    await debugger.dartFramesFor(frames1);
+    expect(logs.first.message, contains('Error handling Chrome event'));
+  });
+ });
 }

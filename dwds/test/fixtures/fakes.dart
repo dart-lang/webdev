@@ -21,7 +21,9 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'debugger_data.dart';
 
 class FakeInspector extends Domain implements AppInspector {
-  FakeInspector() : super.forInspector();
+  FakeInspector({this.causeErrors}) : super.forInspector();
+
+  bool causeErrors  = false;
 
   @override
   Object noSuchMethod(Invocation invocation) {
@@ -40,8 +42,13 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   Future<ScriptList> getScripts(String isolateId) => null;
   @override
-  Future<ScriptRef> scriptRefFor(String uri) =>
-      Future.value(ScriptRef(id: 'fake', uri: 'fake://uri'));
+  Future<ScriptRef> scriptRefFor(String uri) {
+    if (causeErrors) {
+      throw StateError('Deliberate error');
+    } else {
+      return Future.value(ScriptRef(id: 'fake', uri: 'fake://uri'));
+    }
+  }
   @override
   Future<ScriptRef> scriptWithId(String scriptId) => null;
   @override
