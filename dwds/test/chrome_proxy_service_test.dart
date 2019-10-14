@@ -152,6 +152,8 @@ void main() {
                 error is RPCError &&
                 error.code == -32001 &&
                 error.details == jsonEncode(errorDetails))));
+      }, onPlatform: {
+        'windows': const Skip('https://github.com/dart-lang/webdev/issues/711'),
       });
     });
 
