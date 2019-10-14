@@ -1,3 +1,7 @@
+## 0.7.3
+
+- Deobfuscate DDC extension method stack traces.
+
 ## 0.7.2
 
 - Account for root directory path when using `package:` URIs with `DartUri`.
