@@ -544,6 +544,8 @@ final escapedPound = '\$35';
 /// Reformats a JS member name to make it look more Dart-like.
 ///
 /// Logic copied from build/build_web_compilers/web/stack_trace_mapper.dart.
+/// TODO(https://github.com/dart-lang/sdk/issues/38869): Remove this logic when
+/// DDC stack trace deobfuscation is overhauled.
 String _prettifyMember(String member) {
   member = member.replaceAll(escapedPipe, '|');
   return member.contains('|') ? _prettifyExtension(member) : member;
