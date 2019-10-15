@@ -21,8 +21,6 @@ import 'location.dart';
 import 'remote_debugger.dart';
 import 'sources.dart';
 
-final _logger = Logger('Debugger');
-
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
 ///
 /// Values defined in:
@@ -34,6 +32,9 @@ const _pauseModePauseStates = {
 };
 
 class Debugger extends Domain {
+
+  static final logger = Logger('Debugger');
+
   final AssetHandler _assetHandler;
   final LogWriter _logWriter;
   final RemoteDebugger _remoteDebugger;
@@ -179,7 +180,7 @@ class Debugger extends Domain {
       _remoteDebugger?.onPaused?.listen(_pauseHandler);
       _remoteDebugger?.onResumed?.listen(_resumeHandler);
     }, onError: (e, StackTrace s) {
-      _logger.warning('Error handling Chrome event', e, s);
+      logger.warning('Error handling Chrome event', e, s);
     });
 
     handleErrorIfPresent(await _remoteDebugger?.sendCommand('Page.enable'));
@@ -450,7 +451,7 @@ class Debugger extends Domain {
       _streamNotify('Debug', event);
     } on ChromeDebugException catch (e, s) {
       if (e.exception.description.contains('require is not defined')) {
-        _logger.warning(
+        logger.warning(
             'Error handling pause event, app does not appear to be loaded',
             e,
             s);

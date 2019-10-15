@@ -10,7 +10,6 @@ import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:logging/logging.dart' as logging;
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
@@ -81,11 +80,12 @@ void main() async {
     });
 
     test('errors in the zone are caught and logged', () async {
-      var debug = logging.Logger('Debug');
       // Add a DebuggerPausedEvent with a null parameter to provoke an error.
       pausedController.sink.add(DebuggerPausedEvent(null));
-      var error = await debug.onRecord.first;
-      expect(error.message, 'Error handling Chrome event');
+      expect(
+          Debugger.logger.onRecord,
+          emitsThrough(predicate(
+              (log) => log.message == 'Error handling Chrome event')));
     });
   });
 }
