@@ -20,10 +20,28 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'debugger_data.dart';
 
-class FakeInspector extends Domain implements AppInspector {
-  FakeInspector({this.causeErrors}) : super.forInspector();
+/// Constructs a trivial Isolate we can use when we need to provide one but
+/// don't want go through initialization.
+Isolate get simpleIsolate => Isolate(
+        id: '1',
+        number: '1',
+        name: 'fake',
+        libraries: [],
+        exceptionPauseMode: 'abc',
+        breakpoints: [],
+        pauseOnExit: false,
+        pauseEvent: null,
+        startTime: 0,
+        livePorts: 0,
+        runnable: false,
+      );
 
-  bool causeErrors  = false;
+class FakeInspector extends Domain implements AppInspector {
+  FakeInspector({this.causeErrors = false, this.fakeIsolate}) : super.forInspector();
+
+  bool causeErrors;
+
+  Isolate fakeIsolate;
 
   @override
   Object noSuchMethod(Invocation invocation) {
@@ -52,9 +70,9 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   Future<ScriptRef> scriptWithId(String scriptId) => null;
   @override
-  Isolate checkIsolate(String isolateId) => null;
+  Isolate checkIsolate(String isolateId) => fakeIsolate;
   @override
-  Isolate get isolate => null;
+  Isolate get isolate => fakeIsolate;
   @override
   IsolateRef get isolateRef => null;
   @override
@@ -126,7 +144,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => null;
 
   @override
-  Stream<DebuggerPausedEvent> get onPaused => null;
+  Stream<DebuggerPausedEvent> onPaused;
 
   @override
   Stream<DebuggerResumedEvent> get onResumed => null;

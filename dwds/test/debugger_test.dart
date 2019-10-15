@@ -3,15 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
+import 'dart:async';
 import 'package:dwds/dwds.dart' show ModuleStrategy;
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:logging/logging.dart';
+import 'package:logging/logging.dart' as logging;
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart' show DebuggerPausedEvent;
 
 import 'fixtures/context.dart';
 import 'fixtures/debugger_data.dart';
@@ -21,12 +23,15 @@ final context = TestContext();
 AppInspector inspector;
 Debugger debugger;
 FakeWebkitDebugger webkitDebugger;
-List<LogRecord> logs = [];
+StreamController<DebuggerPausedEvent> pausedController;
+List<logging.LogRecord> logs = [];
 
 void main() async {
   setUpAll(() async {
     globalModuleStrategy = ModuleStrategy.requireJS;
     webkitDebugger = FakeWebkitDebugger();
+    pausedController = StreamController<DebuggerPausedEvent>();
+    webkitDebugger.onPaused = pausedController.stream;
     debugger = await Debugger.create(
       null,
       webkitDebugger,
@@ -34,7 +39,6 @@ void main() async {
       () => inspector,
       'fakeRoot',
       (level, message) {
-        logs.add(LogRecord(level, message, ''));
         printOnFailure('[$level]: $message');
       },
     );
@@ -69,15 +73,19 @@ void main() async {
     expect(frame1Variables, ['a', 'b']);
   });
 
- group('errors', () {
-   setUp(() {
-     inspector = FakeInspector(causeErrors: true);
-     logs = [];
-   });
+  group('errors', () {
+    setUp(() {
+      // We need to provide an Isolate so that the code doesn't bail out on a null
+      // check before it has a chance to throw.
+      inspector = FakeInspector(causeErrors: true, fakeIsolate: simpleIsolate);
+    });
 
-  test('errors in getting frames', () async {
-    await debugger.dartFramesFor(frames1);
-    expect(logs.first.message, contains('Error handling Chrome event'));
+    test('errors in the zone are caught and logged', () async {
+      var debug = logging.Logger('Debug');
+      // Add a DebuggerPausedEvent with a null parameter to provoke an error.
+      pausedController.sink.add(DebuggerPausedEvent(null));
+      var error = await debug.onRecord.first;
+      expect(error.message, 'Error handling Chrome event');
+    });
   });
- });
 }
