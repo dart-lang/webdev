@@ -32,7 +32,6 @@ const _pauseModePauseStates = {
 };
 
 class Debugger extends Domain {
-
   static final logger = Logger('Debugger');
 
   final AssetHandler _assetHandler;
