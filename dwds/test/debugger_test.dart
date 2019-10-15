@@ -13,7 +13,8 @@ import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart' show DebuggerPausedEvent;
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    show DebuggerPausedEvent;
 
 import 'fixtures/context.dart';
 import 'fixtures/debugger_data.dart';
@@ -77,7 +78,7 @@ void main() async {
     setUp(() {
       // We need to provide an Isolate so that the code doesn't bail out on a null
       // check before it has a chance to throw.
-      inspector = FakeInspector(causeErrors: true, fakeIsolate: simpleIsolate);
+      inspector = FakeInspector(fakeIsolate: simpleIsolate);
     });
 
     test('errors in the zone are caught and logged', () async {

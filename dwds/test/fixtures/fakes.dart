@@ -23,23 +23,21 @@ import 'debugger_data.dart';
 /// Constructs a trivial Isolate we can use when we need to provide one but
 /// don't want go through initialization.
 Isolate get simpleIsolate => Isolate(
-        id: '1',
-        number: '1',
-        name: 'fake',
-        libraries: [],
-        exceptionPauseMode: 'abc',
-        breakpoints: [],
-        pauseOnExit: false,
-        pauseEvent: null,
-        startTime: 0,
-        livePorts: 0,
-        runnable: false,
-      );
+      id: '1',
+      number: '1',
+      name: 'fake',
+      libraries: [],
+      exceptionPauseMode: 'abc',
+      breakpoints: [],
+      pauseOnExit: false,
+      pauseEvent: null,
+      startTime: 0,
+      livePorts: 0,
+      runnable: false,
+    );
 
 class FakeInspector extends Domain implements AppInspector {
-  FakeInspector({this.causeErrors = false, this.fakeIsolate}) : super.forInspector();
-
-  bool causeErrors;
+  FakeInspector({this.fakeIsolate}) : super.forInspector();
 
   Isolate fakeIsolate;
 
@@ -60,13 +58,8 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   Future<ScriptList> getScripts(String isolateId) => null;
   @override
-  Future<ScriptRef> scriptRefFor(String uri) {
-    if (causeErrors) {
-      throw StateError('Deliberate error');
-    } else {
-      return Future.value(ScriptRef(id: 'fake', uri: 'fake://uri'));
-    }
-  }
+  Future<ScriptRef> scriptRefFor(String uri) =>
+      Future.value(ScriptRef(id: 'fake', uri: 'fake://uri'));
   @override
   Future<ScriptRef> scriptWithId(String scriptId) => null;
   @override
