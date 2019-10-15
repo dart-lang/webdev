@@ -1,6 +1,7 @@
 ## 0.7.4
 
 - Deobfuscate DDC extension method stack traces.
+- Properly get all libraries with the `legacy` module system.
 
 ## 0.7.3
 

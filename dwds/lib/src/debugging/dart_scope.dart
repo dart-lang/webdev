@@ -50,10 +50,9 @@ Future<Property> _findMissingThis(String callFrameId, Debugger debugger) async {
   // If 'this' is a library return null, otherwise
   // return 'this'.
   final findCurrent = '''
-        (function (THIS) { 
+        (function (THIS) {
            if (THIS === window) { return null; }
-           let dart = $loadModule('dart_sdk').dart
-           let libs = dart.getLibraries().map(dart.getLibrary);
+           $getLibraries
            for (let lib of libs) {
              if (lib === THIS) {
                 return null;

@@ -517,7 +517,12 @@ function($argsString) {
   /// Note this can return a cached result.
   Future<List<LibraryRef>> _getLibraryRefs() async {
     if (_libraryRefs.isNotEmpty) return _libraryRefs.values.toList();
-    var expression = "$loadModule('dart_sdk').dart.getLibraries();";
+    var expression = '''
+      (function() {
+        $getLibraries
+        return libs;
+      })()
+     ''';
     var librariesResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(librariesResult, evalContents: expression);
