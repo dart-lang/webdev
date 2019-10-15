@@ -25,7 +25,6 @@ AppInspector inspector;
 Debugger debugger;
 FakeWebkitDebugger webkitDebugger;
 StreamController<DebuggerPausedEvent> pausedController;
-List<logging.LogRecord> logs = [];
 
 void main() async {
   setUpAll(() async {
