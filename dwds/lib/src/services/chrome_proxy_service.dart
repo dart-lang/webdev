@@ -12,6 +12,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../asset_handler.dart';
 import '../../dwds.dart' show LogWriter;
+import '../connections/app_connection.dart';
 import '../debugging/debugger.dart';
 import '../debugging/inspector.dart';
 import '../debugging/remote_debugger.dart';
@@ -72,7 +73,7 @@ class ChromeProxyService implements VmServiceInterface {
     RemoteDebugger remoteDebugger,
     String tabUrl,
     AssetHandler assetHandler,
-    String appInstanceId,
+    AppConnection appConnection,
     LogWriter logWriter,
   ) async {
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
@@ -84,7 +85,7 @@ class ChromeProxyService implements VmServiceInterface {
     var service = ChromeProxyService._(
         vm, tabUrl, assetHandler, remoteDebugger, logWriter);
     await service._initialize();
-    await service.createIsolate();
+    await service.createIsolate(appConnection);
     return service;
   }
 
@@ -104,7 +105,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// Only one isolate at a time is supported, but they should be cleaned up
   /// with [destroyIsolate] and recreated with this method there is a hot
   /// restart or full page refresh.
-  Future<void> createIsolate() async {
+  Future<void> createIsolate(AppConnection appConnection) async {
     if (_inspector?.isolate != null) {
       throw UnsupportedError(
           'Cannot create multiple isolates for the same app');
@@ -114,7 +115,13 @@ class ChromeProxyService implements VmServiceInterface {
         InstanceHelper(_debugger, remoteDebugger, appInspectorProvider);
 
     _inspector = await AppInspector.initialize(
-        remoteDebugger, _assetHandler, _debugger, uri, instanceHelper);
+      appConnection,
+      remoteDebugger,
+      _assetHandler,
+      _debugger,
+      uri,
+      instanceHelper,
+    );
 
     var isolateRef = _inspector.isolateRef;
     var timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -389,8 +396,15 @@ $loadModule("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> resume(String isolateId,
-          {String step, int frameIndex}) async =>
-      _debugger.resume(isolateId, step: step, frameIndex: frameIndex);
+      {String step, int frameIndex}) async {
+    if (_inspector.appConnection.isStarted) {
+      return await _debugger.resume(isolateId,
+          step: step, frameIndex: frameIndex);
+    } else {
+      _inspector.appConnection.runMain();
+      return Success();
+    }
+  }
 
   @override
   Future<Success> setExceptionPauseMode(String isolateId, String mode) =>

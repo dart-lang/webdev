@@ -41,6 +41,7 @@ class DevHandler {
   final String _hostname;
   final _connectedApps = StreamController<AppConnection>.broadcast();
   final _servicesByAppId = <String, Future<AppDebugServices>>{};
+  final _appConnectionByAppId = <String, AppConnection>{};
   final Stream<BuildResult> buildResults;
   final bool _verbose;
   final void Function(Level, String) _logWriter;
@@ -99,9 +100,10 @@ class DevHandler {
   // TODO(https://github.com/dart-lang/webdev/issues/202) - Refactor so this is
   // a getter and is created immediately.
   Future<DebugService> startDebugService(
-      ChromeConnection chromeConnection, String appInstanceId) async {
+      ChromeConnection chromeConnection, AppConnection appConnection) async {
     ChromeTab appTab;
     WipConnection tabConnection;
+    var appInstanceId = appConnection.request.instanceId;
     for (var tab in await chromeConnection.getTabs()) {
       if (tab.url.startsWith('chrome-extensions:')) continue;
       tabConnection = await tab.connect();
@@ -127,7 +129,7 @@ class DevHandler {
       webkitDebugger,
       appTab.url,
       _assetHandler,
-      appInstanceId,
+      appConnection,
       _logWriter,
       onResponse: _verbose
           ? (response) {
@@ -142,8 +144,8 @@ class DevHandler {
 
   Future<AppDebugServices> loadAppServices(AppConnection appConnection) =>
       _servicesByAppId.putIfAbsent(appConnection.request.appId, () async {
-        var debugService = await startDebugService(
-            await _chromeConnection(), appConnection.request.instanceId);
+        var debugService =
+            await startDebugService(await _chromeConnection(), appConnection);
         var appServices = await _createAppDebugServices(
             appConnection.request.appId, debugService);
         if (appConnection.isStarted) {
@@ -163,33 +165,31 @@ class DevHandler {
 
   void _handleConnection(SseConnection injectedConnection) {
     _injectedConnections.add(injectedConnection);
-    String appId;
     AppConnection appConnection;
     injectedConnection.stream.listen((data) async {
       try {
         var message = serializers.deserialize(jsonDecode(data));
-        if (message is DevToolsRequest) {
-          if (appConnection == null) {
-            throw StateError('Not connected to an application.');
-          }
-          await _handleDebugRequest(message, injectedConnection, appConnection);
-        } else if (message is ConnectRequest) {
-          // We need to handle this error state synchronously and assign to
-          // [appId] so we do it outside of the `_handleConnectRequest` method.
-          if (appId != null) {
+        if (message is ConnectRequest) {
+          if (appConnection != null) {
             throw StateError('Duplicate connection request from the same app. '
                 'Please file an issue at '
                 'https://github.com/dart-lang/webdev/issues/new.');
           }
-          appId = message.appId;
           appConnection =
               await _handleConnectRequest(message, injectedConnection);
-        } else if (message is IsolateExit) {
-          await _handleIsolateExit(message);
-        } else if (message is IsolateStart) {
-          await _handleIsolateStart(message, injectedConnection);
-        } else if (message is RunResponse) {
-          await _handleRunResponse(message);
+        } else {
+          if (appConnection == null) {
+            throw StateError('Not connected to an application.');
+          }
+          if (message is DevToolsRequest) {
+            await _handleDebugRequest(appConnection, injectedConnection);
+          } else if (message is IsolateExit) {
+            await _handleIsolateExit(appConnection);
+          } else if (message is IsolateStart) {
+            await _handleIsolateStart(appConnection, injectedConnection);
+          } else if (message is RunResponse) {
+            await _handleRunResponse(appConnection);
+          }
         }
       } catch (e, s) {
         // Most likely the app disconnected in the middle of us responding,
@@ -209,8 +209,9 @@ class DevHandler {
 
     unawaited(injectedConnection.sink.done.then((_) async {
       _injectedConnections.remove(injectedConnection);
-      if (appId != null && appConnection != null) {
-        var services = await _servicesByAppId[appId];
+      if (appConnection != null) {
+        _appConnectionByAppId.remove(appConnection.request.appId);
+        var services = await _servicesByAppId[appConnection.request.appId];
         if (services != null) {
           if (services.connectedInstanceId == null ||
               services.connectedInstanceId ==
@@ -223,8 +224,8 @@ class DevHandler {
     }));
   }
 
-  Future<void> _handleDebugRequest(DevToolsRequest message,
-      SseConnection sseConnection, AppConnection appConnection) async {
+  Future<void> _handleDebugRequest(
+      AppConnection appConnection, SseConnection sseConnection) async {
     if (_devTools == null) {
       sseConnection.sink
           .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
@@ -232,17 +233,6 @@ class DevHandler {
             ..error = 'Debugging is not enabled.\n\n'
                 'If you are using webdev please pass the --debug flag.\n'
                 'Otherwise check the docs for the tool you are using.'))));
-      return;
-    }
-
-    if (appConnection.request.appId != message.appId) {
-      sseConnection.sink.add(jsonEncode(serializers.serialize(DevToolsResponse(
-          (b) => b
-            ..success = false
-            ..error =
-                'App ID has changed since the connection was established. '
-                    'Please file an issue at '
-                    'https://github.com/dart-lang/webdev/issues/new.'))));
       return;
     }
 
@@ -263,7 +253,7 @@ class DevHandler {
     // Check if we are already running debug services for a different
     // instance of this app.
     if (appServices.connectedInstanceId != null &&
-        appServices.connectedInstanceId != message.instanceId) {
+        appServices.connectedInstanceId != appConnection.request.instanceId) {
       sseConnection.sink
           .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
             ..success = false
@@ -274,17 +264,17 @@ class DevHandler {
 
     // If you load the same app in a different tab then we need to throw
     // away our old services and start new ones.
-    if (!(await _isCorrectTab(
-        message.instanceId, appServices.chromeProxyService.remoteDebugger))) {
+    if (!(await _isCorrectTab(appConnection.request.instanceId,
+        appServices.chromeProxyService.remoteDebugger))) {
       unawaited(appServices.close());
-      unawaited(_servicesByAppId.remove(message.appId));
+      unawaited(_servicesByAppId.remove(appConnection.request.appId));
       appServices = await loadAppServices(appConnection);
     }
 
     sseConnection.sink.add(jsonEncode(
         serializers.serialize(DevToolsResponse((b) => b..success = true))));
 
-    appServices.connectedInstanceId = message.instanceId;
+    appServices.connectedInstanceId = appConnection.request.instanceId;
     await appServices.chromeProxyService.remoteDebugger
         .sendCommand('Target.createTarget', params: {
       'newWindow': true,
@@ -301,38 +291,39 @@ class DevHandler {
     // After a page refresh, reconnect to the same app services if they
     // were previously launched and create the new isolate.
     var services = await _servicesByAppId[message.appId];
+    var connection = AppConnection(message, sseConnection);
     if (services != null && services.connectedInstanceId == null) {
       // Re-connect to the previous instance if its in the same tab,
       // otherwise do nothing for now.
       if (await _isCorrectTab(
           message.instanceId, services.chromeProxyService.remoteDebugger)) {
         services.connectedInstanceId = message.instanceId;
-        await services.chromeProxyService.createIsolate();
+        await services.chromeProxyService.createIsolate(connection);
       }
     }
-    var connection = AppConnection(message, sseConnection);
+    _appConnectionByAppId[message.appId] = connection;
     _connectedApps.add(connection);
     return connection;
   }
 
-  Future<void> _handleIsolateExit(IsolateExit message) async {
-    (await _servicesByAppId[message.appId])
+  Future<void> _handleIsolateExit(AppConnection appConnection) async {
+    (await _servicesByAppId[appConnection.request.appId])
         ?.chromeProxyService
         ?.destroyIsolate();
   }
 
   Future<void> _handleIsolateStart(
-      IsolateStart message, SseConnection sseConnection) async {
-    await (await _servicesByAppId[message.appId])
+      AppConnection appConnection, SseConnection sseConnection) async {
+    await (await _servicesByAppId[appConnection.request.appId])
         ?.chromeProxyService
-        ?.createIsolate();
+        ?.createIsolate(appConnection);
     // [IsolateStart] events are the result of a Hot Restart.
     // Run the application after the Isolate has been created.
     sseConnection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
   }
 
-  Future<void> _handleRunResponse(RunResponse message) async {
-    await (await _servicesByAppId[message.appId])
+  Future<void> _handleRunResponse(AppConnection appConnection) async {
+    await (await _servicesByAppId[appConnection.request.appId])
         ?.chromeProxyService
         ?.resumeFromStart();
   }
@@ -366,6 +357,11 @@ class DevHandler {
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
     _extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
+      var connection = _appConnectionByAppId[devToolsRequest.appId];
+      if (connection == null) {
+        throw StateError(
+            'Not connected to an app with id: ${devToolsRequest.appId}');
+      }
       var appServices =
           await _servicesByAppId.putIfAbsent(devToolsRequest.appId, () async {
         var debugService = await DebugService.start(
@@ -373,7 +369,7 @@ class DevHandler {
           _extensionDebugger,
           devToolsRequest.tabUrl,
           _assetHandler,
-          devToolsRequest.appId,
+          connection,
           _logWriter,
           onResponse: _verbose
               ? (response) {

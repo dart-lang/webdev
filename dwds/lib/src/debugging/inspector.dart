@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/connections/app_connection.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -57,11 +58,13 @@ class AppInspector extends Domain {
   final Isolate isolate;
   final IsolateRef isolateRef;
   final InstanceHelper instanceHelper;
+  final AppConnection appConnection;
 
   /// The root URI from which the application is served.
   final String _root;
 
   AppInspector._(
+    this.appConnection,
     this.isolate,
     this._assetHandler,
     this.debugger,
@@ -92,6 +95,7 @@ class AppInspector extends Domain {
       IsolateRef(id: isolate.id, name: isolate.name, number: isolate.number);
 
   static Future<AppInspector> initialize(
+      AppConnection appConnection,
       RemoteDebugger remoteDebugger,
       AssetHandler assetHandler,
       Debugger debugger,
@@ -118,7 +122,14 @@ class AppInspector extends Domain {
       ..extensionRPCs = [];
     debugger.notifyPausedAtStart();
     var inspector = AppInspector._(
-        isolate, assetHandler, debugger, root, remoteDebugger, instanceHelper);
+      appConnection,
+      isolate,
+      assetHandler,
+      debugger,
+      root,
+      remoteDebugger,
+      instanceHelper,
+    );
     await inspector._initialize();
     return inspector;
   }

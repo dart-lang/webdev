@@ -19,41 +19,13 @@ class _$IsolateExitSerializer implements StructuredSerializer<IsolateExit> {
   @override
   Iterable<Object> serialize(Serializers serializers, IsolateExit object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
-      'appId',
-      serializers.serialize(object.appId,
-          specifiedType: const FullType(String)),
-      'instanceId',
-      serializers.serialize(object.instanceId,
-          specifiedType: const FullType(String)),
-    ];
-
-    return result;
+    return <Object>[];
   }
 
   @override
   IsolateExit deserialize(Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = new IsolateExitBuilder();
-
-    final iterator = serialized.iterator;
-    while (iterator.moveNext()) {
-      final key = iterator.current as String;
-      iterator.moveNext();
-      final dynamic value = iterator.current;
-      switch (key) {
-        case 'appId':
-          result.appId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
-          break;
-        case 'instanceId':
-          result.instanceId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
-          break;
-      }
-    }
-
-    return result.build();
+    return new IsolateExitBuilder().build();
   }
 }
 
@@ -66,61 +38,21 @@ class _$IsolateStartSerializer implements StructuredSerializer<IsolateStart> {
   @override
   Iterable<Object> serialize(Serializers serializers, IsolateStart object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
-      'appId',
-      serializers.serialize(object.appId,
-          specifiedType: const FullType(String)),
-      'instanceId',
-      serializers.serialize(object.instanceId,
-          specifiedType: const FullType(String)),
-    ];
-
-    return result;
+    return <Object>[];
   }
 
   @override
   IsolateStart deserialize(Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = new IsolateStartBuilder();
-
-    final iterator = serialized.iterator;
-    while (iterator.moveNext()) {
-      final key = iterator.current as String;
-      iterator.moveNext();
-      final dynamic value = iterator.current;
-      switch (key) {
-        case 'appId':
-          result.appId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
-          break;
-        case 'instanceId':
-          result.instanceId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
-          break;
-      }
-    }
-
-    return result.build();
+    return new IsolateStartBuilder().build();
   }
 }
 
 class _$IsolateExit extends IsolateExit {
-  @override
-  final String appId;
-  @override
-  final String instanceId;
-
   factory _$IsolateExit([void Function(IsolateExitBuilder) updates]) =>
       (new IsolateExitBuilder()..update(updates)).build();
 
-  _$IsolateExit._({this.appId, this.instanceId}) : super._() {
-    if (appId == null) {
-      throw new BuiltValueNullFieldError('IsolateExit', 'appId');
-    }
-    if (instanceId == null) {
-      throw new BuiltValueNullFieldError('IsolateExit', 'instanceId');
-    }
-  }
+  _$IsolateExit._() : super._();
 
   @override
   IsolateExit rebuild(void Function(IsolateExitBuilder) updates) =>
@@ -132,46 +64,24 @@ class _$IsolateExit extends IsolateExit {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is IsolateExit &&
-        appId == other.appId &&
-        instanceId == other.instanceId;
+    return other is IsolateExit;
   }
 
   @override
   int get hashCode {
-    return $jf($jc($jc(0, appId.hashCode), instanceId.hashCode));
+    return 814065794;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('IsolateExit')
-          ..add('appId', appId)
-          ..add('instanceId', instanceId))
-        .toString();
+    return newBuiltValueToStringHelper('IsolateExit').toString();
   }
 }
 
 class IsolateExitBuilder implements Builder<IsolateExit, IsolateExitBuilder> {
   _$IsolateExit _$v;
 
-  String _appId;
-  String get appId => _$this._appId;
-  set appId(String appId) => _$this._appId = appId;
-
-  String _instanceId;
-  String get instanceId => _$this._instanceId;
-  set instanceId(String instanceId) => _$this._instanceId = instanceId;
-
   IsolateExitBuilder();
-
-  IsolateExitBuilder get _$this {
-    if (_$v != null) {
-      _appId = _$v.appId;
-      _instanceId = _$v.instanceId;
-      _$v = null;
-    }
-    return this;
-  }
 
   @override
   void replace(IsolateExit other) {
@@ -188,30 +98,17 @@ class IsolateExitBuilder implements Builder<IsolateExit, IsolateExitBuilder> {
 
   @override
   _$IsolateExit build() {
-    final _$result =
-        _$v ?? new _$IsolateExit._(appId: appId, instanceId: instanceId);
+    final _$result = _$v ?? new _$IsolateExit._();
     replace(_$result);
     return _$result;
   }
 }
 
 class _$IsolateStart extends IsolateStart {
-  @override
-  final String appId;
-  @override
-  final String instanceId;
-
   factory _$IsolateStart([void Function(IsolateStartBuilder) updates]) =>
       (new IsolateStartBuilder()..update(updates)).build();
 
-  _$IsolateStart._({this.appId, this.instanceId}) : super._() {
-    if (appId == null) {
-      throw new BuiltValueNullFieldError('IsolateStart', 'appId');
-    }
-    if (instanceId == null) {
-      throw new BuiltValueNullFieldError('IsolateStart', 'instanceId');
-    }
-  }
+  _$IsolateStart._() : super._();
 
   @override
   IsolateStart rebuild(void Function(IsolateStartBuilder) updates) =>
@@ -223,22 +120,17 @@ class _$IsolateStart extends IsolateStart {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is IsolateStart &&
-        appId == other.appId &&
-        instanceId == other.instanceId;
+    return other is IsolateStart;
   }
 
   @override
   int get hashCode {
-    return $jf($jc($jc(0, appId.hashCode), instanceId.hashCode));
+    return 97463111;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('IsolateStart')
-          ..add('appId', appId)
-          ..add('instanceId', instanceId))
-        .toString();
+    return newBuiltValueToStringHelper('IsolateStart').toString();
   }
 }
 
@@ -246,24 +138,7 @@ class IsolateStartBuilder
     implements Builder<IsolateStart, IsolateStartBuilder> {
   _$IsolateStart _$v;
 
-  String _appId;
-  String get appId => _$this._appId;
-  set appId(String appId) => _$this._appId = appId;
-
-  String _instanceId;
-  String get instanceId => _$this._instanceId;
-  set instanceId(String instanceId) => _$this._instanceId = instanceId;
-
   IsolateStartBuilder();
-
-  IsolateStartBuilder get _$this {
-    if (_$v != null) {
-      _appId = _$v.appId;
-      _instanceId = _$v.instanceId;
-      _$v = null;
-    }
-    return this;
-  }
 
   @override
   void replace(IsolateStart other) {
@@ -280,8 +155,7 @@ class IsolateStartBuilder
 
   @override
   _$IsolateStart build() {
-    final _$result =
-        _$v ?? new _$IsolateStart._(appId: appId, instanceId: instanceId);
+    final _$result = _$v ?? new _$IsolateStart._();
     replace(_$result);
     return _$result;
   }
