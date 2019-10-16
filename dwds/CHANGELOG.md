@@ -1,3 +1,7 @@
+## 0.7.5-dev
+
+- The injected client's connection is now based off the request URI.
+
 ## 0.7.4
 
 - Deobfuscate DDC extension method stack traces.

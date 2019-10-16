@@ -33,7 +33,7 @@ Future<void> main() {
     // Test apps may already have this set.
     dartAppInstanceId ??= Uuid().v1();
 
-    var client = SseClient(r'/$sseHandler');
+    var client = SseClient(_fixProtocol('$dartUriBase/\$sseHandler'));
     // Ensure the SSE connection is established before proceeding.
     // Note that `onOpen` is a broadcast stream so we must listen for this
     // immediately.
@@ -136,11 +136,30 @@ $stackTrace
   });
 }
 
+/// Returns [url] modified if necessary so that, if the current page is served
+/// over `https`, then the URL is converted to `https`. Localhost is treated
+/// as a special case and not modified.
+String _fixProtocol(String url) {
+  if (window.location.protocol == 'https:' && !url.startsWith('https://')) {
+    // Chrome seems to allow mixed content from localhost.
+    if (url.startsWith('http://localhost')) {
+      return url;
+    } else {
+      return url.replaceFirst('http://', 'https://');
+    }
+  } else {
+    return url;
+  }
+}
+
 @JS(r'$dartAppId')
 external String get dartAppId;
 
 @JS(r'$dartAppInstanceId')
 external String get dartAppInstanceId;
+
+@JS(r'$dartUriBase')
+external String get dartUriBase;
 
 @JS(r'$dartAppInstanceId')
 external set dartAppInstanceId(String id);
