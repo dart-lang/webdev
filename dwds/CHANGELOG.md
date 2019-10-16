@@ -1,3 +1,7 @@
+## 0.7.5-dev
+
+- Fix an issue where resuming while paused at the start would cause an error.
+
 ## 0.7.4
 
 - Deobfuscate DDC extension method stack traces.
