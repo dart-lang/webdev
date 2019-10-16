@@ -30,7 +30,7 @@ Handler Function(Handler) createInjectedHandler(
         int extensionPort}) =>
     (innerHandler) {
       return (Request request) async {
-        if (request.url.path == '$_clientScript.js') {
+        if (request.url.path.endsWith('$_clientScript.js')) {
           var uri = await Isolate.resolvePackageUri(
               Uri.parse('package:$_clientScript.js'));
           var result = await File(uri.toFilePath()).readAsString();
