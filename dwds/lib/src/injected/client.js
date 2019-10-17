@@ -2213,6 +2213,17 @@
         return string.replace(/[[\]{}()*+?.\\^$|]/g, "\\$&");
       return string;
     },
+    stringReplaceFirstUnchecked: function(receiver, pattern, replacement, startIndex) {
+      var index = receiver.indexOf(pattern, startIndex);
+      if (index < 0)
+        return receiver;
+      return H.stringReplaceRangeUnchecked(receiver, index, index + pattern.length, replacement);
+    },
+    stringReplaceRangeUnchecked: function(receiver, start, end, replacement) {
+      var prefix = receiver.substring(0, start),
+        suffix = receiver.substring(end);
+      return prefix + replacement + suffix;
+    },
     ConstantMapView: function ConstantMapView(t0, t1) {
       this._collection$_map = t0;
       this.$ti = t1;
@@ -2829,8 +2840,8 @@
     noSuchMethod$1$: function(receiver, a0) {
       return J.getInterceptor$(receiver).noSuchMethod$1(receiver, a0);
     },
-    replaceRange$3$s: function(receiver, a0, a1, a2) {
-      return J.getInterceptor$s(receiver).replaceRange$3(receiver, a0, a1, a2);
+    replaceRange$3$asx: function(receiver, a0, a1, a2) {
+      return J.getInterceptor$asx(receiver).replaceRange$3(receiver, a0, a1, a2);
     },
     skip$1$ax: function(receiver, a0) {
       return J.getInterceptor$ax(receiver).skip$1(receiver, a0);
@@ -4913,6 +4924,10 @@
     RangeError$range: function(invalidValue, minValue, maxValue, $name, message) {
       return new P.RangeError(minValue, maxValue, true, invalidValue, $name, "Invalid value");
     },
+    RangeError_checkValueInInterval: function(value, minValue, maxValue, $name) {
+      if (value < minValue || value > maxValue)
+        throw H.wrapException(P.RangeError$range(value, minValue, maxValue, $name, null));
+    },
     RangeError_checkValidRange: function(start, end, $length) {
       if (0 > start || start > $length)
         throw H.wrapException(P.RangeError$range(start, 0, $length, "start", null));
@@ -5088,7 +5103,7 @@
                   pathStart0 = pathStart - 4;
                   queryStart -= 4;
                   fragmentStart -= 4;
-                  uri = J.replaceRange$3$s(uri, portStart, pathStart, "");
+                  uri = J.replaceRange$3$asx(uri, portStart, pathStart, "");
                   end -= 3;
                   pathStart = pathStart0;
                 }
@@ -7476,7 +7491,7 @@
     DeserializationError_DeserializationError: function(json, type, error) {
       var limitedJson = J.toString$0$(json),
         t1 = limitedJson.length;
-      return new U.DeserializationError(t1 > 80 ? J.replaceRange$3$s(limitedJson, 77, t1, "...") : limitedJson, type, error);
+      return new U.DeserializationError(t1 > 80 ? J.replaceRange$3$asx(limitedJson, 77, t1, "...") : limitedJson, type, error);
     },
     Serializers_Serializers_closure: function Serializers_Serializers_closure() {
     },
@@ -7683,6 +7698,18 @@
     },
     main: function() {
       return P.runZoned(new D.main_closure(), new D.main_closure0(), [P.Future, -1]);
+    },
+    _fixProtocol: function(url) {
+      var _s8_ = "https://";
+      if (window.location.protocol === "https:" && !C.JSString_methods.startsWith$1(url, _s8_))
+        if (C.JSString_methods.startsWith$1(url, "http://localhost"))
+          return url;
+        else {
+          P.RangeError_checkValueInInterval(0, 0, url.length, "startIndex");
+          return H.stringReplaceFirstUnchecked(url, "http://", _s8_, 0);
+        }
+      else
+        return url;
     },
     _isChrome: function() {
       return J.contains$1$asx(window.navigator.userAgent, "Chrome") && !J.contains$1$asx(window.navigator.userAgent, "Edg");
@@ -8717,8 +8744,13 @@
         throw H.wrapException(H.diagnoseIndexError(receiver, index));
       return receiver.charCodeAt(index);
     },
-    allMatches$1: function(receiver, string) {
-      return new H._StringAllMatchesIterable(string, receiver, 0);
+    allMatches$2: function(receiver, string, start) {
+      if (start > string.length)
+        throw H.wrapException(P.RangeError$range(start, 0, string.length, null, null));
+      return new H._StringAllMatchesIterable(string, receiver, start);
+    },
+    allMatches$1: function($receiver, string) {
+      return this.allMatches$2($receiver, string, 0);
     },
     $add: function(receiver, other) {
       H.stringTypeCheck(other);
@@ -8734,11 +8766,8 @@
       return other === this.substring$1(receiver, t1 - otherLength);
     },
     replaceRange$3: function(receiver, start, end, replacement) {
-      var prefix, suffix;
       end = P.RangeError_checkValidRange(start, end, receiver.length);
-      prefix = receiver.substring(0, start);
-      suffix = receiver.substring(end);
-      return prefix + replacement + suffix;
+      return H.stringReplaceRangeUnchecked(receiver, start, end, replacement);
     },
     startsWith$2: function(receiver, pattern, index) {
       var endIndex;
@@ -10020,8 +10049,13 @@
         return;
       return new H._MatchImplementation(m);
     },
-    allMatches$1: function(_, string) {
-      return new H._AllMatchesIterable(this, string, 0);
+    allMatches$2: function(_, string, start) {
+      if (start > string.length)
+        throw H.wrapException(P.RangeError$range(start, 0, string.length, null, null));
+      return new H._AllMatchesIterable(this, string, start);
+    },
+    allMatches$1: function($receiver, string) {
+      return this.allMatches$2($receiver, string, 0);
     },
     _execGlobal$2: function(string, start) {
       var match,
@@ -22557,7 +22591,7 @@
     call$0: function() {
       var $async$goto = 0,
         $async$completer = P._makeAsyncAwaitCompleter(P.Null),
-        t1, t2, t3, client, clientId, t4, restarter, manager;
+        t1, t2, t3, t4, client, clientId, restarter, manager;
       var $async$call$0 = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return P._asyncRethrow($async$result, $async$completer);
@@ -22569,23 +22603,24 @@
                 t1 = F.Uuid$().v1$0();
                 self.$dartAppInstanceId = t1;
               }
-              t1 = P.String;
-              t2 = P.StreamController_StreamController(t1);
-              t3 = P.StreamController_StreamController(t1);
-              client = new M.SseClient(t2, t3, N.Logger_Logger("SseClient"), P.StreamController_StreamController(null));
+              t1 = D._fixProtocol(H.S(self.$dartUriBase) + "/$sseHandler");
+              t2 = P.String;
+              t3 = P.StreamController_StreamController(t2);
+              t4 = P.StreamController_StreamController(t2);
+              client = new M.SseClient(t3, t4, N.Logger_Logger("SseClient"), P.StreamController_StreamController(null));
               clientId = F.Uuid$().v1$0();
-              client._eventSource = W.EventSource__factoryEventSource("/$sseHandler?sseClientId=" + clientId, P.LinkedHashMap_LinkedHashMap$_literal(["withCredentials", true], t1, null));
-              client._serverUrl = "/$sseHandler?sseClientId=" + clientId;
-              t1 = H.getTypeArgumentByIndex(t3, 0);
-              new P._ControllerStream(t3, [t1]).listen$2$onDone(client.get$_onOutgoingMessage(), client.get$_onOutgoingDone());
+              client._eventSource = W.EventSource__factoryEventSource(t1 + "?sseClientId=" + clientId, P.LinkedHashMap_LinkedHashMap$_literal(["withCredentials", true], t2, null));
+              client._serverUrl = t1 + "?sseClientId=" + clientId;
+              t1 = H.getTypeArgumentByIndex(t4, 0);
+              new P._ControllerStream(t4, [t1]).listen$2$onDone(client.get$_onOutgoingMessage(), client.get$_onOutgoingDone());
               C.EventSource_methods.addEventListener$2(client._eventSource, "message", client.get$_onIncomingMessage());
               C.EventSource_methods.addEventListener$2(client._eventSource, "control", client.get$_onIncomingControlMessage());
-              t4 = W.Event;
-              W._EventStreamSubscription$(client._eventSource, "error", H.functionTypeCheck(t2.get$addError(), {func: 1, ret: -1, args: [t4]}), false, t4);
+              t2 = W.Event;
+              W._EventStreamSubscription$(client._eventSource, "error", H.functionTypeCheck(t3.get$addError(), {func: 1, ret: -1, args: [t2]}), false, t2);
               client._startPostingMessages$0();
-              t4 = new W._EventStream(client._eventSource, "open", false, [t4]);
+              t2 = new W._EventStream(client._eventSource, "open", false, [t2]);
               $async$goto = 2;
-              return P._asyncAwait(t4.get$first(t4), $async$call$0);
+              return P._asyncAwait(t2.get$first(t2), $async$call$0);
             case 2:
               // returning from await.
               $async$goto = J.$eq$(self.$dartModuleStrategy, "require") ? 3 : 5;
@@ -22609,6 +22644,7 @@
             case 4:
               // join
               manager = new Q.ReloadingManager(client, restarter);
+<<<<<<< HEAD
               t4 = P.allowInterop(new D.main__closure(manager), {func: 1, ret: [S.Promise, -2]});
               self.$dartHotRestart = t4;
               t4 = P.allowInterop(new D.main__closure0(client), {func: 1, ret: -1});
@@ -22616,11 +22652,20 @@
               new P._ControllerStream(t2, [H.getTypeArgumentByIndex(t2, 0)]).listen$2$onError(new D.main__closure1(manager), new D.main__closure2());
               t2 = W.KeyboardEvent;
               W._EventStreamSubscription$(window, "keydown", H.functionTypeCheck(new D.main__closure3(), {func: 1, ret: -1, args: [t2]}), false, t2);
+=======
+              t2 = P.allowInterop(new D.main__closure(manager), {func: 1, ret: [S.Promise, -2]});
+              self.$dartHotRestart = t2;
+              t2 = P.allowInterop(new D.main__closure0(client), {func: 1, ret: -1});
+              self.$launchDevTools = t2;
+              new P._ControllerStream(t3, [H.getTypeArgumentByIndex(t3, 0)]).listen$2$onError(new D.main__closure1(manager, client), new D.main__closure2());
+              t3 = W.KeyboardEvent;
+              W._EventStreamSubscription$(window, "keydown", H.functionTypeCheck(new D.main__closure3(), {func: 1, ret: -1, args: [t3]}), false, t3);
+>>>>>>> master
               if (D._isChrome()) {
                 t2 = $.$get$serializers();
-                t4 = new E.ConnectRequestBuilder();
-                H.functionTypeCheck(new D.main__closure4(), {func: 1, ret: -1, args: [E.ConnectRequestBuilder]}).call$1(t4);
-                t3.add$1(0, H.assertSubtypeOfRuntimeType(C.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t4.build$0()), null), t1));
+                t3 = new E.ConnectRequestBuilder();
+                H.functionTypeCheck(new D.main__closure4(), {func: 1, ret: -1, args: [E.ConnectRequestBuilder]}).call$1(t3);
+                t4.add$1(0, H.assertSubtypeOfRuntimeType(C.C_JsonCodec.encode$2$toEncodable(t2.serialize$1(t3.build$0()), null), t1));
               } else
                 self.$dartRunMain.call$0();
               // implicit return
