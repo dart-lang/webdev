@@ -22644,23 +22644,13 @@
             case 4:
               // join
               manager = new Q.ReloadingManager(client, restarter);
-<<<<<<< HEAD
-              t4 = P.allowInterop(new D.main__closure(manager), {func: 1, ret: [S.Promise, -2]});
-              self.$dartHotRestart = t4;
-              t4 = P.allowInterop(new D.main__closure0(client), {func: 1, ret: -1});
-              self.$launchDevTools = t4;
-              new P._ControllerStream(t2, [H.getTypeArgumentByIndex(t2, 0)]).listen$2$onError(new D.main__closure1(manager), new D.main__closure2());
-              t2 = W.KeyboardEvent;
-              W._EventStreamSubscription$(window, "keydown", H.functionTypeCheck(new D.main__closure3(), {func: 1, ret: -1, args: [t2]}), false, t2);
-=======
               t2 = P.allowInterop(new D.main__closure(manager), {func: 1, ret: [S.Promise, -2]});
               self.$dartHotRestart = t2;
               t2 = P.allowInterop(new D.main__closure0(client), {func: 1, ret: -1});
               self.$launchDevTools = t2;
-              new P._ControllerStream(t3, [H.getTypeArgumentByIndex(t3, 0)]).listen$2$onError(new D.main__closure1(manager, client), new D.main__closure2());
+              new P._ControllerStream(t3, [H.getTypeArgumentByIndex(t3, 0)]).listen$2$onError(new D.main__closure1(manager), new D.main__closure2());
               t3 = W.KeyboardEvent;
               W._EventStreamSubscription$(window, "keydown", H.functionTypeCheck(new D.main__closure3(), {func: 1, ret: -1, args: [t3]}), false, t3);
->>>>>>> master
               if (D._isChrome()) {
                 t2 = $.$get$serializers();
                 t3 = new E.ConnectRequestBuilder();
