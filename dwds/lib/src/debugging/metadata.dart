@@ -12,9 +12,19 @@ import 'remote_debugger.dart';
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
+  /// The name of the JS constructor for the object.
+  ///
+  /// This may be a constructor we've put there, but it's still a JS name. For
+  /// example, 'Number', 'JSArray', 'Object'.
+  // TODO(alanknight): Do we neeed this if we have dartName?
   final String name;
+
+  /// The dart type name for the object.
+  ///
+  /// For example, 'int', 'List<String>', 'Null'
+  final String dartName;
   final String libraryId;
-  ClassMetaData(this.name, this.libraryId);
+  ClassMetaData(this.name, this.libraryId, this.dartName);
 
   /// Returns the ID of the class.
   ///
@@ -30,9 +40,10 @@ class ClassMetaData {
       var evalExpression = '''
       function(arg) {
         var sdkUtils = $loadModule('dart_sdk').dart;
-        var classObject = sdkUtils.getType(arg);
+        var classObject = sdkUtils.getReifiedType(arg);
         var result = {};
         result['name'] = classObject.name;
+        result['dartName'] = sdkUtils.typeName(classObject);
         result['libraryId'] = sdkUtils.getLibraryUri(classObject);
         return result;
       }
@@ -41,8 +52,8 @@ class ClassMetaData {
           remoteObject, evalExpression, [remoteObject],
           returnByValue: true);
       var metadata = result.value as Map;
-      return ClassMetaData(
-          metadata['name'] as String, metadata['libraryId'] as String);
+      return ClassMetaData(metadata['name'] as String,
+          metadata['libraryId'] as String, metadata['dartName'] as String);
     } on ChromeDebugException {
       return null;
     }

@@ -324,7 +324,7 @@ function($argsString) {
         .map((p) => p.value)
         .filter((l) => l && sdkUtils.isType(l));
       var classList = classes.map(function(clazz) {
-        var descriptor = {'name': clazz.name};
+        var descriptor = {'name': clazz.name, 'dartName': dart.typeName(clazz)};
 
         // TODO(jakemac): static methods once ddc supports them
         var methods = sdkUtils.getMethods(clazz);
@@ -353,6 +353,7 @@ function($argsString) {
             "isFinal": field.isFinal,
             "isStatic": false,
             "classRefName": fields[name]["type"]["name"],
+            "classRefDartName": sdkUtils.typeName(field[name]["type"]),
             "classRefLibraryId" : field["type"][libraryUri],
           }
         }
@@ -370,8 +371,8 @@ function($argsString) {
         .cast<Map<String, Object>>();
     var classRefs = <ClassRef>[];
     for (var classDescriptor in classDescriptors) {
-      var classMetaData =
-          ClassMetaData(classDescriptor['name'] as String, libraryRef.id);
+      var classMetaData = ClassMetaData(classDescriptor['name'] as String,
+          libraryRef.id, classDescriptor['dartName'] as String);
       var classRef = ClassRef(name: classMetaData.name, id: classMetaData.id);
       classRefs.add(classRef);
 
@@ -394,6 +395,7 @@ function($argsString) {
         var classMetaData = ClassMetaData(
           descriptor['classRefName'] as String,
           descriptor['classRefLibraryId'] as String,
+          descriptor['classRefDartName'] as String,
         );
         fieldRefs.add(FieldRef(
             name: name,

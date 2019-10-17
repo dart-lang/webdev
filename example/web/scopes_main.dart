@@ -11,7 +11,7 @@ final libraryPublicFinal = MyTestClass();
 
 final _libraryPrivateFinal = 1;
 Object libraryNull;
-var libraryPublic = ['library', 'public', 'variable'];
+var libraryPublic = <String>['library', 'public', 'variable'];
 
 var _libraryPrivate = ['library', 'private', 'variable'];
 
@@ -39,6 +39,15 @@ void main() async {
     print(nestedFunction('$ticks ${testClass.message}'));
     print(localThatsNull);
     print(libraryNull);
+    var flirp = libraryPublic;
+    print(flirp);
+    flirp.add('abc');
+    var map = <String, int> {'a': 1, 'b': 2};
+    print(map);
+    print(flirp is List);
+    print(flirp is List<String>);
+    print(map is Map);
+    print(map is Map<String, int>);
     var f = testClass.methodWithVariables();
     print(f('parameter'));
   });

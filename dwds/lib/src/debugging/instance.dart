@@ -120,9 +120,9 @@ class InstanceHelper extends Domain {
     final fieldNameExpression = '''function() {
       const sdk_utils = $loadModule("dart_sdk").dart;
       const fields = sdk_utils.getFields(sdk_utils.getType(this));
-      const privateFields = Object.getOwnPropertySymbols(fields);
+      const privateFields = sdk_utils.getOwnPropertySymbols(fields);
       const nonSymbolNames = privateFields.map(sym => sym.description);
-      const publicFieldNames = Object.getOwnPropertyNames(fields);
+      const publicFieldNames = sdk_utils.getOwnPropertyNames(fields);
       return nonSymbolNames.concat(publicFieldNames).join(',');
     }
     ''';
@@ -155,16 +155,20 @@ class InstanceHelper extends Domain {
       case 'undefined':
         return _primitiveInstance(InstanceKind.kNull, remoteObject);
       case 'object':
-        if (remoteObject.type == 'object' && remoteObject.objectId == null) {
+        if (remoteObject.objectId == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
         var metaData = await ClassMetaData.metaDataFor(
             _remoteDebugger, remoteObject, inspector);
         if (metaData == null) return null;
+        if (metaData.dartName.startsWith('List')) {
+          // We need some kind of isIndexed. and can we have both named and indexed? And what about maps?
+          print('oops, this is a list');
+        }
         return InstanceRef(
             kind: InstanceKind.kPlainInstance,
             id: remoteObject.objectId,
-            classRef: ClassRef(name: metaData.name, id: metaData.id));
+            classRef: ClassRef(name: metaData.dartName, id: metaData.id));
       case 'function':
         var functionMetaData =
             await FunctionMetaData.metaDataFor(_remoteDebugger, remoteObject);
