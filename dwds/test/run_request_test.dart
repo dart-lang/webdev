@@ -41,6 +41,7 @@ void main() {
         resumeCompleter.complete();
       }));
       await service.resume(isolate.id);
+      await resumeCompleter.future;
       expect(isolate.pauseEvent.kind, EventKind.kResume);
     });
 

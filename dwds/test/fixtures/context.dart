@@ -11,8 +11,8 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
@@ -164,6 +164,9 @@ class TestContext {
 
   Future<void> startDebugging() async {
     debugConnection = await testServer.dwds.debugConnection(appConnection);
+    // Wait for the VM to be ready so that we are guaranteed that the first
+    // isolate is created.
+    await debugConnection.vmService.getVM();
     webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
   }
 
