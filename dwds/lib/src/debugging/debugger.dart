@@ -5,7 +5,8 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    hide StackTrace;
 
 import '../../asset_handler.dart';
 import '../../dwds.dart' show LogWriter;
@@ -20,8 +21,6 @@ import 'location.dart';
 import 'remote_debugger.dart';
 import 'sources.dart';
 
-final _logger = Logger('Debugger');
-
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
 ///
 /// Values defined in:
@@ -33,6 +32,8 @@ const _pauseModePauseStates = {
 };
 
 class Debugger extends Domain {
+  static final logger = Logger('Debugger');
+
   final AssetHandler _assetHandler;
   final LogWriter _logWriter;
   final RemoteDebugger _remoteDebugger;
@@ -173,9 +174,13 @@ class Debugger extends Domain {
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.
-    _remoteDebugger?.onScriptParsed?.listen(sources.scriptParsed);
-    _remoteDebugger?.onPaused?.listen(_pauseHandler);
-    _remoteDebugger?.onResumed?.listen(_resumeHandler);
+    runZoned(() {
+      _remoteDebugger?.onScriptParsed?.listen(sources.scriptParsed);
+      _remoteDebugger?.onPaused?.listen(_pauseHandler);
+      _remoteDebugger?.onResumed?.listen(_resumeHandler);
+    }, onError: (e, StackTrace s) {
+      logger.warning('Error handling Chrome event', e, s);
+    });
 
     handleErrorIfPresent(await _remoteDebugger?.sendCommand('Page.enable'));
     handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
@@ -310,7 +315,7 @@ class Debugger extends Domain {
     for (var frame in frames) {
       var location = frame['location'];
       var functionName = frame['functionName'] as String ?? '';
-      functionName = functionName.split('.').last;
+      functionName = _prettifyMember(functionName.split('.').last);
       // Chrome is 0 based. Account for this.
       var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
           location['lineNumber'] as int, location['columnNumber'] as int);
@@ -445,7 +450,7 @@ class Debugger extends Domain {
       _streamNotify('Debug', event);
     } on ChromeDebugException catch (e, s) {
       if (e.exception.description.contains('require is not defined')) {
-        _logger.warning(
+        logger.warning(
             'Error handling pause event, app does not appear to be loaded',
             e,
             s);
@@ -536,4 +541,55 @@ class _Breakpoints extends Domain {
   String dartId(String jsId) => _byJsId[jsId];
 
   String jsId(String dartId) => _byDartId[dartId];
+}
+
+final escapedPipe = '\$124';
+final escapedPound = '\$35';
+
+/// Reformats a JS member name to make it look more Dart-like.
+///
+/// Logic copied from build/build_web_compilers/web/stack_trace_mapper.dart.
+/// TODO(https://github.com/dart-lang/sdk/issues/38869): Remove this logic when
+/// DDC stack trace deobfuscation is overhauled.
+String _prettifyMember(String member) {
+  member = member.replaceAll(escapedPipe, '|');
+  return member.contains('|') ? _prettifyExtension(member) : member;
+}
+
+/// Reformats a JS member name as an extension method invocation.
+String _prettifyExtension(String member) {
+  var isSetter = false;
+  var pipeIndex = member.indexOf('|');
+  var spaceIndex = member.indexOf(' ');
+  var poundIndex = member.indexOf(escapedPound);
+  if (spaceIndex >= 0) {
+    // Here member is a static field or static getter/setter.
+    isSetter = member.substring(0, spaceIndex) == 'set';
+    member = member.substring(spaceIndex + 1, member.length);
+  } else if (poundIndex >= 0) {
+    // Here member is a tearoff or local property getter/setter.
+    isSetter = member.substring(pipeIndex + 1, poundIndex) == 'set';
+    member = member.replaceRange(pipeIndex + 1, poundIndex + 3, '');
+  } else {
+    var body = member.substring(pipeIndex + 1, member.length);
+    if (body.startsWith('unary') || body.startsWith('\$')) {
+      // Here member's an operator, so it's safe to unescape everything lazily.
+      member = _unescape(member);
+    }
+  }
+  member = member.replaceAll('|', '.');
+  return isSetter ? '$member=' : member;
+}
+
+/// Unescapes a DDC-escaped JS identifier name.
+///
+/// Identifier names that contain illegal JS characters are escaped by DDC to a
+/// decimal representation of the symbol's UTF-16 value.
+/// Warning: this greedily escapes characters, so it can be unsafe in the event
+/// that an escaped sequence precedes a number literal in the JS name.
+String _unescape(String name) {
+  return name.replaceAllMapped(
+      RegExp(r'\$[0-9]+'),
+      (m) =>
+          String.fromCharCode(int.parse(name.substring(m.start + 1, m.end))));
 }

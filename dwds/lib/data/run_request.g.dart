@@ -37,41 +37,13 @@ class _$RunResponseSerializer implements StructuredSerializer<RunResponse> {
   @override
   Iterable<Object> serialize(Serializers serializers, RunResponse object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
-      'appId',
-      serializers.serialize(object.appId,
-          specifiedType: const FullType(String)),
-      'instanceId',
-      serializers.serialize(object.instanceId,
-          specifiedType: const FullType(String)),
-    ];
-
-    return result;
+    return <Object>[];
   }
 
   @override
   RunResponse deserialize(Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = new RunResponseBuilder();
-
-    final iterator = serialized.iterator;
-    while (iterator.moveNext()) {
-      final key = iterator.current as String;
-      iterator.moveNext();
-      final dynamic value = iterator.current;
-      switch (key) {
-        case 'appId':
-          result.appId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
-          break;
-        case 'instanceId':
-          result.instanceId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
-          break;
-      }
-    }
-
-    return result.build();
+    return new RunResponseBuilder().build();
   }
 }
 
@@ -132,22 +104,10 @@ class RunRequestBuilder implements Builder<RunRequest, RunRequestBuilder> {
 }
 
 class _$RunResponse extends RunResponse {
-  @override
-  final String appId;
-  @override
-  final String instanceId;
-
   factory _$RunResponse([void Function(RunResponseBuilder) updates]) =>
       (new RunResponseBuilder()..update(updates)).build();
 
-  _$RunResponse._({this.appId, this.instanceId}) : super._() {
-    if (appId == null) {
-      throw new BuiltValueNullFieldError('RunResponse', 'appId');
-    }
-    if (instanceId == null) {
-      throw new BuiltValueNullFieldError('RunResponse', 'instanceId');
-    }
-  }
+  _$RunResponse._() : super._();
 
   @override
   RunResponse rebuild(void Function(RunResponseBuilder) updates) =>
@@ -159,46 +119,24 @@ class _$RunResponse extends RunResponse {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is RunResponse &&
-        appId == other.appId &&
-        instanceId == other.instanceId;
+    return other is RunResponse;
   }
 
   @override
   int get hashCode {
-    return $jf($jc($jc(0, appId.hashCode), instanceId.hashCode));
+    return 11131040;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('RunResponse')
-          ..add('appId', appId)
-          ..add('instanceId', instanceId))
-        .toString();
+    return newBuiltValueToStringHelper('RunResponse').toString();
   }
 }
 
 class RunResponseBuilder implements Builder<RunResponse, RunResponseBuilder> {
   _$RunResponse _$v;
 
-  String _appId;
-  String get appId => _$this._appId;
-  set appId(String appId) => _$this._appId = appId;
-
-  String _instanceId;
-  String get instanceId => _$this._instanceId;
-  set instanceId(String instanceId) => _$this._instanceId = instanceId;
-
   RunResponseBuilder();
-
-  RunResponseBuilder get _$this {
-    if (_$v != null) {
-      _appId = _$v.appId;
-      _instanceId = _$v.instanceId;
-      _$v = null;
-    }
-    return this;
-  }
 
   @override
   void replace(RunResponse other) {
@@ -215,8 +153,7 @@ class RunResponseBuilder implements Builder<RunResponse, RunResponseBuilder> {
 
   @override
   _$RunResponse build() {
-    final _$result =
-        _$v ?? new _$RunResponse._(appId: appId, instanceId: instanceId);
+    final _$result = _$v ?? new _$RunResponse._();
     replace(_$result);
     return _$result;
   }

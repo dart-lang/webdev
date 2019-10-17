@@ -9,6 +9,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dwds/dwds.dart' show LogWriter;
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:pedantic/pedantic.dart';
@@ -121,14 +122,12 @@ class DebugService {
       : Uri(scheme: 'ws', host: hostname, port: port, path: '$_authToken')
           .toString();
 
-  /// [appInstanceId] is a unique String embedded in the instance of the
-  /// application available through `window.$dartAppInstanceId`.
   static Future<DebugService> start(
     String hostname,
     RemoteDebugger remoteDebugger,
     String tabUrl,
     AssetHandler assetHandler,
-    String appInstanceId,
+    AppConnection appConnection,
     LogWriter logWriter, {
     void Function(Map<String, dynamic>) onRequest,
     void Function(Map<String, dynamic>) onResponse,
@@ -136,7 +135,7 @@ class DebugService {
   }) async {
     useSse ??= false;
     var chromeProxyService = await ChromeProxyService.create(
-        remoteDebugger, tabUrl, assetHandler, appInstanceId, logWriter);
+        remoteDebugger, tabUrl, assetHandler, appConnection, logWriter);
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;

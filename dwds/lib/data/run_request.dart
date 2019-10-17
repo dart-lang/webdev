@@ -21,10 +21,4 @@ abstract class RunResponse implements Built<RunResponse, RunResponseBuilder> {
   factory RunResponse([Function(RunResponseBuilder) updates]) = _$RunResponse;
 
   RunResponse._();
-
-  /// Identifies a given application, across tabs/windows.
-  String get appId;
-
-  /// Identifies a given instance of an application, unique per tab/window.
-  String get instanceId;
 }
