@@ -7249,20 +7249,11 @@
     },
     RunRequest: function RunRequest() {
     },
-    RunResponse: function RunResponse() {
-    },
     _$RunRequestSerializer: function _$RunRequestSerializer() {
-    },
-    _$RunResponseSerializer: function _$RunResponseSerializer() {
     },
     _$RunRequest: function _$RunRequest() {
     },
     RunRequestBuilder: function RunRequestBuilder() {
-    },
-    _$RunResponse: function _$RunResponse() {
-    },
-    RunResponseBuilder: function RunResponseBuilder() {
-      this._run_request$_$v = null;
     }
   },
   L = {
@@ -7706,9 +7697,8 @@
     },
     main___closure: function main___closure() {
     },
-    main__closure1: function main__closure1(t0, t1) {
+    main__closure1: function main__closure1(t0) {
       this.manager = t0;
-      this.client = t1;
     },
     main__closure2: function main__closure2() {
     },
@@ -21710,7 +21700,6 @@
     }
   };
   A.RunRequest.prototype = {};
-  A.RunResponse.prototype = {};
   A._$RunRequestSerializer.prototype = {
     serialize$3$specifiedType: function(serializers, object, specifiedType) {
       H.interceptedTypeCheck(object, "$isRunRequest");
@@ -21741,36 +21730,6 @@
       return "RunRequest";
     }
   };
-  A._$RunResponseSerializer.prototype = {
-    serialize$3$specifiedType: function(serializers, object, specifiedType) {
-      H.interceptedTypeCheck(object, "$isRunResponse");
-      return H.setRuntimeTypeInfo([], [P.Object]);
-    },
-    serialize$2: function(serializers, object) {
-      return this.serialize$3$specifiedType(serializers, object, C.FullType_null_List_empty);
-    },
-    deserialize$3$specifiedType: function(serializers, serialized, specifiedType) {
-      H.assertSubtype(serialized, "$isIterable", [P.Object], "$asIterable");
-      return new A.RunResponseBuilder().build$0();
-    },
-    deserialize$2: function(serializers, serialized) {
-      return this.deserialize$3$specifiedType(serializers, serialized, C.FullType_null_List_empty);
-    },
-    $isSerializer: 1,
-    $asSerializer: function() {
-      return [A.RunResponse];
-    },
-    $isStructuredSerializer: 1,
-    $asStructuredSerializer: function() {
-      return [A.RunResponse];
-    },
-    get$types: function() {
-      return C.List_69t;
-    },
-    get$wireName: function() {
-      return "RunResponse";
-    }
-  };
   A._$RunRequest.prototype = {
     $eq: function(_, other) {
       if (other == null)
@@ -21787,29 +21746,6 @@
     }
   };
   A.RunRequestBuilder.prototype = {};
-  A._$RunResponse.prototype = {
-    $eq: function(_, other) {
-      if (other == null)
-        return false;
-      if (other === this)
-        return true;
-      return other instanceof A.RunResponse;
-    },
-    get$hashCode: function(_) {
-      return 11131040;
-    },
-    toString$0: function(_) {
-      return J.toString$0$($.$get$newBuiltValueToStringHelper().call$1("RunResponse"));
-    }
-  };
-  A.RunResponseBuilder.prototype = {
-    build$0: function() {
-      var _$result = this._run_request$_$v;
-      if (_$result == null)
-        _$result = new A._$RunResponse();
-      return this._run_request$_$v = _$result;
-    }
-  };
   V.Int64.prototype = {
     $add: function(_, other) {
       var o = V.Int64__promote(other),
@@ -22677,7 +22613,7 @@
               self.$dartHotRestart = t4;
               t4 = P.allowInterop(new D.main__closure0(client), {func: 1, ret: -1});
               self.$launchDevTools = t4;
-              new P._ControllerStream(t2, [H.getTypeArgumentByIndex(t2, 0)]).listen$2$onError(new D.main__closure1(manager, client), new D.main__closure2());
+              new P._ControllerStream(t2, [H.getTypeArgumentByIndex(t2, 0)]).listen$2$onError(new D.main__closure1(manager), new D.main__closure2());
               t2 = W.KeyboardEvent;
               W._EventStreamSubscription$(window, "keydown", H.functionTypeCheck(new D.main__closure3(), {func: 1, ret: -1, args: [t2]}), false, t2);
               if (D._isChrome()) {
@@ -22739,7 +22675,7 @@
     $call$body$main__closure: function(serialized) {
       var $async$goto = 0,
         $async$completer = P._makeAsyncAwaitCompleter(P.Null),
-        $async$self = this, t1, $event, t2;
+        $async$self = this, $event, t1;
       var $async$call$1 = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return P._asyncRethrow($async$result, $async$completer);
@@ -22747,10 +22683,9 @@
           switch ($async$goto) {
             case 0:
               // Function start
-              t1 = $.$get$serializers();
-              $event = t1.deserialize$1(C.C_JsonCodec.decode$2$reviver(0, serialized, null));
-              t2 = J.getInterceptor$($event);
-              $async$goto = !!t2.$isDefaultBuildResult ? 2 : 4;
+              $event = $.$get$serializers().deserialize$1(C.C_JsonCodec.decode$2$reviver(0, serialized, null));
+              t1 = J.getInterceptor$($event);
+              $async$goto = !!t1.$isDefaultBuildResult ? 2 : 4;
               break;
             case 2:
               // then
@@ -22788,14 +22723,12 @@
               break;
             case 4:
               // else
-              if (!!t2.$isDevToolsResponse) {
+              if (!!t1.$isDevToolsResponse) {
                 if (!H.boolConversionCheck($event.success))
                   window.alert("DevTools failed to open with: " + H.S($event.error));
-              } else if (!!t2.$isRunRequest) {
-                t2 = $async$self.client._outgoingController;
-                t2.add$1(0, H.assertSubtypeOfRuntimeType(C.C_JsonCodec.encode$2$toEncodable(t1.serialize$1(new A.RunResponseBuilder().build$0()), null), H.getTypeArgumentByIndex(t2, 0)));
+              } else if (!!t1.$isRunRequest)
                 self.$dartRunMain.call$0();
-              } else if (!!t2.$isErrorResponse) {
+              else if (!!t1.$isErrorResponse) {
                 t1 = "Error from backend:\n\nError: " + H.S($event.error) + "\n\nStack Trace:\n" + H.S($event.stackTrace);
                 if (typeof console != "undefined")
                   window.console.error(t1);
@@ -23551,7 +23484,7 @@
       _inherit = hunkHelpers.inherit,
       _inheritMany = hunkHelpers.inheritMany;
     _inherit(P.Object, null);
-    _inheritMany(P.Object, [H.JS_CONST, J.Interceptor, J.JSObject, J.ArrayIterator, P.Iterable, H.CastIterator, H.Closure, P.MapMixin, P._ListBase_Object_ListMixin, H.ListIterator, P.Iterator, H.FixedLengthListMixin, H.UnmodifiableListMixin, H.Symbol, P.MapView, H.ConstantMap, H.JSInvocationMirror, H.TypeErrorDecoder, P.Error, H.ExceptionAndStackTrace, H._StackTrace, H.TypeImpl, H.LinkedHashMapCell, H.LinkedHashMapKeyIterator, H.JSSyntaxRegExp, H._MatchImplementation, H._AllMatchesIterator, H.StringMatch, H._StringAllMatchesIterator, P._TimerImpl, P._AsyncAwaitCompleter, P.Future, P._Completer, P._FutureListener, P._Future, P._AsyncCallbackEntry, P.Stream, P.StreamSubscription, P.StreamTransformerBase, P._StreamController, P._AsyncStreamControllerDispatch, P._BufferingStreamSubscription, P._StreamSinkWrapper, P._DelayedEvent, P._DelayedDone, P._PendingEvents, P._StreamIterator, P.Timer, P.AsyncError, P._ZoneFunction, P.ZoneSpecification, P._ZoneSpecification, P.ZoneDelegate, P.Zone, P._ZoneDelegate, P._Zone, P._HashMapKeyIterator, P._SetBase, P._HashSetIterator, P._LinkedHashSetCell, P._LinkedHashSetIterator, P.IterableMixin, P.ListMixin, P._UnmodifiableMapMixin, P._ListQueueIterator, P.SetMixin, P._SplayTreeNode, P._SplayTree, P._SplayTreeIterator, P.Codec, P._JsonStringifier, P._Utf8Encoder, P._Utf8Decoder, P._BigIntImpl, P.BigInt, P.bool, P.DateTime, P.num, P.Duration, P.OutOfMemoryError, P.StackOverflowError, P._Exception, P.FormatException, P.IntegerDivisionByZeroException, P.Function, P.List, P.Map, P.MapEntry, P.Null, P.Match, P.RegExp, P.RegExpMatch, P.StackTrace, P.String, P.StringBuffer, P.Symbol0, P.Type, P.Uri, P._Uri, P.UriData, P._SimpleUri, W.CssStyleDeclarationBase, W.ImmutableListMixin, W.FixedSizeListIterator, P._AcceptStructuredClone, P.JsObject, P._JSRandom, P._RectangleBase, P.ByteBuffer, P.ByteData, P.Int8List, P.Uint8List, P.Uint8ClampedList, P.Int16List, P.Uint16List, P.Int32List, P.Uint32List, P.Float32List, P.Float64List, Y.EnumClass, M.DefaultBuildResult, M._$BuildStatusSerializer, M._$DefaultBuildResultSerializer, M.DefaultBuildResultBuilder, S.BuiltList, S.ListBuilder, M.BuiltListMultimap, M.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, L.BuiltSet, L.SetBuilder, E.BuiltSetMultimap, E.SetMultimapBuilder, Y.IndentingBuiltValueToStringHelper, A.JsonObject, U.SerializerPlugin, U.FullType, U.Serializer, O.BigIntSerializer, R.BoolSerializer, Y.BuiltJsonSerializers, Y.BuiltJsonSerializersBuilder, R.BuiltListMultimapSerializer, K.BuiltListSerializer, K.BuiltMapSerializer, R.BuiltSetMultimapSerializer, O.BuiltSetSerializer, Z.DateTimeSerializer, D.DoubleSerializer, K.DurationSerializer, Q.Int64Serializer, B.IntSerializer, O.JsonObjectSerializer, K.NumSerializer, K.RegExpSerializer, M.StringSerializer, O.UriSerializer, U.DefaultEquality, U.IterableEquality, U.ListEquality, U._UnorderedEquality, U._MapEntry, U.MapEquality, U.DeepCollectionEquality, E.ConnectRequest, E._$ConnectRequestSerializer, E.ConnectRequestBuilder, M.DevToolsRequest, M.DevToolsResponse, M._$DevToolsRequestSerializer, M._$DevToolsResponseSerializer, M.DevToolsRequestBuilder, M.DevToolsResponseBuilder, X.ErrorResponse, X._$ErrorResponseSerializer, X.ErrorResponseBuilder, S.ExtensionRequest, S.ExtensionResponse, S.ExtensionEvent, S._$ExtensionRequestSerializer, S._$ExtensionResponseSerializer, S._$ExtensionEventSerializer, S.ExtensionRequestBuilder, S.ExtensionResponseBuilder, S.ExtensionEventBuilder, M.IsolateExit, M.IsolateStart, M._$IsolateExitSerializer, M._$IsolateStartSerializer, M.IsolateExitBuilder, M.IsolateStartBuilder, A.RunRequest, A.RunResponse, A._$RunRequestSerializer, A._$RunResponseSerializer, A.RunRequestBuilder, A.RunResponseBuilder, V.Int64, N.Logger, N.Level, N.LogRecord, M.Context, O.Style, X.ParsedPath, R.StreamChannelMixin, F.Uuid, Z.LegacyRestarter, Q.ReloadingManager, G.Library, G.Module, X.HotReloadFailedException, X.LibraryWrapper, X.RequireRestarter]);
+    _inheritMany(P.Object, [H.JS_CONST, J.Interceptor, J.JSObject, J.ArrayIterator, P.Iterable, H.CastIterator, H.Closure, P.MapMixin, P._ListBase_Object_ListMixin, H.ListIterator, P.Iterator, H.FixedLengthListMixin, H.UnmodifiableListMixin, H.Symbol, P.MapView, H.ConstantMap, H.JSInvocationMirror, H.TypeErrorDecoder, P.Error, H.ExceptionAndStackTrace, H._StackTrace, H.TypeImpl, H.LinkedHashMapCell, H.LinkedHashMapKeyIterator, H.JSSyntaxRegExp, H._MatchImplementation, H._AllMatchesIterator, H.StringMatch, H._StringAllMatchesIterator, P._TimerImpl, P._AsyncAwaitCompleter, P.Future, P._Completer, P._FutureListener, P._Future, P._AsyncCallbackEntry, P.Stream, P.StreamSubscription, P.StreamTransformerBase, P._StreamController, P._AsyncStreamControllerDispatch, P._BufferingStreamSubscription, P._StreamSinkWrapper, P._DelayedEvent, P._DelayedDone, P._PendingEvents, P._StreamIterator, P.Timer, P.AsyncError, P._ZoneFunction, P.ZoneSpecification, P._ZoneSpecification, P.ZoneDelegate, P.Zone, P._ZoneDelegate, P._Zone, P._HashMapKeyIterator, P._SetBase, P._HashSetIterator, P._LinkedHashSetCell, P._LinkedHashSetIterator, P.IterableMixin, P.ListMixin, P._UnmodifiableMapMixin, P._ListQueueIterator, P.SetMixin, P._SplayTreeNode, P._SplayTree, P._SplayTreeIterator, P.Codec, P._JsonStringifier, P._Utf8Encoder, P._Utf8Decoder, P._BigIntImpl, P.BigInt, P.bool, P.DateTime, P.num, P.Duration, P.OutOfMemoryError, P.StackOverflowError, P._Exception, P.FormatException, P.IntegerDivisionByZeroException, P.Function, P.List, P.Map, P.MapEntry, P.Null, P.Match, P.RegExp, P.RegExpMatch, P.StackTrace, P.String, P.StringBuffer, P.Symbol0, P.Type, P.Uri, P._Uri, P.UriData, P._SimpleUri, W.CssStyleDeclarationBase, W.ImmutableListMixin, W.FixedSizeListIterator, P._AcceptStructuredClone, P.JsObject, P._JSRandom, P._RectangleBase, P.ByteBuffer, P.ByteData, P.Int8List, P.Uint8List, P.Uint8ClampedList, P.Int16List, P.Uint16List, P.Int32List, P.Uint32List, P.Float32List, P.Float64List, Y.EnumClass, M.DefaultBuildResult, M._$BuildStatusSerializer, M._$DefaultBuildResultSerializer, M.DefaultBuildResultBuilder, S.BuiltList, S.ListBuilder, M.BuiltListMultimap, M.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, L.BuiltSet, L.SetBuilder, E.BuiltSetMultimap, E.SetMultimapBuilder, Y.IndentingBuiltValueToStringHelper, A.JsonObject, U.SerializerPlugin, U.FullType, U.Serializer, O.BigIntSerializer, R.BoolSerializer, Y.BuiltJsonSerializers, Y.BuiltJsonSerializersBuilder, R.BuiltListMultimapSerializer, K.BuiltListSerializer, K.BuiltMapSerializer, R.BuiltSetMultimapSerializer, O.BuiltSetSerializer, Z.DateTimeSerializer, D.DoubleSerializer, K.DurationSerializer, Q.Int64Serializer, B.IntSerializer, O.JsonObjectSerializer, K.NumSerializer, K.RegExpSerializer, M.StringSerializer, O.UriSerializer, U.DefaultEquality, U.IterableEquality, U.ListEquality, U._UnorderedEquality, U._MapEntry, U.MapEquality, U.DeepCollectionEquality, E.ConnectRequest, E._$ConnectRequestSerializer, E.ConnectRequestBuilder, M.DevToolsRequest, M.DevToolsResponse, M._$DevToolsRequestSerializer, M._$DevToolsResponseSerializer, M.DevToolsRequestBuilder, M.DevToolsResponseBuilder, X.ErrorResponse, X._$ErrorResponseSerializer, X.ErrorResponseBuilder, S.ExtensionRequest, S.ExtensionResponse, S.ExtensionEvent, S._$ExtensionRequestSerializer, S._$ExtensionResponseSerializer, S._$ExtensionEventSerializer, S.ExtensionRequestBuilder, S.ExtensionResponseBuilder, S.ExtensionEventBuilder, M.IsolateExit, M.IsolateStart, M._$IsolateExitSerializer, M._$IsolateStartSerializer, M.IsolateExitBuilder, M.IsolateStartBuilder, A.RunRequest, A._$RunRequestSerializer, A.RunRequestBuilder, V.Int64, N.Logger, N.Level, N.LogRecord, M.Context, O.Style, X.ParsedPath, R.StreamChannelMixin, F.Uuid, Z.LegacyRestarter, Q.ReloadingManager, G.Library, G.Module, X.HotReloadFailedException, X.LibraryWrapper, X.RequireRestarter]);
     _inheritMany(J.Interceptor, [J.JSBool, J.JSNull, J.JavaScriptObject, J.JSArray, J.JSNumber, J.JSString, H.NativeByteBuffer, H.NativeTypedData, W.EventTarget, W.AccessibleNodeList, W.Blob, W.CssStyleValue, W.CssTransformComponent, W.CssRule, W._CssStyleDeclaration_Interceptor_CssStyleDeclarationBase, W.DataTransferItemList, W.DomException, W._DomRectList_Interceptor_ListMixin, W.DomRectReadOnly, W._DomStringList_Interceptor_ListMixin, W.DomTokenList, W.Event, W._FileList_Interceptor_ListMixin, W.Gamepad, W.History, W._HtmlCollection_Interceptor_ListMixin, W.ImageData, W.Location, W.MediaList, W._MidiInputMap_Interceptor_MapMixin, W._MidiOutputMap_Interceptor_MapMixin, W.MimeType, W._MimeTypeArray_Interceptor_ListMixin, W._NodeList_Interceptor_ListMixin, W.Plugin, W._PluginArray_Interceptor_ListMixin, W._RtcStatsReport_Interceptor_MapMixin, W.SpeechGrammar, W._SpeechGrammarList_Interceptor_ListMixin, W.SpeechRecognitionResult, W._Storage_Interceptor_MapMixin, W.StyleSheet, W._TextTrackCueList_Interceptor_ListMixin, W.TimeRanges, W.Touch, W._TouchList_Interceptor_ListMixin, W.TrackDefaultList, W.Url, W.__CssRuleList_Interceptor_ListMixin, W.__GamepadList_Interceptor_ListMixin, W.__NamedNodeMap_Interceptor_ListMixin, W.__SpeechRecognitionResultList_Interceptor_ListMixin, W.__StyleSheetList_Interceptor_ListMixin, P.KeyRange, P.Length, P._LengthList_Interceptor_ListMixin, P.Number, P._NumberList_Interceptor_ListMixin, P.PointList, P._StringList_Interceptor_ListMixin, P.Transform, P._TransformList_Interceptor_ListMixin, P.AudioBuffer, P._AudioParamMap_Interceptor_MapMixin, P._SqlResultSetRowList_Interceptor_ListMixin]);
     _inheritMany(J.JavaScriptObject, [J.PlainJavaScriptObject, J.UnknownJavaScriptObject, J.JavaScriptFunction, S.Promise, X.DartLoader, X.HotReloadableLibrary, X.JsError, X.JsMap]);
     _inherit(J.JSUnmodifiableArray, J.JSArray);
@@ -23699,7 +23632,6 @@
     _inherit(M._$IsolateExit, M.IsolateExit);
     _inherit(M._$IsolateStart, M.IsolateStart);
     _inherit(A._$RunRequest, A.RunRequest);
-    _inherit(A._$RunResponse, A.RunResponse);
     _inherit(B.InternalStyle, O.Style);
     _inheritMany(B.InternalStyle, [E.PosixStyle, F.UrlStyle, L.WindowsStyle]);
     _inherit(M.SseClient, R.StreamChannelMixin);
@@ -23957,9 +23889,6 @@
     C.Type_DevToolsResponse_Hhy = H.createRuntimeType(M.DevToolsResponse);
     C.Type__$DevToolsResponse_23h = H.createRuntimeType(M._$DevToolsResponse);
     C.List_41A = H.setRuntimeTypeInfo(makeConstList([C.Type_DevToolsResponse_Hhy, C.Type__$DevToolsResponse_23h]), [P.Type]);
-    C.Type_RunResponse_mxf = H.createRuntimeType(A.RunResponse);
-    C.Type__$RunResponse_23h = H.createRuntimeType(A._$RunResponse);
-    C.List_69t = H.setRuntimeTypeInfo(makeConstList([C.Type_RunResponse_mxf, C.Type__$RunResponse_23h]), [P.Type]);
     C.Type_IsolateStart_0 = H.createRuntimeType(M.IsolateStart);
     C.Type__$IsolateStart_o3b = H.createRuntimeType(M._$IsolateStart);
     C.List_6TA = H.setRuntimeTypeInfo(makeConstList([C.Type_IsolateStart_0, C.Type__$IsolateStart_o3b]), [P.Type]);
@@ -24252,9 +24181,6 @@
     _lazy($, "_$runRequestSerializer", "$get$_$runRequestSerializer", function() {
       return new A._$RunRequestSerializer();
     });
-    _lazy($, "_$runResponseSerializer", "$get$_$runResponseSerializer", function() {
-      return new A._$RunResponseSerializer();
-    });
     _lazy($, "serializers", "$get$serializers", function() {
       return $.$get$_$serializers();
     });
@@ -24273,7 +24199,6 @@
       t1.add$1(0, $.$get$_$isolateExitSerializer());
       t1.add$1(0, $.$get$_$isolateStartSerializer());
       t1.add$1(0, $.$get$_$runRequestSerializer());
-      t1.add$1(0, $.$get$_$runResponseSerializer());
       return t1.build$0();
     });
     _lazy($, "Logger_root", "$get$Logger_root", function() {

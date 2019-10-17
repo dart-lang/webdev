@@ -79,7 +79,6 @@ Future<void> main() {
           window.alert('DevTools failed to open with: ${event.error}');
         }
       } else if (event is RunRequest) {
-        client.sink.add(jsonEncode(serializers.serialize(RunResponse())));
         runMain();
       } else if (event is ErrorResponse) {
         window.console.error('Error from backend:\n\nError: ${event.error}\n\n'

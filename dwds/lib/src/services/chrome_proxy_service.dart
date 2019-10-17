@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/debugging/instance.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -42,6 +43,9 @@ class ChromeProxyService implements VmServiceInterface {
   /// are dynamic and roughly map to chrome tabs.
   final VM _vm;
 
+  // TODO(flutter/devtools/issues/1207) - Remove.
+  final _vmReadyCompleter = Completer();
+
   /// The root URI at which we're serving.
   final String uri;
 
@@ -51,6 +55,17 @@ class ChromeProxyService implements VmServiceInterface {
 
   /// Provides debugger-related functionality.
   Debugger _debugger;
+
+  Future<Debugger> get _debuggerFuture async {
+    return _debugger ??= await Debugger.create(
+      _assetHandler,
+      remoteDebugger,
+      _streamNotify,
+      appInspectorProvider,
+      uri,
+      _logWriter,
+    );
+  }
 
   AppInspector _inspector;
 
@@ -84,20 +99,8 @@ class ChromeProxyService implements VmServiceInterface {
       ..version = Platform.version;
     var service = ChromeProxyService._(
         vm, tabUrl, assetHandler, remoteDebugger, logWriter);
-    await service._initialize();
-    await service.createIsolate(appConnection);
+    unawaited(service.createIsolate(appConnection));
     return service;
-  }
-
-  Future<Null> _initialize() async {
-    _debugger = await Debugger.create(
-      _assetHandler,
-      remoteDebugger,
-      _streamNotify,
-      appInspectorProvider,
-      uri,
-      _logWriter,
-    );
   }
 
   /// Creates a new isolate.
@@ -111,17 +114,23 @@ class ChromeProxyService implements VmServiceInterface {
           'Cannot create multiple isolates for the same app');
     }
 
+    var debugger = await _debuggerFuture;
+
     var instanceHelper =
-        InstanceHelper(_debugger, remoteDebugger, appInspectorProvider);
+        InstanceHelper(debugger, remoteDebugger, appInspectorProvider);
 
     _inspector = await AppInspector.initialize(
       appConnection,
       remoteDebugger,
       _assetHandler,
-      _debugger,
+      debugger,
       uri,
       instanceHelper,
     );
+
+    unawaited(appConnection.onStart.then((_) {
+      debugger.resumeFromStart();
+    }));
 
     var isolateRef = _inspector.isolateRef;
     var timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -156,6 +165,8 @@ class ChromeProxyService implements VmServiceInterface {
               isolate: isolateRef)
             ..extensionRPC = extensionRpc);
     }
+
+    if (!_vmReadyCompleter.isCompleted) _vmReadyCompleter.complete();
   }
 
   /// Should be called when there is a hot restart or full page refresh.
@@ -178,8 +189,9 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
-          {int column}) =>
-      _debugger.addBreakpoint(isolateId, scriptId, line, column: column);
+          {int column}) async =>
+      (await _debuggerFuture)
+          .addBreakpoint(isolateId, scriptId, line, column: column);
 
   @override
   Future<Breakpoint> addBreakpointAtEntry(String isolateId, String functionId) {
@@ -192,7 +204,8 @@ class ChromeProxyService implements VmServiceInterface {
       {int column}) async {
     var dartUri = DartUri(scriptUri, uri);
     var ref = await _inspector.scriptRefFor(dartUri.serverPath);
-    return _debugger.addBreakpoint(isolateId, ref.id, line, column: column);
+    return (await _debuggerFuture)
+        .addBreakpoint(isolateId, ref.id, line, column: column);
   }
 
   @override
@@ -300,10 +313,14 @@ $loadModule("dart_sdk").developer.invokeExtension(
   ///
   /// Returns null if the corresponding isolate is not paused.
   @override
-  Future<Stack> getStack(String isolateId) => _debugger.getStack(isolateId);
+  Future<Stack> getStack(String isolateId) async =>
+      (await _debuggerFuture).getStack(isolateId);
 
   @override
-  Future<VM> getVM() => Future.value(_vm);
+  Future<VM> getVM() async {
+    await _vmReadyCompleter.future;
+    return _vm;
+  }
 
   @override
   Future<Timeline> getVMTimeline({int timeOriginMicros, int timeExtentMicros}) {
@@ -377,7 +394,8 @@ $loadModule("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> pause(String isolateId) => _debugger.pause();
+  Future<Success> pause(String isolateId) async =>
+      (await _debuggerFuture).pause();
 
   @override
   Future<Success> registerService(String service, String alias) async {
@@ -391,15 +409,16 @@ $loadModule("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> removeBreakpoint(String isolateId, String breakpointId) =>
-      _debugger.removeBreakpoint(isolateId, breakpointId);
+  Future<Success> removeBreakpoint(
+          String isolateId, String breakpointId) async =>
+      (await _debuggerFuture).removeBreakpoint(isolateId, breakpointId);
 
   @override
   Future<Success> resume(String isolateId,
       {String step, int frameIndex}) async {
     if (_inspector.appConnection.isStarted) {
-      return await _debugger.resume(isolateId,
-          step: step, frameIndex: frameIndex);
+      return await (await _debuggerFuture)
+          .resume(isolateId, step: step, frameIndex: frameIndex);
     } else {
       _inspector.appConnection.runMain();
       return Success();
@@ -407,8 +426,8 @@ $loadModule("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> setExceptionPauseMode(String isolateId, String mode) =>
-      _debugger.setExceptionPauseMode(isolateId, mode);
+  Future<Success> setExceptionPauseMode(String isolateId, String mode) async =>
+      (await _debuggerFuture).setExceptionPauseMode(isolateId, mode);
 
   @override
   Future<Success> setFlag(String name, String value) {
@@ -468,9 +487,6 @@ $loadModule("dart_sdk").developer.invokeExtension(
       String isolateId, int timeOriginMicros, int timeExtentMicros) {
     throw UnimplementedError();
   }
-
-  /// Resumes the [Isolate] from start.
-  Future<void> resumeFromStart() async => _debugger.resumeFromStart();
 
   /// Returns a streamController that listens for console logs from chrome and
   /// adds all events passing [filter] to the stream.
