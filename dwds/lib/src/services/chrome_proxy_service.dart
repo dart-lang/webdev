@@ -53,19 +53,10 @@ class ChromeProxyService implements VmServiceInterface {
 
   final AssetHandler _assetHandler;
 
-  /// Provides debugger-related functionality.
-  Debugger _debugger;
+  final _debuggerCompleter = Completer<Debugger>();
 
-  Future<Debugger> get _debuggerFuture async {
-    return _debugger ??= await Debugger.create(
-      _assetHandler,
-      remoteDebugger,
-      _streamNotify,
-      appInspectorProvider,
-      uri,
-      _logWriter,
-    );
-  }
+  /// Provides debugger-related functionality.
+  Future<Debugger> get _debugger => _debuggerCompleter.future;
 
   AppInspector _inspector;
 
@@ -82,7 +73,16 @@ class ChromeProxyService implements VmServiceInterface {
     this._assetHandler,
     this.remoteDebugger,
     this._logWriter,
-  );
+  ) {
+    _debuggerCompleter.complete(Debugger.create(
+      _assetHandler,
+      remoteDebugger,
+      _streamNotify,
+      appInspectorProvider,
+      uri,
+      _logWriter,
+    ));
+  }
 
   static Future<ChromeProxyService> create(
     RemoteDebugger remoteDebugger,
@@ -114,22 +114,20 @@ class ChromeProxyService implements VmServiceInterface {
           'Cannot create multiple isolates for the same app');
     }
 
-    var debugger = await _debuggerFuture;
-
     var instanceHelper =
-        InstanceHelper(debugger, remoteDebugger, appInspectorProvider);
+        InstanceHelper(await _debugger, remoteDebugger, appInspectorProvider);
 
     _inspector = await AppInspector.initialize(
       appConnection,
       remoteDebugger,
       _assetHandler,
-      debugger,
+      await _debugger,
       uri,
       instanceHelper,
     );
 
-    unawaited(appConnection.onStart.then((_) {
-      debugger.resumeFromStart();
+    unawaited(appConnection.onStart.then((_) async {
+      unawaited((await _debugger).resumeFromStart());
     }));
 
     var isolateRef = _inspector.isolateRef;
@@ -190,7 +188,7 @@ class ChromeProxyService implements VmServiceInterface {
   @override
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
           {int column}) async =>
-      (await _debuggerFuture)
+      (await _debugger)
           .addBreakpoint(isolateId, scriptId, line, column: column);
 
   @override
@@ -204,7 +202,7 @@ class ChromeProxyService implements VmServiceInterface {
       {int column}) async {
     var dartUri = DartUri(scriptUri, uri);
     var ref = await _inspector.scriptRefFor(dartUri.serverPath);
-    return (await _debuggerFuture)
+    return (await _debugger)
         .addBreakpoint(isolateId, ref.id, line, column: column);
   }
 
@@ -314,7 +312,7 @@ $loadModule("dart_sdk").developer.invokeExtension(
   /// Returns null if the corresponding isolate is not paused.
   @override
   Future<Stack> getStack(String isolateId) async =>
-      (await _debuggerFuture).getStack(isolateId);
+      (await _debugger).getStack(isolateId);
 
   @override
   Future<VM> getVM() async {
@@ -394,8 +392,7 @@ $loadModule("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> pause(String isolateId) async =>
-      (await _debuggerFuture).pause();
+  Future<Success> pause(String isolateId) async => (await _debugger).pause();
 
   @override
   Future<Success> registerService(String service, String alias) async {
@@ -411,13 +408,13 @@ $loadModule("dart_sdk").developer.invokeExtension(
   @override
   Future<Success> removeBreakpoint(
           String isolateId, String breakpointId) async =>
-      (await _debuggerFuture).removeBreakpoint(isolateId, breakpointId);
+      (await _debugger).removeBreakpoint(isolateId, breakpointId);
 
   @override
   Future<Success> resume(String isolateId,
       {String step, int frameIndex}) async {
     if (_inspector.appConnection.isStarted) {
-      return await (await _debuggerFuture)
+      return await (await _debugger)
           .resume(isolateId, step: step, frameIndex: frameIndex);
     } else {
       _inspector.appConnection.runMain();
@@ -427,7 +424,7 @@ $loadModule("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> setExceptionPauseMode(String isolateId, String mode) async =>
-      (await _debuggerFuture).setExceptionPauseMode(isolateId, mode);
+      (await _debugger).setExceptionPauseMode(isolateId, mode);
 
   @override
   Future<Success> setFlag(String name, String value) {
