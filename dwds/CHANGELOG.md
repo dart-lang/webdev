@@ -1,6 +1,7 @@
 ## 0.7.5-dev
 
 - Fix an issue where resuming while paused at the start would cause an error.
+- Expose the `ChromeDebugException` class for error handling purposes.
 
 ## 0.7.4
 
