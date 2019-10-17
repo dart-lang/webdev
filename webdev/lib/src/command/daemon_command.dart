@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:async/async.dart';
 
@@ -49,6 +50,14 @@ class DaemonCommand extends Command<int> {
       'A mode for running WebDev from command-line tools.';
 
   @override
+  final argParser = ArgParser()
+    ..addMultiOption('launch-app', help: 'The html file to launch in chrome.');
+
+  DaemonCommand() {
+    addSharedArgs(argParser);
+  }
+
+  @override
   Future<int> run() async {
     Daemon daemon;
     DevWorkflow workflow;
@@ -78,16 +87,22 @@ class DaemonCommand extends Command<int> {
         });
       });
       daemon.registerDomain(daemonDomain);
-      var configuration =
-          Configuration(launchInChrome: true, debug: true, autoRun: false);
+      var configuration = Configuration.fromArgs(argResults,
+          defaultConfiguration:
+              Configuration(launchInChrome: true, debug: true, autoRun: false));
+      // Globally trigger verbose logs.
+      setVerbosity(configuration.verbose);
+
       var pubspecLock = await readPubspecLock(configuration);
       var buildOptions = buildRunnerArgs(pubspecLock, configuration);
-      var port = await findUnusedPort();
-      workflow = await DevWorkflow.start(
-        configuration,
-        buildOptions,
-        {'web': port},
-      );
+      var directoryArgs =
+          argResults.rest.where((arg) => !arg.startsWith('-')).toList();
+      var targetPorts =
+          parseDirectoryArgs(directoryArgs, basePort: await findUnusedPort());
+      validateLaunchApps(configuration.launchApps, targetPorts.keys);
+
+      workflow =
+          await DevWorkflow.start(configuration, buildOptions, targetPorts);
       daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
       await daemon.onExit;
       exitCode = 0;
