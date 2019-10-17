@@ -44,7 +44,7 @@ class ChromeProxyService implements VmServiceInterface {
   final VM _vm;
 
   // TODO(flutter/devtools/issues/1207) - Remove.
-  final _vmReadyCompleter = Completer();
+  final _vmReadyCompleter = Completer<void>();
 
   /// The root URI at which we're serving.
   final String uri;
@@ -127,7 +127,7 @@ class ChromeProxyService implements VmServiceInterface {
     );
 
     unawaited(appConnection.onStart.then((_) async {
-      unawaited((await _debugger).resumeFromStart());
+      await (await _debugger).resumeFromStart();
     }));
 
     var isolateRef = _inspector.isolateRef;

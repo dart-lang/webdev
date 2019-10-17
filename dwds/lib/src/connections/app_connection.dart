@@ -15,19 +15,19 @@ import '../../data/serializers.dart';
 class AppConnection {
   /// The initial connection request sent from the application in the browser.
   final ConnectRequest request;
-  final _startCompleter = Completer();
+  final _startedCompleter = Completer<void>();
   final SseConnection _connection;
 
   AppConnection(this.request, this._connection);
 
-  bool get isStarted => _startCompleter.isCompleted;
-  Future<void> get onStart => _startCompleter.future;
+  bool get isStarted => _startedCompleter.isCompleted;
+  Future<void> get onStart => _startedCompleter.future;
 
   void runMain() {
-    if (_startCompleter.isCompleted) {
+    if (_startedCompleter.isCompleted) {
       throw StateError('Main has already started.');
     }
     _connection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
-    _startCompleter.complete();
+    _startedCompleter.complete();
   }
 }
