@@ -126,12 +126,15 @@ void main() {
           1: 2,
           false: true,
         };
+
         var result =
             await service.callServiceExtension(serviceMethod, args: args);
         expect(
             result.json,
             args.map((k, v) => MapEntry(k is String ? k : jsonEncode(k),
                 v is String ? v : jsonEncode(v))));
+      }, onPlatform: {
+        'windows': const Skip('https://github.com/dart-lang/webdev/issues/711'),
       });
 
       test('failure', () async {
@@ -149,6 +152,8 @@ void main() {
                 error is RPCError &&
                 error.code == -32001 &&
                 error.details == jsonEncode(errorDetails))));
+      }, onPlatform: {
+        'windows': const Skip('https://github.com/dart-lang/webdev/issues/711'),
       });
     });
 
