@@ -164,9 +164,6 @@ class TestContext {
 
   Future<void> startDebugging() async {
     debugConnection = await testServer.dwds.debugConnection(appConnection);
-    // Wait for the VM to be ready so that we are guaranteed that the first
-    // isolate is created.
-    await debugConnection.vmService.getVM();
     webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
   }
 

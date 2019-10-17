@@ -43,8 +43,9 @@ class ChromeProxyService implements VmServiceInterface {
   /// are dynamic and roughly map to chrome tabs.
   final VM _vm;
 
-  // TODO(flutter/devtools/issues/1207) - Remove.
-  final _vmReadyCompleter = Completer<void>();
+  final _initializedCompleter = Completer<void>();
+
+  Future<void> get isInitialized => _initializedCompleter.future;
 
   /// The root URI at which we're serving.
   final String uri;
@@ -164,7 +165,8 @@ class ChromeProxyService implements VmServiceInterface {
             ..extensionRPC = extensionRpc);
     }
 
-    if (!_vmReadyCompleter.isCompleted) _vmReadyCompleter.complete();
+    // The service is considered initialized when the first isolate is created.
+    if (!_initializedCompleter.isCompleted) _initializedCompleter.complete();
   }
 
   /// Should be called when there is a hot restart or full page refresh.
@@ -316,7 +318,7 @@ $loadModule("dart_sdk").developer.invokeExtension(
 
   @override
   Future<VM> getVM() async {
-    await _vmReadyCompleter.future;
+    await isInitialized;
     return _vm;
   }
 
