@@ -4,9 +4,6 @@
 
 @Timeout(Duration(minutes: 5))
 @TestOn('vm')
-@OnPlatform({
-  'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
-})
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
 
