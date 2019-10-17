@@ -14,12 +14,6 @@ abstract class IsolateExit implements Built<IsolateExit, IsolateExitBuilder> {
   factory IsolateExit([Function(IsolateExitBuilder) updates]) = _$IsolateExit;
 
   IsolateExit._();
-
-  /// Identity of a given application, across tabs/windows.
-  String get appId;
-
-  /// Identify of a given instance of an application, unique per tab/window.
-  String get instanceId;
 }
 
 /// An event that signifies the main isolate has started.
@@ -31,10 +25,4 @@ abstract class IsolateStart
       _$IsolateStart;
 
   IsolateStart._();
-
-  /// Identifies a given application, across tabs/windows.
-  String get appId;
-
-  /// Identifies a given instance of an application, unique per tab/window.
-  String get instanceId;
 }

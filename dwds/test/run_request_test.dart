@@ -23,6 +23,17 @@ void main() {
     tearDown(() async {
       await context.tearDown();
     });
+
+    test('can resume while paused at the start', () async {
+      var vm = await service.getVM();
+      var isolate = await service.getIsolate(vm.isolates.first.id);
+      expect(isolate.pauseEvent.kind, EventKind.kPauseStart);
+      var stream = service.onEvent('Debug');
+      await service.resume(isolate.id);
+      await stream.firstWhere((event) => event.kind == EventKind.kResume);
+      expect(isolate.pauseEvent.kind, EventKind.kResume);
+    });
+
     test('correctly sets the isolate pauseEvent', () async {
       var vm = await service.getVM();
       var isolate = await service.getIsolate(vm.isolates.first.id);

@@ -14,12 +14,9 @@ import 'restarter.dart';
 
 class ReloadingManager {
   final SseClient _client;
-  final String _appId;
-  final String _appInstanceId;
   final Restarter _restarter;
 
-  ReloadingManager(
-      this._client, this._appId, this._appInstanceId, this._restarter);
+  ReloadingManager(this._client, this._restarter);
 
   /// Attemps to perform a hot restart and returns whether it was successful or
   /// not.
@@ -39,15 +36,11 @@ class ReloadingManager {
     if (!succeeded) return;
     // Notify package:dwds that the isolate has been created.
     // package:dwds will respond with a [RunRequest].
-    _client.sink.add(jsonEncode(serializers.serialize(IsolateStart((b) => b
-      ..appId = _appId
-      ..instanceId = _appInstanceId))));
+    _client.sink.add(jsonEncode(serializers.serialize(IsolateStart())));
   }
 
   void _beforeRestart() {
     // Notify package:dwds that the isolate is about to exit.
-    _client.sink.add(jsonEncode(serializers.serialize(IsolateExit((b) => b
-      ..appId = _appId
-      ..instanceId = _appInstanceId))));
+    _client.sink.add(jsonEncode(serializers.serialize(IsolateExit())));
   }
 }

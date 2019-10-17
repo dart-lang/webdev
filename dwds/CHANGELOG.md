@@ -1,6 +1,7 @@
 ## 0.7.5-dev
 
 - The injected client's connection is now based off the request URI.
+- Fix an issue where resuming while paused at the start would cause an error.
 
 ## 0.7.4
 

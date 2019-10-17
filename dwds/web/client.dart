@@ -48,8 +48,7 @@ Future<void> main() {
       throw StateError('Unknown module strategy: $dartModuleStrategy');
     }
 
-    var manager =
-        ReloadingManager(client, dartAppId, dartAppInstanceId, restarter);
+    var manager = ReloadingManager(client, restarter);
 
     hotRestartJs = allowInterop(() {
       return toPromise(manager.hotRestart());
@@ -80,9 +79,7 @@ Future<void> main() {
           window.alert('DevTools failed to open with: ${event.error}');
         }
       } else if (event is RunRequest) {
-        client.sink.add(jsonEncode(serializers.serialize(RunResponse((b) => b
-          ..appId = dartAppId
-          ..instanceId = dartAppInstanceId))));
+        client.sink.add(jsonEncode(serializers.serialize(RunResponse())));
         runMain();
       } else if (event is ErrorResponse) {
         window.console.error('Error from backend:\n\nError: ${event.error}\n\n'
