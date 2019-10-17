@@ -21,6 +21,7 @@ import 'src/servers/extension_backend.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
+export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 
 typedef LogWriter = void Function(Level, String);
 typedef ConnectionProvider = Future<ChromeConnection> Function();

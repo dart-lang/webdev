@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
@@ -157,10 +158,18 @@ class Sources {
   /// [HttpStatus.ok].
   Future<String> _readAssetOrNull(String path) async {
     var response = await _assetHandler.getRelativeAsset(path);
-    if (response.statusCode == HttpStatus.ok) {
-      return response.readAsString();
+    var responseText = '';
+    var hasError = false;
+    try {
+      responseText = await response.readAsString();
+    } on ClientException {
+      hasError = true;
+      responseText = '<response not available>';
     }
-    _logWriter(Level.WARNING, '''
+    if (response.statusCode == HttpStatus.ok && !hasError) {
+      return responseText;
+    } else {
+      _logWriter(Level.WARNING, '''
 Failed to load asset at path: $path.
 
 Status code: ${response.statusCode}
@@ -169,9 +178,10 @@ Headers:
 ${const JsonEncoder.withIndent('  ').convert(response.headers)}
 
 Content:
-${await response.readAsString()}
+$responseText}
 ''');
-    return null;
+      return null;
+    }
   }
 
   /// The source map for a DDC-compiled JS [script].
