@@ -30,7 +30,7 @@ Handler Function(Handler) createInjectedHandler(
         int extensionPort}) =>
     (innerHandler) {
       return (Request request) async {
-        if (request.url.path == '$_clientScript.js') {
+        if (request.url.path.endsWith('$_clientScript.js')) {
           var uri = await Isolate.resolvePackageUri(
               Uri.parse('package:$_clientScript.js'));
           var result = await File(uri.toFilePath()).readAsString();
@@ -67,9 +67,16 @@ Handler Function(Handler) createInjectedHandler(
             var mainFunction = bodyLines[extensionIndex + 1]
                 .replaceAll('main()', 'main')
                 .trim();
-            body += _injectedClientJs(configuration, appId, mainFunction,
-                extensionHostname: extensionHostname,
-                extensionPort: extensionPort);
+            var requestedUriBase = '${request.requestedUri.scheme}'
+                '://${request.requestedUri.authority}';
+            body += _injectedClientJs(
+              configuration,
+              appId,
+              mainFunction,
+              requestedUriBase,
+              extensionHostname: extensionHostname,
+              extensionPort: extensionPort,
+            );
             body += bodyLines.sublist(extensionIndex + 2).join('\n');
             // Change the hot restart handler to re-assign
             // `window.$dartRunMain` to the new main, instead of invoking it.
@@ -89,14 +96,20 @@ Handler Function(Handler) createInjectedHandler(
     };
 
 String _injectedClientJs(
-    ReloadConfiguration configuration, String appId, String mainFunction,
-    {String extensionHostname, int extensionPort}) {
+  ReloadConfiguration configuration,
+  String appId,
+  String mainFunction,
+  String requestedUriBase, {
+  String extensionHostname,
+  int extensionPort,
+}) {
   var injectedBody = '// Injected by webdev for build results support.\n'
       'window.\$dartAppId = "$appId";\n'
       'window.\$dartRunMain = $mainFunction;\n'
       'window.\$dartReloadConfiguration = "$configuration";\n'
       'window.\$dartLoader.forceLoadModule("$_clientScript");\n'
       'window.\$dartModuleStrategy = "$loadModule";\n'
+      'window.\$dartUriBase = "$requestedUriBase";\n'
       'window.\$loadModuleConfig = $loadModule;\n';
   if (extensionPort != null && extensionHostname != null) {
     injectedBody += 'window.\$extensionHostname = "$extensionHostname";\n'
