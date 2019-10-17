@@ -473,6 +473,7 @@ class Debugger extends Domain {
         timestamp: DateTime.now().millisecondsSinceEpoch,
         isolate: inspector.isolateRef);
     isolate.pauseEvent = event;
+    print('NOTIFYING');
     _streamNotify('Debug', event);
   }
 
