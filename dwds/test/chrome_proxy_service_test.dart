@@ -407,6 +407,36 @@ void main() {
           () => service.getSourceReport(null, null), throwsUnimplementedError);
     });
 
+    group('Pausing', () {
+      String isolateId;
+      Stream<Event> stream;
+      ScriptList scripts;
+      ScriptRef mainScript;
+
+      setUp(() async {
+        var vm = await service.getVM();
+        isolateId = vm.isolates.first.id;
+        scripts = await service.getScripts(isolateId);
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
+        mainScript = scripts.scripts
+            .firstWhere((script) => script.uri.contains('main.dart'));
+      });
+
+      test('at breakpoints sets pauseBreakPoints', () async {
+        var bp = await service.addBreakpoint(isolateId, mainScript.id, 49);
+        var event = await stream
+            .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+        expect(event.pauseBreakpoints.length, greaterThan(0));
+        await service.removeBreakpoint(isolateId, bp.id);
+      });
+
+      tearDown(() async {
+        // Resume execution to not impact other tests.
+        await service.resume(isolateId);
+      });
+    });
+
     group('Step', () {
       String isolateId;
       Stream<Event> stream;

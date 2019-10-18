@@ -417,12 +417,22 @@ class Debugger extends Domain {
     Event event;
     var timestamp = DateTime.now().millisecondsSinceEpoch;
     var params = e.params;
-    var breakpoints = params['hitBreakpoints'] as List;
-    if (breakpoints.isNotEmpty) {
+    var jsBreakpointIds = (params['hitBreakpoints'] as List).toSet();
+    if (jsBreakpointIds.isNotEmpty) {
+      var breakpointIds = jsBreakpointIds
+          .map((id) => _breakpoints._byJsId[id])
+          // In case the breakpoint was set in Chrome DevTools outside of
+          // package:dwds.
+          .where((entry) => entry != null)
+          .toSet();
+      var pauseBreakpoints = isolate.breakpoints
+          .where((bp) => breakpointIds.contains(bp.id))
+          .toList();
       event = Event(
           kind: EventKind.kPauseBreakpoint,
           timestamp: timestamp,
-          isolate: inspector.isolateRef);
+          isolate: inspector.isolateRef)
+        ..pauseBreakpoints = pauseBreakpoints;
     } else if (e.reason == 'exception' || e.reason == 'assert') {
       event = Event(
           kind: EventKind.kPauseException,
