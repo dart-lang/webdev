@@ -175,8 +175,15 @@ external set launchDevToolsJs(void Function() cb);
 @JS(r'$dartReloadConfiguration')
 external String get reloadConfiguration;
 
-@JS(r'$dartRunMain')
-external void Function() get runMain;
+/// Runs `window.$dartRunMain()` by injecting a script tag.
+///
+/// We do this so that we don't see user exceptions bubble up in our own error
+/// handling zone.
+void runMain() {
+  var scriptElement = ScriptElement()..innerHtml = r'window.$dartRunMain();';
+  document.body.append(scriptElement);
+  Future.microtask(scriptElement.remove);
+}
 
 bool get _isChrome =>
     window.navigator.userAgent.contains('Chrome') &&
