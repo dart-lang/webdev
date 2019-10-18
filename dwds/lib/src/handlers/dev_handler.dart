@@ -115,7 +115,8 @@ class DevHandler {
       unawaited(tabConnection.close());
     }
     if (appTab == null) {
-      throw StateError('Could not connect to application with appInstanceId: '
+      throw AppConnectionException(
+          'Could not connect to application with appInstanceId: '
           '$appInstanceId');
     }
 
@@ -380,4 +381,9 @@ class DevHandler {
       });
     });
   }
+}
+
+class AppConnectionException implements Exception {
+  final String details;
+  AppConnectionException(this.details);
 }
