@@ -324,7 +324,7 @@ function($argsString) {
         .map((p) => p.value)
         .filter((l) => l && sdkUtils.isType(l));
       var classList = classes.map(function(clazz) {
-        var descriptor = {'name': clazz.name, 'dartName': dart.typeName(clazz)};
+        var descriptor = {'name': clazz.name, 'dartName': sdkUtils.typeName(clazz)};
 
         // TODO(jakemac): static methods once ddc supports them
         var methods = sdkUtils.getMethods(clazz);
