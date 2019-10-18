@@ -330,7 +330,7 @@ void main() {
         expect(rootLibrary, isNotNull);
         // TODO: library names change with kernel dart-lang/sdk#36736
         expect(rootLibrary.uri, endsWith('main.dart'));
-        expect(rootLibrary.classes.length, 1);
+        expect(rootLibrary.classes, hasLength(1));
         var testClass = rootLibrary.classes.first;
         expect(testClass.name, 'MyTestClass');
       });
@@ -392,7 +392,7 @@ void main() {
       var isolateId = vm.isolates.first.id;
       var scripts = await service.getScripts(isolateId);
       expect(scripts, isNotNull);
-      expect(scripts.scripts.length, greaterThan(0));
+      expect(scripts.scripts, hasLength(greaterThan(0)));
       // Test for a known script
       expect(scripts.scripts.map((s) => s.uri),
           contains('package:path/path.dart'));
@@ -433,7 +433,7 @@ void main() {
         var event = await stream
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
         var pauseBreakpoints = event.pauseBreakpoints;
-        expect(pauseBreakpoints.length, equals(1));
+        expect(pauseBreakpoints, hasLength(1));
         expect(pauseBreakpoints.first.id, bp.id);
         await service.removeBreakpoint(isolateId, bp.id);
       });
@@ -548,7 +548,7 @@ void main() {
       test('returns stack when broken', () async {
         var stack = await breakAt(63);
         expect(stack, isNotNull);
-        expect(stack.frames.length, 2);
+        expect(stack.frames, hasLength(2));
         var first = stack.frames.first;
         expect(first.kind, 'Regular');
         expect(first.code.kind, 'Dart');
@@ -558,14 +558,14 @@ void main() {
       test('stack has a variable', () async {
         var stack = await breakAt(49);
         expect(stack, isNotNull);
-        expect(stack.frames.length, 1);
+        expect(stack.frames, hasLength(1));
         var first = stack.frames.first;
         expect(first.kind, 'Regular');
         expect(first.code.kind, 'Dart');
         expect(first.code.name, '<closure>');
         // TODO: Make this more precise once this case doesn't
         // also include all the libraries.
-        expect(first.vars.length, greaterThanOrEqualTo(1));
+        expect(first.vars, hasLength(greaterThanOrEqualTo(1)));
         var underscore = first.vars.firstWhere((v) => v.name == '_');
         expect(underscore, isNotNull);
       });
@@ -585,7 +585,7 @@ void main() {
       var vm = await service.getVM();
       expect(vm.name, isNotNull);
       expect(vm.version, Platform.version);
-      expect(vm.isolates.length, equals(1));
+      expect(vm.isolates, hasLength(1));
       var isolate = vm.isolates.first;
       expect(isolate.id, isNotNull);
       expect(isolate.name, isNotNull);
