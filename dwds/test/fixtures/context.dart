@@ -15,6 +15,7 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -206,5 +207,25 @@ class TestContext {
       }
     }
     throw StateError('No extension installed.');
+  }
+
+  /// Finds the line number in [scriptRef] matching [breakpointId].
+  ///
+  /// A breakpoint ID is found by looking for a line that ends with a comment
+  /// of exactly this form: `// Breakpoint: <id>`.
+  ///
+  /// Throws if it can't find the matching line.
+  Future<int> findBreakpointLine(
+      String breakpointId, String isolateId, ScriptRef scriptRef) async {
+    var script = await debugConnection.vmService
+        .getObject(isolateId, scriptRef.id) as Script;
+    var lines = LineSplitter.split(script.source).toList();
+    var lineNumber =
+        lines.indexWhere((l) => l.endsWith('// Breakpoint: $breakpointId'));
+    if (lineNumber == -1) {
+      throw StateError('Unable to find breakpoint in ${scriptRef.uri} with id '
+          '$breakpointId');
+    }
+    return lineNumber + 1;
   }
 }
