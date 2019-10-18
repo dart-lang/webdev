@@ -432,7 +432,9 @@ void main() {
         var bp = await service.addBreakpoint(isolateId, mainScript.id, 49);
         var event = await stream
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
-        expect(event.pauseBreakpoints.length, greaterThan(0));
+        var pauseBreakpoints = event.pauseBreakpoints;
+        expect(pauseBreakpoints.length, equals(1));
+        expect(pauseBreakpoints.first.id, bp.id);
         await service.removeBreakpoint(isolateId, bp.id);
       });
 
