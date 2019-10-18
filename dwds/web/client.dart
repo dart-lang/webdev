@@ -180,7 +180,9 @@ external String get reloadConfiguration;
 /// We do this so that we don't see user exceptions bubble up in our own error
 /// handling zone.
 void runMain() {
-  document.body.append(ScriptElement()..innerHtml = r'window.$dartRunMain();');
+  var scriptElement = ScriptElement()..innerHtml = r'window.$dartRunMain();';
+  document.body.append(scriptElement);
+  Future.microtask(scriptElement.remove);
 }
 
 bool get _isChrome =>
