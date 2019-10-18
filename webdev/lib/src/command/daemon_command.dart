@@ -54,7 +54,7 @@ class DaemonCommand extends Command<int> {
     ..addMultiOption('launch-app', help: 'The html file to launch in chrome.');
 
   DaemonCommand() {
-    addSharedArgs(argParser);
+    addSharedArgs(argParser, releaseDefault: false);
   }
 
   @override
@@ -88,8 +88,11 @@ class DaemonCommand extends Command<int> {
       });
       daemon.registerDomain(daemonDomain);
       var configuration = Configuration.fromArgs(argResults,
-          defaultConfiguration:
-              Configuration(launchInChrome: true, debug: true, autoRun: false));
+          defaultConfiguration: Configuration(
+              launchInChrome: true,
+              debug: true,
+              autoRun: false,
+              release: false));
       // Globally trigger verbose logs.
       setVerbosity(configuration.verbose);
 

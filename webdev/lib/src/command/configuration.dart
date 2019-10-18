@@ -318,6 +318,7 @@ class Configuration {
         : defaultConfiguration.verbose;
 
     return Configuration(
+        autoRun: defaultConfiguration.autoRun,
         chromeDebugPort: chromeDebugPort,
         debugExtension: debugExtension,
         debug: debug,
