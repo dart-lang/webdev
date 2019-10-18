@@ -65,7 +65,7 @@ void main() {
     });
 
     test('variables in function', () async {
-      stack = await breakAt(25);
+      stack = await breakAt(26);
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
@@ -81,7 +81,7 @@ void main() {
     });
 
     test('variables in closure nested in method', () async {
-      stack = await breakAt(80);
+      stack = await breakAt(81);
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
@@ -90,7 +90,7 @@ void main() {
     });
 
     test('variables in method', () async {
-      stack = await breakAt(94);
+      stack = await breakAt(95);
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
@@ -98,7 +98,7 @@ void main() {
     });
 
     test('evaluateJsOnCallFrame', () async {
-      stack = await breakAt(25);
+      stack = await breakAt(26);
       var debugger = service.appInspectorProvider().debugger;
       var parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
       expect(parameter.value, matches(RegExp(r'\d+ world')));
