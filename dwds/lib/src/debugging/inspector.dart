@@ -372,7 +372,7 @@ function($argsString) {
     var classRefs = <ClassRef>[];
     for (var classDescriptor in classDescriptors) {
       var classMetaData = ClassMetaData(classDescriptor['name'] as String,
-          libraryRef.id, classDescriptor['dartName'] as String);
+          libraryRef.id, classDescriptor['dartName'] as String, null);
       var classRef = ClassRef(name: classMetaData.name, id: classMetaData.id);
       classRefs.add(classRef);
 
@@ -396,6 +396,7 @@ function($argsString) {
           descriptor['classRefName'] as String,
           descriptor['classRefLibraryId'] as String,
           descriptor['classRefDartName'] as String,
+          null
         );
         fieldRefs.add(FieldRef(
             name: name,

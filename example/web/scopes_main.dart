@@ -42,7 +42,9 @@ void main() async {
     var flirp = libraryPublic;
     print(flirp);
     flirp.add('abc');
-    var map = <String, int> {'a': 1, 'b': 2};
+    var map = {};
+    map['a'] = 1;
+    map['b'] = 2;
     print(map);
     print(flirp is List);
     print(flirp is List<String>);

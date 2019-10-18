@@ -47,3 +47,7 @@ dev_dependencies:
   test: ^1.6.0
   uuid: ^2.0.0
   webdriver: ^2.0.0
+
+dependency_overrides:
+  webkit_inspection_protocol:
+    path: /usr/local/google/home/alanknight/dart/webkit_inspection_protocol.dart

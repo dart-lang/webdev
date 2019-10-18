@@ -19,12 +19,15 @@ class ClassMetaData {
   // TODO(alanknight): Do we neeed this if we have dartName?
   final String name;
 
+  /// The length of the object, if applicable.
+  final int length;
+
   /// The dart type name for the object.
   ///
   /// For example, 'int', 'List<String>', 'Null'
   final String dartName;
   final String libraryId;
-  ClassMetaData(this.name, this.libraryId, this.dartName);
+  ClassMetaData(this.name, this.libraryId, this.dartName, this.length);
 
   /// Returns the ID of the class.
   ///
@@ -44,6 +47,7 @@ class ClassMetaData {
         var result = {};
         result['name'] = classObject.name;
         result['dartName'] = sdkUtils.typeName(classObject);
+        result['length'] = arg['length'];
         result['libraryId'] = sdkUtils.getLibraryUri(classObject);
         return result;
       }
@@ -52,8 +56,11 @@ class ClassMetaData {
           remoteObject, evalExpression, [remoteObject],
           returnByValue: true);
       var metadata = result.value as Map;
-      return ClassMetaData(metadata['name'] as String,
-          metadata['libraryId'] as String, metadata['dartName'] as String);
+      return ClassMetaData(
+          metadata['name'] as String,
+          metadata['libraryId'] as String,
+          metadata['dartName'] as String,
+          metadata['length'] as int);
     } on ChromeDebugException {
       return null;
     }
