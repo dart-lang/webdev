@@ -1,5 +1,11 @@
-## 2.5.3-dev
+## 2.5.3
 
+- Added a new `--launch-app` command line option.
+  - Expects a package relative path to an html file, such as `web/app.html`.
+  - Launches the specified application in chrome on startup instead of the
+    server root.
+  - Allows multiple apps, and will launch all of them.
+  - Supported for the `daemon` and `serve` commands.
 - Depend on the latest `package:dwds`.
 
 ## 2.5.2

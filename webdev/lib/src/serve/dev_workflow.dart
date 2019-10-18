@@ -10,6 +10,7 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:build_daemon/data/server_log.dart';
 import 'package:logging/logging.dart' as logging;
+import 'package:path/path.dart' as p;
 
 import '../command/configuration.dart';
 import '../daemon_client.dart';
@@ -41,14 +42,31 @@ Future<BuildDaemonClient> _startBuildDaemon(
   }
 }
 
+String _uriForLaunchApp(String launchApp, ServerManager serverManager) {
+  var parts = p.url.split(launchApp);
+  var dir = parts.first;
+  var server =
+      serverManager.servers.firstWhere((server) => server.target == dir);
+  return Uri(
+          scheme: 'http',
+          host: server.host,
+          port: server.port,
+          pathSegments: parts.skip(1))
+      .toString();
+}
+
 Future<Chrome> _startChrome(
   Configuration configuration,
   ServerManager serverManager,
   BuildDaemonClient client,
 ) async {
   var uris = [
-    for (var s in serverManager.servers)
-      Uri(scheme: 'http', host: s.host, port: s.port).toString()
+    if (configuration.launchApps.isEmpty)
+      for (var s in serverManager.servers)
+        Uri(scheme: 'http', host: s.host, port: s.port).toString()
+    else
+      for (var app in configuration.launchApps)
+        _uriForLaunchApp(app, serverManager)
   ];
   try {
     if (configuration.launchInChrome) {

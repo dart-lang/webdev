@@ -50,7 +50,9 @@ void main() {
       var refreshedScriptList = await service.getScripts(isolateId);
       var refreshedMain = refreshedScriptList.scripts
           .lastWhere((each) => each.uri.contains('main.dart'));
-      var bp = await service.addBreakpoint(isolateId, refreshedMain.id, 23);
+      var bpLine = await context.findBreakpointLine(
+          'printHelloWorld', isolateId, refreshedMain);
+      var bp = await service.addBreakpoint(isolateId, refreshedMain.id, bpLine);
       var isolate = await service.getIsolate(vm.isolates.first.id);
       expect(isolate.breakpoints, [bp]);
       expect(bp.id, isNotNull);
