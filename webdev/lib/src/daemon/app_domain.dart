@@ -10,6 +10,7 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:dwds/dwds.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:webdev/src/serve/webdev_server.dart';
 
 import '../serve/server_manager.dart';
 import 'daemon.dart';
@@ -18,38 +19,32 @@ import 'utilites.dart';
 
 /// A collection of method and events relevant to the running application.
 class AppDomain extends Domain {
-  String _appId;
-
-  VmService get _vmService => _debugConnection?.vmService;
-
-  DebugConnection _debugConnection;
-
-  StreamSubscription<BuildResult> _resultSub;
-  StreamSubscription<Event> _stdOutSub;
   bool _isShutdown = false;
   int _buildProgressEventId;
   var _progressEventId = 0;
 
-  void _handleBuildResult(BuildResult result) {
+  final _appStates = <String, _AppState>{};
+
+  void _handleBuildResult(BuildResult result, String appId) {
     switch (result.status) {
       case BuildStatus.started:
         _buildProgressEventId = _progressEventId++;
         sendEvent('app.progress', {
-          'appId': _appId,
+          'appId': appId,
           'id': '$_buildProgressEventId',
           'message': 'Building...',
         });
         break;
       case BuildStatus.failed:
         sendEvent('app.progress', {
-          'appId': _appId,
+          'appId': appId,
           'id': '$_buildProgressEventId',
           'finished': true,
         });
         break;
       case BuildStatus.succeeded:
         sendEvent('app.progress', {
-          'appId': _appId,
+          'appId': appId,
           'id': '$_buildProgressEventId',
           'finished': true,
         });
@@ -57,55 +52,68 @@ class AppDomain extends Domain {
     }
   }
 
-  void _initialize(ServerManager serverManager) async {
-    var server = serverManager.servers.first;
+  void _initialize(ServerManager serverManager) {
+    serverManager.servers.forEach(_handleAppConnections);
+  }
+
+  void _handleAppConnections(WebDevServer server) async {
     var dwds = server.dwds;
     // The connection is established right before `main()` is called.
     await for (var appConnection in dwds.connectedApps) {
-      await _stdOutSub?.cancel();
-      await _resultSub?.cancel();
-      _debugConnection = await dwds.debugConnection(appConnection);
-      _appId = appConnection.request.appId;
-      unawaited(_debugConnection.onDone.then((_) {
+      var debugConnection = await dwds.debugConnection(appConnection);
+      var vmService = debugConnection.vmService;
+      var appId = appConnection.request.appId;
+      unawaited(debugConnection.onDone.then((_) {
         sendEvent('app.log', {
-          'appId': _appId,
+          'appId': appId,
           'log': 'Lost connection to device.',
         });
         sendEvent('app.stop', {
-          'appId': _appId,
+          'appId': appId,
         });
         daemon.shutdown();
       }));
       sendEvent('app.start', {
-        'appId': _appId,
+        'appId': appId,
         'directory': Directory.current.path,
         'deviceId': 'chrome',
         'launchMode': 'run'
       });
       sendEvent('app.started', {
-        'appId': _appId,
+        'appId': appId,
       });
       // TODO(grouma) - limit the catch to the appropriate error.
       try {
-        await _vmService.streamCancel('Stdout');
+        await vmService.streamCancel('Stdout');
       } catch (_) {}
       try {
-        await _vmService.streamListen('Stdout');
+        await vmService.streamListen('Stdout');
       } catch (_) {}
-      _stdOutSub = _vmService.onStdoutEvent.listen((log) {
+      // ignore: cancel_subscriptions
+      var stdOutSub = vmService.onStdoutEvent.listen((log) {
         sendEvent('app.log', {
-          'appId': _appId,
+          'appId': appId,
           'log': utf8.decode(base64.decode(log.bytes)),
         });
       });
       sendEvent('app.debugPort', {
-        'appId': _appId,
-        'port': _debugConnection.port,
-        'wsUri': _debugConnection.uri,
+        'appId': appId,
+        'port': debugConnection.port,
+        'wsUri': debugConnection.uri,
       });
-      _resultSub = server.buildResults.listen(_handleBuildResult);
+      // ignore: cancel_subscriptions
+      var resultSub =
+          server.buildResults.listen((r) => _handleBuildResult(r, appId));
+
+      var appState = _AppState(debugConnection, resultSub, stdOutSub);
+      _appStates[appId] = appState;
 
       appConnection.runMain();
+
+      unawaited(debugConnection.onDone.whenComplete(() {
+        appState.dispose();
+        _appStates.remove(appId);
+      }));
     }
 
     // Shutdown could have been triggered while awaiting above.
@@ -123,19 +131,25 @@ class AppDomain extends Domain {
   Future<Map<String, dynamic>> _callServiceExtension(
       Map<String, dynamic> args) async {
     var appId = getStringArg(args, 'appId', required: true);
-    if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
+    var appState = _appStates[appId];
+    if (appState == null) {
+      throw ArgumentError.value(appId, 'appId', 'Not found');
+    }
     var methodName = getStringArg(args, 'methodName', required: true);
     var params = args['params'] != null
         ? (args['params'] as Map<String, dynamic>)
         : <String, dynamic>{};
     var response =
-        await _vmService.callServiceExtension(methodName, args: params);
+        await appState.vmService.callServiceExtension(methodName, args: params);
     return response.json;
   }
 
   Future<Map<String, dynamic>> _restart(Map<String, dynamic> args) async {
     var appId = getStringArg(args, 'appId', required: true);
-    if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
+    var appState = _appStates[appId];
+    if (appState == null) {
+      throw ArgumentError.value(appId, 'appId', 'Not found');
+    }
     var fullRestart = getBoolArg(args, 'fullRestart') ?? false;
     if (!fullRestart) {
       return {
@@ -148,20 +162,20 @@ class AppDomain extends Domain {
     var stopwatch = Stopwatch()..start();
     _progressEventId++;
     sendEvent('app.progress', {
-      'appId': _appId,
+      'appId': appId,
       'id': '$_progressEventId',
       'message': 'Performing hot restart...',
       'progressId': 'hot.restart',
     });
-    var response = await _vmService.callServiceExtension('hotRestart');
+    var response = await appState.vmService.callServiceExtension('hotRestart');
     sendEvent('app.progress', {
-      'appId': _appId,
+      'appId': appId,
       'id': '$_progressEventId',
       'finished': true,
       'progressId': 'hot.restart',
     });
     sendEvent('app.log', {
-      'appId': _appId,
+      'appId': appId,
       'log': 'Restarted application in ${stopwatch.elapsedMilliseconds}ms'
     });
     return {
@@ -172,10 +186,13 @@ class AppDomain extends Domain {
 
   Future<bool> _stop(Map<String, dynamic> args) async {
     var appId = getStringArg(args, 'appId', required: true);
-    if (_appId != appId) throw ArgumentError.value(appId, 'appId', 'Not found');
+    var appState = _appStates[appId];
+    if (appState == null) {
+      throw ArgumentError.value(appId, 'appId', 'Not found');
+    }
     // Note that this triggers the daemon to shutdown as we listen for the
     // tabConnection to close to initiate a shutdown.
-    await _debugConnection?.close();
+    await appState._debugConnection?.close();
     // Wait for the daemon to gracefully shutdown before sending success.
     await daemon.onExit;
     return true;
@@ -184,6 +201,27 @@ class AppDomain extends Domain {
   @override
   void dispose() {
     _isShutdown = true;
+    for (var state in _appStates.values) {
+      state.dispose();
+    }
+    _appStates.clear();
+  }
+}
+
+class _AppState {
+  final DebugConnection _debugConnection;
+  final StreamSubscription<BuildResult> _resultSub;
+  final StreamSubscription<Event> _stdOutSub;
+
+  bool _isDisposed = false;
+
+  VmService get vmService => _debugConnection?.vmService;
+
+  _AppState(this._debugConnection, this._resultSub, this._stdOutSub);
+
+  void dispose() {
+    if (_isDisposed) return;
+    _isDisposed = true;
     _stdOutSub?.cancel();
     _resultSub?.cancel();
     _debugConnection?.close();
