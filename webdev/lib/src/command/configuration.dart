@@ -270,7 +270,10 @@ class Configuration {
         ? argResults[tlsCertKeyFlag] as String
         : defaultConfiguration.tlsCertKey;
 
-    var launchApps = argResults[launchAppOption] as List<String> ?? <String>[];
+    var launchApps = argResults.options.contains(launchAppOption) &&
+            argResults.wasParsed(launchAppOption)
+        ? argResults[launchAppOption] as List<String>
+        : defaultConfiguration.launchApps;
 
     var launchInChrome = argResults.options.contains(launchInChromeFlag) &&
             argResults.wasParsed(launchInChromeFlag)
