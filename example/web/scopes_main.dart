@@ -16,6 +16,7 @@ var libraryPublic = ['library', 'public', 'variable'];
 var _libraryPrivate = ['library', 'private', 'variable'];
 
 void main() async {
+  print('Initial print from scopes app');
   var local = 'local in main';
   var intLocalInMain = 42;
   var testClass = MyTestClass();
