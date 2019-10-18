@@ -58,6 +58,11 @@ void main() {
         expect(bp.id, isNotNull);
       });
 
+      test('addBreakpoint in nonsense location throws', () async {
+        expect(service.addBreakpoint(isolate.id, mainScript.id, 200000),
+            throwsA(predicate((e) => e is RPCError && e.code == 102)));
+      });
+
       test('addBreakpoint on a part file', () async {
         var partScript = scripts.scripts
             .firstWhere((script) => script.uri.contains('part.dart'));
