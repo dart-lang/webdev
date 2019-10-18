@@ -19,6 +19,7 @@ const tlsCertChainFlag = 'tls-cert-chain';
 const tlsCertKeyFlag = 'tls-cert-key';
 const hotReloadFlag = 'hot-reload';
 const hotRestartFlag = 'hot-restart';
+const launchAppOption = 'launch-app';
 const launchInChromeFlag = 'launch-in-chrome';
 const liveReloadFlag = 'live-reload';
 const logRequestsFlag = 'log-requests';
@@ -81,6 +82,7 @@ class Configuration {
   final String _hostname;
   final String _tlsCertChain;
   final String _tlsCertKey;
+  final List<String> _launchApps;
   final bool _launchInChrome;
   final bool _logRequests;
   final String _output;
@@ -100,6 +102,7 @@ class Configuration {
     String hostname,
     String tlsCertChain,
     String tlsCertKey,
+    List<String> launchApps,
     bool launchInChrome,
     bool logRequests,
     String output,
@@ -117,6 +120,7 @@ class Configuration {
         _hostname = hostname,
         _tlsCertChain = tlsCertChain,
         _tlsCertKey = tlsCertKey,
+        _launchApps = launchApps,
         _launchInChrome = launchInChrome,
         _logRequests = logRequests,
         _output = output,
@@ -157,7 +161,34 @@ class Configuration {
             'with --no-$enableInjectedClientFlag');
       }
     }
+
+    if (launchApps.isNotEmpty && !launchInChrome) {
+      throw InvalidConfiguration(
+          '--$launchAppOption can only be used with --$launchInChromeFlag');
+    }
   }
+
+  /// Creates a new [Configuration] with all non-null fields from
+  /// [other] overriding the values of `this`.
+  Configuration _override(Configuration other) => Configuration(
+      autoRun: other._autoRun ?? _autoRun,
+      chromeDebugPort: other._chromeDebugPort ?? _chromeDebugPort,
+      debugExtension: other._debugExtension ?? _debugExtension,
+      debug: other._debug ?? _debug,
+      enableInjectedClient:
+          other._enableInjectedClient ?? _enableInjectedClient,
+      hostname: other._hostname ?? _hostname,
+      tlsCertChain: other._tlsCertChain ?? _tlsCertChain,
+      tlsCertKey: other._tlsCertKey ?? _tlsCertKey,
+      launchApps: other._launchApps ?? _launchApps,
+      launchInChrome: other._launchInChrome ?? _launchInChrome,
+      logRequests: other._logRequests ?? _logRequests,
+      output: other._output ?? _output,
+      release: other._release ?? _release,
+      reload: other._reload ?? _reload,
+      requireBuildWebCompilers:
+          other._requireBuildWebCompilers ?? _requireBuildWebCompilers,
+      verbose: other._verbose ?? _verbose);
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
@@ -179,6 +210,8 @@ class Configuration {
 
   String get tlsCertKey => _tlsCertKey;
 
+  List<String> get launchApps => _launchApps ?? [];
+
   bool get launchInChrome => _launchInChrome ?? false;
 
   bool get logRequests => _logRequests ?? false;
@@ -194,8 +227,9 @@ class Configuration {
   bool get verbose => _verbose ?? false;
 
   /// Returns a new configuration with values updated from the parsed args.
-  static Configuration fromArgs(ArgResults argResults) {
-    var defaultConfiguration = Configuration();
+  static Configuration fromArgs(ArgResults argResults,
+      {Configuration defaultConfiguration}) {
+    defaultConfiguration ??= Configuration();
     if (argResults == null) return defaultConfiguration;
 
     var enableInjectedClient =
@@ -208,7 +242,8 @@ class Configuration {
     //
     // After parsing we check these defaults weren't overridden as well.
     if (!enableInjectedClient) {
-      defaultConfiguration = Configuration.noInjectedClientDefaults();
+      defaultConfiguration = defaultConfiguration
+          ._override(Configuration.noInjectedClientDefaults());
     }
 
     var chromeDebugPort = argResults.options.contains(chromeDebugPortFlag)
@@ -235,12 +270,19 @@ class Configuration {
         ? argResults[tlsCertKeyFlag] as String
         : defaultConfiguration.tlsCertKey;
 
+    var launchApps = argResults.options.contains(launchAppOption) &&
+            argResults.wasParsed(launchAppOption)
+        ? argResults[launchAppOption] as List<String>
+        : defaultConfiguration.launchApps;
+
     var launchInChrome = argResults.options.contains(launchInChromeFlag) &&
             argResults.wasParsed(launchInChromeFlag)
         ? argResults[launchInChromeFlag] as bool
         // We want to default to launch chrome if the user provides just --debug
         // and not --chrome-debug-port.
-        : debug && !argResults.wasParsed(chromeDebugPortFlag)
+        : debug &&
+                !(argResults.options.contains(launchInChromeFlag) &&
+                    argResults.wasParsed(chromeDebugPortFlag))
             ? true
             : defaultConfiguration.launchInChrome;
 
@@ -279,6 +321,7 @@ class Configuration {
         : defaultConfiguration.verbose;
 
     return Configuration(
+        autoRun: defaultConfiguration.autoRun,
         chromeDebugPort: chromeDebugPort,
         debugExtension: debugExtension,
         debug: debug,
@@ -286,6 +329,7 @@ class Configuration {
         hostname: hostname,
         tlsCertChain: tlsCertChain,
         tlsCertKey: tlsCertKey,
+        launchApps: launchApps,
         launchInChrome: launchInChrome,
         logRequests: logRequests,
         output: output,

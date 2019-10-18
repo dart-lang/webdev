@@ -20,7 +20,7 @@ void main() async {
   // Long running so that we can test the pause / resume behavior.
   Timer.periodic(const Duration(seconds: 1), (_) {});
 
-  print(p.join('Hello', 'World'));
+  print(p.join('Hello', 'World')); // Breakpoint: printHelloWorld
 
   context['inspectInstance'] = () {
     inspect(myInstance);

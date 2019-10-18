@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -29,8 +32,16 @@ void main() {
       var isolate = await service.getIsolate(vm.isolates.first.id);
       expect(isolate.pauseEvent.kind, EventKind.kPauseStart);
       var stream = service.onEvent('Debug');
+      var resumeCompleter = Completer();
+      // The underlying stream is a broadcast stream so we need to add a
+      // listener before calling resume so that we don't miss events.
+      unawaited(stream
+          .firstWhere((event) => event.kind == EventKind.kResume)
+          .then((_) {
+        resumeCompleter.complete();
+      }));
       await service.resume(isolate.id);
-      await stream.firstWhere((event) => event.kind == EventKind.kResume);
+      await resumeCompleter.future;
       expect(isolate.pauseEvent.kind, EventKind.kResume);
     });
 

@@ -58,6 +58,11 @@ void main() {
         expect(bp.id, isNotNull);
       });
 
+      test('addBreakpoint in nonsense location throws', () async {
+        expect(service.addBreakpoint(isolate.id, mainScript.id, 200000),
+            throwsA(predicate((e) => e is RPCError && e.code == 102)));
+      });
+
       test('addBreakpoint on a part file', () async {
         var partScript = scripts.scripts
             .firstWhere((script) => script.uri.contains('part.dart'));
@@ -407,6 +412,38 @@ void main() {
           () => service.getSourceReport(null, null), throwsUnimplementedError);
     });
 
+    group('Pausing', () {
+      String isolateId;
+      Stream<Event> stream;
+      ScriptList scripts;
+      ScriptRef mainScript;
+
+      setUp(() async {
+        var vm = await service.getVM();
+        isolateId = vm.isolates.first.id;
+        scripts = await service.getScripts(isolateId);
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
+        mainScript = scripts.scripts
+            .firstWhere((script) => script.uri.contains('main.dart'));
+      });
+
+      test('at breakpoints sets pauseBreakPoints', () async {
+        var bp = await service.addBreakpoint(isolateId, mainScript.id, 49);
+        var event = await stream
+            .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+        var pauseBreakpoints = event.pauseBreakpoints;
+        expect(pauseBreakpoints.length, equals(1));
+        expect(pauseBreakpoints.first.id, bp.id);
+        await service.removeBreakpoint(isolateId, bp.id);
+      });
+
+      tearDown(() async {
+        // Resume execution to not impact other tests.
+        await service.resume(isolateId);
+      });
+    });
+
     group('Step', () {
       String isolateId;
       Stream<Event> stream;
@@ -491,7 +528,7 @@ void main() {
 
       test('returns null if not paused', () async {
         expect(await service.getStack(isolateId), isNull);
-      });
+      }, onPlatform: {'windows': const Skip('issues/721')});
 
       /// Support function for pausing and returning the stack at a line.
       Future<Stack> breakAt(int lineNumber) async {

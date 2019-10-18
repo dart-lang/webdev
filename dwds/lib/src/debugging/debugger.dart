@@ -207,7 +207,15 @@ class Debugger extends Domain {
     var dartUri = DartUri(dartScript.uri, _root);
     var location = _locationForDart(dartUri, line);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
-    if (location == null) return null;
+    if (location == null) {
+      // ignore: only_throw_errors
+      throw RPCError(
+          'addBreakpoint',
+          102,
+          'The VM is unable to add a breakpoint '
+              'at the specified line or function');
+    }
+
     var jsBreakpointId = await _setBreakpoint(location);
     var dartBreakpoint = _dartBreakpoint(dartScript, location);
     _breakpoints.noteBreakpoint(js: jsBreakpointId, bp: dartBreakpoint);
@@ -417,12 +425,22 @@ class Debugger extends Domain {
     Event event;
     var timestamp = DateTime.now().millisecondsSinceEpoch;
     var params = e.params;
-    var breakpoints = params['hitBreakpoints'] as List;
-    if (breakpoints.isNotEmpty) {
+    var jsBreakpointIds = (params['hitBreakpoints'] as List).toSet();
+    if (jsBreakpointIds.isNotEmpty) {
+      var breakpointIds = jsBreakpointIds
+          .map((id) => _breakpoints._byJsId[id])
+          // In case the breakpoint was set in Chrome DevTools outside of
+          // package:dwds.
+          .where((entry) => entry != null)
+          .toSet();
+      var pauseBreakpoints = isolate.breakpoints
+          .where((bp) => breakpointIds.contains(bp.id))
+          .toList();
       event = Event(
           kind: EventKind.kPauseBreakpoint,
           timestamp: timestamp,
-          isolate: inspector.isolateRef);
+          isolate: inspector.isolateRef)
+        ..pauseBreakpoints = pauseBreakpoints;
     } else if (e.reason == 'exception' || e.reason == 'assert') {
       event = Event(
           kind: EventKind.kPauseException,

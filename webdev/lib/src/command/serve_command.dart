@@ -3,41 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:logging/logging.dart' as logging;
 
 import '../logging.dart';
 import '../serve/dev_workflow.dart';
 import 'configuration.dart';
 import 'shared.dart';
-
-final _defaultWebDirs = const ['web'];
-
-Map<String, int> _parseDirectoryArgs(List<String> args) {
-  var result = <String, int>{};
-  var basePort = 8080;
-  if (args.isEmpty) {
-    for (var dir in _defaultWebDirs) {
-      if (Directory(dir).existsSync()) {
-        result[dir] = basePort++;
-      }
-    }
-  } else {
-    for (var arg in args) {
-      var splitOption = arg.split(':');
-      ensureIsTopLevelDir(splitOption.first);
-      if (splitOption.length == 2) {
-        result[splitOption.first] = int.parse(splitOption.last);
-      } else {
-        result[arg] = basePort++;
-      }
-    }
-  }
-  return result;
-}
 
 /// Command to run a server for local web development with the build daemon.
 class ServeCommand extends Command<int> {
@@ -121,18 +94,8 @@ refresh: Performs a full page refresh.
       ..addAll(argResults.rest.where((arg) => arg.startsWith('-')).toList());
     var directoryArgs =
         argResults.rest.where((arg) => !arg.startsWith('-')).toList();
-    var targetPorts = _parseDirectoryArgs(directoryArgs);
-
-    if (targetPorts.isEmpty) {
-      logWriter(logging.Level.SEVERE, '''
-Unable to detect a default directory to serve, by default $_defaultWebDirs is
-supported.
-
-You can specify a custom directory to serve by providing trailing arguments
-in the `<directory>:<port>` format, such as `webdev serve test:8080`.
-''');
-      return 1;
-    }
+    var targetPorts = parseDirectoryArgs(directoryArgs);
+    validateLaunchApps(configuration.launchApps, targetPorts.keys);
 
     var workflow =
         await DevWorkflow.start(configuration, buildOptions, targetPorts);

@@ -82,3 +82,54 @@ void ensureIsTopLevelDir(String path) {
         '(such as `web` or `test`), but was given `$path`.');
   }
 }
+
+final _defaultWebDirs = const ['web'];
+
+/// Parses trailing arguments in `<dir>:<port>` format into a map of
+/// directories to ports they are being served on.
+///
+/// Throws an [InvalidConfiguration] exception if it can't find at
+/// least one directory.
+Map<String, int> parseDirectoryArgs(List<String> args, {int basePort}) {
+  var result = <String, int>{};
+  basePort ??= 8080;
+  if (args.isEmpty) {
+    for (var dir in _defaultWebDirs) {
+      if (Directory(dir).existsSync()) {
+        result[dir] = basePort++;
+      }
+    }
+  } else {
+    for (var arg in args) {
+      var splitOption = arg.split(':');
+      ensureIsTopLevelDir(splitOption.first);
+      if (splitOption.length == 2) {
+        result[splitOption.first] = int.parse(splitOption.last);
+      } else {
+        result[arg] = basePort++;
+      }
+    }
+  }
+  if (result.isEmpty) {
+    throw InvalidConfiguration('''
+Unable to detect a default directory to serve, by default $_defaultWebDirs is
+supported.
+
+You can specify a custom directory to serve by providing trailing arguments
+in the `<directory>:<port>` format, such as `webdev serve test:8080`.
+''');
+  }
+  return result;
+}
+
+void validateLaunchApps(List<String> launchApps, Iterable<String> serveDirs) {
+  for (var app in launchApps) {
+    var dir = p.url.split(app).first;
+    if (!serveDirs.contains(dir)) {
+      throw InvalidConfiguration(
+          'Unable to launch app `$app` since its top level dir (`$dir`) '
+          'is not being served. The currently directories being served are: '
+          '${serveDirs.toList()}');
+    }
+  }
+}

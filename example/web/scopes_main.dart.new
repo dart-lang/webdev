@@ -16,6 +16,7 @@ var libraryPublic = ['library', 'public', 'variable'];
 var _libraryPrivate = ['library', 'private', 'variable'];
 
 void main() async {
+  print('Initial print from scopes app');
   var local = 'local in main';
   var intLocalInMain = 42;
   var testClass = MyTestClass();
@@ -23,7 +24,7 @@ void main() async {
 
   String nestedFunction(String parameter) {
     var another = int.tryParse(parameter);
-    return '$local: parameter, $another';
+    return '$local: parameter, $another'; // Breakpoint: nestedFunction
   }
 
   dynamic nestedWithClosure(String banana) {
@@ -77,7 +78,7 @@ class MyTestClass {
       // Be sure to use a field from this, so it isn't entirely optimized away.
       var closureLocalInsideMethod = '$message/$local/$parameter';
       print(closureLocalInsideMethod);
-      return closureLocalInsideMethod;
+      return closureLocalInsideMethod; // Breakpoint: nestedClosure
     };
   }
 
@@ -91,7 +92,7 @@ class MyTestClass {
   // An easy location to add a breakpoint.
   void printCount() {
     print('The count is ${++count}');
-    libraryFunction('abc');
+    libraryFunction('abc'); // Breakpoint: printMethod
   }
 
   final _privateField = 'a private field';

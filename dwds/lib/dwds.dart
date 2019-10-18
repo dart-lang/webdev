@@ -21,6 +21,7 @@ import 'src/servers/extension_backend.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
+export 'src/handlers/dev_handler.dart' show AppConnectionException;
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 
 typedef LogWriter = void Function(Level, String);
@@ -50,6 +51,7 @@ class Dwds {
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
     if (!_enableDebugging) throw StateError('Debugging is not enabled.');
     var appDebugServices = await _devHandler.loadAppServices(appConnection);
+    await appDebugServices.chromeProxyService.isInitialized;
     return DebugConnection(appDebugServices);
   }
 

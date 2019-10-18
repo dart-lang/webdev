@@ -1,7 +1,11 @@
 ## 0.7.5-dev
 
+- The injected client's connection is now based off the request URI.
 - Fix an issue where resuming while paused at the start would cause an error.
 - Expose the `ChromeDebugException` class for error handling purposes.
+- Expose the `AppConnectionException` class for error handling purposes.
+- DevTools will now launch immediately and lazily sets up necessary state.
+- Properly set `pauseBreakpoints` on `kPauseBreakpoint` events.
 
 ## 0.7.4
 

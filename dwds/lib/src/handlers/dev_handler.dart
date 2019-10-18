@@ -10,7 +10,6 @@ import 'package:build_daemon/data/serializers.dart' as build_daemon;
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:logging/logging.dart';
@@ -116,7 +115,8 @@ class DevHandler {
       unawaited(tabConnection.close());
     }
     if (appTab == null) {
-      throw StateError('Could not connect to application with appInstanceId: '
+      throw AppConnectionException(
+          'Could not connect to application with appInstanceId: '
           '$appInstanceId');
     }
 
@@ -148,9 +148,6 @@ class DevHandler {
             await startDebugService(await _chromeConnection(), appConnection);
         var appServices = await _createAppDebugServices(
             appConnection.request.appId, debugService);
-        if (appConnection.isStarted) {
-          await appServices.chromeProxyService.resumeFromStart();
-        }
         unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
             .whenComplete(() {
           appServices.close();
@@ -187,8 +184,6 @@ class DevHandler {
             await _handleIsolateExit(appConnection);
           } else if (message is IsolateStart) {
             await _handleIsolateStart(appConnection, injectedConnection);
-          } else if (message is RunResponse) {
-            await _handleRunResponse(appConnection);
           }
         }
       } catch (e, s) {
@@ -262,15 +257,6 @@ class DevHandler {
       return;
     }
 
-    // If you load the same app in a different tab then we need to throw
-    // away our old services and start new ones.
-    if (!(await _isCorrectTab(appConnection.request.instanceId,
-        appServices.chromeProxyService.remoteDebugger))) {
-      unawaited(appServices.close());
-      unawaited(_servicesByAppId.remove(appConnection.request.appId));
-      appServices = await loadAppServices(appConnection);
-    }
-
     sseConnection.sink.add(jsonEncode(
         serializers.serialize(DevToolsResponse((b) => b..success = true))));
 
@@ -293,13 +279,9 @@ class DevHandler {
     var services = await _servicesByAppId[message.appId];
     var connection = AppConnection(message, sseConnection);
     if (services != null && services.connectedInstanceId == null) {
-      // Re-connect to the previous instance if its in the same tab,
-      // otherwise do nothing for now.
-      if (await _isCorrectTab(
-          message.instanceId, services.chromeProxyService.remoteDebugger)) {
-        services.connectedInstanceId = message.instanceId;
-        await services.chromeProxyService.createIsolate(connection);
-      }
+      // Reconnect to existing service.
+      services.connectedInstanceId = message.instanceId;
+      await services.chromeProxyService.createIsolate(connection);
     }
     _appConnectionByAppId[message.appId] = connection;
     _connectedApps.add(connection);
@@ -320,12 +302,6 @@ class DevHandler {
     // [IsolateStart] events are the result of a Hot Restart.
     // Run the application after the Isolate has been created.
     sseConnection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
-  }
-
-  Future<void> _handleRunResponse(AppConnection appConnection) async {
-    await (await _servicesByAppId[appConnection.request.appId])
-        ?.chromeProxyService
-        ?.resumeFromStart();
   }
 
   void _listen() async {
@@ -407,9 +383,7 @@ class DevHandler {
   }
 }
 
-/// Checks if connection of [remoteDebugger] is running the app with [instanceId].
-Future<bool> _isCorrectTab(
-    String instanceId, RemoteDebugger remoteDebugger) async {
-  var result = await remoteDebugger.evaluate(r'window["$dartAppInstanceId"];');
-  return result.value == instanceId;
+class AppConnectionException implements Exception {
+  final String details;
+  AppConnectionException(this.details);
 }

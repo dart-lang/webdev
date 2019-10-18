@@ -10,7 +10,7 @@ void main() {
   var count = 0;
   // For setting breakpoints.
   Timer.periodic(const Duration(seconds: 1), (_) {
-    print('Count is: ${++count}');
+    print('Count is: ${++count}'); // Breakpoint: printCount
   });
 
   document.body.appendText('Hello World!');
