@@ -20,7 +20,6 @@ part 'serializers.g.dart';
   DevToolsResponse,
   ConnectRequest,
   RunRequest,
-  RunResponse,
   DefaultBuildResult,
   IsolateExit,
   IsolateStart,
