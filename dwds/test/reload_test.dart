@@ -143,7 +143,9 @@ void main() {
       var scriptList = await client.getScripts(isolateId);
       var main = scriptList.scripts
           .firstWhere((script) => script.uri.contains('main.dart'));
-      await client.addBreakpoint(isolateId, main.id, 13);
+      var bpLine =
+          await context.findBreakpointLine('printCount', isolateId, main);
+      await client.addBreakpoint(isolateId, main.id, bpLine);
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 

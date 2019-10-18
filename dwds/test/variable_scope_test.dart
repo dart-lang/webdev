@@ -38,9 +38,11 @@ void main() {
     // things that aren't in recurring loops.
 
     /// Support function for pausing and returning the stack at a line.
-    Future<Stack> breakAt(int lineNumber) async {
-      var bp =
-          await service.addBreakpoint(isolateId, mainScript.id, lineNumber);
+    Future<Stack> breakAt(String breakpointId, ScriptRef scriptRef) async {
+      var lineNumber =
+          await context.findBreakpointLine(breakpointId, isolateId, scriptRef);
+
+      var bp = await service.addBreakpoint(isolateId, scriptRef.id, lineNumber);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -65,7 +67,7 @@ void main() {
     });
 
     test('variables in function', () async {
-      stack = await breakAt(26);
+      stack = await breakAt('nestedFunction', mainScript);
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
@@ -81,7 +83,7 @@ void main() {
     });
 
     test('variables in closure nested in method', () async {
-      stack = await breakAt(81);
+      stack = await breakAt('nestedClosure', mainScript);
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
@@ -90,7 +92,7 @@ void main() {
     });
 
     test('variables in method', () async {
-      stack = await breakAt(95);
+      stack = await breakAt('printMethod', mainScript);
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
@@ -98,7 +100,7 @@ void main() {
     });
 
     test('evaluateJsOnCallFrame', () async {
-      stack = await breakAt(26);
+      stack = await breakAt('nestedFunction', mainScript);
       var debugger = service.appInspectorProvider().debugger;
       var parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
       expect(parameter.value, matches(RegExp(r'\d+ world')));
