@@ -491,7 +491,8 @@ void main() {
 
       test('returns null if not paused', () async {
         expect(await service.getStack(isolateId), isNull);
-      });
+        // TODO(issues/721) - Remove.
+      }, skip: Platform.isWindows);
 
       /// Support function for pausing and returning the stack at a line.
       Future<Stack> breakAt(int lineNumber) async {
