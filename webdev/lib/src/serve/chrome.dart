@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:browser_launcher/browser_launcher.dart' as browser_launcher;
+import 'package:path/path.dart' as path;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 var _currentCompleter = Completer<Chrome>();
@@ -35,8 +37,10 @@ class Chrome {
   ///
   /// Each url in [urls] will be loaded in a separate tab.
   static Future<Chrome> start(List<String> urls, {int port}) async {
-    var chrome =
-        await browser_launcher.Chrome.startWithDebugPort(urls, debugPort: port);
+    var chrome = await browser_launcher.Chrome.startWithDebugPort(urls,
+        debugPort: port,
+        userDataDir: path.join(Directory.current.absolute.toString(),
+            '.dart_tool', 'chrome_user_data'));
     return _connect(Chrome._(chrome.debugPort, chrome));
   }
 
