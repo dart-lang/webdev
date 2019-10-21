@@ -50,7 +50,14 @@ void main() {
         throwsA(isA<InvalidConfiguration>()));
   });
 
-  test('only top level directories are allowed for outputInput', () {
+  test(
+      'only top level directories or an empty target are allowed for '
+      'outputInput', () {
+    // Valid
+    expect(() => Configuration(outputInput: ''), returnsNormally);
+    expect(() => Configuration(outputInput: 'foo/'), returnsNormally);
+
+    // Invalid
     expect(() => Configuration(outputInput: '.'),
         throwsA(isA<InvalidConfiguration>()));
     expect(() => Configuration(outputInput: '../'),
