@@ -1,3 +1,7 @@
+## 2.5.4-dev
+
+- Fix support for `--output=NONE` when building.
+
 ## 2.5.3
 
 - Added a new `--launch-app` command line option.

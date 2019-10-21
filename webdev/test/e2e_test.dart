@@ -106,6 +106,26 @@ void main() {
     }
   });
 
+  group('should build with --output=NONE', () {
+    for (var withDDC in [true, false]) {
+      test(withDDC ? 'DDC' : 'dart2js', () async {
+        var args = ['build', '--output=NONE'];
+        if (withDDC) {
+          args.add('--no-release');
+        }
+
+        var process = await runWebDev(args, workingDirectory: exampleDirectory);
+
+        var expectedItems = <Object>['Succeeded'];
+
+        await checkProcessStdout(process, expectedItems);
+        await process.shouldExit(0);
+
+        await d.nothing('build').validate(exampleDirectory);
+      });
+    }
+  });
+
   group('should serve with valid configuration', () {
     for (var withDDC in [true, false]) {
       var type = withDDC ? 'DDC' : 'dart2js';
