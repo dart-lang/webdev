@@ -568,8 +568,8 @@ $loadModule("dart_sdk").developer.invokeExtension(
           // All inspected objects should be real objects.
           if (event.args[1].type != 'object') break;
 
-          var inspectee =
-              await _inspector.instanceHelper.instanceRefForRemote(event.args[1]);
+          var inspectee = await _inspector.instanceHelper
+              .instanceRefForRemote(event.args[1]);
           _streamNotify(
               'Debug',
               Event(

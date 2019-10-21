@@ -42,10 +42,11 @@ class ClassMetaData {
     try {
       var evalExpression = '''
       function(arg) {
-        var sdkUtils = $loadModule('dart_sdk').dart;
-        var classObject = sdkUtils.getReifiedType(arg);
-        var result = {};
-        result['name'] = classObject.name;
+        const sdkUtils = $loadModule('dart_sdk').dart;
+        const classObject = sdkUtils.getReifiedType(arg);
+        const isFunction = sdkUtils.AbstractFunctionType.is(classObject);
+        const result = {};
+        result['name'] = isFunction ? 'Function' : classObject.name;        
         result['dartName'] = sdkUtils.typeName(classObject);
         result['length'] = arg['length'];
         result['libraryId'] = sdkUtils.getLibraryUri(classObject);

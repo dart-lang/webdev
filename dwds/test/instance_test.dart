@@ -87,7 +87,8 @@ void main() {
       var properties = await debugger.getProperties(remoteObject.objectId);
       var closure =
           properties.firstWhere((property) => property.name == 'closure');
-      var instanceRef = await instanceHelper.instanceRefForRemote(closure.value);
+      var instanceRef =
+          await instanceHelper.instanceRefForRemote(closure.value);
       var functionName = instanceRef.closureFunction.name;
       // Older SDKs do not contain function names
       if (functionName != 'Closure') {

@@ -353,7 +353,7 @@ function($argsString) {
             "isFinal": field.isFinal,
             "isStatic": false,
             "classRefName": fields[name]["type"]["name"],
-            "classRefDartName": sdkUtils.typeName(field[name]["type"]),
+            "classRefDartName": sdkUtils.typeName(fields[name]["type"]),
             "classRefLibraryId" : field["type"][libraryUri],
           }
         }
@@ -393,11 +393,10 @@ function($argsString) {
       var fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
       fieldDescriptors.forEach((name, descriptor) async {
         var classMetaData = ClassMetaData(
-          descriptor['classRefName'] as String,
-          descriptor['classRefLibraryId'] as String,
-          descriptor['classRefDartName'] as String,
-          null
-        );
+            descriptor['classRefName'] as String,
+            descriptor['classRefLibraryId'] as String,
+            descriptor['classRefDartName'] as String,
+            null);
         fieldRefs.add(FieldRef(
             name: name,
             owner: classRef,
