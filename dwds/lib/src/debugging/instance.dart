@@ -74,12 +74,12 @@ class InstanceHelper extends Domain {
     var metaData = await ClassMetaData.metaDataFor(
         _remoteDebugger, remoteObject, inspector);
     var properties = await _debugger.getProperties(remoteObject.objectId);
-    var classRef = ClassRef(id: metaData.id, name: metaData.name);
+    var classRef = ClassRef(id: metaData.id, name: metaData.dartName);
     if (metaData.name == 'Function') {
       return _closureInstanceFor(remoteObject);
     } else if (metaData.name == 'JSArray') {
       return await listInstanceFor(classRef, remoteObject, properties);
-    } else if (metaData.name == 'LinkedMap') {
+    } else if (metaData.name == 'LinkedMap' || metaData.name == 'IdentityMap') {
       return await mapInstanceFor(classRef, remoteObject, properties);
     } else {
       return await plainInstanceFor(classRef, remoteObject, properties);
@@ -283,7 +283,7 @@ class InstanceHelper extends Domain {
               classRef: ClassRef(name: metaData.dartName, id: metaData.id))
             ..length = metaData.length;
         }
-        if (metaData.name == 'LinkedMap') {
+        if (metaData.name == 'LinkedMap' || metaData.name == 'IdentityMap') {
           return InstanceRef(
               kind: InstanceKind.kMap,
               id: remoteObject.objectId,

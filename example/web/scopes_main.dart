@@ -11,9 +11,13 @@ final libraryPublicFinal = MyTestClass();
 
 final _libraryPrivateFinal = 1;
 Object libraryNull;
-var libraryPublic = ['library', 'public', 'variable'];
+var libraryPublic = <String>['library', 'public', 'variable'];
 
 var _libraryPrivate = ['library', 'private', 'variable'];
+
+var identityMap = <String, int>{};
+
+var map = <Object, Object>{};
 
 void main() async {
   print('Initial print from scopes app');
@@ -21,6 +25,9 @@ void main() async {
   var intLocalInMain = 42;
   var testClass = MyTestClass();
   Object localThatsNull;
+  identityMap['a'] = 1;
+  identityMap['b'] = 2;
+  map['a'] = 1;
 
   String nestedFunction(String parameter) {
     var another = int.tryParse(parameter);
@@ -40,6 +47,9 @@ void main() async {
     print(nestedFunction('$ticks ${testClass.message}'));
     print(localThatsNull);
     print(libraryNull);
+    var localList = libraryPublic;
+    print(localList);
+    localList.add('abc');
     var f = testClass.methodWithVariables();
     print(f('parameter'));
   });
