@@ -78,17 +78,17 @@ class InstanceHelper extends Domain {
     if (metaData.name == 'Function') {
       return _closureInstanceFor(remoteObject);
     } else if (metaData.name == 'JSArray') {
-      return await listInstanceFor(classRef, remoteObject, properties);
+      return await _listInstanceFor(classRef, remoteObject, properties);
     } else if (metaData.name == 'LinkedMap' || metaData.name == 'IdentityMap') {
-      return await mapInstanceFor(classRef, remoteObject, properties);
+      return await _mapInstanceFor(classRef, remoteObject, properties);
     } else {
-      return await plainInstanceFor(classRef, remoteObject, properties);
+      return await _plainInstanceFor(classRef, remoteObject, properties);
     }
   }
 
   /// Create a bound field for [property] in an instance of [classRef].
   Future<BoundField> _fieldFor(Property property, ClassRef classRef) async {
-    var instance = await instanceRefForRemote(property.value);
+    var instance = await _instanceRefForRemote(property.value);
     return BoundField()
       ..decl = (FieldRef(
           // TODO(grouma) - Convert JS name to Dart.
@@ -108,9 +108,9 @@ class InstanceHelper extends Domain {
 
   /// Create a plain instance of [classRef] from [remoteObject] and the JS
   /// properties [properties].
-  Future<Instance> plainInstanceFor(ClassRef classRef,
+  Future<Instance> _plainInstanceFor(ClassRef classRef,
       RemoteObject remoteObject, List<Property> properties) async {
-    var dartProperties = await dartFieldsFor(properties, remoteObject);
+    var dartProperties = await _dartFieldsFor(properties, remoteObject);
     var fields = await Future.wait(
         dartProperties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)));
     fields = fields.toList()
@@ -151,7 +151,7 @@ class InstanceHelper extends Domain {
   }
 
   /// Create a Map instance with class [classRef] from [remoteObject].
-  Future<Instance> mapInstanceFor(
+  Future<Instance> _mapInstanceFor(
       ClassRef classRef, RemoteObject remoteObject, List<Property> _) async {
     // Maps are complicated, do an eval to get keys and values.
     var associations = await _mapAssociations(remoteObject);
@@ -163,12 +163,12 @@ class InstanceHelper extends Domain {
 
   /// Create a List instance of [classRef] from [remoteObject] with the JS
   /// properties [properties].
-  Future<Instance> listInstanceFor(ClassRef classRef, RemoteObject remoteObject,
+  Future<Instance> _listInstanceFor(ClassRef classRef, RemoteObject remoteObject,
       List<Property> properties) async {
     var length = _lengthOf(properties);
     var indexed = properties.sublist(0, length);
     var fields = await Future.wait(indexed
-        .map((property) async => await instanceRefForRemote(property.value)));
+        .map((property) async => await _instanceRefForRemote(property.value)));
     return Instance(
         kind: InstanceKind.kList, id: remoteObject.objectId, classRef: classRef)
       ..length = length
@@ -189,7 +189,7 @@ class InstanceHelper extends Domain {
   /// that correspond to Dart fields on [remoteObject].
   ///
   /// This only applies to objects with named fields, not Lists or Maps.
-  Future<List<Property>> dartFieldsFor(
+  Future<List<Property>> _dartFieldsFor(
       List<Property> allJsProperties, RemoteObject remoteObject) async {
     // An expression to find the field names from the types, extract both
     // private (named by symbols) and public (named by strings) and return them
@@ -232,7 +232,7 @@ class InstanceHelper extends Domain {
     var remote = value is RemoteObject
         ? value
         : RemoteObject({'value': value, 'type': chromeType(value)});
-    return instanceRefForRemote(remote);
+    return _instanceRefForRemote(remote);
   }
 
   /// The Chrome type for a value.
@@ -246,7 +246,7 @@ class InstanceHelper extends Domain {
   }
 
   /// Create an [InstanceRef] for the given Chrome [remoteObject].
-  Future<InstanceRef> instanceRefForRemote(RemoteObject remoteObject) async {
+  Future<InstanceRef> _instanceRefForRemote(RemoteObject remoteObject) async {
     // If we have a null result, treat it as a reference to null.
     if (remoteObject == null) {
       return _primitiveInstance(InstanceKind.kNull, remoteObject);
