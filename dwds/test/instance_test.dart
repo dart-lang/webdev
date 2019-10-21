@@ -205,5 +205,18 @@ void main() {
       var first = instance.associations[0].value;
       expect(first.valueAsString, '1');
     });
+
+    test('for a class that implements List', () async {
+      // The VM only uses kind List for SDK lists, and we follow that.
+      var remote =
+          await inspector.jsEvaluate(libraryVariableExpression('notAList'));
+      var instance = await instanceHelper.instanceFor(remote);
+      expect(instance.kind, InstanceKind.kPlainInstance);
+      var classRef = instance.classRef;
+      expect(classRef.name, 'NotReallyAList');
+      expect(instance.elements, isNull);
+      var field = instance.fields.first;
+      expect(field.decl.name, '_internal');
+    });
   });
 }

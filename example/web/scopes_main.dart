@@ -5,13 +5,15 @@
 /// An example with more complicated scope
 
 import 'dart:async';
-import 'dart:html';
+
+import 'dart:collection';
 
 final libraryPublicFinal = MyTestClass();
 
 final _libraryPrivateFinal = 1;
 Object libraryNull;
 var libraryPublic = <String>['library', 'public', 'variable'];
+var notAList = NotReallyAList();
 
 var _libraryPrivate = ['library', 'private', 'variable'];
 
@@ -28,6 +30,7 @@ void main() async {
   identityMap['a'] = 1;
   identityMap['b'] = 2;
   map['a'] = 1;
+  notAList.add(7);
 
   String nestedFunction(String parameter) {
     var another = int.tryParse(parameter);
@@ -54,8 +57,6 @@ void main() async {
     print(f('parameter'));
   });
 
-  document.body.append(SpanElement()..text = 'Exercising some scopes');
-  window.console.debug('Page Ready');
   print(_libraryPrivateFinal);
   print(_libraryPrivate);
   print(nestedFunction(_libraryPrivate.first));
@@ -127,3 +128,17 @@ Function someFunction() => null;
 
 // ignore: unused_element
 int _libraryPrivateFunction(int a, int b) => a + b;
+
+class NotReallyAList extends ListBase {
+  final List _internal;
+
+  NotReallyAList() : _internal = [];
+  @override
+  Object operator [](x) => _internal[x];
+  @override
+  operator []=(x, y) => _internal[x] = y;
+  @override
+  int get length => _internal.length;
+  @override
+  set length(x) => _internal.length = x;
+}
