@@ -163,8 +163,8 @@ class InstanceHelper extends Domain {
 
   /// Create a List instance of [classRef] from [remoteObject] with the JS
   /// properties [properties].
-  Future<Instance> _listInstanceFor(ClassRef classRef, RemoteObject remoteObject,
-      List<Property> properties) async {
+  Future<Instance> _listInstanceFor(ClassRef classRef,
+      RemoteObject remoteObject, List<Property> properties) async {
     var length = _lengthOf(properties);
     var indexed = properties.sublist(0, length);
     var fields = await Future.wait(indexed
