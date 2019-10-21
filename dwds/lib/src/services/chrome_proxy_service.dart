@@ -250,7 +250,7 @@ $loadModule("dart_sdk").developer.invokeExtension(
       {Map<String, String> scope, bool disableBreakpoints}) async {
     var remote = await _inspector?.evaluate(isolateId, targetId, expression,
         scope: scope, disableBreakpoints: disableBreakpoints);
-    return _inspector?.instanceHelper?.instanceRefForRemote(remote);
+    return _inspector?.instanceHelper?.instanceRefFor(remote);
   }
 
   @override
@@ -350,7 +350,7 @@ $loadModule("dart_sdk").developer.invokeExtension(
     }
     var remote =
         await _inspector?.invoke(isolateId, targetId, selector, argumentIds);
-    var result = _inspector?.instanceHelper?.instanceRefForRemote(remote);
+    var result = _inspector?.instanceHelper?.instanceRefFor(remote);
     if (result == null) {
       throw ChromeDebugException(
           {'text': 'null result from invoke of $selector'});
@@ -568,8 +568,8 @@ $loadModule("dart_sdk").developer.invokeExtension(
           // All inspected objects should be real objects.
           if (event.args[1].type != 'object') break;
 
-          var inspectee = await _inspector.instanceHelper
-              .instanceRefForRemote(event.args[1]);
+          var inspectee =
+              await _inspector.instanceHelper.instanceRefFor(event.args[1]);
           _streamNotify(
               'Debug',
               Event(

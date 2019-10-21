@@ -58,7 +58,7 @@ void main() {
     test('for a null', () async {
       var remoteObject = await libraryPublicFinal();
       var nullVariable = await inspector.loadField(remoteObject, 'notFinal');
-      var ref = await instanceHelper.instanceRefForRemote(nullVariable);
+      var ref = await instanceHelper.instanceRefFor(nullVariable);
       expect(ref.valueAsString, 'null');
       expect(ref.kind, InstanceKind.kNull);
       var classRef = ref.classRef;
@@ -69,7 +69,7 @@ void main() {
     test('for a double', () async {
       var remoteObject = await libraryPublicFinal();
       var count = await inspector.loadField(remoteObject, 'count');
-      var ref = await instanceHelper.instanceRefForRemote(count);
+      var ref = await instanceHelper.instanceRefFor(count);
       expect(ref.valueAsString, '0');
       expect(ref.kind, InstanceKind.kDouble);
       var classRef = ref.classRef;
@@ -80,7 +80,7 @@ void main() {
     test('for a class', () async {
       var remoteObject = await libraryPublicFinal();
       var count = await inspector.loadField(remoteObject, 'myselfField');
-      var ref = await instanceHelper.instanceRefForRemote(count);
+      var ref = await instanceHelper.instanceRefFor(count);
       expect(ref.kind, InstanceKind.kPlainInstance);
       var classRef = ref.classRef;
       expect(classRef.name, 'MyTestClass');
@@ -93,8 +93,7 @@ void main() {
       var properties = await debugger.getProperties(remoteObject.objectId);
       var closure =
           properties.firstWhere((property) => property.name == 'closure');
-      var instanceRef =
-          await instanceHelper.instanceRefForRemote(closure.value);
+      var instanceRef = await instanceHelper.instanceRefFor(closure.value);
       var functionName = instanceRef.closureFunction.name;
       // Older SDKs do not contain function names
       if (functionName != 'Closure') {

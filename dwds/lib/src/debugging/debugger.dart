@@ -359,7 +359,7 @@ class Debugger extends Domain {
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
     var instanceRef =
-        await inspector.instanceHelper.instanceRefForRemote(property.value);
+        await inspector.instanceHelper.instanceRefFor(property.value);
     // Skip null instance refs, which we get for weird objects, e.g.
     // properties that are getter/setter pairs.
     // TODO(alanknight): Handle these properly.

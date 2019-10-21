@@ -2,21 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../debugging/inspector.dart';
 import '../services/chrome_proxy_service.dart';
-
+import '../utilities/shared.dart';
+import '../utilities/wrapped_service.dart';
 import 'remote_debugger.dart';
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
   /// The name of the JS constructor for the object.
   ///
-  /// This may be a constructor we've put there, but it's still a JS name. For
+  /// This may be a constructor for a Dart, but it's still a JS name. For
   /// example, 'Number', 'JSArray', 'Object'.
-  // TODO(alanknight): Do we neeed this if we have dartName?
   final String name;
 
   /// The length of the object, if applicable.
@@ -26,8 +25,17 @@ class ClassMetaData {
   ///
   /// For example, 'int', 'List<String>', 'Null'
   final String dartName;
+
+  /// The library identifier, which is the URI of the library.
   final String libraryId;
-  ClassMetaData(this.name, this.libraryId, this.dartName, this.length);
+
+  factory ClassMetaData(
+      {Object name, Object libraryId, Object dartName, Object length}) {
+    return ClassMetaData._(
+        name as String, libraryId as String, dartName as String, length as int);
+  }
+
+  ClassMetaData._(this.name, this.libraryId, this.dartName, this.length);
 
   /// Returns the ID of the class.
   ///
@@ -58,14 +66,17 @@ class ClassMetaData {
           returnByValue: true);
       var metadata = result.value as Map;
       return ClassMetaData(
-          metadata['name'] as String,
-          metadata['libraryId'] as String,
-          metadata['dartName'] as String,
-          metadata['length'] as int);
+          name: metadata['name'],
+          libraryId: metadata['libraryId'],
+          dartName: metadata['dartName'],
+          length: metadata['length']);
     } on ChromeDebugException {
       return null;
     }
   }
+
+  /// Return a [ClassRef] appropriate to this metadata.
+  ClassRef get classRef => ClassRef(name: dartName, id: id);
 }
 
 /// Meta data for a remote Dart function in Chrome.

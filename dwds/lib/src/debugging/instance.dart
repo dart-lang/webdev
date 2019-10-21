@@ -74,7 +74,7 @@ class InstanceHelper extends Domain {
     var metaData = await ClassMetaData.metaDataFor(
         _remoteDebugger, remoteObject, inspector);
     var properties = await _debugger.getProperties(remoteObject.objectId);
-    var classRef = ClassRef(id: metaData.id, name: metaData.dartName);
+    var classRef = metaData.classRef;
     if (metaData.name == 'Function') {
       return _closureInstanceFor(remoteObject);
     } else if (metaData.name == 'JSArray') {
@@ -110,7 +110,7 @@ class InstanceHelper extends Domain {
   /// properties [properties].
   Future<Instance> plainInstanceFor(ClassRef classRef,
       RemoteObject remoteObject, List<Property> properties) async {
-    var dartProperties = await dartPropertiesFor(properties, remoteObject);
+    var dartProperties = await dartFieldsFor(properties, remoteObject);
     var fields = await Future.wait(
         dartProperties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)));
     fields = fields.toList()
@@ -123,6 +123,7 @@ class InstanceHelper extends Domain {
     return result;
   }
 
+  /// The associations for a Dart Map or IdentityMap.
   Future<List<MapAssociation>> _mapAssociations(RemoteObject map) async {
     var expression = '''
       function() {
@@ -181,15 +182,14 @@ class InstanceHelper extends Domain {
   /// don't use it to determine the properties to display.
   int _lengthOf(List<Property> properties) {
     var lengthProperty = properties.firstWhere((p) => p.name == 'length');
-    var length = lengthProperty.value.value as int;
-    return length;
+    return lengthProperty.value.value as int;
   }
 
   /// Filter [allJsProperties] and return a list containing only those
-  /// that correspond to Dart fields on the object.
+  /// that correspond to Dart fields on [remoteObject].
   ///
   /// This only applies to objects with named fields, not Lists or Maps.
-  Future<List<Property>> dartPropertiesFor(
+  Future<List<Property>> dartFieldsFor(
       List<Property> allJsProperties, RemoteObject remoteObject) async {
     // An expression to find the field names from the types, extract both
     // private (named by symbols) and public (named by strings) and return them
@@ -219,8 +219,7 @@ class InstanceHelper extends Domain {
             .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
         .value as String;
     var names = allNames.split(',');
-    // TODO(alanknight): This, and all of this method, are not going to scale to
-    // large collections.
+    // TODO(#761): Better support for large collections.
     return allJsProperties
         .where((property) => names.contains(property.name))
         .toList();
@@ -273,27 +272,23 @@ class InstanceHelper extends Domain {
             _remoteDebugger, remoteObject, inspector);
         if (metaData == null) return null;
         if (metaData.name == 'JSArray') {
-          // We need some kind of isIndexed. and can we have both named and indexed? And what about maps?
-          print('oops, this is a list');
-          // Do we need length?? We don't seem to really have it, although it's in the @#$@ description.
-          // Do we even really need to do this?
           return InstanceRef(
               kind: InstanceKind.kList,
               id: remoteObject.objectId,
-              classRef: ClassRef(name: metaData.dartName, id: metaData.id))
+              classRef: metaData.classRef)
             ..length = metaData.length;
         }
         if (metaData.name == 'LinkedMap' || metaData.name == 'IdentityMap') {
           return InstanceRef(
               kind: InstanceKind.kMap,
               id: remoteObject.objectId,
-              classRef: ClassRef(name: metaData.dartName, id: metaData.id))
+              classRef: metaData.classRef)
             ..length = metaData.length;
         }
         return InstanceRef(
             kind: InstanceKind.kPlainInstance,
             id: remoteObject.objectId,
-            classRef: ClassRef(name: metaData.dartName, id: metaData.id));
+            classRef: metaData.classRef);
       case 'function':
         var functionMetaData =
             await FunctionMetaData.metaDataFor(_remoteDebugger, remoteObject);
