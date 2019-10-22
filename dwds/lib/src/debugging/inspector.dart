@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -18,7 +19,6 @@ import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
-import 'debugger.dart';
 import 'exceptions.dart';
 import 'instance.dart';
 import 'metadata.dart';
@@ -54,7 +54,7 @@ class AppInspector extends Domain {
 
   final RemoteDebugger _remoteDebugger;
   final AssetHandler _assetHandler;
-  final Debugger debugger;
+  final LocationMetaData _locationMetaData;
   final Isolate isolate;
   final IsolateRef isolateRef;
   final InstanceHelper instanceHelper;
@@ -67,7 +67,7 @@ class AppInspector extends Domain {
     this.appConnection,
     this.isolate,
     this._assetHandler,
-    this.debugger,
+    this._locationMetaData,
     this._root,
     this._remoteDebugger,
     this.instanceHelper,
@@ -98,9 +98,10 @@ class AppInspector extends Domain {
       AppConnection appConnection,
       RemoteDebugger remoteDebugger,
       AssetHandler assetHandler,
-      Debugger debugger,
+      LocationMetaData locationMetaData,
       String root,
-      InstanceHelper instanceHelper) async {
+      InstanceHelper instanceHelper,
+      String pauseState) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;
     var name = '$root:main()';
@@ -118,14 +119,13 @@ class AppInspector extends Domain {
         livePorts: 0,
         libraries: [],
         breakpoints: [],
-        exceptionPauseMode: debugger.pauseState)
+        exceptionPauseMode: pauseState)
       ..extensionRPCs = [];
-    debugger.notifyPausedAtStart();
     var inspector = AppInspector._(
       appConnection,
       isolate,
       assetHandler,
-      debugger,
+      locationMetaData,
       root,
       remoteDebugger,
       instanceHelper,
@@ -447,7 +447,7 @@ function($argsString) {
       library: _libraryRefs[libraryId],
       id: scriptRef.id,
     )
-      ..tokenPosTable = await debugger.tokenPosTableFor(serverPath)
+      ..tokenPosTable = await _locationMetaData.tokenPosTableFor(serverPath)
       ..source = script;
   }
 

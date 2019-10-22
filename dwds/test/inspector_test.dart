@@ -4,8 +4,9 @@
 
 @TestOn('vm')
 import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/utilities/conversions.dart';
+import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -19,12 +20,14 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   AppInspector inspector;
+  Debugger debugger;
 
   setUpAll(() async {
     await context.setUp();
+    var service = fetchChromeProxyService(context.debugConnection);
+    debugger = await service.debugger;
     // TODO(alanknight): A nicer way of getting the inspector.
-    inspector =
-        fetchChromeProxyService(context.debugConnection).appInspectorProvider();
+    inspector = service.appInspectorProvider();
   });
 
   tearDownAll(() async {
@@ -62,8 +65,7 @@ void main() {
 
   test('properties', () async {
     var remoteObject = await libraryPublicFinal();
-    var properties =
-        await inspector.debugger.getProperties(remoteObject.objectId);
+    var properties = await debugger.getProperties(remoteObject.objectId);
     var names =
         properties.map((p) => p.name).where((x) => x != '__proto__').toList();
     var expected = [

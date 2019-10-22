@@ -110,7 +110,7 @@ class LocationMetaData {
 
   LocationMetaData(this._moduleMetaData);
 
-  /// Clears all location meta data
+  /// Clears all location meta data.
   void clearCache() {
     _sourceToTokenPosTable.clear();
     _scriptIdToLocation.clear();

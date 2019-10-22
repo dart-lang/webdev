@@ -30,6 +30,9 @@ const _pauseModePauseStates = {
   'unhandled': PauseState.uncaught,
 };
 
+/// Paths to black box in the Chrome debugger.
+const _pathsToBlackBox = {'/packages/stack_trace/'};
+
 class Debugger extends Domain {
   static final logger = Logger('Debugger');
 
@@ -174,7 +177,7 @@ class Debugger extends Domain {
     runZoned(() {
       _remoteDebugger?.onScriptParsed?.listen((e) {
         _blackBoxIfNecessary(e.script);
-        _moduleMetaData.scriptParsed(e);
+        _moduleMetaData.noteScript(e.script.url, e.script.scriptId);
       });
       _remoteDebugger?.onPaused?.listen(_pauseHandler);
       _remoteDebugger?.onResumed?.listen(_resumeHandler);
@@ -186,11 +189,11 @@ class Debugger extends Domain {
     handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
   }
 
-  /// Black boxes the Dart SDK and paths in [pathsToBlackBox].
+  /// Black boxes the Dart SDK and paths in [_pathsToBlackBox].
   Future<void> _blackBoxIfNecessary(WipScript script) async {
     if (script.url.endsWith('dart_sdk.js')) {
       await _blackBoxSdk(script);
-    } else if (pathsToBlackBox.any((path) => script.url.contains(path))) {
+    } else if (_pathsToBlackBox.any((path) => script.url.contains(path))) {
       var content =
           await _sources.readAssetOrNull(DartUri(script.url).serverPath);
       if (content == null) return;
@@ -228,11 +231,6 @@ class Debugger extends Domain {
       // as the corresponding script will no longer exist. Silently ignore
       // these failures.
     }
-  }
-
-  void clearCache() {
-    _locationMetaData.clearCache();
-    _moduleMetaData.initialize();
   }
 
   Future<List<List<int>>> tokenPosTableFor(String serverPath) =>

@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
 import 'package:source_maps/source_maps.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
@@ -15,7 +14,7 @@ import 'location.dart';
 import 'remote_debugger.dart';
 import 'sources.dart';
 
-/// Contains meta data and helpful methods for DDC / DDK modules.
+/// Contains meta data and helpful methods for DDC modules.
 class ModuleMetaData {
   final Sources _sources;
   final String _root;
@@ -33,6 +32,7 @@ class ModuleMetaData {
   /// Completes with the module extension i.e. `.ddc.js` or `.ddk.js`.
   ///
   /// We use the script parsed events from Chrome to determine this information.
+  // TODO(grouma) - Do something better here.
   Future<String> get _moduleExtension => _moduleExtensionCompleter.future;
 
   Future<String> moduleForScriptId(String scriptId) async =>
@@ -44,19 +44,17 @@ class ModuleMetaData {
     return _sourceToModule[serverPath];
   }
 
-  /// Initializes the module meta data.
+  /// Initializes the mapping from source to module.
   ///
   /// Intended to be called multiple times throughout the development workflow,
   /// e.g. after a hot-reload.
-  void initialize() {
+  void initializeMapping() {
     _initializedCompleter = Completer();
     _initialize();
   }
 
   /// Handles a script parsed event within Chrome.
-  Future<Null> scriptParsed(ScriptParsedEvent e) async {
-    var script = e.script;
-    var url = script.url;
+  Future<Null> noteScript(String url, String scriptId) async {
     if (url == null || !(url.endsWith('.ddc.js') || url.endsWith('.ddk.js'))) {
       return;
     }
@@ -71,11 +69,11 @@ class ModuleMetaData {
     }
 
     var module = p
-        .withoutExtension(p.withoutExtension(Uri.parse(script.url).path))
+        .withoutExtension(p.withoutExtension(Uri.parse(url).path))
         .substring(1);
 
-    _scriptIdToModule[script.scriptId] = module;
-    _moduleToScriptId[module] = script.scriptId;
+    _scriptIdToModule[scriptId] = module;
+    _moduleToScriptId[module] = scriptId;
   }
 
   Future<void> _initialize() async {

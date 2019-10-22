@@ -13,10 +13,7 @@ import 'package:logging/logging.dart';
 import '../../asset_handler.dart';
 import '../../dwds.dart' show LogWriter;
 
-/// Paths to black box in the Chrome debugger.
-const pathsToBlackBox = {'/packages/stack_trace/'};
-
-/// The scripts and sourcemaps for the application, both JS and Dart.
+/// Handles reading both Dart and JS sources for the running application.
 class Sources {
   final AssetHandler _assetHandler;
   final LogWriter _logWriter;
