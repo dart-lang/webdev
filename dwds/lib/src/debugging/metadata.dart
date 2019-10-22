@@ -16,7 +16,7 @@ class ClassMetaData {
   ///
   /// This may be a constructor for a Dart, but it's still a JS name. For
   /// example, 'Number', 'JSArray', 'Object'.
-  final String name;
+  final String jsName;
 
   /// The length of the object, if applicable.
   final int length;
@@ -30,17 +30,17 @@ class ClassMetaData {
   final String libraryId;
 
   factory ClassMetaData(
-      {Object name, Object libraryId, Object dartName, Object length}) {
+      {Object jsName, Object libraryId, Object dartName, Object length}) {
     return ClassMetaData._(
-        name as String, libraryId as String, dartName as String, length as int);
+        jsName as String, libraryId as String, dartName as String, length as int);
   }
 
-  ClassMetaData._(this.name, this.libraryId, this.dartName, this.length);
+  ClassMetaData._(this.jsName, this.libraryId, this.dartName, this.length);
 
   /// Returns the ID of the class.
   ///
   /// Takes the form of 'libraryId:name'.
-  String get id => '$libraryId:$name';
+  String get id => '$libraryId:$jsName';
 
   /// Returns the [ClassMetaData] for the Chrome [remoteObject].
   ///
@@ -66,7 +66,7 @@ class ClassMetaData {
           returnByValue: true);
       var metadata = result.value as Map;
       return ClassMetaData(
-          name: metadata['name'],
+          jsName: metadata['name'],
           libraryId: metadata['libraryId'],
           dartName: metadata['dartName'],
           length: metadata['length']);

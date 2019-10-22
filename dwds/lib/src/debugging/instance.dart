@@ -73,13 +73,15 @@ class InstanceHelper extends Domain {
     }
     var metaData = await ClassMetaData.metaDataFor(
         _remoteDebugger, remoteObject, inspector);
-    var properties = await _debugger.getProperties(remoteObject.objectId);
     var classRef = metaData.classRef;
-    if (metaData.name == 'Function') {
+    if (metaData.jsName == 'Function') {
       return _closureInstanceFor(remoteObject);
-    } else if (metaData.name == 'JSArray') {
+    }
+    var properties = await _debugger.getProperties(remoteObject.objectId);
+    if (metaData.jsName == 'JSArray') {
       return await _listInstanceFor(classRef, remoteObject, properties);
-    } else if (metaData.name == 'LinkedMap' || metaData.name == 'IdentityMap') {
+    } else if (metaData.jsName == 'LinkedMap' ||
+        metaData.jsName == 'IdentityMap') {
       return await _mapInstanceFor(classRef, remoteObject, properties);
     } else {
       return await _plainInstanceFor(classRef, remoteObject, properties);
@@ -231,12 +233,12 @@ class InstanceHelper extends Domain {
   Future<InstanceRef> instanceRefFor(Object value) {
     var remote = value is RemoteObject
         ? value
-        : RemoteObject({'value': value, 'type': chromeType(value)});
+        : RemoteObject({'value': value, 'type': _chromeType(value)});
     return _instanceRefForRemote(remote);
   }
 
   /// The Chrome type for a value.
-  String chromeType(Object value) {
+  String _chromeType(Object value) {
     if (value == null) return null;
     if (value is String) return 'string';
     if (value is num) return 'number';
@@ -271,14 +273,15 @@ class InstanceHelper extends Domain {
         var metaData = await ClassMetaData.metaDataFor(
             _remoteDebugger, remoteObject, inspector);
         if (metaData == null) return null;
-        if (metaData.name == 'JSArray') {
+        if (metaData.jsName == 'JSArray') {
           return InstanceRef(
               kind: InstanceKind.kList,
               id: remoteObject.objectId,
               classRef: metaData.classRef)
             ..length = metaData.length;
         }
-        if (metaData.name == 'LinkedMap' || metaData.name == 'IdentityMap') {
+        if (metaData.jsName == 'LinkedMap' ||
+            metaData.jsName == 'IdentityMap') {
           return InstanceRef(
               kind: InstanceKind.kMap,
               id: remoteObject.objectId,
