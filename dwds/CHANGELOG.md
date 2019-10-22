@@ -6,6 +6,7 @@
 - Expose the `AppConnectionException` class for error handling purposes.
 - DevTools will now launch immediately and lazily sets up necessary state.
 - Properly set `pauseBreakpoints` on `kPauseBreakpoint` events.
+- Greatly improves handling of List, Map and IdentityMap instances.
 
 ## 0.7.4
 
