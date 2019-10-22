@@ -101,7 +101,7 @@ class AppInspector extends Domain {
       LocationMetaData locationMetaData,
       String root,
       InstanceHelper instanceHelper,
-      String pauseState) async {
+      String pauseMode) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;
     var name = '$root:main()';
@@ -119,7 +119,7 @@ class AppInspector extends Domain {
         livePorts: 0,
         libraries: [],
         breakpoints: [],
-        exceptionPauseMode: pauseState)
+        exceptionPauseMode: pauseMode)
       ..extensionRPCs = [];
     var inspector = AppInspector._(
       appConnection,

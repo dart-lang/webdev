@@ -177,7 +177,7 @@ class Debugger extends Domain {
     runZoned(() {
       _remoteDebugger?.onScriptParsed?.listen((e) {
         _blackBoxIfNecessary(e.script);
-        _moduleMetaData.noteScript(e.script.url, e.script.scriptId);
+        _moduleMetaData.noteModule(e.script.url, e.script.scriptId);
       });
       _remoteDebugger?.onPaused?.listen(_pauseHandler);
       _remoteDebugger?.onResumed?.listen(_resumeHandler);

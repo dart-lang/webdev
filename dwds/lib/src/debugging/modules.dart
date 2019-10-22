@@ -5,44 +5,35 @@
 import 'dart:async';
 
 import 'package:path/path.dart' as p;
-import 'package:source_maps/parser.dart';
-import 'package:source_maps/source_maps.dart';
 
 import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
-import 'location.dart';
 import 'remote_debugger.dart';
-import 'sources.dart';
 
 /// Contains meta data and helpful methods for DDC modules.
 class ModuleMetaData {
-  final Sources _sources;
   final String _root;
   final RemoteDebugger _remoteDebugger;
+  // The Dart server path to containing module.
   final _sourceToModule = <String, String>{};
+
+  // The Chrome script ID to corresponding module.
   final _scriptIdToModule = <String, String>{};
+
+  // The module to corresponding Chrome script ID.
   final _moduleToScriptId = <String, String>{};
-  final _moduleToLocations = <String, Set<Location>>{};
+
   final _moduleExtensionCompleter = Completer<String>();
 
   var _initializedCompleter = Completer();
 
-  ModuleMetaData(this._sources, this._remoteDebugger, this._root);
+  ModuleMetaData(this._remoteDebugger, this._root);
 
   /// Completes with the module extension i.e. `.ddc.js` or `.ddk.js`.
   ///
   /// We use the script parsed events from Chrome to determine this information.
   // TODO(grouma) - Do something better here.
-  Future<String> get _moduleExtension => _moduleExtensionCompleter.future;
-
-  Future<String> moduleForScriptId(String scriptId) async =>
-      _scriptIdToModule[scriptId];
-
-  /// Returns the containing module for the provided Dart server path.
-  Future<String> moduleForSource(String serverPath) async {
-    await _initializedCompleter.future;
-    return _sourceToModule[serverPath];
-  }
+  Future<String> get moduleExtension => _moduleExtensionCompleter.future;
 
   /// Initializes the mapping from source to module.
   ///
@@ -50,11 +41,25 @@ class ModuleMetaData {
   /// e.g. after a hot-reload.
   void initializeMapping() {
     _initializedCompleter = Completer();
-    _initialize();
+    _initializeMapping();
   }
 
-  /// Handles a script parsed event within Chrome.
-  Future<Null> noteScript(String url, String scriptId) async {
+  /// Returns the module for the Chrome script ID.
+  Future<String> moduleForScriptId(String scriptId) async =>
+      _scriptIdToModule[scriptId];
+
+  /// Returns the Chrome script ID for the provided module.
+  Future<String> scriptIdForModule(String module) async =>
+      _moduleToScriptId[module];
+
+  /// Returns the containing module for the provided Dart server path.
+  Future<String> moduleForSource(String serverPath) async {
+    await _initializedCompleter.future;
+    return _sourceToModule[serverPath];
+  }
+
+  /// Checks if the [url] correspond to a module and stores meta data.
+  Future<Null> noteModule(String url, String scriptId) async {
     if (url == null || !(url.endsWith('.ddc.js') || url.endsWith('.ddk.js'))) {
       return;
     }
@@ -76,7 +81,8 @@ class ModuleMetaData {
     _moduleToScriptId[module] = scriptId;
   }
 
-  Future<void> _initialize() async {
+  /// Initializes [_sourceToModule].
+  Future<void> _initializeMapping() async {
     var expression = '''
     (function() {
           var dart = require('dart_sdk').dart;
@@ -98,55 +104,18 @@ class ModuleMetaData {
       if (!dartScript.endsWith('.dart')) continue;
       var scriptUri = Uri.parse(dartScript);
       var moduleUri = Uri.parse(value[dartScript] as String);
-      // TODO(comment);
+      // The module uris returned by the expression contain the root. Rewrite
+      // the uris so that DartUri properly accounts for this fact.
       if (scriptUri.scheme == 'org-dartlang-app') {
         moduleUri = moduleUri.replace(scheme: 'org-dartlang-app');
       } else if (scriptUri.scheme == 'package') {
         moduleUri = moduleUri.replace(
             scheme: 'package', path: moduleUri.path.split('/packages/').last);
       }
+      // TODO(grouma) - handle G3 scheme.
       _sourceToModule[DartUri(dartScript, _root).serverPath] =
           DartUri(moduleUri.toString()).serverPath;
     }
     _initializedCompleter.complete();
-  }
-
-  Future<Set<Location>> locationsForModule(String module) async {
-    if (_moduleToLocations[module] != null) return _moduleToLocations[module];
-    var result = <Location>{};
-    if (module?.isEmpty ?? true) return result;
-    var moduleExtension = await _moduleExtension;
-    var modulePath = '$module$moduleExtension';
-    var sourceMapContents = await _sources.readAssetOrNull('$modulePath.map');
-    var scriptLocation = p.url.dirname('/$modulePath');
-    if (sourceMapContents == null) return result;
-    var scriptId = _moduleToScriptId[module];
-    if (scriptId == null) return result;
-    // This happens to be a [SingleMapping] today in DDC.
-    var mapping = parse(sourceMapContents);
-    if (mapping is SingleMapping) {
-      // Create TokenPos for each entry in the source map.
-      for (var lineEntry in mapping.lines) {
-        for (var entry in lineEntry.entries) {
-          var index = entry.sourceUrlId;
-          if (index == null) continue;
-          // Source map URLS are relative to the script. They may have platform separators
-          // or they may use URL semantics. To be sure, we split and re-join them.
-          // This works on Windows because path treats both / and \ as separators.
-          // It will fail if the path has both separators in it.
-          var relativeSegments = p.split(mapping.urls[index]);
-          var path = p.url.joinAll([scriptLocation, ...relativeSegments]);
-          var dartUri = DartUri(path, _root);
-          result.add(Location.from(
-            scriptId,
-            lineEntry,
-            entry,
-            dartUri,
-          ));
-        }
-      }
-    }
-    _moduleToLocations[module] = result;
-    return result;
   }
 }

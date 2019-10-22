@@ -106,9 +106,9 @@ class ChromeProxyService implements VmServiceInterface {
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
+    var moduleMetaData = ModuleMetaData(remoteDebugger, tabUrl);
     var sources = Sources(assetHandler, logWriter);
-    var moduleMetaData = ModuleMetaData(sources, remoteDebugger, tabUrl);
-    var locationMetaData = LocationMetaData(moduleMetaData);
+    var locationMetaData = LocationMetaData(sources, moduleMetaData, tabUrl);
     var service = ChromeProxyService._(vm, tabUrl, assetHandler, remoteDebugger,
         sources, moduleMetaData, locationMetaData);
     unawaited(service.createIsolate(appConnection));
