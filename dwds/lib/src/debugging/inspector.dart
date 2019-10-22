@@ -447,7 +447,7 @@ function($argsString) {
       library: _libraryRefs[libraryId],
       id: scriptRef.id,
     )
-      ..tokenPosTable = debugger.sources.tokenPosTableFor(serverPath)
+      ..tokenPosTable = await debugger.tokenPosTableFor(serverPath)
       ..source = script;
   }
 

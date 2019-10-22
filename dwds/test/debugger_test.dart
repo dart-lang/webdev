@@ -4,10 +4,12 @@
 
 @TestOn('vm')
 import 'dart:async';
+
 import 'package:dwds/dwds.dart' show ModuleStrategy;
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:source_maps/parser.dart';
@@ -24,6 +26,7 @@ AppInspector inspector;
 Debugger debugger;
 FakeWebkitDebugger webkitDebugger;
 StreamController<DebuggerPausedEvent> pausedController;
+LocationMetaData locationMetaData;
 
 void main() async {
   setUpAll(() async {
@@ -31,15 +34,17 @@ void main() async {
     webkitDebugger = FakeWebkitDebugger();
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
+    var root = 'fakeRoot';
+    var moduleMetaData = ModuleMetaData(null, webkitDebugger, root);
+    locationMetaData = LocationMetaData(moduleMetaData);
     debugger = await Debugger.create(
-      null,
       webkitDebugger,
       null,
       () => inspector,
-      'fakeRoot',
-      (level, message) {
-        printOnFailure('[$level]: $message');
-      },
+      null,
+      null,
+      locationMetaData,
+      root,
     );
     inspector = FakeInspector();
   });
@@ -63,7 +68,7 @@ void main() async {
     );
     // Create a single location in the JS script the location in our hard-coded
     // frame.
-    debugger.sources.noteLocation('dart', location, '69');
+    locationMetaData.noteLocation('dart', location, '69');
 
     var frames = await debugger.dartFramesFor(frames1);
     expect(frames, isNotNull);

@@ -2,9 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:source_maps/parser.dart';
+import 'package:source_maps/source_maps.dart';
 
 import '../utilities/dart_uri.dart';
+import 'modules.dart';
 
 var _startTokenId = 1337;
 
@@ -84,4 +88,98 @@ class JsLocation {
 
   static JsLocation fromOneBased(String scriptId, int line, int column) =>
       JsLocation._(scriptId, line, column);
+}
+
+class LocationMetaData {
+  /// Map from Dart server path to all corresponding [Location] data.
+  final _sourceToLocation = <String, Set<Location>>{};
+
+  /// Map from JS scriptId to all corresponding [Location] data.
+  final _scriptIdToLocation = <String, Set<Location>>{};
+
+  /// Map from Dart server path to tokenPosTable as defined in the
+  /// Dart VM Service Protocol:
+  /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#script
+  final _sourceToTokenPosTable = <String, List<List<int>>>{};
+
+  /// Set of all modules for which the corresponding source map has been
+  /// processed.
+  final _processedModules = <String>{};
+
+  final ModuleMetaData _moduleMetaData;
+
+  LocationMetaData(this._moduleMetaData);
+
+  /// Clears all location meta data
+  void clearCache() {
+    _sourceToTokenPosTable.clear();
+    _scriptIdToLocation.clear();
+    _sourceToLocation.clear();
+    _processedModules.clear();
+  }
+
+  /// Returns all [Location] data for a provided Dart source.
+  Future<Set<Location>> locationsForDart(String serverPath) async {
+    var module = await _moduleMetaData.moduleForSource(serverPath);
+    var cache = _sourceToLocation[serverPath];
+    if (cache != null) return cache;
+
+    for (var location in await _moduleMetaData.locationsForModule(module)) {
+      noteLocation(location.dartLocation.uri.serverPath, location,
+          location.jsLocation.scriptId);
+    }
+
+    return _sourceToLocation[serverPath] ?? {};
+  }
+
+  /// Returns all [Location] data for a provided JS scriptId.
+  Future<Set<Location>> locationsForJs(String scriptId) async {
+    var module = await _moduleMetaData.moduleForScriptId(scriptId);
+
+    var cache = _scriptIdToLocation[scriptId];
+    if (cache != null) return cache;
+
+    for (var location in await _moduleMetaData.locationsForModule(module)) {
+      noteLocation(location.dartLocation.uri.serverPath, location,
+          location.jsLocation.scriptId);
+    }
+
+    return _scriptIdToLocation[scriptId] ?? {};
+  }
+
+  /// Add [location] to our lookups for both the Dart and JS scripts.
+  void noteLocation(
+      String dartServerPath, Location location, String wipScriptId) {
+    _sourceToLocation.putIfAbsent(dartServerPath, () => Set()).add(location);
+    _scriptIdToLocation.putIfAbsent(wipScriptId, () => Set()).add(location);
+  }
+
+  /// Returns the tokenPosTable for the provided Dart script path as defined
+  /// in:
+  /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#script
+  Future<List<List<int>>> tokenPosTableFor(String serverPath) async {
+    var tokenPosTable = _sourceToTokenPosTable[serverPath];
+    if (tokenPosTable != null) return tokenPosTable;
+    // Construct the tokenPosTable which is of the form:
+    // [lineNumber, (tokenId, columnNumber)*]
+    tokenPosTable = <List<int>>[];
+    var locations = await locationsForDart(serverPath);
+    var lineNumberToLocation = <int, Set<Location>>{};
+    for (var location in locations) {
+      lineNumberToLocation
+          .putIfAbsent(location.dartLocation.line, () => Set())
+          .add(location);
+    }
+    for (var lineNumber in lineNumberToLocation.keys) {
+      tokenPosTable.add([
+        lineNumber,
+        for (var location in lineNumberToLocation[lineNumber]) ...[
+          location.tokenPos,
+          location.dartLocation.column
+        ]
+      ]);
+    }
+    _sourceToTokenPosTable[serverPath] = tokenPosTable;
+    return tokenPosTable;
+  }
 }

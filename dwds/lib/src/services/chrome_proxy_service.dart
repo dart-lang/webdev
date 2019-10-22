@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/debugging/instance.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -16,7 +15,11 @@ import '../../dwds.dart' show LogWriter;
 import '../connections/app_connection.dart';
 import '../debugging/debugger.dart';
 import '../debugging/inspector.dart';
+import '../debugging/instance.dart';
+import '../debugging/location.dart';
+import '../debugging/modules.dart';
 import '../debugging/remote_debugger.dart';
+import '../debugging/sources.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
@@ -75,13 +78,17 @@ class ChromeProxyService implements VmServiceInterface {
     this.remoteDebugger,
     this._logWriter,
   ) {
+    var sources = Sources(_assetHandler, _logWriter);
+    var moduleMetaData = ModuleMetaData(sources, remoteDebugger, uri);
+    var locationMetaData = LocationMetaData(moduleMetaData);
     _debuggerCompleter.complete(Debugger.create(
-      _assetHandler,
       remoteDebugger,
       _streamNotify,
       appInspectorProvider,
+      sources,
+      moduleMetaData,
+      locationMetaData,
       uri,
-      _logWriter,
     ));
   }
 
@@ -115,20 +122,23 @@ class ChromeProxyService implements VmServiceInterface {
           'Cannot create multiple isolates for the same app');
     }
 
+    var debugger = await _debugger;
+    debugger.clearCache();
+
     var instanceHelper =
-        InstanceHelper(await _debugger, remoteDebugger, appInspectorProvider);
+        InstanceHelper(debugger, remoteDebugger, appInspectorProvider);
 
     _inspector = await AppInspector.initialize(
       appConnection,
       remoteDebugger,
       _assetHandler,
-      await _debugger,
+      debugger,
       uri,
       instanceHelper,
     );
 
-    unawaited(appConnection.onStart.then((_) async {
-      await (await _debugger).resumeFromStart();
+    unawaited(appConnection.onStart.then((_) {
+      debugger.resumeFromStart();
     }));
 
     var isolateRef = _inspector.isolateRef;
