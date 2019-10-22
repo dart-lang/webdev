@@ -73,56 +73,147 @@ class InstanceHelper extends Domain {
     }
     var metaData = await ClassMetaData.metaDataFor(
         _remoteDebugger, remoteObject, inspector);
-    if (metaData.name == 'Function') {
+    var classRef = metaData.classRef;
+    if (metaData.jsName == 'Function') {
       return _closureInstanceFor(remoteObject);
+    }
+    var properties = await _debugger.getProperties(remoteObject.objectId);
+    if (metaData.jsName == 'JSArray') {
+      return await _listInstanceFor(classRef, remoteObject, properties);
+    } else if (metaData.jsName == 'LinkedMap' ||
+        metaData.jsName == 'IdentityMap') {
+      return await _mapInstanceFor(classRef, remoteObject, properties);
     } else {
-      var classRef = ClassRef(id: metaData.id, name: metaData.name);
-      var properties = await _debugger.getProperties(remoteObject.objectId);
-      var dartProperties = await dartPropertiesFor(properties, remoteObject);
-      var fields = await Future.wait(
-          dartProperties.map<Future<BoundField>>((property) async {
-        var instance = await instanceRefFor(property.value);
-        return BoundField()
-          ..decl = (FieldRef(
-              // TODO(grouma) - Convert JS name to Dart.
-              name: property.name,
-              declaredType: (InstanceRef(
-                  kind: InstanceKind.kType,
-                  classRef: instance.classRef,
-                  id: createId())),
-              owner: classRef,
-              // TODO(grouma) - Fill these in.
-              isConst: false,
-              isFinal: false,
-              isStatic: false,
-              id: createId()))
-          ..value = instance;
-      }));
-      fields.sort((a, b) => a.decl.name.compareTo(b.decl.name));
-      var result = Instance(
-          kind: InstanceKind.kPlainInstance,
-          id: remoteObject.objectId,
-          classRef: classRef)
-        ..fields = fields;
-      return result;
+      return await _plainInstanceFor(classRef, remoteObject, properties);
     }
   }
 
+  /// Create a bound field for [property] in an instance of [classRef].
+  Future<BoundField> _fieldFor(Property property, ClassRef classRef) async {
+    var instance = await _instanceRefForRemote(property.value);
+    return BoundField()
+      ..decl = (FieldRef(
+          // TODO(grouma) - Convert JS name to Dart.
+          name: property.name,
+          declaredType: (InstanceRef(
+              kind: InstanceKind.kType,
+              classRef: instance.classRef,
+              id: createId())),
+          owner: classRef,
+          // TODO(grouma) - Fill these in.
+          isConst: false,
+          isFinal: false,
+          isStatic: false,
+          id: createId()))
+      ..value = instance;
+  }
+
+  /// Create a plain instance of [classRef] from [remoteObject] and the JS
+  /// properties [properties].
+  Future<Instance> _plainInstanceFor(ClassRef classRef,
+      RemoteObject remoteObject, List<Property> properties) async {
+    var dartProperties = await _dartFieldsFor(properties, remoteObject);
+    var fields = await Future.wait(
+        dartProperties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)));
+    fields = fields.toList()
+      ..sort((a, b) => a.decl.name.compareTo(b.decl.name));
+    var result = Instance(
+        kind: InstanceKind.kPlainInstance,
+        id: remoteObject.objectId,
+        classRef: classRef)
+      ..fields = fields;
+    return result;
+  }
+
+  /// The associations for a Dart Map or IdentityMap.
+  Future<List<MapAssociation>> _mapAssociations(RemoteObject map) async {
+    var expression = '''
+      function() {
+        var sdkUtils = $loadModule('dart_sdk').dart;
+        var entries = sdkUtils.dloadRepl(this, "entries");
+        entries = sdkUtils.dsendRepl(entries, "toList", []);
+        function asKeyValue(entry) {
+          return {
+            key: sdkUtils.dloadRepl(entry, "key"),
+            value: sdkUtils.dloadRepl(entry, "value")
+          }
+        }
+        return entries.map(asKeyValue);
+      }
+    ''';
+    var keysAndValues = await inspector.jsCallFunctionOn(map, expression, [],
+        returnByValue: true);
+    var associations = <MapAssociation>[];
+    for (var each in keysAndValues.value as List) {
+      associations.add(MapAssociation()
+        ..key = await instanceRefFor(each['key'])
+        ..value = await instanceRefFor(each['value']));
+    }
+    return associations;
+  }
+
+  /// Create a Map instance with class [classRef] from [remoteObject].
+  Future<Instance> _mapInstanceFor(
+      ClassRef classRef, RemoteObject remoteObject, List<Property> _) async {
+    // Maps are complicated, do an eval to get keys and values.
+    var associations = await _mapAssociations(remoteObject);
+    return Instance(
+        kind: InstanceKind.kMap, id: remoteObject.objectId, classRef: classRef)
+      ..length = associations.length
+      ..associations = associations;
+  }
+
+  /// Create a List instance of [classRef] from [remoteObject] with the JS
+  /// properties [properties].
+  Future<Instance> _listInstanceFor(ClassRef classRef,
+      RemoteObject remoteObject, List<Property> properties) async {
+    var length = _lengthOf(properties);
+    var indexed = properties.sublist(0, length);
+    var fields = await Future.wait(indexed
+        .map((property) async => await _instanceRefForRemote(property.value)));
+    return Instance(
+        kind: InstanceKind.kList, id: remoteObject.objectId, classRef: classRef)
+      ..length = length
+      ..elements = fields;
+  }
+
+  /// Return the value of the length attribute from [properties], if present.
+  ///
+  /// This is only applicable to Lists or Maps, where we expect a length
+  /// attribute. Even if a plain instance happens to have a length field, we
+  /// don't use it to determine the properties to display.
+  int _lengthOf(List<Property> properties) {
+    var lengthProperty = properties.firstWhere((p) => p.name == 'length');
+    return lengthProperty.value.value as int;
+  }
+
   /// Filter [allJsProperties] and return a list containing only those
-  /// that correspond to Dart fields on the object.
-  Future<List<Property>> dartPropertiesFor(
+  /// that correspond to Dart fields on [remoteObject].
+  ///
+  /// This only applies to objects with named fields, not Lists or Maps.
+  Future<List<Property>> _dartFieldsFor(
       List<Property> allJsProperties, RemoteObject remoteObject) async {
     // An expression to find the field names from the types, extract both
     // private (named by symbols) and public (named by strings) and return them
     // as a comma-separated single string, so we can return it by value and not
     // need to make multiple round trips.
+    //
+    // For maps and lists it's more complicated. Treat the actual SDK versions
+    // of these as special.
     // TODO(alanknight): Handle superclass fields.
     final fieldNameExpression = '''function() {
-      const sdk_utils = $loadModule("dart_sdk").dart;
-      const fields = sdk_utils.getFields(sdk_utils.getType(this));
-      const privateFields = Object.getOwnPropertySymbols(fields);
+      const sdk = $loadModule("dart_sdk");
+      const sdk_utils = sdk.dart;
+      const fields = sdk_utils.getFields(sdk_utils.getType(this)) || [];
+      if (!fields && (dart_sdk._interceptors.JSArray.is(this) || 
+          dart_sdk._js_helper.InternalMap.is(this))) {
+        // Trim off the 'length' property.
+        const fields = allJsProperties.slice(0, allJsProperties.length -1);
+        return fields.join(',');
+      } 
+      const privateFields = sdk_utils.getOwnPropertySymbols(fields);
       const nonSymbolNames = privateFields.map(sym => sym.description);
-      const publicFieldNames = Object.getOwnPropertyNames(fields);
+      const publicFieldNames = sdk_utils.getOwnPropertyNames(fields);
       return nonSymbolNames.concat(publicFieldNames).join(',');
     }
     ''';
@@ -130,13 +221,34 @@ class InstanceHelper extends Domain {
             .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
         .value as String;
     var names = allNames.split(',');
+    // TODO(#761): Better support for large collections.
     return allJsProperties
         .where((property) => names.contains(property.name))
         .toList();
   }
 
+  /// Create an InstanceRef for an object, which may be a RemoteObject, or may
+  /// be something returned by value from Chrome, e.g. number, boolean, or
+  /// String.
+  Future<InstanceRef> instanceRefFor(Object value) {
+    var remote = value is RemoteObject
+        ? value
+        : RemoteObject({'value': value, 'type': _chromeType(value)});
+    return _instanceRefForRemote(remote);
+  }
+
+  /// The Chrome type for a value.
+  String _chromeType(Object value) {
+    if (value == null) return null;
+    if (value is String) return 'string';
+    if (value is num) return 'number';
+    if (value is bool) return 'boolean';
+    if (value is Function) return 'function';
+    return 'object';
+  }
+
   /// Create an [InstanceRef] for the given Chrome [remoteObject].
-  Future<InstanceRef> instanceRefFor(RemoteObject remoteObject) async {
+  Future<InstanceRef> _instanceRefForRemote(RemoteObject remoteObject) async {
     // If we have a null result, treat it as a reference to null.
     if (remoteObject == null) {
       return _primitiveInstance(InstanceKind.kNull, remoteObject);
@@ -155,16 +267,31 @@ class InstanceHelper extends Domain {
       case 'undefined':
         return _primitiveInstance(InstanceKind.kNull, remoteObject);
       case 'object':
-        if (remoteObject.type == 'object' && remoteObject.objectId == null) {
+        if (remoteObject.objectId == null) {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
         var metaData = await ClassMetaData.metaDataFor(
             _remoteDebugger, remoteObject, inspector);
         if (metaData == null) return null;
+        if (metaData.jsName == 'JSArray') {
+          return InstanceRef(
+              kind: InstanceKind.kList,
+              id: remoteObject.objectId,
+              classRef: metaData.classRef)
+            ..length = metaData.length;
+        }
+        if (metaData.jsName == 'LinkedMap' ||
+            metaData.jsName == 'IdentityMap') {
+          return InstanceRef(
+              kind: InstanceKind.kMap,
+              id: remoteObject.objectId,
+              classRef: metaData.classRef)
+            ..length = metaData.length;
+        }
         return InstanceRef(
             kind: InstanceKind.kPlainInstance,
             id: remoteObject.objectId,
-            classRef: ClassRef(name: metaData.name, id: metaData.id));
+            classRef: metaData.classRef);
       case 'function':
         var functionMetaData =
             await FunctionMetaData.metaDataFor(_remoteDebugger, remoteObject);

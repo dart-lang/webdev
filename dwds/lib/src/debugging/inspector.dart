@@ -324,8 +324,10 @@ function($argsString) {
         .map((p) => p.value)
         .filter((l) => l && sdkUtils.isType(l));
       var classList = classes.map(function(clazz) {
-        var descriptor = {'name': clazz.name};
-
+        var descriptor = {
+          'name': clazz.name, 
+          'dartName': sdkUtils.typeName(clazz)
+        };
         // TODO(jakemac): static methods once ddc supports them
         var methods = sdkUtils.getMethods(clazz);
         var methodNames = methods ? Object.keys(methods) : [];
@@ -353,6 +355,7 @@ function($argsString) {
             "isFinal": field.isFinal,
             "isStatic": false,
             "classRefName": fields[name]["type"]["name"],
+            "classRefDartName": sdkUtils.typeName(fields[name]["type"]),
             "classRefLibraryId" : field["type"][libraryUri],
           }
         }
@@ -370,9 +373,11 @@ function($argsString) {
         .cast<Map<String, Object>>();
     var classRefs = <ClassRef>[];
     for (var classDescriptor in classDescriptors) {
-      var classMetaData =
-          ClassMetaData(classDescriptor['name'] as String, libraryRef.id);
-      var classRef = ClassRef(name: classMetaData.name, id: classMetaData.id);
+      var classMetaData = ClassMetaData(
+          jsName: classDescriptor['name'] as String,
+          libraryId: libraryRef.id,
+          dartName: classDescriptor['dartName'] as String);
+      var classRef = ClassRef(name: classMetaData.jsName, id: classMetaData.id);
       classRefs.add(classRef);
 
       var methodRefs = <FuncRef>[];
@@ -392,9 +397,9 @@ function($argsString) {
       var fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
       fieldDescriptors.forEach((name, descriptor) async {
         var classMetaData = ClassMetaData(
-          descriptor['classRefName'] as String,
-          descriptor['classRefLibraryId'] as String,
-        );
+            jsName: descriptor['classRefName'],
+            libraryId: descriptor['classRefLibraryId'],
+            dartName: descriptor['classRefDartName']);
         fieldRefs.add(FieldRef(
             name: name,
             owner: classRef,
@@ -402,7 +407,7 @@ function($argsString) {
                 id: createId(),
                 kind: InstanceKind.kType,
                 classRef:
-                    ClassRef(name: classMetaData.name, id: classMetaData.id)),
+                    ClassRef(name: classMetaData.jsName, id: classMetaData.id)),
             isConst: descriptor['isConst'] as bool,
             isFinal: descriptor['isFinal'] as bool,
             isStatic: descriptor['isStatic'] as bool,
@@ -412,7 +417,7 @@ function($argsString) {
       // TODO: Implement the rest of these
       // https://github.com/dart-lang/webdev/issues/176.
       _classes[classMetaData.id] = Class(
-          name: classMetaData.name,
+          name: classMetaData.jsName,
           isAbstract: false,
           isConst: false,
           library: libraryRef,
