@@ -37,10 +37,12 @@ class Chrome {
   ///
   /// Each url in [urls] will be loaded in a separate tab.
   static Future<Chrome> start(List<String> urls, {int port}) async {
+    var dir = path.join(Directory.current.absolute.path,
+            '.dart_tool', 'chrome_user_data');
+    Directory(dir).createSync(recursive: true);
     var chrome = await browser_launcher.Chrome.startWithDebugPort(urls,
         debugPort: port,
-        userDataDir: path.join(Directory.current.absolute.toString(),
-            '.dart_tool', 'chrome_user_data'));
+        userDataDir: dir);
     return _connect(Chrome._(chrome.debugPort, chrome));
   }
 
