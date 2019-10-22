@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/shared.dart';
+
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
@@ -369,6 +371,66 @@ void main() {
         var world =
             await service.getObject(isolate.id, worldRef.id) as Instance;
         expect(world.valueAsString, 'world');
+      });
+
+      test('Strings with offset', () async {
+        var worldRef = await service.evaluate(
+                isolate.id, isolate.rootLib.id, "helloString('world')")
+            as InstanceRef;
+        var world = await service.getObject(isolate.id, worldRef.id,
+            count: 2, offset: 1) as Instance;
+        expect(world.valueAsString, 'or');
+        expect(world.count, 2);
+        expect(world.length, 5);
+        expect(world.offset, 1);
+      });
+
+      test('Strings with offset off the end', () async {
+        var worldRef = await service.evaluate(
+                isolate.id, isolate.rootLib.id, "helloString('world')")
+            as InstanceRef;
+        var world = await service.getObject(isolate.id, worldRef.id,
+            count: 5, offset: 4) as Instance;
+        expect(world.valueAsString, 'ld');
+        expect(world.count, 2);
+        expect(world.length, 5);
+        expect(world.offset, 4);
+      });
+
+      /// Helper to create a list of 1001 elements, doing a direct JS eval.
+      Future<RemoteObject> createList() {
+        var expr = '''
+          (function () {
+            const sdk = $loadModule("dart_sdk");
+            const list = sdk.dart.dsend(sdk.core.List,"filled", [1001, 5]);
+            list[5] = 6;
+      })()''';
+        return service.appInspectorProvider().jsEvaluate(expr);
+      }
+
+      test('Lists', () async {
+        var list = await createList();
+        var inst = await service.getObject(isolate.id, list.objectId);
+        expect(inst.length, 1001);
+        expect(inst.offset, 0);
+        expect(inst.count, 1001);
+        var fifth = inst.elements[6] as InstanceRef;
+        expect(fifth.valueAsString, '6');
+        var sixth = inst.elements[7] as InstanceRef;
+        expect(sixth.valueAsString, '5');
+      });
+
+      test('Lists with count/offset', () async {
+        var list = await createList();
+        var inst = await service.getObject(isolate.id, list.objectId,
+            count: 7, offset: 4) as Instance;
+        expect(inst.length, 1001);
+        expect(inst.offset, 4);
+        expect(inst.count, 7);
+        var fifth = inst.elements[1] as InstanceRef;
+        expect(fifth.valueAsString, '6');
+        var sixth = inst.elements[2] as InstanceRef;
+        expect(sixth.valueAsString, '5');
       });
 
       test('Scripts', () async {
