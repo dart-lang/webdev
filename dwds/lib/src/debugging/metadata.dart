@@ -31,8 +31,8 @@ class ClassMetaData {
 
   factory ClassMetaData(
       {Object jsName, Object libraryId, Object dartName, Object length}) {
-    return ClassMetaData._(
-        jsName as String, libraryId as String, dartName as String, length as int);
+    return ClassMetaData._(jsName as String, libraryId as String,
+        dartName as String, length as int);
   }
 
   ClassMetaData._(this.jsName, this.libraryId, this.dartName, this.length);
