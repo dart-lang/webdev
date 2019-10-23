@@ -397,6 +397,13 @@ void main() {
         expect(world.offset, 4);
       });
 
+      test('Large strings with default truncation', () async {
+         var largeString = await service.evaluate(isolate.id, isolate.rootLib.id, "helloString('${'abcde' * 250}')") as InstanceRef;
+         expect(largeString.valueAsStringIsTruncated, true);
+         expect(largeString.valueAsString.length, 75);
+         expect(largeString.valueAsString, endsWith('...'));
+      });
+
       /// Helper to create a list of 1001 elements, doing a direct JS eval.
       Future<RemoteObject> createList() {
         var expr = '''
@@ -404,6 +411,7 @@ void main() {
             const sdk = $loadModule("dart_sdk");
             const list = sdk.dart.dsend(sdk.core.List,"filled", [1001, 5]);
             list[5] = 6;
+            return list;
       })()''';
         return service.appInspectorProvider().jsEvaluate(expr);
       }
