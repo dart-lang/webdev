@@ -335,8 +335,7 @@ class Debugger extends Domain {
     var location = frame['location'];
     var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
         location['lineNumber'] as int, location['columnNumber'] as int);
-    return _locations.locationForJs(
-        jsLocation.scriptId, jsLocation.line);
+    return _locations.locationForJs(jsLocation.scriptId, jsLocation.line);
   }
 
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
@@ -417,8 +416,7 @@ class Debugger extends Domain {
     // TODO(sdk/issues/37240) - ideally we look for an exact location instead
     // of the closest location on a given line.
     Location bestLocation;
-    for (var location
-        in await _locations.locationsForJs(jsLocation.scriptId)) {
+    for (var location in await _locations.locationsForJs(jsLocation.scriptId)) {
       if (location.jsLocation.line == jsLocation.line) {
         bestLocation ??= location;
         if ((location.jsLocation.column - jsLocation.column).abs() <

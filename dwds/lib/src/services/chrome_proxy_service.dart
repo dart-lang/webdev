@@ -109,8 +109,8 @@ class ChromeProxyService implements VmServiceInterface {
     var modules = Modules(remoteDebugger, tabUrl);
     var sources = Sources(assetHandler, logWriter);
     var locations = Locations(sources, modules, tabUrl);
-    var service = ChromeProxyService._(vm, tabUrl, assetHandler, remoteDebugger,
-        sources, modules, locations);
+    var service = ChromeProxyService._(
+        vm, tabUrl, assetHandler, remoteDebugger, sources, modules, locations);
     unawaited(service.createIsolate(appConnection));
     return service;
   }
