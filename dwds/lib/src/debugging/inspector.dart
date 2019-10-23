@@ -307,7 +307,7 @@ function($argsString) {
     var scriptRef = _scriptRefsById[objectId];
     if (scriptRef != null) return await _getScript(isolateId, scriptRef);
     var instance =
-        instanceHelper.instanceFor(RemoteObject({'objectId': objectId}));
+        await instanceHelper.instanceFor(RemoteObject({'objectId': objectId}), offset: offset, count: count);
     if (instance != null) return instance;
     throw UnsupportedError('Only libraries, instances, classes, and scripts '
         'are supported for getObject');

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dwds/src/utilities/conversions.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
@@ -402,14 +403,29 @@ class Debugger extends Domain {
       ..declarationTokenPos = -1;
   }
 
+  Future<RemoteObject> _subrange(String id, int offset, int count) async {
+    // TODO(alanknight): Do we really need to convert these to Ids to do this?
+    var receiver = RemoteObject({'objectId': id});
+    var end = count == null ? null : offset + count;
+    var args = [offset, end].map(dartIdFor).toList();
+    return inspector.invoke(
+        inspector.isolate.id, receiver.objectId, 'sublist', args);
+  }
+
   /// Calls the Chrome Runtime.getProperties API for the object with [id].
   ///
   /// Note that the property names are JS names, e.g.
   /// Symbol(DartClass.actualName) and will need to be converted.
-  Future<List<Property>> getProperties(String id) async {
+  Future<List<Property>> getProperties(String id,
+      {int offset, int count}) async {
+    var actualId = id;
+    if (offset != null || count != null) {
+      var range = await _subrange(id, offset, count);
+      actualId = range.objectId;
+    }
     var response =
         await _remoteDebugger.sendCommand('Runtime.getProperties', params: {
-      'objectId': id,
+      'objectId': actualId,
       'ownProperties': true,
     });
     var jsProperties = response.result['result'];

@@ -410,7 +410,7 @@ void main() {
           (function () {
             const sdk = $loadModule("dart_sdk");
             const list = sdk.dart.dsend(sdk.core.List,"filled", [1001, 5]);
-            list[5] = 6;
+            list[4] = 100;
             return list;
       })()''';
         return service.appInspectorProvider().jsEvaluate(expr);
@@ -420,11 +420,11 @@ void main() {
         var list = await createList();
         var inst = await service.getObject(isolate.id, list.objectId);
         expect(inst.length, 1001);
-        expect(inst.offset, 0);
-        expect(inst.count, 1001);
-        var fifth = inst.elements[6] as InstanceRef;
-        expect(fifth.valueAsString, '6');
-        var sixth = inst.elements[7] as InstanceRef;
+        expect(inst.offset, null);
+        expect(inst.count, null);
+        var fifth = inst.elements[4] as InstanceRef;
+        expect(fifth.valueAsString, '100');
+        var sixth = inst.elements[5] as InstanceRef;
         expect(sixth.valueAsString, '5');
       });
 
@@ -435,9 +435,9 @@ void main() {
         expect(inst.length, 1001);
         expect(inst.offset, 4);
         expect(inst.count, 7);
-        var fifth = inst.elements[1] as InstanceRef;
-        expect(fifth.valueAsString, '6');
-        var sixth = inst.elements[2] as InstanceRef;
+        var fifth = inst.elements[0] as InstanceRef;
+        expect(fifth.valueAsString, '100');
+        var sixth = inst.elements[1] as InstanceRef;
         expect(sixth.valueAsString, '5');
       });
 

@@ -66,8 +66,10 @@ class InstanceHelper extends Domain {
   /// Create an [Instance] for the given [remoteObject].
   ///
   /// Does a remote eval to get instance information. Returns null if there
-  /// isn't a corresponding instance.
-  Future<Instance> instanceFor(RemoteObject remoteObject) async {
+  /// isn't a corresponding instance. For enumerable objects, [offset] and
+  /// [count] allow retrieving a subset of properties.
+  Future<Instance> instanceFor(RemoteObject remoteObject,
+      {int offset, int count}) async {
     if (isStringId(remoteObject.objectId)) {
       return _stringInstanceFor(remoteObject);
     }
@@ -77,9 +79,16 @@ class InstanceHelper extends Domain {
     if (metaData.jsName == 'Function') {
       return _closureInstanceFor(remoteObject);
     }
-    var properties = await _debugger.getProperties(remoteObject.objectId);
+    var properties = await _debugger.getProperties(remoteObject.objectId,
+        offset: offset, count: count);
     if (metaData.jsName == 'JSArray') {
-      return await _listInstanceFor(classRef, remoteObject, properties);
+      // We may have been passed in a RemoteObject generated from just an ID. We
+      // need the type for some operations, so set it to what we know it must be
+      // for a list.
+      var remoteWithType =
+          RemoteObject({'objectId': remoteObject.objectId, 'type': 'object'});
+      return await _listInstanceFor(
+          classRef, remoteWithType, properties, offset, count);
     } else if (metaData.jsName == 'LinkedMap' ||
         metaData.jsName == 'IdentityMap') {
       return await _mapInstanceFor(classRef, remoteObject, properties);
@@ -165,16 +174,24 @@ class InstanceHelper extends Domain {
 
   /// Create a List instance of [classRef] from [remoteObject] with the JS
   /// properties [properties].
-  Future<Instance> _listInstanceFor(ClassRef classRef,
-      RemoteObject remoteObject, List<Property> properties) async {
-    var length = _lengthOf(properties);
-    var indexed = properties.sublist(0, length);
+  Future<Instance> _listInstanceFor(
+      ClassRef classRef,
+      RemoteObject remoteObject,
+      List<Property> properties,
+      int offset,
+      int count) async {
+    var length = (offset == null && count == null)
+        ? _lengthOf(properties)
+        : (await instanceRefFor(remoteObject)).length;
+    var indexed = properties.sublist(0, count ?? length);
     var fields = await Future.wait(indexed
         .map((property) async => await _instanceRefForRemote(property.value)));
     return Instance(
         kind: InstanceKind.kList, id: remoteObject.objectId, classRef: classRef)
       ..length = length
-      ..elements = fields;
+      ..elements = fields
+      ..offset = offset
+      ..count = count;
   }
 
   /// Return the value of the length attribute from [properties], if present.
