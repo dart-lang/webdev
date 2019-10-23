@@ -2,9 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:source_maps/parser.dart';
+import 'dart:async';
 
+import 'package:path/path.dart' as p;
+import 'package:source_maps/parser.dart';
+import 'package:source_maps/source_maps.dart';
+
+import '../debugging/sources.dart';
 import '../utilities/dart_uri.dart';
+import 'modules.dart';
 
 var _startTokenId = 1337;
 
@@ -84,4 +90,162 @@ class JsLocation {
 
   static JsLocation fromOneBased(String scriptId, int line, int column) =>
       JsLocation._(scriptId, line, column);
+}
+
+/// Contains meta data for known [Location]s.
+class Locations {
+  /// Map from Dart server path to all corresponding [Location] data.
+  final _sourceToLocation = <String, Set<Location>>{};
+
+  /// Map from JS scriptId to all corresponding [Location] data.
+  final _scriptIdToLocation = <String, Set<Location>>{};
+
+  /// Map from Dart server path to tokenPosTable as defined in the
+  /// Dart VM Service Protocol:
+  /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#script
+  final _sourceToTokenPosTable = <String, List<List<int>>>{};
+
+  /// The set of all known [Location]s for a module.
+  final _moduleToLocations = <String, Set<Location>>{};
+
+  /// Set of all modules for which the corresponding source map has been
+  /// processed.
+  final _processedModules = <String>{};
+
+  final Sources _sources;
+  final Modules _modules;
+  final String _root;
+
+  Locations(this._sources, this._modules, this._root);
+
+  /// Clears all location meta data.
+  void clearCache() {
+    _sourceToTokenPosTable.clear();
+    _scriptIdToLocation.clear();
+    _sourceToLocation.clear();
+    _moduleToLocations.clear();
+    _processedModules.clear();
+  }
+
+  /// Returns all [Location] data for a provided Dart source.
+  Future<Set<Location>> locationsForDart(String serverPath) async {
+    var module = await _modules.moduleForSource(serverPath);
+    var cache = _sourceToLocation[serverPath];
+    if (cache != null) return cache;
+
+    for (var location in await _locationsForModule(module)) {
+      noteLocation(location.dartLocation.uri.serverPath, location,
+          location.jsLocation.scriptId);
+    }
+
+    return _sourceToLocation[serverPath] ?? {};
+  }
+
+  /// Returns all [Location] data for a provided JS scriptId.
+  Future<Set<Location>> locationsForJs(String scriptId) async {
+    var module = await _modules.moduleForScriptId(scriptId);
+
+    var cache = _scriptIdToLocation[scriptId];
+    if (cache != null) return cache;
+
+    for (var location in await _locationsForModule(module)) {
+      noteLocation(location.dartLocation.uri.serverPath, location,
+          location.jsLocation.scriptId);
+    }
+
+    return _scriptIdToLocation[scriptId] ?? {};
+  }
+
+  /// Find the [Location] for the given Dart source position.
+  ///
+  /// The [line] number is 1-based.
+  Future<Location> locationForDart(DartUri uri, int line) async =>
+      (await locationsForDart(uri.serverPath)).firstWhere(
+          (location) => location.dartLocation.line == line,
+          orElse: () => null);
+
+  /// Find the [Location] for the given JS source position.
+  ///
+  /// The [line] number is 1-based.
+  Future<Location> locationForJs(String scriptId, int line) async =>
+      (await locationsForJs(scriptId)).firstWhere(
+          (location) => location.jsLocation.line == line,
+          orElse: () => null);
+
+  /// Note [location] meta data.
+  void noteLocation(
+      String dartServerPath, Location location, String wipScriptId) {
+    _sourceToLocation.putIfAbsent(dartServerPath, () => Set()).add(location);
+    _scriptIdToLocation.putIfAbsent(wipScriptId, () => Set()).add(location);
+  }
+
+  /// Returns the tokenPosTable for the provided Dart script path as defined
+  /// in:
+  /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#script
+  Future<List<List<int>>> tokenPosTableFor(String serverPath) async {
+    var tokenPosTable = _sourceToTokenPosTable[serverPath];
+    if (tokenPosTable != null) return tokenPosTable;
+    // Construct the tokenPosTable which is of the form:
+    // [lineNumber, (tokenId, columnNumber)*]
+    tokenPosTable = <List<int>>[];
+    var locations = await locationsForDart(serverPath);
+    var lineNumberToLocation = <int, Set<Location>>{};
+    for (var location in locations) {
+      lineNumberToLocation
+          .putIfAbsent(location.dartLocation.line, () => Set())
+          .add(location);
+    }
+    for (var lineNumber in lineNumberToLocation.keys) {
+      tokenPosTable.add([
+        lineNumber,
+        for (var location in lineNumberToLocation[lineNumber]) ...[
+          location.tokenPos,
+          location.dartLocation.column
+        ]
+      ]);
+    }
+    _sourceToTokenPosTable[serverPath] = tokenPosTable;
+    return tokenPosTable;
+  }
+
+  /// Returns all known [Location]s for the provided [module].
+  ///
+  /// [module] refers to the JS path of a DDC module without the extension.
+  Future<Set<Location>> _locationsForModule(String module) async {
+    if (_moduleToLocations[module] != null) return _moduleToLocations[module];
+    var result = <Location>{};
+    if (module?.isEmpty ?? true) return _moduleToLocations[module] = result;
+    var moduleExtension = await _modules.moduleExtension;
+    var modulePath = '$module$moduleExtension';
+    var sourceMapContents = await _sources.readAssetOrNull('$modulePath.map');
+    var scriptLocation = p.url.dirname('/$modulePath');
+    if (sourceMapContents == null) return result;
+    var scriptId = await _modules.scriptIdForModule(module);
+    if (scriptId == null) return result;
+    // This happens to be a [SingleMapping] today in DDC.
+    var mapping = parse(sourceMapContents);
+    if (mapping is SingleMapping) {
+      // Create TokenPos for each entry in the source map.
+      for (var lineEntry in mapping.lines) {
+        for (var entry in lineEntry.entries) {
+          var index = entry.sourceUrlId;
+          if (index == null) continue;
+          // Source map URLS are relative to the script. They may have platform separators
+          // or they may use URL semantics. To be sure, we split and re-join them.
+          // This works on Windows because path treats both / and \ as separators.
+          // It will fail if the path has both separators in it.
+          var relativeSegments = p.split(mapping.urls[index]);
+          var path = p.url.joinAll([scriptLocation, ...relativeSegments]);
+          var dartUri = DartUri(path, _root);
+          result.add(Location.from(
+            scriptId,
+            lineEntry,
+            entry,
+            dartUri,
+          ));
+        }
+      }
+    }
+    return _moduleToLocations[module] = result;
+  }
 }

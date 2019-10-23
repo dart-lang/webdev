@@ -7,7 +7,6 @@ import 'package:dwds/src/debugging/sources.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 void main() {
   test('Gracefully handles missing source maps', () async {
@@ -17,15 +16,9 @@ void main() {
       sourcePath: '',
     };
     var logs = <LogRecord>[];
-    var sources = Sources(TestingAssetHandler(assets), null,
-        (level, message) => logs.add(LogRecord(level, message, '')), '');
-    var serverUri = 'http://localhost:1234/';
-    await sources.scriptParsed(ScriptParsedEvent(WipEvent({
-      'params': {
-        'url': '$serverUri$sourcePath',
-        'sourceMapURL': '$serverUri$sourceMapPath'
-      }
-    })));
+    var sources = Sources(TestingAssetHandler(assets),
+        (level, message) => logs.add(LogRecord(level, message, '')));
+    await sources.readAssetOrNull(sourceMapPath);
     expect(
         logs,
         contains(predicate((LogRecord log) =>

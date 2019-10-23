@@ -1,4 +1,4 @@
-## 0.7.5-dev
+## 0.7.5
 
 - The injected client's connection is now based off the request URI.
 - Fix an issue where resuming while paused at the start would cause an error.
@@ -7,6 +7,7 @@
 - DevTools will now launch immediately and lazily sets up necessary state.
 - Properly set `pauseBreakpoints` on `kPauseBreakpoint` events.
 - Greatly improves handling of List, Map and IdentityMap instances.
+- Lazily parse source maps to improve performance for large applications.
 
 ## 0.7.4
 

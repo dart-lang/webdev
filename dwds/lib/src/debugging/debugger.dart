@@ -8,8 +8,6 @@ import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
-import '../../asset_handler.dart';
-import '../../dwds.dart' show LogWriter;
 import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
@@ -18,6 +16,7 @@ import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'dart_scope.dart';
 import 'location.dart';
+import 'modules.dart';
 import 'remote_debugger.dart';
 import 'sources.dart';
 
@@ -31,30 +30,31 @@ const _pauseModePauseStates = {
   'unhandled': PauseState.uncaught,
 };
 
+/// Paths to black box in the Chrome debugger.
+const _pathsToBlackBox = {'/packages/stack_trace/'};
+
 class Debugger extends Domain {
   static final logger = Logger('Debugger');
 
-  final AssetHandler _assetHandler;
-  final LogWriter _logWriter;
   final RemoteDebugger _remoteDebugger;
 
   /// The root URI from which the application is served.
   final String _root;
   final StreamNotify _streamNotify;
+  final Sources _sources;
+  final Modules _modules;
+  final Locations _locations;
 
   Debugger._(
-    this._assetHandler,
     this._remoteDebugger,
     this._streamNotify,
     AppInspectorProvider provider,
-    // TODO(401) - Remove.
+    this._sources,
+    this._modules,
+    this._locations,
     this._root,
-    this._logWriter,
   )   : _breakpoints = _Breakpoints(provider),
         super(provider);
-
-  /// The scripts and sourcemaps for the application, both JS and Dart.
-  Sources sources;
 
   /// The breakpoints we have set so far, indexable by either
   /// Dart or JS ID.
@@ -149,33 +149,36 @@ class Debugger extends Domain {
   }
 
   static Future<Debugger> create(
-    AssetHandler assetHandler,
     RemoteDebugger remoteDebugger,
     StreamNotify streamNotify,
     AppInspectorProvider appInspectorProvider,
+    Sources sources,
+    Modules modules,
+    Locations locations,
     String root,
-    LogWriter logWriter,
   ) async {
     var debugger = Debugger._(
-      assetHandler,
       remoteDebugger,
       streamNotify,
       appInspectorProvider,
-      // TODO(401) - Remove.
+      sources,
+      modules,
+      locations,
       root,
-      logWriter,
     );
     await debugger._initialize();
     return debugger;
   }
 
   Future<Null> _initialize() async {
-    sources = Sources(_assetHandler, _remoteDebugger, _logWriter, _root);
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.
     runZoned(() {
-      _remoteDebugger?.onScriptParsed?.listen(sources.scriptParsed);
+      _remoteDebugger?.onScriptParsed?.listen((e) {
+        _blackBoxIfNecessary(e.script);
+        _modules.noteModule(e.script.url, e.script.scriptId);
+      });
       _remoteDebugger?.onPaused?.listen(_pauseHandler);
       _remoteDebugger?.onResumed?.listen(_resumeHandler);
     }, onError: (e, StackTrace s) {
@@ -184,6 +187,50 @@ class Debugger extends Domain {
 
     handleErrorIfPresent(await _remoteDebugger?.sendCommand('Page.enable'));
     handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
+  }
+
+  /// Black boxes the Dart SDK and paths in [_pathsToBlackBox].
+  Future<void> _blackBoxIfNecessary(WipScript script) async {
+    if (script.url.endsWith('dart_sdk.js')) {
+      await _blackBoxSdk(script);
+    } else if (_pathsToBlackBox.any(script.url.contains)) {
+      var content =
+          await _sources.readAssetOrNull(DartUri(script.url).serverPath);
+      if (content == null) return;
+      var lines = content.split('\n');
+      await _blackBoxRanges(script.scriptId, [lines.length]);
+    }
+  }
+
+  /// Black boxes the SDK excluding the range which includes exception logic.
+  Future<void> _blackBoxSdk(WipScript script) async {
+    var content =
+        await _sources.readAssetOrNull(DartUri(script.url).serverPath);
+    if (content == null) return;
+    var sdkSourceLines = content.split('\n');
+    // TODO(grouma) - Find a more robust way to identify this location.
+    var throwIndex = sdkSourceLines.indexWhere(
+        (line) => line.contains('dart.throw = function throw_(exception) {'));
+    if (throwIndex != -1) {
+      await _blackBoxRanges(script.scriptId, [throwIndex, throwIndex + 6]);
+    }
+  }
+
+  Future<void> _blackBoxRanges(String scriptId, List<int> lineNumbers) async {
+    try {
+      await _remoteDebugger
+          .sendCommand('Debugger.setBlackboxedRanges', params: {
+        'scriptId': scriptId,
+        'positions': [
+          {'lineNumber': 0, 'columnNumber': 0},
+          for (var line in lineNumbers) {'lineNumber': line, 'columnNumber': 0},
+        ]
+      });
+    } catch (_) {
+      // Attempting to set ranges immediately after a refresh can cause issues
+      // as the corresponding script will no longer exist. Silently ignore
+      // these failures.
+    }
   }
 
   /// Resumes the Isolate from start.
@@ -205,7 +252,7 @@ class Debugger extends Domain {
     checkIsolate(isolateId);
     var dartScript = await inspector.scriptWithId(scriptId);
     var dartUri = DartUri(dartScript.uri, _root);
-    var location = _locationForDart(dartUri, line);
+    var location = await _locations.locationForDart(dartUri, line);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) {
       // ignore: only_throw_errors
@@ -287,32 +334,16 @@ class Debugger extends Domain {
     handleErrorIfPresent(response);
   }
 
-  /// Find the [Location] for the given Dart source position.
-  ///
-  /// The [line] number is 1-based.
-  Location _locationForDart(DartUri uri, int line) => sources
-      .locationsForDart(uri.serverPath)
-      .firstWhere((location) => location.dartLocation.line == line,
-          orElse: () => null);
-
-  /// Find the [Location] for the given JS source position.
-  ///
-  /// The [line] number is 1-based.
-  Location _locationForJs(String scriptId, int line) => sources
-      .locationsForJs(scriptId)
-      .firstWhere((location) => location.jsLocation.line == line,
-          orElse: () => null);
-
   /// Returns source [Location] for the paused event.
   ///
   /// If we do not have [Location] data for the embedded JS location, null is
   /// returned.
-  Location _sourceLocation(DebuggerPausedEvent e) {
+  Future<Location> _sourceLocation(DebuggerPausedEvent e) {
     var frame = e.params['callFrames'][0];
     var location = frame['location'];
     var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
         location['lineNumber'] as int, location['columnNumber'] as int);
-    return _locationForJs(jsLocation.scriptId, jsLocation.line);
+    return _locations.locationForJs(jsLocation.scriptId, jsLocation.line);
   }
 
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
@@ -393,7 +424,7 @@ class Debugger extends Domain {
     // TODO(sdk/issues/37240) - ideally we look for an exact location instead
     // of the closest location on a given line.
     Location bestLocation;
-    for (var location in sources.locationsForJs(jsLocation.scriptId)) {
+    for (var location in await _locations.locationsForJs(jsLocation.scriptId)) {
       if (location.jsLocation.line == jsLocation.line) {
         bestLocation ??= location;
         if ((location.jsLocation.column - jsLocation.column).abs() <
@@ -448,7 +479,7 @@ class Debugger extends Domain {
           isolate: inspector.isolateRef);
     } else {
       // If we don't have source location continue stepping.
-      if (_isStepping && _sourceLocation(e) == null) {
+      if (_isStepping && (await _sourceLocation(e)) == null) {
         await _remoteDebugger.sendCommand('Debugger.stepInto');
         return;
       }

@@ -16,6 +16,10 @@ void main() {
   }
 
   tearDown(() async {
+    var tabs = await chrome.chromeConnection.getTabs();
+    for (var tab in tabs) {
+      await chrome.chromeConnection.getUrl('/json/close/${tab.id}');
+    }
     await chrome?.close();
     chrome = null;
   });
