@@ -42,16 +42,16 @@ class Debugger extends Domain {
   final String _root;
   final StreamNotify _streamNotify;
   final Sources _sources;
-  final ModuleMetaData _moduleMetaData;
-  final LocationMetaData _locationMetaData;
+  final Modules _modules;
+  final Locations _locations;
 
   Debugger._(
     this._remoteDebugger,
     this._streamNotify,
     AppInspectorProvider provider,
     this._sources,
-    this._moduleMetaData,
-    this._locationMetaData,
+    this._modules,
+    this._locations,
     this._root,
   )   : _breakpoints = _Breakpoints(provider),
         super(provider);
@@ -153,8 +153,8 @@ class Debugger extends Domain {
     StreamNotify streamNotify,
     AppInspectorProvider appInspectorProvider,
     Sources sources,
-    ModuleMetaData moduleMetaData,
-    LocationMetaData locationMetaData,
+    Modules modules,
+    Locations locations,
     String root,
   ) async {
     var debugger = Debugger._(
@@ -162,8 +162,8 @@ class Debugger extends Domain {
       streamNotify,
       appInspectorProvider,
       sources,
-      moduleMetaData,
-      locationMetaData,
+      modules,
+      locations,
       root,
     );
     await debugger._initialize();
@@ -177,7 +177,7 @@ class Debugger extends Domain {
     runZoned(() {
       _remoteDebugger?.onScriptParsed?.listen((e) {
         _blackBoxIfNecessary(e.script);
-        _moduleMetaData.noteModule(e.script.url, e.script.scriptId);
+        _modules.noteModule(e.script.url, e.script.scriptId);
       });
       _remoteDebugger?.onPaused?.listen(_pauseHandler);
       _remoteDebugger?.onResumed?.listen(_resumeHandler);
@@ -193,7 +193,7 @@ class Debugger extends Domain {
   Future<void> _blackBoxIfNecessary(WipScript script) async {
     if (script.url.endsWith('dart_sdk.js')) {
       await _blackBoxSdk(script);
-    } else if (_pathsToBlackBox.any((path) => script.url.contains(path))) {
+    } else if (_pathsToBlackBox.any(script.url.contains)) {
       var content =
           await _sources.readAssetOrNull(DartUri(script.url).serverPath);
       if (content == null) return;
@@ -233,9 +233,6 @@ class Debugger extends Domain {
     }
   }
 
-  Future<List<List<int>>> tokenPosTableFor(String serverPath) =>
-      _locationMetaData.tokenPosTableFor(serverPath);
-
   /// Resumes the Isolate from start.
   ///
   /// The JS VM is technically not paused at the start of the Isolate so there
@@ -255,7 +252,7 @@ class Debugger extends Domain {
     checkIsolate(isolateId);
     var dartScript = await inspector.scriptWithId(scriptId);
     var dartUri = DartUri(dartScript.uri, _root);
-    var location = await _locationForDart(dartUri, line);
+    var location = await _locations.locationForDart(dartUri, line);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) return null;
     var jsBreakpointId = await _setBreakpoint(location);
@@ -329,22 +326,6 @@ class Debugger extends Domain {
     handleErrorIfPresent(response);
   }
 
-  /// Find the [Location] for the given Dart source position.
-  ///
-  /// The [line] number is 1-based.
-  Future<Location> _locationForDart(DartUri uri, int line) async =>
-      (await _locationMetaData.locationsForDart(uri.serverPath)).firstWhere(
-          (location) => location.dartLocation.line == line,
-          orElse: () => null);
-
-  /// Find the [Location] for the given JS source position.
-  ///
-  /// The [line] number is 1-based.
-  Future<Location> _locationForJs(String scriptId, int line) async =>
-      (await _locationMetaData.locationsForJs(scriptId)).firstWhere(
-          (location) => location.jsLocation.line == line,
-          orElse: () => null);
-
   /// Returns source [Location] for the paused event.
   ///
   /// If we do not have [Location] data for the embedded JS location, null is
@@ -354,7 +335,8 @@ class Debugger extends Domain {
     var location = frame['location'];
     var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
         location['lineNumber'] as int, location['columnNumber'] as int);
-    return _locationForJs(jsLocation.scriptId, jsLocation.line);
+    return _locations.locationForJs(
+        jsLocation.scriptId, jsLocation.line);
   }
 
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
@@ -436,7 +418,7 @@ class Debugger extends Domain {
     // of the closest location on a given line.
     Location bestLocation;
     for (var location
-        in await _locationMetaData.locationsForJs(jsLocation.scriptId)) {
+        in await _locations.locationsForJs(jsLocation.scriptId)) {
       if (location.jsLocation.line == jsLocation.line) {
         bestLocation ??= location;
         if ((location.jsLocation.column - jsLocation.column).abs() <

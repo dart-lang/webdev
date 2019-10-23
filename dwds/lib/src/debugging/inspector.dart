@@ -54,7 +54,7 @@ class AppInspector extends Domain {
 
   final RemoteDebugger _remoteDebugger;
   final AssetHandler _assetHandler;
-  final LocationMetaData _locationMetaData;
+  final Locations _locations;
   final Isolate isolate;
   final IsolateRef isolateRef;
   final InstanceHelper instanceHelper;
@@ -67,7 +67,7 @@ class AppInspector extends Domain {
     this.appConnection,
     this.isolate,
     this._assetHandler,
-    this._locationMetaData,
+    this._locations,
     this._root,
     this._remoteDebugger,
     this.instanceHelper,
@@ -98,7 +98,7 @@ class AppInspector extends Domain {
       AppConnection appConnection,
       RemoteDebugger remoteDebugger,
       AssetHandler assetHandler,
-      LocationMetaData locationMetaData,
+      Locations locations,
       String root,
       InstanceHelper instanceHelper,
       String pauseMode) async {
@@ -125,7 +125,7 @@ class AppInspector extends Domain {
       appConnection,
       isolate,
       assetHandler,
-      locationMetaData,
+      locations,
       root,
       remoteDebugger,
       instanceHelper,
@@ -447,7 +447,7 @@ function($argsString) {
       library: _libraryRefs[libraryId],
       id: scriptRef.id,
     )
-      ..tokenPosTable = await _locationMetaData.tokenPosTableFor(serverPath)
+      ..tokenPosTable = await _locations.tokenPosTableFor(serverPath)
       ..source = script;
   }
 

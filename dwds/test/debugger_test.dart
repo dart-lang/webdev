@@ -26,7 +26,7 @@ AppInspector inspector;
 Debugger debugger;
 FakeWebkitDebugger webkitDebugger;
 StreamController<DebuggerPausedEvent> pausedController;
-LocationMetaData locationMetaData;
+Locations locations;
 
 void main() async {
   setUpAll(() async {
@@ -35,15 +35,15 @@ void main() async {
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
     var root = 'fakeRoot';
-    var moduleMetaData = ModuleMetaData(webkitDebugger, root);
-    locationMetaData = LocationMetaData(null, moduleMetaData, root);
+    var modules = Modules(webkitDebugger, root);
+    locations = Locations(null, modules, root);
     debugger = await Debugger.create(
       webkitDebugger,
       null,
       () => inspector,
       null,
       null,
-      locationMetaData,
+      locations,
       root,
     );
     inspector = FakeInspector();
@@ -68,7 +68,7 @@ void main() async {
     );
     // Create a single location in the JS script the location in our hard-coded
     // frame.
-    locationMetaData.noteLocation('dart', location, '69');
+    locations.noteLocation('dart', location, '69');
 
     var frames = await debugger.dartFramesFor(frames1);
     expect(frames, isNotNull);

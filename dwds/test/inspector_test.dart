@@ -26,7 +26,6 @@ void main() {
     await context.setUp();
     var service = fetchChromeProxyService(context.debugConnection);
     debugger = await service.debugger;
-    // TODO(alanknight): A nicer way of getting the inspector.
     inspector = service.appInspectorProvider();
   });
 

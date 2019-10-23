@@ -11,7 +11,7 @@ import '../utilities/dart_uri.dart';
 import 'remote_debugger.dart';
 
 /// Contains meta data and helpful methods for DDC modules.
-class ModuleMetaData {
+class Modules {
   final String _root;
   final RemoteDebugger _remoteDebugger;
   // The Dart server path to containing module.
@@ -27,7 +27,7 @@ class ModuleMetaData {
 
   var _initializedCompleter = Completer();
 
-  ModuleMetaData(this._remoteDebugger, this._root);
+  Modules(this._remoteDebugger, this._root);
 
   /// Completes with the module extension i.e. `.ddc.js` or `.ddk.js`.
   ///
@@ -39,7 +39,7 @@ class ModuleMetaData {
   ///
   /// Intended to be called multiple times throughout the development workflow,
   /// e.g. after a hot-reload.
-  void initializeMapping() {
+  void initialize() {
     _initializedCompleter = Completer();
     _initializeMapping();
   }
@@ -73,6 +73,7 @@ class ModuleMetaData {
       }
     }
 
+    // Remove the DDC extension (e.g. .ddc.js) from the path.
     var module = p
         .withoutExtension(p.withoutExtension(Uri.parse(url).path))
         .substring(1);

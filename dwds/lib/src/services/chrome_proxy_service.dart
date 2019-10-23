@@ -58,9 +58,9 @@ class ChromeProxyService implements VmServiceInterface {
 
   final AssetHandler _assetHandler;
 
-  final LocationMetaData _locationMetaData;
+  final Locations _locations;
 
-  final ModuleMetaData _moduleMetaData;
+  final Modules _modules;
 
   final _debuggerCompleter = Completer<Debugger>();
 
@@ -79,16 +79,16 @@ class ChromeProxyService implements VmServiceInterface {
     this._assetHandler,
     this.remoteDebugger,
     Sources sources,
-    this._moduleMetaData,
-    this._locationMetaData,
+    this._modules,
+    this._locations,
   ) {
     _debuggerCompleter.complete(Debugger.create(
       remoteDebugger,
       _streamNotify,
       appInspectorProvider,
       sources,
-      _moduleMetaData,
-      _locationMetaData,
+      _modules,
+      _locations,
       uri,
     ));
   }
@@ -106,11 +106,11 @@ class ChromeProxyService implements VmServiceInterface {
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
-    var moduleMetaData = ModuleMetaData(remoteDebugger, tabUrl);
+    var modules = Modules(remoteDebugger, tabUrl);
     var sources = Sources(assetHandler, logWriter);
-    var locationMetaData = LocationMetaData(sources, moduleMetaData, tabUrl);
+    var locations = Locations(sources, modules, tabUrl);
     var service = ChromeProxyService._(vm, tabUrl, assetHandler, remoteDebugger,
-        sources, moduleMetaData, locationMetaData);
+        sources, modules, locations);
     unawaited(service.createIsolate(appConnection));
     return service;
   }
@@ -126,8 +126,8 @@ class ChromeProxyService implements VmServiceInterface {
           'Cannot create multiple isolates for the same app');
     }
 
-    _locationMetaData.clearCache();
-    _moduleMetaData.initializeMapping();
+    _locations.clearCache();
+    _modules.initialize();
     (await debugger).notifyPausedAtStart();
 
     var instanceHelper =
@@ -137,7 +137,7 @@ class ChromeProxyService implements VmServiceInterface {
       appConnection,
       remoteDebugger,
       _assetHandler,
-      _locationMetaData,
+      _locations,
       uri,
       instanceHelper,
       (await debugger).pauseState,

@@ -93,7 +93,7 @@ class JsLocation {
 }
 
 /// Contains meta data for known [Location]s.
-class LocationMetaData {
+class Locations {
   /// Map from Dart server path to all corresponding [Location] data.
   final _sourceToLocation = <String, Set<Location>>{};
 
@@ -113,10 +113,10 @@ class LocationMetaData {
   final _processedModules = <String>{};
 
   final Sources _sources;
-  final ModuleMetaData _moduleMetaData;
+  final Modules _modules;
   final String _root;
 
-  LocationMetaData(this._sources, this._moduleMetaData, this._root);
+  Locations(this._sources, this._modules, this._root);
 
   /// Clears all location meta data.
   void clearCache() {
@@ -129,7 +129,7 @@ class LocationMetaData {
 
   /// Returns all [Location] data for a provided Dart source.
   Future<Set<Location>> locationsForDart(String serverPath) async {
-    var module = await _moduleMetaData.moduleForSource(serverPath);
+    var module = await _modules.moduleForSource(serverPath);
     var cache = _sourceToLocation[serverPath];
     if (cache != null) return cache;
 
@@ -143,7 +143,7 @@ class LocationMetaData {
 
   /// Returns all [Location] data for a provided JS scriptId.
   Future<Set<Location>> locationsForJs(String scriptId) async {
-    var module = await _moduleMetaData.moduleForScriptId(scriptId);
+    var module = await _modules.moduleForScriptId(scriptId);
 
     var cache = _scriptIdToLocation[scriptId];
     if (cache != null) return cache;
@@ -155,6 +155,22 @@ class LocationMetaData {
 
     return _scriptIdToLocation[scriptId] ?? {};
   }
+
+  /// Find the [Location] for the given Dart source position.
+  ///
+  /// The [line] number is 1-based.
+  Future<Location> locationForDart(DartUri uri, int line) async =>
+      (await locationsForDart(uri.serverPath)).firstWhere(
+          (location) => location.dartLocation.line == line,
+          orElse: () => null);
+
+  /// Find the [Location] for the given JS source position.
+  ///
+  /// The [line] number is 1-based.
+  Future<Location> locationForJs(String scriptId, int line) async =>
+      (await locationsForJs(scriptId)).firstWhere(
+          (location) => location.jsLocation.line == line,
+          orElse: () => null);
 
   /// Note [location] meta data.
   void noteLocation(
@@ -192,17 +208,19 @@ class LocationMetaData {
     return tokenPosTable;
   }
 
-  /// Returns all known [Location]s for the provided module.
+  /// Returns all known [Location]s for the provided [module].
+  ///
+  /// [module] refers to the JS path of a DDC module without the extension.
   Future<Set<Location>> _locationsForModule(String module) async {
     if (_moduleToLocations[module] != null) return _moduleToLocations[module];
     var result = <Location>{};
     if (module?.isEmpty ?? true) return _moduleToLocations[module] = result;
-    var moduleExtension = await _moduleMetaData.moduleExtension;
+    var moduleExtension = await _modules.moduleExtension;
     var modulePath = '$module$moduleExtension';
     var sourceMapContents = await _sources.readAssetOrNull('$modulePath.map');
     var scriptLocation = p.url.dirname('/$modulePath');
     if (sourceMapContents == null) return result;
-    var scriptId = await _moduleMetaData.scriptIdForModule(module);
+    var scriptId = await _modules.scriptIdForModule(module);
     if (scriptId == null) return result;
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = parse(sourceMapContents);
