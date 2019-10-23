@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@OnPlatform({
-  'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
-})
 import 'dart:async';
 
 import 'package:test/test.dart';
@@ -19,6 +16,10 @@ void main() {
   }
 
   tearDown(() async {
+    var tabs = await chrome.chromeConnection.getTabs();
+    for (var tab in tabs) {
+      await chrome.chromeConnection.getUrl('/json/close/${tab.id}');
+    }
     await chrome?.close();
     chrome = null;
   });
