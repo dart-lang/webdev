@@ -114,7 +114,7 @@ void main() {
       var remoteObject =
           await inspector.jsEvaluate(libraryVariableExpression('map'));
       var ref = await instanceHelper.instanceRefFor(remoteObject);
-      expect(ref.length, 1);
+      expect(ref.length, 2);
       expect(ref.kind, InstanceKind.kMap);
       expect(ref.classRef.name, 'LinkedMap<Object, Object>');
     });
