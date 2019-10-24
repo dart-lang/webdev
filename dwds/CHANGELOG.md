@@ -1,3 +1,7 @@
+## 0.7.6
+
+- Fix issue with source map logic for the legacy module system.
+
 ## 0.7.5
 
 - The injected client's connection is now based off the request URI.
