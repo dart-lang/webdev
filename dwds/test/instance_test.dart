@@ -191,8 +191,12 @@ void main() {
       expect(instance.kind, InstanceKind.kMap);
       var classRef = instance.classRef;
       expect(classRef.name, 'LinkedMap<Object, Object>');
-      var first = instance.associations[0].value;
-      expect(first.valueAsString, '1');
+      var first = instance.associations[0].value as InstanceRef;
+      expect(first.kind, InstanceKind.kList);
+      expect(first.length, 3);
+      var second = instance.associations[1].value as InstanceRef;
+      expect(second.kind, InstanceKind.kString);
+      expect(second.valueAsString, 'something');
     });
 
     test('for an identityMap', () async {

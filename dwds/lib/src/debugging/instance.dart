@@ -132,23 +132,31 @@ class InstanceHelper extends Domain {
         var sdkUtils = $loadModule('dart_sdk').dart;
         var entries = sdkUtils.dloadRepl(this, "entries");
         entries = sdkUtils.dsendRepl(entries, "toList", []);
-        function asKeyValue(entry) {
-          return {
-            key: sdkUtils.dloadRepl(entry, "key"),
-            value: sdkUtils.dloadRepl(entry, "value")
-          }
+        function asKey(entry) {
+          return sdkUtils.dloadRepl(entry, "key");
         }
-        return entries.map(asKeyValue);
+        function asValue(entry) {
+          return sdkUtils.dloadRepl(entry, "value");
+        }
+        return {
+          keys: entries.map(asKey),
+          values: entries.map(asValue)
+        };
       }
     ''';
-    var keysAndValues = await inspector.jsCallFunctionOn(map, expression, [],
-        returnByValue: true);
+    var keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
+    var keys = await inspector.loadField(keysAndValues, 'keys');
+    var values = await inspector.loadField(keysAndValues, 'values');
+    var keys1 = await instanceFor(keys);
+    var values1 = await instanceFor(values);
+    print(keys);
+    print(values);
     var associations = <MapAssociation>[];
-    for (var each in keysAndValues.value as List) {
+    Map.fromIterables(keys1.elements, values1.elements).forEach((key, value) {
       associations.add(MapAssociation()
-        ..key = await instanceRefFor(each['key'])
-        ..value = await instanceRefFor(each['value']));
-    }
+        ..key = key
+        ..value = value);
+    });
     return associations;
   }
 
