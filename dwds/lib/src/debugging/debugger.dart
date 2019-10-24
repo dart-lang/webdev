@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:logging/logging.dart';
@@ -403,10 +404,10 @@ class Debugger extends Domain {
       ..declarationTokenPos = -1;
   }
 
-  Future<RemoteObject> _subrange(String id, int offset, int count) async {
+  Future<RemoteObject> _subrange(String id, int offset, int count, int length) async {
     // TODO(alanknight): Do we really need to convert these to Ids to do this?
     var receiver = RemoteObject({'objectId': id});
-    var end = count == null ? null : offset + count;
+    var end = count == null ? null : min(offset + count, length);
     var args = [offset, end].map(dartIdFor).toList();
     return inspector.invoke(
         inspector.isolate.id, receiver.objectId, 'sublist', args);
@@ -417,10 +418,10 @@ class Debugger extends Domain {
   /// Note that the property names are JS names, e.g.
   /// Symbol(DartClass.actualName) and will need to be converted.
   Future<List<Property>> getProperties(String id,
-      {int offset, int count}) async {
+      {int offset, int count, int length}) async {
     var actualId = id;
     if (offset != null || count != null) {
-      var range = await _subrange(id, offset, count);
+      var range = await _subrange(id, offset, count, length);
       actualId = range.objectId;
     }
     var response =

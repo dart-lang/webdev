@@ -1,6 +1,8 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.import 'dart:async';
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:math';
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -13,6 +15,11 @@ import 'debugger.dart';
 import 'inspector.dart';
 import 'metadata.dart';
 import 'remote_debugger.dart';
+
+/// The maximum length of String which will be returned in an InstanceRef.
+/// 
+/// Anything longer will be truncated.
+const _stringTruncationLimit = 128;
 
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
@@ -45,14 +52,28 @@ class InstanceHelper extends Domain {
       this._debugger, this._remoteDebugger, AppInspector Function() provider)
       : super(provider);
 
-  Future<Instance> _stringInstanceFor(RemoteObject remoteObject) async {
+  Future<Instance> _stringInstanceFor(
+      RemoteObject remoteObject, int offset, int count) async {
+    // TODO(#777) Consider a way of not passing the whole string around (in the
+    // ID) in order to find a substring.
     var actualString = stringFromDartId(remoteObject.objectId);
+    var subString = actualString;
+    var truncated = false;
+    if (offset != null || count != null) {
+      var start = offset ?? 0;
+      var end = count == null ? null : min(start + count, actualString.length);
+      subString = actualString.substring(start, end);
+      truncated = true;
+    }
     return Instance(
         kind: InstanceKind.kString,
         classRef: _classRefForString,
         id: createId())
-      ..valueAsString = actualString
-      ..length = actualString.length;
+      ..valueAsString = subString
+      ..valueAsStringIsTruncated = truncated
+      ..length = actualString.length
+      ..count = (truncated ? subString.length : null)
+      ..offset = (truncated ? offset : null);
   }
 
   Future<Instance> _closureInstanceFor(RemoteObject remoteObject) async {
@@ -71,7 +92,7 @@ class InstanceHelper extends Domain {
   Future<Instance> instanceFor(RemoteObject remoteObject,
       {int offset, int count}) async {
     if (isStringId(remoteObject.objectId)) {
-      return _stringInstanceFor(remoteObject);
+      return _stringInstanceFor(remoteObject, offset, count);
     }
     var metaData = await ClassMetaData.metaDataFor(
         _remoteDebugger, remoteObject, inspector);
@@ -80,7 +101,7 @@ class InstanceHelper extends Domain {
       return _closureInstanceFor(remoteObject);
     }
     var properties = await _debugger.getProperties(remoteObject.objectId,
-        offset: offset, count: count);
+        offset: offset, count: count, length: metaData.length);
     if (metaData.jsName == 'JSArray') {
       // We may have been passed in a RemoteObject generated from just an ID. We
       // need the type for some operations, so set it to what we know it must be
@@ -180,10 +201,12 @@ class InstanceHelper extends Domain {
       List<Property> properties,
       int offset,
       int count) async {
+    var numberOfProperties = _lengthOf(properties);
     var length = (offset == null && count == null)
-        ? _lengthOf(properties)
+        ? numberOfProperties
         : (await instanceRefFor(remoteObject)).length;
-    var indexed = properties.sublist(0, count ?? length);
+    var indexed =
+        properties.sublist(0, min(count ?? length, numberOfProperties));
     var fields = await Future.wait(indexed
         .map((property) async => await _instanceRefForRemote(property.value)));
     return Instance(
@@ -191,7 +214,7 @@ class InstanceHelper extends Domain {
       ..length = length
       ..elements = fields
       ..offset = offset
-      ..count = count;
+      ..count = (numberOfProperties == length) ? null : numberOfProperties;
   }
 
   /// Return the value of the length attribute from [properties], if present.
@@ -272,11 +295,16 @@ class InstanceHelper extends Domain {
     }
     switch (remoteObject.type) {
       case 'string':
+        var stringValue = remoteObject.value as String;
+        var truncated = stringValue.length > _stringTruncationLimit;
+        var result = truncated ? stringValue.substring(0, _stringTruncationLimit) : stringValue;
         return InstanceRef(
             id: dartIdFor(remoteObject.value),
             classRef: _classRefForString,
             kind: InstanceKind.kString)
-          ..valueAsString = remoteObject.value as String;
+          ..valueAsString = result
+          ..valueAsStringIsTruncated = truncated
+          ..length = stringValue.length;
       case 'number':
         return _primitiveInstance(InstanceKind.kDouble, remoteObject);
       case 'boolean':

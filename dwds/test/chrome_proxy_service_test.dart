@@ -390,18 +390,36 @@ void main() {
                 isolate.id, isolate.rootLib.id, "helloString('world')")
             as InstanceRef;
         var world = await service.getObject(isolate.id, worldRef.id,
-            count: 5, offset: 4) as Instance;
+            count: 5, offset: 3) as Instance;
         expect(world.valueAsString, 'ld');
         expect(world.count, 2);
         expect(world.length, 5);
-        expect(world.offset, 4);
+        expect(world.offset, 3);
       });
 
       test('Large strings with default truncation', () async {
-         var largeString = await service.evaluate(isolate.id, isolate.rootLib.id, "helloString('${'abcde' * 250}')") as InstanceRef;
-         expect(largeString.valueAsStringIsTruncated, true);
-         expect(largeString.valueAsString.length, 75);
-         expect(largeString.valueAsString, endsWith('...'));
+        var largeString = await service.evaluate(isolate.id, isolate.rootLib.id,
+            "helloString('${'abcde' * 250}')") as InstanceRef;
+        expect(largeString.valueAsStringIsTruncated, true);
+        expect(largeString.valueAsString.length, 128);
+        expect(largeString.length, 5 * 250);
+      });
+
+      test('String at the truncation limit', () async {
+        var largeString = await service.evaluate(
+                isolate.id, isolate.rootLib.id, "helloString('${'a' * 128}')")
+            as InstanceRef;
+        expect(largeString.valueAsStringIsTruncated, false);
+        expect(largeString.length, 128);
+        expect(largeString.valueAsString.length, 128);
+      });
+
+      test('String one larger than the truncation limit', () async {
+        var largeString = await service.evaluate(isolate.id, isolate.rootLib.id,
+            "helloString('${'a' * 129}')") as InstanceRef;
+        expect(largeString.valueAsStringIsTruncated, true);
+        expect(largeString.length, 129);
+        expect(largeString.valueAsString.length, 128);
       });
 
       /// Helper to create a list of 1001 elements, doing a direct JS eval.
@@ -439,6 +457,17 @@ void main() {
         expect(fifth.valueAsString, '100');
         var sixth = inst.elements[1] as InstanceRef;
         expect(sixth.valueAsString, '5');
+      });
+
+      test('Lists running off the end', () async {
+        var list = await createList();
+        var inst = await service.getObject(isolate.id, list.objectId,
+            count: 5, offset: 1000) as Instance;
+        expect(inst.length, 1001);
+        expect(inst.offset, 1000);
+        expect(inst.count, 1);
+        var only = inst.elements[0] as InstanceRef;
+        expect(only.valueAsString, '5');
       });
 
       test('Scripts', () async {
