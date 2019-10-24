@@ -127,6 +127,9 @@ class InstanceHelper extends Domain {
 
   /// The associations for a Dart Map or IdentityMap.
   Future<List<MapAssociation>> _mapAssociations(RemoteObject map) async {
+    // We do this in in awkward way because we want the keys and values, but we
+    // can't return things by value or some Dart objects will come back as
+    // values that we need to be RemoteObject, e.g. a List of int.
     var expression = '''
       function() {
         var sdkUtils = $loadModule('dart_sdk').dart;
@@ -147,12 +150,11 @@ class InstanceHelper extends Domain {
     var keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
     var keys = await inspector.loadField(keysAndValues, 'keys');
     var values = await inspector.loadField(keysAndValues, 'values');
-    var keys1 = await instanceFor(keys);
-    var values1 = await instanceFor(values);
-    print(keys);
-    print(values);
+    var keysInstance = await instanceFor(keys);
+    var valuesInstance = await instanceFor(values);
     var associations = <MapAssociation>[];
-    Map.fromIterables(keys1.elements, values1.elements).forEach((key, value) {
+    Map.fromIterables(keysInstance.elements, valuesInstance.elements)
+        .forEach((key, value) {
       associations.add(MapAssociation()
         ..key = key
         ..value = value);
