@@ -326,7 +326,7 @@ class Debugger extends Domain {
     return response.result['breakpointId'] as String;
   }
 
-  /// Call the Chrome protocol remove.
+  /// Call the Chrome protocol removeBreakpoint.
   Future<void> _removeBreakpoint(String breakpointId) async {
     var response = await _remoteDebugger.sendCommand(
         'Debugger.removeBreakpoint',
