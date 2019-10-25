@@ -328,8 +328,9 @@ class Debugger extends Domain {
 
   /// Call the Chrome protocol remove.
   Future<void> _remove(String breakpointId) async {
-    var response = await _remoteDebugger
-        .sendCommand('Debugger.remove', params: {'breakpointId': breakpointId});
+    var response = await _remoteDebugger.sendCommand(
+        'Debugger.removeBreakpoint',
+        params: {'breakpointId': breakpointId});
     handleErrorIfPresent(response);
   }
 
@@ -576,7 +577,7 @@ class _Breakpoints extends Domain {
   Future<Breakpoint> add(String scriptId, int line,
       {Future<Breakpoint> Function(String) ifAbsent}) async {
     var id = 'bp/$scriptId#$line';
-    var bp = await _byId.putIfAbsent(id, () => ifAbsent('$scriptId&$line'));
+    var bp = await _byId.putIfAbsent(id, () => ifAbsent(id));
     assert(bp.id == id);
     return bp;
   }

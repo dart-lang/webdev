@@ -64,7 +64,9 @@ void main() {
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, firstBp.id);
-        await service.removeBreakpoint(isolate.id, secondBp.id);
+        // We shouldn't be able to remove it again.
+        expect(() => service.removeBreakpoint(isolate.id, secondBp.id),
+            throwsArgumentError);
       });
 
       test('addBreakpoint in nonsense location throws', () async {
