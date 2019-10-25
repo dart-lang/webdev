@@ -34,7 +34,7 @@ void main() async {
   notAList.add(7);
 
   String nestedFunction<T>(T parameter, Object aClass) {
-    var another = int.tryParse(parameter as String);
+    var another = int.tryParse('$parameter');
     print(aClass);
     return '$local: parameter, $another'; // Breakpoint: nestedFunction
   }
@@ -49,7 +49,7 @@ void main() async {
     var closureLocal;
     libraryPublicFinal.printCount();
     print('ticking... $ticks (the answer is $intLocalInMain)');
-    print(nestedFunction('$ticks ${testClass.message}', Timer));
+    print(nestedFunction(libraryPublicFinal, Timer));
     print(localThatsNull);
     print(libraryNull);
     var localList = libraryPublic;

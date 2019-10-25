@@ -29,8 +29,13 @@ Future<List<Property>> visibleProperties(
           await debugger.getProperties(scope['object']['objectId'] as String))
       .toList();
   var allProperties = [for (var list in propertyLists) ...await list];
-      // var typeParameters 
-      //   nestedFunction[dart._runtimeType].typeFormals
+  // We should never see a raw JS class. The only case where this happens is a
+  // Dart generic function, where the type arguments get passed in as
+  // parameters. Hide those. 
+  // TODO(#786) Handle these correctly rather than just suppressing them.
+  allProperties.removeWhere((each) =>
+      each.value.type == 'function' &&
+      each.value.description.startsWith('class '));
   var existingThis =
       allProperties.firstWhere((x) => x.name == 'this', orElse: () => null);
   if (existingThis == null) {

@@ -163,19 +163,6 @@ void main() {
       expect(instance.classRef.name, 'Closure');
     });
 
-    // test('for closure with type parameter', () async {
-    //   // var remote = await libraryPublicFinal();
-    //   var f = await inspector.evaluate(inspector.isolate.id, inspector.isolate.rootLib.id, 
-    //      'libraryPublicFinal.functionWithTypeParameter');
-    //   print(f);
-    //         var properties = await debugger.getProperties(f.objectId);
-    //   var closure =
-    //       properties.firstWhere((property) => property.name == 'closure');
-    //   var instance = await instanceHelper.instanceFor(closure.value);
-    //   expect(instance.kind, InstanceKind.kClosure);
-    //   expect(instance.classRef.name, 'Closure');
-    // });
-
     test('for a nested class', () async {
       var libraryRemoteObject = await libraryPublicFinal();
       var fieldRemoteObject =
