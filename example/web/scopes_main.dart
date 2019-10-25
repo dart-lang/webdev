@@ -49,7 +49,7 @@ void main() async {
     var closureLocal;
     libraryPublicFinal.printCount();
     print('ticking... $ticks (the answer is $intLocalInMain)');
-    print(nestedFunction(libraryPublicFinal, Timer));
+    print(nestedFunction('$ticks ${testClass.message}', Timer));
     print(localThatsNull);
     print(libraryNull);
     var localList = libraryPublic;
