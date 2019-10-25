@@ -295,7 +295,7 @@ class Debugger extends Domain {
       throw ArgumentError.notNull('breakpointId');
     }
     var jsId = _breakpoints.jsId(breakpointId);
-    var bp = _breakpoints.remove(js: jsId, dartId: breakpointId);
+    var bp = await _breakpoints.remove(js: jsId, dartId: breakpointId);
     if (bp == null) {
       throw ArgumentError.value(
           breakpointId, 'Breakpoint not found with this id.');
@@ -459,7 +459,7 @@ class Debugger extends Domain {
     var jsBreakpointIds = (params['hitBreakpoints'] as List).toSet();
     if (jsBreakpointIds.isNotEmpty) {
       var breakpointIds = jsBreakpointIds
-          .map((id) => _breakpoints._byJsId[id])
+          .map((id) => _breakpoints._dartIdByJsId[id])
           // In case the breakpoint was set in Chrome DevTools outside of
           // package:dwds.
           .where((entry) => entry != null)
@@ -557,10 +557,10 @@ class Debugger extends Domain {
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
 class _Breakpoints extends Domain {
-  final Map<String, String> _byJsId = {};
-  final Map<String, String> _byDartId = {};
+  final Map<String, String> _dartIdByJsId = {};
+  final Map<String, String> _jsIdByDartId = {};
 
-  final Map<String, Future<Breakpoint>> _byId = {};
+  final Map<String, Future<Breakpoint>> _bpByDartId = {};
 
   _Breakpoints(AppInspectorProvider provider) : super(provider);
 
@@ -577,7 +577,7 @@ class _Breakpoints extends Domain {
   Future<Breakpoint> add(String scriptId, int line,
       {Future<Breakpoint> Function(String) ifAbsent}) async {
     var id = 'bp/$scriptId#$line';
-    var bp = await _byId.putIfAbsent(id, () => ifAbsent(id));
+    var bp = await _bpByDartId.putIfAbsent(id, () => ifAbsent(id));
     assert(bp.id == id);
     return bp;
   }
@@ -586,31 +586,25 @@ class _Breakpoints extends Domain {
   ///
   /// Either [dartId] or the Dart breakpoint [bp] must be provided.
   void note({String js, String dartId, Breakpoint bp}) {
-    _byJsId[js] = dartId ?? bp?.id;
-    _byDartId[dartId ?? bp?.id] = js;
+    _dartIdByJsId[js] = dartId ?? bp?.id;
+    _jsIdByDartId[dartId ?? bp?.id] = js;
     var isolate = inspector.isolate;
     if (bp != null) {
       isolate?.breakpoints?.add(bp);
     }
   }
 
-  Breakpoint remove({String js, String dartId, Breakpoint bp}) {
+  Future<Breakpoint> remove({String js, String dartId}) async {
     var isolate = inspector.isolate;
-    _byJsId.remove(js);
-    _byDartId.remove(dartId ?? bp?.id);
-    _byId.remove(bp?.id);
-    Breakpoint dartBp;
-    // TODO: Do something better than the default throw when it's not found.
-    dartBp = bp ??
-        isolate.breakpoints
-            .firstWhere((b) => b.id == dartId, orElse: () => null);
-    isolate?.breakpoints?.remove(dartBp);
-    return dartBp;
+    _dartIdByJsId.remove(js);
+    _jsIdByDartId.remove(dartId);
+    isolate?.breakpoints?.removeWhere((b) => b.id == dartId);
+    return await _bpByDartId.remove(dartId);
   }
 
-  String dartId(String jsId) => _byJsId[jsId];
+  String dartId(String jsId) => _dartIdByJsId[jsId];
 
-  String jsId(String dartId) => _byDartId[dartId];
+  String jsId(String dartId) => _jsIdByDartId[dartId];
 }
 
 final escapedPipe = '\$124';
