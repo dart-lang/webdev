@@ -114,7 +114,7 @@ void main() {
       var remoteObject =
           await inspector.jsEvaluate(libraryVariableExpression('map'));
       var ref = await instanceHelper.instanceRefFor(remoteObject);
-      expect(ref.length, 1);
+      expect(ref.length, 2);
       expect(ref.kind, InstanceKind.kMap);
       expect(ref.classRef.name, 'LinkedMap<Object, Object>');
     });
@@ -204,8 +204,12 @@ void main() {
       expect(instance.kind, InstanceKind.kMap);
       var classRef = instance.classRef;
       expect(classRef.name, 'LinkedMap<Object, Object>');
-      var first = instance.associations[0].value;
-      expect(first.valueAsString, '1');
+      var first = instance.associations[0].value as InstanceRef;
+      expect(first.kind, InstanceKind.kList);
+      expect(first.length, 3);
+      var second = instance.associations[1].value as InstanceRef;
+      expect(second.kind, InstanceKind.kString);
+      expect(second.valueAsString, 'something');
     });
 
     test('for an identityMap', () async {
