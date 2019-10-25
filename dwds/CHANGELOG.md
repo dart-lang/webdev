@@ -1,5 +1,6 @@
 ## 0.7.6-dev
 
+- Fix issue with source map logic for the legacy module system.
 - Fix a bug with Maps that contain lists of simple types.
 
 ## 0.7.5
