@@ -52,10 +52,19 @@ void main() {
 
       test('addBreakpoint', () async {
         // TODO: Much more testing.
-        var bp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
+        var firstBp =
+            await service.addBreakpoint(isolate.id, mainScript.id, 23);
+        expect(firstBp, isNotNull);
+        expect(firstBp.id, isNotNull);
+
+        // Set another breakpoint at the same place - should get the original.
+        var secondBp =
+            await service.addBreakpoint(isolate.id, mainScript.id, 23);
+        expect(secondBp.id, firstBp.id);
+
         // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
-        expect(bp.id, isNotNull);
+        await service.removeBreakpoint(isolate.id, firstBp.id);
+        await service.removeBreakpoint(isolate.id, secondBp.id);
       });
 
       test('addBreakpoint in nonsense location throws', () async {
