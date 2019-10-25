@@ -61,7 +61,7 @@ name: sample
     'build_daemon': ['0.3.0', '0.4.1'],
   };
 
-  for (var command in ['build', 'serve']) {
+  for (var command in ['build', 'serve', 'daemon']) {
     group('`$command` command', () {
       group('missing dependency on', () {
         test('`build_runner` should fail', () async {

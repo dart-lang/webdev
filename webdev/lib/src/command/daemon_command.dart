@@ -72,6 +72,17 @@ class DaemonCommand extends Command<int> {
       if (cancelCount > 1) exit(1);
     });
     try {
+      var configuration = Configuration.fromArgs(argResults,
+          defaultConfiguration: Configuration(
+              launchInChrome: true,
+              debug: true,
+              autoRun: false,
+              release: false));
+      // Globally trigger verbose logs.
+      setVerbosity(configuration.verbose);
+      // Validate the pubspec first to ensure we are in a Dart project.
+      var pubspecLock = await readPubspecLock(configuration);
+
       daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
       var daemonDomain = DaemonDomain(daemon);
       setLogWriter((level, message, {loggerName, error, stackTrace, verbose}) {
@@ -87,16 +98,6 @@ class DaemonCommand extends Command<int> {
         });
       });
       daemon.registerDomain(daemonDomain);
-      var configuration = Configuration.fromArgs(argResults,
-          defaultConfiguration: Configuration(
-              launchInChrome: true,
-              debug: true,
-              autoRun: false,
-              release: false));
-      // Globally trigger verbose logs.
-      setVerbosity(configuration.verbose);
-
-      var pubspecLock = await readPubspecLock(configuration);
       var buildOptions = buildRunnerArgs(pubspecLock, configuration);
       var directoryArgs =
           argResults.rest.where((arg) => !arg.startsWith('-')).toList();
