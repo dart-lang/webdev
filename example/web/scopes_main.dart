@@ -29,7 +29,8 @@ void main() async {
   Object localThatsNull;
   identityMap['a'] = 1;
   identityMap['b'] = 2;
-  map['a'] = 1;
+  map['a'] = [1, 2, 3];
+  map['b'] = 'something';
   notAList.add(7);
 
   String nestedFunction(String parameter) {
