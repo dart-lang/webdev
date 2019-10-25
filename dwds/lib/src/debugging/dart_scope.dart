@@ -31,7 +31,7 @@ Future<List<Property>> visibleProperties(
   var allProperties = [for (var list in propertyLists) ...await list];
   // We should never see a raw JS class. The only case where this happens is a
   // Dart generic function, where the type arguments get passed in as
-  // parameters. Hide those. 
+  // parameters. Hide those.
   // TODO(#786) Handle these correctly rather than just suppressing them.
   allProperties.removeWhere((each) =>
       each.value.type == 'function' &&
