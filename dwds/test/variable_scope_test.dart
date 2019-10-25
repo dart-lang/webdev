@@ -72,6 +72,7 @@ void main() {
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
       expect(variableNames, [
+        'T',
         'another',
         'intLocalInMain',
         'local',
@@ -80,6 +81,10 @@ void main() {
         'parameter',
         'testClass'
       ]);
+      var typeParameter = frame.vars.firstWhere((v) => v.name == 'T');
+      expect(typeParameter.value, isA<TypeArgumentsRef>());
+      var other = frame.vars.firstWhere((v) => v.name != 'T');
+      expect(other.value, isA<InstanceRef>());
     });
 
     test('variables in closure nested in method', () async {

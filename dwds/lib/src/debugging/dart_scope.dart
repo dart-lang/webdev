@@ -29,6 +29,8 @@ Future<List<Property>> visibleProperties(
           await debugger.getProperties(scope['object']['objectId'] as String))
       .toList();
   var allProperties = [for (var list in propertyLists) ...await list];
+      // var typeParameters 
+      //   nestedFunction[dart._runtimeType].typeFormals
   var existingThis =
       allProperties.firstWhere((x) => x.name == 'this', orElse: () => null);
   if (existingThis == null) {
