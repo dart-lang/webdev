@@ -307,7 +307,7 @@ class Debugger extends Domain {
             timestamp: DateTime.now().millisecondsSinceEpoch,
             isolate: inspector.isolateRef)
           ..breakpoint = bp);
-    await _remove(jsId);
+    await _removeBreakpoint(jsId);
     return Success();
   }
 
@@ -327,7 +327,7 @@ class Debugger extends Domain {
   }
 
   /// Call the Chrome protocol remove.
-  Future<void> _remove(String breakpointId) async {
+  Future<void> _removeBreakpoint(String breakpointId) async {
     var response = await _remoteDebugger.sendCommand(
         'Debugger.removeBreakpoint',
         params: {'breakpointId': breakpointId});
