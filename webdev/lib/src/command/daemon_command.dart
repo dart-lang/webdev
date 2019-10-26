@@ -59,6 +59,14 @@ class DaemonCommand extends Command<int> {
 
   @override
   Future<int> run() async {
+    var configuration = Configuration.fromArgs(argResults,
+        defaultConfiguration: Configuration(
+            launchInChrome: true, debug: true, autoRun: false, release: false));
+    // Globally trigger verbose logs.
+    setVerbosity(configuration.verbose);
+    // Validate the pubspec first to ensure we are in a Dart project.
+    var pubspecLock = await readPubspecLock(configuration);
+
     Daemon daemon;
     DevWorkflow workflow;
     var cancelCount = 0;
@@ -87,16 +95,6 @@ class DaemonCommand extends Command<int> {
         });
       });
       daemon.registerDomain(daemonDomain);
-      var configuration = Configuration.fromArgs(argResults,
-          defaultConfiguration: Configuration(
-              launchInChrome: true,
-              debug: true,
-              autoRun: false,
-              release: false));
-      // Globally trigger verbose logs.
-      setVerbosity(configuration.verbose);
-
-      var pubspecLock = await readPubspecLock(configuration);
       var buildOptions = buildRunnerArgs(pubspecLock, configuration);
       var directoryArgs =
           argResults.rest.where((arg) => !arg.startsWith('-')).toList();
