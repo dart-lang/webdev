@@ -472,8 +472,8 @@ void main() {
 
 
       test('Maps', () async {
-        var list = await createMap();
-        var inst = await service.getObject(isolate.id, list.objectId);
+        var map = await createMap();
+        var inst = await service.getObject(isolate.id, map.objectId);
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
@@ -484,8 +484,8 @@ void main() {
       });
 
       test('Maps with count/offset', () async {
-        var list = await createMap();
-        var inst = await service.getObject(isolate.id, list.objectId,
+        var map = await createMap();
+        var inst = await service.getObject(isolate.id, map.objectId,
             count: 7, offset: 4) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, 4);
@@ -494,11 +494,11 @@ void main() {
         expect(fifth.valueAsString, '100');
         var sixth = inst.elements[1] as InstanceRef;
         expect(sixth.valueAsString, '5');
-      });
+      }); 
 
       test('Maps running off the end', () async {
-        var list = await createMap();
-        var inst = await service.getObject(isolate.id, list.objectId,
+        var map = await createMap();
+        var inst = await service.getObject(isolate.id, map.objectId,
             count: 5, offset: 1000) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, 1000);
