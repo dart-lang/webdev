@@ -19,11 +19,6 @@ class LibraryHelper extends Domain {
 
   LibraryHelper(AppInspector Function() provider) : super(provider);
 
-  Future<LibraryRef> libraryRefFor(String objectId) async {
-    if (_libraryRefs.isEmpty) await getLibraryRefs();
-    return _libraryRefs[objectId];
-  }
-
   /// Returns all libraryRefs in the app.
   ///
   /// Note this can return a cached result.
@@ -56,6 +51,11 @@ class LibraryHelper extends Domain {
     var library = _libraries[libraryRef.id];
     if (library != null) return library;
     return _libraries[libraryRef.id] = await _constructLibrary(libraryRef);
+  }
+
+  Future<LibraryRef> libraryRefFor(String objectId) async {
+    if (_libraryRefs.isEmpty) await getLibraryRefs();
+    return _libraryRefs[objectId];
   }
 
   Future<Library> _constructLibrary(LibraryRef libraryRef) async {

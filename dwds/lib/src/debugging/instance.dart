@@ -13,6 +13,14 @@ import 'classes.dart';
 import 'inspector.dart';
 import 'metadata.dart';
 
+/// Creates an [InstanceRef] for a primitive [RemoteObject].
+InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
+  var classRef = classRefFor('dart:core', remoteObject?.type);
+  return InstanceRef(
+      kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
+    ..valueAsString = '${remoteObject?.value}';
+}
+
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
   InstanceHelper(AppInspector Function() provider) : super(provider);
@@ -293,13 +301,5 @@ class InstanceHelper extends Domain {
         // Return null for an unsupported type. This is likely a JS construct.
         return null;
     }
-  }
-
-  /// Creates an [InstanceRef] for a primitive [RemoteObject].
-  InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
-    var classRef = classRefFor('dart:core', remoteObject?.type);
-    return InstanceRef(
-        kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
-      ..valueAsString = '${remoteObject?.value}';
   }
 }

@@ -8,11 +8,11 @@ import '../utilities/wrapped_service.dart';
 import 'inspector.dart';
 import 'metadata.dart';
 
-/// A hard-coded ClassRef for the String class.
-final classRefForString = classRefFor('dart:core', InstanceKind.kString);
-
 /// A hard-coded ClassRef for the Closure class.
 final classRefForClosure = classRefFor('dart:core', 'Closure');
+
+/// A hard-coded ClassRef for the String class.
+final classRefForString = classRefFor('dart:core', InstanceKind.kString);
 
 /// A hard-coded ClassRef for a (non-existent) class called Unknown.
 final classRefForUnknown = classRefFor('dart:core', 'Unknown');
