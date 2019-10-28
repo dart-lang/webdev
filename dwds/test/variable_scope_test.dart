@@ -101,7 +101,8 @@ void main() {
 
     test('evaluateJsOnCallFrame', () async {
       stack = await breakAt('nestedFunction', mainScript);
-      var debugger = await service.debugger;
+      var inspector = service.appInspectorProvider();
+      var debugger = inspector.debugger;
       var parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
       expect(parameter.value, matches(RegExp(r'\d+ world')));
       var ticks = await debugger.evaluateJsOnCallFrameIndex(1, 'ticks');

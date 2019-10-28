@@ -25,8 +25,8 @@ void main() {
   setUpAll(() async {
     await context.setUp();
     var service = fetchChromeProxyService(context.debugConnection);
-    debugger = await service.debugger;
     inspector = service.appInspectorProvider();
+    debugger = inspector.debugger;
   });
 
   tearDownAll(() async {

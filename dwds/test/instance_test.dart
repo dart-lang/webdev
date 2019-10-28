@@ -27,7 +27,7 @@ void main() {
     await context.setUp();
     var chromeProxyService = fetchChromeProxyService(context.debugConnection);
     inspector = chromeProxyService.appInspectorProvider();
-    debugger = await chromeProxyService.debugger;
+    debugger = inspector.debugger;
     instanceHelper = InstanceHelper(chromeProxyService.appInspectorProvider);
   });
 
