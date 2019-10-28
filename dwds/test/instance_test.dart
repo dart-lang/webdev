@@ -6,7 +6,6 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -21,7 +20,6 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   AppInspector inspector;
-  RemoteDebugger remoteDebugger;
   Debugger debugger;
   InstanceHelper instanceHelper;
 
@@ -29,10 +27,8 @@ void main() {
     await context.setUp();
     var chromeProxyService = fetchChromeProxyService(context.debugConnection);
     inspector = chromeProxyService.appInspectorProvider();
-    remoteDebugger = chromeProxyService.remoteDebugger;
-    debugger = await chromeProxyService.debugger;
-    instanceHelper = InstanceHelper(
-        debugger, remoteDebugger, chromeProxyService.appInspectorProvider);
+    debugger = inspector.debugger;
+    instanceHelper = inspector.instanceHelper;
   });
 
   tearDownAll(() async {
@@ -63,7 +59,7 @@ void main() {
       expect(ref.kind, InstanceKind.kNull);
       var classRef = ref.classRef;
       expect(classRef.name, 'Null');
-      expect(classRef.id, 'dart:core:object');
+      expect(classRef.id, 'classes|dart:core|Null');
     });
 
     test('for a double', () async {
@@ -74,7 +70,7 @@ void main() {
       expect(ref.kind, InstanceKind.kDouble);
       var classRef = ref.classRef;
       expect(classRef.name, 'Double');
-      expect(classRef.id, 'dart:core:number');
+      expect(classRef.id, 'classes|dart:core|Double');
     });
 
     test('for a class', () async {
@@ -84,8 +80,8 @@ void main() {
       expect(ref.kind, InstanceKind.kPlainInstance);
       var classRef = ref.classRef;
       expect(classRef.name, 'MyTestClass');
-      expect(
-          classRef.id, 'org-dartlang-app:///web/scopes_main.dart:MyTestClass');
+      expect(classRef.id,
+          'classes|org-dartlang-app:///web/scopes_main.dart|MyTestClass');
     });
 
     test('for closure', () async {

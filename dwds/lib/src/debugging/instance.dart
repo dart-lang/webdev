@@ -9,48 +9,26 @@ import '../utilities/domain.dart';
 import '../utilities/objects.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
-import 'debugger.dart';
+import 'classes.dart';
 import 'inspector.dart';
 import 'metadata.dart';
-import 'remote_debugger.dart';
 
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
-  var classRef = ClassRef(
-      // TODO(grouma) - is this ID correct?
-      id: 'dart:core:${remoteObject?.type}',
-      name: kind);
+  var classRef = classRefFor('dart:core', kind);
   return InstanceRef(
       kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
     ..valueAsString = '${remoteObject?.value}';
 }
 
-/// A hard-coded ClassRef for the String class.
-final _classRefForString =
-    ClassRef(id: 'dart:core:String', name: InstanceKind.kString);
-
-/// A hard-coded ClassRef for the Closure class.
-// TODO(grouma) - orgnaize our static classRefs better.
-final _classRefForClosure = ClassRef(name: 'Closure', id: createId());
-
-/// A hard-coded ClassRef for a (non-existent) class called Unknown.
-final _classRefForUnknown = ClassRef(name: 'Unknown', id: createId());
-
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
-  final Debugger _debugger;
-  final RemoteDebugger _remoteDebugger;
-
-  InstanceHelper(
-      this._debugger, this._remoteDebugger, AppInspector Function() provider)
-      : super(provider);
+  InstanceHelper(AppInspector Function() provider) : super(provider);
 
   Future<Instance> _stringInstanceFor(RemoteObject remoteObject) async {
     var actualString = stringFromDartId(remoteObject.objectId);
     return Instance(
-        kind: InstanceKind.kString,
-        classRef: _classRefForString,
-        id: createId())
+        kind: InstanceKind.kString, classRef: classRefForString, id: createId())
       ..valueAsString = actualString
       ..length = actualString.length;
   }
@@ -59,7 +37,7 @@ class InstanceHelper extends Domain {
     var result = Instance(
         kind: InstanceKind.kClosure,
         id: remoteObject.objectId,
-        classRef: _classRefForClosure);
+        classRef: classRefForClosure);
     return result;
   }
 
@@ -72,12 +50,13 @@ class InstanceHelper extends Domain {
       return _stringInstanceFor(remoteObject);
     }
     var metaData = await ClassMetaData.metaDataFor(
-        _remoteDebugger, remoteObject, inspector);
+        inspector.remoteDebugger, remoteObject, inspector);
     var classRef = metaData.classRef;
     if (metaData.jsName == 'Function') {
       return _closureInstanceFor(remoteObject);
     }
-    var properties = await _debugger.getProperties(remoteObject.objectId);
+    var properties =
+        await inspector.debugger.getProperties(remoteObject.objectId);
     if (metaData.jsName == 'JSArray') {
       return await _listInstanceFor(classRef, remoteObject, properties);
     } else if (metaData.jsName == 'LinkedMap' ||
@@ -215,12 +194,12 @@ class InstanceHelper extends Domain {
       const sdk = $loadModule("dart_sdk");
       const sdk_utils = sdk.dart;
       const fields = sdk_utils.getFields(sdk_utils.getType(this)) || [];
-      if (!fields && (dart_sdk._interceptors.JSArray.is(this) || 
+      if (!fields && (dart_sdk._interceptors.JSArray.is(this) ||
           dart_sdk._js_helper.InternalMap.is(this))) {
         // Trim off the 'length' property.
         const fields = allJsProperties.slice(0, allJsProperties.length -1);
         return fields.join(',');
-      } 
+      }
       const privateFields = sdk_utils.getOwnPropertySymbols(fields);
       const nonSymbolNames = privateFields.map(sym => sym.description);
       const publicFieldNames = sdk_utils.getOwnPropertyNames(fields);
@@ -267,7 +246,7 @@ class InstanceHelper extends Domain {
       case 'string':
         return InstanceRef(
             id: dartIdFor(remoteObject.value),
-            classRef: _classRefForString,
+            classRef: classRefForString,
             kind: InstanceKind.kString)
           ..valueAsString = remoteObject.value as String;
       case 'number':
@@ -281,7 +260,7 @@ class InstanceHelper extends Domain {
           return _primitiveInstance(InstanceKind.kNull, remoteObject);
         }
         var metaData = await ClassMetaData.metaDataFor(
-            _remoteDebugger, remoteObject, inspector);
+            inspector.remoteDebugger, remoteObject, inspector);
         if (metaData == null) return null;
         if (metaData.jsName == 'JSArray') {
           return InstanceRef(
@@ -303,18 +282,18 @@ class InstanceHelper extends Domain {
             id: remoteObject.objectId,
             classRef: metaData.classRef);
       case 'function':
-        var functionMetaData =
-            await FunctionMetaData.metaDataFor(_remoteDebugger, remoteObject);
+        var functionMetaData = await FunctionMetaData.metaDataFor(
+            inspector.remoteDebugger, remoteObject);
         return InstanceRef(
             kind: InstanceKind.kClosure,
             id: remoteObject.objectId,
-            classRef: _classRefForClosure)
+            classRef: classRefForClosure)
           // TODO(grouma) - fill this in properly.
           ..closureFunction = FuncRef(
               name: functionMetaData.name,
               id: createId(),
               // TODO(alanknight): The right ClassRef
-              owner: _classRefForUnknown,
+              owner: classRefForUnknown,
               isConst: false,
               isStatic: false)
           ..closureContext = (ContextRef()..length = 0);
