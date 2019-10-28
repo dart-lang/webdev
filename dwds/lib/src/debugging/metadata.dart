@@ -4,6 +4,7 @@
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../debugging/classes.dart';
 import '../debugging/inspector.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/shared.dart';
@@ -54,7 +55,7 @@ class ClassMetaData {
         const classObject = sdkUtils.getReifiedType(arg);
         const isFunction = sdkUtils.AbstractFunctionType.is(classObject);
         const result = {};
-        result['name'] = isFunction ? 'Function' : classObject.name;        
+        result['name'] = isFunction ? 'Function' : classObject.name;
         result['dartName'] = sdkUtils.typeName(classObject);
         result['length'] = arg['length'];
         result['libraryId'] = sdkUtils.getLibraryUri(classObject);
@@ -76,7 +77,7 @@ class ClassMetaData {
   }
 
   /// Return a [ClassRef] appropriate to this metadata.
-  ClassRef get classRef => ClassRef(name: dartName, id: id);
+  ClassRef get classRef => classRefFor(libraryId, dartName);
 }
 
 /// Meta data for a remote Dart function in Chrome.

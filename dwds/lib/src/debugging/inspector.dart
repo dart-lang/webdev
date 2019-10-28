@@ -6,22 +6,23 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/connections/app_connection.dart';
-import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/debugging/debugger.dart';
 import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../asset_handler.dart';
-import '../services/chrome_proxy_service.dart';
+import '../connections/app_connection.dart';
+import '../debugging/location.dart';
+import '../debugging/remote_debugger.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
+import 'classes.dart';
 import 'exceptions.dart';
 import 'instance.dart';
-import 'metadata.dart';
+import 'libraries.dart';
 
 /// An inspector for a running Dart application contained in the
 /// [WipConnection].
@@ -29,13 +30,9 @@ import 'metadata.dart';
 /// Provides information about currently loaded scripts and objects and support
 /// for eval.
 class AppInspector extends Domain {
-  /// Map of class ID to [Class].
-  final _classes = <String, Class>{};
-
   Future<List<ScriptRef>> _cachedScriptRefs;
 
-  Future<List<ScriptRef>> get _scriptRefs =>
-      _cachedScriptRefs ??= _getScripts();
+  Future<List<ScriptRef>> get scriptRefs => _cachedScriptRefs ??= _getScripts();
 
   /// Map of scriptRef ID to [ScriptRef].
   final _scriptRefsById = <String, ScriptRef>{};
@@ -43,22 +40,21 @@ class AppInspector extends Domain {
   /// Map of Dart server path to [ScriptRef].
   final _serverPathToScriptRef = <String, ScriptRef>{};
 
-  /// Map of library ID to [Library].
-  final _libraries = <String, Library>{};
-
-  /// Map of libraryRef ID to [LibraryRef].
-  final _libraryRefs = <String, LibraryRef>{};
-
   /// Map of [ScriptRef] id to containing [LibraryRef] id.
   final _scriptIdToLibraryId = <String, String>{};
 
-  final RemoteDebugger _remoteDebugger;
-  final AssetHandler _assetHandler;
-  final Locations _locations;
+  final RemoteDebugger remoteDebugger;
+  final Debugger debugger;
   final Isolate isolate;
   final IsolateRef isolateRef;
-  final InstanceHelper instanceHelper;
   final AppConnection appConnection;
+
+  final LibraryHelper libraryHelper;
+  final ClassHelper classHelper;
+  final InstanceHelper instanceHelper;
+
+  final AssetHandler _assetHandler;
+  final Locations _locations;
 
   /// The root URI from which the application is served.
   final String _root;
@@ -66,11 +62,14 @@ class AppInspector extends Domain {
   AppInspector._(
     this.appConnection,
     this.isolate,
+    this.remoteDebugger,
+    this.debugger,
+    this.libraryHelper,
+    this.classHelper,
+    this.instanceHelper,
     this._assetHandler,
     this._locations,
     this._root,
-    this._remoteDebugger,
-    this.instanceHelper,
   )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
@@ -80,7 +79,7 @@ class AppInspector extends Domain {
   AppInspector get inspector => this;
 
   Future<void> _initialize() async {
-    var libraries = await _getLibraryRefs();
+    var libraries = await libraryHelper.libraryRefs;
     isolate.libraries.addAll(libraries);
     await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
 
@@ -95,13 +94,13 @@ class AppInspector extends Domain {
       IsolateRef(id: isolate.id, name: isolate.name, number: isolate.number);
 
   static Future<AppInspector> initialize(
-      AppConnection appConnection,
-      RemoteDebugger remoteDebugger,
-      AssetHandler assetHandler,
-      Locations locations,
-      String root,
-      InstanceHelper instanceHelper,
-      String pauseMode) async {
+    AppConnection appConnection,
+    RemoteDebugger remoteDebugger,
+    AssetHandler assetHandler,
+    Locations locations,
+    String root,
+    Debugger debugger,
+  ) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;
     var name = '$root:main()';
@@ -119,19 +118,27 @@ class AppInspector extends Domain {
         livePorts: 0,
         libraries: [],
         breakpoints: [],
-        exceptionPauseMode: pauseMode)
+        exceptionPauseMode: debugger.pauseState)
       ..extensionRPCs = [];
-    var inspector = AppInspector._(
+    AppInspector appInspector;
+    var provider = () => appInspector;
+    var libraryHelper = LibraryHelper(provider);
+    var classHelper = ClassHelper(provider);
+    var instanceHelper = InstanceHelper(provider);
+    appInspector = AppInspector._(
       appConnection,
       isolate,
+      remoteDebugger,
+      debugger,
+      libraryHelper,
+      classHelper,
+      instanceHelper,
       assetHandler,
       locations,
       root,
-      remoteDebugger,
-      instanceHelper,
     );
-    await inspector._initialize();
-    return inspector;
+    await appInspector._initialize();
+    return appInspector;
   }
 
   /// Get the value of the field named [fieldName] from [receiver].
@@ -173,7 +180,7 @@ class AppInspector extends Domain {
       {bool returnByValue = false}) async {
     var jsArguments = arguments.map(callArgumentFor).toList();
     var result =
-        await _remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
+        await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': jsArguments,
       'objectId': receiver.objectId,
@@ -239,7 +246,7 @@ class AppInspector extends Domain {
       String expression, String libraryUri) {
     var evalExpression = '''
 (function() {
-  ${_getLibrarySnippet(libraryUri)};
+  ${getLibrarySnippet(libraryUri)};
   return library.$expression;
 })();
 ''';
@@ -250,7 +257,7 @@ class AppInspector extends Domain {
   Future<RemoteObject> jsEvaluate(String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.
     WipResponse result;
-    result = await _remoteDebugger
+    result = await remoteDebugger
         .sendCommand('Runtime.evaluate', params: {'expression': expression});
     handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
       'Dart expression': expression,
@@ -264,7 +271,7 @@ class AppInspector extends Domain {
       Library library, String jsFunction, List<RemoteObject> arguments) async {
     var findLibrary = '''
 (function() {
-  ${_getLibrarySnippet(library.uri)};
+  ${getLibrarySnippet(library.uri)};
   return library;
 })();
 ''';
@@ -280,7 +287,7 @@ class AppInspector extends Domain {
     var arguments = scope.values.map(remoteObjectFor).toList();
     var evalExpression = '''
 function($argsString) {
-  ${_getLibrarySnippet(library.uri)};
+  ${getLibrarySnippet(library.uri)};
   return library.$expression;
 }
     ''';
@@ -289,20 +296,16 @@ function($argsString) {
 
   Future<Library> _getLibrary(String isolateId, String objectId) async {
     if (isolateId != isolate.id) return null;
-    var libraryRef = _libraryRefs[objectId];
+    var libraryRef = await libraryHelper.libraryRefFor(objectId);
     if (libraryRef == null) return null;
-    var library = _libraries[objectId];
-    if (library != null) return library;
-    library = await _constructLibrary(libraryRef);
-    _libraries[objectId] = library;
-    return library;
+    return libraryHelper.libraryFor(libraryRef);
   }
 
   Future getObject(String isolateId, String objectId,
       {int offset, int count}) async {
     var library = await _getLibrary(isolateId, objectId);
     if (library != null) return library;
-    var clazz = _classes[objectId];
+    var clazz = await classHelper.forObjectId(objectId);
     if (clazz != null) return clazz;
     var scriptRef = _scriptRefsById[objectId];
     if (scriptRef != null) return await _getScript(isolateId, scriptRef);
@@ -311,132 +314,6 @@ function($argsString) {
     if (instance != null) return instance;
     throw UnsupportedError('Only libraries, instances, classes, and scripts '
         'are supported for getObject');
-  }
-
-  Future<Library> _constructLibrary(LibraryRef libraryRef) async {
-    // Fetch information about all the classes in this library.
-    var expression = '''
-    (function() {
-      ${_getLibrarySnippet(libraryRef.uri)}
-      var result = {};
-      var classes = Object.values(Object.getOwnPropertyDescriptors(library))
-        .filter((p) => 'value' in p)
-        .map((p) => p.value)
-        .filter((l) => l && sdkUtils.isType(l));
-      var classList = classes.map(function(clazz) {
-        var descriptor = {
-          'name': clazz.name, 
-          'dartName': sdkUtils.typeName(clazz)
-        };
-        // TODO(jakemac): static methods once ddc supports them
-        var methods = sdkUtils.getMethods(clazz);
-        var methodNames = methods ? Object.keys(methods) : [];
-        descriptor['methods'] = {};
-        for (var name of methodNames) {
-          var method = methods[name];
-          descriptor['methods'][name] = {
-            // TODO(jakemac): how can we get actual const info?
-            "isConst": false,
-            "isStatic": false,
-          }
-        }
-
-        // TODO(jakemac): static fields once ddc supports them
-        var fields = sdkUtils.getFields(clazz);
-        var fieldNames = fields ? Object.keys(fields) : [];
-        descriptor['fields'] = {};
-        for (var name of fieldNames) {
-          var field = fields[name];
-          var libraryUri = Object.getOwnPropertySymbols(fields[name]["type"])
-          .find(x => x.description == "libraryUri");
-          descriptor['fields'][name] = {
-            // TODO(jakemac): how can we get actual const info?
-            "isConst": false,
-            "isFinal": field.isFinal,
-            "isStatic": false,
-            "classRefName": fields[name]["type"]["name"],
-            "classRefDartName": sdkUtils.typeName(fields[name]["type"]),
-            "classRefLibraryId" : field["type"][libraryUri],
-          }
-        }
-
-        return descriptor;
-      });
-      result['classes'] = classList;
-      return result;
-    })()
-    ''';
-    var result = await _remoteDebugger.sendCommand('Runtime.evaluate',
-        params: {'expression': expression, 'returnByValue': true});
-    handleErrorIfPresent(result, evalContents: expression);
-    var classDescriptors = (result.result['result']['value']['classes'] as List)
-        .cast<Map<String, Object>>();
-    var classRefs = <ClassRef>[];
-    for (var classDescriptor in classDescriptors) {
-      var classMetaData = ClassMetaData(
-          jsName: classDescriptor['name'] as String,
-          libraryId: libraryRef.id,
-          dartName: classDescriptor['dartName'] as String);
-      var classRef = ClassRef(name: classMetaData.jsName, id: classMetaData.id);
-      classRefs.add(classRef);
-
-      var methodRefs = <FuncRef>[];
-      var methodDescriptors =
-          classDescriptor['methods'] as Map<String, dynamic>;
-      methodDescriptors.forEach((name, descriptor) {
-        var methodId = '${classMetaData.id}:$name';
-        methodRefs.add(FuncRef(
-            id: methodId,
-            name: name,
-            owner: classRef,
-            isConst: descriptor['isConst'] as bool,
-            isStatic: descriptor['isStatic'] as bool));
-      });
-
-      var fieldRefs = <FieldRef>[];
-      var fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
-      fieldDescriptors.forEach((name, descriptor) async {
-        var classMetaData = ClassMetaData(
-            jsName: descriptor['classRefName'],
-            libraryId: descriptor['classRefLibraryId'],
-            dartName: descriptor['classRefDartName']);
-        fieldRefs.add(FieldRef(
-            name: name,
-            owner: classRef,
-            declaredType: InstanceRef(
-                id: createId(),
-                kind: InstanceKind.kType,
-                classRef:
-                    ClassRef(name: classMetaData.jsName, id: classMetaData.id)),
-            isConst: descriptor['isConst'] as bool,
-            isFinal: descriptor['isFinal'] as bool,
-            isStatic: descriptor['isStatic'] as bool,
-            id: createId()));
-      });
-
-      // TODO: Implement the rest of these
-      // https://github.com/dart-lang/webdev/issues/176.
-      _classes[classMetaData.id] = Class(
-          name: classMetaData.jsName,
-          isAbstract: false,
-          isConst: false,
-          library: libraryRef,
-          interfaces: [],
-          fields: fieldRefs,
-          functions: methodRefs,
-          subclasses: [],
-          id: classMetaData.id);
-    }
-    return Library(
-        name: libraryRef.name,
-        uri: libraryRef.uri,
-        debuggable: true,
-        dependencies: [],
-        scripts: await _scriptRefs,
-        variables: [],
-        functions: [],
-        classes: classRefs,
-        id: libraryRef.id);
   }
 
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
@@ -448,10 +325,9 @@ function($argsString) {
     }
     var script = await response.readAsString();
     return Script(
-      uri: scriptRef.uri,
-      library: _libraryRefs[libraryId],
-      id: scriptRef.id,
-    )
+        uri: scriptRef.uri,
+        library: await libraryHelper.libraryRefFor(libraryId),
+        id: scriptRef.id)
       ..tokenPosTable = await _locations.tokenPosTableFor(serverPath)
       ..source = script;
   }
@@ -468,7 +344,7 @@ function($argsString) {
   /// All the scripts in the isolate.
   Future<ScriptList> getScripts(String isolateId) async {
     checkIsolate(isolateId);
-    return ScriptList()..scripts = await _scriptRefs;
+    return ScriptList()..scripts = await scriptRefs;
   }
 
   Future<List<ScriptRef>> _getScripts() async {
@@ -498,7 +374,7 @@ function($argsString) {
       return allScripts;
     })()
     ''';
-    var result = await _remoteDebugger.sendCommand('Runtime.evaluate',
+    var result = await remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(result, evalContents: expression);
     var allScripts = result.result['result']['value'];
@@ -514,7 +390,7 @@ function($argsString) {
         for (var part in parts)
           ScriptRef(uri: p.url.join(parent, part), id: createId())
       ];
-      var libraryRef = _libraryRefs[uri];
+      var libraryRef = await libraryHelper.libraryRefFor(uri);
       for (var scriptRef in scriptRefs) {
         _scriptRefsById[scriptRef.id] = scriptRef;
         _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
@@ -528,56 +404,13 @@ function($argsString) {
   Future<ScriptRef> scriptWithId(String scriptId) async =>
       _scriptRefsById[scriptId];
 
-  /// Returns all libraryRefs in the app.
-  ///
-  /// Note this can return a cached result.
-  Future<List<LibraryRef>> _getLibraryRefs() async {
-    if (_libraryRefs.isNotEmpty) return _libraryRefs.values.toList();
-    var expression = '''
-      (function() {
-        $getLibraries
-        return libs;
-      })()
-     ''';
-    var librariesResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
-        params: {'expression': expression, 'returnByValue': true});
-    handleErrorIfPresent(librariesResult, evalContents: expression);
-    var libraries =
-        List<String>.from(librariesResult.result['result']['value'] as List);
-    // Filter out any non-Dart libraries, which basically means the .bootstrap
-    // library from build_web_runners.
-    var dartLibraries = libraries
-        .where((name) => name.startsWith('dart:') || name.endsWith('.dart'));
-    for (var library in dartLibraries) {
-      var ref = LibraryRef(id: library, name: library, uri: library);
-      _libraryRefs[ref.id] = ref;
-    }
-    return _libraryRefs.values.toList();
-  }
-
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
     var expression =
         "$loadModule('dart_sdk').developer._extensions.keys.toList();";
-    var extensionsResult = await _remoteDebugger.sendCommand('Runtime.evaluate',
+    var extensionsResult = await remoteDebugger.sendCommand('Runtime.evaluate',
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(extensionsResult, evalContents: expression);
     return List.from(extensionsResult.result['result']['value'] as List);
   }
 }
-
-/// Creates a snippet of JS code that initializes a `library` variable that has
-/// the actual library object in DDC for [libraryUri].
-///
-/// In DDC we have module libraries indexed by names of the form
-/// 'packages/package/mainFile' with no .dart suffix on the file, or
-/// 'directory/packageName/mainFile', also with no .dart suffix, and relative to
-/// the serving root, normally /web within the package. These modules have a map
-/// from the URI with a Dart-specific scheme (package: or org-dartlang-app:) to
-/// the library objects. The [libraryUri] parameter should be one of these
-/// Dart-specific scheme URIs, and we set `library` the corresponding library.
-String _getLibrarySnippet(String libraryUri) => '''
-   var sdkUtils = $loadModule('dart_sdk').dart;
-   var library = sdkUtils.getLibrary('$libraryUri');
-   if (!library) throw 'cannot find library for $libraryUri';
-  ''';
