@@ -470,6 +470,43 @@ void main() {
         expect(only.valueAsString, '5');
       });
 
+
+      test('Maps', () async {
+        var list = await createMap();
+        var inst = await service.getObject(isolate.id, list.objectId);
+        expect(inst.length, 1001);
+        expect(inst.offset, null);
+        expect(inst.count, null);
+        var fifth = inst.elements[4] as InstanceRef;
+        expect(fifth.valueAsString, '100');
+        var sixth = inst.elements[5] as InstanceRef;
+        expect(sixth.valueAsString, '5');
+      });
+
+      test('Maps with count/offset', () async {
+        var list = await createMap();
+        var inst = await service.getObject(isolate.id, list.objectId,
+            count: 7, offset: 4) as Instance;
+        expect(inst.length, 1001);
+        expect(inst.offset, 4);
+        expect(inst.count, 7);
+        var fifth = inst.elements[0] as InstanceRef;
+        expect(fifth.valueAsString, '100');
+        var sixth = inst.elements[1] as InstanceRef;
+        expect(sixth.valueAsString, '5');
+      });
+
+      test('Maps running off the end', () async {
+        var list = await createMap();
+        var inst = await service.getObject(isolate.id, list.objectId,
+            count: 5, offset: 1000) as Instance;
+        expect(inst.length, 1001);
+        expect(inst.offset, 1000);
+        expect(inst.count, 1);
+        var only = inst.elements[0] as InstanceRef;
+        expect(only.valueAsString, '5');
+      });
+
       test('Scripts', () async {
         var scripts = await service.getScripts(isolate.id);
         assert(scripts.scripts.isNotEmpty);
