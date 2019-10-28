@@ -46,6 +46,9 @@ class ClassHelper extends Domain {
     }
   }
 
+  /// Returns the [Class] that corresponds to the provided [objectId].
+  ///
+  /// If a corresponding class does not exist it will return null.
   Future<Class> forObjectId(String objectId) async {
     if (!objectId.startsWith('classes|')) return null;
     var clazz = _classes[objectId];
@@ -54,12 +57,14 @@ class ClassHelper extends Domain {
     var libraryId = splitId[1];
     var libraryRef = await inspector.libraryHelper.libraryRefFor(libraryId);
     var classRef = classRefFor(libraryId, splitId.last);
-    clazz = await _getClass(libraryRef, classRef);
+    clazz = await _constructClass(libraryRef, classRef);
     return _classes[objectId] = clazz;
   }
 
-  Future<Class> _getClass(LibraryRef libraryRef, ClassRef classRef) async {
-    // Fetch information about all the classes in this library.
+  /// Constructs a [Class] instance for the provided [LibraryRef] and
+  /// [ClassRef].
+  Future<Class> _constructClass(
+      LibraryRef libraryRef, ClassRef classRef) async {
     var expression = '''
     (function() {
       ${getLibrarySnippet(libraryRef.uri)}
@@ -107,9 +112,9 @@ class ClassHelper extends Domain {
     handleErrorIfPresent(result, evalContents: expression);
     var classDescriptor = result.result['result']['value'];
     var classMetaData = ClassMetaData(
-        jsName: classDescriptor['name'] as String,
+        jsName: classDescriptor['name'],
         libraryId: libraryRef.id,
-        dartName: classDescriptor['dartName'] as String);
+        dartName: classDescriptor['dartName']);
 
     var methodRefs = <FuncRef>[];
     var methodDescriptors = classDescriptor['methods'] as Map<String, dynamic>;

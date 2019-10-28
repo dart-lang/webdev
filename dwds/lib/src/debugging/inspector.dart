@@ -79,7 +79,7 @@ class AppInspector extends Domain {
   AppInspector get inspector => this;
 
   Future<void> _initialize() async {
-    var libraries = await libraryHelper.getLibraryRefs();
+    var libraries = await libraryHelper.libraryRefs;
     isolate.libraries.addAll(libraries);
     await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
 
