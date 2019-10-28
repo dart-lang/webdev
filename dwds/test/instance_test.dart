@@ -59,7 +59,7 @@ void main() {
       expect(ref.kind, InstanceKind.kNull);
       var classRef = ref.classRef;
       expect(classRef.name, 'Null');
-      expect(classRef.id, 'classes\$dart:core\$Null');
+      expect(classRef.id, 'classes|dart:core|Null');
     });
 
     test('for a double', () async {
@@ -70,7 +70,7 @@ void main() {
       expect(ref.kind, InstanceKind.kDouble);
       var classRef = ref.classRef;
       expect(classRef.name, 'Double');
-      expect(classRef.id, 'classes\$dart:core\$Double');
+      expect(classRef.id, 'classes|dart:core|Double');
     });
 
     test('for a class', () async {
@@ -81,7 +81,7 @@ void main() {
       var classRef = ref.classRef;
       expect(classRef.name, 'MyTestClass');
       expect(classRef.id,
-          'classes\$org-dartlang-app:///web/scopes_main.dart\$MyTestClass');
+          'classes|org-dartlang-app:///web/scopes_main.dart|MyTestClass');
     });
 
     test('for closure', () async {

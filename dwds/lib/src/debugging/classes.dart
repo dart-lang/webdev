@@ -19,7 +19,7 @@ final classRefForUnknown = classRefFor('dart:core', 'Unknown');
 
 /// Returns a [ClassRef] for the provided library ID and class name.
 ClassRef classRefFor(String libraryId, String name) =>
-    ClassRef(id: 'classes\$$libraryId\$$name', name: name);
+    ClassRef(id: 'classes|$libraryId|$name', name: name);
 
 /// Keeps track of Dart classes available in the running application.
 class ClassHelper extends Domain {
@@ -47,10 +47,10 @@ class ClassHelper extends Domain {
   }
 
   Future<Class> forObjectId(String objectId) async {
-    if (!objectId.startsWith('classes\$')) return null;
+    if (!objectId.startsWith('classes|')) return null;
     var clazz = _classes[objectId];
     if (clazz != null) return clazz;
-    var splitId = objectId.split('\$');
+    var splitId = objectId.split('|');
     var libraryId = splitId[1];
     var libraryRef = await inspector.libraryHelper.libraryRefFor(libraryId);
     var classRef = classRefFor(libraryId, splitId.last);
