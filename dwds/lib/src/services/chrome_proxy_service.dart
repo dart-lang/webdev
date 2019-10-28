@@ -15,7 +15,6 @@ import '../../dwds.dart' show LogWriter;
 import '../connections/app_connection.dart';
 import '../debugging/debugger.dart';
 import '../debugging/inspector.dart';
-import '../debugging/instance.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
 import '../debugging/remote_debugger.dart';
@@ -130,17 +129,13 @@ class ChromeProxyService implements VmServiceInterface {
     _modules.initialize();
     (await debugger).notifyPausedAtStart();
 
-    var instanceHelper =
-        InstanceHelper(await debugger, remoteDebugger, appInspectorProvider);
-
     _inspector = await AppInspector.initialize(
       appConnection,
       remoteDebugger,
       _assetHandler,
       _locations,
       uri,
-      instanceHelper,
-      (await debugger).pauseState,
+      await debugger,
     );
 
     unawaited(appConnection.onStart.then((_) async {
@@ -633,19 +628,6 @@ const _stderrTypes = ['error'];
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stdout` logs.
 const _stdoutTypes = ['log', 'info', 'warning'];
-
-/// Throws an [ExceptionDetails] object if `exceptionDetails` is present on the
-/// result.
-void handleErrorIfPresent(WipResponse response,
-    {String evalContents, Object additionalDetails}) {
-  if (response == null) return;
-  if (response.result.containsKey('exceptionDetails')) {
-    throw ChromeDebugException(
-        response.result['exceptionDetails'] as Map<String, dynamic>,
-        evalContents: evalContents,
-        additionalDetails: additionalDetails);
-  }
-}
 
 class ChromeDebugException extends ExceptionDetails implements Exception {
   /// Optional, additional information about the exception.

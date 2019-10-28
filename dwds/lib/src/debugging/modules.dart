@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:path/path.dart' as p;
 
-import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
 import 'remote_debugger.dart';

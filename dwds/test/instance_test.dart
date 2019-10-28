@@ -6,7 +6,6 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -21,7 +20,6 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   AppInspector inspector;
-  RemoteDebugger remoteDebugger;
   Debugger debugger;
   InstanceHelper instanceHelper;
 
@@ -29,10 +27,8 @@ void main() {
     await context.setUp();
     var chromeProxyService = fetchChromeProxyService(context.debugConnection);
     inspector = chromeProxyService.appInspectorProvider();
-    remoteDebugger = chromeProxyService.remoteDebugger;
     debugger = await chromeProxyService.debugger;
-    instanceHelper = InstanceHelper(
-        debugger, remoteDebugger, chromeProxyService.appInspectorProvider);
+    instanceHelper = InstanceHelper(chromeProxyService.appInspectorProvider);
   });
 
   tearDownAll(() async {
