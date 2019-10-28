@@ -250,8 +250,7 @@ class Debugger extends Domain {
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
       {int column}) async {
     checkIsolate(isolateId);
-    return _breakpoints.add(scriptId, line,
-        ifNew: (Breakpoint breakpoint) async {
+    return _breakpoints.add(scriptId, line, ifNew: (breakpoint) async {
       _streamNotify(
           'Debug',
           Event(
