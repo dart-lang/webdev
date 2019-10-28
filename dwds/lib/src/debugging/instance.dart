@@ -15,7 +15,7 @@ import 'metadata.dart';
 
 /// Creates an [InstanceRef] for a primitive [RemoteObject].
 InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
-  var classRef = classRefFor('dart:core', remoteObject?.type);
+  var classRef = classRefFor('dart:core', kind);
   return InstanceRef(
       kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
     ..valueAsString = '${remoteObject?.value}';

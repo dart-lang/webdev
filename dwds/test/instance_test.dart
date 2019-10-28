@@ -28,7 +28,7 @@ void main() {
     var chromeProxyService = fetchChromeProxyService(context.debugConnection);
     inspector = chromeProxyService.appInspectorProvider();
     debugger = inspector.debugger;
-    instanceHelper = InstanceHelper(chromeProxyService.appInspectorProvider);
+    instanceHelper = inspector.instanceHelper;
   });
 
   tearDownAll(() async {
@@ -59,7 +59,7 @@ void main() {
       expect(ref.kind, InstanceKind.kNull);
       var classRef = ref.classRef;
       expect(classRef.name, 'Null');
-      expect(classRef.id, 'dart:core:object');
+      expect(classRef.id, 'classes\$dart:core\$Null');
     });
 
     test('for a double', () async {
@@ -70,7 +70,7 @@ void main() {
       expect(ref.kind, InstanceKind.kDouble);
       var classRef = ref.classRef;
       expect(classRef.name, 'Double');
-      expect(classRef.id, 'dart:core:number');
+      expect(classRef.id, 'classes\$dart:core\$Double');
     });
 
     test('for a class', () async {
@@ -80,8 +80,8 @@ void main() {
       expect(ref.kind, InstanceKind.kPlainInstance);
       var classRef = ref.classRef;
       expect(classRef.name, 'MyTestClass');
-      expect(
-          classRef.id, 'org-dartlang-app:///web/scopes_main.dart:MyTestClass');
+      expect(classRef.id,
+          'classes\$org-dartlang-app:///web/scopes_main.dart\$MyTestClass');
     });
 
     test('for closure', () async {
