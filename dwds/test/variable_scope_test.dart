@@ -72,6 +72,7 @@ void main() {
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
       expect(variableNames, [
+        'aClass',
         'another',
         'intLocalInMain',
         'local',

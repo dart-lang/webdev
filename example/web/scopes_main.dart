@@ -33,8 +33,8 @@ void main() async {
   map['b'] = 'something';
   notAList.add(7);
 
-  String nestedFunction(String parameter) {
-    var another = int.tryParse(parameter);
+  String nestedFunction<T>(T parameter, Object aClass) {
+    var another = int.tryParse('$parameter');
     return '$local: parameter, $another'; // Breakpoint: nestedFunction
   }
 
@@ -48,7 +48,7 @@ void main() async {
     var closureLocal;
     libraryPublicFinal.printCount();
     print('ticking... $ticks (the answer is $intLocalInMain)');
-    print(nestedFunction('$ticks ${testClass.message}'));
+    print(nestedFunction('$ticks ${testClass.message}', Timer));
     print(localThatsNull);
     print(libraryNull);
     var localList = libraryPublic;
@@ -60,7 +60,7 @@ void main() async {
 
   print(_libraryPrivateFinal);
   print(_libraryPrivate);
-  print(nestedFunction(_libraryPrivate.first));
+  print(nestedFunction(_libraryPrivate.first, Object));
   print(nestedWithClosure(_libraryPrivate.first)());
 }
 
