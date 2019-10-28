@@ -35,7 +35,6 @@ void main() async {
 
   String nestedFunction<T>(T parameter, Object aClass) {
     var another = int.tryParse('$parameter');
-    print(aClass);
     return '$local: parameter, $another'; // Breakpoint: nestedFunction
   }
 
