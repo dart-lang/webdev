@@ -1,4 +1,4 @@
-## 0.7.6-dev
+## 0.7.6
 
 - Fix issue with source map logic for the legacy module system.
 - Allow setting breakpoints multiple times and just return the old breakpoint.
