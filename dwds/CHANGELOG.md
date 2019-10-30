@@ -1,3 +1,7 @@
+## 0.7.7-dev
+
+- Properly black box scripts if query parameters are provided.
+
 ## 0.7.6
 
 - Fix issue with source map logic for the legacy module system.
