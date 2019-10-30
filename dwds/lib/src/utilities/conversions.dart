@@ -18,12 +18,18 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// as real arguments.
 Map<String, Object> callArgumentFor(Object argument) {
   if (argument is RemoteObject) {
-    return argument.objectId == null
+    return isPrimitive(argument)
         ? _callArgumentForPrimitive(argument.value)
         : _callArgumentForRemote(argument);
   } else {
     return _callArgumentForPrimitive(argument);
   }
+}
+
+/// True if [remote] represents a primitive
+bool isPrimitive(RemoteObject remote) {
+  var id = remote.objectId;
+  return id == null || isStringId(id) || id.startsWith('objects/');
 }
 
 /// A List of Chrome RemoteObjects from Dart object Ids [dartIds].
@@ -45,6 +51,7 @@ List<RemoteObject> remoteObjectsFor(Iterable<String> dartIds) {
 /// must be handled separately.
 RemoteObject remoteObjectFor(String dartId) {
   var data = <String, Object>{};
+  data['objectId'] = dartId;
   if (isStringId(dartId)) {
     data['type'] = 'string';
     data['value'] = _stringFromDartId(dartId);
@@ -62,7 +69,6 @@ RemoteObject remoteObjectFor(String dartId) {
     data['value'] = null;
   } else {
     data['type'] = 'object';
-    data['objectId'] = dartId;
   }
   return RemoteObject(data);
 }
