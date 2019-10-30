@@ -192,9 +192,8 @@ class AppInspector extends Domain {
 
   Future<RemoteObject> evaluate(
       String isolateId, String targetId, String expression,
-      {Map<String, String> scope, bool disableBreakpoints}) async {
+      {Map<String, String> scope}) async {
     scope ??= {};
-    disableBreakpoints ??= false;
     var library = await _getLibrary(isolateId, targetId);
     if (library == null) {
       throw UnsupportedError(
