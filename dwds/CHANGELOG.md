@@ -1,3 +1,7 @@
+## 0.7.7-dev
+
+- Handle getObject for primitives properly.
+
 ## 0.7.6
 
 - Fix issue with source map logic for the legacy module system.
