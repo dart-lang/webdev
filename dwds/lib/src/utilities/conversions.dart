@@ -18,7 +18,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// as real arguments.
 Map<String, Object> callArgumentFor(Object argument) {
   if (argument is RemoteObject) {
-    return isPrimitive(argument)
+    return _isPrimitive(argument)
         ? _callArgumentForPrimitive(argument.value)
         : _callArgumentForRemote(argument);
   } else {
@@ -27,7 +27,7 @@ Map<String, Object> callArgumentFor(Object argument) {
 }
 
 /// True if [remote] represents a primitive
-bool isPrimitive(RemoteObject remote) {
+bool _isPrimitive(RemoteObject remote) {
   var id = remote.objectId;
   return id == null || isStringId(id) || id.startsWith('objects/');
 }
