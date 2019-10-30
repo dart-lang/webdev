@@ -191,11 +191,12 @@ class Debugger extends Domain {
 
   /// Black boxes the Dart SDK and paths in [_pathsToBlackBox].
   Future<void> _blackBoxIfNecessary(WipScript script) async {
-    if (script.url.endsWith('dart_sdk.js')) {
+    // Ignore query parameters.
+    var url = script.url?.split('?')?.first ?? '';
+    if (url.endsWith('dart_sdk.js') || url.endsWith('dart_sdk.ddk.js')) {
       await _blackBoxSdk(script);
-    } else if (_pathsToBlackBox.any(script.url.contains)) {
-      var content =
-          await _sources.readAssetOrNull(DartUri(script.url).serverPath);
+    } else if (_pathsToBlackBox.any(url.contains)) {
+      var content = await _sources.readAssetOrNull(DartUri(url).serverPath);
       if (content == null) return;
       var lines = content.split('\n');
       await _blackBoxRanges(script.scriptId, [lines.length]);

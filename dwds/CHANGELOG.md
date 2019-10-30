@@ -1,6 +1,7 @@
 ## 0.7.7-dev
 
 - Handle getObject for primitives properly.
+- Properly black box scripts if query parameters are provided.
 
 ## 0.7.6
 
