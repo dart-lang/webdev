@@ -259,8 +259,9 @@ $loadModule("dart_sdk").developer.invokeExtension(
   @override
   Future evaluate(String isolateId, String targetId, String expression,
       {Map<String, String> scope, bool disableBreakpoints}) async {
+    // TODO(798) - respect disableBreakpoints.
     var remote = await _inspector?.evaluate(isolateId, targetId, expression,
-        scope: scope, disableBreakpoints: disableBreakpoints);
+        scope: scope);
     return _inspector?.instanceHelper?.instanceRefFor(remote);
   }
 
@@ -355,10 +356,7 @@ $loadModule("dart_sdk").developer.invokeExtension(
   Future invoke(
       String isolateId, String targetId, String selector, List argumentIds,
       {bool disableBreakpoints}) async {
-    if (disableBreakpoints != null) {
-      throw UnimplementedError(
-          'The "disableBreakpoints" parameter to "invoke" is not supported');
-    }
+    // TODO(798) - respect disableBreakpoints.
     var remote =
         await _inspector?.invoke(isolateId, targetId, selector, argumentIds);
     var result = _inspector?.instanceHelper?.instanceRefFor(remote);
