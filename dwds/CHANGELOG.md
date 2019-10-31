@@ -1,4 +1,4 @@
-## 0.7.7-dev
+## 0.7.7
 
 - Handle getObject for primitives properly.
 - Properly black box scripts if query parameters are provided.
