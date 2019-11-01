@@ -375,7 +375,7 @@ void main() {
             ]));
       });
 
-      test('Strings', () async {
+      test('String', () async {
         var worldRef = await service.evaluate(
                 isolate.id, isolate.rootLib.id, "helloString('world')")
             as InstanceRef;
@@ -516,6 +516,33 @@ void main() {
         expect(inst.count, 1);
         var only = inst.elements[0] as InstanceRef;
         expect(only.valueAsString, '5');
+      });
+
+      test('bool', () async {
+        var ref = await service.evaluate(
+            isolate.id, isolate.rootLib.id, 'helloBool(true)') as InstanceRef;
+        var obj = await service.getObject(isolate.id, ref.id) as Instance;
+        expect(obj.kind, InstanceKind.kBool);
+        expect(obj.classRef.name, 'Bool');
+        expect(obj.valueAsString, 'true');
+      });
+
+      test('num', () async {
+        var ref = await service.evaluate(
+            isolate.id, isolate.rootLib.id, 'helloNum(42)') as InstanceRef;
+        var obj = await service.getObject(isolate.id, ref.id) as Instance;
+        expect(obj.kind, InstanceKind.kDouble);
+        expect(obj.classRef.name, 'Double');
+        expect(obj.valueAsString, '42');
+      });
+
+      test('null', () async {
+        var ref = await service.evaluate(
+            isolate.id, isolate.rootLib.id, 'helloNum(null)') as InstanceRef;
+        var obj = await service.getObject(isolate.id, ref.id) as Instance;
+        expect(obj.kind, InstanceKind.kNull);
+        expect(obj.classRef.name, 'Null');
+        expect(obj.valueAsString, 'null');
       });
 
       test('Scripts', () async {

@@ -16,24 +16,34 @@ import 'inspector.dart';
 import 'metadata.dart';
 
 /// The maximum length of String which will be returned in an InstanceRef.
-/// 
+///
 /// Anything longer will be truncated.
 const _stringTruncationLimit = 128;
-
-/// Creates an [InstanceRef] for a primitive [RemoteObject].
-InstanceRef _primitiveInstance(String kind, RemoteObject remoteObject) {
-  var classRef = classRefFor('dart:core', kind);
-  return InstanceRef(
-      kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
-    ..valueAsString = '${remoteObject?.value}';
-}
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
   InstanceHelper(AppInspector Function() provider) : super(provider);
 
-  Future<Instance> _stringInstanceFor(
-      RemoteObject remoteObject, int offset, int count) async {
+  /// Creates an [InstanceRef] for a primitive [RemoteObject].
+  InstanceRef _primitiveInstanceRef(String kind, RemoteObject remoteObject) {
+    var classRef = classRefFor('dart:core', kind);
+    return InstanceRef(
+        kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
+      ..valueAsString = '${remoteObject?.value}';
+  }
+
+  /// Creates an [Instance] for a primitive [RemoteObject].
+  Instance _primitiveInstance(String kind, RemoteObject remote) {
+    if (remote?.objectId == null) return null;
+    return Instance(
+        id: remote.objectId,
+        kind: kind,
+        classRef: classRefFor('dart:core', kind))
+      ..valueAsString = '${remote.value}';
+  }
+
+  Instance _stringInstanceFor(
+      RemoteObject remoteObject, int offset, int count) {
     // TODO(#777) Consider a way of not passing the whole string around (in the
     // ID) in order to find a substring.
     var actualString = stringFromDartId(remoteObject.objectId);
@@ -46,9 +56,7 @@ class InstanceHelper extends Domain {
       truncated = true;
     }
     return Instance(
-        kind: InstanceKind.kString,
-        classRef: classRefForString,
-        id: createId())
+        kind: InstanceKind.kString, classRef: classRefForString, id: createId())
       ..valueAsString = subString
       ..valueAsStringIsTruncated = truncated
       ..length = actualString.length
@@ -71,6 +79,10 @@ class InstanceHelper extends Domain {
   /// [count] allow retrieving a subset of properties.
   Future<Instance> instanceFor(RemoteObject remoteObject,
       {int offset, int count}) async {
+    var primitive = _primitiveInstanceOrNull(remoteObject, offset, count);
+    if (primitive != null) {
+      return primitive;
+    }
     if (isStringId(remoteObject.objectId)) {
       return _stringInstanceFor(remoteObject, offset, count);
     }
@@ -80,8 +92,11 @@ class InstanceHelper extends Domain {
     if (metaData.jsName == 'Function') {
       return _closureInstanceFor(remoteObject);
     }
-    var properties = await inspector.debugger.getProperties(remoteObject.objectId,
-        offset: offset, count: count, length: metaData.length);
+    var properties = await inspector.debugger.getProperties(
+        remoteObject.objectId,
+        offset: offset,
+        count: count,
+        length: metaData.length);
     if (metaData.jsName == 'JSArray') {
       // We may have been passed in a RemoteObject generated from just an ID. We
       // need the type for some operations, so set it to what we know it must be
@@ -95,6 +110,23 @@ class InstanceHelper extends Domain {
       return await _mapInstanceFor(classRef, remoteObject, properties);
     } else {
       return await _plainInstanceFor(classRef, remoteObject, properties);
+    }
+  }
+
+  /// If [remoteObject] represents a primitive, return an [Instance] for it,
+  /// otherwise return null.
+  Instance _primitiveInstanceOrNull(RemoteObject remoteObject, int offset, int count) {
+    switch (remoteObject?.type ?? 'undefined') {
+      case 'string':
+        return _stringInstanceFor(remoteObject, offset, count);
+      case 'number':
+        return _primitiveInstance(InstanceKind.kDouble, remoteObject);
+      case 'boolean':
+        return _primitiveInstance(InstanceKind.kBool, remoteObject);
+      case 'undefined':
+        return _primitiveInstance(InstanceKind.kNull, remoteObject);
+      default:
+        return null;
     }
   }
 
@@ -281,13 +313,15 @@ class InstanceHelper extends Domain {
   Future<InstanceRef> _instanceRefForRemote(RemoteObject remoteObject) async {
     // If we have a null result, treat it as a reference to null.
     if (remoteObject == null) {
-      return _primitiveInstance(InstanceKind.kNull, remoteObject);
+      return _primitiveInstanceRef(InstanceKind.kNull, remoteObject);
     }
     switch (remoteObject.type) {
       case 'string':
         var stringValue = remoteObject.value as String;
         var truncated = stringValue.length > _stringTruncationLimit;
-        var result = truncated ? stringValue.substring(0, _stringTruncationLimit) : stringValue;
+        var result = truncated
+            ? stringValue.substring(0, _stringTruncationLimit)
+            : stringValue;
         return InstanceRef(
             id: dartIdFor(remoteObject.value),
             classRef: classRefForString,
@@ -296,14 +330,14 @@ class InstanceHelper extends Domain {
           ..valueAsStringIsTruncated = truncated
           ..length = stringValue.length;
       case 'number':
-        return _primitiveInstance(InstanceKind.kDouble, remoteObject);
+        return _primitiveInstanceRef(InstanceKind.kDouble, remoteObject);
       case 'boolean':
-        return _primitiveInstance(InstanceKind.kBool, remoteObject);
+        return _primitiveInstanceRef(InstanceKind.kBool, remoteObject);
       case 'undefined':
-        return _primitiveInstance(InstanceKind.kNull, remoteObject);
+        return _primitiveInstanceRef(InstanceKind.kNull, remoteObject);
       case 'object':
         if (remoteObject.objectId == null) {
-          return _primitiveInstance(InstanceKind.kNull, remoteObject);
+          return _primitiveInstanceRef(InstanceKind.kNull, remoteObject);
         }
         var metaData = await ClassMetaData.metaDataFor(
             inspector.remoteDebugger, remoteObject, inspector);
