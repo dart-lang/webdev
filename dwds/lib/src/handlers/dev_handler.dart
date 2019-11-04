@@ -9,6 +9,7 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart' as build_daemon;
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/run_request.dart';
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
@@ -48,6 +49,7 @@ class DevHandler {
   final ExtensionBackend _extensionBackend;
   final StreamController<DebugConnection> extensionDebugConnections =
       StreamController<DebugConnection>();
+  final UrlEncoder _urlEncoder;
 
   /// Null until [close] is called.
   ///
@@ -65,6 +67,7 @@ class DevHandler {
     this._verbose,
     this._logWriter,
     this._extensionBackend,
+    this._urlEncoder,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
@@ -371,13 +374,17 @@ class DevHandler {
         extensionDebugConnections.add(DebugConnection(appServices));
         return appServices;
       });
+      var queryUri = appServices.debugService.uri;
+      if (_urlEncoder != null) {
+        queryUri = await _urlEncoder(queryUri);
+      }
       await _extensionDebugger.sendCommand('Target.createTarget', params: {
         'newWindow': true,
         'url': Uri(
             scheme: 'http',
             host: _devTools.hostname,
             port: _devTools.port,
-            queryParameters: {'uri': appServices.debugService.uri}).toString(),
+            queryParameters: {'uri': queryUri}).toString(),
       });
     });
   }
