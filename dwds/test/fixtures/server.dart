@@ -42,17 +42,17 @@ class TestServer {
   }
 
   static Future<TestServer> start(
-    int port,
-    int assetServerPort,
-    String target,
-    Stream<BuildResults> buildResults,
-    Future<ChromeConnection> Function() chromeConnection,
-    ReloadConfiguration reloadConfiguration,
-    bool serveDevTools,
-    bool enableDebugExtension,
-    bool autoRun,
-    bool enableDebugging,
-  ) async {
+      int port,
+      int assetServerPort,
+      String target,
+      Stream<BuildResults> buildResults,
+      Future<ChromeConnection> Function() chromeConnection,
+      ReloadConfiguration reloadConfiguration,
+      bool serveDevTools,
+      bool enableDebugExtension,
+      bool autoRun,
+      bool enableDebugging,
+      UrlEncoder urlEncoder) async {
     var pipeline = const Pipeline();
 
     var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) =>
@@ -69,6 +69,7 @@ class TestServer {
       enableDebugExtension: enableDebugExtension,
       enableDebugging: enableDebugging,
       verbose: true,
+      urlEncoder: urlEncoder,
     );
 
     var server = await HttpMultiServer.bind('localhost', port);
