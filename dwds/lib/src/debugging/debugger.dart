@@ -366,11 +366,19 @@ class Debugger extends Domain {
 
   Future<RemoteObject> _subrange(String id, int offset, int count, int length) async {
     // TODO(alanknight): Do we really need to convert these to Ids to do this?
-    var receiver = RemoteObject({'objectId': id});
+    var receiver = remoteObjectFor(id);
     var end = count == null ? null : min(offset + count, length);
-    var args = [offset, end].map(dartIdFor).toList();
-    return inspector.invoke(
-        inspector.isolate.id, receiver.objectId, 'sublist', args);
+    var args = [offset, end].map(dartIdFor).map(remoteObjectFor).toList();
+        var send = '''
+        function (offset, end) {
+          const sdk = $loadModule("dart_sdk");
+          const items = (sdk.collection.Map.is(this)) 
+            ? sdk.dart.dload(this, "entries")
+            : this;
+          return sdk.dart.dsendRepl(items, "sublist", [offset, end]);
+        }
+        ''';
+    return await inspector.jsCallFunctionOn(receiver, send, args);
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [id].

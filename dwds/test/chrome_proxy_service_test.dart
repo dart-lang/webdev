@@ -426,8 +426,9 @@ void main() {
       });
 
       test('String one larger than the truncation limit', () async {
-        var largeString = await service.evaluate(isolate.id, isolate.rootLib.id,
-            "helloString('${'a' * 129}')") as InstanceRef;
+        var largeString = await service.evaluate(
+                isolate.id, isolate.rootLib.id, "helloString('${'a' * 129}')")
+            as InstanceRef;
         expect(largeString.valueAsStringIsTruncated, true);
         expect(largeString.length, 129);
         expect(largeString.valueAsString.length, 128);
@@ -441,6 +442,22 @@ void main() {
             const list = sdk.dart.dsend(sdk.core.List,"filled", [1001, 5]);
             list[4] = 100;
             return list;
+      })()''';
+        return service.appInspectorProvider().jsEvaluate(expr);
+      }
+
+      /// Helper to create a LinkedHashMap with 1001 entries, doing a direct JS eval.
+      Future<RemoteObject> createMap() {
+        var expr = '''
+          (function () {
+            const sdk = $loadModule("dart_sdk");
+            const iterable = sdk.dart.dsend(sdk.core.Iterable, "generate", [1001]);
+            const list1 = sdk.dart.dsend(iterable, "toList", []);
+            const reversed = sdk.dart.dload(list1, "reversed"); 
+            const list = sdk.dart.dsend(reversed, "toList", []);
+            const map = sdk.dart.dsend(list, "asMap", []);
+            const linkedMap = sdk.dart.dsend(sdk.collection.LinkedHashMap, "from", [map]);
+            return linkedMap;
       })()''';
         return service.appInspectorProvider().jsEvaluate(expr);
       }
@@ -481,17 +498,18 @@ void main() {
         expect(only.valueAsString, '5');
       });
 
-
       test('Maps', () async {
         var map = await createMap();
         var inst = await service.getObject(isolate.id, map.objectId);
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
-        var fifth = inst.elements[4] as InstanceRef;
-        expect(fifth.valueAsString, '100');
-        var sixth = inst.elements[5] as InstanceRef;
-        expect(sixth.valueAsString, '5');
+        var fifth = inst.associations[4] as MapAssociation;
+        expect(fifth.key.valueAsString, '4');
+        expect(fifth.value.valueAsString, '996');
+        var sixth = inst.associations[5] as MapAssociation;
+        expect(sixth.key.valueAsString, '5');
+        expect(sixth.value.valueAsString, '995');
       });
 
       test('Maps with count/offset', () async {
@@ -501,11 +519,13 @@ void main() {
         expect(inst.length, 1001);
         expect(inst.offset, 4);
         expect(inst.count, 7);
-        var fifth = inst.elements[0] as InstanceRef;
-        expect(fifth.valueAsString, '100');
-        var sixth = inst.elements[1] as InstanceRef;
-        expect(sixth.valueAsString, '5');
-      }); 
+        var fifth = inst.elements[0] as MapAssociation;
+        expect(fifth.key.valueAsString, '4');
+        expect(fifth.value.valueAsString, '996');
+        var sixth = inst.elements[1] as MapAssociation;
+        expect(sixth.key.valueAsString, '5');
+        expect(sixth.value.valueAsString, '995');
+      });
 
       test('Maps running off the end', () async {
         var map = await createMap();

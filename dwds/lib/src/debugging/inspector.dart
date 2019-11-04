@@ -192,8 +192,9 @@ class AppInspector extends Domain {
 
   Future<RemoteObject> evaluate(
       String isolateId, String targetId, String expression,
-      {Map<String, String> scope}) async {
+      {Map<String, String> scope, bool disableBreakpoints}) async {
     scope ??= {};
+    disableBreakpoints ??= false;
     var library = await _getLibrary(isolateId, targetId);
     if (library == null) {
       throw UnsupportedError(
@@ -308,7 +309,8 @@ function($argsString) {
     if (clazz != null) return clazz;
     var scriptRef = _scriptRefsById[objectId];
     if (scriptRef != null) return await _getScript(isolateId, scriptRef);
-    var instance = instanceHelper.instanceFor(remoteObjectFor(objectId), offset: offset, count: count);
+    var instance =
+        await instanceHelper.instanceFor(RemoteObject({'objectId': objectId}), offset: offset, count: count);
     if (instance != null) return instance;
     throw UnsupportedError('Only libraries, instances, classes, and scripts '
         'are supported for getObject');
