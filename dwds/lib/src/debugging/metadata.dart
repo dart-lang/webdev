@@ -78,6 +78,17 @@ class ClassMetaData {
 
   /// Return a [ClassRef] appropriate to this metadata.
   ClassRef get classRef => classRefFor(libraryId, dartName);
+
+  /// True if this class refers to system maps, which are treated specially.
+  ///
+  /// Classes that implement Map or inherit from MapBase are still treated as
+  /// plain objects.
+  // TODO(alanknight): It may be that IdentityMap should not be treated as a
+  // system map.
+  bool get isSystemMap => jsName == 'LinkedMap' || jsName == 'IdentityMap';
+
+  /// True if this class refers to system Lists, which are treated specially.
+  bool get isSystemList => jsName == 'JSArray';
 }
 
 /// Meta data for a remote Dart function in Chrome.

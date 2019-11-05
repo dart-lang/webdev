@@ -46,21 +46,21 @@ class InstanceHelper extends Domain {
       RemoteObject remoteObject, int offset, int count) {
     // TODO(#777) Consider a way of not passing the whole string around (in the
     // ID) in order to find a substring.
-    var actualString = stringFromDartId(remoteObject.objectId);
-    var subString = actualString;
+    var fullString = stringFromDartId(remoteObject.objectId);
+    var preview = fullString;
     var truncated = false;
     if (offset != null || count != null) {
-      var start = offset ?? 0;
-      var end = count == null ? null : min(start + count, actualString.length);
-      subString = actualString.substring(start, end);
       truncated = true;
+      var start = offset ?? 0;
+      var end = count == null ? null : min(start + count, fullString.length);
+      preview = fullString.substring(start, end);
     }
     return Instance(
         kind: InstanceKind.kString, classRef: classRefForString, id: createId())
-      ..valueAsString = subString
+      ..valueAsString = preview
       ..valueAsStringIsTruncated = truncated
-      ..length = actualString.length
-      ..count = (truncated ? subString.length : null)
+      ..length = fullString.length
+      ..count = (truncated ? preview.length : null)
       ..offset = (truncated ? offset : null);
   }
 
@@ -76,7 +76,7 @@ class InstanceHelper extends Domain {
   ///
   /// Does a remote eval to get instance information. Returns null if there
   /// isn't a corresponding instance. For enumerable objects, [offset] and
-  /// [count] allow retrieving a subset of properties.
+  /// [count] allow retrieving a sub-range of properties.
   Future<Instance> instanceFor(RemoteObject remoteObject,
       {int offset, int count}) async {
     var primitive = _primitiveInstanceOrNull(remoteObject, offset, count);
@@ -86,6 +86,7 @@ class InstanceHelper extends Domain {
     if (isStringId(remoteObject.objectId)) {
       return _stringInstanceFor(remoteObject, offset, count);
     }
+
     var metaData = await ClassMetaData.metaDataFor(
         inspector.remoteDebugger, remoteObject, inspector);
     var classRef = metaData.classRef;
@@ -97,16 +98,10 @@ class InstanceHelper extends Domain {
         offset: offset,
         count: count,
         length: metaData.length);
-    if (metaData.jsName == 'JSArray') {
-      // We may have been passed in a RemoteObject generated from just an ID. We
-      // need the type for some operations, so set it to what we know it must be
-      // for a list.
-      var remoteWithType =
-          RemoteObject({'objectId': remoteObject.objectId, 'type': 'object'});
+    if (metaData.isSystemList) {
       return await _listInstanceFor(
-          classRef, remoteWithType, properties, offset, count);
-    } else if (metaData.jsName == 'LinkedMap' ||
-        metaData.jsName == 'IdentityMap') {
+          classRef, remoteObject, properties, offset, count);
+    } else if (metaData.isSystemMap) {
       return await _mapInstanceFor(
           classRef, remoteObject, properties, offset, count);
     } else {
@@ -351,15 +346,14 @@ class InstanceHelper extends Domain {
         var metaData = await ClassMetaData.metaDataFor(
             inspector.remoteDebugger, remoteObject, inspector);
         if (metaData == null) return null;
-        if (metaData.jsName == 'JSArray') {
+        if (metaData.isSystemList) {
           return InstanceRef(
               kind: InstanceKind.kList,
               id: remoteObject.objectId,
               classRef: metaData.classRef)
             ..length = metaData.length;
         }
-        if (metaData.jsName == 'LinkedMap' ||
-            metaData.jsName == 'IdentityMap') {
+        if (metaData.isSystemMap) {
           return InstanceRef(
               kind: InstanceKind.kMap,
               id: remoteObject.objectId,

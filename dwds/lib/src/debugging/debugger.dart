@@ -367,18 +367,23 @@ class Debugger extends Domain {
   /// Find a sub-range of the entries for a Map/List when offset and/or count
   /// have been specified on a getObject request.
   ///
-  /// The object referenced by [id] should be a system List or Map. The [length]
-  /// indicates the number of entries in that object.
+  /// If the object referenced by [id] is not a system List or Map then this
+  /// will just return a RemoteObject for it and ignore [offset], [count] and
+  /// [length]. If it is, then [length] should be the number of entries in the
+  /// List/Map and [offset] and [count] should indicate the desired range.
   Future<RemoteObject> _subrange(
       String id, int offset, int count, int length) async {
+    // TODO(alanknight): Sometimes we already know the type of the object, and
+    // we could take advantage of that to short-circuit.
     var receiver = remoteObjectFor(id);
     var end = count == null ? null : min(offset + count, length);
     var actualCount = count ?? length - offset;
     var args =
         [offset, actualCount, end].map(dartIdFor).map(remoteObjectFor).toList();
-    // If this is a List, just call sublist. If it's a Map, get the entries, but avoid
-    // doing a toList on a large map using skip/take to get the section we want.
-    var send = '''
+    // If this is a List, just call sublist. If it's a Map, get the entries, but
+    // avoid doing a toList on a large map using skip/take to get the section we
+    // want. To make those alternatives easier in JS, pass both count and end.
+    var expression = '''
         function (offset, count, end) {
           const sdk = $loadModule("dart_sdk");
           if (sdk.core.Map.is(this)) {
@@ -386,28 +391,33 @@ class Debugger extends Domain {
             const skipped = sdk.dart.dsend(entries, "skip", [offset])
             const taken = sdk.dart.dsend(skipped, "take", [count]);
             return sdk.dart.dsend(taken, "toList", []);
-          } else {
+          } else  if (sdk.coreList.is(this)) {
             return sdk.dart.dsendRepl(this, "sublist", [offset, end]);
+          } else {
+            return this;
           }
         }
         ''';
-    return await inspector.jsCallFunctionOn(receiver, send, args);
+    return await inspector.jsCallFunctionOn(receiver, expression, args);
   }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [id].
   ///
   /// Note that the property names are JS names, e.g.
-  /// Symbol(DartClass.actualName) and will need to be converted.
+  /// Symbol(DartClass.actualName) and will need to be converted. For a system
+  /// List or Map, [offset] and/or [count] can be provided to indicate a desired
+  /// range of entries. If those are provided, then [length] should also be
+  /// provided to indicate the total length of the List/Map.
   Future<List<Property>> getProperties(String id,
       {int offset, int count, int length}) async {
-    var actualId = id;
+    var rangeId = id;
     if (offset != null || count != null) {
       var range = await _subrange(id, offset ?? 0, count, length);
-      actualId = range.objectId;
+      rangeId = range.objectId;
     }
     var response =
         await _remoteDebugger.sendCommand('Runtime.getProperties', params: {
-      'objectId': actualId,
+      'objectId': rangeId,
       'ownProperties': true,
     });
     var jsProperties = response.result['result'];

@@ -49,7 +49,7 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   Future<RemoteObject> evaluate(
           String isolateId, String targetId, String expression,
-          {Map<String, String> scope, disableBreakpoints = true}) =>
+          {Map<String, String> scope}) =>
       null;
   @override
   Future getObject(String isolateId, String objectId,
