@@ -391,7 +391,7 @@ class Debugger extends Domain {
             const skipped = sdk.dart.dsend(entries, "skip", [offset])
             const taken = sdk.dart.dsend(skipped, "take", [count]);
             return sdk.dart.dsend(taken, "toList", []);
-          } else  if (sdk.coreList.is(this)) {
+          } else  if (sdk.core.List.is(this)) {
             return sdk.dart.dsendRepl(this, "sublist", [offset, end]);
           } else {
             return this;
