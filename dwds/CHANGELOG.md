@@ -1,4 +1,4 @@
-## 0.7.8-dev
+## 0.7.8
 
 - Support optional argument `urlEncoder` that is used to encode remote URLs for
   use with the Dart Debug Extension.
