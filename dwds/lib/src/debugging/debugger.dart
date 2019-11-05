@@ -373,7 +373,7 @@ class Debugger extends Domain {
   /// List/Map and [offset] and [count] should indicate the desired range.
   Future<RemoteObject> _subrange(
       String id, int offset, int count, int length) async {
-    // TODO(alanknight): Sometimes we already know the type of the object, and
+    // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
     var receiver = remoteObjectFor(id);
     var end = count == null ? null : min(offset + count, length);
