@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:html';
 import 'dart:js';
 
 import 'restarter.dart';
@@ -12,6 +13,17 @@ class LegacyRestarter implements Restarter {
   Future<bool> restart() async {
     var dartLibrary = context['dart_library'] as JsObject;
     dartLibrary.callMethod('reload');
-    return true;
+    var reloadCompleter = Completer<bool>();
+    StreamSubscription sub;
+    sub = window.onMessage.listen((event) {
+      var message = event.data;
+      if (message is Map &&
+          message['type'] == 'DDC_STATE_CHANGE' &&
+          message['state'] == 'restart_end') {
+        reloadCompleter.complete(true);
+        sub.cancel();
+      }
+    });
+    return reloadCompleter.future;
   }
 }
