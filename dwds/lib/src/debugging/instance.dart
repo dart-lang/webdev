@@ -107,7 +107,8 @@ class InstanceHelper extends Domain {
           classRef, remoteWithType, properties, offset, count);
     } else if (metaData.jsName == 'LinkedMap' ||
         metaData.jsName == 'IdentityMap') {
-      return await _mapInstanceFor(classRef, remoteObject, properties, offset, count);
+      return await _mapInstanceFor(
+          classRef, remoteObject, properties, offset, count);
     } else {
       return await _plainInstanceFor(classRef, remoteObject, properties);
     }
@@ -115,7 +116,8 @@ class InstanceHelper extends Domain {
 
   /// If [remoteObject] represents a primitive, return an [Instance] for it,
   /// otherwise return null.
-  Instance _primitiveInstanceOrNull(RemoteObject remoteObject, int offset, int count) {
+  Instance _primitiveInstanceOrNull(
+      RemoteObject remoteObject, int offset, int count) {
     switch (remoteObject?.type ?? 'undefined') {
       case 'string':
         return _stringInstanceFor(remoteObject, offset, count);
@@ -168,7 +170,8 @@ class InstanceHelper extends Domain {
   }
 
   /// The associations for a Dart Map or IdentityMap.
-  Future<List<MapAssociation>> _mapAssociations(RemoteObject map, int offset, int count) async {
+  Future<List<MapAssociation>> _mapAssociations(
+      RemoteObject map, int offset, int count) async {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
@@ -193,7 +196,8 @@ class InstanceHelper extends Domain {
     var keys = await inspector.loadField(keysAndValues, 'keys');
     var values = await inspector.loadField(keysAndValues, 'values');
     var keysInstance = await instanceFor(keys, offset: offset, count: count);
-    var valuesInstance = await instanceFor(values, offset: offset, count: count);
+    var valuesInstance =
+        await instanceFor(values, offset: offset, count: count);
     var associations = <MapAssociation>[];
     Map.fromIterables(keysInstance.elements, valuesInstance.elements)
         .forEach((key, value) {
@@ -205,8 +209,8 @@ class InstanceHelper extends Domain {
   }
 
   /// Create a Map instance with class [classRef] from [remoteObject].
-  Future<Instance> _mapInstanceFor(
-      ClassRef classRef, RemoteObject remoteObject, List<Property> _, int offset, int count) async {
+  Future<Instance> _mapInstanceFor(ClassRef classRef, RemoteObject remoteObject,
+      List<Property> _, int offset, int count) async {
     // Maps are complicated, do an eval to get keys and values.
     var associations = await _mapAssociations(remoteObject, offset, count);
     var length = (offset == null && count == null)

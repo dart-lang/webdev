@@ -454,8 +454,8 @@ void main() {
             const iterable = sdk.dart.dsend(sdk.core.Iterable, "generate", [1001]);
             const list1 = sdk.dart.dsend(iterable, "toList", []);
             const reversed = sdk.dart.dload(list1, "reversed"); 
-            const list = sdk.dart.dsend(reversed, "toList", []);
-            const map = sdk.dart.dsend(list, "asMap", []);
+            const list2 = sdk.dart.dsend(reversed, "toList", []);
+            const map = sdk.dart.dsend(list2, "asMap", []);
             const linkedMap = sdk.dart.dsend(sdk.collection.LinkedHashMap, "from", [map]);
             return linkedMap;
       })()''';
@@ -500,14 +500,15 @@ void main() {
 
       test('Maps', () async {
         var map = await createMap();
-        var inst = await service.getObject(isolate.id, map.objectId);
+        var inst =
+            await service.getObject(isolate.id, map.objectId) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
-        var fifth = inst.associations[4] as MapAssociation;
+        var fifth = inst.associations[4];
         expect(fifth.key.valueAsString, '4');
         expect(fifth.value.valueAsString, '996');
-        var sixth = inst.associations[5] as MapAssociation;
+        var sixth = inst.associations[5];
         expect(sixth.key.valueAsString, '5');
         expect(sixth.value.valueAsString, '995');
       });
@@ -519,10 +520,10 @@ void main() {
         expect(inst.length, 1001);
         expect(inst.offset, 4);
         expect(inst.count, 7);
-        var fifth = inst.elements[0] as MapAssociation;
+        var fifth = inst.associations[0];
         expect(fifth.key.valueAsString, '4');
         expect(fifth.value.valueAsString, '996');
-        var sixth = inst.elements[1] as MapAssociation;
+        var sixth = inst.associations[1];
         expect(sixth.key.valueAsString, '5');
         expect(sixth.value.valueAsString, '995');
       });
@@ -534,8 +535,9 @@ void main() {
         expect(inst.length, 1001);
         expect(inst.offset, 1000);
         expect(inst.count, 1);
-        var only = inst.elements[0] as InstanceRef;
-        expect(only.valueAsString, '5');
+        var only = inst.associations[0];
+        expect(only.key.valueAsString, '1000');
+        expect(only.value.valueAsString, '0');
       });
 
       test('bool', () async {

@@ -364,18 +364,31 @@ class Debugger extends Domain {
       ..declarationTokenPos = -1;
   }
 
-  Future<RemoteObject> _subrange(String id, int offset, int count, int length) async {
-    // TODO(alanknight): Do we really need to convert these to Ids to do this?
+  /// Find a sub-range of the entries for a Map/List when offset and/or count
+  /// have been specified on a getObject request.
+  ///
+  /// The object referenced by [id] should be a system List or Map. The [length]
+  /// indicates the number of entries in that object.
+  Future<RemoteObject> _subrange(
+      String id, int offset, int count, int length) async {
     var receiver = remoteObjectFor(id);
     var end = count == null ? null : min(offset + count, length);
-    var args = [offset, end].map(dartIdFor).map(remoteObjectFor).toList();
-        var send = '''
-        function (offset, end) {
+    var actualCount = count ?? length - offset;
+    var args =
+        [offset, actualCount, end].map(dartIdFor).map(remoteObjectFor).toList();
+    // If this is a List, just call sublist. If it's a Map, get the entries, but avoid
+    // doing a toList on a large map using skip/take to get the section we want.
+    var send = '''
+        function (offset, count, end) {
           const sdk = $loadModule("dart_sdk");
-          const items = (sdk.collection.Map.is(this)) 
-            ? sdk.dart.dload(this, "entries")
-            : this;
-          return sdk.dart.dsendRepl(items, "sublist", [offset, end]);
+          if (sdk.core.Map.is(this)) {
+            const entries = sdk.dart.dload(this, "entries");
+            const skipped = sdk.dart.dsend(entries, "skip", [offset])
+            const taken = sdk.dart.dsend(skipped, "take", [count]);
+            return sdk.dart.dsend(taken, "toList", []);
+          } else {
+            return sdk.dart.dsendRepl(this, "sublist", [offset, end]);
+          }
         }
         ''';
     return await inspector.jsCallFunctionOn(receiver, send, args);
@@ -389,7 +402,7 @@ class Debugger extends Domain {
       {int offset, int count, int length}) async {
     var actualId = id;
     if (offset != null || count != null) {
-      var range = await _subrange(id, offset, count, length);
+      var range = await _subrange(id, offset ?? 0, count, length);
       actualId = range.objectId;
     }
     var response =
