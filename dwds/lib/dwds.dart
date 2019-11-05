@@ -26,6 +26,7 @@ export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 
 typedef LogWriter = void Function(Level, String);
 typedef ConnectionProvider = Future<ChromeConnection> Function();
+typedef UrlEncoder = Future<String> Function(String url);
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
 enum ModuleStrategy { requireJS, legacy }
 
@@ -67,6 +68,7 @@ class Dwds {
     bool verbose,
     bool enableDebugExtension,
     ModuleStrategy moduleStrategy,
+    UrlEncoder urlEncoder,
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
@@ -83,17 +85,21 @@ class Dwds {
     var pipeline = const Pipeline();
 
     DevTools devTools;
-    String extensionHostname;
-    int extensionPort;
+    String extensionUri;
     ExtensionBackend extensionBackend;
     if (enableDebugExtension) {
       extensionBackend = await ExtensionBackend.start(hostname);
-      extensionHostname = extensionBackend.hostname;
-      extensionPort = extensionBackend.port;
+      extensionUri = Uri(
+              scheme: 'http',
+              host: hostname,
+              port: extensionBackend.port,
+              path: r'$debug')
+          .toString();
+      if (urlEncoder != null) extensionUri = await urlEncoder(extensionUri);
     }
 
-    pipeline = pipeline.addMiddleware(createInjectedHandler(reloadConfiguration,
-        extensionHostname: extensionHostname, extensionPort: extensionPort));
+    pipeline = pipeline.addMiddleware(
+        createInjectedHandler(reloadConfiguration, extensionUri: extensionUri));
 
     if (serveDevTools) {
       devTools = await DevTools.start(hostname);
@@ -109,6 +115,7 @@ class Dwds {
       verbose,
       logWriter,
       extensionBackend,
+      urlEncoder,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 

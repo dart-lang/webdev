@@ -1,3 +1,8 @@
+## 0.7.8-dev
+
+- Support optional argument `urlEncoder` that is used to encode remote URLs for
+  use with the Dart Debug Extension.
+
 ## 0.7.7
 
 - Handle getObject for primitives properly.

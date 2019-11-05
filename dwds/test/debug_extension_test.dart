@@ -8,6 +8,8 @@
 @OnPlatform({
   'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
 })
+import 'package:dwds/src/handlers/injected_handler.dart';
+import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
@@ -21,35 +23,59 @@ import 'fixtures/context.dart';
 
 final context = TestContext();
 void main() async {
-  setUpAll(() async {
-    await context.setUp(enableDebugExtension: true);
-    await context.extensionConnection.sendCommand('Runtime.evaluate', {
-      'expression': 'fakeClick()',
+  group('Without encoding', () {
+    setUpAll(() async {
+      await context.setUp(enableDebugExtension: true);
+      await context.extensionConnection.sendCommand('Runtime.evaluate', {
+        'expression': 'fakeClick()',
+      });
+      // Wait for DevTools to actually open.
+      await Future.delayed(const Duration(seconds: 2));
     });
-    // Wait for DevTools to actually open.
-    await Future.delayed(const Duration(seconds: 2));
-  });
 
-  tearDownAll(() async {
-    await context.tearDown();
-  });
-
-  test('can launch DevTools', () async {
-    var windows = await context.webDriver.windows.toList();
-    await context.webDriver.driver.switchTo.window(windows.last);
-    expect(await context.webDriver.title, 'Dart DevTools');
-  });
-
-  test('can close DevTools and relaunch', () async {
-    await (await context.webDriver.windows.toList()).last.close();
-
-    // Relaunch DevTools by (fake) clicking the extension.
-    await context.extensionConnection.sendCommand('Runtime.evaluate', {
-      'expression': 'fakeClick()',
+    tearDownAll(() async {
+      await context.tearDown();
     });
-    await Future.delayed(const Duration(seconds: 2));
-    var windows = await context.webDriver.windows.toList();
-    await context.webDriver.driver.switchTo.window(windows.last);
-    expect(await context.webDriver.title, 'Dart DevTools');
+
+    test('can launch DevTools', () async {
+      var windows = await context.webDriver.windows.toList();
+      await context.webDriver.driver.switchTo.window(windows.last);
+      expect(await context.webDriver.title, 'Dart DevTools');
+    });
+
+    test('can close DevTools and relaunch', () async {
+      await (await context.webDriver.windows.toList()).last.close();
+
+      // Relaunch DevTools by (fake) clicking the extension.
+      await context.extensionConnection.sendCommand('Runtime.evaluate', {
+        'expression': 'fakeClick()',
+      });
+      await Future.delayed(const Duration(seconds: 2));
+      var windows = await context.webDriver.windows.toList();
+      await context.webDriver.driver.switchTo.window(windows.last);
+      expect(await context.webDriver.title, 'Dart DevTools');
+    });
+  });
+
+  group('With encoding', () {
+    final context = TestContext();
+    setUp(() async {
+      await context.setUp(
+          enableDebugExtension: true,
+          urlEncoder: (_) async {
+            return 'http://some-encoded-url:8081/';
+          });
+    });
+
+    tearDown(() async {
+      await context.tearDown();
+    });
+
+    test('uses the encoded URI', () async {
+      var result = await http.get(
+          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension');
+      expect(result.body.contains('dartExtensionUri'), isTrue);
+      expect(result.body.contains('http://some-encoded-url:8081/'), isTrue);
+    });
   });
 }

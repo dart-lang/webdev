@@ -26,8 +26,7 @@ const _clientScript = 'dwds/src/injected/client';
 
 Handler Function(Handler) createInjectedHandler(
         ReloadConfiguration configuration,
-        {String extensionHostname,
-        int extensionPort}) =>
+        {String extensionUri}) =>
     (innerHandler) {
       return (Request request) async {
         if (request.url.path.endsWith('$_clientScript.js')) {
@@ -74,8 +73,7 @@ Handler Function(Handler) createInjectedHandler(
               appId,
               mainFunction,
               requestedUriBase,
-              extensionHostname: extensionHostname,
-              extensionPort: extensionPort,
+              extensionUri: extensionUri,
             );
             body += bodyLines.sublist(extensionIndex + 2).join('\n');
             // Change the hot restart handler to re-assign
@@ -100,8 +98,7 @@ String _injectedClientJs(
   String appId,
   String mainFunction,
   String requestedUriBase, {
-  String extensionHostname,
-  int extensionPort,
+  String extensionUri,
 }) {
   var injectedBody = '// Injected by webdev for build results support.\n'
       'window.\$dartAppId = "$appId";\n'
@@ -111,9 +108,8 @@ String _injectedClientJs(
       'window.\$dartModuleStrategy = "$loadModule";\n'
       'window.\$dartUriBase = "$requestedUriBase";\n'
       'window.\$loadModuleConfig = $loadModule;\n';
-  if (extensionPort != null && extensionHostname != null) {
-    injectedBody += 'window.\$extensionHostname = "$extensionHostname";\n'
-        'window.\$extensionPort = "$extensionPort";\n';
+  if (extensionUri != null) {
+    injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
   }
   return injectedBody;
 }
