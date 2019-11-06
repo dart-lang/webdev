@@ -79,9 +79,11 @@ void main() {
       var ref = await instanceHelper.instanceRefFor(count);
       expect(ref.kind, InstanceKind.kPlainInstance);
       var classRef = ref.classRef;
-      expect(classRef.name, 'MyTestClass');
-      expect(classRef.id,
-          'classes|org-dartlang-app:///web/scopes_main.dart|MyTestClass');
+      expect(classRef.name, 'MyTestClass<dynamic>');
+      expect(
+          classRef.id,
+          'classes|org-dartlang-app:///web/scopes_main.dart'
+          '|MyTestClass<dynamic>');
     });
 
     test('for closure', () async {
@@ -132,7 +134,7 @@ void main() {
       expect(instance.kind, InstanceKind.kPlainInstance);
       var classRef = instance.classRef;
       expect(classRef, isNotNull);
-      expect(classRef.name, 'MyTestClass');
+      expect(classRef.name, 'MyTestClass<dynamic>');
       var fieldNames =
           instance.fields.map((boundField) => boundField.decl.name).toList();
       expect(fieldNames, [
@@ -167,7 +169,7 @@ void main() {
       expect(instance.kind, InstanceKind.kPlainInstance);
       var classRef = instance.classRef;
       expect(classRef, isNotNull);
-      expect(classRef.name, 'MyTestClass');
+      expect(classRef.name, 'MyTestClass<dynamic>');
     });
 
     test('for a list', () async {
