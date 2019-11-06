@@ -1,3 +1,7 @@
+## 0.7.9-dev
+
+- Properly wait for hot reload to complete with the legacy module system.
+
 ## 0.7.8
 
 - Support optional argument `urlEncoder` that is used to encode remote URLs for
