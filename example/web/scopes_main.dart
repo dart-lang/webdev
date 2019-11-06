@@ -5,7 +5,6 @@
 /// An example with more complicated scope
 
 import 'dart:async';
-
 import 'dart:collection';
 
 final libraryPublicFinal = MyTestClass();
@@ -71,7 +70,7 @@ String libraryFunction(String arg) {
   return concat;
 }
 
-class MyTestClass {
+class MyTestClass<T> {
   final String message;
 
   String notFinal;

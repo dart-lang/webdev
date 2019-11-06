@@ -65,11 +65,12 @@ class ClassHelper extends Domain {
   /// [ClassRef].
   Future<Class> _constructClass(
       LibraryRef libraryRef, ClassRef classRef) async {
+    var rawName = classRef.name.split('<').first;
     var expression = '''
     (function() {
       ${getLibrarySnippet(libraryRef.uri)}
       var result = {};
-      var clazz = library["${classRef.name}"];
+      var clazz = library["$rawName"];
       var descriptor = {
           'name': clazz.name,
           'dartName': sdkUtils.typeName(clazz)
@@ -111,15 +112,11 @@ class ClassHelper extends Domain {
         params: {'expression': expression, 'returnByValue': true});
     handleErrorIfPresent(result, evalContents: expression);
     var classDescriptor = result.result['result']['value'];
-    var classMetaData = ClassMetaData(
-        jsName: classDescriptor['name'],
-        libraryId: libraryRef.id,
-        dartName: classDescriptor['dartName']);
 
     var methodRefs = <FuncRef>[];
     var methodDescriptors = classDescriptor['methods'] as Map<String, dynamic>;
     methodDescriptors.forEach((name, descriptor) {
-      var methodId = '${classMetaData.id}:$name';
+      var methodId = 'methods|${classRef.id}|$name';
       methodRefs.add(FuncRef(
           id: methodId,
           name: name,
@@ -150,7 +147,7 @@ class ClassHelper extends Domain {
     // TODO: Implement the rest of these
     // https://github.com/dart-lang/webdev/issues/176.
     return Class(
-        name: classMetaData.jsName,
+        name: classRef.name,
         isAbstract: false,
         isConst: false,
         library: libraryRef,
@@ -158,6 +155,6 @@ class ClassHelper extends Domain {
         fields: fieldRefs,
         functions: methodRefs,
         subclasses: [],
-        id: classMetaData.id);
+        id: classRef.id);
   }
 }
