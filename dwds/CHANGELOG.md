@@ -1,6 +1,7 @@
 ## 0.7.9-dev
 
 - Properly wait for hot reload to complete with the legacy module system.
+- Fix issue with `getObject` for a class with a generic type.
 
 ## 0.7.8
 
