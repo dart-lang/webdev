@@ -39,24 +39,18 @@ void main() {
             'Runtime.evaluate',
             InjectedParams(
                 expression:
-                    '[\$extensionPort, \$extensionHostname, \$dartAppId, \$dartAppInstanceId]',
+                    '[\$dartExtensionUri, \$dartAppId, \$dartAppInstanceId]',
                 returnByValue: true), allowInterop((e) {
-          String port, hostname, appId, instanceId;
+          String extensionUri, appId, instanceId;
           if (e.result.value == null) {
             alert('Unable to launch DevTools. This is not Dart application.');
             detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
             return;
           }
-          port = e.result.value[0] as String;
-          hostname = e.result.value[1] as String;
-          appId = e.result.value[2] as String;
-          instanceId = e.result.value[3] as String;
-          var uri = Uri(
-              scheme: 'http',
-              host: hostname,
-              port: int.parse(port),
-              path: r'$debug');
-          startSseClient(uri, appId, instanceId, currentTab);
+          extensionUri = e.result.value[0] as String;
+          appId = e.result.value[1] as String;
+          instanceId = e.result.value[2] as String;
+          startSseClient(extensionUri, appId, instanceId, currentTab);
         }));
       }));
     });
@@ -80,7 +74,7 @@ void main() {
 // Initiates a [DevToolsRequest], handles an [ExtensionRequest],
 // and sends an [ExtensionEvent].
 Future<void> startSseClient(
-    Uri uri, String appId, String instanceId, Tab currentTab) async {
+    String uri, String appId, String instanceId, Tab currentTab) async {
   // Specifies whether the debugger is attached.
   //
   // A debugger is detached if it is closed by user or the target is closed.

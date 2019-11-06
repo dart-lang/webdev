@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:path/path.dart' as p;
 
-import '../services/chrome_proxy_service.dart';
 import '../utilities/dart_uri.dart';
+import '../utilities/shared.dart';
 import 'remote_debugger.dart';
 
 /// Contains meta data and helpful methods for DDC modules.
@@ -25,8 +25,6 @@ class Modules {
 
   final _moduleExtensionCompleter = Completer<String>();
 
-  var _initializedCompleter = Completer();
-
   Modules(this._remoteDebugger, this._root);
 
   /// Completes with the module extension i.e. `.ddc.js` or `.ddk.js`.
@@ -40,8 +38,9 @@ class Modules {
   /// Intended to be called multiple times throughout the development workflow,
   /// e.g. after a hot-reload.
   void initialize() {
-    _initializedCompleter = Completer();
-    _initializeMapping();
+    // We only clear the source to module mapping as script IDs may persist
+    // across hot reloads.
+    _sourceToModule.clear();
   }
 
   /// Returns the module for the Chrome script ID.
@@ -54,29 +53,32 @@ class Modules {
 
   /// Returns the containing module for the provided Dart server path.
   Future<String> moduleForSource(String serverPath) async {
-    await _initializedCompleter.future;
+    if (_sourceToModule.isEmpty) {
+      await _initializeMapping();
+    }
     return _sourceToModule[serverPath];
   }
 
   /// Checks if the [url] correspond to a module and stores meta data.
   Future<Null> noteModule(String url, String scriptId) async {
-    if (url == null || !(url.endsWith('.ddc.js') || url.endsWith('.ddk.js'))) {
+    var path = Uri.parse(url).path;
+    if (path == null ||
+        !(path.endsWith('.ddc.js') || path.endsWith('.ddk.js'))) {
       return;
     }
 
     // TODO(grouma) - This is wonky. Find a better way.
     if (!_moduleExtensionCompleter.isCompleted) {
-      if (url.endsWith('.ddc.js')) {
+      if (path.endsWith('.ddc.js')) {
         _moduleExtensionCompleter.complete('.ddc.js');
       } else {
         _moduleExtensionCompleter.complete('.ddk.js');
       }
     }
 
-    // Remove the DDC extension (e.g. .ddc.js) from the path.
-    var module = p
-        .withoutExtension(p.withoutExtension(Uri.parse(url).path))
-        .substring(1);
+    var module =
+        // Remove the DDC extension (e.g. .ddc.js) from the path.
+        _moduleFor(p.withoutExtension(p.withoutExtension(path)));
 
     _scriptIdToModule[scriptId] = module;
     _moduleToScriptId[module] = scriptId;
@@ -86,7 +88,7 @@ class Modules {
   Future<void> _initializeMapping() async {
     var expression = '''
     (function() {
-          var dart = require('dart_sdk').dart;
+          var dart = $loadModule('dart_sdk').dart;
           var result = {};
           dart.getModuleNames().forEach(function(module){
             Object.keys(dart.getModuleLibraries(module)).forEach(
@@ -103,20 +105,38 @@ class Modules {
     var value = response.result['result']['value'] as Map<String, dynamic>;
     for (var dartScript in value.keys) {
       if (!dartScript.endsWith('.dart')) continue;
-      var scriptUri = Uri.parse(dartScript);
-      var moduleUri = Uri.parse(value[dartScript] as String);
-      // The module uris returned by the expression contain the root. Rewrite
-      // the uris so that DartUri properly accounts for this fact.
-      if (scriptUri.scheme == 'org-dartlang-app') {
-        moduleUri = moduleUri.replace(scheme: 'org-dartlang-app');
-      } else if (scriptUri.scheme == 'package') {
-        moduleUri = moduleUri.replace(
-            scheme: 'package', path: moduleUri.path.split('/packages/').last);
-      }
-      // TODO(grouma) - handle G3 scheme.
-      _sourceToModule[DartUri(dartScript, _root).serverPath] =
-          DartUri(moduleUri.toString()).serverPath;
+      _sourceToModule[DartUri(dartScript, _root).serverPath] = _moduleFor(
+          value[dartScript] as String,
+          skipRoot: dartScript.startsWith('org-dartlang-app:///'));
     }
-    _initializedCompleter.complete();
+  }
+
+  /// Returns the module for the provided path.
+  ///
+  /// Module are of the following form:
+  ///
+  ///   packages/foo/bar/module
+  ///   some/root/bar/module
+  ///
+  String _moduleFor(String path, {bool skipRoot}) {
+    skipRoot ??= false;
+    var result = '';
+    if (path.contains('/packages/')) {
+      result = 'packages/${path.split('/packages/').last}';
+    } else if (path.contains('/lib/')) {
+      var splitModule = path.split('/lib/').first.substring(1).split('/');
+      // Special case third_party/dart for Google3.
+      if (path.startsWith('/third_party/dart/')) {
+        splitModule = splitModule.skip(2).toList();
+      }
+      result = 'packages/${splitModule.join(".")}/${p.basename(path)}';
+    } else if (path.startsWith('/')) {
+      path = path.substring(1);
+      if (skipRoot) {
+        path = path.split('/').skip(1).join('/');
+      }
+      result = path;
+    }
+    return result;
   }
 }

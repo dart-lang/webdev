@@ -9,6 +9,7 @@ import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
@@ -25,8 +26,8 @@ void main() {
   setUpAll(() async {
     await context.setUp();
     var service = fetchChromeProxyService(context.debugConnection);
-    debugger = await service.debugger;
     inspector = service.appInspectorProvider();
+    debugger = inspector.debugger;
   });
 
   tearDownAll(() async {
@@ -46,6 +47,18 @@ void main() {
     var remoteObject = await libraryPublicFinal();
     var toString = await inspector.invokeMethod(remoteObject, 'toString', []);
     expect(toString.value, 'A test class with message world');
+  });
+
+  group('getObject', () {
+    test('for class with generic', () async {
+      var isolateId = inspector.isolate.id;
+      var remoteObject = await libraryPublicFinal();
+      var instance = await inspector.getObject(isolateId, remoteObject.objectId)
+          as Instance;
+      var classRef = instance.classRef;
+      var clazz = await inspector.getObject(isolateId, classRef.id) as Class;
+      expect(clazz.name, 'MyTestClass<dynamic>');
+    });
   });
 
   group('loadField', () {

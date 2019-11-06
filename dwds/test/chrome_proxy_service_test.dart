@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/shared.dart';
+
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
@@ -52,10 +54,21 @@ void main() {
 
       test('addBreakpoint', () async {
         // TODO: Much more testing.
-        var bp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
+        var firstBp =
+            await service.addBreakpoint(isolate.id, mainScript.id, 23);
+        expect(firstBp, isNotNull);
+        expect(firstBp.id, isNotNull);
+
+        // Set another breakpoint at the same place - should get the original.
+        var secondBp =
+            await service.addBreakpoint(isolate.id, mainScript.id, 23);
+        expect(secondBp.id, firstBp.id);
+
         // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
-        expect(bp.id, isNotNull);
+        await service.removeBreakpoint(isolate.id, firstBp.id);
+        // We shouldn't be able to remove it again.
+        expect(() => service.removeBreakpoint(isolate.id, secondBp.id),
+            throwsArgumentError);
       });
 
       test('addBreakpoint in nonsense location throws', () async {
@@ -362,13 +375,196 @@ void main() {
             ]));
       });
 
-      test('Strings', () async {
+      test('String', () async {
         var worldRef = await service.evaluate(
                 isolate.id, isolate.rootLib.id, "helloString('world')")
             as InstanceRef;
         var world =
             await service.getObject(isolate.id, worldRef.id) as Instance;
         expect(world.valueAsString, 'world');
+      });
+
+      test('Strings with offset', () async {
+        var worldRef = await service.evaluate(
+                isolate.id, isolate.rootLib.id, "helloString('world')")
+            as InstanceRef;
+        var world = await service.getObject(isolate.id, worldRef.id,
+            count: 2, offset: 1) as Instance;
+        expect(world.valueAsString, 'or');
+        expect(world.count, 2);
+        expect(world.length, 5);
+        expect(world.offset, 1);
+      });
+
+      test('Strings with offset off the end', () async {
+        var worldRef = await service.evaluate(
+                isolate.id, isolate.rootLib.id, "helloString('world')")
+            as InstanceRef;
+        var world = await service.getObject(isolate.id, worldRef.id,
+            count: 5, offset: 3) as Instance;
+        expect(world.valueAsString, 'ld');
+        expect(world.count, 2);
+        expect(world.length, 5);
+        expect(world.offset, 3);
+      });
+
+      test('Large strings with default truncation', () async {
+        var largeString = await service.evaluate(isolate.id, isolate.rootLib.id,
+            "helloString('${'abcde' * 250}')") as InstanceRef;
+        expect(largeString.valueAsStringIsTruncated, true);
+        expect(largeString.valueAsString.length, 128);
+        expect(largeString.length, 5 * 250);
+      });
+
+      test('String at the truncation limit', () async {
+        var largeString = await service.evaluate(
+                isolate.id, isolate.rootLib.id, "helloString('${'a' * 128}')")
+            as InstanceRef;
+        expect(largeString.valueAsStringIsTruncated, false);
+        expect(largeString.length, 128);
+        expect(largeString.valueAsString.length, 128);
+      });
+
+      test('String one larger than the truncation limit', () async {
+        var largeString = await service.evaluate(
+                isolate.id, isolate.rootLib.id, "helloString('${'a' * 129}')")
+            as InstanceRef;
+        expect(largeString.valueAsStringIsTruncated, true);
+        expect(largeString.length, 129);
+        expect(largeString.valueAsString.length, 128);
+      });
+
+      /// Helper to create a list of 1001 elements, doing a direct JS eval.
+      Future<RemoteObject> createList() {
+        var expr = '''
+          (function () {
+            const sdk = $loadModule("dart_sdk");
+            const list = sdk.dart.dsend(sdk.core.List,"filled", [1001, 5]);
+            list[4] = 100;
+            return list;
+      })()''';
+        return service.appInspectorProvider().jsEvaluate(expr);
+      }
+
+      /// Helper to create a LinkedHashMap with 1001 entries, doing a direct JS eval.
+      Future<RemoteObject> createMap() {
+        var expr = '''
+          (function () {
+            const sdk = $loadModule("dart_sdk");
+            const iterable = sdk.dart.dsend(sdk.core.Iterable, "generate", [1001]);
+            const list1 = sdk.dart.dsend(iterable, "toList", []);
+            const reversed = sdk.dart.dload(list1, "reversed"); 
+            const list2 = sdk.dart.dsend(reversed, "toList", []);
+            const map = sdk.dart.dsend(list2, "asMap", []);
+            const linkedMap = sdk.dart.dsend(sdk.collection.LinkedHashMap, "from", [map]);
+            return linkedMap;
+      })()''';
+        return service.appInspectorProvider().jsEvaluate(expr);
+      }
+
+      test('Lists', () async {
+        var list = await createList();
+        var inst = await service.getObject(isolate.id, list.objectId);
+        expect(inst.length, 1001);
+        expect(inst.offset, null);
+        expect(inst.count, null);
+        var fifth = inst.elements[4] as InstanceRef;
+        expect(fifth.valueAsString, '100');
+        var sixth = inst.elements[5] as InstanceRef;
+        expect(sixth.valueAsString, '5');
+      });
+
+      test('Lists with count/offset', () async {
+        var list = await createList();
+        var inst = await service.getObject(isolate.id, list.objectId,
+            count: 7, offset: 4) as Instance;
+        expect(inst.length, 1001);
+        expect(inst.offset, 4);
+        expect(inst.count, 7);
+        var fifth = inst.elements[0] as InstanceRef;
+        expect(fifth.valueAsString, '100');
+        var sixth = inst.elements[1] as InstanceRef;
+        expect(sixth.valueAsString, '5');
+      });
+
+      test('Lists running off the end', () async {
+        var list = await createList();
+        var inst = await service.getObject(isolate.id, list.objectId,
+            count: 5, offset: 1000) as Instance;
+        expect(inst.length, 1001);
+        expect(inst.offset, 1000);
+        expect(inst.count, 1);
+        var only = inst.elements[0] as InstanceRef;
+        expect(only.valueAsString, '5');
+      });
+
+      test('Maps', () async {
+        var map = await createMap();
+        var inst =
+            await service.getObject(isolate.id, map.objectId) as Instance;
+        expect(inst.length, 1001);
+        expect(inst.offset, null);
+        expect(inst.count, null);
+        var fifth = inst.associations[4];
+        expect(fifth.key.valueAsString, '4');
+        expect(fifth.value.valueAsString, '996');
+        var sixth = inst.associations[5];
+        expect(sixth.key.valueAsString, '5');
+        expect(sixth.value.valueAsString, '995');
+      });
+
+      test('Maps with count/offset', () async {
+        var map = await createMap();
+        var inst = await service.getObject(isolate.id, map.objectId,
+            count: 7, offset: 4) as Instance;
+        expect(inst.length, 1001);
+        expect(inst.offset, 4);
+        expect(inst.count, 7);
+        var fifth = inst.associations[0];
+        expect(fifth.key.valueAsString, '4');
+        expect(fifth.value.valueAsString, '996');
+        var sixth = inst.associations[1];
+        expect(sixth.key.valueAsString, '5');
+        expect(sixth.value.valueAsString, '995');
+      });
+
+      test('Maps running off the end', () async {
+        var map = await createMap();
+        var inst = await service.getObject(isolate.id, map.objectId,
+            count: 5, offset: 1000) as Instance;
+        expect(inst.length, 1001);
+        expect(inst.offset, 1000);
+        expect(inst.count, 1);
+        var only = inst.associations[0];
+        expect(only.key.valueAsString, '1000');
+        expect(only.value.valueAsString, '0');
+      });
+
+      test('bool', () async {
+        var ref = await service.evaluate(
+            isolate.id, isolate.rootLib.id, 'helloBool(true)') as InstanceRef;
+        var obj = await service.getObject(isolate.id, ref.id) as Instance;
+        expect(obj.kind, InstanceKind.kBool);
+        expect(obj.classRef.name, 'Bool');
+        expect(obj.valueAsString, 'true');
+      });
+
+      test('num', () async {
+        var ref = await service.evaluate(
+            isolate.id, isolate.rootLib.id, 'helloNum(42)') as InstanceRef;
+        var obj = await service.getObject(isolate.id, ref.id) as Instance;
+        expect(obj.kind, InstanceKind.kDouble);
+        expect(obj.classRef.name, 'Double');
+        expect(obj.valueAsString, '42');
+      });
+
+      test('null', () async {
+        var ref = await service.evaluate(
+            isolate.id, isolate.rootLib.id, 'helloNum(null)') as InstanceRef;
+        var obj = await service.getObject(isolate.id, ref.id) as Instance;
+        expect(obj.kind, InstanceKind.kNull);
+        expect(obj.classRef.name, 'Null');
+        expect(obj.valueAsString, 'null');
       });
 
       test('Scripts', () async {

@@ -4,6 +4,7 @@
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../debugging/classes.dart';
 import '../debugging/inspector.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/shared.dart';
@@ -54,7 +55,7 @@ class ClassMetaData {
         const classObject = sdkUtils.getReifiedType(arg);
         const isFunction = sdkUtils.AbstractFunctionType.is(classObject);
         const result = {};
-        result['name'] = isFunction ? 'Function' : classObject.name;        
+        result['name'] = isFunction ? 'Function' : classObject.name;
         result['dartName'] = sdkUtils.typeName(classObject);
         result['length'] = arg['length'];
         result['libraryId'] = sdkUtils.getLibraryUri(classObject);
@@ -76,7 +77,18 @@ class ClassMetaData {
   }
 
   /// Return a [ClassRef] appropriate to this metadata.
-  ClassRef get classRef => ClassRef(name: dartName, id: id);
+  ClassRef get classRef => classRefFor(libraryId, dartName);
+
+  /// True if this class refers to system maps, which are treated specially.
+  ///
+  /// Classes that implement Map or inherit from MapBase are still treated as
+  /// plain objects.
+  // TODO(alanknight): It may be that IdentityMap should not be treated as a
+  // system map.
+  bool get isSystemMap => jsName == 'LinkedMap' || jsName == 'IdentityMap';
+
+  /// True if this class refers to system Lists, which are treated specially.
+  bool get isSystemList => jsName == 'JSArray';
 }
 
 /// Meta data for a remote Dart function in Chrome.

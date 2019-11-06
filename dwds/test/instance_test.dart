@@ -6,7 +6,6 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -21,7 +20,6 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   AppInspector inspector;
-  RemoteDebugger remoteDebugger;
   Debugger debugger;
   InstanceHelper instanceHelper;
 
@@ -29,10 +27,8 @@ void main() {
     await context.setUp();
     var chromeProxyService = fetchChromeProxyService(context.debugConnection);
     inspector = chromeProxyService.appInspectorProvider();
-    remoteDebugger = chromeProxyService.remoteDebugger;
-    debugger = await chromeProxyService.debugger;
-    instanceHelper = InstanceHelper(
-        debugger, remoteDebugger, chromeProxyService.appInspectorProvider);
+    debugger = inspector.debugger;
+    instanceHelper = inspector.instanceHelper;
   });
 
   tearDownAll(() async {
@@ -63,7 +59,7 @@ void main() {
       expect(ref.kind, InstanceKind.kNull);
       var classRef = ref.classRef;
       expect(classRef.name, 'Null');
-      expect(classRef.id, 'dart:core:object');
+      expect(classRef.id, 'classes|dart:core|Null');
     });
 
     test('for a double', () async {
@@ -74,7 +70,7 @@ void main() {
       expect(ref.kind, InstanceKind.kDouble);
       var classRef = ref.classRef;
       expect(classRef.name, 'Double');
-      expect(classRef.id, 'dart:core:number');
+      expect(classRef.id, 'classes|dart:core|Double');
     });
 
     test('for a class', () async {
@@ -83,9 +79,11 @@ void main() {
       var ref = await instanceHelper.instanceRefFor(count);
       expect(ref.kind, InstanceKind.kPlainInstance);
       var classRef = ref.classRef;
-      expect(classRef.name, 'MyTestClass');
+      expect(classRef.name, 'MyTestClass<dynamic>');
       expect(
-          classRef.id, 'org-dartlang-app:///web/scopes_main.dart:MyTestClass');
+          classRef.id,
+          'classes|org-dartlang-app:///web/scopes_main.dart'
+          '|MyTestClass<dynamic>');
     });
 
     test('for closure', () async {
@@ -114,7 +112,7 @@ void main() {
       var remoteObject =
           await inspector.jsEvaluate(libraryVariableExpression('map'));
       var ref = await instanceHelper.instanceRefFor(remoteObject);
-      expect(ref.length, 1);
+      expect(ref.length, 2);
       expect(ref.kind, InstanceKind.kMap);
       expect(ref.classRef.name, 'LinkedMap<Object, Object>');
     });
@@ -136,7 +134,7 @@ void main() {
       expect(instance.kind, InstanceKind.kPlainInstance);
       var classRef = instance.classRef;
       expect(classRef, isNotNull);
-      expect(classRef.name, 'MyTestClass');
+      expect(classRef.name, 'MyTestClass<dynamic>');
       var fieldNames =
           instance.fields.map((boundField) => boundField.decl.name).toList();
       expect(fieldNames, [
@@ -171,7 +169,7 @@ void main() {
       expect(instance.kind, InstanceKind.kPlainInstance);
       var classRef = instance.classRef;
       expect(classRef, isNotNull);
-      expect(classRef.name, 'MyTestClass');
+      expect(classRef.name, 'MyTestClass<dynamic>');
     });
 
     test('for a list', () async {
@@ -191,8 +189,12 @@ void main() {
       expect(instance.kind, InstanceKind.kMap);
       var classRef = instance.classRef;
       expect(classRef.name, 'LinkedMap<Object, Object>');
-      var first = instance.associations[0].value;
-      expect(first.valueAsString, '1');
+      var first = instance.associations[0].value as InstanceRef;
+      expect(first.kind, InstanceKind.kList);
+      expect(first.length, 3);
+      var second = instance.associations[1].value as InstanceRef;
+      expect(second.kind, InstanceKind.kString);
+      expect(second.valueAsString, 'something');
     });
 
     test('for an identityMap', () async {

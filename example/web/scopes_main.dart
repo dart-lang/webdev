@@ -5,7 +5,6 @@
 /// An example with more complicated scope
 
 import 'dart:async';
-
 import 'dart:collection';
 
 final libraryPublicFinal = MyTestClass();
@@ -29,11 +28,12 @@ void main() async {
   Object localThatsNull;
   identityMap['a'] = 1;
   identityMap['b'] = 2;
-  map['a'] = 1;
+  map['a'] = [1, 2, 3];
+  map['b'] = 'something';
   notAList.add(7);
 
-  String nestedFunction(String parameter) {
-    var another = int.tryParse(parameter);
+  String nestedFunction<T>(T parameter, Object aClass) {
+    var another = int.tryParse('$parameter');
     return '$local: parameter, $another'; // Breakpoint: nestedFunction
   }
 
@@ -47,7 +47,7 @@ void main() async {
     var closureLocal;
     libraryPublicFinal.printCount();
     print('ticking... $ticks (the answer is $intLocalInMain)');
-    print(nestedFunction('$ticks ${testClass.message}'));
+    print(nestedFunction('$ticks ${testClass.message}', Timer));
     print(localThatsNull);
     print(libraryNull);
     var localList = libraryPublic;
@@ -59,7 +59,7 @@ void main() async {
 
   print(_libraryPrivateFinal);
   print(_libraryPrivate);
-  print(nestedFunction(_libraryPrivate.first));
+  print(nestedFunction(_libraryPrivate.first, Object));
   print(nestedWithClosure(_libraryPrivate.first)());
 }
 
@@ -70,7 +70,7 @@ String libraryFunction(String arg) {
   return concat;
 }
 
-class MyTestClass {
+class MyTestClass<T> {
   final String message;
 
   String notFinal;

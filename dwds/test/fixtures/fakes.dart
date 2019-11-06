@@ -49,7 +49,7 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   Future<RemoteObject> evaluate(
           String isolateId, String targetId, String expression,
-          {Map<String, String> scope, bool disableBreakpoints}) =>
+          {Map<String, String> scope}) =>
       null;
   @override
   Future getObject(String isolateId, String objectId,
@@ -69,7 +69,7 @@ class FakeInspector extends Domain implements AppInspector {
   @override
   IsolateRef get isolateRef => null;
   @override
-  InstanceHelper get instanceHelper => InstanceHelper(null, null, null);
+  InstanceHelper get instanceHelper => InstanceHelper(null);
 }
 
 class FakeSseConnection implements SseConnection {

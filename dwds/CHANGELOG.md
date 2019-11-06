@@ -1,3 +1,24 @@
+## 0.7.9-dev
+
+- Properly wait for hot reload to complete with the legacy module system.
+- Fix issue with `getObject` for a class with a generic type.
+
+## 0.7.8
+
+- Support optional argument `urlEncoder` that is used to encode remote URLs for
+  use with the Dart Debug Extension.
+
+## 0.7.7
+
+- Handle getObject for primitives properly.
+- Properly black box scripts if query parameters are provided.
+
+## 0.7.6
+
+- Fix issue with source map logic for the legacy module system.
+- Allow setting breakpoints multiple times and just return the old breakpoint.
+- Fix a bug with Maps that contain lists of simple types.
+
 ## 0.7.5
 
 - The injected client's connection is now based off the request URI.

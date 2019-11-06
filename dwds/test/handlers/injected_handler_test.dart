@@ -108,12 +108,10 @@ void main() {
 
   group('InjectedHandlerWithExtension', () {
     setUp(() async {
-      var someExtensionHostname = 'localhost';
-      var someExtensionPort = 4000;
+      var extensionUri = 'http://localhost:4000';
       var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
           ReloadConfiguration.liveReload,
-          extensionHostname: someExtensionHostname,
-          extensionPort: someExtensionPort));
+          extensionUri: extensionUri));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         return Response.ok(
             '$entrypointExtensionMarker\n'
@@ -130,8 +128,7 @@ void main() {
     test('Injects the extension backend port', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
-      expect(result.body.contains('extensionHostname'), isTrue);
-      expect(result.body.contains('extensionPort'), isTrue);
+      expect(result.body.contains('dartExtensionUri'), isTrue);
     });
   });
 }
