@@ -38,8 +38,8 @@ class Chrome {
   /// Each url in [urls] will be loaded in a separate tab.
   static Future<Chrome> start(List<String> urls, {int port}) async {
     String dir;
-    // Re-using the directory causes some flakiness on Windows, so on that
-    // platform pass null to have it create a directory.
+    // Re-using the directory causes flakiness on Windows, so on that platform
+    // pass null to have it create a directory.
     if (!Platform.isWindows) {
       dir = path.join(Directory.current.absolute.path, '.dart_tool', 'webdev',
           'chrome_user_data');
