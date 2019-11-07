@@ -72,6 +72,11 @@ class ChromeProxyService implements VmServiceInterface {
 
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 
+  /// If breakpoints should be restored upon a reload / hot restart.
+  final bool _restoreBreakpoints;
+  final _disabledBreakpoints = <Breakpoint>{};
+  final _previousBreakpoints = <Breakpoint>{};
+
   ChromeProxyService._(
     this._vm,
     this.uri,
@@ -80,6 +85,7 @@ class ChromeProxyService implements VmServiceInterface {
     Sources sources,
     this._modules,
     this._locations,
+    this._restoreBreakpoints,
   ) {
     _debuggerCompleter.complete(Debugger.create(
       remoteDebugger,
@@ -98,6 +104,7 @@ class ChromeProxyService implements VmServiceInterface {
     AssetHandler assetHandler,
     AppConnection appConnection,
     LogWriter logWriter,
+    bool restoreBreakpoints,
   ) async {
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
@@ -108,8 +115,8 @@ class ChromeProxyService implements VmServiceInterface {
     var modules = Modules(remoteDebugger, tabUrl);
     var sources = Sources(assetHandler, logWriter);
     var locations = Locations(sources, modules, tabUrl);
-    var service = ChromeProxyService._(
-        vm, tabUrl, assetHandler, remoteDebugger, sources, modules, locations);
+    var service = ChromeProxyService._(vm, tabUrl, assetHandler, remoteDebugger,
+        sources, modules, locations, restoreBreakpoints);
     unawaited(service.createIsolate(appConnection));
     return service;
   }
@@ -137,6 +144,15 @@ class ChromeProxyService implements VmServiceInterface {
       uri,
       await _debugger,
     );
+
+    for (var breakpoint in _previousBreakpoints) {
+      var lineNumber = int.parse(breakpoint.id.split('#').last);
+      var oldRef = (breakpoint.location as SourceLocation).script;
+      var dartUri = DartUri(oldRef.uri, uri);
+      var newRef = await _inspector.scriptRefFor(dartUri.serverPath);
+      await (await _debugger)
+          .addBreakpoint(_inspector.isolate.id, newRef.id, lineNumber);
+    }
 
     unawaited(appConnection.onStart.then((_) async {
       await (await _debugger).resumeFromStart();
@@ -194,8 +210,24 @@ class ChromeProxyService implements VmServiceInterface {
             isolate: _inspector.isolateRef));
     _vm.isolates.removeWhere((ref) => ref.id == isolate.id);
     _inspector = null;
+    if (_restoreBreakpoints) {
+      _previousBreakpoints.clear();
+      _previousBreakpoints
+        ..addAll(isolate.breakpoints)
+        ..addAll(_disabledBreakpoints);
+    }
     _consoleSubscription.cancel();
     _consoleSubscription = null;
+  }
+
+  Future<void> disableBreakpoints() async {
+    _disabledBreakpoints.clear();
+    var isolate = _inspector?.isolate;
+    if (isolate == null) return;
+    _disabledBreakpoints.addAll(isolate.breakpoints);
+    for (var breakpoint in isolate.breakpoints.toList()) {
+      await (await _debugger).removeBreakpoint(isolate.id, breakpoint.id);
+    }
   }
 
   @override
@@ -418,8 +450,11 @@ $loadModule("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> removeBreakpoint(
-          String isolateId, String breakpointId) async =>
-      (await _debugger).removeBreakpoint(isolateId, breakpointId);
+      String isolateId, String breakpointId) async {
+    _disabledBreakpoints
+        .removeWhere((breakpoint) => breakpoint.id == breakpointId);
+    return (await _debugger).removeBreakpoint(isolateId, breakpointId);
+  }
 
   @override
   Future<Success> resume(String isolateId,

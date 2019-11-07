@@ -53,7 +53,7 @@ class DwdsVmClient {
         debugService.chromeProxyService as ChromeProxyService;
 
     client.registerServiceCallback('hotRestart', (request) async {
-      await _removeBreakpointsAndResume(client);
+      await _disableBreakpointsAndResume(client, chromeProxyService);
       var response = await chromeProxyService.remoteDebugger.sendCommand(
           'Runtime.evaluate',
           params: {'expression': r'$dartHotRestart();', 'awaitPromise': true});
@@ -93,13 +93,12 @@ class DwdsVmClient {
   }
 }
 
-Future<void> _removeBreakpointsAndResume(VmService client) async {
+Future<void> _disableBreakpointsAndResume(
+    VmService client, ChromeProxyService chromeProxyService) async {
   var vm = await client.getVM();
   var isolateRef = vm.isolates.first;
   var isolate = await client.getIsolate(isolateRef.id) as Isolate;
-  for (var breakpoint in isolate.breakpoints.toList()) {
-    await client.removeBreakpoint(isolate.id, breakpoint.id);
-  }
+  await chromeProxyService.disableBreakpoints();
   if (isolate.pauseEvent.kind == EventKind.kPauseInterrupted ||
       isolate.pauseEvent.kind == EventKind.kPauseBreakpoint) {
     await client.resume(isolate.id);

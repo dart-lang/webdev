@@ -69,6 +69,7 @@ class Dwds {
     bool enableDebugExtension,
     ModuleStrategy moduleStrategy,
     UrlEncoder urlEncoder,
+    @deprecated bool restoreBreakpoints,
   }) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
@@ -80,6 +81,7 @@ class Dwds {
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
     globalModuleStrategy = moduleStrategy ?? ModuleStrategy.requireJS;
+    restoreBreakpoints ??= false;
 
     var cascade = Cascade();
     var pipeline = const Pipeline();
@@ -116,6 +118,7 @@ class Dwds {
       logWriter,
       extensionBackend,
       urlEncoder,
+      restoreBreakpoints,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 

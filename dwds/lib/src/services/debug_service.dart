@@ -128,14 +128,15 @@ class DebugService {
     String tabUrl,
     AssetHandler assetHandler,
     AppConnection appConnection,
-    LogWriter logWriter, {
+    LogWriter logWriter,
+    bool restoreBreakpoints, {
     void Function(Map<String, dynamic>) onRequest,
     void Function(Map<String, dynamic>) onResponse,
     bool useSse,
   }) async {
     useSse ??= false;
-    var chromeProxyService = await ChromeProxyService.create(
-        remoteDebugger, tabUrl, assetHandler, appConnection, logWriter);
+    var chromeProxyService = await ChromeProxyService.create(remoteDebugger,
+        tabUrl, assetHandler, appConnection, logWriter, restoreBreakpoints);
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;
