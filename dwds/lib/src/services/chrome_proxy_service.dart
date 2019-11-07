@@ -146,7 +146,7 @@ class ChromeProxyService implements VmServiceInterface {
     );
 
     for (var breakpoint in _previousBreakpoints) {
-      var lineNumber = int.parse(breakpoint.id.split('#').last);
+      var lineNumber = lineNumberFor(breakpoint);
       var oldRef = (breakpoint.location as SourceLocation).script;
       var dartUri = DartUri(oldRef.uri, uri);
       var newRef = await _inspector.scriptRefFor(dartUri.serverPath);
