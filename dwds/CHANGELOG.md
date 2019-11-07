@@ -1,3 +1,8 @@
+## 0.7.10-dev
+
+- Add temporary support for restoring breakpoints. Eventually the Dart VM
+  protocol will clearly define how breakpoints should be restored.
+
 ## 0.7.9
 
 - Properly wait for hot reload to complete with the legacy module system.
