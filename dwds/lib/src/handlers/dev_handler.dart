@@ -50,6 +50,7 @@ class DevHandler {
   final StreamController<DebugConnection> extensionDebugConnections =
       StreamController<DebugConnection>();
   final UrlEncoder _urlEncoder;
+  final bool _restoreBreakpoints;
 
   /// Null until [close] is called.
   ///
@@ -68,6 +69,7 @@ class DevHandler {
     this._logWriter,
     this._extensionBackend,
     this._urlEncoder,
+    this._restoreBreakpoints,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
@@ -134,6 +136,7 @@ class DevHandler {
       _assetHandler,
       appConnection,
       _logWriter,
+      _restoreBreakpoints,
       onResponse: _verbose
           ? (response) {
               if (response['error'] == null) return;
@@ -350,6 +353,7 @@ class DevHandler {
           _assetHandler,
           connection,
           _logWriter,
+          _restoreBreakpoints,
           onResponse: _verbose
               ? (response) {
                   if (response['error'] == null) return;

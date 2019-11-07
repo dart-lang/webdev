@@ -563,6 +563,14 @@ class Debugger extends Domain {
   }
 }
 
+/// Returns the Dart line number for the provided breakpoint.
+int lineNumberFor(Breakpoint breakpoint) =>
+    int.parse(breakpoint.id.split('#').last);
+
+/// Returns the breakpoint ID for the provided Dart script ID and Dart line
+/// number.
+String breakpointIdFor(String scriptId, int line) => 'bp/$scriptId#$line';
+
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
 class _Breakpoints extends Domain {
   final Map<String, String> _dartIdByJsId = {};
@@ -590,7 +598,7 @@ class _Breakpoints extends Domain {
   /// breakpoint.
   Future<Breakpoint> add(String scriptId, int line,
       {void Function(Breakpoint) ifNew}) async {
-    var id = 'bp/$scriptId#$line';
+    var id = breakpointIdFor(scriptId, line);
     var bp = await _bpByDartId.putIfAbsent(id, () async {
       var dartScript = await inspector.scriptWithId(scriptId);
       var dartUri = DartUri(dartScript.uri, root);
