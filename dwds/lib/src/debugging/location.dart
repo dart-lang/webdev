@@ -217,6 +217,10 @@ class Locations {
     if (module?.isEmpty ?? true) return _moduleToLocations[module] = result;
     var moduleExtension = await _modules.moduleExtension;
     var modulePath = '$module$moduleExtension';
+    if (modulePath.endsWith('dart_sdk.js') ||
+        modulePath.endsWith('dart_sdk.ddk.js')) {
+      return result;
+    }
     var sourceMapContents = await _sources.readAssetOrNull('$modulePath.map');
     var scriptLocation = p.url.dirname('/$modulePath');
     if (sourceMapContents == null) return result;
