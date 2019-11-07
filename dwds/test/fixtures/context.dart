@@ -71,7 +71,8 @@ class TestContext {
       bool autoRun,
       bool enableDebugging,
       bool waitToDebug,
-      UrlEncoder urlEncoder}) async {
+      UrlEncoder urlEncoder,
+      bool restoreBreakpoints}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
@@ -144,7 +145,8 @@ class TestContext {
         enableDebugExtension,
         autoRun,
         enableDebugging,
-        urlEncoder);
+        urlEncoder,
+        restoreBreakpoints);
 
     appUrl = 'http://localhost:$port/$path';
     await webDriver.get(appUrl);

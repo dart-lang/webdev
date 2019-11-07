@@ -52,7 +52,8 @@ class TestServer {
       bool enableDebugExtension,
       bool autoRun,
       bool enableDebugging,
-      UrlEncoder urlEncoder) async {
+      UrlEncoder urlEncoder,
+      bool restoreBreakpoints) async {
     var pipeline = const Pipeline();
 
     var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) =>
@@ -70,6 +71,8 @@ class TestServer {
       enableDebugging: enableDebugging,
       verbose: true,
       urlEncoder: urlEncoder,
+      // ignore: deprecated_member_use_from_same_package
+      restoreBreakpoints: restoreBreakpoints,
     );
 
     var server = await HttpMultiServer.bind('localhost', port);
