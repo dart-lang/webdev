@@ -103,6 +103,8 @@ Future<void> startSseClient(
   }, onError: (_) {
     alert('Lost app connection.');
     detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+    attached = false;
+    client.close();
   }, cancelOnError: true);
 
   await client.onOpen.first;
