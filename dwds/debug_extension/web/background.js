@@ -1059,14 +1059,14 @@ oU:function(a){return J.aN(a).gez(a)},
 mi:function(a){return J.m4(a).gbL(a)},
 lg:function(a){return J.aN(a).gi0(a)},
 oV:function(a){return J.aN(a).gi2(a)},
-er:function(a){return J.aN(a).gah(a)},
+er:function(a){return J.aN(a).gai(a)},
 mj:function(a,b){return J.a1(a).a5(a,b)},
 mk:function(a,b,c){return J.a1(a).U(a,b,c)},
 oW:function(a,b,c){return J.X(a).bf(a,b,c)},
 oX:function(a,b){return J.k(a).c6(a,b)},
 ml:function(a,b,c,d){return J.G(a).aY(a,b,c,d)},
 oY:function(a,b){return J.aN(a).aS(a,b)},
-oZ:function(a,b){return J.a1(a).ai(a,b)},
+oZ:function(a,b){return J.a1(a).aj(a,b)},
 p_:function(a,b,c){return J.X(a).dg(a,b,c)},
 d6:function(a,b,c){return J.X(a).a2(a,b,c)},
 p0:function(a,b){return J.X(a).X(a,b)},
@@ -2683,7 +2683,7 @@ C.N.e_(n.e,"control",n.gfF())
 s=W.i
 W.n8(n.e,"error",q.gh6(),!1,s)
 l.b=null
-new P.cH(q,[H.c(q,0)]).ak(new M.l1(d,n),!0,new M.l2(l,n),new M.l3(d))
+new P.cH(q,[H.c(q,0)]).ak(new M.l1(d,n),!0,new M.l2(l,n),new M.l3(l,d,n))
 s=new W.bz(n.e,"open",!1,[s])
 u=2
 return P.eg(s.gap(s),$async$kW)
@@ -2720,7 +2720,9 @@ kX:function kX(a,b){this.a=a
 this.b=b},
 l2:function l2(a,b){this.a=a
 this.b=b},
-l3:function l3(a){this.a=a},
+l3:function l3(a,b,c){this.a=a
+this.b=b
+this.c=c},
 l_:function l_(){},
 l4:function l4(a,b,c){this.a=a
 this.b=b
@@ -3466,7 +3468,7 @@ gi0:function(a){return a.tabId},
 ghx:function(a){return a.id},
 gi2:function(a){return a.url},
 gaH:function(a){return a.result},
-gah:function(a){return a.value}}
+gai:function(a){return a.value}}
 J.hU.prototype={}
 J.aJ.prototype={}
 J.aZ.prototype={
@@ -3513,7 +3515,7 @@ aW:function(a,b){var u,t=new Array(a.length)
 t.fixed$length=Array
 for(u=0;u<a.length;++u)t[u]=H.b(a[u])
 return t.join(b)},
-ai:function(a,b){return H.av(a,b,null,H.c(a,0))},
+aj:function(a,b){return H.av(a,b,null,H.c(a,0))},
 hq:function(a,b,c){var u,t,s=a.length
 for(u=b,t=0;t<s;++t){u=c.$2(u,a[t])
 if(a.length!==s)throw H.a(P.a3(a))}return u},
@@ -3538,7 +3540,7 @@ if(u===0)return
 P.af(e,"skipCount")
 t=J.k(d)
 if(!!t.$it){s=e
-r=d}else{r=t.ai(d,e).an(0,!1)
+r=d}else{r=t.aj(d,e).an(0,!1)
 s=0}t=J.G(r)
 if(s+u>t.gj(r))throw H.a(H.mA())
 if(s<b)for(q=u-1;q>=0;--q)a[b+q]=t.h(r,s+q)
@@ -3809,7 +3811,7 @@ if(q!==r.gj(r))throw H.a(P.a3(r))}return t.charCodeAt(0)==0?t:t}},
 hA:function(a){return this.aW(a,"")},
 U:function(a,b,c){return new H.ao(this,b,[H.w(this,"aE",0),c])},
 a5:function(a,b){return this.U(a,b,null)},
-ai:function(a,b){return H.av(this,b,null,H.w(this,"aE",0))},
+aj:function(a,b){return H.av(this,b,null,H.w(this,"aE",0))},
 an:function(a,b){var u,t,s,r=this,q=H.w(r,"aE",0)
 if(b){u=H.j([],[q])
 C.d.sj(u,r.gj(r))}else{t=new Array(r.gj(r))
@@ -3832,7 +3834,7 @@ return u-s},
 N:function(a,b){var u=this,t=u.gfY()+b
 if(b<0||t>=u.gfg())throw H.a(P.fX(b,u,"index",null,null))
 return J.eq(u.a,t)},
-ai:function(a,b){var u,t,s=this
+aj:function(a,b){var u,t,s=this
 P.af(b,"count")
 u=s.b+b
 t=s.c
@@ -3893,14 +3895,14 @@ for(u=this.a,t=this.b;u.l();)if(t.$1(u.gm()))return!0
 return!1},
 gm:function(){return this.a.gm()}}
 H.cx.prototype={
-ai:function(a,b){P.af(b,"count")
+aj:function(a,b){P.af(b,"count")
 return new H.cx(this.a,this.b+b,this.$ti)},
 gA:function(a){return new H.i9(J.C(this.a),this.b,this.$ti)}}
 H.dd.prototype={
 gj:function(a){var u=J.a2(this.a)-this.b
 if(u>=0)return u
 return 0},
-ai:function(a,b){P.af(b,"count")
+aj:function(a,b){P.af(b,"count")
 return new H.dd(this.a,this.b+b,this.$ti)},
 $iv:1}
 H.i9.prototype={
@@ -3917,7 +3919,7 @@ N:function(a,b){throw H.a(P.F(b,0,0,"index",null))},
 ab:function(a,b){return!1},
 U:function(a,b,c){return new H.de([c])},
 a5:function(a,b){return this.U(a,b,null)},
-ai:function(a,b){P.af(b,"count")
+aj:function(a,b){P.af(b,"count")
 return this},
 an:function(a,b){var u=new Array(0)
 u.fixed$length=Array
@@ -3957,7 +3959,7 @@ a5:function(a,b){return this.al(a,b,null,null)},
 $iM:1}
 H.fl.prototype={
 $2:function(a,b){var u=this.b.$2(a,b)
-this.c.k(0,C.A.ghD(u),u.gah(u))},
+this.c.k(0,C.A.ghD(u),u.gai(u))},
 $S:function(){var u=this.a
 return{func:1,ret:P.o,args:[H.c(u,0),H.c(u,1)]}}}
 H.ce.prototype={
@@ -4689,7 +4691,7 @@ if(a==null)a=new P.bT()
 if((t&1)!==0)u.b6(a,b)
 else if((t&3)===0)u.cv().w(0,new P.cJ(a,b))},
 h7:function(a){return this.dZ(a,null)},
-aj:function(a){var u=this,t=u.b
+ag:function(a){var u=this,t=u.b
 if((t&4)!==0)return u.dC()
 if(t>=4)throw H.a(u.cl())
 t=u.b=t|4
@@ -4889,7 +4891,7 @@ gbz:function(){return this.a},
 sbz:function(a){return this.a=a}}
 P.cI.prototype={
 d7:function(a){a.bp(this.b)},
-gah:function(a){return this.b}}
+gai:function(a){return this.b}}
 P.cJ.prototype={
 d7:function(a){a.b6(this.b,this.c)}}
 P.jp.prototype={
@@ -5231,7 +5233,7 @@ for(u=0;u<t;++u){if(J.z(this.h(a,u),b))return!0
 if(t!==this.gj(a))throw H.a(P.a3(a))}return!1},
 U:function(a,b,c){return new H.ao(a,b,[H.c7(this,a,"a4",0),c])},
 a5:function(a,b){return this.U(a,b,null)},
-ai:function(a,b){return H.av(a,b,null,H.c7(this,a,"a4",0))},
+aj:function(a,b){return H.av(a,b,null,H.c7(this,a,"a4",0))},
 an:function(a,b){var u,t=this,s=H.j([],[H.c7(t,a,"a4",0)])
 C.d.sj(s,t.gj(a))
 for(u=0;u<t.gj(a);++u)s[u]=t.h(a,u)
@@ -5285,7 +5287,7 @@ this.k(0,t,b.h(0,t))}},
 al:function(a,b,c,d){var u,t,s,r=P.bN(c,d)
 for(u=this.gB(),u=u.gA(u);u.l();){t=u.gm()
 s=b.$2(t,this.h(0,t))
-r.k(0,C.A.ghD(s),s.gah(s))}return r},
+r.k(0,C.A.ghD(s),s.gai(s))}return r},
 a5:function(a,b){return this.al(a,b,null,null)},
 K:function(a){var u=this.gB()
 return u.ab(u,a)},
@@ -5324,7 +5326,7 @@ return!0},
 U:function(a,b,c){return new H.dc(this,b,[H.c(this,0),c])},
 a5:function(a,b){return this.U(a,b,null)},
 i:function(a){return P.lp(this,"{","}")},
-ai:function(a,b){return H.mR(this,b,H.c(this,0))},
+aj:function(a,b){return H.mR(this,b,H.c(this,0))},
 N:function(a,b){var u,t,s,r=this
 P.af(b,"index")
 for(u=P.nb(r,r.r,H.c(r,0)),t=0;u.l();){s=u.d
@@ -5473,7 +5475,7 @@ s.b=t}r=s.b
 q=s.c
 C.w.aK(r,q,q+p.gj(b),b)
 s.c=s.c+p.gj(b)},
-aj:function(a){this.a.$1(C.w.R(this.b,0,this.c))}}
+ag:function(a){this.a.$1(C.w.R(this.b,0,this.c))}}
 P.ff.prototype={}
 P.fg.prototype={
 c1:function(a){return this.gaN().as(a)}}
@@ -6143,7 +6145,7 @@ for(u=0;t.l();)++u
 return u},
 gC:function(a){return!this.gA(this).l()},
 gbe:function(a){return!this.gC(this)},
-ai:function(a,b){return H.mR(this,b,H.w(this,"p",0))},
+aj:function(a,b){return H.mR(this,b,H.w(this,"p",0))},
 gap:function(a){var u=this.gA(this)
 if(!u.l())throw H.a(H.dk())
 return u.gm()},
@@ -6772,7 +6774,7 @@ u.toString
 return new H.ao(u,b,[H.c(u,0),c])},
 a5:function(a,b){return this.U(a,b,null)},
 gC:function(a){return this.a.length===0},
-ai:function(a,b){var u=this.a
+aj:function(a,b){var u=this.a
 u.toString
 return H.av(u,b,null,H.c(u,0))},
 N:function(a,b){return this.a[b]},
@@ -6999,7 +7001,7 @@ U:function(a,b,c){return this.b.U(0,b,c)},
 a5:function(a,b){return this.U(a,b,null)},
 gC:function(a){var u=this.b
 return u.gC(u)},
-ai:function(a,b){return this.b.ai(0,b)},
+aj:function(a,b){return this.b.aj(0,b)},
 N:function(a,b){return this.b.N(0,b)},
 dj:function(a,b,c){if(new H.B(c).n(0,C.f))throw H.a(P.q('explicit element type required, for example "new BuiltSet<int>"'))},
 $ip:1}
@@ -7153,42 +7155,42 @@ Y.f1.prototype={
 i:function(a){var u=this.b
 return'Tried to construct class "'+this.a+'" with null field "'+u+'". This is forbidden; to allow it, mark "'+u+'" with @nullable.'}}
 A.bM.prototype={
-i:function(a){return J.E(this.gah(this))}}
+i:function(a){return J.E(this.gai(this))}}
 A.cb.prototype={
 n:function(a,b){if(b==null)return!1
 if(b===this)return!0
 if(!(b instanceof A.cb))return!1
 return this.a===b.a},
 gp:function(a){return C.at.gp(this.a)},
-gah:function(a){return this.a}}
+gai:function(a){return this.a}}
 A.cp.prototype={
 n:function(a,b){if(b==null)return!1
 if(b===this)return!0
 if(!(b instanceof A.cp))return!1
 return C.r.ac(this.a,b.a)},
 gp:function(a){return C.r.a4(this.a)},
-gah:function(a){return this.a}}
+gai:function(a){return this.a}}
 A.cr.prototype={
 n:function(a,b){if(b==null)return!1
 if(b===this)return!0
 if(!(b instanceof A.cr))return!1
 return C.r.ac(this.a,b.a)},
 gp:function(a){return C.r.a4(this.a)},
-gah:function(a){return this.a}}
+gai:function(a){return this.a}}
 A.cv.prototype={
 n:function(a,b){if(b==null)return!1
 if(b===this)return!0
 if(!(b instanceof A.cv))return!1
 return this.a===b.a},
 gp:function(a){return C.k.gp(this.a)},
-gah:function(a){return this.a}}
+gai:function(a){return this.a}}
 A.cB.prototype={
 n:function(a,b){if(b==null)return!1
 if(b===this)return!0
 if(!(b instanceof A.cB))return!1
 return this.a===b.a},
 gp:function(a){return C.a.gp(this.a)},
-gah:function(a){return this.a}}
+gai:function(a){return this.a}}
 U.i3.prototype={
 $0:function(){return S.bP(C.h,P.f)},
 $C:"$0",
@@ -7568,7 +7570,7 @@ $aA:function(){return[P.d]},
 gO:function(){return this.b},
 gH:function(){return"int"}}
 O.hh.prototype={
-u:function(a,b,c){return b.gah(b)},
+u:function(a,b,c){return b.gai(b)},
 I:function(a,b){return this.u(a,b,C.c)},
 v:function(a,b,c){return A.pv(b)},
 L:function(a,b){return this.v(a,b,C.c)},
@@ -7751,7 +7753,7 @@ if(b==null)return!1
 if(b instanceof U.c1){u=this.a
 u=u.a.ac(this.b,b.b)&&u.b.ac(this.c,b.c)}else u=!1
 return u},
-gah:function(a){return this.c}}
+gai:function(a){return this.c}}
 U.du.prototype={
 ac:function(a,b){var u,t,s,r,q
 if(a===b)return!0
@@ -8347,7 +8349,7 @@ break
 case 6:case 1:return P.cU(s,t)
 case 2:return P.cT(q,t)}})
 return P.cV($async$aS,t)},
-aj:function(a){var u
+ag:function(a){var u
 for(u=this.a,u=P.nb(u,u.r,H.c(u,0));u.l();)u.d.abort()}}
 O.eF.prototype={
 $1:function(a){var u=this.a,t=W.nr(u.response)==null?W.p4([]):W.nr(u.response),s=new FileReader(),r=[W.aF],q=new W.bz(s,"load",!1,r),p=this.b,o=this.c,n=P.o
@@ -8512,19 +8514,19 @@ $S:51}
 N.co.prototype={
 n:function(a,b){if(b==null)return!1
 return b instanceof N.co&&this.b===b.b},
-aR:function(a,b){return C.b.aR(this.b,b.gah(b))},
+aR:function(a,b){return C.b.aR(this.b,b.gai(b))},
 b0:function(a,b){return this.b>=b.b},
 a0:function(a,b){return this.b-b.b},
 gp:function(a){return this.b},
 i:function(a){return this.a},
-gah:function(a){return this.b}}
+gai:function(a){return this.b}}
 N.hr.prototype={
 i:function(a){return"["+this.a.a+"] "+this.d+": "+H.b(this.b)}}
 M.fm.prototype={
 h4:function(a,b){var u,t=null
 M.nE("absolute",H.j([b,null,null,null,null,null,null],[P.e]))
 u=this.a
-u=u.ag(b)>0&&!u.aO(b)
+u=u.ah(b)>0&&!u.aO(b)
 if(u)return b
 u=D.nM()
 return this.hB(0,u,b,t,t,t,t,t,t)},
@@ -8538,7 +8540,7 @@ m=p.charCodeAt(0)==0?p:p
 p=C.a.q(m,0,s.bh(m,!0))
 n.b=p
 if(s.bx(p))n.e[0]=s.gaT()
-p=n.i(0)}else if(s.ag(o)>0){q=!s.aO(o)
+p=n.i(0)}else if(s.ah(o)>0){q=!s.aO(o)
 p=H.b(o)}else{if(!(o.length!==0&&s.cS(o[0])))if(r)p+=s.gaT()
 p+=H.b(o)}r=s.bx(o)}return p.charCodeAt(0)==0?p:p},
 df:function(a,b){var u=X.dD(b,this.a),t=u.d,s=H.c(t,0)
@@ -8552,7 +8554,7 @@ if(!this.fE(a))return a
 u=X.dD(a,this.a)
 u.d1()
 return u.i(0)},
-fE:function(a){var u,t,s,r,q,p,o,n,m=this.a,l=m.ag(a)
+fE:function(a){var u,t,s,r,q,p,o,n,m=this.a,l=m.ah(a)
 if(l!==0){if(m===$.em())for(u=0;u<l;++u)if(C.a.t(a,u)===47)return!0
 t=l
 s=47}else{t=0
@@ -8567,12 +8569,12 @@ if(s===46)m=p==null||m.aF(p)||p===46
 else m=!1
 if(m)return!0
 return!1},
-hQ:function(a){var u,t,s,r,q=this,p='Unable to find a path to "',o=q.a,n=o.ag(a)
+hQ:function(a){var u,t,s,r,q=this,p='Unable to find a path to "',o=q.a,n=o.ah(a)
 if(n<=0)return q.d2(a)
 u=D.nM()
-if(o.ag(u)<=0&&o.ag(a)>0)return q.d2(a)
-if(o.ag(a)<=0||o.aO(a))a=q.h4(0,a)
-if(o.ag(a)<=0&&o.ag(u)>0)throw H.a(X.mM(p+a+'" from "'+H.b(u)+'".'))
+if(o.ah(u)<=0&&o.ah(a)>0)return q.d2(a)
+if(o.ah(a)<=0||o.aO(a))a=q.h4(0,a)
+if(o.ah(a)<=0&&o.ah(u)>0)throw H.a(X.mM(p+a+'" from "'+H.b(u)+'".'))
 t=X.dD(u,o)
 t.d1()
 s=X.dD(a,o)
@@ -8627,7 +8629,7 @@ M.ky.prototype={
 $1:function(a){return a==null?"null":'"'+a+'"'},
 $S:8}
 B.h3.prototype={
-ex:function(a){var u=this.ag(a)
+ex:function(a){var u=this.ah(a)
 if(u>0)return J.c9(a,0,u)
 return this.aO(a)?a[0]:null},
 d5:function(a,b){return a==b}}
@@ -8674,7 +8676,7 @@ bx:function(a){var u=a.length
 return u!==0&&J.ep(a,u-1)!==47},
 bh:function(a,b){if(a.length!==0&&J.eo(a,0)===47)return 1
 return 0},
-ag:function(a){return this.bh(a,!1)},
+ah:function(a){return this.bh(a,!1)},
 aO:function(a){return!1},
 d3:function(a){var u
 if(a.gae()===""||a.gae()==="file"){u=a.gam(a)
@@ -8687,7 +8689,7 @@ aF:function(a){return a===47},
 bx:function(a){var u=a.length
 if(u===0)return!1
 if(J.X(a).F(a,u-1)!==47)return!0
-return C.a.bt(a,"://")&&this.ag(a)===u},
+return C.a.bt(a,"://")&&this.ah(a)===u},
 bh:function(a,b){var u,t,s,r,q=a.length
 if(q===0)return 0
 if(J.X(a).t(a,0)===47)return 1
@@ -8701,7 +8703,7 @@ if(!C.a.aa(a,"file://"))return s
 if(!B.nR(a,s+1))return s
 r=s+3
 return q===r?r:s+4}}return 0},
-ag:function(a){return this.bh(a,!1)},
+ah:function(a){return this.bh(a,!1)},
 aO:function(a){return a.length!==0&&J.eo(a,0)===47},
 d3:function(a){return J.E(a)},
 gaP:function(){return"url"},
@@ -8726,8 +8728,8 @@ if(C.a.t(a,1)!==58)return 0
 s=C.a.t(a,2)
 if(!(s===47||s===92))return 0
 return 3},
-ag:function(a){return this.bh(a,!1)},
-aO:function(a){return this.ag(a)===1},
+ah:function(a){return this.bh(a,!1)},
+aO:function(a){return this.ah(a)===1},
 d3:function(a){var u,t
 if(a.gae()!==""&&a.gae()!=="file")throw H.a(P.m("Uri "+a.i(0)+" must have scheme 'file:'."))
 u=a.gam(a)
@@ -9062,16 +9064,16 @@ $idH:1}
 X.cz.prototype={
 gar:function(){return this.d}}
 M.dI.prototype={
-aj:function(a){var u=this
+ag:function(a){var u=this
 u.e.close()
-u.a.aj(0)
-u.b.aj(0)
-u.c.aj(0)},
+u.a.ag(0)
+u.b.ag(0)
+u.c.ag(0)},
 fG:function(a){var u=new P.cE([],[]).cT(H.b6(a,"$ibR").data,!0)
-if(J.z(u,"close"))this.aj(0)
+if(J.z(u,"close"))this.ag(0)
 else throw H.a(P.q('Illegal Control Message "'+H.b(u)+'"'))},
 fI:function(a){this.a.w(0,H.u(C.l.cU(H.u(new P.cE([],[]).cT(H.b6(a,"$ibR").data,!0)),null)))},
-fK:function(){this.aj(0)},
+fK:function(){this.ag(0)},
 bU:function(a){var u=0,t=P.cY(null),s=1,r,q=[],p=this,o,n,m,l
 var $async$bU=P.d_(function(b,c){if(b===1){r=c
 u=s}while(true)switch(u){case 0:m=C.l.b9(a,null)
@@ -9261,7 +9263,7 @@ return a},
 $S:57}
 M.l2.prototype={
 $0:function(){this.a.a=!1
-this.b.aj(0)
+this.b.ag(0)
 return},
 $C:"$0",
 $R:0,
@@ -9269,9 +9271,11 @@ $S:0}
 M.l3.prototype={
 $1:function(a){var u,t
 self.window.alert("Lost app connection.")
-u={tabId:J.ar(this.a)}
+u={tabId:J.ar(this.b)}
 t=P.aa(new M.l_())
-self.chrome.debugger.detach(u,t)},
+self.chrome.debugger.detach(u,t)
+this.a.a=!1
+this.c.ag(0)},
 $S:4}
 M.l_.prototype={
 $0:function(){},
@@ -9309,9 +9313,9 @@ M.l7.prototype={
 $2:function(a,b){var u=this,t=J.k(b)
 if(t.i(b)==="canceled_by_user"&&u.a.a){if(J.z(J.lg(a),J.ar(u.b)))self.window.alert("Debugger detached from all tabs. Click the extension to relaunch DevTools.")
 u.a.a=!1
-u.c.aj(0)
+u.c.ag(0)
 return}if(t.i(b)==="target_closed"&&J.z(J.lg(a),J.ar(u.b))&&u.a.a){u.a.a=!1
-u.c.aj(0)
+u.c.ag(0)
 return}},
 $C:"$2",
 $R:2,
@@ -9331,7 +9335,7 @@ if(a==s.b&&s.a){u={tabId:J.ar(this.b)}
 t=P.aa(new M.kY())
 self.chrome.debugger.detach(u,t)
 s.a=!1
-this.c.aj(0)
+this.c.ag(0)
 return}},
 $C:"$2",
 $R:2,
@@ -9398,7 +9402,7 @@ u(P,"m0","qG",65)
 t(P,"m1","qH",44)
 t(P,"nJ","qI",2)
 m(j=P.e2.prototype,"gh5","w",16)
-l(j,"ghe","aj",1)
+l(j,"ghe","ag",1)
 t(P,"nL","ra",23)
 u(P,"nK","r9",22)
 t(P,"r_","pZ",8)
