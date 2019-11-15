@@ -2,6 +2,7 @@
 
 - Fix support for `--output=NONE` when building.
 - Properly error if not in a Dart root while running the `daemon` command.
+- Depend on the latest `package:sse`.
 
 ## 2.5.3
 

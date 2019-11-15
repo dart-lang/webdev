@@ -11,9 +11,15 @@ environment:
 
 dependencies:
   js: ^0.6.1+1
-  sse: ^2.0.2
+  sse: ^3.0.0
 
 dev_dependencies:
   webdev: ^2.0.0
   build_web_compilers: ">=1.2.0 <3.0.0"
   build_runner: ">=1.5.0 <2.0.0"
+
+dependency_overrides:
+  webdev:
+    path: ../../webdev
+  dwds:
+    path: ../../dwds
