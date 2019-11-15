@@ -2,6 +2,7 @@
 
 - Add temporary support for restoring breakpoints. Eventually the Dart VM
   protocol will clearly define how breakpoints should be restored.
+- Depend on latest `package:sse` to get retry logic.
 
 ## 0.7.9
 
