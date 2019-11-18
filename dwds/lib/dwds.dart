@@ -63,6 +63,7 @@ class Dwds {
     @required bool enableDebugging,
     String hostname,
     ReloadConfiguration reloadConfiguration,
+    bool useSse,
     bool serveDevTools,
     LogWriter logWriter,
     bool verbose,
@@ -75,9 +76,8 @@ class Dwds {
     reloadConfiguration ??= ReloadConfiguration.none;
     enableDebugging ??= true;
     enableDebugExtension ??= false;
+    useSse ??= true;
     serveDevTools ??= true;
-    // `serveDevTools` is true by default when the extension is enabled.
-    serveDevTools = serveDevTools || enableDebugExtension;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
     globalModuleStrategy = moduleStrategy ?? ModuleStrategy.requireJS;
@@ -119,6 +119,8 @@ class Dwds {
       extensionBackend,
       urlEncoder,
       restoreBreakpoints,
+      useSse,
+      serveDevTools,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
