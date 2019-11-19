@@ -11,6 +11,7 @@ import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:logging/logging.dart';
@@ -51,6 +52,7 @@ class DevHandler {
       StreamController<DebugConnection>();
   final UrlEncoder _urlEncoder;
   final bool _restoreBreakpoints;
+  final bool _serveDevTools;
 
   /// Null until [close] is called.
   ///
@@ -70,6 +72,7 @@ class DevHandler {
     this._extensionBackend,
     this._urlEncoder,
     this._restoreBreakpoints,
+    this._serveDevTools,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
@@ -267,15 +270,8 @@ class DevHandler {
         serializers.serialize(DevToolsResponse((b) => b..success = true))));
 
     appServices.connectedInstanceId = appConnection.request.instanceId;
-    await appServices.chromeProxyService.remoteDebugger
-        .sendCommand('Target.createTarget', params: {
-      'newWindow': true,
-      'url': Uri(
-          scheme: 'http',
-          host: _devTools.hostname,
-          port: _devTools.port,
-          queryParameters: {'uri': appServices.debugService.uri}).toString(),
-    });
+    await _launchDevTools(appServices.chromeProxyService.remoteDebugger,
+        appServices.debugService.uri);
   }
 
   Future<AppConnection> _handleConnectRequest(
@@ -335,10 +331,10 @@ class DevHandler {
 
   /// Starts a [DebugService] for Dart Debug Extension.
   void _startExtensionDebugService() async {
-    var _extensionDebugger = await _extensionBackend.extensionDebugger;
+    var extensionDebugger = await _extensionBackend.extensionDebugger;
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
-    _extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
+    extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
       var connection = _appConnectionByAppId[devToolsRequest.appId];
       if (connection == null) {
         throw StateError(
@@ -348,7 +344,7 @@ class DevHandler {
           await _servicesByAppId.putIfAbsent(devToolsRequest.appId, () async {
         var debugService = await DebugService.start(
           _hostname,
-          _extensionDebugger,
+          extensionDebugger,
           devToolsRequest.tabUrl,
           _assetHandler,
           connection,
@@ -378,18 +374,26 @@ class DevHandler {
         extensionDebugConnections.add(DebugConnection(appServices));
         return appServices;
       });
-      var queryUri = appServices.debugService.uri;
-      if (_urlEncoder != null) {
-        queryUri = await _urlEncoder(queryUri);
-      }
-      await _extensionDebugger.sendCommand('Target.createTarget', params: {
-        'newWindow': true,
-        'url': Uri(
-            scheme: 'http',
-            host: _devTools.hostname,
-            port: _devTools.port,
-            queryParameters: {'uri': queryUri}).toString(),
-      });
+      await _launchDevTools(extensionDebugger, appServices.debugService.uri);
+    });
+  }
+
+  Future<void> _launchDevTools(
+      RemoteDebugger remoteDebugger, String debugServiceUri) async {
+    // TODO(grouma) - We may want to log the debugServiceUri if we don't launch
+    // DevTools so that users can manually connect.
+    if (!_serveDevTools) return;
+
+    if (_urlEncoder != null) {
+      debugServiceUri = await _urlEncoder(debugServiceUri);
+    }
+    await remoteDebugger.sendCommand('Target.createTarget', params: {
+      'newWindow': true,
+      'url': Uri(
+          scheme: 'http',
+          host: _devTools.hostname,
+          port: _devTools.port,
+          queryParameters: {'uri': debugServiceUri}).toString(),
     });
   }
 }

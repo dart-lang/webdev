@@ -25,7 +25,7 @@ final context = TestContext();
 void main() async {
   group('Without encoding', () {
     setUpAll(() async {
-      await context.setUp(enableDebugExtension: true);
+      await context.setUp(enableDebugExtension: true, serveDevTools: true);
       await context.extensionConnection.sendCommand('Runtime.evaluate', {
         'expression': 'fakeClick()',
       });

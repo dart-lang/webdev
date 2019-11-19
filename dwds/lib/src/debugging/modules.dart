@@ -77,7 +77,7 @@ class Modules {
     }
 
     var module =
-        // Remove the DDC extension (e.g. .ddc.js) from the path.
+        // Remove the DDC extension (e.g. .ddc.js) from the pather
         _moduleFor(p.withoutExtension(p.withoutExtension(path)));
 
     _scriptIdToModule[scriptId] = module;

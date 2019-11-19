@@ -99,7 +99,8 @@ class WebDevServer {
             (await Chrome.connectedInstance).chromeConnection,
         logWriter: logWriter,
         reloadConfiguration: options.configuration.reload,
-        serveDevTools: options.configuration.debug,
+        serveDevTools:
+            options.configuration.debug || options.configuration.debugExtension,
         verbose: options.configuration.verbose,
         enableDebugExtension: options.configuration.debugExtension,
         enableDebugging: options.configuration.debug,
