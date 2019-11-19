@@ -1,8 +1,11 @@
-## 0.7.10-dev
+## 0.8.0
 
 - Add temporary support for restoring breakpoints. Eventually the Dart VM
   protocol will clearly define how breakpoints should be restored.
 - Depend on latest `package:sse` to get retry logic.
+- Don't spawn DevTools if `serveDevTools` is false.
+** Breaking Change ** `serveDevTools` is not automatically considered true if
+  `enableDebugExtension`is true.
 
 ## 0.7.9
 

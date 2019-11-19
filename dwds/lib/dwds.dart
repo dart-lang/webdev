@@ -76,8 +76,6 @@ class Dwds {
     enableDebugging ??= true;
     enableDebugExtension ??= false;
     serveDevTools ??= true;
-    // `serveDevTools` is true by default when the extension is enabled.
-    serveDevTools = serveDevTools || enableDebugExtension;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
     globalModuleStrategy = moduleStrategy ?? ModuleStrategy.requireJS;
@@ -105,8 +103,9 @@ class Dwds {
 
     if (serveDevTools) {
       devTools = await DevTools.start(hostname);
-      logWriter(Level.INFO,
-          'Serving DevTools at ${Uri(scheme: 'http', host: devTools.hostname, port: devTools.port)}\n');
+      var uri =
+          Uri(scheme: 'http', host: devTools.hostname, port: devTools.port);
+      logWriter(Level.INFO, 'Serving DevTools at $uri\n');
     }
     var devHandler = DevHandler(
       chromeConnection,
@@ -119,6 +118,7 @@ class Dwds {
       extensionBackend,
       urlEncoder,
       restoreBreakpoints,
+      serveDevTools,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
