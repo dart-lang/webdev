@@ -33,7 +33,7 @@ refresh: Performs a full page refresh.
         help: 'Enable the launching of DevTools (Alt + D / Option + D). '
             'This also enables --$launchInChromeFlag.')
     ..addFlag(debugExtensionFlag,
-        help: 'Enable the backend for the Dart Debug Extension.', hide: true)
+        help: 'Enable the backend for the Dart Debug Extension.')
     ..addFlag(enableInjectedClientFlag,
         help: 'Whether or not to inject the client.js script in web apps. This '
             'is required for all debugging related features, but may interact '
