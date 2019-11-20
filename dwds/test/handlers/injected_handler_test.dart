@@ -16,12 +16,14 @@ void main() {
   HttpServer server;
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
+  const encodedUrl = 'http://some-host:1000/foo';
 
   group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
       globalModuleStrategy = ModuleStrategy.requireJS;
-      var pipeline = const Pipeline()
-          .addMiddleware(createInjectedHandler(ReloadConfiguration.liveReload));
+      var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
+          ReloadConfiguration.liveReload,
+          urlEncoder: (url) async => encodedUrl));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok(
@@ -76,6 +78,13 @@ void main() {
       expect(result.body, 'Not found');
     });
 
+    test('correctly encodes dartUriBase', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(
+          result.body.contains('window.\$dartUriBase = "$encodedUrl"'), isTrue);
+    });
+
     test(
         'Does not return 304 when if-none-match etag matches the original '
         'content etag', () async {
@@ -101,8 +110,7 @@ void main() {
     test('Does not inject the extension backend port', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
-      expect(result.body.contains('extensionHostname'), isFalse);
-      expect(result.body.contains('extensionPort'), isFalse);
+      expect(result.body.contains('dartExtensionUri'), isFalse);
     });
   });
 

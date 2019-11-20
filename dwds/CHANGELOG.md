@@ -4,6 +4,8 @@
   protocol will clearly define how breakpoints should be restored.
 - Depend on latest `package:sse` to get retry logic.
 - Don't spawn DevTools if `serveDevTools` is false.
+- `UrlEncoder` will also encode the base URI used by the injected client /
+  Dart Debug Extension.
 ** Breaking Change ** `serveDevTools` is not automatically considered true if
   `enableDebugExtension`is true.
 
