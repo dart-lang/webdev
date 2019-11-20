@@ -62,9 +62,8 @@ void main() async {
     setUp(() async {
       await context.setUp(
           enableDebugExtension: true,
-          urlEncoder: (_) async {
-            return 'http://some-encoded-url:8081/';
-          });
+          urlEncoder: (url) async =>
+              url.endsWith(r'/$debug') ? 'http://some-encoded-url:8081/' : url);
     });
 
     tearDown(() async {
