@@ -7213,7 +7213,7 @@ $0:function(){var u,t,s
 if(self.chrome.runtime.lastError!=null){self.window.alert("DevTools is already opened on a different window.")
 return}u=this.a
 t={tabId:J.ai(u.a)}
-s={expression:"[$dartExtensionUri, $dartAppId, $dartAppInstanceId, $dwdsVersion]",returnByValue:!0}
+s={expression:"[$dartExtensionUri, $dartAppId, $dartAppInstanceId, window.$dwdsVersion]",returnByValue:!0}
 u=P.a0(new M.iJ(u))
 self.chrome.debugger.sendCommand(t,"Runtime.evaluate",s,u)},
 $C:"$0",

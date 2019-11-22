@@ -39,7 +39,7 @@ void main() {
             'Runtime.evaluate',
             InjectedParams(
                 expression:
-                    '[\$dartExtensionUri, \$dartAppId, \$dartAppInstanceId, \$dwdsVersion]',
+                    '[\$dartExtensionUri, \$dartAppId, \$dartAppInstanceId, window.\$dwdsVersion]',
                 returnByValue: true), allowInterop((e) {
           String extensionUri, appId, instanceId, dwdsVersion;
           if (e.result.value == null) {
