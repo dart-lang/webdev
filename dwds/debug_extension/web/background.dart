@@ -84,6 +84,7 @@ Future<void> startSseClient(String uri, String appId, String instanceId,
   var client = SseClient(uri.toString());
   int devToolsTab;
 
+  print('Connected to DWDS version $dwdsVersion with appId=$appId');
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
     if (message is ExtensionRequest) {

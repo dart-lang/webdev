@@ -109,7 +109,7 @@ String _injectedClientJs(
       'window.\$dartModuleStrategy = "$loadModule";\n'
       'window.\$dartUriBase = "$requestedUriBase";\n'
       'window.\$loadModuleConfig = $loadModule;\n'
-      'window.\$dwdsVersion = $packageVersion;\n';
+      'window.\$dwdsVersion = "$packageVersion";\n';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
   }
