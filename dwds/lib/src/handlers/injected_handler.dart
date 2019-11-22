@@ -8,6 +8,7 @@ import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/version.dart';
 import 'package:shelf/shelf.dart';
 
 import '../../dwds.dart';
@@ -107,7 +108,8 @@ String _injectedClientJs(
       'window.\$dartLoader.forceLoadModule("$_clientScript");\n'
       'window.\$dartModuleStrategy = "$loadModule";\n'
       'window.\$dartUriBase = "$requestedUriBase";\n'
-      'window.\$loadModuleConfig = $loadModule;\n';
+      'window.\$loadModuleConfig = $loadModule;\n'
+      'window.\$dwdsVersion = $packageVersion;\n';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
   }

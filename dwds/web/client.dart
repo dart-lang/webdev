@@ -25,6 +25,8 @@ import 'reloader/manager.dart';
 import 'reloader/require_restarter.dart';
 import 'reloader/restarter.dart';
 
+export 'package:dwds/src/version.dart';
+
 // GENERATE:
 // pub run build_runner build web
 Future<void> main() {
