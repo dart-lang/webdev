@@ -112,8 +112,7 @@ void main() {
       var expected = r'$dwdsVersion = ';
       var index = result.body.indexOf(expected);
       expect(index, greaterThan(0));
-      var nextBit = result.body
-          .substring(index + expected.length);
+      var nextBit = result.body.substring(index + expected.length);
       var versionPiece = nextBit.split('"')[1];
       expect(versionPiece, packageVersion);
     });
