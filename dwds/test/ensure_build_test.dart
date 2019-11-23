@@ -9,7 +9,7 @@
 import 'package:build_verify/build_verify.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   test(
       'ensure_build',
       () => expectBuildClean(packageRelativeDirectory: 'dwds', customCommand: [
