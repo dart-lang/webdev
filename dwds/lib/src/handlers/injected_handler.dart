@@ -27,7 +27,8 @@ const _clientScript = 'dwds/src/injected/client';
 
 Handler Function(Handler) createInjectedHandler(
         ReloadConfiguration configuration,
-        {String extensionUri}) =>
+        {String extensionUri,
+        UrlEncoder urlEncoder}) =>
     (innerHandler) {
       return (Request request) async {
         if (request.url.path.endsWith('$_clientScript.js')) {
@@ -69,6 +70,9 @@ Handler Function(Handler) createInjectedHandler(
                 .trim();
             var requestedUriBase = '${request.requestedUri.scheme}'
                 '://${request.requestedUri.authority}';
+            if (urlEncoder != null) {
+              requestedUriBase = await urlEncoder(requestedUriBase);
+            }
             body += _injectedClientJs(
               configuration,
               appId,

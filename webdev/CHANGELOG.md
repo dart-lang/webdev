@@ -1,9 +1,10 @@
-## 2.5.4-dev
+## 2.5.4
 
 - Fix support for `--output=NONE` when building.
 - Properly error if not in a Dart root while running the `daemon` command.
 - Depend on the latest `package:sse`.
 - Serve DevTools if either `--debug` or `--debug-extension` is provided.
+- Publicize the option `--debug-extension`.
 
 ## 2.5.3
 

@@ -98,8 +98,11 @@ class Dwds {
       if (urlEncoder != null) extensionUri = await urlEncoder(extensionUri);
     }
 
-    pipeline = pipeline.addMiddleware(
-        createInjectedHandler(reloadConfiguration, extensionUri: extensionUri));
+    pipeline = pipeline.addMiddleware(createInjectedHandler(
+      reloadConfiguration,
+      extensionUri: extensionUri,
+      urlEncoder: urlEncoder,
+    ));
 
     if (serveDevTools) {
       devTools = await DevTools.start(hostname);
