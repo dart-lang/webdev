@@ -1,3 +1,7 @@
+## 0.8.1
+
+- Depend on the latest `package:built_value`.
+
 ## 0.8.0
 
 - Add temporary support for restoring breakpoints. Eventually the Dart VM
