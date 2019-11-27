@@ -39,9 +39,9 @@ void main() {
             'Runtime.evaluate',
             InjectedParams(
                 expression:
-                    '[\$dartExtensionUri, \$dartAppId, \$dartAppInstanceId]',
+                    '[\$dartExtensionUri, \$dartAppId, \$dartAppInstanceId, window.\$dwdsVersion]',
                 returnByValue: true), allowInterop((e) {
-          String extensionUri, appId, instanceId;
+          String extensionUri, appId, instanceId, dwdsVersion;
           if (e.result.value == null) {
             alert('Unable to launch DevTools. This is not Dart application.');
             detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
@@ -50,7 +50,9 @@ void main() {
           extensionUri = e.result.value[0] as String;
           appId = e.result.value[1] as String;
           instanceId = e.result.value[2] as String;
-          startSseClient(extensionUri, appId, instanceId, currentTab);
+          dwdsVersion = e.result.value[3] as String;
+          startSseClient(
+              extensionUri, appId, instanceId, currentTab, dwdsVersion);
         }));
       }));
     });
@@ -73,8 +75,8 @@ void main() {
 //
 // Initiates a [DevToolsRequest], handles an [ExtensionRequest],
 // and sends an [ExtensionEvent].
-Future<void> startSseClient(
-    String uri, String appId, String instanceId, Tab currentTab) async {
+Future<void> startSseClient(String uri, String appId, String instanceId,
+    Tab currentTab, String dwdsVersion) async {
   // Specifies whether the debugger is attached.
   //
   // A debugger is detached if it is closed by user or the target is closed.
@@ -82,6 +84,7 @@ Future<void> startSseClient(
   var client = SseClient(uri.toString());
   int devToolsTab;
 
+  print('Connected to DWDS version $dwdsVersion with appId=$appId');
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
     if (message is ExtensionRequest) {

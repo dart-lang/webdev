@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/handlers/injected_handler.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/version.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -111,6 +112,17 @@ void main() {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
       expect(result.body.contains('dartExtensionUri'), isFalse);
+    });
+
+    test('Has correct DWDS version', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var expected = r'$dwdsVersion = ';
+      var index = result.body.indexOf(expected);
+      expect(index, greaterThan(0));
+      var nextBit = result.body.substring(index + expected.length);
+      var versionPiece = nextBit.split('"')[1];
+      expect(versionPiece, packageVersion);
     });
   });
 
