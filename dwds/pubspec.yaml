@@ -7,12 +7,12 @@ description: >-
   service protocol.
 
 environment:
-  sdk: ">=2.6.0 <3.0.0"
+  sdk: ">=2.5.0 <3.0.0"
 
 dependencies:
   async: ^2.3.0
   build_daemon: ^2.0.0
-  built_value: ^7.0.0
+  built_value: '>=6.7.0 <8.0.0'
   crypto: ^2.0.6
   devtools: ^0.1.8-dev.1
   devtools_server: ^0.1.8
