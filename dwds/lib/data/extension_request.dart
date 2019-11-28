@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -66,4 +67,17 @@ abstract class ExtensionEvent
   String get params;
 
   String get method;
+}
+
+/// A batched group of events, currently always Debugger.scriptParsed
+abstract class BatchedEvents
+    implements Built<BatchedEvents, BatchedEventsBuilder> {
+  static Serializer<BatchedEvents> get serializer => _$batchedEventsSerializer;
+
+  factory BatchedEvents([Function(BatchedEventsBuilder) updates]) =
+      _$BatchedEvents;
+
+  BatchedEvents._();
+
+  BuiltList<ExtensionEvent> get events;
 }

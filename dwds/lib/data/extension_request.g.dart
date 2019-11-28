@@ -12,6 +12,8 @@ Serializer<ExtensionResponse> _$extensionResponseSerializer =
     new _$ExtensionResponseSerializer();
 Serializer<ExtensionEvent> _$extensionEventSerializer =
     new _$ExtensionEventSerializer();
+Serializer<BatchedEvents> _$batchedEventsSerializer =
+    new _$BatchedEventsSerializer();
 
 class _$ExtensionRequestSerializer
     implements StructuredSerializer<ExtensionRequest> {
@@ -175,6 +177,50 @@ class _$ExtensionEventSerializer
         case 'method':
           result.method = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
+class _$BatchedEventsSerializer implements StructuredSerializer<BatchedEvents> {
+  @override
+  final Iterable<Type> types = const [BatchedEvents, _$BatchedEvents];
+  @override
+  final String wireName = 'BatchedEvents';
+
+  @override
+  Iterable<Object> serialize(Serializers serializers, BatchedEvents object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[
+      'events',
+      serializers.serialize(object.events,
+          specifiedType: const FullType(
+              BuiltList, const [const FullType(ExtensionEvent)])),
+    ];
+
+    return result;
+  }
+
+  @override
+  BatchedEvents deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new BatchedEventsBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'events':
+          result.events.replace(serializers.deserialize(value,
+                  specifiedType: const FullType(
+                      BuiltList, const [const FullType(ExtensionEvent)]))
+              as BuiltList<dynamic>);
           break;
       }
     }
@@ -497,6 +543,97 @@ class ExtensionEventBuilder
   _$ExtensionEvent build() {
     final _$result =
         _$v ?? new _$ExtensionEvent._(params: params, method: method);
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$BatchedEvents extends BatchedEvents {
+  @override
+  final BuiltList<ExtensionEvent> events;
+
+  factory _$BatchedEvents([void Function(BatchedEventsBuilder) updates]) =>
+      (new BatchedEventsBuilder()..update(updates)).build();
+
+  _$BatchedEvents._({this.events}) : super._() {
+    if (events == null) {
+      throw new BuiltValueNullFieldError('BatchedEvents', 'events');
+    }
+  }
+
+  @override
+  BatchedEvents rebuild(void Function(BatchedEventsBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  BatchedEventsBuilder toBuilder() => new BatchedEventsBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is BatchedEvents && events == other.events;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc(0, events.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper('BatchedEvents')..add('events', events))
+        .toString();
+  }
+}
+
+class BatchedEventsBuilder
+    implements Builder<BatchedEvents, BatchedEventsBuilder> {
+  _$BatchedEvents _$v;
+
+  ListBuilder<ExtensionEvent> _events;
+  ListBuilder<ExtensionEvent> get events =>
+      _$this._events ??= new ListBuilder<ExtensionEvent>();
+  set events(ListBuilder<ExtensionEvent> events) => _$this._events = events;
+
+  BatchedEventsBuilder();
+
+  BatchedEventsBuilder get _$this {
+    if (_$v != null) {
+      _events = _$v.events?.toBuilder();
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(BatchedEvents other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$BatchedEvents;
+  }
+
+  @override
+  void update(void Function(BatchedEventsBuilder) updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$BatchedEvents build() {
+    _$BatchedEvents _$result;
+    try {
+      _$result = _$v ?? new _$BatchedEvents._(events: events.build());
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'events';
+        events.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'BatchedEvents', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }
