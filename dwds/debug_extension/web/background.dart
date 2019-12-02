@@ -87,7 +87,6 @@ Future<void> startSseClient(String uri, String appId, String instanceId,
 
   var queue = EventQueue(client, currentTab, attached, dwdsVersion);
   print('Connected to DWDS version $dwdsVersion with appId=$appId');
-
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
     if (message is ExtensionRequest) {
@@ -129,7 +128,7 @@ Future<void> startSseClient(String uri, String appId, String instanceId,
   // The listener of the `currentTab` receives events from all tabs.
   // We want to forward an event only if it originates from `currentTab`.
   // We know that if `source.tabId` and `currentTab.id` are the same.
-  addDebuggerListener(allowInterop(queue.forwardOrQueue));
+  addDebuggerListener(allowInterop(queue.forwardOrEnqueue));
 
   onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
     // Detach debugger from all tabs if debugger is cancelled by user.
@@ -218,7 +217,7 @@ class EventQueue {
         ..method = jsonEncode(method));
 
   /// Forward the event, or queue it up if it should be batched.
-  void forwardOrQueue(Debuggee source, String method, Object params) {
+  void forwardOrEnqueue(Debuggee source, String method, Object params) {
     if (source.tabId != currentTab.id || !attached) {
       return;
     }

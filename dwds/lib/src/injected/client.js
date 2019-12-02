@@ -7768,21 +7768,6 @@
       this.$ti = t2;
     },
     DeepCollectionEquality: function DeepCollectionEquality() {
-    },
-    UuidUtil_mathRNG: function() {
-      var b, rand, i,
-        t1 = new Array(16);
-      t1.fixed$length = Array;
-      b = H.setRuntimeTypeInfo(t1, [P.int]);
-      for (rand = null, i = 0; i < 16; ++i) {
-        t1 = i & 3;
-        if (t1 === 0)
-          rand = C.JSInt_methods.toInt$0(C.JSNumber_methods.floor$0(C.C__JSRandom.nextDouble$0() * 4294967296));
-        if (typeof rand !== "number")
-          return rand.$shr();
-        C.JSArray_methods.$indexSet(b, i, C.JSInt_methods._shrOtherPositive$1(rand, t1 << 3) & 255);
-      }
-      return b;
     }
   },
   O = {BigIntSerializer: function BigIntSerializer(t0) {
@@ -7913,7 +7898,22 @@
     }, RegExpSerializer: function RegExpSerializer(t0) {
       this.types = t0;
     }, closure0: function closure0() {
-    }},
+    },
+    Uuid$: function() {
+      var options, t2, t1 = {};
+      t1.options = options;
+      t1.options = null;
+      t2 = new K.Uuid();
+      t2.Uuid$1$options(t1);
+      return t2;
+    },
+    Uuid: function Uuid() {
+      var _ = this;
+      _._clockSeq = _._nodeId = _._seedBytes = null;
+      _._lastNSecs = _._lastMSecs = 0;
+      _._hexToByte = _._byteToHex = null;
+    }
+  },
   Z = {DateTimeSerializer: function DateTimeSerializer(t0) {
       this.types = t0;
     }, LegacyRestarter: function LegacyRestarter() {
@@ -8197,22 +8197,22 @@
         return -1;
     },
     Int64__parseRadix: function(s, radix) {
-      var i, negative, d0, d1, d2, c, digit, d00, d10,
+      var i, negative, d0, d1, d2, c, digit, d00, d10, _null = null,
         t1 = s.length;
-      if (0 >= t1)
-        return H.ioore(s, 0);
-      if (s[0] === "-") {
+      if (0 < t1 && s[0] === "-") {
         i = 1;
         negative = true;
       } else {
         i = 0;
         negative = false;
       }
+      if (i >= t1)
+        throw H.wrapException(P.FormatException$("No digits in '" + H.S(s) + "'", _null, _null));
       for (d0 = 0, d1 = 0, d2 = 0; i < t1; ++i, d1 = d10, d0 = d00) {
         c = C.JSString_methods._codeUnitAt$1(s, i);
         digit = V.Int32__decodeDigit(c);
         if (digit < 0 || digit >= radix)
-          throw H.wrapException(P.FormatException$("Non-radix char code: " + c, null, null));
+          throw H.wrapException(P.FormatException$("Non-radix char code: " + c, _null, _null));
         d0 = d0 * radix + digit;
         d00 = 4194303 & d0;
         d1 = d1 * radix + C.JSInt_methods._shrOtherPositive$1(d0, 22);
@@ -8311,27 +8311,29 @@
       _.needsSeparatorPattern = t1;
       _.rootPattern = t2;
       _.relativeRootPattern = t3;
-    },
-    Uuid$: function() {
-      var options, t2, t1 = {};
-      t1.options = options;
-      t1.options = null;
-      t2 = new F.Uuid();
-      t2.Uuid$1$options(t1);
-      return t2;
-    },
-    Uuid: function Uuid() {
-      var _ = this;
-      _._clockSeq = _._nodeId = _._seedBytes = null;
-      _._lastNSecs = _._lastMSecs = 0;
-      _._hexToByte = _._byteToHex = null;
-    }
-  },
+    }},
   G = {Library: function Library() {
     }, Module: function Module(t0) {
       this.libraries = t0;
-    }};
-  var holders = [C, H, J, P, W, M, S, A, L, E, Y, U, O, R, K, Z, D, Q, B, N, X, V, F, G];
+    }},
+  T = {
+    UuidUtil_mathRNG: function() {
+      var b, rand, i,
+        t1 = new Array(16);
+      t1.fixed$length = Array;
+      b = H.setRuntimeTypeInfo(t1, [P.int]);
+      for (rand = null, i = 0; i < 16; ++i) {
+        t1 = i & 3;
+        if (t1 === 0)
+          rand = C.JSInt_methods.toInt$0(C.JSNumber_methods.floor$0(C.C__JSRandom.nextDouble$0() * 4294967296));
+        if (typeof rand !== "number")
+          return rand.$shr();
+        C.JSArray_methods.$indexSet(b, i, C.JSInt_methods._shrOtherPositive$1(rand, t1 << 3) & 255);
+      }
+      return b;
+    }
+  };
+  var holders = [C, H, J, P, W, M, S, A, L, E, Y, U, O, R, K, Z, D, Q, B, N, X, V, F, G, T];
   hunkHelpers.setFunctionNamesIfNecessary(holders);
   var $ = {};
   H.JS_CONST.prototype = {};
@@ -21415,11 +21417,8 @@
         return -1 / 0;
       else if (t1.$eq(serialized, "INF"))
         return 1 / 0;
-      else {
-        H.numTypeCast(serialized);
-        serialized.toString;
-        return serialized;
-      }
+      else
+        return H.numTypeCast(serialized);
     },
     deserialize$2: function(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, C.FullType_null_List_empty);
@@ -23348,7 +23347,7 @@
   M.SseClient.prototype = {
     SseClient$1: function(serverUrl) {
       var t1, t2, _this = this,
-        clientId = F.Uuid$().v1$0();
+        clientId = K.Uuid$().v1$0();
       _this._eventSource = W.EventSource__factoryEventSource(serverUrl + "?sseClientId=" + clientId, P.LinkedHashMap_LinkedHashMap$_literal(["withCredentials", true], P.String, null));
       _this._serverUrl = serverUrl + "?sseClientId=" + clientId;
       t1 = _this._outgoingController;
@@ -23542,7 +23541,7 @@
     $signature: 1
   };
   R.StreamChannelMixin.prototype = {};
-  F.Uuid.prototype = {
+  K.Uuid.prototype = {
     Uuid$1$options: function(_box_0) {
       var t1, t2, i, hex, t3, v1PositionalArgs, v1NamedArgs, _this = this,
         _s19_ = "v1rngPositionalArgs",
@@ -23569,7 +23568,7 @@
       }
       v1PositionalArgs = _box_0.options.$index(0, _s19_) != null ? _box_0.options.$index(0, _s19_) : [];
       v1NamedArgs = _box_0.options.$index(0, _s14_) != null ? H.subtypeCast(_box_0.options.$index(0, _s14_), "$isMap", [P.Symbol0, null], "$asMap") : C.Map_empty0;
-      _this._seedBytes = _box_0.options.$index(0, "v1rng") != null ? P.Function_apply(H.interceptedTypeCheck(_box_0.options.$index(0, "v1rng"), "$isFunction"), H.listTypeCheck(v1PositionalArgs), v1NamedArgs) : U.UuidUtil_mathRNG();
+      _this._seedBytes = _box_0.options.$index(0, "v1rng") != null ? P.Function_apply(H.interceptedTypeCheck(_box_0.options.$index(0, "v1rng"), "$isFunction"), H.listTypeCheck(v1PositionalArgs), v1NamedArgs) : T.UuidUtil_mathRNG();
       if (_box_0.options.$index(0, _s18_) != null)
         _box_0.options.$index(0, _s18_);
       if (_box_0.options.$index(0, _s13_) != null)
@@ -23674,7 +23673,7 @@
             case 0:
               // Function start
               if (self.$dartAppInstanceId == null) {
-                t1 = F.Uuid$().v1$0();
+                t1 = K.Uuid$().v1$0();
                 self.$dartAppInstanceId = t1;
               }
               client = M.SseClient$(D._fixProtocol(H.S(self.$dartUriBase) + "/$sseHandler"));
@@ -24608,7 +24607,7 @@
       _inherit = hunkHelpers.inherit,
       _inheritMany = hunkHelpers.inheritMany;
     _inherit(P.Object, null);
-    _inheritMany(P.Object, [H.JS_CONST, J.Interceptor, J.JSObject, J.ArrayIterator, P.Iterable, H.CastIterator, H.Closure, P.MapMixin, P._ListBase_Object_ListMixin, H.ListIterator, P.Iterator, H.FixedLengthListMixin, H.UnmodifiableListMixin, H.Symbol, P.MapView, H.ConstantMap, H.JSInvocationMirror, H.TypeErrorDecoder, P.Error, H.ExceptionAndStackTrace, H._StackTrace, H.TypeImpl, H.LinkedHashMapCell, H.LinkedHashMapKeyIterator, H.JSSyntaxRegExp, H._MatchImplementation, H._AllMatchesIterator, H.StringMatch, H._StringAllMatchesIterator, P._TimerImpl, P._AsyncAwaitCompleter, P.Future, P._Completer, P._FutureListener, P._Future, P._AsyncCallbackEntry, P.Stream, P.StreamSubscription, P.StreamTransformerBase, P._StreamController, P._AsyncStreamControllerDispatch, P._BufferingStreamSubscription, P._StreamSinkWrapper, P._DelayedEvent, P._DelayedDone, P._PendingEvents, P._StreamIterator, P.Timer, P.AsyncError, P._ZoneFunction, P.ZoneSpecification, P._ZoneSpecification, P.ZoneDelegate, P.Zone, P._ZoneDelegate, P._Zone, P._HashMapKeyIterator, P._SetBase, P._HashSetIterator, P._LinkedHashSetCell, P._LinkedHashSetIterator, P.IterableMixin, P.ListMixin, P._UnmodifiableMapMixin, P._ListQueueIterator, P.SetMixin, P._SplayTreeNode, P._SplayTree, P._SplayTreeIterator, P.Codec, P._JsonStringifier, P._Utf8Encoder, P._Utf8Decoder, P._BigIntImpl, P.BigInt, P.bool, P.DateTime, P.num, P.Duration, P.OutOfMemoryError, P.StackOverflowError, P._Exception, P.FormatException, P.IntegerDivisionByZeroException, P.Function, P.List, P.Map, P.MapEntry, P.Null, P.Match, P.RegExp, P.RegExpMatch, P.StackTrace, P.String, P.StringBuffer, P.Symbol0, P.Type, P.Uri, P._Uri, P.UriData, P._SimpleUri, W.CssStyleDeclarationBase, W._Html5NodeValidator, W.ImmutableListMixin, W.NodeValidatorBuilder, W._SimpleNodeValidator, W._SvgNodeValidator, W.FixedSizeListIterator, W.NodeValidator, W._SameOriginUriPolicy, W._ValidatingTreeSanitizer, P._AcceptStructuredClone, P.JsObject, P._JSRandom, P._RectangleBase, P.ByteBuffer, P.ByteData, P.Int8List, P.Uint8List, P.Uint8ClampedList, P.Int16List, P.Uint16List, P.Int32List, P.Uint32List, P.Float32List, P.Float64List, Y.EnumClass, M.DefaultBuildResult, M._$BuildStatusSerializer, M._$DefaultBuildResultSerializer, M.DefaultBuildResultBuilder, S.BuiltList, S.ListBuilder, M.BuiltListMultimap, M.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, L.BuiltSet, L.SetBuilder, E.BuiltSetMultimap, E.SetMultimapBuilder, Y.IndentingBuiltValueToStringHelper, A.JsonObject, U.SerializerPlugin, U.FullType, U.Serializer, O.BigIntSerializer, R.BoolSerializer, Y.BuiltJsonSerializers, Y.BuiltJsonSerializersBuilder, R.BuiltListMultimapSerializer, K.BuiltListSerializer, K.BuiltMapSerializer, R.BuiltSetMultimapSerializer, O.BuiltSetSerializer, Z.DateTimeSerializer, D.DoubleSerializer, K.DurationSerializer, Q.Int64Serializer, B.IntSerializer, O.JsonObjectSerializer, K.NumSerializer, K.RegExpSerializer, M.StringSerializer, O.UriSerializer, U.DefaultEquality, U.IterableEquality, U.ListEquality, U._UnorderedEquality, U._MapEntry, U.MapEquality, U.DeepCollectionEquality, E.ConnectRequest, E._$ConnectRequestSerializer, E.ConnectRequestBuilder, M.DevToolsRequest, M.DevToolsResponse, M._$DevToolsRequestSerializer, M._$DevToolsResponseSerializer, M.DevToolsRequestBuilder, M.DevToolsResponseBuilder, X.ErrorResponse, X._$ErrorResponseSerializer, X.ErrorResponseBuilder, S.ExtensionRequest, S.ExtensionResponse, S.ExtensionEvent, S.BatchedEvents, S._$ExtensionRequestSerializer, S._$ExtensionResponseSerializer, S._$ExtensionEventSerializer, S._$BatchedEventsSerializer, S.ExtensionRequestBuilder, S.ExtensionResponseBuilder, S.ExtensionEventBuilder, S.BatchedEventsBuilder, M.IsolateExit, M.IsolateStart, M._$IsolateExitSerializer, M._$IsolateStartSerializer, M.IsolateExitBuilder, M.IsolateStartBuilder, A.RunRequest, A._$RunRequestSerializer, A.RunRequestBuilder, V.Int64, N.Logger, N.Level, N.LogRecord, M.Context, O.Style, X.ParsedPath, R.StreamChannelMixin, F.Uuid, Z.LegacyRestarter, Q.ReloadingManager, G.Library, G.Module, X.HotReloadFailedException, X.LibraryWrapper, X.RequireRestarter]);
+    _inheritMany(P.Object, [H.JS_CONST, J.Interceptor, J.JSObject, J.ArrayIterator, P.Iterable, H.CastIterator, H.Closure, P.MapMixin, P._ListBase_Object_ListMixin, H.ListIterator, P.Iterator, H.FixedLengthListMixin, H.UnmodifiableListMixin, H.Symbol, P.MapView, H.ConstantMap, H.JSInvocationMirror, H.TypeErrorDecoder, P.Error, H.ExceptionAndStackTrace, H._StackTrace, H.TypeImpl, H.LinkedHashMapCell, H.LinkedHashMapKeyIterator, H.JSSyntaxRegExp, H._MatchImplementation, H._AllMatchesIterator, H.StringMatch, H._StringAllMatchesIterator, P._TimerImpl, P._AsyncAwaitCompleter, P.Future, P._Completer, P._FutureListener, P._Future, P._AsyncCallbackEntry, P.Stream, P.StreamSubscription, P.StreamTransformerBase, P._StreamController, P._AsyncStreamControllerDispatch, P._BufferingStreamSubscription, P._StreamSinkWrapper, P._DelayedEvent, P._DelayedDone, P._PendingEvents, P._StreamIterator, P.Timer, P.AsyncError, P._ZoneFunction, P.ZoneSpecification, P._ZoneSpecification, P.ZoneDelegate, P.Zone, P._ZoneDelegate, P._Zone, P._HashMapKeyIterator, P._SetBase, P._HashSetIterator, P._LinkedHashSetCell, P._LinkedHashSetIterator, P.IterableMixin, P.ListMixin, P._UnmodifiableMapMixin, P._ListQueueIterator, P.SetMixin, P._SplayTreeNode, P._SplayTree, P._SplayTreeIterator, P.Codec, P._JsonStringifier, P._Utf8Encoder, P._Utf8Decoder, P._BigIntImpl, P.BigInt, P.bool, P.DateTime, P.num, P.Duration, P.OutOfMemoryError, P.StackOverflowError, P._Exception, P.FormatException, P.IntegerDivisionByZeroException, P.Function, P.List, P.Map, P.MapEntry, P.Null, P.Match, P.RegExp, P.RegExpMatch, P.StackTrace, P.String, P.StringBuffer, P.Symbol0, P.Type, P.Uri, P._Uri, P.UriData, P._SimpleUri, W.CssStyleDeclarationBase, W._Html5NodeValidator, W.ImmutableListMixin, W.NodeValidatorBuilder, W._SimpleNodeValidator, W._SvgNodeValidator, W.FixedSizeListIterator, W.NodeValidator, W._SameOriginUriPolicy, W._ValidatingTreeSanitizer, P._AcceptStructuredClone, P.JsObject, P._JSRandom, P._RectangleBase, P.ByteBuffer, P.ByteData, P.Int8List, P.Uint8List, P.Uint8ClampedList, P.Int16List, P.Uint16List, P.Int32List, P.Uint32List, P.Float32List, P.Float64List, Y.EnumClass, M.DefaultBuildResult, M._$BuildStatusSerializer, M._$DefaultBuildResultSerializer, M.DefaultBuildResultBuilder, S.BuiltList, S.ListBuilder, M.BuiltListMultimap, M.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, L.BuiltSet, L.SetBuilder, E.BuiltSetMultimap, E.SetMultimapBuilder, Y.IndentingBuiltValueToStringHelper, A.JsonObject, U.SerializerPlugin, U.FullType, U.Serializer, O.BigIntSerializer, R.BoolSerializer, Y.BuiltJsonSerializers, Y.BuiltJsonSerializersBuilder, R.BuiltListMultimapSerializer, K.BuiltListSerializer, K.BuiltMapSerializer, R.BuiltSetMultimapSerializer, O.BuiltSetSerializer, Z.DateTimeSerializer, D.DoubleSerializer, K.DurationSerializer, Q.Int64Serializer, B.IntSerializer, O.JsonObjectSerializer, K.NumSerializer, K.RegExpSerializer, M.StringSerializer, O.UriSerializer, U.DefaultEquality, U.IterableEquality, U.ListEquality, U._UnorderedEquality, U._MapEntry, U.MapEquality, U.DeepCollectionEquality, E.ConnectRequest, E._$ConnectRequestSerializer, E.ConnectRequestBuilder, M.DevToolsRequest, M.DevToolsResponse, M._$DevToolsRequestSerializer, M._$DevToolsResponseSerializer, M.DevToolsRequestBuilder, M.DevToolsResponseBuilder, X.ErrorResponse, X._$ErrorResponseSerializer, X.ErrorResponseBuilder, S.ExtensionRequest, S.ExtensionResponse, S.ExtensionEvent, S.BatchedEvents, S._$ExtensionRequestSerializer, S._$ExtensionResponseSerializer, S._$ExtensionEventSerializer, S._$BatchedEventsSerializer, S.ExtensionRequestBuilder, S.ExtensionResponseBuilder, S.ExtensionEventBuilder, S.BatchedEventsBuilder, M.IsolateExit, M.IsolateStart, M._$IsolateExitSerializer, M._$IsolateStartSerializer, M.IsolateExitBuilder, M.IsolateStartBuilder, A.RunRequest, A._$RunRequestSerializer, A.RunRequestBuilder, V.Int64, N.Logger, N.Level, N.LogRecord, M.Context, O.Style, X.ParsedPath, R.StreamChannelMixin, K.Uuid, Z.LegacyRestarter, Q.ReloadingManager, G.Library, G.Module, X.HotReloadFailedException, X.LibraryWrapper, X.RequireRestarter]);
     _inheritMany(J.Interceptor, [J.JSBool, J.JSNull, J.JavaScriptObject, J.JSArray, J.JSNumber, J.JSString, H.NativeByteBuffer, H.NativeTypedData, W.EventTarget, W.AccessibleNodeList, W.Blob, W.CssStyleValue, W.CssTransformComponent, W.CssRule, W._CssStyleDeclaration_Interceptor_CssStyleDeclarationBase, W.DataTransferItemList, W.DomException, W._DomRectList_Interceptor_ListMixin, W.DomRectReadOnly, W._DomStringList_Interceptor_ListMixin, W.DomTokenList, W.Event, W._FileList_Interceptor_ListMixin, W.Gamepad, W.History, W._HtmlCollection_Interceptor_ListMixin, W.ImageData, W.Location, W.MediaList, W._MidiInputMap_Interceptor_MapMixin, W._MidiOutputMap_Interceptor_MapMixin, W.MimeType, W._MimeTypeArray_Interceptor_ListMixin, W._NodeList_Interceptor_ListMixin, W.Plugin, W._PluginArray_Interceptor_ListMixin, W._RtcStatsReport_Interceptor_MapMixin, W.SpeechGrammar, W._SpeechGrammarList_Interceptor_ListMixin, W.SpeechRecognitionResult, W._Storage_Interceptor_MapMixin, W.StyleSheet, W._TextTrackCueList_Interceptor_ListMixin, W.TimeRanges, W.Touch, W._TouchList_Interceptor_ListMixin, W.TrackDefaultList, W.Url, W.__CssRuleList_Interceptor_ListMixin, W.__GamepadList_Interceptor_ListMixin, W.__NamedNodeMap_Interceptor_ListMixin, W.__SpeechRecognitionResultList_Interceptor_ListMixin, W.__StyleSheetList_Interceptor_ListMixin, P.KeyRange, P.Length, P._LengthList_Interceptor_ListMixin, P.Number, P._NumberList_Interceptor_ListMixin, P.PointList, P._StringList_Interceptor_ListMixin, P.Transform, P._TransformList_Interceptor_ListMixin, P.AudioBuffer, P._AudioParamMap_Interceptor_MapMixin, P._SqlResultSetRowList_Interceptor_ListMixin]);
     _inheritMany(J.JavaScriptObject, [J.PlainJavaScriptObject, J.UnknownJavaScriptObject, J.JavaScriptFunction, S.Promise, X.DartLoader, X.HotReloadableLibrary, X.JsError, X.JsMap]);
     _inherit(J.JSUnmodifiableArray, J.JSArray);
