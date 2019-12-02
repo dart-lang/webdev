@@ -176,7 +176,8 @@ Future<void> startSseClient(String uri, String appId, String instanceId,
 /// ScriptParsed events are queued, and all others are passed through directly.
 class EventQueue {
   EventQueue(this.client, this.currentTab, this.attached, String dwdsVersion) {
-    supportsBatching = Version.parse(dwdsVersion) > Version.parse('0.8.1');
+    supportsBatching =
+        Version.parse(dwdsVersion ?? '0.0.0') > Version.parse('0.8.1');
   }
 
   static const flushInterval = Duration(milliseconds: 250);

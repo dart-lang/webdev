@@ -2392,7 +2392,7 @@ n.a=!0
 s=M.n2(J.B(a))
 n.b=null
 r=new M.cF(s,d,!0,H.h([],[S.a0]))
-r.d=T.kM(e).U(0,T.kM("0.8.1"))>0
+r.d=T.kM(e==null?"0.0.0":e).U(0,T.kM("0.8.1"))>0
 H.or("Connected to DWDS version "+H.b(e)+" with appId="+H.b(b))
 q=s.a
 new P.bF(q,[H.c(q,0)]).ad(new M.j9(d,s),!0,new M.ja(n,r,s),new M.jb(n,d,r,s))
@@ -2874,7 +2874,7 @@ L:function L(a,b,c){this.a=a
 this.b=b
 this.c=c}},T={
 kM:function(a){var u,t,s,r,q,p,o,n,m,l,k,j=null,i='Could not parse "',h=$.ly().cP(a)
-if(h==null)throw H.a(P.F(i+H.b(a)+'".',j,j))
+if(h==null)throw H.a(P.F(i+a+'".',j,j))
 try{u=P.aW(h.b[1],j,j)
 t=P.aW(h.b[2],j,j)
 s=P.aW(h.b[3],j,j)
@@ -2890,7 +2890,7 @@ l=l==null?[]:T.kN(l)
 if(p<0)H.i(P.q("Major version must be non-negative."))
 if(o<0)H.i(P.q("Minor version must be non-negative."))
 if(n<0)H.i(P.q("Patch version must be non-negative."))
-return new T.ce(p,o,n,m,l,a)}catch(k){if(H.J(k) instanceof P.bX)throw H.a(P.F(i+H.b(a)+'".',j,j))
+return new T.ce(p,o,n,m,l,a)}catch(k){if(H.J(k) instanceof P.bX)throw H.a(P.F(i+a+'".',j,j))
 else throw k}},
 kN:function(a){var u=H.h(a.split("."),[P.l])
 return new H.ap(u,new T.h5(),[H.c(u,0),P.d]).aT(0)},
