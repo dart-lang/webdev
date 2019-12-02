@@ -1,6 +1,6 @@
 name: extension
 publish_to: none
-version: 1.0.1-dev
+version: 1.8.0
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
 description: >-
@@ -24,4 +24,3 @@ dependency_overrides:
     path: ../../webdev
   dwds:
     path: ..
-    
