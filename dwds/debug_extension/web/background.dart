@@ -85,7 +85,7 @@ Future<void> startSseClient(String uri, String appId, String instanceId,
   var client = SseClient(uri.toString());
   int devToolsTab;
 
-  var queue = EventQueue(client, currentTab, attached, dwdsVersion);
+  var queue = _EventQueue(client, currentTab, attached, dwdsVersion);
   print('Connected to DWDS version $dwdsVersion with appId=$appId');
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
@@ -103,14 +103,14 @@ Future<void> startSseClient(String uri, String appId, String instanceId,
     }
   }, onDone: () {
     attached = false;
-    queue.attached = false;
+    queue._attached = false;
     client.close();
     return;
   }, onError: (_) {
     alert('Lost app connection.');
     detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
     attached = false;
-    queue.attached = false;
+    queue._attached = false;
     client.close();
   }, cancelOnError: true);
 
@@ -128,7 +128,7 @@ Future<void> startSseClient(String uri, String appId, String instanceId,
   // The listener of the `currentTab` receives events from all tabs.
   // We want to forward an event only if it originates from `currentTab`.
   // We know that if `source.tabId` and `currentTab.id` are the same.
-  addDebuggerListener(allowInterop(queue.forwardOrEnqueue));
+  addDebuggerListener(allowInterop(queue._forwardOrEnqueue));
 
   onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
     // Detach debugger from all tabs if debugger is cancelled by user.
@@ -139,7 +139,7 @@ Future<void> startSseClient(String uri, String appId, String instanceId,
             'Click the extension to relaunch DevTools.');
       }
       attached = false;
-      queue.attached = false;
+      queue._attached = false;
       client.close();
       return;
     }
@@ -149,7 +149,7 @@ Future<void> startSseClient(String uri, String appId, String instanceId,
         source.tabId == currentTab.id &&
         attached) {
       attached = false;
-      queue.attached = false;
+      queue._attached = false;
       client.close();
       return;
     }
@@ -174,62 +174,59 @@ Future<void> startSseClient(String uri, String appId, String instanceId,
 /// Maintains a queue of events to be batched, and forwards them periodically.
 ///
 /// ScriptParsed events are queued, and all others are passed through directly.
-class EventQueue {
-  EventQueue(this.client, this.currentTab, this.attached, String dwdsVersion) {
-    supportsBatching =
+class _EventQueue {
+  _EventQueue(
+      this._client, this._currentTab, this._attached, String dwdsVersion) {
+    _supportsBatching =
         Version.parse(dwdsVersion ?? '0.0.0') > Version.parse('0.8.1');
   }
 
-  static const flushInterval = Duration(milliseconds: 250);
+  static const _flushInterval = Duration(milliseconds: 250);
 
-  final SseClient client;
-  final Tab currentTab;
-  bool attached;
-  bool supportsBatching;
-
-  /// The timer for how long we will wait before sending queued events.
-  Timer timer;
+  final SseClient _client;
+  final Tab _currentTab;
+  bool _attached;
+  bool _supportsBatching;
 
   /// The pending events.
   final queuedEvents = <ExtensionEvent>[];
 
-  void startTimer() {
-    timer = Timer(flushInterval, flush);
+  void _startTimer() {
+    Timer(_flushInterval, _flush);
   }
 
   /// Send all of our pending events in a batch.
-  void flush() {
+  void _flush() {
     var events = BuiltList<ExtensionEvent>.from(queuedEvents).toBuilder();
-    client.sink.add(jsonEncode(
+    _client.sink.add(jsonEncode(
         serializers.serialize(BatchedEvents((b) => b..events = events))));
     queuedEvents.clear();
-    timer = null;
   }
 
   /// Forward [event] to the client immediately.
-  void forward(ExtensionEvent event) {
-    client.sink.add(jsonEncode(serializers.serialize(event)));
+  void _forward(ExtensionEvent event) {
+    _client.sink.add(jsonEncode(serializers.serialize(event)));
   }
 
   /// Construct an [ExtensionEvent] from [method] and [params].
-  ExtensionEvent extensionEventFor(String method, Object params) =>
+  ExtensionEvent _extensionEventFor(String method, Object params) =>
       ExtensionEvent((b) => b
         ..params = jsonEncode(json.decode(stringify(params)))
         ..method = jsonEncode(method));
 
   /// Forward the event, or queue it up if it should be batched.
-  void forwardOrEnqueue(Debuggee source, String method, Object params) {
-    if (source.tabId != currentTab.id || !attached) {
+  void _forwardOrEnqueue(Debuggee source, String method, Object params) {
+    if (source.tabId != _currentTab.id || !_attached) {
       return;
     }
-    var event = extensionEventFor(method, params);
-    if (supportsBatching && method == 'Debugger.scriptParsed') {
+    var event = _extensionEventFor(method, params);
+    if (_supportsBatching && method == 'Debugger.scriptParsed') {
       if (queuedEvents.isEmpty) {
-        startTimer();
+        _startTimer();
       }
       queuedEvents.add(event);
     } else {
-      forward(event);
+      _forward(event);
     }
   }
 }
