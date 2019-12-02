@@ -1,4 +1,4 @@
-## 1.0.1
+## 1.8
 
 - Add support for batching scriptParsed events.
 
