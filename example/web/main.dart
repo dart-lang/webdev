@@ -16,8 +16,7 @@ void main() {
   });
   document.body.append(SpanElement()..text = 'Hello World!!');
 
-  var count = 0;
   Timer.periodic(const Duration(seconds: 1), (_) {
-    print('Counter is: ${++count}');
+    //print('Counter is: ${++count}');
   });
 }

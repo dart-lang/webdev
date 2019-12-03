@@ -21,6 +21,7 @@ import 'package:sse/server/sse_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../asset_handler.dart';
+import '../debugging/evaluation_context.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'chrome_proxy_service.dart';
@@ -125,6 +126,7 @@ class DebugService {
   static Future<DebugService> start(
     String hostname,
     RemoteDebugger remoteDebugger,
+    EvaluationContext evalContext,
     String tabUrl,
     AssetHandler assetHandler,
     AppConnection appConnection,
@@ -135,8 +137,14 @@ class DebugService {
     bool useSse,
   }) async {
     useSse ??= false;
-    var chromeProxyService = await ChromeProxyService.create(remoteDebugger,
-        tabUrl, assetHandler, appConnection, logWriter, restoreBreakpoints);
+    var chromeProxyService = await ChromeProxyService.create(
+        remoteDebugger,
+        tabUrl,
+        assetHandler,
+        appConnection,
+        logWriter,
+        restoreBreakpoints,
+        evalContext);
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;

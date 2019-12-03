@@ -54,9 +54,12 @@ class DwdsVmClient {
 
     client.registerServiceCallback('hotRestart', (request) async {
       await _disableBreakpointsAndResume(client, chromeProxyService);
-      var response = await chromeProxyService.remoteDebugger.sendCommand(
-          'Runtime.evaluate',
-          params: {'expression': r'$dartHotRestart();', 'awaitPromise': true});
+      var response = await chromeProxyService.remoteDebugger
+          .sendCommand('Runtime.evaluate', params: {
+        'expression': r'$dartHotRestart();',
+        'awaitPromise': true,
+        'contextId': await chromeProxyService.evalContext.currentId,
+      });
       var exceptionDetails = response.result['exceptionDetails'];
       if (exceptionDetails != null) {
         return {

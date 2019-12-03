@@ -29,6 +29,12 @@ class _$DevToolsRequestSerializer
       serializers.serialize(object.instanceId,
           specifiedType: const FullType(String)),
     ];
+    if (object.contextId != null) {
+      result
+        ..add('contextId')
+        ..add(serializers.serialize(object.contextId,
+            specifiedType: const FullType(int)));
+    }
     if (object.tabUrl != null) {
       result
         ..add('tabUrl')
@@ -57,6 +63,10 @@ class _$DevToolsRequestSerializer
         case 'instanceId':
           result.instanceId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
+          break;
+        case 'contextId':
+          result.contextId = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
           break;
         case 'tabUrl':
           result.tabUrl = serializers.deserialize(value,
@@ -126,12 +136,16 @@ class _$DevToolsRequest extends DevToolsRequest {
   @override
   final String instanceId;
   @override
+  final int contextId;
+  @override
   final String tabUrl;
 
   factory _$DevToolsRequest([void Function(DevToolsRequestBuilder) updates]) =>
       (new DevToolsRequestBuilder()..update(updates)).build();
 
-  _$DevToolsRequest._({this.appId, this.instanceId, this.tabUrl}) : super._() {
+  _$DevToolsRequest._(
+      {this.appId, this.instanceId, this.contextId, this.tabUrl})
+      : super._() {
     if (appId == null) {
       throw new BuiltValueNullFieldError('DevToolsRequest', 'appId');
     }
@@ -154,13 +168,16 @@ class _$DevToolsRequest extends DevToolsRequest {
     return other is DevToolsRequest &&
         appId == other.appId &&
         instanceId == other.instanceId &&
+        contextId == other.contextId &&
         tabUrl == other.tabUrl;
   }
 
   @override
   int get hashCode {
-    return $jf(
-        $jc($jc($jc(0, appId.hashCode), instanceId.hashCode), tabUrl.hashCode));
+    return $jf($jc(
+        $jc($jc($jc(0, appId.hashCode), instanceId.hashCode),
+            contextId.hashCode),
+        tabUrl.hashCode));
   }
 
   @override
@@ -168,6 +185,7 @@ class _$DevToolsRequest extends DevToolsRequest {
     return (newBuiltValueToStringHelper('DevToolsRequest')
           ..add('appId', appId)
           ..add('instanceId', instanceId)
+          ..add('contextId', contextId)
           ..add('tabUrl', tabUrl))
         .toString();
   }
@@ -185,6 +203,10 @@ class DevToolsRequestBuilder
   String get instanceId => _$this._instanceId;
   set instanceId(String instanceId) => _$this._instanceId = instanceId;
 
+  int _contextId;
+  int get contextId => _$this._contextId;
+  set contextId(int contextId) => _$this._contextId = contextId;
+
   String _tabUrl;
   String get tabUrl => _$this._tabUrl;
   set tabUrl(String tabUrl) => _$this._tabUrl = tabUrl;
@@ -195,6 +217,7 @@ class DevToolsRequestBuilder
     if (_$v != null) {
       _appId = _$v.appId;
       _instanceId = _$v.instanceId;
+      _contextId = _$v.contextId;
       _tabUrl = _$v.tabUrl;
       _$v = null;
     }
@@ -218,7 +241,10 @@ class DevToolsRequestBuilder
   _$DevToolsRequest build() {
     final _$result = _$v ??
         new _$DevToolsRequest._(
-            appId: appId, instanceId: instanceId, tabUrl: tabUrl);
+            appId: appId,
+            instanceId: instanceId,
+            contextId: contextId,
+            tabUrl: tabUrl);
     replace(_$result);
     return _$result;
   }

@@ -30,8 +30,12 @@ class LibraryHelper extends Domain {
         return libs;
       })()
      ''';
-    var result = await inspector.remoteDebugger.sendCommand('Runtime.evaluate',
-        params: {'expression': expression, 'returnByValue': true});
+    var result =
+        await inspector.remoteDebugger.sendCommand('Runtime.evaluate', params: {
+      'expression': expression,
+      'returnByValue': true,
+      'contextId': await inspector.contextId,
+    });
     handleErrorIfPresent(result, evalContents: expression);
     var libraries = List<String>.from(result.result['result']['value'] as List);
     // Filter out any non-Dart libraries, which basically means the .bootstrap
@@ -77,8 +81,12 @@ class LibraryHelper extends Domain {
       return result;
     })()
     ''';
-    var result = await inspector.remoteDebugger.sendCommand('Runtime.evaluate',
-        params: {'expression': expression, 'returnByValue': true});
+    var result =
+        await inspector.remoteDebugger.sendCommand('Runtime.evaluate', params: {
+      'expression': expression,
+      'returnByValue': true,
+      'contextId': await inspector.contextId,
+    });
     handleErrorIfPresent(result, evalContents: expression);
     var classDescriptors = (result.result['result']['value']['classes'] as List)
         .cast<Map<String, Object>>();

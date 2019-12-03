@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/debugging/evaluation_context.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -48,6 +49,7 @@ class AppInspector extends Domain {
   final Isolate isolate;
   final IsolateRef isolateRef;
   final AppConnection appConnection;
+  final EvaluationContext _evaluationContext;
 
   final LibraryHelper libraryHelper;
   final ClassHelper classHelper;
@@ -70,6 +72,7 @@ class AppInspector extends Domain {
     this._assetHandler,
     this._locations,
     this._root,
+    this._evaluationContext,
   )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
@@ -100,6 +103,7 @@ class AppInspector extends Domain {
     Locations locations,
     String root,
     Debugger debugger,
+    EvaluationContext evaluationContext,
   ) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;
@@ -136,10 +140,13 @@ class AppInspector extends Domain {
       assetHandler,
       locations,
       root,
+      evaluationContext,
     );
     await appInspector._initialize();
     return appInspector;
   }
+
+  Future<int> get contextId => _evaluationContext.currentId;
 
   /// Get the value of the field named [fieldName] from [receiver].
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
@@ -256,8 +263,10 @@ class AppInspector extends Domain {
   Future<RemoteObject> jsEvaluate(String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.
     WipResponse result;
-    result = await remoteDebugger
-        .sendCommand('Runtime.evaluate', params: {'expression': expression});
+    result = await remoteDebugger.sendCommand('Runtime.evaluate', params: {
+      'expression': expression,
+      'contextId': await contextId,
+    });
     handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
       'Dart expression': expression,
     });
@@ -373,8 +382,11 @@ function($argsString) {
       return allScripts;
     })()
     ''';
-    var result = await remoteDebugger.sendCommand('Runtime.evaluate',
-        params: {'expression': expression, 'returnByValue': true});
+    var result = await remoteDebugger.sendCommand('Runtime.evaluate', params: {
+      'expression': expression,
+      'returnByValue': true,
+      'contextId': await contextId,
+    });
     handleErrorIfPresent(result, evalContents: expression);
     var allScripts = result.result['result']['value'];
 
@@ -407,8 +419,12 @@ function($argsString) {
   Future<List<String>> _getExtensionRpcs() async {
     var expression =
         "$loadModule('dart_sdk').developer._extensions.keys.toList();";
-    var extensionsResult = await remoteDebugger.sendCommand('Runtime.evaluate',
-        params: {'expression': expression, 'returnByValue': true});
+    var extensionsResult =
+        await remoteDebugger.sendCommand('Runtime.evaluate', params: {
+      'expression': expression,
+      'returnByValue': true,
+      'contextId': await contextId,
+    });
     handleErrorIfPresent(extensionsResult, evalContents: expression);
     return List.from(extensionsResult.result['result']['value'] as List);
   }

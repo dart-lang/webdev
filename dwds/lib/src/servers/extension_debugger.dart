@@ -157,6 +157,8 @@ class ExtensionDebugger implements RemoteDebugger {
   Future<RemoteObject> evaluate(String expression) async {
     final response = await sendCommand('Runtime.evaluate', params: {
       'expression': expression,
+      // TODO(grouma) - Make this work for the extension.
+      // 'contextId': contextId,
     });
     if (response.result.containsKey('exceptionDetails')) {
       throw ChromeDebugException(

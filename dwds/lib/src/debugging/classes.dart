@@ -108,8 +108,12 @@ class ClassHelper extends Domain {
       return descriptor;
     })()
     ''';
-    var result = await inspector.remoteDebugger.sendCommand('Runtime.evaluate',
-        params: {'expression': expression, 'returnByValue': true});
+    var result =
+        await inspector.remoteDebugger.sendCommand('Runtime.evaluate', params: {
+      'expression': expression,
+      'returnByValue': true,
+      'contextId': await inspector.contextId,
+    });
     handleErrorIfPresent(result, evalContents: expression);
     var classDescriptor = result.result['result']['value'];
 

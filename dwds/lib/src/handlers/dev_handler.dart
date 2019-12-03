@@ -11,6 +11,7 @@ import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
+import 'package:dwds/src/debugging/evaluation_context.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
@@ -109,17 +110,40 @@ class DevHandler {
   Future<DebugService> startDebugService(
       ChromeConnection chromeConnection, AppConnection appConnection) async {
     ChromeTab appTab;
+    EvaluationContext evaluationContext;
     WipConnection tabConnection;
     var appInstanceId = appConnection.request.instanceId;
     for (var tab in await chromeConnection.getTabs()) {
       if (tab.url.startsWith('chrome-extensions:')) continue;
       tabConnection = await tab.connect();
-      var result = await tabConnection.runtime
-          .evaluate(r'window["$dartAppInstanceId"];');
-      if (result.value == appInstanceId) {
-        appTab = tab;
-        break;
+      var iframes = await tabConnection.runtime
+          .evaluate('document.getElementsByTagName("iframe").length');
+      var contextCount = int.parse(iframes.value.toString()) + 1;
+      var contextStream = tabConnection.runtime.eventStream(
+          'Runtime.executionContextCreated',
+          (e) => int.parse(e.params['context']['id'].toString()));
+      var controller = StreamController<int>();
+      // We need to add a listener before we enable the runtime otherwise we
+      // may miss events. We use a controller to collect events because we
+      // don't want to close the underlying stream.
+      var sub = contextStream.listen((data) {
+        if (!controller.isClosed) controller.add(data);
+      });
+      await tabConnection.runtime.enable();
+      var contextList = await controller.stream.take(contextCount).toList();
+      for (var id in contextList) {
+        var result = await tabConnection.sendCommand('Runtime.evaluate',
+            {'expression': r'window["$dartAppInstanceId"];', 'contextId': id});
+        var evaluatedAppId = result.result['result']['value'];
+        if (evaluatedAppId == appInstanceId) {
+          appTab = tab;
+          evaluationContext =
+              EvaluationContext(id, WebkitDebugger(WipDebugger(tabConnection)));
+          break;
+        }
       }
+      if (appTab != null) break;
+      unawaited(sub.cancel());
       unawaited(tabConnection.close());
     }
     if (appTab == null) {
@@ -128,13 +152,12 @@ class DevHandler {
           '$appInstanceId');
     }
 
-    await tabConnection.runtime.enable();
-
     var webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
     return DebugService.start(
       _hostname,
       webkitDebugger,
+      evaluationContext,
       appTab.url,
       _assetHandler,
       appConnection,
@@ -345,6 +368,7 @@ class DevHandler {
         var debugService = await DebugService.start(
           _hostname,
           extensionDebugger,
+          EvaluationContext(devToolsRequest.contextId, extensionDebugger),
           devToolsRequest.tabUrl,
           _assetHandler,
           connection,
