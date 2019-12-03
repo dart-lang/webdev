@@ -113,3 +113,25 @@ var variables1 = [
     'result': {'result': []}
   }),
 ];
+
+/// Sample data for a Debugger.scriptParsed event
+var scriptParsedParams = {
+  "endColumn": 0,
+  "endLine": 53,
+  "executionContextAuxData": {
+    "frameId": "75DC0B9DAB420DD67036D4560E614998",
+    "isDefault": true,
+    "type": "default"
+  },
+  "executionContextId": 7,
+  "hasSourceURL": false,
+  "hash": "1b7029ad6e8a77da7fe7c0741479c0394f01b0f9",
+  "isLiveEdit": false,
+  "isModule": false,
+  "length": 2732,
+  "scriptId": "146",
+  "sourceMapURL": "main.ddc.js.map",
+  "startColumn": 0,
+  "startLine": 0,
+  "url": "http://localhost:8080/main.ddc.js"
+};

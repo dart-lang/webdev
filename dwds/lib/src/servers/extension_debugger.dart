@@ -73,6 +73,14 @@ class ExtensionDebugger implements RemoteDebugger {
           'params': json.decode(message.params)
         };
         _notificationController.sink.add(WipEvent(map));
+      } else if (message is BatchedEvents) {
+        for (var event in message.events) {
+          var map = {
+            'method': json.decode(event.method),
+            'params': json.decode(event.params)
+          };
+          _notificationController.sink.add(WipEvent(map));
+        }
       } else if (message is DevToolsRequest) {
         instanceId = message.instanceId;
         _devToolsRequestController.sink.add(message);
