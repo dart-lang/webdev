@@ -5,13 +5,14 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:async/async.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/serializers.dart' as build_daemon;
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/debugging/evaluation_context.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
@@ -116,24 +117,26 @@ class DevHandler {
     for (var tab in await chromeConnection.getTabs()) {
       if (tab.url.startsWith('chrome-extensions:')) continue;
       tabConnection = await tab.connect();
-      var contexts = <int>[];
-      var sub = tabConnection.runtime
-          .eventStream('Runtime.executionContextCreated',
-              (e) => int.parse(e.params['context']['id'].toString()))
-          .listen(contexts.add);
-      await tabConnection.runtime.enable();
+      var contextQueue = StreamQueue<int>(tabConnection.runtime.eventStream(
+          'Runtime.executionContextCreated',
+          (e) => int.parse(e.params['context']['id'].toString())));
+      // We enqueue this work as we need to begin listening (`.hasNext`)
+      // before events are received.
+      unawaited(Future.microtask(() => tabConnection.runtime.enable()));
       // There is no way to calculate the number of existing execution contexts
-      // so we wait for a short while to recieve events.
-      await Future.delayed(const Duration(milliseconds: 50));
-      await sub.cancel();
-      for (var id in contexts) {
-        var result = await tabConnection.sendCommand('Runtime.evaluate',
-            {'expression': r'window["$dartAppInstanceId"];', 'contextId': id});
+      // so we wait for a short while to recieve a context.
+      while (await contextQueue.hasNext
+          .timeout(const Duration(milliseconds: 50), onTimeout: () => false)) {
+        var context = await contextQueue.next;
+        var result = await tabConnection.sendCommand('Runtime.evaluate', {
+          'expression': r'window["$dartAppInstanceId"];',
+          'contextId': context
+        });
         var evaluatedAppId = result.result['result']['value'];
         if (evaluatedAppId == appInstanceId) {
           appTab = tab;
-          evaluationContext =
-              EvaluationContext(id, WebkitDebugger(WipDebugger(tabConnection)));
+          evaluationContext = EvaluationContext(
+              context, WebkitDebugger(WipDebugger(tabConnection)));
           break;
         }
       }

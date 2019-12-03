@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/debugging/evaluation_context.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:path/path.dart' as p;
 
 import '../utilities/dart_uri.dart';

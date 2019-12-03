@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/debugging/evaluation_context.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';

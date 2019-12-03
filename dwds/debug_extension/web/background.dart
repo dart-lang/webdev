@@ -9,12 +9,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js';
 
+import 'package:async/async.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
+import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sse/client/sse_client.dart';
 
@@ -35,7 +37,8 @@ void main() {
           alert('DevTools is already opened on a different window.');
           return;
         }
-        var contexts = <int>[];
+        var contextController = StreamController<int>();
+        var contextQueue = StreamQueue(contextController.stream);
         addDebuggerListener(
             allowInterop((Debuggee source, String method, Object params) async {
           if (source.tabId != currentTab.id) {
@@ -43,48 +46,30 @@ void main() {
           }
           if (method == 'Runtime.executionContextCreated') {
             var context = json.decode(stringify(params))['context'];
-            contexts.add(context['id'] as int);
+            contextController.add(context['id'] as int);
           }
         }));
-
-        sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable',
-            EmptyParam(), allowInterop((e) {}));
-
+        // We enqueue this work as we need to begin listening (`.hasNext`)
+        // before events are received.
+        unawaited(Future.microtask(() => sendCommand(
+            Debuggee(tabId: currentTab.id),
+            'Runtime.enable',
+            EmptyParam(),
+            allowInterop((e) {}))));
+        var didAttach = false;
         // There is no way to calculate the number of existing execution contexts
-        // so we wait for a short while to recieve events.
-        await Future.delayed(const Duration(milliseconds: 50));
-
-        var success = false;
-        for (var contextId in contexts) {
-          var successCompleter = Completer<bool>();
-          sendCommand(
-              Debuggee(tabId: currentTab.id),
-              'Runtime.evaluate',
-              InjectedParams(
-                  expression:
-                      '[\$dartExtensionUri, \$dartAppId, \$dartAppInstanceId, window.\$dwdsVersion]',
-                  returnByValue: true,
-                  contextId: contextId), allowInterop((e) {
-            String extensionUri, appId, instanceId, dwdsVersion;
-            if (e.result.value == null) {
-              successCompleter.complete(false);
-              return;
-            }
-            extensionUri = e.result.value[0] as String;
-            appId = e.result.value[1] as String;
-            instanceId = e.result.value[2] as String;
-            dwdsVersion = e.result.value[3] as String;
-            startSseClient(extensionUri, appId, instanceId, contextId,
-                currentTab, dwdsVersion);
-            successCompleter.complete(true);
-          }));
-          if (await successCompleter.future) {
-            success = true;
+        // so we wait for a short while to recieve a context.
+        while (await contextQueue.hasNext.timeout(
+            const Duration(milliseconds: 50),
+            onTimeout: () => false)) {
+          var context = await contextQueue.next;
+          if (await _tryAttach(context, currentTab)) {
+            didAttach = true;
             break;
           }
         }
-        if (!success) {
-          alert('Unable to launch DevTools. This is not Dart application.');
+        if (!didAttach) {
+          alert('Unable to launch DevTools. This is not a Dart application.');
           detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
           return;
         }
@@ -105,12 +90,52 @@ void main() {
   isDartDebugExtension = true;
 }
 
+/// Attempts to attach to the Dart application in the provided Tab
+/// and exeuction context.
+Future<bool> _tryAttach(int contextId, Tab tab) async {
+  var successCompleter = Completer<bool>();
+  sendCommand(
+      Debuggee(tabId: tab.id),
+      'Runtime.evaluate',
+      InjectedParams(
+          expression:
+              '[\$dartExtensionUri, \$dartAppId, \$dartAppInstanceId, window.\$dwdsVersion]',
+          returnByValue: true,
+          contextId: contextId), allowInterop((e) {
+    String extensionUri, appId, instanceId, dwdsVersion;
+    if (e.result.value == null) {
+      successCompleter.complete(false);
+      return;
+    }
+    extensionUri = e.result.value[0] as String;
+    appId = e.result.value[1] as String;
+    instanceId = e.result.value[2] as String;
+    dwdsVersion = e.result.value[3] as String;
+    _startSseClient(
+      extensionUri,
+      appId,
+      instanceId,
+      contextId,
+      tab,
+      dwdsVersion,
+    );
+    successCompleter.complete(true);
+  }));
+  return successCompleter.future;
+}
+
 // Starts an SSE client.
 //
 // Initiates a [DevToolsRequest], handles an [ExtensionRequest],
 // and sends an [ExtensionEvent].
-Future<void> startSseClient(String uri, String appId, String instanceId,
-    int contextId, Tab currentTab, String dwdsVersion) async {
+Future<void> _startSseClient(
+  String uri,
+  String appId,
+  String instanceId,
+  int contextId,
+  Tab currentTab,
+  String dwdsVersion,
+) async {
   // Specifies whether the debugger is attached.
   //
   // A debugger is detached if it is closed by user or the target is closed.
