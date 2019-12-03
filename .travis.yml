@@ -22,47 +22,59 @@ jobs:
       env: PKGS="dwds example webdev"
       script: ./tool/travis.sh dartanalyzer_1
     - stage: analyzer_and_format
-      name: "SDK: dev; PKGS: dwds, example, webdev; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
+      name: "SDK: dev; PKG: dwds; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`, `pub run test test/build/ensure_version_test.dart`]"
       dart: dev
       os: linux
-      env: PKGS="dwds example webdev"
+      env: PKGS="dwds"
+      script: ./tool/travis.sh dartfmt dartanalyzer_0 test_0
+    - stage: analyzer_and_format
+      name: "SDK: dev; PKG: example; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
+      dart: dev
+      os: linux
+      env: PKGS="example"
       script: ./tool/travis.sh dartfmt dartanalyzer_0
+    - stage: analyzer_and_format
+      name: "SDK: dev; PKG: webdev; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`, `pub run test test/build/ensure_build_test.dart`]"
+      dart: dev
+      os: linux
+      env: PKGS="webdev"
+      script: ./tool/travis.sh dartfmt dartanalyzer_0 test_2
     - stage: unit_test
       name: "SDK: 2.5.0; PKG: dwds; TASKS: `pub run test`"
       dart: "2.5.0"
       os: linux
       env: PKGS="dwds"
-      script: ./tool/travis.sh test_0
+      script: ./tool/travis.sh test_1
     - stage: unit_test
       name: "SDK: stable; PKG: dwds; TASKS: `pub run test`"
       dart: stable
       os: linux
       env: PKGS="dwds"
-      script: ./tool/travis.sh test_0
+      script: ./tool/travis.sh test_1
     - stage: unit_test
       name: "SDK: stable; PKG: dwds; TASKS: `pub run test`"
       dart: stable
       os: windows
       env: PKGS="dwds"
-      script: ./tool/travis.sh test_0
+      script: ./tool/travis.sh test_1
     - stage: unit_test
       name: "SDK: 2.5.0; PKG: webdev; TASKS: `pub run test -j 1`"
       dart: "2.5.0"
       os: linux
       env: PKGS="webdev"
-      script: ./tool/travis.sh test_1
+      script: ./tool/travis.sh test_3
     - stage: unit_test
       name: "SDK: stable; PKG: webdev; TASKS: `pub run test -j 1`"
       dart: stable
       os: linux
       env: PKGS="webdev"
-      script: ./tool/travis.sh test_1
+      script: ./tool/travis.sh test_3
     - stage: unit_test
       name: "SDK: stable; PKG: webdev; TASKS: `pub run test -j 1`"
       dart: stable
       os: windows
       env: PKGS="webdev"
-      script: ./tool/travis.sh test_1
+      script: ./tool/travis.sh test_3
 
 stages:
   - analyzer_and_format

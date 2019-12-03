@@ -8,6 +8,7 @@ stages:
     - group:
       - dartfmt
       - dartanalyzer: --fatal-infos --fatal-warnings .
+      - test: test/build/ensure_version_test.dart
       dart: dev
     - group:
       - dartanalyzer: --fatal-warnings .
