@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
+import 'package:dwds/src/debugging/evaluation_context.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -32,6 +33,8 @@ class ExtensionDebugger implements RemoteDebugger {
   Future<void> _closed;
 
   String instanceId;
+  EvaluationContext _evaluationContext;
+  EvaluationContext get evaluationContext => _evaluationContext;
 
   final _devToolsRequestController = StreamController<DevToolsRequest>();
   Stream<DevToolsRequest> get devToolsRequestStream =>
@@ -83,6 +86,7 @@ class ExtensionDebugger implements RemoteDebugger {
         }
       } else if (message is DevToolsRequest) {
         instanceId = message.instanceId;
+        _evaluationContext = EvaluationContext(message.contextId, this);
         _devToolsRequestController.sink.add(message);
       }
     }, onError: (_) {
@@ -165,8 +169,7 @@ class ExtensionDebugger implements RemoteDebugger {
   Future<RemoteObject> evaluate(String expression) async {
     final response = await sendCommand('Runtime.evaluate', params: {
       'expression': expression,
-      // TODO(grouma) - Make this work for the extension.
-      // 'contextId': contextId,
+      'contextId': await _evaluationContext.currentId,
     });
     if (response.result.containsKey('exceptionDetails')) {
       throw ChromeDebugException(

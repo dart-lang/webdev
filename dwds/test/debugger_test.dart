@@ -7,6 +7,7 @@ import 'dart:async';
 
 import 'package:dwds/dwds.dart' show ModuleStrategy;
 import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/evaluation_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/modules.dart';
@@ -35,7 +36,7 @@ void main() async {
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
     var root = 'fakeRoot';
-    var modules = Modules(webkitDebugger, root);
+    var modules = Modules(webkitDebugger, root, null);
     locations = Locations(null, modules, root);
     debugger = await Debugger.create(
       webkitDebugger,

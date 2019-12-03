@@ -362,7 +362,7 @@ class DevHandler {
         var debugService = await DebugService.start(
           _hostname,
           extensionDebugger,
-          EvaluationContext(devToolsRequest.contextId, extensionDebugger),
+          extensionDebugger.evaluationContext,
           devToolsRequest.tabUrl,
           _assetHandler,
           connection,
