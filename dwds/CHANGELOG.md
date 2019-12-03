@@ -1,3 +1,7 @@
+## 0.8.2
+
+- Add the ability to receive events from the extension in batches.
+
 ## 0.8.1
 
 - Depend on the latest `package:built_value`.

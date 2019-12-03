@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
@@ -57,6 +58,22 @@ void main() async {
       var wipEvent = await extensionDebugger.onNotification.first;
       expect(wipEvent.method, 'Debugger.paused');
       expect(wipEvent.params, frames1[0]);
+    });
+
+    test('a BatchedEvents', () async {
+      var event1 = ExtensionEvent((b) => b
+        ..method = jsonEncode('Debugger.scriptParsed')
+        ..params = jsonEncode(scriptParsedParams));
+      var event2 = ExtensionEvent((b) => b
+        ..method = jsonEncode('Debugger.scriptParsed')
+        ..params = jsonEncode(scriptParsedParams));
+      var batch =
+          BatchedEvents((b) => b..events = ListBuilder([event1, event2]));
+      connection.controllerIncoming.sink
+          .add(jsonEncode(serializers.serialize(batch)));
+      var wipEvent = await extensionDebugger.onNotification.first;
+      expect(wipEvent.method, 'Debugger.scriptParsed');
+      expect(wipEvent.params, scriptParsedParams);
     });
 
     test('a DevToolsRequest', () async {
