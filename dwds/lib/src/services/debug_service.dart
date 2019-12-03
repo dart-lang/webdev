@@ -126,7 +126,7 @@ class DebugService {
   static Future<DebugService> start(
     String hostname,
     RemoteDebugger remoteDebugger,
-    EvaluationContext evalContext,
+    ExecutionContext executionContext,
     String tabUrl,
     AssetHandler assetHandler,
     AppConnection appConnection,
@@ -144,7 +144,7 @@ class DebugService {
         appConnection,
         logWriter,
         restoreBreakpoints,
-        evalContext);
+        executionContext);
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;

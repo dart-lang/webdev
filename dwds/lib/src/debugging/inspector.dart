@@ -49,7 +49,7 @@ class AppInspector extends Domain {
   final Isolate isolate;
   final IsolateRef isolateRef;
   final AppConnection appConnection;
-  final EvaluationContext _evaluationContext;
+  final ExecutionContext __executionContext;
 
   final LibraryHelper libraryHelper;
   final ClassHelper classHelper;
@@ -72,7 +72,7 @@ class AppInspector extends Domain {
     this._assetHandler,
     this._locations,
     this._root,
-    this._evaluationContext,
+    this.__executionContext,
   )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
@@ -103,7 +103,7 @@ class AppInspector extends Domain {
     Locations locations,
     String root,
     Debugger debugger,
-    EvaluationContext evaluationContext,
+    ExecutionContext executionContext,
   ) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;
@@ -140,13 +140,13 @@ class AppInspector extends Domain {
       assetHandler,
       locations,
       root,
-      evaluationContext,
+      executionContext,
     );
     await appInspector._initialize();
     return appInspector;
   }
 
-  Future<int> get contextId => _evaluationContext.currentId;
+  Future<int> get contextId => __executionContext.id;
 
   /// Get the value of the field named [fieldName] from [receiver].
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {

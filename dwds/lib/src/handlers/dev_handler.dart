@@ -111,7 +111,7 @@ class DevHandler {
   Future<DebugService> startDebugService(
       ChromeConnection chromeConnection, AppConnection appConnection) async {
     ChromeTab appTab;
-    EvaluationContext evaluationContext;
+    ExecutionContext executionContext;
     WipConnection tabConnection;
     var appInstanceId = appConnection.request.instanceId;
     for (var tab in await chromeConnection.getTabs()) {
@@ -135,7 +135,7 @@ class DevHandler {
         var evaluatedAppId = result.result['result']['value'];
         if (evaluatedAppId == appInstanceId) {
           appTab = tab;
-          evaluationContext = EvaluationContext(
+          executionContext = ExecutionContext(
               context, WebkitDebugger(WipDebugger(tabConnection)));
           break;
         }
@@ -154,7 +154,7 @@ class DevHandler {
     return DebugService.start(
       _hostname,
       webkitDebugger,
-      evaluationContext,
+      executionContext,
       appTab.url,
       _assetHandler,
       appConnection,
@@ -365,7 +365,7 @@ class DevHandler {
         var debugService = await DebugService.start(
           _hostname,
           extensionDebugger,
-          extensionDebugger.evaluationContext,
+          extensionDebugger.executionContext,
           devToolsRequest.tabUrl,
           _assetHandler,
           connection,

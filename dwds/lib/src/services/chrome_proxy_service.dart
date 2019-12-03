@@ -14,7 +14,7 @@ import '../../asset_handler.dart';
 import '../../dwds.dart' show LogWriter;
 import '../connections/app_connection.dart';
 import '../debugging/debugger.dart';
-import '../debugging/evaluation_context.dart';
+import '../debugging/execution_context.dart';
 import '../debugging/inspector.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
@@ -52,7 +52,7 @@ class ChromeProxyService implements VmServiceInterface {
   final String uri;
 
   final RemoteDebugger remoteDebugger;
-  final EvaluationContext evalContext;
+  final ExecutionContext executionContext;
 
   /// Provides debugger-related functionality.
   Future<Debugger> get _debugger => _debuggerCompleter.future;
@@ -88,7 +88,7 @@ class ChromeProxyService implements VmServiceInterface {
     this._modules,
     this._locations,
     this._restoreBreakpoints,
-    this.evalContext,
+    this.executionContext,
   ) {
     _debuggerCompleter.complete(Debugger.create(
       remoteDebugger,
@@ -108,7 +108,7 @@ class ChromeProxyService implements VmServiceInterface {
     AppConnection appConnection,
     LogWriter logWriter,
     bool restoreBreakpoints,
-    EvaluationContext evalContext,
+    ExecutionContext executionContext,
   ) async {
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
@@ -116,11 +116,11 @@ class ChromeProxyService implements VmServiceInterface {
       ..name = 'ChromeDebugProxy'
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
-    var modules = Modules(remoteDebugger, tabUrl, evalContext);
+    var modules = Modules(remoteDebugger, tabUrl, executionContext);
     var sources = Sources(assetHandler, logWriter);
     var locations = Locations(sources, modules, tabUrl);
     var service = ChromeProxyService._(vm, tabUrl, assetHandler, remoteDebugger,
-        sources, modules, locations, restoreBreakpoints, evalContext);
+        sources, modules, locations, restoreBreakpoints, executionContext);
     unawaited(service.createIsolate(appConnection));
     return service;
   }
@@ -147,7 +147,7 @@ class ChromeProxyService implements VmServiceInterface {
       _locations,
       uri,
       await _debugger,
-      evalContext,
+      executionContext,
     );
 
     for (var breakpoint in _previousBreakpoints) {
@@ -272,7 +272,7 @@ $loadModule("dart_sdk").developer.invokeExtension(
         await remoteDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
       'awaitPromise': true,
-      'contextId': await evalContext.currentId,
+      'contextId': await executionContext.id,
     });
     handleErrorIfPresent(response, evalContents: expression);
     var decodedResponse =

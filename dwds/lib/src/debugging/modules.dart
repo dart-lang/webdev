@@ -15,7 +15,7 @@ import 'remote_debugger.dart';
 class Modules {
   final String _root;
   final RemoteDebugger _remoteDebugger;
-  final EvaluationContext _evaluationContext;
+  final ExecutionContext _executionContext;
   // The Dart server path to containing module.
   final _sourceToModule = <String, String>{};
 
@@ -27,7 +27,7 @@ class Modules {
 
   final _moduleExtensionCompleter = Completer<String>();
 
-  Modules(this._remoteDebugger, this._root, this._evaluationContext);
+  Modules(this._remoteDebugger, this._root, this._executionContext);
 
   /// Completes with the module extension i.e. `.ddc.js` or `.ddk.js`.
   ///
@@ -105,7 +105,7 @@ class Modules {
         await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
       'returnByValue': true,
-      'contextId': await _evaluationContext.currentId,
+      'contextId': await _executionContext.id,
     });
     handleErrorIfPresent(response);
     var value = response.result['result']['value'] as Map<String, dynamic>;

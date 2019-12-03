@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
 
-/// The evaluation context in which to do remote evaluations.
-class EvaluationContext {
+/// The execution context in which to do remote evaluations.
+class ExecutionContext {
   final RemoteDebugger _remoteDebugger;
 
   // Contexts that may contain a Dart application.“
@@ -16,7 +16,7 @@ class EvaluationContext {
   int _id;
 
   /// Returns the context ID that contains the running Dart application.
-  Future<int> get currentId async {
+  Future<int> get id async {
     if (_id != null) return _id;
     for (var context in _contexts) {
       var result =
@@ -32,7 +32,7 @@ class EvaluationContext {
     return _id;
   }
 
-  EvaluationContext(this._id, this._remoteDebugger) {
+  ExecutionContext(this._id, this._remoteDebugger) {
     _remoteDebugger
         .eventStream('Runtime.executionContextsCleared', (e) => e)
         .listen((_) {

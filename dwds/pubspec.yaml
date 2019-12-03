@@ -1,9 +1,5 @@
 name: dwds
-<<<<<<< HEAD
 version: 0.8.3
-=======
-version: 0.8.2
->>>>>>> master
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev/tree/master/dwds
 description: >-

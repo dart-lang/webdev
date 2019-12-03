@@ -58,7 +58,7 @@ class DwdsVmClient {
           .sendCommand('Runtime.evaluate', params: {
         'expression': r'$dartHotRestart();',
         'awaitPromise': true,
-        'contextId': await chromeProxyService.evalContext.currentId,
+        'contextId': await chromeProxyService.executionContext.id,
       });
       var exceptionDetails = response.result['exceptionDetails'];
       if (exceptionDetails != null) {
