@@ -7,7 +7,6 @@ import 'dart:async';
 
 import 'package:dwds/dwds.dart' show ModuleStrategy;
 import 'package:dwds/src/debugging/debugger.dart';
-import 'package:dwds/src/debugging/evaluation_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/modules.dart';

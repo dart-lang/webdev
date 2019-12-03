@@ -1,3 +1,7 @@
+## 0.8.3
+
+- Support nesting Dart applications in iframes.
+
 ## 0.8.2
 
 - Add the ability to receive events from the extension in batches.
