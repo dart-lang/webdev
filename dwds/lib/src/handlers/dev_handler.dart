@@ -116,22 +116,17 @@ class DevHandler {
     for (var tab in await chromeConnection.getTabs()) {
       if (tab.url.startsWith('chrome-extensions:')) continue;
       tabConnection = await tab.connect();
-      var iframes = await tabConnection.runtime
-          .evaluate('document.getElementsByTagName("iframe").length');
-      var contextCount = int.parse(iframes.value.toString()) + 1;
-      var contextStream = tabConnection.runtime.eventStream(
-          'Runtime.executionContextCreated',
-          (e) => int.parse(e.params['context']['id'].toString()));
-      var controller = StreamController<int>();
-      // We need to add a listener before we enable the runtime otherwise we
-      // may miss events. We use a controller to collect events because we
-      // don't want to close the underlying stream.
-      var sub = contextStream.listen((data) {
-        if (!controller.isClosed) controller.add(data);
-      });
+      var contexts = <int>[];
+      var sub = tabConnection.runtime
+          .eventStream('Runtime.executionContextCreated',
+              (e) => int.parse(e.params['context']['id'].toString()))
+          .listen(contexts.add);
       await tabConnection.runtime.enable();
-      var contextList = await controller.stream.take(contextCount).toList();
-      for (var id in contextList) {
+      // There is no way to calculate the number of existing execution contexts
+      // so we wait for a short while to recieve events.
+      await Future.delayed(const Duration(milliseconds: 50));
+      await sub.cancel();
+      for (var id in contexts) {
         var result = await tabConnection.sendCommand('Runtime.evaluate',
             {'expression': r'window["$dartAppInstanceId"];', 'contextId': id});
         var evaluatedAppId = result.result['result']['value'];
@@ -143,7 +138,6 @@ class DevHandler {
         }
       }
       if (appTab != null) break;
-      unawaited(sub.cancel());
       unawaited(tabConnection.close());
     }
     if (appTab == null) {

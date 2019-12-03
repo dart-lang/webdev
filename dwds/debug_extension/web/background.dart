@@ -30,31 +30,64 @@ void main() {
     // Extracts the extension backend port from the injected JS.
     var callback = allowInterop((List<Tab> tabs) async {
       currentTab = tabs[0];
-      attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() {
+      attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() async {
         if (lastError != null) {
           alert('DevTools is already opened on a different window.');
           return;
         }
-        sendCommand(
-            Debuggee(tabId: currentTab.id),
-            'Runtime.evaluate',
-            InjectedParams(
-                expression:
-                    '[\$dartExtensionUri, \$dartAppId, \$dartAppInstanceId, window.\$dwdsVersion]',
-                returnByValue: true), allowInterop((e) {
-          String extensionUri, appId, instanceId, dwdsVersion;
-          if (e.result.value == null) {
-            alert('Unable to launch DevTools. This is not Dart application.');
-            detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+        var contexts = <int>[];
+        addDebuggerListener(
+            allowInterop((Debuggee source, String method, Object params) async {
+          if (source.tabId != currentTab.id) {
             return;
           }
-          extensionUri = e.result.value[0] as String;
-          appId = e.result.value[1] as String;
-          instanceId = e.result.value[2] as String;
-          dwdsVersion = e.result.value[3] as String;
-          startSseClient(
-              extensionUri, appId, instanceId, currentTab, dwdsVersion);
+          if (method == 'Runtime.executionContextCreated') {
+            var context = json.decode(stringify(params))['context'];
+            contexts.add(context['id'] as int);
+          }
         }));
+
+        sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable',
+            EmptyParam(), allowInterop((e) {}));
+
+        // There is no way to calculate the number of existing execution contexts
+        // so we wait for a short while to recieve events.
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        var success = false;
+        for (var contextId in contexts) {
+          var successCompleter = Completer<bool>();
+          sendCommand(
+              Debuggee(tabId: currentTab.id),
+              'Runtime.evaluate',
+              InjectedParams(
+                  expression:
+                      '[\$dartExtensionUri, \$dartAppId, \$dartAppInstanceId, window.\$dwdsVersion]',
+                  returnByValue: true,
+                  contextId: contextId), allowInterop((e) {
+            String extensionUri, appId, instanceId, dwdsVersion;
+            if (e.result.value == null) {
+              successCompleter.complete(false);
+              return;
+            }
+            extensionUri = e.result.value[0] as String;
+            appId = e.result.value[1] as String;
+            instanceId = e.result.value[2] as String;
+            dwdsVersion = e.result.value[3] as String;
+            startSseClient(extensionUri, appId, instanceId, contextId,
+                currentTab, dwdsVersion);
+            successCompleter.complete(true);
+          }));
+          if (await successCompleter.future) {
+            success = true;
+            break;
+          }
+        }
+        if (!success) {
+          alert('Unable to launch DevTools. This is not Dart application.');
+          detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+          return;
+        }
       }));
     });
 
@@ -77,7 +110,7 @@ void main() {
 // Initiates a [DevToolsRequest], handles an [ExtensionRequest],
 // and sends an [ExtensionEvent].
 Future<void> startSseClient(String uri, String appId, String instanceId,
-    Tab currentTab, String dwdsVersion) async {
+    int contextId, Tab currentTab, String dwdsVersion) async {
   // Specifies whether the debugger is attached.
   //
   // A debugger is detached if it is closed by user or the target is closed.
@@ -118,6 +151,7 @@ Future<void> startSseClient(String uri, String appId, String instanceId,
   client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
     ..appId = appId
     ..instanceId = instanceId
+    ..contextId = contextId
     ..tabUrl = currentTab.url))));
 
   sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
@@ -329,7 +363,9 @@ class EmptyParam {
 class InjectedParams {
   external String get expresion;
   external bool get returnByValue;
-  external factory InjectedParams({String expression, bool returnByValue});
+  external int get contextId;
+  external factory InjectedParams(
+      {String expression, bool returnByValue, int contextId});
 }
 
 @JS()
