@@ -33,7 +33,9 @@ Future<void> main() {
     // Test apps may already have this set.
     dartAppInstanceId ??= Uuid().v1();
 
-    var client = SseClient(_fixProtocol('$dartUriBase/\$sseHandler'));
+    var client = SseClient(_fixProtocol(dartUriBase.endsWith('/')
+        ? '$dartUriBase\$sseHandler'
+        : '$dartUriBase/\$sseHandler'));
     // Ensure the SSE connection is established before proceeding.
     // Note that `onOpen` is a broadcast stream so we must listen for this
     // immediately.
