@@ -18,7 +18,7 @@ class ExecutionContext {
   /// Returns the context ID that contains the running Dart application.
   Future<int> get id async {
     if (_id != null) return _id;
-    for (var context in _contexts) {
+    for (var context in _contexts.toList()) {
       var result =
           await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
         'expression': r'window["$dartAppInstanceId"];',
