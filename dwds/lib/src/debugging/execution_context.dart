@@ -11,7 +11,7 @@ import 'package:dwds/src/debugging/remote_debugger.dart';
 class ExecutionContext {
   final RemoteDebugger _remoteDebugger;
 
-  // Contexts that may contain a Dart application.“
+  // Contexts that may contain a Dart application.
   StreamQueue<int> _contexts;
 
   int _id;
