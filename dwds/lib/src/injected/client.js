@@ -23699,7 +23699,7 @@
                 t1 = F.Uuid$().v1$0();
                 self.$dartAppInstanceId = t1;
               }
-              client = M.SseClient$(D._fixProtocol(H.S(self.$dartUriBase) + "/$sseHandler"));
+              client = M.SseClient$(D._fixProtocol(J.endsWith$1$s(self.$dartUriBase, "/") ? H.S(self.$dartUriBase) + "$sseHandler" : H.S(self.$dartUriBase) + "/$sseHandler"));
               t1 = new W._EventStream(client._eventSource, "open", false, [W.Event]);
               $async$goto = 2;
               return P._asyncAwait(t1.get$first(t1), $async$call$0);
