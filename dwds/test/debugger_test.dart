@@ -35,7 +35,7 @@ void main() async {
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
     var root = 'fakeRoot';
-    var modules = Modules(webkitDebugger, root);
+    var modules = Modules(webkitDebugger, root, null);
     locations = Locations(null, modules, root);
     debugger = await Debugger.create(
       webkitDebugger,

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:path/path.dart' as p;
 
 import '../utilities/dart_uri.dart';
@@ -14,6 +15,7 @@ import 'remote_debugger.dart';
 class Modules {
   final String _root;
   final RemoteDebugger _remoteDebugger;
+  final ExecutionContext _executionContext;
   // The Dart server path to containing module.
   final _sourceToModule = <String, String>{};
 
@@ -25,7 +27,7 @@ class Modules {
 
   final _moduleExtensionCompleter = Completer<String>();
 
-  Modules(this._remoteDebugger, this._root);
+  Modules(this._remoteDebugger, this._root, this._executionContext);
 
   /// Completes with the module extension i.e. `.ddc.js` or `.ddk.js`.
   ///
@@ -99,8 +101,12 @@ class Modules {
           return result;
       })();
       ''';
-    var response = await _remoteDebugger.sendCommand('Runtime.evaluate',
-        params: {'expression': expression, 'returnByValue': true});
+    var response =
+        await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
+      'expression': expression,
+      'returnByValue': true,
+      'contextId': await _executionContext.id,
+    });
     handleErrorIfPresent(response);
     var value = response.result['result']['value'] as Map<String, dynamic>;
     for (var dartScript in value.keys) {

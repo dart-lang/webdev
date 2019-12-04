@@ -1,3 +1,7 @@
+## 1.9
+
+- Look for Dart applications nested in iframes.
+
 ## 1.8
 
 - Add support for batching scriptParsed events.
