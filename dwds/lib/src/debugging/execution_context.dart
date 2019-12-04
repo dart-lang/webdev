@@ -29,6 +29,9 @@ class ExecutionContext {
         break;
       }
     }
+    if (_id == null) {
+      throw StateError('No context with the running Dart application.');
+    }
     return _id;
   }
 
