@@ -54,7 +54,7 @@ class DevHandler {
       StreamController<DebugConnection>();
   final UrlEncoder _urlEncoder;
   final bool _restoreBreakpoints;
-  final bool _useSse;
+  final bool _useSseForDebugProxy;
   final bool _serveDevTools;
 
   /// Null until [close] is called.
@@ -75,7 +75,7 @@ class DevHandler {
     this._extensionBackend,
     this._urlEncoder,
     this._restoreBreakpoints,
-    this._useSse,
+    this._useSseForDebugProxy,
     this._serveDevTools,
   ) {
     _sub = buildResults.listen(_emitBuildResults);
@@ -380,7 +380,7 @@ class DevHandler {
                       'VmService proxy responded with an error:\n$response');
                 }
               : null,
-          useSse: _useSse,
+          useSse: _useSseForDebugProxy,
         );
         var appServices =
             await _createAppDebugServices(devToolsRequest.appId, debugService);
