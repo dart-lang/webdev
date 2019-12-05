@@ -1,7 +1,7 @@
 ## 0.8.4
 
 - Support using WebSockets for the debug (VM Service) proxy by passing
-  `useSseForDebugProxy: true` to `Dwds.start()`
+  `useSseForDebugProxy: false` to `Dwds.start()`
 
 ## 0.8.3
 
