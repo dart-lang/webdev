@@ -63,6 +63,7 @@ class Dwds {
     @required bool enableDebugging,
     String hostname,
     ReloadConfiguration reloadConfiguration,
+    bool useSseForDebugProxy,
     bool serveDevTools,
     LogWriter logWriter,
     bool verbose,
@@ -75,6 +76,7 @@ class Dwds {
     reloadConfiguration ??= ReloadConfiguration.none;
     enableDebugging ??= true;
     enableDebugExtension ??= false;
+    useSseForDebugProxy ??= true;
     serveDevTools ??= true;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
@@ -121,6 +123,7 @@ class Dwds {
       extensionBackend,
       urlEncoder,
       restoreBreakpoints,
+      useSseForDebugProxy,
       serveDevTools,
     );
     cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
