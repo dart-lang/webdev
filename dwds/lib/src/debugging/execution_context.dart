@@ -22,14 +22,19 @@ class ExecutionContext {
     while (await _contexts.hasNext
         .timeout(const Duration(milliseconds: 50), onTimeout: () => false)) {
       var context = await _contexts.next;
-      var result =
-          await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
-        'expression': r'window["$dartAppInstanceId"];',
-        'contextId': context,
-      });
-      if (result.result['result']['value'] != null) {
-        _id = context;
-        break;
+      try {
+        var result =
+            await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
+          'expression': r'window["$dartAppInstanceId"];',
+          'contextId': context,
+        });
+        if (result.result['result']['value'] != null) {
+          _id = context;
+          break;
+        }
+      } catch (_) {
+        // Errors may be thrown if we attempt to evaluate in a stale a context.
+        // Ignore and continue.
       }
     }
     if (_id == null) {

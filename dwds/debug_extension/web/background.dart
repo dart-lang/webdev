@@ -151,12 +151,21 @@ Future<void> _startSseClient(
       var params =
           BuiltMap<String, Object>(json.decode(message.commandParams)).toMap();
       sendCommand(Debuggee(tabId: currentTab.id), message.command,
-          js_util.jsify(params), allowInterop((e) {
-        client.sink
-            .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
-              ..id = message.id
-              ..success = true
-              ..result = stringify(e)))));
+          js_util.jsify(params), allowInterop(([e]) {
+        // No arguments indicate that an error occurred.
+        if (e == null) {
+          client.sink
+              .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
+                ..id = message.id
+                ..success = false
+                ..result = stringify(lastError)))));
+        } else {
+          client.sink
+              .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
+                ..id = message.id
+                ..success = true
+                ..result = stringify(e)))));
+        }
       }));
     }
   }, onDone: () {
