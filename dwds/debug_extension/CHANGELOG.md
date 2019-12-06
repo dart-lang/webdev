@@ -1,3 +1,7 @@
+## 1.10
+
+- Properly handle `sendCommand` errors.
+
 ## 1.9
 
 - Look for Dart applications nested in iframes.
