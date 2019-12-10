@@ -108,9 +108,8 @@ class DevHandler {
     }
   }
 
-  // TODO(https://github.com/dart-lang/webdev/issues/202) - Refactor so this is
-  // a getter and is created immediately.
-  Future<DebugService> startDebugService(
+  /// Starts a [DebugService] for local debugging.
+  Future<DebugService> _startLocalDebugService(
       ChromeConnection chromeConnection, AppConnection appConnection) async {
     ChromeTab appTab;
     ExecutionContext executionContext;
@@ -154,7 +153,11 @@ class DevHandler {
     var webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
     return DebugService.start(
-      _hostname,
+      // We assume the user will connect to the debug service on the same
+      // machine. This allows consumers of DWDS to provide a `hostname` for
+      // debugging through the Dart Debug Extension without impacting the local
+      // debug workflow.
+      'localhost',
       webkitDebugger,
       executionContext,
       appTab.url,
@@ -169,14 +172,15 @@ class DevHandler {
                   'VmService proxy responded with an error:\n$response');
             }
           : null,
+      // This will provide a websocket based service.
       useSse: false,
     );
   }
 
   Future<AppDebugServices> loadAppServices(AppConnection appConnection) =>
       _servicesByAppId.putIfAbsent(appConnection.request.appId, () async {
-        var debugService =
-            await startDebugService(await _chromeConnection(), appConnection);
+        var debugService = await _startLocalDebugService(
+            await _chromeConnection(), appConnection);
         var appServices = await _createAppDebugServices(
             appConnection.request.appId, debugService);
         unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first

@@ -1,3 +1,7 @@
+## 0.8.5
+
+- Always bind to `localhost` for the local debug workflow.
+
 ## 0.8.4
 
 - Support using WebSockets for the debug (VM Service) proxy by passing
