@@ -136,6 +136,8 @@ class Modules {
         splitModule = splitModule.skip(2).toList();
       }
       result = 'packages/${splitModule.join(".")}/${p.basename(path)}';
+    } else if (path.contains('/google3/')) {
+      result = path.split('/google3/').last;
     } else if (path.startsWith('/')) {
       path = path.substring(1);
       if (skipRoot) {
