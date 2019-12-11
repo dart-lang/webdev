@@ -28,7 +28,7 @@ else
 fi
 
 # Temporary hack - the commented line below hangs on windows
-export CHROME_LATEST_VERSION=77
+export CHROME_LATEST_VERSION=79
 # export CHROME_LATEST_VERSION=$("$CHROMEDRIVER_BINARY" --version | cut -d' ' -f3 | cut -d'.' -f1)
 export CHROME_DRIVER_VERSION=$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_LATEST_VERSION)
 wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_$CHROMEDRIVER_OS.zip
