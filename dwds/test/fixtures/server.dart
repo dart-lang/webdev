@@ -42,6 +42,7 @@ class TestServer {
   }
 
   static Future<TestServer> start(
+      String hostname,
       int port,
       int assetServerPort,
       String target,
@@ -69,6 +70,7 @@ class TestServer {
       serveDevTools: serveDevTools,
       enableDebugExtension: enableDebugExtension,
       enableDebugging: enableDebugging,
+      hostname: hostname,
       verbose: true,
       urlEncoder: urlEncoder,
       // ignore: deprecated_member_use_from_same_package
