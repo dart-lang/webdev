@@ -1,6 +1,7 @@
 ## 0.8.5
 
 - Always bind to `localhost` for the local debug workflow.
+- Fix an issue where breakpoints could cause DevTools to hang.
 
 ## 0.8.4
 
