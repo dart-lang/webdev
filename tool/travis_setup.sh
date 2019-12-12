@@ -40,6 +40,8 @@ export CHROMEDRIVER_ARGS=--no-sandbox
 
 if [[ $TRAVIS_OS_NAME == "windows" ]]; then
     export PATH=$PATH:$APPDATA/Roaming/Pub/Cache/bin
+    echo "After path"
+    chromedriver.exe --version
 else
     export PATH=$PATH:~/.pub-cache/bin
 fi
