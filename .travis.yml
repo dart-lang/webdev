@@ -8,6 +8,7 @@ addons:
 before_install:
   - tool/travis_setup.sh
   - "export PATH=$PATH:$PWD"
+  - chromedriver.exe --version
 after_failure:
   - tool/report_failure.sh
 services:
