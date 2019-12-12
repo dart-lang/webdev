@@ -23,7 +23,7 @@ if [[ $TRAVIS_OS_NAME == "windows" ]]; then
     fi
     export CHROMEDRIVER_OS=win32
 
-    # choco install chromedriver --acceptlicense --yes --no-progress --ignore-checksums
+    choco install chromedriver --acceptlicense --yes --no-progress --ignore-checksums
 else
     export CHROMEDRIVER_BINARY=/usr/bin/google-chrome
     export CHROMEDRIVER_OS=linux64
