@@ -3,7 +3,6 @@
 
 if [[ $TRAVIS_OS_NAME == "windows" ]]; then
     echo Installing Google Chrome Stable...
-    chromedriver.exe --version
     # Install Chrome via Chocolatey while `addons: chrome` doesn't seem to work on Windows yet
     # https://travis-ci.community/t/installing-google-chrome-stable-but-i-cant-find-it-anywhere/2118
     choco install googlechrome --acceptlicense --yes --no-progress --ignore-checksums
@@ -25,8 +24,8 @@ if [[ $TRAVIS_OS_NAME == "windows" ]]; then
     fi
     export CHROMEDRIVER_OS=win32
 
+    echo Installing Google Chromedriver...
     choco install chromedriver --acceptlicense --yes --no-progress --ignore-checksums
-    chromedriver.exe --version
 else
     export CHROMEDRIVER_BINARY=/usr/bin/google-chrome
     export CHROMEDRIVER_OS=linux64
@@ -40,9 +39,6 @@ export CHROMEDRIVER_ARGS=--no-sandbox
 
 if [[ $TRAVIS_OS_NAME == "windows" ]]; then
     export PATH=$PATH:$APPDATA/Roaming/Pub/Cache/bin
-    echo "After path"
-    chromedriver.exe --version
-    where.exe chromedriver.exe
 else
     export PATH=$PATH:~/.pub-cache/bin
 fi
