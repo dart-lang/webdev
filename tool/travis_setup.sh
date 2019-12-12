@@ -1,5 +1,7 @@
 #!/bin/bash
 
+chromedriver.bat --version
+
 if [[ $TRAVIS_OS_NAME == "windows" ]]; then
     echo Installing Google Chrome Stable...
     # Install Chrome via Chocolatey while `addons: chrome` doesn't seem to work on Windows yet
