@@ -84,7 +84,7 @@ class TestContext {
     try {
       print('PRINTING VERSION WITHOUT PARENT');
       print(Process.runSync('chromedriver$_exeExt', ['--version'],
-              includeParentEnvironment: false)
+              runInShell: true)
           .stdout);
       chromeDriver = await Process.start('chromedriver$_exeExt',
           ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase']);
