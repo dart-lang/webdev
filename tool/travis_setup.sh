@@ -22,17 +22,17 @@ if [[ $TRAVIS_OS_NAME == "windows" ]]; then
         exit 1
     fi
     export CHROMEDRIVER_OS=win32
+
+    echo Installing Google Chromedriver...
+    choco install chromedriver --acceptlicense --yes --no-progress --ignore-checksums
 else
     export CHROMEDRIVER_BINARY=/usr/bin/google-chrome
     export CHROMEDRIVER_OS=linux64
+    export CHROME_LATEST_VERSION=$("$CHROMEDRIVER_BINARY" --version | cut -d' ' -f3 | cut -d'.' -f1)
+    export CHROME_DRIVER_VERSION=$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_LATEST_VERSION)
+    wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_$CHROMEDRIVER_OS.zip
+    unzip "chromedriver_${CHROMEDRIVER_OS}.zip"
 fi
-
-# Temporary hack - the commented line below hangs on windows
-export CHROME_LATEST_VERSION=77
-# export CHROME_LATEST_VERSION=$("$CHROMEDRIVER_BINARY" --version | cut -d' ' -f3 | cut -d'.' -f1)
-export CHROME_DRIVER_VERSION=$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_LATEST_VERSION)
-wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_$CHROMEDRIVER_OS.zip
-unzip "chromedriver_${CHROMEDRIVER_OS}.zip"
 
 export CHROMEDRIVER_ARGS=--no-sandbox
 
