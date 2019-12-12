@@ -82,10 +82,10 @@ class TestContext {
     var chromeDriverPort = await findUnusedPort();
     var chromeDriverUrlBase = 'wd/hub';
     try {
+      print('PRINTING WHERE');
+      print(Process.runSync('where$_exeExt', ['chromedriver.exe']).stdout);
       print('PRINTING VERSION WITHOUT PARENT');
-      print(Process.runSync('chromedriver$_exeExt', ['--version'],
-              runInShell: true)
-          .stdout);
+      print(Process.runSync('chromedriver$_exeExt', ['--version']).stdout);
       chromeDriver = await Process.start('chromedriver$_exeExt',
           ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase']);
       // On windows this takes a while to boot up, wait for the first line
