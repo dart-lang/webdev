@@ -93,7 +93,7 @@ class Dwds {
       extensionBackend = await ExtensionBackend.start(hostname);
       extensionUri = Uri(
               scheme: 'http',
-              host: hostname,
+              host: extensionBackend.hostname,
               port: extensionBackend.port,
               path: r'$debug')
           .toString();

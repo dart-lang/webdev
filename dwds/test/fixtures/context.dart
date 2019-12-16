@@ -70,6 +70,7 @@ class TestContext {
       bool enableDebugExtension,
       bool autoRun,
       bool enableDebugging,
+      String hostname,
       bool waitToDebug,
       UrlEncoder urlEncoder,
       bool restoreBreakpoints}) async {
@@ -135,6 +136,7 @@ class TestContext {
 
     port = await findUnusedPort();
     testServer = await TestServer.start(
+        hostname,
         port,
         daemonPort(workingDirectory),
         pathToServe,

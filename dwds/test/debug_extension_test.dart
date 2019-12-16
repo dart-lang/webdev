@@ -77,4 +77,34 @@ void main() async {
       expect(result.body.contains('http://some-encoded-url:8081/'), isTrue);
     });
   });
+
+  group('With "any" hostname', () {
+    final context = TestContext();
+    final uriPattern = RegExp(r'dartExtensionUri = "([^"]+)";');
+
+    setUp(() async {
+      await context.setUp(enableDebugExtension: true, hostname: 'any');
+    });
+
+    tearDown(() async {
+      await context.tearDown();
+    });
+
+    test('generates an extensionUri with a valid valid hostname', () async {
+      var result = await http.get(
+          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension');
+      expect(result.body.contains('dartExtensionUri'), isTrue);
+      var extensionUri = Uri.parse(uriPattern.firstMatch(result.body).group(1));
+      expect(
+          extensionUri.host,
+          anyOf(
+            // The hostname should've been mapped from "any" to one of the local
+            // loopback addresses/IPs.
+            equals('localhost'),
+            equals('127.0.0.1'),
+            equals('::'),
+            equals('::1'),
+          ));
+    });
+  });
 }
