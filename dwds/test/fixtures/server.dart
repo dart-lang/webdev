@@ -60,9 +60,11 @@ class TestServer {
     var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) =>
         results.results.firstWhere((result) => result.target == target));
 
+    var assetHandler =
+        BuildRunnerAssetHandler(assetServerPort, target, 'localhost', port);
+
     var dwds = await Dwds.start(
-      assetHandler:
-          BuildRunnerAssetHandler(assetServerPort, target, 'localhost', port),
+      assetHandler: assetHandler,
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       logWriter: (level, message) => printOnFailure(message),
@@ -78,8 +80,10 @@ class TestServer {
     );
 
     var server = await HttpMultiServer.bind('localhost', port);
-    shelf_io.serveRequests(server,
-        pipeline.addMiddleware(dwds.middleware).addHandler(dwds.handler));
+    shelf_io.serveRequests(
+        server,
+        pipeline.addMiddleware(dwds.middleware).addHandler(
+            Cascade().add(dwds.handler).add(assetHandler.handler).handler));
     return TestServer._(
       target,
       server,
