@@ -1,3 +1,10 @@
+## 0.9.0
+
+- Expose `middleware` and `handler`.
+
+**Breaking Change:** The `AssetHandler` will not automatically be added the
+  DWDS handler cascade.
+
 ## 0.8.5
 
 - Always bind to `localhost` for the local debug workflow.

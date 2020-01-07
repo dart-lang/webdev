@@ -105,6 +105,7 @@ class WebDevServer {
         enableDebugExtension: options.configuration.debugExtension,
         enableDebugging: options.configuration.debug,
       );
+      pipeline = pipeline.addMiddleware(dwds.middleware);
       assetHandler = dwds.handler;
     } else {
       assetHandler = proxyHandler(

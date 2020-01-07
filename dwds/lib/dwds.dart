@@ -32,12 +32,18 @@ enum ModuleStrategy { requireJS, legacy }
 
 /// The Dart Web Debug Service.
 class Dwds {
+  final Middleware middleware;
   final Handler handler;
   final DevTools _devTools;
   final DevHandler _devHandler;
   final bool _enableDebugging;
 
-  Dwds._(this.handler, this._devTools, this._devHandler, this._enableDebugging);
+  Dwds._(
+    this.middleware,
+    this._devTools,
+    this._devHandler,
+    this._enableDebugging,
+  ) : handler = _devHandler.handler;
 
   Stream<AppConnection> get connectedApps => _devHandler.connectedApps;
 
@@ -83,9 +89,6 @@ class Dwds {
     globalModuleStrategy = moduleStrategy ?? ModuleStrategy.requireJS;
     restoreBreakpoints ??= false;
 
-    var cascade = Cascade();
-    var pipeline = const Pipeline();
-
     DevTools devTools;
     String extensionUri;
     ExtensionBackend extensionBackend;
@@ -99,12 +102,6 @@ class Dwds {
           .toString();
       if (urlEncoder != null) extensionUri = await urlEncoder(extensionUri);
     }
-
-    pipeline = pipeline.addMiddleware(createInjectedHandler(
-      reloadConfiguration,
-      extensionUri: extensionUri,
-      urlEncoder: urlEncoder,
-    ));
 
     if (serveDevTools) {
       devTools = await DevTools.start(hostname);
@@ -126,10 +123,13 @@ class Dwds {
       useSseForDebugProxy,
       serveDevTools,
     );
-    cascade = cascade.add(devHandler.handler).add(assetHandler.handler);
 
     return Dwds._(
-      pipeline.addHandler(cascade.handler),
+      createInjectedHandler(
+        reloadConfiguration,
+        extensionUri: extensionUri,
+        urlEncoder: urlEncoder,
+      ),
       devTools,
       devHandler,
       enableDebugging,

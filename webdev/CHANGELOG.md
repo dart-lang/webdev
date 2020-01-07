@@ -1,3 +1,7 @@
+## 2.5.5
+
+- Depend on the latest `package:dwds`.
+
 ## 2.5.4
 
 - Fix support for `--output=NONE` when building.

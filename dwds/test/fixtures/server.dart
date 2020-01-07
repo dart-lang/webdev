@@ -78,7 +78,8 @@ class TestServer {
     );
 
     var server = await HttpMultiServer.bind('localhost', port);
-    shelf_io.serveRequests(server, pipeline.addHandler(dwds.handler));
+    shelf_io.serveRequests(server,
+        pipeline.addMiddleware(dwds.middleware).addHandler(dwds.handler));
     return TestServer._(
       target,
       server,
