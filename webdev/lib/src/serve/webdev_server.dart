@@ -86,14 +86,15 @@ class WebDevServer {
     Handler assetHandler;
     Dwds dwds;
     if (options.configuration.enableInjectedClient) {
+      var buildRunnerAssetHandler = BuildRunnerAssetHandler(
+        options.daemonPort,
+        options.target,
+        options.configuration.hostname,
+        options.port,
+      );
       dwds = await Dwds.start(
         hostname: options.configuration.hostname,
-        assetHandler: BuildRunnerAssetHandler(
-          options.daemonPort,
-          options.target,
-          options.configuration.hostname,
-          options.port,
-        ),
+        assetHandler: buildRunnerAssetHandler,
         buildResults: filteredBuildResults,
         chromeConnection: () async =>
             (await Chrome.connectedInstance).chromeConnection,
@@ -105,7 +106,11 @@ class WebDevServer {
         enableDebugExtension: options.configuration.debugExtension,
         enableDebugging: options.configuration.debug,
       );
-      assetHandler = dwds.handler;
+      pipeline = pipeline.addMiddleware(dwds.middleware);
+      assetHandler = Cascade()
+          .add(dwds.handler)
+          .add(buildRunnerAssetHandler.handler)
+          .handler;
     } else {
       assetHandler = proxyHandler(
           'http://localhost:${options.daemonPort}/${options.target}/');
