@@ -3,7 +3,8 @@
 - Expose `middleware` and `handler`.
 
 **Breaking Change:** The `AssetHandler` will not automatically be added the
-  DWDS handler cascade.
+  DWDS handler cascade. You must now also add the `middelware` to your server's
+  pipeline.
 
 ## 0.8.5
 
