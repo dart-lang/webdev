@@ -3,7 +3,7 @@
 - Remove dependency on `package:build_daemon`.
 
 **Breaking Changes:**
-- No longer use the `BuildResult` abstraction for `package:build_daemon` but
+- No longer use the `BuildResult` abstraction from `package:build_daemon` but
   require a similar abstraction provided by this package.
 
 ## 0.9.0
