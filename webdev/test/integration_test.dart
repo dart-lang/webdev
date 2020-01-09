@@ -150,11 +150,11 @@ name: sample
               switch (entry.key) {
                 case 'build_runner':
                   buildRunnerVersion = version;
-                  supportedRange = '>=1.6.2 <2.0.0';
+                  supportedRange = '>=$_supportedBuildRunnerVersion <2.0.0';
                   break;
                 case 'build_web_compilers':
                   webCompilersVersion = version;
-                  supportedRange = '>=1.2.0 <3.0.0';
+                  supportedRange = '>=$_supportedWebCompilersVersion <3.0.0';
                   break;
                 case 'build_daemon':
                   buildDaemonVersion = version;
@@ -302,7 +302,7 @@ dependencies:
 }
 
 const _supportedBuildRunnerVersion = '1.6.2';
-const _supportedWebCompilersVersion = '1.2.0';
+const _supportedWebCompilersVersion = '2.6.1';
 const _supportedBuildDaemonVersion = '2.0.0';
 
 String _pubspecLock(

@@ -186,7 +186,7 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
 
   if (requireBuildWebCompilers) {
     issues.addAll(pubspecLock.checkPackage(
-        'build_web_compilers', VersionConstraint.parse('>=1.2.0 <3.0.0')));
+        'build_web_compilers', VersionConstraint.parse('>=2.6.1 <3.0.0')));
   }
 
   if (buildRunnerIssues.isEmpty) {
