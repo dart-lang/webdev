@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:build_daemon/data/build_status.dart';
+import 'package:dwds/data/build_result.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';

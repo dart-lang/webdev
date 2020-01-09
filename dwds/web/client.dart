@@ -9,7 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:build_daemon/data/build_status.dart';
+import 'package:dwds/data/build_result.dart';
 import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
@@ -68,7 +68,7 @@ Future<void> main() {
 
     client.stream.listen((serialized) async {
       var event = serializers.deserialize(jsonDecode(serialized));
-      if (event is DefaultBuildResult) {
+      if (event is BuildResult) {
         if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
           manager.reloadPage();
         } else if (reloadConfiguration == 'ReloadConfiguration.hotRestart') {

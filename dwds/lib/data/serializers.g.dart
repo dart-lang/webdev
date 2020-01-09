@@ -8,9 +8,9 @@ part of 'serializers.dart';
 
 Serializers _$serializers = (new Serializers().toBuilder()
       ..add(BatchedEvents.serializer)
+      ..add(BuildResult.serializer)
       ..add(BuildStatus.serializer)
       ..add(ConnectRequest.serializer)
-      ..add(DefaultBuildResult.serializer)
       ..add(DevToolsRequest.serializer)
       ..add(DevToolsResponse.serializer)
       ..add(ErrorResponse.serializer)

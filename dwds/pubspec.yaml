@@ -1,5 +1,5 @@
 name: dwds
-version: 0.9.0
+version: 1.0.0-dev
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev/tree/master/dwds
 description: >-
@@ -11,7 +11,6 @@ environment:
 
 dependencies:
   async: ^2.3.0
-  build_daemon: ^2.0.0
   built_collection: ^4.2.0
   built_value: '>=6.7.0 <8.0.0'
   crypto: ^2.0.6
@@ -39,6 +38,7 @@ dev_dependencies:
   args: ^1.0.0
   build: ^1.1.5
   build_runner: ^1.6.2
+  build_daemon: ^2.0.0
   build_version: ^2.0.0
   build_web_compilers: '>=1.0.0 <3.0.0'
   built_value_generator: '>=6.4.0 <8.0.0'
