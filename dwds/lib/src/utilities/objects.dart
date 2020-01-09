@@ -51,3 +51,80 @@ class Property {
   @override
   String toString() => '$name $value';
 }
+
+// Object for handling frames and scopes
+
+class Scope {
+  RemoteObject _object;
+  final Map<String, dynamic> _map;
+
+  Scope(this._map) {
+    _object = RemoteObject(_rawObject);
+  }
+
+  Map<String, dynamic> get _rawObject => _map['object'] as Map<String, dynamic>;
+
+  RemoteObject get object => _object;
+  String get type => _map['type'] as String;
+  String get name => _map['name'] as String;
+
+  @override
+  String toString() => 'JsScope: type: $type, name: $name, object: $object';
+}
+
+class ScopeChain {
+  final List<dynamic> _chain;
+  Iterable<Scope> _scopes;
+
+  ScopeChain(this._chain) {
+    _scopes =
+        _chain.reversed.map((elem) => Scope(elem as Map<String, dynamic>));
+  }
+
+  Iterable<Scope> get scopes => _scopes;
+
+  // helpers
+  Scope get libraryScope => _scopes.first;
+  Scope get mainScope => _scopes.skip(1).first;
+  Iterable<Scope> get innerScopes => _scopes.skip(2);
+
+  @override
+  String toString() => 'ScopeChain: $scopes';
+}
+
+class Location {
+  final Map<String, dynamic> _map;
+
+  Location(this._map);
+
+  String get scriptId => _map['scriptId'] as String;
+  int get lineNumber => _map['lineNumber'] as int;
+  int get columnNumber => _map['columnNumber'] as int;
+
+  @override
+  String toString() =>
+      'Location: scriptId: $scriptId, line: $lineNumber, column: $columnNumber';
+}
+
+class Frame {
+  final Map<String, dynamic> _map;
+  Location _location;
+  ScopeChain _scopeChain;
+
+  Frame(this._map) {
+    _location = Location(_rawLocation);
+    _scopeChain = ScopeChain(_rawScopeChain);
+  }
+
+  Map<String, dynamic> get _rawLocation =>
+      _map['location'] as Map<String, dynamic>;
+  List<dynamic> get _rawScopeChain => _map['scopeChain'] as List<dynamic>;
+
+  Location get location => _location;
+  String get functionName => _map['functionName'] as String ?? '';
+  ScopeChain get scopeChain => _scopeChain;
+
+  @override
+  String toString() =>
+      'Frame: location: $location, functionName: $functionName, scopeChain: $scopeChain';
+}

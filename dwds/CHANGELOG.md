@@ -13,6 +13,9 @@
   clearly defined. The new abstraction is now consumed through `dwds.dart`.
 - `BuildRunnerAssetHandler` has been renamed to `ProxyServerAssetReader` and is
   now consumed through `dwds.dart`.
+- `Dwds.start` function signature has been changed to accept one more parameter
+  of new interface type `ExpressionCompilerInterface` to support expression
+  evaluation
 
 ## 0.9.0
 

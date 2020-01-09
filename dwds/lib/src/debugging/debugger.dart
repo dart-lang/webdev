@@ -15,7 +15,7 @@ import '../services/chrome_proxy_service.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
-import '../utilities/objects.dart';
+import '../utilities/objects.dart' show Property;
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'dart_scope.dart';
@@ -81,6 +81,8 @@ class Debugger extends Domain {
   // TODO(alanknight): It would be nice to keep these as CallFrame instances,
   // but they don't map enough of the data yet.
   List<Map<String, dynamic>> _pausedJsStack;
+
+  List<Map<String, dynamic>> getJsStack() => _pausedJsStack;
 
   bool _isStepping = false;
 

@@ -10,7 +10,6 @@ import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../dwds.dart' show LogWriter;
 import '../connections/app_connection.dart';
 import '../debugging/debugger.dart';
 import '../debugging/execution_context.dart';
@@ -22,6 +21,9 @@ import '../readers/asset_reader.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
+
+import 'expression_compiler.dart';
+import 'expression_evaluator.dart';
 
 /// Adds [event] to the stream with [streamId] if there is anybody listening
 /// on that stream.
@@ -78,16 +80,20 @@ class ChromeProxyService implements VmServiceInterface {
   final _disabledBreakpoints = <Breakpoint>{};
   final _previousBreakpoints = <Breakpoint>{};
 
+  final LogWriter _logWriter;
+  ExpressionEvaluator _evaluator;
+
   ChromeProxyService._(
-    this._vm,
-    this.uri,
-    this._assetReader,
-    this.remoteDebugger,
-    this._modules,
-    this._locations,
-    this._restoreBreakpoints,
-    this.executionContext,
-  ) {
+      this._vm,
+      this.uri,
+      this._assetReader,
+      this.remoteDebugger,
+      this._modules,
+      this._locations,
+      this._restoreBreakpoints,
+      this.executionContext,
+      this._logWriter,
+      ExpressionCompilerInterface compiler) {
     _debuggerCompleter.complete(Debugger.create(
       remoteDebugger,
       _streamNotify,
@@ -97,17 +103,22 @@ class ChromeProxyService implements VmServiceInterface {
       _locations,
       uri,
     ));
+
+    if (compiler != null) {
+      _evaluator = ExpressionEvaluator(
+          _debugger, _locations, _modules, compiler, _logWriter);
+    }
   }
 
   static Future<ChromeProxyService> create(
-    RemoteDebugger remoteDebugger,
-    String tabUrl,
-    AssetReader assetReader,
-    AppConnection appConnection,
-    LogWriter logWriter,
-    bool restoreBreakpoints,
-    ExecutionContext executionContext,
-  ) async {
+      RemoteDebugger remoteDebugger,
+      String tabUrl,
+      AssetReader assetReader,
+      AppConnection appConnection,
+      LogWriter logWriter,
+      bool restoreBreakpoints,
+      ExecutionContext executionContext,
+      ExpressionCompilerInterface expressionCompiler) async {
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
       ..isolates = []
@@ -116,8 +127,18 @@ class ChromeProxyService implements VmServiceInterface {
       ..version = Platform.version;
     var modules = Modules(remoteDebugger, tabUrl, executionContext);
     var locations = Locations(assetReader, modules, tabUrl);
-    var service = ChromeProxyService._(vm, tabUrl, assetReader, remoteDebugger,
-        modules, locations, restoreBreakpoints, executionContext);
+    var service = ChromeProxyService._(
+        vm,
+        tabUrl,
+        assetReader,
+        remoteDebugger,
+        modules,
+        locations,
+        restoreBreakpoints,
+        executionContext,
+        logWriter,
+        expressionCompiler);
+
     unawaited(service.createIsolate(appConnection));
     return service;
   }
@@ -302,7 +323,13 @@ $loadModule("dart_sdk").developer.invokeExtension(
 
   @override
   Future evaluateInFrame(String isolateId, int frameIndex, String expression,
-      {Map<String, String> scope, bool disableBreakpoints}) {
+      {Map<String, String> scope, bool disableBreakpoints}) async {
+    if (_evaluator != null) {
+      var result = await _evaluator.evaluateExpression(
+          isolateId, frameIndex, expression);
+      return _inspector?.instanceHelper?.instanceRefFor(result);
+    }
+
     throw UnimplementedError();
   }
 
@@ -431,6 +458,9 @@ $loadModule("dart_sdk").developer.invokeExtension(
           return _chromeConsoleStreamController(
               (e) => _stderrTypes.contains(e.type),
               includeExceptions: true);
+        case 'Logging':
+        case '_Logging':
+          return StreamController<Event>.broadcast();
         default:
           throw UnimplementedError('The stream `$streamId` is not supported.');
       }

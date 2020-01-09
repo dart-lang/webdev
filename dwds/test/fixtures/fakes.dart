@@ -8,6 +8,7 @@ import 'package:async/src/stream_sink_transformer.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/wrapped_service.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -203,4 +204,33 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   @override
   Future<void> enablePage() => null;
+}
+
+/// Fake expression compiler that simply passes expression through,
+/// without actual compilation
+class FakeExpressionCompiler implements ExpressionCompilerInterface {
+  @override
+  Future<ExpressionCompilationResult> compileExpressionToJs(
+      String isolateId,
+      String libraryUri,
+      int line,
+      int column,
+      Map<String, String> jsModules,
+      Map<String, String> jsFrameValues,
+      String moduleName,
+      String expression) async {
+    return ExpressionCompilationResult('''
+      try {
+        (function(local) {
+          let main = require('example/hello_world/main').main;
+          let dart = require('dart_sdk').dart;
+          let core = require('dart_sdk').core;
+          return local;
+        }(
+          $expression
+        ))
+        } catch (error) {
+          error.name + ": " + error.message;
+        }''', false);
+  }
 }
