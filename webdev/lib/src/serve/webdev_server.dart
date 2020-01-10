@@ -5,8 +5,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:build_daemon/data/build_status.dart';
+import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/asset_handler.dart';
+import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
@@ -69,7 +70,7 @@ class WebDevServer {
   }
 
   static Future<WebDevServer> start(
-      ServerOptions options, Stream<BuildResults> buildResults) async {
+      ServerOptions options, Stream<daemon.BuildResults> buildResults) async {
     var pipeline = const Pipeline();
 
     if (options.configuration.logRequests) {
@@ -79,9 +80,19 @@ class WebDevServer {
     pipeline = pipeline.addMiddleware(interceptFavicon);
 
     // Only provide relevant build results
-    var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) =>
-        results.results
-            .firstWhere((result) => result.target == options.target));
+    var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
+      var result = results.results
+          .firstWhere((result) => result.target == options.target);
+      switch (result.status) {
+        case daemon.BuildStatus.started:
+          return BuildResult((b) => b.status = BuildStatus.started);
+        case daemon.BuildStatus.failed:
+          return BuildResult((b) => b.status = BuildStatus.failed);
+        case daemon.BuildStatus.succeeded:
+          return BuildResult((b) => b.status = BuildStatus.succeeded);
+      }
+      throw StateError('Unexpected Daemon build result: $result');
+    });
 
     Handler assetHandler;
     Dwds dwds;

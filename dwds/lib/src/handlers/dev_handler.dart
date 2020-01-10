@@ -6,8 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:async/async.dart';
-import 'package:build_daemon/data/build_status.dart';
-import 'package:build_daemon/data/serializers.dart' as build_daemon;
+import 'package:dwds/data/build_result.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/dwds.dart';
@@ -103,8 +102,7 @@ class DevHandler {
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;
     for (var injectedConnection in _injectedConnections) {
-      injectedConnection.sink
-          .add(jsonEncode(build_daemon.serializers.serialize(result)));
+      injectedConnection.sink.add(jsonEncode(serializers.serialize(result)));
     }
   }
 
