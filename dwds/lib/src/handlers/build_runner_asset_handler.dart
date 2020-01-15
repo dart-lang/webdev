@@ -5,12 +5,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/dwds.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
+import '../../dwds.dart' show LogWriter;
 import 'asset_handler.dart';
 
 /// A handler for a build target's assets.
