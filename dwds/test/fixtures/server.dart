@@ -19,6 +19,7 @@ class TestServer {
   final String target;
   final Dwds dwds;
   final Stream<BuildResult> buildResults;
+  final AssetHandler assetHandler;
 
   TestServer._(
     this.target,
@@ -26,6 +27,7 @@ class TestServer {
     this.dwds,
     this.buildResults,
     bool autoRun,
+    this.assetHandler,
   ) {
     if (autoRun) {
       dwds.connectedApps.listen((connection) {
@@ -104,6 +106,7 @@ class TestServer {
       dwds,
       filteredBuildResults,
       autoRun,
+      assetHandler,
     );
   }
 }

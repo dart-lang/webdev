@@ -73,13 +73,21 @@ class TestContext {
       String hostname,
       bool waitToDebug,
       UrlEncoder urlEncoder,
-      bool restoreBreakpoints}) async {
+      bool restoreBreakpoints,
+      bool useBuildDaemon}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
     autoRun ??= true;
     enableDebugging ??= true;
     waitToDebug ??= false;
+    useBuildDaemon ??= true;
+
+    // TODO(grouma) - Support testing with the Frontend Server.
+    if (!useBuildDaemon) {
+      throw StateError('Only Build Daemon is supported with testing.');
+    }
+
     var chromeDriverPort = await findUnusedPort();
     var chromeDriverUrlBase = 'wd/hub';
     try {

@@ -4,8 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
@@ -43,9 +43,7 @@ class BuildRunnerAssetHandler implements AssetHandler {
     var response = await handler(Request(
         'GET', Uri.parse('http://$_applicationHost:$_applicationPort/$path')));
 
-    try {
-      return await response.readAsString();
-    } on http.ClientException {
+    if (response.statusCode != HttpStatus.ok) {
       _logWriter(Level.WARNING, '''
       Failed to load asset at path: $path.
 
@@ -54,7 +52,9 @@ class BuildRunnerAssetHandler implements AssetHandler {
       Headers:
       ${const JsonEncoder.withIndent('  ').convert(response.headers)}
       ''');
+      return null;
+    } else {
+      return await response.readAsString();
     }
-    return null;
   }
 }
