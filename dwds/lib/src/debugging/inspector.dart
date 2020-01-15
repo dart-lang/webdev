@@ -4,17 +4,16 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../asset_handler.dart';
 import '../connections/app_connection.dart';
 import '../debugging/location.dart';
 import '../debugging/remote_debugger.dart';
+import '../handlers/asset_handler.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
@@ -327,17 +326,14 @@ function($argsString) {
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
     var libraryId = _scriptIdToLibraryId[scriptRef.id];
     var serverPath = DartUri(scriptRef.uri, _root).serverPath;
-    var response = await _assetHandler.getRelativeAsset(serverPath);
-    if (response.statusCode != HttpStatus.ok) {
-      throw ScriptNotFound(serverPath, response);
-    }
-    var script = await response.readAsString();
+    var source = await _assetHandler.dartSourceContents(serverPath);
+    if (source == null) throw ScriptNotFound(serverPath);
     return Script(
         uri: scriptRef.uri,
         library: await libraryHelper.libraryRefFor(libraryId),
         id: scriptRef.id)
       ..tokenPosTable = await _locations.tokenPosTableFor(serverPath)
-      ..source = script;
+      ..source = source;
   }
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].

@@ -5,10 +5,10 @@
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart' as daemon;
-import 'package:dwds/asset_handler.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:http_multi_server/http_multi_server.dart';
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
@@ -72,14 +72,16 @@ class TestServer {
       throw StateError('Unexpected Daemon build result: $result');
     });
 
-    var assetHandler =
-        BuildRunnerAssetHandler(assetServerPort, target, 'localhost', port);
+    var logWriter = (Level level, String message) => printOnFailure(message);
+
+    var assetHandler = BuildRunnerAssetHandler(
+        assetServerPort, target, 'localhost', port, logWriter);
 
     var dwds = await Dwds.start(
       assetHandler: assetHandler,
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
-      logWriter: (level, message) => printOnFailure(message),
+      logWriter: logWriter,
       reloadConfiguration: reloadConfiguration,
       serveDevTools: serveDevTools,
       enableDebugExtension: enableDebugExtension,

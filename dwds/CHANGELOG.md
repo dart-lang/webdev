@@ -5,6 +5,10 @@
 **Breaking Changes:**
 - No longer use the `BuildResult` abstraction from `package:build_daemon` but
   require a similar abstraction provided by this package.
+- `AssetHandler` no longer provides a generic resource handler. Specific methods
+  for the required resources are now clearly defined.
+- `BuildRunnerAssetHandler` and `AssetHandler` are now consumed through
+  `dwds.dart`.
 
 ## 0.9.0
 

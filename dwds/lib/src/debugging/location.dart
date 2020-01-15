@@ -8,7 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
 import 'package:source_maps/source_maps.dart';
 
-import '../debugging/sources.dart';
+import '../handlers/asset_handler.dart';
 import '../utilities/dart_uri.dart';
 import 'modules.dart';
 
@@ -112,11 +112,11 @@ class Locations {
   /// processed.
   final _processedModules = <String>{};
 
-  final Sources _sources;
+  final AssetHandler _assetHandler;
   final Modules _modules;
   final String _root;
 
-  Locations(this._sources, this._modules, this._root);
+  Locations(this._assetHandler, this._modules, this._root);
 
   /// Clears all location meta data.
   void clearCache() {
@@ -221,7 +221,8 @@ class Locations {
         modulePath.endsWith('dart_sdk.ddk.js')) {
       return result;
     }
-    var sourceMapContents = await _sources.readAssetOrNull('$modulePath.map');
+    var sourceMapContents =
+        await _assetHandler.sourceMapContents('$modulePath.map');
     var scriptLocation = p.url.dirname('/$modulePath');
     if (sourceMapContents == null) return result;
     var scriptId = await _modules.scriptIdForModule(module);

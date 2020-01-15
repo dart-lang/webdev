@@ -20,8 +20,8 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import '../../asset_handler.dart';
 import '../debugging/execution_context.dart';
+import '../handlers/asset_handler.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'chrome_proxy_service.dart';

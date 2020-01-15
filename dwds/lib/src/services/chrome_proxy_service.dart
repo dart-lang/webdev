@@ -10,7 +10,6 @@ import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../asset_handler.dart';
 import '../../dwds.dart' show LogWriter;
 import '../connections/app_connection.dart';
 import '../debugging/debugger.dart';
@@ -19,7 +18,7 @@ import '../debugging/inspector.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
 import '../debugging/remote_debugger.dart';
-import '../debugging/sources.dart';
+import '../handlers/asset_handler.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
@@ -84,7 +83,6 @@ class ChromeProxyService implements VmServiceInterface {
     this.uri,
     this._assetHandler,
     this.remoteDebugger,
-    Sources sources,
     this._modules,
     this._locations,
     this._restoreBreakpoints,
@@ -94,7 +92,7 @@ class ChromeProxyService implements VmServiceInterface {
       remoteDebugger,
       _streamNotify,
       appInspectorProvider,
-      sources,
+      _assetHandler,
       _modules,
       _locations,
       uri,
@@ -117,10 +115,9 @@ class ChromeProxyService implements VmServiceInterface {
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
     var modules = Modules(remoteDebugger, tabUrl, executionContext);
-    var sources = Sources(assetHandler, logWriter);
-    var locations = Locations(sources, modules, tabUrl);
+    var locations = Locations(assetHandler, modules, tabUrl);
     var service = ChromeProxyService._(vm, tabUrl, assetHandler, remoteDebugger,
-        sources, modules, locations, restoreBreakpoints, executionContext);
+        modules, locations, restoreBreakpoints, executionContext);
     unawaited(service.createIsolate(appConnection));
     return service;
   }

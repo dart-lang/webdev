@@ -21,13 +21,13 @@ import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../asset_handler.dart';
 import '../../data/connect_request.dart';
 import '../../data/devtools_request.dart';
 import '../../data/isolate_events.dart';
 import '../../data/serializers.dart';
 import '../connections/app_connection.dart';
 import '../dwds_vm_client.dart';
+import '../handlers/asset_handler.dart';
 import '../servers/devtools.dart';
 import '../services/app_debug_services.dart';
 import '../services/debug_service.dart';

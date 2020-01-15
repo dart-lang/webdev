@@ -11,9 +11,9 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'asset_handler.dart';
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
+import 'src/handlers/asset_handler.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injected_handler.dart';
 import 'src/servers/devtools.dart';
@@ -21,6 +21,9 @@ import 'src/servers/extension_backend.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
+export 'src/handlers/asset_handler.dart' show AssetHandler;
+export 'src/handlers/build_runner_asset_handler.dart'
+    show BuildRunnerAssetHandler;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 
