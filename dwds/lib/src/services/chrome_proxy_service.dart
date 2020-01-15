@@ -18,7 +18,7 @@ import '../debugging/inspector.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
 import '../debugging/remote_debugger.dart';
-import '../handlers/asset_handler.dart';
+import '../readers/asset_reader.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
@@ -56,7 +56,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// Provides debugger-related functionality.
   Future<Debugger> get _debugger => _debuggerCompleter.future;
 
-  final AssetHandler _assetHandler;
+  final AssetReader _assetReader;
 
   final Locations _locations;
 
@@ -81,7 +81,7 @@ class ChromeProxyService implements VmServiceInterface {
   ChromeProxyService._(
     this._vm,
     this.uri,
-    this._assetHandler,
+    this._assetReader,
     this.remoteDebugger,
     this._modules,
     this._locations,
@@ -92,7 +92,7 @@ class ChromeProxyService implements VmServiceInterface {
       remoteDebugger,
       _streamNotify,
       appInspectorProvider,
-      _assetHandler,
+      _assetReader,
       _modules,
       _locations,
       uri,
@@ -102,7 +102,7 @@ class ChromeProxyService implements VmServiceInterface {
   static Future<ChromeProxyService> create(
     RemoteDebugger remoteDebugger,
     String tabUrl,
-    AssetHandler assetHandler,
+    AssetReader assetReader,
     AppConnection appConnection,
     LogWriter logWriter,
     bool restoreBreakpoints,
@@ -115,8 +115,8 @@ class ChromeProxyService implements VmServiceInterface {
       ..startTime = DateTime.now().millisecondsSinceEpoch
       ..version = Platform.version;
     var modules = Modules(remoteDebugger, tabUrl, executionContext);
-    var locations = Locations(assetHandler, modules, tabUrl);
-    var service = ChromeProxyService._(vm, tabUrl, assetHandler, remoteDebugger,
+    var locations = Locations(assetReader, modules, tabUrl);
+    var service = ChromeProxyService._(vm, tabUrl, assetReader, remoteDebugger,
         modules, locations, restoreBreakpoints, executionContext);
     unawaited(service.createIsolate(appConnection));
     return service;
@@ -140,7 +140,7 @@ class ChromeProxyService implements VmServiceInterface {
     _inspector = await AppInspector.initialize(
       appConnection,
       remoteDebugger,
-      _assetHandler,
+      _assetReader,
       _locations,
       uri,
       await _debugger,

@@ -21,7 +21,7 @@ import 'package:sse/server/sse_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../debugging/execution_context.dart';
-import '../handlers/asset_handler.dart';
+import '../readers/asset_reader.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'chrome_proxy_service.dart';
@@ -128,7 +128,7 @@ class DebugService {
     RemoteDebugger remoteDebugger,
     ExecutionContext executionContext,
     String tabUrl,
-    AssetHandler assetHandler,
+    AssetReader assetReader,
     AppConnection appConnection,
     LogWriter logWriter,
     bool restoreBreakpoints, {
@@ -140,7 +140,7 @@ class DebugService {
     var chromeProxyService = await ChromeProxyService.create(
         remoteDebugger,
         tabUrl,
-        assetHandler,
+        assetReader,
         appConnection,
         logWriter,
         restoreBreakpoints,

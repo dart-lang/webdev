@@ -11,6 +11,7 @@ import 'package:http_multi_server/http_multi_server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -19,7 +20,7 @@ class TestServer {
   final String target;
   final Dwds dwds;
   final Stream<BuildResult> buildResults;
-  final AssetHandler assetHandler;
+  final AssetReader assetReader;
 
   TestServer._(
     this.target,
@@ -27,7 +28,7 @@ class TestServer {
     this.dwds,
     this.buildResults,
     bool autoRun,
-    this.assetHandler,
+    this.assetReader,
   ) {
     if (autoRun) {
       dwds.connectedApps.listen((connection) {
@@ -76,11 +77,11 @@ class TestServer {
 
     var logWriter = (Level level, String message) => printOnFailure(message);
 
-    var assetHandler = BuildRunnerAssetHandler(
+    var assetReader = BuildRunnerAssetReader(
         assetServerPort, target, 'localhost', port, logWriter);
 
     var dwds = await Dwds.start(
-      assetHandler: assetHandler,
+      assetReader: assetReader,
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       logWriter: logWriter,
@@ -98,15 +99,17 @@ class TestServer {
     var server = await HttpMultiServer.bind('localhost', port);
     shelf_io.serveRequests(
         server,
-        pipeline.addMiddleware(dwds.middleware).addHandler(
-            Cascade().add(dwds.handler).add(assetHandler.handler).handler));
+        pipeline.addMiddleware(dwds.middleware).addHandler(Cascade()
+            .add(dwds.handler)
+            .add(proxyHandler('http://localhost:$assetServerPort/$target/'))
+            .handler));
     return TestServer._(
       target,
       server,
       dwds,
       filteredBuildResults,
       autoRun,
-      assetHandler,
+      assetReader,
     );
   }
 }

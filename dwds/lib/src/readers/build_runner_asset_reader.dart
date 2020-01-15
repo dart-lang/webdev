@@ -11,25 +11,23 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
 import '../../dwds.dart' show LogWriter;
-import 'asset_handler.dart';
+import 'asset_reader.dart';
 
-/// A handler for a build target's assets.
-///
-/// Proxies requests to the build runner's asset server.
-class BuildRunnerAssetHandler implements AssetHandler {
+/// A reader for resources provided by build runner.
+class BuildRunnerAssetReader implements AssetReader {
   final int _applicationPort;
   final String _applicationHost;
   final LogWriter _logWriter;
 
-  final Handler handler;
+  final Handler _handler;
 
-  BuildRunnerAssetHandler(
+  BuildRunnerAssetReader(
     int assetServerPort,
     String target,
     this._applicationHost,
     this._applicationPort,
     this._logWriter,
-  ) : handler = proxyHandler('http://localhost:$assetServerPort/$target/');
+  ) : _handler = proxyHandler('http://localhost:$assetServerPort/$target/');
 
   @override
   Future<String> dartSourceContents(String serverPath) =>
@@ -40,7 +38,7 @@ class BuildRunnerAssetHandler implements AssetHandler {
       _readResource(serverPath);
 
   Future<String> _readResource(String path) async {
-    var response = await handler(Request(
+    var response = await _handler(Request(
         'GET', Uri.parse('http://$_applicationHost:$_applicationPort/$path')));
 
     if (response.statusCode != HttpStatus.ok) {

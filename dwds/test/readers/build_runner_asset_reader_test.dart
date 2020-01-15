@@ -9,33 +9,33 @@ import '../fixtures/context.dart';
 
 void main() {
   final context = TestContext();
-  BuildRunnerAssetHandler assetHandler;
+  BuildRunnerAssetReader assetReader;
   setUpAll(() async {
     await context.setUp(useBuildDaemon: true);
-    assetHandler = context.testServer.assetHandler as BuildRunnerAssetHandler;
+    assetReader = context.testServer.assetReader as BuildRunnerAssetReader;
   });
 
   group('BuildRunnerAssetHandler', () {
     test('returns null if the dart path does not exist', () async {
-      var result = await assetHandler.dartSourceContents('some/path/foo.dart');
+      var result = await assetReader.dartSourceContents('some/path/foo.dart');
       expect(result, isNull);
     });
 
     test('can read dart sources', () async {
       var result =
-          await assetHandler.dartSourceContents('hello_world/main.dart');
+          await assetReader.dartSourceContents('hello_world/main.dart');
       expect(result, isNotNull);
     });
 
     test('can read source maps', () async {
       var result =
-          await assetHandler.dartSourceContents('hello_world/main.ddc.js.map');
+          await assetReader.dartSourceContents('hello_world/main.ddc.js.map');
       expect(result, isNotNull);
     });
 
     test('returns null if the source map path does not exist', () async {
       var result =
-          await assetHandler.dartSourceContents('hello_world/foo.ddc.js.map');
+          await assetReader.dartSourceContents('hello_world/foo.ddc.js.map');
       expect(result, isNull);
     });
   });

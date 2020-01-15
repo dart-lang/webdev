@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-/// A handler for Dart sources and related source maps.
-abstract class AssetHandler {
+/// A reader for Dart sources and related source maps.
+abstract class AssetReader {
   /// Returns the contents for a source map at the provided server path, or
   /// null if the resource does not exist.
   Future<String> sourceMapContents(String serverPath);

@@ -93,10 +93,10 @@ class WebDevServer {
       throw StateError('Unexpected Daemon build result: $result');
     });
 
-    Handler assetHandler;
+    var cascade = Cascade();
     Dwds dwds;
     if (options.configuration.enableInjectedClient) {
-      var buildRunnerAssetHandler = BuildRunnerAssetHandler(
+      var buildRunnerAssetReader = BuildRunnerAssetReader(
         options.daemonPort,
         options.target,
         options.configuration.hostname,
@@ -105,7 +105,7 @@ class WebDevServer {
       );
       dwds = await Dwds.start(
         hostname: options.configuration.hostname,
-        assetHandler: buildRunnerAssetHandler,
+        assetReader: buildRunnerAssetReader,
         buildResults: filteredBuildResults,
         chromeConnection: () async =>
             (await Chrome.connectedInstance).chromeConnection,
@@ -118,14 +118,11 @@ class WebDevServer {
         enableDebugging: options.configuration.debug,
       );
       pipeline = pipeline.addMiddleware(dwds.middleware);
-      assetHandler = Cascade()
-          .add(dwds.handler)
-          .add(buildRunnerAssetHandler.handler)
-          .handler;
-    } else {
-      assetHandler = proxyHandler(
-          'http://localhost:${options.daemonPort}/${options.target}/');
+      cascade = cascade.add(dwds.handler);
     }
+
+    cascade = cascade.add(proxyHandler(
+        'http://localhost:${options.daemonPort}/${options.target}/'));
 
     var hostname = options.configuration.hostname;
     var tlsCertChain = options.configuration.tlsCertChain;
@@ -144,7 +141,7 @@ class WebDevServer {
       server = await HttpMultiServer.bind(hostname, options.port);
     }
 
-    shelf_io.serveRequests(server, pipeline.addHandler(assetHandler));
+    shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
     return WebDevServer._(
       options.target,
       server,

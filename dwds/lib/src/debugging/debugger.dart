@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
-import '../handlers/asset_handler.dart';
+import '../readers/asset_reader.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
@@ -42,7 +42,7 @@ class Debugger extends Domain {
   final RemoteDebugger _remoteDebugger;
 
   final StreamNotify _streamNotify;
-  final AssetHandler _assetHandler;
+  final AssetReader _assetReader;
   final Modules _modules;
   final Locations _locations;
 
@@ -50,7 +50,7 @@ class Debugger extends Domain {
     this._remoteDebugger,
     this._streamNotify,
     AppInspectorProvider provider,
-    this._assetHandler,
+    this._assetReader,
     this._modules,
     this._locations,
     String root,
@@ -154,7 +154,7 @@ class Debugger extends Domain {
     RemoteDebugger remoteDebugger,
     StreamNotify streamNotify,
     AppInspectorProvider appInspectorProvider,
-    AssetHandler assetHandler,
+    AssetReader assetReader,
     Modules modules,
     Locations locations,
     String root,
@@ -163,7 +163,7 @@ class Debugger extends Domain {
       remoteDebugger,
       streamNotify,
       appInspectorProvider,
-      assetHandler,
+      assetReader,
       modules,
       locations,
       root,
@@ -199,7 +199,7 @@ class Debugger extends Domain {
       await _blackBoxSdk(script);
     } else if (_pathsToBlackBox.any(url.contains)) {
       var content =
-          await _assetHandler.dartSourceContents(DartUri(url).serverPath);
+          await _assetReader.dartSourceContents(DartUri(url).serverPath);
       if (content == null) return;
       var lines = content.split('\n');
       await _blackBoxRanges(script.scriptId, [lines.length]);
@@ -209,7 +209,7 @@ class Debugger extends Domain {
   /// Black boxes the SDK excluding the range which includes exception logic.
   Future<void> _blackBoxSdk(WipScript script) async {
     var content =
-        await _assetHandler.dartSourceContents(DartUri(script.url).serverPath);
+        await _assetReader.dartSourceContents(DartUri(script.url).serverPath);
     if (content == null) return;
     var sdkSourceLines = content.split('\n');
     // TODO(grouma) - Find a more robust way to identify this location.
