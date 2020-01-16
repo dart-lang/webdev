@@ -8,7 +8,7 @@
 - `AssetHandler` has been renamed to `AssetReader` and no longer provides a
   generic resource handler. Specific methods for the required resources are now
   clearly defined. The new abstraction is now consumed through `dwds.dart`.
-- `BuildRunnerAssetHandler` has been renamed to `BuildRunnerAssetReader` and is
+- `BuildRunnerAssetHandler` has been renamed to `ProxyServerAssetReader` and is
   now consumed through `dwds.dart`.
 
 ## 0.9.0

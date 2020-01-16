@@ -96,7 +96,7 @@ class WebDevServer {
     var cascade = Cascade();
     Dwds dwds;
     if (options.configuration.enableInjectedClient) {
-      var buildRunnerAssetReader = BuildRunnerAssetReader(
+      var assetReader = ProxyServerAssetReader(
         options.daemonPort,
         options.target,
         options.configuration.hostname,
@@ -105,7 +105,7 @@ class WebDevServer {
       );
       dwds = await Dwds.start(
         hostname: options.configuration.hostname,
-        assetReader: buildRunnerAssetReader,
+        assetReader: assetReader,
         buildResults: filteredBuildResults,
         chromeConnection: () async =>
             (await Chrome.connectedInstance).chromeConnection,

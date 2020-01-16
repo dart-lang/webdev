@@ -13,21 +13,21 @@ import 'package:shelf_proxy/shelf_proxy.dart';
 import '../../dwds.dart' show LogWriter;
 import 'asset_reader.dart';
 
-/// A reader for resources provided by build runner.
-class BuildRunnerAssetReader implements AssetReader {
+/// A reader for resources provided by a proxy server.
+class ProxyServerAssetReader implements AssetReader {
   final int _applicationPort;
   final String _applicationHost;
   final LogWriter _logWriter;
 
   final Handler _handler;
 
-  BuildRunnerAssetReader(
+  ProxyServerAssetReader(
     int assetServerPort,
-    String target,
+    String root,
     this._applicationHost,
     this._applicationPort,
     this._logWriter,
-  ) : _handler = proxyHandler('http://localhost:$assetServerPort/$target/');
+  ) : _handler = proxyHandler('http://localhost:$assetServerPort/$root/');
 
   @override
   Future<String> dartSourceContents(String serverPath) =>

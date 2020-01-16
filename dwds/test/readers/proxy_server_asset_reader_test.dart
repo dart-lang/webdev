@@ -9,13 +9,13 @@ import '../fixtures/context.dart';
 
 void main() {
   final context = TestContext();
-  BuildRunnerAssetReader assetReader;
+  ProxyServerAssetReader assetReader;
   setUpAll(() async {
     await context.setUp(useBuildDaemon: true);
-    assetReader = context.testServer.assetReader as BuildRunnerAssetReader;
+    assetReader = context.testServer.assetReader as ProxyServerAssetReader;
   });
 
-  group('BuildRunnerAssetHandler', () {
+  group('ProxyServerAssetReader', () {
     test('returns null if the dart path does not exist', () async {
       var result = await assetReader.dartSourceContents('some/path/foo.dart');
       expect(result, isNull);
