@@ -5,13 +5,14 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:dwds/src/utilities/conversions.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
+import '../readers/asset_reader.dart';
 import '../services/chrome_proxy_service.dart';
+import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
@@ -21,7 +22,6 @@ import 'dart_scope.dart';
 import 'location.dart';
 import 'modules.dart';
 import 'remote_debugger.dart';
-import 'sources.dart';
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
 ///
@@ -42,7 +42,7 @@ class Debugger extends Domain {
   final RemoteDebugger _remoteDebugger;
 
   final StreamNotify _streamNotify;
-  final Sources _sources;
+  final AssetReader _assetReader;
   final Modules _modules;
   final Locations _locations;
 
@@ -50,7 +50,7 @@ class Debugger extends Domain {
     this._remoteDebugger,
     this._streamNotify,
     AppInspectorProvider provider,
-    this._sources,
+    this._assetReader,
     this._modules,
     this._locations,
     String root,
@@ -154,7 +154,7 @@ class Debugger extends Domain {
     RemoteDebugger remoteDebugger,
     StreamNotify streamNotify,
     AppInspectorProvider appInspectorProvider,
-    Sources sources,
+    AssetReader assetReader,
     Modules modules,
     Locations locations,
     String root,
@@ -163,7 +163,7 @@ class Debugger extends Domain {
       remoteDebugger,
       streamNotify,
       appInspectorProvider,
-      sources,
+      assetReader,
       modules,
       locations,
       root,
@@ -198,7 +198,8 @@ class Debugger extends Domain {
     if (url.endsWith('dart_sdk.js') || url.endsWith('dart_sdk.ddk.js')) {
       await _blackBoxSdk(script);
     } else if (_pathsToBlackBox.any(url.contains)) {
-      var content = await _sources.readAssetOrNull(DartUri(url).serverPath);
+      var content =
+          await _assetReader.dartSourceContents(DartUri(url).serverPath);
       if (content == null) return;
       var lines = content.split('\n');
       await _blackBoxRanges(script.scriptId, [lines.length]);
@@ -208,7 +209,7 @@ class Debugger extends Domain {
   /// Black boxes the SDK excluding the range which includes exception logic.
   Future<void> _blackBoxSdk(WipScript script) async {
     var content =
-        await _sources.readAssetOrNull(DartUri(script.url).serverPath);
+        await _assetReader.dartSourceContents(DartUri(script.url).serverPath);
     if (content == null) return;
     var sdkSourceLines = content.split('\n');
     // TODO(grouma) - Find a more robust way to identify this location.

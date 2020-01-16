@@ -11,17 +11,19 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'asset_handler.dart';
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injected_handler.dart';
+import 'src/readers/asset_reader.dart';
 import 'src/servers/devtools.dart';
 import 'src/servers/extension_backend.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
+export 'src/readers/asset_reader.dart' show AssetReader;
+export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 
 typedef LogWriter = void Function(Level, String);
@@ -63,7 +65,7 @@ class Dwds {
   }
 
   static Future<Dwds> start({
-    @required AssetHandler assetHandler,
+    @required AssetReader assetReader,
     @required Stream<BuildResult> buildResults,
     @required ConnectionProvider chromeConnection,
     @required bool enableDebugging,
@@ -113,7 +115,7 @@ class Dwds {
       chromeConnection,
       buildResults,
       devTools,
-      assetHandler,
+      assetReader,
       hostname,
       verbose,
       logWriter,

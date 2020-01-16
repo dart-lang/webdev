@@ -21,13 +21,13 @@ import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../asset_handler.dart';
 import '../../data/connect_request.dart';
 import '../../data/devtools_request.dart';
 import '../../data/isolate_events.dart';
 import '../../data/serializers.dart';
 import '../connections/app_connection.dart';
 import '../dwds_vm_client.dart';
+import '../readers/asset_reader.dart';
 import '../servers/devtools.dart';
 import '../services/app_debug_services.dart';
 import '../services/debug_service.dart';
@@ -39,7 +39,7 @@ class DevHandler {
   final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'));
   final _injectedConnections = Set<SseConnection>();
   final DevTools _devTools;
-  final AssetHandler _assetHandler;
+  final AssetReader _assetReader;
   final String _hostname;
   final _connectedApps = StreamController<AppConnection>.broadcast();
   final _servicesByAppId = <String, Future<AppDebugServices>>{};
@@ -67,7 +67,7 @@ class DevHandler {
     this._chromeConnection,
     this.buildResults,
     this._devTools,
-    this._assetHandler,
+    this._assetReader,
     this._hostname,
     this._verbose,
     this._logWriter,
@@ -159,7 +159,7 @@ class DevHandler {
       webkitDebugger,
       executionContext,
       appTab.url,
-      _assetHandler,
+      _assetReader,
       appConnection,
       _logWriter,
       _restoreBreakpoints,
@@ -371,7 +371,7 @@ class DevHandler {
           extensionDebugger,
           extensionDebugger.executionContext,
           devToolsRequest.tabUrl,
-          _assetHandler,
+          _assetReader,
           connection,
           _logWriter,
           _restoreBreakpoints,

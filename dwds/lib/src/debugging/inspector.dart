@@ -4,17 +4,16 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../asset_handler.dart';
 import '../connections/app_connection.dart';
 import '../debugging/location.dart';
 import '../debugging/remote_debugger.dart';
+import '../readers/asset_reader.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
@@ -55,7 +54,7 @@ class AppInspector extends Domain {
   final ClassHelper classHelper;
   final InstanceHelper instanceHelper;
 
-  final AssetHandler _assetHandler;
+  final AssetReader _assetReader;
   final Locations _locations;
 
   /// The root URI from which the application is served.
@@ -69,7 +68,7 @@ class AppInspector extends Domain {
     this.libraryHelper,
     this.classHelper,
     this.instanceHelper,
-    this._assetHandler,
+    this._assetReader,
     this._locations,
     this._root,
     this.__executionContext,
@@ -99,7 +98,7 @@ class AppInspector extends Domain {
   static Future<AppInspector> initialize(
     AppConnection appConnection,
     RemoteDebugger remoteDebugger,
-    AssetHandler assetHandler,
+    AssetReader assetReader,
     Locations locations,
     String root,
     Debugger debugger,
@@ -137,7 +136,7 @@ class AppInspector extends Domain {
       libraryHelper,
       classHelper,
       instanceHelper,
-      assetHandler,
+      assetReader,
       locations,
       root,
       executionContext,
@@ -327,17 +326,14 @@ function($argsString) {
   Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
     var libraryId = _scriptIdToLibraryId[scriptRef.id];
     var serverPath = DartUri(scriptRef.uri, _root).serverPath;
-    var response = await _assetHandler.getRelativeAsset(serverPath);
-    if (response.statusCode != HttpStatus.ok) {
-      throw ScriptNotFound(serverPath, response);
-    }
-    var script = await response.readAsString();
+    var source = await _assetReader.dartSourceContents(serverPath);
+    if (source == null) throw ScriptNotFound(serverPath);
     return Script(
         uri: scriptRef.uri,
         library: await libraryHelper.libraryRefFor(libraryId),
         id: scriptRef.id)
       ..tokenPosTable = await _locations.tokenPosTableFor(serverPath)
-      ..source = script;
+      ..source = source;
   }
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
