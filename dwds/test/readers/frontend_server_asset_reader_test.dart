@@ -16,8 +16,7 @@ void main() {
   File mapOriginal;
 
   Future<void> _createTempFixtures() async {
-    var fixtures =
-        p.absolute(p.relative(p.join('test', 'fixtures'), from: p.current));
+    var fixtures = p.join('test', 'fixtures');
     tempFixtures = await Directory.systemTemp.createTemp('dwds_test_fixtures');
     await tempFixtures.create();
     jsonOriginal = await File(p.join(fixtures, 'main.dart.dill.json'))
