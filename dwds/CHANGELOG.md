@@ -1,6 +1,7 @@
 ## 1.0.0-dev
 
 - Remove dependency on `package:build_daemon`.
+- Add 'FrontendServerAssetReader` for use with Frontend Server builds.
 
 **Breaking Changes:**
 - No longer use the `BuildResult` abstraction from `package:build_daemon` but
