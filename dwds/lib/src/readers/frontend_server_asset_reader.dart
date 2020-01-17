@@ -22,7 +22,7 @@ class FrontendServerAssetReader implements AssetReader {
 
   bool _haveReadOriginals = false;
 
-  /// Creates a `FrotnendServerAssetReader`.
+  /// Creates a [FrontendServerAssetReader].
   ///
   /// [outputPath] is the file path to the Frontend Server kernel file e.g.
   ///
@@ -56,12 +56,15 @@ class FrontendServerAssetReader implements AssetReader {
     if (!_haveReadOriginals) {
       await _updateCaches(_mapOriginal, _jsonOriginal);
       _haveReadOriginals = true;
+    } else {
+      await _updateCaches(_mapIncremental, _jsonIncremental);
     }
-    await _updateCaches(_mapIncremental, _jsonIncremental);
   }
 
   Future<void> _updateCaches(File map, File json) async {
-    if (!(await map.exists() && await json.exists())) return;
+    if (!(await map.exists() && await json.exists())) {
+      throw StateError('$map and $json do not exist.');
+    }
     var sourceContents = await map.readAsBytes();
     var sourceInfo =
         jsonDecode(await json.readAsString()) as Map<String, dynamic>;

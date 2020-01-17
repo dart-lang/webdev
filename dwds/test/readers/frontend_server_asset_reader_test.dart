@@ -16,9 +16,9 @@ void main() {
   File mapOriginal;
 
   Future<void> _createTempFixtures() async {
-    var fixtures = p.absolute(p.relative('test/fixtures', from: p.current));
-    tempFixtures =
-        Directory(p.join(Directory.systemTemp.path, 'dwds_test_fixtures'));
+    var fixtures =
+        p.absolute(p.relative(p.join('test', 'fixtures'), from: p.current));
+    tempFixtures = await Directory.systemTemp.createTemp('dwds_test_fixtures');
     await tempFixtures.create();
     jsonOriginal = await File(p.join(fixtures, 'main.dart.dill.json'))
         .copy(p.join(tempFixtures.path, 'main.dart.dill.json'));
@@ -46,10 +46,6 @@ void main() {
       });
 
       test('are cached', () async {
-        var result =
-            await assetReader.sourceMapContents('web/main.dart.lib.js.map');
-        expect(result, isNotNull);
-
         // Remove the underlying fixtures.
         await tempFixtures.delete(recursive: true);
 
