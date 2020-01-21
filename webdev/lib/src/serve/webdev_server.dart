@@ -99,8 +99,6 @@ class WebDevServer {
       var assetReader = ProxyServerAssetReader(
         options.daemonPort,
         options.target,
-        options.configuration.hostname,
-        options.port,
         logWriter,
       );
       dwds = await Dwds.start(

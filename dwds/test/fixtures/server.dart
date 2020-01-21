@@ -77,8 +77,8 @@ class TestServer {
 
     var logWriter = (Level level, String message) => printOnFailure(message);
 
-    var assetReader = ProxyServerAssetReader(
-        assetServerPort, target, 'localhost', port, logWriter);
+    var assetReader =
+        ProxyServerAssetReader(assetServerPort, target, logWriter);
 
     var dwds = await Dwds.start(
       assetReader: assetReader,
