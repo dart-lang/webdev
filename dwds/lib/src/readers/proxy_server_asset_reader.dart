@@ -15,8 +15,6 @@ import 'asset_reader.dart';
 
 /// A reader for resources provided by a proxy server.
 class ProxyServerAssetReader implements AssetReader {
-  final int _applicationPort;
-  final String _applicationHost;
   final LogWriter _logWriter;
 
   final Handler _handler;
@@ -24,8 +22,6 @@ class ProxyServerAssetReader implements AssetReader {
   ProxyServerAssetReader(
     int assetServerPort,
     String root,
-    this._applicationHost,
-    this._applicationPort,
     this._logWriter,
   ) : _handler = proxyHandler('http://localhost:$assetServerPort/$root/');
 
@@ -38,8 +34,10 @@ class ProxyServerAssetReader implements AssetReader {
       _readResource(serverPath);
 
   Future<String> _readResource(String path) async {
-    var response = await _handler(Request(
-        'GET', Uri.parse('http://$_applicationHost:$_applicationPort/$path')));
+    // Handlers expect a fully formed HTML URI. The actual hostname and port
+    // does not matter.
+    var response = await _handler(
+        Request('GET', Uri.parse('http://localhost:8080/$path')));
 
     if (response.statusCode != HttpStatus.ok) {
       _logWriter(Level.WARNING, '''
