@@ -54,7 +54,7 @@ class FrontendServerAssetReader implements AssetReader {
     var resolver = await _packageResolver;
 
     Uri fileUri;
-    if (serverPath.contains('packages/')) {
+    if (serverPath.startsWith('packages/')) {
       var packagePath = serverPath.replaceFirst('packages/', 'package:');
       fileUri = await resolver.resolveUri(packagePath);
     } else {
