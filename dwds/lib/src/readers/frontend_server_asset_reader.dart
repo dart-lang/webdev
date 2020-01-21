@@ -6,10 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/dwds.dart';
 import 'package:package_resolver/package_resolver.dart';
 import 'package:path/path.dart' as p;
 
+import '../../dwds.dart';
 import 'asset_reader.dart';
 
 /// A reader for Dart sources and related source maps provided by the Frontend
@@ -61,7 +61,7 @@ class FrontendServerAssetReader implements AssetReader {
       fileUri = p.toUri(p.join(_packageRoot, serverPath));
     }
 
-    var source = File(fileUri.toFilePath(windows: Platform.isWindows));
+    var source = File(fileUri.toFilePath());
     if (!await source.exists()) return null;
     return await source.readAsString();
   }
