@@ -23,6 +23,8 @@ export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
 export 'src/readers/asset_reader.dart' show AssetReader;
+export 'src/readers/frontend_server_asset_reader.dart'
+    show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 
