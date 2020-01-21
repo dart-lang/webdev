@@ -36,8 +36,8 @@ class ProxyServerAssetReader implements AssetReader {
   Future<String> _readResource(String path) async {
     // Handlers expect a fully formed HTML URI. The actual hostname and port
     // does not matter.
-    var response = await _handler(
-        Request('GET', Uri.parse('http://localhost:8080/$path')));
+    var response =
+        await _handler(Request('GET', Uri.parse('http://foo:0000/$path')));
 
     if (response.statusCode != HttpStatus.ok) {
       _logWriter(Level.WARNING, '''
