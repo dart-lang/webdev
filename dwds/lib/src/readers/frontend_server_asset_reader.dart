@@ -20,7 +20,6 @@ class FrontendServerAssetReader implements AssetReader {
   final File _jsonOriginal;
   final File _jsonIncremental;
   final String _packageRoot;
-
   final Future<PackageResolver> _packageResolver;
 
   /// Map of Dart module server path to source map contents.
