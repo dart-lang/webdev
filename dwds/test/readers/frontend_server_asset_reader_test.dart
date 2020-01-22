@@ -9,6 +9,9 @@ import 'package:dwds/dwds.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+final _batExt = Platform.isWindows ? '.bat' : '';
+final packagesDir = p.relative('../fixtures/_test', from: p.current);
+
 void main() {
   FrontendServerAssetReader assetReader;
   Directory tempFixtures;
@@ -25,10 +28,17 @@ void main() {
         .copy(p.join(tempFixtures.path, 'main.dart.dill.map'));
   }
 
+  setUpAll(() async {
+    await Process.run('pub$_batExt', ['upgrade'],
+        workingDirectory: packagesDir);
+  });
+
   setUp(() async {
     await _createTempFixtures();
-    assetReader =
-        FrontendServerAssetReader(p.join(tempFixtures.path, 'main.dart.dill'));
+    assetReader = FrontendServerAssetReader(
+      p.join(tempFixtures.path, 'main.dart.dill'),
+      packagesDir,
+    );
     await assetReader.updateCaches();
   });
 
@@ -37,6 +47,24 @@ void main() {
   });
 
   group('FrontendServerAssetReader', () {
+    group('sources', () {
+      test('as packages path can be read', () async {
+        var result =
+            await assetReader.dartSourceContents('packages/path/path.dart');
+        expect(result, isNotNull);
+      });
+
+      test('as relative path can be read', () async {
+        var result = await assetReader.dartSourceContents('lib/library.dart');
+        expect(result, isNotNull);
+      });
+
+      test('are null if the path does not exist', () async {
+        var result = await assetReader.dartSourceContents('foo/blah.dart');
+        expect(result, isNull);
+      });
+    });
+
     group('source maps', () {
       test('can be read', () async {
         var result =

@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:package_resolver/package_resolver.dart';
 import 'package:path/path.dart' as p;
 
+import '../../dwds.dart';
 import 'asset_reader.dart';
 
 /// A reader for Dart sources and related source maps provided by the Frontend
@@ -16,8 +19,10 @@ class FrontendServerAssetReader implements AssetReader {
   final File _mapIncremental;
   final File _jsonOriginal;
   final File _jsonIncremental;
+  final String _packageRoot;
+  final Future<PackageResolver> _packageResolver;
 
-  // Map of Dart module server path to source map contents.
+  /// Map of Dart module server path to source map contents.
   final _mapContents = <String, String>{};
 
   bool _haveReadOriginals = false;
@@ -30,16 +35,36 @@ class FrontendServerAssetReader implements AssetReader {
   ///
   /// Corresponding `.json` and `.map` files will be read relative to
   /// [outputPath].
+  ///
+  /// [_packageRoot] is the path to the directory that contains a `.packages`
+  /// file for the application.
   FrontendServerAssetReader(
     String outputPath,
+    this._packageRoot,
   )   : _mapOriginal = File('$outputPath.map'),
         _mapIncremental = File('$outputPath.incremental.map'),
         _jsonOriginal = File('$outputPath.json'),
-        _jsonIncremental = File('$outputPath.incremental.json');
+        _jsonIncremental = File('$outputPath.incremental.json'),
+        _packageResolver = PackageResolver.loadConfig(
+            p.toUri(p.join(_packageRoot, '.packages')));
 
   @override
-  Future<String> dartSourceContents(String serverPath) =>
-      throw UnimplementedError();
+  Future<String> dartSourceContents(String serverPath) async {
+    if (!serverPath.endsWith('.dart')) return null;
+    var resolver = await _packageResolver;
+
+    Uri fileUri;
+    if (serverPath.startsWith('packages/')) {
+      var packagePath = serverPath.replaceFirst('packages/', 'package:');
+      fileUri = await resolver.resolveUri(packagePath);
+    } else {
+      fileUri = p.toUri(p.join(_packageRoot, serverPath));
+    }
+
+    var source = File(fileUri.toFilePath());
+    if (!await source.exists()) return null;
+    return await source.readAsString();
+  }
 
   @override
   Future<String> sourceMapContents(String serverPath) async {
