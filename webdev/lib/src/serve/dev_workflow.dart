@@ -89,7 +89,7 @@ Future<ServerManager> _startServerManager(
   BuildDaemonClient client,
 ) async {
   var assetPort = daemonPort(workingDirectory);
-  var serverOptions = Set<ServerOptions>();
+  var serverOptions = <ServerOptions>{};
   for (var target in targetPorts.keys) {
     serverOptions.add(ServerOptions(
       configuration,

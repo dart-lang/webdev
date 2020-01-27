@@ -18,7 +18,7 @@ class ServerManager {
     Set<ServerOptions> serverOptions,
     Stream<BuildResults> buildResults,
   ) async {
-    var servers = Set<WebDevServer>();
+    var servers = <WebDevServer>{};
     for (var options in serverOptions) {
       servers.add(await WebDevServer.start(options, buildResults));
     }
