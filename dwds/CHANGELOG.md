@@ -4,6 +4,7 @@
   to resolve breakpoint locations.
 - Remove dependency on `package:build_daemon`.
 - Add `FrontendServerAssetReader` for use with Frontend Server builds.
+- Depend on latest `package:sse` for handling client reconnects transparently on the server.
 
 **Breaking Changes:**
 - No longer use the `BuildResult` abstraction from `package:build_daemon` but
