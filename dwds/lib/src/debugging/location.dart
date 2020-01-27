@@ -175,8 +175,12 @@ class Locations {
   /// Note [location] meta data.
   void noteLocation(
       String dartServerPath, Location location, String wipScriptId) {
-    _sourceToLocation.putIfAbsent(dartServerPath, () => Set()).add(location);
-    _scriptIdToLocation.putIfAbsent(wipScriptId, () => Set()).add(location);
+    _sourceToLocation
+        .putIfAbsent(dartServerPath, () => <Location>{})
+        .add(location);
+    _scriptIdToLocation
+        .putIfAbsent(wipScriptId, () => <Location>{})
+        .add(location);
   }
 
   /// Returns the tokenPosTable for the provided Dart script path as defined
@@ -192,7 +196,7 @@ class Locations {
     var lineNumberToLocation = <int, Set<Location>>{};
     for (var location in locations) {
       lineNumberToLocation
-          .putIfAbsent(location.dartLocation.line, () => Set())
+          .putIfAbsent(location.dartLocation.line, () => <Location>{})
           .add(location);
     }
     for (var lineNumber in lineNumberToLocation.keys) {

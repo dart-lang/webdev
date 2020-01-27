@@ -13,7 +13,7 @@ import 'package:webdev/src/util.dart';
 final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
 
 Future<TestProcess> runWebDev(List<String> args, {String workingDirectory}) {
-  var fullArgs = [_webdevBin]..addAll(args);
+  var fullArgs = [_webdevBin, ...args];
 
   return TestProcess.start(dartPath, fullArgs,
       workingDirectory: workingDirectory);

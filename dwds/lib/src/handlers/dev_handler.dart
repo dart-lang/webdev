@@ -37,7 +37,7 @@ import '../services/debug_service.dart';
 class DevHandler {
   StreamSubscription _sub;
   final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'));
-  final _injectedConnections = Set<SseConnection>();
+  final _injectedConnections = <SseConnection>{};
   final DevTools _devTools;
   final AssetReader _assetReader;
   final String _hostname;
