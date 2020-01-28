@@ -1,5 +1,7 @@
 ## 1.0.0-dev
 
+- Fix an issue where files imported with relative paths containing `../` may fail
+  to resolve breakpoint locations.
 - Remove dependency on `package:build_daemon`.
 - Add `FrontendServerAssetReader` for use with Frontend Server builds.
 
