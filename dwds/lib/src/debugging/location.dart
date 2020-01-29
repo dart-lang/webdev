@@ -244,7 +244,8 @@ class Locations {
           // This works on Windows because path treats both / and \ as separators.
           // It will fail if the path has both separators in it.
           var relativeSegments = p.split(mapping.urls[index]);
-          var path = p.url.joinAll([scriptLocation, ...relativeSegments]);
+          var path = p.url
+              .normalize(p.url.joinAll([scriptLocation, ...relativeSegments]));
           var dartUri = DartUri(path, _root);
           result.add(Location.from(
             scriptId,
