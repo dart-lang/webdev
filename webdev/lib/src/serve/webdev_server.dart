@@ -102,7 +102,6 @@ class WebDevServer {
         logWriter,
       );
       dwds = await Dwds.start(
-<<<<<<< HEAD
           hostname: options.configuration.hostname,
           assetReader: assetReader,
           buildResults: filteredBuildResults,
@@ -116,24 +115,8 @@ class WebDevServer {
           enableDebugExtension: options.configuration.debugExtension,
           enableDebugging: options.configuration.debug,
           expressionCompiler: null);
-=======
-        hostname: options.configuration.hostname,
-        assetReader: assetReader,
-        buildResults: filteredBuildResults,
-        chromeConnection: () async =>
-            (await Chrome.connectedInstance).chromeConnection,
-        logWriter: logWriter,
-        reloadConfiguration: options.configuration.reload,
-        serveDevTools:
-            options.configuration.debug || options.configuration.debugExtension,
-        verbose: options.configuration.verbose,
-        enableDebugExtension: options.configuration.debugExtension,
-        enableDebugging: options.configuration.debug,
-        expressionCompiler: null
-      );
->>>>>>> e66c517... Initial implementation for eval in dwds
-      pipeline = pipeline.addMiddleware(dwds.middleware);
-      cascade = cascade.add(dwds.handler);
+          pipeline = pipeline.addMiddleware(dwds.middleware);
+          cascade = cascade.add(dwds.handler);
     }
 
     cascade = cascade.add(proxyHandler(
