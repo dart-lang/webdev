@@ -60,7 +60,7 @@ class TestServer {
       bool enableDebugging,
       UrlEncoder urlEncoder,
       bool restoreBreakpoints,
-      ExpressionCompilerInterface expressionCompiler) async {
+      ExpressionCompiler expressionCompiler) async {
     var pipeline = const Pipeline();
 
     var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {

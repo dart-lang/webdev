@@ -81,7 +81,7 @@ class ChromeProxyService implements VmServiceInterface {
   final _previousBreakpoints = <Breakpoint>{};
 
   final LogWriter _logWriter;
-  ExpressionEvaluator _evaluator;
+  final ExpressionCompiler _expressionCompiler;
 
   ChromeProxyService._(
       this._vm,
@@ -93,7 +93,7 @@ class ChromeProxyService implements VmServiceInterface {
       this._restoreBreakpoints,
       this.executionContext,
       this._logWriter,
-      ExpressionCompilerInterface compiler) {
+      this._expressionCompiler) {
     _debuggerCompleter.complete(Debugger.create(
       remoteDebugger,
       _streamNotify,
@@ -103,11 +103,6 @@ class ChromeProxyService implements VmServiceInterface {
       _locations,
       uri,
     ));
-
-    if (compiler != null) {
-      _evaluator = ExpressionEvaluator(
-          _debugger, _locations, _modules, compiler, _logWriter);
-    }
   }
 
   static Future<ChromeProxyService> create(
@@ -118,7 +113,7 @@ class ChromeProxyService implements VmServiceInterface {
       LogWriter logWriter,
       bool restoreBreakpoints,
       ExecutionContext executionContext,
-      ExpressionCompilerInterface expressionCompiler) async {
+      ExpressionCompiler expressionCompiler) async {
     // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
     final vm = VM()
       ..isolates = []
@@ -324,9 +319,13 @@ $loadModule("dart_sdk").developer.invokeExtension(
   @override
   Future evaluateInFrame(String isolateId, int frameIndex, String expression,
       {Map<String, String> scope, bool disableBreakpoints}) async {
-    if (_evaluator != null) {
-      var result = await _evaluator.evaluateExpression(
-          isolateId, frameIndex, expression);
+    if (_expressionCompiler != null) {
+      var debugger = await _debugger;
+      var evaluator = ExpressionEvaluator(
+          debugger, _locations, _modules, _expressionCompiler, _logWriter);
+
+      var result =
+          await evaluator.evaluateExpression(isolateId, frameIndex, expression);
       return _inspector?.instanceHelper?.instanceRefFor(result);
     }
 

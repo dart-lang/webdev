@@ -5,24 +5,28 @@
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/modules.dart';
-import 'package:dwds/src/utilities/objects.dart' as objects;
+import 'package:dwds/src/utilities/objects.dart' as chrome;
 import 'package:dwds/src/utilities/shared.dart' show LogWriter;
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'expression_compiler.dart';
 
+/// ExpressionEvaluator provides functionality to evaluate dart expressions
+/// from text user input in the debugger, using chrome remote debugger to
+/// collect context for evaluation (scope, types, modules), and using
+/// ExpressionCompilerInterface to compile dart expressions to JavaScript.
 class ExpressionEvaluator {
-  final Future<Debugger> _debugger;
+  final Debugger _debugger;
   final Locations _locations;
   final Modules _modules;
-  final ExpressionCompilerInterface _compiler;
+  final ExpressionCompiler _compiler;
   final LogWriter _logWriter;
 
   ExpressionEvaluator(this._debugger, this._locations, this._modules,
       this._compiler, this._logWriter);
 
-  void printTrace(String message) {
+  void _printTrace(String message) {
     _logWriter(Level.INFO, message);
   }
 
@@ -31,31 +35,39 @@ class ExpressionEvaluator {
         <String, dynamic>{'type': 'string', 'value': '$severity: $message'});
   }
 
+  /// Evaluate dart expression inside a given JavaScript frame (function)
+  ///
+  /// Gets necessary context (types, scope, module names) data from chrome,
+  /// uses ExpressionCompiler interface to compile the expression to JavaScript,
+  /// and sends evaluate requests to chrome to calculate the final result.
+  ///
+  /// Returns remote object containing the result of evaluation or error
+  /// [isolateId] not used
+  /// [frameIndex] JavaScript frame to evaluate the expression in
+  /// [expression] dart expression to evaluate
   Future<RemoteObject> evaluateExpression(
       String isolateId, int frameIndex, String expression) async {
     if (_compiler == null) {
-      return _createError('Internal error',
-          'Expression evaluation is only supported with frontend server');
+      return _createError(
+          'Internal error', 'ExpressionEvaluator needs an ExpressionCompiler');
     }
 
     if (expression == null || expression.isEmpty) {
       return _createError('Invalid input', expression);
     }
 
-    var debugger = await _debugger;
-
     // 1. get js scope and current JS location
 
-    var jsStack = debugger.getJsStack();
-    var jsFrame = objects.Frame(jsStack[frameIndex]);
+    var jsStack = _debugger.getJsStack();
+    var jsFrame = chrome.CallFrame(jsStack[frameIndex]);
 
     var functionName = jsFrame.functionName;
     var jsLocation = jsFrame.location;
-    printTrace('Expression evaluator: JS location: '
+    _printTrace('Expression evaluator: JS location: '
         '$functionName, $jsLocation');
 
     var jsScope = await _collectLocalJsScope(jsFrame);
-    printTrace('Expression evaluator: Local JS Scope: $jsScope');
+    _printTrace('Expression evaluator: Local JS Scope: $jsScope');
 
     // 2. find corresponding dart location and scope
 
@@ -75,7 +87,7 @@ class ExpressionEvaluator {
     var packageUri =
         await _modules.packageForSource(dartLocation.uri.serverPath);
 
-    printTrace('Expression evaluator: dart Location: '
+    _printTrace('Expression evaluator: dart Location: '
         '$packageUri:${dartLocation.line}:${dartLocation.column}');
 
     // TODO(annagrin): figure out what modules to require for given expression
@@ -88,7 +100,7 @@ class ExpressionEvaluator {
       var name = module.split('/').last;
       jsModules[name] = module;
     }
-    printTrace('Expression evaluator: js modules: $jsModules');
+    _printTrace('Expression evaluator: js modules: $jsModules');
 
     var compilationResult = await _compiler.compileExpressionToJs(
         isolateId,
@@ -105,8 +117,9 @@ class ExpressionEvaluator {
     var isError = compilationResult.isError;
     var jsExpression = compilationResult.result;
 
-    printTrace('Expression evaluator: js: $jsExpression, isError: $isError');
+    _printTrace('Expression evaluator: js: $jsExpression, isError: $isError');
 
+    // TODO(annagrin): modify frontend to avoid stripping dummy names
     if (isError) {
       var error = jsExpression
           .replaceAll(r'[', '')
@@ -117,9 +130,9 @@ class ExpressionEvaluator {
     }
 
     var result =
-        await debugger.evaluateJsOnCallFrameIndex(frameIndex, jsExpression);
+        await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsExpression);
 
-    printTrace('Expression evaluator: '
+    _printTrace('Expression evaluator: '
         'Evaluation result returned from chrome: $result');
 
     // 6. Return evaluation result or error
@@ -135,11 +148,12 @@ class ExpressionEvaluator {
     return ret;
   }
 
-  Future<Map<String, String>> _collectLocalJsScope(objects.Frame frame) async {
+  Future<Map<String, String>> _collectLocalJsScope(
+      chrome.CallFrame frame) async {
     var jsScope = <String, String>{};
 
-    void collectVariables(String scopeName,
-        Iterable<objects.Property> variables, String scopeType) {
+    void collectVariables(String scopeName, Iterable<chrome.Property> variables,
+        String scopeType) {
       for (var p in variables) {
         var name = p.name;
         var value = p.value;
@@ -149,7 +163,7 @@ class ExpressionEvaluator {
           // the stack.
           //
           // Note: this makes some uncaptured values available for evaluation,
-          // which might be not formally correct but convenient, for evample:
+          // which might not be formally correct but convenient, for evample:
           //
           // int x = 0;
           // var f = (int y) {
@@ -171,7 +185,7 @@ class ExpressionEvaluator {
     var scopeChain = frame.scopeChain;
     for (var scope in scopeChain.innerScopes) {
       var scopeProperties =
-          await (await _debugger).getProperties(scope.object.objectId);
+          await _debugger.getProperties(scope.object.objectId);
       collectVariables(scope.name, scopeProperties, scope.type);
     }
 

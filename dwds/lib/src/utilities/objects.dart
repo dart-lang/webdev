@@ -52,8 +52,8 @@ class Property {
   String toString() => '$name $value';
 }
 
-// Object for handling frames and scopes
-
+/// Represents Scope object from chrome devtools protocol
+/// https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Scope
 class Scope {
   RemoteObject _object;
   final Map<String, dynamic> _map;
@@ -72,6 +72,8 @@ class Scope {
   String toString() => 'JsScope: type: $type, name: $name, object: $object';
 }
 
+/// Represents ScopeChain object from chrome devtools protocol, used in
+/// https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-CallFrame
 class ScopeChain {
   final List<dynamic> _chain;
   Iterable<Scope> _scopes;
@@ -83,7 +85,6 @@ class ScopeChain {
 
   Iterable<Scope> get scopes => _scopes;
 
-  // helpers
   Scope get libraryScope => _scopes.first;
   Scope get mainScope => _scopes.skip(1).first;
   Iterable<Scope> get innerScopes => _scopes.skip(2);
@@ -92,6 +93,8 @@ class ScopeChain {
   String toString() => 'ScopeChain: $scopes';
 }
 
+/// Represents Location object from chrome devtools protocol
+/// https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
 class Location {
   final Map<String, dynamic> _map;
 
@@ -106,12 +109,14 @@ class Location {
       'Location: scriptId: $scriptId, line: $lineNumber, column: $columnNumber';
 }
 
-class Frame {
+/// Represents CallFrame object from chrome devtools protocol
+/// https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-CallFrame
+class CallFrame {
   final Map<String, dynamic> _map;
   Location _location;
   ScopeChain _scopeChain;
 
-  Frame(this._map) {
+  CallFrame(this._map) {
     _location = Location(_rawLocation);
     _scopeChain = ScopeChain(_rawScopeChain);
   }
@@ -126,5 +131,5 @@ class Frame {
 
   @override
   String toString() =>
-      'Frame: location: $location, functionName: $functionName, scopeChain: $scopeChain';
+      'CallFrame: location: $location, functionName: $functionName, scopeChain: $scopeChain';
 }

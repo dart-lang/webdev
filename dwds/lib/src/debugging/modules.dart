@@ -18,6 +18,7 @@ class Modules {
   final ExecutionContext _executionContext;
   // The Dart server path to containing module.
   final _sourceToModule = <String, String>{};
+  // The Dart server path to library import uri
   final _sourceToPackage = <String, String>{};
 
   // The Chrome script ID to corresponding module.
@@ -69,15 +70,6 @@ class Modules {
     }
     return _sourceToPackage[serverPath];
   }
-
-  Future<Iterable<String>> modules() async {
-    if (_sourceToPackage.isEmpty) {
-      await _initializeMapping();
-    }
-    return _sourceToModule.values;
-  }
-
-  bool experimentalMode = true;
 
   /// Checks if the [url] correspond to a module and stores meta data.
   Future<Null> noteModule(String url, String scriptId) async {

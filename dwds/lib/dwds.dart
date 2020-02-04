@@ -29,7 +29,7 @@ export 'src/readers/frontend_server_asset_reader.dart'
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 export 'src/services/expression_compiler.dart'
-    show ExpressionCompilationResult, ExpressionCompilerInterface;
+    show ExpressionCompilationResult, ExpressionCompiler;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
@@ -83,7 +83,7 @@ class Dwds {
       ModuleStrategy moduleStrategy,
       UrlEncoder urlEncoder,
       @deprecated bool restoreBreakpoints,
-      ExpressionCompilerInterface expressionCompiler}) async {
+      ExpressionCompiler expressionCompiler}) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
     enableDebugging ??= true;

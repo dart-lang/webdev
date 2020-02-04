@@ -76,7 +76,7 @@ class TestContext {
       UrlEncoder urlEncoder,
       bool restoreBreakpoints,
       bool useBuildDaemon,
-      ExpressionCompilerInterface expressionCompiler}) async {
+      ExpressionCompiler expressionCompiler}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;

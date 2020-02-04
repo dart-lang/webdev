@@ -56,7 +56,7 @@ class DevHandler {
   final bool _restoreBreakpoints;
   final bool _useSseForDebugProxy;
   final bool _serveDevTools;
-  final ExpressionCompilerInterface _expressionCompiler;
+  final ExpressionCompiler _expressionCompiler;
 
   /// Null until [close] is called.
   ///

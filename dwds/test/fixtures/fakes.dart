@@ -208,7 +208,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
 /// Fake expression compiler that simply passes expression through,
 /// without actual compilation
-class FakeExpressionCompiler implements ExpressionCompilerInterface {
+class FakeExpressionCompiler implements ExpressionCompiler {
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
       String isolateId,

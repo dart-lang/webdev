@@ -135,7 +135,7 @@ class DebugService {
       {void Function(Map<String, dynamic>) onRequest,
       void Function(Map<String, dynamic>) onResponse,
       bool useSse,
-      ExpressionCompilerInterface expressionCompiler}) async {
+      ExpressionCompiler expressionCompiler}) async {
     useSse ??= false;
     var chromeProxyService = await ChromeProxyService.create(
         remoteDebugger,

@@ -9,7 +9,9 @@ class ExpressionCompilationResult {
   ExpressionCompilationResult(this.result, this.isError);
 }
 
-abstract class ExpressionCompilerInterface {
+/// Interface to provide means of compiling expressions from dart to JavaScript,
+/// used to implement expression evaluation in any tools using dwds
+abstract class ExpressionCompiler {
   /// Compiles [expression] in [libraryUri] at[line]:[column] to javascript
   /// in [moduleName].
   ///
