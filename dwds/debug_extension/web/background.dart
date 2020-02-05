@@ -20,8 +20,9 @@ import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sse/client/sse_client.dart';
 
-const _notADartAppAlert =
-    'Unable to launch DevTools. This is not a Dart application.';
+const _notADartAppAlert = 'Unable to launch DevTools. '
+    'This is not a Dart application or debugging was not enabled for your '
+    'development workflow.';
 
 // GENERATE:
 // pub run build_runner build web -o build -r
