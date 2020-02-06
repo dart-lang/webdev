@@ -361,8 +361,9 @@ class DevHandler {
     extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
       var connection = _appConnectionByAppId[devToolsRequest.appId];
       if (connection == null) {
-        throw StateError(
+        _logWriter(Level.WARNING,
             'Not connected to an app with id: ${devToolsRequest.appId}');
+        return;
       }
       var appServices =
           await _servicesByAppId.putIfAbsent(devToolsRequest.appId, () async {

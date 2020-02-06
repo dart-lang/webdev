@@ -4,6 +4,8 @@
   to resolve breakpoint locations.
 - Remove dependency on `package:build_daemon`.
 - Add `FrontendServerAssetReader` for use with Frontend Server builds.
+- Fix an issue where a failure to initiate debugging through the Dart Debug
+  Extension would cause your development server to crash.
 
 **Breaking Changes:**
 - No longer use the `BuildResult` abstraction from `package:build_daemon` but
