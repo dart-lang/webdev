@@ -361,6 +361,8 @@ class DevHandler {
     extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
       var connection = _appConnectionByAppId[devToolsRequest.appId];
       if (connection == null) {
+        // TODO(grouma) - Ideally we surface this warning to the extension so
+        // that it can be displayed to the user through an alert.
         _logWriter(Level.WARNING,
             'Not connected to an app with id: ${devToolsRequest.appId}');
         return;
