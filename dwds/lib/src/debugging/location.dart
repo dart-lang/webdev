@@ -45,7 +45,7 @@ class Location {
   }
 
   @override
-  String toString() => '${dartLocation.toString()} -> ${jsLocation.toString()}';
+  String toString() => '$dartLocation -> $jsLocation';
 }
 
 /// Location information for a Dart source.

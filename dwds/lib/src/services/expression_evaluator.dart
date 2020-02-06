@@ -32,7 +32,7 @@ class ExpressionEvaluator {
 
   RemoteObject _createError(String severity, String message) {
     return RemoteObject(
-        <String, dynamic>{'type': 'string', 'value': '$severity: $message'});
+        <String, String>{'type': 'string', 'value': '$severity: $message'});
   }
 
   /// Evaluate dart expression inside a given JavaScript frame (function)
@@ -42,7 +42,7 @@ class ExpressionEvaluator {
   /// and sends evaluate requests to chrome to calculate the final result.
   ///
   /// Returns remote object containing the result of evaluation or error
-  /// [isolateId] not used
+  /// [isolateId] current isolate ID
   /// [frameIndex] JavaScript frame to evaluate the expression in
   /// [expression] dart expression to evaluate
   Future<RemoteObject> evaluateExpression(
@@ -59,7 +59,8 @@ class ExpressionEvaluator {
     // 1. get js scope and current JS location
 
     var jsStack = _debugger.getJsStack();
-    var jsFrame = chrome.CallFrame(jsStack[frameIndex]);
+    var jsFrame = WipCallFrame(jsStack[frameIndex]);
+    //var jsFrame = chrome.CallFrame(jsStack[frameIndex]);
 
     var functionName = jsFrame.functionName;
     var jsLocation = jsFrame.location;
@@ -119,13 +120,24 @@ class ExpressionEvaluator {
 
     _printTrace('Expression evaluator: js: $jsExpression, isError: $isError');
 
-    // TODO(annagrin): modify frontend to avoid stripping dummy names
     if (isError) {
-      var error = jsExpression
-          .replaceAll(r'[', '')
-          .replaceAll(r']', '')
-          .replaceAll(r'org-dartlang-debug:synthetic_debug_expression:', '');
+      // Frontend currently gives a text message including library name
+      // and function name on compilation error. Strip this information
+      // since it is shows syntetic names only used for debugger during
+      // expression evaluation.
+      //
+      // TODO(annagrin): modify frontend to avoid stripping dummy names
+      // [issue 40449](https://github.com/dart-lang/sdk/issues/40449)
+      var error = jsExpression;
 
+      if (jsExpression.startsWith('[')) {
+        jsExpression = jsExpression.substring(1);
+      }
+      if (jsExpression.endsWith(']')) {
+        jsExpression = jsExpression.substring(0, jsExpression.lastIndexOf(']'));
+      }
+
+      jsExpression.replaceAll(r'org-dartlang-debug:synthetic_debug_expression:', '');
       return _createError('Compilation error', error);
     }
 
@@ -148,12 +160,11 @@ class ExpressionEvaluator {
     return ret;
   }
 
-  Future<Map<String, String>> _collectLocalJsScope(
-      chrome.CallFrame frame) async {
+  Future<Map<String, String>> _collectLocalJsScope(WipCallFrame frame) async {
+
     var jsScope = <String, String>{};
 
-    void collectVariables(String scopeName, Iterable<chrome.Property> variables,
-        String scopeType) {
+    void collectVariables(String scopeType, Iterable<chrome.Property> variables) {
       for (var p in variables) {
         var name = p.name;
         var value = p.value;
@@ -173,7 +184,7 @@ class ExpressionEvaluator {
           //   print(y);
           // }
           // TODO(annagrin): decide if we would like not to support evaluation
-          // of upcaptured variables
+          // of uncaptured variables
           jsScope[name] = _valueToLiteral(value);
         }
         if (scopeType == 'local') {
@@ -182,11 +193,13 @@ class ExpressionEvaluator {
       }
     }
 
-    var scopeChain = frame.scopeChain;
-    for (var scope in scopeChain.innerScopes) {
+    var scopeChain = frame.getScopeChain();
+    
+    // skip library and main scope
+    for (var scope in scopeChain.skip(2)) {
       var scopeProperties =
           await _debugger.getProperties(scope.object.objectId);
-      collectVariables(scope.name, scopeProperties, scope.type);
+      collectVariables(scope.scope, scopeProperties);
     }
 
     return jsScope;

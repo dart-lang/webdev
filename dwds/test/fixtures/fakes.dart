@@ -221,15 +221,17 @@ class FakeExpressionCompiler implements ExpressionCompiler {
       String expression) async {
     return ExpressionCompilationResult('''
       try {
-        (function(local) {
+        (function(x) {
           let main = require('example/hello_world/main').main;
           let dart = require('dart_sdk').dart;
           let core = require('dart_sdk').core;
-          return local;
+          console.log(x);
+          return x;
         }(
           $expression
         ))
         } catch (error) {
+          console.error(error.name + ": " + error.message);
           error.name + ": " + error.message;
         }''', false);
   }

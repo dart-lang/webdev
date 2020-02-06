@@ -83,6 +83,8 @@ class Dwds {
       ModuleStrategy moduleStrategy,
       UrlEncoder urlEncoder,
       @deprecated bool restoreBreakpoints,
+      // TODO(annagrin): make expressionCompiler argument required
+      // [issue 881](https://github.com/dart-lang/webdev/issues/881)
       ExpressionCompiler expressionCompiler}) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;

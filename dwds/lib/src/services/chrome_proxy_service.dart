@@ -81,7 +81,7 @@ class ChromeProxyService implements VmServiceInterface {
   final _previousBreakpoints = <Breakpoint>{};
 
   final LogWriter _logWriter;
-  final ExpressionCompiler _expressionCompiler;
+  ExpressionEvaluator _expressionEvaluator;
 
   ChromeProxyService._(
       this._vm,
@@ -92,8 +92,7 @@ class ChromeProxyService implements VmServiceInterface {
       this._locations,
       this._restoreBreakpoints,
       this.executionContext,
-      this._logWriter,
-      this._expressionCompiler) {
+      this._logWriter) {
     _debuggerCompleter.complete(Debugger.create(
       remoteDebugger,
       _streamNotify,
@@ -131,11 +130,23 @@ class ChromeProxyService implements VmServiceInterface {
         locations,
         restoreBreakpoints,
         executionContext,
-        logWriter,
-        expressionCompiler);
+        logWriter);
 
     unawaited(service.createIsolate(appConnection));
+    await service.createEvaluator(expressionCompiler);
     return service;
+  }
+
+  /// Creates expression evaluator to use in [evaluateInFrame]
+  /// 
+  /// Expression evaluation is only supported with scenarios that
+  /// provide non-null [ExpressionCompiler] to [create].
+  /// Otherwise [evaluateInFrame] will throw unsupported exception.
+  Future<void> createEvaluator(ExpressionCompiler compiler) async {
+    _expressionEvaluator = compiler == null? 
+      null :
+      ExpressionEvaluator(
+        await _debugger, _locations, _modules, compiler, _logWriter);
   }
 
   /// Creates a new isolate.
@@ -319,17 +330,21 @@ $loadModule("dart_sdk").developer.invokeExtension(
   @override
   Future evaluateInFrame(String isolateId, int frameIndex, String expression,
       {Map<String, String> scope, bool disableBreakpoints}) async {
-    if (_expressionCompiler != null) {
-      var debugger = await _debugger;
-      var evaluator = ExpressionEvaluator(
-          debugger, _locations, _modules, _expressionCompiler, _logWriter);
+    if (_expressionEvaluator != null) {
+      var isolate = _inspector?.isolate;
+      if (isolate?.id != isolateId) {
+      throw ArgumentError.value(
+        isolateId, 'isolateId', 'Unrecognized isolate id');
+      }
 
-      var result =
-          await evaluator.evaluateExpression(isolateId, frameIndex, expression);
+      var result = await _expressionEvaluator.evaluateExpression(
+          isolateId, frameIndex, expression);
+
       return _inspector?.instanceHelper?.instanceRefFor(result);
     }
 
-    throw UnimplementedError();
+    throw UnimplementedError(
+      'Expression evaluation is not supported for this configuration');
   }
 
   @override
@@ -457,9 +472,6 @@ $loadModule("dart_sdk").developer.invokeExtension(
           return _chromeConsoleStreamController(
               (e) => _stderrTypes.contains(e.type),
               includeExceptions: true);
-        case 'Logging':
-        case '_Logging':
-          return StreamController<Event>.broadcast();
         default:
           throw UnimplementedError('The stream `$streamId` is not supported.');
       }

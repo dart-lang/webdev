@@ -6,6 +6,11 @@ class ExpressionCompilationResult {
   final bool isError;
   final String result;
 
+  /// Result of compilation from dart to Javascript
+  ///
+  /// [result] JavaScript expression as String, or error message if compilation
+  /// failed
+  /// [isError] true if compilation has failed, false otherwise
   ExpressionCompilationResult(this.result, this.isError);
 }
 

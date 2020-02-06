@@ -1152,8 +1152,13 @@ void main() {
   group('shared context with evaluation', () {
     setUpAll(() async {
       await context.setUp(
-          // TODO(annagrin): add end-to-end tests
-          // when testing with frontend_server is supported
+          // TODO(annagrin): use actual compilation via frontend when supported
+          // 
+          // This group of tests currently omits actual compilation
+          // from dart to js, so expressions given to evaluateInFrame
+          // in all tests below are written in javascript. 
+          // Note frontend server has compilation tests, so the tests
+          // below make sure that the rest of the evaluation logic works.
           expressionCompiler: FakeExpressionCompiler());
     });
 
@@ -1169,11 +1174,9 @@ void main() {
       Stream<Event> stream;
 
       setUp(() async {
-        vm = await fetchChromeProxyService(context.debugConnection).getVM();
-        isolate = await fetchChromeProxyService(context.debugConnection)
-            .getIsolate(vm.isolates.first.id);
-        scripts = await fetchChromeProxyService(context.debugConnection)
-            .getScripts(isolate.id);
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates.first.id);
+        scripts = await service.getScripts(isolate.id);
 
         await service.streamListen('Debug');
         stream = service.onEvent('Debug');
@@ -1187,6 +1190,16 @@ void main() {
       });
 
       test('local', () async {
+        expect(service.streamListen('Stdout'), completion(_isSuccess));
+        var output = service.onEvent('Stdout');
+
+        expect(
+            output,
+            emitsThrough(predicate((Event event) =>
+                event.kind == EventKind.kWriteEvent &&
+                  String.fromCharCodes(base64.decode(event.bytes))
+                    .contains('42'))));
+
         var line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
         var bp = await service.addBreakpointWithScriptUri(
@@ -1197,7 +1210,7 @@ void main() {
 
         var result = await service.evaluateInFrame(
             isolate.id, event.topFrame.index, 'local');
-
+  
         expect(
             result,
             const TypeMatcher<InstanceRef>().having(
@@ -1208,6 +1221,16 @@ void main() {
       });
 
       test('call core function', () async {
+        expect(service.streamListen('Stdout'), completion(_isSuccess));
+        var output = service.onEvent('Stdout');
+
+        expect(
+            output,
+            emitsThrough(predicate((Event event) =>
+                event.kind == EventKind.kWriteEvent &&
+                  String.fromCharCodes(base64.decode(event.bytes))
+                    .contains('null'))));
+
         var line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
         var bp = await service.addBreakpointWithScriptUri(
@@ -1229,6 +1252,16 @@ void main() {
       });
 
       test('error', () async {
+        expect(service.streamListen('Stderr'), completion(_isSuccess));
+        var output = service.onEvent('Stderr');
+
+        expect(
+            output,
+            emitsThrough(predicate((Event event) =>
+                event.kind == EventKind.kWriteEvent &&
+                  String.fromCharCodes(base64.decode(event.bytes))
+                    .contains('ReferenceError: typo is not defined'))));
+
         var line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
         var bp = await service.addBreakpointWithScriptUri(

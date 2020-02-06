@@ -45,6 +45,7 @@ class Modules {
     // We only clear the source to module mapping as script IDs may persist
     // across hot reloads.
     _sourceToModule.clear();
+    _sourceToPackage.clear();
   }
 
   /// Returns the module for the Chrome script ID.
