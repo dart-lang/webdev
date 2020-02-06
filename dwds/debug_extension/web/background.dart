@@ -20,8 +20,10 @@ import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sse/client/sse_client.dart';
 
-const _notADartAppAlert =
-    'Unable to launch DevTools. This is not a Dart application.';
+const _notADartAppAlert = 'No Dart application detected.'
+    ' Your development server should inject metadata to indicate support for'
+    ' Dart debugging. This may require setting a flag. Check the documentation'
+    ' for your development server.';
 
 // GENERATE:
 // pub run build_runner build web -o build -r

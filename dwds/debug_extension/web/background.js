@@ -7831,7 +7831,7 @@ $S:49}
 M.k_.prototype={
 $0:function(){var t=0,s=P.bK(u.P),r,q=this,p,o,n,m,l,k,j,i
 var $async$$0=P.bM(function(a,b){if(a===1)return P.bH(b,s)
-while(true)switch(t){case 0:if(self.chrome.runtime.lastError!=null){p=J.kU(J.kV(self.chrome.runtime.lastError),"Cannot access")||J.kU(J.kV(self.chrome.runtime.lastError),"Cannot attach")?"Unable to launch DevTools. This is not a Dart application.":"DevTools is already opened on a different window."
+while(true)switch(t){case 0:if(self.chrome.runtime.lastError!=null){p=J.kU(J.kV(self.chrome.runtime.lastError),"Cannot access")||J.kU(J.kV(self.chrome.runtime.lastError),"Cannot attach")?"Unable to launch DevTools. This is not a Dart application or debugging was not enabled for your development workflow.":"DevTools is already opened on a different window."
 self.window.alert(p)
 t=1
 break}o=P.i_(u.S)
@@ -7862,7 +7862,7 @@ case 6:if(b){j=!0
 t=4
 break}t=3
 break
-case 4:if(!j){self.window.alert("Unable to launch DevTools. This is not a Dart application.")
+case 4:if(!j){self.window.alert("Unable to launch DevTools. This is not a Dart application or debugging was not enabled for your development workflow.")
 n={tabId:J.ao(m.a)}
 m=P.a0(new M.jZ())
 self.chrome.debugger.detach(n,m)
