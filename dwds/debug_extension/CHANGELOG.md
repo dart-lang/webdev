@@ -1,3 +1,12 @@
+## 1.12
+
+- Update error message to potentially direct users to enable debugging.
+
+## 1.11
+
+- Fix issue where the extension would provide an invalid alert when attempting
+  to launch for a non Dart application.
+
 ## 1.10
 
 - Properly handle `sendCommand` errors.

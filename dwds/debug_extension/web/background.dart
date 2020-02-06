@@ -20,6 +20,11 @@ import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sse/client/sse_client.dart';
 
+const _notADartAppAlert = 'No Dart application detected.'
+    ' Your development server should inject metadata to indicate support for'
+    ' Dart debugging. This may require setting a flag. Check the documentation'
+    ' for your development server.';
+
 // GENERATE:
 // pub run build_runner build web -o build -r
 void main() {
@@ -34,7 +39,14 @@ void main() {
       currentTab = tabs[0];
       attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() async {
         if (lastError != null) {
-          alert('DevTools is already opened on a different window.');
+          String alertMessage;
+          if (lastError.message.contains('Cannot access') ||
+              lastError.message.contains('Cannot attach')) {
+            alertMessage = _notADartAppAlert;
+          } else {
+            alertMessage = 'DevTools is already opened on a different window.';
+          }
+          alert(alertMessage);
           return;
         }
         var contextController = StreamController<int>();
@@ -69,7 +81,7 @@ void main() {
           }
         }
         if (!didAttach) {
-          alert('Unable to launch DevTools. This is not a Dart application.');
+          alert(_notADartAppAlert);
           detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
           return;
         }

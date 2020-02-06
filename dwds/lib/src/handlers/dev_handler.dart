@@ -43,7 +43,7 @@ class DevHandler {
   final AssetReader _assetReader;
   final String _hostname;
   final _connectedApps = StreamController<AppConnection>.broadcast();
-  final _servicesByAppId = <String, Future<AppDebugServices>>{};
+  final _servicesByAppId = <String, AppDebugServices>{};
   final _appConnectionByAppId = <String, AppConnection>{};
   final Stream<BuildResult> buildResults;
   final bool _verbose;
@@ -94,8 +94,8 @@ class DevHandler {
         // connections.
         await Future.wait(_injectedConnections
             .map((injectedConnection) => injectedConnection.sink.close()));
-        await Future.wait(_servicesByAppId.values.map((futureServices) async {
-          await (await futureServices).close();
+        await Future.wait(_servicesByAppId.values.map((service) async {
+          await service.close();
         }));
         _servicesByAppId.clear();
       }();
@@ -176,23 +176,26 @@ class DevHandler {
     );
   }
 
-  Future<AppDebugServices> loadAppServices(AppConnection appConnection) =>
-      _servicesByAppId.putIfAbsent(appConnection.request.appId, () async {
-        var debugService = await _startLocalDebugService(
-            await _chromeConnection(), appConnection);
-        var appServices = await _createAppDebugServices(
-            appConnection.request.appId, debugService);
-        unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
-            .whenComplete(() {
-          appServices.close();
-          _servicesByAppId.remove(appConnection.request.appId);
-          _logWriter(
-              Level.INFO,
-              'Stopped debug service on '
-              'ws://${debugService.hostname}:${debugService.port}\n');
-        }));
-        return appServices;
-      });
+  Future<AppDebugServices> loadAppServices(AppConnection appConnection) async {
+    var appId = appConnection.request.appId;
+    if (_servicesByAppId[appId] == null) {
+      var debugService = await _startLocalDebugService(
+          await _chromeConnection(), appConnection);
+      var appServices = await _createAppDebugServices(
+          appConnection.request.appId, debugService);
+      unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
+          .whenComplete(() {
+        appServices.close();
+        _servicesByAppId.remove(appConnection.request.appId);
+        _logWriter(
+            Level.INFO,
+            'Stopped debug service on '
+            'ws://${debugService.hostname}:${debugService.port}\n');
+      }));
+      _servicesByAppId[appId] = appServices;
+    }
+    return _servicesByAppId[appId];
+  }
 
   void _handleConnection(SseConnection injectedConnection) {
     _injectedConnections.add(injectedConnection);
@@ -240,7 +243,7 @@ class DevHandler {
       _injectedConnections.remove(injectedConnection);
       if (appConnection != null) {
         _appConnectionByAppId.remove(appConnection.request.appId);
-        var services = await _servicesByAppId[appConnection.request.appId];
+        var services = _servicesByAppId[appConnection.request.appId];
         if (services != null) {
           if (services.connectedInstanceId == null ||
               services.connectedInstanceId ==
@@ -303,7 +306,7 @@ class DevHandler {
       ConnectRequest message, SseConnection sseConnection) async {
     // After a page refresh, reconnect to the same app services if they
     // were previously launched and create the new isolate.
-    var services = await _servicesByAppId[message.appId];
+    var services = _servicesByAppId[message.appId];
     var connection = AppConnection(message, sseConnection);
     if (services != null && services.connectedInstanceId == null) {
       // Disconnect any old connection (eg. those in the keep-alive waiting state
@@ -320,14 +323,14 @@ class DevHandler {
   }
 
   Future<void> _handleIsolateExit(AppConnection appConnection) async {
-    (await _servicesByAppId[appConnection.request.appId])
+    _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
         ?.destroyIsolate();
   }
 
   Future<void> _handleIsolateStart(
       AppConnection appConnection, SseConnection sseConnection) async {
-    await (await _servicesByAppId[appConnection.request.appId])
+    await _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
         ?.createIsolate(appConnection);
     // [IsolateStart] events are the result of a Hot Restart.
@@ -369,8 +372,8 @@ class DevHandler {
         throw StateError(
             'Not connected to an app with id: ${devToolsRequest.appId}');
       }
-      var appServices =
-          await _servicesByAppId.putIfAbsent(devToolsRequest.appId, () async {
+      var appId = devToolsRequest.appId;
+      if (_servicesByAppId[appId] == null) {
         var debugService = await DebugService.start(
           _hostname,
           extensionDebugger,
@@ -402,9 +405,10 @@ class DevHandler {
               '${appServices.debugService.uri}\n');
         }));
         extensionDebugConnections.add(DebugConnection(appServices));
-        return appServices;
-      });
-      await _launchDevTools(extensionDebugger, appServices.debugService.uri);
+        _servicesByAppId[appId] = appServices;
+      }
+      await _launchDevTools(
+          extensionDebugger, _servicesByAppId[appId].debugService.uri);
     });
   }
 
