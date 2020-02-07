@@ -21,9 +21,11 @@ class ProxyServerAssetReader implements AssetReader {
 
   ProxyServerAssetReader(
     int assetServerPort,
+    this._logWriter, {
     String root,
-    this._logWriter,
-  ) : _handler = proxyHandler('http://localhost:$assetServerPort/$root/');
+  }) : _handler = root != null
+            ? proxyHandler('http://localhost:$assetServerPort/$root/')
+            : proxyHandler('http://localhost:$assetServerPort/');
 
   @override
   Future<String> dartSourceContents(String serverPath) =>
