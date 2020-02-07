@@ -1,3 +1,7 @@
+## 1.0.1
+
+- Make the `root` optional for the `ProxyServerAssetReader`.
+
 ## 1.0.0
 
 - Fix an issue where files imported with relative paths containing `../` may fail

@@ -98,8 +98,8 @@ class WebDevServer {
     if (options.configuration.enableInjectedClient) {
       var assetReader = ProxyServerAssetReader(
         options.daemonPort,
-        options.target,
         logWriter,
+        root: options.target,
       );
       dwds = await Dwds.start(
         hostname: options.configuration.hostname,
