@@ -19,7 +19,7 @@ class Modules {
   // The Dart server path to containing module.
   final _sourceToModule = <String, String>{};
   // The Dart server path to library import uri
-  final _sourceToPackage = <String, String>{};
+  final _sourceToLibrary = <String, String>{};
 
   // The Chrome script ID to corresponding module.
   final _scriptIdToModule = <String, String>{};
@@ -45,7 +45,7 @@ class Modules {
     // We only clear the source to module mapping as script IDs may persist
     // across hot reloads.
     _sourceToModule.clear();
-    _sourceToPackage.clear();
+    _sourceToLibrary.clear();
   }
 
   /// Returns the module for the Chrome script ID.
@@ -65,11 +65,20 @@ class Modules {
   }
 
   /// Returns the containing library importUri for the provided Dart server path.
-  Future<String> packageForSource(String serverPath) async {
-    if (_sourceToPackage.isEmpty) {
+  Future<String> libraryForSource(String serverPath) async {
+    if (_sourceToLibrary.isEmpty) {
       await _initializeMapping();
     }
-    return _sourceToPackage[serverPath];
+    return _sourceToLibrary[serverPath];
+  }
+
+  // Returns mapping from server paths to library paths
+  Future<Map<String, String>> modules() async {
+    if (_sourceToModule.isEmpty) {
+      await _initializeMapping();
+    }
+
+    return _sourceToModule;
   }
 
   /// Checks if the [url] correspond to a module and stores meta data.
@@ -125,7 +134,7 @@ class Modules {
       var serverPath = DartUri(dartScript, _root).serverPath;
       _sourceToModule[serverPath] = _moduleFor(value[dartScript] as String,
           skipRoot: dartScript.startsWith('org-dartlang-app:///'));
-      _sourceToPackage[serverPath] = dartScript;
+      _sourceToLibrary[serverPath] = Uri.parse(dartScript).path;
     }
   }
 

@@ -115,8 +115,8 @@ class WebDevServer {
           enableDebugExtension: options.configuration.debugExtension,
           enableDebugging: options.configuration.debug,
           expressionCompiler: null);
-          pipeline = pipeline.addMiddleware(dwds.middleware);
-          cascade = cascade.add(dwds.handler);
+      pipeline = pipeline.addMiddleware(dwds.middleware);
+      cascade = cascade.add(dwds.handler);
     }
 
     cascade = cascade.add(proxyHandler(

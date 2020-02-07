@@ -121,16 +121,8 @@ class ChromeProxyService implements VmServiceInterface {
       ..version = Platform.version;
     var modules = Modules(remoteDebugger, tabUrl, executionContext);
     var locations = Locations(assetReader, modules, tabUrl);
-    var service = ChromeProxyService._(
-        vm,
-        tabUrl,
-        assetReader,
-        remoteDebugger,
-        modules,
-        locations,
-        restoreBreakpoints,
-        executionContext,
-        logWriter);
+    var service = ChromeProxyService._(vm, tabUrl, assetReader, remoteDebugger,
+        modules, locations, restoreBreakpoints, executionContext, logWriter);
 
     unawaited(service.createIsolate(appConnection));
     await service.createEvaluator(expressionCompiler);
@@ -138,15 +130,15 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   /// Creates expression evaluator to use in [evaluateInFrame]
-  /// 
+  ///
   /// Expression evaluation is only supported with scenarios that
   /// provide non-null [ExpressionCompiler] to [create].
   /// Otherwise [evaluateInFrame] will throw unsupported exception.
   Future<void> createEvaluator(ExpressionCompiler compiler) async {
-    _expressionEvaluator = compiler == null? 
-      null :
-      ExpressionEvaluator(
-        await _debugger, _locations, _modules, compiler, _logWriter);
+    _expressionEvaluator = compiler == null
+        ? null
+        : ExpressionEvaluator(
+            await _debugger, _locations, _modules, compiler, _logWriter);
   }
 
   /// Creates a new isolate.
@@ -333,8 +325,8 @@ $loadModule("dart_sdk").developer.invokeExtension(
     if (_expressionEvaluator != null) {
       var isolate = _inspector?.isolate;
       if (isolate?.id != isolateId) {
-      throw ArgumentError.value(
-        isolateId, 'isolateId', 'Unrecognized isolate id');
+        throw ArgumentError.value(
+            isolateId, 'isolateId', 'Unrecognized isolate id');
       }
 
       var result = await _expressionEvaluator.evaluateExpression(
@@ -344,7 +336,7 @@ $loadModule("dart_sdk").developer.invokeExtension(
     }
 
     throw UnimplementedError(
-      'Expression evaluation is not supported for this configuration');
+        'Expression evaluation is not supported for this configuration');
   }
 
   @override

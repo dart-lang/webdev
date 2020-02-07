@@ -5,6 +5,7 @@
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/modules.dart';
+import 'package:dwds/src/utilities/ddc_names.dart';
 import 'package:dwds/src/utilities/objects.dart' as chrome;
 import 'package:dwds/src/utilities/shared.dart' show LogWriter;
 import 'package:logging/logging.dart';
@@ -60,7 +61,6 @@ class ExpressionEvaluator {
 
     var jsStack = _debugger.getJsStack();
     var jsFrame = WipCallFrame(jsStack[frameIndex]);
-    //var jsFrame = chrome.CallFrame(jsStack[frameIndex]);
 
     var functionName = jsFrame.functionName;
     var jsLocation = jsFrame.location;
@@ -72,40 +72,48 @@ class ExpressionEvaluator {
 
     // 2. find corresponding dart location and scope
 
+    // TODO(annagrin): handle unknown dart locations
+    // Debugger does not map every js location to a dart location,
+    // so this will result in expressions not evaluated in some
+    // cases. Invent location matching strategy for those cases.
+    // [issue 890](https://github.com/dart-lang/webdev/issues/890)
     var locationMap = await _locations.locationForJs(
         jsLocation.scriptId, jsLocation.lineNumber);
 
     if (locationMap == null) {
       return _createError(
           'Internal Error',
-          'cannot find Dart location for JS location '
+          'Cannot find Dart location for JS location '
               '{script: $jsLocation.scriptId, '
               'function: $functionName, '
               'location: $jsLocation})');
     }
 
     var dartLocation = locationMap.dartLocation;
-    var packageUri =
-        await _modules.packageForSource(dartLocation.uri.serverPath);
+    var libraryUri =
+        await _modules.libraryForSource(dartLocation.uri.serverPath);
 
     _printTrace('Expression evaluator: dart Location: '
-        '$packageUri:${dartLocation.line}:${dartLocation.column}');
+        '$libraryUri:${dartLocation.line}:${dartLocation.column}');
 
-    // TODO(annagrin): figure out what modules to require for given expression
     var currentModule =
         await _modules.moduleForSource(dartLocation.uri.serverPath);
-    var modules = <String>{currentModule};
+    var modules = await _modules.modules();
 
+    // TODO(annagrin): Handle same file names under different roots
+    // [issue 891](https://github.com/dart-lang/webdev/issues/891)
     var jsModules = {'dart': 'dart_sdk', 'core': 'dart_sdk'};
-    for (var module in modules) {
-      var name = module.split('/').last;
+    for (var serverPath in modules.keys) {
+      var module = modules[serverPath];
+      var library = await _modules.libraryForSource(serverPath);
+      var name = pathToJSIdentifier(library.replaceAll('.dart', ''));
       jsModules[name] = module;
     }
     _printTrace('Expression evaluator: js modules: $jsModules');
 
     var compilationResult = await _compiler.compileExpressionToJs(
         isolateId,
-        packageUri,
+        libraryUri,
         dartLocation.line,
         dartLocation.column,
         jsModules,
@@ -137,7 +145,8 @@ class ExpressionEvaluator {
         jsExpression = jsExpression.substring(0, jsExpression.lastIndexOf(']'));
       }
 
-      jsExpression.replaceAll(r'org-dartlang-debug:synthetic_debug_expression:', '');
+      jsExpression.replaceAll(
+          r'org-dartlang-debug:synthetic_debug_expression:', '');
       return _createError('Compilation error', error);
     }
 
@@ -161,10 +170,10 @@ class ExpressionEvaluator {
   }
 
   Future<Map<String, String>> _collectLocalJsScope(WipCallFrame frame) async {
-
     var jsScope = <String, String>{};
 
-    void collectVariables(String scopeType, Iterable<chrome.Property> variables) {
+    void collectVariables(
+        String scopeType, Iterable<chrome.Property> variables) {
       for (var p in variables) {
         var name = p.name;
         var value = p.value;
@@ -194,7 +203,7 @@ class ExpressionEvaluator {
     }
 
     var scopeChain = frame.getScopeChain();
-    
+
     // skip library and main scope
     for (var scope in scopeChain.skip(2)) {
       var scopeProperties =

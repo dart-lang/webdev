@@ -1153,10 +1153,10 @@ void main() {
     setUpAll(() async {
       await context.setUp(
           // TODO(annagrin): use actual compilation via frontend when supported
-          // 
+          //
           // This group of tests currently omits actual compilation
           // from dart to js, so expressions given to evaluateInFrame
-          // in all tests below are written in javascript. 
+          // in all tests below are written in javascript.
           // Note frontend server has compilation tests, so the tests
           // below make sure that the rest of the evaluation logic works.
           expressionCompiler: FakeExpressionCompiler());
@@ -1197,7 +1197,7 @@ void main() {
             output,
             emitsThrough(predicate((Event event) =>
                 event.kind == EventKind.kWriteEvent &&
-                  String.fromCharCodes(base64.decode(event.bytes))
+                String.fromCharCodes(base64.decode(event.bytes))
                     .contains('42'))));
 
         var line = await context.findBreakpointLine(
@@ -1210,7 +1210,7 @@ void main() {
 
         var result = await service.evaluateInFrame(
             isolate.id, event.topFrame.index, 'local');
-  
+
         expect(
             result,
             const TypeMatcher<InstanceRef>().having(
@@ -1228,7 +1228,7 @@ void main() {
             output,
             emitsThrough(predicate((Event event) =>
                 event.kind == EventKind.kWriteEvent &&
-                  String.fromCharCodes(base64.decode(event.bytes))
+                String.fromCharCodes(base64.decode(event.bytes))
                     .contains('null'))));
 
         var line = await context.findBreakpointLine(
@@ -1259,7 +1259,7 @@ void main() {
             output,
             emitsThrough(predicate((Event event) =>
                 event.kind == EventKind.kWriteEvent &&
-                  String.fromCharCodes(base64.decode(event.bytes))
+                String.fromCharCodes(base64.decode(event.bytes))
                     .contains('ReferenceError: typo is not defined'))));
 
         var line = await context.findBreakpointLine(
