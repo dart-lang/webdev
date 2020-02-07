@@ -1,4 +1,4 @@
-## 1.0.0-dev
+## 1.0.0
 
 - Fix an issue where files imported with relative paths containing `../` may fail
   to resolve breakpoint locations.
