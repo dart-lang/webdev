@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import '../loaders/strategy.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
@@ -68,7 +69,7 @@ class ClassHelper extends Domain {
     var rawName = classRef.name.split('<').first;
     var expression = '''
     (function() {
-      ${getLibrarySnippet(libraryRef.uri)}
+      ${globalLoadStrategy.loadLibrarySnippet(libraryRef.uri)}
       var result = {};
       var clazz = library["$rawName"];
       var descriptor = {

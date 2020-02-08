@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/utilities/shared.dart';
-
+import '../loaders/strategy.dart';
 import '../utilities/objects.dart';
 import 'debugger.dart';
 
@@ -59,7 +58,7 @@ Future<Property> _findMissingThis(String callFrameId, Debugger debugger) async {
   final findCurrent = '''
         (function (THIS) {
            if (THIS === window) { return null; }
-           $getLibraries
+           ${globalLoadStrategy.loadLibrariesSnippet}
            for (let lib of libs) {
              if (lib === THIS) {
                 return null;

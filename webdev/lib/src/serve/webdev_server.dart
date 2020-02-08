@@ -108,7 +108,7 @@ class WebDevServer {
         chromeConnection: () async =>
             (await Chrome.connectedInstance).chromeConnection,
         logWriter: logWriter,
-        reloadConfiguration: options.configuration.reload,
+        loadStrategy: RequireStrategy(options.configuration.reload),
         serveDevTools:
             options.configuration.debug || options.configuration.debugExtension,
         verbose: options.configuration.verbose,

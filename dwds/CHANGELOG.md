@@ -1,3 +1,9 @@
+## 2.0.0-dev
+
+**Breaking Changes:**
+- Now require a `LoadStrategy` to `Dwds.start`. This package defines two
+  compatible load strategies, `RequireStrategy` and `LegacyStrategy.
+
 ## 1.0.1
 
 - Make the `root` optional for the `ProxyServerAssetReader`.
