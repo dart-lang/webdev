@@ -15,8 +15,8 @@ class RequireStrategy extends LoadStrategy {
   String get id => 'require-js';
 
   @override
-  // Libraries do not need to be imported with this strategy.
-  String get importLibrariesSnippet => '';
+  String get loadLibrariesSnippet =>
+      'let libs = $loadModuleSnippet("dart_sdk").dart.getLibraries();\n';
 
   @override
   String get loadModuleSnippet => 'require';

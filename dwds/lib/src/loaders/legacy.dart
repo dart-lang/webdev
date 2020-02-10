@@ -15,10 +15,11 @@ class LegacyStrategy extends LoadStrategy {
   String get id => 'legacy';
 
   @override
-  String get importLibrariesSnippet =>
+  String get loadLibrariesSnippet =>
       'for(let module of dart_library.libraries()) {\n'
       'dart_library.import(module)[module];\n'
-      '}';
+      '}\n'
+      'let libs = $loadModuleSnippet("dart_sdk").dart.getLibraries();\n';
 
   @override
   String get loadModuleSnippet => 'dart_library.import';

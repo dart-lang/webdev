@@ -19,14 +19,9 @@ abstract class LoadStrategy {
   /// This ID is passed to the injected client so that it can react accordingly.
   String get id;
 
-  /// Returns a snippet of JS code that synchronously imports all Dart
-  /// libraries using the DDC import functionality.
-  String get importLibrariesSnippet;
-
   /// Returns a snippet of JS code that loads all Dart libraries into a `libs`
   /// variable.
-  String get loadLibrariesSnippet => '$importLibrariesSnippet\n'
-      'let libs = $loadModuleSnippet("dart_sdk").dart.getLibraries();\n';
+  String get loadLibrariesSnippet;
 
   /// Returns a snippet of JS code that can be used to load a JS module.
   ///
