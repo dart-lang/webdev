@@ -15,9 +15,12 @@ LoadStrategy get globalLoadStrategy {
 
 abstract class LoadStrategy {
   /// The ID for this strategy.
+  ///
+  /// This ID is passed to the injected client so that it can react accordingly.
   String get id;
 
-  /// Returns a snippet of JS code that imports all Dart libraries.
+  /// Returns a snippet of JS code that synchronously imports all Dart
+  /// libraries using the DDC import functionality.
   String get importLibrariesSnippet;
 
   /// Returns a snippet of JS code that loads all Dart libraries into a `libs`
@@ -26,6 +29,9 @@ abstract class LoadStrategy {
       'let libs = $loadModuleSnippet("dart_sdk").dart.getLibraries();\n';
 
   /// Returns a snippet of JS code that can be used to load a JS module.
+  ///
+  /// The snippet should be a reference to a function that takes a single
+  /// argument which is the module name to load.
   String get loadModuleSnippet;
 
   /// The reload configuration for this strategy, e.g. liveReload.
