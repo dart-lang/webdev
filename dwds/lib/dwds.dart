@@ -4,25 +4,29 @@
 
 import 'dart:async';
 
-import 'package:dwds/data/build_result.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'data/build_result.dart';
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injected_handler.dart';
+import 'src/loaders/strategy.dart';
 import 'src/readers/asset_reader.dart';
 import 'src/servers/devtools.dart';
 import 'src/servers/extension_backend.dart';
+import 'src/services/expression_compiler.dart';
+import 'src/utilities/shared.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
+export 'src/loaders/legacy.dart' show LegacyStrategy;
+export 'src/loaders/require.dart' show RequireStrategy;
+export 'src/loaders/strategy.dart' show LoadStrategy, ReloadConfiguration;
 export 'src/readers/asset_reader.dart' show AssetReader;
 export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
@@ -33,8 +37,6 @@ export 'src/services/expression_compiler.dart'
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
-enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
-enum ModuleStrategy { requireJS, legacy }
 
 /// The Dart Web Debug Service.
 class Dwds {
@@ -68,33 +70,32 @@ class Dwds {
     return DebugConnection(appDebugServices);
   }
 
-  static Future<Dwds> start(
-      {@required AssetReader assetReader,
-      @required Stream<BuildResult> buildResults,
-      @required ConnectionProvider chromeConnection,
-      @required bool enableDebugging,
-      String hostname,
-      ReloadConfiguration reloadConfiguration,
-      bool useSseForDebugProxy,
-      bool serveDevTools,
-      LogWriter logWriter,
-      bool verbose,
-      bool enableDebugExtension,
-      ModuleStrategy moduleStrategy,
-      UrlEncoder urlEncoder,
-      @deprecated bool restoreBreakpoints,
-      // TODO(annagrin): make expressionCompiler argument required
-      // [issue 881](https://github.com/dart-lang/webdev/issues/881)
-      ExpressionCompiler expressionCompiler}) async {
+  static Future<Dwds> start({
+    @required AssetReader assetReader,
+    @required Stream<BuildResult> buildResults,
+    @required ConnectionProvider chromeConnection,
+    @required LoadStrategy loadStrategy,
+    @required bool enableDebugging,
+    bool enableDebugExtension,
+    String hostname,
+    bool useSseForDebugProxy,
+    bool serveDevTools,
+    LogWriter logWriter,
+    bool verbose,
+    UrlEncoder urlEncoder,
+    // TODO(annagrin): make expressionCompiler argument required
+    // [issue 881](https://github.com/dart-lang/webdev/issues/881)
+    ExpressionCompiler expressionCompiler,
+    @deprecated bool restoreBreakpoints,
+  }) async {
     hostname ??= 'localhost';
-    reloadConfiguration ??= ReloadConfiguration.none;
     enableDebugging ??= true;
     enableDebugExtension ??= false;
     useSseForDebugProxy ??= true;
     serveDevTools ??= true;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
-    globalModuleStrategy = moduleStrategy ?? ModuleStrategy.requireJS;
+    globalLoadStrategy = loadStrategy;
     restoreBreakpoints ??= false;
 
     DevTools devTools;
@@ -135,7 +136,6 @@ class Dwds {
 
     return Dwds._(
       createInjectedHandler(
-        reloadConfiguration,
         extensionUri: extensionUri,
         urlEncoder: urlEncoder,
       ),

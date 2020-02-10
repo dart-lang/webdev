@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
+import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/conversions.dart';
@@ -388,7 +389,7 @@ class Debugger extends Domain {
     // want. To make those alternatives easier in JS, pass both count and end.
     var expression = '''
         function (offset, count, end) {
-          const sdk = $loadModule("dart_sdk");
+          const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
           if (sdk.core.Map.is(this)) {
             const entries = sdk.dart.dload(this, "entries");
             const skipped = sdk.dart.dsend(entries, "skip", [offset])

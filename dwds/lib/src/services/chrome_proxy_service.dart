@@ -17,6 +17,7 @@ import '../debugging/inspector.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
 import '../debugging/remote_debugger.dart';
+import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
@@ -281,7 +282,7 @@ class ChromeProxyService implements VmServiceInterface {
     var stringArgs = args.map((k, v) => MapEntry(
         k is String ? k : jsonEncode(k), v is String ? v : jsonEncode(v)));
     var expression = '''
-$loadModule("dart_sdk").developer.invokeExtension(
+${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
     var response =

@@ -5,9 +5,11 @@
 import 'dart:async';
 
 import 'package:async/src/stream_sink_transformer.dart';
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/wrapped_service.dart';
@@ -124,6 +126,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   @override
   Future enable() => null;
+
+  FakeWebkitDebugger() {
+    globalLoadStrategy = RequireStrategy(ReloadConfiguration.none);
+  }
 
   @override
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) =>

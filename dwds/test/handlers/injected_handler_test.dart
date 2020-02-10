@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/handlers/injected_handler.dart';
-import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/version.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
@@ -21,10 +21,9 @@ void main() {
 
   group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
-      globalModuleStrategy = ModuleStrategy.requireJS;
-      var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
-          ReloadConfiguration.liveReload,
-          urlEncoder: (url) async => encodedUrl));
+      globalLoadStrategy = RequireStrategy(ReloadConfiguration.none);
+      var pipeline = const Pipeline().addMiddleware(
+          createInjectedHandler(urlEncoder: (url) async => encodedUrl));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok(
@@ -128,10 +127,10 @@ void main() {
 
   group('InjectedHandlerWithExtension', () {
     setUp(() async {
+      globalLoadStrategy = RequireStrategy(ReloadConfiguration.none);
       var extensionUri = 'http://localhost:4000';
-      var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
-          ReloadConfiguration.liveReload,
-          extensionUri: extensionUri));
+      var pipeline = const Pipeline()
+          .addMiddleware(createInjectedHandler(extensionUri: extensionUri));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         return Response.ok(
             '$entrypointExtensionMarker\n'

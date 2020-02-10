@@ -87,7 +87,7 @@ class TestServer {
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       logWriter: logWriter,
-      reloadConfiguration: reloadConfiguration,
+      loadStrategy: RequireStrategy(reloadConfiguration),
       serveDevTools: serveDevTools,
       enableDebugExtension: enableDebugExtension,
       enableDebugging: enableDebugging,

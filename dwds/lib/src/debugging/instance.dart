@@ -6,6 +6,7 @@ import 'dart:math';
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../loaders/strategy.dart';
 import '../utilities/conversions.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
@@ -172,7 +173,7 @@ class InstanceHelper extends Domain {
     // values that we need to be RemoteObject, e.g. a List of int.
     var expression = '''
       function() {
-        var sdkUtils = $loadModule('dart_sdk').dart;
+        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         var entries = sdkUtils.dloadRepl(this, "entries");
         entries = sdkUtils.dsendRepl(entries, "toList", []);
         function asKey(entry) {
@@ -268,7 +269,7 @@ class InstanceHelper extends Domain {
     // of these as special.
     // TODO(alanknight): Handle superclass fields.
     final fieldNameExpression = '''function() {
-      const sdk = $loadModule("dart_sdk");
+      const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
       const sdk_utils = sdk.dart;
       const fields = sdk_utils.getFields(sdk_utils.getType(this)) || [];
       if (!fields && (dart_sdk._interceptors.JSArray.is(this) ||

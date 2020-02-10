@@ -6,6 +6,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../debugging/classes.dart';
 import '../debugging/inspector.dart';
+import '../loaders/strategy.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
@@ -51,7 +52,7 @@ class ClassMetaData {
     try {
       var evalExpression = '''
       function(arg) {
-        const sdkUtils = $loadModule('dart_sdk').dart;
+        const sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         const classObject = sdkUtils.getReifiedType(arg);
         const isFunction = sdkUtils.AbstractFunctionType.is(classObject);
         const result = {};
@@ -101,7 +102,7 @@ class FunctionMetaData {
       RemoteDebugger remoteDebugger, RemoteObject remoteObject) async {
     var evalExpression = '''
       function(remoteObject) {
-        var sdkUtils = $loadModule('dart_sdk').dart;
+        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         var name = remoteObject.name;
         if(remoteObject._boundObject) {
          name = sdkUtils.getType(remoteObject._boundObject).name +

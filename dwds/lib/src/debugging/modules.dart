@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:path/path.dart' as p;
 
+import '../loaders/strategy.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
 import 'remote_debugger.dart';
@@ -110,7 +111,7 @@ class Modules {
   Future<void> _initializeMapping() async {
     var expression = '''
     (function() {
-          var dart = $loadModule('dart_sdk').dart;
+          var dart = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
           var result = {};
           dart.getModuleNames().forEach(function(module){
             Object.keys(dart.getModuleLibraries(module)).forEach(

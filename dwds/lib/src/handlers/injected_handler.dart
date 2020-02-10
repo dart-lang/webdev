@@ -7,7 +7,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
-import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/version.dart';
 import 'package:shelf/shelf.dart';
 
@@ -26,9 +26,7 @@ const mainExtensionMarker = '/* MAIN_EXTENSION_MARKER */';
 const _clientScript = 'dwds/src/injected/client';
 
 Handler Function(Handler) createInjectedHandler(
-        ReloadConfiguration configuration,
-        {String extensionUri,
-        UrlEncoder urlEncoder}) =>
+        {String extensionUri, UrlEncoder urlEncoder}) =>
     (innerHandler) {
       return (Request request) async {
         if (request.url.path.endsWith('$_clientScript.js')) {
@@ -74,7 +72,6 @@ Handler Function(Handler) createInjectedHandler(
               requestedUriBase = await urlEncoder(requestedUriBase);
             }
             body += _injectedClientJs(
-              configuration,
               appId,
               mainFunction,
               requestedUriBase,
@@ -99,7 +96,6 @@ Handler Function(Handler) createInjectedHandler(
     };
 
 String _injectedClientJs(
-  ReloadConfiguration configuration,
   String appId,
   String mainFunction,
   String requestedUriBase, {
@@ -108,11 +104,11 @@ String _injectedClientJs(
   var injectedBody = '// Injected by webdev for build results support.\n'
       'window.\$dartAppId = "$appId";\n'
       'window.\$dartRunMain = $mainFunction;\n'
-      'window.\$dartReloadConfiguration = "$configuration";\n'
+      'window.\$dartReloadConfiguration = "${globalLoadStrategy.reloadConfiguration}";\n'
       'window.\$dartLoader.forceLoadModule("$_clientScript");\n'
-      'window.\$dartModuleStrategy = "$loadModule";\n'
+      'window.\$dartModuleStrategy = "${globalLoadStrategy.id}";\n'
       'window.\$dartUriBase = "$requestedUriBase";\n'
-      'window.\$loadModuleConfig = $loadModule;\n'
+      'window.\$loadModuleConfig = ${globalLoadStrategy.loadModuleSnippet};\n'
       'window.\$dwdsVersion = "$packageVersion";\n';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';

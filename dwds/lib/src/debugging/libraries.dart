@@ -4,6 +4,7 @@
 
 import 'package:dwds/src/debugging/inspector.dart';
 
+import '../loaders/strategy.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
@@ -26,7 +27,7 @@ class LibraryHelper extends Domain {
     if (_libraryRefsById.isNotEmpty) return _libraryRefsById.values.toList();
     var expression = '''
       (function() {
-        $getLibraries
+        ${globalLoadStrategy.loadLibrariesSnippet}
         return libs;
       })()
      ''';
@@ -64,7 +65,7 @@ class LibraryHelper extends Domain {
     // Fetch information about all the classes in this library.
     var expression = '''
     (function() {
-      ${getLibrarySnippet(libraryRef.uri)}
+      ${globalLoadStrategy.loadLibrarySnippet(libraryRef.uri)}
       var result = {};
       var classes = Object.values(Object.getOwnPropertyDescriptors(library))
         .filter((p) => 'value' in p)

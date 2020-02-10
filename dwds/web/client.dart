@@ -42,9 +42,9 @@ Future<void> main() {
     await client.onOpen.first;
 
     Restarter restarter;
-    if (dartModuleStrategy == 'require') {
+    if (dartModuleStrategy == 'require-js') {
       restarter = await RequireRestarter.create();
-    } else if (dartModuleStrategy == 'dart_library.import') {
+    } else if (dartModuleStrategy == 'legacy') {
       restarter = LegacyRestarter();
     } else {
       throw StateError('Unknown module strategy: $dartModuleStrategy');

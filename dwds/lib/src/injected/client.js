@@ -23275,7 +23275,7 @@
               return P._asyncAwait(t1.get$first(t1), $async$call$0);
             case 2:
               // returning from await.
-              $async$goto = J.$eq$(self.$dartModuleStrategy, "require") ? 3 : 5;
+              $async$goto = J.$eq$(self.$dartModuleStrategy, "require-js") ? 3 : 5;
               break;
             case 3:
               // then
@@ -23289,7 +23289,7 @@
               break;
             case 5:
               // else
-              if (J.$eq$(self.$dartModuleStrategy, "dart_library.import"))
+              if (J.$eq$(self.$dartModuleStrategy, "legacy"))
                 restarter = new Z.LegacyRestarter();
               else
                 throw H.wrapException(P.StateError$("Unknown module strategy: " + H.S(self.$dartModuleStrategy)));
