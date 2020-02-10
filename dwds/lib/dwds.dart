@@ -18,6 +18,8 @@ import 'src/loaders/strategy.dart';
 import 'src/readers/asset_reader.dart';
 import 'src/servers/devtools.dart';
 import 'src/servers/extension_backend.dart';
+import 'src/services/expression_compiler.dart';
+import 'src/utilities/shared.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
@@ -30,8 +32,9 @@ export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
+export 'src/services/expression_compiler.dart'
+    show ExpressionCompilationResult, ExpressionCompiler;
 
-typedef LogWriter = void Function(Level, String);
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
 
@@ -80,6 +83,9 @@ class Dwds {
     LogWriter logWriter,
     bool verbose,
     UrlEncoder urlEncoder,
+    // TODO(annagrin): make expressionCompiler argument required
+    // [issue 881](https://github.com/dart-lang/webdev/issues/881)
+    ExpressionCompiler expressionCompiler,
     @deprecated bool restoreBreakpoints,
   }) async {
     hostname ??= 'localhost';
@@ -125,6 +131,7 @@ class Dwds {
       restoreBreakpoints,
       useSseForDebugProxy,
       serveDevTools,
+      expressionCompiler,
     );
 
     return Dwds._(

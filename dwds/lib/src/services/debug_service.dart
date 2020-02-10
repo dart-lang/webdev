@@ -8,9 +8,9 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dwds/dwds.dart' show LogWriter;
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -124,18 +124,18 @@ class DebugService {
           .toString();
 
   static Future<DebugService> start(
-    String hostname,
-    RemoteDebugger remoteDebugger,
-    ExecutionContext executionContext,
-    String tabUrl,
-    AssetReader assetReader,
-    AppConnection appConnection,
-    LogWriter logWriter,
-    bool restoreBreakpoints, {
-    void Function(Map<String, dynamic>) onRequest,
-    void Function(Map<String, dynamic>) onResponse,
-    bool useSse,
-  }) async {
+      String hostname,
+      RemoteDebugger remoteDebugger,
+      ExecutionContext executionContext,
+      String tabUrl,
+      AssetReader assetReader,
+      AppConnection appConnection,
+      LogWriter logWriter,
+      bool restoreBreakpoints,
+      {void Function(Map<String, dynamic>) onRequest,
+      void Function(Map<String, dynamic>) onResponse,
+      bool useSse,
+      ExpressionCompiler expressionCompiler}) async {
     useSse ??= false;
     var chromeProxyService = await ChromeProxyService.create(
         remoteDebugger,
@@ -144,7 +144,8 @@ class DebugService {
         appConnection,
         logWriter,
         restoreBreakpoints,
-        executionContext);
+        executionContext,
+        expressionCompiler);
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;

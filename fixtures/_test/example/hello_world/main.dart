@@ -22,6 +22,12 @@ void main() async {
 
   print(p.join('Hello', 'World')); // Breakpoint: printHelloWorld
 
+  // long running to test evaluateInFrame
+  Timer.periodic(const Duration(seconds: 1), (_) {
+    var local = 42;
+    print(local); // Breakpoint: printLocal
+  });
+
   context['inspectInstance'] = () {
     inspect(myInstance);
   };
@@ -46,7 +52,7 @@ void main() async {
   };
 
   Timer.periodic(const Duration(seconds: 1), (_) {
-    printCount();
+    printCount(); // Breakpoint: callPrintCount
   });
 
   // Register one up front before the proxy connects, the isolate should still
@@ -60,7 +66,7 @@ var count = 0;
 
 // An easy location to add a breakpoint.
 void printCount() {
-  print('The count is ${++count}');
+  print('The count is ${++count}'); // Breakpoint: inPrintCount
   doSomething();
 }
 
