@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:dwds/data/build_result.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -27,8 +28,9 @@ export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
+export 'src/services/expression_compiler.dart'
+    show ExpressionCompilationResult, ExpressionCompiler;
 
-typedef LogWriter = void Function(Level, String);
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
@@ -66,22 +68,24 @@ class Dwds {
     return DebugConnection(appDebugServices);
   }
 
-  static Future<Dwds> start({
-    @required AssetReader assetReader,
-    @required Stream<BuildResult> buildResults,
-    @required ConnectionProvider chromeConnection,
-    @required bool enableDebugging,
-    String hostname,
-    ReloadConfiguration reloadConfiguration,
-    bool useSseForDebugProxy,
-    bool serveDevTools,
-    LogWriter logWriter,
-    bool verbose,
-    bool enableDebugExtension,
-    ModuleStrategy moduleStrategy,
-    UrlEncoder urlEncoder,
-    @deprecated bool restoreBreakpoints,
-  }) async {
+  static Future<Dwds> start(
+      {@required AssetReader assetReader,
+      @required Stream<BuildResult> buildResults,
+      @required ConnectionProvider chromeConnection,
+      @required bool enableDebugging,
+      String hostname,
+      ReloadConfiguration reloadConfiguration,
+      bool useSseForDebugProxy,
+      bool serveDevTools,
+      LogWriter logWriter,
+      bool verbose,
+      bool enableDebugExtension,
+      ModuleStrategy moduleStrategy,
+      UrlEncoder urlEncoder,
+      @deprecated bool restoreBreakpoints,
+      // TODO(annagrin): make expressionCompiler argument required
+      // [issue 881](https://github.com/dart-lang/webdev/issues/881)
+      ExpressionCompiler expressionCompiler}) async {
     hostname ??= 'localhost';
     reloadConfiguration ??= ReloadConfiguration.none;
     enableDebugging ??= true;
@@ -126,6 +130,7 @@ class Dwds {
       restoreBreakpoints,
       useSseForDebugProxy,
       serveDevTools,
+      expressionCompiler,
     );
 
     return Dwds._(

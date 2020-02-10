@@ -43,6 +43,9 @@ class Location {
     return Location._(JsLocation.fromZeroBased(scriptId, jsLine, jsColumn),
         DartLocation.fromZeroBased(dartUri, dartLine, dartColumn));
   }
+
+  @override
+  String toString() => '$dartLocation -> $jsLocation';
 }
 
 /// Location information for a Dart source.
@@ -60,6 +63,9 @@ class DartLocation {
     this.line,
     this.column,
   );
+
+  @override
+  String toString() => 'DartLoc: ${uri.serverPath}, $line, $column';
 
   static DartLocation fromZeroBased(DartUri uri, int line, int column) =>
       DartLocation._(uri, line + 1, column + 1);
@@ -84,6 +90,9 @@ class JsLocation {
     this.line,
     this.column,
   );
+
+  @override
+  String toString() => 'JSLoc: $scriptId, $line, $column';
 
   static JsLocation fromZeroBased(String scriptId, int line, int column) =>
       JsLocation._(scriptId, line + 1, column + 1);
