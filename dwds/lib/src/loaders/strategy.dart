@@ -2,7 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-LoadStrategy globalLoadStrategy;
+LoadStrategy _globalLoadStrategy;
+
+set globalLoadStrategy(LoadStrategy strategy) => _globalLoadStrategy = strategy;
+
+LoadStrategy get globalLoadStrategy {
+  if (_globalLoadStrategy == null) {
+    throw StateError('Global load strategy not set');
+  }
+  return _globalLoadStrategy;
+}
 
 abstract class LoadStrategy {
   /// The ID for this strategy.
