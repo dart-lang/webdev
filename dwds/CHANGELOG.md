@@ -6,6 +6,7 @@
 - `Dwds.start` function signature has been changed to accept one more parameter
   of new interface type `ExpressionCompiler` to support expression
   evaluation
+- Simplify hot reload logic and no longer provide module level hooks.
 
 ## 1.0.1
 
