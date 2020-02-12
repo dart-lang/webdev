@@ -14,7 +14,6 @@ import 'package:graphs/graphs.dart' as graphs;
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:path/path.dart' as p;
-import 'package:pedantic/pedantic.dart';
 
 import '../promise.dart';
 import 'restarter.dart';
@@ -30,12 +29,18 @@ external DartLoader get dartLoader;
 @JS(r'$loadModuleConfig')
 external Object Function(String module) get require;
 
+@JS(r'$dartRunMain')
+external set dartRunMain(Function() func);
+
 List<K> keys<K, V>(JsMap<K, V> map) {
   return List.from(_jsArrayFrom(map.keys()));
 }
 
 @JS('Array.from')
 external List _jsArrayFrom(Object any);
+
+@JS('Object.values')
+external List _jsObjectValues(Object any);
 
 @anonymous
 @JS()
@@ -128,10 +133,7 @@ class RequireRestarter implements Restarter {
     if (modulesToLoad.isNotEmpty) {
       _updateGraph();
       var result = await _reload(modulesToLoad);
-      if (result == null) {
-        callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
-        result = true;
-      }
+      callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
       return result;
     }
 
@@ -189,36 +191,34 @@ class RequireRestarter implements Restarter {
     if (!_running.isCompleted) return await _running.future;
     _running = Completer();
 
-    // We want to schedule some async work for the future but return the
-    // `_running` completers future synchronously.
-    unawaited(() async {
-      var reloadedModules = 0;
-
-      try {
-        while (_dirtyModules.isNotEmpty) {
-          var moduleId = _dirtyModules.first;
-          _dirtyModules.remove(moduleId);
-          ++reloadedModules;
-          await _reloadModule(moduleId);
-          var parentIds = _moduleParents(moduleId);
-          if (parentIds == null || parentIds.isEmpty) {
-            print("Module reloading wasn't handled by any of parents. "
-                'Firing full page reload.');
-            _reloadPage();
-          }
+    var reloadedModules = 0;
+    try {
+      while (_dirtyModules.isNotEmpty) {
+        var moduleId = _dirtyModules.first;
+        _dirtyModules.remove(moduleId);
+        ++reloadedModules;
+        var parentIds = _moduleParents(moduleId);
+        await _reloadModule(moduleId);
+        if (parentIds.any((id) => id.endsWith('.dart.bootstrap'))) {
+          // The bootstrap module should not be reloaded but it's child
+          // reference needs to be updated.
+          var module = callMethod(getProperty(require('dart_sdk'), 'dart'),
+              'getModuleLibraries', [moduleId]);
+          dartRunMain = allowInterop(() {
+            callMethod(_jsObjectValues(module).first, 'main', []);
+          });
+        } else {
           parentIds.sort(_moduleTopologicalCompare);
-          _dirtyModules
-              .addAll(parentIds.where((id) => !id.endsWith('.dart.bootstrap')));
+          _dirtyModules.addAll(parentIds);
         }
-        print('$reloadedModules module(s) were hot-reloaded.');
-      } on HotReloadFailedException catch (e) {
-        print('Error during script reloading. Firing full page reload. $e');
-        _reloadPage();
       }
-    }()
-        .then(_running.complete)
-        .catchError(_running.completeError));
-
+      print('$reloadedModules module(s) were hot-reloaded.');
+      _running.complete(true);
+    } on HotReloadFailedException catch (e) {
+      print('Error during script reloading. Firing full page reload. $e');
+      _reloadPage();
+      _running.complete(false);
+    }
     return _running.future;
   }
 
