@@ -193,24 +193,26 @@ class RequireRestarter implements Restarter {
 
     var reloadedModules = 0;
     try {
+      String previousModuleId;
       while (_dirtyModules.isNotEmpty) {
         var moduleId = _dirtyModules.first;
         _dirtyModules.remove(moduleId);
-        ++reloadedModules;
         var parentIds = _moduleParents(moduleId);
-        await _reloadModule(moduleId);
-        // Check if this is the entrypoint module.
-        if (parentIds.any((id) => id.endsWith('.dart.bootstrap'))) {
-          // The bootstrap module should not be reloaded but we need to
-          // update the $dartRunMain reference to the newly loaded module.
-          var module = callMethod(getProperty(require('dart_sdk'), 'dart'),
-              'getModuleLibraries', [moduleId]);
+        // Check if this is the root / bootstrap module.
+        if (parentIds == null || parentIds.isEmpty) {
+          // The bootstrap module is not reloaded but we need to update the
+          // $dartRunMain reference to the newly loaded child module.
+          var childModule = callMethod(getProperty(require('dart_sdk'), 'dart'),
+              'getModuleLibraries', [previousModuleId]);
           dartRunMain = allowInterop(() {
-            callMethod(_jsObjectValues(module).first, 'main', []);
+            callMethod(_jsObjectValues(childModule).first, 'main', []);
           });
         } else {
+          ++reloadedModules;
+          await _reloadModule(moduleId);
           parentIds.sort(_moduleTopologicalCompare);
           _dirtyModules.addAll(parentIds);
+          previousModuleId = moduleId;
         }
       }
       print('$reloadedModules module(s) were hot-reloaded.');
