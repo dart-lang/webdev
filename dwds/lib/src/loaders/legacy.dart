@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:shelf/shelf.dart';
+
 import 'strategy.dart';
 
 /// A load strategy for the legacy module system.
@@ -23,4 +25,10 @@ class LegacyStrategy extends LoadStrategy {
 
   @override
   String get loadModuleSnippet => 'dart_library.import';
+
+  @override
+  Future<String> bootstrapFor(String entrypoint) async => '';
+
+  @override
+  Handler get handler => (request) => null;
 }

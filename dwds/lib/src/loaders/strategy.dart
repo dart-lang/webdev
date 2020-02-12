@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:shelf/shelf.dart';
+
 LoadStrategy _globalLoadStrategy;
 
 set globalLoadStrategy(LoadStrategy strategy) => _globalLoadStrategy = strategy;
@@ -48,6 +50,10 @@ abstract class LoadStrategy {
    var library = sdkUtils.getLibrary('$libraryUri');
    if (!library) throw 'cannot find library for $libraryUri';
   ''';
+
+  Future<String> bootstrapFor(String entrypoint);
+
+  Handler get handler;
 }
 
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
