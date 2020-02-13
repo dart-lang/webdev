@@ -8,10 +8,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/connections/debug_connection.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/shared.dart';
-
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
@@ -20,6 +19,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/fakes.dart';
 
 final context = TestContext();
 ChromeProxyService get service =>
@@ -54,14 +54,16 @@ void main() {
 
       test('addBreakpoint', () async {
         // TODO: Much more testing.
+        var line = await context.findBreakpointLine(
+            'printHelloWorld', isolate.id, mainScript);
         var firstBp =
-            await service.addBreakpoint(isolate.id, mainScript.id, 23);
+            await service.addBreakpoint(isolate.id, mainScript.id, line);
         expect(firstBp, isNotNull);
         expect(firstBp.id, isNotNull);
 
         // Set another breakpoint at the same place - should get the original.
         var secondBp =
-            await service.addBreakpoint(isolate.id, mainScript.id, 23);
+            await service.addBreakpoint(isolate.id, mainScript.id, line);
         expect(secondBp.id, firstBp.id);
 
         // Remove breakpoint so it doesn't impact other tests.
@@ -91,8 +93,10 @@ void main() {
       });
 
       test('addBreakpointWithScriptUri', () async {
+        var line = await context.findBreakpointLine(
+            'printHelloWorld', isolate.id, mainScript);
         var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, 23);
+            isolate.id, mainScript.uri, line);
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
         expect(bp.id, isNotNull);
@@ -104,8 +108,10 @@ void main() {
         var scriptPath = Uri.parse(mainScript.uri).path.substring(1);
         var fullPath = path.join(_test, scriptPath);
         var fileUri = Uri.file(fullPath);
+        var line = await context.findBreakpointLine(
+            'printHelloWorld', isolate.id, mainScript);
         var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, '$fileUri', 23);
+            isolate.id, '$fileUri', line);
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
         expect(bp.id, isNotNull);
@@ -120,7 +126,9 @@ void main() {
             throwsArgumentError);
       });
       test('add and remove breakpoint', () async {
-        var bp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
+        var line = await context.findBreakpointLine(
+            'printHelloWorld', isolate.id, mainScript);
+        var bp = await service.addBreakpoint(isolate.id, mainScript.id, line);
         expect(isolate.breakpoints, [bp]);
         await service.removeBreakpoint(isolate.id, bp.id);
         expect(isolate.breakpoints, isEmpty);
@@ -438,7 +446,7 @@ void main() {
       Future<RemoteObject> createList() {
         var expr = '''
           (function () {
-            const sdk = $loadModule("dart_sdk");
+            const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
             const list = sdk.dart.dsend(sdk.core.List,"filled", [1001, 5]);
             list[4] = 100;
             return list;
@@ -450,10 +458,10 @@ void main() {
       Future<RemoteObject> createMap() {
         var expr = '''
           (function () {
-            const sdk = $loadModule("dart_sdk");
+            const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
             const iterable = sdk.dart.dsend(sdk.core.Iterable, "generate", [1001]);
             const list1 = sdk.dart.dsend(iterable, "toList", []);
-            const reversed = sdk.dart.dload(list1, "reversed"); 
+            const reversed = sdk.dart.dload(list1, "reversed");
             const list2 = sdk.dart.dsend(reversed, "toList", []);
             const map = sdk.dart.dsend(list2, "asMap", []);
             const linkedMap = sdk.dart.dsend(sdk.collection.LinkedHashMap, "from", [map]);
@@ -625,7 +633,9 @@ void main() {
       });
 
       test('at breakpoints sets pauseBreakPoints', () async {
-        var bp = await service.addBreakpoint(isolateId, mainScript.id, 49);
+        var line = await context.findBreakpointLine(
+            'callPrintCount', isolateId, mainScript);
+        var bp = await service.addBreakpoint(isolateId, mainScript.id, line);
         var event = await stream
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
         var pauseBreakpoints = event.pauseBreakpoints;
@@ -654,7 +664,9 @@ void main() {
         stream = service.onEvent('Debug');
         mainScript = scripts.scripts
             .firstWhere((script) => script.uri.contains('main.dart'));
-        var bp = await service.addBreakpoint(isolateId, mainScript.id, 49);
+        var line = await context.findBreakpointLine(
+            'callPrintCount', isolateId, mainScript);
+        var bp = await service.addBreakpoint(isolateId, mainScript.id, line);
         // Wait for breakpoint to trigger.
         await stream
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -727,7 +739,9 @@ void main() {
       }, onPlatform: {'windows': const Skip('issues/721')});
 
       /// Support function for pausing and returning the stack at a line.
-      Future<Stack> breakAt(int lineNumber) async {
+      Future<Stack> breakAt(String breakpointId) async {
+        var lineNumber = await context.findBreakpointLine(
+            breakpointId, isolateId, mainScript);
         var bp =
             await service.addBreakpoint(isolateId, mainScript.id, lineNumber);
         // Wait for breakpoint to trigger.
@@ -742,7 +756,7 @@ void main() {
       }
 
       test('returns stack when broken', () async {
-        var stack = await breakAt(63);
+        var stack = await breakAt('inPrintCount');
         expect(stack, isNotNull);
         expect(stack.frames, hasLength(2));
         var first = stack.frames.first;
@@ -752,7 +766,7 @@ void main() {
       });
 
       test('stack has a variable', () async {
-        var stack = await breakAt(49);
+        var stack = await breakAt('callPrintCount');
         expect(stack, isNotNull);
         expect(stack.frames, hasLength(1));
         var first = stack.frames.first;
@@ -1130,6 +1144,143 @@ void main() {
             emitsThrough(predicate((Event e) =>
                 e.kind == EventKind.kVMUpdate && e.vm.name == 'test')));
         await service.setVMName('test');
+      });
+    });
+  });
+
+  group('shared context with evaluation', () {
+    setUpAll(() async {
+      await context.setUp(
+          // TODO(annagrin): use actual compilation via frontend when supported
+          //
+          // This group of tests currently omits actual compilation
+          // from dart to js, so expressions given to evaluateInFrame
+          // in all tests below are written in javascript.
+          // Note frontend server has compilation tests, so the tests
+          // below make sure that the rest of the evaluation logic works.
+          expressionCompiler: FakeExpressionCompiler());
+    });
+
+    tearDownAll(() async {
+      await context.tearDown();
+    });
+
+    group('evaluateInFrame', () {
+      VM vm;
+      Isolate isolate;
+      ScriptList scripts;
+      ScriptRef mainScript;
+      Stream<Event> stream;
+
+      setUp(() async {
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates.first.id);
+        scripts = await service.getScripts(isolate.id);
+
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
+
+        mainScript = scripts.scripts
+            .firstWhere((each) => each.uri.contains('main.dart'));
+      });
+
+      tearDown(() async {
+        await service.resume(isolate.id);
+      });
+
+      test('local', () async {
+        expect(service.streamListen('Stdout'), completion(_isSuccess));
+        var output = service.onEvent('Stdout');
+
+        expect(
+            output,
+            emitsThrough(predicate((Event event) =>
+                event.kind == EventKind.kWriteEvent &&
+                String.fromCharCodes(base64.decode(event.bytes))
+                    .contains('42'))));
+
+        var line = await context.findBreakpointLine(
+            'printLocal', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        var event = await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var result = await service.evaluateInFrame(
+            isolate.id, event.topFrame.index, 'local');
+
+        expect(
+            result,
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', '42'));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+      });
+
+      test('call core function', () async {
+        expect(service.streamListen('Stdout'), completion(_isSuccess));
+        var output = service.onEvent('Stdout');
+
+        expect(
+            output,
+            emitsThrough(predicate((Event event) =>
+                event.kind == EventKind.kWriteEvent &&
+                String.fromCharCodes(base64.decode(event.bytes))
+                    .contains('null'))));
+
+        var line = await context.findBreakpointLine(
+            'printLocal', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        var event = await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var result = await service.evaluateInFrame(
+            isolate.id, event.topFrame.index, 'core.print(local)');
+
+        expect(
+            result,
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', 'null'));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+      });
+
+      test('error', () async {
+        expect(service.streamListen('Stderr'), completion(_isSuccess));
+        var output = service.onEvent('Stderr');
+
+        expect(
+            output,
+            emitsThrough(predicate((Event event) =>
+                event.kind == EventKind.kWriteEvent &&
+                String.fromCharCodes(base64.decode(event.bytes))
+                    .contains('ReferenceError: typo is not defined'))));
+
+        var line = await context.findBreakpointLine(
+            'printLocal', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        var event = await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var error = await service.evaluateInFrame(
+            isolate.id, event.topFrame.index, 'typo');
+
+        expect(
+            error,
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString,
+                'valueAsString',
+                'ReferenceError: typo is not defined'));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
       });
     });
   });

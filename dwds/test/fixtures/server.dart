@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -58,7 +59,8 @@ class TestServer {
       bool autoRun,
       bool enableDebugging,
       UrlEncoder urlEncoder,
-      bool restoreBreakpoints) async {
+      bool restoreBreakpoints,
+      ExpressionCompiler expressionCompiler) async {
     var pipeline = const Pipeline();
 
     var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
@@ -78,14 +80,14 @@ class TestServer {
     var logWriter = (Level level, String message) => printOnFailure(message);
 
     var assetReader =
-        ProxyServerAssetReader(assetServerPort, target, logWriter);
+        ProxyServerAssetReader(assetServerPort, logWriter, root: target);
 
     var dwds = await Dwds.start(
       assetReader: assetReader,
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       logWriter: logWriter,
-      reloadConfiguration: reloadConfiguration,
+      loadStrategy: RequireStrategy(reloadConfiguration),
       serveDevTools: serveDevTools,
       enableDebugExtension: enableDebugExtension,
       enableDebugging: enableDebugging,
@@ -94,6 +96,7 @@ class TestServer {
       urlEncoder: urlEncoder,
       // ignore: deprecated_member_use_from_same_package
       restoreBreakpoints: restoreBreakpoints,
+      expressionCompiler: expressionCompiler,
     );
 
     var server = await HttpMultiServer.bind('localhost', port);

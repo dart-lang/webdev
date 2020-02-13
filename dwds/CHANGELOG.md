@@ -1,10 +1,26 @@
-## 1.0.0-dev
+## 2.0.0-dev
+
+**Breaking Changes:**
+- Now require a `LoadStrategy` to `Dwds.start`. This package defines two
+  compatible load strategies, `RequireStrategy` and `LegacyStrategy.
+- `Dwds.start` function signature has been changed to accept one more parameter
+  of new interface type `ExpressionCompiler` to support expression
+  evaluation
+- Simplify hot reload logic and no longer provide module level hooks.
+
+## 1.0.1
+
+- Make the `root` optional for the `ProxyServerAssetReader`.
+
+## 1.0.0
 
 - Fix an issue where files imported with relative paths containing `../` may fail
   to resolve breakpoint locations.
 - Remove dependency on `package:build_daemon`.
 - Add `FrontendServerAssetReader` for use with Frontend Server builds.
 - Depend on latest `package:sse` for handling client reconnects transparently on the server.
+- Fix an issue where a failure to initiate debugging through the Dart Debug
+  Extension would cause your development server to crash.
 - Fix an issue where trying to launch DevTools in a non-debug enabled Chrome
   instance could crash your development server.
 

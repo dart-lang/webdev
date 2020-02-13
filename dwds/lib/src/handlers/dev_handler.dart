@@ -15,6 +15,7 @@ import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -56,6 +57,7 @@ class DevHandler {
   final bool _restoreBreakpoints;
   final bool _useSseForDebugProxy;
   final bool _serveDevTools;
+  final ExpressionCompiler _expressionCompiler;
 
   /// Null until [close] is called.
   ///
@@ -65,19 +67,19 @@ class DevHandler {
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
   DevHandler(
-    this._chromeConnection,
-    this.buildResults,
-    this._devTools,
-    this._assetReader,
-    this._hostname,
-    this._verbose,
-    this._logWriter,
-    this._extensionBackend,
-    this._urlEncoder,
-    this._restoreBreakpoints,
-    this._useSseForDebugProxy,
-    this._serveDevTools,
-  ) {
+      this._chromeConnection,
+      this.buildResults,
+      this._devTools,
+      this._assetReader,
+      this._hostname,
+      this._verbose,
+      this._logWriter,
+      this._extensionBackend,
+      this._urlEncoder,
+      this._restoreBreakpoints,
+      this._useSseForDebugProxy,
+      this._serveDevTools,
+      this._expressionCompiler) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
     if (_extensionBackend != null) {
@@ -152,28 +154,28 @@ class DevHandler {
     var webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
     return DebugService.start(
-      // We assume the user will connect to the debug service on the same
-      // machine. This allows consumers of DWDS to provide a `hostname` for
-      // debugging through the Dart Debug Extension without impacting the local
-      // debug workflow.
-      'localhost',
-      webkitDebugger,
-      executionContext,
-      appTab.url,
-      _assetReader,
-      appConnection,
-      _logWriter,
-      _restoreBreakpoints,
-      onResponse: _verbose
-          ? (response) {
-              if (response['error'] == null) return;
-              _logWriter(Level.WARNING,
-                  'VmService proxy responded with an error:\n$response');
-            }
-          : null,
-      // This will provide a websocket based service.
-      useSse: false,
-    );
+        // We assume the user will connect to the debug service on the same
+        // machine. This allows consumers of DWDS to provide a `hostname` for
+        // debugging through the Dart Debug Extension without impacting the local
+        // debug workflow.
+        'localhost',
+        webkitDebugger,
+        executionContext,
+        appTab.url,
+        _assetReader,
+        appConnection,
+        _logWriter,
+        _restoreBreakpoints,
+        onResponse: _verbose
+            ? (response) {
+                if (response['error'] == null) return;
+                _logWriter(Level.WARNING,
+                    'VmService proxy responded with an error:\n$response');
+              }
+            : null,
+        // This will provide a websocket based service.
+        useSse: false,
+        expressionCompiler: _expressionCompiler);
   }
 
   Future<AppDebugServices> loadAppServices(AppConnection appConnection) async {
@@ -369,29 +371,32 @@ class DevHandler {
     extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
       var connection = _appConnectionByAppId[devToolsRequest.appId];
       if (connection == null) {
-        throw StateError(
+        // TODO(grouma) - Ideally we surface this warning to the extension so
+        // that it can be displayed to the user through an alert.
+        _logWriter(Level.WARNING,
             'Not connected to an app with id: ${devToolsRequest.appId}');
+        return;
       }
       var appId = devToolsRequest.appId;
       if (_servicesByAppId[appId] == null) {
         var debugService = await DebugService.start(
-          _hostname,
-          extensionDebugger,
-          extensionDebugger.executionContext,
-          devToolsRequest.tabUrl,
-          _assetReader,
-          connection,
-          _logWriter,
-          _restoreBreakpoints,
-          onResponse: _verbose
-              ? (response) {
-                  if (response['error'] == null) return;
-                  _logWriter(Level.WARNING,
-                      'VmService proxy responded with an error:\n$response');
-                }
-              : null,
-          useSse: _useSseForDebugProxy,
-        );
+            _hostname,
+            extensionDebugger,
+            extensionDebugger.executionContext,
+            devToolsRequest.tabUrl,
+            _assetReader,
+            connection,
+            _logWriter,
+            _restoreBreakpoints,
+            onResponse: _verbose
+                ? (response) {
+                    if (response['error'] == null) return;
+                    _logWriter(Level.WARNING,
+                        'VmService proxy responded with an error:\n$response');
+                  }
+                : null,
+            useSse: _useSseForDebugProxy,
+            expressionCompiler: _expressionCompiler);
         var appServices =
             await _createAppDebugServices(devToolsRequest.appId, debugService);
         unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first

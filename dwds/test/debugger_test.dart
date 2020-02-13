@@ -5,13 +5,11 @@
 @TestOn('vm')
 import 'dart:async';
 
-import 'package:dwds/dwds.dart' show ModuleStrategy;
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
@@ -30,7 +28,6 @@ Locations locations;
 
 void main() async {
   setUpAll(() async {
-    globalModuleStrategy = ModuleStrategy.requireJS;
     webkitDebugger = FakeWebkitDebugger();
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;

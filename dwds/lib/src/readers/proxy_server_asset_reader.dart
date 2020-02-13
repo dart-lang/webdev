@@ -7,10 +7,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:dwds/src/utilities/shared.dart' show LogWriter;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
-import '../../dwds.dart' show LogWriter;
 import 'asset_reader.dart';
 
 /// A reader for resources provided by a proxy server.
@@ -21,9 +21,11 @@ class ProxyServerAssetReader implements AssetReader {
 
   ProxyServerAssetReader(
     int assetServerPort,
+    this._logWriter, {
     String root,
-    this._logWriter,
-  ) : _handler = proxyHandler('http://localhost:$assetServerPort/$root/');
+  }) : _handler = root != null
+            ? proxyHandler('http://localhost:$assetServerPort/$root/')
+            : proxyHandler('http://localhost:$assetServerPort/');
 
   @override
   Future<String> dartSourceContents(String serverPath) =>

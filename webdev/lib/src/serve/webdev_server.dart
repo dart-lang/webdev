@@ -98,8 +98,8 @@ class WebDevServer {
     if (options.configuration.enableInjectedClient) {
       var assetReader = ProxyServerAssetReader(
         options.daemonPort,
-        options.target,
         logWriter,
+        root: options.target,
       );
       dwds = await Dwds.start(
         hostname: options.configuration.hostname,
@@ -108,7 +108,7 @@ class WebDevServer {
         chromeConnection: () async =>
             (await Chrome.connectedInstance).chromeConnection,
         logWriter: logWriter,
-        reloadConfiguration: options.configuration.reload,
+        loadStrategy: RequireStrategy(options.configuration.reload),
         serveDevTools:
             options.configuration.debug || options.configuration.debugExtension,
         verbose: options.configuration.verbose,

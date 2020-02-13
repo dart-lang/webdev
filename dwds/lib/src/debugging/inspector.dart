@@ -13,6 +13,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import '../connections/app_connection.dart';
 import '../debugging/location.dart';
 import '../debugging/remote_debugger.dart';
+import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
@@ -151,7 +152,7 @@ class AppInspector extends Domain {
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
     var load = '''
         function() {
-          return $loadModule("dart_sdk").dart.dloadRepl(this, "$fieldName");
+          return ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.dloadRepl(this, "$fieldName");
         }
         ''';
     return jsCallFunctionOn(receiver, load, []);
@@ -170,7 +171,7 @@ class AppInspector extends Domain {
     var send = '''
         function () {
           if (!(this.__proto__)) { return 'Instance of PlainJavaScriptObject';}
-          return $loadModule("dart_sdk").dart.dsendRepl(this, "$methodName", arguments);
+          return ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.dsendRepl(this, "$methodName", arguments);
         }
         ''';
     var remote = await jsCallFunctionOn(receiver, send, positionalArgs);
@@ -251,7 +252,7 @@ class AppInspector extends Domain {
       String expression, String libraryUri) {
     var evalExpression = '''
 (function() {
-  ${getLibrarySnippet(libraryUri)};
+  ${globalLoadStrategy.loadLibrarySnippet(libraryUri)};
   return library.$expression;
 })();
 ''';
@@ -278,7 +279,7 @@ class AppInspector extends Domain {
       Library library, String jsFunction, List<RemoteObject> arguments) async {
     var findLibrary = '''
 (function() {
-  ${getLibrarySnippet(library.uri)};
+  ${globalLoadStrategy.loadLibrarySnippet(library.uri)};
   return library;
 })();
 ''';
@@ -294,7 +295,7 @@ class AppInspector extends Domain {
     var arguments = scope.values.map(remoteObjectFor).toList();
     var evalExpression = '''
 function($argsString) {
-  ${getLibrarySnippet(library.uri)};
+  ${globalLoadStrategy.loadLibrarySnippet(library.uri)};
   return library.$expression;
 }
     ''';
@@ -370,7 +371,7 @@ function($argsString) {
     (function() {
       var uris = JSON.parse('$listAsJson');
       var allScripts = {};
-      var sdkUtils = $loadModule('dart_sdk').dart;
+      var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
       for (var uri of uris) {
         var parts = sdkUtils.getParts(uri);
         allScripts[uri] = parts;
@@ -414,7 +415,7 @@ function($argsString) {
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
     var expression =
-        "$loadModule('dart_sdk').developer._extensions.keys.toList();";
+        "${globalLoadStrategy.loadModuleSnippet}('dart_sdk').developer._extensions.keys.toList();";
     var extensionsResult =
         await remoteDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
