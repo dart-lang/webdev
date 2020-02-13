@@ -134,50 +134,6 @@ class RequireStrategy extends LoadStrategy {
   /// Adds error handler code for require.js which requests a `.errors` file for
   /// any failed module, and logs it to the console.
   String get _requireJsConfig => '''
-// Whenever we fail to load a JS module, try to request the corresponding
-// `.errors` file, and log it to the console.
-(function() {
-  var oldOnError = requirejs.onError;
-  requirejs.onError = function(e) {
-    if (e.requireModules) {
-      if (e.message) {
-        // If error occurred on loading dependencies, we need to invalidate ancessor too.
-        var ancesor = e.message.match(/needed by: (.*)/);
-        if (ancesor) {
-          e.requireModules.push(ancesor[1]);
-        }
-      }
-      for (const module of e.requireModules) {
-        var errorCallbacks = \$requireLoader.moduleLoadingErrorCallbacks.get(module);
-        if (errorCallbacks) {
-          for (const callback of errorCallbacks) callback(e);
-          errorCallbacks.clear();
-        }
-      }
-    }
-    if (e.originalError && e.originalError.srcElement) {
-      var xhr = new XMLHttpRequest();
-      xhr.onreadystatechange = function() {
-        if (this.readyState == 4) {
-          var message;
-          if (this.status == 200) {
-            message = this.responseText;
-          } else {
-            message = "Unknown error loading " + e.originalError.srcElement.src;
-          }
-          console.error(message);
-          var errorEvent = new CustomEvent(
-            'dartLoadException', { detail: message });
-          window.dispatchEvent(errorEvent);
-        }
-      };
-      xhr.open("GET", e.originalError.srcElement.src + ".errors", true);
-      xhr.send();
-    }
-    // Also handle errors the normal way.
-    if (oldOnError) oldOnError(e);
-  };
-}());
 $_baseUrlScript;
 require.config({
     baseUrl: baseUrl,
