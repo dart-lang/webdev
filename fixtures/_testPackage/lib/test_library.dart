@@ -3,3 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 int valueFromTestPackage = 3;
+
+int testLibraryFunction(int formal) {
+  return formal;
+}

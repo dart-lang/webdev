@@ -8,13 +8,25 @@ import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';
-import 'package:logging/logging.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
-import 'package:shelf_proxy/shelf_proxy.dart';
-import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+Handler interceptFavicon(Handler handler) {
+  return (request) async {
+    var response = await handler(request);
+    if (response.statusCode == 404 &&
+        request.url.pathSegments.isNotEmpty &&
+        request.url.pathSegments.last == 'favicon.ico') {
+      unawaited(response.read().drain());
+      return Response.ok('');
+    }
+    return response;
+  };
+}
 
 class TestServer {
   final HttpServer _server;
@@ -49,19 +61,23 @@ class TestServer {
   static Future<TestServer> start(
       String hostname,
       int port,
-      int assetServerPort,
+      Handler assetHandler,
+      AssetReader assetReader,
+      RequireStrategy strategy,
       String target,
       Stream<daemon.BuildResults> buildResults,
       Future<ChromeConnection> Function() chromeConnection,
-      ReloadConfiguration reloadConfiguration,
       bool serveDevTools,
       bool enableDebugExtension,
       bool autoRun,
       bool enableDebugging,
       UrlEncoder urlEncoder,
       bool restoreBreakpoints,
-      ExpressionCompiler expressionCompiler) async {
+      ExpressionCompiler expressionCompiler,
+      LogWriter logWriter) async {
     var pipeline = const Pipeline();
+
+    pipeline = pipeline.addMiddleware(interceptFavicon);
 
     var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
       var result =
@@ -77,22 +93,12 @@ class TestServer {
       throw StateError('Unexpected Daemon build result: $result');
     });
 
-    var logWriter = (Level level, String message) => printOnFailure(message);
-
-    var assetReader =
-        ProxyServerAssetReader(assetServerPort, logWriter, root: target);
-
-    var assetHandler =
-        proxyHandler('http://localhost:$assetServerPort/$target/');
-
     var dwds = await Dwds.start(
       assetReader: assetReader,
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       logWriter: logWriter,
-      loadStrategy:
-          BuildRunnerRequireStrategyProvider(assetHandler, reloadConfiguration)
-              .strategy,
+      loadStrategy: strategy,
       serveDevTools: serveDevTools,
       enableDebugExtension: enableDebugExtension,
       enableDebugging: enableDebugging,

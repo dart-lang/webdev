@@ -153,7 +153,6 @@ class Locations {
   /// Returns all [Location] data for a provided JS scriptId.
   Future<Set<Location>> locationsForJs(String scriptId) async {
     var module = await _modules.moduleForScriptId(scriptId);
-
     var cache = _scriptIdToLocation[scriptId];
     if (cache != null) return cache;
 
@@ -231,12 +230,16 @@ class Locations {
     var moduleExtension = await _modules.moduleExtension;
     var modulePath = '$module$moduleExtension';
     if (modulePath.endsWith('dart_sdk.js') ||
-        modulePath.endsWith('dart_sdk.ddk.js')) {
+        modulePath.endsWith('dart_sdk.ddk.js') ||
+        modulePath.endsWith('dart_sdk.lib.js')) {
       return result;
     }
+
+    modulePath = _modules.adjustForRoot(modulePath);
+    var scriptLocation = p.url.dirname(modulePath);
+
     var sourceMapContents =
         await _assetReader.sourceMapContents('$modulePath.map');
-    var scriptLocation = p.url.dirname('/$modulePath');
     if (sourceMapContents == null) return result;
     var scriptId = await _modules.scriptIdForModule(module);
     if (scriptId == null) return result;
@@ -255,7 +258,8 @@ class Locations {
           var relativeSegments = p.split(mapping.urls[index]);
           var path = p.url
               .normalize(p.url.joinAll([scriptLocation, ...relativeSegments]));
-          var dartUri = DartUri(path, _root);
+          var uri = _modules.adjustForRoot(path);
+          var dartUri = DartUri('/$uri', _root);
           result.add(Location.from(
             scriptId,
             lineEntry,

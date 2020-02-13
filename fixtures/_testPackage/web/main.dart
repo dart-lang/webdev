@@ -15,5 +15,16 @@ void main() {
     print(valueFromTestPackage);
   });
 
+  // for evaluation
+  Timer.periodic(const Duration(seconds: 1), (_) {
+    printSomething();
+  });
+
   document.body.appendText(concatenate('Program', ' is running!'));
+}
+
+void printSomething() {
+  var local = 42;
+  print('Local is: $local'); // Breakpoint: printLocal
+  print(valueFromTestPackage); // Breakpoint: printGlobal
 }
