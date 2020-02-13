@@ -82,12 +82,17 @@ class TestServer {
     var assetReader =
         ProxyServerAssetReader(assetServerPort, logWriter, root: target);
 
+    var assetHandler =
+        proxyHandler('http://localhost:$assetServerPort/$target/');
+
     var dwds = await Dwds.start(
       assetReader: assetReader,
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
       logWriter: logWriter,
-      loadStrategy: RequireStrategy(reloadConfiguration),
+      loadStrategy:
+          BuildRunnerRequireStrategyProvider(assetHandler, reloadConfiguration)
+              .strategy,
       serveDevTools: serveDevTools,
       enableDebugExtension: enableDebugExtension,
       enableDebugging: enableDebugging,
@@ -102,10 +107,9 @@ class TestServer {
     var server = await HttpMultiServer.bind('localhost', port);
     shelf_io.serveRequests(
         server,
-        pipeline.addMiddleware(dwds.middleware).addHandler(Cascade()
-            .add(dwds.handler)
-            .add(proxyHandler('http://localhost:$assetServerPort/$target/'))
-            .handler));
+        pipeline
+            .addMiddleware(dwds.middleware)
+            .addHandler(Cascade().add(dwds.handler).add(assetHandler).handler));
     return TestServer._(
       target,
       server,

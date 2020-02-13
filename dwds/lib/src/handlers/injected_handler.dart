@@ -25,7 +25,7 @@ const mainExtensionMarker = '/* MAIN_EXTENSION_MARKER */';
 
 const _clientScript = 'dwds/src/injected/client';
 
-Handler Function(Handler) createInjectedHandler(
+Handler Function(Handler) createInjectedHandler(LoadStrategy loadStrategy,
         {String extensionUri, UrlEncoder urlEncoder}) =>
     (innerHandler) {
       return (Request request) async {
@@ -71,11 +71,13 @@ Handler Function(Handler) createInjectedHandler(
             if (urlEncoder != null) {
               requestedUriBase = await urlEncoder(requestedUriBase);
             }
+            body += await loadStrategy.bootstrapFor(request.url.path);
             body += _injectedClientJs(
               appId,
               mainFunction,
               requestedUriBase,
-              extensionUri: extensionUri,
+              extensionUri,
+              loadStrategy,
             );
             body += bodyLines.sublist(extensionIndex + 2).join('\n');
             // Change the hot restart handler to re-assign
@@ -90,6 +92,8 @@ Handler Function(Handler) createInjectedHandler(
           }
           return response.change(body: body, headers: newHeaders);
         } else {
+          var loadResponse = await loadStrategy.handler(request);
+          if (loadResponse != null) return loadResponse;
           return innerHandler(request);
         }
       };
@@ -98,18 +102,19 @@ Handler Function(Handler) createInjectedHandler(
 String _injectedClientJs(
   String appId,
   String mainFunction,
-  String requestedUriBase, {
+  String requestedUriBase,
   String extensionUri,
-}) {
+  LoadStrategy loadStrategy,
+) {
   var injectedBody = '// Injected by webdev for build results support.\n'
       'window.\$dartAppId = "$appId";\n'
       'window.\$dartRunMain = $mainFunction;\n'
-      'window.\$dartReloadConfiguration = "${globalLoadStrategy.reloadConfiguration}";\n'
-      'window.\$dartLoader.forceLoadModule("$_clientScript");\n'
-      'window.\$dartModuleStrategy = "${globalLoadStrategy.id}";\n'
+      'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
+      'window.\$dartModuleStrategy = "${loadStrategy.id}";\n'
       'window.\$dartUriBase = "$requestedUriBase";\n'
-      'window.\$loadModuleConfig = ${globalLoadStrategy.loadModuleSnippet};\n'
-      'window.\$dwdsVersion = "$packageVersion";\n';
+      'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
+      'window.\$dwdsVersion = "$packageVersion";\n'
+      '${loadStrategy.loadClientSnippet(_clientScript)}';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
   }

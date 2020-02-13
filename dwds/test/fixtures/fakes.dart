@@ -128,7 +128,8 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future enable() => null;
 
   FakeWebkitDebugger() {
-    globalLoadStrategy = RequireStrategy(ReloadConfiguration.none);
+    globalLoadStrategy = RequireStrategy(
+        ReloadConfiguration.none, '.ddc', (_) async => {}, (_) async => {});
   }
 
   @override

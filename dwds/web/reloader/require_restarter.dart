@@ -23,8 +23,8 @@ import 'restarter.dart';
 /// This is updated in place during calls to hotRestart.
 Map<String, String> _lastKnownDigests;
 
-@JS(r'$dartLoader')
-external DartLoader get dartLoader;
+@JS(r'$requireLoader')
+external RequireLoader get requireLoader;
 
 @JS(r'$loadModuleConfig')
 external Object Function(String module) get require;
@@ -44,9 +44,9 @@ external List _jsObjectValues(Object any);
 
 @anonymous
 @JS()
-class DartLoader {
+class RequireLoader {
   @JS()
-  external String get appDigests;
+  external String get digestsPath;
 
   @JS()
   external JsMap<String, List<String>> get moduleParentsGraph;
@@ -119,7 +119,7 @@ class RequireRestarter implements Restarter {
         var servePath =
             parts.first == 'packages' ? jsPath : p.url.joinAll(parts.skip(1));
         var jsUri = '${window.location.origin}/$servePath';
-        var moduleName = dartLoader.urlToModuleId.get(jsUri);
+        var moduleName = requireLoader.urlToModuleId.get(jsUri);
         if (moduleName == null) {
           print('Error during script reloading, refreshing the page. \n'
               'Unable to find an existing module for script $jsUri.');
@@ -141,10 +141,10 @@ class RequireRestarter implements Restarter {
     return true;
   }
 
-  List<String> _allModules() => keys(dartLoader.moduleParentsGraph);
+  List<String> _allModules() => keys(requireLoader.moduleParentsGraph);
 
   Future<Map<String, String>> _getDigests() async {
-    var request = await HttpRequest.request(dartLoader.appDigests,
+    var request = await HttpRequest.request(requireLoader.digestsPath,
         responseType: 'json', method: 'GET');
     return (request.response as Map).cast<String, String>();
   }
@@ -154,7 +154,7 @@ class RequireRestarter implements Restarter {
   }
 
   List<String> _moduleParents(String module) =>
-      dartLoader.moduleParentsGraph.get(module)?.cast();
+      requireLoader.moduleParentsGraph.get(module)?.cast();
 
   int _moduleTopologicalCompare(String module1, String module2) {
     var topological = 0;
@@ -228,7 +228,7 @@ class RequireRestarter implements Restarter {
   Future<void> _reloadModule(String moduleId) {
     var completer = Completer();
     var stackTrace = StackTrace.current;
-    dartLoader.forceLoadModule(moduleId, allowInterop(() {
+    requireLoader.forceLoadModule(moduleId, allowInterop(() {
       completer.complete();
     }),
         allowInterop((e) => completer.completeError(
