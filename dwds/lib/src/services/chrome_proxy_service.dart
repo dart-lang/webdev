@@ -22,7 +22,6 @@ import '../readers/asset_reader.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
-
 import 'expression_compiler.dart';
 import 'expression_evaluator.dart';
 
@@ -114,12 +113,18 @@ class ChromeProxyService implements VmServiceInterface {
       bool restoreBreakpoints,
       ExecutionContext executionContext,
       ExpressionCompiler expressionCompiler) async {
-    // TODO: What about `architectureBits`, `targetCPU`, `hostCPU` and `pid`?
-    final vm = VM()
-      ..isolates = []
-      ..name = 'ChromeDebugProxy'
-      ..startTime = DateTime.now().millisecondsSinceEpoch
-      ..version = Platform.version;
+    final vm = VM(
+      name: 'ChromeDebugProxy',
+      operatingSystem: Platform.operatingSystem,
+      startTime: DateTime.now().millisecondsSinceEpoch,
+      version: Platform.version,
+      isolates: [],
+      isolateGroups: [],
+      targetCPU: 'Web',
+      hostCPU: 'DWDS',
+      architectureBits: -1,
+      pid: -1,
+    );
     var modules = Modules(remoteDebugger, tabUrl, executionContext);
     var locations = Locations(assetReader, modules, tabUrl);
     var service = ChromeProxyService._(vm, tabUrl, assetReader, remoteDebugger,
@@ -302,7 +307,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       throw RPCError(method, decodedResponse['code'] as int,
           decodedResponse['message'] as String, decodedResponse['data'] as Map);
     } else {
-      return Response()..json = decodedResponse;
+      return Response(
+          // TODO(grouma): What should the type be?
+          type: '')
+        ..json = decodedResponse;
     }
   }
 
@@ -349,7 +357,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<FlagList> getFlagList() async {
     // VM flags do not apply to web apps.
-    return FlagList()..flags = [];
+    return FlagList(flags: []);
   }
 
   @override
@@ -416,9 +424,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Version> getVersion() async {
     var version = semver.Version.parse(vmServiceVersion);
-    return Version()
-      ..major = version.major
-      ..minor = version.minor;
+    return Version(major: version.major, minor: version.minor);
   }
 
   @override
@@ -690,6 +696,16 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> requestHeapSnapshot(String isolateId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future getIsolateGroup(String isolateGroupId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future getIsolateGroupMemoryUsage(String isolateGroupId) {
     throw UnimplementedError();
   }
 }

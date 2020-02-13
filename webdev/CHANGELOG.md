@@ -4,6 +4,7 @@
 - Require at least `build_web_compilers` version `2.6.1`.
   - Versions `<2.0.0` are not supported by any dart sdk `>=2.6.0`.
   - Versions `<2.6.1` have bugs that we want to avoid users running into.
+- Depend on `package:vm_service` version  `^2.0.0`.
 - Depend on the latest `package:dwds`.
 
 ## 2.5.4

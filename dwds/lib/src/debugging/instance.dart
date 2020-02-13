@@ -131,21 +131,22 @@ class InstanceHelper extends Domain {
   /// Create a bound field for [property] in an instance of [classRef].
   Future<BoundField> _fieldFor(Property property, ClassRef classRef) async {
     var instance = await _instanceRefForRemote(property.value);
-    return BoundField()
-      ..decl = (FieldRef(
+    return BoundField(
+        decl: FieldRef(
           // TODO(grouma) - Convert JS name to Dart.
           name: property.name,
-          declaredType: (InstanceRef(
+          declaredType: InstanceRef(
               kind: InstanceKind.kType,
               classRef: instance.classRef,
-              id: createId())),
+              id: createId()),
           owner: classRef,
           // TODO(grouma) - Fill these in.
           isConst: false,
           isFinal: false,
           isStatic: false,
-          id: createId()))
-      ..value = instance;
+          id: createId(),
+        ),
+        value: instance);
   }
 
   /// Create a plain instance of [classRef] from [remoteObject] and the JS
@@ -197,9 +198,7 @@ class InstanceHelper extends Domain {
     var associations = <MapAssociation>[];
     Map.fromIterables(keysInstance.elements, valuesInstance.elements)
         .forEach((key, value) {
-      associations.add(MapAssociation()
-        ..key = key
-        ..value = value);
+      associations.add(MapAssociation(key: key, value: value));
     });
     return associations;
   }
@@ -380,7 +379,7 @@ class InstanceHelper extends Domain {
               owner: classRefForUnknown,
               isConst: false,
               isStatic: false)
-          ..closureContext = (ContextRef()..length = 0);
+          ..closureContext = (ContextRef(length: 0));
       default:
         // Return null for an unsupported type. This is likely a JS construct.
         return null;
