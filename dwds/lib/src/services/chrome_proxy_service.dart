@@ -121,10 +121,10 @@ class ChromeProxyService implements VmServiceInterface {
       isolateGroups: [],
       isolates: [],
       pid: pid,
-      architectureBits: 64,
       // TODO: What should these be?
-      targetCPU: '',
-      hostCPU: '',
+      architectureBits: null,
+      targetCPU: null,
+      hostCPU: null,
     );
     var modules = Modules(remoteDebugger, tabUrl, executionContext);
     var locations = Locations(assetReader, modules, tabUrl);
@@ -702,13 +702,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future getIsolateGroup(String isolateGroupId) {
-    // TODO: implement getIsolateGroup
     throw UnimplementedError();
   }
 
   @override
   Future getIsolateGroupMemoryUsage(String isolateGroupId) {
-    // TODO: implement getIsolateGroupMemoryUsage
     throw UnimplementedError();
   }
 }

@@ -365,9 +365,9 @@ class Debugger extends Domain {
         name: property.name,
         value: instanceRef,
         // TODO(grouma) - Provide actual token positions.
-        declarationTokenPos: -1,
-        scopeStartTokenPos: -1,
-        scopeEndTokenPos: -1);
+        declarationTokenPos: null,
+        scopeStartTokenPos: null,
+        scopeEndTokenPos: null);
   }
 
   /// Find a sub-range of the entries for a Map/List when offset and/or count
@@ -454,7 +454,9 @@ class Debugger extends Domain {
     // Just drop the frame.
     // TODO(#700): Understand when this can happen and have a better fix.
     if (script == null) return null;
-    return Frame(index: 0)
+    return Frame(
+        // TODO(grouma) - What's the proper value here?
+        index: null)
       ..code = (CodeRef(id: createId(), name: 'DartCode', kind: CodeKind.kDart))
       ..location =
           SourceLocation(tokenPos: bestLocation.tokenPos, script: script)
