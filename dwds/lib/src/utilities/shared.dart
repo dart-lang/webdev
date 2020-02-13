@@ -12,7 +12,7 @@ import '../utilities/wrapped_service.dart';
 
 typedef LogWriter = void Function(Level, String);
 
-VMRef toVMRef(VM vm) => VMRef()..name = vm.name;
+VMRef toVMRef(VM vm) => VMRef(name: vm.name);
 
 int _nextId = 0;
 String createId() {

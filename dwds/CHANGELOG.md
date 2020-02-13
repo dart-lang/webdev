@@ -1,5 +1,7 @@
 ## 2.0.0-dev
 
+- Depend on the latest `package:vm_service` version `2.3.1`.
+
 **Breaking Changes:**
 - Now require a `LoadStrategy` to `Dwds.start`. This package defines two
   compatible load strategies, `RequireStrategy` and `LegacyStrategy.

@@ -349,7 +349,7 @@ function($argsString) {
   /// All the scripts in the isolate.
   Future<ScriptList> getScripts(String isolateId) async {
     checkIsolate(isolateId);
-    return ScriptList()..scripts = await scriptRefs;
+    return ScriptList(scripts: await scriptRefs);
   }
 
   Future<List<ScriptRef>> _getScripts() async {

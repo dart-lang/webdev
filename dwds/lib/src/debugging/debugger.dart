@@ -361,11 +361,13 @@ class Debugger extends Domain {
     // properties that are getter/setter pairs.
     // TODO(alanknight): Handle these properly.
     if (instanceRef == null) return null;
-    return BoundVariable()
-      ..name = property.name
-      ..value = instanceRef
-      // TODO(grouma) - Provide an actual token position.
-      ..declarationTokenPos = -1;
+    return BoundVariable(
+        name: property.name,
+        value: instanceRef,
+        // TODO(grouma) - Provide actual token positions.
+        declarationTokenPos: -1,
+        scopeStartTokenPos: -1,
+        scopeEndTokenPos: -1);
   }
 
   /// Find a sub-range of the entries for a Map/List when offset and/or count
@@ -452,11 +454,10 @@ class Debugger extends Domain {
     // Just drop the frame.
     // TODO(#700): Understand when this can happen and have a better fix.
     if (script == null) return null;
-    return Frame()
+    return Frame(index: 0)
       ..code = (CodeRef(id: createId(), name: 'DartCode', kind: CodeKind.kDart))
-      ..location = (SourceLocation()
-        ..tokenPos = bestLocation.tokenPos
-        ..script = script)
+      ..location =
+          SourceLocation(tokenPos: bestLocation.tokenPos, script: script)
       ..kind = FrameKind.kRegular;
   }
 
@@ -630,12 +631,12 @@ class _Breakpoints extends Domain {
   /// Create a Dart breakpoint at [location] in [dartScript] with [id].
   Breakpoint _dartBreakpoint(
       ScriptRef dartScript, Location location, String id) {
-    var breakpoint = Breakpoint()
-      ..resolved = true
-      ..id = id
-      ..location = (SourceLocation()
-        ..script = dartScript
-        ..tokenPos = location.tokenPos);
+    var breakpoint = Breakpoint(
+        breakpointNumber: int.parse(createId()),
+        resolved: true,
+        location:
+            SourceLocation(script: dartScript, tokenPos: location.tokenPos))
+      ..id = id;
     return breakpoint;
   }
 
