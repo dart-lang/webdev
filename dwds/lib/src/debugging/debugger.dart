@@ -365,9 +365,9 @@ class Debugger extends Domain {
         name: property.name,
         value: instanceRef,
         // TODO(grouma) - Provide actual token positions.
-        declarationTokenPos: null,
-        scopeStartTokenPos: null,
-        scopeEndTokenPos: null);
+        declarationTokenPos: -1,
+        scopeStartTokenPos: -1,
+        scopeEndTokenPos: -1);
   }
 
   /// Find a sub-range of the entries for a Map/List when offset and/or count

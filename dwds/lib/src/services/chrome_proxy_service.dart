@@ -119,12 +119,11 @@ class ChromeProxyService implements VmServiceInterface {
       startTime: DateTime.now().millisecondsSinceEpoch,
       version: Platform.version,
       isolates: [],
-      // TODO: What should these be?
       isolateGroups: [],
-      architectureBits: null,
-      pid: null,
-      targetCPU: null,
-      hostCPU: null,
+      targetCPU: 'Web',
+      hostCPU: 'DWDS',
+      architectureBits: -1,
+      pid: -1,
     );
     var modules = Modules(remoteDebugger, tabUrl, executionContext);
     var locations = Locations(assetReader, modules, tabUrl);
