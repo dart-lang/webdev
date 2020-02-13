@@ -118,11 +118,11 @@ class ChromeProxyService implements VmServiceInterface {
       operatingSystem: Platform.operatingSystem,
       startTime: DateTime.now().millisecondsSinceEpoch,
       version: Platform.version,
-      isolateGroups: [],
       isolates: [],
-      pid: pid,
       // TODO: What should these be?
+      isolateGroups: [],
       architectureBits: null,
+      pid: null,
       targetCPU: null,
       hostCPU: null,
     );
