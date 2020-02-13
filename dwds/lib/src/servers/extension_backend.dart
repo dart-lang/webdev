@@ -11,7 +11,8 @@ import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:sse/server/sse_handler.dart';
 
-final _sseHandler = SseHandler(Uri.parse('/\$debug'));
+final _sseHandler =
+    SseHandler(Uri.parse('/\$debug'), keepAlive: const Duration(seconds: 30));
 
 /// A backend for the Dart Debug Extension.
 ///

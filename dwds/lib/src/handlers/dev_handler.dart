@@ -37,7 +37,8 @@ import '../services/debug_service.dart';
 /// opening DevTools.
 class DevHandler {
   StreamSubscription _sub;
-  final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'));
+  final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'),
+      keepAlive: const Duration(seconds: 30));
   final _injectedConnections = <SseConnection>{};
   final DevTools _devTools;
   final AssetReader _assetReader;
@@ -310,6 +311,10 @@ class DevHandler {
     var services = _servicesByAppId[message.appId];
     var connection = AppConnection(message, sseConnection);
     if (services != null && services.connectedInstanceId == null) {
+      // Disconnect any old connection (eg. those in the keep-alive waiting state
+      // when reloading the page).
+      services.chromeProxyService?.destroyIsolate();
+
       // Reconnect to existing service.
       services.connectedInstanceId = message.instanceId;
       await services.chromeProxyService.createIsolate(connection);
