@@ -51,9 +51,16 @@ abstract class LoadStrategy {
    if (!library) throw 'cannot find library for $libraryUri';
   ''';
 
+  /// Returns the bootstrap required for this [LoadStrategy].
   Future<String> bootstrapFor(String entrypoint);
 
+  /// A handler for strategy specific requests.
+  ///
+  /// Used as a part of the injected_handler middleware.
   Handler get handler;
+
+  /// JS code snippet for loading the injected client script.
+  String loadClientSnippet(String clientScript);
 }
 
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }

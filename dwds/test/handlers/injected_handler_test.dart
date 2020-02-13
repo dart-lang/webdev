@@ -36,6 +36,9 @@ class FakeStrategy implements LoadStrategy {
 
   @override
   ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
+
+  @override
+  String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
 }
 
 void main() {
@@ -160,6 +163,12 @@ void main() {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
       expect(result.body.contains('dummy-id'), isTrue);
+    });
+
+    test('Injects client load snippet', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('dummy-load-client-snippet'), isTrue);
     });
 
     test('Delegates to strategy handler', () async {

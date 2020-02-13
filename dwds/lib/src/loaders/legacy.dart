@@ -14,6 +14,9 @@ class LegacyStrategy extends LoadStrategy {
   LegacyStrategy(this.reloadConfiguration);
 
   @override
+  Handler get handler => (request) => null;
+
+  @override
   String get id => 'legacy';
 
   @override
@@ -30,5 +33,6 @@ class LegacyStrategy extends LoadStrategy {
   Future<String> bootstrapFor(String entrypoint) async => '';
 
   @override
-  Handler get handler => (request) => null;
+  String loadClientSnippet(String clientScript) =>
+      'window.\$dartLoader.forceLoadModule("$clientScript");\n';
 }

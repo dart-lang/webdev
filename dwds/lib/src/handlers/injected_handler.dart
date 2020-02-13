@@ -71,6 +71,7 @@ Handler Function(Handler) createInjectedHandler(LoadStrategy loadStrategy,
             if (urlEncoder != null) {
               requestedUriBase = await urlEncoder(requestedUriBase);
             }
+            body += await loadStrategy.bootstrapFor(request.url.path);
             body += _injectedClientJs(
               appId,
               mainFunction,
@@ -83,7 +84,6 @@ Handler Function(Handler) createInjectedHandler(LoadStrategy loadStrategy,
             // `window.$dartRunMain` to the new main, instead of invoking it.
             body = body.replaceFirst(
                 'child.main()', r'window.$dartRunMain = child.main');
-            body += await loadStrategy.bootstrapFor(request.url.path);
             etag = base64.encode(md5.convert(body.codeUnits).bytes);
             newHeaders[HttpHeaders.etagHeader] = etag;
           }
@@ -110,11 +110,11 @@ String _injectedClientJs(
       'window.\$dartAppId = "$appId";\n'
       'window.\$dartRunMain = $mainFunction;\n'
       'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
-      'window.\$dartLoader.forceLoadModule("$_clientScript");\n'
       'window.\$dartModuleStrategy = "${loadStrategy.id}";\n'
       'window.\$dartUriBase = "$requestedUriBase";\n'
       'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
-      'window.\$dwdsVersion = "$packageVersion";\n';
+      'window.\$dwdsVersion = "$packageVersion";\n'
+      '${loadStrategy.loadClientSnippet(_clientScript)}';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
   }

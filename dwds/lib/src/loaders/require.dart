@@ -223,6 +223,10 @@ requirejs.onResourceLoad = function (context, map, depArray) {
   Future<String> bootstrapFor(String entrypoint) async =>
       await _requireLoaderSetup(entrypoint) + _requireJsConfig;
 
+  @override
+  String loadClientSnippet(String clientScript) =>
+      'window.\$requireLoader.forceLoadModule("$clientScript");\n';
+
   Future<String> _requireLoaderSetup(String entrypoint) async {
     var modulePaths = await _moduleProvider(entrypoint);
     return '''
