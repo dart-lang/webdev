@@ -6,6 +6,8 @@
 - `Dwds.start` function signature has been changed to accept one more parameter
   of new interface type `ExpressionCompiler` to support expression
   evaluation
+- Provide an implementation of the `RequireStrategy` suitable for use with
+  `package:build_runner`.
 - Simplify hot reload logic and no longer provide module level hooks.
 
 ## 1.0.1

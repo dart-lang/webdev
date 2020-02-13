@@ -13,17 +13,46 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 
+class FakeStrategy implements LoadStrategy {
+  @override
+  Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
+
+  @override
+  Handler get handler => (request) => (request.url.path == 'someDummyPath')
+      ? Response.ok('some dummy response')
+      : null;
+
+  @override
+  String get id => 'dummy-id';
+
+  @override
+  String get loadLibrariesSnippet => '';
+
+  @override
+  String loadLibrarySnippet(String libraryUri) => '';
+
+  @override
+  String get loadModuleSnippet => '';
+
+  @override
+  ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
+
+  @override
+  String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
+}
+
 void main() {
   HttpServer server;
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
   const encodedUrl = 'http://some-host:1000/foo';
+  var loadStrategy = FakeStrategy();
 
   group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
-      globalLoadStrategy = RequireStrategy(ReloadConfiguration.none);
-      var pipeline = const Pipeline().addMiddleware(
-          createInjectedHandler(urlEncoder: (url) async => encodedUrl));
+      var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
+          loadStrategy,
+          urlEncoder: (url) async => encodedUrl));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok(
@@ -123,14 +152,37 @@ void main() {
       var versionPiece = nextBit.split('"')[1];
       expect(versionPiece, packageVersion);
     });
+
+    test('Injects bootstrap', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('dummy_bootstrap'), isTrue);
+    });
+
+    test('Injects load strategy id', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('dummy-id'), isTrue);
+    });
+
+    test('Injects client load snippet', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('dummy-load-client-snippet'), isTrue);
+    });
+
+    test('Delegates to strategy handler', () async {
+      var result =
+          await http.get('http://localhost:${server.port}/someDummyPath');
+      expect(result.body, equals('some dummy response'));
+    });
   });
 
   group('InjectedHandlerWithExtension', () {
     setUp(() async {
-      globalLoadStrategy = RequireStrategy(ReloadConfiguration.none);
       var extensionUri = 'http://localhost:4000';
-      var pipeline = const Pipeline()
-          .addMiddleware(createInjectedHandler(extensionUri: extensionUri));
+      var pipeline = const Pipeline().addMiddleware(
+          createInjectedHandler(loadStrategy, extensionUri: extensionUri));
       server = await shelf_io.serve(pipeline.addHandler((request) {
         return Response.ok(
             '$entrypointExtensionMarker\n'

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:shelf/shelf.dart';
+
 LoadStrategy _globalLoadStrategy;
 
 set globalLoadStrategy(LoadStrategy strategy) => _globalLoadStrategy = strategy;
@@ -48,6 +50,17 @@ abstract class LoadStrategy {
    var library = sdkUtils.getLibrary('$libraryUri');
    if (!library) throw 'cannot find library for $libraryUri';
   ''';
+
+  /// Returns the bootstrap required for this [LoadStrategy].
+  Future<String> bootstrapFor(String entrypoint);
+
+  /// A handler for strategy specific requests.
+  ///
+  /// Used as a part of the injected_handler middleware.
+  Handler get handler;
+
+  /// JS code snippet for loading the injected client script.
+  String loadClientSnippet(String clientScript);
 }
 
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }

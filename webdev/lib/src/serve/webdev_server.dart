@@ -94,6 +94,8 @@ class WebDevServer {
     });
 
     var cascade = Cascade();
+    var assetHandler = proxyHandler(
+        'http://localhost:${options.daemonPort}/${options.target}/');
     Dwds dwds;
     if (options.configuration.enableInjectedClient) {
       var assetReader = ProxyServerAssetReader(
@@ -108,7 +110,9 @@ class WebDevServer {
         chromeConnection: () async =>
             (await Chrome.connectedInstance).chromeConnection,
         logWriter: logWriter,
-        loadStrategy: RequireStrategy(options.configuration.reload),
+        loadStrategy: BuildRunnerRequireStrategyProvider(
+                assetHandler, options.configuration.reload)
+            .strategy,
         serveDevTools:
             options.configuration.debug || options.configuration.debugExtension,
         verbose: options.configuration.verbose,
@@ -119,8 +123,7 @@ class WebDevServer {
       cascade = cascade.add(dwds.handler);
     }
 
-    cascade = cascade.add(proxyHandler(
-        'http://localhost:${options.daemonPort}/${options.target}/'));
+    cascade = cascade.add(assetHandler);
 
     var hostname = options.configuration.hostname;
     var tlsCertChain = options.configuration.tlsCertChain;

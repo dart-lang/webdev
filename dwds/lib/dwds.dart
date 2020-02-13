@@ -24,6 +24,8 @@ import 'src/utilities/shared.dart';
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
+export 'src/loaders/build_runner_require.dart'
+    show BuildRunnerRequireStrategyProvider;
 export 'src/loaders/legacy.dart' show LegacyStrategy;
 export 'src/loaders/require.dart' show RequireStrategy;
 export 'src/loaders/strategy.dart' show LoadStrategy, ReloadConfiguration;
@@ -136,6 +138,7 @@ class Dwds {
 
     return Dwds._(
       createInjectedHandler(
+        loadStrategy,
         extensionUri: extensionUri,
         urlEncoder: urlEncoder,
       ),
