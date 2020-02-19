@@ -5,6 +5,7 @@
 @Timeout(Duration(minutes: 5))
 @TestOn('vm')
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
@@ -66,6 +67,27 @@ void main() {
       await devToolsWindow.setAsActive();
       expect(await context.webDriver.title, 'Dart DevTools');
     });
+
+    test('destroys and recreates the isolate during a page refresh', () async {
+      // This test is the same as one in reload_test, but runs here when there
+      // is a connected client (DevTools) since it can behave differently.
+      // https://github.com/dart-lang/webdev/pull/901#issuecomment-586438132
+      var client = context.debugConnection.vmService;
+      await client.streamListen('Isolate');
+      await context.changeInput();
+
+      var eventsDone = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(emitsInOrder([
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
+          ])));
+
+      await context.webDriver.driver.refresh();
+
+      await eventsDone;
+    });
   });
 
   group('Injected client without DevTools', () {
@@ -88,3 +110,6 @@ void main() {
     });
   });
 }
+
+TypeMatcher<Event> _hasKind(String kind) =>
+    isA<Event>().having((e) => e.kind, 'kind', kind);
