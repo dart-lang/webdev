@@ -60,7 +60,11 @@ Handler Function(Handler) createInjectedHandler(LoadStrategy loadStrategy,
             var bodyLines = body.split('\n');
             var extensionIndex = bodyLines
                 .indexWhere((line) => line.contains(mainExtensionMarker));
-            body = bodyLines.sublist(0, extensionIndex).join('\n');
+            // We inject the bootstrap directly after the entrypoint marker.
+            body = '${bodyLines[0]}\n';
+            body += await loadStrategy.bootstrapFor(request.url.path);
+            // Include up until the main extension marker.
+            body += bodyLines.sublist(1, extensionIndex).join('\n');
             // The line after the marker calls `main`. We prevent `main` from
             // being called and make it runnable through a global variable.
             var mainFunction = bodyLines[extensionIndex + 1]
@@ -71,7 +75,6 @@ Handler Function(Handler) createInjectedHandler(LoadStrategy loadStrategy,
             if (urlEncoder != null) {
               requestedUriBase = await urlEncoder(requestedUriBase);
             }
-            body += await loadStrategy.bootstrapFor(request.url.path);
             body += _injectedClientJs(
               appId,
               mainFunction,
