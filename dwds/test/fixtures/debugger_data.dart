@@ -91,6 +91,28 @@ List<Map<String, dynamic>> frames1 = [
 var variables1 = [
   WipResponse({
     'id': 1,
+    'result': {'result': []}
+  }),
+  WipResponse({
+    'id': 2,
+    'result': {'result': []}
+  }),
+  // Fake that the SDK is loaded.
+  WipResponse({
+    'id': 3,
+    'result': {
+      'result': [
+        {'name': 'dart', 'value': null},
+        {'name': 'core', 'value': null}
+      ]
+    }
+  }),
+  WipResponse({
+    'id': 4,
+    'result': {'result': []}
+  }),
+  WipResponse({
+    'id': 5,
     'result': {
       'result': [
         {
@@ -105,11 +127,7 @@ var variables1 = [
     }
   }),
   WipResponse({
-    'id': 2,
-    'result': {'result': []}
-  }),
-  WipResponse({
-    'id': 3,
+    'id': 6,
     'result': {'result': []}
   }),
 ];
