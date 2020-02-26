@@ -18,12 +18,9 @@ Future<List<Property>> visibleProperties(
     {List<Map<String, dynamic>> scopeList,
     Debugger debugger,
     String callFrameId}) async {
-  // We skip the global and the outer library scope and assume everything before
-  // that is a method scope.
-  var numberOfMethods = scopeList.length - 2;
-  if (numberOfMethods <= 0) return [];
-  var methodScopes = scopeList.sublist(0, numberOfMethods);
-  var propertyLists = methodScopes
+  var scopes = await _filterScopes(scopeList, debugger);
+  if (scopes.isEmpty) return [];
+  var propertyLists = scopes
       .map((scope) async =>
           await debugger.getProperties(scope['object']['objectId'] as String))
       .toList();
@@ -44,6 +41,28 @@ Future<List<Property>> visibleProperties(
     }
   }
   return allProperties;
+}
+
+/// Filters the provided scope chain into those that are pertinent for Dart
+/// debugging.
+Future<List<Map<String, dynamic>>> _filterScopes(
+    List<Map<String, dynamic>> scopeList, Debugger debugger) async {
+  var foundDartSdk = false;
+  var result = <Map<String, dynamic>>[];
+  // Iterate through the outermost scope to the inner most scope.
+  for (var scope in scopeList.reversed) {
+    var properties =
+        await debugger.getProperties(scope['object']['objectId'] as String);
+    if (!foundDartSdk) {
+      var propertyNames = properties.map((element) => element.name).toSet();
+      // TODO(sdk/issues/40774) - This appears brittle.
+      if (propertyNames.containsAll(['core', 'dart'])) foundDartSdk = true;
+    } else {
+      // Scopes after the Dart SDK is defined contain application logic.
+      result.add(scope);
+    }
+  }
+  return result;
 }
 
 /// Find the `this` in scope if it wasn't in the provided data from Chrome.
