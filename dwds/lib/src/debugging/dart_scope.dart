@@ -65,6 +65,7 @@ Future<List<Map<String, dynamic>>> _filterScopes(
   return result;
 }
 
+/// Find the `this` in scope if it wasn't in the provided data from Chrome.
 ///
 /// If we were not given a `this` value in the Chrome scopes that might mean
 /// we're in a nested closure, or we might be a top-level function. Find it by evaluating
