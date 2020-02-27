@@ -56,19 +56,19 @@ Handler Function(Handler) createInjectedHandler(LoadStrategy loadStrategy,
             var requestedUri = request.requestedUri;
             var appId =
                 base64.encode(md5.convert(utf8.encode('$requestedUri')).bytes);
-            body = _hoistMain(body);
-            body += await loadStrategy.bootstrapFor(request.url.path);
             var requestedUriBase = '${request.requestedUri.scheme}'
                 '://${request.requestedUri.authority}';
             if (urlEncoder != null) {
               requestedUriBase = await urlEncoder(requestedUriBase);
             }
-            body += _injectedClientJs(
+            body = _injectClientAndHoistMain(
+              body,
               appId,
               requestedUriBase,
               extensionUri,
               loadStrategy,
             );
+            body += await loadStrategy.bootstrapFor(request.url.path);
             etag = base64.encode(md5.convert(body.codeUnits).bytes);
             newHeaders[HttpHeaders.etagHeader] = etag;
           }
@@ -85,37 +85,43 @@ Handler Function(Handler) createInjectedHandler(LoadStrategy loadStrategy,
     };
 
 /// Returns the provided body with the main function hoisted into a global
-/// variable.
-String _hoistMain(String body) {
+/// variable and a snippet of JS that loads the injected client.
+String _injectClientAndHoistMain(String body, String appId,
+    String requestedUriBase, String extensionUri, LoadStrategy loadStrategy) {
   var bodyLines = body.split('\n');
   var extensionIndex =
       bodyLines.indexWhere((line) => line.contains(mainExtensionMarker));
   var result = bodyLines.sublist(0, extensionIndex).join('\n');
+  result += '\n// Injected by webdev for debugging support.\n';
   // The line after the marker calls `main`. We prevent `main` from
   // being called and make it runnable through a global variable.
   var mainFunction =
       bodyLines[extensionIndex + 1].replaceAll('main()', 'main').trim();
   // Hoist main into a global function.
   result += 'window.\$dartRunMain = $mainFunction;\n';
+  // We inject the client in the entry point module as the client expects the
+  // application to be in a ready state, that is the main function is hoisted
+  // and the Dart SDK is loaded.
+  result += _injectedClientSnippet(
+      appId, requestedUriBase, extensionUri, loadStrategy);
   result += bodyLines.sublist(extensionIndex + 2).join('\n');
   return result;
 }
 
 /// JS snippet which includes global variables required for debugging.
-String _injectedClientJs(
+String _injectedClientSnippet(
   String appId,
   String requestedUriBase,
   String extensionUri,
   LoadStrategy loadStrategy,
 ) {
-  var injectedBody = '// Injected by webdev for debugging support.\n'
-      'window.\$dartAppId = "$appId";\n'
+  var injectedBody = 'window.\$dartAppId = "$appId";\n'
       'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
       'window.\$dartModuleStrategy = "${loadStrategy.id}";\n'
       'window.\$dartUriBase = "$requestedUriBase";\n'
       'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
       'window.\$dwdsVersion = "$packageVersion";\n'
-      '${loadStrategy.loadClientSnippet(_clientScript)}';
+      '${loadStrategy.loadClientSnippet(_clientScript)}\n';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
   }

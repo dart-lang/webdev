@@ -52,6 +52,8 @@ abstract class LoadStrategy {
   ''';
 
   /// Returns the bootstrap required for this [LoadStrategy].
+  ///
+  /// The bootstrap is appended to the end of the entry point module.
   Future<String> bootstrapFor(String entrypoint);
 
   /// A handler for strategy specific requests.
