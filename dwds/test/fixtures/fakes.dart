@@ -96,6 +96,9 @@ class FakeSseConnection implements SseConnection {
       null;
 
   @override
+  bool get isInKeepAlivePeriod => false;
+
+  @override
   void pipe(StreamChannel<String> other) {}
 
   @override

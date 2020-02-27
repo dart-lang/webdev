@@ -37,7 +37,8 @@ import '../services/debug_service.dart';
 /// opening DevTools.
 class DevHandler {
   StreamSubscription _sub;
-  final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'));
+  final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'),
+      keepAlive: const Duration(seconds: 30));
   final _injectedConnections = <SseConnection>{};
   final DevTools _devTools;
   final AssetReader _assetReader;
@@ -308,8 +309,18 @@ class DevHandler {
     // After a page refresh, reconnect to the same app services if they
     // were previously launched and create the new isolate.
     var services = _servicesByAppId[message.appId];
+    var existingAppConection = _appConnectionByAppId[message.appId];
     var connection = AppConnection(message, sseConnection);
-    if (services != null && services.connectedInstanceId == null) {
+
+    // We can take over a connection if there is no connectedInstanceId (this means
+    // the client completely disconnected), or if the existing AppConnection
+    // is in the KeepAlive state (this means it disconnected but is still waiting
+    // for a possible reconnect - this happens during a page reload).
+    var canReuseConnection = services != null &&
+        (services.connectedInstanceId == null ||
+            existingAppConection?.isInKeepAlivePeriod == true);
+
+    if (canReuseConnection) {
       // Disconnect any old connection (eg. those in the keep-alive waiting state
       // when reloading the page).
       services.chromeProxyService?.destroyIsolate();
