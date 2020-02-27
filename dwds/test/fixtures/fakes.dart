@@ -118,6 +118,9 @@ class FakeSseConnection implements SseConnection {
   StreamChannel<String> transformStream(
           StreamTransformer<String, String> transformer) =>
       null;
+
+  @override
+  bool get isInKeepAlivePeriod => false;
 }
 
 class FakeWebkitDebugger implements WebkitDebugger {
