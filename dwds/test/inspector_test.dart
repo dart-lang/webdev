@@ -58,7 +58,7 @@ void main() {
       var classRef = instance.classRef;
       var clazz = await inspector.getObject(isolateId, classRef.id) as Class;
       expect(clazz.name, 'MyTestClass<dynamic>');
-    });
+    }, skip: 'sdk/issues/40883');
   });
 
   group('loadField', () {

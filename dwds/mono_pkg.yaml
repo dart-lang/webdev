@@ -1,7 +1,7 @@
 # See https://github.com/dart-lang/mono_repo for details
 dart:
   - 2.6.0
-  - stable
+  - dev
 
 stages:
   - analyzer_and_format:
@@ -14,7 +14,10 @@ stages:
       - dartanalyzer: --fatal-warnings .
       dart: [2.6.0]
   - unit_test:
+    - test: -x frontend-server
+      dart: 2.6.0
     - test:
+      dart: dev
     - test:
       os: windows
-      dart: stable
+      dart: 2.6.0
