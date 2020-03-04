@@ -64,15 +64,15 @@ jobs:
       env: PKGS="webdev"
       script: ./tool/travis.sh test_4
     - stage: unit_test
-      name: "SDK: dev; PKG: webdev; TASKS: `pub run test -j 1`"
-      dart: dev
-      os: linux
+      name: "SDK: 2.6.0; PKG: webdev; TASKS: `pub run test -j 1`"
+      dart: "2.6.0"
+      os: windows
       env: PKGS="webdev"
       script: ./tool/travis.sh test_4
     - stage: unit_test
-      name: "SDK: stable; PKG: webdev; TASKS: `pub run test -j 1`"
-      dart: stable
-      os: windows
+      name: "SDK: dev; PKG: webdev; TASKS: `pub run test -j 1`"
+      dart: dev
+      os: linux
       env: PKGS="webdev"
       script: ./tool/travis.sh test_4
 
