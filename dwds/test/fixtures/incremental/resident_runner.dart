@@ -99,14 +99,4 @@ class ResidentWebRunner {
     await generator.shutdown();
     await devFS.dispose();
   }
-
-  Future<void> kill() async {
-    await stop().timeout(const Duration(milliseconds: 30), onTimeout: () async {
-      // kill the process if frontend server hasn't
-      // stopped for any reason.
-      // This will cause frontend server to throw
-      // and the tests to fail.
-      await generator.kill();
-    });
-  }
 }

@@ -7,7 +7,7 @@
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 
-/// Provides a [RequireStrategy] suitable for use with `package:build_runner`.
+/// Provides a [RequireStrategy] suitable for use with `package:frontend_server`.
 class FrontendServerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
   final Iterable<String> _modules;

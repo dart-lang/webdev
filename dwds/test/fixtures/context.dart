@@ -258,7 +258,7 @@ class TestContext {
     DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
     await daemonClient?.close();
-    await webRunner?.kill();
+    await webRunner?.stop();
     await testServer?.stop();
     await _outputDir?.delete(recursive: true);
   }

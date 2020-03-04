@@ -703,8 +703,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
   Future<int> quit() async {
     _server.stdin.writeln('quit');
     _printTrace('<- quit');
-    await _server.stdin.flush();
-    return await _server.exitCode;
+    return _server.exitCode;
   }
 
   String _mapFilename(String filename, PackageUriMapper packageUriMapper) {
@@ -753,8 +752,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
     if (_server == null) {
       return 0;
     }
-    var exitCode = await quit();
-    return exitCode;
+    return quit();
   }
 
   @override
@@ -765,7 +763,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
 
     _printTrace('killing pid ${_server.pid}');
     _server.kill();
-    return await _server.exitCode;
+    return _server.exitCode;
   }
 }
 
