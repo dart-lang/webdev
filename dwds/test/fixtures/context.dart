@@ -32,6 +32,8 @@ import 'utilities.dart';
 final _batExt = Platform.isWindows ? '.bat' : '';
 final _exeExt = Platform.isWindows ? '.exe' : '';
 
+enum CompilationMode { buildDaemon, frontendServer }
+
 class TestContext {
   String appUrl;
   WipConnection tabConnection;
@@ -91,7 +93,7 @@ class TestContext {
       bool waitToDebug,
       UrlEncoder urlEncoder,
       bool restoreBreakpoints,
-      bool useBuildDaemon,
+      CompilationMode compilationMode,
       bool useFakeExpressionCompiler,
       LogWriter logWriter}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
@@ -100,7 +102,7 @@ class TestContext {
     autoRun ??= true;
     enableDebugging ??= true;
     waitToDebug ??= false;
-    useBuildDaemon ??= true;
+    compilationMode ??= CompilationMode.buildDaemon;
     useFakeExpressionCompiler ??= false;
     logWriter ??= (Level level, String message) => printOnFailure(message);
 
@@ -132,53 +134,62 @@ class TestContext {
     Stream<BuildResults> buildResults;
     RequireStrategy requireStrategy;
 
-    if (useBuildDaemon) {
-      daemonClient = await connectClient(
-          workingDirectory, [], (log) => printOnFailure(log.toString()));
-      daemonClient.registerBuildTarget(
-          DefaultBuildTarget((b) => b..target = pathToServe));
-      daemonClient.startBuild();
+    switch (compilationMode) {
+      case CompilationMode.buildDaemon:
+        {
+          daemonClient = await connectClient(
+              workingDirectory, [], (log) => printOnFailure(log.toString()));
+          daemonClient.registerBuildTarget(
+              DefaultBuildTarget((b) => b..target = pathToServe));
+          daemonClient.startBuild();
 
-      await daemonClient.buildResults
-          .firstWhere((results) => results.results
-              .any((result) => result.status == BuildStatus.succeeded))
-          .timeout(const Duration(seconds: 60));
+          await daemonClient.buildResults
+              .firstWhere((results) => results.results
+                  .any((result) => result.status == BuildStatus.succeeded))
+              .timeout(const Duration(seconds: 60));
 
-      var assetServerPort = daemonPort(workingDirectory);
-      assetHandler =
-          proxyHandler('http://localhost:$assetServerPort/$pathToServe/');
-      assetReader =
-          ProxyServerAssetReader(assetServerPort, logWriter, root: pathToServe);
-      requireStrategy =
-          BuildRunnerRequireStrategyProvider(assetHandler, reloadConfiguration)
+          var assetServerPort = daemonPort(workingDirectory);
+          assetHandler =
+              proxyHandler('http://localhost:$assetServerPort/$pathToServe/');
+          assetReader = ProxyServerAssetReader(assetServerPort, logWriter,
+              root: pathToServe);
+          requireStrategy = BuildRunnerRequireStrategyProvider(
+                  assetHandler, reloadConfiguration)
               .strategy;
 
-      buildResults = daemonClient.buildResults;
-    } else {
-      var fileSystemRoot = p.dirname(_packagesFilePath);
-      var entryPath = _entryFile.path.substring(fileSystemRoot.length + 1);
-      webRunner = ResidentWebRunner(
-          entryPath,
-          urlEncoder,
-          fileSystemRoot,
-          _packagesFilePath,
-          [fileSystemRoot],
-          'org-dartlang-app',
-          _outputDir.path,
-          logWriter);
+          buildResults = daemonClient.buildResults;
+        }
+        break;
+      case CompilationMode.frontendServer:
+        {
+          var fileSystemRoot = p.dirname(_packagesFilePath);
+          var entryPath = _entryFile.path.substring(fileSystemRoot.length + 1);
+          webRunner = ResidentWebRunner(
+              entryPath,
+              urlEncoder,
+              fileSystemRoot,
+              _packagesFilePath,
+              [fileSystemRoot],
+              'org-dartlang-app',
+              _outputDir.path,
+              logWriter);
 
-      var assetServerPort = await findUnusedPort();
-      await webRunner.run(hostname, assetServerPort, pathToServe);
+          var assetServerPort = await findUnusedPort();
+          await webRunner.run(hostname, assetServerPort, pathToServe);
 
-      expressionCompiler = webRunner.expressionCompiler;
-      assetReader = webRunner.devFS.assetServer;
-      assetHandler = webRunner.devFS.assetServer.handleRequest;
+          expressionCompiler = webRunner.expressionCompiler;
+          assetReader = webRunner.devFS.assetServer;
+          assetHandler = webRunner.devFS.assetServer.handleRequest;
 
-      requireStrategy = FrontendServerRequireStrategyProvider(
-              webRunner.modules, reloadConfiguration)
-          .strategy;
+          requireStrategy = FrontendServerRequireStrategyProvider(
+                  webRunner.modules, reloadConfiguration)
+              .strategy;
 
-      buildResults = const Stream<BuildResults>.empty();
+          buildResults = const Stream<BuildResults>.empty();
+        }
+        break;
+      default:
+        throw Exception('Unsupported compilation mode: $compilationMode');
     }
 
     expressionCompiler = useFakeExpressionCompiler

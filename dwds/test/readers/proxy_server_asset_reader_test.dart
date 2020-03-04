@@ -11,7 +11,7 @@ void main() {
   final context = TestContext();
   ProxyServerAssetReader assetReader;
   setUpAll(() async {
-    await context.setUp(useBuildDaemon: true);
+    await context.setUp();
     assetReader = context.testServer.assetReader as ProxyServerAssetReader;
   });
 

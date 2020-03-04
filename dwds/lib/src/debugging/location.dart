@@ -231,6 +231,7 @@ class Locations {
     var modulePath = '$module$moduleExtension';
     if (modulePath.endsWith('dart_sdk.js') ||
         modulePath.endsWith('dart_sdk.ddk.js') ||
+        // .lib.js extensions come from frontend server
         modulePath.endsWith('dart_sdk.lib.js')) {
       return result;
     }

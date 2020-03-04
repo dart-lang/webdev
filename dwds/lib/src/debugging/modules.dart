@@ -118,6 +118,8 @@ class Modules {
     return DartUri('/$serverPath', _root).serverPath;
   }
 
+  /// Make path relative to the asset server's serving root.
+  ///
   /// Remove the asset server root directory for non-package files, if any,
   /// but do not remove the _root, which is the directory off the
   /// asset server root. This is needed to produce paths that will be used

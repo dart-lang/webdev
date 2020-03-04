@@ -7,8 +7,6 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
-import 'package:file/file.dart' as fs;
-import 'package:file/src/backends/local.dart';
 import 'package:path/path.dart' as p;
 
 /// Connects to the `build_runner` daemon.
@@ -52,8 +50,6 @@ int daemonPort(String workingDirectory) {
 
 String _assetServerPortFilePath(String workingDirectory) =>
     '${daemonWorkspace(workingDirectory)}/.asset_server_port';
-
-const fs.FileSystem fileSystem = LocalFileSystem();
 
 void printError(String message, {StackTrace stackTrace}) {
   if (stackTrace != null) {

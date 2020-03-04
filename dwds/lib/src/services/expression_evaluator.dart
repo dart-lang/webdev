@@ -219,8 +219,3 @@ class ExpressionEvaluator {
     return jsScope;
   }
 }
-
-
-
-
-
