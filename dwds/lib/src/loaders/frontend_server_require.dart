@@ -2,10 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Note: this is a copy from flutter tools, updated to work with dwds tests
-
-import 'package:dwds/src/loaders/require.dart';
-import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/dwds.dart';
 
 /// Provides a [RequireStrategy] suitable for use with `package:frontend_server`.
 class FrontendServerRequireStrategyProvider {

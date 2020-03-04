@@ -8,14 +8,13 @@
 import 'dart:async';
 
 import 'package:dwds/dwds.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:path/path.dart' as p;
 
-import '../utilities.dart';
 import 'asset.dart';
 import 'devfs.dart';
 import 'devfs_content.dart';
 import 'frontend_server_client.dart';
+import 'utilities.dart';
 
 final String platformDill = p.join(dartSdkPath, '..', 'ddc_sdk.dill');
 
@@ -59,6 +58,7 @@ class ResidentWebRunner {
     assetBundle = AssetBundleFactory.defaultInstance.createBundle();
 
     devFS = WebDevFS(
+        fileSystem: fileSystem,
         hostname: hostname,
         port: port,
         packagesFilePath: packagesFilePath,

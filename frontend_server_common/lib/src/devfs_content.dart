@@ -7,10 +7,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:file/src/interface/file_system_entity.dart';
 import 'package:file/file.dart';
 
-import '../utilities.dart';
+import 'utilities.dart';
 
 /// Common superclass for content copied to the device.
 abstract class DevFSContent {

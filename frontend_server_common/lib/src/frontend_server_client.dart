@@ -13,11 +13,10 @@ import 'package:path/path.dart' as p;
 import 'package:meta/meta.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:usage/uuid/uuid.dart';
-import 'package:dwds/src/utilities/shared.dart' show LogWriter;
 import 'package:logging/logging.dart';
 
-import '../utilities.dart';
 import 'package_map.dart';
+import 'utilities.dart';
 
 /// True iff debug mode
 bool get debugFrontendServer =>

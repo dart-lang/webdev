@@ -9,8 +9,10 @@
 
 import 'dart:io';
 
+// ignore: deprecated_member_use
 import 'package:package_config/packages_file.dart' as packages_file;
-import '../utilities.dart';
+
+import 'utilities.dart';
 
 const String kPackagesFileName = '.packages';
 

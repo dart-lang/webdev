@@ -14,6 +14,8 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/loaders/frontend_server_require.dart';
+import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
@@ -24,8 +26,6 @@ import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fakes.dart';
-import 'incremental/frontend_server_require.dart';
-import 'incremental/resident_runner.dart';
 import 'server.dart';
 import 'utilities.dart';
 

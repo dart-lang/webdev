@@ -7,23 +7,23 @@
 import 'dart:io';
 
 import 'package:dwds/dwds.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:file/file.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import '../utilities.dart';
 import 'asset.dart';
 import 'asset_server.dart';
 import 'bootstrap.dart';
 import 'devfs_content.dart';
 import 'frontend_server_client.dart';
+import 'utilities.dart';
 
 final String dartWebSdkPath = p.join(dartSdkPath, 'lib', 'dev_compiler');
 
 class WebDevFS {
-  WebDevFS(
-      {this.hostname,
+  WebDevFS({
+      this.fileSystem,  
+      this.hostname,
       this.port,
       this.packagesFilePath,
       this.packagesPath,
@@ -31,6 +31,7 @@ class WebDevFS {
       this.urlTunneller,
       this.logWriter});
 
+  final FileSystem fileSystem;
   TestAssetServer assetServer;
   final String hostname;
   final int port;
@@ -44,7 +45,7 @@ class WebDevFS {
 
   Future<Uri> create() async {
     assetServer = await TestAssetServer.start(
-        root, packagesPath, hostname, port, urlTunneller, logWriter);
+        fileSystem, root, packagesPath, hostname, port, urlTunneller, logWriter);
     return Uri.parse('http://$hostname:$port');
   }
 
@@ -128,28 +129,28 @@ class WebDevFS {
     )..invalidatedModules = modules;
   }
 
-  final File requireJS = fileSystem.file(fileSystem.path.join(
+  File get requireJS => fileSystem.file(fileSystem.path.join(
     dartWebSdkPath,
     'kernel',
     'amd',
     'require.js',
   ));
 
-  final File dartSdk = fileSystem.file(fileSystem.path.join(
+  File get dartSdk => fileSystem.file(fileSystem.path.join(
     dartWebSdkPath,
     'kernel',
     'amd',
     'dart_sdk.js',
   ));
 
-  final File dartSdkSourcemap = fileSystem.file(fileSystem.path.join(
+  File get dartSdkSourcemap => fileSystem.file(fileSystem.path.join(
     dartWebSdkPath,
     'kernel',
     'amd',
     'dart_sdk.js.map',
   ));
 
-  final File stackTraceMapper = fileSystem.file(fileSystem.path.join(
+  File get stackTraceMapper => fileSystem.file(fileSystem.path.join(
     dartWebSdkPath,
     'web',
     'dart_stack_trace_mapper.js',

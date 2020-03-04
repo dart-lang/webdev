@@ -10,23 +10,20 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dwds/dwds.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:file/file.dart';
-import 'package:file/src/backends/local.dart';
-import 'package:meta/meta.dart';
 import 'package:mime/mime.dart' as mime;
+// ignore: deprecated_member_use
 import 'package:package_config/discovery.dart';
+// ignore: deprecated_member_use
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf;
-import 'package:dwds/src/utilities/shared.dart' show LogWriter;
 import 'package:logging/logging.dart';
 
-import '../utilities.dart';
+import 'utilities.dart';
 
 class TestAssetServer implements AssetReader {
-  @visibleForTesting
   TestAssetServer(this._root, this._httpServer, this._packages,
       this.internetAddress, this._fileSystem, this._logWriter);
 
@@ -44,6 +41,7 @@ class TestAssetServer implements AssetReader {
   /// Unhandled exceptions will throw a exception with the error and stack
   /// trace.
   static Future<TestAssetServer> start(
+      FileSystem fileSystem,
       String root,
       String currentDirectory,
       String hostname,
@@ -52,8 +50,7 @@ class TestAssetServer implements AssetReader {
       LogWriter logWriter) async {
     var address = (await InternetAddress.lookup(hostname)).first;
     var httpServer = await HttpServer.bind(address, port);
-    var fileSystem = const LocalFileSystem()
-      ..currentDirectory = currentDirectory;
+    fileSystem.currentDirectory = currentDirectory;
     var packages = await loadPackagesFile(Uri.base.resolve('.packages'),
         loader: (Uri uri) => fileSystem.file(uri).readAsBytes());
     var server = TestAssetServer(
@@ -68,18 +65,17 @@ class TestAssetServer implements AssetReader {
   // RandomAccessFile and read on demand.
   final Map<String, Uint8List> _files = <String, Uint8List>{};
   final Map<String, Uint8List> _sourcemaps = <String, Uint8List>{};
+  // ignore: deprecated_member_use
   final Packages _packages;
   final InternetAddress internetAddress;
   final LogWriter _logWriter;
 
-  @visibleForTesting
+
   Uint8List getFile(String path) => _files[path];
 
-  @visibleForTesting
   Uint8List getSourceMap(String path) => _sourcemaps[path];
 
   // handle requests for JavaScript source, dart sources maps, or asset files.
-  @visibleForTesting
   Future<shelf.Response> handleRequest(shelf.Request request) async {
     var headers = <String, String>{};
 
