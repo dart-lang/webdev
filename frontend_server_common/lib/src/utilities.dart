@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:file/file.dart' as fs;
-import 'package:file/src/backends/local.dart';
+import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 

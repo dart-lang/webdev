@@ -70,7 +70,6 @@ class TestAssetServer implements AssetReader {
   final InternetAddress internetAddress;
   final LogWriter _logWriter;
 
-
   Uint8List getFile(String path) => _files[path];
 
   Uint8List getSourceMap(String path) => _sourcemaps[path];

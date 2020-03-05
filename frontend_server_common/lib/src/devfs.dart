@@ -21,8 +21,8 @@ import 'utilities.dart';
 final String dartWebSdkPath = p.join(dartSdkPath, 'lib', 'dev_compiler');
 
 class WebDevFS {
-  WebDevFS({
-      this.fileSystem,  
+  WebDevFS(
+      {this.fileSystem,
       this.hostname,
       this.port,
       this.packagesFilePath,
@@ -44,8 +44,8 @@ class WebDevFS {
   List<Uri> sources;
 
   Future<Uri> create() async {
-    assetServer = await TestAssetServer.start(
-        fileSystem, root, packagesPath, hostname, port, urlTunneller, logWriter);
+    assetServer = await TestAssetServer.start(fileSystem, root, packagesPath,
+        hostname, port, urlTunneller, logWriter);
     return Uri.parse('http://$hostname:$port');
   }
 
@@ -130,31 +130,31 @@ class WebDevFS {
   }
 
   File get requireJS => fileSystem.file(fileSystem.path.join(
-    dartWebSdkPath,
-    'kernel',
-    'amd',
-    'require.js',
-  ));
+        dartWebSdkPath,
+        'kernel',
+        'amd',
+        'require.js',
+      ));
 
   File get dartSdk => fileSystem.file(fileSystem.path.join(
-    dartWebSdkPath,
-    'kernel',
-    'amd',
-    'dart_sdk.js',
-  ));
+        dartWebSdkPath,
+        'kernel',
+        'amd',
+        'dart_sdk.js',
+      ));
 
   File get dartSdkSourcemap => fileSystem.file(fileSystem.path.join(
-    dartWebSdkPath,
-    'kernel',
-    'amd',
-    'dart_sdk.js.map',
-  ));
+        dartWebSdkPath,
+        'kernel',
+        'amd',
+        'dart_sdk.js.map',
+      ));
 
   File get stackTraceMapper => fileSystem.file(fileSystem.path.join(
-    dartWebSdkPath,
-    'web',
-    'dart_stack_trace_mapper.js',
-  ));
+        dartWebSdkPath,
+        'web',
+        'dart_stack_trace_mapper.js',
+      ));
 }
 
 String _filePathToUriFragment(String path) {
