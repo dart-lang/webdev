@@ -536,6 +536,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
         '--platform',
         platformDill,
       ],
+      '--debugger-module-names',
       if (debug) '--verbose'
     ];
 
