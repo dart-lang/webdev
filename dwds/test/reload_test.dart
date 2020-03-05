@@ -142,7 +142,8 @@ void main() {
       var stream = client.onEvent('Debug');
       var scriptList = await client.getScripts(isolateId);
       var main = scriptList.scripts
-          .firstWhere((script) => script.uri.contains('main.dart'));
+              .firstWhere((script) => script.uri.contains('main.dart'))
+          as ScriptRef;
       var bpLine =
           await context.findBreakpointLine('printCount', isolateId, main);
       await client.addBreakpoint(isolateId, main.id, bpLine);

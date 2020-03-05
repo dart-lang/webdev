@@ -708,6 +708,17 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future getIsolateGroupMemoryUsage(String isolateGroupId) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<ClientName> getClientName() => throw UnimplementedError();
+
+  @override
+  Future<Success> requirePermissionToResume(
+          {bool onPauseStart, bool onPauseReload, bool onPauseExit}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Success> setClientName(String name) => throw UnimplementedError();
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
