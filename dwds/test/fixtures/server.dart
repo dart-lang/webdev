@@ -10,21 +10,17 @@ import 'package:dwds/dwds.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-Handler interceptFavicon(Handler handler) {
+Handler _interceptFavicon(Handler handler) {
   return (request) async {
-    var response = await handler(request);
-    if (response.statusCode == 404 &&
-        request.url.pathSegments.isNotEmpty &&
+    if (request.url.pathSegments.isNotEmpty &&
         request.url.pathSegments.last == 'favicon.ico') {
-      unawaited(response.read().drain());
       return Response.ok('');
     }
-    return response;
+    return handler(request);
   };
 }
 
@@ -77,7 +73,7 @@ class TestServer {
       LogWriter logWriter) async {
     var pipeline = const Pipeline();
 
-    pipeline = pipeline.addMiddleware(interceptFavicon);
+    pipeline = pipeline.addMiddleware(_interceptFavicon);
 
     var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
       var result =

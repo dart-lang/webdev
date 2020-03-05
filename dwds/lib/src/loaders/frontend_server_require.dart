@@ -4,7 +4,7 @@
 
 import 'package:dwds/dwds.dart';
 
-/// Provides a [RequireStrategy] suitable for use with `package:frontend_server`.
+/// Provides a [RequireStrategy] suitable for use with Frontend Server.
 class FrontendServerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
   final Iterable<String> _modules;

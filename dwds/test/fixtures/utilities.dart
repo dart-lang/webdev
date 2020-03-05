@@ -50,10 +50,3 @@ int daemonPort(String workingDirectory) {
 
 String _assetServerPortFilePath(String workingDirectory) =>
     '${daemonWorkspace(workingDirectory)}/.asset_server_port';
-
-void printError(String message, {StackTrace stackTrace}) {
-  if (stackTrace != null) {
-    print('$message: $stackTrace');
-  }
-  print(message);
-}

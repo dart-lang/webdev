@@ -1,7 +1,5 @@
 name: frontend_server_common
-version: 0.1.0
-author: Dart Team <misc@dartlang.org>
-homepage: https://github.com/dart-lang/webdev/tree/master/dwds
+publish_to: none
 description: >-
   Frontend server integration code to use for dwds tests. Mimicks flutter code.
 environment:
