@@ -36,6 +36,14 @@ void main() {
       await context.tearDown();
     });
 
+    test('client name', () async {
+      var defaultName = await service.getClientName();
+      expect(defaultName.name, isNotEmpty);
+      await service.setClientName('foo');
+      var updatedName = await service.getClientName();
+      expect(updatedName.name, equals('foo'));
+    });
+
     group('breakpoints', () {
       VM vm;
       Isolate isolate;
