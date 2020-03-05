@@ -36,6 +36,11 @@ void main() {
       await context.tearDown();
     });
 
+    test('client name', () async {
+      expect(() => service.getClientName(), throwsUnimplementedError);
+      expect(() => service.setClientName('foo'), throwsUnimplementedError);
+    });
+
     group('breakpoints', () {
       VM vm;
       Isolate isolate;

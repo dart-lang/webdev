@@ -140,7 +140,7 @@ void main() {
       var isolateId = vm.isolates.first.id;
       await client.streamListen('Debug');
       var stream = client.onEvent('Debug');
-      var scriptList = await client.getScripts(isolateId);
+      var scriptList = await client.getScripts(isolateId) as ScriptList;
       var main = scriptList.scripts
           .firstWhere((script) => script.uri.contains('main.dart'));
       var bpLine =
