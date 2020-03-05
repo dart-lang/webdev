@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
-import 'package:uuid/uuid.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../connections/app_connection.dart';
@@ -711,19 +710,15 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<ClientName> getClientName() async => ClientName(name: _clientName);
+  Future<ClientName> getClientName() => throw UnimplementedError();
 
   @override
   Future<Success> requirePermissionToResume(
           {bool onPauseStart, bool onPauseReload, bool onPauseExit}) =>
       throw UnimplementedError();
 
-  String _clientName = Uuid().v1();
   @override
-  Future<Success> setClientName(String name) async {
-    _clientName = name;
-    return Success();
-  }
+  Future<Success> setClientName(String name) => throw UnimplementedError();
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.

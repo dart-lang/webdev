@@ -37,11 +37,8 @@ void main() {
     });
 
     test('client name', () async {
-      var defaultName = await service.getClientName();
-      expect(defaultName.name, isNotEmpty);
-      await service.setClientName('foo');
-      var updatedName = await service.getClientName();
-      expect(updatedName.name, equals('foo'));
+      expect(() => service.getClientName(), throwsUnimplementedError);
+      expect(() => service.setClientName('foo'), throwsUnimplementedError);
     });
 
     group('breakpoints', () {
