@@ -21,7 +21,7 @@ class Modules {
   final _sourceToModule = <String, String>{};
   // The Dart server path to library import uri
   final _sourceToLibrary = <String, Uri>{};
-  final _moduleCompleter = Completer<bool>();
+  Completer<bool> _moduleCompleter = Completer<bool>();
 
   // The Chrome script ID to corresponding module.
   final _scriptIdToModule = <String, String>{};
@@ -31,7 +31,8 @@ class Modules {
 
   final _moduleExtensionCompleter = Completer<String>();
 
-  Modules(this._remoteDebugger, this._root, this._executionContext);
+  Modules(this._remoteDebugger, String root, this._executionContext)
+      : _root = root == '' ? '/' : root;
 
   /// Completes with the module extension i.e. `.ddc.js` or `.ddk.js`.
   ///
@@ -48,6 +49,7 @@ class Modules {
     // across hot reloads.
     _sourceToModule.clear();
     _sourceToLibrary.clear();
+    _moduleCompleter = Completer<bool>();
     _initializeMapping();
   }
 
@@ -98,6 +100,14 @@ class Modules {
       }
     }
 
+    // TODO(annagrin): redirect modulePath->moduleName query to load strategy
+    //
+    // The code below is trying to guess the module name from js module path
+    // by assuming we can find a dart server path with a matching name located
+    // at the same server directory. Then it uses source->moduleName map to get
+    // the module name.
+    // [issue #917](https://github.com/dart-lang/webdev/issues/917)
+    // [issue #910](https://github.com/dart-lang/webdev/issues/910)
     var serverPath = _jsModulePathToServerPath(path);
     var module = await moduleForSource(serverPath);
 

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:async/src/stream_sink_transformer.dart';
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
@@ -182,6 +183,30 @@ class FakeWebkitDebugger implements WebkitDebugger {
         'result': {'result': <String, dynamic>{}}
       });
     }
+    if (method == 'Runtime.evaluate') {
+      // Fake response adapted from modules query at google3
+      return WipResponse({
+        'id': 42,
+        'result': {
+          'result': <String, dynamic>{
+            'type': 'object',
+            'value': <String, dynamic>{
+              // dart source Uri : js module name
+              'dart:io': 'dart_sdk',
+              'google3:///dart/tools/iblaze/web/hello_world.dart':
+                  'dart/tools/iblaze/web/hello_world_angular_library',
+              'package:ads.acx2.rpc.proto_mixin/ess_proto_mixin.dart':
+                  'ads/acx2/rpc/proto_mixin/lib/proto_mixin',
+              'package:collection/collection.dart: ':
+                  'third_party/dart/collection/lib/collection',
+              'package:collection/src/algorithms.dart':
+                  'third_party/dart/collection/lib/collection',
+              'package:shelf/shelf.dart': 'packages/shelf/shelf',
+            }
+          }
+        }
+      });
+    }
     return null;
   }
 
@@ -214,6 +239,16 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   @override
   Future<void> enablePage() => null;
+}
+
+/// Fake execution context that is needed for id only
+class FakeExecutionContext extends ExecutionContext {
+  @override
+  Future<int> get id async {
+    return 0;
+  }
+
+  FakeExecutionContext();
 }
 
 /// Fake expression compiler that simply passes expression through,

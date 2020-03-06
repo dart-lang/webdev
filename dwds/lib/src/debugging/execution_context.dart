@@ -7,8 +7,13 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 
+abstract class ExecutionContext {
+  /// Returns the context ID that contains the running Dart application.
+  Future<int> get id;
+}
+
 /// The execution context in which to do remote evaluations.
-class ExecutionContext {
+class RemoteDebuggerExecutionContext extends ExecutionContext {
   final RemoteDebugger _remoteDebugger;
 
   // Contexts that may contain a Dart application.
@@ -16,7 +21,7 @@ class ExecutionContext {
 
   int _id;
 
-  /// Returns the context ID that contains the running Dart application.
+  @override
   Future<int> get id async {
     if (_id != null) return _id;
     while (await _contexts.hasNext
@@ -43,7 +48,7 @@ class ExecutionContext {
     return _id;
   }
 
-  ExecutionContext(this._id, this._remoteDebugger) {
+  RemoteDebuggerExecutionContext(this._id, this._remoteDebugger) {
     var contextController = StreamController<int>();
     _remoteDebugger
         .eventStream('Runtime.executionContextsCleared', (e) => e)
