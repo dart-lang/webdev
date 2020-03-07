@@ -40,16 +40,19 @@ class WebDevFS {
   final String root;
   final UrlEncoder urlTunneller;
   final LogWriter logWriter;
-
+  Directory _savedCurrentDirectory;
   List<Uri> sources;
 
   Future<Uri> create() async {
-    assetServer = await TestAssetServer.start(fileSystem, root, packagesPath,
+    _savedCurrentDirectory = fileSystem.currentDirectory;
+    fileSystem.currentDirectory = packagesPath;
+    assetServer = await TestAssetServer.start(fileSystem, root,
         hostname, port, urlTunneller, logWriter);
     return Uri.parse('http://$hostname:$port');
   }
 
   Future<void> dispose() {
+    fileSystem.currentDirectory = _savedCurrentDirectory;
     return assetServer.dispose();
   }
 

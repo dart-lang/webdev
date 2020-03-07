@@ -86,6 +86,10 @@ for PKG in ${PKGS}; do
       echo 'pub run test -j 1'
       pub run test -j 1 || EXIT_CODE=$?
       ;;
+    test_5)
+      echo 'pub run test -j 1 -x frontend-server'
+      pub run test -j 1 -x frontend_server || EXIT_CODE=$?
+      ;;
     *)
       echo -e "\033[31mNot expecting TASK '${TASK}'. Error!\033[0m"
       EXIT_CODE=1

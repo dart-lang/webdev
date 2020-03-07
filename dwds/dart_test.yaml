@@ -3,3 +3,4 @@ retry: 3
 
 tags:
   extension:  # Extension tests require configuration, so we may exclude.
+  frontend-server: #Frontend server test require dev version of SDK, so we may exclude for stable SDK

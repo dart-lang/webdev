@@ -32,6 +32,7 @@ class TestAssetServer implements AssetReader {
   static const String _defaultMimeType = 'application/octet-stream';
   final FileSystem _fileSystem;
 
+
   void _printTrace(String message) {
     _logWriter(Level.INFO, message);
   }
@@ -43,14 +44,12 @@ class TestAssetServer implements AssetReader {
   static Future<TestAssetServer> start(
       FileSystem fileSystem,
       String root,
-      String currentDirectory,
       String hostname,
       int port,
       UrlEncoder urlTunneller,
       LogWriter logWriter) async {
     var address = (await InternetAddress.lookup(hostname)).first;
     var httpServer = await HttpServer.bind(address, port);
-    fileSystem.currentDirectory = currentDirectory;
     var packages = await loadPackagesFile(Uri.base.resolve('.packages'),
         loader: (Uri uri) => fileSystem.file(uri).readAsBytes());
     var server = TestAssetServer(
