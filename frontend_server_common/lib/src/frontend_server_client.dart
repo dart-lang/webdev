@@ -107,6 +107,7 @@ class StdoutHandler {
           'Additional debugging information:\n'
           '  StdoutState: $state\n'
           '  compilerMessageReceived: $compilerMessageReceived\n'
+          '  message: $message\n'
           '  _expectSources: $_expectSources\n'
           '  sources: $sources\n');
       // There are several event turns before the tool actually exits from a

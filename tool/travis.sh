@@ -83,10 +83,6 @@ for PKG in ${PKGS}; do
       pub run test test/build/ensure_build_test.dart || EXIT_CODE=$?
       ;;
     test_4)
-      echo 'pub run test -j 1 -x frontend-server'
-      pub run test -j 1 -x frontend_server || EXIT_CODE=$?
-      ;;
-    test_5)
       echo 'pub run test -j 1'
       pub run test -j 1 || EXIT_CODE=$?
       ;;
