@@ -18,6 +18,6 @@ stages:
       dart: 2.6.0
     - test: -x frontend-server
       dart: dev
-    - test:
+    - test: -x frontend-server
       os: windows
       dart: 2.6.0
