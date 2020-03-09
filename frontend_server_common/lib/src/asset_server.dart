@@ -32,7 +32,6 @@ class TestAssetServer implements AssetReader {
   static const String _defaultMimeType = 'application/octet-stream';
   final FileSystem _fileSystem;
 
-
   void _printTrace(String message) {
     _logWriter(Level.INFO, message);
   }
