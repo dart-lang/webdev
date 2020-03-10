@@ -154,8 +154,10 @@ class Modules {
 
     // remove the root from path only if not equal to packages or indexRoot
     var result = pathRoot == 'packages' || pathRoot == indexRoot
-        ? path
-        : p.joinAll(segments.skip(1));
+        // Module paths are consistent across platforms so join with a
+        // forward slash.
+        ? segments.join('/')
+        : segments.skip(1).join('/');
     return result;
   }
 
