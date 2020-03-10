@@ -19,7 +19,6 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/fakes.dart';
 
 final context = TestContext();
 ChromeProxyService get service =>
@@ -1153,17 +1152,9 @@ void main() {
     });
   });
 
-  group('shared context with evaluation', () {
+  group('shared context with fake evaluation', () {
     setUpAll(() async {
-      await context.setUp(
-          // TODO(annagrin): use actual compilation via frontend when supported
-          //
-          // This group of tests currently omits actual compilation
-          // from dart to js, so expressions given to evaluateInFrame
-          // in all tests below are written in javascript.
-          // Note frontend server has compilation tests, so the tests
-          // below make sure that the rest of the evaluation logic works.
-          expressionCompiler: FakeExpressionCompiler());
+      await context.setUp(useFakeExpressionCompiler: true);
     });
 
     tearDownAll(() async {

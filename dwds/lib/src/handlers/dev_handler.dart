@@ -137,7 +137,7 @@ class DevHandler {
         var evaluatedAppId = result.result['result']['value'];
         if (evaluatedAppId == appInstanceId) {
           appTab = tab;
-          executionContext = ExecutionContext(
+          executionContext = RemoteDebuggerExecutionContext(
               context, WebkitDebugger(WipDebugger(tabConnection)));
           break;
         }

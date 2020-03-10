@@ -1,23 +1,14 @@
 # See https://github.com/dart-lang/mono_repo for details
 dart:
   - 2.6.0
-  - dev
+  - dev 
 
 stages:
   - analyzer_and_format:
     - group:
       - dartfmt
       - dartanalyzer: --fatal-infos --fatal-warnings .
-      - test: test/build/ensure_version_test.dart
       dart: dev
     - group:
       - dartanalyzer: --fatal-warnings .
       dart: [2.6.0]
-  - unit_test:
-    - test: -x frontend-server
-      dart: 2.6.0
-    - test: -x frontend-server
-      dart: dev
-    - test: -x frontend-server
-      os: windows
-      dart: 2.6.0

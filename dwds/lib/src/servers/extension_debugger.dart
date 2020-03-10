@@ -86,7 +86,8 @@ class ExtensionDebugger implements RemoteDebugger {
         }
       } else if (message is DevToolsRequest) {
         instanceId = message.instanceId;
-        _executionContext = ExecutionContext(message.contextId, this);
+        _executionContext =
+            RemoteDebuggerExecutionContext(message.contextId, this);
         _devToolsRequestController.sink.add(message);
       }
     }, onError: (_) {

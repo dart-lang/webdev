@@ -106,14 +106,18 @@ class ExpressionEvaluator {
     for (var serverPath in modules.keys) {
       var module = modules[serverPath];
       var library = await _modules.libraryForSource(serverPath);
-      var name = pathToJSIdentifier(library.replaceAll('.dart', ''));
+      var libraryPath = library.path;
+      if (library.scheme == 'package') {
+        libraryPath = libraryPath.split('/').skip(1).join('/');
+      }
+      var name = pathToJSIdentifier(libraryPath.replaceAll('.dart', ''));
       jsModules[name] = module;
     }
     _printTrace('Expression evaluator: js modules: $jsModules');
 
     var compilationResult = await _compiler.compileExpressionToJs(
         isolateId,
-        libraryUri,
+        libraryUri.toString(),
         dartLocation.line,
         dartLocation.column,
         jsModules,
@@ -138,15 +142,16 @@ class ExpressionEvaluator {
       // [issue 40449](https://github.com/dart-lang/sdk/issues/40449)
       var error = jsExpression;
 
-      if (jsExpression.startsWith('[')) {
-        jsExpression = jsExpression.substring(1);
+      if (error.startsWith('[')) {
+        error = error.substring(1);
       }
-      if (jsExpression.endsWith(']')) {
-        jsExpression = jsExpression.substring(0, jsExpression.lastIndexOf(']'));
+      if (error.endsWith(']')) {
+        error = error.substring(0, error.lastIndexOf(']'));
       }
 
-      jsExpression.replaceAll(
-          r'org-dartlang-debug:synthetic_debug_expression:', '');
+      error = error.replaceAll(
+          RegExp('org-dartlang-debug:synthetic_debug_expression:.* Error: '),
+          '');
       return _createError('Compilation error', error);
     }
 
@@ -202,7 +207,7 @@ class ExpressionEvaluator {
       }
     }
 
-    var scopeChain = frame.getScopeChain();
+    var scopeChain = List<WipScope>.from(frame.getScopeChain()).reversed;
 
     // skip library and main scope
     for (var scope in scopeChain.skip(2)) {

@@ -14,17 +14,25 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/loaders/frontend_server_require.dart';
+import 'package:frontend_server_common/src/resident_runner.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+import 'package:shelf/shelf.dart';
+import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'fakes.dart';
 import 'server.dart';
 import 'utilities.dart';
 
 final _batExt = Platform.isWindows ? '.bat' : '';
 final _exeExt = Platform.isWindows ? '.exe' : '';
+
+enum CompilationMode { buildDaemon, frontendServer }
 
 class TestContext {
   String appUrl;
@@ -32,13 +40,16 @@ class TestContext {
   WipConnection extensionConnection;
   TestServer testServer;
   BuildDaemonClient daemonClient;
+  ResidentWebRunner webRunner;
   WebDriver webDriver;
   Process chromeDriver;
   AppConnection appConnection;
   DebugConnection debugConnection;
   WebkitDebugger webkitDebugger;
   int port;
+  Directory _outputDir;
   File _entryFile;
+  String _packagesFilePath;
   String _entryContents;
 
   /// Top level directory in which we run the test server..
@@ -52,16 +63,23 @@ class TestContext {
 
   TestContext(
       {String directory,
+      String entry,
       this.path = 'hello_world/index.html',
       this.pathToServe = 'example'}) {
-    workingDirectory = p.normalize(p.absolute(
-        directory ?? p.relative('../fixtures/_test', from: p.current)));
+    var relativeDirectory = p.join('..', 'fixtures', '_test');
+
+    var relativeEntry = p.join(
+        '..', 'fixtures', '_test', 'example', 'append_body', 'main.dart');
+
+    workingDirectory = p.normalize(p
+        .absolute(directory ?? p.relative(relativeDirectory, from: p.current)));
+
     DartUri.currentDirectory = workingDirectory;
-    _entryFile = File(p.absolute(p.join(
-        p.relative('../fixtures/_test', from: p.current),
-        'example',
-        'append_body',
-        'main.dart')));
+    _packagesFilePath = p.join(workingDirectory, '.packages');
+
+    _entryFile = File(p.normalize(
+        p.absolute(entry ?? p.relative(relativeEntry, from: p.current))));
+
     _entryContents = _entryFile.readAsStringSync();
   }
 
@@ -75,20 +93,21 @@ class TestContext {
       bool waitToDebug,
       UrlEncoder urlEncoder,
       bool restoreBreakpoints,
-      bool useBuildDaemon,
-      ExpressionCompiler expressionCompiler}) async {
+      CompilationMode compilationMode,
+      bool useFakeExpressionCompiler,
+      LogWriter logWriter}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
     autoRun ??= true;
     enableDebugging ??= true;
     waitToDebug ??= false;
-    useBuildDaemon ??= true;
+    compilationMode ??= CompilationMode.buildDaemon;
+    useFakeExpressionCompiler ??= false;
+    logWriter ??= (Level level, String message) => printOnFailure(message);
 
-    // TODO(grouma) - Support testing with the Frontend Server.
-    if (!useBuildDaemon) {
-      throw StateError('Only Build Daemon is supported with testing.');
-    }
+    var systemTempDir = Directory.systemTemp;
+    _outputDir = systemTempDir.createTempSync('foo bar');
 
     var chromeDriverPort = await findUnusedPort();
     var chromeDriverUrlBase = 'wd/hub';
@@ -109,16 +128,73 @@ class TestContext {
     await Process.run('pub$_batExt', ['upgrade'],
         workingDirectory: workingDirectory);
 
-    daemonClient = await connectClient(
-        workingDirectory, [], (log) => printOnFailure(log.toString()));
-    daemonClient.registerBuildTarget(
-        DefaultBuildTarget((b) => b..target = pathToServe));
-    daemonClient.startBuild();
+    ExpressionCompiler expressionCompiler;
+    AssetReader assetReader;
+    Handler assetHandler;
+    Stream<BuildResults> buildResults;
+    RequireStrategy requireStrategy;
 
-    await daemonClient.buildResults
-        .firstWhere((results) => results.results
-            .any((result) => result.status == BuildStatus.succeeded))
-        .timeout(const Duration(seconds: 60));
+    switch (compilationMode) {
+      case CompilationMode.buildDaemon:
+        {
+          daemonClient = await connectClient(
+              workingDirectory, [], (log) => printOnFailure(log.toString()));
+          daemonClient.registerBuildTarget(
+              DefaultBuildTarget((b) => b..target = pathToServe));
+          daemonClient.startBuild();
+
+          await daemonClient.buildResults
+              .firstWhere((results) => results.results
+                  .any((result) => result.status == BuildStatus.succeeded))
+              .timeout(const Duration(seconds: 60));
+
+          var assetServerPort = daemonPort(workingDirectory);
+          assetHandler =
+              proxyHandler('http://localhost:$assetServerPort/$pathToServe/');
+          assetReader = ProxyServerAssetReader(assetServerPort, logWriter,
+              root: pathToServe);
+          requireStrategy = BuildRunnerRequireStrategyProvider(
+                  assetHandler, reloadConfiguration)
+              .strategy;
+
+          buildResults = daemonClient.buildResults;
+        }
+        break;
+      case CompilationMode.frontendServer:
+        {
+          var fileSystemRoot = p.dirname(_packagesFilePath);
+          var entryPath = _entryFile.path.substring(fileSystemRoot.length + 1);
+          webRunner = ResidentWebRunner(
+              entryPath,
+              urlEncoder,
+              fileSystemRoot,
+              _packagesFilePath,
+              [fileSystemRoot],
+              'org-dartlang-app',
+              _outputDir.path,
+              logWriter);
+
+          var assetServerPort = await findUnusedPort();
+          await webRunner.run(hostname, assetServerPort, pathToServe);
+
+          expressionCompiler = webRunner.expressionCompiler;
+          assetReader = webRunner.devFS.assetServer;
+          assetHandler = webRunner.devFS.assetServer.handleRequest;
+
+          requireStrategy = FrontendServerRequireStrategyProvider(
+                  webRunner.modules, reloadConfiguration)
+              .strategy;
+
+          buildResults = const Stream<BuildResults>.empty();
+        }
+        break;
+      default:
+        throw Exception('Unsupported compilation mode: $compilationMode');
+    }
+
+    expressionCompiler = useFakeExpressionCompiler
+        ? FakeExpressionCompiler()
+        : expressionCompiler;
 
     var debugPort = await findUnusedPort();
     // If the environment variable DWDS_DEBUG_CHROME is set to the string true
@@ -148,18 +224,20 @@ class TestContext {
     testServer = await TestServer.start(
         hostname,
         port,
-        daemonPort(workingDirectory),
+        assetHandler,
+        assetReader,
+        requireStrategy,
         pathToServe,
-        daemonClient.buildResults,
+        buildResults,
         () async => connection,
-        reloadConfiguration,
         serveDevTools,
         enableDebugExtension,
         autoRun,
         enableDebugging,
         urlEncoder,
         restoreBreakpoints,
-        expressionCompiler);
+        expressionCompiler,
+        logWriter);
 
     appUrl = 'http://localhost:$port/$path';
     await webDriver.get(appUrl);
@@ -191,7 +269,9 @@ class TestContext {
     DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
     await daemonClient?.close();
+    await webRunner?.stop();
     await testServer?.stop();
+    await _outputDir?.delete(recursive: true);
   }
 
   Future<void> changeInput() async {

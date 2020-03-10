@@ -32,6 +32,7 @@ final String _sdkDir = (() {
   return aboveExecutable;
 })();
 
+final String dartSdkPath = _sdkDir;
 final String dartPath = p.join(_sdkDir, 'bin', 'dart');
 final String pubSnapshot =
     p.join(_sdkDir, 'bin', 'snapshots', 'pub.dart.snapshot');
