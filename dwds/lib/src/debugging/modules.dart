@@ -156,8 +156,8 @@ class Modules {
     var result = pathRoot == 'packages' || pathRoot == indexRoot
         // Module paths are consistent across platforms so join with a
         // forward slash.
-        ? segments.join('/')
-        : segments.skip(1).join('/');
+        ? p.url.joinAll(segments)
+        : p.url.joinAll(segments.skip(1));
     return result;
   }
 
