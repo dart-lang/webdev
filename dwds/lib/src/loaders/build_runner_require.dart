@@ -30,23 +30,28 @@ class BuildRunnerRequireStrategyProvider {
       throw StateError('Could not read digests at path: $digestsPath');
     }
     var body = await response.readAsString();
-    var digests = <String, String>{};
-    for (var entry in (json.decode(body) as Map<String, dynamic>).entries) {
-      digests[entry.key.replaceAll('.ddc.js', '')] = entry.value as String;
-    }
-    return digests;
+    return {
+      for (var entry in (json.decode(body) as Map<String, dynamic>).entries)
+        entry.key.replaceAll('.ddc.js', ''): entry.value as String,
+    };
   }
 
-  String _serverPath(String digestPath) => digestPath.startsWith('packages')
-      ? digestPath
-      : digestPath.split('/').skip(1).join('/');
+  /// Returns the module server path for the provided moduleId.
+  ///
+  ///  web/main -> main.ddc
+  ///  packages/path/path -> packages/path/path.ddc
+  ///
+  String _serverPath(String moduleId) {
+    var path = moduleId.startsWith('packages')
+        ? moduleId
+        : moduleId.split('/').skip(1).join('/');
+    return '$path.ddc';
+  }
 
   Future<Map<String, String>> _moduleProvider(String entrypoint) async {
     var digests = await _digestsProvider(entrypoint);
-    var result = <String, String>{};
-    for (var moduleId in digests.keys) {
-      result[moduleId] = '${_serverPath(moduleId)}.ddc';
-    }
-    return result;
+    return {
+      for (var moduleId in digests.keys) moduleId: _serverPath(moduleId),
+    };
   }
 }
