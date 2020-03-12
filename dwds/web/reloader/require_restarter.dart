@@ -13,7 +13,6 @@ import 'dart:js_util';
 import 'package:graphs/graphs.dart' as graphs;
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
-import 'package:path/path.dart' as p;
 
 import '../promise.dart';
 import 'restarter.dart';
@@ -50,9 +49,6 @@ class RequireLoader {
 
   @JS()
   external JsMap<String, List<String>> get moduleParentsGraph;
-
-  @JS()
-  external JsMap<String, String> get urlToModuleId;
 
   @JS()
   external void forceLoadModule(String moduleId, void Function() callback,
@@ -109,24 +105,14 @@ class RequireRestarter implements Restarter {
 
     var newDigests = await _getDigests();
     var modulesToLoad = <String>[];
-    for (var jsPath in newDigests.keys) {
-      if (!_lastKnownDigests.containsKey(jsPath) ||
-          _lastKnownDigests[jsPath] != newDigests[jsPath]) {
-        _lastKnownDigests[jsPath] = newDigests[jsPath];
-        var parts = p.url.split(jsPath);
-        // We serve top level dirs, so this strips the top level dir from all
-        // but `packages` paths.
-        var servePath =
-            parts.first == 'packages' ? jsPath : p.url.joinAll(parts.skip(1));
-        var jsUri = '${window.location.origin}/$servePath';
-        var moduleName = requireLoader.urlToModuleId.get(jsUri);
-        if (moduleName == null) {
-          print('Error during script reloading, refreshing the page. \n'
-              'Unable to find an existing module for script $jsUri.');
-          _reloadPage();
-          return false;
-        }
-        modulesToLoad.add(moduleName);
+    for (var moduleId in newDigests.keys) {
+      if (!_lastKnownDigests.containsKey(moduleId)) {
+        print('Error during script reloading, refreshing the page. \n'
+            'Unable to find an existing digest for module: $moduleId.');
+        _reloadPage();
+      } else if (_lastKnownDigests[moduleId] != newDigests[moduleId]) {
+        _lastKnownDigests[moduleId] = newDigests[moduleId];
+        modulesToLoad.add(moduleId);
       }
     }
 
