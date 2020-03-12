@@ -34,37 +34,6 @@ var baseUrl = (function () {
 }());
 ''';
 
-/// JavaScript snippet to determine the directory a script was run from.
-const _currentDirectoryScript = r'''
-var _currentDirectory = (function () {
-  var _url;
-  var lines = new Error().stack.split('\n');
-  function lookupUrl() {
-    if (lines.length > 2) {
-      var match = lines[1].match(/^\s+at (.+):\d+:\d+$/);
-      // Chrome.
-      if (match) return match[1];
-      // Chrome nested eval case.
-      match = lines[1].match(/^\s+at eval [(](.+):\d+:\d+[)]$/);
-      if (match) return match[1];
-      // Edge.
-      match = lines[1].match(/^\s+at.+\((.+):\d+:\d+\)$/);
-      if (match) return match[1];
-      // Firefox.
-      match = lines[0].match(/[<][@](.+):\d+:\d+$/)
-      if (match) return match[1];
-    }
-    // Safari.
-    return lines[0].match(/(.+):\d+:\d+$/)[1];
-  }
-  _url = lookupUrl();
-  var lastSlash = _url.lastIndexOf('/');
-  if (lastSlash == -1) return _url;
-  var currentDirectory = _url.substring(0, lastSlash + 1);
-  return currentDirectory;
-})();
-''';
-
 /// A load strategy for the require-js module system.
 class RequireStrategy extends LoadStrategy {
   @override
@@ -75,8 +44,8 @@ class RequireStrategy extends LoadStrategy {
 
   final String _requireDigestsPath = r'$requireDigestsPath';
 
-  /// Returns a map of module name to corresponding module path for the provided
-  /// Dart application entrypoint.
+  /// Returns a map of module name to corresponding server path (excluding .js)
+  /// for the provided Dart application entrypoint.
   ///
   /// For example:
   ///
@@ -89,8 +58,8 @@ class RequireStrategy extends LoadStrategy {
   ///
   /// For example:
   ///
-  ///   web/main.ddc.js -> 8363b363f74b41cac955024ab8b94a3f
-  ///   packages/path/path.ddc.js -> d348c2a4647e998011fe305f74f22961
+  ///   web/main -> 8363b363f74b41cac955024ab8b94a3f
+  ///   packages/path/path -> d348c2a4647e998011fe305f74f22961
   ///
   final Future<Map<String, String>> Function(String entrypoint)
       _digestsProvider;
@@ -138,18 +107,12 @@ $_baseUrlScript;
 require.config({
     baseUrl: baseUrl,
     waitSeconds: 0,
-    paths: customModulePaths
+    paths: modulePaths 
 });
 const modulesGraph = new Map();
-function getRegisteredModuleName(moduleMap) {
-  if (\$requireLoader.moduleIdToUrl.has(moduleMap.name + '$_moduleExtension')) {
-    return moduleMap.name + '$_moduleExtension';
-  }
-  return moduleMap.name;
-}
 requirejs.onResourceLoad = function (context, map, depArray) {
-  const name = getRegisteredModuleName(map);
-  const depNameArray = depArray.map(getRegisteredModuleName);
+  const name = map.name;
+  const depNameArray = depArray.map((dep) => dep.name);
   if (modulesGraph.has(name)) {
     var previousDeps = modulesGraph.get(name);
     var changed = previousDeps.length != depNameArray.length;
@@ -186,15 +149,11 @@ requirejs.onResourceLoad = function (context, map, depArray) {
   Future<String> _requireLoaderSetup(String entrypoint) async {
     var modulePaths = await _moduleProvider(entrypoint);
     return '''
-$_currentDirectoryScript
 $_baseUrlScript
 let modulePaths = ${const JsonEncoder.withIndent(" ").convert(modulePaths)};
 if(!window.\$requireLoader) {
    window.\$requireLoader = {
      digestsPath: '$_requireDigestsPath?entrypoint=$entrypoint',
-     moduleIdToUrl: new Map(),
-     urlToModuleId: new Map(),
-     rootDirectories: new Array(),
      // Used in package:build_runner/src/server/build_updates_client/hot_reload_client.dart
      moduleParentsGraph: new Map(),
      moduleLoadingErrorCallbacks: new Map(),
@@ -221,20 +180,6 @@ if(!window.\$requireLoader) {
      },
      getModuleLibraries: null, // set up by _initializeTools
    };
-}
-let customModulePaths = {};
-window.\$requireLoader.rootDirectories.push(window.location.origin + baseUrl);
-for (let moduleName of Object.getOwnPropertyNames(modulePaths)) {
-  let modulePath = modulePaths[moduleName];
-  if (modulePath != moduleName) {
-    customModulePaths[moduleName] = modulePath;
-  }
-  var src = window.location.origin + '/' + modulePath + '.js';
-  if (window.\$requireLoader.moduleIdToUrl.has(moduleName)) {
-    continue;
-  }
-  \$requireLoader.moduleIdToUrl.set(moduleName, src);
-  \$requireLoader.urlToModuleId.set(src, moduleName);
 }
 ''';
   }
