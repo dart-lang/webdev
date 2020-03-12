@@ -113,11 +113,7 @@ class RequireRestarter implements Restarter {
       if (!_lastKnownDigests.containsKey(jsPath) ||
           _lastKnownDigests[jsPath] != newDigests[jsPath]) {
         _lastKnownDigests[jsPath] = newDigests[jsPath];
-        var parts = p.url.split(jsPath);
-        // We serve top level dirs, so this strips the top level dir from all
-        // but `packages` paths.
-        var servePath =
-            parts.first == 'packages' ? jsPath : p.url.joinAll(parts.skip(1));
+        var servePath = jsPath;
         var jsUri = '${window.location.origin}/$servePath';
         var moduleName = requireLoader.urlToModuleId.get(jsUri);
         if (moduleName == null) {
