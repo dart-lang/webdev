@@ -13,7 +13,6 @@ import 'dart:js_util';
 import 'package:graphs/graphs.dart' as graphs;
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
-import 'package:path/path.dart' as p;
 
 import '../promise.dart';
 import 'restarter.dart';
