@@ -1,4 +1,4 @@
-## 2.5.5-dev
+## 2.5.5
 
 - Bump the min sdk constraint to `2.6.0`.
 - Require at least `build_web_compilers` version `2.6.1`.
