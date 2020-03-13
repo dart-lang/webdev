@@ -99,9 +99,10 @@ class DwdsVmClient {
 Future<void> _disableBreakpointsAndResume(
     VmService client, ChromeProxyService chromeProxyService) async {
   var vm = await client.getVM();
+  await chromeProxyService.disableBreakpoints();
+  if (vm.isolates.isEmpty) return;
   var isolateRef = vm.isolates.first;
   var isolate = await client.getIsolate(isolateRef.id) as Isolate;
-  await chromeProxyService.disableBreakpoints();
   if (isolate.pauseEvent.kind == EventKind.kPauseInterrupted ||
       isolate.pauseEvent.kind == EventKind.kPauseBreakpoint) {
     await client.resume(isolate.id);
