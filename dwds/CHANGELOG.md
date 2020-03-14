@@ -1,3 +1,9 @@
+## 2.0.1
+
+- Fix an issue where we would return prematurely during a `hotRestart`.
+- Fix an issue where we would incorrectly fail if a `hotRestart` had to
+  fall back to a full reload.
+
 ## 2.0.0
 
 - Depend on the latest `package:vm_service` version `3.0.0+1`.
