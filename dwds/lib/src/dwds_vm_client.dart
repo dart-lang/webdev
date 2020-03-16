@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'services/chrome_proxy_service.dart' show ChromeProxyService;
 import 'services/debug_service.dart';
@@ -54,24 +55,32 @@ class DwdsVmClient {
 
     client.registerServiceCallback('hotRestart', (request) async {
       await _disableBreakpointsAndResume(client, chromeProxyService);
-      var response = await chromeProxyService.remoteDebugger
-          .sendCommand('Runtime.evaluate', params: {
-        'expression': r'$dartHotRestart();',
-        'awaitPromise': true,
-        'contextId': await chromeProxyService.executionContext.id,
-      });
-      var exceptionDetails = response.result['exceptionDetails'];
-      if (exceptionDetails != null) {
-        return {
-          'error': {
-            'code': -32603,
-            'message': exceptionDetails['exception']['description'],
-            'data': exceptionDetails,
-          }
-        };
-      } else {
-        return {'result': Success().toJson()};
+      var context = await chromeProxyService.executionContext.id;
+      try {
+        await chromeProxyService.remoteDebugger
+            .sendCommand('Runtime.evaluate', params: {
+          'expression': r'$dartHotRestart();',
+          'awaitPromise': true,
+          'contextId': context,
+        });
+      } on WipError catch (exception) {
+        var code = exception.error['code'];
+        // This corresponds to `Execution context was destroyed` which can
+        // occur during a hot restart that must fall back to a full reload.
+        if (code != -32000) {
+          return {
+            'error': {
+              'code': exception.error['code'],
+              'message': exception.error['message'],
+              'data': exception,
+            }
+          };
+        }
       }
+      // Only return success after the isolate has fully started.
+      var stream = client.onEvent('Isolate');
+      await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
+      return {'result': Success().toJson()};
     });
     await client.registerService('hotRestart', 'DWDS fullReload');
 
