@@ -80,6 +80,16 @@ class RequireStrategy extends LoadStrategy {
   ///
   final String Function(String module) _serverPathForModule;
 
+  /// Returns the server path for the app uri.
+  ///
+  /// For example:
+  ///
+  ///   org-dartlang-app://web/main.dart -> main.dart
+  ///
+  /// Will return `null` if the provided uri is not
+  /// an app URI.
+  final String Function(String appUri) _serverPathForAppUri;
+
   RequireStrategy(
     this.reloadConfiguration,
     this._moduleExtension,
@@ -87,6 +97,7 @@ class RequireStrategy extends LoadStrategy {
     this._digestsProvider,
     this._moduleForServerPath,
     this._serverPathForModule,
+    this._serverPathForAppUri,
   );
 
   @override
@@ -208,4 +219,7 @@ if(!window.\$requireLoader) {
 
   @override
   String serverPathForModule(String module) => _serverPathForModule(module);
+
+  @override
+  String serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);
 }

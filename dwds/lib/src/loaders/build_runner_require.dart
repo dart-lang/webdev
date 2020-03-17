@@ -29,6 +29,7 @@ class BuildRunnerRequireStrategyProvider {
         _digestsProvider,
         _moduleForServerPath,
         _serverPathForModule,
+        _serverPathForAppUri,
       );
 
   Future<Map<String, String>> _digestsProvider(String entrypoint) async {
@@ -79,4 +80,12 @@ class BuildRunnerRequireStrategyProvider {
   }
 
   String _serverPathForModule(String module) => '${_serverPath(module)}.js';
+
+  String _serverPathForAppUri(String appUri) {
+    if (appUri.startsWith('org-dartlang-app:')) {
+      // We skip the root from which we are serving.
+      return Uri.parse(appUri).pathSegments.skip(1).join('/');
+    }
+    return null;
+  }
 }

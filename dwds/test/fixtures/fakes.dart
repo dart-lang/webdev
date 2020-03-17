@@ -137,8 +137,9 @@ class FakeWebkitDebugger implements WebkitDebugger {
       '.ddc',
       (_) async => {},
       (_) async => {},
-      (_) => '',
-      (_) => '',
+      (_) => null,
+      (_) => null,
+      (_) => null,
     );
   }
 
@@ -199,7 +200,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
             'value': <String, dynamic>{
               // dart source Uri : js module name
               'dart:io': 'dart_sdk',
-              'google3:///dart/tools/iblaze/web/hello_world.dart':
+              'org-dartlang-app:///dart/tools/iblaze/web/hello_world.dart':
                   'dart/tools/iblaze/web/hello_world_angular_library',
               'package:ads.acx2.rpc.proto_mixin/ess_proto_mixin.dart':
                   'ads/acx2/rpc/proto_mixin/lib/proto_mixin',

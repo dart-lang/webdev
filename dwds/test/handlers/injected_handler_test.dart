@@ -41,10 +41,13 @@ class FakeStrategy implements LoadStrategy {
   String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
 
   @override
-  String moduleForServerPath(String serverPath) => '';
+  String moduleForServerPath(String serverPath) => null;
 
   @override
-  String serverPathForModule(String server) => '';
+  String serverPathForModule(String module) => null;
+
+  @override
+  String serverPathForAppUri(String appUri) => null;
 }
 
 void main() {

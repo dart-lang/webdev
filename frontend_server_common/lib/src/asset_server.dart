@@ -11,15 +11,13 @@ import 'dart:typed_data';
 
 import 'package:dwds/dwds.dart';
 import 'package:file/file.dart';
+import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
-// ignore: deprecated_member_use
-import 'package:package_config/discovery.dart';
-// ignore: deprecated_member_use
-import 'package:package_config/packages.dart';
+import 'package:package_config/discovery.dart'; // ignore: deprecated_member_use
+import 'package:package_config/packages.dart'; // ignore: deprecated_member_use
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf;
-import 'package:logging/logging.dart';
 
 import 'utilities.dart';
 
@@ -105,8 +103,7 @@ class TestAssetServer implements AssetReader {
     }
     // If this is a sourcemap file, then it might be in the in-memory cache.
     // Attempt to lookup the file by URI.
-    var sourceMapPath = _resolvePath(requestPath);
-    if (_sourcemaps.containsKey(sourceMapPath)) {
+    if (_sourcemaps.containsKey(requestPath)) {
       final List<int> bytes = getSourceMap(requestPath);
       headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
       headers[HttpHeaders.contentTypeHeader] = 'application/json';
@@ -201,8 +198,6 @@ class TestAssetServer implements AssetReader {
 
   // Attempt to resolve `path` to a dart file.
   File _resolveDartFile(String path) {
-    path = _resolvePath(path);
-
     // If this is a dart file, it must be on the local file system and is
     // likely coming from a source map request. The tool doesn't currently
     // consider the case of Dart files as assets.
@@ -234,25 +229,6 @@ class TestAssetServer implements AssetReader {
     return dartSdkFile;
   }
 
-  // Mimick build_daemon by serving from the root (web)
-  // if the path does not belong to a package
-  // Note: This is a temporary workaround until we solve inconsistencies
-  // in different configurations by introducing module name and path
-  // translation interfaces between compiler, asset server, and the
-  // debugger.
-  // TODO(annagrin): module interface
-  // [issue #910](https://github.com/dart-lang/webdev/issues/910)
-  String _resolvePath(String path) {
-    var segments = p.split(path);
-    if (segments.first.isEmpty) {
-      segments.removeAt(0);
-    }
-
-    return path = segments.first == 'packages'
-        ? p.joinAll(segments)
-        : p.joinAll([_root, ...segments]);
-  }
-
   @override
   Future<String> dartSourceContents(String serverPath) {
     var result = _resolveDartFile(serverPath);
@@ -264,8 +240,7 @@ class TestAssetServer implements AssetReader {
 
   @override
   Future<String> sourceMapContents(String serverPath) async {
-    var path = _resolvePath(serverPath);
-    path = '/$path';
+    var path = '/$serverPath';
     if (_sourcemaps.containsKey(path)) {
       return utf8.decode(_sourcemaps[path]);
     }

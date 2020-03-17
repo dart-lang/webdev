@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
 import 'package:source_maps/source_maps.dart';
 
+import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../utilities/dart_uri.dart';
 import 'modules.dart';

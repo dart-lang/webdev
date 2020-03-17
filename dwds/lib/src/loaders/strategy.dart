@@ -79,6 +79,16 @@ abstract class LoadStrategy {
   ///   web/main -> main.ddc.js
   ///
   String serverPathForModule(String module);
+
+  /// Returns the server path for the app uri.
+  ///
+  /// For example:
+  ///
+  ///   org-dartlang-app://web/main.dart -> main.dart
+  ///
+  /// Will return `null` if the provided uri is not
+  /// an app URI.
+  String serverPathForAppUri(String appUri);
 }
 
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
