@@ -4,9 +4,7 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:path/path.dart' as p;
-
+import '../debugging/execution_context.dart';
 import '../loaders/strategy.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
@@ -29,16 +27,11 @@ class Modules {
   // The module to corresponding Chrome script ID.
   final _moduleToScriptId = <String, String>{};
 
-  final _moduleExtensionCompleter = Completer<String>();
-
-  Modules(this._remoteDebugger, String root, this._executionContext)
-      : _root = root == '' ? '/' : root;
-
-  /// Completes with the module extension i.e. `.ddc.js` or `.ddk.js`.
-  ///
-  /// We use the script parsed events from Chrome to determine this information.
-  // TODO(grouma) - Do something better here.
-  Future<String> get moduleExtension => _moduleExtensionCompleter.future;
+  Modules(
+    this._remoteDebugger,
+    String root,
+    this._executionContext,
+  ) : _root = root == '' ? '/' : root;
 
   /// Initializes the mapping from source to module.
   ///
@@ -82,88 +75,18 @@ class Modules {
   /// Checks if the [url] correspond to a module and stores meta data.
   Future<Null> noteModule(String url, String scriptId) async {
     var path = Uri.parse(url).path;
-    if (path == null ||
-        !(path.endsWith('.ddc.js') ||
-            path.endsWith('.ddk.js') ||
-            path.endsWith('.lib.js'))) {
-      return;
-    }
-
-    // TODO(grouma) - This is wonky. Find a better way.
-    if (!_moduleExtensionCompleter.isCompleted) {
-      if (path.endsWith('.ddc.js')) {
-        _moduleExtensionCompleter.complete('.ddc.js');
-      } else if (path.endsWith('.ddk.js')) {
-        _moduleExtensionCompleter.complete('.ddk.js');
-      } else {
-        _moduleExtensionCompleter.complete('.lib.js');
-      }
-    }
-
-    // TODO(annagrin): redirect modulePath->moduleName query to load strategy
-    //
-    // The code below is trying to guess the module name from js module path
-    // by assuming we can find a dart server path with a matching name located
-    // at the same server directory. Then it uses source->moduleName map to get
-    // the module name.
-    // [issue #917](https://github.com/dart-lang/webdev/issues/917)
-    // [issue #910](https://github.com/dart-lang/webdev/issues/910)
-    var serverPath = _jsModulePathToServerPath(path);
-    var module = await moduleForSource(serverPath);
-
+    if (path == null) return;
+    var module = globalLoadStrategy.moduleForServerPath(path);
+    if (module == null) return;
     _scriptIdToModule[scriptId] = module;
     _moduleToScriptId[module] = scriptId;
-  }
-
-  String _jsModulePathToServerPath(String path) {
-    // remove extensions, such as '.ddc.js'
-    var serverPath = p.withoutExtension(p.withoutExtension(path));
-    // server path does not contain leading '/'
-    serverPath =
-        serverPath.startsWith('/') ? serverPath.substring(1) : serverPath;
-    // server path has '.dart' extension
-    serverPath = serverPath.endsWith('.dart') ? serverPath : '$serverPath.dart';
-    // server path should be relative to the asset server root
-    serverPath = adjustForRoot(serverPath);
-    return DartUri('/$serverPath', _root).serverPath;
-  }
-
-  /// Make path relative to the asset server's serving root.
-  ///
-  /// Remove the asset server root directory for non-package files, if any,
-  /// but do not remove the _root, which is the directory off the
-  /// asset server root. This is needed to produce paths that will be used
-  /// in requests to the asset server, such as dart script paths, dart
-  /// locations, or source map paths. Asset server is serving from the asset
-  /// server root directory, so it expects the requests to be relative to it.
-  // Note: This is a temporary workaround until we solve inconsistencies in
-  // different configurations by introducing module name and path translation
-  // interfaces between compiler, asset server, and the debugger.
-  // TODO(annagrin): module interface
-  // [issue #910](https://github.com/dart-lang/webdev/issues/910)
-  String adjustForRoot(String path) {
-    // path == 'dir/main.dart' => pathRoot == 'dir'
-    // path == 'main.dart' => pathRoot == '.'
-    var segments = p.split(path);
-    var pathRoot = p.split(p.dirname(path))[0];
-
-    // _root == 'http:/localhost:port/dir/index.html' => indexRoot == 'dir'
-    // _root == 'http:/localhost:port/index.html' => indexRoot == '.'
-    var indexPath = Uri.parse(_root).path.substring(1);
-    var indexRoot = p.split(p.dirname(indexPath))[0];
-
-    // remove the root from path only if not equal to packages or indexRoot
-    var result = pathRoot == 'packages' || pathRoot == indexRoot
-        // Module paths are consistent across platforms so join with a
-        // forward slash.
-        ? p.url.joinAll(segments)
-        : p.url.joinAll(segments.skip(1));
-    return result;
   }
 
   /// Initializes [_sourceToModule].
   Future<void> _initializeMapping() async {
     if (_moduleCompleter.isCompleted) return;
+    // TODO(grouma) - We should talk to the compiler directly to greatly
+    // improve the performance here.
     var expression = '''
     (function() {
           var dart = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
@@ -188,51 +111,9 @@ class Modules {
     for (var dartScript in value.keys) {
       if (!dartScript.endsWith('.dart')) continue;
       var serverPath = DartUri(dartScript, _root).serverPath;
-
-      // get module name from module Uri
-      // Note: This is a temporary workaround until we solve inconsistencies
-      // in different configurations by introducing module name and path
-      // translation interfaces between compiler, asset server, and the
-      // debugger.
-      // TODO(annagrin): module interface
-      // [issue #910](https://github.com/dart-lang/webdev/issues/910)
-      var moduleUri = Uri.parse(value[dartScript] as String);
-      var module = _moduleFor(moduleUri.path);
-      _sourceToModule[serverPath] = module;
+      _sourceToModule[serverPath] = value[dartScript] as String;
       _sourceToLibrary[serverPath] = Uri.parse(dartScript);
     }
     _moduleCompleter.complete();
-  }
-
-  /// Returns the module for the provided path.
-  ///
-  /// Module are of the following form:
-  ///
-  ///   packages/foo/bar/module
-  ///   some/root/bar/module
-  ///
-  String _moduleFor(String path, {bool skipRoot}) {
-    path = '/$path';
-    skipRoot ??= false;
-    var result = '';
-    if (path.contains('/packages/')) {
-      result = 'packages/${path.split('/packages/').last}';
-    } else if (path.contains('/lib/')) {
-      var splitModule = path.split('/lib/').first.substring(1).split('/');
-      // Special case third_party/dart for Google3.
-      if (path.startsWith('/third_party/dart/')) {
-        splitModule = splitModule.skip(2).toList();
-      }
-      result = 'packages/${splitModule.join(".")}/${p.basename(path)}';
-    } else if (path.contains('/google3/')) {
-      result = path.split('/google3/').last;
-    } else if (path.startsWith('/')) {
-      path = path.substring(1);
-      if (skipRoot) {
-        path = path.split('/').skip(1).join('/');
-      }
-      result = path;
-    }
-    return result;
   }
 }

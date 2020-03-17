@@ -13,7 +13,13 @@ class FrontendServerRequireStrategyProvider {
   FrontendServerRequireStrategyProvider(this._modules, this._configuration);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
-      _configuration, '.lib.js', _moduleProvider, _digestsProvider);
+        _configuration,
+        '.lib.js',
+        _moduleProvider,
+        _digestsProvider,
+        _moduleForServerPath,
+        _serverPathForModule,
+      );
 
   Future<Map<String, String>> _digestsProvider(String entrypoint) async {
     return {};
@@ -40,5 +46,13 @@ class FrontendServerRequireStrategyProvider {
       modulePaths[name] = path;
     }
     return modulePaths;
+  }
+
+  String _moduleForServerPath(String serverPath) {
+    return '';
+  }
+
+  String _serverPathForModule(String module) {
+    return '';
   }
 }

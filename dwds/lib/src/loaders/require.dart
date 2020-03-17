@@ -39,7 +39,7 @@ class RequireStrategy extends LoadStrategy {
   @override
   final ReloadConfiguration reloadConfiguration;
 
-  /// The module extension, e.g. `.ddc`.
+  /// The module extension without .js, e.g. `.ddc`.
   final String _moduleExtension;
 
   final String _requireDigestsPath = r'$requireDigestsPath';
@@ -64,11 +64,29 @@ class RequireStrategy extends LoadStrategy {
   final Future<Map<String, String>> Function(String entrypoint)
       _digestsProvider;
 
+  /// Returns the module for the corresponding server path.
+  ///
+  /// For example:
+  ///
+  /// /packages/path/path.ddc.js -> packages/path/path
+  ///
+  final String Function(String sourcePath) _moduleForServerPath;
+
+  /// Returns the server path for the provided module.
+  ///
+  /// For example:
+  ///
+  ///   web/main -> main.ddc.js
+  ///
+  final String Function(String module) _serverPathForModule;
+
   RequireStrategy(
     this.reloadConfiguration,
     this._moduleExtension,
     this._moduleProvider,
     this._digestsProvider,
+    this._moduleForServerPath,
+    this._serverPathForModule,
   );
 
   @override
@@ -183,4 +201,11 @@ if(!window.\$requireLoader) {
 }
 ''';
   }
+
+  @override
+  String moduleForServerPath(String serverPath) =>
+      _moduleForServerPath(serverPath);
+
+  @override
+  String serverPathForModule(String module) => _serverPathForModule(module);
 }

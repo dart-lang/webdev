@@ -133,7 +133,13 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   FakeWebkitDebugger() {
     globalLoadStrategy = RequireStrategy(
-        ReloadConfiguration.none, '.ddc', (_) async => {}, (_) async => {});
+      ReloadConfiguration.none,
+      '.ddc',
+      (_) async => {},
+      (_) async => {},
+      (_) => '',
+      (_) => '',
+    );
   }
 
   @override

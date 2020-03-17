@@ -63,6 +63,22 @@ abstract class LoadStrategy {
 
   /// JS code snippet for loading the injected client script.
   String loadClientSnippet(String clientScript);
+
+  /// Returns the module for the corresponding server path.
+  ///
+  /// For example:
+  ///
+  /// /packages/path/path.ddc.js -> packages/path/path
+  ///
+  String moduleForServerPath(String serverPath);
+
+  /// Returns the server path for the provided module.
+  ///
+  /// For example:
+  ///
+  ///   web/main -> main.ddc.js
+  ///
+  String serverPathForModule(String module);
 }
 
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }
