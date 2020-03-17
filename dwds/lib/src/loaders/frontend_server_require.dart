@@ -8,13 +8,14 @@ import 'package:dwds/dwds.dart';
 class FrontendServerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
   final Iterable<String> _modules;
+  final _extension = '.lib.js';
   RequireStrategy _requireStrategy;
 
   FrontendServerRequireStrategyProvider(this._modules, this._configuration);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
-        '.lib.js',
+        _extension,
         _moduleProvider,
         _digestsProvider,
         _moduleForServerPath,
@@ -49,10 +50,13 @@ class FrontendServerRequireStrategyProvider {
   }
 
   String _moduleForServerPath(String serverPath) {
-    return '';
+    if (serverPath.endsWith('.lib.js')) {
+      serverPath =
+          serverPath.startsWith('/') ? serverPath.substring(1) : serverPath;
+      return serverPath.replaceAll('.lib.js', '');
+    }
+    return null;
   }
 
-  String _serverPathForModule(String module) {
-    return '';
-  }
+  String _serverPathForModule(String module) => '$module.lib.js';
 }
