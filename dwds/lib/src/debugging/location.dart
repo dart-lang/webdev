@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
 import 'package:source_maps/source_maps.dart';
 
+import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../utilities/dart_uri.dart';
 import 'modules.dart';
@@ -227,20 +228,13 @@ class Locations {
     if (_moduleToLocations[module] != null) return _moduleToLocations[module];
     var result = <Location>{};
     if (module?.isEmpty ?? true) return _moduleToLocations[module] = result;
-    var moduleExtension = await _modules.moduleExtension;
-    var modulePath = '$module$moduleExtension';
-    if (modulePath.endsWith('dart_sdk.js') ||
-        modulePath.endsWith('dart_sdk.ddk.js') ||
-        // .lib.js extensions come from frontend server
-        modulePath.endsWith('dart_sdk.lib.js')) {
+    if (module.endsWith('dart_sdk')) {
       return result;
     }
-
-    modulePath = _modules.adjustForRoot(modulePath);
-    var scriptLocation = p.url.dirname(modulePath);
-
+    var modulePath = globalLoadStrategy.serverPathForModule(module);
     var sourceMapContents =
         await _assetReader.sourceMapContents('$modulePath.map');
+    var scriptLocation = p.url.dirname('/$modulePath');
     if (sourceMapContents == null) return result;
     var scriptId = await _modules.scriptIdForModule(module);
     if (scriptId == null) return result;
@@ -259,8 +253,7 @@ class Locations {
           var relativeSegments = p.split(mapping.urls[index]);
           var path = p.url
               .normalize(p.url.joinAll([scriptLocation, ...relativeSegments]));
-          var uri = _modules.adjustForRoot(path);
-          var dartUri = DartUri('/$uri', _root);
+          var dartUri = DartUri(path, _root);
           result.add(Location.from(
             scriptId,
             lineEntry,

@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
 import 'require.dart';
@@ -12,15 +13,24 @@ import 'strategy.dart';
 
 /// Provides a [RequireStrategy] suitable for use with `package:build_runner`.
 class BuildRunnerRequireStrategyProvider {
+  final _extension = '.ddc';
   final Handler _assetHandler;
   final ReloadConfiguration _configuration;
+  final _serverPathToModule = <String, String>{};
 
   RequireStrategy _requireStrategy;
 
   BuildRunnerRequireStrategyProvider(this._assetHandler, this._configuration);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
-      _configuration, '.ddc', _moduleProvider, _digestsProvider);
+        _configuration,
+        _extension,
+        _moduleProvider,
+        _digestsProvider,
+        _moduleForServerPath,
+        _serverPathForModule,
+        _serverPathForAppUri,
+      );
 
   Future<Map<String, String>> _digestsProvider(String entrypoint) async {
     var digestsPath = entrypoint.replaceAll('.dart.bootstrap.js', '.digests');
@@ -50,8 +60,32 @@ class BuildRunnerRequireStrategyProvider {
 
   Future<Map<String, String>> _moduleProvider(String entrypoint) async {
     var digests = await _digestsProvider(entrypoint);
-    return {
-      for (var moduleId in digests.keys) moduleId: _serverPath(moduleId),
-    };
+    var result = <String, String>{};
+    _serverPathToModule.clear();
+    for (var moduleId in digests.keys) {
+      var serverPath = _serverPath(moduleId);
+      _serverPathToModule[serverPath] = moduleId;
+      result[moduleId] = serverPath;
+    }
+    return result;
+  }
+
+  String _moduleForServerPath(String serverPath) {
+    if (!serverPath.endsWith('$_extension.js')) return null;
+    serverPath =
+        serverPath.startsWith('/') ? serverPath.substring(1) : serverPath;
+    // Remove the .js from the path.
+    serverPath = p.withoutExtension(serverPath);
+    return _serverPathToModule[serverPath];
+  }
+
+  String _serverPathForModule(String module) => '${_serverPath(module)}.js';
+
+  String _serverPathForAppUri(String appUri) {
+    if (appUri.startsWith('org-dartlang-app:')) {
+      // We skip the root from which we are serving.
+      return Uri.parse(appUri).pathSegments.skip(1).join('/');
+    }
+    return null;
   }
 }

@@ -1,3 +1,10 @@
+## 3.0.0-dev
+
+**Breaking Changes:**
+- Delegate to the `LoadStrategy` for module information:
+  - moduleId -> serverPath
+  - serverPath -> moduleId
+
 ## 2.0.1
 
 - Fix an issue where we would return prematurely during a `hotRestart`.

@@ -150,10 +150,7 @@ void main() {
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
       await context.changeInput();
-      await client.streamListen('Isolate');
-      stream = client.onEvent('Isolate');
       await client.callServiceExtension('hotRestart');
-      await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
       var source = await context.webDriver.pageSource;
 
       // Main is re-invoked which shouldn't clear the state.

@@ -78,7 +78,7 @@ class DwdsVmClient {
         }
       }
       // Only return success after the isolate has fully started.
-      var stream = client.onEvent('Isolate');
+      var stream = chromeProxyService.onEvent('Isolate');
       await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
       return {'result': Success().toJson()};
     });

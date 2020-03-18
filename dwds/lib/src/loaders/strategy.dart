@@ -63,6 +63,32 @@ abstract class LoadStrategy {
 
   /// JS code snippet for loading the injected client script.
   String loadClientSnippet(String clientScript);
+
+  /// Returns the module for the corresponding server path.
+  ///
+  /// For example:
+  ///
+  /// /packages/path/path.ddc.js -> packages/path/path
+  ///
+  String moduleForServerPath(String serverPath);
+
+  /// Returns the server path for the provided module.
+  ///
+  /// For example:
+  ///
+  ///   web/main -> main.ddc.js
+  ///
+  String serverPathForModule(String module);
+
+  /// Returns the server path for the app uri.
+  ///
+  /// For example:
+  ///
+  ///   org-dartlang-app://web/main.dart -> main.dart
+  ///
+  /// Will return `null` if the provided uri is not
+  /// an app URI.
+  String serverPathForAppUri(String appUri);
 }
 
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }

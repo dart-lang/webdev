@@ -2,11 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/loaders/strategy.dart';
 @TestOn('vm')
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:test/test.dart';
 
+import 'handlers/injected_handler_test.dart';
+
+class TestStrategy extends FakeStrategy {
+  @override
+  String serverPathForAppUri(String appUri) {
+    if (appUri.startsWith('org-dartlang-app:')) return 'foo';
+    return null;
+  }
+}
+
 void main() {
+  globalLoadStrategy = TestStrategy();
   group('DartUri', () {
     test('parses package : paths', () {
       var uri = DartUri('package:path/path.dart');
@@ -21,7 +33,7 @@ void main() {
 
     test('parses org-dartlang-app paths', () {
       var uri = DartUri('org-dartlang-app:////blah/main.dart');
-      expect(uri.serverPath, 'blah/main.dart');
+      expect(uri.serverPath, 'foo');
     });
 
     test('parses packages paths', () {
@@ -32,11 +44,6 @@ void main() {
     test('parses http paths', () {
       var uri = DartUri('http://localhost:8080/web/main.dart');
       expect(uri.serverPath, 'web/main.dart');
-    });
-
-    test('parses google3 paths', () {
-      var uri = DartUri('google3:///some/path/foo.dart');
-      expect(uri.serverPath, 'some/path/foo.dart');
     });
   });
 }

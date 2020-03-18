@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:package_resolver/package_resolver.dart';
 import 'package:path/path.dart' as p;
 
+import '../loaders/strategy.dart';
+
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
 class DartUri {
@@ -104,11 +106,11 @@ class DartUri {
   /// packages/path/src/path.dart. The optional [serverUri] is the full URI of the
   /// JS script. The dirname of that path should give us the missing prefix.
   factory DartUri(String uri, [String serverUri]) {
+    var serverPath = globalLoadStrategy.serverPathForAppUri(uri);
+    if (serverPath != null) return DartUri._(serverPath);
     if (uri.startsWith('package:')) {
       return DartUri._fromPackageUri(uri, serverUri: serverUri);
     }
-    if (uri.startsWith('org-dartlang-app:')) return DartUri._fromAppUri(uri);
-    if (uri.startsWith('google3:')) return DartUri._fromGoogleUri(uri);
     if (uri.startsWith('file:')) return DartUri._fromFileUri(uri);
     if (uri.startsWith('/packages/')) {
       return DartUri._fromRelativePath(uri, serverUri: serverUri);
@@ -140,19 +142,6 @@ class DartUri {
     if (libraryName != null) return DartUri(libraryName);
     // This is not one of our recorded libraries.
     throw ArgumentError.value(uri, 'uri', 'Unknown library');
-  }
-
-  /// Construct from an google3: URI.
-  factory DartUri._fromGoogleUri(String uri) {
-    return DartUri._(Uri.parse(uri).path.substring(1));
-  }
-
-  /// Construct from an org-dartlang-app: URI.
-  factory DartUri._fromAppUri(String uri) {
-    // We ignore the first segment of the path, which is the root
-    // from which we're serving.
-    var path = Uri.parse(uri).pathSegments.skip(1).join('/').toString();
-    return DartUri._(path);
   }
 
   DartUri._(this.serverPath);

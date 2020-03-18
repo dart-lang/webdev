@@ -8,37 +8,52 @@ import 'package:dwds/dwds.dart';
 class FrontendServerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
   final Iterable<String> _modules;
+  final _extension = '.lib.js';
   RequireStrategy _requireStrategy;
 
   FrontendServerRequireStrategyProvider(this._modules, this._configuration);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
-      _configuration, '.lib.js', _moduleProvider, _digestsProvider);
+        _configuration,
+        _extension,
+        _moduleProvider,
+        _digestsProvider,
+        _moduleForServerPath,
+        _serverPathForModule,
+        _serverPathForAppUri,
+      );
 
   Future<Map<String, String>> _digestsProvider(String entrypoint) async {
+    // TODO(grouma) - provide actual digests.
     return {};
   }
 
   Future<Map<String, String>> _moduleProvider(String entrypoint) async {
     final modulePaths = <String, String>{};
     for (var module in _modules) {
-      // We are currently 'guessing' module names from js module paths,
-      // which is not reliable.
-      // example:
-      //  module: /web/main.dart.lib.js'
-      //  name: web/main.dart
-      //  path: web/main.dart.lib
-      // Note: This is a temporary workaround until we solve inconsistencies
-      // in different configurations by introducing module name and path
-      // translation interfaces between compiler, asset server, and the
-      // debugger.
-      // TODO(annagrin): module interface
-      // [issue #910](https://github.com/dart-lang/webdev/issues/910)
       module = module.startsWith('/') ? module.substring(1) : module;
       var name = module.replaceAll('.lib.js', '');
       var path = module.replaceAll('.js', '');
       modulePaths[name] = path;
     }
     return modulePaths;
+  }
+
+  String _moduleForServerPath(String serverPath) {
+    if (serverPath.endsWith('.lib.js')) {
+      serverPath =
+          serverPath.startsWith('/') ? serverPath.substring(1) : serverPath;
+      return serverPath.replaceAll('.lib.js', '');
+    }
+    return null;
+  }
+
+  String _serverPathForModule(String module) => '$module.lib.js';
+
+  String _serverPathForAppUri(String appUri) {
+    if (appUri.startsWith('org-dartlang-app:')) {
+      return Uri.parse(appUri).path.substring(1);
+    }
+    return null;
   }
 }
