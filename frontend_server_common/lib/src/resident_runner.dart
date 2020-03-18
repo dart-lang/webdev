@@ -6,6 +6,7 @@
 // and some functionality remioved (does not support hot reload yet)
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dwds/dwds.dart';
 import 'package:path/path.dart' as p;
@@ -16,8 +17,9 @@ import 'devfs_content.dart';
 import 'frontend_server_client.dart';
 import 'utilities.dart';
 
-final String platformDill =
-    p.join(dartSdkPath, '..', 'libexec', 'lib', '_internal', 'ddc_sdk.dill');
+final String platformDill = Platform.isLinux
+    ? p.join(dartSdkPath, '..', 'lib', '_internal', 'ddc_sdk.dill')
+    : p.join(dartSdkPath, '..', 'libexec', 'lib', '_internal', 'ddc_sdk.dill');
 
 class ResidentWebRunner {
   ResidentWebRunner(
