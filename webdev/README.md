@@ -53,14 +53,11 @@ Usage: webdev serve [arguments] [<directory>[:<port>]]...
                                   (loses current state)
                                   refresh: Performs a full page refresh.
                                   [restart, refresh]
-
     --[no-]debug                  Enable the launching of DevTools (Alt + D /
                                   Option + D). This also enables
                                   --launch-in-chrome.
-
     --[no-]debug-extension        Enable the backend for the Dart Debug
                                   Extension.
-
     --[no-]injected-client        Whether or not to inject the client.js script
                                   in web apps. This is required for all
                                   debugging related features, but may interact
@@ -73,23 +70,18 @@ Advanced:
                                   listening on. If used with launch-in-chrome
                                   Chrome will be started with the debugger
                                   listening on this port.
-
     --hostname                    Specify the hostname to serve on.
                                   (defaults to "localhost")
-
     --[no-]launch-in-chrome       Automatically launches your application in
                                   Chrome with the debug port open. Use
                                   chrome-debug-port to specify a specific port
                                   to attach to an already running chrome
                                   instance instead.
-
     --log-requests                Enables logging for each request to the
                                   server.
-
     --tls-cert-chain              The file location to a TLS Certificate to
                                   create an HTTPs server.
                                   Must be used with tls-cert-key.
-
     --tls-cert-key                The file location to a TLS Key to create an
                                   HTTPs server.
                                   Must be used with tls-cert-chain.
@@ -103,12 +95,10 @@ Common:
                                   A value of "NONE" indicates that no "--output"
                                   value should be passed to `build_runner`.
                                   (defaults to "NONE")
-
 -r, --[no-]release                Build with release mode defaults for builders.
     --[no-]build-web-compilers    If a dependency on `build_web_compilers` is
                                   required to run.
                                   (defaults to on)
-
 -v, --verbose                     Enables verbose logging.
 
 Run "webdev help" to see global options.
@@ -128,14 +118,11 @@ Usage: webdev build [arguments]
                                   A value of "NONE" indicates that no "--output"
                                   value should be passed to `build_runner`.
                                   (defaults to "web:build")
-
 -r, --[no-]release                Build with release mode defaults for builders.
                                   (defaults to on)
-
     --[no-]build-web-compilers    If a dependency on `build_web_compilers` is
                                   required to run.
                                   (defaults to on)
-
 -v, --verbose                     Enables verbose logging.
 
 Run "webdev help" to see global options.
