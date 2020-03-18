@@ -140,7 +140,7 @@ void main() {
       var isolateId = vm.isolates.first.id;
       await client.streamListen('Debug');
       var stream = client.onEvent('Debug');
-      var scriptList = await client.getScripts(isolateId) as ScriptList;
+      var scriptList = await client.getScripts(isolateId);
       var main = scriptList.scripts
           .firstWhere((script) => script.uri.contains('main.dart'));
       var bpLine =
@@ -160,7 +160,7 @@ void main() {
       // Should not be paused.
       vm = await client.getVM();
       isolateId = vm.isolates.first.id;
-      var isolate = await client.getIsolate(isolateId) as Isolate;
+      var isolate = await client.getIsolate(isolateId);
       expect(isolate.pauseEvent.kind, EventKind.kResume);
       expect(isolate.breakpoints.isEmpty, isTrue);
     });

@@ -109,7 +109,7 @@ Future<void> _disableBreakpointsAndResume(
     VmService client, ChromeProxyService chromeProxyService) async {
   var vm = await client.getVM();
   var isolateRef = vm.isolates.first;
-  var isolate = await client.getIsolate(isolateRef.id) as Isolate;
+  var isolate = await client.getIsolate(isolateRef.id);
   await chromeProxyService.disableBreakpoints();
   if (isolate.pauseEvent.kind == EventKind.kPauseInterrupted ||
       isolate.pauseEvent.kind == EventKind.kPauseBreakpoint) {
