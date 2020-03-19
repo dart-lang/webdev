@@ -56,7 +56,7 @@ class FakeInspector extends Domain implements AppInspector {
           {Map<String, String> scope}) =>
       null;
   @override
-  Future getObject(String isolateId, String objectId,
+  Future<Obj> getObject(String isolateId, String objectId,
           {int offset, int count}) =>
       null;
   @override

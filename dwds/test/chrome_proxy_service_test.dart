@@ -476,7 +476,8 @@ void main() {
 
       test('Lists', () async {
         var list = await createList();
-        var inst = await service.getObject(isolate.id, list.objectId);
+        var inst =
+            await service.getObject(isolate.id, list.objectId) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);

@@ -1,5 +1,7 @@
 ## 3.0.0-dev
 
+- Depend on the latest `package:vm_service` version `4.0.0`.
+
 **Breaking Changes:**
 - Delegate to the `LoadStrategy` for module information:
   - moduleId -> serverPath

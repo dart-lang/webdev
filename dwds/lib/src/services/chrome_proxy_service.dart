@@ -320,7 +320,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future evaluate(String isolateId, String targetId, String expression,
+  Future<Response> evaluate(
+      String isolateId, String targetId, String expression,
       {Map<String, String> scope, bool disableBreakpoints}) async {
     // TODO(798) - respect disableBreakpoints.
     var remote = await _inspector?.evaluate(isolateId, targetId, expression,
@@ -329,7 +330,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future evaluateInFrame(String isolateId, int frameIndex, String expression,
+  Future<Response> evaluateInFrame(
+      String isolateId, int frameIndex, String expression,
       {Map<String, String> scope, bool disableBreakpoints}) async {
     if (_expressionEvaluator != null) {
       var isolate = _inspector?.isolate;
@@ -379,12 +381,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Isolate> getIsolate(String isolateId) async => _getIsolate(isolateId);
 
   @override
-  Future<dynamic> getMemoryUsage(String isolateId) async {
+  Future<MemoryUsage> getMemoryUsage(String isolateId) async {
     throw UnimplementedError();
   }
 
   @override
-  Future getObject(String isolateId, String objectId,
+  Future<Obj> getObject(String isolateId, String objectId,
           {int offset, int count}) =>
       _inspector?.getObject(isolateId, objectId, offset: offset, count: count);
 
@@ -428,7 +430,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future invoke(
+  Future<Response> invoke(
       String isolateId, String targetId, String selector, List argumentIds,
       {bool disableBreakpoints}) async {
     // TODO(798) - respect disableBreakpoints.
@@ -684,7 +686,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future getInboundReferences(String isolateId, String targetId, int limit) {
+  Future<InboundReferences> getInboundReferences(
+      String isolateId, String targetId, int limit) {
     throw UnimplementedError();
   }
 
@@ -700,12 +703,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future getIsolateGroup(String isolateGroupId) {
+  Future<IsolateGroup> getIsolateGroup(String isolateGroupId) {
     throw UnimplementedError();
   }
 
   @override
-  Future getIsolateGroupMemoryUsage(String isolateGroupId) {
+  Future<MemoryUsage> getIsolateGroupMemoryUsage(String isolateGroupId) {
     throw UnimplementedError();
   }
 

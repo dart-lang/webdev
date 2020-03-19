@@ -309,7 +309,7 @@ function($argsString) {
     return libraryHelper.libraryFor(libraryRef);
   }
 
-  Future getObject(String isolateId, String objectId,
+  Future<Obj> getObject(String isolateId, String objectId,
       {int offset, int count}) async {
     var library = await _getLibrary(isolateId, objectId);
     if (library != null) return library;
