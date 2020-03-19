@@ -43,7 +43,6 @@ class Modules {
     _sourceToModule.clear();
     _sourceToLibrary.clear();
     _moduleCompleter = Completer<bool>();
-    _initializeMapping();
   }
 
   /// Returns the module for the Chrome script ID.
@@ -56,19 +55,19 @@ class Modules {
 
   /// Returns the containing module for the provided Dart server path.
   Future<String> moduleForSource(String serverPath) async {
-    await _moduleCompleter.future;
+    await _initializeMapping();
     return _sourceToModule[serverPath];
   }
 
   /// Returns the containing library importUri for the provided Dart server path.
   Future<Uri> libraryForSource(String serverPath) async {
-    await _moduleCompleter.future;
+    await _initializeMapping();
     return _sourceToLibrary[serverPath];
   }
 
   // Returns mapping from server paths to library paths
   Future<Map<String, String>> modules() async {
-    await _moduleCompleter.future;
+    await _initializeMapping();
     return _sourceToModule;
   }
 
