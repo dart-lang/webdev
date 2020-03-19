@@ -4,6 +4,7 @@
 
 @Timeout(Duration(minutes: 2))
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:test/test.dart';
 
@@ -72,7 +73,7 @@ void main() {
                 startsWith('[{"event":"app.log","params":{"appId":"$appId",'
                     '"log":"Hello World\\n"}}')));
         await exitWebdev(webdev);
-      });
+      }, skip: Platform.isWindows ? 'webdev/issues/924' : null);
 
       test('.reload', () async {
         var webdev =
