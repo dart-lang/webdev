@@ -72,7 +72,7 @@ void main() {
                 startsWith('[{"event":"app.log","params":{"appId":"$appId",'
                     '"log":"Hello World\\n"}}')));
         await exitWebdev(webdev);
-      });
+      }, skip: 'webdev/issues/924');
 
       test('.reload', () async {
         var webdev =
