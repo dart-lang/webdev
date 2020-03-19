@@ -17,7 +17,7 @@ import 'frontend_server_client.dart';
 import 'utilities.dart';
 
 final String platformDill =
-    p.join(dartSdkPath, '..', 'libexec', 'lib', '_internal', 'ddc_sdk.dill');
+    p.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.dill');
 
 class ResidentWebRunner {
   ResidentWebRunner(

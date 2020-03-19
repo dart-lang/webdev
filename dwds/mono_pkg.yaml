@@ -16,7 +16,7 @@ stages:
   - unit_test:
     - test: -x frontend-server
       dart: 2.6.0
-    - test: -x frontend-server
+    - test:
       dart: dev
     - test: -x frontend-server
       os: windows
