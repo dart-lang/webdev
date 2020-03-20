@@ -4,6 +4,7 @@
 
 @Timeout(Duration(minutes: 2))
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:test/test.dart';
 
@@ -66,6 +67,11 @@ void main() {
         print('Got app id');
         var extensionCall = '[{"method":"app.callServiceExtension","id":0,'
             '"params" : { "appId" : "$appId", "methodName" : "ext.print"}}]';
+        if (Platform.isWindows) {
+          // Windows takes a bit longer to run the application and register
+          // the service extension.
+          await Future.delayed(const Duration(seconds: 5));
+        }
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
         // The example app sets up a service extension for printing.
         print('waiting for log event');
