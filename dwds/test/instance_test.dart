@@ -84,7 +84,7 @@ void main() {
           classRef.id,
           'classes|org-dartlang-app:///web/scopes_main.dart'
           '|MyTestClass<dynamic>');
-    }, skip: 'sdk/issues/40883');
+    });
 
     test('for closure', () async {
       var remoteObject = await libraryPublicFinal();
