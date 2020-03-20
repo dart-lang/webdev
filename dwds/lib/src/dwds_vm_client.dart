@@ -56,6 +56,9 @@ class DwdsVmClient {
     client.registerServiceCallback('hotRestart', (request) async {
       await _disableBreakpointsAndResume(client, chromeProxyService);
       var context = await chromeProxyService.executionContext.id;
+      // Start listening for isolate create events before issuing a hot
+      // restart. Only return success after the isolate has fully started.
+      var stream = chromeProxyService.onEvent('Isolate');
       try {
         await chromeProxyService.remoteDebugger
             .sendCommand('Runtime.evaluate', params: {
@@ -77,8 +80,6 @@ class DwdsVmClient {
           };
         }
       }
-      // Only return success after the isolate has fully started.
-      var stream = chromeProxyService.onEvent('Isolate');
       await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
       return {'result': Success().toJson()};
     });
