@@ -12,8 +12,10 @@ import 'package:webdev/src/util.dart';
 import '../test_utils.dart';
 
 Future<void> exitWebdev(TestProcess webdev) async {
+  print('about to exit');
   webdev.stdin.add(utf8.encode('[{"method":"daemon.shutdown","id":0}]\n'));
   await webdev.exitCode;
+  print('exiting');
 }
 
 Future<String> waitForAppId(TestProcess webdev) async {
