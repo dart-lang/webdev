@@ -62,29 +62,21 @@ void main() {
       test('.callServiceExtension', () async {
         var webdev =
             await runWebDev(['daemon'], workingDirectory: exampleDirectory);
-        print('Waaiting for app id');
         var appId = await waitForAppId(webdev);
-        print('Got app id');
-        var extensionCall = '[{"method":"app.callServiceExtension","id":0,'
-            '"params" : { "appId" : "$appId", "methodName" : "ext.print"}}]';
         if (Platform.isWindows) {
           // Windows takes a bit longer to run the application and register
           // the service extension.
           await Future.delayed(const Duration(seconds: 5));
         }
+        var extensionCall = '[{"method":"app.callServiceExtension","id":0,'
+            '"params" : { "appId" : "$appId", "methodName" : "ext.print"}}]';
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
         // The example app sets up a service extension for printing.
-        print('waiting for log event');
-        while (await webdev.stdout.hasNext) {
-          print(await webdev.stdout.next);
-        }
-        ;
         await expectLater(
             webdev.stdout,
             emitsThrough(
                 startsWith('[{"event":"app.log","params":{"appId":"$appId",'
                     '"log":"Hello World\\n"}}')));
-        print('got log event');
         await exitWebdev(webdev);
       });
 
