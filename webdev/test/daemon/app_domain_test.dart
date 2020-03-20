@@ -69,6 +69,10 @@ void main() {
         webdev.stdin.add(utf8.encode('$extensionCall\n'));
         // The example app sets up a service extension for printing.
         print('waiting for log event');
+        while (await webdev.stdout.hasNext) {
+          print(await webdev.stdout.next);
+        }
+        ;
         await expectLater(
             webdev.stdout,
             emitsThrough(
