@@ -1,4 +1,4 @@
-## 3.0.0-dev
+## 3.0.0
 
 - Depend on the latest `package:vm_service` version `4.0.0`.
 

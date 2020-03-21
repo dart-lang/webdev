@@ -1,5 +1,5 @@
 name: dwds
-version: 3.0.0-dev
+version: 3.0.0
 homepage: https://github.com/dart-lang/webdev/tree/master/dwds
 description: >-
   A service that proxies between the Chrome debug protocol and the Dart VM
