@@ -1,3 +1,8 @@
+## 3.0.1
+
+- Drop dependency on `package_resolver` and use `package_config` instead. 
+- Bump min sdk constraint to `>=2.7.0`.
+
 ## 3.0.0
 
 - Depend on the latest `package:vm_service` version `4.0.0`.

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:package_resolver/package_resolver.dart';
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
 import '../../dwds.dart';
@@ -20,7 +20,7 @@ class FrontendServerAssetReader implements AssetReader {
   final File _jsonOriginal;
   final File _jsonIncremental;
   final String _packageRoot;
-  final Future<PackageResolver> _packageResolver;
+  final Future<PackageConfig> _packageConfig;
 
   /// Map of Dart module server path to source map contents.
   final _mapContents = <String, String>{};
@@ -45,18 +45,18 @@ class FrontendServerAssetReader implements AssetReader {
         _mapIncremental = File('$outputPath.incremental.map'),
         _jsonOriginal = File('$outputPath.json'),
         _jsonIncremental = File('$outputPath.incremental.json'),
-        _packageResolver = PackageResolver.loadConfig(
-            p.toUri(p.join(_packageRoot, '.packages')));
+        _packageConfig = loadPackageConfig(
+            File(p.absolute(p.join(_packageRoot, '.packages'))));
 
   @override
   Future<String> dartSourceContents(String serverPath) async {
     if (!serverPath.endsWith('.dart')) return null;
-    var resolver = await _packageResolver;
+    var packageConfig = await _packageConfig;
 
     Uri fileUri;
     if (serverPath.startsWith('packages/')) {
       var packagePath = serverPath.replaceFirst('packages/', 'package:');
-      fileUri = await resolver.resolveUri(packagePath);
+      fileUri = packageConfig.resolve(Uri.parse(packagePath));
     } else {
       fileUri = p.toUri(p.join(_packageRoot, serverPath));
     }
