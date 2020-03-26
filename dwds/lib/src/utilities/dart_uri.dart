@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:package_resolver/package_resolver.dart';
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
 import '../loaders/strategy.dart';
@@ -32,7 +32,7 @@ class DartUri {
   /// Load the .packages file associated with the running application so we can
   /// resolve file URLs into package: URLs appropriately.
   static Future<void> _loadPackageConfig(Uri uri) async {
-    _packageResolver ??= await SyncPackageResolver.loadConfig(uri);
+    _packageConfig ??= await loadPackageConfigUri(uri);
   }
 
   // Note that we join using the platform separator, since currentDirectory is a
@@ -46,7 +46,7 @@ class DartUri {
       _packagesExist ??= File.fromUri(_packagesUri).existsSync();
 
   /// The way we resolve file: URLs into package: URLs
-  static SyncPackageResolver _packageResolver;
+  static PackageConfig _packageConfig;
 
   /// All of the known libraries, indexed by their absolute file URL.
   static final Map<String, String> _libraryNamesByPath = {};
@@ -80,7 +80,7 @@ class DartUri {
           p.url.join('$currentDirectoryUri', uri.path.substring(1));
       _libraryNamesByPath[libraryPath] = libraryUri;
     } else if (uri.scheme == 'package') {
-      var libraryPath = _packageResolver.resolveUri(uri);
+      var libraryPath = _packageConfig.resolve(uri);
       _libraryNamesByPath['$libraryPath'] = libraryUri;
     } else {
       throw ArgumentError.value(libraryUri, 'URI scheme not allowed');
