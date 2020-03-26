@@ -46,7 +46,7 @@ class FrontendServerAssetReader implements AssetReader {
         _jsonOriginal = File('$outputPath.json'),
         _jsonIncremental = File('$outputPath.incremental.json'),
         _packageConfig =
-            loadPackageConfig(File(p.join(_packageRoot, '.packages')));
+            loadPackageConfig(File(p.absolute(p.join(_packageRoot, '.packages'))));
 
   @override
   Future<String> dartSourceContents(String serverPath) async {
