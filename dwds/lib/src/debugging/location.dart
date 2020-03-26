@@ -66,7 +66,7 @@ class DartLocation {
   );
 
   @override
-  String toString() => 'DartLoc: ${uri.serverPath}, $line, $column';
+  String toString() => '[${uri.serverPath}:$line:$column]';
 
   static DartLocation fromZeroBased(DartUri uri, int line, int column) =>
       DartLocation._(uri, line + 1, column + 1);
@@ -93,7 +93,7 @@ class JsLocation {
   );
 
   @override
-  String toString() => 'JSLoc: $scriptId, $line, $column';
+  String toString() => '[$scriptId:$line:$column]';
 
   static JsLocation fromZeroBased(String scriptId, int line, int column) =>
       JsLocation._(scriptId, line + 1, column + 1);
