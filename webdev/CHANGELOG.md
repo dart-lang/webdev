@@ -1,3 +1,7 @@
+## 2.5.7-dev
+
+- Update min sdk constraint to `>=2.7.0`.
+
 ## 2.5.6
 
 - Expand `package:vm_service` to version `>=3.0.0 <5.0.0`
