@@ -63,7 +63,9 @@ class ExpressionEvaluator {
     var jsFrame = WipCallFrame(jsStack[frameIndex]);
 
     var functionName = jsFrame.functionName;
-    var jsLocation = jsFrame.location;
+    var jsLocation = JsLocation.fromZeroBased(jsFrame.location.scriptId,
+        jsFrame.location.lineNumber, jsFrame.location.columnNumber);
+
     _printTrace('Expression evaluator: JS location: '
         '$functionName, $jsLocation');
 
@@ -77,16 +79,15 @@ class ExpressionEvaluator {
     // so this will result in expressions not evaluated in some
     // cases. Invent location matching strategy for those cases.
     // [issue 890](https://github.com/dart-lang/webdev/issues/890)
-    var locationMap = await _locations.locationForJs(
-        jsLocation.scriptId, jsLocation.lineNumber);
+    var locationMap =
+        await _locations.locationForJs(jsLocation.scriptId, jsLocation.line);
 
     if (locationMap == null) {
       return _createError(
           'Internal Error',
-          'Cannot find Dart location for JS location '
-              '{script: $jsLocation.scriptId, '
+          'Cannot find Dart location for JS location: '
               'function: $functionName, '
-              'location: $jsLocation})');
+              'location: $jsLocation');
     }
 
     var dartLocation = locationMap.dartLocation;
