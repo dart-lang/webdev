@@ -1,3 +1,8 @@
+## 3.0.2
+
+- Fix an issue in JS to Dart location translation in `ExpressionEvaluator`.
+  JS location returned from Chrome is 0-based, adjusted to 1-based.
+
 ## 3.0.1
 
 - Drop dependency on `package_resolver` and use `package_config` instead. 
