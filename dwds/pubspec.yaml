@@ -1,5 +1,5 @@
 name: dwds
-version: 3.0.2
+version: 3.0.3-dev
 homepage: https://github.com/dart-lang/webdev/tree/master/dwds
 description: >-
   A service that proxies between the Chrome debug protocol and the Dart VM
@@ -26,7 +26,7 @@ dependencies:
   pedantic: ^1.5.0
   pub_semver: ^1.4.2
   shelf: ^0.7.0
-  shelf_packages_handler: ^1.0.0
+  shelf_packages_handler: '>=1.0.0 <3.0.0'
   shelf_proxy: ^0.1.0+6
   shelf_static: ^0.2.8
   shelf_web_socket: ^0.2.0
