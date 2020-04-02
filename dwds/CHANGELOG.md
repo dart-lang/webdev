@@ -1,3 +1,7 @@
+## 3.0.3-dev
+
+- Support the latest version of `package:shelf_packages_handler`.
+
 ## 3.0.2
 
 - Fix an issue in JS to Dart location translation in `ExpressionEvaluator`.
