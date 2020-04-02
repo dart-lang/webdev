@@ -1,6 +1,7 @@
 ## 3.0.3-dev
 
 - Support the latest version of `package:shelf_packages_handler`.
+- Check for null isolates during a hot restart to prevent errors.
 
 ## 3.0.2
 
