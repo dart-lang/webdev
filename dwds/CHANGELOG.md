@@ -1,7 +1,8 @@
 ## 3.0.3-dev
 
 - Support the latest version of `package:shelf_packages_handler`.
-- Check for null isolates during a hot restart to prevent errors.
+- Throw a more useful error if during a hot restart if there is no
+  active isolate.
 
 ## 3.0.2
 
