@@ -1,6 +1,8 @@
 ## 3.0.3-dev
 
 - Support the latest version of `package:shelf_packages_handler`.
+- Throw a more useful error if during a hot restart there is no
+  active isolate.
 
 ## 3.0.2
 
