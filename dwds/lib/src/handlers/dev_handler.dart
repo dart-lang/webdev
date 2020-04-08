@@ -108,8 +108,8 @@ class DevHandler {
       try {
         injectedConnection.sink.add(jsonEncode(serializers.serialize(result)));
       } on StateError {
-        // This will trigger clean up of the connection.
-        injectedConnection.sink.close();
+        // If the sink is already closed, the corresponding injectedConnection
+        // will be cleaned up shortly.
       }
     }
   }
