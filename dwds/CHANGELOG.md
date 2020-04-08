@@ -3,6 +3,8 @@
 - Support the latest version of `package:shelf_packages_handler`.
 - Throw a more useful error if during a hot restart there is no
   active isolate.
+- Fix an issue where we coud emit build results on a closed injected
+  client connection causing state errors.
 
 ## 3.0.2
 

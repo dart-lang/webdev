@@ -105,7 +105,12 @@ class DevHandler {
   void _emitBuildResults(BuildResult result) {
     if (result.status != BuildStatus.succeeded) return;
     for (var injectedConnection in _injectedConnections) {
-      injectedConnection.sink.add(jsonEncode(serializers.serialize(result)));
+      try {
+        injectedConnection.sink.add(jsonEncode(serializers.serialize(result)));
+      } catch (StateError) {
+        // This will trigger clean up of the connection.
+        injectedConnection.sink.close();
+      }
     }
   }
 
