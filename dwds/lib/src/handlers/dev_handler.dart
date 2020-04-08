@@ -107,7 +107,7 @@ class DevHandler {
     for (var injectedConnection in _injectedConnections) {
       try {
         injectedConnection.sink.add(jsonEncode(serializers.serialize(result)));
-      } on StateError catch (_) {
+      } on StateError {
         // This will trigger clean up of the connection.
         injectedConnection.sink.close();
       }
