@@ -10,7 +10,6 @@ import 'package:dwds/src/utilities/objects.dart' as chrome;
 import 'package:dwds/src/utilities/shared.dart' show LogWriter;
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
 import 'expression_compiler.dart';
 
 /// ExpressionEvaluator provides functionality to evaluate dart expressions
@@ -101,6 +100,8 @@ class ExpressionEvaluator {
         await _modules.moduleForSource(dartLocation.uri.serverPath);
     var modules = await _modules.modules();
 
+    _printTrace('Expression evaluator:  current module: $currentModule');
+
     // TODO(annagrin): Handle same file names under different roots
     // [issue 891](https://github.com/dart-lang/webdev/issues/891)
     var jsModules = {'dart': 'dart_sdk', 'core': 'dart_sdk'};
@@ -114,7 +115,14 @@ class ExpressionEvaluator {
       var name = pathToJSIdentifier(libraryPath.replaceAll('.dart', ''));
       jsModules[name] = module;
     }
-    _printTrace('Expression evaluator: js modules: $jsModules');
+
+    // Break up modules printing into lines to VSCode renderer does not choke
+    var debugModules =
+        (modules.keys.map((k) => '$k: ${modules[k]}')).join(',\n');
+    var debugJsModules =
+        (jsModules.keys.map((k) => '$k: ${jsModules[k]}')).join(',\n');
+    _printTrace('Expression evaluator: modules: $debugModules');
+    _printTrace('Expression evaluator: js modules: $debugJsModules');
 
     var compilationResult = await _compiler.compileExpressionToJs(
         isolateId,
@@ -211,10 +219,22 @@ class ExpressionEvaluator {
     var scopeChain = List<WipScope>.from(frame.getScopeChain()).reversed;
 
     // skip library and main scope
-    for (var scope in scopeChain.skip(2)) {
+    var skip = true;
+    for (var scope in scopeChain) {
       var scopeProperties =
           await _debugger.getProperties(scope.object.objectId);
-      collectVariables(scope.scope, scopeProperties);
+
+      if (!skip) {
+        _logWriter(
+            Level.INFO, 'Collecting Scope ${scope.scope}: $scopeProperties');
+        collectVariables(scope.scope, scopeProperties);
+      } else {
+        // TODO(sdk/issues/40774) - This appears brittle.
+        var names = scopeProperties.map((element) => element.name).toSet();
+        if (names.contains('core') && names.contains('dart')) {
+          skip = false;
+        }
+      }
     }
 
     return jsScope;

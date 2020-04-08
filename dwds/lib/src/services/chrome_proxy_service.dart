@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -340,10 +341,18 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
             isolateId, 'isolateId', 'Unrecognized isolate id');
       }
 
-      var result = await _expressionEvaluator.evaluateExpression(
-          isolateId, frameIndex, expression);
+      try {
+        var result = await _expressionEvaluator.evaluateExpression(
+            isolateId, frameIndex, expression);
 
-      return _inspector?.instanceHelper?.instanceRefFor(result);
+        return _inspector?.instanceHelper?.instanceRefFor(result);
+      } catch (e, s) {
+        _logWriter(
+            Level.INFO,
+            'Failed to evaluate expression $expression, $e:$s'
+            'please file an issue on https://github.com/dart-lang/sdk and attach VSCode logs.');
+        return ErrorRef(kind: 'Internal error', message: '<unknown>');
+      }
     }
 
     throw UnimplementedError(
