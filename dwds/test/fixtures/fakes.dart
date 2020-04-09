@@ -122,6 +122,9 @@ class FakeSseConnection implements SseConnection {
   StreamChannel<String> transformStream(
           StreamTransformer<String, String> transformer) =>
       null;
+
+  @override
+  Future<void> get onClose => Completer().future;
 }
 
 class FakeWebkitDebugger implements WebkitDebugger {
