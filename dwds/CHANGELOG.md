@@ -1,8 +1,10 @@
-## 3.0.3-dev
+## 3.0.3
 
 - Support the latest version of `package:shelf_packages_handler`.
 - Throw a more useful error if during a hot restart there is no
   active isolate.
+- Fix an issue where events were added on a closed injected client
+  connection.
 
 ## 3.0.2
 

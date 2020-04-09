@@ -241,7 +241,7 @@ class DevHandler {
       }
     });
 
-    unawaited(injectedConnection.sink.done.then((_) async {
+    unawaited(injectedConnection.onClose.then((_) async {
       _injectedConnections.remove(injectedConnection);
       if (appConnection != null) {
         _appConnectionByAppId.remove(appConnection.request.appId);
