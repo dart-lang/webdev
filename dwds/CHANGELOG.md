@@ -1,8 +1,10 @@
-## 3.0.3-dev
+## 3.0.3
 
 - Support the latest version of `package:shelf_packages_handler`.
 - Throw a more useful error if during a hot restart there is no
   active isolate.
+- Correct scope detection for expression evaluation
+- Silence verbose and recoverable exceptions during expression evaluation
 
 ## 3.0.2
 
