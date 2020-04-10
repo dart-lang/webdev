@@ -345,6 +345,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         var result = await _expressionEvaluator.evaluateExpression(
             isolateId, frameIndex, expression);
 
+        if (result.type == 'error') {
+          return ErrorRef(kind: 'error', message: '${result.value}');
+        }
         return _inspector?.instanceHelper?.instanceRefFor(result);
       } catch (e, s) {
         _logWriter(

@@ -32,7 +32,7 @@ class ExpressionEvaluator {
 
   RemoteObject _createError(String severity, String message) {
     return RemoteObject(
-        <String, String>{'type': 'string', 'value': '$severity: $message'});
+        <String, String>{'type': 'error', 'value': '$severity: $message'});
   }
 
   /// Evaluate dart expression inside a given JavaScript frame (function)

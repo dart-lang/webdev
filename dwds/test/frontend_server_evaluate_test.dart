@@ -176,9 +176,9 @@ void main() {
 
         expect(
             error,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
+            const TypeMatcher<ErrorRef>().having(
+                (instance) => instance.message,
+                'message',
                 'Compilation error: Getter not found: \'typo\'.\ntypo\n^^^^'));
 
         // Remove breakpoint so it doesn't impact other tests.
