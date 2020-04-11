@@ -179,7 +179,7 @@ void main() {
             const TypeMatcher<ErrorRef>().having(
                 (instance) => instance.message,
                 'message',
-                'Compilation error: Getter not found: \'typo\'.\ntypo\n^^^^'));
+                'CompilationError: Getter not found: \'typo\'.\ntypo\n^^^^'));
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);

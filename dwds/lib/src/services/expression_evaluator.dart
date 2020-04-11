@@ -12,6 +12,22 @@ import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'expression_compiler.dart';
 
+enum ErrorKind {
+  compilation,
+  reference,
+  internal,
+  invalidInput
+}
+
+String errorKindToString(ErrorKind kind) {
+  switch (kind) {
+    case ErrorKind.compilation: return 'CompilationError';
+    case ErrorKind.reference: return 'ReferenceError';
+    case ErrorKind.internal: return 'InternalError';
+    case ErrorKind.invalidInput: return 'InvalidInputError';
+  }
+}
+
 /// ExpressionEvaluator provides functionality to evaluate dart expressions
 /// from text user input in the debugger, using chrome remote debugger to
 /// collect context for evaluation (scope, types, modules), and using
@@ -30,9 +46,9 @@ class ExpressionEvaluator {
     _logWriter(Level.INFO, message);
   }
 
-  RemoteObject _createError(String severity, String message) {
+  RemoteObject _createError(ErrorKind severity, String message) {
     return RemoteObject(
-        <String, String>{'type': 'error', 'value': '$severity: $message'});
+        <String, String>{'type': errorKindToString(severity), 'value': message});
   }
 
   /// Evaluate dart expression inside a given JavaScript frame (function)
@@ -48,12 +64,11 @@ class ExpressionEvaluator {
   Future<RemoteObject> evaluateExpression(
       String isolateId, int frameIndex, String expression) async {
     if (_compiler == null) {
-      return _createError(
-          'Internal error', 'ExpressionEvaluator needs an ExpressionCompiler');
+      return _createError(ErrorKind.internal, 'ExpressionEvaluator needs an ExpressionCompiler');
     }
 
     if (expression == null || expression.isEmpty) {
-      return _createError('Invalid input', expression);
+      return _createError(ErrorKind.invalidInput, expression);
     }
 
     // 1. get js scope and current JS location
@@ -83,7 +98,7 @@ class ExpressionEvaluator {
 
     if (locationMap == null) {
       return _createError(
-          'Internal Error',
+          ErrorKind.internal,
           'Cannot find Dart location for JS location: '
               'function: $functionName, '
               'location: $jsLocation');
@@ -161,11 +176,15 @@ class ExpressionEvaluator {
       error = error.replaceAll(
           RegExp('org-dartlang-debug:synthetic_debug_expression:.* Error: '),
           '');
-      return _createError('Compilation error', error);
+      return _createError(ErrorKind.compilation, error);
     }
 
     var result =
         await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsExpression);
+
+    if (result.type == 'string' && result.value.toString().startsWith('ReferenceError:')) {
+      return  _createError(ErrorKind.reference, result.value.toString().replaceFirst('ReferenceError:', ''));
+    }
 
     _printTrace('Expression evaluator: '
         'Evaluation result returned from chrome: $result');
