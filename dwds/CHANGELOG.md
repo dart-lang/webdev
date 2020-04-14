@@ -3,6 +3,8 @@
 - Support the latest version of `package:shelf_packages_handler`.
 - Throw a more useful error if during a hot restart there is no
   active isolate.
+- Fix a race condition in which loading module metadata could cause
+  a crash.
 
 ## 3.0.2
 

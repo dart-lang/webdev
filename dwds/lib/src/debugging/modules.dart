@@ -113,6 +113,6 @@ class Modules {
       _sourceToModule[serverPath] = value[dartScript] as String;
       _sourceToLibrary[serverPath] = Uri.parse(dartScript);
     }
-    _moduleCompleter.complete();
+    if (!_moduleCompleter.isCompleted) _moduleCompleter.complete();
   }
 }
