@@ -19,7 +19,7 @@ class Modules {
   final _sourceToModule = <String, String>{};
   // The Dart server path to library import uri
   final _sourceToLibrary = <String, Uri>{};
-  Completer<bool> _moduleCompleter = Completer<bool>();
+  var _moduleCompleter = Completer<void>();
 
   // The Chrome script ID to corresponding module.
   final _scriptIdToModule = <String, String>{};
@@ -42,7 +42,7 @@ class Modules {
     // across hot reloads.
     _sourceToModule.clear();
     _sourceToLibrary.clear();
-    _moduleCompleter = Completer<bool>();
+    _moduleCompleter = Completer<void>();
   }
 
   /// Returns the module for the Chrome script ID.
@@ -83,10 +83,11 @@ class Modules {
 
   /// Initializes [_sourceToModule].
   Future<void> _initializeMapping() async {
-    if (_moduleCompleter.isCompleted) return;
-    // TODO(grouma) - We should talk to the compiler directly to greatly
-    // improve the performance here.
-    var expression = '''
+    if (!_moduleCompleter.isCompleted) {
+      // TODO(grouma) - We should talk to the compiler directly to greatly
+      // improve the performance here.
+      var collectMetaData = () async {
+        var expression = '''
     (function() {
           var dart = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
           var result = {};
@@ -99,20 +100,23 @@ class Modules {
           return result;
       })();
       ''';
-    var response =
-        await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
-      'expression': expression,
-      'returnByValue': true,
-      'contextId': await _executionContext.id,
-    });
-    handleErrorIfPresent(response);
-    var value = response.result['result']['value'] as Map<String, dynamic>;
-    for (var dartScript in value.keys) {
-      if (!dartScript.endsWith('.dart')) continue;
-      var serverPath = DartUri(dartScript, _root).serverPath;
-      _sourceToModule[serverPath] = value[dartScript] as String;
-      _sourceToLibrary[serverPath] = Uri.parse(dartScript);
+        var response =
+            await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
+          'expression': expression,
+          'returnByValue': true,
+          'contextId': await _executionContext.id,
+        });
+        handleErrorIfPresent(response);
+        var value = response.result['result']['value'] as Map<String, dynamic>;
+        for (var dartScript in value.keys) {
+          if (!dartScript.endsWith('.dart')) continue;
+          var serverPath = DartUri(dartScript, _root).serverPath;
+          _sourceToModule[serverPath] = value[dartScript] as String;
+          _sourceToLibrary[serverPath] = Uri.parse(dartScript);
+        }
+      };
+      _moduleCompleter.complete(collectMetaData());
     }
-    if (!_moduleCompleter.isCompleted) _moduleCompleter.complete();
+    await _moduleCompleter.future;
   }
 }
