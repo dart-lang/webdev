@@ -120,7 +120,28 @@ void main() {
         await service.removeBreakpoint(isolate.id, bp.id);
       });
 
-      test('call library function', () async {
+      test('call library function with const param', () async {
+        var line = await context.findBreakpointLine(
+            'printLocal', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        var event = await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var result = await service.evaluateInFrame(
+            isolate.id, event.topFrame.index, 'testLibraryFunction(42)');
+
+        expect(
+            result,
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', '42'));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+      });
+
+      test('call library function with local param', () async {
         var line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
         var bp = await service.addBreakpointWithScriptUri(
@@ -139,7 +160,7 @@ void main() {
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
-      });
+      }, skip: 'Issue https://github.com/dart-lang/sdk/issues/41443');
 
       test('error', () async {
         var line = await context.findBreakpointLine(
@@ -155,10 +176,10 @@ void main() {
 
         expect(
             error,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                'Compilation error: Getter not found: \'typo\'.\ntypo\n^^^^'));
+            const TypeMatcher<ErrorRef>().having(
+                (instance) => instance.message,
+                'message',
+                'CompilationError: Getter not found: \'typo\'.\ntypo\n^^^^'));
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);

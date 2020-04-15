@@ -1271,10 +1271,8 @@ void main() {
 
         expect(
             error,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString,
-                'valueAsString',
-                'ReferenceError: typo is not defined'));
+            const TypeMatcher<ErrorRef>().having((instance) => instance.message,
+                'message', 'ReferenceError: typo is not defined'));
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
