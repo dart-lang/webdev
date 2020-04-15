@@ -88,17 +88,16 @@ class Modules {
     // TODO(grouma) - We should talk to the compiler directly to greatly
     // improve the performance here.
     var expression = '''
-    (function() {
-          var dart = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-          var result = {};
-          dart.getModuleNames().forEach(function(module){
-            Object.keys(dart.getModuleLibraries(module)).forEach(
-              function(script){
-                result[script] = module;
-            });
-          });
-          return result;
-      })();
+(function() {
+  var dart = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
+  var result = {};
+  for (module of dart.getModuleNames()) {
+    for (script of Object.keys(dart.getModuleLibraries(module))) {
+      result[script] = module;
+    }
+  }
+  return result;
+})();
       ''';
     var response =
         await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
