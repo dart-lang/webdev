@@ -1,3 +1,5 @@
+## 3.0.4-dev
+
 ## 3.0.3
 
 - Support the latest version of `package:shelf_packages_handler`.
