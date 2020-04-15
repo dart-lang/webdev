@@ -6,6 +6,7 @@ targets:
           compiler: dart2js
           dart2js_args:
             - -O1
+            - --no-source-maps
         generate_for:
           - web/client.dart
       dwds|client_js_copy_builder:

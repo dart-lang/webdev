@@ -10,8 +10,19 @@ import 'package:dwds/src/utilities/objects.dart' as chrome;
 import 'package:dwds/src/utilities/shared.dart' show LogWriter;
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
 import 'expression_compiler.dart';
+
+class ErrorKind {
+  const ErrorKind._(this._kind);
+  final String _kind;
+  static const ErrorKind compilation = ErrorKind._('CompilationError');
+  static const ErrorKind reference = ErrorKind._('ReferenceError');
+  static const ErrorKind internal = ErrorKind._('InternalError');
+  static const ErrorKind invalidInput = ErrorKind._('InvalidInputError');
+
+  @override
+  String toString() => _kind;
+}
 
 /// ExpressionEvaluator provides functionality to evaluate dart expressions
 /// from text user input in the debugger, using chrome remote debugger to
@@ -31,9 +42,12 @@ class ExpressionEvaluator {
     _logWriter(Level.INFO, message);
   }
 
-  RemoteObject _createError(String severity, String message) {
+  RemoteObject _createError(ErrorKind severity, String message) {
+    if (severity == ErrorKind.internal) {
+      _logWriter(Level.WARNING, '$severity: $message');
+    }
     return RemoteObject(
-        <String, String>{'type': 'string', 'value': '$severity: $message'});
+        <String, String>{'type': '$severity', 'value': message});
   }
 
   /// Evaluate dart expression inside a given JavaScript frame (function)
@@ -49,12 +63,12 @@ class ExpressionEvaluator {
   Future<RemoteObject> evaluateExpression(
       String isolateId, int frameIndex, String expression) async {
     if (_compiler == null) {
-      return _createError(
-          'Internal error', 'ExpressionEvaluator needs an ExpressionCompiler');
+      return _createError(ErrorKind.internal,
+          'ExpressionEvaluator needs an ExpressionCompiler');
     }
 
     if (expression == null || expression.isEmpty) {
-      return _createError('Invalid input', expression);
+      return _createError(ErrorKind.invalidInput, expression);
     }
 
     // 1. get js scope and current JS location
@@ -84,10 +98,10 @@ class ExpressionEvaluator {
 
     if (locationMap == null) {
       return _createError(
-          'Internal Error',
+          ErrorKind.internal,
           'Cannot find Dart location for JS location: '
-              'function: $functionName, '
-              'location: $jsLocation');
+          'function: $functionName, '
+          'location: $jsLocation');
     }
 
     var dartLocation = locationMap.dartLocation;
@@ -100,6 +114,8 @@ class ExpressionEvaluator {
     var currentModule =
         await _modules.moduleForSource(dartLocation.uri.serverPath);
     var modules = await _modules.modules();
+
+    _printTrace('Expression evaluator: current module: $currentModule');
 
     // TODO(annagrin): Handle same file names under different roots
     // [issue 891](https://github.com/dart-lang/webdev/issues/891)
@@ -114,7 +130,14 @@ class ExpressionEvaluator {
       var name = pathToJSIdentifier(libraryPath.replaceAll('.dart', ''));
       jsModules[name] = module;
     }
-    _printTrace('Expression evaluator: js modules: $jsModules');
+
+    // Break up modules printing into lines so VSCode renderer does not choke
+    var debugModules =
+        (modules.keys.map((k) => '$k: ${modules[k]}')).join(',\n');
+    var debugJsModules =
+        (jsModules.keys.map((k) => '$k: ${jsModules[k]}')).join(',\n');
+    _printTrace('Expression evaluator: modules: $debugModules');
+    _printTrace('Expression evaluator: js modules: $debugJsModules');
 
     var compilationResult = await _compiler.compileExpressionToJs(
         isolateId,
@@ -150,17 +173,29 @@ class ExpressionEvaluator {
         error = error.substring(0, error.lastIndexOf(']'));
       }
 
+      if (error.contains('InternalError:')) {
+        error = error.replaceAll('CompilationError: InternalError: ', '');
+        return _createError(ErrorKind.internal, error);
+      }
+
       error = error.replaceAll(
           RegExp('org-dartlang-debug:synthetic_debug_expression:.* Error: '),
           '');
-      return _createError('Compilation error', error);
+      return _createError(ErrorKind.compilation, error);
     }
 
     var result =
         await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsExpression);
 
-    _printTrace('Expression evaluator: '
-        'Evaluation result returned from chrome: $result');
+    if (result.type == 'string') {
+      var error = '${result.value}';
+      if (error.startsWith('ReferenceError: ')) {
+        error = error.replaceFirst('ReferenceError: ', '');
+        return _createError(ErrorKind.reference, error);
+      }
+    }
+
+    _printTrace('Expression evaluator: result: $result');
 
     // 6. Return evaluation result or error
     return result;
@@ -211,10 +246,22 @@ class ExpressionEvaluator {
     var scopeChain = List<WipScope>.from(frame.getScopeChain()).reversed;
 
     // skip library and main scope
-    for (var scope in scopeChain.skip(2)) {
+    var skip = true;
+    for (var scope in scopeChain) {
       var scopeProperties =
           await _debugger.getProperties(scope.object.objectId);
-      collectVariables(scope.scope, scopeProperties);
+
+      if (!skip) {
+        _logWriter(
+            Level.INFO, 'Collecting Scope ${scope.scope}: $scopeProperties');
+        collectVariables(scope.scope, scopeProperties);
+      } else {
+        // TODO(sdk/issues/40774) - This appears brittle.
+        var names = scopeProperties.map((element) => element.name).toSet();
+        if (names.contains('core') && names.contains('dart')) {
+          skip = false;
+        }
+      }
     }
 
     return jsScope;
