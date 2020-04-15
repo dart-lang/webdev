@@ -12,20 +12,16 @@ import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'expression_compiler.dart';
 
-enum ErrorKind {
-  compilation,
-  reference,
-  internal,
-  invalidInput
-}
+class ErrorKind {
+  const ErrorKind._(this._kind);
+  final String _kind;
+  static const ErrorKind compilation = ErrorKind._('CompilationError');
+  static const ErrorKind reference = ErrorKind._('ReferenceError');
+  static const ErrorKind internal = ErrorKind._('InternalError');
+  static const ErrorKind invalidInput = ErrorKind._('InvalidInputError');
 
-String errorKindToString(ErrorKind kind) {
-  switch (kind) {
-    case ErrorKind.compilation: return 'CompilationError';
-    case ErrorKind.reference: return 'ReferenceError';
-    case ErrorKind.internal: return 'InternalError';
-    case ErrorKind.invalidInput: return 'InvalidInputError';
-  }
+  @override
+  String toString() => _kind;
 }
 
 /// ExpressionEvaluator provides functionality to evaluate dart expressions
@@ -47,8 +43,11 @@ class ExpressionEvaluator {
   }
 
   RemoteObject _createError(ErrorKind severity, String message) {
+    if (severity == ErrorKind.internal) {
+      _logWriter(Level.WARNING, '$severity: $message');
+    }
     return RemoteObject(
-        <String, String>{'type': errorKindToString(severity), 'value': message});
+        <String, String>{'type': '$severity', 'value': message});
   }
 
   /// Evaluate dart expression inside a given JavaScript frame (function)
@@ -64,7 +63,8 @@ class ExpressionEvaluator {
   Future<RemoteObject> evaluateExpression(
       String isolateId, int frameIndex, String expression) async {
     if (_compiler == null) {
-      return _createError(ErrorKind.internal, 'ExpressionEvaluator needs an ExpressionCompiler');
+      return _createError(ErrorKind.internal,
+          'ExpressionEvaluator needs an ExpressionCompiler');
     }
 
     if (expression == null || expression.isEmpty) {
@@ -100,8 +100,8 @@ class ExpressionEvaluator {
       return _createError(
           ErrorKind.internal,
           'Cannot find Dart location for JS location: '
-              'function: $functionName, '
-              'location: $jsLocation');
+          'function: $functionName, '
+          'location: $jsLocation');
     }
 
     var dartLocation = locationMap.dartLocation;
@@ -115,7 +115,7 @@ class ExpressionEvaluator {
         await _modules.moduleForSource(dartLocation.uri.serverPath);
     var modules = await _modules.modules();
 
-    _printTrace('Expression evaluator:  current module: $currentModule');
+    _printTrace('Expression evaluator: current module: $currentModule');
 
     // TODO(annagrin): Handle same file names under different roots
     // [issue 891](https://github.com/dart-lang/webdev/issues/891)
@@ -131,7 +131,7 @@ class ExpressionEvaluator {
       jsModules[name] = module;
     }
 
-    // Break up modules printing into lines to VSCode renderer does not choke
+    // Break up modules printing into lines so VSCode renderer does not choke
     var debugModules =
         (modules.keys.map((k) => '$k: ${modules[k]}')).join(',\n');
     var debugJsModules =
@@ -173,6 +173,11 @@ class ExpressionEvaluator {
         error = error.substring(0, error.lastIndexOf(']'));
       }
 
+      if (error.contains('InternalError:')) {
+        error = error.replaceAll('CompilationError: InternalError: ', '');
+        return _createError(ErrorKind.internal, error);
+      }
+
       error = error.replaceAll(
           RegExp('org-dartlang-debug:synthetic_debug_expression:.* Error: '),
           '');
@@ -182,12 +187,15 @@ class ExpressionEvaluator {
     var result =
         await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsExpression);
 
-    if (result.type == 'string' && result.value.toString().startsWith('ReferenceError:')) {
-      return  _createError(ErrorKind.reference, result.value.toString().replaceFirst('ReferenceError:', ''));
+    if (result.type == 'string') {
+      var error = '${result.value}';
+      if (error.startsWith('ReferenceError: ')) {
+        error = error.replaceFirst('ReferenceError: ', '');
+        return _createError(ErrorKind.reference, error);
+      }
     }
 
-    _printTrace('Expression evaluator: '
-        'Evaluation result returned from chrome: $result');
+    _printTrace('Expression evaluator: result: $result');
 
     // 6. Return evaluation result or error
     return result;
