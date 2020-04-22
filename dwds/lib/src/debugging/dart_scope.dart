@@ -30,8 +30,10 @@ Future<List<Property>> visibleProperties(
   // parameters. Hide those.
   // TODO(#786) Handle these correctly rather than just suppressing them.
   allProperties.removeWhere((each) =>
-      each.value.type == 'function' &&
-      each.value.description.startsWith('class '));
+      (each.value.type == 'function' &&
+          each.value.description.startsWith('class ')) ||
+      (each.value.type == 'object' &&
+          each.value.description == 'dart.LegacyType.new'));
   var existingThis =
       allProperties.firstWhere((x) => x.name == 'this', orElse: () => null);
   if (existingThis == null) {
