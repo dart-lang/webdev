@@ -43,9 +43,6 @@ class ExpressionEvaluator {
   }
 
   RemoteObject _createError(ErrorKind severity, String message) {
-    if (severity == ErrorKind.internal) {
-      _logWriter(Level.WARNING, '$severity: $message');
-    }
     return RemoteObject(
         <String, String>{'type': '$severity', 'value': message});
   }
@@ -154,8 +151,6 @@ class ExpressionEvaluator {
     var isError = compilationResult.isError;
     var jsExpression = compilationResult.result;
 
-    _printTrace('Expression evaluator: js: $jsExpression, isError: $isError');
-
     if (isError) {
       // Frontend currently gives a text message including library name
       // and function name on compilation error. Strip this information
@@ -173,8 +168,8 @@ class ExpressionEvaluator {
         error = error.substring(0, error.lastIndexOf(']'));
       }
 
-      if (error.contains('InternalError:')) {
-        error = error.replaceAll('CompilationError: InternalError: ', '');
+      if (error.contains('InternalError: ')) {
+        error = error.replaceAll('InternalError: ', '');
         return _createError(ErrorKind.internal, error);
       }
 

@@ -71,16 +71,18 @@ void main() {
       var frame = stack.frames.first;
       var variableNames = frame.vars.map((variable) => variable.name).toList()
         ..sort();
-      expect(variableNames, [
-        'aClass',
-        'another',
-        'intLocalInMain',
-        'local',
-        'localThatsNull',
-        'nestedFunction',
-        'parameter',
-        'testClass'
-      ]);
+      expect(
+          variableNames,
+          containsAll([
+            'aClass',
+            'another',
+            'intLocalInMain',
+            'local',
+            'localThatsNull',
+            'nestedFunction',
+            'parameter',
+            'testClass'
+          ]));
     });
 
     test('variables in closure nested in method', () async {
