@@ -1,4 +1,6 @@
-## 3.0.4-dev
+## 3.1.0-dev
+
+- Support Chromium based Edge.
 
 ## 3.0.3
 
