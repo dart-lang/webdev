@@ -8343,9 +8343,6 @@
       t1.body.appendChild(scriptElement);
       P.Future_Future$microtask(C.ScriptElement_methods.get$remove(scriptElement), type$.void);
     },
-    _isChrome: function() {
-      return J.contains$1$asx(window.navigator.userAgent, "Chrome") && !J.contains$1$asx(window.navigator.userAgent, "Edg");
-    },
     main_closure: function main_closure() {
     },
     main__closure: function main__closure(t0) {
@@ -22224,7 +22221,7 @@
               t3 = type$.void_Function_KeyboardEvent._as(new D.main__closure3());
               t1._as(null);
               W._EventStreamSubscription$(t2, "keydown", t3, false, type$.KeyboardEvent);
-              if (D._isChrome()) {
+              if (J.contains$1$asx(window.navigator.userAgent, "Chrome")) {
                 t1 = client._outgoingController;
                 t2 = $.$get$serializers();
                 t3 = new E.ConnectRequestBuilder();
@@ -22253,8 +22250,8 @@
   D.main__closure0.prototype = {
     call$0: function() {
       var t1, t2, t3;
-      if (!D._isChrome()) {
-        window.alert("Dart DevTools is only supported on Chrome");
+      if (!J.contains$1$asx(window.navigator.userAgent, "Chrome")) {
+        window.alert("Dart DevTools is only supported on Chromium based browsers.");
         return;
       }
       t1 = this.client._outgoingController;

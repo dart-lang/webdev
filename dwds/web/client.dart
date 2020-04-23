@@ -57,8 +57,9 @@ Future<void> main() {
     });
 
     launchDevToolsJs = allowInterop(() {
-      if (!_isChrome) {
-        window.alert('Dart DevTools is only supported on Chrome');
+      if (!_isChromium) {
+        window.alert(
+            'Dart DevTools is only supported on Chromium based browsers.');
         return;
       }
       client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
@@ -109,12 +110,12 @@ Future<void> main() {
       }
     });
 
-    if (_isChrome) {
+    if (_isChromium) {
       client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
         ..appId = dartAppId
         ..instanceId = dartAppInstanceId))));
     } else {
-      // If not chrome we just invoke main, devtools aren't supported.
+      // If not Chromium we just invoke main, devtools aren't supported.
       runMain();
     }
   }, onError: (error, stackTrace) {
@@ -187,8 +188,4 @@ void runMain() {
   Future.microtask(scriptElement.remove);
 }
 
-bool get _isChrome =>
-    window.navigator.userAgent.contains('Chrome') &&
-    // Edge has `Chrome` in its user agent string, but it also has `Edg` which
-    // chrome doesn't.
-    !window.navigator.userAgent.contains('Edg');
+bool get _isChromium => window.navigator.userAgent.contains('Chrome');
