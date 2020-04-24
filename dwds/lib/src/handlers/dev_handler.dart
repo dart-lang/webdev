@@ -91,11 +91,7 @@ class DevHandler {
 
   Future<void> close() => _closed ??= () async {
         await _sub.cancel();
-        // We listen for connections to close and remove them from the connections
-        // set. Therefore we shouldn't asynchronously iterate through the
-        // connections.
-        await Future.wait(_injectedConnections
-            .map((injectedConnection) => injectedConnection.sink.close()));
+        _sseHandler.shutdown();
         await Future.wait(_servicesByAppId.values.map((service) async {
           await service.close();
         }));
