@@ -1,4 +1,6 @@
-## 3.0.4-dev
+## 3.1.0-dev
+
+- Support Chromium based Edge.
 
 - Depend on latest `package:sse` version `3.5.0`.
 - Bypass connection keep-alives when shutting down to avoid delaying process shutdown.
