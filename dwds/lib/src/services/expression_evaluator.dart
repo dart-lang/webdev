@@ -179,6 +179,8 @@ class ExpressionEvaluator {
       return _createError(ErrorKind.compilation, error);
     }
 
+    _printTrace('Expression evaluator: jsExpression: $jsExpression');
+
     var result =
         await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsExpression);
 
@@ -197,6 +199,10 @@ class ExpressionEvaluator {
   }
 
   String _valueToLiteral(RemoteObject value) {
+    if (value.value == null) {
+      return null;
+    }
+
     var ret = value.value.toString();
     if (value.type == 'string') {
       return '\'$ret\'';
@@ -230,7 +236,9 @@ class ExpressionEvaluator {
           // }
           // TODO(annagrin): decide if we would like not to support evaluation
           // of uncaptured variables
-          jsScope[name] = _valueToLiteral(value);
+
+          var capturedValue = _valueToLiteral(value);
+          jsScope[name] = capturedValue ?? name;
         }
         if (scopeType == 'local') {
           jsScope[name] = name;
