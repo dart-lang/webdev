@@ -55,23 +55,31 @@ class FakeInspector extends Domain implements AppInspector {
           String isolateId, String targetId, String expression,
           {Map<String, String> scope}) =>
       null;
+
   @override
   Future<Obj> getObject(String isolateId, String objectId,
           {int offset, int count}) =>
       null;
+
   @override
   Future<ScriptList> getScripts(String isolateId) => null;
+
   @override
   Future<ScriptRef> scriptRefFor(String uri) =>
       Future.value(ScriptRef(id: 'fake', uri: 'fake://uri'));
+
   @override
   Future<ScriptRef> scriptWithId(String scriptId) => null;
+
   @override
   Isolate checkIsolate(String isolateId) => fakeIsolate;
+
   @override
   Isolate get isolate => fakeIsolate;
+
   @override
   IsolateRef get isolateRef => null;
+
   @override
   InstanceHelper get instanceHelper => InstanceHelper(null);
 }
@@ -169,6 +177,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   @override
   Future pause() => null;
+
   @override
   Future resume() => null;
 
@@ -249,6 +258,9 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   @override
   Future<void> enablePage() => null;
+
+  @override
+  Future<void> pageReload() => null;
 }
 
 /// Fake execution context that is needed for id only

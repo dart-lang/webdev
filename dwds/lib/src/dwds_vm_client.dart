@@ -87,9 +87,7 @@ class DwdsVmClient {
 
     client.registerServiceCallback('fullReload', (_) async {
       await chromeProxyService.remoteDebugger.enablePage();
-      // TODO: use built in `page.reload` once it works,
-      // https://github.com/google/webkit_inspection_protocol.dart/issues/44
-      await chromeProxyService.remoteDebugger.sendCommand('Page.reload');
+      await chromeProxyService.remoteDebugger.pageReload();
       return {'result': Success().toJson()};
     });
     await client.registerService('fullReload', 'DWDS');

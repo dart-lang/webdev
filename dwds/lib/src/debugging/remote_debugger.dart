@@ -21,6 +21,7 @@ abstract class RemoteDebugger {
   Future<void> stepOut();
   Future<void> stepOver();
   Future<void> enablePage();
+  Future<void> pageReload();
   Future<RemoteObject> evaluate(String expression);
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer);
   Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared;

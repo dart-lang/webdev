@@ -34,16 +34,20 @@ class ExtensionDebugger implements RemoteDebugger {
 
   String instanceId;
   ExecutionContext _executionContext;
+
   ExecutionContext get executionContext => _executionContext;
 
   final _devToolsRequestController = StreamController<DevToolsRequest>();
+
   Stream<DevToolsRequest> get devToolsRequestStream =>
       _devToolsRequestController.stream;
 
   final _notificationController = StreamController<WipEvent>.broadcast();
+
   Stream<WipEvent> get onNotification => _notificationController.stream;
 
   final _closeController = StreamController<WipEvent>.broadcast();
+
   @override
   Stream<WipEvent> get onClose => _closeController.stream;
 
@@ -165,6 +169,9 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   Future<void> enablePage() => sendCommand('Page.enable');
+
+  @override
+  Future<void> pageReload() => sendCommand('Page.reload');
 
   @override
   Future<RemoteObject> evaluate(String expression) async {
