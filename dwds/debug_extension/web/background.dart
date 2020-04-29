@@ -102,8 +102,8 @@ void main() {
   isDartDebugExtension = true;
 }
 
-/// Attempts to attach to the Dart application in the provided Tab
-/// and exeuction context.
+/// Attempts to attach to the Dart application in the provided Tab and execution
+/// context.
 Future<bool> _tryAttach(int contextId, Tab tab) async {
   var successCompleter = Completer<bool>();
   sendCommand(

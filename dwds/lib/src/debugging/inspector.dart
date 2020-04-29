@@ -346,6 +346,65 @@ function($argsString) {
     return _serverPathToScriptRef[uri];
   }
 
+  /// Return the VM SourceReport for the given parameters.
+  ///
+  /// Currently this implements the 'PossibleBreakpoints' report kind.
+  Future<SourceReport> getSourceReport(String isolateId, List<String> reports,
+      {String scriptId, int tokenPos, int endTokenPos, bool forceCompile}) {
+    checkIsolate(isolateId);
+
+    if (reports.contains(SourceReportKind.kCoverage)) {
+      throw ArgumentError.value(reports, 'reports',
+          "Source report kind '${SourceReportKind.kCoverage}' is currently unsupported.");
+    }
+
+    if (reports.isEmpty) {
+      throw ArgumentError.value(reports, 'reports', 'no value provided');
+    }
+
+    if (reports.length == 1 &&
+        reports.first == SourceReportKind.kPossibleBreakpoints) {
+      return _getPossibleBreakpoints(isolateId, scriptId);
+    }
+
+    throw ArgumentError.value(
+        reports, 'reports', 'Unsupported source report kind.');
+  }
+
+  Future<SourceReport> _getPossibleBreakpoints(
+      String isolateId, String scriptId) async {
+    final scriptRef = await scriptWithId(scriptId);
+    if (scriptRef == null) {
+      throw ArgumentError.value(scriptId, 'scriptId', 'not found');
+    }
+
+    final script = await _getScript(isolateId, scriptRef);
+
+    // Gather the token positions. Note, this is likely over report the number
+    // of lines which can have breakpoints.
+    // TODO: Switch to use the Chrome DevTools 'Debugger.getPossibleBreakpoints'
+    // call.
+    var breakpointLines = <int>[];
+    for (var lineInfo in script.tokenPosTable) {
+      // Decode [lineNumber, (tokenPos, columnNumber)*].
+      for (var pos = 1; pos < lineInfo.length; pos += 2) {
+        breakpointLines.add(lineInfo[pos]);
+      }
+    }
+    breakpointLines.sort();
+
+    final range = SourceReportRange(
+      scriptIndex: 0,
+      startPos: breakpointLines.isEmpty ? -1 : breakpointLines.first,
+      endPos: breakpointLines.isEmpty ? -1 : breakpointLines.last,
+      compiled: true,
+      possibleBreakpoints: breakpointLines,
+    );
+    final ranges = [range];
+
+    return SourceReport(scripts: [script], ranges: ranges);
+  }
+
   /// All the scripts in the isolate.
   Future<ScriptList> getScripts(String isolateId) async {
     checkIsolate(isolateId);
@@ -408,6 +467,7 @@ function($argsString) {
     }
   }
 
+  // TODO: This does not need to be async.
   /// Look up the script by id in an isolate.
   Future<ScriptRef> scriptWithId(String scriptId) async =>
       _scriptRefsById[scriptId];
