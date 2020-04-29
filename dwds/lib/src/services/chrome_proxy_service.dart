@@ -389,6 +389,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
+  Future<ClassList> getClassList(String isolateId) {
+    // See dart-lang/webdev/issues/971.
+    throw UnimplementedError();
+  }
+
+  @override
   Future<FlagList> getFlagList() async {
     // VM flags do not apply to web apps.
     return FlagList(flags: []);

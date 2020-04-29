@@ -21,8 +21,10 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext();
+
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
+
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
@@ -303,6 +305,10 @@ void main() {
     test('getAllocationProfile', () {
       expect(
           () => service.getAllocationProfile(null), throwsUnimplementedError);
+    });
+
+    test('getClassList', () {
+      expect(() => service.getClassList(null), throwsUnimplementedError);
     });
 
     test('getFlagList', () async {
