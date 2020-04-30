@@ -65,6 +65,9 @@ class WebkitDebugger implements RemoteDebugger {
   Future<void> enablePage() => _wipDebugger.connection.page.enable();
 
   @override
+  Future<void> pageReload() => _wipDebugger.connection.page.reload();
+
+  @override
   Future<RemoteObject> evaluate(String expression) =>
       _wipDebugger.connection.runtime.evaluate(expression);
 
