@@ -168,10 +168,10 @@ class ExtensionDebugger implements RemoteDebugger {
   Future<WipResponse> stepOver() => sendCommand('Debugger.stepOver');
 
   @override
-  Future<void> enablePage() => sendCommand('Page.enable');
+  Future<WipResponse> enablePage() => sendCommand('Page.enable');
 
   @override
-  Future<void> pageReload() => sendCommand('Page.reload');
+  Future<WipResponse> pageReload() => sendCommand('Page.reload');
 
   @override
   Future<RemoteObject> evaluate(String expression) async {

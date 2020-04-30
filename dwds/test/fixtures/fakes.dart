@@ -176,10 +176,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<ScriptParsedEvent> get onScriptParsed => null;
 
   @override
-  Future pause() => null;
+  Future<WipResponse> pause() => null;
 
   @override
-  Future resume() => null;
+  Future<WipResponse> resume() => null;
 
   @override
   Map<String, WipScript> get scripts => null;
@@ -230,16 +230,16 @@ class FakeWebkitDebugger implements WebkitDebugger {
   }
 
   @override
-  Future setPauseOnExceptions(PauseState state) => null;
+  Future<WipResponse> setPauseOnExceptions(PauseState state) => null;
 
   @override
-  Future stepInto() => null;
+  Future<WipResponse> stepInto() => null;
 
   @override
-  Future stepOut() => null;
+  Future<WipResponse> stepOut() => null;
 
   @override
-  Future stepOver() => null;
+  Future<WipResponse> stepOver() => null;
 
   @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled => null;
@@ -257,10 +257,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future<RemoteObject> evaluate(String expression) => null;
 
   @override
-  Future<void> enablePage() => null;
+  Future<WipResponse> enablePage() => null;
 
   @override
-  Future<void> pageReload() => null;
+  Future<WipResponse> pageReload() => null;
 }
 
 /// Fake execution context that is needed for id only
