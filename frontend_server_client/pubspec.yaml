@@ -1,0 +1,7 @@
+name: frontend_server_client
+version: 1.0.0-dev
+description: >-
+  Client code to start and interact with the frontend_server compiler from the
+  Dart SDK.
+environment:
+  sdk: ">=2.7.0 <2.8.0"
