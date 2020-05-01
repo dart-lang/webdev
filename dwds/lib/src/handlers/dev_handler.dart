@@ -308,17 +308,19 @@ class DevHandler {
     var existingAppConection = _appConnectionByAppId[message.appId];
     var connection = AppConnection(message, sseConnection);
 
-    // We can take over a connection if there is no connectedInstanceId (this means
-    // the client completely disconnected), or if the existing AppConnection
-    // is in the KeepAlive state (this means it disconnected but is still waiting
-    // for a possible reconnect - this happens during a page reload).
+    // We can take over a connection if there is no connectedInstanceId (this
+    // means the client completely disconnected), or if the existing
+    // AppConnection is in the KeepAlive state (this means it disconnected but
+    // is still waiting for a possible reconnect - this happens during a page
+    // reload).
     var canReuseConnection = services != null &&
         (services.connectedInstanceId == null ||
             existingAppConection?.isInKeepAlivePeriod == true);
 
     if (canReuseConnection) {
-      // Disconnect any old connection (eg. those in the keep-alive waiting state
-      // when reloading the page).
+      // Disconnect any old connection (eg. those in the keep-alive waiting
+      // state when reloading the page).
+      existingAppConection.shutDown();
       services.chromeProxyService?.destroyIsolate();
 
       // Reconnect to existing service.

@@ -1,9 +1,10 @@
-## 3.1.0-dev
+## 3.1.0
 
 - Support Chromium based Edge.
 
 - Depend on latest `package:sse` version `3.5.0`.
 - Bypass connection keep-alives when shutting down to avoid delaying process shutdown.
+- Fix an issue where the isolate would incorrectly be destroyed after connection reuse.
 
 ## 3.0.3
 
