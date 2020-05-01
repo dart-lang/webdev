@@ -40,6 +40,7 @@ class FrontendServerClient {
     String entrypoint,
     String outputDillPath,
     String platformKernel, {
+    bool debug = false,
     bool enableHttpUris = false,
     List<String> fileSystemRoots = const [], // For `fileSystemScheme` uris,
     String fileSystemScheme =
@@ -49,6 +50,7 @@ class FrontendServerClient {
     String target = 'vm', // The kernel target type.
   }) async {
     var feServer = await Process.start(_dartBinary, [
+      if (debug) '--observe',
       _feServerPath,
       '--sdk-root',
       _sdkDir ?? sdkRoot,

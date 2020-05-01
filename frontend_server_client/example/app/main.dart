@@ -4,6 +4,13 @@
 
 import 'package:path/path.dart' as p;
 
-void main() {
-  print(p.join('hello', 'world'));
+void main() async {
+  print(message);
+  while (!message.contains('goodbye')) {
+    print('waiting for hot reload to change message');
+    await Future.delayed(const Duration(seconds: 1));
+  }
+  print(message);
 }
+
+String get message => p.join('hello', 'world');

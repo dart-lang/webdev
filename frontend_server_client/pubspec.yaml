@@ -10,3 +10,5 @@ dependencies:
   meta: ^1.1.0
   path: ^1.7.0
   uuid: ^2.0.0
+dev_dependencies:
+  vm_service: ^4.0.0
