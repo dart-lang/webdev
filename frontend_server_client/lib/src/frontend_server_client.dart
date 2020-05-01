@@ -198,6 +198,7 @@ class FrontendServerClient {
   /// kernel file.
   void reset() {
     _feServer.stdin.writeln('reset');
+    _isFirstCompile = true;
   }
 
   /// Stop the service gracefully (using the shutdown command)
