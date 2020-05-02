@@ -37,6 +37,8 @@ abstract class RemoteDebugger {
 
   Future<WipResponse> setPauseOnExceptions(PauseState state);
 
+  Future<WipResponse> removeBreakpoint(String breakpointId);
+
   Future<WipResponse> stepInto();
 
   Future<WipResponse> stepOut();
@@ -47,7 +49,11 @@ abstract class RemoteDebugger {
 
   Future<WipResponse> pageReload();
 
-  Future<RemoteObject> evaluate(String expression);
+  Future<RemoteObject> evaluate(String expression,
+      {bool returnByValue, int contextId});
+
+  Future<RemoteObject> evaluateOnCallFrame(
+      String callFrameId, String expression);
 
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer);
 

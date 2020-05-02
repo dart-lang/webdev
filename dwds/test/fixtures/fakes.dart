@@ -233,6 +233,9 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future<WipResponse> setPauseOnExceptions(PauseState state) => null;
 
   @override
+  Future<WipResponse> removeBreakpoint(String breakpointId) => null;
+
+  @override
   Future<WipResponse> stepInto() => null;
 
   @override
@@ -254,7 +257,14 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<WipConnection> get onClose => null;
 
   @override
-  Future<RemoteObject> evaluate(String expression) => null;
+  Future<RemoteObject> evaluate(String expression,
+          {bool returnByValue, int contextId}) =>
+      null;
+
+  @override
+  Future<RemoteObject> evaluateOnCallFrame(
+          String callFrameId, String expression) =>
+      null;
 
   @override
   Future<WipResponse> enablePage() => null;

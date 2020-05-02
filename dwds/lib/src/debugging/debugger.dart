@@ -294,9 +294,7 @@ class Debugger extends Domain {
 
   /// Call the Chrome protocol removeBreakpoint.
   Future<void> _removeBreakpoint(String breakpointId) async {
-    var response = await _remoteDebugger.sendCommand(
-        'Debugger.removeBreakpoint',
-        params: {'breakpointId': breakpointId});
+    var response = await _remoteDebugger.removeBreakpoint(breakpointId);
     handleErrorIfPresent(response);
   }
 
@@ -560,13 +558,17 @@ class Debugger extends Domain {
   Future<RemoteObject> evaluateJsOnCallFrame(
       String callFrameId, String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.
-    WipResponse result;
-    result = await _remoteDebugger.sendCommand('Debugger.evaluateOnCallFrame',
-        params: {'callFrameId': callFrameId, 'expression': expression});
-    handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
-      'Dart expression': expression,
-    });
-    return RemoteObject(result.result['result'] as Map<String, dynamic>);
+    try {
+      return await _remoteDebugger.evaluateOnCallFrame(callFrameId, expression);
+    } on ExceptionDetails catch (e) {
+      throw ChromeDebugException(
+        e.json,
+        evalContents: expression,
+        additionalDetails: {
+          'Dart expression': expression,
+        },
+      );
+    }
   }
 }
 

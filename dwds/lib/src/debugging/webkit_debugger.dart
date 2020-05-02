@@ -53,6 +53,10 @@ class WebkitDebugger implements RemoteDebugger {
       _wipDebugger.setPauseOnExceptions(state);
 
   @override
+  Future<WipResponse> removeBreakpoint(String breakpointId) =>
+      _wipDebugger.removeBreakpoint(breakpointId);
+
+  @override
   Future<WipResponse> stepInto() => _wipDebugger.stepInto();
 
   @override
@@ -68,8 +72,18 @@ class WebkitDebugger implements RemoteDebugger {
   Future<WipResponse> pageReload() => _wipDebugger.connection.page.reload();
 
   @override
-  Future<RemoteObject> evaluate(String expression) =>
-      _wipDebugger.connection.runtime.evaluate(expression);
+  Future<RemoteObject> evaluate(String expression,
+      {bool returnByValue, int contextId}) {
+    return _wipDebugger.connection.runtime
+        .evaluate(expression, returnByValue: returnByValue);
+  }
+
+  @override
+  Future<RemoteObject> evaluateOnCallFrame(
+      String callFrameId, String expression) {
+    return _wipDebugger.connection.debugger
+        .evaluateOnCallFrame(callFrameId, expression);
+  }
 
   @override
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) =>

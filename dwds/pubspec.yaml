@@ -34,7 +34,7 @@ dependencies:
   sse: ^3.5.0
   vm_service: ^4.0.2
   web_socket_channel: ^1.0.0
-  webkit_inspection_protocol: '>=0.5.0+1 <0.6.0'
+  webkit_inspection_protocol: '>=0.5.1 <0.6.0'
 
 dev_dependencies:
   args: ^1.0.0
@@ -54,7 +54,3 @@ dev_dependencies:
   test: ^1.6.0
   uuid: ^2.0.0
   webdriver: ^2.0.0
-
-dependency_overrides:
-  webkit_inspection_protocol:
-    path: ../../../google/webkit_inspection_protocol.dart/

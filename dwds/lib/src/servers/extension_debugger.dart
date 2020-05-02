@@ -159,6 +159,12 @@ class ExtensionDebugger implements RemoteDebugger {
           params: {'state': _pauseStateToString(state)});
 
   @override
+  Future<WipResponse> removeBreakpoint(String breakpointId) {
+    return sendCommand('Debugger.removeBreakpoint',
+        params: {'breakpointId': breakpointId});
+  }
+
+  @override
   Future<WipResponse> stepInto() => sendCommand('Debugger.stepInto');
 
   @override
@@ -174,11 +180,35 @@ class ExtensionDebugger implements RemoteDebugger {
   Future<WipResponse> pageReload() => sendCommand('Page.reload');
 
   @override
-  Future<RemoteObject> evaluate(String expression) async {
-    final response = await sendCommand('Runtime.evaluate', params: {
+  Future<RemoteObject> evaluate(String expression,
+      {bool returnByValue, int contextId}) async {
+    final params = <String, dynamic>{
       'expression': expression,
-      'contextId': await _executionContext.id,
-    });
+    };
+    if (returnByValue != null) {
+      params['returnByValue'] = returnByValue;
+    }
+    if (returnByValue != null) {
+      params['contextId'] = contextId;
+    }
+    final response = await sendCommand('Runtime.evaluate', params: params);
+    if (response.result.containsKey('exceptionDetails')) {
+      throw ChromeDebugException(
+          response.result['exceptionDetails'] as Map<String, dynamic>);
+    } else {
+      return RemoteObject(response.result['result'] as Map<String, dynamic>);
+    }
+  }
+
+  @override
+  Future<RemoteObject> evaluateOnCallFrame(
+      String callFrameId, String expression) async {
+    final params = <String, dynamic>{
+      'callFrameId': callFrameId,
+      'expression': expression,
+    };
+    final response =
+        await sendCommand('Debugger.evaluateOnCallFrame', params: params);
     if (response.result.containsKey('exceptionDetails')) {
       throw ChromeDebugException(
           response.result['exceptionDetails'] as Map<String, dynamic>);
