@@ -435,7 +435,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<SourceReport> getSourceReport(String isolateId, List<String> reports,
       {String scriptId, int tokenPos, int endTokenPos, bool forceCompile}) {
-    throw UnimplementedError();
+    return _inspector?.getSourceReport(isolateId, reports,
+        scriptId: scriptId,
+        tokenPos: tokenPos,
+        endTokenPos: endTokenPos,
+        forceCompile: forceCompile);
   }
 
   /// Returns the current stack.

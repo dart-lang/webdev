@@ -350,6 +350,7 @@ void main() {
     group('getObject', () {
       Isolate isolate;
       Library rootLibrary;
+
       setUpAll(() async {
         var vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
@@ -622,9 +623,38 @@ void main() {
       expect(() => service.clearVMTimeline(), throwsUnimplementedError);
     });
 
-    test('getSourceReport', () {
-      expect(
-          () => service.getSourceReport(null, null), throwsUnimplementedError);
+    group('getSourceReport', () {
+      test('Coverage report', () {
+        expect(() => service.getSourceReport(null, ['Coverage']),
+            throwsA(isA<ArgumentError>()));
+      });
+
+      test('report type not understood', () {
+        // TODO(devoncarew): The VM returns:
+        //   "error.code": -32602,
+        //   "error.message": "Invalid params",
+        //     "data.details": "getSourceReport: invalid 'reports' parameter: [FooBar]"
+        expect(() => service.getSourceReport(null, ['FooBar']),
+            throwsA(isA<ArgumentError>()));
+      });
+
+      test('PossibleBreakpoints report', () async {
+        var vm = await service.getVM();
+        var isolateId = vm.isolates.first.id;
+        var scripts = await service.getScripts(isolateId);
+        var mainScript = scripts.scripts
+            .firstWhere((script) => script.uri.contains('main.dart'));
+
+        final sourceReport = await service.getSourceReport(
+          isolateId,
+          ['PossibleBreakpoints'],
+          scriptId: mainScript.id,
+        );
+
+        expect(sourceReport.scripts, isNotEmpty);
+        expect(sourceReport.ranges, isNotEmpty);
+        expect(sourceReport.ranges.first.possibleBreakpoints, isNotEmpty);
+      });
     });
 
     group('Pausing', () {

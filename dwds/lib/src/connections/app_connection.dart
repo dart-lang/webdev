@@ -21,6 +21,7 @@ class AppConnection {
   AppConnection(this.request, this._connection);
 
   bool get isInKeepAlivePeriod => _connection.isInKeepAlivePeriod;
+  void shutDown() => _connection.shutdown();
   bool get isStarted => _startedCompleter.isCompleted;
   Future<void> get onStart => _startedCompleter.future;
 
