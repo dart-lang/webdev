@@ -89,7 +89,7 @@ class Debugger extends Domain {
 
   Future<Success> pause() async {
     _isStepping = false;
-    var result = await _remoteDebugger.sendCommand('Debugger.pause');
+    var result = await _remoteDebugger.pause();
     handleErrorIfPresent(result);
     return Success();
   }
@@ -126,20 +126,20 @@ class Debugger extends Domain {
       _isStepping = true;
       switch (step) {
         case 'Over':
-          result = await _remoteDebugger.sendCommand('Debugger.stepOver');
+          result = await _remoteDebugger.stepOver();
           break;
         case 'Out':
-          result = await _remoteDebugger.sendCommand('Debugger.stepOut');
+          result = await _remoteDebugger.stepOut();
           break;
         case 'Into':
-          result = await _remoteDebugger.sendCommand('Debugger.stepInto');
+          result = await _remoteDebugger.stepInto();
           break;
         default:
           throw ArgumentError('Unexpected value for step: $step');
       }
     } else {
       _isStepping = false;
-      result = await _remoteDebugger.sendCommand('Debugger.resume');
+      result = await _remoteDebugger.resume();
     }
     handleErrorIfPresent(result);
     return Success();
@@ -190,7 +190,7 @@ class Debugger extends Domain {
       logger.warning('Error handling Chrome event', e, s);
     });
 
-    handleErrorIfPresent(await _remoteDebugger?.sendCommand('Page.enable'));
+    handleErrorIfPresent(await _remoteDebugger?.enablePage());
     handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
   }
 
@@ -294,9 +294,7 @@ class Debugger extends Domain {
 
   /// Call the Chrome protocol removeBreakpoint.
   Future<void> _removeBreakpoint(String breakpointId) async {
-    var response = await _remoteDebugger.sendCommand(
-        'Debugger.removeBreakpoint',
-        params: {'breakpointId': breakpointId});
+    var response = await _remoteDebugger.removeBreakpoint(breakpointId);
     handleErrorIfPresent(response);
   }
 
@@ -495,7 +493,7 @@ class Debugger extends Domain {
     } else {
       // If we don't have source location continue stepping.
       if (_isStepping && (await _sourceLocation(e)) == null) {
-        await _remoteDebugger.sendCommand('Debugger.stepInto');
+        await _remoteDebugger.stepInto();
         return;
       }
       event = Event(
@@ -560,13 +558,17 @@ class Debugger extends Domain {
   Future<RemoteObject> evaluateJsOnCallFrame(
       String callFrameId, String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.
-    WipResponse result;
-    result = await _remoteDebugger.sendCommand('Debugger.evaluateOnCallFrame',
-        params: {'callFrameId': callFrameId, 'expression': expression});
-    handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
-      'Dart expression': expression,
-    });
-    return RemoteObject(result.result['result'] as Map<String, dynamic>);
+    try {
+      return await _remoteDebugger.evaluateOnCallFrame(callFrameId, expression);
+    } on ExceptionDetails catch (e) {
+      throw ChromeDebugException(
+        e.json,
+        evalContents: expression,
+        additionalDetails: {
+          'Dart expression': expression,
+        },
+      );
+    }
   }
 }
 

@@ -176,10 +176,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<ScriptParsedEvent> get onScriptParsed => null;
 
   @override
-  Future pause() => null;
+  Future<WipResponse> pause() => null;
 
   @override
-  Future resume() => null;
+  Future<WipResponse> resume() => null;
 
   @override
   Map<String, WipScript> get scripts => null;
@@ -196,12 +196,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
     if (method == 'Runtime.getProperties') {
       return results[resultsReturned++];
     }
-    if (method == 'Debugger.evaluateOnCallFrame') {
-      return WipResponse({
-        'id': 42,
-        'result': {'result': <String, dynamic>{}}
-      });
-    }
+
     if (method == 'Runtime.evaluate') {
       // Fake response adapted from modules query at google3
       return WipResponse({
@@ -226,20 +221,24 @@ class FakeWebkitDebugger implements WebkitDebugger {
         }
       });
     }
+
     return null;
   }
 
   @override
-  Future setPauseOnExceptions(PauseState state) => null;
+  Future<WipResponse> setPauseOnExceptions(PauseState state) => null;
 
   @override
-  Future stepInto() => null;
+  Future<WipResponse> removeBreakpoint(String breakpointId) => null;
 
   @override
-  Future stepOut() => null;
+  Future<WipResponse> stepInto() => null;
 
   @override
-  Future stepOver() => null;
+  Future<WipResponse> stepOut() => null;
+
+  @override
+  Future<WipResponse> stepOver() => null;
 
   @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled => null;
@@ -254,13 +253,21 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<WipConnection> get onClose => null;
 
   @override
-  Future<RemoteObject> evaluate(String expression) => null;
+  Future<RemoteObject> evaluate(String expression,
+          {bool returnByValue, int contextId}) =>
+      null;
 
   @override
-  Future<void> enablePage() => null;
+  Future<RemoteObject> evaluateOnCallFrame(
+      String callFrameId, String expression) async {
+    return RemoteObject(<String, dynamic>{});
+  }
 
   @override
-  Future<void> pageReload() => null;
+  Future<WipResponse> enablePage() => null;
+
+  @override
+  Future<WipResponse> pageReload() => null;
 }
 
 /// Fake execution context that is needed for id only

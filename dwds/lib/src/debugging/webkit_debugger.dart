@@ -44,33 +44,47 @@ class WebkitDebugger implements RemoteDebugger {
       _wipDebugger.getScriptSource(scriptId);
 
   @override
-  Future<void> pause() => _wipDebugger.pause();
+  Future<WipResponse> pause() => _wipDebugger.pause();
 
   @override
-  Future<void> resume() => _wipDebugger.resume();
+  Future<WipResponse> resume() => _wipDebugger.resume();
 
   @override
-  Future<void> setPauseOnExceptions(PauseState state) =>
+  Future<WipResponse> setPauseOnExceptions(PauseState state) =>
       _wipDebugger.setPauseOnExceptions(state);
 
   @override
-  Future<void> stepInto() => _wipDebugger.stepInto();
+  Future<WipResponse> removeBreakpoint(String breakpointId) =>
+      _wipDebugger.removeBreakpoint(breakpointId);
 
   @override
-  Future<void> stepOut() => _wipDebugger.stepOut();
+  Future<WipResponse> stepInto() => _wipDebugger.stepInto();
 
   @override
-  Future<void> stepOver() => _wipDebugger.stepOver();
+  Future<WipResponse> stepOut() => _wipDebugger.stepOut();
 
   @override
-  Future<void> enablePage() => _wipDebugger.connection.page.enable();
+  Future<WipResponse> stepOver() => _wipDebugger.stepOver();
 
   @override
-  Future<void> pageReload() => _wipDebugger.connection.page.reload();
+  Future<WipResponse> enablePage() => _wipDebugger.connection.page.enable();
 
   @override
-  Future<RemoteObject> evaluate(String expression) =>
-      _wipDebugger.connection.runtime.evaluate(expression);
+  Future<WipResponse> pageReload() => _wipDebugger.connection.page.reload();
+
+  @override
+  Future<RemoteObject> evaluate(String expression,
+      {bool returnByValue, int contextId}) {
+    return _wipDebugger.connection.runtime
+        .evaluate(expression, returnByValue: returnByValue);
+  }
+
+  @override
+  Future<RemoteObject> evaluateOnCallFrame(
+      String callFrameId, String expression) {
+    return _wipDebugger.connection.debugger
+        .evaluateOnCallFrame(callFrameId, expression);
+  }
 
   @override
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) =>
