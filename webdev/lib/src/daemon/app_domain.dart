@@ -10,9 +10,9 @@ import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webdev/src/serve/webdev_server.dart';
 
 import '../serve/server_manager.dart';
+import '../serve/webdev_server.dart';
 import 'daemon.dart';
 import 'domain.dart';
 import 'utilites.dart';

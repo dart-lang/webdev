@@ -6,32 +6,32 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:async/async.dart';
-import 'package:dwds/data/build_result.dart';
-import 'package:dwds/data/error_response.dart';
-import 'package:dwds/data/run_request.dart';
-import 'package:dwds/dwds.dart';
-import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/debugging/webkit_debugger.dart';
-import 'package:dwds/src/servers/extension_backend.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../../data/build_result.dart';
 import '../../data/connect_request.dart';
 import '../../data/devtools_request.dart';
+import '../../data/error_response.dart';
 import '../../data/isolate_events.dart';
+import '../../data/run_request.dart';
 import '../../data/serializers.dart';
+import '../../dwds.dart';
 import '../connections/app_connection.dart';
+import '../connections/debug_connection.dart';
+import '../debugging/execution_context.dart';
+import '../debugging/remote_debugger.dart';
+import '../debugging/webkit_debugger.dart';
 import '../dwds_vm_client.dart';
 import '../readers/asset_reader.dart';
 import '../servers/devtools.dart';
+import '../servers/extension_backend.dart';
 import '../services/app_debug_services.dart';
 import '../services/debug_service.dart';
+import '../services/expression_compiler.dart';
 
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.

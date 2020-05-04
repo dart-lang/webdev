@@ -5,8 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/src/debugging/debugger.dart';
-import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -21,7 +19,9 @@ import '../utilities/domain.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'classes.dart';
+import 'debugger.dart';
 import 'exceptions.dart';
+import 'execution_context.dart';
 import 'instance.dart';
 import 'libraries.dart';
 
