@@ -196,12 +196,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
     if (method == 'Runtime.getProperties') {
       return results[resultsReturned++];
     }
-    if (method == 'Debugger.evaluateOnCallFrame') {
-      return WipResponse({
-        'id': 42,
-        'result': {'result': <String, dynamic>{}}
-      });
-    }
+
     if (method == 'Runtime.evaluate') {
       // Fake response adapted from modules query at google3
       return WipResponse({
@@ -226,6 +221,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
         }
       });
     }
+
     return null;
   }
 
@@ -263,8 +259,9 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   @override
   Future<RemoteObject> evaluateOnCallFrame(
-          String callFrameId, String expression) =>
-      null;
+      String callFrameId, String expression) async {
+    return RemoteObject(<String, dynamic>{});
+  }
 
   @override
   Future<WipResponse> enablePage() => null;
