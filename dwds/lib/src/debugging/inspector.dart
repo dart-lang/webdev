@@ -107,7 +107,7 @@ class AppInspector extends Domain {
   ) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;
-    var name = '$root:main()';
+    var name = 'main()';
     var isolate = Isolate(
         id: id,
         number: id,
