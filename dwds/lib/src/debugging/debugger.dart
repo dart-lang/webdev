@@ -352,6 +352,8 @@ class Debugger extends Domain {
         callFrameId: callFrameId);
     var boundVariables = await Future.wait(
         properties.map((property) async => await _boundVariable(property)));
+    // Filter out variables that do not come from dart code,
+    // such as native JavaScript objects
     boundVariables = boundVariables
         .where((bv) => bv != null && !isNativeObject(bv.value))
         .toList();
