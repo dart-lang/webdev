@@ -10,6 +10,8 @@ import 'package:meta/meta.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
+import 'package:vm_service/vm_service.dart' as vm_service;
+
 import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../services/chrome_proxy_service.dart';
@@ -338,6 +340,11 @@ class Debugger extends Domain {
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
   Future<List<BoundVariable>> variablesFor(
       List<dynamic> scopeChain, String callFrameId) async {
+    var isNativeObject = (dynamic v) {
+      var instanceRef = v as vm_service.InstanceRef;
+      return instanceRef?.classRef?.name == 'NativeJavaScriptObject';
+    };
+
     // TODO(alanknight): Can these be moved to dart_scope.dart?
     var properties = await visibleProperties(
         scopeList: scopeChain.cast<Map<String, dynamic>>().toList(),
@@ -345,7 +352,9 @@ class Debugger extends Domain {
         callFrameId: callFrameId);
     var boundVariables = await Future.wait(
         properties.map((property) async => await _boundVariable(property)));
-    boundVariables = boundVariables.where((bv) => bv != null).toList();
+    boundVariables = boundVariables
+        .where((bv) => bv != null && !isNativeObject(bv.value))
+        .toList();
     boundVariables.sort((a, b) => a.name.compareTo(b.name));
     return boundVariables;
   }
