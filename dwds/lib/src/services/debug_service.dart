@@ -8,9 +8,6 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dwds/dwds.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -20,11 +17,14 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../../dwds.dart';
 import '../debugging/execution_context.dart';
+import '../debugging/remote_debugger.dart';
 import '../readers/asset_reader.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'chrome_proxy_service.dart';
+import 'expression_compiler.dart';
 
 void Function(WebSocketChannel, String) _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,

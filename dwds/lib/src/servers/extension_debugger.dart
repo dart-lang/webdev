@@ -6,14 +6,15 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:dwds/data/devtools_request.dart';
-import 'package:dwds/data/extension_request.dart';
-import 'package:dwds/data/serializers.dart';
-import 'package:dwds/src/debugging/execution_context.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import '../../data/devtools_request.dart';
+import '../../data/extension_request.dart';
+import '../../data/serializers.dart';
+import '../debugging/execution_context.dart';
+import '../debugging/remote_debugger.dart';
+import '../services/chrome_proxy_service.dart';
 
 /// A remote debugger backed by the Dart Debug Extension
 /// with an SSE connection.

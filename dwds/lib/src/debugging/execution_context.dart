@@ -5,7 +5,8 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
-import 'package:dwds/src/debugging/remote_debugger.dart';
+
+import 'remote_debugger.dart';
 
 abstract class ExecutionContext {
   /// Returns the context ID that contains the running Dart application.

@@ -6,10 +6,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async/async.dart';
-import 'package:dwds/src/servers/extension_debugger.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:sse/server/sse_handler.dart';
+
+import 'extension_debugger.dart';
 
 final _sseHandler =
     SseHandler(Uri.parse('/\$debug'), keepAlive: const Duration(seconds: 30));
