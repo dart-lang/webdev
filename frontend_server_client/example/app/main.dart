@@ -4,7 +4,7 @@
 
 import 'package:path/path.dart' as p;
 
-void main() async {
+Future<void> main() async {
   print(message);
   while (!message.contains('goodbye')) {
     print('waiting for hot reload to change message');

@@ -11,17 +11,20 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import 'shared.dart';
+
 /// Wrapper around the incremental frontend server compiler.
 class FrontendServerClient {
   final String _entrypoint;
   final Process _feServer;
   final StreamQueue<String> _feServerStdoutLines;
   final String _outputDillPath;
-  var _isCompiling = false;
-  var _isFirstCompile = true;
+
+  _ClientState _state;
 
   FrontendServerClient._(this._entrypoint, this._feServer,
-      this._feServerStdoutLines, this._outputDillPath) {
+      this._feServerStdoutLines, this._outputDillPath)
+      : _state = _ClientState.waitingForFirstCompile {
     _feServer.stderr.transform(utf8.decoder).listen(stderr.write);
   }
 
@@ -54,7 +57,7 @@ class FrontendServerClient {
       if (debug) '--observe',
       _feServerPath,
       '--sdk-root',
-      _sdkDir ?? sdkRoot,
+      sdkDir ?? sdkRoot,
       '--platform=$platformKernel',
       '--target=$target',
       for (var root in fileSystemRoots) '--filesystem-root=$root',
@@ -89,22 +92,36 @@ class FrontendServerClient {
   ///
   /// The frontend server _does not_ do any of its own invalidation.
   Future<CompileResult> compile([List<Uri> invalidatedUris]) async {
-    if (_isCompiling) {
-      throw StateError(
-          'App is already being compiled, you must wait for that to complete '
-          'before asking for another compile.');
+    String action;
+    switch (_state) {
+      case _ClientState.waitingForFirstCompile:
+        action = 'compile';
+        break;
+      case _ClientState.waitingForRecompile:
+        action = 'recompile';
+        break;
+      case _ClientState.waitingForAcceptOrReject:
+        throw StateError(
+            'Previous `CompileResult` must be accepted or rejected by '
+            'calling `accept` or `reject`.');
+      case _ClientState.compiling:
+        throw StateError(
+            'App is already being compiled, you must wait for that to '
+            'complete and `accept` or `reject` the result before compiling '
+            'again.');
     }
-    _isCompiling = true;
+    _state = _ClientState.compiling;
 
     try {
-      var action = _isFirstCompile ? 'compile' : 'recompile';
-
       var command = StringBuffer('$action $_entrypoint');
       if (action == 'recompile') {
-        assert(invalidatedUris != null && invalidatedUris.isNotEmpty);
+        if (invalidatedUris == null || invalidatedUris.isEmpty) {
+          throw StateError(
+              'Subsequent compile invocations must provide a non-empty list '
+              'of invalidated uris.');
+        }
         var boundaryKey = Uuid().v4();
         command.writeln(' $boundaryKey');
-        assert(invalidatedUris != null);
         for (var uri in invalidatedUris) {
           command.writeln('$uri');
         }
@@ -158,8 +175,7 @@ class FrontendServerClient {
           newSources: newSources,
           removedSources: removedSources);
     } finally {
-      _isCompiling = false;
-      _isFirstCompile = false;
+      _state = _ClientState.waitingForAcceptOrReject;
     }
   }
 
@@ -190,22 +206,37 @@ class FrontendServerClient {
   ///
   /// Either [accept] or [reject] should be called after every [compile] call.
   void accept() {
+    if (_state != _ClientState.waitingForAcceptOrReject) {
+      throw StateError(
+          'Called `accept` but there was no previous compile to accept.');
+    }
     _feServer.stdin.writeln('accept');
+    _state = _ClientState.waitingForRecompile;
   }
 
   /// Should be invoked when results of compilation are rejected by the client.
   ///
   /// Either [accept] or [reject] should be called after every [compile] call.
   void reject() {
+    if (_state != _ClientState.waitingForAcceptOrReject) {
+      throw StateError(
+          'Called `reject` but there was no previous compile to reject.');
+    }
     _feServer.stdin.writeln('reject');
+    _state = _ClientState.waitingForFirstCompile;
   }
 
   /// Should be invoked when frontend server compiler should forget what was
   /// accepted previously so that next call to [compile] produces complete
   /// kernel file.
   void reset() {
+    if (_state == _ClientState.compiling) {
+      throw StateError(
+          'Called `reset` during an active compile, you must wait for that to '
+          'complete first.');
+    }
     _feServer.stdin.writeln('reset');
-    _isFirstCompile = true;
+    _state = _ClientState.waitingForFirstCompile;
   }
 
   /// Stop the service gracefully (using the shutdown command)
@@ -275,6 +306,15 @@ class CompileResult {
   final bool wasIncremental;
 }
 
+/// Internal states for the client.
+enum _ClientState {
+  compiling,
+  waitingForAcceptOrReject,
+  waitingForFirstCompile,
+  waitingForRecompile,
+}
+
+/// States for our interaction with the compiler itself.
 enum _FeServerState {
   started,
   waitingForKey,
@@ -283,5 +323,4 @@ enum _FeServerState {
 }
 
 final _feServerPath =
-    p.join(_sdkDir, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
-final _sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
+    p.join(sdkDir, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
