@@ -16,11 +16,12 @@ class FrontendServerClient {
   final String _entrypoint;
   final Process _feServer;
   final StreamQueue<String> _feServerStdoutLines;
+  final String _outputDillPath;
   var _isCompiling = false;
   var _isFirstCompile = true;
 
-  FrontendServerClient._(
-      this._entrypoint, this._feServer, this._feServerStdoutLines) {
+  FrontendServerClient._(this._entrypoint, this._feServer,
+      this._feServerStdoutLines, this._outputDillPath) {
     _feServer.stderr.transform(utf8.decoder).listen(stderr.write);
   }
 
@@ -49,7 +50,7 @@ class FrontendServerClient {
     String sdkRoot, // Defaults to the current SDK root.
     String target = 'vm', // The kernel target type.
   }) async {
-    var feServer = await Process.start(_dartBinary, [
+    var feServer = await Process.start(Platform.resolvedExecutable, [
       if (debug) '--observe',
       _feServerPath,
       '--sdk-root',
@@ -78,15 +79,16 @@ class FrontendServerClient {
       entrypoint,
       feServer,
       feServerStdoutLines,
+      outputDillPath,
     );
   }
 
   /// Compiles [_entrypoint], using an incremental recompile if possible.
   ///
-  /// [invalidatedUris] must not be empty for all but the very first compile.
+  /// [invalidatedUris] must not be null for all but the very first compile.
   ///
   /// The frontend server _does not_ do any of its own invalidation.
-  Future<CompileResult> compile(List<Uri> invalidatedUris) async {
+  Future<CompileResult> compile([List<Uri> invalidatedUris]) async {
     if (_isCompiling) {
       throw StateError(
           'App is already being compiled, you must wait for that to complete '
@@ -124,7 +126,7 @@ class FrontendServerClient {
             state = _FeServerState.waitingForKey;
             continue;
           case _FeServerState.waitingForKey:
-            assert(line == feBoundaryKey);
+            assert(line == feBoundaryKey, line);
             state = _FeServerState.gettingSourceDiffs;
             continue;
           case _FeServerState.gettingSourceDiffs:
@@ -147,9 +149,12 @@ class FrontendServerClient {
         }
       }
 
+      var wasIncremental = action == 'recompile';
       return CompileResult._(
-          dillOutput: null,
-          wasIncremental: action == 'recompile',
+          dillOutput: wasIncremental
+              ? '$_outputDillPath.incremental.dill'
+              : _outputDillPath,
+          wasIncremental: wasIncremental,
           newSources: newSources,
           removedSources: removedSources);
     } finally {
@@ -236,11 +241,26 @@ class CompileResult {
   /// Any errors encountered during compilation.
   final Iterable<String> errors;
 
-  // These only exist if the `target` is `dartdevc`.
+  /// A single file containing all source maps for all JS outputs.
+  ///
+  /// Read [jsManifestOutput] for file offsets for each sourcemap.
+  ///
+  /// Will be `null` if [dillOutput] is `null`.
   String get jsSourceMapsOutput =>
       dillOutput == null ? null : '$dillOutput.map';
+
+  /// A single file containing all JS outputs.
+  ///
+  /// Read [jsManifestOutput] for file offsets for each source.
+  ///
+  /// Will be `null` if [dillOutput] is `null`.
   String get jsSourcesOutput =>
       dillOutput == null ? null : '$dillOutput.sources';
+
+  /// A JSON manifest containing offsets for the sources and source maps in
+  /// the [jsSourcesOutput] and [jsSourceMapsOutput] files.
+  ///
+  /// Will be `null` if [dillOutput] is `null`.
   String get jsManifestOutput => dillOutput == null ? null : '$dillOutput.json';
 
   /// All the transitive source dependencies that were added as a part of this
@@ -262,7 +282,6 @@ enum _FeServerState {
   done,
 }
 
-final _dartBinary = p.join(_sdkDir, 'bin', 'dart');
 final _feServerPath =
     p.join(_sdkDir, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
 final _sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
