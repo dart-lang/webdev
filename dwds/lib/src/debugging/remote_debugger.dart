@@ -55,6 +55,8 @@ abstract class RemoteDebugger {
   Future<RemoteObject> evaluateOnCallFrame(
       String callFrameId, String expression);
 
+  Future<List<WipBreakLocation>> getPossibleBreakpoints(WipLocation start);
+
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer);
 
   void close();
