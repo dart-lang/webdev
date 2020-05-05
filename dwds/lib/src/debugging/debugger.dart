@@ -340,11 +340,6 @@ class Debugger extends Domain {
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
   Future<List<BoundVariable>> variablesFor(
       List<dynamic> scopeChain, String callFrameId) async {
-    var isNativeObject = (dynamic v) {
-      var instanceRef = v as vm_service.InstanceRef;
-      return instanceRef?.classRef?.name == 'NativeJavaScriptObject';
-    };
-
     // TODO(alanknight): Can these be moved to dart_scope.dart?
     var properties = await visibleProperties(
         scopeList: scopeChain.cast<Map<String, dynamic>>().toList(),
@@ -355,11 +350,16 @@ class Debugger extends Domain {
     // Filter out variables that do not come from dart code,
     // such as native JavaScript objects
     boundVariables = boundVariables
-        .where((bv) => bv != null && !isNativeObject(bv.value))
+        .where((bv) =>
+            bv != null &&
+            !_isNativeJsObject(bv.value as vm_service.InstanceRef))
         .toList();
     boundVariables.sort((a, b) => a.name.compareTo(b.name));
     return boundVariables;
   }
+
+  bool _isNativeJsObject(vm_service.InstanceRef instanceRef) =>
+      instanceRef?.classRef?.name == 'NativeJavaScriptObject';
 
   Future<BoundVariable> _boundVariable(Property property) async {
     // We return one level of properties from this object. Sub-properties are
