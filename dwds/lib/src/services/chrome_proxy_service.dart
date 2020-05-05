@@ -391,7 +391,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<ClassList> getClassList(String isolateId) {
     // See dart-lang/webdev/issues/971.
-    throw UnimplementedError();
+    return Future.error(RPCError(
+      'getClassList',
+      -32601,
+      'Not supported on web devices',
+    ));
   }
 
   @override
@@ -531,8 +535,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<ReloadReport> reloadSources(String isolateId,
-      {bool force, bool pause, String rootLibUri, String packagesUri}) async {
-    throw UnimplementedError();
+      {bool force, bool pause, String rootLibUri, String packagesUri}) {
+    return Future.error(RPCError(
+      'reloadSources',
+      -32601,
+      'Hot reload not supported on web devices',
+    ));
   }
 
   @override
