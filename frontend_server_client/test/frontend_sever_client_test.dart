@@ -108,6 +108,46 @@ String get message => p.join('hello', 'world');
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
     expect(await process.exitCode, 0);
   });
+
+  test('can compile and recompile a dartdevc app', () async {
+    var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
+    var dartDevcClient = client = await DartDevcFrontendServerClient.start(
+        entrypoint, p.join(packageRoot, 'out.dill'));
+    var result = await client.compile();
+    client.accept();
+    expect(result.errors, isNull);
+    expect(
+        result.newSources,
+        containsAll([
+          File(entrypoint).uri,
+          packageConfig.resolve(Uri.parse('package:path/path.dart')),
+        ]));
+    expect(result.removedSources, isEmpty);
+    expect(result.wasIncremental, isFalse);
+
+    expect(File(result.jsManifestOutput).existsSync(), true);
+    expect(File(result.jsSourcesOutput).existsSync(), true);
+    expect(File(result.jsSourceMapsOutput).existsSync(), true);
+
+    expect(utf8.decode(dartDevcClient.assetBytes('$entrypoint.lib.js')),
+        contains('hello'));
+
+    var appFile = File(entrypoint);
+    var originalContent = await appFile.readAsString();
+    var newContent = originalContent.replaceFirst('hello', 'goodbye');
+    await appFile.writeAsString(newContent);
+
+    result = await client.compile([File(entrypoint).uri]);
+    client.accept();
+    expect(result.newSources, isEmpty);
+    expect(result.removedSources, isEmpty);
+    expect(result.errors, isNull);
+    expect(result.jsManifestOutput, endsWith('.incremental.dill.json'));
+    expect(result.wasIncremental, true);
+
+    expect(utf8.decode(dartDevcClient.assetBytes('$entrypoint.lib.js')),
+        contains('goodbye'));
+  });
 }
 
 final vmPlatformDill =
