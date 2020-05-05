@@ -125,8 +125,9 @@ void main() {
 
       test("removeBreakpoint doesn't exist", () {
         expect(() => service.removeBreakpoint(isolate.id, '1234'),
-            throwsArgumentError);
+            throwsA(isA<RPCError>()));
       });
+
       test('add and remove breakpoint', () async {
         var line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id, mainScript);

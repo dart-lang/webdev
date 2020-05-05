@@ -306,8 +306,12 @@ class Debugger extends Domain {
 
   /// Call the Chrome protocol removeBreakpoint.
   Future<void> _removeBreakpoint(String breakpointId) async {
-    var response = await _remoteDebugger.removeBreakpoint(breakpointId);
-    handleErrorIfPresent(response);
+    try {
+      var response = await _remoteDebugger.removeBreakpoint(breakpointId);
+      handleErrorIfPresent(response);
+    } on WipError catch (e) {
+      throw RPCError('removeBreakpoint', 102, '$e');
+    }
   }
 
   /// Returns source [Location] for the paused event.
@@ -647,6 +651,8 @@ class _Breakpoints extends Domain {
       ifCreated(dartBreakpoint);
       return dartBreakpoint;
     } on WipError catch (wipError) {
+      print('caught WipError ($wipError)');
+
       throw RPCError('addBreakpoint', 102, '$wipError');
     }
   }
