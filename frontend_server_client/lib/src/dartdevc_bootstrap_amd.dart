@@ -63,8 +63,6 @@ require(["$entrypoint.lib.js", "dart_sdk"], function(app, dart_sdk) {
   /* MAIN_EXTENSION_MARKER */
   child.main();
 
-  window.\$dartLoader = {};
-  window.\$dartLoader.rootDirectories = [];
   if (window.\$requireLoader) {
     window.\$requireLoader.getModuleLibraries = dart_sdk.dart.getModuleLibraries;
     if (window.\$dartStackTraceUtility && !window.\$dartStackTraceUtility.ready) {
