@@ -308,7 +308,8 @@ void main() {
     });
 
     test('getClassList', () {
-      expect(() => service.getClassList(null), throwsUnimplementedError);
+      expect(() => service.getClassList(null),
+          throwsA(const TypeMatcher<RPCError>()));
     });
 
     test('getFlagList', () async {
@@ -1001,7 +1002,8 @@ void main() {
     });
 
     test('reloadSources', () {
-      expect(() => service.reloadSources(null), throwsUnimplementedError);
+      expect(() => service.reloadSources(null),
+          throwsA(const TypeMatcher<RPCError>()));
     });
 
     test('setExceptionPauseMode', () async {
