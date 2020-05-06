@@ -57,11 +57,7 @@ require(["$entrypoint.lib.js", "dart_sdk"], function(app, dart_sdk) {
   dart_sdk._debugger.registerDevtoolsFormatter();
 
   // See the generateMainModule doc comment.
-  var child = {};
-  child.main = app[Object.keys(app)[0]].main;
-
-  /* MAIN_EXTENSION_MARKER */
-  child.main();
+  app[Object.keys(app)[0]].main();
 });
 ''';
 }
