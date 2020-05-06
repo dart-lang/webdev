@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
+import 'dartdevc_bootstrap_amd.dart';
 import 'frontend_server_client.dart';
 import 'shared.dart';
 
@@ -23,12 +24,38 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   final FrontendServerClient _frontendServerClient;
 
   final _assets = <String, Uint8List>{};
+  final String _entrypoint;
 
-  DartDevcFrontendServerClient._(this._frontendServerClient);
+  /// The bootstrap js contents, provided in [_assets] at
+  /// the path `${_entrypointModule}.js`.
+  ///
+  /// This is `null` if the module format is not supported for bootstrapping.
+  final String _bootstrapJs;
+
+  /// The generated main module js contents, provided in [_assets] at
+  /// the path `${_entrypointModule}.bootstrap.js`.
+  ///
+  /// This is `null` if the module format is not supported for bootstrapping.
+  final String _mainModuleJs;
+
+  DartDevcFrontendServerClient._(
+      this._frontendServerClient, this._entrypoint, String moduleFormat)
+      : _bootstrapJs = moduleFormat == 'amd'
+            ? generateAmdBootstrapScript(
+                requireUrl: 'require.js',
+                mapperUrl: 'dart_stack_trace_mapper.js',
+                entrypoint: _entrypoint)
+            : null,
+        _mainModuleJs = moduleFormat == 'amd'
+            ? generateAmdMainModule(entrypoint: _entrypoint)
+            : null {
+    _resetAssets();
+  }
 
   static Future<DartDevcFrontendServerClient> start(
     String entrypoint,
     String outputDillPath, {
+    String dartdevcModuleFormat = 'amd',
     bool debug = false,
     bool enableHttpUris = false,
     List<String> fileSystemRoots = const [], // For `fileSystemScheme` uris,
@@ -42,6 +69,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
       entrypoint,
       outputDillPath,
       platformKernel ?? _dartdevcPlatformKernel,
+      dartdevcModuleFormat: dartdevcModuleFormat,
       debug: debug,
       enableHttpUris: enableHttpUris,
       fileSystemRoots: fileSystemRoots,
@@ -50,7 +78,8 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
       sdkRoot: sdkRoot,
       target: 'dartdevc',
     );
-    return DartDevcFrontendServerClient._(feServer);
+    return DartDevcFrontendServerClient._(
+        feServer, Uri.parse(entrypoint).path, dartdevcModuleFormat);
   }
 
   /// Returns the current bytes for the asset at [path].
@@ -59,6 +88,8 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   /// [CompileResult.jsManifestOutput] file.
   ///
   /// Returns `null` if no asset exists at [path].
+  ///
+  /// In addition to any DDC compiled assets, this serves
   Uint8List assetBytes(String path) => _assets[path];
 
   /// The contents of a JS file capable of bootstrapping the current app.
@@ -138,13 +169,13 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   @override
   void reject() {
     _frontendServerClient.reject();
-    _assets.clear();
+    _resetAssets();
   }
 
   @override
   void reset() {
     _frontendServerClient.reset();
-    _assets.clear();
+    _resetAssets();
   }
 
   @override
@@ -153,6 +184,19 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
 
   @override
   Future<int> shutdown() => _frontendServerClient.shutdown();
+
+  /// Clears any previously compiled assets and adds the bootstrap modules as
+  /// assets if available.
+  void _resetAssets() {
+    if (_bootstrapJs != null) {
+      _assets['$_entrypoint.js'] =
+          Uint8List.fromList(utf8.encode(_bootstrapJs));
+    }
+    if (_mainModuleJs != null) {
+      _assets['$_entrypoint.bootstrap.js'] =
+          Uint8List.fromList(utf8.encode(_mainModuleJs));
+    }
+  }
 }
 
 final _dartdevcPlatformKernel =

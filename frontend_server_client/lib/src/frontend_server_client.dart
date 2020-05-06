@@ -44,6 +44,7 @@ class FrontendServerClient {
     String entrypoint,
     String outputDillPath,
     String platformKernel, {
+    String dartdevcModuleFormat = 'amd',
     bool debug = false,
     bool enableHttpUris = false,
     List<String> fileSystemRoots = const [], // For `fileSystemScheme` uris,
@@ -60,6 +61,8 @@ class FrontendServerClient {
       sdkDir ?? sdkRoot,
       '--platform=$platformKernel',
       '--target=$target',
+      if (target == 'dartdevc')
+        '--dartdevc-module-format=$dartdevcModuleFormat',
       for (var root in fileSystemRoots) '--filesystem-root=$root',
       '--filesystem-scheme',
       fileSystemScheme,
