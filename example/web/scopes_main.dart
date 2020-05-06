@@ -20,6 +20,10 @@ var identityMap = <String, int>{};
 
 var map = <Object, Object>{};
 
+void staticFunction(int formal) {
+  print(formal); // Breakpoint: staticFunction
+}
+
 void main() async {
   print('Initial print from scopes app');
   var local = 'local in main';
@@ -46,6 +50,7 @@ void main() async {
     // ignore: unused_local_variable, prefer_typing_uninitialized_variables
     var closureLocal;
     libraryPublicFinal.printCount();
+    staticFunction(1);
     print('ticking... $ticks (the answer is $intLocalInMain)');
     print(nestedFunction('$ticks ${testClass.message}', Timer));
     print(localThatsNull);
