@@ -60,7 +60,8 @@ String get message => p.join('hello', 'world');
         entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
     var result = await client.compile();
     client.accept();
-    expect(result.errors, isNull);
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.errorCount, 0);
     expect(
         result.newSources,
         containsAll([
@@ -98,9 +99,73 @@ String get message => p.join('hello', 'world');
     client.accept();
     expect(result.newSources, isEmpty);
     expect(result.removedSources, isEmpty);
-    expect(result.errors, isNull);
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.errorCount, 0);
     expect(result.dillOutput, endsWith('.incremental.dill'));
     expect(result.wasIncremental, true);
+
+    await vmService.reloadSources(vm.isolates.first.id,
+        rootLibUri: result.dillOutput);
+
+    expect(await stdoutLines.next, p.join('goodbye', 'world'));
+    expect(await process.exitCode, 0);
+  });
+
+  test('can handle compile errors and reload fixes', () async {
+    var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
+    var entrypointFile = File(entrypoint);
+    var originalContent = await entrypointFile.readAsString();
+    // append two compile errors to the bottom
+    await entrypointFile
+        .writeAsString('$originalContent\nint foo = 1.0;\nString bar = 4;');
+
+    client = await FrontendServerClient.start(
+        entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
+    var result = await client.compile();
+    client.accept();
+    expect(result.errorCount, 2);
+    expect(result.compilerOutputLines,
+        allOf(contains('int foo = 1.0;'), contains('String bar = 4;')));
+    expect(
+        result.newSources,
+        containsAll([
+          File(entrypoint).uri,
+          packageConfig.resolve(Uri.parse('package:path/path.dart')),
+        ]));
+    expect(result.removedSources, isEmpty);
+    expect(result.wasIncremental, isFalse);
+    expect(File(result.dillOutput).existsSync(), true);
+
+    var process = await Process.start(Platform.resolvedExecutable, [
+      '--observe',
+      '--no-pause-isolates-on-exit',
+      '--pause-isolates-on-start',
+      result.dillOutput
+    ]);
+    addTearDown(process.kill);
+    var stdoutLines = StreamQueue(
+        process.stdout.transform(utf8.decoder).transform(const LineSplitter()));
+
+    var observatoryLine = await stdoutLines.next;
+    var observatoryUri =
+        '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
+    var vmService = await vmServiceConnectUri(observatoryUri);
+    var vm = await vmService.getVM();
+    await vmService.resume(vm.isolates.first.id);
+    // The program actually runs regardless of the errors, as they dont affect
+    // the runtime behavior.
+    expect(await stdoutLines.next, p.join('hello', 'world'));
+
+    await entrypointFile
+        .writeAsString(originalContent.replaceFirst('hello', 'goodbye'));
+    result = await client.compile([entrypointFile.uri]);
+    client.accept();
+    expect(result.errorCount, 0);
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.newSources, isEmpty);
+    expect(result.removedSources, isEmpty);
+    expect(result.wasIncremental, true);
+    expect(File(result.dillOutput).existsSync(), true);
 
     await vmService.reloadSources(vm.isolates.first.id,
         rootLibUri: result.dillOutput);
@@ -115,7 +180,8 @@ String get message => p.join('hello', 'world');
         entrypoint, p.join(packageRoot, 'out.dill'));
     var result = await client.compile();
     client.accept();
-    expect(result.errors, isNull);
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.errorCount, 0);
     expect(
         result.newSources,
         containsAll([
@@ -141,7 +207,8 @@ String get message => p.join('hello', 'world');
     client.accept();
     expect(result.newSources, isEmpty);
     expect(result.removedSources, isEmpty);
-    expect(result.errors, isNull);
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.errorCount, 0);
     expect(result.jsManifestOutput, endsWith('.incremental.dill.json'));
     expect(result.wasIncremental, true);
 
