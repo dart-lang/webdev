@@ -305,7 +305,8 @@ void main() {
     });
 
     test('getClassList', () {
-      expect(() => service.getClassList(null), throwsUnimplementedError);
+      expect(() => service.getClassList(null),
+          throwsA(const TypeMatcher<RPCError>()));
     });
 
     test('getFlagList', () async {
@@ -323,7 +324,7 @@ void main() {
         var result = await service.getIsolate(vm.isolates.first.id);
         expect(result, const TypeMatcher<Isolate>());
         var isolate = result;
-        expect(isolate.name, contains(context.appUrl));
+        expect(isolate.name, contains('main'));
         // TODO: library names change with kernel dart-lang/sdk#36736
         expect(isolate.rootLib.uri, endsWith('main.dart'));
 
@@ -1002,7 +1003,8 @@ void main() {
     });
 
     test('reloadSources', () {
-      expect(() => service.reloadSources(null), throwsUnimplementedError);
+      expect(() => service.reloadSources(null),
+          throwsA(const TypeMatcher<RPCError>()));
     });
 
     test('setExceptionPauseMode', () async {

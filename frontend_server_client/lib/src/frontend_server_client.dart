@@ -11,17 +11,20 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import 'shared.dart';
+
 /// Wrapper around the incremental frontend server compiler.
 class FrontendServerClient {
   final String _entrypoint;
   final Process _feServer;
   final StreamQueue<String> _feServerStdoutLines;
   final String _outputDillPath;
-  var _isCompiling = false;
-  var _isFirstCompile = true;
+
+  _ClientState _state;
 
   FrontendServerClient._(this._entrypoint, this._feServer,
-      this._feServerStdoutLines, this._outputDillPath) {
+      this._feServerStdoutLines, this._outputDillPath)
+      : _state = _ClientState.waitingForFirstCompile {
     _feServer.stderr.transform(utf8.decoder).listen(stderr.write);
   }
 
@@ -41,6 +44,7 @@ class FrontendServerClient {
     String entrypoint,
     String outputDillPath,
     String platformKernel, {
+    String dartdevcModuleFormat = 'amd',
     bool debug = false,
     bool enableHttpUris = false,
     List<String> fileSystemRoots = const [], // For `fileSystemScheme` uris,
@@ -54,9 +58,11 @@ class FrontendServerClient {
       if (debug) '--observe',
       _feServerPath,
       '--sdk-root',
-      _sdkDir ?? sdkRoot,
+      sdkDir ?? sdkRoot,
       '--platform=$platformKernel',
       '--target=$target',
+      if (target == 'dartdevc')
+        '--dartdevc-module-format=$dartdevcModuleFormat',
       for (var root in fileSystemRoots) '--filesystem-root=$root',
       '--filesystem-scheme',
       fileSystemScheme,
@@ -89,22 +95,36 @@ class FrontendServerClient {
   ///
   /// The frontend server _does not_ do any of its own invalidation.
   Future<CompileResult> compile([List<Uri> invalidatedUris]) async {
-    if (_isCompiling) {
-      throw StateError(
-          'App is already being compiled, you must wait for that to complete '
-          'before asking for another compile.');
+    String action;
+    switch (_state) {
+      case _ClientState.waitingForFirstCompile:
+        action = 'compile';
+        break;
+      case _ClientState.waitingForRecompile:
+        action = 'recompile';
+        break;
+      case _ClientState.waitingForAcceptOrReject:
+        throw StateError(
+            'Previous `CompileResult` must be accepted or rejected by '
+            'calling `accept` or `reject`.');
+      case _ClientState.compiling:
+        throw StateError(
+            'App is already being compiled, you must wait for that to '
+            'complete and `accept` or `reject` the result before compiling '
+            'again.');
     }
-    _isCompiling = true;
+    _state = _ClientState.compiling;
 
     try {
-      var action = _isFirstCompile ? 'compile' : 'recompile';
-
       var command = StringBuffer('$action $_entrypoint');
       if (action == 'recompile') {
-        assert(invalidatedUris != null && invalidatedUris.isNotEmpty);
+        if (invalidatedUris == null || invalidatedUris.isEmpty) {
+          throw StateError(
+              'Subsequent compile invocations must provide a non-empty list '
+              'of invalidated uris.');
+        }
         var boundaryKey = Uuid().v4();
         command.writeln(' $boundaryKey');
-        assert(invalidatedUris != null);
         for (var uri in invalidatedUris) {
           command.writeln('$uri');
         }
@@ -116,6 +136,8 @@ class FrontendServerClient {
       String feBoundaryKey;
       var newSources = <Uri>{};
       var removedSources = <Uri>{};
+      var compilerOutputLines = <String>[];
+      int errorCount;
       while (
           state != _FeServerState.done && await _feServerStdoutLines.hasNext) {
         var line = await _feServerStdoutLines.next;
@@ -126,12 +148,16 @@ class FrontendServerClient {
             state = _FeServerState.waitingForKey;
             continue;
           case _FeServerState.waitingForKey:
-            assert(line == feBoundaryKey, line);
-            state = _FeServerState.gettingSourceDiffs;
+            if (line == feBoundaryKey) {
+              state = _FeServerState.gettingSourceDiffs;
+            } else {
+              compilerOutputLines.add(line);
+            }
             continue;
           case _FeServerState.gettingSourceDiffs:
             if (line.startsWith(feBoundaryKey)) {
               state = _FeServerState.done;
+              errorCount = int.parse(line.split(' ').last);
               continue;
             }
             var diffUri = Uri.parse(line.substring(1));
@@ -154,12 +180,13 @@ class FrontendServerClient {
           dillOutput: wasIncremental
               ? '$_outputDillPath.incremental.dill'
               : _outputDillPath,
+          errorCount: errorCount,
           wasIncremental: wasIncremental,
           newSources: newSources,
-          removedSources: removedSources);
+          removedSources: removedSources,
+          compilerOutputLines: compilerOutputLines);
     } finally {
-      _isCompiling = false;
-      _isFirstCompile = false;
+      _state = _ClientState.waitingForAcceptOrReject;
     }
   }
 
@@ -190,22 +217,37 @@ class FrontendServerClient {
   ///
   /// Either [accept] or [reject] should be called after every [compile] call.
   void accept() {
+    if (_state != _ClientState.waitingForAcceptOrReject) {
+      throw StateError(
+          'Called `accept` but there was no previous compile to accept.');
+    }
     _feServer.stdin.writeln('accept');
+    _state = _ClientState.waitingForRecompile;
   }
 
   /// Should be invoked when results of compilation are rejected by the client.
   ///
   /// Either [accept] or [reject] should be called after every [compile] call.
   void reject() {
+    if (_state != _ClientState.waitingForAcceptOrReject) {
+      throw StateError(
+          'Called `reject` but there was no previous compile to reject.');
+    }
     _feServer.stdin.writeln('reject');
+    _state = _ClientState.waitingForFirstCompile;
   }
 
   /// Should be invoked when frontend server compiler should forget what was
   /// accepted previously so that next call to [compile] produces complete
   /// kernel file.
   void reset() {
+    if (_state == _ClientState.compiling) {
+      throw StateError(
+          'Called `reset` during an active compile, you must wait for that to '
+          'complete first.');
+    }
     _feServer.stdin.writeln('reset');
-    _isFirstCompile = true;
+    _state = _ClientState.waitingForFirstCompile;
   }
 
   /// Stop the service gracefully (using the shutdown command)
@@ -226,42 +268,38 @@ class FrontendServerClient {
 /// The result of a compile call.
 class CompileResult {
   const CompileResult._(
-      {this.dillOutput,
-      this.errors,
-      this.wasIncremental,
-      this.newSources,
-      this.removedSources});
+      {@required this.dillOutput,
+      @required this.compilerOutputLines,
+      @required this.errorCount,
+      @required this.wasIncremental,
+      @required this.newSources,
+      @required this.removedSources});
 
   /// The produced dill output file, this will either be a full dill file or an
   /// incremental dill file depending on [wasIncremental].
-  ///
-  /// May be `null` if [errors] is not empty.
   final String dillOutput;
 
-  /// Any errors encountered during compilation.
-  final Iterable<String> errors;
+  /// All output from the compiler, typically this would contain errors or
+  /// warnings.
+  final Iterable<String> compilerOutputLines;
+
+  /// The total count of errors, details should appear in
+  /// [compilerOutputLines].
+  final int errorCount;
 
   /// A single file containing all source maps for all JS outputs.
   ///
   /// Read [jsManifestOutput] for file offsets for each sourcemap.
-  ///
-  /// Will be `null` if [dillOutput] is `null`.
-  String get jsSourceMapsOutput =>
-      dillOutput == null ? null : '$dillOutput.map';
+  String get jsSourceMapsOutput => '$dillOutput.map';
 
   /// A single file containing all JS outputs.
   ///
   /// Read [jsManifestOutput] for file offsets for each source.
-  ///
-  /// Will be `null` if [dillOutput] is `null`.
-  String get jsSourcesOutput =>
-      dillOutput == null ? null : '$dillOutput.sources';
+  String get jsSourcesOutput => '$dillOutput.sources';
 
   /// A JSON manifest containing offsets for the sources and source maps in
   /// the [jsSourcesOutput] and [jsSourceMapsOutput] files.
-  ///
-  /// Will be `null` if [dillOutput] is `null`.
-  String get jsManifestOutput => dillOutput == null ? null : '$dillOutput.json';
+  String get jsManifestOutput => '$dillOutput.json';
 
   /// All the transitive source dependencies that were added as a part of this
   /// compile.
@@ -275,6 +313,15 @@ class CompileResult {
   final bool wasIncremental;
 }
 
+/// Internal states for the client.
+enum _ClientState {
+  compiling,
+  waitingForAcceptOrReject,
+  waitingForFirstCompile,
+  waitingForRecompile,
+}
+
+/// States for our interaction with the compiler itself.
 enum _FeServerState {
   started,
   waitingForKey,
@@ -283,5 +330,4 @@ enum _FeServerState {
 }
 
 final _feServerPath =
-    p.join(_sdkDir, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
-final _sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
+    p.join(sdkDir, 'bin', 'snapshots', 'frontend_server.dart.snapshot');

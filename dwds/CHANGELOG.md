@@ -1,7 +1,12 @@
+## 3.1.1-dev
+
+- Change the reported names for isolates to be more terse.
+- Change the returned errors for the unimplemented `getClassList` and `reloadSources`
+  methods to -32601 ('method does not exist / is not available').
+
 ## 3.1.0
 
 - Support Chromium based Edge.
-
 - Depend on latest `package:sse` version `3.5.0`.
 - Bypass connection keep-alives when shutting down to avoid delaying process shutdown.
 - Fix an issue where the isolate would incorrectly be destroyed after connection reuse.
