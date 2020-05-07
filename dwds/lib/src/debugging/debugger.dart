@@ -262,20 +262,17 @@ class Debugger extends Domain {
   }) async {
     checkIsolate(isolateId);
 
-    return _breakpoints.add(
-      scriptId,
-      line,
-      ifCreated: (breakpoint) async {
-        _streamNotify(
-          'Debug',
-          Event(
-              kind: EventKind.kBreakpointAdded,
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              isolate: inspector.isolateRef)
-            ..breakpoint = breakpoint,
-        );
-      },
+    final breakpoint = await _breakpoints.add(scriptId, line);
+
+    final event = Event(
+      kind: EventKind.kBreakpointAdded,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      isolate: inspector.isolateRef,
     );
+    event.breakpoint = breakpoint;
+    _streamNotify('Debug', event);
+
+    return breakpoint;
   }
 
   /// Remove a Dart breakpoint.
@@ -618,14 +615,7 @@ class _Breakpoints extends Domain {
 
   /// Adds a breakpoint at [scriptId] and [line] or returns an existing one if
   /// present.
-  ///
-  /// If a new breakpoint is created then [ifCreated] is invoked with the
-  /// breakpoint.
-  Future<Breakpoint> add(
-    String scriptId,
-    int line, {
-    @required void Function(Breakpoint) ifCreated,
-  }) async {
+  Future<Breakpoint> add(String scriptId, int line) async {
     final id = breakpointIdFor(scriptId, line);
     if (_bpByDartId.containsKey(id)) {
       throw RPCError('addBreakpoint', 102, 'Breakpoint already exists.');
@@ -648,7 +638,6 @@ class _Breakpoints extends Domain {
       var jsBreakpointId = await _setJsBreakpoint(location);
       _bpByDartId[id] = dartBreakpoint;
       _note(jsId: jsBreakpointId, bp: dartBreakpoint);
-      ifCreated(dartBreakpoint);
       return dartBreakpoint;
     } on WipError catch (wipError) {
       print('caught WipError ($wipError)');

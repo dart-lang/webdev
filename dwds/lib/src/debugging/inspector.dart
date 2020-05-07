@@ -374,6 +374,8 @@ function($argsString) {
 
   Future<SourceReport> _getPossibleBreakpoints(
       String isolateId, String vmScriptId) async {
+    // TODO(devoncarew): Consider adding some caching for this method.
+
     final scriptRef = scriptWithId(vmScriptId);
     if (scriptRef == null) {
       throw ArgumentError.value(vmScriptId, 'scriptId', 'not found');
