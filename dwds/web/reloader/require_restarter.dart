@@ -31,6 +31,9 @@ external Object Function(String module) get require;
 @JS(r'$dartRunMain')
 external set dartRunMain(Function() func);
 
+@JS(r'$dartRunMain')
+external Function() get dartRunMain;
+
 List<K> keys<K, V>(JsMap<K, V> map) {
   return List.from(_jsArrayFrom(map.keys()));
 }
@@ -202,6 +205,7 @@ class RequireRestarter implements Restarter {
         }
       }
       print('$reloadedModules module(s) were hot-reloaded.');
+      dartRunMain();
       _running.complete(true);
     } on HotReloadFailedException catch (e) {
       print('Error during script reloading. Firing full page reload. $e');

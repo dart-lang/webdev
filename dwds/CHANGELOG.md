@@ -3,6 +3,9 @@
 - Change the reported names for isolates to be more terse.
 - Change the returned errors for the unimplemented `getClassList` and `reloadSources`
   methods to -32601 ('method does not exist / is not available').
+- Update the `require_restarter` to rerun main after a hot restart to align with
+  the legacy strategy. We therefore no longer send a `RunRequest` after a hot
+  restart.
 
 ## 3.1.0
 

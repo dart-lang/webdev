@@ -17,7 +17,6 @@ import '../../data/connect_request.dart';
 import '../../data/devtools_request.dart';
 import '../../data/error_response.dart';
 import '../../data/isolate_events.dart';
-import '../../data/run_request.dart';
 import '../../data/serializers.dart';
 import '../../dwds.dart';
 import '../connections/app_connection.dart';
@@ -343,9 +342,6 @@ class DevHandler {
     await _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
         ?.createIsolate(appConnection);
-    // [IsolateStart] events are the result of a Hot Restart.
-    // Run the application after the Isolate has been created.
-    sseConnection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
   }
 
   void _listen() async {
