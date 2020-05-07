@@ -17,8 +17,10 @@ class Modules {
   final String _root;
   final RemoteDebugger _remoteDebugger;
   final ExecutionContext _executionContext;
+
   // The Dart server path to containing module.
   final _sourceToModule = <String, String>{};
+
   // The Dart server path to library import uri
   final _sourceToLibrary = <String, Uri>{};
   var _moduleMemoizer = AsyncMemoizer<void>();
@@ -48,12 +50,10 @@ class Modules {
   }
 
   /// Returns the module for the Chrome script ID.
-  Future<String> moduleForScriptId(String scriptId) async =>
-      _scriptIdToModule[scriptId];
+  String moduleForScriptId(String scriptId) => _scriptIdToModule[scriptId];
 
   /// Returns the Chrome script ID for the provided module.
-  Future<String> scriptIdForModule(String module) async =>
-      _moduleToScriptId[module];
+  String scriptIdForModule(String module) => _moduleToScriptId[module];
 
   /// Returns the containing module for the provided Dart server path.
   Future<String> moduleForSource(String serverPath) async {

@@ -354,12 +354,13 @@ function($argsString) {
     checkIsolate(isolateId);
 
     if (reports.contains(SourceReportKind.kCoverage)) {
-      throw ArgumentError.value(reports, 'reports',
-          "Source report kind '${SourceReportKind.kCoverage}' is currently unsupported.");
+      throw RPCError('getSourceReport', -32602,
+          'Source report kind ${SourceReportKind.kCoverage} not supported');
     }
 
     if (reports.isEmpty) {
-      throw ArgumentError.value(reports, 'reports', 'no value provided');
+      throw RPCError('getSourceReport', -32602,
+          'Invalid parameter: no value for source report kind provided.');
     }
 
     if (reports.length == 1 &&
@@ -367,42 +368,57 @@ function($argsString) {
       return _getPossibleBreakpoints(isolateId, scriptId);
     }
 
-    throw ArgumentError.value(
-        reports, 'reports', 'Unsupported source report kind.');
+    throw RPCError(
+        'getSourceReport', -32602, 'Unsupported source report kind.');
   }
 
   Future<SourceReport> _getPossibleBreakpoints(
-      String isolateId, String scriptId) async {
-    final scriptRef = await scriptWithId(scriptId);
+      String isolateId, String vmScriptId) async {
+    // TODO(devoncarew): Consider adding some caching for this method.
+
+    final scriptRef = scriptWithId(vmScriptId);
     if (scriptRef == null) {
-      throw ArgumentError.value(scriptId, 'scriptId', 'not found');
+      throw ArgumentError.value(vmScriptId, 'scriptId', 'not found');
     }
 
-    final script = await _getScript(isolateId, scriptRef);
+    final dartUri = DartUri(scriptRef.uri, _root);
+    final jsModule =
+        await _locations.modules.moduleForSource(dartUri.serverPath);
+    final jsScriptId = _locations.modules.scriptIdForModule(jsModule);
 
-    // Gather the token positions. Note, this is likely over report the number
-    // of lines which can have breakpoints.
-    // TODO: Switch to use the Chrome DevTools 'Debugger.getPossibleBreakpoints'
-    // call.
-    var breakpointLines = <int>[];
-    for (var lineInfo in script.tokenPosTable) {
-      // Decode [lineNumber, (tokenPos, columnNumber)*].
-      for (var pos = 1; pos < lineInfo.length; pos += 2) {
-        breakpointLines.add(lineInfo[pos]);
+    final possibleLocations = await remoteDebugger
+        .getPossibleBreakpoints(WipLocation.fromValues(jsScriptId, 0));
+
+    final mappedLocations =
+        await _locations.locationsForDart(dartUri.serverPath);
+
+    // Currently, there's not exact alignment between the source map information
+    // that DDC generates and the locations that V8 believes are executable.
+    // The 'possible breakpoints' source report is currently used by clients in
+    // order to visualize the lines at which the user can set breakpoints. In
+    // order to not under report or over report lines, we don't try and look for
+    // exact matches here, but instead report all DDC token position for lines
+    // where V8 thinks there is something executable.
+    final jsLines =
+        Set<int>.from(possibleLocations.map((loc) => loc.lineNumber + 1));
+    var tokenPositions = <int>[];
+    for (var location in mappedLocations) {
+      if (jsLines.contains(location.jsLocation.line)) {
+        tokenPositions.add(location.tokenPos);
       }
     }
-    breakpointLines.sort();
+    tokenPositions.sort();
 
     final range = SourceReportRange(
       scriptIndex: 0,
-      startPos: breakpointLines.isEmpty ? -1 : breakpointLines.first,
-      endPos: breakpointLines.isEmpty ? -1 : breakpointLines.last,
+      startPos: tokenPositions.isEmpty ? -1 : tokenPositions.first,
+      endPos: tokenPositions.isEmpty ? -1 : tokenPositions.last,
       compiled: true,
-      possibleBreakpoints: breakpointLines,
+      possibleBreakpoints: tokenPositions,
     );
-    final ranges = [range];
 
-    return SourceReport(scripts: [script], ranges: ranges);
+    final ranges = [range];
+    return SourceReport(scripts: [scriptRef], ranges: ranges);
   }
 
   /// All the scripts in the isolate.
@@ -467,10 +483,8 @@ function($argsString) {
     }
   }
 
-  // TODO: This does not need to be async.
   /// Look up the script by id in an isolate.
-  Future<ScriptRef> scriptWithId(String scriptId) async =>
-      _scriptRefsById[scriptId];
+  ScriptRef scriptWithId(String scriptId) => _scriptRefsById[scriptId];
 
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {

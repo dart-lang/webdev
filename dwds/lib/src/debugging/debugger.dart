@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -253,19 +253,26 @@ class Debugger extends Domain {
 
   /// Add a breakpoint at the given position.
   ///
-  /// Note that line and column are Dart source locations and one-based.
-  Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
-      {int column}) async {
+  /// Note that line and column are Dart source locations and are one-based.
+  Future<Breakpoint> addBreakpoint(
+    String isolateId,
+    String scriptId,
+    int line, {
+    int column,
+  }) async {
     checkIsolate(isolateId);
-    return _breakpoints.add(scriptId, line, ifNew: (breakpoint) async {
-      _streamNotify(
-          'Debug',
-          Event(
-              kind: EventKind.kBreakpointAdded,
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              isolate: inspector.isolateRef)
-            ..breakpoint = breakpoint);
-    });
+
+    final breakpoint = await _breakpoints.add(scriptId, line);
+
+    final event = Event(
+      kind: EventKind.kBreakpointAdded,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      isolate: inspector.isolateRef,
+    );
+    event.breakpoint = breakpoint;
+    _streamNotify('Debug', event);
+
+    return breakpoint;
   }
 
   /// Remove a Dart breakpoint.
@@ -275,27 +282,33 @@ class Debugger extends Domain {
     if (breakpointId == null) {
       throw ArgumentError.notNull('breakpointId');
     }
-    var jsId = _breakpoints.jsId(breakpointId);
-    var bp = await _breakpoints.remove(js: jsId, dartId: breakpointId);
-    if (bp == null) {
-      throw ArgumentError.value(
-          breakpointId, 'Breakpoint not found with this id.');
-    }
-    _streamNotify(
+
+    final jsId = _breakpoints.jsId(breakpointId);
+    await _removeBreakpoint(jsId);
+
+    var bp = _breakpoints.remove(jsId: jsId, dartId: breakpointId);
+    if (bp != null) {
+      _streamNotify(
         'Debug',
         Event(
             kind: EventKind.kBreakpointRemoved,
             timestamp: DateTime.now().millisecondsSinceEpoch,
             isolate: inspector.isolateRef)
-          ..breakpoint = bp);
-    await _removeBreakpoint(jsId);
+          ..breakpoint = bp,
+      );
+    }
+
     return Success();
   }
 
   /// Call the Chrome protocol removeBreakpoint.
   Future<void> _removeBreakpoint(String breakpointId) async {
-    var response = await _remoteDebugger.removeBreakpoint(breakpointId);
-    handleErrorIfPresent(response);
+    try {
+      var response = await _remoteDebugger.removeBreakpoint(breakpointId);
+      handleErrorIfPresent(response);
+    } on WipError catch (e) {
+      throw RPCError('removeBreakpoint', 102, '$e');
+    }
   }
 
   /// Returns source [Location] for the paused event.
@@ -380,7 +393,7 @@ class Debugger extends Domain {
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
     var receiver = remoteObjectFor(id);
-    var end = count == null ? null : min(offset + count, length);
+    var end = count == null ? null : math.min(offset + count, length);
     var actualCount = count ?? length - offset;
     var args =
         [offset, actualCount, end].map(dartIdFor).map(remoteObjectFor).toList();
@@ -585,7 +598,7 @@ class _Breakpoints extends Domain {
   final Map<String, String> _dartIdByJsId = {};
   final Map<String, String> _jsIdByDartId = {};
 
-  final Map<String, Future<Breakpoint>> _bpByDartId = {};
+  final Map<String, Breakpoint> _bpByDartId = {};
 
   final Locations locations;
   final RemoteDebugger remoteDebugger;
@@ -600,36 +613,37 @@ class _Breakpoints extends Domain {
     @required this.root,
   }) : super(provider);
 
-  /// Adds a breakpoint at [scriptId] and [line] or returns an existing one
-  /// if present.
-  ///
-  /// If a new breakpoint is created then [ifNew] is invoked with the
-  /// breakpoint.
-  Future<Breakpoint> add(String scriptId, int line,
-      {void Function(Breakpoint) ifNew}) async {
-    var id = breakpointIdFor(scriptId, line);
-    var bp = await _bpByDartId.putIfAbsent(id, () async {
-      var dartScript = await inspector.scriptWithId(scriptId);
-      var dartUri = DartUri(dartScript.uri, root);
-      var location = await locations.locationForDart(dartUri, line);
-      // TODO: Handle cases where a breakpoint can't be set exactly at that line.
-      if (location == null) {
-        // ignore: only_throw_errors
-        throw RPCError(
-            'addBreakpoint',
-            102,
-            'The VM is unable to add a breakpoint '
-                'at the specified line or function');
-      }
+  /// Adds a breakpoint at [scriptId] and [line] or returns an existing one if
+  /// present.
+  Future<Breakpoint> add(String scriptId, int line) async {
+    final id = breakpointIdFor(scriptId, line);
+    if (_bpByDartId.containsKey(id)) {
+      throw RPCError('addBreakpoint', 102, 'Breakpoint already exists.');
+    }
 
+    var dartScript = inspector.scriptWithId(scriptId);
+    var dartUri = DartUri(dartScript.uri, root);
+    var location = await locations.locationForDart(dartUri, line);
+    // TODO: Handle cases where a breakpoint can't be set exactly at that line.
+    if (location == null) {
+      throw RPCError(
+          'addBreakpoint',
+          102,
+          'The VM is unable to add a breakpoint '
+              'at the specified line or function');
+    }
+
+    try {
       var dartBreakpoint = _dartBreakpoint(dartScript, location, id);
       var jsBreakpointId = await _setJsBreakpoint(location);
+      _bpByDartId[id] = dartBreakpoint;
       _note(jsId: jsBreakpointId, bp: dartBreakpoint);
-      ifNew(dartBreakpoint);
       return dartBreakpoint;
-    });
-    assert(bp.id == id);
-    return bp;
+    } on WipError catch (wipError) {
+      print('caught WipError ($wipError)');
+
+      throw RPCError('addBreakpoint', 102, '$wipError');
+    }
   }
 
   /// Create a Dart breakpoint at [location] in [dartScript] with [id].
@@ -655,25 +669,27 @@ class _Breakpoints extends Domain {
         'lineNumber': location.jsLocation.line - 1,
       }
     });
-    handleErrorIfPresent(response);
     return response.result['breakpointId'] as String;
   }
 
   /// Records the internal Dart <=> JS breakpoint id mapping and adds the
   /// breakpoint to the current isolates list of breakpoints.
-  void _note({Breakpoint bp, String jsId}) {
+  void _note({@required Breakpoint bp, @required String jsId}) {
     _dartIdByJsId[jsId] = bp.id;
     _jsIdByDartId[bp.id] = jsId;
     var isolate = inspector.isolate;
     isolate?.breakpoints?.add(bp);
   }
 
-  Future<Breakpoint> remove({String js, String dartId}) async {
+  Breakpoint remove({
+    @required String jsId,
+    @required String dartId,
+  }) {
     var isolate = inspector.isolate;
-    _dartIdByJsId.remove(js);
+    _dartIdByJsId.remove(jsId);
     _jsIdByDartId.remove(dartId);
     isolate?.breakpoints?.removeWhere((b) => b.id == dartId);
-    return await _bpByDartId.remove(dartId);
+    return _bpByDartId.remove(dartId);
   }
 
   String dartId(String jsId) => _dartIdByJsId[jsId];

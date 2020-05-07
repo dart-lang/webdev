@@ -71,10 +71,13 @@ class ExtensionDebugger implements RemoteDebugger {
           'result': json.decode(message.result),
           'id': message.id
         };
-        if (_completers[message.id] == null) {
+        final completer = _completers[message.id];
+        if (completer == null) {
           throw StateError('Missing completer.');
         }
-        _completers[message.id].complete(WipResponse(encodedResult));
+        // TODO(#988): Call completeError(WipError()) to match the behavior of
+        // package:webkit_inspection_protocol.
+        completer.complete(WipResponse(encodedResult));
       } else if (message is ExtensionEvent) {
         var map = {
           'method': json.decode(message.method),
@@ -215,6 +218,24 @@ class ExtensionDebugger implements RemoteDebugger {
           response.result['exceptionDetails'] as Map<String, dynamic>);
     } else {
       return RemoteObject(response.result['result'] as Map<String, dynamic>);
+    }
+  }
+
+  @override
+  Future<List<WipBreakLocation>> getPossibleBreakpoints(
+      WipLocation start) async {
+    final params = <String, dynamic>{
+      'start': start.toJsonMap(),
+    };
+    final response =
+        await sendCommand('Debugger.getPossibleBreakpoints', params: params);
+    if (response.result.containsKey('exceptionDetails')) {
+      throw ChromeDebugException(
+          response.result['exceptionDetails'] as Map<String, dynamic>);
+    } else {
+      final locations = response.result['locations'] as List;
+      return List.from(locations
+          .map((map) => WipBreakLocation(map as Map<String, dynamic>)));
     }
   }
 

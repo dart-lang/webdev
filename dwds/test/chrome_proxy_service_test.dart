@@ -67,16 +67,12 @@ void main() {
         expect(firstBp, isNotNull);
         expect(firstBp.id, isNotNull);
 
-        // Set another breakpoint at the same place - should get the original.
-        var secondBp =
-            await service.addBreakpoint(isolate.id, mainScript.id, line);
-        expect(secondBp.id, firstBp.id);
+        // Set another breakpoint at the same place - expect a failure.
+        var addFuture = service.addBreakpoint(isolate.id, mainScript.id, line);
+        expect(addFuture, throwsA(predicate((e) => e is RPCError)));
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, firstBp.id);
-        // We shouldn't be able to remove it again.
-        expect(() => service.removeBreakpoint(isolate.id, secondBp.id),
-            throwsArgumentError);
       });
 
       test('addBreakpoint in nonsense location throws', () async {
@@ -129,8 +125,9 @@ void main() {
 
       test("removeBreakpoint doesn't exist", () {
         expect(() => service.removeBreakpoint(isolate.id, '1234'),
-            throwsArgumentError);
+            throwsA(isA<RPCError>()));
       });
+
       test('add and remove breakpoint', () async {
         var line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id, mainScript);
@@ -625,18 +622,20 @@ void main() {
     });
 
     group('getSourceReport', () {
-      test('Coverage report', () {
-        expect(() => service.getSourceReport(null, ['Coverage']),
-            throwsA(isA<ArgumentError>()));
+      test('Coverage report', () async {
+        var vm = await service.getVM();
+        var isolateId = vm.isolates.first.id;
+
+        expect(() => service.getSourceReport(isolateId, ['Coverage']),
+            throwsA(isA<RPCError>()));
       });
 
-      test('report type not understood', () {
-        // TODO(devoncarew): The VM returns:
-        //   "error.code": -32602,
-        //   "error.message": "Invalid params",
-        //     "data.details": "getSourceReport: invalid 'reports' parameter: [FooBar]"
-        expect(() => service.getSourceReport(null, ['FooBar']),
-            throwsA(isA<ArgumentError>()));
+      test('report type not understood', () async {
+        var vm = await service.getVM();
+        var isolateId = vm.isolates.first.id;
+
+        expect(() => service.getSourceReport(isolateId, ['FooBar']),
+            throwsA(isA<RPCError>()));
       });
 
       test('PossibleBreakpoints report', () async {
@@ -654,7 +653,9 @@ void main() {
 
         expect(sourceReport.scripts, isNotEmpty);
         expect(sourceReport.ranges, isNotEmpty);
-        expect(sourceReport.ranges.first.possibleBreakpoints, isNotEmpty);
+
+        final sourceReportRange = sourceReport.ranges.first;
+        expect(sourceReportRange.possibleBreakpoints, isNotEmpty);
       });
     });
 
