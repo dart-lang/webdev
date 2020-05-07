@@ -136,6 +136,8 @@ class FrontendServerClient {
       String feBoundaryKey;
       var newSources = <Uri>{};
       var removedSources = <Uri>{};
+      var compilerOutputLines = <String>[];
+      int errorCount;
       while (
           state != _FeServerState.done && await _feServerStdoutLines.hasNext) {
         var line = await _feServerStdoutLines.next;
@@ -146,12 +148,16 @@ class FrontendServerClient {
             state = _FeServerState.waitingForKey;
             continue;
           case _FeServerState.waitingForKey:
-            assert(line == feBoundaryKey, line);
-            state = _FeServerState.gettingSourceDiffs;
+            if (line == feBoundaryKey) {
+              state = _FeServerState.gettingSourceDiffs;
+            } else {
+              compilerOutputLines.add(line);
+            }
             continue;
           case _FeServerState.gettingSourceDiffs:
             if (line.startsWith(feBoundaryKey)) {
               state = _FeServerState.done;
+              errorCount = int.parse(line.split(' ').last);
               continue;
             }
             var diffUri = Uri.parse(line.substring(1));
@@ -174,9 +180,11 @@ class FrontendServerClient {
           dillOutput: wasIncremental
               ? '$_outputDillPath.incremental.dill'
               : _outputDillPath,
+          errorCount: errorCount,
           wasIncremental: wasIncremental,
           newSources: newSources,
-          removedSources: removedSources);
+          removedSources: removedSources,
+          compilerOutputLines: compilerOutputLines);
     } finally {
       _state = _ClientState.waitingForAcceptOrReject;
     }
@@ -260,42 +268,38 @@ class FrontendServerClient {
 /// The result of a compile call.
 class CompileResult {
   const CompileResult._(
-      {this.dillOutput,
-      this.errors,
-      this.wasIncremental,
-      this.newSources,
-      this.removedSources});
+      {@required this.dillOutput,
+      @required this.compilerOutputLines,
+      @required this.errorCount,
+      @required this.wasIncremental,
+      @required this.newSources,
+      @required this.removedSources});
 
   /// The produced dill output file, this will either be a full dill file or an
   /// incremental dill file depending on [wasIncremental].
-  ///
-  /// May be `null` if [errors] is not empty.
   final String dillOutput;
 
-  /// Any errors encountered during compilation.
-  final Iterable<String> errors;
+  /// All output from the compiler, typically this would contain errors or
+  /// warnings.
+  final Iterable<String> compilerOutputLines;
+
+  /// The total count of errors, details should appear in
+  /// [compilerOutputLines].
+  final int errorCount;
 
   /// A single file containing all source maps for all JS outputs.
   ///
   /// Read [jsManifestOutput] for file offsets for each sourcemap.
-  ///
-  /// Will be `null` if [dillOutput] is `null`.
-  String get jsSourceMapsOutput =>
-      dillOutput == null ? null : '$dillOutput.map';
+  String get jsSourceMapsOutput => '$dillOutput.map';
 
   /// A single file containing all JS outputs.
   ///
   /// Read [jsManifestOutput] for file offsets for each source.
-  ///
-  /// Will be `null` if [dillOutput] is `null`.
-  String get jsSourcesOutput =>
-      dillOutput == null ? null : '$dillOutput.sources';
+  String get jsSourcesOutput => '$dillOutput.sources';
 
   /// A JSON manifest containing offsets for the sources and source maps in
   /// the [jsSourcesOutput] and [jsSourceMapsOutput] files.
-  ///
-  /// Will be `null` if [dillOutput] is `null`.
-  String get jsManifestOutput => dillOutput == null ? null : '$dillOutput.json';
+  String get jsManifestOutput => '$dillOutput.json';
 
   /// All the transitive source dependencies that were added as a part of this
   /// compile.
