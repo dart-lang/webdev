@@ -354,7 +354,8 @@ class DevHandler {
 
   void _listen() async {
     var path = await _injected.devHandlerPath;
-    _sseHandler = SseHandler(Uri.parse(path));
+    _sseHandler =
+        SseHandler(Uri.parse(path), keepAlive: const Duration(seconds: 30));
     var injectedConnections = _sseHandler.connections;
     while (await injectedConnections.hasNext) {
       _handleConnection(await injectedConnections.next);
