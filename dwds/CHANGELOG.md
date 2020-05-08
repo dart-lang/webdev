@@ -3,6 +3,7 @@
 - Change the reported names for isolates to be more terse.
 - Change the returned errors for the unimplemented `getClassList` and `reloadSources`
   methods to -32601 ('method does not exist / is not available').
+- Gracefully handle multiple injected clients on aa single page.
 
 ## 3.1.0
 

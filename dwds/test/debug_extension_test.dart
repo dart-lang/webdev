@@ -8,7 +8,7 @@
 @OnPlatform({
   'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
 })
-import 'package:dwds/src/handlers/injected_handler.dart';
+import 'package:dwds/src/handlers/injected.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 

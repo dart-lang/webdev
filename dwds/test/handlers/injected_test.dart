@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:dwds/dwds.dart';
-import 'package:dwds/src/handlers/injected_handler.dart';
+import 'package:dwds/src/handlers/injected.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/version.dart';
 import 'package:http/http.dart' as http;
@@ -59,9 +59,8 @@ void main() {
 
   group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
-      var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
-          loadStrategy,
-          urlEncoder: (url) async => encodedUrl));
+      var pipeline =
+          const Pipeline().addMiddleware(Injected(loadStrategy).middleware);
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok(
@@ -191,7 +190,7 @@ void main() {
     setUp(() async {
       var extensionUri = 'http://localhost:4000';
       var pipeline = const Pipeline().addMiddleware(
-          createInjectedHandler(loadStrategy, extensionUri: extensionUri));
+          Injected(loadStrategy, extensionUri: extensionUri).middleware);
       server = await shelf_io.serve(pipeline.addHandler((request) {
         return Response.ok(
             '$entrypointExtensionMarker\n'
