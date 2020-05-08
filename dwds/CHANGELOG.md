@@ -1,6 +1,7 @@
 ## 3.1.1-dev
 
 - Change the reported names for isolates to be more terse.
+- Implemented the 'PossibleBreakpoints' report kind for `getSourceReport()`.
 - Change the returned errors for the unimplemented `getClassList` and `reloadSources`
   methods to -32601 ('method does not exist / is not available').
 
