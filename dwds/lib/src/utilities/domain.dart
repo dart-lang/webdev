@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:meta/meta.dart';
+
 import '../debugging/inspector.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/wrapped_service.dart';
@@ -26,11 +28,15 @@ abstract class Domain {
   ///
   /// This is useful to call at the beginning of API methods that are passed an
   /// isolate id.
-  Isolate checkIsolate(String isolateId) {
+  Isolate checkIsolate(String methodName, String isolateId) {
     if (isolateId != inspector.isolate?.id) {
-      throw ArgumentError.value(
-          isolateId, 'isolateId', 'Unrecognized isolate id');
+      throwInvalidParam(methodName, 'Unrecognized isolateId: $isolateId');
     }
     return inspector.isolate;
+  }
+
+  @alwaysThrows
+  void throwInvalidParam(String method, String message) {
+    throw RPCError(method, RPCError.kInvalidParams, message);
   }
 }

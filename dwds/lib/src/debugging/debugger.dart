@@ -7,10 +7,9 @@ import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:vm_service/vm_service.dart' as vm_service;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
-
-import 'package:vm_service/vm_service.dart' as vm_service;
 
 import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
@@ -97,9 +96,12 @@ class Debugger extends Domain {
   }
 
   Future<Success> setExceptionPauseMode(String isolateId, String mode) async {
-    checkIsolate(isolateId);
-    _pauseState = _pauseModePauseStates[mode.toLowerCase()] ??
-        (throw ArgumentError.value('mode', 'Unsupported mode `$mode`'));
+    checkIsolate('setExceptionPauseMode', isolateId);
+    mode = mode?.toLowerCase();
+    if (!_pauseModePauseStates.containsKey(mode)) {
+      throwInvalidParam('setExceptionPauseMode', 'Unsupported mode: $mode');
+    }
+    _pauseState = _pauseModePauseStates[mode];
     await _remoteDebugger.setPauseOnExceptions(_pauseState);
     return Success();
   }
@@ -119,7 +121,7 @@ class Debugger extends Domain {
   /// a location for which we have source information.
   Future<Success> resume(String isolateId,
       {String step, int frameIndex}) async {
-    checkIsolate(isolateId);
+    checkIsolate('resume', isolateId);
     if (frameIndex != null) {
       throw ArgumentError('FrameIndex is currently unsupported.');
     }
@@ -137,7 +139,7 @@ class Debugger extends Domain {
           result = await _remoteDebugger.stepInto();
           break;
         default:
-          throw ArgumentError('Unexpected value for step: $step');
+          throwInvalidParam('resume', 'Unexpected value for step: $step');
       }
     } else {
       _isStepping = false;
@@ -151,7 +153,7 @@ class Debugger extends Domain {
   ///
   /// Returns null if the debugger is not paused.
   Future<Stack> getStack(String isolateId) async {
-    checkIsolate(isolateId);
+    checkIsolate('getStack', isolateId);
     return _pausedStack;
   }
 
@@ -262,7 +264,7 @@ class Debugger extends Domain {
     int line, {
     int column,
   }) async {
-    checkIsolate(isolateId);
+    checkIsolate('addBreakpoint', isolateId);
 
     final breakpoint = await _breakpoints.add(scriptId, line);
 
@@ -280,9 +282,9 @@ class Debugger extends Domain {
   /// Remove a Dart breakpoint.
   Future<Success> removeBreakpoint(
       String isolateId, String breakpointId) async {
-    checkIsolate(isolateId);
+    checkIsolate('removeBreakpoint', isolateId);
     if (breakpointId == null) {
-      throw ArgumentError.notNull('breakpointId');
+      throwInvalidParam('removeBreakpoint', 'breakpointId not provided');
     }
 
     final jsId = _breakpoints.jsId(breakpointId);
@@ -570,7 +572,7 @@ class Debugger extends Domain {
   Future<RemoteObject> evaluateJsOnCallFrameIndex(
       int frameIndex, String expression) {
     if (_pausedJsStack == null) {
-      throw StateError(
+      throw RPCError('evaluateInFrame', 106,
           'Cannot evaluate on a call frame when the program is not paused');
     }
     return evaluateJsOnCallFrame(
@@ -651,8 +653,6 @@ class _Breakpoints extends Domain {
       _note(jsId: jsBreakpointId, bp: dartBreakpoint);
       return dartBreakpoint;
     } on WipError catch (wipError) {
-      print('caught WipError ($wipError)');
-
       throw RPCError('addBreakpoint', 102, '$wipError');
     }
   }

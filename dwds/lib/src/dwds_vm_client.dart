@@ -70,7 +70,7 @@ class DwdsVmClient {
         var code = exception.error['code'];
         // This corresponds to `Execution context was destroyed` which can
         // occur during a hot restart that must fall back to a full reload.
-        if (code != -32000) {
+        if (code != RPCError.kServerError) {
           return {
             'error': {
               'code': exception.error['code'],
