@@ -10,6 +10,8 @@ import 'package:meta/meta.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
+import 'package:vm_service/vm_service.dart' as vm_service;
+
 import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../services/chrome_proxy_service.dart';
@@ -358,10 +360,19 @@ class Debugger extends Domain {
         callFrameId: callFrameId);
     var boundVariables = await Future.wait(
         properties.map((property) async => await _boundVariable(property)));
-    boundVariables = boundVariables.where((bv) => bv != null).toList();
+    // Filter out variables that do not come from dart code,
+    // such as native JavaScript objects
+    boundVariables = boundVariables
+        .where((bv) =>
+            bv != null &&
+            !_isNativeJsObject(bv.value as vm_service.InstanceRef))
+        .toList();
     boundVariables.sort((a, b) => a.name.compareTo(b.name));
     return boundVariables;
   }
+
+  bool _isNativeJsObject(vm_service.InstanceRef instanceRef) =>
+      instanceRef?.classRef?.name == 'NativeJavaScriptObject';
 
   Future<BoundVariable> _boundVariable(Property property) async {
     // We return one level of properties from this object. Sub-properties are
