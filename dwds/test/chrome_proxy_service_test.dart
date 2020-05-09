@@ -120,7 +120,7 @@ void main() {
       });
 
       test('removeBreakpoint null arguments', () {
-        expect(() => service.removeBreakpoint(null, null), throwsArgumentError);
+        expect(() => service.removeBreakpoint(null, null), throwsRPCError);
       });
 
       test("removeBreakpoint doesn't exist", () {
@@ -1016,8 +1016,8 @@ void main() {
       // Make sure this is the last one - or future tests might hang.
       expect(
           await service.setExceptionPauseMode(isolateId, 'none'), _isSuccess);
-      expect(service.setExceptionPauseMode(isolateId, 'invalid'),
-          throwsA(isA<ArgumentError>()));
+      expect(
+          service.setExceptionPauseMode(isolateId, 'invalid'), throwsRPCError);
     });
 
     test('setFlag', () {

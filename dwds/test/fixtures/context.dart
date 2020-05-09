@@ -32,6 +32,10 @@ import 'utilities.dart';
 final _batExt = Platform.isWindows ? '.bat' : '';
 final _exeExt = Platform.isWindows ? '.exe' : '';
 
+const isRPCError = TypeMatcher<RPCError>();
+
+final Matcher throwsRPCError = throwsA(isRPCError);
+
 enum CompilationMode { buildDaemon, frontendServer }
 
 class TestContext {
