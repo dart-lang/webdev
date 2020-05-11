@@ -205,7 +205,7 @@ class RequireRestarter implements Restarter {
         }
       }
       print('$reloadedModules module(s) were hot-reloaded.');
-      dartRunMain();
+      _runMain();
       _running.complete(true);
     } on HotReloadFailedException catch (e) {
       print('Error during script reloading. Firing full page reload. $e');
@@ -247,4 +247,14 @@ class RequireRestarter implements Restarter {
     await reloader._initialize();
     return reloader;
   }
+}
+
+/// Runs `window.$dartRunMain()` by injecting a script tag.
+///
+/// We do this so that we don't see user exceptions bubble up in our own error
+/// handling zone.
+void _runMain() {
+  var scriptElement = ScriptElement()..innerHtml = r'window.$dartRunMain();';
+  document.body.append(scriptElement);
+  Future.microtask(scriptElement.remove);
 }
