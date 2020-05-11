@@ -32,7 +32,7 @@ import '../servers/extension_backend.dart';
 import '../services/app_debug_services.dart';
 import '../services/debug_service.dart';
 import '../services/expression_compiler.dart';
-import 'injected.dart';
+import 'injector.dart';
 
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
@@ -59,7 +59,7 @@ class DevHandler {
   final bool _useSseForDebugProxy;
   final bool _serveDevTools;
   final ExpressionCompiler _expressionCompiler;
-  final Injected _injected;
+  final DwdsInjector _injected;
 
   /// Null until [close] is called.
   ///

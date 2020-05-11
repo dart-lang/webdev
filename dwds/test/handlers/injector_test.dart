@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:dwds/dwds.dart';
-import 'package:dwds/src/handlers/injected.dart';
+import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/version.dart';
 import 'package:http/http.dart' as http;
@@ -60,7 +60,7 @@ void main() {
   group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
       var pipeline =
-          const Pipeline().addMiddleware(Injected(loadStrategy).middleware);
+          const Pipeline().addMiddleware(DwdsInjector(loadStrategy).middleware);
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok(
@@ -94,14 +94,14 @@ void main() {
     test('replaces main marker with injected client', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
-      expect(result.body.contains('Injected by webdev'), isTrue);
+      expect(result.body.contains('Injected by dwds'), isTrue);
       expect(result.body.contains(mainExtensionMarker), isFalse);
     });
 
     test('prevents main from being called', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
-      expect(result.body.contains('app.main.main()'), isFalse);
+      expect(result.body.contains('window.\$dartRunMain'), isTrue);
     });
 
     test('updates etags for injected responses', () async {
@@ -115,11 +115,10 @@ void main() {
       expect(result.body, 'Not found');
     });
 
-    test('correctly encodes dartUriBase', () async {
+    test('embeds the devHandlerPath', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
-      expect(
-          result.body.contains('window.\$dartUriBase = "$encodedUrl"'), isTrue);
+      expect(result.body.contains('window.\$dwdsDevHandlerPath'), isTrue);
     });
 
     test(
@@ -190,7 +189,7 @@ void main() {
     setUp(() async {
       var extensionUri = 'http://localhost:4000';
       var pipeline = const Pipeline().addMiddleware(
-          Injected(loadStrategy, extensionUri: extensionUri).middleware);
+          DwdsInjector(loadStrategy, extensionUri: extensionUri).middleware);
       server = await shelf_io.serve(pipeline.addHandler((request) {
         return Response.ok(
             '$entrypointExtensionMarker\n'

@@ -28,12 +28,12 @@ const _clientScript = 'dwds/src/injected/client';
 
 /// Handles injecting the DWDS client and embedding debugging related
 /// information.
-class Injected {
+class DwdsInjector {
   final LoadStrategy _loadStrategy;
   final String _extensionUri;
   final _devHandlerPathCompleter = Completer<String>();
 
-  Injected(
+  DwdsInjector(
     this._loadStrategy, {
     String extensionUri,
   }) : _extensionUri = extensionUri;

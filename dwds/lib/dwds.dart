@@ -13,7 +13,7 @@ import 'data/build_result.dart';
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
 import 'src/handlers/dev_handler.dart';
-import 'src/handlers/injected.dart';
+import 'src/handlers/injector.dart';
 import 'src/loaders/strategy.dart';
 import 'src/readers/asset_reader.dart';
 import 'src/servers/devtools.dart';
@@ -121,7 +121,7 @@ class Dwds {
       logWriter(Level.INFO, 'Serving DevTools at $uri\n');
     }
 
-    var injected = Injected(
+    var injected = DwdsInjector(
       loadStrategy,
       extensionUri: extensionUri,
     );
