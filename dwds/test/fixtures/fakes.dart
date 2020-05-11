@@ -69,7 +69,7 @@ class FakeInspector extends Domain implements AppInspector {
       Future.value(ScriptRef(id: 'fake', uri: 'fake://uri'));
 
   @override
-  Future<ScriptRef> scriptWithId(String scriptId) => null;
+  ScriptRef scriptWithId(String scriptId) => null;
 
   @override
   Isolate checkIsolate(String isolateId) => fakeIsolate;
@@ -262,6 +262,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
       String callFrameId, String expression) async {
     return RemoteObject(<String, dynamic>{});
   }
+
+  @override
+  Future<List<WipBreakLocation>> getPossibleBreakpoints(WipLocation start) =>
+      null;
 
   @override
   Future<WipResponse> enablePage() => null;

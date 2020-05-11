@@ -256,8 +256,6 @@ class ExpressionEvaluator {
           await _debugger.getProperties(scope.object.objectId);
 
       if (!skip) {
-        _logWriter(
-            Level.INFO, 'Collecting Scope ${scope.scope}: $scopeProperties');
         collectVariables(scope.scope, scopeProperties);
       } else {
         // TODO(sdk/issues/40774) - This appears brittle.

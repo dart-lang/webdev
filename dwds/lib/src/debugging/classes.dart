@@ -59,6 +59,9 @@ class ClassHelper extends Domain {
     if (clazz != null) return clazz;
     var splitId = objectId.split('|');
     var libraryId = splitId[1];
+    if (libraryId == 'null') {
+      throw UnsupportedError('unknown library: $libraryId');
+    }
     var libraryRef = await inspector.libraryHelper.libraryRefFor(libraryId);
     var classRef = classRefFor(libraryId, splitId.last);
     clazz = await _constructClass(libraryRef, classRef);
