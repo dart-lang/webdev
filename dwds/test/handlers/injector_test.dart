@@ -4,57 +4,19 @@
 
 import 'dart:io';
 
-import 'package:dwds/dwds.dart';
 import 'package:dwds/src/handlers/injector.dart';
-import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/version.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 
-class FakeStrategy implements LoadStrategy {
-  @override
-  Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
-
-  @override
-  Handler get handler => (request) => (request.url.path == 'someDummyPath')
-      ? Response.ok('some dummy response')
-      : null;
-
-  @override
-  String get id => 'dummy-id';
-
-  @override
-  String get loadLibrariesSnippet => '';
-
-  @override
-  String loadLibrarySnippet(String libraryUri) => '';
-
-  @override
-  String get loadModuleSnippet => '';
-
-  @override
-  ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
-
-  @override
-  String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
-
-  @override
-  String moduleForServerPath(String serverPath) => null;
-
-  @override
-  String serverPathForModule(String module) => null;
-
-  @override
-  String serverPathForAppUri(String appUri) => null;
-}
+import '../fixtures/fakes.dart';
 
 void main() {
   HttpServer server;
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
-  const encodedUrl = 'http://some-host:1000/foo';
   var loadStrategy = FakeStrategy();
 
   group('InjectedHandlerWithoutExtension', () {
