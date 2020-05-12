@@ -31,13 +31,14 @@ import '../servers/extension_backend.dart';
 import '../services/app_debug_services.dart';
 import '../services/debug_service.dart';
 import '../services/expression_compiler.dart';
+import 'injector.dart';
 
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
 class DevHandler {
   StreamSubscription _sub;
-  final SseHandler _sseHandler = SseHandler(Uri.parse(r'/$sseHandler'),
-      keepAlive: const Duration(seconds: 30));
+  SseHandler _sseHandler;
+
   final _injectedConnections = <SseConnection>{};
   final DevTools _devTools;
   final AssetReader _assetReader;
@@ -57,6 +58,7 @@ class DevHandler {
   final bool _useSseForDebugProxy;
   final bool _serveDevTools;
   final ExpressionCompiler _expressionCompiler;
+  final DwdsInjector _injected;
 
   /// Null until [close] is called.
   ///
@@ -78,7 +80,8 @@ class DevHandler {
       this._restoreBreakpoints,
       this._useSseForDebugProxy,
       this._serveDevTools,
-      this._expressionCompiler) {
+      this._expressionCompiler,
+      this._injected) {
     _sub = buildResults.listen(_emitBuildResults);
     _listen();
     if (_extensionBackend != null) {
@@ -86,11 +89,12 @@ class DevHandler {
     }
   }
 
-  Handler get handler => _sseHandler.handler;
+  Handler get handler =>
+      (request) => _sseHandler?.handler(request) ?? Response.notFound('');
 
   Future<void> close() => _closed ??= () async {
         await _sub.cancel();
-        _sseHandler.shutdown();
+        _sseHandler?.shutdown();
         await Future.wait(_servicesByAppId.values.map((service) async {
           await service.close();
         }));
@@ -345,6 +349,9 @@ class DevHandler {
   }
 
   void _listen() async {
+    var path = await _injected.devHandlerPath;
+    _sseHandler =
+        SseHandler(Uri.parse(path), keepAlive: const Duration(seconds: 30));
     var injectedConnections = _sseHandler.connections;
     while (await injectedConnections.hasNext) {
       _handleConnection(await injectedConnections.next);

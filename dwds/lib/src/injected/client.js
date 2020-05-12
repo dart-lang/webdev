@@ -3513,9 +3513,6 @@
     elementAt$1$ax: function(receiver, a0) {
       return J.getInterceptor$ax(receiver).elementAt$1(receiver, a0);
     },
-    endsWith$1$s: function(receiver, a0) {
-      return J.getInterceptor$s(receiver).endsWith$1(receiver, a0);
-    },
     fillRange$3$x: function(receiver, a0, a1, a2) {
       return J.getInterceptor$x(receiver).fillRange$3(receiver, a0, a1, a2);
     },
@@ -3551,6 +3548,9 @@
     },
     sort$1$ax: function(receiver, a0) {
       return J.getInterceptor$ax(receiver).sort$1(receiver, a0);
+    },
+    startsWith$1$s: function(receiver, a0) {
+      return J.getInterceptor$s(receiver).startsWith$1(receiver, a0);
     },
     startsWith$2$s: function(receiver, a0, a1) {
       return J.getInterceptor$s(receiver).startsWith$2(receiver, a0, a1);
@@ -8388,8 +8388,8 @@
     },
     _fixProtocol: function(url) {
       var _s8_ = "https://";
-      if (window.location.protocol === "https:" && !C.JSString_methods.startsWith$1(url, _s8_))
-        if (C.JSString_methods.startsWith$1(url, "http://localhost"))
+      if (window.location.protocol === "https:" && !J.startsWith$1$s(url, _s8_))
+        if (J.startsWith$1$s(url, "http://localhost"))
           return url;
         else
           return H.stringReplaceFirstUnchecked(url, "http://", _s8_, 0);
@@ -9331,13 +9331,6 @@
       if (typeof other != "string")
         throw H.wrapException(P.ArgumentError$value(other, null, null));
       return receiver + other;
-    },
-    endsWith$1: function(receiver, other) {
-      var otherLength = other.length,
-        t1 = receiver.length;
-      if (otherLength > t1)
-        return false;
-      return other === this.substring$1(receiver, t1 - otherLength);
     },
     replaceRange$3: function(receiver, start, end, replacement) {
       end = P.RangeError_checkValidRange(start, end, receiver.length);
@@ -21933,8 +21926,8 @@
     SseClient$1: function(serverUrl) {
       var t1, t2, t3, t4, _this = this,
         clientId = K.Uuid$().v1$0();
-      _this._eventSource = W.EventSource__factoryEventSource(serverUrl + "?sseClientId=" + clientId, P.LinkedHashMap_LinkedHashMap$_literal(["withCredentials", true], type$.String, type$.dynamic));
-      _this._serverUrl = serverUrl + "?sseClientId=" + clientId;
+      _this._eventSource = W.EventSource__factoryEventSource(H.S(serverUrl) + "?sseClientId=" + clientId, P.LinkedHashMap_LinkedHashMap$_literal(["withCredentials", true], type$.String, type$.dynamic));
+      _this._serverUrl = H.S(serverUrl) + "?sseClientId=" + clientId;
       t1 = _this._outgoingController;
       new P._ControllerStream(t1, H._instanceType(t1)._eval$1("_ControllerStream<1>")).listen$2$onDone(_this.get$_onOutgoingMessage(), _this.get$_onOutgoingDone());
       C.EventSource_methods.addEventListener$2(_this._eventSource, "message", _this.get$_onIncomingMessage());
@@ -22262,7 +22255,7 @@
               // Function start
               if (self.$dartAppInstanceId == null)
                 self.$dartAppInstanceId = K.Uuid$().v1$0();
-              client = M.SseClient$(D._fixProtocol(J.endsWith$1$s(self.$dartUriBase, "/") ? H.S(self.$dartUriBase) + "$sseHandler" : H.S(self.$dartUriBase) + "/$sseHandler"));
+              client = M.SseClient$(D._fixProtocol(self.$dwdsDevHandlerPath));
               t1 = new W._EventStream(client._eventSource, "open", false, type$._EventStream_Event);
               $async$goto = 2;
               return P._asyncAwait(t1.get$first(t1), $async$call$0);
