@@ -87,6 +87,11 @@ class WebkitDebugger implements RemoteDebugger {
   }
 
   @override
+  Future<List<WipBreakLocation>> getPossibleBreakpoints(WipLocation start) {
+    return _wipDebugger.connection.debugger.getPossibleBreakpoints(start);
+  }
+
+  @override
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) =>
       _wipDebugger.eventStream(method, transformer);
 

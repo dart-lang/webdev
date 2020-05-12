@@ -66,6 +66,14 @@ void main() {
       await service.resume(isolateId);
     });
 
+    test('variables in static function', () async {
+      stack = await breakAt('staticFunction', mainScript);
+      var frame = stack.frames.first;
+      var variableNames = frame.vars.map((variable) => variable.name).toList()
+        ..sort();
+      expect(variableNames, containsAll(['formal']));
+    });
+
     test('variables in function', () async {
       stack = await breakAt('nestedFunction', mainScript);
       var frame = stack.frames.first;

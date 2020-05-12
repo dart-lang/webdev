@@ -14,6 +14,7 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/wrapped_service.dart';
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:sse/server/sse_handler.dart';
 import 'package:stream_channel/src/stream_channel_transformer.dart';
 import 'package:stream_channel/stream_channel.dart';
@@ -69,7 +70,7 @@ class FakeInspector extends Domain implements AppInspector {
       Future.value(ScriptRef(id: 'fake', uri: 'fake://uri'));
 
   @override
-  Future<ScriptRef> scriptWithId(String scriptId) => null;
+  ScriptRef scriptWithId(String scriptId) => null;
 
   @override
   Isolate checkIsolate(String isolateId) => fakeIsolate;
@@ -264,6 +265,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
   }
 
   @override
+  Future<List<WipBreakLocation>> getPossibleBreakpoints(WipLocation start) =>
+      null;
+
+  @override
   Future<WipResponse> enablePage() => null;
 
   @override
@@ -309,4 +314,42 @@ class FakeExpressionCompiler implements ExpressionCompiler {
           error.name + ": " + error.message;
         }''', false);
   }
+}
+
+class FakeStrategy implements LoadStrategy {
+  @override
+  Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
+
+  @override
+  shelf.Handler get handler =>
+      (request) => (request.url.path == 'someDummyPath')
+          ? shelf.Response.ok('some dummy response')
+          : null;
+
+  @override
+  String get id => 'dummy-id';
+
+  @override
+  String get loadLibrariesSnippet => '';
+
+  @override
+  String loadLibrarySnippet(String libraryUri) => '';
+
+  @override
+  String get loadModuleSnippet => '';
+
+  @override
+  ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
+
+  @override
+  String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
+
+  @override
+  String moduleForServerPath(String serverPath) => null;
+
+  @override
+  String serverPathForModule(String module) => null;
+
+  @override
+  String serverPathForAppUri(String appUri) => null;
 }

@@ -128,6 +128,8 @@ class Locations {
 
   Locations(this._assetReader, this._modules, this._root);
 
+  Modules get modules => _modules;
+
   /// Clears all location meta data.
   void clearCache() {
     _sourceToTokenPosTable.clear();
@@ -153,7 +155,7 @@ class Locations {
 
   /// Returns all [Location] data for a provided JS scriptId.
   Future<Set<Location>> locationsForJs(String scriptId) async {
-    var module = await _modules.moduleForScriptId(scriptId);
+    var module = _modules.moduleForScriptId(scriptId);
     var cache = _scriptIdToLocation[scriptId];
     if (cache != null) return cache;
 
@@ -236,7 +238,7 @@ class Locations {
         await _assetReader.sourceMapContents('$modulePath.map');
     var scriptLocation = p.url.dirname('/$modulePath');
     if (sourceMapContents == null) return result;
-    var scriptId = await _modules.scriptIdForModule(module);
+    var scriptId = _modules.scriptIdForModule(module);
     if (scriptId == null) return result;
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = parse(sourceMapContents);

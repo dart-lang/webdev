@@ -1,7 +1,18 @@
+## 3.1.2
+
+- Gracefully handle multiple injected clients on a single page.
+
+## 3.1.1
+
+- Change the reported names for isolates to be more terse.
+- Implemented the 'PossibleBreakpoints' report kind for `getSourceReport()`.
+- Change the returned errors for the unimplemented `getClassList` and `reloadSources`
+  methods to -32601 ('method does not exist / is not available').
+- Do not include native JavaScipt objects on stack returned from the debugger.
+
 ## 3.1.0
 
 - Support Chromium based Edge.
-
 - Depend on latest `package:sse` version `3.5.0`.
 - Bypass connection keep-alives when shutting down to avoid delaying process shutdown.
 - Fix an issue where the isolate would incorrectly be destroyed after connection reuse.
