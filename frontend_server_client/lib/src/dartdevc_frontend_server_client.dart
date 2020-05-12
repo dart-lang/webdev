@@ -24,6 +24,9 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
 
   final _assets = <String, Uint8List>{};
 
+  /// The last compile, or `null` once it has been accepted or rejected.
+  CompileResult _lastResult;
+
   DartDevcFrontendServerClient._(this._frontendServerClient);
 
   static Future<DartDevcFrontendServerClient> start(
@@ -58,6 +61,9 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   /// The [path] should be exactly as it appears in the
   /// [CompileResult.jsManifestOutput] file.
   ///
+  /// **Note**: Assets are not updated until `accept` is called after a
+  /// successful compile. They are not updated if `reject` is called.
+  ///
   /// Returns `null` if no asset exists at [path].
   Uint8List assetBytes(String path) => _assets[path];
 
@@ -67,21 +73,12 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   String bootstrapJs() => throw UnimplementedError();
 
   /// Updates [_assets] for [result].
-  Future<void> _updateAssets(CompileResult result) async {
-    Map<String, dynamic> manifest;
-    Uint8List sourceBytes;
-    Uint8List sourceMapBytes;
-    await Future.wait([
-      File(result.jsManifestOutput)
-          .readAsString()
-          .then((json) => manifest = jsonDecode(json) as Map<String, dynamic>),
-      File(result.jsSourcesOutput)
-          .readAsBytes()
-          .then((bytes) => sourceBytes = bytes),
-      File(result.jsSourceMapsOutput)
-          .readAsBytes()
-          .then((bytes) => sourceMapBytes = bytes),
-    ]);
+  void _updateAssets(CompileResult result) {
+    final manifest =
+        jsonDecode(File(result.jsManifestOutput).readAsStringSync())
+            as Map<String, dynamic>;
+    final sourceBytes = File(result.jsSourcesOutput).readAsBytesSync();
+    final sourceMapBytes = File(result.jsSourceMapsOutput).readAsBytesSync();
 
     for (var entry in manifest.entries) {
       var metadata = entry.value as Map<String, dynamic>;
@@ -96,9 +93,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
 
   @override
   Future<CompileResult> compile([List<Uri> invalidatedUris]) async {
-    var result = await _frontendServerClient.compile(invalidatedUris);
-    await _updateAssets(result);
-    return result;
+    return _lastResult = await _frontendServerClient.compile(invalidatedUris);
   }
 
   @override
@@ -133,12 +128,16 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
           moduleName: moduleName);
 
   @override
-  void accept() => _frontendServerClient.accept();
+  void accept() {
+    _frontendServerClient.accept();
+    _updateAssets(_lastResult);
+    _lastResult = null;
+  }
 
   @override
   void reject() {
     _frontendServerClient.reject();
-    _assets.clear();
+    _lastResult = null;
   }
 
   @override
