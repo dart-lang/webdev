@@ -1,3 +1,7 @@
+## 3.1.2
+
+- Gracefully handle multiple injected clients on a single page.
+
 ## 3.1.1
 
 - Change the reported names for isolates to be more terse.

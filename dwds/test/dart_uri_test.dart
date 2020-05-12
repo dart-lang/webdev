@@ -7,7 +7,7 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:test/test.dart';
 
-import 'handlers/injected_handler_test.dart';
+import 'fixtures/fakes.dart';
 
 class TestStrategy extends FakeStrategy {
   @override

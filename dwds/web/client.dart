@@ -33,9 +33,7 @@ Future<void> main() {
     // Test apps may already have this set.
     dartAppInstanceId ??= Uuid().v1();
 
-    var client = SseClient(_fixProtocol(dartUriBase.endsWith('/')
-        ? '$dartUriBase\$sseHandler'
-        : '$dartUriBase/\$sseHandler'));
+    var client = SseClient(_fixProtocol(dwdsDevHandlerPath));
     // Ensure the SSE connection is established before proceeding.
     // Note that `onOpen` is a broadcast stream so we must listen for this
     // immediately.
@@ -157,8 +155,8 @@ external String get dartAppId;
 @JS(r'$dartAppInstanceId')
 external String get dartAppInstanceId;
 
-@JS(r'$dartUriBase')
-external String get dartUriBase;
+@JS(r'$dwdsDevHandlerPath')
+external String get dwdsDevHandlerPath;
 
 @JS(r'$dartAppInstanceId')
 external set dartAppInstanceId(String id);

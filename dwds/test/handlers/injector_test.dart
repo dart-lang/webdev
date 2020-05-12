@@ -4,64 +4,25 @@
 
 import 'dart:io';
 
-import 'package:dwds/dwds.dart';
-import 'package:dwds/src/handlers/injected_handler.dart';
-import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/version.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 
-class FakeStrategy implements LoadStrategy {
-  @override
-  Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
-
-  @override
-  Handler get handler => (request) => (request.url.path == 'someDummyPath')
-      ? Response.ok('some dummy response')
-      : null;
-
-  @override
-  String get id => 'dummy-id';
-
-  @override
-  String get loadLibrariesSnippet => '';
-
-  @override
-  String loadLibrarySnippet(String libraryUri) => '';
-
-  @override
-  String get loadModuleSnippet => '';
-
-  @override
-  ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
-
-  @override
-  String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
-
-  @override
-  String moduleForServerPath(String serverPath) => null;
-
-  @override
-  String serverPathForModule(String module) => null;
-
-  @override
-  String serverPathForAppUri(String appUri) => null;
-}
+import '../fixtures/fakes.dart';
 
 void main() {
   HttpServer server;
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
-  const encodedUrl = 'http://some-host:1000/foo';
   var loadStrategy = FakeStrategy();
 
   group('InjectedHandlerWithoutExtension', () {
     setUp(() async {
-      var pipeline = const Pipeline().addMiddleware(createInjectedHandler(
-          loadStrategy,
-          urlEncoder: (url) async => encodedUrl));
+      var pipeline =
+          const Pipeline().addMiddleware(DwdsInjector(loadStrategy).middleware);
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok(
@@ -95,14 +56,14 @@ void main() {
     test('replaces main marker with injected client', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
-      expect(result.body.contains('Injected by webdev'), isTrue);
+      expect(result.body.contains('Injected by dwds'), isTrue);
       expect(result.body.contains(mainExtensionMarker), isFalse);
     });
 
     test('prevents main from being called', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
-      expect(result.body.contains('app.main.main()'), isFalse);
+      expect(result.body.contains('window.\$dartRunMain'), isTrue);
     });
 
     test('updates etags for injected responses', () async {
@@ -116,11 +77,10 @@ void main() {
       expect(result.body, 'Not found');
     });
 
-    test('correctly encodes dartUriBase', () async {
+    test('embeds the devHandlerPath', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
-      expect(
-          result.body.contains('window.\$dartUriBase = "$encodedUrl"'), isTrue);
+      expect(result.body.contains('window.\$dwdsDevHandlerPath'), isTrue);
     });
 
     test(
@@ -191,7 +151,7 @@ void main() {
     setUp(() async {
       var extensionUri = 'http://localhost:4000';
       var pipeline = const Pipeline().addMiddleware(
-          createInjectedHandler(loadStrategy, extensionUri: extensionUri));
+          DwdsInjector(loadStrategy, extensionUri: extensionUri).middleware);
       server = await shelf_io.serve(pipeline.addHandler((request) {
         return Response.ok(
             '$entrypointExtensionMarker\n'
