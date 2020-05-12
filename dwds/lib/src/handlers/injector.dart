@@ -31,17 +31,17 @@ const _clientScript = 'dwds/src/injected/client';
 class DwdsInjector {
   final LoadStrategy _loadStrategy;
   final String _extensionUri;
-  final _devHandlerPathCompleter = Completer<String>();
+  final _devHandlerPaths = StreamController<String>();
 
   DwdsInjector(
     this._loadStrategy, {
     String extensionUri,
   }) : _extensionUri = extensionUri;
 
-  /// Returns the embedded dev handler path.
+  /// Returns the embedded dev handler paths.
   ///
-  /// This will be next to the requested entrypoint.
-  Future<String> get devHandlerPath => _devHandlerPathCompleter.future;
+  /// This will be next to the requested entrypoints.
+  Stream<String> get devHandlerPaths => _devHandlerPaths.stream;
 
   Middleware get middleware => (innerHandler) {
         return (Request request) async {
@@ -80,9 +80,7 @@ class DwdsInjector {
                 devHandlerPath = '${subPath.join('/')}/$devHandlerPath';
               }
               devHandlerPath = '$requestedUriBase/$devHandlerPath';
-              if (!_devHandlerPathCompleter.isCompleted) {
-                _devHandlerPathCompleter.complete(devHandlerPath);
-              }
+              _devHandlerPaths.add(devHandlerPath);
               body = _injectClientAndHoistMain(
                 body,
                 appId,
