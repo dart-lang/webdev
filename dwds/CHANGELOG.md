@@ -1,6 +1,8 @@
 ## 3.1.2
 
 - Gracefully handle multiple injected clients on a single page.
+- Update to the latest `package:vm_service` and use more RPCError error
+  codes on call failures.
 - Update the `require_restarter` to rerun main after a hot restart to align with
   the legacy strategy. We therefore no longer send a `RunRequest` after a hot
   restart.

@@ -20,7 +20,6 @@ import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'classes.dart';
 import 'debugger.dart';
-import 'exceptions.dart';
 import 'execution_context.dart';
 import 'instance.dart';
 import 'libraries.dart';
@@ -222,7 +221,7 @@ class AppInspector extends Domain {
   /// for non-Dart JS objects.)
   Future<RemoteObject> invoke(String isolateId, String targetId,
       String selector, List<dynamic> arguments) async {
-    checkIsolate(isolateId);
+    checkIsolate('invoke', isolateId);
     var remoteArguments =
         arguments.cast<String>().map(remoteObjectFor).toList();
     // We special case the Dart library, where invokeMethod won't work because
@@ -328,7 +327,10 @@ function($argsString) {
     var libraryId = _scriptIdToLibraryId[scriptRef.id];
     var serverPath = DartUri(scriptRef.uri, _root).serverPath;
     var source = await _assetReader.dartSourceContents(serverPath);
-    if (source == null) throw ScriptNotFound(serverPath);
+    if (source == null) {
+      throw RPCError('getObject', RPCError.kInvalidParams,
+          'Failed to load script at path: $serverPath');
+    }
     return Script(
         uri: scriptRef.uri,
         library: await libraryHelper.libraryRefFor(libraryId),
@@ -351,25 +353,24 @@ function($argsString) {
   /// Currently this implements the 'PossibleBreakpoints' report kind.
   Future<SourceReport> getSourceReport(String isolateId, List<String> reports,
       {String scriptId, int tokenPos, int endTokenPos, bool forceCompile}) {
-    checkIsolate(isolateId);
+    checkIsolate('getSourceReport', isolateId);
 
     if (reports.contains(SourceReportKind.kCoverage)) {
-      throw RPCError('getSourceReport', -32602,
+      throwInvalidParam('getSourceReport',
           'Source report kind ${SourceReportKind.kCoverage} not supported');
     }
 
     if (reports.isEmpty) {
-      throw RPCError('getSourceReport', -32602,
+      throwInvalidParam('getSourceReport',
           'Invalid parameter: no value for source report kind provided.');
     }
 
-    if (reports.length == 1 &&
-        reports.first == SourceReportKind.kPossibleBreakpoints) {
-      return _getPossibleBreakpoints(isolateId, scriptId);
+    if (reports.length > 1 ||
+        reports.first != SourceReportKind.kPossibleBreakpoints) {
+      throwInvalidParam('getSourceReport', 'Unsupported source report kind.');
     }
 
-    throw RPCError(
-        'getSourceReport', -32602, 'Unsupported source report kind.');
+    return _getPossibleBreakpoints(isolateId, scriptId);
   }
 
   Future<SourceReport> _getPossibleBreakpoints(
@@ -378,7 +379,7 @@ function($argsString) {
 
     final scriptRef = scriptWithId(vmScriptId);
     if (scriptRef == null) {
-      throw ArgumentError.value(vmScriptId, 'scriptId', 'not found');
+      throwInvalidParam('getSourceReport', 'scriptId not found: $vmScriptId');
     }
 
     final dartUri = DartUri(scriptRef.uri, _root);
@@ -423,7 +424,7 @@ function($argsString) {
 
   /// All the scripts in the isolate.
   Future<ScriptList> getScripts(String isolateId) async {
-    checkIsolate(isolateId);
+    checkIsolate('getScripts', isolateId);
     return ScriptList(scripts: await scriptRefs);
   }
 

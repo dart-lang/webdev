@@ -73,7 +73,7 @@ class FakeInspector extends Domain implements AppInspector {
   ScriptRef scriptWithId(String scriptId) => null;
 
   @override
-  Isolate checkIsolate(String isolateId) => fakeIsolate;
+  Isolate checkIsolate(String methodName, String isolateId) => fakeIsolate;
 
   @override
   Isolate get isolate => fakeIsolate;

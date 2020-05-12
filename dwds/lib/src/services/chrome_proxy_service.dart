@@ -393,7 +393,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     // See dart-lang/webdev/issues/971.
     return Future.error(RPCError(
       'getClassList',
-      -32601,
+      RPCError.kMethodNotFound,
       'Not supported on web devices',
     ));
   }
@@ -538,7 +538,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       {bool force, bool pause, String rootLibUri, String packagesUri}) {
     return Future.error(RPCError(
       'reloadSources',
-      -32601,
+      RPCError.kMethodNotFound,
       'Hot reload not supported on web devices',
     ));
   }
