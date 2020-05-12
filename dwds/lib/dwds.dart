@@ -13,7 +13,7 @@ import 'data/build_result.dart';
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
 import 'src/handlers/dev_handler.dart';
-import 'src/handlers/injected_handler.dart';
+import 'src/handlers/injector.dart';
 import 'src/loaders/strategy.dart';
 import 'src/readers/asset_reader.dart';
 import 'src/servers/devtools.dart';
@@ -120,6 +120,12 @@ class Dwds {
           Uri(scheme: 'http', host: devTools.hostname, port: devTools.port);
       logWriter(Level.INFO, 'Serving DevTools at $uri\n');
     }
+
+    var injected = DwdsInjector(
+      loadStrategy,
+      extensionUri: extensionUri,
+    );
+
     var devHandler = DevHandler(
       chromeConnection,
       buildResults,
@@ -134,14 +140,11 @@ class Dwds {
       useSseForDebugProxy,
       serveDevTools,
       expressionCompiler,
+      injected,
     );
 
     return Dwds._(
-      createInjectedHandler(
-        loadStrategy,
-        extensionUri: extensionUri,
-        urlEncoder: urlEncoder,
-      ),
+      injected.middleware,
       devTools,
       devHandler,
       enableDebugging,
