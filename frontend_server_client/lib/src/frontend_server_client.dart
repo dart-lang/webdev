@@ -52,6 +52,7 @@ class FrontendServerClient {
     List<String> fileSystemRoots = const [], // For `fileSystemScheme` uris,
     String fileSystemScheme =
         'org-dartlang-root', // Custom scheme for virtual `fileSystemRoots`.
+    String frontendServerPath, // Defaults to the snapshot in the sdk.
     String packagesJson = '.dart_tool/package_config.json',
     String sdkRoot, // Defaults to the current SDK root.
     String target = 'vm', // The kernel target type.
@@ -59,7 +60,7 @@ class FrontendServerClient {
   }) async {
     var feServer = await Process.start(Platform.resolvedExecutable, [
       if (debug) '--observe',
-      _feServerPath,
+      frontendServerPath ?? _feServerPath,
       '--sdk-root',
       sdkDir ?? sdkRoot,
       '--platform=$platformKernel',
