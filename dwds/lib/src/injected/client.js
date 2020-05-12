@@ -22733,7 +22733,7 @@
     _reload$body$RequireRestarter: function(modules) {
       var $async$goto = 0,
         $async$completer = P._makeAsyncAwaitCompleter(type$.bool),
-        $async$returnValue, $async$handler = 2, $async$currentError, $async$next = [], $async$self = this, reloadedModules, previousModuleId, moduleId, parentIds, childModule, e, t1, t2, t3, t4, exception, $async$exception;
+        $async$returnValue, $async$handler = 2, $async$currentError, $async$next = [], $async$self = this, reloadedModules, previousModuleId, moduleId, parentIds, childModule, e, t1, t2, t3, t4, scriptElement, exception, $async$exception;
       var $async$_reload$1 = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1) {
           $async$currentError = $async$result;
@@ -22813,6 +22813,11 @@
             case 11:
               // after for
               P.print(H.S(reloadedModules) + " module(s) were hot-reloaded.");
+              t1 = document;
+              scriptElement = t1.createElement("script");
+              C.ScriptElement_methods.setInnerHtml$1(scriptElement, "window.$dartRunMain();");
+              t1.body.appendChild(scriptElement);
+              P.Future_Future$microtask(C.ScriptElement_methods.get$remove(scriptElement), type$.void);
               $async$self._running.complete$1(0, true);
               $async$handler = 2;
               // goto after finally
