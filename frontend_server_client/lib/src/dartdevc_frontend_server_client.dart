@@ -26,6 +26,9 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   final _assets = <String, Uint8List>{};
   final String _entrypoint;
 
+  /// The last compile, or `null` once it has been accepted or rejected.
+  CompileResult _lastResult;
+
   /// The bootstrap js contents, provided in [_assets] at
   /// the path `${_entrypointModule}.js`.
   ///
@@ -64,6 +67,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     String packagesJson = '.dart_tool/package_config.json',
     String platformKernel, // Defaults to the dartdevc platfrom from the sdk.
     String sdkRoot, // Defaults to the current SDK root.
+    bool verbose = false,
   }) async {
     var feServer = await FrontendServerClient.start(
       entrypoint,
@@ -77,6 +81,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
       packagesJson: packagesJson,
       sdkRoot: sdkRoot,
       target: 'dartdevc',
+      verbose: verbose,
     );
     return DartDevcFrontendServerClient._(
         feServer, Uri.parse(entrypoint).path, dartdevcModuleFormat);
@@ -86,6 +91,9 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   ///
   /// The [path] should be exactly as it appears in the
   /// [CompileResult.jsManifestOutput] file.
+  ///
+  /// **Note**: Assets are not updated until `accept` is called after a
+  /// successful compile. They are not updated if `reject` is called.
   ///
   /// Returns `null` if no asset exists at [path].
   ///
@@ -98,21 +106,12 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   String bootstrapJs() => throw UnimplementedError();
 
   /// Updates [_assets] for [result].
-  Future<void> _updateAssets(CompileResult result) async {
-    Map<String, dynamic> manifest;
-    Uint8List sourceBytes;
-    Uint8List sourceMapBytes;
-    await Future.wait([
-      File(result.jsManifestOutput)
-          .readAsString()
-          .then((json) => manifest = jsonDecode(json) as Map<String, dynamic>),
-      File(result.jsSourcesOutput)
-          .readAsBytes()
-          .then((bytes) => sourceBytes = bytes),
-      File(result.jsSourceMapsOutput)
-          .readAsBytes()
-          .then((bytes) => sourceMapBytes = bytes),
-    ]);
+  void _updateAssets(CompileResult result) {
+    final manifest =
+        jsonDecode(File(result.jsManifestOutput).readAsStringSync())
+            as Map<String, dynamic>;
+    final sourceBytes = File(result.jsSourcesOutput).readAsBytesSync();
+    final sourceMapBytes = File(result.jsSourceMapsOutput).readAsBytesSync();
 
     for (var entry in manifest.entries) {
       var metadata = entry.value as Map<String, dynamic>;
@@ -127,9 +126,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
 
   @override
   Future<CompileResult> compile([List<Uri> invalidatedUris]) async {
-    var result = await _frontendServerClient.compile(invalidatedUris);
-    await _updateAssets(result);
-    return result;
+    return _lastResult = await _frontendServerClient.compile(invalidatedUris);
   }
 
   @override
@@ -164,12 +161,16 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
           moduleName: moduleName);
 
   @override
-  void accept() => _frontendServerClient.accept();
+  void accept() {
+    _frontendServerClient.accept();
+    _updateAssets(_lastResult);
+    _lastResult = null;
+  }
 
   @override
-  void reject() {
-    _frontendServerClient.reject();
-    _resetAssets();
+  Future<void> reject() async {
+    await _frontendServerClient.reject();
+    _lastResult = null;
   }
 
   @override
@@ -188,6 +189,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   /// Clears any previously compiled assets and adds the bootstrap modules as
   /// assets if available.
   void _resetAssets() {
+    _assets.clear();
     if (_bootstrapJs != null) {
       _assets['$_entrypoint.js'] =
           Uint8List.fromList(utf8.encode(_bootstrapJs));

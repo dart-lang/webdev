@@ -18,13 +18,15 @@ class FrontendServerClient {
   final String _entrypoint;
   final Process _feServer;
   final StreamQueue<String> _feServerStdoutLines;
-  final String _outputDillPath;
+  final bool _verbose;
 
   _ClientState _state;
 
-  FrontendServerClient._(this._entrypoint, this._feServer,
-      this._feServerStdoutLines, this._outputDillPath)
-      : _state = _ClientState.waitingForFirstCompile {
+  FrontendServerClient._(
+      this._entrypoint, this._feServer, this._feServerStdoutLines,
+      {bool verbose})
+      : _verbose = verbose ?? false,
+        _state = _ClientState.waitingForFirstCompile {
     _feServer.stderr.transform(utf8.decoder).listen(stderr.write);
   }
 
@@ -53,6 +55,7 @@ class FrontendServerClient {
     String packagesJson = '.dart_tool/package_config.json',
     String sdkRoot, // Defaults to the current SDK root.
     String target = 'vm', // The kernel target type.
+    bool verbose = false, // Verbose logs, including server/client messages
   }) async {
     var feServer = await Process.start(Platform.resolvedExecutable, [
       if (debug) '--observe',
@@ -85,7 +88,7 @@ class FrontendServerClient {
       entrypoint,
       feServer,
       feServerStdoutLines,
-      outputDillPath,
+      verbose: verbose,
     );
   }
 
@@ -112,6 +115,9 @@ class FrontendServerClient {
             'App is already being compiled, you must wait for that to '
             'complete and `accept` or `reject` the result before compiling '
             'again.');
+      case _ClientState.rejecting:
+        throw StateError('Still waiting for previous `reject` call to finish. '
+            'You must await that before compiling again.');
     }
     _state = _ClientState.compiling;
 
@@ -131,33 +137,36 @@ class FrontendServerClient {
         command.write(boundaryKey);
       }
 
-      _feServer.stdin.writeln(command);
-      var state = _FeServerState.started;
+      _sendCommand(command.toString());
+      var state = _CompileState.started;
       String feBoundaryKey;
       var newSources = <Uri>{};
       var removedSources = <Uri>{};
       var compilerOutputLines = <String>[];
       int errorCount;
+      String outputDillPath;
       while (
-          state != _FeServerState.done && await _feServerStdoutLines.hasNext) {
-        var line = await _feServerStdoutLines.next;
+          state != _CompileState.done && await _feServerStdoutLines.hasNext) {
+        var line = await _nextInputLine();
         switch (state) {
-          case _FeServerState.started:
+          case _CompileState.started:
             assert(line.startsWith('result'));
             feBoundaryKey = line.substring(line.indexOf(' ') + 1);
-            state = _FeServerState.waitingForKey;
+            state = _CompileState.waitingForKey;
             continue;
-          case _FeServerState.waitingForKey:
+          case _CompileState.waitingForKey:
             if (line == feBoundaryKey) {
-              state = _FeServerState.gettingSourceDiffs;
+              state = _CompileState.gettingSourceDiffs;
             } else {
               compilerOutputLines.add(line);
             }
             continue;
-          case _FeServerState.gettingSourceDiffs:
+          case _CompileState.gettingSourceDiffs:
             if (line.startsWith(feBoundaryKey)) {
-              state = _FeServerState.done;
-              errorCount = int.parse(line.split(' ').last);
+              state = _CompileState.done;
+              var parts = line.split(' ');
+              outputDillPath = parts[1];
+              errorCount = int.parse(parts[2]);
               continue;
             }
             var diffUri = Uri.parse(line.substring(1));
@@ -170,18 +179,14 @@ class FrontendServerClient {
                   'unrecognized diff line, should start with a + or - but got: $line');
             }
             continue;
-          case _FeServerState.done:
+          case _CompileState.done:
             throw StateError('Unreachable');
         }
       }
 
-      var wasIncremental = action == 'recompile';
       return CompileResult._(
-          dillOutput: wasIncremental
-              ? '$_outputDillPath.incremental.dill'
-              : _outputDillPath,
+          dillOutput: outputDillPath,
           errorCount: errorCount,
-          wasIncremental: wasIncremental,
           newSources: newSources,
           removedSources: removedSources,
           compilerOutputLines: compilerOutputLines);
@@ -221,20 +226,49 @@ class FrontendServerClient {
       throw StateError(
           'Called `accept` but there was no previous compile to accept.');
     }
-    _feServer.stdin.writeln('accept');
+    _sendCommand('accept');
     _state = _ClientState.waitingForRecompile;
   }
 
   /// Should be invoked when results of compilation are rejected by the client.
   ///
   /// Either [accept] or [reject] should be called after every [compile] call.
-  void reject() {
+  ///
+  /// The result of this call must be awaited before a new [compile] can be
+  /// done.
+  Future<void> reject() async {
     if (_state != _ClientState.waitingForAcceptOrReject) {
       throw StateError(
           'Called `reject` but there was no previous compile to reject.');
     }
-    _feServer.stdin.writeln('reject');
-    _state = _ClientState.waitingForFirstCompile;
+    _state = _ClientState.rejecting;
+    _sendCommand('reject');
+    String boundaryKey;
+    var rejectState = _RejectState.started;
+    while (rejectState != _RejectState.done &&
+        await _feServerStdoutLines.hasNext) {
+      var line = await _nextInputLine();
+      switch (rejectState) {
+        case _RejectState.started:
+          if (!line.startsWith('result')) {
+            throw StateError(
+                'Expected a line like `result <boundary-key>` after a `reject` '
+                'command, but got:\n$line');
+          }
+          boundaryKey = line.split(' ').last;
+          rejectState = _RejectState.waitingForKey;
+          continue;
+        case _RejectState.waitingForKey:
+          if (line != boundaryKey) {
+            throw StateError('Expected exactly `$boundaryKey` but got:\n$line');
+          }
+          rejectState = _RejectState.done;
+          continue;
+        case _RejectState.done:
+          throw StateError('Unreachable');
+      }
+    }
+    _state = _ClientState.waitingForRecompile;
   }
 
   /// Should be invoked when frontend server compiler should forget what was
@@ -246,14 +280,14 @@ class FrontendServerClient {
           'Called `reset` during an active compile, you must wait for that to '
           'complete first.');
     }
-    _feServer.stdin.writeln('reset');
-    _state = _ClientState.waitingForFirstCompile;
+    _sendCommand('reset');
+    _state = _ClientState.waitingForRecompile;
   }
 
   /// Stop the service gracefully (using the shutdown command)
   Future<int> shutdown() {
     _feServerStdoutLines.cancel();
-    _feServer.stdin.writeln('quit');
+    _sendCommand('quit');
     return _feServer.exitCode;
   }
 
@@ -263,6 +297,24 @@ class FrontendServerClient {
     _feServerStdoutLines.cancel();
     return _feServer.kill(processSignal);
   }
+
+  /// Sends [command] to the [_feServer] via stdin, and logs it if [_verbose].
+  void _sendCommand(String command) {
+    if (_verbose) {
+      var lines = const LineSplitter().convert(command);
+      for (var line in lines) {
+        print('>> $line');
+      }
+    }
+    _feServer.stdin.writeln(command);
+  }
+
+  /// Reads a line from [_feServerStdoutLines] and logs it if [_verbose].
+  Future<String> _nextInputLine() async {
+    var line = await _feServerStdoutLines.next;
+    if (_verbose) print('<< $line');
+    return line;
+  }
 }
 
 /// The result of a compile call.
@@ -271,12 +323,11 @@ class CompileResult {
       {@required this.dillOutput,
       @required this.compilerOutputLines,
       @required this.errorCount,
-      @required this.wasIncremental,
       @required this.newSources,
       @required this.removedSources});
 
   /// The produced dill output file, this will either be a full dill file or an
-  /// incremental dill file depending on [wasIncremental].
+  /// incremental dill file.
   final String dillOutput;
 
   /// All output from the compiler, typically this would contain errors or
@@ -308,24 +359,29 @@ class CompileResult {
   /// All the transitive source dependencies that were removed as a part of
   /// this compile.
   final Iterable<Uri> removedSources;
-
-  /// Whether this was an incremental build.
-  final bool wasIncremental;
 }
 
 /// Internal states for the client.
 enum _ClientState {
   compiling,
+  rejecting,
   waitingForAcceptOrReject,
   waitingForFirstCompile,
   waitingForRecompile,
 }
 
-/// States for our interaction with the compiler itself.
-enum _FeServerState {
+/// Frontend server interaction states for a `compile` call.
+enum _CompileState {
   started,
   waitingForKey,
   gettingSourceDiffs,
+  done,
+}
+
+/// Frontend server interaction states for a `reject` call.
+enum _RejectState {
+  started,
+  waitingForKey,
   done,
 }
 
