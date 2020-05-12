@@ -21,7 +21,9 @@ void main(List<String> args) async {
 
   var client = await DartDevcFrontendServerClient.start(
       'org-dartlang-root:///$app', outputDill,
-      fileSystemRoots: [p.current], fileSystemScheme: 'org-dartlang-root');
+      fileSystemRoots: [p.current],
+      fileSystemScheme: 'org-dartlang-root',
+      verbose: true);
 
   _print('compiling $app');
   await client.compile([]);
@@ -62,19 +64,30 @@ void main(List<String> args) async {
       await server.close();
       await stdinQueue.cancel();
       break;
+    } else if (newMessage == 'reset') {
+      print('resetting');
+      client.reset();
+      _print('restoring $app');
+      await appFile.writeAsString(originalContent);
+    } else {
+      _print('editing $app');
+      appLines[messageLine] = '$getterText "$newMessage";';
+      var newContent = appLines.join('\n');
+      await appFile.writeAsString(newContent);
+
+      _print('recompiling $app with edits');
+      var result =
+          await client.compile([Uri.parse('org-dartlang-root:///$app')]);
+      if (result.errorCount > 0) {
+        print('Compile errors: \n${result.compilerOutputLines.join('\n')}');
+        await client.reject();
+      } else {
+        _print('Recompile succeeded for $app');
+        client.accept();
+        // TODO: support hot restart
+        print('reload app to see the new message');
+      }
     }
-    _print('editing $app');
-    appLines[messageLine] = '$getterText "$newMessage";';
-    var newContent = appLines.join('\n');
-    await appFile.writeAsString(newContent);
-
-    _print('recompiling $app with edits');
-    await client.compile([Uri.parse('org-dartlang-root:///$app')]);
-    client.accept();
-    _print('done recompiling $app');
-
-    // TODO: support hot restart
-    print('reload app to see the new message');
 
     _prompt();
   }

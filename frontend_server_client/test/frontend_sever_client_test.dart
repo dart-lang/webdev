@@ -69,7 +69,6 @@ String get message => p.join('hello', 'world');
           packageConfig.resolve(Uri.parse('package:path/path.dart')),
         ]));
     expect(result.removedSources, isEmpty);
-    expect(result.wasIncremental, isFalse);
     expect(File(result.dillOutput).existsSync(), true);
     var process = await Process.start(Platform.resolvedExecutable, [
       '--observe',
@@ -102,7 +101,6 @@ String get message => p.join('hello', 'world');
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
     expect(result.dillOutput, endsWith('.incremental.dill'));
-    expect(result.wasIncremental, true);
 
     await vmService.reloadSources(vm.isolates.first.id,
         rootLibUri: result.dillOutput);
@@ -133,7 +131,6 @@ String get message => p.join('hello', 'world');
           packageConfig.resolve(Uri.parse('package:path/path.dart')),
         ]));
     expect(result.removedSources, isEmpty);
-    expect(result.wasIncremental, isFalse);
     expect(File(result.dillOutput).existsSync(), true);
 
     var process = await Process.start(Platform.resolvedExecutable, [
@@ -164,7 +161,6 @@ String get message => p.join('hello', 'world');
     expect(result.compilerOutputLines, isEmpty);
     expect(result.newSources, isEmpty);
     expect(result.removedSources, isEmpty);
-    expect(result.wasIncremental, true);
     expect(File(result.dillOutput).existsSync(), true);
 
     await vmService.reloadSources(vm.isolates.first.id,
@@ -189,7 +185,6 @@ String get message => p.join('hello', 'world');
           packageConfig.resolve(Uri.parse('package:path/path.dart')),
         ]));
     expect(result.removedSources, isEmpty);
-    expect(result.wasIncremental, isFalse);
 
     expect(File(result.jsManifestOutput).existsSync(), true);
     expect(File(result.jsSourcesOutput).existsSync(), true);
@@ -210,7 +205,6 @@ String get message => p.join('hello', 'world');
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
     expect(result.jsManifestOutput, endsWith('.incremental.dill.json'));
-    expect(result.wasIncremental, true);
 
     expect(utf8.decode(dartDevcClient.assetBytes('$entrypoint.lib.js')),
         contains('goodbye'));

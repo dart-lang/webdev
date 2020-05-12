@@ -67,6 +67,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     String packagesJson = '.dart_tool/package_config.json',
     String platformKernel, // Defaults to the dartdevc platfrom from the sdk.
     String sdkRoot, // Defaults to the current SDK root.
+    bool verbose = false,
   }) async {
     var feServer = await FrontendServerClient.start(
       entrypoint,
@@ -80,6 +81,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
       packagesJson: packagesJson,
       sdkRoot: sdkRoot,
       target: 'dartdevc',
+      verbose: verbose,
     );
     return DartDevcFrontendServerClient._(
         feServer, Uri.parse(entrypoint).path, dartdevcModuleFormat);
@@ -166,8 +168,8 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   }
 
   @override
-  void reject() {
-    _frontendServerClient.reject();
+  Future<void> reject() async {
+    await _frontendServerClient.reject();
     _lastResult = null;
   }
 
@@ -187,6 +189,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   /// Clears any previously compiled assets and adds the bootstrap modules as
   /// assets if available.
   void _resetAssets() {
+    _assets.clear();
     if (_bootstrapJs != null) {
       _assets['$_entrypoint.js'] =
           Uint8List.fromList(utf8.encode(_bootstrapJs));

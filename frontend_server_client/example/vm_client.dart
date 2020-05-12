@@ -21,7 +21,8 @@ void main(List<String> args) async {
       outputDill, p.join(sdkDir, 'lib', '_internal', 'vm_platform_strong.dill'),
       target: 'vm',
       fileSystemRoots: [p.current],
-      fileSystemScheme: 'org-dartlang-root');
+      fileSystemScheme: 'org-dartlang-root',
+      verbose: true);
   _print('compiling $app');
   var result = await client.compile();
   client.accept();
