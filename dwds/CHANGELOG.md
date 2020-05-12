@@ -1,6 +1,8 @@
 ## 3.1.2
 
 - Gracefully handle multiple injected clients on a single page.
+- Update to the latest `package:vm_service` and use more RPCError error
+  codes on call failures.
 
 ## 3.1.1
 
