@@ -6,6 +6,8 @@
 - Update the `require_restarter` to rerun main after a hot restart to align with
   the legacy strategy. We therefore no longer send a `RunRequest` after a hot
   restart.
+- Change `streamListen` to return an `RPCError` / error code `-32601` for streams
+  that are not handled.
 
 ## 3.1.1
 
