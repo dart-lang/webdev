@@ -499,28 +499,35 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Stream<Event> onEvent(String streamId) {
     return _streamControllers.putIfAbsent(streamId, () {
       switch (streamId) {
-        case 'Extension':
-        // TODO: right now we only support the `ServiceExtensionAdded` event for
-        // the Isolate stream.
-        case 'Isolate':
-        case 'VM':
-        // TODO: https://github.com/dart-lang/webdev/issues/168
-        case 'GC':
-        // TODO: https://github.com/dart-lang/webdev/issues/168
-        case 'Timeline':
-        case '_Service':
+        case EventStreams.kExtension:
           return StreamController<Event>.broadcast();
-        case 'Debug':
+        case EventStreams.kIsolate:
+          // TODO: right now we only support the `ServiceExtensionAdded` event
+          // for the Isolate stream.
           return StreamController<Event>.broadcast();
-        case 'Stdout':
+        case EventStreams.kVM:
+          return StreamController<Event>.broadcast();
+        case EventStreams.kGC:
+          return StreamController<Event>.broadcast();
+        case EventStreams.kTimeline:
+          return StreamController<Event>.broadcast();
+        case EventStreams.kService:
+          return StreamController<Event>.broadcast();
+        case EventStreams.kDebug:
+          return StreamController<Event>.broadcast();
+        case EventStreams.kStdout:
           return _chromeConsoleStreamController(
               (e) => _stdoutTypes.contains(e.type));
-        case 'Stderr':
+        case EventStreams.kStderr:
           return _chromeConsoleStreamController(
               (e) => _stderrTypes.contains(e.type),
               includeExceptions: true);
         default:
-          throw UnimplementedError('The stream `$streamId` is not supported.');
+          throw RPCError(
+            'streamListen',
+            RPCError.kMethodNotFound,
+            'The stream `$streamId` is not supported on web devices',
+          );
       }
     }).stream;
   }
