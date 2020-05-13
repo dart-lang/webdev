@@ -38,7 +38,7 @@ import 'injector.dart';
 /// traffic to disk.
 ///
 /// Note: this should not be checked in enabled.
-const _enableLogging = true;
+const _enableLogging = false;
 
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
