@@ -36,9 +36,8 @@ import 'injector.dart';
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
 class DevHandler {
-  StreamSubscription _sub;
-  SseHandler _sseHandler;
-
+  final _subs = <StreamSubscription>[];
+  final _sseHandlers = <String, SseHandler>{};
   final _injectedConnections = <SseConnection>{};
   final DevTools _devTools;
   final AssetReader _assetReader;
@@ -82,19 +81,28 @@ class DevHandler {
       this._serveDevTools,
       this._expressionCompiler,
       this._injected) {
-    _sub = buildResults.listen(_emitBuildResults);
+    _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
     if (_extensionBackend != null) {
       _listenForDebugExtension();
     }
   }
 
-  Handler get handler =>
-      (request) => _sseHandler?.handler(request) ?? Response.notFound('');
+  Handler get handler => (request) async {
+        var path = request.requestedUri.path;
+        if (_sseHandlers.containsKey(path)) {
+          return _sseHandlers[path].handler(request);
+        }
+        return Response.notFound('');
+      };
 
   Future<void> close() => _closed ??= () async {
-        await _sub.cancel();
-        _sseHandler?.shutdown();
+        for (var sub in _subs) {
+          await sub.cancel();
+        }
+        for (var handler in _sseHandlers.values) {
+          handler.shutdown();
+        }
         await Future.wait(_servicesByAppId.values.map((service) async {
           await service.close();
         }));
@@ -349,13 +357,17 @@ class DevHandler {
   }
 
   void _listen() async {
-    var path = await _injected.devHandlerPath;
-    _sseHandler =
-        SseHandler(Uri.parse(path), keepAlive: const Duration(seconds: 30));
-    var injectedConnections = _sseHandler.connections;
-    while (await injectedConnections.hasNext) {
-      _handleConnection(await injectedConnections.next);
-    }
+    _subs.add(_injected.devHandlerPaths.listen((devHandlerPath) async {
+      var uri = Uri.parse(devHandlerPath);
+      if (!_sseHandlers.containsKey(uri.path)) {
+        var handler = SseHandler(uri, keepAlive: const Duration(seconds: 30));
+        _sseHandlers[uri.path] = handler;
+        var injectedConnections = handler.connections;
+        while (await injectedConnections.hasNext) {
+          _handleConnection(await injectedConnections.next);
+        }
+      }
+    }));
   }
 
   Future<AppDebugServices> _createAppDebugServices(
