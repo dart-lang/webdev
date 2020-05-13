@@ -116,7 +116,8 @@ class DevHandler {
     WipConnection tabConnection;
     var appInstanceId = appConnection.request.instanceId;
     for (var tab in await chromeConnection.getTabs()) {
-      if (tab.url.startsWith('chrome-extensions:')) continue;
+      if (tab.isChromeExtension || tab.isBackgroundPage) continue;
+
       tabConnection = await tab.connect();
       var contextQueue = StreamQueue<int>(tabConnection.runtime.eventStream(
           'Runtime.executionContextCreated',
