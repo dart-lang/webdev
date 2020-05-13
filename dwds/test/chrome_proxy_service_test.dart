@@ -956,7 +956,7 @@ void main() {
     });
 
     test('onEvent', () {
-      expect(() => service.onEvent(null), throwsUnimplementedError);
+      expect(() => service.onEvent(null), throwsRPCError);
     });
 
     test('pause / resume', () async {
