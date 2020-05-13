@@ -75,6 +75,7 @@ class FrontendServerClient {
       '--packages=$packagesJson',
       if (enableHttpUris) '--enable-http-uris',
       '--incremental',
+      if (verbose) '--verbose',
     ]);
     var feServerStdoutLines = StreamQueue(feServer.stdout
         .transform(utf8.decoder)
