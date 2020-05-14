@@ -333,6 +333,9 @@ class Debugger extends Domain {
     var dartFrames = <Frame>[];
     var index = 0;
     for (var frame in frames) {
+      // TODO(grouma) - We can prevent duplicate work of calculating the top
+      // frame by pulling the frame logic out into a more complex class which
+      // has proper caching.
       var dartFrame = await _dartFrameFor(frame);
       if (dartFrame != null) {
         dartFrame.index = index++;
