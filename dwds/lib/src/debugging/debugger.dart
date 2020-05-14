@@ -152,6 +152,7 @@ class Debugger extends Domain {
   /// Returns null if the debugger is not paused.
   Future<Stack> getStack(String isolateId) async {
     checkIsolate('getStack', isolateId);
+    if (_pausedJsStack == null) return null;
     var frames = await dartFramesFor(_pausedJsStack);
     return Stack(frames: frames, messages: []);
   }
