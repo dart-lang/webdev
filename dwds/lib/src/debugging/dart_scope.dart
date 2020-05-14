@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
 import '../loaders/strategy.dart';
 import '../utilities/objects.dart';
 import 'debugger.dart';
@@ -14,15 +16,15 @@ import 'debugger.dart';
 ///
 /// The [scopeList] is a List of Maps corresponding to Chrome Scope objects.
 /// https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Scope
-Future<List<Property>> visibleProperties(
-    {List<Map<String, dynamic>> scopeList,
-    Debugger debugger,
-    String callFrameId}) async {
+Future<List<Property>> visibleProperties({
+  List<WipScope> scopeList,
+  Debugger debugger,
+  String callFrameId,
+}) async {
   var scopes = await _filterScopes(scopeList, debugger);
   if (scopes.isEmpty) return [];
   var propertyLists = scopes
-      .map((scope) async =>
-          await debugger.getProperties(scope['object']['objectId'] as String))
+      .map((scope) async => await debugger.getProperties(scope.object.objectId))
       .toList();
   var allProperties = [for (var list in propertyLists) ...await list];
   // We should never see a raw JS class. The only case where this happens is a
@@ -47,14 +49,13 @@ Future<List<Property>> visibleProperties(
 
 /// Filters the provided scope chain into those that are pertinent for Dart
 /// debugging.
-Future<List<Map<String, dynamic>>> _filterScopes(
-    List<Map<String, dynamic>> scopeList, Debugger debugger) async {
+Future<List<WipScope>> _filterScopes(
+    List<WipScope> scopeList, Debugger debugger) async {
   var foundDartSdk = false;
-  var result = <Map<String, dynamic>>[];
+  var result = <WipScope>[];
   // Iterate through the outermost scope to the inner most scope.
   for (var scope in scopeList.reversed) {
-    var properties =
-        await debugger.getProperties(scope['object']['objectId'] as String);
+    var properties = await debugger.getProperties(scope.object.objectId);
     if (!foundDartSdk) {
       var propertyNames = properties.map((element) => element.name).toSet();
       // TODO(sdk/issues/40774) - This appears brittle.

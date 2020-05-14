@@ -82,9 +82,9 @@ class Debugger extends Domain {
   /// to keep the JS frames and their Ids around.
   // TODO(alanknight): It would be nice to keep these as CallFrame instances,
   // but they don't map enough of the data yet.
-  List<Map<String, dynamic>> _pausedJsStack;
+  List<WipCallFrame> _pausedJsStack;
 
-  List<Map<String, dynamic>> getJsStack() => _pausedJsStack;
+  List<WipCallFrame> getJsStack() => _pausedJsStack;
 
   bool _isStepping = false;
 
@@ -329,23 +329,24 @@ class Debugger extends Domain {
 
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
   /// [Frame]s.
-  Future<List<Frame>> dartFramesFor(List<Map<String, dynamic>> frames) async {
+  Future<List<Frame>> dartFramesFor(List<WipCallFrame> frames) async {
     var dartFrames = <Frame>[];
-    var index = 0;
+    var frameIndex = 0;
     for (var frame in frames) {
-      var location = frame['location'];
-      var functionName = frame['functionName'] as String ?? '';
+      var location = frame.location;
+      var functionName = frame.functionName ?? '';
       functionName = _prettifyMember(functionName.split('.').last);
       // Chrome is 0 based. Account for this.
-      var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
-          location['lineNumber'] as int, location['columnNumber'] as int);
-      var dartFrame = await _frameFor(jsLocation);
+      var jsLocation = JsLocation.fromZeroBased(
+          location.scriptId, location.lineNumber, location.columnNumber);
+
+      var dartFrame = await _frameFor(jsLocation, frameIndex);
       if (dartFrame != null) {
+        frameIndex++;
+
         dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
-        dartFrame.index = index++;
-        dartFrame.vars = await variablesFor(
-            frame['scopeChain'] as List<dynamic>,
-            frame['callFrameId'] as String);
+        dartFrame.vars =
+            await variablesFor(frame.getScopeChain(), frame.callFrameId);
         dartFrames.add(dartFrame);
       }
     }
@@ -354,10 +355,10 @@ class Debugger extends Domain {
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
   Future<List<BoundVariable>> variablesFor(
-      List<dynamic> scopeChain, String callFrameId) async {
+      Iterable<WipScope> scopeChain, String callFrameId) async {
     // TODO(alanknight): Can these be moved to dart_scope.dart?
     var properties = await visibleProperties(
-        scopeList: scopeChain.cast<Map<String, dynamic>>().toList(),
+        scopeList: scopeChain.toList(),
         debugger: this,
         callFrameId: callFrameId);
     var boundVariables = await Future.wait(
@@ -458,7 +459,7 @@ class Debugger extends Domain {
   }
 
   /// Returns a Dart [Frame] for a [JsLocation].
-  Future<Frame> _frameFor(JsLocation jsLocation) async {
+  Future<Frame> _frameFor(JsLocation jsLocation, int frameIndex) async {
     // TODO(sdk/issues/37240) - ideally we look for an exact location instead
     // of the closest location on a given line.
     Location bestLocation;
@@ -472,29 +473,30 @@ class Debugger extends Domain {
       }
     }
     if (bestLocation == null) return null;
+
     var script =
         await inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
-    // We think we found a location, but for some reason we can't find the script.
-    // Just drop the frame.
+    // We think we found a location, but for some reason we can't find the
+    // script. Just drop the frame.
     // TODO(#700): Understand when this can happen and have a better fix.
     if (script == null) return null;
+
     return Frame(
-        // TODO(grouma) - What's the proper value here?
-        index: null)
-      ..code = (CodeRef(id: createId(), name: 'DartCode', kind: CodeKind.kDart))
-      ..location =
-          SourceLocation(tokenPos: bestLocation.tokenPos, script: script)
-      ..kind = FrameKind.kRegular;
+      index: frameIndex,
+      code: CodeRef(id: createId(), name: 'DartCode', kind: CodeKind.kDart),
+      location: SourceLocation(tokenPos: bestLocation.tokenPos, script: script),
+      kind: FrameKind.kRegular,
+    );
   }
 
   /// Handles pause events coming from the Chrome connection.
-  Future<void> _pauseHandler(DebuggerPausedEvent e) async {
+  Future<void> _pauseHandler(DebuggerPausedEvent event) async {
     if (inspector == null) return;
     var isolate = inspector.isolate;
     if (isolate == null) return;
-    Event event;
+    Event vmEvent;
     var timestamp = DateTime.now().millisecondsSinceEpoch;
-    var params = e.params;
+    var params = event.params;
     var jsBreakpointIds = (params['hitBreakpoints'] as List).toSet();
     if (jsBreakpointIds.isNotEmpty) {
       var breakpointIds = jsBreakpointIds
@@ -506,36 +508,36 @@ class Debugger extends Domain {
       var pauseBreakpoints = isolate.breakpoints
           .where((bp) => breakpointIds.contains(bp.id))
           .toList();
-      event = Event(
+      vmEvent = Event(
           kind: EventKind.kPauseBreakpoint,
           timestamp: timestamp,
           isolate: inspector.isolateRef)
         ..pauseBreakpoints = pauseBreakpoints;
-    } else if (e.reason == 'exception' || e.reason == 'assert') {
-      event = Event(
+    } else if (event.reason == 'exception' || event.reason == 'assert') {
+      vmEvent = Event(
           kind: EventKind.kPauseException,
           timestamp: timestamp,
           isolate: inspector.isolateRef);
     } else {
       // If we don't have source location continue stepping.
-      if (_isStepping && (await _sourceLocation(e)) == null) {
+      if (_isStepping && (await _sourceLocation(event)) == null) {
         await _remoteDebugger.stepInto();
         return;
       }
-      event = Event(
+      vmEvent = Event(
           kind: EventKind.kPauseInterrupted,
           timestamp: timestamp,
           isolate: inspector.isolateRef);
     }
-    var jsFrames =
-        (e.params['callFrames'] as List).cast<Map<String, dynamic>>();
+
+    var jsFrames = event.getCallFrames().toList();
     try {
-      var frames = await dartFramesFor(jsFrames);
-      _pausedStack = Stack(frames: frames, messages: []);
+      var vmFrames = await dartFramesFor(jsFrames);
+      _pausedStack = Stack(frames: vmFrames, messages: []);
       _pausedJsStack = jsFrames;
-      if (frames.isNotEmpty) event.topFrame = frames.first;
-      isolate.pauseEvent = event;
-      _streamNotify('Debug', event);
+      if (vmFrames.isNotEmpty) vmEvent.topFrame = vmFrames.first;
+      isolate.pauseEvent = vmEvent;
+      _streamNotify('Debug', vmEvent);
     } on ChromeDebugException catch (e, s) {
       if (e.exception.description.contains('require is not defined')) {
         logger.warning(
@@ -576,7 +578,7 @@ class Debugger extends Domain {
           'Cannot evaluate on a call frame when the program is not paused');
     }
     return evaluateJsOnCallFrame(
-        _pausedJsStack[frameIndex]['callFrameId'] as String, expression);
+        _pausedJsStack[frameIndex].callFrameId, expression);
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on

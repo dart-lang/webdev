@@ -13,7 +13,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 ///
 /// This is taken from a real run, but truncated to two levels of scope and one
 /// level of stack.
-List<Map<String, dynamic>> frames1 = [
+List<WipCallFrame> frames1 = [
   {
     "callFrameId": "{\"ordinal\":0,\"injectedScriptId\":2}",
     "functionName": "",
@@ -83,7 +83,7 @@ List<Map<String, dynamic>> frames1 = [
     ],
     "this": {"type": "undefined"}
   }
-];
+].map((json) => WipCallFrame(json)).toList();
 
 /// Data in the form returned from getProperties called twice on successive elements of a scope chain.
 ///

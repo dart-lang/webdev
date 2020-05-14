@@ -72,7 +72,7 @@ class ExpressionEvaluator {
     // 1. get js scope and current JS location
 
     var jsStack = _debugger.getJsStack();
-    var jsFrame = WipCallFrame(jsStack[frameIndex]);
+    var jsFrame = jsStack[frameIndex];
 
     var functionName = jsFrame.functionName;
     var jsLocation = JsLocation.fromZeroBased(jsFrame.location.scriptId,
