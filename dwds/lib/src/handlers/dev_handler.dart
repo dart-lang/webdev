@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:async/async.dart';
 import 'package:logging/logging.dart';
@@ -33,12 +34,17 @@ import '../services/debug_service.dart';
 import '../services/expression_compiler.dart';
 import 'injector.dart';
 
+/// When enabled, this logs VM service protocol and Chrome debug protocol
+/// traffic to disk.
+///
+/// Note: this should not be checked in enabled.
+const _enableLogging = false;
+
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
 class DevHandler {
-  StreamSubscription _sub;
-  SseHandler _sseHandler;
-
+  final _subs = <StreamSubscription>[];
+  final _sseHandlers = <String, SseHandler>{};
   final _injectedConnections = <SseConnection>{};
   final DevTools _devTools;
   final AssetReader _assetReader;
@@ -82,19 +88,28 @@ class DevHandler {
       this._serveDevTools,
       this._expressionCompiler,
       this._injected) {
-    _sub = buildResults.listen(_emitBuildResults);
+    _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
     if (_extensionBackend != null) {
       _listenForDebugExtension();
     }
   }
 
-  Handler get handler =>
-      (request) => _sseHandler?.handler(request) ?? Response.notFound('');
+  Handler get handler => (request) async {
+        var path = request.requestedUri.path;
+        if (_sseHandlers.containsKey(path)) {
+          return _sseHandlers[path].handler(request);
+        }
+        return Response.notFound('');
+      };
 
   Future<void> close() => _closed ??= () async {
-        await _sub.cancel();
-        _sseHandler?.shutdown();
+        for (var sub in _subs) {
+          await sub.cancel();
+        }
+        for (var handler in _sseHandlers.values) {
+          handler.shutdown();
+        }
         await Future.wait(_servicesByAppId.values.map((service) async {
           await service.close();
         }));
@@ -116,28 +131,38 @@ class DevHandler {
     WipConnection tabConnection;
     var appInstanceId = appConnection.request.instanceId;
     for (var tab in await chromeConnection.getTabs()) {
-      if (tab.url.startsWith('chrome-extensions:')) continue;
+      if (tab.isChromeExtension || tab.isBackgroundPage) continue;
+
       tabConnection = await tab.connect();
-      var contextQueue = StreamQueue<int>(tabConnection.runtime.eventStream(
-          'Runtime.executionContextCreated',
-          (e) => int.parse(e.params['context']['id'].toString())));
+      if (_enableLogging) {
+        tabConnection.onSend.listen((message) {
+          _log('  wip', '==> $message');
+        });
+        tabConnection.onReceive.listen((message) {
+          _log('  wip', '<== $message');
+        });
+      }
+      var contextIdQueue = StreamQueue<int>(tabConnection
+          .runtime.onExecutionContextCreated
+          .map((context) => context.id));
       // We enqueue this work as we need to begin listening (`.hasNext`)
       // before events are received.
       unawaited(Future.microtask(() => tabConnection.runtime.enable()));
+
       // There is no way to calculate the number of existing execution contexts
       // so we wait for a short while to receive a context.
-      while (await contextQueue.hasNext
+      while (await contextIdQueue.hasNext
           .timeout(const Duration(milliseconds: 50), onTimeout: () => false)) {
-        var context = await contextQueue.next;
+        var contextId = await contextIdQueue.next;
         var result = await tabConnection.sendCommand('Runtime.evaluate', {
           'expression': r'window["$dartAppInstanceId"];',
-          'contextId': context
+          'contextId': contextId,
         });
         var evaluatedAppId = result.result['result']['value'];
         if (evaluatedAppId == appInstanceId) {
           appTab = tab;
           executionContext = RemoteDebuggerExecutionContext(
-              context, WebkitDebugger(WipDebugger(tabConnection)));
+              contextId, WebkitDebugger(WipDebugger(tabConnection)));
           break;
         }
       }
@@ -153,28 +178,46 @@ class DevHandler {
     var webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
     return DebugService.start(
-        // We assume the user will connect to the debug service on the same
-        // machine. This allows consumers of DWDS to provide a `hostname` for
-        // debugging through the Dart Debug Extension without impacting the local
-        // debug workflow.
-        'localhost',
-        webkitDebugger,
-        executionContext,
-        appTab.url,
-        _assetReader,
-        appConnection,
-        _logWriter,
-        _restoreBreakpoints,
-        onResponse: _verbose
-            ? (response) {
-                if (response['error'] == null) return;
-                _logWriter(Level.WARNING,
-                    'VmService proxy responded with an error:\n$response');
-              }
-            : null,
-        // This will provide a websocket based service.
-        useSse: false,
-        expressionCompiler: _expressionCompiler);
+      // We assume the user will connect to the debug service on the same
+      // machine. This allows consumers of DWDS to provide a `hostname` for
+      // debugging through the Dart Debug Extension without impacting the local
+      // debug workflow.
+      'localhost',
+      webkitDebugger,
+      executionContext,
+      appTab.url,
+      _assetReader,
+      appConnection,
+      _logWriter,
+      _restoreBreakpoints,
+      onResponse: (response) {
+        if (_verbose) {
+          if (response['error'] == null) return;
+          _logWriter(Level.WARNING,
+              'VmService proxy responded with an error:\n$response');
+        }
+        if (_enableLogging) {
+          _log('vm', '<== ${response.toString().replaceAll('\n', ' ')}');
+        }
+      },
+      onRequest: (request) {
+        if (_enableLogging) {
+          _log('vm', '==> ${request.toString().replaceAll('\n', ' ')}');
+        }
+      },
+      // This will provide a websocket based service.
+      useSse: false,
+      expressionCompiler: _expressionCompiler,
+    );
+  }
+
+  void _log(String type, String message) {
+    final logFile = File('${Platform.environment['HOME']}/dwds_log.txt');
+    final time = (DateTime.now().millisecondsSinceEpoch % 1000000) / 1000.0;
+    logFile.writeAsStringSync(
+      '[${time.toStringAsFixed(3).padLeft(7)}s] $type $message\n',
+      mode: FileMode.append,
+    );
   }
 
   Future<AppDebugServices> loadAppServices(AppConnection appConnection) async {
@@ -349,13 +392,17 @@ class DevHandler {
   }
 
   void _listen() async {
-    var path = await _injected.devHandlerPath;
-    _sseHandler =
-        SseHandler(Uri.parse(path), keepAlive: const Duration(seconds: 30));
-    var injectedConnections = _sseHandler.connections;
-    while (await injectedConnections.hasNext) {
-      _handleConnection(await injectedConnections.next);
-    }
+    _subs.add(_injected.devHandlerPaths.listen((devHandlerPath) async {
+      var uri = Uri.parse(devHandlerPath);
+      if (!_sseHandlers.containsKey(uri.path)) {
+        var handler = SseHandler(uri, keepAlive: const Duration(seconds: 30));
+        _sseHandlers[uri.path] = handler;
+        var injectedConnections = handler.connections;
+        while (await injectedConnections.hasNext) {
+          _handleConnection(await injectedConnections.next);
+        }
+      }
+    }));
   }
 
   Future<AppDebugServices> _createAppDebugServices(
@@ -450,5 +497,6 @@ class DevHandler {
 
 class AppConnectionException implements Exception {
   final String details;
+
   AppConnectionException(this.details);
 }

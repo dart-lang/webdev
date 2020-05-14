@@ -7,6 +7,8 @@
   the legacy strategy. We therefore no longer send a `RunRequest` after a hot
   restart.
 - Compute only the required top frame for a paused event. 
+- Change `streamListen` to return an `RPCError` / error code `-32601` for streams
+  that are not handled.
 
 ## 3.1.1
 

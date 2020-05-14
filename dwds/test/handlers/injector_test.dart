@@ -20,9 +20,10 @@ void main() {
   var loadStrategy = FakeStrategy();
 
   group('InjectedHandlerWithoutExtension', () {
+    DwdsInjector injector;
     setUp(() async {
-      var pipeline =
-          const Pipeline().addMiddleware(DwdsInjector(loadStrategy).middleware);
+      injector = DwdsInjector(loadStrategy);
+      var pipeline = const Pipeline().addMiddleware(injector.middleware);
       server = await shelf_io.serve(pipeline.addHandler((request) {
         if (request.url.path.endsWith(bootstrapJsExtension)) {
           return Response.ok(
@@ -81,6 +82,19 @@ void main() {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
       expect(result.body.contains('window.\$dwdsDevHandlerPath'), isTrue);
+    });
+
+    test('emits a devHandlerPath for each entrypoint', () async {
+      await http.get(
+          'http://localhost:${server.port}/foo/entrypoint$bootstrapJsExtension');
+      await http.get(
+          'http://localhost:${server.port}/blah/entrypoint$bootstrapJsExtension');
+      expect(
+          injector.devHandlerPaths,
+          emitsInOrder([
+            'http://localhost:${server.port}/foo/\$dwdsSseHandler',
+            'http://localhost:${server.port}/blah/\$dwdsSseHandler'
+          ]));
     });
 
     test(
