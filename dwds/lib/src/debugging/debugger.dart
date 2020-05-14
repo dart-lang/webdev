@@ -67,15 +67,13 @@ class Debugger extends Domain {
   /// Dart or JS ID.
   final _Breakpoints _breakpoints;
 
-  Stack _pausedStack;
-
   PauseState _pauseState = PauseState.none;
 
   String get pauseState => _pauseModePauseStates.entries
       .firstWhere((entry) => entry.value == _pauseState)
       .key;
 
-  /// The JS frames corresponding to [_pausedStack].
+  /// The JS frames at the current paused location.
   ///
   /// The most important thing here is that frames are identified by
   /// frameIndex in the Dart API, but by frame Id in Chrome, so we need
@@ -154,7 +152,8 @@ class Debugger extends Domain {
   /// Returns null if the debugger is not paused.
   Future<Stack> getStack(String isolateId) async {
     checkIsolate('getStack', isolateId);
-    return _pausedStack;
+    var frames = await dartFramesFor(_pausedJsStack);
+    return Stack(frames: frames, messages: []);
   }
 
   static Future<Debugger> create(
@@ -252,7 +251,7 @@ class Debugger extends Domain {
 
   /// Notify the debugger the [Isolate] is paused at the application start.
   void notifyPausedAtStart() async {
-    _pausedStack = Stack(frames: [], messages: []);
+    _pausedJsStack = [];
   }
 
   /// Add a breakpoint at the given position.
@@ -333,23 +332,26 @@ class Debugger extends Domain {
     var dartFrames = <Frame>[];
     var index = 0;
     for (var frame in frames) {
-      var location = frame['location'];
-      var functionName = frame['functionName'] as String ?? '';
-      functionName = _prettifyMember(functionName.split('.').last);
-      // Chrome is 0 based. Account for this.
-      var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
-          location['lineNumber'] as int, location['columnNumber'] as int);
-      var dartFrame = await _frameFor(jsLocation);
+      var dartFrame = await _dartFrameFor(frame);
       if (dartFrame != null) {
-        dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
         dartFrame.index = index++;
-        dartFrame.vars = await variablesFor(
-            frame['scopeChain'] as List<dynamic>,
-            frame['callFrameId'] as String);
         dartFrames.add(dartFrame);
       }
     }
     return dartFrames;
+  }
+
+  /// Returns the top Dart frame for the Chrome callFrames contained in
+  /// a [DebuggerPausedEvent].
+  Future<Frame> dartTopFrame(List<Map<String, dynamic>> frames) async {
+    for (var frame in frames) {
+      var dartFrame = await _dartFrameFor(frame);
+      if (dartFrame != null) {
+        dartFrame.index = 0;
+        return dartFrame;
+      }
+    }
+    return null;
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
@@ -457,8 +459,12 @@ class Debugger extends Domain {
     return properties;
   }
 
-  /// Returns a Dart [Frame] for a [JsLocation].
-  Future<Frame> _frameFor(JsLocation jsLocation) async {
+  /// Returns a Dart [Frame] for a JS [frame].
+  Future<Frame> _dartFrameFor(Map<String, dynamic> frame) async {
+    var location = frame['location'];
+    // Chrome is 0 based. Account for this.
+    var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
+        location['lineNumber'] as int, location['columnNumber'] as int);
     // TODO(sdk/issues/37240) - ideally we look for an exact location instead
     // of the closest location on a given line.
     Location bestLocation;
@@ -478,13 +484,19 @@ class Debugger extends Domain {
     // Just drop the frame.
     // TODO(#700): Understand when this can happen and have a better fix.
     if (script == null) return null;
-    return Frame(
+    var dartFrame = Frame(
         // TODO(grouma) - What's the proper value here?
         index: null)
       ..code = (CodeRef(id: createId(), name: 'DartCode', kind: CodeKind.kDart))
       ..location =
           SourceLocation(tokenPos: bestLocation.tokenPos, script: script)
       ..kind = FrameKind.kRegular;
+    var functionName = _prettifyMember(
+        (frame['functionName'] as String ?? '').split('.').last);
+    dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
+    dartFrame.vars = await variablesFor(
+        frame['scopeChain'] as List<dynamic>, frame['callFrameId'] as String);
+    return dartFrame;
   }
 
   /// Handles pause events coming from the Chrome connection.
@@ -530,10 +542,9 @@ class Debugger extends Domain {
     var jsFrames =
         (e.params['callFrames'] as List).cast<Map<String, dynamic>>();
     try {
-      var frames = await dartFramesFor(jsFrames);
-      _pausedStack = Stack(frames: frames, messages: []);
+      var frame = await dartTopFrame(jsFrames);
       _pausedJsStack = jsFrames;
-      if (frames.isNotEmpty) event.topFrame = frames.first;
+      event.topFrame = frame;
       isolate.pauseEvent = event;
       _streamNotify('Debug', event);
     } on ChromeDebugException catch (e, s) {
@@ -554,7 +565,6 @@ class Debugger extends Domain {
     // result in a null isolate.
     var isolate = inspector?.isolate;
     if (isolate == null) return;
-    _pausedStack = null;
     _pausedJsStack = null;
     var event = Event(
         kind: EventKind.kResume,
