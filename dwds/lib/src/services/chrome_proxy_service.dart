@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:logging/logging.dart';
+import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -15,6 +15,7 @@ import '../connections/app_connection.dart';
 import '../debugging/debugger.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/inspector.dart';
+import '../debugging/instance.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
 import '../debugging/remote_debugger.dart';
@@ -515,6 +516,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           return StreamController<Event>.broadcast();
         case EventStreams.kDebug:
           return StreamController<Event>.broadcast();
+        case EventStreams.kLogging:
+          return StreamController<Event>.broadcast();
         case EventStreams.kStdout:
           return _chromeConsoleStreamController(
               (e) => _stdoutTypes.contains(e.type));
@@ -683,16 +686,18 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   void _setUpChromeConsoleListeners(IsolateRef isolateRef) {
     _consoleSubscription =
         remoteDebugger.onConsoleAPICalled.listen((event) async {
+      if (event.type != 'debug') return;
+
       var isolate = _inspector?.isolate;
       if (isolate == null) return;
-      if (event.type != 'debug') return;
+
       var firstArgValue = event.args[0].value as String;
       switch (firstArgValue) {
         case 'dart.developer.registerExtension':
           var service = event.args[1].value as String;
           isolate.extensionRPCs.add(service);
           _streamNotify(
-              'Isolate',
+              EventStreams.kIsolate,
               Event(
                   kind: EventKind.kServiceExtensionAdded,
                   timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -701,7 +706,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           break;
         case 'dart.developer.postEvent':
           _streamNotify(
-              'Extension',
+              EventStreams.kExtension,
               Event(
                   kind: EventKind.kExtension,
                   timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -717,13 +722,16 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           var inspectee =
               await _inspector.instanceHelper.instanceRefFor(event.args[1]);
           _streamNotify(
-              'Debug',
+              EventStreams.kDebug,
               Event(
                   kind: EventKind.kInspect,
                   timestamp: DateTime.now().millisecondsSinceEpoch,
                   isolate: isolateRef)
                 ..inspectee = inspectee
                 ..timestamp = event.timestamp.toInt());
+          break;
+        case 'dart.developer.log':
+          _handleDeveloperLog(isolateRef, event);
           break;
         default:
           break;
@@ -735,6 +743,41 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     var controller = _streamControllers[streamId];
     if (controller == null) return;
     controller.add(event);
+  }
+
+  void _handleDeveloperLog(IsolateRef isolateRef, ConsoleAPIEvent event) async {
+    var logObject = event.params['args'][1] as Map;
+    var logParams = <String, RemoteObject>{};
+    for (dynamic obj in logObject['preview']['properties']) {
+      if (obj['name'] != null && obj is Map<String, dynamic>) {
+        logParams[obj['name'] as String] = RemoteObject(obj);
+      }
+    }
+
+    var logRecord = LogRecord(
+      message: await _instanceRef(logParams['message']),
+      loggerName: await _instanceRef(logParams['name']),
+      level: logParams['level'] != null
+          ? int.tryParse(logParams['level'].value.toString())
+          : 0,
+      error: await _instanceRef(logParams['error']),
+      time: event.timestamp.toInt(),
+      sequenceNumber: logParams['sequenceNumber'] != null
+          ? int.tryParse(logParams['sequenceNumber'].value.toString())
+          : 0,
+      stackTrace: await _instanceRef(logParams['stackTrace']),
+      zone: await _instanceRef(logParams['zone']),
+    );
+
+    _streamNotify(
+      EventStreams.kLogging,
+      Event(
+          kind: EventKind.kLogging,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          isolate: isolateRef)
+        ..logRecord = logRecord
+        ..timestamp = event.timestamp.toInt(),
+    );
   }
 
   @override
@@ -773,12 +816,20 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<ClientName> getClientName() => throw UnimplementedError();
 
   @override
+  Future<Success> setClientName(String name) => throw UnimplementedError();
+
+  @override
   Future<Success> requirePermissionToResume(
           {bool onPauseStart, bool onPauseReload, bool onPauseExit}) =>
       throw UnimplementedError();
 
-  @override
-  Future<Success> setClientName(String name) => throw UnimplementedError();
+  Future<InstanceRef> _instanceRef(RemoteObject obj) async {
+    if (obj == null) {
+      return InstanceHelper.kNullInstanceRef;
+    } else {
+      return _inspector.instanceHelper.instanceRefFor(obj);
+    }
+  }
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.

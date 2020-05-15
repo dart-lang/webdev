@@ -38,17 +38,21 @@ void main() async {
 
   context['registerExtension'] = (String method) {
     registerExtension(method,
-        (String method, Map<String, String> parameters) async {
-      return ServiceExtensionResponse.result(jsonEncode(parameters ?? {}));
-    });
+            (String method, Map<String, String> parameters) async {
+          return ServiceExtensionResponse.result(jsonEncode(parameters ?? {}));
+        });
   };
 
   context['registerExtensionWithError'] = (String method) {
     registerExtension(method,
-        (String method, Map<String, String> parameters) async {
-      return ServiceExtensionResponse.error(
-          int.parse(parameters['code']), parameters['details']);
-    });
+            (String method, Map<String, String> parameters) async {
+          return ServiceExtensionResponse.error(
+              int.parse(parameters['code']), parameters['details']);
+        });
+  };
+
+  context['sendLog'] = (String message) {
+    log(message, name: 'testLogCategory');
   };
 
   Timer.periodic(const Duration(seconds: 1), (_) {
@@ -71,10 +75,15 @@ void printCount() {
 }
 
 String helloString(String response) => response;
+
 bool helloBool(bool response) => response;
+
 num helloNum(num response) => response;
+
 MyTestClass createObject(String message) => MyTestClass(message: message);
+
 String messageFor(MyTestClass instance) => instance.message;
+
 String messagesCombined(MyTestClass a, MyTestClass b) => a.message + b.message;
 
 class MyTestClass {

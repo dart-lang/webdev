@@ -1093,8 +1093,9 @@ void main() {
       });
 
       test('Extension', () async {
-        expect(service.streamListen('Extension'), completion(_isSuccess));
-        var stream = service.onEvent('Extension');
+        expect(service.streamListen(EventStreams.kExtension),
+            completion(_isSuccess));
+        var stream = service.onEvent(EventStreams.kExtension);
         var eventKind = 'my.custom.event';
         expect(
             stream,
@@ -1113,8 +1114,8 @@ void main() {
         Stream<Event> isolateEventStream;
 
         setUp(() async {
-          expect(await service.streamListen('Isolate'), _isSuccess);
-          isolateEventStream = service.onEvent('Isolate');
+          expect(await service.streamListen(EventStreams.kIsolate), _isSuccess);
+          isolateEventStream = service.onEvent(EventStreams.kIsolate);
         });
 
         test('ServiceExtensionAdded', () async {
@@ -1189,6 +1190,19 @@ void main() {
                 e.kind == EventKind.kVMUpdate && e.vm.name == 'test')));
         await service.setVMName('test');
       });
+    });
+
+    test('Logging', () async {
+      expect(
+          service.streamListen(EventStreams.kLogging), completion(_isSuccess));
+      var stream = service.onEvent(EventStreams.kLogging);
+      var message = 'myMessage';
+      expect(
+          stream,
+          emitsThrough(predicate((Event event) =>
+              event.kind == EventKind.kLogging &&
+              event.logRecord.message.valueAsString == message)));
+      await tabConnection.runtime.evaluate("sendLog('$message');");
     });
   });
 

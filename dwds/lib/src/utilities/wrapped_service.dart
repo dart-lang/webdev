@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+// TODO(devoncarew): This library may no longer be required (vm_service object
+// now have named constructors).
+
 import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart' as vm_service;
 
