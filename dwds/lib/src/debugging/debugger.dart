@@ -336,9 +336,9 @@ class Debugger extends Domain {
       // TODO(grouma) - We can prevent duplicate work of calculating the top
       // frame by pulling the frame logic out into a more complex class which
       // has proper caching.
-      var dartFrame = await _dartFrameFor(frame);
+      var dartFrame = await _dartFrameFor(frame, index);
       if (dartFrame != null) {
-        dartFrame.index = index++;
+        index++;
         dartFrames.add(dartFrame);
       }
     }
@@ -349,9 +349,8 @@ class Debugger extends Domain {
   /// a [DebuggerPausedEvent].
   Future<Frame> dartTopFrame(List<Map<String, dynamic>> frames) async {
     for (var frame in frames) {
-      var dartFrame = await _dartFrameFor(frame);
+      var dartFrame = await _dartFrameFor(frame, 0);
       if (dartFrame != null) {
-        dartFrame.index = 0;
         return dartFrame;
       }
     }
@@ -464,7 +463,8 @@ class Debugger extends Domain {
   }
 
   /// Returns a Dart [Frame] for a JS [frame].
-  Future<Frame> _dartFrameFor(Map<String, dynamic> frame) async {
+  Future<Frame> _dartFrameFor(
+      Map<String, dynamic> frame, int frameIndex) async {
     var location = frame['location'];
     // Chrome is 0 based. Account for this.
     var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
@@ -482,24 +482,32 @@ class Debugger extends Domain {
       }
     }
     if (bestLocation == null) return null;
+
     var script =
         await inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
     // We think we found a location, but for some reason we can't find the script.
     // Just drop the frame.
     // TODO(#700): Understand when this can happen and have a better fix.
     if (script == null) return null;
-    var dartFrame = Frame(
-        // TODO(grouma) - What's the proper value here?
-        index: null)
-      ..code = (CodeRef(id: createId(), name: 'DartCode', kind: CodeKind.kDart))
-      ..location =
-          SourceLocation(tokenPos: bestLocation.tokenPos, script: script)
-      ..kind = FrameKind.kRegular;
+
     var functionName = _prettifyMember(
         (frame['functionName'] as String ?? '').split('.').last);
-    dartFrame.code.name = functionName.isEmpty ? '<closure>' : functionName;
+    var codeRefName = functionName.isEmpty ? '<closure>' : functionName;
+
+    var dartFrame = Frame(
+      index: frameIndex,
+      code: CodeRef(
+        name: codeRefName,
+        kind: CodeKind.kDart,
+        id: createId(),
+      ),
+      location: SourceLocation(tokenPos: bestLocation.tokenPos, script: script),
+      kind: FrameKind.kRegular,
+    );
+
     dartFrame.vars = await variablesFor(
         frame['scopeChain'] as List<dynamic>, frame['callFrameId'] as String);
+
     return dartFrame;
   }
 
@@ -732,7 +740,14 @@ final escapedPound = '\$35';
 /// DDC stack trace deobfuscation is overhauled.
 String _prettifyMember(String member) {
   member = member.replaceAll(escapedPipe, '|');
-  return member.contains('|') ? _prettifyExtension(member) : member;
+  if (member.contains('|')) {
+    return _prettifyExtension(member);
+  } else {
+    if (member.startsWith('[') && member.endsWith(']')) {
+      member = member.substring(1, member.length - 1);
+    }
+    return member;
+  }
 }
 
 /// Reformats a JS member name as an extension method invocation.
