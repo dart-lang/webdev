@@ -425,30 +425,12 @@ void main() {
         expect(world.offset, 3);
       });
 
-      test('Large strings with default truncation', () async {
+      test('Large strings not truncated', () async {
         var largeString = await service.evaluate(isolate.id, isolate.rootLib.id,
             "helloString('${'abcde' * 250}')") as InstanceRef;
-        expect(largeString.valueAsStringIsTruncated, true);
-        expect(largeString.valueAsString.length, 128);
-        expect(largeString.length, 5 * 250);
-      });
-
-      test('String at the truncation limit', () async {
-        var largeString = await service.evaluate(
-                isolate.id, isolate.rootLib.id, "helloString('${'a' * 128}')")
-            as InstanceRef;
         expect(largeString.valueAsStringIsTruncated, false);
-        expect(largeString.length, 128);
-        expect(largeString.valueAsString.length, 128);
-      });
-
-      test('String one larger than the truncation limit', () async {
-        var largeString = await service.evaluate(
-                isolate.id, isolate.rootLib.id, "helloString('${'a' * 129}')")
-            as InstanceRef;
-        expect(largeString.valueAsStringIsTruncated, true);
-        expect(largeString.length, 129);
-        expect(largeString.valueAsString.length, 128);
+        expect(largeString.valueAsString.length, largeString.length);
+        expect(largeString.length, 5 * 250);
       });
 
       /// Helper to create a list of 1001 elements, doing a direct JS eval.
