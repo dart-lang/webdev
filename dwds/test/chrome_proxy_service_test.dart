@@ -428,7 +428,7 @@ void main() {
       test('Large strings not truncated', () async {
         var largeString = await service.evaluate(isolate.id, isolate.rootLib.id,
             "helloString('${'abcde' * 250}')") as InstanceRef;
-        expect(largeString.valueAsStringIsTruncated, false);
+        expect(largeString.valueAsStringIsTruncated, isNot(isTrue));
         expect(largeString.valueAsString.length, largeString.length);
         expect(largeString.length, 5 * 250);
       });
