@@ -425,30 +425,12 @@ void main() {
         expect(world.offset, 3);
       });
 
-      test('Large strings with default truncation', () async {
+      test('Large strings not truncated', () async {
         var largeString = await service.evaluate(isolate.id, isolate.rootLib.id,
             "helloString('${'abcde' * 250}')") as InstanceRef;
-        expect(largeString.valueAsStringIsTruncated, true);
-        expect(largeString.valueAsString.length, 128);
+        expect(largeString.valueAsStringIsTruncated, isNot(isTrue));
+        expect(largeString.valueAsString.length, largeString.length);
         expect(largeString.length, 5 * 250);
-      });
-
-      test('String at the truncation limit', () async {
-        var largeString = await service.evaluate(
-                isolate.id, isolate.rootLib.id, "helloString('${'a' * 128}')")
-            as InstanceRef;
-        expect(largeString.valueAsStringIsTruncated, false);
-        expect(largeString.length, 128);
-        expect(largeString.valueAsString.length, 128);
-      });
-
-      test('String one larger than the truncation limit', () async {
-        var largeString = await service.evaluate(
-                isolate.id, isolate.rootLib.id, "helloString('${'a' * 129}')")
-            as InstanceRef;
-        expect(largeString.valueAsStringIsTruncated, true);
-        expect(largeString.length, 129);
-        expect(largeString.valueAsString.length, 128);
       });
 
       /// Helper to create a list of 1001 elements, doing a direct JS eval.
@@ -1093,8 +1075,9 @@ void main() {
       });
 
       test('Extension', () async {
-        expect(service.streamListen('Extension'), completion(_isSuccess));
-        var stream = service.onEvent('Extension');
+        expect(service.streamListen(EventStreams.kExtension),
+            completion(_isSuccess));
+        var stream = service.onEvent(EventStreams.kExtension);
         var eventKind = 'my.custom.event';
         expect(
             stream,
@@ -1113,8 +1096,8 @@ void main() {
         Stream<Event> isolateEventStream;
 
         setUp(() async {
-          expect(await service.streamListen('Isolate'), _isSuccess);
-          isolateEventStream = service.onEvent('Isolate');
+          expect(await service.streamListen(EventStreams.kIsolate), _isSuccess);
+          isolateEventStream = service.onEvent(EventStreams.kIsolate);
         });
 
         test('ServiceExtensionAdded', () async {
@@ -1189,6 +1172,22 @@ void main() {
                 e.kind == EventKind.kVMUpdate && e.vm.name == 'test')));
         await service.setVMName('test');
       });
+    });
+
+    test('Logging', () async {
+      expect(
+          service.streamListen(EventStreams.kLogging), completion(_isSuccess));
+      var stream = service.onEvent(EventStreams.kLogging);
+      var message = 'myMessage';
+
+      unawaited(tabConnection.runtime.evaluate("sendLog('$message');"));
+
+      var event = await stream.first;
+      expect(event.kind, EventKind.kLogging);
+
+      var logRecord = event.logRecord;
+      expect(logRecord.message.valueAsString, message);
+      expect(logRecord.loggerName.valueAsString, 'testLogCategory');
     });
   });
 

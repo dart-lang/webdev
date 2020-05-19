@@ -16,17 +16,16 @@ import 'classes.dart';
 import 'inspector.dart';
 import 'metadata.dart';
 
-/// The maximum length of String which will be returned in an InstanceRef.
-///
-/// Anything longer will be truncated.
-const _stringTruncationLimit = 128;
-
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
   InstanceHelper(AppInspector Function() provider) : super(provider);
 
+  static final InstanceRef kNullInstanceRef =
+      _primitiveInstanceRef(InstanceKind.kNull, null);
+
   /// Creates an [InstanceRef] for a primitive [RemoteObject].
-  InstanceRef _primitiveInstanceRef(String kind, RemoteObject remoteObject) {
+  static InstanceRef _primitiveInstanceRef(
+      String kind, RemoteObject remoteObject) {
     var classRef = classRefFor('dart:core', kind);
     return InstanceRef(
         kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
@@ -317,21 +316,20 @@ class InstanceHelper extends Domain {
   Future<InstanceRef> _instanceRefForRemote(RemoteObject remoteObject) async {
     // If we have a null result, treat it as a reference to null.
     if (remoteObject == null) {
-      return _primitiveInstanceRef(InstanceKind.kNull, remoteObject);
+      return kNullInstanceRef;
     }
+
     switch (remoteObject.type) {
       case 'string':
         var stringValue = remoteObject.value as String;
-        var truncated = stringValue.length > _stringTruncationLimit;
-        var result = truncated
-            ? stringValue.substring(0, _stringTruncationLimit)
-            : stringValue;
+        // TODO: Support truncation for long strings.
+        // TODO(#777): dartIdFor() will return an ID containing the entire
+        // string, even if we're truncating the string value here.
         return InstanceRef(
             id: dartIdFor(remoteObject.value),
             classRef: classRefForString,
             kind: InstanceKind.kString)
-          ..valueAsString = result
-          ..valueAsStringIsTruncated = truncated
+          ..valueAsString = stringValue
           ..length = stringValue.length;
       case 'number':
         return _primitiveInstanceRef(InstanceKind.kDouble, remoteObject);

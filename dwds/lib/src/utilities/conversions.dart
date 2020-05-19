@@ -75,14 +75,11 @@ RemoteObject remoteObjectFor(String dartId) {
 
 /// A Dart object Id appropriate for [argument].
 ///
-/// This will work for simple values, RemoteObject, and Maps
-/// representations of RemoteObjects.
+/// This will work for simple values, RemoteObject, and Maps representations of
+/// RemoteObjects.
 String dartIdFor(Object argument) {
   if (argument == null) {
     return '$_nullId';
-  }
-  if (argument is String) {
-    return '$_prefixForStringIds$argument';
   }
   if (argument is double) {
     return '$_prefixForDoubleIds$argument';
