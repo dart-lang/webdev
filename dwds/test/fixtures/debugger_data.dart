@@ -87,7 +87,8 @@ List<Map<String, dynamic>> frames1Json = [
   }
 ];
 
-/// Data in the form returned from getProperties called twice on successive elements of a scope chain.
+/// Data in the form returned from getProperties called twice on successive
+/// elements of a scope chain.
 ///
 /// It has two variables named 'a' and 'b' in the first scope.
 var variables1 = [
@@ -97,24 +98,6 @@ var variables1 = [
   }),
   WipResponse({
     'id': 2,
-    'result': {'result': []}
-  }),
-  // Fake that the SDK is loaded.
-  WipResponse({
-    'id': 3,
-    'result': {
-      'result': [
-        {'name': 'dart', 'value': null},
-        {'name': 'core', 'value': null}
-      ]
-    }
-  }),
-  WipResponse({
-    'id': 4,
-    'result': {'result': []}
-  }),
-  WipResponse({
-    'id': 5,
     'result': {
       'result': [
         {
@@ -127,6 +110,24 @@ var variables1 = [
         }
       ]
     }
+  }),
+  WipResponse({
+    'id': 3,
+    'result': {'result': []}
+  }),
+  // Fake that the SDK is loaded.
+  WipResponse({
+    'id': 4,
+    'result': {
+      'result': [
+        {'name': 'dart', 'value': null},
+        {'name': 'core', 'value': null}
+      ]
+    }
+  }),
+  WipResponse({
+    'id': 5,
+    'result': {'result': []}
   }),
   WipResponse({
     'id': 6,

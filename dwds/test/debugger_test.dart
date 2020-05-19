@@ -87,6 +87,7 @@ void main() async {
       // Add a DebuggerPausedEvent with a null parameter to provoke an error.
       pausedController.sink.add(DebuggerPausedEvent({
         'params': {
+          'reason': 'other',
           'callFrames': [
             null,
           ],

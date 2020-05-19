@@ -484,7 +484,7 @@ class Debugger extends Domain {
     Event event;
     var timestamp = DateTime.now().millisecondsSinceEpoch;
     var params = e.params;
-    var jsBreakpointIds = (params['hitBreakpoints'] as List).toSet();
+    var jsBreakpointIds = (params['hitBreakpoints'] as List) ?? [];
     if (jsBreakpointIds.isNotEmpty) {
       var breakpointIds = jsBreakpointIds
           .map((id) => _breakpoints._dartIdByJsId[id])
