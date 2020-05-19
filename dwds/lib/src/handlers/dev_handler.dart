@@ -344,6 +344,7 @@ class DevHandler {
       sseConnection.sink
           .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
             ..success = false
+            ..promptExtension = false
             ..error = 'This app is already being debugged in a different tab. '
                 'Please close that tab or switch to it.'))));
       return;
