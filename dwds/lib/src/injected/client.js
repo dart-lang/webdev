@@ -22374,7 +22374,7 @@
                 if (!H.boolConversionCheck($event.success)) {
                   $alert = "DevTools failed to open with:\n" + H.S($event.error);
                   if (H.boolConversionCheck($event.promptExtension) && C.Window_methods.confirm$1(window, $alert))
-                    C.Window_methods.open$2(window, "https://chrome.google.com/webstore/detail/dart-debug-extension/eljbmlghnomdjgdjmbdekegdkbabckhm", "_blank");
+                    C.Window_methods.open$2(window, "https://goo.gle/dart-debug-extension", "_blank");
                   else
                     C.Window_methods.alert$1(window, $alert);
                 }
