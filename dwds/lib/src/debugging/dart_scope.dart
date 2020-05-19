@@ -62,7 +62,13 @@ Future<List<Property>> visibleProperties({
 /// Filters the provided scope chain into those that are pertinent for Dart
 /// debugging.
 List<WipScope> _filterScopes(Iterable<WipScope> scopeChain) {
-  var reportedScope = false;
+  // The last three scopes are generally [closure] [script] [global] in that
+  // order. We never want the global and script scopes. We don't want the last
+  // closure scope - that's a DDC implementation specific scope, and contains
+  // hundreds or thousands of properties (as does the global scope).
+
+  // We filter all script and global scopes, and any unnamed closure scopes. We
+  // could instead just filter out the last closure scope.
 
   // Iterate to least specific scope last to help preserve order in the
   // local variables view when stepping.
@@ -73,10 +79,8 @@ List<WipScope> _filterScopes(Iterable<WipScope> scopeChain) {
     // We typically see 'local' and 'block' scopes here. Some, like 'closure',
     // contain hundreds of DDC implementation specific properties.
     if (scope.scope == 'global') return false;
-    if (scope.scope == 'closure' && !reportedScope) return false;
     if (scope.scope == 'script') return false;
-
-    reportedScope = true;
+    if (scope.scope == 'closure' && scope.name == null) return false;
 
     return true;
   }).toList();

@@ -85,11 +85,17 @@ void main() async {
 
     test('errors in the zone are caught and logged', () async {
       // Add a DebuggerPausedEvent with a null parameter to provoke an error.
-      pausedController.sink.add(DebuggerPausedEvent(null));
+      pausedController.sink.add(DebuggerPausedEvent({
+        'params': {
+          'callFrames': [
+            null,
+          ],
+        }
+      }));
       expect(
           Debugger.logger.onRecord,
           emitsThrough(predicate(
-              (log) => log.message == 'Error handling Chrome event')));
+              (log) => log.message == 'Error calculating Dart frames')));
     });
   });
 }
