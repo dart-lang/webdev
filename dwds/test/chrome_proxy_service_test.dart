@@ -1179,12 +1179,15 @@ void main() {
           service.streamListen(EventStreams.kLogging), completion(_isSuccess));
       var stream = service.onEvent(EventStreams.kLogging);
       var message = 'myMessage';
-      expect(
-          stream,
-          emitsThrough(predicate((Event event) =>
-              event.kind == EventKind.kLogging &&
-              event.logRecord.message.valueAsString == message)));
-      await tabConnection.runtime.evaluate("sendLog('$message');");
+
+      unawaited(tabConnection.runtime.evaluate("sendLog('$message');"));
+
+      var event = await stream.first;
+      expect(event.kind, EventKind.kLogging);
+
+      var logRecord = event.logRecord;
+      expect(logRecord.message.valueAsString, message);
+      expect(logRecord.loggerName.valueAsString, 'testLogCategory');
     });
   });
 
