@@ -49,7 +49,6 @@ class ClassMetaData {
   /// Returns null if the [remoteObject] is not a Dart class.
   static Future<ClassMetaData> metaDataFor(RemoteDebugger remoteDebugger,
       RemoteObject remoteObject, AppInspector inspector) async {
-
     // TODO: We should cache ClassRef info based on remoteObject.className. This
     // would save ~one call per JS property, and significantly reduce the work
     // to populate JS frames.
