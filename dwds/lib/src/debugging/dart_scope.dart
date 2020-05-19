@@ -44,8 +44,8 @@ Future<List<Property>> visibleProperties({
     );
   }
 
-  allProperties.removeWhere((each) {
-    final value = each.value;
+  allProperties.removeWhere((property) {
+    final value = property.value;
 
     // TODO(#786) Handle these correctly rather than just suppressing them.
     // We should never see a raw JS class. The only case where this happens is a
@@ -62,6 +62,8 @@ Future<List<Property>> visibleProperties({
 /// Filters the provided scope chain into those that are pertinent for Dart
 /// debugging.
 List<WipScope> _filterScopes(Iterable<WipScope> scopeChain) {
+  var reportedScope = false;
+
   // Iterate to least specific scope last to help preserve order in the
   // local variables view when stepping.
   return scopeChain.toList().reversed.where((scope) {
@@ -71,8 +73,10 @@ List<WipScope> _filterScopes(Iterable<WipScope> scopeChain) {
     // We typically see 'local' and 'block' scopes here. Some, like 'closure',
     // contain hundreds of DDC implementation specific properties.
     if (scope.scope == 'global') return false;
-    if (scope.scope == 'closure') return false;
+    if (scope.scope == 'closure' && !reportedScope) return false;
     if (scope.scope == 'script') return false;
+
+    reportedScope = true;
 
     return true;
   }).toList();
