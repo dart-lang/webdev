@@ -77,7 +77,12 @@ Future<void> main() {
         }
       } else if (event is DevToolsResponse) {
         if (!event.success) {
-          window.alert('DevTools failed to open with: ${event.error}');
+          var alert = 'DevTools failed to open with:\n${event.error}';
+          if (event.promptExtension && window.confirm(alert)) {
+            window.open(_extensionUri, '_blank');
+          } else {
+            window.alert(alert);
+          }
         }
       } else if (event is RunRequest) {
         runMain();
@@ -187,3 +192,6 @@ void runMain() {
 }
 
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');
+
+const _extensionUri =
+    'https://chrome.google.com/webstore/detail/dart-debug-extension/eljbmlghnomdjgdjmbdekegdkbabckhm';

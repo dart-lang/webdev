@@ -46,6 +46,8 @@ abstract class DevToolsResponse
 
   bool get success;
 
+  bool get promptExtension;
+
   @nullable
   String get error;
 }

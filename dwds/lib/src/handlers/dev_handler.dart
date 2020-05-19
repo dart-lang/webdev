@@ -306,6 +306,7 @@ class DevHandler {
       sseConnection.sink
           .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
             ..success = false
+            ..promptExtension = false
             ..error = 'Debugging is not enabled.\n\n'
                 'If you are using webdev please pass the --debug flag.\n'
                 'Otherwise check the docs for the tool you are using.'))));
@@ -316,13 +317,23 @@ class DevHandler {
     try {
       appServices = await loadAppServices(appConnection);
     } catch (_) {
-      sseConnection.sink
-          .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
-            ..success = false
-            ..error = 'Unable to connect debug services to your '
-                'application. Most likely this means you are trying to '
-                'load in a different Chrome window than was launched by '
-                'your development tool.'))));
+      var error = 'Unable to connect debug services to your '
+          'application. Most likely this means you are trying to '
+          'load in a different Chrome window than was launched by '
+          'your development tool.';
+      var response = DevToolsResponse((b) => b
+        ..success = false
+        ..promptExtension = false
+        ..error = error);
+      if (_extensionBackend != null) {
+        response = response.rebuild((b) => b
+          ..promptExtension = true
+          ..error = '$error\n\n'
+              'Your workflow alternatively supports debugging through the '
+              'Dart Debug Extension.\n\n'
+              'Would you like to install the extension?');
+      }
+      sseConnection.sink.add(jsonEncode(serializers.serialize(response)));
       return;
     }
 
@@ -338,8 +349,10 @@ class DevHandler {
       return;
     }
 
-    sseConnection.sink.add(jsonEncode(
-        serializers.serialize(DevToolsResponse((b) => b..success = true))));
+    sseConnection.sink
+        .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
+          ..success = true
+          ..promptExtension = false))));
 
     appServices.connectedInstanceId = appConnection.request.instanceId;
     await _launchDevTools(appServices.chromeProxyService.remoteDebugger,

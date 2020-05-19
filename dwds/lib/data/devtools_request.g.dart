@@ -93,6 +93,9 @@ class _$DevToolsResponseSerializer
       'success',
       serializers.serialize(object.success,
           specifiedType: const FullType(bool)),
+      'promptExtension',
+      serializers.serialize(object.promptExtension,
+          specifiedType: const FullType(bool)),
     ];
     if (object.error != null) {
       result
@@ -117,6 +120,10 @@ class _$DevToolsResponseSerializer
       switch (key) {
         case 'success':
           result.success = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'promptExtension':
+          result.promptExtension = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool;
           break;
         case 'error':
@@ -254,15 +261,21 @@ class _$DevToolsResponse extends DevToolsResponse {
   @override
   final bool success;
   @override
+  final bool promptExtension;
+  @override
   final String error;
 
   factory _$DevToolsResponse(
           [void Function(DevToolsResponseBuilder) updates]) =>
       (new DevToolsResponseBuilder()..update(updates)).build();
 
-  _$DevToolsResponse._({this.success, this.error}) : super._() {
+  _$DevToolsResponse._({this.success, this.promptExtension, this.error})
+      : super._() {
     if (success == null) {
       throw new BuiltValueNullFieldError('DevToolsResponse', 'success');
+    }
+    if (promptExtension == null) {
+      throw new BuiltValueNullFieldError('DevToolsResponse', 'promptExtension');
     }
   }
 
@@ -279,18 +292,21 @@ class _$DevToolsResponse extends DevToolsResponse {
     if (identical(other, this)) return true;
     return other is DevToolsResponse &&
         success == other.success &&
+        promptExtension == other.promptExtension &&
         error == other.error;
   }
 
   @override
   int get hashCode {
-    return $jf($jc($jc(0, success.hashCode), error.hashCode));
+    return $jf($jc($jc($jc(0, success.hashCode), promptExtension.hashCode),
+        error.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('DevToolsResponse')
           ..add('success', success)
+          ..add('promptExtension', promptExtension)
           ..add('error', error))
         .toString();
   }
@@ -304,6 +320,11 @@ class DevToolsResponseBuilder
   bool get success => _$this._success;
   set success(bool success) => _$this._success = success;
 
+  bool _promptExtension;
+  bool get promptExtension => _$this._promptExtension;
+  set promptExtension(bool promptExtension) =>
+      _$this._promptExtension = promptExtension;
+
   String _error;
   String get error => _$this._error;
   set error(String error) => _$this._error = error;
@@ -313,6 +334,7 @@ class DevToolsResponseBuilder
   DevToolsResponseBuilder get _$this {
     if (_$v != null) {
       _success = _$v.success;
+      _promptExtension = _$v.promptExtension;
       _error = _$v.error;
       _$v = null;
     }
@@ -334,8 +356,9 @@ class DevToolsResponseBuilder
 
   @override
   _$DevToolsResponse build() {
-    final _$result =
-        _$v ?? new _$DevToolsResponse._(success: success, error: error);
+    final _$result = _$v ??
+        new _$DevToolsResponse._(
+            success: success, promptExtension: promptExtension, error: error);
     replace(_$result);
     return _$result;
   }
