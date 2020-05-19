@@ -67,8 +67,10 @@ void main() async {
     // frame.
     locations.noteLocation('dart', location, '69');
 
-    var frames = await debugger.dartFramesFor(frames1);
+    var stackComputer = StackComputer(debugger, frames1);
+    var frames = await stackComputer.calculateFrames();
     expect(frames, isNotNull);
+
     var firstFrame = frames[0];
     var frame1Variables = firstFrame.vars.map((each) => each.name).toList();
     expect(frame1Variables, ['a', 'b']);
