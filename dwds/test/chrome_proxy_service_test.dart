@@ -45,6 +45,7 @@ void main() {
     group('breakpoints', () {
       VM vm;
       Isolate isolate;
+
       ScriptList scripts;
       ScriptRef mainScript;
 
@@ -200,16 +201,19 @@ void main() {
 
     group('evaluate', () {
       Isolate isolate;
+      LibraryRef bootstrap;
+
       setUpAll(() async {
         var vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
+        bootstrap = isolate.libraries.last;
       });
 
       group('top level methods', () {
         test('can return strings', () async {
           expect(
               await service.evaluate(
-                  isolate.id, isolate.rootLib.id, "helloString('world')"),
+                  isolate.id, bootstrap.id, "helloString('world')"),
               const TypeMatcher<InstanceRef>().having(
                   (instance) => instance.valueAsString, 'value', 'world'));
         });
@@ -217,14 +221,14 @@ void main() {
         test('can return bools', () async {
           expect(
               await service.evaluate(
-                  isolate.id, isolate.rootLib.id, 'helloBool(true)'),
+                  isolate.id, bootstrap.id, 'helloBool(true)'),
               const TypeMatcher<InstanceRef>().having(
                   (instance) => instance.valueAsString,
                   'valueAsString',
                   'true'));
           expect(
               await service.evaluate(
-                  isolate.id, isolate.rootLib.id, 'helloBool(false)'),
+                  isolate.id, bootstrap.id, 'helloBool(false)'),
               const TypeMatcher<InstanceRef>().having(
                   (instance) => instance.valueAsString,
                   'valueAsString',
@@ -234,12 +238,12 @@ void main() {
         test('can return nums', () async {
           expect(
               await service.evaluate(
-                  isolate.id, isolate.rootLib.id, 'helloNum(42.0)'),
+                  isolate.id, bootstrap.id, 'helloNum(42.0)'),
               const TypeMatcher<InstanceRef>().having(
                   (instance) => instance.valueAsString, 'valueAsString', '42'));
           expect(
               await service.evaluate(
-                  isolate.id, isolate.rootLib.id, 'helloNum(42.2)'),
+                  isolate.id, bootstrap.id, 'helloNum(42.2)'),
               const TypeMatcher<InstanceRef>().having(
                   (instance) => instance.valueAsString,
                   'valueAsString',
@@ -248,7 +252,7 @@ void main() {
 
         test('can return objects with ids', () async {
           var object = await service.evaluate(
-              isolate.id, isolate.rootLib.id, 'createObject("cool")');
+              isolate.id, bootstrap.id, 'createObject("cool")');
           expect(
               object,
               const TypeMatcher<InstanceRef>()
@@ -260,14 +264,14 @@ void main() {
         group('with provided scope', () {
           Future<InstanceRef> createRemoteObject(String message) async {
             return await service.evaluate(
-                    isolate.id, isolate.rootLib.id, 'createObject("$message")')
+                    isolate.id, bootstrap.id, 'createObject("$message")')
                 as InstanceRef;
           }
 
           test('single scope object', () async {
             var instance = await createRemoteObject('A');
             var result = await service.evaluate(
-                isolate.id, isolate.rootLib.id, 'messageFor(arg1)',
+                isolate.id, bootstrap.id, 'messageFor(arg1)',
                 scope: {'arg1': instance.id});
             expect(
                 result,
@@ -281,7 +285,7 @@ void main() {
             var instance1 = await createRemoteObject('A');
             var instance2 = await createRemoteObject('B');
             var result = await service.evaluate(
-                isolate.id, isolate.rootLib.id, 'messagesCombined(arg1, arg2)',
+                isolate.id, bootstrap.id, 'messagesCombined(arg1, arg2)',
                 scope: {'arg1': instance1.id, 'arg2': instance2.id});
             expect(
                 result,
@@ -326,7 +330,7 @@ void main() {
         var isolate = result;
         expect(isolate.name, contains('main'));
         // TODO: library names change with kernel dart-lang/sdk#36736
-        expect(isolate.rootLib.uri, endsWith('main.dart'));
+        expect(isolate.rootLib.uri, endsWith('.dart'));
 
         expect(
             isolate.libraries,
@@ -347,13 +351,16 @@ void main() {
 
     group('getObject', () {
       Isolate isolate;
+      LibraryRef bootstrap;
+
       Library rootLibrary;
 
       setUpAll(() async {
         var vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
+        bootstrap = isolate.libraries.last;
         rootLibrary =
-            await service.getObject(isolate.id, isolate.rootLib.id) as Library;
+            await service.getObject(isolate.id, bootstrap.id) as Library;
       });
 
       test('Libraries', () async {
@@ -394,8 +401,7 @@ void main() {
 
       test('String', () async {
         var worldRef = await service.evaluate(
-                isolate.id, isolate.rootLib.id, "helloString('world')")
-            as InstanceRef;
+            isolate.id, bootstrap.id, "helloString('world')") as InstanceRef;
         var world =
             await service.getObject(isolate.id, worldRef.id) as Instance;
         expect(world.valueAsString, 'world');
@@ -403,8 +409,7 @@ void main() {
 
       test('Strings with offset', () async {
         var worldRef = await service.evaluate(
-                isolate.id, isolate.rootLib.id, "helloString('world')")
-            as InstanceRef;
+            isolate.id, bootstrap.id, "helloString('world')") as InstanceRef;
         var world = await service.getObject(isolate.id, worldRef.id,
             count: 2, offset: 1) as Instance;
         expect(world.valueAsString, 'or');
@@ -415,8 +420,7 @@ void main() {
 
       test('Strings with offset off the end', () async {
         var worldRef = await service.evaluate(
-                isolate.id, isolate.rootLib.id, "helloString('world')")
-            as InstanceRef;
+            isolate.id, bootstrap.id, "helloString('world')") as InstanceRef;
         var world = await service.getObject(isolate.id, worldRef.id,
             count: 5, offset: 3) as Instance;
         expect(world.valueAsString, 'ld');
@@ -426,8 +430,9 @@ void main() {
       });
 
       test('Large strings not truncated', () async {
-        var largeString = await service.evaluate(isolate.id, isolate.rootLib.id,
-            "helloString('${'abcde' * 250}')") as InstanceRef;
+        var largeString = await service.evaluate(
+                isolate.id, bootstrap.id, "helloString('${'abcde' * 250}')")
+            as InstanceRef;
         expect(largeString.valueAsStringIsTruncated, isNot(isTrue));
         expect(largeString.valueAsString.length, largeString.length);
         expect(largeString.length, 5 * 250);
@@ -542,7 +547,7 @@ void main() {
 
       test('bool', () async {
         var ref = await service.evaluate(
-            isolate.id, isolate.rootLib.id, 'helloBool(true)') as InstanceRef;
+            isolate.id, bootstrap.id, 'helloBool(true)') as InstanceRef;
         var obj = await service.getObject(isolate.id, ref.id) as Instance;
         expect(obj.kind, InstanceKind.kBool);
         expect(obj.classRef.name, 'Bool');
@@ -551,7 +556,7 @@ void main() {
 
       test('num', () async {
         var ref = await service.evaluate(
-            isolate.id, isolate.rootLib.id, 'helloNum(42)') as InstanceRef;
+            isolate.id, bootstrap.id, 'helloNum(42)') as InstanceRef;
         var obj = await service.getObject(isolate.id, ref.id) as Instance;
         expect(obj.kind, InstanceKind.kDouble);
         expect(obj.classRef.name, 'Double');
@@ -560,7 +565,7 @@ void main() {
 
       test('null', () async {
         var ref = await service.evaluate(
-            isolate.id, isolate.rootLib.id, 'helloNum(null)') as InstanceRef;
+            isolate.id, bootstrap.id, 'helloNum(null)') as InstanceRef;
         var obj = await service.getObject(isolate.id, ref.id) as Instance;
         expect(obj.kind, InstanceKind.kNull);
         expect(obj.classRef.name, 'Null');
@@ -836,13 +841,15 @@ void main() {
     group('invoke', () {
       VM vm;
       Isolate isolate;
+      LibraryRef bootstrap;
       InstanceRef testInstance;
 
       setUp(() async {
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
+        bootstrap = isolate.libraries.last;
         testInstance = await service.evaluate(
-            isolate.id, isolate.rootLib.id, 'myInstance') as InstanceRef;
+            isolate.id, bootstrap.id, 'myInstance') as InstanceRef;
       });
 
       test('toString()', () async {
@@ -866,7 +873,7 @@ void main() {
       });
 
       test('helloString', () async {
-        var remote = await service.invoke(isolate.id, isolate.rootLib.id,
+        var remote = await service.invoke(isolate.id, bootstrap.id,
             'helloString', ['#StringInstanceRef#abc']);
         expect(
             remote,
@@ -879,8 +886,8 @@ void main() {
       });
 
       test('null argument', () async {
-        var remote = await service.invoke(
-            isolate.id, isolate.rootLib.id, 'helloString', ['objects/null']);
+        var remote = await service
+            .invoke(isolate.id, bootstrap.id, 'helloString', ['objects/null']);
         expect(
             remote,
             const TypeMatcher<InstanceRef>().having(
@@ -893,7 +900,7 @@ void main() {
 
       test('helloBool', () async {
         var remote = await service.invoke(
-            isolate.id, isolate.rootLib.id, 'helloBool', ['objects/bool-true']);
+            isolate.id, bootstrap.id, 'helloBool', ['objects/bool-true']);
         expect(
             remote,
             const TypeMatcher<InstanceRef>().having(
@@ -905,8 +912,8 @@ void main() {
       });
 
       test('helloNum', () async {
-        var remote = await service.invoke(
-            isolate.id, isolate.rootLib.id, 'helloNum', ['objects/int-123']);
+        var remote = await service
+            .invoke(isolate.id, bootstrap.id, 'helloNum', ['objects/int-123']);
         expect(
             remote,
             const TypeMatcher<InstanceRef>().having(
@@ -918,7 +925,7 @@ void main() {
       });
 
       test('two object arguments', () async {
-        var remote = await service.invoke(isolate.id, isolate.rootLib.id,
+        var remote = await service.invoke(isolate.id, bootstrap.id,
             'messagesCombined', [testInstance.id, testInstance.id]);
         expect(
             remote,
@@ -1203,6 +1210,7 @@ void main() {
     group('evaluateInFrame', () {
       VM vm;
       Isolate isolate;
+
       ScriptList scripts;
       ScriptRef mainScript;
       Stream<Event> stream;
