@@ -24,7 +24,7 @@ if [[ $TRAVIS_OS_NAME == "windows" ]]; then
     export CHROMEDRIVER_OS=win32
 
     echo Chrome Version
-    reg query "HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon" /v version
+    wmic datafile where name="C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" get Version /value
 
     echo Installing Google Chromedriver...
     choco install chromedriver --acceptlicense --yes --no-progress --ignore-checksums
