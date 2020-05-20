@@ -211,6 +211,8 @@ class TestContext {
       if (parts.length > 2) {
         print('Google Chrome ' + parts[parts.length - 2]);
       }
+    } else {
+      print('BAD RUN: ${result.stderr}');
     }
 
     var debugPort = await findUnusedPort();
