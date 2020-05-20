@@ -200,6 +200,19 @@ class TestContext {
         ? FakeExpressionCompiler()
         : expressionCompiler;
 
+    var result = await Process.run('reg', [
+      'query',
+      r'HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon',
+      '/v',
+      'version',
+    ]);
+    if (result.exitCode == 0) {
+      var parts = (result.stdout as String).split(RegExp(r'\s+'));
+      if (parts.length > 2) {
+        print('Google Chrome ' + parts[parts.length - 2]);
+      }
+    }
+
     var debugPort = await findUnusedPort();
     // If the environment variable DWDS_DEBUG_CHROME is set to the string true
     // then Chrome will be launched with a UI rather than headless.
