@@ -6,6 +6,7 @@
 import 'dart:async';
 
 import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/modules.dart';
@@ -67,7 +68,7 @@ void main() async {
     // frame.
     locations.noteLocation('dart', location, '69');
 
-    var stackComputer = StackComputer(debugger, frames1);
+    var stackComputer = FrameComputer(debugger, frames1);
     var frames = await stackComputer.calculateFrames();
     expect(frames, isNotNull);
 

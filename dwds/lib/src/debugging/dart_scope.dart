@@ -30,7 +30,9 @@ Future<List<Property>> visibleProperties({
   // call. Along with some other optimizations (caching classRef lookups), we'd
   // end up averaging one backend call per frame.
 
-  for (var scope in _filterScopes(frame.getScopeChain())) {
+  // Iterate to least specific scope last to help preserve order in the local
+  // variables view when stepping.
+  for (var scope in filterScopes(frame).reversed) {
     final properties = await debugger.getProperties(scope.object.objectId);
     allProperties.addAll(properties);
   }
@@ -59,29 +61,36 @@ Future<List<Property>> visibleProperties({
   return allProperties;
 }
 
-/// Filters the provided scope chain into those that are pertinent for Dart
+/// Filters the provided frame scopes to those that are pertinent for Dart
 /// debugging.
-List<WipScope> _filterScopes(Iterable<WipScope> scopeChain) {
-  // The last three scopes are generally [closure] [script] [global] in that
-  // order. We never want the global and script scopes. We don't want the last
-  // closure scope - that's a DDC implementation specific scope, and contains
-  // hundreds or thousands of properties (as does the global scope).
+List<WipScope> filterScopes(WipCallFrame frame) {
+  // For RequireJS modules, the last three scopes are generally
+  // `[unnamed closure] [script] [global]` in that order. We never want the
+  // global and script scopes. We don't want the last closure scope - that's the
+  // Dart SDK scope, and contains hundreds or thousands of properties (as does
+  // the global scope).
 
-  // We filter all script and global scopes, and any unnamed closure scopes. We
-  // could instead just filter out the last closure scope.
+  // For AMD modules, the last two scopes are generally
+  // `[named closure] [global]` in that order. The named closure is the Dart SDK
+  // scope.
 
-  // Iterate to least specific scope last to help preserve order in the
-  // local variables view when stepping.
-  return scopeChain.toList().reversed.where((scope) {
-    // The possible values are: global, local, with, closure, catch, block,
-    // script, eval, and module.
+  // Below, we filter out the last (global) scope, the optional script scope,
+  // and the first (named or unnamed) closure scope. In the future, we'll likey
+  // have more rigourous ways to identify the SDK scope.
 
-    // We typically see 'local' and 'block' scopes here. Some, like 'closure',
-    // contain hundreds of DDC implementation specific properties.
-    if (scope.scope == 'global') return false;
-    if (scope.scope == 'script') return false;
-    if (scope.scope == 'closure' && scope.name == null) return false;
+  var scopes = frame.getScopeChain().toList();
 
-    return true;
-  }).toList();
+  if (scopes.isNotEmpty && scopes.last.scope == 'global') {
+    scopes.removeLast();
+  }
+
+  if (scopes.isNotEmpty && scopes.last.scope == 'script') {
+    scopes.removeLast();
+  }
+
+  if (scopes.isNotEmpty && scopes.last.scope == 'closure') {
+    scopes.removeLast();
+  }
+
+  return scopes;
 }

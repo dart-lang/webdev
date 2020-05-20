@@ -21,6 +21,7 @@ import '../utilities/objects.dart' show Property;
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'dart_scope.dart';
+import 'frame_computer.dart';
 import 'location.dart';
 import 'modules.dart';
 import 'remote_debugger.dart';
@@ -78,7 +79,7 @@ class Debugger extends Domain {
   /// The most important thing here is that frames are identified by
   /// frameIndex in the Dart API, but by frame Id in Chrome, so we need
   /// to keep the JS frames and their Ids around.
-  StackComputer stackComputer;
+  FrameComputer stackComputer;
 
   bool _isStepping = false;
 
@@ -249,7 +250,7 @@ class Debugger extends Domain {
 
   /// Notify the debugger the [Isolate] is paused at the application start.
   void notifyPausedAtStart() async {
-    stackComputer = StackComputer(this, []);
+    stackComputer = FrameComputer(this, []);
   }
 
   /// Add a breakpoint at the given position.
@@ -428,7 +429,8 @@ class Debugger extends Domain {
   }
 
   /// Returns a Dart [Frame] for a JS [frame].
-  Future<Frame> _dartFrameFor(WipCallFrame frame, int frameIndex) async {
+  Future<Frame> calculateDartFrameFor(
+      WipCallFrame frame, int frameIndex) async {
     var location = frame.location;
     // Chrome is 0 based. Account for this.
     var jsLocation = JsLocation.fromZeroBased(
@@ -518,7 +520,7 @@ class Debugger extends Domain {
     }
 
     // Calculate the frames (and handle any exceptions that may occur).
-    stackComputer = StackComputer(this, e.getCallFrames().toList());
+    stackComputer = FrameComputer(this, e.getCallFrames().toList());
 
     try {
       event.topFrame = await stackComputer.calculateTopFrame();
@@ -747,54 +749,4 @@ String _unescape(String name) {
       RegExp(r'\$[0-9]+'),
       (m) =>
           String.fromCharCode(int.parse(name.substring(m.start + 1, m.end))));
-}
-
-class StackComputer {
-  final Debugger debugger;
-
-  final List<WipCallFrame> _callFrames;
-
-  StackComputer(this.debugger, this._callFrames);
-
-  /// Given a frame index, return the corresponding JS frame.
-  WipCallFrame jsFrameForIndex(int frameIndex) {
-    return _callFrames[frameIndex];
-  }
-
-  /// Returns the top Dart frame for the Chrome callFrames contained in a
-  /// [DebuggerPausedEvent].
-  ///
-  /// This will return null if there are no suitable frames.
-  Future<Frame> calculateTopFrame() async {
-    for (var frameIndex = 0; frameIndex < _callFrames.length; frameIndex++) {
-      final callFrame = _callFrames[frameIndex];
-      var dartFrame = await debugger._dartFrameFor(callFrame, frameIndex);
-      if (dartFrame != null) {
-        return dartFrame;
-      }
-    }
-    return null;
-  }
-
-  /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
-  /// [Frame]s.
-  Future<List<Frame>> calculateFrames() async {
-    // TODO: Investigate the use of package:pool to request information for ~6
-    // frames at a time.
-
-    var dartFrames = <Frame>[];
-
-    // Here, we continue to increment the dart frame index even if we don't
-    // create a dart frame; this lets the dart frame index match the javascript
-    // ones.
-    for (var frameIndex = 0; frameIndex < _callFrames.length; frameIndex++) {
-      final callFrame = _callFrames[frameIndex];
-      var dartFrame = await debugger._dartFrameFor(callFrame, frameIndex);
-      if (dartFrame != null) {
-        dartFrames.add(dartFrame);
-      }
-    }
-
-    return dartFrames;
-  }
 }
