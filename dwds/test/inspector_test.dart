@@ -94,22 +94,22 @@ void main() {
   });
 
   group('invoke', () {
-    // We test these here because the test fixture has more complicated members to
-    // exercise.
+    // We test these here because the test fixture has more complicated members
+    // to exercise.
 
     String isolateId;
-    String libraryId;
+    LibraryRef bootstrapLibrary;
     RemoteObject instance;
 
     setUp(() async {
       isolateId = inspector.isolate.id;
-      libraryId = inspector.isolate.rootLib.id;
-      instance =
-          await inspector.evaluate(isolateId, libraryId, 'libraryPublicFinal');
+      bootstrapLibrary = inspector.isolate.libraries.last;
+      instance = await inspector.evaluate(
+          isolateId, bootstrapLibrary.id, 'libraryPublicFinal');
     });
 
     test('invoke top-level private', () async {
-      var remote = await inspector.invoke(isolateId, libraryId,
+      var remote = await inspector.invoke(isolateId, bootstrapLibrary.id,
           '_libraryPrivateFunction', [dartIdFor(2), dartIdFor(3)]);
       expect(
           remote,
@@ -134,9 +134,10 @@ void main() {
           const TypeMatcher<RemoteObject>()
               .having((instance) => instance.value, 'result', true));
     });
+
     test('invoke instance method with object parameter 2', () async {
-      var libraryPrivateList =
-          await inspector.evaluate(isolateId, libraryId, '_libraryPrivate');
+      var libraryPrivateList = await inspector.evaluate(
+          isolateId, bootstrapLibrary.id, '_libraryPrivate');
       var remote = await inspector.invoke(isolateId, instance.objectId,
           'equals', [libraryPrivateList.objectId]);
       expect(

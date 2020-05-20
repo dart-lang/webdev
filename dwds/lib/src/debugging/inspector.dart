@@ -75,19 +75,23 @@ class AppInspector extends Domain {
   )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
-  @override
-
   /// We are the inspector, so this getter is trivial.
+  @override
   AppInspector get inspector => this;
 
   Future<void> _initialize() async {
     var libraries = await libraryHelper.libraryRefs;
     isolate.libraries.addAll(libraries);
+
     await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
 
-    // TODO: Something more robust here, right now we rely on the 2nd to last
-    // library being the root one (the last library is the bootstrap lib).
-    isolate.rootLib = isolate.libraries[isolate.libraries.length - 1];
+    // This relies on the convention that the 2nd to last library is the root
+    // library (and the last one is the bootstrap library).
+    if (libraries.length >= 2) {
+      isolate.rootLib = libraries[libraries.length - 2];
+    } else {
+      isolate.rootLib = libraries.last;
+    }
 
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());
   }
