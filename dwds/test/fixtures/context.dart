@@ -200,20 +200,22 @@ class TestContext {
         ? FakeExpressionCompiler()
         : expressionCompiler;
 
-    var result = await Process.run('reg', [
-      'query',
-      r'HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon',
-      '/v',
-      'version',
-    ]);
-    if (result.exitCode == 0) {
-      var parts = (result.stdout as String).split(RegExp(r'\s+'));
-      if (parts.length > 2) {
-        print('Google Chrome ' + parts[parts.length - 2]);
-      }
-    } else {
-      print('BAD RUN: ${result.stderr}');
-    }
+    const _windowsExecutable = r'Google\Chrome\Application\chrome.exe';
+    final windowsPrefixes = [
+      Platform.environment['LOCALAPPDATA'],
+      Platform.environment['PROGRAMFILES'],
+      Platform.environment['PROGRAMFILES(X86)']
+    ];
+    var chrome_path = p.join(
+      windowsPrefixes.firstWhere((prefix) {
+        if (prefix == null) return false;
+        final path = p.join(prefix, _windowsExecutable);
+        return File(path).existsSync();
+      }, orElse: () => '.'),
+      _windowsExecutable,
+    );
+
+    print('CHROME PATH: $chrome_path');
 
     var debugPort = await findUnusedPort();
     // If the environment variable DWDS_DEBUG_CHROME is set to the string true
