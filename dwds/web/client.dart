@@ -24,6 +24,7 @@ import 'reloader/legacy_restarter.dart';
 import 'reloader/manager.dart';
 import 'reloader/require_restarter.dart';
 import 'reloader/restarter.dart';
+import 'run_main.dart';
 
 // GENERATE:
 // pub run build_runner build web
@@ -180,15 +181,5 @@ external set launchDevToolsJs(void Function() cb);
 
 @JS(r'$dartReloadConfiguration')
 external String get reloadConfiguration;
-
-/// Runs `window.$dartRunMain()` by injecting a script tag.
-///
-/// We do this so that we don't see user exceptions bubble up in our own error
-/// handling zone.
-void runMain() {
-  var scriptElement = ScriptElement()..innerHtml = r'window.$dartRunMain();';
-  document.body.append(scriptElement);
-  Future.microtask(scriptElement.remove);
-}
 
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');
