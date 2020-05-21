@@ -8,12 +8,14 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 // ignore_for_file: prefer_single_quotes
 
-/// Stack frames in JSON format as they would be in a Chrome 'Debugger.paused'
-/// event.
+/// Stack frames as they would be in a Chrome 'Debugger.paused' event.
 ///
 /// This is taken from a real run, but truncated to two levels of scope and one
 /// level of stack.
-List<Map<String, dynamic>> frames1 = [
+List<WipCallFrame> frames1 =
+    frames1Json.map((json) => WipCallFrame(json)).toList();
+
+List<Map<String, dynamic>> frames1Json = [
   {
     "callFrameId": "{\"ordinal\":0,\"injectedScriptId\":2}",
     "functionName": "",
@@ -85,7 +87,8 @@ List<Map<String, dynamic>> frames1 = [
   }
 ];
 
-/// Data in the form returned from getProperties called twice on successive elements of a scope chain.
+/// Data in the form returned from getProperties called twice on successive
+/// elements of a scope chain.
 ///
 /// It has two variables named 'a' and 'b' in the first scope.
 var variables1 = [
@@ -95,24 +98,6 @@ var variables1 = [
   }),
   WipResponse({
     'id': 2,
-    'result': {'result': []}
-  }),
-  // Fake that the SDK is loaded.
-  WipResponse({
-    'id': 3,
-    'result': {
-      'result': [
-        {'name': 'dart', 'value': null},
-        {'name': 'core', 'value': null}
-      ]
-    }
-  }),
-  WipResponse({
-    'id': 4,
-    'result': {'result': []}
-  }),
-  WipResponse({
-    'id': 5,
     'result': {
       'result': [
         {
@@ -125,6 +110,24 @@ var variables1 = [
         }
       ]
     }
+  }),
+  WipResponse({
+    'id': 3,
+    'result': {'result': []}
+  }),
+  // Fake that the SDK is loaded.
+  WipResponse({
+    'id': 4,
+    'result': {
+      'result': [
+        {'name': 'dart', 'value': null},
+        {'name': 'core', 'value': null}
+      ]
+    }
+  }),
+  WipResponse({
+    'id': 5,
+    'result': {'result': []}
   }),
   WipResponse({
     'id': 6,

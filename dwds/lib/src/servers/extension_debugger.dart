@@ -16,8 +16,7 @@ import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
 import '../services/chrome_proxy_service.dart';
 
-/// A remote debugger backed by the Dart Debug Extension
-/// with an SSE connection.
+/// A remote debugger backed by the Dart Debug Extension with an SSE connection.
 class ExtensionDebugger implements RemoteDebugger {
   /// A connection between the debugger and the background of
   /// Dart Debug Extension
@@ -54,12 +53,13 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled => eventStream(
-      'Runtime.consoleAPICalled', (WipEvent event) => ConsoleAPIEvent(event));
+      'Runtime.consoleAPICalled',
+      (WipEvent event) => ConsoleAPIEvent(event.json));
 
   @override
   Stream<ExceptionThrownEvent> get onExceptionThrown => eventStream(
       'Runtime.exceptionThrown',
-      (WipEvent event) => ExceptionThrownEvent(event));
+      (WipEvent event) => ExceptionThrownEvent(event.json));
 
   final _scripts = <String, WipScript>{};
 
@@ -257,15 +257,16 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   Stream<DebuggerPausedEvent> get onPaused => eventStream(
-      'Debugger.paused', (WipEvent event) => DebuggerPausedEvent(event));
+      'Debugger.paused', (WipEvent event) => DebuggerPausedEvent(event.json));
 
   @override
   Stream<DebuggerResumedEvent> get onResumed => eventStream(
-      'Debugger.resumed', (WipEvent event) => DebuggerResumedEvent(event));
+      'Debugger.resumed', (WipEvent event) => DebuggerResumedEvent(event.json));
 
   @override
   Stream<ScriptParsedEvent> get onScriptParsed => eventStream(
-      'Debugger.scriptParsed', (WipEvent event) => ScriptParsedEvent(event));
+      'Debugger.scriptParsed',
+      (WipEvent event) => ScriptParsedEvent(event.json));
 
   @override
   Map<String, WipScript> get scripts => UnmodifiableMapView(_scripts);

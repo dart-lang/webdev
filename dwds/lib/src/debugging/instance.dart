@@ -83,6 +83,9 @@ class InstanceHelper extends Domain {
     if (primitive != null) {
       return primitive;
     }
+
+    // TODO: This is checking the JS object ID for the dart pattern we use for
+    // VM objects, which seems wrong (and, we catch 'string' types above).
     if (isStringId(remoteObject.objectId)) {
       return _stringInstanceFor(remoteObject, offset, count);
     }
@@ -93,6 +96,7 @@ class InstanceHelper extends Domain {
     if (metaData.jsName == 'Function') {
       return _closureInstanceFor(remoteObject);
     }
+
     var properties = await inspector.debugger.getProperties(
         remoteObject.objectId,
         offset: offset,

@@ -6,6 +6,7 @@
 import 'dart:async';
 
 import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/modules.dart';
@@ -67,8 +68,10 @@ void main() async {
     // frame.
     locations.noteLocation('dart', location, '69');
 
-    var frames = await debugger.dartFramesFor(frames1);
+    var stackComputer = FrameComputer(debugger, frames1);
+    var frames = await stackComputer.calculateFrames();
     expect(frames, isNotNull);
+
     var firstFrame = frames[0];
     var frame1Variables = firstFrame.vars.map((each) => each.name).toList();
     expect(frame1Variables, ['a', 'b']);
@@ -83,11 +86,18 @@ void main() async {
 
     test('errors in the zone are caught and logged', () async {
       // Add a DebuggerPausedEvent with a null parameter to provoke an error.
-      pausedController.sink.add(DebuggerPausedEvent(null));
+      pausedController.sink.add(DebuggerPausedEvent({
+        'params': {
+          'reason': 'other',
+          'callFrames': [
+            null,
+          ],
+        }
+      }));
       expect(
           Debugger.logger.onRecord,
           emitsThrough(predicate(
-              (log) => log.message == 'Error handling Chrome event')));
+              (log) => log.message == 'Error calculating Dart frames')));
     });
   });
 }

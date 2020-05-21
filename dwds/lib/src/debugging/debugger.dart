@@ -21,6 +21,7 @@ import '../utilities/objects.dart' show Property;
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'dart_scope.dart';
+import 'frame_computer.dart';
 import 'location.dart';
 import 'modules.dart';
 import 'remote_debugger.dart';
@@ -78,11 +79,7 @@ class Debugger extends Domain {
   /// The most important thing here is that frames are identified by
   /// frameIndex in the Dart API, but by frame Id in Chrome, so we need
   /// to keep the JS frames and their Ids around.
-  // TODO(alanknight): It would be nice to keep these as CallFrame instances,
-  // but they don't map enough of the data yet.
-  List<Map<String, dynamic>> _pausedJsStack;
-
-  List<Map<String, dynamic>> getJsStack() => _pausedJsStack;
+  FrameComputer stackComputer;
 
   bool _isStepping = false;
 
@@ -152,8 +149,9 @@ class Debugger extends Domain {
   /// Returns null if the debugger is not paused.
   Future<Stack> getStack(String isolateId) async {
     checkIsolate('getStack', isolateId);
-    if (_pausedJsStack == null) return null;
-    var frames = await dartFramesFor(_pausedJsStack);
+    if (stackComputer == null) return null;
+
+    var frames = await stackComputer.calculateFrames();
     return Stack(frames: frames, messages: []);
   }
 
@@ -252,7 +250,7 @@ class Debugger extends Domain {
 
   /// Notify the debugger the [Isolate] is paused at the application start.
   void notifyPausedAtStart() async {
-    _pausedJsStack = [];
+    stackComputer = FrameComputer(this, []);
   }
 
   /// Add a breakpoint at the given position.
@@ -327,55 +325,21 @@ class Debugger extends Domain {
     return _locations.locationForJs(jsLocation.scriptId, jsLocation.line);
   }
 
-  /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
-  /// [Frame]s.
-  Future<List<Frame>> dartFramesFor(List<Map<String, dynamic>> frames) async {
-    var dartFrames = <Frame>[];
-    var index = 0;
-    for (var frame in frames) {
-      // TODO(grouma) - We can prevent duplicate work of calculating the top
-      // frame by pulling the frame logic out into a more complex class which
-      // has proper caching.
-      var dartFrame = await _dartFrameFor(frame, index);
-      if (dartFrame != null) {
-        index++;
-        dartFrames.add(dartFrame);
-      }
-    }
-    return dartFrames;
-  }
-
-  /// Returns the top Dart frame for the Chrome callFrames contained in
-  /// a [DebuggerPausedEvent].
-  Future<Frame> dartTopFrame(List<Map<String, dynamic>> frames) async {
-    for (var frame in frames) {
-      var dartFrame = await _dartFrameFor(frame, 0);
-      if (dartFrame != null) {
-        return dartFrame;
-      }
-    }
-    return null;
-  }
-
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
-  Future<List<BoundVariable>> variablesFor(
-      List<dynamic> scopeChain, String callFrameId) async {
+  Future<List<BoundVariable>> variablesFor(WipCallFrame frame) async {
     // TODO(alanknight): Can these be moved to dart_scope.dart?
-    var properties = await visibleProperties(
-        scopeList: scopeChain.cast<Map<String, dynamic>>().toList(),
-        debugger: this,
-        callFrameId: callFrameId);
+    var properties = await visibleProperties(debugger: this, frame: frame);
+
     var boundVariables = await Future.wait(
-        properties.map((property) async => await _boundVariable(property)));
-    // Filter out variables that do not come from dart code,
-    // such as native JavaScript objects
-    boundVariables = boundVariables
+      properties.map((property) async => await _boundVariable(property)),
+    );
+    // Filter out variables that do not come from dart code, such as native
+    // JavaScript objects
+    return boundVariables
         .where((bv) =>
             bv != null &&
             !_isNativeJsObject(bv.value as vm_service.InstanceRef))
         .toList();
-    boundVariables.sort((a, b) => a.name.compareTo(b.name));
-    return boundVariables;
   }
 
   bool _isNativeJsObject(vm_service.InstanceRef instanceRef) =>
@@ -390,13 +354,15 @@ class Debugger extends Domain {
     // properties that are getter/setter pairs.
     // TODO(alanknight): Handle these properly.
     if (instanceRef == null) return null;
+
     return BoundVariable(
-        name: property.name,
-        value: instanceRef,
-        // TODO(grouma) - Provide actual token positions.
-        declarationTokenPos: -1,
-        scopeStartTokenPos: -1,
-        scopeEndTokenPos: -1);
+      name: property.name,
+      value: instanceRef,
+      // TODO(grouma) - Provide actual token positions.
+      declarationTokenPos: -1,
+      scopeStartTokenPos: -1,
+      scopeEndTokenPos: -1,
+    );
   }
 
   /// Find a sub-range of the entries for a Map/List when offset and/or count
@@ -436,18 +402,18 @@ class Debugger extends Domain {
     return await inspector.jsCallFunctionOn(receiver, expression, args);
   }
 
-  /// Calls the Chrome Runtime.getProperties API for the object with [id].
+  /// Calls the Chrome Runtime.getProperties API for the object with [objectId].
   ///
   /// Note that the property names are JS names, e.g.
   /// Symbol(DartClass.actualName) and will need to be converted. For a system
   /// List or Map, [offset] and/or [count] can be provided to indicate a desired
   /// range of entries. If those are provided, then [length] should also be
   /// provided to indicate the total length of the List/Map.
-  Future<List<Property>> getProperties(String id,
+  Future<List<Property>> getProperties(String objectId,
       {int offset, int count, int length}) async {
-    var rangeId = id;
+    var rangeId = objectId;
     if (offset != null || count != null) {
-      var range = await _subrange(id, offset ?? 0, count, length);
+      var range = await _subrange(objectId, offset ?? 0, count, length);
       rangeId = range.objectId;
     }
     var response =
@@ -463,12 +429,12 @@ class Debugger extends Domain {
   }
 
   /// Returns a Dart [Frame] for a JS [frame].
-  Future<Frame> _dartFrameFor(
-      Map<String, dynamic> frame, int frameIndex) async {
-    var location = frame['location'];
+  Future<Frame> calculateDartFrameFor(
+      WipCallFrame frame, int frameIndex) async {
+    var location = frame.location;
     // Chrome is 0 based. Account for this.
-    var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
-        location['lineNumber'] as int, location['columnNumber'] as int);
+    var jsLocation = JsLocation.fromZeroBased(
+        location.scriptId, location.lineNumber, location.columnNumber);
     // TODO(sdk/issues/37240) - ideally we look for an exact location instead
     // of the closest location on a given line.
     Location bestLocation;
@@ -485,13 +451,13 @@ class Debugger extends Domain {
 
     var script =
         await inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
-    // We think we found a location, but for some reason we can't find the script.
-    // Just drop the frame.
+    // We think we found a location, but for some reason we can't find the
+    // script. Just drop the frame.
     // TODO(#700): Understand when this can happen and have a better fix.
     if (script == null) return null;
 
-    var functionName = _prettifyMember(
-        (frame['functionName'] as String ?? '').split('.').last);
+    var functionName =
+        _prettifyMember((frame.functionName ?? '').split('.').last);
     var codeRefName = functionName.isEmpty ? '<closure>' : functionName;
 
     var dartFrame = Frame(
@@ -505,8 +471,7 @@ class Debugger extends Domain {
       kind: FrameKind.kRegular,
     );
 
-    dartFrame.vars = await variablesFor(
-        frame['scopeChain'] as List<dynamic>, frame['callFrameId'] as String);
+    dartFrame.vars = await variablesFor(frame);
 
     return dartFrame;
   }
@@ -514,12 +479,14 @@ class Debugger extends Domain {
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
     if (inspector == null) return;
+
     var isolate = inspector.isolate;
     if (isolate == null) return;
+
     Event event;
     var timestamp = DateTime.now().millisecondsSinceEpoch;
     var params = e.params;
-    var jsBreakpointIds = (params['hitBreakpoints'] as List).toSet();
+    var jsBreakpointIds = (params['hitBreakpoints'] as List) ?? [];
     if (jsBreakpointIds.isNotEmpty) {
       var breakpointIds = jsBreakpointIds
           .map((id) => _breakpoints._dartIdByJsId[id])
@@ -551,33 +518,29 @@ class Debugger extends Domain {
           timestamp: timestamp,
           isolate: inspector.isolateRef);
     }
-    var jsFrames =
-        (e.params['callFrames'] as List).cast<Map<String, dynamic>>();
+
+    // Calculate the frames (and handle any exceptions that may occur).
+    stackComputer = FrameComputer(this, e.getCallFrames().toList());
+
     try {
-      var frame = await dartTopFrame(jsFrames);
-      _pausedJsStack = jsFrames;
-      event.topFrame = frame;
-      isolate.pauseEvent = event;
-      _streamNotify('Debug', event);
-    } on ChromeDebugException catch (e, s) {
-      if (e.exception.description.contains('require is not defined')) {
-        logger.warning(
-            'Error handling pause event, app does not appear to be loaded',
-            e,
-            s);
-      } else {
-        rethrow;
-      }
+      event.topFrame = await stackComputer.calculateTopFrame();
+    } catch (e, s) {
+      // TODO: Return information about the error to the user.
+      logger.warning('Error calculating Dart frames', e, s);
     }
+
+    isolate.pauseEvent = event;
+    _streamNotify('Debug', event);
   }
 
   /// Handles resume events coming from the Chrome connection.
   Future<void> _resumeHandler(DebuggerResumedEvent _) async {
-    // We can receive a resume event in the middle of a reload which will
-    // result in a null isolate.
+    // We can receive a resume event in the middle of a reload which will result
+    // in a null isolate.
     var isolate = inspector?.isolate;
     if (isolate == null) return;
-    _pausedJsStack = null;
+
+    stackComputer = null;
     var event = Event(
         kind: EventKind.kResume,
         timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -593,12 +556,12 @@ class Debugger extends Domain {
   /// [StateError].
   Future<RemoteObject> evaluateJsOnCallFrameIndex(
       int frameIndex, String expression) {
-    if (_pausedJsStack == null) {
+    if (stackComputer == null) {
       throw RPCError('evaluateInFrame', 106,
           'Cannot evaluate on a call frame when the program is not paused');
     }
     return evaluateJsOnCallFrame(
-        _pausedJsStack[frameIndex]['callFrameId'] as String, expression);
+        stackComputer.jsFrameForIndex(frameIndex).callFrameId, expression);
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on

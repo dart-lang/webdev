@@ -10,9 +10,12 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// Represents a property of an object.
 class Property {
   final Map<String, dynamic> _map;
+
   RemoteObject _remoteObjectValue;
 
   Property(this._map);
+
+  Map<String, dynamic> get map => _map;
 
   /// The remote object value in unwrapped form.
   ///

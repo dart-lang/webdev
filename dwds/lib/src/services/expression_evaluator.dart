@@ -15,6 +15,7 @@ import 'expression_compiler.dart';
 
 class ErrorKind {
   const ErrorKind._(this._kind);
+
   final String _kind;
   static const ErrorKind compilation = ErrorKind._('CompilationError');
   static const ErrorKind reference = ErrorKind._('ReferenceError');
@@ -71,8 +72,7 @@ class ExpressionEvaluator {
 
     // 1. get js scope and current JS location
 
-    var jsStack = _debugger.getJsStack();
-    var jsFrame = WipCallFrame(jsStack[frameIndex]);
+    var jsFrame = _debugger.stackComputer.jsFrameForIndex(frameIndex);
 
     var functionName = jsFrame.functionName;
     var jsLocation = JsLocation.fromZeroBased(jsFrame.location.scriptId,
