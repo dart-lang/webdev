@@ -8769,7 +8769,7 @@
       this._m = t1;
       this._h = t2;
     },
-    _getNonce: function() {
+    _findNonce: function() {
       var t2, elements, cur, nonceValue, t3,
         t1 = window.document;
       H.checkTypeBound(type$.legacy_Element, type$.Element, "T", "querySelectorAll");
@@ -22962,7 +22962,7 @@
   };
   V.closure0.prototype = {
     call$0: function() {
-      var nonce = V._getNonce();
+      var nonce = V._findNonce();
       if (nonce == null)
         return new V._closure();
       return new V._closure0(nonce);

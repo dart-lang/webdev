@@ -4,7 +4,7 @@ import 'dart:html';
 ///
 /// More specifically, the script has the correct `nonce` value set.
 final ScriptElement Function() _createScript = (() {
-  final nonce = _getNonce();
+  final nonce = _findNonce();
   if (nonce == null) return () => ScriptElement();
 
   return () => ScriptElement()..setAttribute('nonce', nonce);
@@ -14,7 +14,7 @@ final ScriptElement Function() _createScript = (() {
 final _noncePattern = RegExp('^[\\w+\/_-]+[=]{0,2}\$');
 
 /// Returns CSP nonce, if set for any script tag.
-String _getNonce() {
+String _findNonce() {
   final elements = window.document.querySelectorAll('script');
   for (final element in elements) {
     final nonceValue =
