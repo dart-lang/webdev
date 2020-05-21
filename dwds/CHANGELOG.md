@@ -10,6 +10,7 @@
 - Change `streamListen` to return an `RPCError` / error code `-32601` for streams
   that are not handled.
 - Prompt users to install the Dart Debug Extension if local debugging does not work.
+- Allow for the injected client to run with CSP enforced.
 
 ## 3.1.1
 
