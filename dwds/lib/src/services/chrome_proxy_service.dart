@@ -424,8 +424,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Isolate> getIsolate(String isolateId) async => _getIsolate(isolateId);
 
   @override
-  Future<MemoryUsage> getMemoryUsage(String isolateId) async {
-    throw UnimplementedError();
+  Future<MemoryUsage> getMemoryUsage(String isolateId) {
+    return _inspector.getMemoryUsage(isolateId);
   }
 
   @override
