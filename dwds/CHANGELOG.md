@@ -13,6 +13,7 @@
 - Populate the `exception` field in debugger pause event when we break as a result
   of an exception.
 - Prompt users to install the Dart Debug Extension if local debugging does not work.
+- Allow for the injected client to run with CSP enforced.
 
 ## 3.1.1
 
