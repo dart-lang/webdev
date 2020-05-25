@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
-    hide StackTrace;
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../utilities/wrapped_service.dart';
 import 'dart_scope.dart';
@@ -16,11 +15,16 @@ class FrameComputer {
 
   final List<WipCallFrame> _callFrames;
 
-  FrameComputer(this.debugger, this._callFrames);
+  // Optional async frames.
+  final StackTrace asyncFrames;
+
+  FrameComputer(this.debugger, this._callFrames, {this.asyncFrames});
 
   /// Given a frame index, return the corresponding JS frame.
   WipCallFrame jsFrameForIndex(int frameIndex) {
-    return _callFrames[frameIndex];
+    // Clients can send us indices greater than the number of JS frames as async
+    // frames don't have corresponding WipCallFrames.
+    return frameIndex < _callFrames.length ? _callFrames[frameIndex] : null;
   }
 
   /// Return the WipScopes for the given JavaScript frame index that are
@@ -56,7 +60,8 @@ class FrameComputer {
     // Here, we continue to increment the dart frame index even if we don't
     // create a dart frame; this lets the dart frame index match the javascript
     // ones.
-    for (var frameIndex = 0; frameIndex < _callFrames.length; frameIndex++) {
+    var frameIndex = 0;
+    for (; frameIndex < _callFrames.length; frameIndex++) {
       final callFrame = _callFrames[frameIndex];
       var dartFrame =
           await debugger.calculateDartFrameFor(callFrame, frameIndex);
@@ -65,6 +70,46 @@ class FrameComputer {
       }
     }
 
+    if (asyncFrames != null) {
+      await _collectAsyncFrames(dartFrames, frameIndex, asyncFrames);
+    }
+
     return dartFrames;
+  }
+
+  Future _collectAsyncFrames(
+      List<Frame> dartFrames, int frameIndex, StackTrace asyncFrames) async {
+    // Add an async separator frame.
+    dartFrames.add(
+        Frame(index: frameIndex++, kind: FrameKind.kAsyncSuspensionMarker));
+
+    // Convert the async JS stack trace frames to JS WipCallFrame, and then to
+    // Dart FrameKind.kAsyncCausal frames.
+    for (var callFrame in asyncFrames.callFrames) {
+      var location = WipLocation.fromValues(
+          callFrame.scriptId, callFrame.lineNumber,
+          columnNumber: callFrame.columnNumber);
+      var tempWipFrame = WipCallFrame({
+        'functionName': callFrame.functionName,
+        'location': location.json,
+        'scopeChain': [],
+      });
+
+      var frame = await debugger.calculateDartFrameFor(
+        tempWipFrame,
+        frameIndex++,
+        populateVariables: false,
+      );
+      if (frame != null) {
+        frame.kind = FrameKind.kAsyncCausal;
+        dartFrames.add(frame);
+      }
+    }
+
+    // Async frames are no longer on the stack - we don't have local variable
+    // information for them.
+    if (asyncFrames.parent != null) {
+      await _collectAsyncFrames(dartFrames, frameIndex, asyncFrames.parent);
+    }
   }
 }

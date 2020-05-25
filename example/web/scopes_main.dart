@@ -60,6 +60,8 @@ void main() async {
     localList.add('abc');
     var f = testClass.methodWithVariables();
     print(f('parameter'));
+    asyncCall();
+    throwsException();
   });
 
   print(_libraryPrivateFinal);
@@ -134,16 +136,38 @@ Function someFunction() => null;
 // ignore: unused_element
 int _libraryPrivateFunction(int a, int b) => a + b;
 
+void asyncCall() async {
+  var now = DateTime.now();
+
+  await Future.delayed(Duration.zero);
+
+  var then = DateTime.now(); // Breakpoint: asyncCall
+  // ignore: unused_local_variable
+  var diff = then.difference(now);
+}
+
+void throwsException() {
+  try {
+    throw Exception('new exception');
+  } catch (e) {
+    // ignore
+  }
+}
+
 class NotReallyAList extends ListBase {
   final List _internal;
 
   NotReallyAList() : _internal = [];
+
   @override
   Object operator [](x) => _internal[x];
+
   @override
   operator []=(x, y) => _internal[x] = y;
+
   @override
   int get length => _internal.length;
+
   @override
   set length(x) => _internal.length = x;
 }

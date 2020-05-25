@@ -35,12 +35,14 @@ class Event extends vm_service.Event {
     // This is provided for all event kinds except for:
     //   VMUpdate, VMFlagUpdate
     @required vm_service.IsolateRef isolate,
+    InstanceRef exception,
   }) {
     var event = Event._();
     event
       ..kind = kind
       ..timestamp = timestamp
-      ..isolate = isolate;
+      ..isolate = isolate
+      ..exception = exception;
     return event;
   }
 }

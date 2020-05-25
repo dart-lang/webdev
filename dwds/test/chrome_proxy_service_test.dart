@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/connections/debug_connection.dart';
+import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -808,6 +809,43 @@ void main() {
         expect(first.vars, hasLength(greaterThanOrEqualTo(1)));
         var underscore = first.vars.firstWhere((v) => v.name == '_');
         expect(underscore, isNotNull);
+      });
+
+      if (supportAsyncStacks) {
+        test('collects async frames', () async {
+          var stack = await breakAt('asyncCall');
+          expect(stack, isNotNull);
+          expect(stack.frames, greaterThan(1));
+
+          var first = stack.frames.first;
+          expect(first.kind, 'Regular');
+          expect(first.code.kind, 'Dart');
+
+          // We should have an async marker.
+          var suspensionFrames = stack.frames
+              .where((frame) => frame.kind == FrameKind.kAsyncSuspensionMarker);
+          expect(suspensionFrames, isNotEmpty);
+
+          // We should have async frames.
+          var asyncFrames = stack.frames
+              .where((frame) => frame.kind == FrameKind.kAsyncCausal);
+          expect(asyncFrames, isNotEmpty);
+
+          await service.resume(isolateId);
+        });
+      }
+
+      test('break on exceptions', () async {
+        await service.setExceptionPauseMode(isolateId, ExceptionPauseMode.kAll);
+        // Wait for pausing to actually propagate.
+        var event = await stream
+            .firstWhere((event) => event.kind == EventKind.kPauseException);
+        expect(event.exception, isNotNull);
+
+        var stack = await service.getStack(isolateId);
+        expect(stack, isNotNull);
+
+        await service.resume(isolateId);
       });
 
       test('returns non-empty stack when paused', () async {
