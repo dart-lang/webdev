@@ -815,7 +815,7 @@ void main() {
         test('collects async frames', () async {
           var stack = await breakAt('asyncCall');
           expect(stack, isNotNull);
-          expect(stack.frames, greaterThan(1));
+          expect(stack.frames, hasLength(greaterThan(1));
 
           var first = stack.frames.first;
           expect(first.kind, 'Regular');
