@@ -836,6 +836,8 @@ void main() {
       }
 
       test('break on exceptions', () async {
+        final oldPauseMode =
+            (await service.getIsolate(isolateId)).exceptionPauseMode;
         await service.setExceptionPauseMode(isolateId, ExceptionPauseMode.kAll);
         // Wait for pausing to actually propagate.
         var event = await stream
@@ -845,6 +847,7 @@ void main() {
         var stack = await service.getStack(isolateId);
         expect(stack, isNotNull);
 
+        await service.setExceptionPauseMode(isolateId, oldPauseMode);
         await service.resume(isolateId);
       });
 
