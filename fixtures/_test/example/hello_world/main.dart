@@ -56,9 +56,12 @@ void main() async {
   };
 
   Timer.periodic(const Duration(seconds: 1), (_) {
+    printCount(); // Breakpoint: callPrintCount
+  });
+
+  Timer.periodic(const Duration(seconds: 1), (_) {
     asyncCall();
     throwsException();
-    printCount(); // Breakpoint: callPrintCount
   });
 
   // Register one up front before the proxy connects, the isolate should still
