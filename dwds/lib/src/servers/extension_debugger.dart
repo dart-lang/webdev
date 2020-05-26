@@ -253,7 +253,7 @@ class ExtensionDebugger implements RemoteDebugger {
   @override
   Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => eventStream(
       'Page.frameStartedLoading',
-      (WipEvent event) => GlobalObjectClearedEvent(event));
+      (WipEvent event) => GlobalObjectClearedEvent(event.json));
 
   @override
   Stream<DebuggerPausedEvent> get onPaused => eventStream(
