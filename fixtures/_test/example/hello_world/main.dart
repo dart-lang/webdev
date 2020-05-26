@@ -38,17 +38,17 @@ void main() async {
 
   context['registerExtension'] = (String method) {
     registerExtension(method,
-            (String method, Map<String, String> parameters) async {
-          return ServiceExtensionResponse.result(jsonEncode(parameters ?? {}));
-        });
+        (String method, Map<String, String> parameters) async {
+      return ServiceExtensionResponse.result(jsonEncode(parameters ?? {}));
+    });
   };
 
   context['registerExtensionWithError'] = (String method) {
     registerExtension(method,
-            (String method, Map<String, String> parameters) async {
-          return ServiceExtensionResponse.error(
-              int.parse(parameters['code']), parameters['details']);
-        });
+        (String method, Map<String, String> parameters) async {
+      return ServiceExtensionResponse.error(
+          int.parse(parameters['code']), parameters['details']);
+    });
   };
 
   context['sendLog'] = (String message) {
@@ -57,6 +57,8 @@ void main() async {
 
   Timer.periodic(const Duration(seconds: 1), (_) {
     printCount(); // Breakpoint: callPrintCount
+    asyncCall();
+    throwsException();
   });
 
   // Register one up front before the proxy connects, the isolate should still
@@ -72,6 +74,24 @@ var count = 0;
 void printCount() {
   print('The count is ${++count}'); // Breakpoint: inPrintCount
   doSomething();
+}
+
+void asyncCall() async {
+  var now = DateTime.now();
+
+  await Future.delayed(Duration.zero);
+
+  var then = DateTime.now(); // Breakpoint: asyncCall
+  // ignore: unused_local_variable
+  var diff = then.difference(now);
+}
+
+void throwsException() {
+  try {
+    throw Exception('new exception');
+  } catch (e) {
+    // ignore
+  }
 }
 
 String helloString(String response) => response;
