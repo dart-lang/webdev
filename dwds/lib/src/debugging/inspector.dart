@@ -343,6 +343,19 @@ function($argsString) {
       ..source = source;
   }
 
+  Future<MemoryUsage> getMemoryUsage(String isolateId) async {
+    checkIsolate('getMemoryUsage', isolateId);
+
+    final response = await remoteDebugger.sendCommand('Runtime.getHeapUsage');
+
+    final jsUsage = HeapUsage(response.result);
+    return MemoryUsage.parse({
+      'heapUsage': jsUsage.usedSize,
+      'heapCapacity': jsUsage.totalSize,
+      'externalUsage': 0,
+    });
+  }
+
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
   Future<ScriptRef> scriptRefFor(String uri) async {
     if (_serverPathToScriptRef.isEmpty) {

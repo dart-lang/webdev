@@ -187,16 +187,39 @@ void main() {
       });
     });
 
-    test('clearVMTimeline', () {
-      expect(() => service.clearVMTimeline(), throwsUnimplementedError);
+    group('VMTimeline', () {
+      test('clearVMTimeline', () {
+        expect(() => service.clearVMTimeline(), throwsUnimplementedError);
+      });
+
+      test('getVMTimelineMicros', () {
+        expect(() => service.getVMTimelineMicros(), throwsUnimplementedError);
+      });
+
+      test('getVMTimeline', () {
+        expect(() => service.getVMTimeline(), throwsUnimplementedError);
+      });
+
+      test('getVMTimelineFlags', () {
+        expect(() => service.getVMTimelineFlags(), throwsUnimplementedError);
+      });
+
+      test('setVMTimelineFlags', () {
+        expect(
+            () => service.setVMTimelineFlags(null), throwsUnimplementedError);
+      });
     });
 
-    test('clearVMTimeline', () {
-      expect(() => service.clearVMTimeline(), throwsUnimplementedError);
-    });
+    test('getMemoryUsage', () async {
+      var vm = await service.getVM();
+      var isolate = await service.getIsolate(vm.isolates.first.id);
 
-    test('clearVMTimeline', () {
-      expect(() => service.clearVMTimeline(), throwsUnimplementedError);
+      var memoryUsage = await service.getMemoryUsage(isolate.id);
+
+      expect(memoryUsage.heapUsage, isNotNull);
+      expect(memoryUsage.heapUsage, greaterThan(0));
+      expect(memoryUsage.heapCapacity, greaterThan(0));
+      expect(memoryUsage.externalUsage, equals(0));
     });
 
     group('evaluate', () {
@@ -602,10 +625,6 @@ void main() {
           scripts.scripts.map((s) => s.uri), contains(endsWith('part.dart')));
       expect(scripts.scripts.map((s) => s.uri),
           contains('package:intl/src/intl/date_format_helpers.dart'));
-    });
-
-    test('clearVMTimeline', () {
-      expect(() => service.clearVMTimeline(), throwsUnimplementedError);
     });
 
     group('getSourceReport', () {
@@ -1030,10 +1049,6 @@ void main() {
       expect(service.setVMName('foo'), completion(_isSuccess));
       var vm = await service.getVM();
       expect(vm.name, 'foo');
-    });
-
-    test('setVMTimelineFlags', () {
-      expect(() => service.setVMTimelineFlags(null), throwsUnimplementedError);
     });
 
     test('streamCancel', () {
