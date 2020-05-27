@@ -61,6 +61,9 @@ void main() async {
 
   Timer.periodic(const Duration(seconds: 1), (_) {
     asyncCall();
+  });
+
+  Timer.periodic(const Duration(seconds: 1), (_) {
     throwsException();
   });
 

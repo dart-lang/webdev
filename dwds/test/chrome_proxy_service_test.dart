@@ -8,7 +8,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/src/connections/debug_connection.dart';
-import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -811,29 +810,25 @@ void main() {
         expect(underscore, isNotNull);
       });
 
-      if (supportAsyncStacks) {
-        test('collects async frames', () async {
-          var stack = await breakAt('asyncCall');
-          expect(stack, isNotNull);
-          expect(stack.frames, hasLength(greaterThan(1)));
+      test('collects async frames', () async {
+        var stack = await breakAt('asyncCall');
+        expect(stack, isNotNull);
+        expect(stack.frames, hasLength(greaterThan(1)));
 
-          var first = stack.frames.first;
-          expect(first.kind, 'Regular');
-          expect(first.code.kind, 'Dart');
+        var first = stack.frames.first;
+        expect(first.kind, 'Regular');
+        expect(first.code.kind, 'Dart');
 
-          // We should have an async marker.
-          var suspensionFrames = stack.frames
-              .where((frame) => frame.kind == FrameKind.kAsyncSuspensionMarker);
-          expect(suspensionFrames, isNotEmpty);
+        // We should have an async marker.
+        var suspensionFrames = stack.frames
+            .where((frame) => frame.kind == FrameKind.kAsyncSuspensionMarker);
+        expect(suspensionFrames, isNotEmpty);
 
-          // We should have async frames.
-          var asyncFrames = stack.frames
-              .where((frame) => frame.kind == FrameKind.kAsyncCausal);
-          expect(asyncFrames, isNotEmpty);
-
-          await service.resume(isolateId);
-        });
-      }
+        // We should have async frames.
+        var asyncFrames =
+            stack.frames.where((frame) => frame.kind == FrameKind.kAsyncCausal);
+        expect(asyncFrames, isNotEmpty);
+      });
 
       test('break on exceptions', () async {
         final oldPauseMode =

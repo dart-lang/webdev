@@ -55,19 +55,19 @@ class FrameComputer {
     // TODO: Investigate the use of package:pool to request information for ~6
     // frames at a time.
 
-    var dartFrames = <Frame>[];
-
     // Here, we continue to increment the dart frame index even if we don't
     // create a dart frame; this lets the dart frame index match the javascript
     // ones.
+    var dartFrames = <Frame>[];
     var frameIndex = 0;
-    for (; frameIndex < _callFrames.length; frameIndex++) {
+    while (frameIndex < _callFrames.length) {
       final callFrame = _callFrames[frameIndex];
       var dartFrame =
           await debugger.calculateDartFrameFor(callFrame, frameIndex);
       if (dartFrame != null) {
         dartFrames.add(dartFrame);
       }
+      frameIndex++;
     }
 
     if (asyncFrames != null) {

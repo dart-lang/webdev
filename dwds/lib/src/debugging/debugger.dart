@@ -39,9 +39,6 @@ const _pauseModePauseStates = {
 /// Paths to black box in the Chrome debugger.
 const _pathsToBlackBox = {'/packages/stack_trace/'};
 
-/// Whether to request async call stacks from Chrome.
-const supportAsyncStacks = true;
-
 class Debugger extends Domain {
   static final logger = Logger('Debugger');
 
@@ -198,12 +195,11 @@ class Debugger extends Domain {
     handleErrorIfPresent(await _remoteDebugger?.enablePage());
     handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
 
-    if (supportAsyncStacks) {
-      handleErrorIfPresent(await _remoteDebugger
-          ?.sendCommand('Debugger.setAsyncCallStackDepth', params: {
-        'maxDepth': 128,
-      }));
-    }
+    // Enable collecting information about async frames when paused.
+    handleErrorIfPresent(await _remoteDebugger
+        ?.sendCommand('Debugger.setAsyncCallStackDepth', params: {
+      'maxDepth': 128,
+    }));
   }
 
   /// Black boxes the Dart SDK and paths in [_pathsToBlackBox].
