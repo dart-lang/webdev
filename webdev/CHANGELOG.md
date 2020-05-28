@@ -1,7 +1,7 @@
-## 2.5.8-dev
+## 2.5.8
 
 - Depend on the latest `package:dwds`.
-
+- Fix an issue where all directories were built when using the `serve` command.
 
 ## 2.5.7
 
