@@ -194,6 +194,12 @@ class Debugger extends Domain {
 
     handleErrorIfPresent(await _remoteDebugger?.enablePage());
     handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
+
+    // Enable collecting information about async frames when paused.
+    handleErrorIfPresent(await _remoteDebugger
+        ?.sendCommand('Debugger.setAsyncCallStackDepth', params: {
+      'maxDepth': 128,
+    }));
   }
 
   /// Black boxes the Dart SDK and paths in [_pathsToBlackBox].
@@ -329,10 +335,10 @@ class Debugger extends Domain {
   Future<List<BoundVariable>> variablesFor(WipCallFrame frame) async {
     // TODO(alanknight): Can these be moved to dart_scope.dart?
     var properties = await visibleProperties(debugger: this, frame: frame);
-
     var boundVariables = await Future.wait(
       properties.map((property) async => await _boundVariable(property)),
     );
+
     // Filter out variables that do not come from dart code, such as native
     // JavaScript objects
     return boundVariables
@@ -430,7 +436,10 @@ class Debugger extends Domain {
 
   /// Returns a Dart [Frame] for a JS [frame].
   Future<Frame> calculateDartFrameFor(
-      WipCallFrame frame, int frameIndex) async {
+    WipCallFrame frame,
+    int frameIndex, {
+    bool populateVariables = true,
+  }) async {
     var location = frame.location;
     // Chrome is 0 based. Account for this.
     var jsLocation = JsLocation.fromZeroBased(
@@ -471,7 +480,10 @@ class Debugger extends Domain {
       kind: FrameKind.kRegular,
     );
 
-    dartFrame.vars = await variablesFor(frame);
+    // Don't populate variables for async frames.
+    if (populateVariables) {
+      dartFrame.vars = await variablesFor(frame);
+    }
 
     return dartFrame;
   }
@@ -485,8 +497,7 @@ class Debugger extends Domain {
 
     Event event;
     var timestamp = DateTime.now().millisecondsSinceEpoch;
-    var params = e.params;
-    var jsBreakpointIds = (params['hitBreakpoints'] as List) ?? [];
+    var jsBreakpointIds = e.hitBreakpoints ?? [];
     if (jsBreakpointIds.isNotEmpty) {
       var breakpointIds = jsBreakpointIds
           .map((id) => _breakpoints._dartIdByJsId[id])
@@ -503,10 +514,35 @@ class Debugger extends Domain {
           isolate: inspector.isolateRef)
         ..pauseBreakpoints = pauseBreakpoints;
     } else if (e.reason == 'exception' || e.reason == 'assert') {
+      InstanceRef exception;
+
+      if (e.data is Map<String, dynamic>) {
+        var map = e.data as Map<String, dynamic>;
+        if (map['type'] == 'object') {
+          // The className here is generally 'DartError'.
+          var obj = RemoteObject(map);
+          exception = await inspector.instanceHelper.instanceRefFor(obj);
+
+          // TODO: The exception object generally doesn't get converted to a
+          // Dart object (and instead has a classRef name of 'NativeJavaScriptObject').
+          if (_isNativeJsObject(exception)) {
+            if (obj.description != null) {
+              // Create a string exception object.
+              exception = await inspector.instanceHelper
+                  .instanceRefFor(obj.description);
+            } else {
+              exception = null;
+            }
+          }
+        }
+      }
+
       event = Event(
-          kind: EventKind.kPauseException,
-          timestamp: timestamp,
-          isolate: inspector.isolateRef);
+        kind: EventKind.kPauseException,
+        timestamp: timestamp,
+        isolate: inspector.isolateRef,
+        exception: exception,
+      );
     } else {
       // If we don't have source location continue stepping.
       if (_isStepping && (await _sourceLocation(e)) == null) {
@@ -520,7 +556,11 @@ class Debugger extends Domain {
     }
 
     // Calculate the frames (and handle any exceptions that may occur).
-    stackComputer = FrameComputer(this, e.getCallFrames().toList());
+    stackComputer = FrameComputer(
+      this,
+      e.getCallFrames().toList(),
+      asyncFrames: e.asyncStackTrace,
+    );
 
     try {
       event.topFrame = await stackComputer.calculateTopFrame();

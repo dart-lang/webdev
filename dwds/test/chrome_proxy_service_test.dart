@@ -829,6 +829,42 @@ void main() {
         expect(underscore, isNotNull);
       });
 
+      test('collects async frames', () async {
+        var stack = await breakAt('asyncCall');
+        expect(stack, isNotNull);
+        expect(stack.frames, hasLength(greaterThan(1)));
+
+        var first = stack.frames.first;
+        expect(first.kind, 'Regular');
+        expect(first.code.kind, 'Dart');
+
+        // We should have an async marker.
+        var suspensionFrames = stack.frames
+            .where((frame) => frame.kind == FrameKind.kAsyncSuspensionMarker);
+        expect(suspensionFrames, isNotEmpty);
+
+        // We should have async frames.
+        var asyncFrames =
+            stack.frames.where((frame) => frame.kind == FrameKind.kAsyncCausal);
+        expect(asyncFrames, isNotEmpty);
+      });
+
+      test('break on exceptions', () async {
+        final oldPauseMode =
+            (await service.getIsolate(isolateId)).exceptionPauseMode;
+        await service.setExceptionPauseMode(isolateId, ExceptionPauseMode.kAll);
+        // Wait for pausing to actually propagate.
+        var event = await stream
+            .firstWhere((event) => event.kind == EventKind.kPauseException);
+        expect(event.exception, isNotNull);
+
+        var stack = await service.getStack(isolateId);
+        expect(stack, isNotNull);
+
+        await service.setExceptionPauseMode(isolateId, oldPauseMode);
+        await service.resume(isolateId);
+      });
+
       test('returns non-empty stack when paused', () async {
         await service.pause(isolateId);
         // Wait for pausing to actually propagate.

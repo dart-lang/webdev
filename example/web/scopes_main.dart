@@ -138,12 +138,16 @@ class NotReallyAList extends ListBase {
   final List _internal;
 
   NotReallyAList() : _internal = [];
+
   @override
   Object operator [](x) => _internal[x];
+
   @override
   operator []=(x, y) => _internal[x] = y;
+
   @override
   int get length => _internal.length;
+
   @override
   set length(x) => _internal.length = x;
 }
