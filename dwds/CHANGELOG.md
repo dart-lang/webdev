@@ -15,6 +15,7 @@
 - Prompt users to install the Dart Debug Extension if local debugging does not work.
 - Allow for the injected client to run with CSP enforced.
 - Implement the `getMemoryUsage()` call.
+- Fix an issue where the injected client could cause a mixed content error.
 
 ## 3.1.1
 

@@ -140,20 +140,11 @@ $stackTrace
 }
 
 /// Returns [url] modified if necessary so that, if the current page is served
-/// over `https`, then the URL is converted to `https`. Localhost is treated
-/// as a special case and not modified.
-String _fixProtocol(String url) {
-  if (window.location.protocol == 'https:' && !url.startsWith('https://')) {
-    // Chrome seems to allow mixed content from localhost.
-    if (url.startsWith('http://localhost')) {
-      return url;
-    } else {
-      return url.replaceFirst('http://', 'https://');
-    }
-  } else {
-    return url;
-  }
-}
+/// over `https`, then the URL is converted to `https`.
+String _fixProtocol(String url) =>
+    window.location.protocol == 'https:' && !url.startsWith('https://')
+        ? url.replaceFirst('http://', 'https://')
+        : url;
 
 @JS(r'$dartAppId')
 external String get dartAppId;

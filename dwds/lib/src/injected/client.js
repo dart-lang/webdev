@@ -8489,16 +8489,6 @@
     main: function() {
       return P.runZoned(new D.main_closure(), new D.main_closure0(), type$.legacy_Future_void);
     },
-    _fixProtocol: function(url) {
-      var _s8_ = "https://";
-      if (window.location.protocol === "https:" && !J.startsWith$1$s(url, _s8_))
-        if (J.startsWith$1$s(url, "http://localhost"))
-          return url;
-        else
-          return H.stringReplaceFirstUnchecked(url, "http://", _s8_, 0);
-      else
-        return url;
-    },
     main_closure: function main_closure() {
     },
     main__closure: function main__closure(t0) {
@@ -22294,7 +22284,7 @@
     call$0: function() {
       var $async$goto = 0,
         $async$completer = P._makeAsyncAwaitCompleter(type$.Null),
-        client, t1, restarter, manager, t2, t3;
+        t1, client, restarter, manager, t2, t3;
       var $async$call$0 = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return P._asyncRethrow($async$result, $async$completer);
@@ -22304,7 +22294,12 @@
               // Function start
               if (self.$dartAppInstanceId == null)
                 self.$dartAppInstanceId = K.Uuid$().v1$0();
-              client = M.SseClient$(D._fixProtocol(self.$dwdsDevHandlerPath));
+              t1 = self.$dwdsDevHandlerPath;
+              if (window.location.protocol === "https:" && !J.startsWith$1$s(t1, "https://")) {
+                t1.length;
+                t1 = H.stringReplaceFirstUnchecked(t1, "http://", "https://", 0);
+              }
+              client = M.SseClient$(t1);
               t1 = new W._EventStream(client._eventSource, "open", false, type$._EventStream_legacy_Event);
               $async$goto = 2;
               return P._asyncAwait(t1.get$first(t1), $async$call$0);
