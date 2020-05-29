@@ -22333,7 +22333,7 @@
               if (self.$dartAppInstanceId == null)
                 self.$dartAppInstanceId = K.Uuid$().v1$0();
               uri = P.Uri_parse(self.$dwdsDevHandlerPath);
-              client = M.SseClient$((window.location.protocol === "https:" && uri.get$scheme() === "https" && uri.get$host(uri) !== "localhost" ? uri.replace$1$scheme(0, "https") : uri).toString$0(0));
+              client = M.SseClient$((window.location.protocol === "https:" && uri.get$scheme() === "http" && uri.get$host(uri) !== "localhost" ? uri.replace$1$scheme(0, "https") : uri).toString$0(0));
               t1 = new W._EventStream(client._eventSource, "open", false, type$._EventStream_legacy_Event);
               $async$goto = 2;
               return P._asyncAwait(t1.get$first(t1), $async$call$0);
