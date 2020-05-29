@@ -144,7 +144,7 @@ $stackTrace
 String _fixProtocol(String url) {
   var uri = Uri.parse(url);
   if (window.location.protocol == 'https:' &&
-      uri.scheme == 'https' &&
+      uri.scheme == 'http' &&
       // Chrome allows mixed content on localhost. It is not safe to assume the
       // server is also listening on https.
       uri.host != 'localhost') {
