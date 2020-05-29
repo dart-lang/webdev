@@ -1,3 +1,9 @@
+## 3.1.3
+
+- Fix an issue where the injected client served under `https` assumed the
+  corresponding SSE handler was also under `https`.
+
+
 ## 3.1.2
 
 - Gracefully handle multiple injected clients on a single page.

@@ -141,10 +141,17 @@ $stackTrace
 
 /// Returns [url] modified if necessary so that, if the current page is served
 /// over `https`, then the URL is converted to `https`.
-String _fixProtocol(String url) =>
-    window.location.protocol == 'https:' && !url.startsWith('https://')
-        ? url.replaceFirst('http://', 'https://')
-        : url;
+String _fixProtocol(String url) {
+  var uri = Uri.parse(url);
+  if (window.location.protocol == 'https:' &&
+      uri.scheme == 'https' &&
+      // Chrome allows mixed content on localhost. It is not safe to assume the
+      // server is also listening on https.
+      uri.host != 'localhost') {
+    uri = uri.replace(scheme: 'https');
+  }
+  return uri.toString();
+}
 
 @JS(r'$dartAppId')
 external String get dartAppId;
