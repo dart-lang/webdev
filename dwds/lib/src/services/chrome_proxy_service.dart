@@ -131,7 +131,7 @@ class ChromeProxyService implements VmServiceInterface {
       architectureBits: -1,
       pid: -1,
     );
-    // TODO(grouma) - Make this confiugrable when the FileMetadataProvider is
+    // TODO(grouma) - Make this configurable when the FileMetadataProvider is
     // complete.
     var metadataProvider =
         ChromeMetadataProvider(remoteDebugger, executionContext);
