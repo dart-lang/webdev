@@ -7,7 +7,7 @@ import '../utilities/domain.dart';
 import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'inspector.dart';
-import 'metadata.dart';
+import 'metadata/class.dart';
 
 /// Keeps track of Dart libraries available in the running application.
 class LibraryHelper extends Domain {
@@ -24,27 +24,10 @@ class LibraryHelper extends Domain {
   /// Note this can return a cached result.
   Future<List<LibraryRef>> get libraryRefs async {
     if (_libraryRefsById.isNotEmpty) return _libraryRefsById.values.toList();
-    var expression = '''
-      (function() {
-        ${globalLoadStrategy.loadLibrariesSnippet}
-        return libs;
-      })()
-     ''';
-    var result =
-        await inspector.remoteDebugger.sendCommand('Runtime.evaluate', params: {
-      'expression': expression,
-      'returnByValue': true,
-      'contextId': await inspector.contextId,
-    });
-    handleErrorIfPresent(result, evalContents: expression);
-    var libraries = List<String>.from(result.result['result']['value'] as List);
-    // Filter out any non-Dart libraries, which basically means the .bootstrap
-    // library from build_web_runners.
-    var dartLibraries = libraries
-        .where((name) => name.startsWith('dart:') || name.endsWith('.dart'));
-    for (var library in dartLibraries) {
-      var ref = LibraryRef(id: library, name: library, uri: library);
-      _libraryRefsById[ref.id] = ref;
+    var libraries = await inspector.metadataProvider.libraries;
+    for (var library in libraries) {
+      _libraryRefsById[library] =
+          LibraryRef(id: library, name: library, uri: library);
     }
     return _libraryRefsById.values.toList();
   }

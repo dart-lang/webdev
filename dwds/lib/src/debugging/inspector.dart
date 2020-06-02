@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:path/path.dart' as p;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -23,6 +22,7 @@ import 'debugger.dart';
 import 'execution_context.dart';
 import 'instance.dart';
 import 'libraries.dart';
+import 'metadata/provider.dart';
 
 /// An inspector for a running Dart application contained in the
 /// [WipConnection].
@@ -48,8 +48,9 @@ class AppInspector extends Domain {
   final Isolate isolate;
   final IsolateRef isolateRef;
   final AppConnection appConnection;
-  final ExecutionContext __executionContext;
+  final ExecutionContext _executionContext;
 
+  final MetadataProvider metadataProvider;
   final LibraryHelper libraryHelper;
   final ClassHelper classHelper;
   final InstanceHelper instanceHelper;
@@ -65,13 +66,14 @@ class AppInspector extends Domain {
     this.isolate,
     this.remoteDebugger,
     this.debugger,
+    this.metadataProvider,
     this.libraryHelper,
     this.classHelper,
     this.instanceHelper,
     this._assetReader,
     this._locations,
     this._root,
-    this.__executionContext,
+    this._executionContext,
   )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
@@ -102,6 +104,7 @@ class AppInspector extends Domain {
   static Future<AppInspector> initialize(
     AppConnection appConnection,
     RemoteDebugger remoteDebugger,
+    MetadataProvider metadataProvider,
     AssetReader assetReader,
     Locations locations,
     String root,
@@ -137,6 +140,7 @@ class AppInspector extends Domain {
       isolate,
       remoteDebugger,
       debugger,
+      metadataProvider,
       libraryHelper,
       classHelper,
       instanceHelper,
@@ -149,7 +153,7 @@ class AppInspector extends Domain {
     return appInspector;
   }
 
-  Future<int> get contextId => __executionContext.id;
+  Future<int> get contextId => _executionContext.id;
 
   /// Get the value of the field named [fieldName] from [receiver].
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
@@ -457,35 +461,13 @@ function($argsString) {
   /// reload the inspector will get re-created.
   Future<void> _populateScriptCaches() async {
     var libraryUris = [for (var library in isolate.libraries) library.uri];
-    // We can't pass parameters to an eval, so encode the list and inline it in
-    // the expression.
-    var listAsJson = jsonEncode(libraryUris);
-    var expression = '''
-    (function() {
-      var uris = JSON.parse('$listAsJson');
-      var allScripts = {};
-      var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-      for (var uri of uris) {
-        var parts = sdkUtils.getParts(uri);
-        allScripts[uri] = parts;
-      }
-      return allScripts;
-    })()
-    ''';
-    var result = await remoteDebugger.sendCommand('Runtime.evaluate', params: {
-      'expression': expression,
-      'returnByValue': true,
-      'contextId': await contextId,
-    });
-    handleErrorIfPresent(result, evalContents: expression);
-    var allScripts = result.result['result']['value'];
-
+    var scripts = await metadataProvider.scripts;
     // For all the non-dart: libraries, find their parts and create scriptRefs
     // for them.
     var userLibraries = libraryUris.where((uri) => !uri.startsWith('dart:'));
     for (var uri in userLibraries) {
       var parent = uri.substring(0, uri.lastIndexOf('/'));
-      var parts = (allScripts[uri] as List).cast<String>();
+      var parts = scripts[uri];
       var scriptRefs = [
         ScriptRef(uri: uri, id: createId()),
         for (var part in parts)
