@@ -1,3 +1,5 @@
+## 3.2.0-dev
+
 ## 3.1.3
 
 - Fix an issue where the injected client served under `https` assumed the

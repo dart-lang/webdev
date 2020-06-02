@@ -6,17 +6,14 @@ import 'dart:async';
 
 import 'package:async/async.dart';
 
-import '../debugging/execution_context.dart';
 import '../loaders/strategy.dart';
 import '../utilities/dart_uri.dart';
-import '../utilities/shared.dart';
-import 'remote_debugger.dart';
+import 'metadata/provider.dart';
 
-/// Contains meta data and helpful methods for DDC modules.
+/// Tracks modules for the compiled application.
 class Modules {
   final String _root;
-  final RemoteDebugger _remoteDebugger;
-  final ExecutionContext _executionContext;
+  final MetadataProvider _metadataProvider;
 
   // The Dart server path to containing module.
   final _sourceToModule = <String, String>{};
@@ -31,11 +28,8 @@ class Modules {
   // The module to corresponding Chrome script ID.
   final _moduleToScriptId = <String, String>{};
 
-  Modules(
-    this._remoteDebugger,
-    String root,
-    this._executionContext,
-  ) : _root = root == '' ? '/' : root;
+  Modules(this._metadataProvider, String root)
+      : _root = root == '' ? '/' : root;
 
   /// Initializes the mapping from source to module.
   ///
@@ -85,33 +79,11 @@ class Modules {
 
   /// Initializes [_sourceToModule] and [_sourceToLibrary].
   Future<void> _initializeMapping() async {
-    // TODO(grouma) - We should talk to the compiler directly to greatly
-    // improve the performance here.
-    var expression = '''
-(function() {
-  var dart = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
-  var result = {};
-  for (module of dart.getModuleNames()) {
-    for (script of Object.keys(dart.getModuleLibraries(module))) {
-      result[script] = module;
-    }
-  }
-  return result;
-})();
-      ''';
-    var response =
-        await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
-      'expression': expression,
-      'returnByValue': true,
-      'contextId': await _executionContext.id,
-    });
-    handleErrorIfPresent(response);
-    var value = response.result['result']['value'] as Map<String, dynamic>;
-    for (var dartScript in value.keys) {
-      if (!dartScript.endsWith('.dart')) continue;
-      var serverPath = DartUri(dartScript, _root).serverPath;
-      _sourceToModule[serverPath] = value[dartScript] as String;
-      _sourceToLibrary[serverPath] = Uri.parse(dartScript);
+    var scriptToModule = await _metadataProvider.scriptToModule;
+    for (var script in scriptToModule.keys) {
+      var serverPath = DartUri(script, _root).serverPath;
+      _sourceToModule[serverPath] = scriptToModule[script];
+      _sourceToLibrary[serverPath] = Uri.parse(script);
     }
   }
 }

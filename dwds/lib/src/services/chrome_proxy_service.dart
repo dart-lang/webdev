@@ -17,6 +17,7 @@ import '../debugging/execution_context.dart';
 import '../debugging/inspector.dart';
 import '../debugging/instance.dart';
 import '../debugging/location.dart';
+import '../debugging/metadata/provider.dart';
 import '../debugging/modules.dart';
 import '../debugging/remote_debugger.dart';
 import '../loaders/strategy.dart';
@@ -64,6 +65,8 @@ class ChromeProxyService implements VmServiceInterface {
 
   final Locations _locations;
 
+  final MetadataProvider _metadataProvider;
+
   final Modules _modules;
 
   final _debuggerCompleter = Completer<Debugger>();
@@ -90,6 +93,7 @@ class ChromeProxyService implements VmServiceInterface {
       this.uri,
       this._assetReader,
       this.remoteDebugger,
+      this._metadataProvider,
       this._modules,
       this._locations,
       this._restoreBreakpoints,
@@ -127,11 +131,23 @@ class ChromeProxyService implements VmServiceInterface {
       architectureBits: -1,
       pid: -1,
     );
-    var modules = Modules(remoteDebugger, tabUrl, executionContext);
+    // TODO(grouma) - Make this confiugrable when the FileMetadataProvider is
+    // complete.
+    var metadataProvider =
+        ChromeMetadataProvider(remoteDebugger, executionContext);
+    var modules = Modules(metadataProvider, tabUrl);
     var locations = Locations(assetReader, modules, tabUrl);
-    var service = ChromeProxyService._(vm, tabUrl, assetReader, remoteDebugger,
-        modules, locations, restoreBreakpoints, executionContext, logWriter);
-
+    var service = ChromeProxyService._(
+        vm,
+        tabUrl,
+        assetReader,
+        remoteDebugger,
+        metadataProvider,
+        modules,
+        locations,
+        restoreBreakpoints,
+        executionContext,
+        logWriter);
     unawaited(service.createIsolate(appConnection));
     await service.createEvaluator(expressionCompiler);
     return service;
@@ -167,6 +183,7 @@ class ChromeProxyService implements VmServiceInterface {
     _inspector = await AppInspector.initialize(
       appConnection,
       remoteDebugger,
+      _metadataProvider,
       _assetReader,
       _locations,
       uri,

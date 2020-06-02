@@ -9,6 +9,7 @@ import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
+import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
@@ -136,6 +137,39 @@ class FakeSseConnection implements SseConnection {
   void shutdown() {}
 }
 
+class FakeModules implements Modules {
+  @override
+  void initialize() {}
+
+  @override
+  Future<Uri> libraryForSource(String serverPath) {
+    throw UnimplementedError();
+  }
+
+  @override
+  String moduleForScriptId(String serverId) => '';
+
+  @override
+  Future<String> moduleForSource(String serverPath) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, String>> modules() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Null> noteModule(String url, String scriptId) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  String scriptIdForModule(String server) {
+    throw UnimplementedError();
+  }
+}
+
 class FakeWebkitDebugger implements WebkitDebugger {
   @override
   Future disable() => null;
@@ -197,32 +231,6 @@ class FakeWebkitDebugger implements WebkitDebugger {
     if (method == 'Runtime.getProperties') {
       return results[resultsReturned++];
     }
-
-    if (method == 'Runtime.evaluate') {
-      // Fake response adapted from modules query at google3
-      return WipResponse({
-        'id': 42,
-        'result': {
-          'result': <String, dynamic>{
-            'type': 'object',
-            'value': <String, dynamic>{
-              // dart source Uri : js module name
-              'dart:io': 'dart_sdk',
-              'org-dartlang-app:///dart/tools/iblaze/web/hello_world.dart':
-                  'dart/tools/iblaze/web/hello_world_angular_library',
-              'package:ads.acx2.rpc.proto_mixin/ess_proto_mixin.dart':
-                  'ads/acx2/rpc/proto_mixin/lib/proto_mixin',
-              'package:collection/collection.dart: ':
-                  'third_party/dart/collection/lib/collection',
-              'package:collection/src/algorithms.dart':
-                  'third_party/dart/collection/lib/collection',
-              'package:shelf/shelf.dart': 'packages/shelf/shelf',
-            }
-          }
-        }
-      });
-    }
-
     return null;
   }
 

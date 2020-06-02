@@ -9,7 +9,6 @@ import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
@@ -33,8 +32,7 @@ void main() async {
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
     var root = 'fakeRoot';
-    var modules = Modules(webkitDebugger, root, null);
-    locations = Locations(null, modules, root);
+    locations = Locations(null, FakeModules(), root);
     debugger = await Debugger.create(
       webkitDebugger,
       null,

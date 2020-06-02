@@ -14,7 +14,8 @@ import '../utilities/shared.dart';
 import '../utilities/wrapped_service.dart';
 import 'classes.dart';
 import 'inspector.dart';
-import 'metadata.dart';
+import 'metadata/class.dart';
+import 'metadata/function.dart';
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
