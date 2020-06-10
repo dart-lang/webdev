@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart' as vm_service;
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
@@ -19,7 +20,6 @@ import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart' show Property;
 import '../utilities/shared.dart';
-import '../utilities/wrapped_service.dart';
 import 'dart_scope.dart';
 import 'frame_computer.dart';
 import 'location.dart';
@@ -686,11 +686,11 @@ class _Breakpoints extends Domain {
   Breakpoint _dartBreakpoint(
       ScriptRef dartScript, Location location, String id) {
     var breakpoint = Breakpoint(
-        breakpointNumber: int.parse(createId()),
-        resolved: true,
-        location:
-            SourceLocation(script: dartScript, tokenPos: location.tokenPos))
-      ..id = id;
+      id: id,
+      breakpointNumber: int.parse(createId()),
+      resolved: true,
+      location: SourceLocation(script: dartScript, tokenPos: location.tokenPos),
+    );
     return breakpoint;
   }
 

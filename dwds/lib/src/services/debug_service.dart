@@ -15,6 +15,7 @@ import 'package:shelf/shelf.dart' hide Response;
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../dwds.dart';
@@ -22,7 +23,6 @@ import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
 import '../readers/asset_reader.dart';
 import '../utilities/shared.dart';
-import '../utilities/wrapped_service.dart';
 import 'chrome_proxy_service.dart';
 import 'expression_compiler.dart';
 

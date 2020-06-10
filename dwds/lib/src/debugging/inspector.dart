@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:path/path.dart' as p;
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../connections/app_connection.dart';
@@ -16,7 +17,6 @@ import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
-import '../utilities/wrapped_service.dart';
 import 'classes.dart';
 import 'debugger.dart';
 import 'execution_context.dart';

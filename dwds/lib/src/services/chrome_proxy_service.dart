@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../connections/app_connection.dart';
@@ -24,7 +25,6 @@ import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/shared.dart';
-import '../utilities/wrapped_service.dart';
 import 'expression_compiler.dart';
 import 'expression_evaluator.dart';
 
@@ -378,7 +378,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
                 'to file a bug.');
           }
           return ErrorRef(
-              kind: 'error', message: '${result.type}: ${result.value}');
+            kind: 'error',
+            message: '${result.type}: ${result.value}',
+            id: createId(),
+          );
         }
         return _inspector?.instanceHelper?.instanceRefFor(result);
       } catch (e, s) {
@@ -392,7 +395,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
             'https://github.com/dart-lang/webdev/issues/956 '
             'to file a bug.');
         _logWriter(Level.INFO, '$e:$s');
-        return ErrorRef(kind: 'error', message: '<unknown>');
+        return ErrorRef(
+          kind: 'error',
+          message: '<unknown>',
+          id: createId(),
+        );
       }
     }
 
@@ -839,6 +846,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Success> requirePermissionToResume(
           {bool onPauseStart, bool onPauseReload, bool onPauseExit}) =>
       throw UnimplementedError();
+
+  @override
+  Future<ProtocolList> getSupportedProtocols() {
+    throw UnimplementedError();
+  }
 
   Future<InstanceRef> _instanceRef(RemoteObject obj) async {
     if (obj == null) {

@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../dwds.dart' show ChromeDebugException;
 import '../loaders/strategy.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
-import '../utilities/wrapped_service.dart';
 import 'inspector.dart';
 import 'metadata/class.dart';
 

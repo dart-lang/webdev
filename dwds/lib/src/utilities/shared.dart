@@ -5,16 +5,17 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../dwds.dart' show ChromeDebugException;
-import '../utilities/wrapped_service.dart';
 
 typedef LogWriter = void Function(Level, String);
 
 VMRef toVMRef(VM vm) => VMRef(name: vm.name);
 
 int _nextId = 0;
+
 String createId() {
   _nextId++;
   return '$_nextId';

@@ -4,6 +4,7 @@
 
 import 'dart:math';
 
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../loaders/strategy.dart';
@@ -11,7 +12,6 @@ import '../utilities/conversions.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
 import '../utilities/shared.dart';
-import '../utilities/wrapped_service.dart';
 import 'classes.dart';
 import 'inspector.dart';
 import 'metadata/class.dart';
@@ -382,7 +382,7 @@ class InstanceHelper extends Domain {
               owner: classRefForUnknown,
               isConst: false,
               isStatic: false)
-          ..closureContext = (ContextRef(length: 0));
+          ..closureContext = (ContextRef(length: 0, id: createId()));
       default:
         // Return null for an unsupported type. This is likely a JS construct.
         return null;
