@@ -152,7 +152,6 @@ class ChromeProxyService implements VmServiceInterface {
     await service.createEvaluator(expressionCompiler);
     return service;
   }
-  
 
   /// The `getSupportedProtocols` RPC is used to determine which protocols are
   /// supported by the current server.
