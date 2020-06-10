@@ -157,7 +157,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// The `getSupportedProtocols` RPC is used to determine which protocols are
   /// supported by the current server.
   @override
-  Future<ProtocolList> getSupportedProtocols() {
+  Future<ProtocolList> getSupportedProtocols() async {
     return ProtocolList(
       Protocol({protocolName: 'jsonrpc', major: 2, minor: 0}) ) ;
   }
