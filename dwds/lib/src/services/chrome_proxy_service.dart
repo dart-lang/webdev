@@ -401,7 +401,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
             'https://github.com/dart-lang/webdev/issues/956 '
             'to file a bug.');
         _logWriter(Level.INFO, '$e:$s');
-        return ErrorRef(kind: 'error', message: '<unknown>');
+        return ErrorRef(kind: 'error', message: '<unknown>', id: createId());
       }
     }
 
