@@ -153,6 +153,14 @@ class ChromeProxyService implements VmServiceInterface {
     return service;
   }
 
+  /// The `getSupportedProtocols` RPC is used to determine which protocols are
+  /// supported by the current server.
+  @override
+  Future<ProtocolList> getSupportedProtocols() async {
+    return ProtocolList(
+        protocols: [Protocol(protocolName: 'jsonrpc', major: 2, minor: 0)]);
+  }
+
   /// Creates expression evaluator to use in [evaluateInFrame]
   ///
   /// Expression evaluation is only supported with scenarios that
@@ -378,7 +386,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
                 'to file a bug.');
           }
           return ErrorRef(
-              kind: 'error', message: '${result.type}: ${result.value}');
+              kind: 'error',
+              message: '${result.type}: ${result.value}',
+              id: result.objectId);
         }
         return _inspector?.instanceHelper?.instanceRefFor(result);
       } catch (e, s) {
@@ -392,7 +402,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
             'https://github.com/dart-lang/webdev/issues/956 '
             'to file a bug.');
         _logWriter(Level.INFO, '$e:$s');
-        return ErrorRef(kind: 'error', message: '<unknown>');
+        return ErrorRef(kind: 'error', message: '<unknown>', id: createId());
       }
     }
 

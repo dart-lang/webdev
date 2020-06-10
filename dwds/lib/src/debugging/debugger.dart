@@ -686,6 +686,7 @@ class _Breakpoints extends Domain {
   Breakpoint _dartBreakpoint(
       ScriptRef dartScript, Location location, String id) {
     var breakpoint = Breakpoint(
+        id: id,
         breakpointNumber: int.parse(createId()),
         resolved: true,
         location:

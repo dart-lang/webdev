@@ -382,7 +382,7 @@ class InstanceHelper extends Domain {
               owner: classRefForUnknown,
               isConst: false,
               isStatic: false)
-          ..closureContext = (ContextRef(length: 0));
+          ..closureContext = (ContextRef(length: 0, id: createId()));
       default:
         // Return null for an unsupported type. This is likely a JS construct.
         return null;
