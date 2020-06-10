@@ -1,4 +1,6 @@
-## 3.2.0-dev
+## 4.0.0
+
+- Pin the `package:vm_service` version to prevent uninteded breaks.
 
 ## 3.1.3
 

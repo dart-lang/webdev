@@ -1,3 +1,7 @@
+## 2.5.9
+
+- Depend on the latest `package:dwds`.
+
 ## 2.5.8
 
 - Depend on the latest `package:dwds`.
