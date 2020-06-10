@@ -1,4 +1,5 @@
-## 3.2.0-dev
+## 3.1.4
+- Rev our dependency on `package:vm_service` to 4.1.0.
 
 ## 3.1.3
 
