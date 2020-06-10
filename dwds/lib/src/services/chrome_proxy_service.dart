@@ -387,7 +387,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
                 'to file a bug.');
           }
           return ErrorRef(
-              kind: 'error', message: '${result.type}: ${result.value}');
+              kind: 'error', message: '${result.type}: ${result.value}', id: result.objectId);
         }
         return _inspector?.instanceHelper?.instanceRefFor(result);
       } catch (e, s) {
