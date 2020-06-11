@@ -157,6 +157,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// supported by the current server.
   @override
   Future<ProtocolList> getSupportedProtocols() async {
+    // This should change with the pinned vm_service package.
     return ProtocolList(
         protocols: [Protocol(protocolName: 'VM Service', major: 4, minor: 1)]);
   }

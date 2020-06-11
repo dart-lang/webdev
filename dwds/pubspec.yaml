@@ -34,6 +34,7 @@ dependencies:
   source_maps: ^0.10.0
   sse: ^3.5.0
   # We pin the version because we implement the interface.
+  # We need to update getSupportedProtocols when this changes.
   vm_service: 4.1.0
   web_socket_channel: ^1.0.0
   webkit_inspection_protocol: ^0.7.3
