@@ -158,7 +158,7 @@ class ChromeProxyService implements VmServiceInterface {
   @override
   Future<ProtocolList> getSupportedProtocols() async {
     return ProtocolList(
-        protocols: [Protocol(protocolName: 'jsonrpc', major: 2, minor: 0)]);
+        protocols: [Protocol(protocolName: 'VM Service', major: 4, minor: 1)]);
   }
 
   /// Creates expression evaluator to use in [evaluateInFrame]
