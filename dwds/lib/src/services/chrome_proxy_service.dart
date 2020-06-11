@@ -157,8 +157,13 @@ class ChromeProxyService implements VmServiceInterface {
   /// supported by the current server.
   @override
   Future<ProtocolList> getSupportedProtocols() async {
-    return ProtocolList(
-        protocols: [Protocol(protocolName: 'jsonrpc', major: 2, minor: 0)]);
+    var version = semver.Version.parse(vmServiceVersion);
+    return ProtocolList(protocols: [
+      Protocol(
+          protocolName: 'VM Service',
+          major: version.major,
+          minor: version.minor)
+    ]);
   }
 
   /// Creates expression evaluator to use in [evaluateInFrame]
