@@ -153,19 +153,6 @@ class ChromeProxyService implements VmServiceInterface {
     return service;
   }
 
-  /// The `getSupportedProtocols` RPC is used to determine which protocols are
-  /// supported by the current server.
-  @override
-  Future<ProtocolList> getSupportedProtocols() async {
-    var version = semver.Version.parse(vmServiceVersion);
-    return ProtocolList(protocols: [
-      Protocol(
-          protocolName: 'VM Service',
-          major: version.major,
-          minor: version.minor)
-    ]);
-  }
-
   /// Creates expression evaluator to use in [evaluateInFrame]
   ///
   /// Expression evaluation is only supported with scenarios that
@@ -391,9 +378,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
                 'to file a bug.');
           }
           return ErrorRef(
-              kind: 'error',
-              message: '${result.type}: ${result.value}',
-              id: result.objectId);
+            kind: 'error',
+            message: '${result.type}: ${result.value}',
+            id: createId(),
+          );
         }
         return _inspector?.instanceHelper?.instanceRefFor(result);
       } catch (e, s) {
@@ -854,6 +842,18 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Success> requirePermissionToResume(
           {bool onPauseStart, bool onPauseReload, bool onPauseExit}) =>
       throw UnimplementedError();
+
+  @override
+  Future<ProtocolList> getSupportedProtocols() async {
+    var version = semver.Version.parse(vmServiceVersion);
+    return ProtocolList(protocols: [
+      Protocol(
+        protocolName: 'VM Service',
+        major: version.major,
+        minor: version.minor,
+      )
+    ]);
+  }
 
   Future<InstanceRef> _instanceRef(RemoteObject obj) async {
     if (obj == null) {
