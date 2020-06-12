@@ -1,10 +1,15 @@
+## 4.0.2-dev
+
+- Have unimplemented VM service protocol methods return the RPC error
+  'MethodNotFound' / `-32601`.
+
 ## 4.0.1
 
 - Fixed issue where `getSupportedProtocols` would return the wrong protocol.
 
 ## 4.0.0
 
-- Pin the `package:vm_service` version to prevent uninteded breaks.
+- Pin the `package:vm_service` version to prevent unintended breaks.
 
 ## 3.1.3
 

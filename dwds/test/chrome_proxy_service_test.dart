@@ -37,9 +37,12 @@ void main() {
       await context.tearDown();
     });
 
-    test('client name', () async {
-      expect(() => service.getClientName(), throwsUnimplementedError);
-      expect(() => service.setClientName('foo'), throwsUnimplementedError);
+    test('getClientName', () async {
+      expect(() => service.getClientName(), throwsRPCError);
+    });
+
+    test('setClientName', () async {
+      expect(() => service.setClientName('foo'), throwsRPCError);
     });
 
     group('breakpoints', () {
@@ -91,8 +94,7 @@ void main() {
       });
 
       test('addBreakpointAtEntry', () {
-        expect(() => service.addBreakpointAtEntry(null, null),
-            throwsUnimplementedError);
+        expect(() => service.addBreakpointAtEntry(null, null), throwsRPCError);
       });
 
       test('addBreakpointWithScriptUri', () async {
@@ -125,8 +127,8 @@ void main() {
       });
 
       test("removeBreakpoint doesn't exist", () {
-        expect(() => service.removeBreakpoint(isolate.id, '1234'),
-            throwsA(isA<RPCError>()));
+        expect(
+            () => service.removeBreakpoint(isolate.id, '1234'), throwsRPCError);
       });
 
       test('add and remove breakpoint', () async {
@@ -189,24 +191,23 @@ void main() {
 
     group('VMTimeline', () {
       test('clearVMTimeline', () {
-        expect(() => service.clearVMTimeline(), throwsUnimplementedError);
+        expect(() => service.clearVMTimeline(), throwsRPCError);
       });
 
       test('getVMTimelineMicros', () {
-        expect(() => service.getVMTimelineMicros(), throwsUnimplementedError);
+        expect(() => service.getVMTimelineMicros(), throwsRPCError);
       });
 
       test('getVMTimeline', () {
-        expect(() => service.getVMTimeline(), throwsUnimplementedError);
+        expect(() => service.getVMTimeline(), throwsRPCError);
       });
 
       test('getVMTimelineFlags', () {
-        expect(() => service.getVMTimelineFlags(), throwsUnimplementedError);
+        expect(() => service.getVMTimelineFlags(), throwsRPCError);
       });
 
       test('setVMTimelineFlags', () {
-        expect(
-            () => service.setVMTimelineFlags(null), throwsUnimplementedError);
+        expect(() => service.setVMTimelineFlags(null), throwsRPCError);
       });
     });
 
@@ -327,13 +328,11 @@ void main() {
     });
 
     test('getAllocationProfile', () {
-      expect(
-          () => service.getAllocationProfile(null), throwsUnimplementedError);
+      expect(() => service.getAllocationProfile(null), throwsRPCError);
     });
 
     test('getClassList', () {
-      expect(() => service.getClassList(null),
-          throwsA(const TypeMatcher<RPCError>()));
+      expect(() => service.getClassList(null), throwsRPCError);
     });
 
     test('getFlagList', () async {
@@ -341,8 +340,7 @@ void main() {
     });
 
     test('getInstances', () {
-      expect(() => service.getInstances(null, null, null),
-          throwsUnimplementedError);
+      expect(() => service.getInstances(null, null, null), throwsRPCError);
     });
 
     group('getIsolate', () {
@@ -633,7 +631,7 @@ void main() {
         var isolateId = vm.isolates.first.id;
 
         expect(() => service.getSourceReport(isolateId, ['Coverage']),
-            throwsA(isA<RPCError>()));
+            throwsRPCError);
       });
 
       test('report type not understood', () async {
@@ -641,7 +639,7 @@ void main() {
         var isolateId = vm.isolates.first.id;
 
         expect(() => service.getSourceReport(isolateId, ['FooBar']),
-            throwsA(isA<RPCError>()));
+            throwsRPCError);
       });
 
       test('PossibleBreakpoints report', () async {
@@ -996,7 +994,7 @@ void main() {
     });
 
     test('kill', () {
-      expect(() => service.kill(null), throwsUnimplementedError);
+      expect(() => service.kill(null), throwsRPCError);
     });
 
     test('onEvent', () {
@@ -1032,23 +1030,21 @@ void main() {
     });
 
     test('getInboundReferences', () async {
-      expect(() => service.getInboundReferences(null, null, null),
-          throwsUnimplementedError);
+      expect(
+          () => service.getInboundReferences(null, null, null), throwsRPCError);
     });
 
     test('getRetainingPath', () async {
-      expect(() => service.getRetainingPath(null, null, null),
-          throwsUnimplementedError);
+      expect(() => service.getRetainingPath(null, null, null), throwsRPCError);
     });
 
     test('registerService', () async {
-      expect(() => service.registerService('ext.foo.bar', null),
-          throwsUnimplementedError);
+      expect(
+          () => service.registerService('ext.foo.bar', null), throwsRPCError);
     });
 
     test('reloadSources', () {
-      expect(() => service.reloadSources(null),
-          throwsA(const TypeMatcher<RPCError>()));
+      expect(() => service.reloadSources(null), throwsRPCError);
     });
 
     test('setExceptionPauseMode', () async {
@@ -1065,12 +1061,12 @@ void main() {
     });
 
     test('setFlag', () {
-      expect(() => service.setFlag(null, null), throwsUnimplementedError);
+      expect(() => service.setFlag(null, null), throwsRPCError);
     });
 
     test('setLibraryDebuggable', () {
-      expect(() => service.setLibraryDebuggable(null, null, null),
-          throwsUnimplementedError);
+      expect(
+          () => service.setLibraryDebuggable(null, null, null), throwsRPCError);
     });
 
     test('setName', () async {
@@ -1088,7 +1084,7 @@ void main() {
     });
 
     test('streamCancel', () {
-      expect(() => service.streamCancel(null), throwsUnimplementedError);
+      expect(() => service.streamCancel(null), throwsRPCError);
     });
 
     group('streamListen/onEvent', () {
