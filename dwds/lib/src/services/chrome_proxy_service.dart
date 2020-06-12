@@ -284,7 +284,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   @override
   Future<Breakpoint> addBreakpointAtEntry(String isolateId, String functionId) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('addBreakpointAtEntry');
   }
 
   @override
@@ -335,7 +335,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> clearVMTimeline() {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('clearVMTimeline');
   }
 
   @override
@@ -355,6 +355,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     if (_expressionEvaluator != null) {
       var isolate = _inspector?.isolate;
       if (isolate?.id != isolateId) {
+        // TODO: Throw an RPC error here.
         throw ArgumentError.value(
             isolateId, 'isolateId', 'Unrecognized isolate id');
       }
@@ -399,6 +400,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       }
     }
 
+    // TODO: Change this to a RPC error.
     throw UnimplementedError(
         'Expression evaluation is not supported for this configuration');
   }
@@ -406,17 +408,13 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool gc, bool reset}) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('getAllocationProfile');
   }
 
   @override
   Future<ClassList> getClassList(String isolateId) {
     // See dart-lang/webdev/issues/971.
-    return Future.error(RPCError(
-      'getClassList',
-      RPCError.kMethodNotFound,
-      'Not supported on web devices',
-    ));
+    return _rpcNotSupportedFuture('getClassList');
   }
 
   @override
@@ -428,7 +426,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<InstanceSet> getInstances(
       String isolateId, String classId, int limit) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('getInstances');
   }
 
   /// Sync version of [getIsolate] for internal use, also has stronger typing
@@ -436,6 +434,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Isolate _getIsolate(String isolateId) {
     var isolate = _inspector?.isolate;
     if (isolate?.id == isolateId) return isolate;
+    // TODO: Throw an RPC error here.
     throw ArgumentError.value(
         isolateId, 'isolateId', 'Unrecognized isolate id');
   }
@@ -482,12 +481,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Timeline> getVMTimeline({int timeOriginMicros, int timeExtentMicros}) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('getVMTimeline');
   }
 
   @override
   Future<TimelineFlags> getVMTimelineFlags() {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('getVMTimelineFlags');
   }
 
   @override
@@ -513,7 +512,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> kill(String isolateId) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('kill');
   }
 
   @override
@@ -560,7 +559,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> registerService(String service, String alias) async {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('registerService');
   }
 
   @override
@@ -594,18 +593,19 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Success> setExceptionPauseMode(String isolateId, String mode) async =>
-      (await _debugger).setExceptionPauseMode(isolateId, mode);
+  Future<Success> setExceptionPauseMode(String isolateId, String mode) async {
+    return (await _debugger).setExceptionPauseMode(isolateId, mode);
+  }
 
   @override
   Future<Success> setFlag(String name, String value) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('setFlag');
   }
 
   @override
   Future<Success> setLibraryDebuggable(
       String isolateId, String libraryId, bool isDebuggable) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('setLibraryDebuggable');
   }
 
   @override
@@ -631,29 +631,33 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> setVMTimelineFlags(List<String> recordedStreams) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('setVMTimelineFlags');
   }
 
   @override
   Future<Success> streamCancel(String streamId) {
-    throw UnimplementedError();
+    // TODO: We should implement this (as we've already implemented
+    // streamListen).
+    return _rpcNotSupportedFuture('streamCancel');
   }
 
   @override
   Future<Success> streamListen(String streamId) async {
+    // TODO: This should return an error if the stream is already being listened
+    // to.
     onEvent(streamId);
     return Success();
   }
 
   @override
   Future<Success> clearCpuSamples(String isolateId) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('clearCpuSamples');
   }
 
   @override
   Future<CpuSamples> getCpuSamples(
       String isolateId, int timeOriginMicros, int timeExtentMicros) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('getCpuSamples');
   }
 
   /// Returns a streamController that listens for console logs from chrome and
@@ -802,46 +806,51 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Timestamp> getVMTimelineMicros() {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('getVMTimelineMicros');
   }
 
   @override
   Future<InboundReferences> getInboundReferences(
       String isolateId, String targetId, int limit) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('getInboundReferences');
   }
 
   @override
   Future<RetainingPath> getRetainingPath(
       String isolateId, String targetId, int limit) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('getRetainingPath');
   }
 
   @override
   Future<Success> requestHeapSnapshot(String isolateId) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('requestHeapSnapshot');
   }
 
   @override
   Future<IsolateGroup> getIsolateGroup(String isolateGroupId) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('getIsolateGroup');
   }
 
   @override
   Future<MemoryUsage> getIsolateGroupMemoryUsage(String isolateGroupId) {
-    throw UnimplementedError();
+    return _rpcNotSupportedFuture('getIsolateGroupMemoryUsage');
   }
 
   @override
-  Future<ClientName> getClientName() => throw UnimplementedError();
+  Future<ClientName> getClientName() {
+    return _rpcNotSupportedFuture('getClientName');
+  }
 
   @override
-  Future<Success> setClientName(String name) => throw UnimplementedError();
+  Future<Success> setClientName(String name) {
+    return _rpcNotSupportedFuture('setClientName');
+  }
 
   @override
   Future<Success> requirePermissionToResume(
-          {bool onPauseStart, bool onPauseReload, bool onPauseExit}) =>
-      throw UnimplementedError();
+      {bool onPauseStart, bool onPauseReload, bool onPauseExit}) {
+    return _rpcNotSupportedFuture('requirePermissionToResume');
+  }
 
   @override
   Future<ProtocolList> getSupportedProtocols() async {
@@ -861,6 +870,15 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     } else {
       return _inspector.instanceHelper.instanceRefFor(obj);
     }
+  }
+
+  static RPCError _rpcNotSupported(String method) {
+    return RPCError(
+        method, RPCError.kMethodNotFound, 'Not supported on web devices');
+  }
+
+  static Future<T> _rpcNotSupportedFuture<T>(String method) {
+    return Future.error(_rpcNotSupported(method));
   }
 }
 
