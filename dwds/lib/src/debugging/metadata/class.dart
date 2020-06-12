@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../debugging/classes.dart';
@@ -9,7 +10,6 @@ import '../../debugging/inspector.dart';
 import '../../debugging/remote_debugger.dart';
 import '../../loaders/strategy.dart';
 import '../../services/chrome_proxy_service.dart';
-import '../../utilities/wrapped_service.dart';
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
