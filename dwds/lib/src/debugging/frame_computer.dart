@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../utilities/wrapped_service.dart';
 import 'dart_scope.dart';
 import 'debugger.dart';
 

@@ -14,11 +14,11 @@ import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/domain.dart';
-import 'package:dwds/src/utilities/wrapped_service.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:sse/server/sse_handler.dart';
 import 'package:stream_channel/src/stream_channel_transformer.dart';
 import 'package:stream_channel/stream_channel.dart';
+import 'package:vm_service/vm_service.dart';
 
 /// A library of fake/stub implementations of our classes and their supporting
 /// classes (e.g. WipConnection) for unit testing.
