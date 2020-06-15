@@ -246,6 +246,12 @@ class TestAssetServer implements AssetReader {
     }
     return null;
   }
+
+  @override
+  Future<String> metadataContents(String serverPath) {
+    // TODO(grouma) - Implement the merged metadata reader.
+    throw UnimplementedError();
+  }
 }
 
 /// Given a data structure which is a Map of String to dynamic values, return
