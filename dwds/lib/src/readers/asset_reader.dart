@@ -13,4 +13,7 @@ abstract class AssetReader {
   /// Returns the contents for a dart source at the provided server path, or
   /// null if the resource does not exist.
   Future<String> dartSourceContents(String serverPath);
+
+  /// Returns the contents for the merged metadata output at the provided path.
+  Future<String> metadataContents(String serverPath);
 }

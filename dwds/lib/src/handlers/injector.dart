@@ -85,6 +85,7 @@ class DwdsInjector {
                 body,
                 appId,
                 devHandlerPath,
+                request.url.path,
                 _extensionUri,
                 _loadStrategy,
               );
@@ -111,6 +112,7 @@ String _injectClientAndHoistMain(
   String body,
   String appId,
   String devHandlerPath,
+  String entrypointPath,
   String extensionUri,
   LoadStrategy loadStrategy,
 ) {
@@ -128,6 +130,7 @@ String _injectClientAndHoistMain(
   var injectedClientSnippet = _injectedClientSnippet(
     appId,
     devHandlerPath,
+    entrypointPath,
     extensionUri,
     loadStrategy,
   );
@@ -159,6 +162,7 @@ String _injectClientAndHoistMain(
 String _injectedClientSnippet(
   String appId,
   String devHandlerPath,
+  String entrypointPath,
   String extensionUri,
   LoadStrategy loadStrategy,
 ) {
@@ -168,6 +172,7 @@ String _injectedClientSnippet(
       'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
       'window.\$dwdsVersion = "$packageVersion";\n'
       'window.\$dwdsDevHandlerPath = "$devHandlerPath";\n'
+      'window.\$dartEntrypointPath = "$entrypointPath";\n'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';

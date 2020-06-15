@@ -117,7 +117,8 @@ Future<void> main() {
     if (_isChromium) {
       client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
         ..appId = dartAppId
-        ..instanceId = dartAppInstanceId))));
+        ..instanceId = dartAppInstanceId
+        ..entrypointPath = dartEntrypointPath))));
     } else {
       // If not Chromium we just invoke main, devtools aren't supported.
       runMain();
@@ -179,5 +180,8 @@ external set launchDevToolsJs(void Function() cb);
 
 @JS(r'$dartReloadConfiguration')
 external String get reloadConfiguration;
+
+@JS(r'$datEntrypointPath')
+external String get dartEntrypointPath;
 
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');

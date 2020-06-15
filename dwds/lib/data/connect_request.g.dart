@@ -26,6 +26,9 @@ class _$ConnectRequestSerializer
       'instanceId',
       serializers.serialize(object.instanceId,
           specifiedType: const FullType(String)),
+      'entrypointPath',
+      serializers.serialize(object.entrypointPath,
+          specifiedType: const FullType(String)),
     ];
 
     return result;
@@ -51,6 +54,10 @@ class _$ConnectRequestSerializer
           result.instanceId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'entrypointPath':
+          result.entrypointPath = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
       }
     }
 
@@ -63,16 +70,22 @@ class _$ConnectRequest extends ConnectRequest {
   final String appId;
   @override
   final String instanceId;
+  @override
+  final String entrypointPath;
 
   factory _$ConnectRequest([void Function(ConnectRequestBuilder) updates]) =>
       (new ConnectRequestBuilder()..update(updates)).build();
 
-  _$ConnectRequest._({this.appId, this.instanceId}) : super._() {
+  _$ConnectRequest._({this.appId, this.instanceId, this.entrypointPath})
+      : super._() {
     if (appId == null) {
       throw new BuiltValueNullFieldError('ConnectRequest', 'appId');
     }
     if (instanceId == null) {
       throw new BuiltValueNullFieldError('ConnectRequest', 'instanceId');
+    }
+    if (entrypointPath == null) {
+      throw new BuiltValueNullFieldError('ConnectRequest', 'entrypointPath');
     }
   }
 
@@ -89,19 +102,22 @@ class _$ConnectRequest extends ConnectRequest {
     if (identical(other, this)) return true;
     return other is ConnectRequest &&
         appId == other.appId &&
-        instanceId == other.instanceId;
+        instanceId == other.instanceId &&
+        entrypointPath == other.entrypointPath;
   }
 
   @override
   int get hashCode {
-    return $jf($jc($jc(0, appId.hashCode), instanceId.hashCode));
+    return $jf($jc($jc($jc(0, appId.hashCode), instanceId.hashCode),
+        entrypointPath.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('ConnectRequest')
           ..add('appId', appId)
-          ..add('instanceId', instanceId))
+          ..add('instanceId', instanceId)
+          ..add('entrypointPath', entrypointPath))
         .toString();
   }
 }
@@ -118,12 +134,18 @@ class ConnectRequestBuilder
   String get instanceId => _$this._instanceId;
   set instanceId(String instanceId) => _$this._instanceId = instanceId;
 
+  String _entrypointPath;
+  String get entrypointPath => _$this._entrypointPath;
+  set entrypointPath(String entrypointPath) =>
+      _$this._entrypointPath = entrypointPath;
+
   ConnectRequestBuilder();
 
   ConnectRequestBuilder get _$this {
     if (_$v != null) {
       _appId = _$v.appId;
       _instanceId = _$v.instanceId;
+      _entrypointPath = _$v.entrypointPath;
       _$v = null;
     }
     return this;
@@ -144,8 +166,11 @@ class ConnectRequestBuilder
 
   @override
   _$ConnectRequest build() {
-    final _$result =
-        _$v ?? new _$ConnectRequest._(appId: appId, instanceId: instanceId);
+    final _$result = _$v ??
+        new _$ConnectRequest._(
+            appId: appId,
+            instanceId: instanceId,
+            entrypointPath: entrypointPath);
     replace(_$result);
     return _$result;
   }

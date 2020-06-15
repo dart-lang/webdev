@@ -103,4 +103,10 @@ class FrontendServerAssetReader implements AssetReader {
           .toList());
     }
   }
+
+  @override
+  Future<String> metadataContents(String serverPath) {
+    // TODO(grouma) - Implement the merged metadata reader.
+    throw UnimplementedError();
+  }
 }
