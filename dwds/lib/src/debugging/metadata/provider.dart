@@ -4,8 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:dwds/dwds.dart';
-
+import '../../../dwds.dart';
 import '../../debugging/execution_context.dart';
 import '../../debugging/remote_debugger.dart';
 import '../../loaders/strategy.dart';
