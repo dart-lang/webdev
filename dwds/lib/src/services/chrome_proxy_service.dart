@@ -181,6 +181,7 @@ class ChromeProxyService implements VmServiceInterface {
     }
 
     _locations.clearCache();
+    await _metadataProvider.initialize(appConnection.request.entrypointPath);
     _modules.initialize();
     (await _debugger).notifyPausedAtStart();
 
