@@ -22517,7 +22517,7 @@
       b.get$_$this()._appId = t1;
       t1 = H._asStringS(self.$dartAppInstanceId);
       b.get$_$this()._instanceId = t1;
-      t1 = H._asStringS(self.$datEntrypointPath);
+      t1 = H._asStringS(self.$dartEntrypointPath);
       b.get$_$this()._entrypointPath = t1;
       return b;
     },

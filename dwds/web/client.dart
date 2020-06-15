@@ -181,7 +181,7 @@ external set launchDevToolsJs(void Function() cb);
 @JS(r'$dartReloadConfiguration')
 external String get reloadConfiguration;
 
-@JS(r'$datEntrypointPath')
+@JS(r'$dartEntrypointPath')
 external String get dartEntrypointPath;
 
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');
