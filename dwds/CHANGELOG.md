@@ -1,4 +1,4 @@
-## 4.0.2-dev
+## 5.0.0-dev
 
 - Have unimplemented VM service protocol methods return the RPC error
   'MethodNotFound' / `-32601`.
