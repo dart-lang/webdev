@@ -16,9 +16,11 @@ abstract class MetadataProvider {
   ///
   /// Example:
   ///
-  ///  dart:web_gl
-  ///  dart:math
-  ///  org-dartlang-app:///web/main.dart
+  ///  [
+  ///     dart:web_gl,
+  ///     dart:math,
+  ///     org-dartlang-app:///web/main.dart
+  ///  ]
   ///
   Future<List<String>> get libraries;
 
@@ -26,9 +28,13 @@ abstract class MetadataProvider {
   ///
   /// Example:
   ///
-  /// org-dartlang-app:///web/main.dart ->
-  ///   org-dartlang-app:///web/a.part.dart,
-  ///   org-dartlang-app:///web/b.part.dart
+  /// {
+  ///   org-dartlang-app:///web/main.dart :
+  ///     [
+  ///       org-dartlang-app:///web/a.part.dart,
+  ///       org-dartlang-app:///web/b.part.dart,
+  ///     ]
+  ///  }
   ///
   Future<Map<String, List<String>>> get scripts;
 
@@ -36,7 +42,10 @@ abstract class MetadataProvider {
   ///
   /// Example:
   ///
-  /// org-dartlang-app:///web/main.dart -> web/main
+  /// {
+  ///   org-dartlang-app:///web/main.dart :
+  ///   web/main
+  /// }
   ///
   Future<Map<String, String>> get scriptToModule;
 
@@ -164,7 +173,8 @@ class FileMetadataProvider implements MetadataProvider {
     var serverPath =
         entrypointPath.replaceAll('.app.bootstrap.js', '.merged_metadata');
     var contents = await _assetReader.metadataContents(serverPath);
-    // TODO(grouma) - parse the contents.
     print(contents);
+    // TODO(grouma) - parse the contents.
+    throw UnimplementedError();
   }
 }
