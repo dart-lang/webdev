@@ -13,12 +13,31 @@ import '../../utilities/shared.dart';
 /// Provider of DDC meta data for a compiled application.
 abstract class MetadataProvider {
   /// A list of all libraries in the Dart application.
+  ///
+  /// Example:
+  ///
+  ///  dart:web_gl
+  ///  dart:math
+  ///  org-dartlang-app:///web/main.dart
+  ///
   Future<List<String>> get libraries;
 
   /// A map of script to corresponding parts.
+  ///
+  /// Example:
+  ///
+  /// org-dartlang-app:///web/main.dart ->
+  ///   org-dartlang-app:///web/a.part.dart,
+  ///   org-dartlang-app:///web/b.part.dart
+  ///
   Future<Map<String, List<String>>> get scripts;
 
   /// A map of script to containing module.
+  ///
+  /// Example:
+  ///
+  /// org-dartlang-app:///web/main.dart -> web/main
+  ///
   Future<Map<String, String>> get scriptToModule;
 
   /// Initializes the provider for the given Dart application entrypoint.
