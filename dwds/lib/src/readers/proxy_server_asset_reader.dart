@@ -55,4 +55,8 @@ class ProxyServerAssetReader implements AssetReader {
       return await response.readAsString();
     }
   }
+
+  @override
+  Future<String> metadataContents(String serverPath) =>
+      _readResource(serverPath);
 }

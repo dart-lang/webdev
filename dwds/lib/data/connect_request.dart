@@ -23,4 +23,7 @@ abstract class ConnectRequest
 
   /// Identifies a given instance of an application, unique per tab/window.
   String get instanceId;
+
+  /// The entrypoint for the Dart application.
+  String get entrypointPath;
 }

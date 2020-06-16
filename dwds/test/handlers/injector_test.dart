@@ -148,6 +148,15 @@ void main() {
       expect(result.body.contains('dummy-id'), isTrue);
     });
 
+    test('Injects the entrypoint path', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(
+          result.body
+              .contains('dartEntrypointPath = "entrypoint.bootstrap.js"'),
+          isTrue);
+    });
+
     test('Injects client load snippet', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');

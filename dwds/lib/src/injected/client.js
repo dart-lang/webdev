@@ -8191,12 +8191,14 @@
     },
     _$ConnectRequestSerializer: function _$ConnectRequestSerializer() {
     },
-    _$ConnectRequest: function _$ConnectRequest(t0, t1) {
+    _$ConnectRequest: function _$ConnectRequest(t0, t1, t2) {
       this.appId = t0;
       this.instanceId = t1;
+      this.entrypointPath = t2;
     },
     ConnectRequestBuilder: function ConnectRequestBuilder() {
-      this._instanceId = this._appId = this._$v = null;
+      var _ = this;
+      _._entrypointPath = _._instanceId = _._appId = _._$v = null;
     }
   },
   Y = {
@@ -20703,7 +20705,7 @@
   E._$ConnectRequestSerializer.prototype = {
     serialize$3$specifiedType: function(serializers, object, specifiedType) {
       type$.legacy_ConnectRequest._as(object);
-      return H.setRuntimeTypeInfo(["appId", serializers.serialize$2$specifiedType(object.appId, C.FullType_aZ8), "instanceId", serializers.serialize$2$specifiedType(object.instanceId, C.FullType_aZ8)], type$.JSArray_legacy_Object);
+      return H.setRuntimeTypeInfo(["appId", serializers.serialize$2$specifiedType(object.appId, C.FullType_aZ8), "instanceId", serializers.serialize$2$specifiedType(object.instanceId, C.FullType_aZ8), "entrypointPath", serializers.serialize$2$specifiedType(object.entrypointPath, C.FullType_aZ8)], type$.JSArray_legacy_Object);
     },
     serialize$2: function(serializers, object) {
       return this.serialize$3$specifiedType(serializers, object, C.FullType_null_List_empty);
@@ -20725,6 +20727,10 @@
             t1 = H._asStringS(serializers.deserialize$2$specifiedType(value, C.FullType_aZ8));
             result.get$_$this()._instanceId = t1;
             break;
+          case "entrypointPath":
+            t1 = H._asStringS(serializers.deserialize$2$specifiedType(value, C.FullType_aZ8));
+            result.get$_$this()._entrypointPath = t1;
+            break;
         }
       }
       return result.build$0();
@@ -20743,20 +20749,22 @@
   };
   E._$ConnectRequest.prototype = {
     $eq: function(_, other) {
+      var _this = this;
       if (other == null)
         return false;
-      if (other === this)
+      if (other === _this)
         return true;
-      return other instanceof E.ConnectRequest && this.appId == other.appId && this.instanceId == other.instanceId;
+      return other instanceof E.ConnectRequest && _this.appId == other.appId && _this.instanceId == other.instanceId && _this.entrypointPath == other.entrypointPath;
     },
     get$hashCode: function(_) {
-      return Y.$jf(Y.$jc(Y.$jc(0, J.get$hashCode$(this.appId)), J.get$hashCode$(this.instanceId)));
+      return Y.$jf(Y.$jc(Y.$jc(Y.$jc(0, J.get$hashCode$(this.appId)), J.get$hashCode$(this.instanceId)), J.get$hashCode$(this.entrypointPath)));
     },
     toString$0: function(_) {
       var t1 = $.$get$newBuiltValueToStringHelper().call$1("ConnectRequest"),
         t2 = J.getInterceptor$ax(t1);
       t2.add$2(t1, "appId", this.appId);
       t2.add$2(t1, "instanceId", this.instanceId);
+      t2.add$2(t1, "entrypointPath", this.entrypointPath);
       return t2.toString$0(t1);
     }
   };
@@ -20767,22 +20775,26 @@
       if (t1 != null) {
         _this._appId = t1.appId;
         _this._instanceId = t1.instanceId;
+        _this._entrypointPath = t1.entrypointPath;
         _this._$v = null;
       }
       return _this;
     },
     build$0: function() {
-      var t1, t2, _this = this,
+      var t1, t2, t3, _this = this,
         _s14_ = "ConnectRequest",
         _$result = _this._$v;
       if (_$result == null) {
         t1 = _this.get$_$this()._appId;
         t2 = _this.get$_$this()._instanceId;
-        _$result = new E._$ConnectRequest(t1, t2);
+        t3 = _this.get$_$this()._entrypointPath;
+        _$result = new E._$ConnectRequest(t1, t2, t3);
         if (t1 == null)
           H.throwExpression(Y.BuiltValueNullFieldError$(_s14_, "appId"));
         if (t2 == null)
           H.throwExpression(Y.BuiltValueNullFieldError$(_s14_, "instanceId"));
+        if (t3 == null)
+          H.throwExpression(Y.BuiltValueNullFieldError$(_s14_, "entrypointPath"));
       }
       return _this._$v = _$result;
     }
@@ -22505,6 +22517,8 @@
       b.get$_$this()._appId = t1;
       t1 = H._asStringS(self.$dartAppInstanceId);
       b.get$_$this()._instanceId = t1;
+      t1 = H._asStringS(self.$dartEntrypointPath);
+      b.get$_$this()._entrypointPath = t1;
       return b;
     },
     $signature: 65

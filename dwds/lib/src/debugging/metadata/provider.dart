@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import '../../../dwds.dart';
 import '../../debugging/execution_context.dart';
 import '../../debugging/remote_debugger.dart';
 import '../../loaders/strategy.dart';
@@ -11,13 +12,45 @@ import '../../utilities/shared.dart';
 
 /// Provider of DDC meta data for a compiled application.
 abstract class MetadataProvider {
+  /// A list of all libraries in the Dart application.
+  ///
+  /// Example:
+  ///
+  ///  [
+  ///     dart:web_gl,
+  ///     dart:math,
+  ///     org-dartlang-app:///web/main.dart
+  ///  ]
+  ///
   Future<List<String>> get libraries;
 
   /// A map of script to corresponding parts.
+  ///
+  /// Example:
+  ///
+  /// {
+  ///   org-dartlang-app:///web/main.dart :
+  ///     [
+  ///       org-dartlang-app:///web/a.part.dart,
+  ///       org-dartlang-app:///web/b.part.dart,
+  ///     ]
+  ///  }
+  ///
   Future<Map<String, List<String>>> get scripts;
 
   /// A map of script to containing module.
+  ///
+  /// Example:
+  ///
+  /// {
+  ///   org-dartlang-app:///web/main.dart :
+  ///   web/main
+  /// }
+  ///
   Future<Map<String, String>> get scriptToModule;
+
+  /// Initializes the provider for the given Dart application entrypoint.
+  Future<void> initialize(String entrypointPath);
 }
 
 /// A provider of meta data in which data is collected from the running
@@ -111,10 +144,20 @@ class ChromeMetadataProvider implements MetadataProvider {
     }
     return scripts;
   }
+
+  @override
+  Future<void> initialize(String entrypointPath) async {
+    // This is a no-op as the necessary information is already contained in the
+    // running Dart application.
+  }
 }
 
 /// A provider of metadata in which data is collected through DDC outputs.
 class FileMetadataProvider implements MetadataProvider {
+  final AssetReader _assetReader;
+
+  FileMetadataProvider(this._assetReader);
+
   @override
   Future<List<String>> get libraries => throw UnimplementedError();
 
@@ -123,4 +166,15 @@ class FileMetadataProvider implements MetadataProvider {
 
   @override
   Future<Map<String, List<String>>> get scripts => throw UnimplementedError();
+
+  @override
+  Future<void> initialize(String entrypointPath) async {
+    // The merged metadata resides next to the entrypoint.
+    var serverPath =
+        entrypointPath.replaceAll('.app.bootstrap.js', '.merged_metadata');
+    var contents = await _assetReader.metadataContents(serverPath);
+    print(contents);
+    // TODO(grouma) - parse the contents.
+    throw UnimplementedError();
+  }
 }
