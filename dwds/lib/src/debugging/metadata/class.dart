@@ -48,10 +48,6 @@ class ClassMetaData {
   /// Returns null if the [remoteObject] is not a Dart class.
   static Future<ClassMetaData> metaDataFor(RemoteDebugger remoteDebugger,
       RemoteObject remoteObject, AppInspector inspector) async {
-    // TODO: We should cache ClassRef info based on remoteObject.className. This
-    // would save ~one call per JS property, and significantly reduce the work
-    // to populate JS frames.
-
     try {
       var evalExpression = '''
       function(arg) {
@@ -60,9 +56,9 @@ class ClassMetaData {
         const isFunction = sdkUtils.AbstractFunctionType.is(classObject);
         const result = {};
         result['name'] = isFunction ? 'Function' : classObject.name;
+        result['libraryId'] = sdkUtils.getLibraryUri(classObject);
         result['dartName'] = sdkUtils.typeName(classObject);
         result['length'] = arg['length'];
-        result['libraryId'] = sdkUtils.getLibraryUri(classObject);
         return result;
       }
     ''';
@@ -71,10 +67,11 @@ class ClassMetaData {
           returnByValue: true);
       var metadata = result.value as Map;
       return ClassMetaData(
-          jsName: metadata['name'],
-          libraryId: metadata['libraryId'],
-          dartName: metadata['dartName'],
-          length: metadata['length']);
+        jsName: metadata['name'],
+        libraryId: metadata['libraryId'],
+        dartName: metadata['dartName'],
+        length: metadata['length'],
+      );
     } on ChromeDebugException {
       return null;
     }
