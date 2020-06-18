@@ -206,7 +206,9 @@ class RequireRestarter implements Restarter {
         }
       }
       print('$reloadedModules module(s) were hot-reloaded.');
-      runMain();
+      Future.delayed(Duration(seconds: 1), () {
+        runMain();
+      });
       _running.complete(true);
     } on HotReloadFailedException catch (e) {
       print('Error during script reloading. Firing full page reload. $e');

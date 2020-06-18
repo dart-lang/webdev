@@ -3836,6 +3836,11 @@
       P.scheduleMicrotask(new P.Future_Future$microtask_closure(result, computation));
       return result;
     },
+    Future_Future$delayed: function(duration, computation, $T) {
+      var result = new P._Future($.Zone__current, $T._eval$1("_Future<0>"));
+      P.Timer_Timer(duration, new P.Future_Future$delayed_closure(computation, result, $T));
+      return result;
+    },
     _completeWithErrorCallback: function(result, error, stackTrace) {
       var replacement = $.Zone__current.errorCallback$2(error, stackTrace);
       if (replacement != null) {
@@ -4317,6 +4322,11 @@
     Future_Future$microtask_closure: function Future_Future$microtask_closure(t0, t1) {
       this.result = t0;
       this.computation = t1;
+    },
+    Future_Future$delayed_closure: function Future_Future$delayed_closure(t0, t1, t2) {
+      this.computation = t0;
+      this.result = t1;
+      this.T = t2;
     },
     _Completer: function _Completer() {
     },
@@ -5680,6 +5690,11 @@
       if (n >= 10)
         return "" + n;
       return "0" + n;
+    },
+    Duration$: function(microseconds, seconds) {
+      if (typeof microseconds !== "number")
+        return H.iae(microseconds);
+      return new P.Duration(1000000 * seconds + microseconds);
     },
     Error_safeToString: function(object) {
       if (typeof object == "number" || H._isBool(object) || null == object)
@@ -8622,6 +8637,8 @@
     RequireRestarter__reload_closure: function RequireRestarter__reload_closure(t0) {
       this.childModule = t0;
     },
+    RequireRestarter__reload_closure0: function RequireRestarter__reload_closure0() {
+    },
     RequireRestarter__reloadModule_closure: function RequireRestarter__reloadModule_closure(t0) {
       this.completer = t0;
     },
@@ -11035,6 +11052,25 @@
         s = H.getTraceFromException(exception);
         P._completeWithErrorCallback(this.result, e, s);
       }
+    },
+    "call*": "call$0",
+    $requiredArgCount: 0,
+    $signature: 1
+  };
+  P.Future_Future$delayed_closure.prototype = {
+    call$0: function() {
+      var e, s, exception, _this = this,
+        t1 = _this.computation;
+      if (t1 == null)
+        _this.result._complete$1(null);
+      else
+        try {
+          _this.result._complete$1(t1.call$0());
+        } catch (exception) {
+          e = H.unwrapException(exception);
+          s = H.getTraceFromException(exception);
+          P._completeWithErrorCallback(_this.result, e, s);
+        }
     },
     "call*": "call$0",
     $requiredArgCount: 0,
@@ -20176,10 +20212,7 @@
       return this.serialize$3$specifiedType(serializers, duration, C.FullType_null_List_empty);
     },
     deserialize$3$specifiedType: function(serializers, serialized, specifiedType) {
-      H._asIntS(serialized);
-      if (typeof serialized !== "number")
-        return H.iae(serialized);
-      return new P.Duration(serialized);
+      return P.Duration$(H._asIntS(serialized), 0);
     },
     deserialize$2: function(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, C.FullType_null_List_empty);
@@ -22895,7 +22928,7 @@
             case 11:
               // after for
               P.print(H.S(reloadedModules) + " module(s) were hot-reloaded.");
-              V.runMain();
+              P.Future_Future$delayed(P.Duration$(0, 1), new X.RequireRestarter__reload_closure0(), type$.Null);
               $async$self._running.complete$1(0, true);
               $async$handler = 2;
               // goto after finally
@@ -22972,6 +23005,12 @@
     },
     "call*": "call$0",
     $requiredArgCount: 0,
+    $signature: 1
+  };
+  X.RequireRestarter__reload_closure0.prototype = {
+    call$0: function() {
+      V.runMain();
+    },
     $signature: 1
   };
   X.RequireRestarter__reloadModule_closure.prototype = {
@@ -23145,7 +23184,7 @@
     _inheritMany(H._CastIterableBase, [H.CastIterable, H.__CastListBase__CastIterableBase_ListMixin]);
     _inherit(H._EfficientLengthCastIterable, H.CastIterable);
     _inherit(H._CastListBase, H.__CastListBase__CastIterableBase_ListMixin);
-    _inheritMany(H.Closure, [H._CastListBase_sort_closure, H.CastMap_forEach_closure, H.ConstantMap_map_closure, H.Primitives_functionNoSuchMethod_closure, H.TearOffClosure, H.JsLinkedHashMap_addAll_closure, H.initHooks_closure, H.initHooks_closure0, H.initHooks_closure1, P._AsyncRun__initializeScheduleImmediate_internalCallback, P._AsyncRun__initializeScheduleImmediate_closure, P._AsyncRun__scheduleImmediateJsOverride_internalCallback, P._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, P._TimerImpl_internalCallback, P._TimerImpl$periodic_closure, P._awaitOnObject_closure, P._awaitOnObject_closure0, P._wrapJsFunctionForAsync_closure, P.Future_Future$microtask_closure, P._Future__addListener_closure, P._Future__prependListeners_closure, P._Future__chainForeignFuture_closure, P._Future__chainForeignFuture_closure0, P._Future__chainForeignFuture_closure1, P._Future__asyncCompleteWithValue_closure, P._Future__chainFuture_closure, P._Future__asyncCompleteError_closure, P._Future__propagateToListeners_handleWhenCompleteCallback, P._Future__propagateToListeners_handleWhenCompleteCallback_closure, P._Future__propagateToListeners_handleValueCallback, P._Future__propagateToListeners_handleError, P.Stream_length_closure, P.Stream_length_closure0, P.Stream_first_closure, P.Stream_first_closure0, P._StreamController__subscribe_closure, P._StreamController__recordCancel_complete, P._BufferingStreamSubscription__sendError_sendError, P._BufferingStreamSubscription__sendDone_sendDone, P._PendingEvents_schedule_closure, P._cancelAndValue_closure, P._CustomZone_bindCallback_closure, P._CustomZone_bindUnaryCallback_closure, P._CustomZone_bindCallbackGuarded_closure, P._CustomZone_bindUnaryCallbackGuarded_closure, P._rootHandleUncaughtError_closure, P._RootZone_bindCallback_closure, P._RootZone_bindCallbackGuarded_closure, P._RootZone_bindUnaryCallbackGuarded_closure, P.runZoned_closure, P.runZonedGuarded_closure, P._HashMap_addAll_closure, P._CustomHashMap_closure, P._CustomHashSet_closure, P.LinkedHashMap_LinkedHashMap$from_closure, P.MapBase_mapToString_closure, P.SplayTreeSet_closure, P._JsonMap_addAll_closure, P._JsonStringifier_writeMap_closure, P._symbolMapToStringMap_closure, P.NoSuchMethodError_toString_closure, P._BigIntImpl_hashCode_combine, P._BigIntImpl_hashCode_finish, P._BigIntImpl_toDouble_readBits, P._BigIntImpl_toDouble_roundUp, P.Duration_toString_sixDigits, P.Duration_toString_twoDigits, P.Uri__parseIPv4Address_error, P.Uri_parseIPv6Address_error, P.Uri_parseIPv6Address_parseHex, P._createTables_closure, P._createTables_build, P._createTables_setChars, P._createTables_setRange, W.Element_Element$html_closure, W.HttpRequest_request_closure, W.MidiInputMap_keys_closure, W.MidiOutputMap_keys_closure, W.RtcStatsReport_keys_closure, W.Storage_addAll_closure, W.Storage_keys_closure, W._AttributeMap_addAll_closure, W._EventStreamSubscription_closure, W._EventStreamSubscription_onData_closure, W.NodeValidatorBuilder_allowsElement_closure, W.NodeValidatorBuilder_allowsAttribute_closure, W._SimpleNodeValidator_closure, W._SimpleNodeValidator_closure0, W._TemplatingNodeValidator_closure, W._ValidatingTreeSanitizer_sanitizeTree_walk, P._AcceptStructuredClone_walk_closure, P.convertDartToNative_Dictionary_closure, P._convertToJS_closure, P._convertToJS_closure0, P._wrapToDart_closure, P._wrapToDart_closure0, P._wrapToDart_closure1, P.promiseToFuture_closure, P.promiseToFuture_closure0, P.AudioParamMap_keys_closure, M.BuiltListMultimap_BuiltListMultimap_closure, M.BuiltListMultimap_hashCode_closure, M.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.MapBuilder_replace_closure, A.MapBuilder_replace_closure0, L.BuiltSet_hashCode_closure, E.BuiltSetMultimap_hashCode_closure, E.SetMultimapBuilder_replace_closure, Y.closure, U.Serializers_Serializers_closure, U.Serializers_Serializers_closure0, U.Serializers_Serializers_closure1, U.Serializers_Serializers_closure2, U.Serializers_Serializers_closure3, R.BuiltListMultimapSerializer_serialize_closure, R.BuiltListMultimapSerializer_deserialize_closure, K.BuiltListSerializer_serialize_closure, K.BuiltListSerializer_deserialize_closure, R.BuiltSetMultimapSerializer_serialize_closure, R.BuiltSetMultimapSerializer_deserialize_closure, O.BuiltSetSerializer_serialize_closure, O.BuiltSetSerializer_deserialize_closure, K.closure1, L.stronglyConnectedComponents_strongConnect, F.Logger_Logger_closure, X.hashObjects_closure, M.SseClient_closure, M.SseClient_closure0, M.SseClient__closure, D.main_closure, D.main__closure, D.main__closure0, D.main___closure, D.main__closure1, D.main__closure2, D.main__closure3, D.main__closure4, D.main_closure0, Z.LegacyRestarter_restart_closure, S.toPromise_closure, X.RequireRestarter__reload_closure, X.RequireRestarter__reloadModule_closure, X.RequireRestarter__reloadModule_closure0, V.closure0, V._closure, V._closure0]);
+    _inheritMany(H.Closure, [H._CastListBase_sort_closure, H.CastMap_forEach_closure, H.ConstantMap_map_closure, H.Primitives_functionNoSuchMethod_closure, H.TearOffClosure, H.JsLinkedHashMap_addAll_closure, H.initHooks_closure, H.initHooks_closure0, H.initHooks_closure1, P._AsyncRun__initializeScheduleImmediate_internalCallback, P._AsyncRun__initializeScheduleImmediate_closure, P._AsyncRun__scheduleImmediateJsOverride_internalCallback, P._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, P._TimerImpl_internalCallback, P._TimerImpl$periodic_closure, P._awaitOnObject_closure, P._awaitOnObject_closure0, P._wrapJsFunctionForAsync_closure, P.Future_Future$microtask_closure, P.Future_Future$delayed_closure, P._Future__addListener_closure, P._Future__prependListeners_closure, P._Future__chainForeignFuture_closure, P._Future__chainForeignFuture_closure0, P._Future__chainForeignFuture_closure1, P._Future__asyncCompleteWithValue_closure, P._Future__chainFuture_closure, P._Future__asyncCompleteError_closure, P._Future__propagateToListeners_handleWhenCompleteCallback, P._Future__propagateToListeners_handleWhenCompleteCallback_closure, P._Future__propagateToListeners_handleValueCallback, P._Future__propagateToListeners_handleError, P.Stream_length_closure, P.Stream_length_closure0, P.Stream_first_closure, P.Stream_first_closure0, P._StreamController__subscribe_closure, P._StreamController__recordCancel_complete, P._BufferingStreamSubscription__sendError_sendError, P._BufferingStreamSubscription__sendDone_sendDone, P._PendingEvents_schedule_closure, P._cancelAndValue_closure, P._CustomZone_bindCallback_closure, P._CustomZone_bindUnaryCallback_closure, P._CustomZone_bindCallbackGuarded_closure, P._CustomZone_bindUnaryCallbackGuarded_closure, P._rootHandleUncaughtError_closure, P._RootZone_bindCallback_closure, P._RootZone_bindCallbackGuarded_closure, P._RootZone_bindUnaryCallbackGuarded_closure, P.runZoned_closure, P.runZonedGuarded_closure, P._HashMap_addAll_closure, P._CustomHashMap_closure, P._CustomHashSet_closure, P.LinkedHashMap_LinkedHashMap$from_closure, P.MapBase_mapToString_closure, P.SplayTreeSet_closure, P._JsonMap_addAll_closure, P._JsonStringifier_writeMap_closure, P._symbolMapToStringMap_closure, P.NoSuchMethodError_toString_closure, P._BigIntImpl_hashCode_combine, P._BigIntImpl_hashCode_finish, P._BigIntImpl_toDouble_readBits, P._BigIntImpl_toDouble_roundUp, P.Duration_toString_sixDigits, P.Duration_toString_twoDigits, P.Uri__parseIPv4Address_error, P.Uri_parseIPv6Address_error, P.Uri_parseIPv6Address_parseHex, P._createTables_closure, P._createTables_build, P._createTables_setChars, P._createTables_setRange, W.Element_Element$html_closure, W.HttpRequest_request_closure, W.MidiInputMap_keys_closure, W.MidiOutputMap_keys_closure, W.RtcStatsReport_keys_closure, W.Storage_addAll_closure, W.Storage_keys_closure, W._AttributeMap_addAll_closure, W._EventStreamSubscription_closure, W._EventStreamSubscription_onData_closure, W.NodeValidatorBuilder_allowsElement_closure, W.NodeValidatorBuilder_allowsAttribute_closure, W._SimpleNodeValidator_closure, W._SimpleNodeValidator_closure0, W._TemplatingNodeValidator_closure, W._ValidatingTreeSanitizer_sanitizeTree_walk, P._AcceptStructuredClone_walk_closure, P.convertDartToNative_Dictionary_closure, P._convertToJS_closure, P._convertToJS_closure0, P._wrapToDart_closure, P._wrapToDart_closure0, P._wrapToDart_closure1, P.promiseToFuture_closure, P.promiseToFuture_closure0, P.AudioParamMap_keys_closure, M.BuiltListMultimap_BuiltListMultimap_closure, M.BuiltListMultimap_hashCode_closure, M.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.MapBuilder_replace_closure, A.MapBuilder_replace_closure0, L.BuiltSet_hashCode_closure, E.BuiltSetMultimap_hashCode_closure, E.SetMultimapBuilder_replace_closure, Y.closure, U.Serializers_Serializers_closure, U.Serializers_Serializers_closure0, U.Serializers_Serializers_closure1, U.Serializers_Serializers_closure2, U.Serializers_Serializers_closure3, R.BuiltListMultimapSerializer_serialize_closure, R.BuiltListMultimapSerializer_deserialize_closure, K.BuiltListSerializer_serialize_closure, K.BuiltListSerializer_deserialize_closure, R.BuiltSetMultimapSerializer_serialize_closure, R.BuiltSetMultimapSerializer_deserialize_closure, O.BuiltSetSerializer_serialize_closure, O.BuiltSetSerializer_deserialize_closure, K.closure1, L.stronglyConnectedComponents_strongConnect, F.Logger_Logger_closure, X.hashObjects_closure, M.SseClient_closure, M.SseClient_closure0, M.SseClient__closure, D.main_closure, D.main__closure, D.main__closure0, D.main___closure, D.main__closure1, D.main__closure2, D.main__closure3, D.main__closure4, D.main_closure0, Z.LegacyRestarter_restart_closure, S.toPromise_closure, X.RequireRestarter__reload_closure, X.RequireRestarter__reload_closure0, X.RequireRestarter__reloadModule_closure, X.RequireRestarter__reloadModule_closure0, V.closure0, V._closure, V._closure0]);
     _inherit(H.CastList, H._CastListBase);
     _inherit(P.MapBase, P.MapMixin);
     _inheritMany(P.MapBase, [H.CastMap, H.JsLinkedHashMap, P._HashMap, P._JsonMap, W._AttributeMap]);
