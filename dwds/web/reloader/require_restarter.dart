@@ -124,6 +124,7 @@ class RequireRestarter implements Restarter {
       _updateGraph();
       var result = await _reload(modulesToLoad);
       callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
+      runMain();
       return result;
     }
 
@@ -206,7 +207,6 @@ class RequireRestarter implements Restarter {
         }
       }
       print('$reloadedModules module(s) were hot-reloaded.');
-      runMain();
       _running.complete(true);
     } on HotReloadFailedException catch (e) {
       print('Error during script reloading. Firing full page reload. $e');

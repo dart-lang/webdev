@@ -22718,6 +22718,7 @@
               result = $async$result;
               t1 = self.$loadModuleConfig.call$1("dart_sdk").dart;
               t1.hotRestart.apply(t1, H.setRuntimeTypeInfo([], t2));
+              V.runMain();
               $async$returnValue = result;
               // goto return
               $async$goto = 1;
@@ -22895,7 +22896,6 @@
             case 11:
               // after for
               P.print(H.S(reloadedModules) + " module(s) were hot-reloaded.");
-              V.runMain();
               $async$self._running.complete$1(0, true);
               $async$handler = 2;
               // goto after finally
