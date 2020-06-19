@@ -1,7 +1,10 @@
-## 5.0.0-dev
+## 5.0.0
 
 - Have unimplemented VM service protocol methods return the RPC error
   'MethodNotFound' / `-32601`.
+- Fix an issue where the application main function was called before a
+  hot restart completed.
+- Breaking change `AssetReader` now requires a `metadataContents` implementation.
 
 ## 4.0.1
 
