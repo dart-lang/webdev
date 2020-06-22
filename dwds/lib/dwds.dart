@@ -85,6 +85,7 @@ class Dwds {
     LogWriter logWriter,
     bool verbose,
     UrlEncoder urlEncoder,
+    bool useFileProvider = false,
     // TODO(annagrin): make expressionCompiler argument required
     // [issue 881](https://github.com/dart-lang/webdev/issues/881)
     ExpressionCompiler expressionCompiler,
@@ -131,6 +132,8 @@ class Dwds {
       buildResults,
       devTools,
       assetReader,
+      loadStrategy,
+      useFileProvider,
       hostname,
       verbose,
       logWriter,

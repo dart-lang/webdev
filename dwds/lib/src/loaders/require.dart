@@ -214,6 +214,10 @@ if(!window.\$requireLoader) {
   }
 
   @override
+  Future<Map<String, String>> modules(String entrypoint) =>
+      _moduleProvider(entrypoint);
+
+  @override
   String moduleForServerPath(String serverPath) =>
       _moduleForServerPath(serverPath);
 

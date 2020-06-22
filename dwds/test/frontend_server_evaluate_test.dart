@@ -27,7 +27,9 @@ WipConnection get tabConnection => context.tabConnection;
 void main() {
   group('shared context with evaluation', () {
     setUpAll(() async {
-      await context.setUp(compilationMode: CompilationMode.frontendServer);
+      await context.setUp(
+          compilationMode: CompilationMode.frontendServer,
+          useFileMetadataProvider: true);
     });
 
     tearDownAll(() async {
@@ -160,7 +162,7 @@ void main() {
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
-      }, skip: 'Issue https://github.com/dart-lang/sdk/issues/41443');
+      });
 
       test('error', () async {
         var line = await context.findBreakpointLine(

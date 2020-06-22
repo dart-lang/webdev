@@ -360,4 +360,7 @@ class FakeStrategy implements LoadStrategy {
 
   @override
   String serverPathForAppUri(String appUri) => null;
+
+  @override
+  Future<Map<String, String>> modules(String entrypoint) => Future.value(null);
 }

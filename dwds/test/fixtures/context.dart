@@ -99,6 +99,7 @@ class TestContext {
       bool restoreBreakpoints,
       CompilationMode compilationMode,
       bool useFakeExpressionCompiler,
+      bool useFileMetadataProvider,
       LogWriter logWriter}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
@@ -108,6 +109,7 @@ class TestContext {
     waitToDebug ??= false;
     compilationMode ??= CompilationMode.buildDaemon;
     useFakeExpressionCompiler ??= false;
+    useFileMetadataProvider ??= false;
     logWriter ??= (Level level, String message) => printOnFailure(message);
 
     var systemTempDir = Directory.systemTemp;
@@ -231,6 +233,7 @@ class TestContext {
         assetHandler,
         assetReader,
         requireStrategy,
+        useFileMetadataProvider,
         pathToServe,
         buildResults,
         () async => connection,

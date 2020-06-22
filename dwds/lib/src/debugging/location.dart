@@ -227,6 +227,7 @@ class Locations {
   ///
   /// [module] refers to the JS path of a DDC module without the extension.
   Future<Set<Location>> _locationsForModule(String module) async {
+    if (module == null) return {};
     if (_moduleToLocations[module] != null) return _moduleToLocations[module];
     var result = <Location>{};
     if (module?.isEmpty ?? true) return _moduleToLocations[module] = result;
