@@ -20,6 +20,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../dwds.dart';
 import '../debugging/execution_context.dart';
+import '../debugging/metadata/provider.dart';
 import '../debugging/remote_debugger.dart';
 import '../readers/asset_reader.dart';
 import '../utilities/shared.dart';
@@ -129,6 +130,8 @@ class DebugService {
       ExecutionContext executionContext,
       String tabUrl,
       AssetReader assetReader,
+      LoadStrategy loadStrategy,
+      MetadataProvider metadataProvider,
       AppConnection appConnection,
       LogWriter logWriter,
       bool restoreBreakpoints,
@@ -141,6 +144,8 @@ class DebugService {
         remoteDebugger,
         tabUrl,
         assetReader,
+        loadStrategy,
+        metadataProvider,
         appConnection,
         logWriter,
         restoreBreakpoints,

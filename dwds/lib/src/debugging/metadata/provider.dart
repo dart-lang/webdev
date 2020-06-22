@@ -10,6 +10,8 @@ import '../../debugging/remote_debugger.dart';
 import '../../loaders/strategy.dart';
 import '../../utilities/shared.dart';
 
+import 'module_metadata.dart';
+
 /// Provider of DDC meta data for a compiled application.
 abstract class MetadataProvider {
   /// A list of all libraries in the Dart application.
@@ -155,26 +157,64 @@ class ChromeMetadataProvider implements MetadataProvider {
 /// A provider of metadata in which data is collected through DDC outputs.
 class FileMetadataProvider implements MetadataProvider {
   final AssetReader _assetReader;
+  final LoadStrategy _loadStrategy;
 
-  FileMetadataProvider(this._assetReader);
+  final List<String> _libraries = [];
+  final Map<String, String> _scriptToModule = {};
+  final Map<String, List<String>> _scripts = {};
 
-  @override
-  Future<List<String>> get libraries => throw UnimplementedError();
-
-  @override
-  Future<Map<String, String>> get scriptToModule => throw UnimplementedError();
-
-  @override
-  Future<Map<String, List<String>>> get scripts => throw UnimplementedError();
+  FileMetadataProvider(this._assetReader, this._loadStrategy);
 
   @override
-  Future<void> initialize(String entrypointPath) async {
+  Future<List<String>> get libraries {
+    return Future.value(_libraries);
+  }
+
+  @override
+  Future<Map<String, String>> get scriptToModule =>
+      Future.value(_scriptToModule);
+
+  @override
+  Future<Map<String, List<String>>> get scripts => Future.value(_scripts);
+
+  @override
+  Future<void> initialize(String entrypoint) async {
     // The merged metadata resides next to the entrypoint.
-    var serverPath =
-        entrypointPath.replaceAll('.app.bootstrap.js', '.merged_metadata');
-    var contents = await _assetReader.metadataContents(serverPath);
-    print(contents);
-    // TODO(grouma) - parse the contents.
-    throw UnimplementedError();
+    if (entrypoint.startsWith('.app.bootstrap.js')) {
+      var serverPath =
+          entrypoint.replaceAll('.app.bootstrap.js', '.merged_metadata');
+      var merged = await _assetReader.metadataContents(serverPath);
+      if (merged != null) {
+        // read merged metadata if exists
+        for (var contents in merged.split('\n')) {
+          _addMetadata(contents);
+        }
+      }
+    } else {
+      // otherwise, load metadata per module
+      var modules = await _loadStrategy.modules(entrypoint);
+      for (var modulePath in modules.values) {
+        var contents =
+            await _assetReader.metadataContents('$modulePath.js.metadata');
+        _addMetadata(contents);
+      }
+    }
+  }
+
+  void _addMetadata(String contents) {
+    if (contents == null) return;
+
+    var moduleJson = json.decode(contents);
+    var metadata = ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
+
+    for (var library in metadata.libraries.values) {
+      _libraries.add(library.importUri);
+      _scripts[library.importUri] = [];
+
+      _scriptToModule[library.importUri] = metadata.name;
+      for (var path in library.partUris) {
+        _scripts[library.importUri].add(path);
+      }
+    }
   }
 }
