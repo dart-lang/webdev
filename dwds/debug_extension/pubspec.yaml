@@ -15,6 +15,7 @@ dependencies:
   pedantic: ^1.5.0
   pub_semver: ^1.3.2
   sse: ^3.5.0
+  web_socket_channel: ^1.0.0
 
 dev_dependencies:
   webdev: ^2.0.0

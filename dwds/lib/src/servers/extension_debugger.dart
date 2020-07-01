@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../data/devtools_request.dart';
@@ -14,13 +13,14 @@ import '../../data/extension_request.dart';
 import '../../data/serializers.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
+import '../handlers/socket_connections.dart';
 import '../services/chrome_proxy_service.dart';
 
 /// A remote debugger backed by the Dart Debug Extension with an SSE connection.
 class ExtensionDebugger implements RemoteDebugger {
   /// A connection between the debugger and the background of
   /// Dart Debug Extension
-  final SseConnection sseConnection;
+  final SocketConnection sseConnection;
 
   /// A map from id to a completer associated with an [ExtensionRequest]
   final _completers = <int, Completer>{};

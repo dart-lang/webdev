@@ -19,6 +19,7 @@ import 'package:js/js_util.dart' as js_util;
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sse/client/sse_client.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 const _notADartAppAlert = 'No Dart application detected.'
     ' Your development server should inject metadata to indicate support for'
@@ -124,7 +125,7 @@ Future<bool> _tryAttach(int contextId, Tab tab) async {
     instanceId = e.result.value[2] as String;
     dwdsVersion = e.result.value[3] as String;
     _startSseClient(
-      extensionUri,
+      Uri.parse(extensionUri),
       appId,
       instanceId,
       contextId,
@@ -141,7 +142,7 @@ Future<bool> _tryAttach(int contextId, Tab tab) async {
 // Initiates a [DevToolsRequest], handles an [ExtensionRequest],
 // and sends an [ExtensionEvent].
 Future<void> _startSseClient(
-  String uri,
+  Uri uri,
   String appId,
   String instanceId,
   int contextId,
@@ -152,7 +153,9 @@ Future<void> _startSseClient(
   //
   // A debugger is detached if it is closed by user or the target is closed.
   var attached = true;
-  var client = SseClient(uri.toString());
+  var client = uri.isScheme('ws') || uri.isScheme('wss')
+      ? WebSocketClient(WebSocketChannel.connect(uri))
+      : SseSocketClient(SseClient(uri.toString()));
   int devToolsTab;
 
   var queue = _EventQueue(client, currentTab, attached, dwdsVersion);
@@ -263,7 +266,7 @@ class _EventQueue {
 
   static const _flushInterval = Duration(milliseconds: 250);
 
-  final SseClient _client;
+  final SocketClient _client;
   final Tab _currentTab;
   bool _attached;
   bool _supportsBatching;
@@ -435,3 +438,47 @@ external set onFakeClick(void Function() f);
 
 @JS('window.isDartDebugExtension')
 external set isDartDebugExtension(_);
+
+abstract class SocketClient {
+  StreamSink<dynamic> get sink;
+  Stream<String> get stream;
+  Stream<void> get onOpen;
+  void close();
+}
+
+class SseSocketClient extends SocketClient {
+  final SseClient _client;
+  SseSocketClient(this._client);
+
+  @override
+  StreamSink<dynamic> get sink => _client.sink;
+
+  @override
+  Stream<String> get stream => _client.stream;
+
+  @override
+  Stream<void> get onOpen => _client.onOpen;
+
+  @override
+  void close() => _client.close();
+}
+
+class WebSocketClient extends SocketClient {
+  final WebSocketChannel _channel;
+  final StreamController<void> _openStreamController = StreamController<void>();
+  WebSocketClient(this._channel) {
+    _openStreamController.add(null);
+  }
+
+  @override
+  StreamSink<dynamic> get sink => _channel.sink;
+  @override
+  Stream<String> get stream =>
+      _channel.stream.map((dynamic o) => o?.toString());
+
+  @override
+  Stream<void> get onOpen => _openStreamController.stream;
+
+  @override
+  void close() => _channel.sink.close();
+}

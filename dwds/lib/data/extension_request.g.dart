@@ -220,7 +220,7 @@ class _$BatchedEventsSerializer implements StructuredSerializer<BatchedEvents> {
           result.events.replace(serializers.deserialize(value,
                   specifiedType: const FullType(
                       BuiltList, const [const FullType(ExtensionEvent)]))
-              as BuiltList<Object>);
+              as BuiltList<dynamic>);
           break;
       }
     }
