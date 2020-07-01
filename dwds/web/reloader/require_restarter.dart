@@ -120,16 +120,15 @@ class RequireRestarter implements Restarter {
       }
     }
 
+    var result = true;
     if (modulesToLoad.isNotEmpty) {
       _updateGraph();
-      var result = await _reload(modulesToLoad);
-      callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
-      runMain();
-      return result;
+      result = await _reload(modulesToLoad);
     }
 
     callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
-    return true;
+    runMain();
+    return result;
   }
 
   List<String> _allModules() => keys(requireLoader.moduleParentsGraph);

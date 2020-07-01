@@ -1,3 +1,9 @@
+## 5.0.1
+
+- Ensure we run main on a hot restart request even if no modules were
+  updated. 
+
+
 ## 5.0.0
 
 - Have unimplemented VM service protocol methods return the RPC error
