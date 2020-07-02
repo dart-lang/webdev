@@ -148,7 +148,6 @@ class Dwds {
       urlEncoder,
       restoreBreakpoints,
       useSseForDebugProxy,
-      useSseForDebugBackend,
       serveDevTools,
       expressionCompiler,
       injected,

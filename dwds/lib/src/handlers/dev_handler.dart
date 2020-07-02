@@ -63,7 +63,6 @@ class DevHandler {
   final UrlEncoder _urlEncoder;
   final bool _restoreBreakpoints;
   final bool _useSseForDebugProxy;
-  final bool _useSseForDebugBackend;
   final bool _serveDevTools;
   final ExpressionCompiler _expressionCompiler;
   final DwdsInjector _injected;
@@ -87,7 +86,6 @@ class DevHandler {
       this._urlEncoder,
       this._restoreBreakpoints,
       this._useSseForDebugProxy,
-      this._useSseForDebugBackend,
       this._serveDevTools,
       this._expressionCompiler,
       this._injected) {
@@ -412,10 +410,9 @@ class DevHandler {
     _subs.add(_injected.devHandlerPaths.listen((devHandlerPath) async {
       var uri = Uri.parse(devHandlerPath);
       if (!_sseHandlers.containsKey(uri.path)) {
-        var handler = _useSseForDebugBackend
-            ? SseSocketHandler(
-                SseHandler(uri, keepAlive: const Duration(seconds: 30)))
-            : WebSocketSocketHandler();
+        // TODO(dantup): WS is not currently supported for injected client.
+        var handler = SseSocketHandler(
+            SseHandler(uri, keepAlive: const Duration(seconds: 30)));
         _sseHandlers[uri.path] = handler;
         var injectedConnections = handler.connections;
         while (await injectedConnections.hasNext) {
