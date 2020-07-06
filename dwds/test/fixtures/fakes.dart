@@ -4,20 +4,17 @@
 
 import 'dart:async';
 
-import 'package:async/src/stream_sink_transformer.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
+import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:sse/server/sse_handler.dart';
-import 'package:stream_channel/src/stream_channel_transformer.dart';
-import 'package:stream_channel/stream_channel.dart';
 import 'package:vm_service/vm_service.dart';
 
 /// A library of fake/stub implementations of our classes and their supporting
@@ -86,10 +83,7 @@ class FakeInspector extends Domain implements AppInspector {
   InstanceHelper get instanceHelper => InstanceHelper(null);
 }
 
-class FakeSseConnection implements SseConnection {
-  @override
-  StreamChannel<S> cast<S>() => null;
-
+class FakeSseConnection implements SseSocketConnection {
   /// A [StreamController] for incoming messages on SSE connection.
   final controllerIncoming = StreamController<String>();
 
@@ -97,41 +91,13 @@ class FakeSseConnection implements SseConnection {
   final controllerOutgoing = StreamController<String>();
 
   @override
-  StreamChannel<String> changeSink(
-          StreamSink<String> Function(StreamSink<String> sink) change) =>
-      null;
-
-  @override
-  StreamChannel<String> changeStream(
-          Stream<String> Function(Stream<String> stream) change) =>
-      null;
-
-  @override
   bool get isInKeepAlivePeriod => false;
-
-  @override
-  void pipe(StreamChannel<String> other) {}
 
   @override
   StreamSink<String> get sink => controllerOutgoing.sink;
 
   @override
   Stream<String> get stream => controllerIncoming.stream;
-
-  @override
-  StreamChannel<S> transform<S>(
-          StreamChannelTransformer<S, String> transformer) =>
-      null;
-
-  @override
-  StreamChannel<String> transformSink(
-          StreamSinkTransformer<String, String> transformer) =>
-      null;
-
-  @override
-  StreamChannel<String> transformStream(
-          StreamTransformer<String, String> transformer) =>
-      null;
 
   @override
   void shutdown() {}
