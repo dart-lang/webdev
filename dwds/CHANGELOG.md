@@ -2,6 +2,8 @@
 
 - Support using WebSockets for the debug backend by passing
   `useSseForDebugBackend: false` to `Dwds.start()`
+- Ensure we run main on a hot restart request even if no modules were
+  updated. 
 
 ## 5.0.0
 

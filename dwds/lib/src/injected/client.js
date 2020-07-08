@@ -22686,28 +22686,28 @@
                   C.JSArray_methods.add$1(modulesToLoad, t4);
                 }
               }
-              $async$goto = modulesToLoad.length !== 0 ? 7 : 8;
+              $async$goto = modulesToLoad.length !== 0 ? 7 : 9;
               break;
             case 7:
               // then
               $async$self._updateGraph$0();
-              $async$goto = 9;
+              $async$goto = 10;
               return P._asyncAwait($async$self._reload$1(modulesToLoad), $async$restart$0);
-            case 9:
+            case 10:
               // returning from await.
               result = $async$result;
-              t1 = self.$loadModuleConfig.call$1("dart_sdk").dart;
-              t1.hotRestart.apply(t1, H.setRuntimeTypeInfo([], t2));
-              V.runMain();
-              $async$returnValue = result;
-              // goto return
-              $async$goto = 1;
+              // goto join
+              $async$goto = 8;
               break;
+            case 9:
+              // else
+              result = true;
             case 8:
               // join
               t1 = self.$loadModuleConfig.call$1("dart_sdk").dart;
               t1.hotRestart.apply(t1, H.setRuntimeTypeInfo([], t2));
-              $async$returnValue = true;
+              V.runMain();
+              $async$returnValue = result;
               // goto return
               $async$goto = 1;
               break;
