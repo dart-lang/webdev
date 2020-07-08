@@ -1,3 +1,8 @@
+## 5.1.0-dev
+
+- Support using WebSockets for the debug backend by passing
+  `useSseForDebugBackend: false` to `Dwds.start()`
+
 ## 5.0.0
 
 - Have unimplemented VM service protocol methods return the RPC error
