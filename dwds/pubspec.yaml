@@ -1,6 +1,6 @@
 name: dwds
 # Every time this changes you need to run `pub run build_runner build`.
-version: 5.0.1
+version: 5.1.0-dev
 homepage: https://github.com/dart-lang/webdev/tree/master/dwds
 description: >-
   A service that proxies between the Chrome debug protocol and the Dart VM
