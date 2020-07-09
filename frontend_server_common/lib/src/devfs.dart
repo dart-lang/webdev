@@ -112,6 +112,7 @@ class WebDevFS {
     File codeFile;
     File manifestFile;
     File sourcemapFile;
+    File metadataFile;
     List<String> modules;
     try {
       var parentDirectory = fileSystem.directory(outputDirectoryPath);
@@ -121,7 +122,10 @@ class WebDevFS {
           parentDirectory.childFile('${compilerOutput.outputFilename}.json');
       sourcemapFile =
           parentDirectory.childFile('${compilerOutput.outputFilename}.map');
-      modules = assetServer.write(codeFile, manifestFile, sourcemapFile);
+      metadataFile = parentDirectory
+          .childFile('${compilerOutput.outputFilename}.metadata');
+      modules = assetServer.write(
+          codeFile, manifestFile, sourcemapFile, metadataFile);
     } on FileSystemException catch (err) {
       throw Exception('Failed to load recompiled sources:\n$err');
     }

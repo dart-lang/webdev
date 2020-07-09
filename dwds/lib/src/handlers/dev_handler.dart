@@ -23,6 +23,7 @@ import '../../dwds.dart';
 import '../connections/app_connection.dart';
 import '../connections/debug_connection.dart';
 import '../debugging/execution_context.dart';
+import '../debugging/metadata/provider.dart';
 import '../debugging/remote_debugger.dart';
 import '../debugging/webkit_debugger.dart';
 import '../dwds_vm_client.dart';
@@ -49,6 +50,8 @@ class DevHandler {
   final _injectedConnections = <SocketConnection>{};
   final DevTools _devTools;
   final AssetReader _assetReader;
+  final LoadStrategy _loadStrategy;
+  final bool _useFileProvider;
   final String _hostname;
   final _connectedApps = StreamController<AppConnection>.broadcast();
   final _servicesByAppId = <String, AppDebugServices>{};
@@ -79,6 +82,8 @@ class DevHandler {
       this.buildResults,
       this._devTools,
       this._assetReader,
+      this._loadStrategy,
+      this._useFileProvider,
       this._hostname,
       this._verbose,
       this._logWriter,
@@ -178,6 +183,10 @@ class DevHandler {
 
     var webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
+    var metadataProvider = _useFileProvider
+        ? FileMetadataProvider(_assetReader)
+        : ChromeMetadataProvider(webkitDebugger, executionContext);
+
     return DebugService.start(
       // We assume the user will connect to the debug service on the same
       // machine. This allows consumers of DWDS to provide a `hostname` for
@@ -188,6 +197,8 @@ class DevHandler {
       executionContext,
       appTab.url,
       _assetReader,
+      _loadStrategy,
+      metadataProvider,
       appConnection,
       _logWriter,
       _restoreBreakpoints,
@@ -454,12 +465,19 @@ class DevHandler {
       }
       var appId = devToolsRequest.appId;
       if (_servicesByAppId[appId] == null) {
+        var metadataProvider = _useFileProvider
+            ? FileMetadataProvider(_assetReader)
+            : ChromeMetadataProvider(
+                extensionDebugger, extensionDebugger.executionContext);
+
         var debugService = await DebugService.start(
             _hostname,
             extensionDebugger,
             extensionDebugger.executionContext,
             devToolsRequest.tabUrl,
             _assetReader,
+            _loadStrategy,
+            metadataProvider,
             connection,
             _logWriter,
             _restoreBreakpoints,

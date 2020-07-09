@@ -57,10 +57,10 @@ class TestAssetServer implements AssetReader {
 
   final String _root;
   final HttpServer _httpServer;
-  // If holding these in memory is too much overhead, this can be switched to a
-  // RandomAccessFile and read on demand.
   final Map<String, Uint8List> _files = <String, Uint8List>{};
   final Map<String, Uint8List> _sourcemaps = <String, Uint8List>{};
+  final Map<String, Uint8List> _metadata = <String, Uint8List>{};
+  String _mergedMetadata;
   // ignore: deprecated_member_use
   final Packages _packages;
   final InternetAddress internetAddress;
@@ -145,10 +145,12 @@ class TestAssetServer implements AssetReader {
   /// Update the in-memory asset server with the provided source and manifest files.
   ///
   /// Returns a list of updated modules.
-  List<String> write(File codeFile, File manifestFile, File sourcemapFile) {
+  List<String> write(
+      File codeFile, File manifestFile, File sourcemapFile, File metadataFile) {
     var modules = <String>[];
     var codeBytes = codeFile.readAsBytesSync();
     var sourcemapBytes = sourcemapFile.readAsBytesSync();
+    var metadataBytes = metadataFile.readAsBytesSync();
     var manifest =
         castStringKeyedMap(json.decode(manifestFile.readAsStringSync()));
     for (var filePath in manifest.keys) {
@@ -160,7 +162,10 @@ class TestAssetServer implements AssetReader {
       var codeOffsets = (offsets['code'] as List<dynamic>).cast<int>();
       var sourcemapOffsets =
           (offsets['sourcemap'] as List<dynamic>).cast<int>();
-      if (codeOffsets.length != 2 || sourcemapOffsets.length != 2) {
+      var metadataOffsets = (offsets['metadata'] as List<dynamic>).cast<int>();
+      if (codeOffsets.length != 2 ||
+          sourcemapOffsets.length != 2 ||
+          metadataOffsets.length != 2) {
         _printTrace('Invalid manifest byte offsets: $offsets');
         continue;
       }
@@ -191,8 +196,26 @@ class TestAssetServer implements AssetReader {
       );
       _sourcemaps['$filePath.map'] = sourcemapView;
 
+      var metadataStart = metadataOffsets[0];
+      var metadataEnd = metadataOffsets[1];
+      if (metadataStart < 0 || metadataEnd > metadataBytes.lengthInBytes) {
+        _printTrace('Invalid byte index: [$metadataStart, $metadataEnd]');
+        continue;
+      }
+      var metadataView = Uint8List.view(
+        metadataBytes.buffer,
+        metadataStart,
+        metadataEnd - metadataStart,
+      );
+      _metadata['$filePath.metadata'] = metadataView;
+
       modules.add(filePath);
     }
+
+    _mergedMetadata = _metadata.values
+        .map((Uint8List encoded) => utf8.decode(encoded))
+        .join('\n');
+
     return modules;
   }
 
@@ -248,9 +271,15 @@ class TestAssetServer implements AssetReader {
   }
 
   @override
-  Future<String> metadataContents(String serverPath) {
-    // TODO(grouma) - Implement the merged metadata reader.
-    throw UnimplementedError();
+  Future<String> metadataContents(String serverPath) async {
+    if (serverPath.endsWith('.ddc_merged_metadata')) {
+      return _mergedMetadata;
+    }
+    var path = '/$serverPath';
+    if (_metadata.containsKey(path)) {
+      return utf8.decode(_metadata[path]);
+    }
+    return null;
   }
 }
 

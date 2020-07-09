@@ -37,10 +37,6 @@ typedef StreamNotify = void Function(String streamId, Event event);
 /// This may be null during a hot restart or page refresh.
 typedef AppInspectorProvider = AppInspector Function();
 
-// TODO(grouma) - Make this configurable when the FileMetadataProvider is
-// complete.
-const _useFileProvider = false;
-
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
   /// Cache of all existing StreamControllers.
@@ -93,16 +89,17 @@ class ChromeProxyService implements VmServiceInterface {
   ExpressionEvaluator _expressionEvaluator;
 
   ChromeProxyService._(
-      this._vm,
-      this.uri,
-      this._assetReader,
-      this.remoteDebugger,
-      this._metadataProvider,
-      this._modules,
-      this._locations,
-      this._restoreBreakpoints,
-      this.executionContext,
-      this._logWriter) {
+    this._vm,
+    this.uri,
+    this._assetReader,
+    this.remoteDebugger,
+    this._metadataProvider,
+    this._modules,
+    this._locations,
+    this._restoreBreakpoints,
+    this.executionContext,
+    this._logWriter,
+  ) {
     _debuggerCompleter.complete(Debugger.create(
       remoteDebugger,
       _streamNotify,
@@ -118,6 +115,8 @@ class ChromeProxyService implements VmServiceInterface {
       RemoteDebugger remoteDebugger,
       String tabUrl,
       AssetReader assetReader,
+      LoadStrategy loadStrategy,
+      MetadataProvider metadataProvider,
       AppConnection appConnection,
       LogWriter logWriter,
       bool restoreBreakpoints,
@@ -136,9 +135,6 @@ class ChromeProxyService implements VmServiceInterface {
       pid: -1,
     );
 
-    var metadataProvider = _useFileProvider
-        ? FileMetadataProvider(assetReader)
-        : ChromeMetadataProvider(remoteDebugger, executionContext);
     var modules = Modules(metadataProvider, tabUrl);
     var locations = Locations(assetReader, modules, tabUrl);
     var service = ChromeProxyService._(
@@ -181,10 +177,10 @@ class ChromeProxyService implements VmServiceInterface {
     }
 
     _locations.clearCache();
+
     await _metadataProvider.initialize(appConnection.request.entrypointPath);
     _modules.initialize();
     (await _debugger).notifyPausedAtStart();
-
     _inspector = await AppInspector.initialize(
       appConnection,
       remoteDebugger,

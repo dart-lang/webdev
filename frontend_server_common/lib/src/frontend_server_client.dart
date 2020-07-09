@@ -18,26 +18,19 @@ import 'package:usage/uuid/uuid.dart';
 import 'package_map.dart';
 import 'utilities.dart';
 
-/// True iff debug mode
-bool get debugFrontendServer =>
-    Platform.environment['DWDS_DEBUG_FRONTEND_SERVER'] == 'true';
+/// Frontend server starter program to use in debug mode
+String get frontendServerStarter =>
+    Platform.environment['DWDS_DEBUG_FRONTEND_SERVER_STARTER'];
+
+/// Will send --verbose and --observe flags to the frontend server
+bool get debugFrontendServer => frontendServerStarter != null;
 
 /// In debug mode, path to frontend_server_starter.dart
 /// Otherwise, path to precompiled snapshot.
 /// In debug mode, frontend_server prints an observatory Uri to stderr.
-String get frontendServerExecutable {
-  if (debugFrontendServer) {
-    final starter = Platform.environment['DWDS_FRONTEND_SERVER_STARTER'];
-    if (starter == null) {
-      throw Exception('Debug mode - define DWDS_FRONTEND_SERVER_STARTER '
-          'environment variable to point to frontend_server_starter.dart');
-    }
-    return starter;
-  }
-  final snapshot =
-      p.join(dartSdkPath, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
-  return snapshot;
-}
+String get frontendServerExecutable =>
+    frontendServerStarter ??
+    p.join(dartSdkPath, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
 
 typedef CompilerMessageConsumer = void Function(String message,
     {StackTrace stackTrace});
@@ -538,6 +531,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
         platformDill,
       ],
       '--debugger-module-names',
+      '--experimental-emit-debug-metadata',
       if (debug) '--verbose'
     ];
 

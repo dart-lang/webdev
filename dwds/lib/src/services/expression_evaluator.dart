@@ -5,6 +5,7 @@
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../debugging/dart_scope.dart';
 import '../debugging/debugger.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
@@ -18,6 +19,7 @@ class ErrorKind {
 
   final String _kind;
   static const ErrorKind compilation = ErrorKind._('CompilationError');
+  static const ErrorKind type = ErrorKind._('TypeError');
   static const ErrorKind reference = ErrorKind._('ReferenceError');
   static const ErrorKind internal = ErrorKind._('InternalError');
   static const ErrorKind invalidInput = ErrorKind._('InvalidInputError');
@@ -73,6 +75,10 @@ class ExpressionEvaluator {
     // 1. get js scope and current JS location
 
     var jsFrame = _debugger.stackComputer.jsFrameForIndex(frameIndex);
+    if (jsFrame == null) {
+      return _createError(
+          ErrorKind.internal, 'No frame with index $frameIndex');
+    }
 
     var functionName = jsFrame.functionName;
     var jsLocation = JsLocation.fromZeroBased(jsFrame.location.scriptId,
@@ -121,6 +127,7 @@ class ExpressionEvaluator {
     for (var serverPath in modules.keys) {
       var module = modules[serverPath];
       var library = await _modules.libraryForSource(serverPath);
+
       var libraryPath = library.path;
       if (library.scheme == 'package') {
         libraryPath = libraryPath.split('/').skip(1).join('/');
@@ -128,14 +135,6 @@ class ExpressionEvaluator {
       var name = pathToJSIdentifier(libraryPath.replaceAll('.dart', ''));
       jsModules[name] = module;
     }
-
-    // Break up modules printing into lines so VSCode renderer does not choke
-    var debugModules =
-        (modules.keys.map((k) => '$k: ${modules[k]}')).join(',\n');
-    var debugJsModules =
-        (jsModules.keys.map((k) => '$k: ${jsModules[k]}')).join(',\n');
-    _printTrace('Expression evaluator: modules: $debugModules');
-    _printTrace('Expression evaluator: js modules: $debugJsModules');
 
     var compilationResult = await _compiler.compileExpressionToJs(
         isolateId,
@@ -190,6 +189,10 @@ class ExpressionEvaluator {
       if (error.startsWith('ReferenceError: ')) {
         error = error.replaceFirst('ReferenceError: ', '');
         return _createError(ErrorKind.reference, error);
+      }
+      if (error.startsWith('TypeError: ')) {
+        error = error.replaceFirst('TypeError: ', '');
+        return _createError(ErrorKind.type, error);
       }
     }
 
@@ -247,23 +250,14 @@ class ExpressionEvaluator {
       }
     }
 
-    var scopeChain = List<WipScope>.from(frame.getScopeChain()).reversed;
+    var scopeChain = filterScopes(frame).reversed;
 
     // skip library and main scope
-    var skip = true;
     for (var scope in scopeChain) {
       var scopeProperties =
           await _debugger.getProperties(scope.object.objectId);
 
-      if (!skip) {
-        collectVariables(scope.scope, scopeProperties);
-      } else {
-        // TODO(sdk/issues/40774) - This appears brittle.
-        var names = scopeProperties.map((element) => element.name).toSet();
-        if (names.contains('core') && names.contains('dart')) {
-          skip = false;
-        }
-      }
+      collectVariables(scope.scope, scopeProperties);
     }
 
     return jsScope;
