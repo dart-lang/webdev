@@ -16,10 +16,10 @@ services:
 jobs:
   include:
     - stage: analyzer_and_format
-      name: "SDK: 2.7.0; PKGS: dwds, example, frontend_server_common, webdev; TASKS: `dartanalyzer --fatal-warnings .`"
-      dart: "2.7.0"
+      name: "SDK: 2.8.0-dev.10.0; PKGS: dwds, example, webdev; TASKS: `dartanalyzer --fatal-warnings .`"
+      dart: "2.8.0-dev.10.0"
       os: linux
-      env: PKGS="dwds example frontend_server_common webdev"
+      env: PKGS="dwds example webdev"
       script: ./tool/travis.sh dartanalyzer_1
     - stage: analyzer_and_format
       name: "SDK: dev; PKG: dwds; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`, `pub run test test/build/ensure_version_test.dart`]"
@@ -40,20 +40,26 @@ jobs:
       env: PKGS="frontend_server_client"
       script: ./tool/travis.sh dartfmt dartanalyzer_0
     - stage: analyzer_and_format
+      name: "SDK: 2.7.0; PKG: frontend_server_common; TASKS: `dartanalyzer --fatal-warnings .`"
+      dart: "2.7.0"
+      os: linux
+      env: PKGS="frontend_server_common"
+      script: ./tool/travis.sh dartanalyzer_1
+    - stage: analyzer_and_format
       name: "SDK: dev; PKG: webdev; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`, `pub run test test/build/ensure_build_test.dart`]"
       dart: dev
       os: linux
       env: PKGS="webdev"
       script: ./tool/travis.sh dartfmt dartanalyzer_0 test_3
     - stage: unit_test
-      name: "SDK: 2.7.0; PKG: dwds; TASKS: `pub run test -x frontend-server`"
-      dart: "2.7.0"
+      name: "SDK: 2.8.0-dev.10.0; PKG: dwds; TASKS: `pub run test -x frontend-server`"
+      dart: "2.8.0-dev.10.0"
       os: linux
       env: PKGS="dwds"
       script: ./tool/travis.sh test_1
     - stage: unit_test
-      name: "SDK: 2.7.0; PKG: dwds; TASKS: `pub run test -x frontend-server`"
-      dart: "2.7.0"
+      name: "SDK: 2.8.0-dev.10.0; PKG: dwds; TASKS: `pub run test -x frontend-server`"
+      dart: "2.8.0-dev.10.0"
       os: windows
       env: PKGS="dwds"
       script: ./tool/travis.sh test_1
@@ -64,14 +70,14 @@ jobs:
       env: PKGS="dwds"
       script: ./tool/travis.sh test_2
     - stage: unit_test
-      name: "SDK: 2.7.0; PKG: webdev; TASKS: `pub run test -j 1`"
-      dart: "2.7.0"
+      name: "SDK: 2.8.0-dev.10.0; PKG: webdev; TASKS: `pub run test -j 1`"
+      dart: "2.8.0-dev.10.0"
       os: linux
       env: PKGS="webdev"
       script: ./tool/travis.sh test_4
     - stage: unit_test
-      name: "SDK: 2.7.0; PKG: webdev; TASKS: `pub run test -j 1`"
-      dart: "2.7.0"
+      name: "SDK: 2.8.0-dev.10.0; PKG: webdev; TASKS: `pub run test -j 1`"
+      dart: "2.8.0-dev.10.0"
       os: windows
       env: PKGS="webdev"
       script: ./tool/travis.sh test_4
