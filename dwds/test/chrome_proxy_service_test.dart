@@ -230,7 +230,7 @@ void main() {
       setUpAll(() async {
         var vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
-        bootstrap = isolate.libraries.last;
+        bootstrap = isolate.libraries.first;
       });
 
       group('top level methods', () {
@@ -356,8 +356,6 @@ void main() {
         expect(
             isolate.libraries,
             containsAll([
-              _libRef('dart:core'),
-              _libRef('dart:html'),
               _libRef('package:path/path.dart'),
               // TODO: library names change with kernel dart-lang/sdk#36736
               _libRef(endsWith('main.dart')),
@@ -379,7 +377,7 @@ void main() {
       setUpAll(() async {
         var vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
-        bootstrap = isolate.libraries.last;
+        bootstrap = isolate.libraries.first;
         rootLibrary =
             await service.getObject(isolate.id, bootstrap.id) as Library;
       });
@@ -900,7 +898,7 @@ void main() {
       setUp(() async {
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
-        bootstrap = isolate.libraries.last;
+        bootstrap = isolate.libraries.first;
         testInstance = await service.evaluate(
             isolate.id, bootstrap.id, 'myInstance') as InstanceRef;
       });
