@@ -177,6 +177,7 @@ class ChromeProxyService implements VmServiceInterface {
     }
 
     _locations.clearCache();
+
     await _metadataProvider.initialize(appConnection.request.entrypointPath);
     _modules.initialize();
     (await _debugger).notifyPausedAtStart();
@@ -190,6 +191,7 @@ class ChromeProxyService implements VmServiceInterface {
       await _debugger,
       executionContext,
     );
+
     for (var breakpoint in _previousBreakpoints) {
       var lineNumber = lineNumberFor(breakpoint);
       var oldRef = (breakpoint.location as SourceLocation).script;
