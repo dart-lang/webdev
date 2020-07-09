@@ -50,7 +50,6 @@ class DevHandler {
   final DevTools _devTools;
   final AssetReader _assetReader;
   final LoadStrategy _loadStrategy;
-  final bool _useFileProvider;
   final String _hostname;
   final _connectedApps = StreamController<AppConnection>.broadcast();
   final _servicesByAppId = <String, AppDebugServices>{};
@@ -82,7 +81,6 @@ class DevHandler {
       this._devTools,
       this._assetReader,
       this._loadStrategy,
-      this._useFileProvider,
       this._hostname,
       this._verbose,
       this._logWriter,
@@ -182,9 +180,7 @@ class DevHandler {
 
     var webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
-    var metadataProvider = _useFileProvider
-        ? FileMetadataProvider(_assetReader, _loadStrategy)
-        : ChromeMetadataProvider(webkitDebugger, executionContext);
+    var metadataProvider = FileMetadataProvider(_assetReader, _loadStrategy);
 
     return DebugService.start(
       // We assume the user will connect to the debug service on the same
@@ -462,10 +458,8 @@ class DevHandler {
       }
       var appId = devToolsRequest.appId;
       if (_servicesByAppId[appId] == null) {
-        var metadataProvider = _useFileProvider
-            ? FileMetadataProvider(_assetReader, _loadStrategy)
-            : ChromeMetadataProvider(
-                extensionDebugger, extensionDebugger.executionContext);
+        var metadataProvider =
+            FileMetadataProvider(_assetReader, _loadStrategy);
 
         var debugService = await DebugService.start(
             _hostname,

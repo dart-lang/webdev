@@ -1,3 +1,7 @@
+## 2.6.0
+
+- Require at least `build_web_compilers` version `2.12.0`.
+
 ## 2.5.9
 
 - Depend on the latest `package:dwds`.
