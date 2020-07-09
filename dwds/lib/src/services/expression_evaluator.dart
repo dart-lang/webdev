@@ -19,6 +19,7 @@ class ErrorKind {
 
   final String _kind;
   static const ErrorKind compilation = ErrorKind._('CompilationError');
+  static const ErrorKind type = ErrorKind._('TypeError');
   static const ErrorKind reference = ErrorKind._('ReferenceError');
   static const ErrorKind internal = ErrorKind._('InternalError');
   static const ErrorKind invalidInput = ErrorKind._('InvalidInputError');
@@ -188,6 +189,10 @@ class ExpressionEvaluator {
       if (error.startsWith('ReferenceError: ')) {
         error = error.replaceFirst('ReferenceError: ', '');
         return _createError(ErrorKind.reference, error);
+      }
+      if (error.startsWith('TypeError: ')) {
+        error = error.replaceFirst('TypeError: ', '');
+        return _createError(ErrorKind.type, error);
       }
     }
 

@@ -60,6 +60,7 @@ class TestAssetServer implements AssetReader {
   final Map<String, Uint8List> _files = <String, Uint8List>{};
   final Map<String, Uint8List> _sourcemaps = <String, Uint8List>{};
   final Map<String, Uint8List> _metadata = <String, Uint8List>{};
+  String _mergedMetadata;
   // ignore: deprecated_member_use
   final Packages _packages;
   final InternetAddress internetAddress;
@@ -210,6 +211,11 @@ class TestAssetServer implements AssetReader {
 
       modules.add(filePath);
     }
+
+    _mergedMetadata = _metadata.values
+        .map((Uint8List encoded) => utf8.decode(encoded))
+        .join('\n');
+
     return modules;
   }
 
@@ -266,6 +272,9 @@ class TestAssetServer implements AssetReader {
 
   @override
   Future<String> metadataContents(String serverPath) async {
+    if (serverPath.endsWith('.ddc_merged_metadata')) {
+      return _mergedMetadata;
+    }
     var path = '/$serverPath';
     if (_metadata.containsKey(path)) {
       return utf8.decode(_metadata[path]);

@@ -184,7 +184,7 @@ class DevHandler {
     var webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
     var metadataProvider = _useFileProvider
-        ? FileMetadataProvider(_assetReader, _loadStrategy)
+        ? FileMetadataProvider(_assetReader)
         : ChromeMetadataProvider(webkitDebugger, executionContext);
 
     return DebugService.start(
@@ -466,7 +466,7 @@ class DevHandler {
       var appId = devToolsRequest.appId;
       if (_servicesByAppId[appId] == null) {
         var metadataProvider = _useFileProvider
-            ? FileMetadataProvider(_assetReader, _loadStrategy)
+            ? FileMetadataProvider(_assetReader)
             : ChromeMetadataProvider(
                 extensionDebugger, extensionDebugger.executionContext);
 

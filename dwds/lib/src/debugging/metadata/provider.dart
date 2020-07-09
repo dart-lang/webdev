@@ -157,13 +157,12 @@ class ChromeMetadataProvider implements MetadataProvider {
 /// A provider of metadata in which data is collected through DDC outputs.
 class FileMetadataProvider implements MetadataProvider {
   final AssetReader _assetReader;
-  final LoadStrategy _loadStrategy;
 
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
   final Map<String, List<String>> _scripts = {};
 
-  FileMetadataProvider(this._assetReader, this._loadStrategy);
+  FileMetadataProvider(this._assetReader);
 
   @override
   Future<List<String>> get libraries {
@@ -180,23 +179,16 @@ class FileMetadataProvider implements MetadataProvider {
   @override
   Future<void> initialize(String entrypoint) async {
     // The merged metadata resides next to the entrypoint.
-    if (entrypoint.startsWith('.app.bootstrap.js')) {
+    // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
+    if (entrypoint.endsWith('.bootstrap.js')) {
       var serverPath =
-          entrypoint.replaceAll('.app.bootstrap.js', '.merged_metadata');
+          entrypoint.replaceAll('.bootstrap.js', '.ddc_merged_metadata');
       var merged = await _assetReader.metadataContents(serverPath);
       if (merged != null) {
         // read merged metadata if exists
         for (var contents in merged.split('\n')) {
           _addMetadata(contents);
         }
-      }
-    } else {
-      // otherwise, load metadata per module
-      var modules = await _loadStrategy.modules(entrypoint);
-      for (var modulePath in modules.values) {
-        var contents =
-            await _assetReader.metadataContents('$modulePath.js.metadata');
-        _addMetadata(contents);
       }
     }
   }
