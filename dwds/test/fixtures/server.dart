@@ -97,6 +97,7 @@ class TestServer {
       chromeConnection: chromeConnection,
       logWriter: logWriter,
       loadStrategy: strategy,
+      useFileProvider: useFileProvider,
       serveDevTools: serveDevTools,
       enableDebugExtension: enableDebugExtension,
       enableDebugging: enableDebugging,
