@@ -16,10 +16,10 @@ services:
 jobs:
   include:
     - stage: analyzer_and_format
-      name: "SDK: 2.8.0-dev.10.0; PKGS: dwds, example, webdev; TASKS: `dartanalyzer --fatal-warnings .`"
+      name: "SDK: 2.8.0-dev.10.0; PKGS: dwds, example, frontend_server_common, webdev; TASKS: `dartanalyzer --fatal-warnings .`"
       dart: "2.8.0-dev.10.0"
       os: linux
-      env: PKGS="dwds example webdev"
+      env: PKGS="dwds example frontend_server_common webdev"
       script: ./tool/travis.sh dartanalyzer_1
     - stage: analyzer_and_format
       name: "SDK: dev; PKG: dwds; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`, `pub run test test/build/ensure_version_test.dart`]"
@@ -34,17 +34,11 @@ jobs:
       env: PKGS="example frontend_server_common"
       script: ./tool/travis.sh dartfmt dartanalyzer_0
     - stage: analyzer_and_format
-      name: "SDK: 2.7.0; PKG: frontend_server_client; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
-      dart: "2.7.0"
+      name: "SDK: 2.8.0-dev.10.0; PKG: frontend_server_client; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
+      dart: "2.8.0-dev.10.0"
       os: linux
       env: PKGS="frontend_server_client"
       script: ./tool/travis.sh dartfmt dartanalyzer_0
-    - stage: analyzer_and_format
-      name: "SDK: 2.7.0; PKG: frontend_server_common; TASKS: `dartanalyzer --fatal-warnings .`"
-      dart: "2.7.0"
-      os: linux
-      env: PKGS="frontend_server_common"
-      script: ./tool/travis.sh dartanalyzer_1
     - stage: analyzer_and_format
       name: "SDK: dev; PKG: webdev; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`, `pub run test test/build/ensure_build_test.dart`]"
       dart: dev
