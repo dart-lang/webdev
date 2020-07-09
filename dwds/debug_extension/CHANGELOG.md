@@ -1,3 +1,7 @@
+## 1.13
+
+- Add support for using WebSockets for connection debug backend.
+
 ## 1.12
 
 - Update error message to potentially direct users to enable debugging.

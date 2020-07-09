@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
+import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'data/build_result.dart';
@@ -14,6 +15,7 @@ import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injector.dart';
+import 'src/handlers/socket_connections.dart';
 import 'src/loaders/strategy.dart';
 import 'src/readers/asset_reader.dart';
 import 'src/servers/devtools.dart';
@@ -24,6 +26,7 @@ import 'src/utilities/shared.dart';
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
+export 'src/handlers/socket_connections.dart';
 export 'src/loaders/build_runner_require.dart'
     show BuildRunnerRequireStrategyProvider;
 export 'src/loaders/legacy.dart' show LegacyStrategy;
@@ -81,6 +84,7 @@ class Dwds {
     bool enableDebugExtension,
     String hostname,
     bool useSseForDebugProxy,
+    bool useSseForDebugBackend,
     bool serveDevTools,
     LogWriter logWriter,
     bool verbose,
@@ -94,6 +98,7 @@ class Dwds {
     enableDebugging ??= true;
     enableDebugExtension ??= false;
     useSseForDebugProxy ??= true;
+    useSseForDebugBackend ??= true;
     serveDevTools ??= true;
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
@@ -104,9 +109,14 @@ class Dwds {
     String extensionUri;
     ExtensionBackend extensionBackend;
     if (enableDebugExtension) {
-      extensionBackend = await ExtensionBackend.start(hostname);
+      final handler = useSseForDebugBackend
+          ? SseSocketHandler(SseHandler(Uri.parse('/\$debug'),
+              keepAlive: const Duration(seconds: 30)))
+          : WebSocketSocketHandler();
+
+      extensionBackend = await ExtensionBackend.start(handler, hostname);
       extensionUri = Uri(
-              scheme: 'http',
+              scheme: useSseForDebugBackend ? 'http' : 'ws',
               host: extensionBackend.hostname,
               port: extensionBackend.port,
               path: r'$debug')

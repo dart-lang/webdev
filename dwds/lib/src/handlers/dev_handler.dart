@@ -27,6 +27,7 @@ import '../debugging/metadata/provider.dart';
 import '../debugging/remote_debugger.dart';
 import '../debugging/webkit_debugger.dart';
 import '../dwds_vm_client.dart';
+import '../handlers/socket_connections.dart';
 import '../readers/asset_reader.dart';
 import '../servers/devtools.dart';
 import '../servers/extension_backend.dart';
@@ -45,8 +46,8 @@ const _enableLogging = false;
 /// opening DevTools.
 class DevHandler {
   final _subs = <StreamSubscription>[];
-  final _sseHandlers = <String, SseHandler>{};
-  final _injectedConnections = <SseConnection>{};
+  final _sseHandlers = <String, SocketHandler>{};
+  final _injectedConnections = <SocketConnection>{};
   final DevTools _devTools;
   final AssetReader _assetReader;
   final LoadStrategy _loadStrategy;
@@ -248,7 +249,7 @@ class DevHandler {
     return _servicesByAppId[appId];
   }
 
-  void _handleConnection(SseConnection injectedConnection) {
+  void _handleConnection(SocketConnection injectedConnection) {
     _injectedConnections.add(injectedConnection);
     AppConnection appConnection;
     injectedConnection.stream.listen((data) async {
@@ -308,7 +309,7 @@ class DevHandler {
   }
 
   Future<void> _handleDebugRequest(
-      AppConnection appConnection, SseConnection sseConnection) async {
+      AppConnection appConnection, SocketConnection sseConnection) async {
     if (_devTools == null) {
       sseConnection.sink
           .add(jsonEncode(serializers.serialize(DevToolsResponse((b) => b
@@ -368,7 +369,7 @@ class DevHandler {
   }
 
   Future<AppConnection> _handleConnectRequest(
-      ConnectRequest message, SseConnection sseConnection) async {
+      ConnectRequest message, SocketConnection sseConnection) async {
     // After a page refresh, reconnect to the same app services if they
     // were previously launched and create the new isolate.
     var services = _servicesByAppId[message.appId];
@@ -406,7 +407,7 @@ class DevHandler {
   }
 
   Future<void> _handleIsolateStart(
-      AppConnection appConnection, SseConnection sseConnection) async {
+      AppConnection appConnection, SocketConnection sseConnection) async {
     await _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
         ?.createIsolate(appConnection);
@@ -416,7 +417,9 @@ class DevHandler {
     _subs.add(_injected.devHandlerPaths.listen((devHandlerPath) async {
       var uri = Uri.parse(devHandlerPath);
       if (!_sseHandlers.containsKey(uri.path)) {
-        var handler = SseHandler(uri, keepAlive: const Duration(seconds: 30));
+        // TODO(dantup): WS is not currently supported for injected client.
+        var handler = SseSocketHandler(
+            SseHandler(uri, keepAlive: const Duration(seconds: 30)));
         _sseHandlers[uri.path] = handler;
         var injectedConnections = handler.connections;
         while (await injectedConnections.hasNext) {

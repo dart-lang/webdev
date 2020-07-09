@@ -4717,9 +4717,6 @@
     LinkedHashSet_LinkedHashSet: function($E) {
       return new P._LinkedHashSet($E._eval$1("_LinkedHashSet<0>"));
     },
-    LinkedHashSet_LinkedHashSet$_empty: function($E) {
-      return new P._LinkedHashSet($E._eval$1("_LinkedHashSet<0>"));
-    },
     _LinkedHashSet__newHashTable: function() {
       var table = Object.create(null);
       table["<non-identifier-key>"] = table;
@@ -7861,13 +7858,12 @@
       }
     },
     _BuiltListMultimap$copyAndCheck: function(keys, lookup, $K, $V) {
-      var t1 = $K._eval$1("0*"),
-        t2 = P.LinkedHashMap_LinkedHashMap$_empty(t1, $V._eval$1("BuiltList<0*>*")),
-        t3 = $V._eval$1("0*"),
-        t4 = new M._BuiltListMultimap(t2, S.BuiltList_BuiltList$from(C.List_empty0, t3), $K._eval$1("@<0>")._bind$1($V)._eval$1("_BuiltListMultimap<1,2>"));
-      t4.BuiltListMultimap$_$1(t2, t1, t3);
-      t4._BuiltListMultimap$copyAndCheck$2(keys, lookup, $K, $V);
-      return t4;
+      var t1 = new H.JsLinkedHashMap($K._eval$1("@<0*>")._bind$1($V._eval$1("BuiltList<0*>*"))._eval$1("JsLinkedHashMap<1,2>")),
+        t2 = $V._eval$1("0*"),
+        t3 = new M._BuiltListMultimap(t1, S.BuiltList_BuiltList$from(C.List_empty0, t2), $K._eval$1("@<0>")._bind$1($V)._eval$1("_BuiltListMultimap<1,2>"));
+      t3.BuiltListMultimap$_$1(t1, $K._eval$1("0*"), t2);
+      t3._BuiltListMultimap$copyAndCheck$2(keys, lookup, $K, $V);
+      return t3;
     },
     ListMultimapBuilder_ListMultimapBuilder: function($K, $V) {
       var t1 = $K._eval$1("@<0*>")._bind$1($V._eval$1("0*")),
@@ -7953,7 +7949,7 @@
     },
     SseClient$: function(serverUrl) {
       var t1 = type$.legacy_String;
-      t1 = new M.SseClient(P.StreamController_StreamController(t1), P.StreamController_StreamController(t1), F.Logger_Logger("SseClient"), P.StreamController_StreamController(type$.dynamic));
+      t1 = new M.SseClient(P.StreamController_StreamController(t1), P.StreamController_StreamController(t1), N.Logger_Logger("SseClient"), P.StreamController_StreamController(type$.dynamic));
       t1.SseClient$1(serverUrl);
       return t1;
     },
@@ -7987,13 +7983,12 @@
       }
     },
     _BuiltMap$copyAndCheckTypes: function(keys, lookup, $K, $V) {
-      var t1 = $K._eval$1("0*"),
-        t2 = $V._eval$1("0*"),
-        t3 = P.LinkedHashMap_LinkedHashMap$_empty(t1, t2),
-        t4 = new A._BuiltMap(null, t3, $K._eval$1("@<0>")._bind$1($V)._eval$1("_BuiltMap<1,2>"));
-      t4.BuiltMap$_$2(null, t3, t1, t2);
-      t4._BuiltMap$copyAndCheckTypes$2(keys, lookup, $K, $V);
-      return t4;
+      var t1 = $V._eval$1("0*"),
+        t2 = new H.JsLinkedHashMap($K._eval$1("@<0*>")._bind$1(t1)._eval$1("JsLinkedHashMap<1,2>")),
+        t3 = new A._BuiltMap(null, t2, $K._eval$1("@<0>")._bind$1($V)._eval$1("_BuiltMap<1,2>"));
+      t3.BuiltMap$_$2(null, t2, $K._eval$1("0*"), t1);
+      t3._BuiltMap$copyAndCheckTypes$2(keys, lookup, $K, $V);
+      return t3;
     },
     MapBuilder_MapBuilder: function($K, $V) {
       var t1 = $K._eval$1("@<0*>")._bind$1($V._eval$1("0*")),
@@ -8084,7 +8079,7 @@
     },
     _BuiltSet$copyAndCheckTypes: function(iterable, $E) {
       var t1 = $E._eval$1("0*"),
-        t2 = P.LinkedHashSet_LinkedHashSet$_empty(t1),
+        t2 = P.LinkedHashSet_LinkedHashSet(t1),
         t3 = new L._BuiltSet(null, t2, $E._eval$1("_BuiltSet<0>"));
       t3.BuiltSet$_$2(null, t2, t1);
       t3._BuiltSet$copyAndCheckTypes$1(iterable, $E);
@@ -8149,11 +8144,6 @@
       _.edges = t5;
       _.result = t6;
       _.T = t7;
-    },
-    LogRecord: function LogRecord(t0, t1, t2) {
-      this.level = t0;
-      this.message = t1;
-      this.loggerName = t2;
     }
   },
   E = {
@@ -8256,10 +8246,6 @@
       _._typeNameToSerializer = t2;
       _._builderFactories = t3;
       _._plugins = t4;
-    },
-    Level: function Level(t0, t1) {
-      this.name = t0;
-      this.value = t1;
     }
   },
   U = {
@@ -8540,7 +8526,28 @@
       this.types = t0;
     }},
   N = {HexCodec: function HexCodec() {
-    }},
+    },
+    Logger_Logger: function($name) {
+      return $.Logger__loggers.putIfAbsent$2(0, $name, new N.Logger_Logger_closure($name));
+    },
+    Logger: function Logger(t0, t1, t2) {
+      this.name = t0;
+      this.parent = t1;
+      this._children = t2;
+    },
+    Logger_Logger_closure: function Logger_Logger_closure(t0) {
+      this.name = t0;
+    },
+    Level: function Level(t0, t1) {
+      this.name = t0;
+      this.value = t1;
+    },
+    LogRecord: function LogRecord(t0, t1, t2) {
+      this.level = t0;
+      this.message = t1;
+      this.loggerName = t2;
+    }
+  },
   X = {ErrorResponse: function ErrorResponse() {
     }, _$ErrorResponseSerializer: function _$ErrorResponseSerializer() {
     }, _$ErrorResponse: function _$ErrorResponse(t0, t1) {
@@ -8788,21 +8795,6 @@
       this.nonce = t0;
     }
   },
-  F = {
-    Logger_Logger: function($name) {
-      return $.Logger__loggers.putIfAbsent$2(0, $name, new F.Logger_Logger_closure($name));
-    },
-    Logger: function Logger(t0, t1, t2) {
-      var _ = this;
-      _.name = t0;
-      _.parent = t1;
-      _._level = null;
-      _._children = t2;
-    },
-    Logger_Logger_closure: function Logger_Logger_closure(t0) {
-      this.name = t0;
-    }
-  },
   T = {
     UuidUtil_mathRNG: function() {
       var b, rand, i,
@@ -8820,7 +8812,7 @@
       return b;
     }
   };
-  var holders = [C, H, J, P, W, S, M, A, L, E, Y, U, O, R, K, Z, D, Q, B, N, X, V, F, T];
+  var holders = [C, H, J, P, W, S, M, A, L, E, Y, U, O, R, K, Z, D, Q, B, N, X, V, T];
   hunkHelpers.setFunctionNamesIfNecessary(holders);
   var $ = {};
   H.JS_CONST.prototype = {};
@@ -18478,7 +18470,7 @@
           t2 = _this._list_multimap$_builderMap.$index(0, key);
           if (t2._listOwner == null) {
             t3 = t2._list;
-            t4 = H._instanceType(t2);
+            t4 = H.instanceType(t2);
             if (H.createRuntimeType(t4._eval$1("1*")) === C.Type_dynamic_0Rz)
               H.throwExpression(P.UnsupportedError$('explicit element type required, for example "new BuiltList<int>"'));
             t4 = t4._eval$1("_BuiltList<1*>*")._as(new S._BuiltList(t3, t4._eval$1("_BuiltList<1*>")));
@@ -18510,7 +18502,7 @@
         t2._as(multimap);
         _this.set$_list_multimap$_builtMapOwner(multimap);
         _this.set$_list_multimap$_builtMap(multimap.get$_list_multimap$_map());
-        _this.set$_list_multimap$_builderMap(P.LinkedHashMap_LinkedHashMap$_empty(t1._eval$1("1*"), t1._eval$1("ListBuilder<2*>*")));
+        _this.set$_list_multimap$_builderMap(new H.JsLinkedHashMap(t1._eval$1("@<1*>")._bind$1(t1._eval$1("ListBuilder<2*>*"))._eval$1("JsLinkedHashMap<1,2>")));
       } else
         _this._list_multimap$_setWithCopyAndCheck$2(multimap.get$keys(multimap), new M.ListMultimapBuilder_replace_closure(multimap));
     },
@@ -18544,20 +18536,20 @@
       var t1, t2, t3, t4, t5, key, t6, value, t7, t8, t9, t10, _this = this;
       _this.set$_list_multimap$_builtMapOwner(null);
       t1 = _this.$ti;
-      t2 = t1._eval$1("1*");
-      t3 = t1._eval$1("BuiltList<2*>*");
-      _this.set$_list_multimap$_builtMap(P.LinkedHashMap_LinkedHashMap$_empty(t2, t3));
-      _this.set$_list_multimap$_builderMap(P.LinkedHashMap_LinkedHashMap$_empty(t2, t1._eval$1("ListBuilder<2*>*")));
-      for (t4 = J.get$iterator$ax(keys), t5 = type$.legacy_Iterable_dynamic, t1 = t1._eval$1("2*"); t4.moveNext$0();) {
-        key = t4.get$current(t4);
-        if (t2._is(key))
-          for (t6 = J.get$iterator$ax(t5._as(lookup.call$1(key))); t6.moveNext$0();) {
+      t2 = t1._eval$1("BuiltList<2*>*");
+      t3 = t1._eval$1("@<1*>");
+      _this.set$_list_multimap$_builtMap(new H.JsLinkedHashMap(t3._bind$1(t2)._eval$1("JsLinkedHashMap<1,2>")));
+      _this.set$_list_multimap$_builderMap(new H.JsLinkedHashMap(t3._bind$1(t1._eval$1("ListBuilder<2*>*"))._eval$1("JsLinkedHashMap<1,2>")));
+      for (t3 = J.get$iterator$ax(keys), t4 = type$.legacy_Iterable_dynamic, t5 = t1._eval$1("2*"), t1 = t1._eval$1("1*"); t3.moveNext$0();) {
+        key = t3.get$current(t3);
+        if (t1._is(key))
+          for (t6 = J.get$iterator$ax(t4._as(lookup.call$1(key))); t6.moveNext$0();) {
             value = t6.get$current(t6);
-            if (t1._is(value)) {
-              t2._as(key);
-              t1._as(value);
+            if (t5._is(value)) {
+              t1._as(key);
+              t5._as(value);
               if (_this._list_multimap$_builtMapOwner != null) {
-                _this.set$_list_multimap$_builtMap(P.LinkedHashMap_LinkedHashMap$from(_this._list_multimap$_builtMap, t2, t3));
+                _this.set$_list_multimap$_builtMap(P.LinkedHashMap_LinkedHashMap$from(_this._list_multimap$_builtMap, t1, t2));
                 _this.set$_list_multimap$_builtMapOwner(null);
               }
               if (key == null)
@@ -18774,7 +18766,8 @@
     },
     _createMap$0: function() {
       var t1 = this.$ti;
-      return P.LinkedHashMap_LinkedHashMap$_empty(t1._eval$1("1*"), t1._eval$1("2*"));
+      t1 = new H.JsLinkedHashMap(t1._eval$1("@<1*>")._bind$1(t1._eval$1("2*"))._eval$1("JsLinkedHashMap<1,2>"));
+      return t1;
     },
     set$_map$_map: function(_map) {
       this._map$_map = this.$ti._eval$1("Map<1*,2*>*")._as(_map);
@@ -18945,7 +18938,8 @@
       return _this._set$_set;
     },
     _createSet$0: function() {
-      return P.LinkedHashSet_LinkedHashSet$_empty(this.$ti._eval$1("1*"));
+      var t1 = P.LinkedHashSet_LinkedHashSet(this.$ti._eval$1("1*"));
+      return t1;
     },
     _checkElements$1: function(elements) {
       var t2,
@@ -19055,7 +19049,7 @@
           if (t2._setOwner == null) {
             t3 = t2._setFactory;
             t4 = t2._set$_set;
-            t5 = H._instanceType(t2);
+            t5 = H.instanceType(t2);
             if (H.createRuntimeType(t5._eval$1("1*")) === C.Type_dynamic_0Rz)
               H.throwExpression(P.UnsupportedError$('explicit element type required, for example "new BuiltSet<int>"'));
             t2.set$_setOwner(new L._BuiltSet(t3, t4, t5._eval$1("_BuiltSet<1*>")));
@@ -19086,7 +19080,7 @@
         t2._as(multimap);
         _this.set$_builtMapOwner(multimap);
         _this.set$_builtMap(multimap.get$_set_multimap$_map());
-        _this.set$_builderMap(P.LinkedHashMap_LinkedHashMap$_empty(t1._eval$1("1*"), t1._eval$1("SetBuilder<2*>*")));
+        _this.set$_builderMap(new H.JsLinkedHashMap(t1._eval$1("@<1*>")._bind$1(t1._eval$1("SetBuilder<2*>*"))._eval$1("JsLinkedHashMap<1,2>")));
       } else
         _this._setWithCopyAndCheck$2(multimap.get$keys(multimap), new E.SetMultimapBuilder_replace_closure(multimap));
     },
@@ -19112,20 +19106,20 @@
       var t1, t2, t3, t4, t5, key, t6, value, t7, t8, _this = this;
       _this.set$_builtMapOwner(null);
       t1 = _this.$ti;
-      t2 = t1._eval$1("1*");
-      t3 = t1._eval$1("BuiltSet<2*>*");
-      _this.set$_builtMap(P.LinkedHashMap_LinkedHashMap$_empty(t2, t3));
-      _this.set$_builderMap(P.LinkedHashMap_LinkedHashMap$_empty(t2, t1._eval$1("SetBuilder<2*>*")));
-      for (t4 = J.get$iterator$ax(keys), t5 = type$.legacy_Iterable_dynamic, t1 = t1._eval$1("2*"); t4.moveNext$0();) {
-        key = t4.get$current(t4);
-        if (t2._is(key))
-          for (t6 = J.get$iterator$ax(t5._as(lookup.call$1(key))); t6.moveNext$0();) {
+      t2 = t1._eval$1("BuiltSet<2*>*");
+      t3 = t1._eval$1("@<1*>");
+      _this.set$_builtMap(new H.JsLinkedHashMap(t3._bind$1(t2)._eval$1("JsLinkedHashMap<1,2>")));
+      _this.set$_builderMap(new H.JsLinkedHashMap(t3._bind$1(t1._eval$1("SetBuilder<2*>*"))._eval$1("JsLinkedHashMap<1,2>")));
+      for (t3 = J.get$iterator$ax(keys), t4 = type$.legacy_Iterable_dynamic, t5 = t1._eval$1("2*"), t1 = t1._eval$1("1*"); t3.moveNext$0();) {
+        key = t3.get$current(t3);
+        if (t1._is(key))
+          for (t6 = J.get$iterator$ax(t4._as(lookup.call$1(key))); t6.moveNext$0();) {
             value = t6.get$current(t6);
-            if (t1._is(value)) {
-              t2._as(key);
-              t1._as(value);
+            if (t5._is(value)) {
+              t1._as(key);
+              t5._as(value);
               if (_this._builtMapOwner != null) {
-                _this.set$_builtMap(P.LinkedHashMap_LinkedHashMap$from(_this._builtMap, t2, t3));
+                _this.set$_builtMap(P.LinkedHashMap_LinkedHashMap$from(_this._builtMap, t1, t2));
                 _this.set$_builtMapOwner(null);
               }
               if (key == null)
@@ -21296,7 +21290,7 @@
       var t1, t2, t3, t4, t5, t6, key, value, t7, t8, t9, t10,
         result = new S.BatchedEventsBuilder(),
         iterator = J.get$iterator$ax(type$.legacy_Iterable_legacy_Object._as(serialized));
-      for (t1 = type$.legacy_BuiltList_legacy_Object, t2 = type$.legacy_ExtensionEvent, t3 = type$.legacy_List_legacy_ExtensionEvent, t4 = type$.legacy__BuiltList_legacy_ExtensionEvent, t5 = t4._is(C.List_empty0), t6 = type$.ListBuilder_legacy_ExtensionEvent; iterator.moveNext$0();) {
+      for (t1 = type$.legacy_BuiltList_dynamic, t2 = type$.legacy_ExtensionEvent, t3 = type$.legacy_List_legacy_ExtensionEvent, t4 = type$.legacy__BuiltList_legacy_ExtensionEvent, t5 = t4._is(C.List_empty0), t6 = type$.ListBuilder_legacy_ExtensionEvent; iterator.moveNext$0();) {
         key = H._asStringS(iterator.get$current(iterator));
         iterator.moveNext$0();
         value = iterator.get$current(iterator);
@@ -21906,11 +21900,57 @@
       return this.T._eval$1("~(0*)");
     }
   };
-  Y.Level.prototype = {
+  N.Logger.prototype = {
+    get$fullName: function() {
+      var t1 = this.parent,
+        t2 = t1 == null || t1.name === "",
+        t3 = this.name;
+      return t2 ? t3 : t1.get$fullName() + "." + t3;
+    },
+    get$level: function(_) {
+      return C.Level_INFO_800;
+    },
+    log$4: function(logLevel, message, error, stackTrace) {
+      var t1 = logLevel.value;
+      if (t1 >= this.get$level(this).value) {
+        if (t1 >= 2000) {
+          P.StackTrace_current();
+          logLevel.toString$0(0);
+        }
+        t1 = this.get$fullName();
+        Date.now();
+        $.LogRecord__nextNumber = $.LogRecord__nextNumber + 1;
+        $.$get$Logger_root()._publish$1(new N.LogRecord(logLevel, message, t1));
+      }
+    },
+    _publish$1: function(record) {
+    }
+  };
+  N.Logger_Logger_closure.prototype = {
+    call$0: function() {
+      var dot, $parent, t1,
+        thisName = this.name;
+      if (C.JSString_methods.startsWith$1(thisName, "."))
+        H.throwExpression(P.ArgumentError$("name shouldn't start with a '.'"));
+      dot = C.JSString_methods.lastIndexOf$1(thisName, ".");
+      if (dot === -1)
+        $parent = thisName !== "" ? N.Logger_Logger("") : null;
+      else {
+        $parent = N.Logger_Logger(C.JSString_methods.substring$2(thisName, 0, dot));
+        thisName = C.JSString_methods.substring$1(thisName, dot + 1);
+      }
+      t1 = new N.Logger(thisName, $parent, new H.JsLinkedHashMap(type$.JsLinkedHashMap_of_legacy_String_and_legacy_Logger));
+      if ($parent != null)
+        $parent._children.$indexSet(0, thisName, t1);
+      return t1;
+    },
+    $signature: 57
+  };
+  N.Level.prototype = {
     $eq: function(_, other) {
       if (other == null)
         return false;
-      return other instanceof Y.Level && this.value === other.value;
+      return other instanceof N.Level && this.value === other.value;
     },
     $gt: function(_, other) {
       type$.legacy_Level._as(other);
@@ -21930,70 +21970,10 @@
     },
     $isComparable: 1
   };
-  L.LogRecord.prototype = {
+  N.LogRecord.prototype = {
     toString$0: function(_) {
       return "[" + this.level.name + "] " + this.loggerName + ": " + H.S(this.message);
     }
-  };
-  F.Logger.prototype = {
-    get$fullName: function() {
-      var t1 = this.parent,
-        t2 = t1 == null || t1.name === "",
-        t3 = this.name;
-      return t2 ? t3 : t1.get$fullName() + "." + t3;
-    },
-    get$level: function(_) {
-      var effectiveLevel, t1;
-      if (this.parent == null)
-        effectiveLevel = this._level;
-      else {
-        t1 = $.$get$Logger_root();
-        effectiveLevel = t1._level;
-      }
-      return effectiveLevel;
-    },
-    log$4: function(logLevel, message, error, stackTrace) {
-      var record, _this = this,
-        t1 = logLevel.value;
-      if (t1 >= _this.get$level(_this).value) {
-        if (t1 >= 2000) {
-          P.StackTrace_current();
-          logLevel.toString$0(0);
-        }
-        t1 = _this.get$fullName();
-        Date.now();
-        $.LogRecord__nextNumber = $.LogRecord__nextNumber + 1;
-        record = new L.LogRecord(logLevel, message, t1);
-        if (_this.parent == null)
-          _this._publish$1(record);
-        else
-          $.$get$Logger_root()._publish$1(record);
-      }
-    },
-    _publish$1: function(record) {
-    }
-  };
-  F.Logger_Logger_closure.prototype = {
-    call$0: function() {
-      var dot, $parent, t1,
-        thisName = this.name;
-      if (C.JSString_methods.startsWith$1(thisName, "."))
-        H.throwExpression(P.ArgumentError$("name shouldn't start with a '.'"));
-      dot = C.JSString_methods.lastIndexOf$1(thisName, ".");
-      if (dot === -1)
-        $parent = thisName !== "" ? F.Logger_Logger("") : null;
-      else {
-        $parent = F.Logger_Logger(C.JSString_methods.substring$2(thisName, 0, dot));
-        thisName = C.JSString_methods.substring$1(thisName, dot + 1);
-      }
-      t1 = new F.Logger(thisName, $parent, P.LinkedHashMap_LinkedHashMap$_empty(type$.legacy_String, type$.legacy_Logger));
-      if ($parent == null)
-        t1._level = C.Level_INFO_800;
-      else
-        $parent._children.$indexSet(0, thisName, t1);
-      return t1;
-    },
-    $signature: 57
   };
   X.hashObjects_closure.prototype = {
     call$2: function(h, i) {
@@ -22706,28 +22686,28 @@
                   C.JSArray_methods.add$1(modulesToLoad, t4);
                 }
               }
-              $async$goto = modulesToLoad.length !== 0 ? 7 : 8;
+              $async$goto = modulesToLoad.length !== 0 ? 7 : 9;
               break;
             case 7:
               // then
               $async$self._updateGraph$0();
-              $async$goto = 9;
+              $async$goto = 10;
               return P._asyncAwait($async$self._reload$1(modulesToLoad), $async$restart$0);
-            case 9:
+            case 10:
               // returning from await.
               result = $async$result;
-              t1 = self.$loadModuleConfig.call$1("dart_sdk").dart;
-              t1.hotRestart.apply(t1, H.setRuntimeTypeInfo([], t2));
-              V.runMain();
-              $async$returnValue = result;
-              // goto return
-              $async$goto = 1;
+              // goto join
+              $async$goto = 8;
               break;
+            case 9:
+              // else
+              result = true;
             case 8:
               // join
               t1 = self.$loadModuleConfig.call$1("dart_sdk").dart;
               t1.hotRestart.apply(t1, H.setRuntimeTypeInfo([], t2));
-              $async$returnValue = true;
+              V.runMain();
+              $async$returnValue = result;
               // goto return
               $async$goto = 1;
               break;
@@ -23136,7 +23116,7 @@
       _inherit = hunkHelpers.inherit,
       _inheritMany = hunkHelpers.inheritMany;
     _inherit(P.Object, null);
-    _inheritMany(P.Object, [H.JS_CONST, J.Interceptor, J.JSObject, J.ArrayIterator, P.Iterable, H.CastIterator, H.Closure, P.MapMixin, P.Error, H.ListIterator, P.Iterator, H.EmptyIterator, H.FixedLengthListMixin, H.UnmodifiableListMixin, P._ListBase_Object_ListMixin, H.Symbol, P.MapView, H.ConstantMap, H.JSInvocationMirror, H.TypeErrorDecoder, H.NullThrownFromJavaScriptException, H.ExceptionAndStackTrace, H._StackTrace, H._Required, H.LinkedHashMapCell, H.LinkedHashMapKeyIterator, H.JSSyntaxRegExp, H._MatchImplementation, H.Rti, H._FunctionParameters, H._Type, P._TimerImpl, P._AsyncAwaitCompleter, P.Future, P._Completer, P._FutureListener, P._Future, P._AsyncCallbackEntry, P.Stream, P.StreamSubscription, P.StreamTransformerBase, P._StreamController, P._AsyncStreamControllerDispatch, P._BufferingStreamSubscription, P._StreamSinkWrapper, P._DelayedEvent, P._DelayedDone, P._PendingEvents, P._StreamIterator, P.Timer, P.AsyncError, P._ZoneFunction, P._RunNullaryZoneFunction, P._RunUnaryZoneFunction, P._RunBinaryZoneFunction, P._RegisterNullaryZoneFunction, P._RegisterUnaryZoneFunction, P._RegisterBinaryZoneFunction, P.ZoneSpecification, P._ZoneSpecification, P.ZoneDelegate, P.Zone, P._ZoneDelegate, P._Zone, P._HashMapKeyIterator, P._SetBase, P._HashSetIterator, P._LinkedHashSetCell, P._LinkedHashSetIterator, P.IterableMixin, P.ListMixin, P._UnmodifiableMapMixin, P._ListQueueIterator, P.SetMixin, P._SplayTreeNode, P._SplayTree, P._SplayTreeIterator, P.Codec, P._JsonStringifier, P._BigIntImpl, P.BigInt, P.bool, P.DateTime, P.num, P.Duration, P.OutOfMemoryError, P.StackOverflowError, P._Exception, P.FormatException, P.IntegerDivisionByZeroException, P.Function, P.List, P.Map, P.MapEntry, P.Null, P.RegExp, P.StackTrace, P._StringStackTrace, P.String, P.StringBuffer, P.Symbol0, P.Type, P.Uri, P._Uri, P.UriData, P._SimpleUri, W.CssStyleDeclarationBase, W.EventStreamProvider, W._Html5NodeValidator, W.ImmutableListMixin, W.NodeValidatorBuilder, W._SimpleNodeValidator, W._SvgNodeValidator, W.FixedSizeListIterator, W._DOMWindowCrossFrame, W.NodeValidator, W._SameOriginUriPolicy, W._ValidatingTreeSanitizer, P._AcceptStructuredClone, P.JsObject, P._JSRandom, P._RectangleBase, P.ByteBuffer, P.ByteData, P.Int8List, P.Uint8List, P.Uint8ClampedList, P.Int16List, P.Uint16List, P.Int32List, P.Uint32List, P.Float32List, P.Float64List, S.BuiltList, S.ListBuilder, M.BuiltListMultimap, M.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, L.BuiltSet, L.SetBuilder, E.BuiltSetMultimap, E.SetMultimapBuilder, Y.EnumClass, Y.IndentingBuiltValueToStringHelper, A.JsonObject, U.SerializerPlugin, U.FullType, U.Serializer, O.BigIntSerializer, R.BoolSerializer, Y.BuiltJsonSerializers, Y.BuiltJsonSerializersBuilder, R.BuiltListMultimapSerializer, K.BuiltListSerializer, K.BuiltMapSerializer, R.BuiltSetMultimapSerializer, O.BuiltSetSerializer, Z.DateTimeSerializer, D.DoubleSerializer, K.DurationSerializer, Q.Int64Serializer, B.IntSerializer, O.JsonObjectSerializer, K.NumSerializer, K.RegExpSerializer, M.StringSerializer, O.UriSerializer, U.DefaultEquality, U.IterableEquality, U.ListEquality, U._UnorderedEquality, U._MapEntry, U.MapEquality, U.DeepCollectionEquality, Q.BuildResult, Q._$BuildStatusSerializer, Q._$BuildResultSerializer, Q.BuildResultBuilder, E.ConnectRequest, E._$ConnectRequestSerializer, E.ConnectRequestBuilder, M.DevToolsRequest, M.DevToolsResponse, M._$DevToolsRequestSerializer, M._$DevToolsResponseSerializer, M.DevToolsRequestBuilder, M.DevToolsResponseBuilder, X.ErrorResponse, X._$ErrorResponseSerializer, X.ErrorResponseBuilder, S.ExtensionRequest, S.ExtensionResponse, S.ExtensionEvent, S.BatchedEvents, S._$ExtensionRequestSerializer, S._$ExtensionResponseSerializer, S._$ExtensionEventSerializer, S._$BatchedEventsSerializer, S.ExtensionRequestBuilder, S.ExtensionResponseBuilder, S.ExtensionEventBuilder, S.BatchedEventsBuilder, M.IsolateExit, M.IsolateStart, M._$IsolateExitSerializer, M._$IsolateStartSerializer, M.IsolateExitBuilder, M.IsolateStartBuilder, A.RunRequest, A._$RunRequestSerializer, A.RunRequestBuilder, V.Int64, Y.Level, L.LogRecord, F.Logger, R.StreamChannelMixin, K.Uuid, Z.LegacyRestarter, Q.ReloadingManager, X.HotReloadFailedException, X.RequireRestarter]);
+    _inheritMany(P.Object, [H.JS_CONST, J.Interceptor, J.JSObject, J.ArrayIterator, P.Iterable, H.CastIterator, H.Closure, P.MapMixin, P.Error, H.ListIterator, P.Iterator, H.EmptyIterator, H.FixedLengthListMixin, H.UnmodifiableListMixin, P._ListBase_Object_ListMixin, H.Symbol, P.MapView, H.ConstantMap, H.JSInvocationMirror, H.TypeErrorDecoder, H.NullThrownFromJavaScriptException, H.ExceptionAndStackTrace, H._StackTrace, H._Required, H.LinkedHashMapCell, H.LinkedHashMapKeyIterator, H.JSSyntaxRegExp, H._MatchImplementation, H.Rti, H._FunctionParameters, H._Type, P._TimerImpl, P._AsyncAwaitCompleter, P.Future, P._Completer, P._FutureListener, P._Future, P._AsyncCallbackEntry, P.Stream, P.StreamSubscription, P.StreamTransformerBase, P._StreamController, P._AsyncStreamControllerDispatch, P._BufferingStreamSubscription, P._StreamSinkWrapper, P._DelayedEvent, P._DelayedDone, P._PendingEvents, P._StreamIterator, P.Timer, P.AsyncError, P._ZoneFunction, P._RunNullaryZoneFunction, P._RunUnaryZoneFunction, P._RunBinaryZoneFunction, P._RegisterNullaryZoneFunction, P._RegisterUnaryZoneFunction, P._RegisterBinaryZoneFunction, P.ZoneSpecification, P._ZoneSpecification, P.ZoneDelegate, P.Zone, P._ZoneDelegate, P._Zone, P._HashMapKeyIterator, P._SetBase, P._HashSetIterator, P._LinkedHashSetCell, P._LinkedHashSetIterator, P.IterableMixin, P.ListMixin, P._UnmodifiableMapMixin, P._ListQueueIterator, P.SetMixin, P._SplayTreeNode, P._SplayTree, P._SplayTreeIterator, P.Codec, P._JsonStringifier, P._BigIntImpl, P.BigInt, P.bool, P.DateTime, P.num, P.Duration, P.OutOfMemoryError, P.StackOverflowError, P._Exception, P.FormatException, P.IntegerDivisionByZeroException, P.Function, P.List, P.Map, P.MapEntry, P.Null, P.RegExp, P.StackTrace, P._StringStackTrace, P.String, P.StringBuffer, P.Symbol0, P.Type, P.Uri, P._Uri, P.UriData, P._SimpleUri, W.CssStyleDeclarationBase, W.EventStreamProvider, W._Html5NodeValidator, W.ImmutableListMixin, W.NodeValidatorBuilder, W._SimpleNodeValidator, W._SvgNodeValidator, W.FixedSizeListIterator, W._DOMWindowCrossFrame, W.NodeValidator, W._SameOriginUriPolicy, W._ValidatingTreeSanitizer, P._AcceptStructuredClone, P.JsObject, P._JSRandom, P._RectangleBase, P.ByteBuffer, P.ByteData, P.Int8List, P.Uint8List, P.Uint8ClampedList, P.Int16List, P.Uint16List, P.Int32List, P.Uint32List, P.Float32List, P.Float64List, S.BuiltList, S.ListBuilder, M.BuiltListMultimap, M.ListMultimapBuilder, A.BuiltMap, A.MapBuilder, L.BuiltSet, L.SetBuilder, E.BuiltSetMultimap, E.SetMultimapBuilder, Y.EnumClass, Y.IndentingBuiltValueToStringHelper, A.JsonObject, U.SerializerPlugin, U.FullType, U.Serializer, O.BigIntSerializer, R.BoolSerializer, Y.BuiltJsonSerializers, Y.BuiltJsonSerializersBuilder, R.BuiltListMultimapSerializer, K.BuiltListSerializer, K.BuiltMapSerializer, R.BuiltSetMultimapSerializer, O.BuiltSetSerializer, Z.DateTimeSerializer, D.DoubleSerializer, K.DurationSerializer, Q.Int64Serializer, B.IntSerializer, O.JsonObjectSerializer, K.NumSerializer, K.RegExpSerializer, M.StringSerializer, O.UriSerializer, U.DefaultEquality, U.IterableEquality, U.ListEquality, U._UnorderedEquality, U._MapEntry, U.MapEquality, U.DeepCollectionEquality, Q.BuildResult, Q._$BuildStatusSerializer, Q._$BuildResultSerializer, Q.BuildResultBuilder, E.ConnectRequest, E._$ConnectRequestSerializer, E.ConnectRequestBuilder, M.DevToolsRequest, M.DevToolsResponse, M._$DevToolsRequestSerializer, M._$DevToolsResponseSerializer, M.DevToolsRequestBuilder, M.DevToolsResponseBuilder, X.ErrorResponse, X._$ErrorResponseSerializer, X.ErrorResponseBuilder, S.ExtensionRequest, S.ExtensionResponse, S.ExtensionEvent, S.BatchedEvents, S._$ExtensionRequestSerializer, S._$ExtensionResponseSerializer, S._$ExtensionEventSerializer, S._$BatchedEventsSerializer, S.ExtensionRequestBuilder, S.ExtensionResponseBuilder, S.ExtensionEventBuilder, S.BatchedEventsBuilder, M.IsolateExit, M.IsolateStart, M._$IsolateExitSerializer, M._$IsolateStartSerializer, M.IsolateExitBuilder, M.IsolateStartBuilder, A.RunRequest, A._$RunRequestSerializer, A.RunRequestBuilder, V.Int64, N.Logger, N.Level, N.LogRecord, R.StreamChannelMixin, K.Uuid, Z.LegacyRestarter, Q.ReloadingManager, X.HotReloadFailedException, X.RequireRestarter]);
     _inheritMany(J.Interceptor, [J.JSBool, J.JSNull, J.JavaScriptObject, J.JSArray, J.JSNumber, J.JSString, H.NativeByteBuffer, H.NativeTypedData, W.EventTarget, W.AccessibleNodeList, W.Blob, W.CssTransformComponent, W.CssRule, W._CssStyleDeclaration_Interceptor_CssStyleDeclarationBase, W.CssStyleValue, W.DataTransferItemList, W.DomException, W.DomImplementation, W._DomRectList_Interceptor_ListMixin, W.DomRectReadOnly, W._DomStringList_Interceptor_ListMixin, W.DomTokenList, W.Event, W._FileList_Interceptor_ListMixin, W.Gamepad, W.History, W._HtmlCollection_Interceptor_ListMixin, W.ImageData, W.Location, W.MediaList, W._MidiInputMap_Interceptor_MapMixin, W._MidiOutputMap_Interceptor_MapMixin, W.MimeType, W._MimeTypeArray_Interceptor_ListMixin, W._NodeList_Interceptor_ListMixin, W.Plugin, W._PluginArray_Interceptor_ListMixin, W._RtcStatsReport_Interceptor_MapMixin, W.SpeechGrammar, W._SpeechGrammarList_Interceptor_ListMixin, W.SpeechRecognitionResult, W._Storage_Interceptor_MapMixin, W.StyleSheet, W._TextTrackCueList_Interceptor_ListMixin, W.TimeRanges, W.Touch, W._TouchList_Interceptor_ListMixin, W.TrackDefaultList, W.Url, W.__CssRuleList_Interceptor_ListMixin, W.__GamepadList_Interceptor_ListMixin, W.__NamedNodeMap_Interceptor_ListMixin, W.__SpeechRecognitionResultList_Interceptor_ListMixin, W.__StyleSheetList_Interceptor_ListMixin, P.KeyRange, P.Length, P._LengthList_Interceptor_ListMixin, P.Number, P._NumberList_Interceptor_ListMixin, P.PointList, P._StringList_Interceptor_ListMixin, P.Transform, P._TransformList_Interceptor_ListMixin, P.AudioBuffer, P._AudioParamMap_Interceptor_MapMixin, P._SqlResultSetRowList_Interceptor_ListMixin]);
     _inheritMany(J.JavaScriptObject, [J.PlainJavaScriptObject, J.UnknownJavaScriptObject, J.JavaScriptFunction, S.Promise, X.RequireLoader, X.JsError, X.JsMap]);
     _inherit(J.JSUnmodifiableArray, J.JSArray);
@@ -23145,7 +23125,7 @@
     _inheritMany(H._CastIterableBase, [H.CastIterable, H.__CastListBase__CastIterableBase_ListMixin]);
     _inherit(H._EfficientLengthCastIterable, H.CastIterable);
     _inherit(H._CastListBase, H.__CastListBase__CastIterableBase_ListMixin);
-    _inheritMany(H.Closure, [H._CastListBase_sort_closure, H.CastMap_forEach_closure, H.ConstantMap_map_closure, H.Primitives_functionNoSuchMethod_closure, H.TearOffClosure, H.JsLinkedHashMap_addAll_closure, H.initHooks_closure, H.initHooks_closure0, H.initHooks_closure1, P._AsyncRun__initializeScheduleImmediate_internalCallback, P._AsyncRun__initializeScheduleImmediate_closure, P._AsyncRun__scheduleImmediateJsOverride_internalCallback, P._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, P._TimerImpl_internalCallback, P._TimerImpl$periodic_closure, P._awaitOnObject_closure, P._awaitOnObject_closure0, P._wrapJsFunctionForAsync_closure, P.Future_Future$microtask_closure, P._Future__addListener_closure, P._Future__prependListeners_closure, P._Future__chainForeignFuture_closure, P._Future__chainForeignFuture_closure0, P._Future__chainForeignFuture_closure1, P._Future__asyncCompleteWithValue_closure, P._Future__chainFuture_closure, P._Future__asyncCompleteError_closure, P._Future__propagateToListeners_handleWhenCompleteCallback, P._Future__propagateToListeners_handleWhenCompleteCallback_closure, P._Future__propagateToListeners_handleValueCallback, P._Future__propagateToListeners_handleError, P.Stream_length_closure, P.Stream_length_closure0, P.Stream_first_closure, P.Stream_first_closure0, P._StreamController__subscribe_closure, P._StreamController__recordCancel_complete, P._BufferingStreamSubscription__sendError_sendError, P._BufferingStreamSubscription__sendDone_sendDone, P._PendingEvents_schedule_closure, P._cancelAndValue_closure, P._CustomZone_bindCallback_closure, P._CustomZone_bindUnaryCallback_closure, P._CustomZone_bindCallbackGuarded_closure, P._CustomZone_bindUnaryCallbackGuarded_closure, P._rootHandleUncaughtError_closure, P._RootZone_bindCallback_closure, P._RootZone_bindCallbackGuarded_closure, P._RootZone_bindUnaryCallbackGuarded_closure, P.runZoned_closure, P.runZonedGuarded_closure, P._HashMap_addAll_closure, P._CustomHashMap_closure, P._CustomHashSet_closure, P.LinkedHashMap_LinkedHashMap$from_closure, P.MapBase_mapToString_closure, P.SplayTreeSet_closure, P._JsonMap_addAll_closure, P._JsonStringifier_writeMap_closure, P._symbolMapToStringMap_closure, P.NoSuchMethodError_toString_closure, P._BigIntImpl_hashCode_combine, P._BigIntImpl_hashCode_finish, P._BigIntImpl_toDouble_readBits, P._BigIntImpl_toDouble_roundUp, P.Duration_toString_sixDigits, P.Duration_toString_twoDigits, P.Uri__parseIPv4Address_error, P.Uri_parseIPv6Address_error, P.Uri_parseIPv6Address_parseHex, P._createTables_closure, P._createTables_build, P._createTables_setChars, P._createTables_setRange, W.Element_Element$html_closure, W.HttpRequest_request_closure, W.MidiInputMap_keys_closure, W.MidiOutputMap_keys_closure, W.RtcStatsReport_keys_closure, W.Storage_addAll_closure, W.Storage_keys_closure, W._AttributeMap_addAll_closure, W._EventStreamSubscription_closure, W._EventStreamSubscription_onData_closure, W.NodeValidatorBuilder_allowsElement_closure, W.NodeValidatorBuilder_allowsAttribute_closure, W._SimpleNodeValidator_closure, W._SimpleNodeValidator_closure0, W._TemplatingNodeValidator_closure, W._ValidatingTreeSanitizer_sanitizeTree_walk, P._AcceptStructuredClone_walk_closure, P.convertDartToNative_Dictionary_closure, P._convertToJS_closure, P._convertToJS_closure0, P._wrapToDart_closure, P._wrapToDart_closure0, P._wrapToDart_closure1, P.promiseToFuture_closure, P.promiseToFuture_closure0, P.AudioParamMap_keys_closure, M.BuiltListMultimap_BuiltListMultimap_closure, M.BuiltListMultimap_hashCode_closure, M.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.MapBuilder_replace_closure, A.MapBuilder_replace_closure0, L.BuiltSet_hashCode_closure, E.BuiltSetMultimap_hashCode_closure, E.SetMultimapBuilder_replace_closure, Y.closure, U.Serializers_Serializers_closure, U.Serializers_Serializers_closure0, U.Serializers_Serializers_closure1, U.Serializers_Serializers_closure2, U.Serializers_Serializers_closure3, R.BuiltListMultimapSerializer_serialize_closure, R.BuiltListMultimapSerializer_deserialize_closure, K.BuiltListSerializer_serialize_closure, K.BuiltListSerializer_deserialize_closure, R.BuiltSetMultimapSerializer_serialize_closure, R.BuiltSetMultimapSerializer_deserialize_closure, O.BuiltSetSerializer_serialize_closure, O.BuiltSetSerializer_deserialize_closure, K.closure1, L.stronglyConnectedComponents_strongConnect, F.Logger_Logger_closure, X.hashObjects_closure, M.SseClient_closure, M.SseClient_closure0, M.SseClient__closure, D.main_closure, D.main__closure, D.main__closure0, D.main___closure, D.main__closure1, D.main__closure2, D.main__closure3, D.main__closure4, D.main_closure0, Z.LegacyRestarter_restart_closure, S.toPromise_closure, X.RequireRestarter__reload_closure, X.RequireRestarter__reloadModule_closure, X.RequireRestarter__reloadModule_closure0, V.closure0, V._closure, V._closure0]);
+    _inheritMany(H.Closure, [H._CastListBase_sort_closure, H.CastMap_forEach_closure, H.ConstantMap_map_closure, H.Primitives_functionNoSuchMethod_closure, H.TearOffClosure, H.JsLinkedHashMap_addAll_closure, H.initHooks_closure, H.initHooks_closure0, H.initHooks_closure1, P._AsyncRun__initializeScheduleImmediate_internalCallback, P._AsyncRun__initializeScheduleImmediate_closure, P._AsyncRun__scheduleImmediateJsOverride_internalCallback, P._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, P._TimerImpl_internalCallback, P._TimerImpl$periodic_closure, P._awaitOnObject_closure, P._awaitOnObject_closure0, P._wrapJsFunctionForAsync_closure, P.Future_Future$microtask_closure, P._Future__addListener_closure, P._Future__prependListeners_closure, P._Future__chainForeignFuture_closure, P._Future__chainForeignFuture_closure0, P._Future__chainForeignFuture_closure1, P._Future__asyncCompleteWithValue_closure, P._Future__chainFuture_closure, P._Future__asyncCompleteError_closure, P._Future__propagateToListeners_handleWhenCompleteCallback, P._Future__propagateToListeners_handleWhenCompleteCallback_closure, P._Future__propagateToListeners_handleValueCallback, P._Future__propagateToListeners_handleError, P.Stream_length_closure, P.Stream_length_closure0, P.Stream_first_closure, P.Stream_first_closure0, P._StreamController__subscribe_closure, P._StreamController__recordCancel_complete, P._BufferingStreamSubscription__sendError_sendError, P._BufferingStreamSubscription__sendDone_sendDone, P._PendingEvents_schedule_closure, P._cancelAndValue_closure, P._CustomZone_bindCallback_closure, P._CustomZone_bindUnaryCallback_closure, P._CustomZone_bindCallbackGuarded_closure, P._CustomZone_bindUnaryCallbackGuarded_closure, P._rootHandleUncaughtError_closure, P._RootZone_bindCallback_closure, P._RootZone_bindCallbackGuarded_closure, P._RootZone_bindUnaryCallbackGuarded_closure, P.runZoned_closure, P.runZonedGuarded_closure, P._HashMap_addAll_closure, P._CustomHashMap_closure, P._CustomHashSet_closure, P.LinkedHashMap_LinkedHashMap$from_closure, P.MapBase_mapToString_closure, P.SplayTreeSet_closure, P._JsonMap_addAll_closure, P._JsonStringifier_writeMap_closure, P._symbolMapToStringMap_closure, P.NoSuchMethodError_toString_closure, P._BigIntImpl_hashCode_combine, P._BigIntImpl_hashCode_finish, P._BigIntImpl_toDouble_readBits, P._BigIntImpl_toDouble_roundUp, P.Duration_toString_sixDigits, P.Duration_toString_twoDigits, P.Uri__parseIPv4Address_error, P.Uri_parseIPv6Address_error, P.Uri_parseIPv6Address_parseHex, P._createTables_closure, P._createTables_build, P._createTables_setChars, P._createTables_setRange, W.Element_Element$html_closure, W.HttpRequest_request_closure, W.MidiInputMap_keys_closure, W.MidiOutputMap_keys_closure, W.RtcStatsReport_keys_closure, W.Storage_addAll_closure, W.Storage_keys_closure, W._AttributeMap_addAll_closure, W._EventStreamSubscription_closure, W._EventStreamSubscription_onData_closure, W.NodeValidatorBuilder_allowsElement_closure, W.NodeValidatorBuilder_allowsAttribute_closure, W._SimpleNodeValidator_closure, W._SimpleNodeValidator_closure0, W._TemplatingNodeValidator_closure, W._ValidatingTreeSanitizer_sanitizeTree_walk, P._AcceptStructuredClone_walk_closure, P.convertDartToNative_Dictionary_closure, P._convertToJS_closure, P._convertToJS_closure0, P._wrapToDart_closure, P._wrapToDart_closure0, P._wrapToDart_closure1, P.promiseToFuture_closure, P.promiseToFuture_closure0, P.AudioParamMap_keys_closure, M.BuiltListMultimap_BuiltListMultimap_closure, M.BuiltListMultimap_hashCode_closure, M.ListMultimapBuilder_replace_closure, A.BuiltMap_BuiltMap_closure, A.BuiltMap_hashCode_closure, A.MapBuilder_replace_closure, A.MapBuilder_replace_closure0, L.BuiltSet_hashCode_closure, E.BuiltSetMultimap_hashCode_closure, E.SetMultimapBuilder_replace_closure, Y.closure, U.Serializers_Serializers_closure, U.Serializers_Serializers_closure0, U.Serializers_Serializers_closure1, U.Serializers_Serializers_closure2, U.Serializers_Serializers_closure3, R.BuiltListMultimapSerializer_serialize_closure, R.BuiltListMultimapSerializer_deserialize_closure, K.BuiltListSerializer_serialize_closure, K.BuiltListSerializer_deserialize_closure, R.BuiltSetMultimapSerializer_serialize_closure, R.BuiltSetMultimapSerializer_deserialize_closure, O.BuiltSetSerializer_serialize_closure, O.BuiltSetSerializer_deserialize_closure, K.closure1, L.stronglyConnectedComponents_strongConnect, N.Logger_Logger_closure, X.hashObjects_closure, M.SseClient_closure, M.SseClient_closure0, M.SseClient__closure, D.main_closure, D.main__closure, D.main__closure0, D.main___closure, D.main__closure1, D.main__closure2, D.main__closure3, D.main__closure4, D.main_closure0, Z.LegacyRestarter_restart_closure, S.toPromise_closure, X.RequireRestarter__reload_closure, X.RequireRestarter__reloadModule_closure, X.RequireRestarter__reloadModule_closure0, V.closure0, V._closure, V._closure0]);
     _inherit(H.CastList, H._CastListBase);
     _inherit(P.MapBase, P.MapMixin);
     _inheritMany(P.MapBase, [H.CastMap, H.JsLinkedHashMap, P._HashMap, P._JsonMap, W._AttributeMap]);
@@ -23410,6 +23390,7 @@
       JsLinkedHashMap_String_dynamic: findType("JsLinkedHashMap<String,@>"),
       JsLinkedHashMap_Symbol_dynamic: findType("JsLinkedHashMap<Symbol0,@>"),
       JsLinkedHashMap_of_legacy_String_and_dynamic: findType("JsLinkedHashMap<String*,@>"),
+      JsLinkedHashMap_of_legacy_String_and_legacy_Logger: findType("JsLinkedHashMap<String*,Logger*>"),
       JsLinkedHashMap_of_legacy_String_and_legacy_int: findType("JsLinkedHashMap<String*,int*>"),
       KeyRange: findType("KeyRange"),
       Length: findType("Length"),
@@ -23494,7 +23475,6 @@
       legacy_BuildStatus: findType("BuildStatus*"),
       legacy_BuiltListMultimap_dynamic_dynamic: findType("BuiltListMultimap<@,@>*"),
       legacy_BuiltList_dynamic: findType("BuiltList<@>*"),
-      legacy_BuiltList_legacy_Object: findType("BuiltList<Object*>*"),
       legacy_BuiltMap_dynamic_dynamic: findType("BuiltMap<@,@>*"),
       legacy_BuiltSetMultimap_dynamic_dynamic: findType("BuiltSetMultimap<@,@>*"),
       legacy_BuiltSet_dynamic: findType("BuiltSet<@>*"),
@@ -23533,7 +23513,6 @@
       legacy_List_legacy_Object: findType("List<Object*>*"),
       legacy_List_legacy_String: findType("List<String*>*"),
       legacy_List_legacy_int: findType("List<int*>*"),
-      legacy_Logger: findType("Logger*"),
       legacy_MapBuilder_dynamic_dynamic: findType("MapBuilder<@,@>*"),
       legacy_Map_dynamic_dynamic: findType("Map<@,@>*"),
       legacy_Map_of_legacy_String_and_legacy_Object: findType("Map<String*,Object*>*"),
@@ -23801,8 +23780,8 @@
     C.Int64_4194303_4194303_1048575 = new V.Int64(4194303, 4194303, 1048575);
     C.JsonDecoder_null = new P.JsonDecoder(null);
     C.JsonEncoder_null = new P.JsonEncoder(null);
-    C.Level_INFO_800 = new Y.Level("INFO", 800);
-    C.Level_WARNING_900 = new Y.Level("WARNING", 900);
+    C.Level_INFO_800 = new N.Level("INFO", 800);
+    C.Level_WARNING_900 = new N.Level("WARNING", 900);
     C.List_2Vk = H.setRuntimeTypeInfo(makeConstList([0, 0, 32776, 33792, 1, 10240, 0, 0]), type$.JSArray_legacy_int);
     C.List_2Zi = H.setRuntimeTypeInfo(makeConstList(["*::class", "*::dir", "*::draggable", "*::hidden", "*::id", "*::inert", "*::itemprop", "*::itemref", "*::itemscope", "*::lang", "*::spellcheck", "*::title", "*::translate", "A::accesskey", "A::coords", "A::hreflang", "A::name", "A::shape", "A::tabindex", "A::target", "A::type", "AREA::accesskey", "AREA::alt", "AREA::coords", "AREA::nohref", "AREA::shape", "AREA::tabindex", "AREA::target", "AUDIO::controls", "AUDIO::loop", "AUDIO::mediagroup", "AUDIO::muted", "AUDIO::preload", "BDO::dir", "BODY::alink", "BODY::bgcolor", "BODY::link", "BODY::text", "BODY::vlink", "BR::clear", "BUTTON::accesskey", "BUTTON::disabled", "BUTTON::name", "BUTTON::tabindex", "BUTTON::type", "BUTTON::value", "CANVAS::height", "CANVAS::width", "CAPTION::align", "COL::align", "COL::char", "COL::charoff", "COL::span", "COL::valign", "COL::width", "COLGROUP::align", "COLGROUP::char", "COLGROUP::charoff", "COLGROUP::span", "COLGROUP::valign", "COLGROUP::width", "COMMAND::checked", "COMMAND::command", "COMMAND::disabled", "COMMAND::label", "COMMAND::radiogroup", "COMMAND::type", "DATA::value", "DEL::datetime", "DETAILS::open", "DIR::compact", "DIV::align", "DL::compact", "FIELDSET::disabled", "FONT::color", "FONT::face", "FONT::size", "FORM::accept", "FORM::autocomplete", "FORM::enctype", "FORM::method", "FORM::name", "FORM::novalidate", "FORM::target", "FRAME::name", "H1::align", "H2::align", "H3::align", "H4::align", "H5::align", "H6::align", "HR::align", "HR::noshade", "HR::size", "HR::width", "HTML::version", "IFRAME::align", "IFRAME::frameborder", "IFRAME::height", "IFRAME::marginheight", "IFRAME::marginwidth", "IFRAME::width", "IMG::align", "IMG::alt", "IMG::border", "IMG::height", "IMG::hspace", "IMG::ismap", "IMG::name", "IMG::usemap", "IMG::vspace", "IMG::width", "INPUT::accept", "INPUT::accesskey", "INPUT::align", "INPUT::alt", "INPUT::autocomplete", "INPUT::autofocus", "INPUT::checked", "INPUT::disabled", "INPUT::inputmode", "INPUT::ismap", "INPUT::list", "INPUT::max", "INPUT::maxlength", "INPUT::min", "INPUT::multiple", "INPUT::name", "INPUT::placeholder", "INPUT::readonly", "INPUT::required", "INPUT::size", "INPUT::step", "INPUT::tabindex", "INPUT::type", "INPUT::usemap", "INPUT::value", "INS::datetime", "KEYGEN::disabled", "KEYGEN::keytype", "KEYGEN::name", "LABEL::accesskey", "LABEL::for", "LEGEND::accesskey", "LEGEND::align", "LI::type", "LI::value", "LINK::sizes", "MAP::name", "MENU::compact", "MENU::label", "MENU::type", "METER::high", "METER::low", "METER::max", "METER::min", "METER::value", "OBJECT::typemustmatch", "OL::compact", "OL::reversed", "OL::start", "OL::type", "OPTGROUP::disabled", "OPTGROUP::label", "OPTION::disabled", "OPTION::label", "OPTION::selected", "OPTION::value", "OUTPUT::for", "OUTPUT::name", "P::align", "PRE::width", "PROGRESS::max", "PROGRESS::min", "PROGRESS::value", "SELECT::autocomplete", "SELECT::disabled", "SELECT::multiple", "SELECT::name", "SELECT::required", "SELECT::size", "SELECT::tabindex", "SOURCE::type", "TABLE::align", "TABLE::bgcolor", "TABLE::border", "TABLE::cellpadding", "TABLE::cellspacing", "TABLE::frame", "TABLE::rules", "TABLE::summary", "TABLE::width", "TBODY::align", "TBODY::char", "TBODY::charoff", "TBODY::valign", "TD::abbr", "TD::align", "TD::axis", "TD::bgcolor", "TD::char", "TD::charoff", "TD::colspan", "TD::headers", "TD::height", "TD::nowrap", "TD::rowspan", "TD::scope", "TD::valign", "TD::width", "TEXTAREA::accesskey", "TEXTAREA::autocomplete", "TEXTAREA::cols", "TEXTAREA::disabled", "TEXTAREA::inputmode", "TEXTAREA::name", "TEXTAREA::placeholder", "TEXTAREA::readonly", "TEXTAREA::required", "TEXTAREA::rows", "TEXTAREA::tabindex", "TEXTAREA::wrap", "TFOOT::align", "TFOOT::char", "TFOOT::charoff", "TFOOT::valign", "TH::abbr", "TH::align", "TH::axis", "TH::bgcolor", "TH::char", "TH::charoff", "TH::colspan", "TH::headers", "TH::height", "TH::nowrap", "TH::rowspan", "TH::scope", "TH::valign", "TH::width", "THEAD::align", "THEAD::char", "THEAD::charoff", "THEAD::valign", "TR::align", "TR::bgcolor", "TR::char", "TR::charoff", "TR::valign", "TRACK::default", "TRACK::kind", "TRACK::label", "TRACK::srclang", "UL::compact", "UL::type", "VIDEO::controls", "VIDEO::height", "VIDEO::loop", "VIDEO::mediagroup", "VIDEO::muted", "VIDEO::preload", "VIDEO::width"]), type$.JSArray_legacy_String);
     C.Type_DevToolsResponse_Hhy = H.typeLiteral("DevToolsResponse");
@@ -23935,8 +23914,8 @@
     $.Element__defaultSanitizer = null;
     $._Html5NodeValidator__attributeValidators = P.LinkedHashMap_LinkedHashMap$_empty(type$.String, type$.Function);
     $._indentingBuiltValueToStringHelperIndent = 0;
+    $.Logger__loggers = P.LinkedHashMap_LinkedHashMap$_empty(type$.legacy_String, H.findType("Logger*"));
     $.LogRecord__nextNumber = 0;
-    $.Logger__loggers = P.LinkedHashMap_LinkedHashMap$_empty(type$.legacy_String, type$.legacy_Logger);
     $._lastKnownDigests = null;
   })();
   (function lazyInitializers() {
@@ -24127,7 +24106,7 @@
       return t1.build$0();
     });
     _lazy($, "Logger_root", "$get$Logger_root", function() {
-      return F.Logger_Logger("");
+      return N.Logger_Logger("");
     });
     _lazy($, "_createScript", "$get$_createScript", function() {
       return new V.closure0().call$0();
