@@ -89,17 +89,6 @@ abstract class LoadStrategy {
   /// Will return `null` if the provided uri is not
   /// an app URI.
   String serverPathForAppUri(String appUri);
-
-  /// Returns the custom module map used to load modules
-  ///
-  /// For example:
-  ///
-  ///   web/main -> main.ddc
-  ///
-  /// Note that ".js" is removed because the require.js
-  /// does not use custom module paths for paths that end
-  /// with ".js"
-  Future<Map<String, String>> modules(String entrypoint);
 }
 
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }

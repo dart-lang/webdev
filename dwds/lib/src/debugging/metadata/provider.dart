@@ -77,6 +77,7 @@ class FileMetadataProvider implements MetadataProvider {
   @override
   Future<void> initialize(String entrypoint) async {
     // The merged metadata resides next to the entrypoint.
+    // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
     if (entrypoint.endsWith('.bootstrap.js')) {
       var serverPath =
           entrypoint.replaceAll('.bootstrap.js', '.ddc_merged_metadata');
@@ -88,14 +89,6 @@ class FileMetadataProvider implements MetadataProvider {
             _addMetadata(contents);
           } catch (_) {}
         }
-      }
-    } else {
-      // otherwise, load metadata per module
-      var modules = await _loadStrategy.modules(entrypoint);
-      for (var modulePath in modules.values) {
-        var contents =
-            await _assetReader.metadataContents('$modulePath.js.metadata');
-        _addMetadata(contents);
       }
     }
   }

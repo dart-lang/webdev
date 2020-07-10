@@ -191,6 +191,7 @@ class ChromeProxyService implements VmServiceInterface {
       await _debugger,
       executionContext,
     );
+
     for (var breakpoint in _previousBreakpoints) {
       var lineNumber = lineNumberFor(breakpoint);
       var oldRef = (breakpoint.location as SourceLocation).script;

@@ -68,9 +68,6 @@ class LegacyStrategy extends LoadStrategy {
       'window.\$dartLoader.forceLoadModule("$clientScript");\n';
 
   @override
-  Future<Map<String, String>> modules(String entrypoint) => null;
-
-  @override
   String moduleForServerPath(String serverPath) =>
       _moduleForServerPath(serverPath);
 

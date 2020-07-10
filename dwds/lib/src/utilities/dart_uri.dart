@@ -119,6 +119,7 @@ class DartUri {
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
       return DartUri(Uri.parse(uri).path);
     }
+
     throw FormatException('Unsupported URI form', uri);
   }
 
