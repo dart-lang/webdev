@@ -126,7 +126,7 @@ void main() {
       await context.changeInput();
 
       expect(await client.callServiceExtension('fullReload'), isA<Success>());
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 4));
 
       var source = await context.webDriver.pageSource;
       // Should see only the new text
