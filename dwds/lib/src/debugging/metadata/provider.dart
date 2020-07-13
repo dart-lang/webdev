@@ -85,7 +85,10 @@ class FileMetadataProvider implements MetadataProvider {
         for (var contents in merged.split('\n')) {
           try {
             _addMetadata(contents);
-          } catch (_) {}
+          } catch (_) {
+            // DDC intentionally writes invalid metadata for some modules.
+            // Skip these errors.
+          }
         }
       }
     }
