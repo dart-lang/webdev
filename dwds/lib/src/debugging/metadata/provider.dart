@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import '../../../dwds.dart';
-import '../../loaders/strategy.dart';
 import 'module_metadata.dart';
 
 /// Provider of DDC meta data for a compiled application.
@@ -54,13 +53,12 @@ abstract class MetadataProvider {
 /// A provider of metadata in which data is collected through DDC outputs.
 class FileMetadataProvider implements MetadataProvider {
   final AssetReader _assetReader;
-  final LoadStrategy _loadStrategy;
 
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
   final Map<String, List<String>> _scripts = {};
 
-  FileMetadataProvider(this._assetReader, this._loadStrategy);
+  FileMetadataProvider(this._assetReader);
 
   @override
   Future<List<String>> get libraries {
