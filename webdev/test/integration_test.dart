@@ -302,7 +302,7 @@ dependencies:
 }
 
 const _supportedBuildRunnerVersion = '1.6.2';
-const _supportedWebCompilersVersion = '2.12.0';
+const _supportedWebCompilersVersion = '2.12.0-dev.1';
 const _supportedBuildDaemonVersion = '2.0.0';
 
 String _pubspecLock(

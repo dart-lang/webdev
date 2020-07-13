@@ -1,4 +1,4 @@
-## 6.0.0
+## 6.0.0-dev
 
 - Support using WebSockets for the debug backend by passing
   `useSseForDebugBackend: false` to `Dwds.start()`
