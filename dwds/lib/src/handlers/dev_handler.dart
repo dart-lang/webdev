@@ -181,7 +181,7 @@ class DevHandler {
 
     var webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
-    var metadataProvider = FileMetadataProvider(_assetReader, _loadStrategy);
+    var metadataProvider = FileMetadataProvider(_assetReader);
 
     return DebugService.start(
       // We assume the user will connect to the debug service on the same
@@ -461,8 +461,7 @@ class DevHandler {
       }
       var appId = devToolsRequest.appId;
       if (_servicesByAppId[appId] == null) {
-        var metadataProvider =
-            FileMetadataProvider(_assetReader, _loadStrategy);
+        var metadataProvider = FileMetadataProvider(_assetReader);
 
         var debugService = await DebugService.start(
             _hostname,
