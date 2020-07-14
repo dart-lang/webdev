@@ -109,11 +109,21 @@ void main() {
 
     test('can hot restart via the service extension', () async {
       var client = context.debugConnection.vmService;
+      await client.streamListen('Isolate');
       await context.changeInput();
+
+      var eventsDone = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(emitsInOrder([
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
+          ])));
 
       expect(await client.callServiceExtension('hotRestart'),
           const TypeMatcher<Success>());
-      await Future.delayed(const Duration(seconds: 2));
+
+      await eventsDone;
 
       var source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
@@ -123,10 +133,20 @@ void main() {
 
     test('can refresh the page via the fullReload service extension', () async {
       var client = context.debugConnection.vmService;
+      await client.streamListen('Isolate');
       await context.changeInput();
 
+      var eventsDone = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(emitsInOrder([
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
+          ])));
+
       expect(await client.callServiceExtension('fullReload'), isA<Success>());
-      await Future.delayed(const Duration(seconds: 2));
+
+      await eventsDone;
 
       var source = await context.webDriver.pageSource;
       // Should see only the new text
