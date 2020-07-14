@@ -143,7 +143,6 @@ class Dwds {
       devTools,
       assetReader,
       loadStrategy,
-      useFileProvider,
       hostname,
       verbose,
       logWriter,
