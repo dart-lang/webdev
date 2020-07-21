@@ -1,5 +1,6 @@
 ## 6.0.0-dev
 
+- Depend on the latest `package:devtools` and `package:devtools_server`.
 - Support using WebSockets for the debug backend by passing
   `useSseForDebugBackend: false` to `Dwds.start()`
 - Ensure we run main on a hot restart request even if no modules were
