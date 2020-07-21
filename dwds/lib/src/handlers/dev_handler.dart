@@ -388,7 +388,7 @@ class DevHandler {
     if (canReuseConnection) {
       // Disconnect any old connection (eg. those in the keep-alive waiting
       // state when reloading the page).
-      existingAppConection.shutDown();
+      existingAppConection?.shutDown();
       services.chromeProxyService?.destroyIsolate();
 
       // Reconnect to existing service.
