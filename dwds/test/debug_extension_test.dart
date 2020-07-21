@@ -43,7 +43,9 @@ void main() async {
         test('can launch DevTools', () async {
           var windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
-          expect(await context.webDriver.title, 'Dart DevTools');
+          // TODO(grouma): switch back to `fixture.webdriver.title` when
+          // https://github.com/flutter/devtools/issues/2045 is fixed.
+          expect(await context.webDriver.pageSource, contains('flutterweb'));
         });
 
         test('can close DevTools and relaunch', () async {
