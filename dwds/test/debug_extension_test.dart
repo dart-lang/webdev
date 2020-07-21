@@ -45,7 +45,7 @@ void main() async {
           await context.webDriver.driver.switchTo.window(windows.last);
           // TODO(grouma): switch back to `fixture.webdriver.title` when
           // https://github.com/flutter/devtools/issues/2045 is fixed.
-          expect(await context.webDriver.pageSource, contains('flutterweb'));
+          expect(await context.webDriver.pageSource, contains('Flutter'));
         });
 
         test('can close DevTools and relaunch', () async {

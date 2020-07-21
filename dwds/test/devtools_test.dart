@@ -32,7 +32,7 @@ void main() {
       await context.webDriver.driver.switchTo.window(windows.last);
       // TODO(grouma): switch back to `fixture.webdriver.title` when
       // https://github.com/flutter/devtools/issues/2045 is fixed.
-      expect(await context.webDriver.pageSource, contains('flutterweb'));
+      expect(await context.webDriver.pageSource, contains('Flutter'));
     });
 
     test('can not launch devtools for the same app in multiple tabs', () async {
@@ -69,7 +69,7 @@ void main() {
       await devToolsWindow.setAsActive();
       // TODO(grouma): switch back to `fixture.webdriver.title` when
       // https://github.com/flutter/devtools/issues/2045 is fixed.
-      expect(await context.webDriver.pageSource, contains('flutterweb'));
+      expect(await context.webDriver.pageSource, contains('Flutter'));
     });
 
     test('destroys and recreates the isolate during a page refresh', () async {
