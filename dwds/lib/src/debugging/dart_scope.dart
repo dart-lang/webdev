@@ -64,33 +64,12 @@ Future<List<Property>> visibleProperties({
 /// Filters the provided frame scopes to those that are pertinent for Dart
 /// debugging.
 List<WipScope> filterScopes(WipCallFrame frame) {
-  // For RequireJS modules, the last three scopes are generally
-  // `[unnamed closure] [script] [global]` in that order. We never want the
-  // global and script scopes. We don't want the last closure scope - that's the
-  // Dart SDK scope, and contains hundreds or thousands of properties (as does
-  // the global scope).
-
-  // For AMD modules, the last two scopes are generally
-  // `[named closure] [global]` in that order. The named closure is the Dart SDK
-  // scope.
-
-  // Below, we filter out the last (global) scope, the optional script scope,
-  // and the first (named or unnamed) closure scope. In the future, we'll likey
-  // have more rigourous ways to identify the SDK scope.
-
   var scopes = frame.getScopeChain().toList();
-
-  if (scopes.isNotEmpty && scopes.last.scope == 'global') {
+  // Remove outer scopes up to and including the Dart SDK.
+  while (
+      scopes.isNotEmpty && !(scopes.last.name?.startsWith('load__') ?? false)) {
     scopes.removeLast();
   }
-
-  if (scopes.isNotEmpty && scopes.last.scope == 'script') {
-    scopes.removeLast();
-  }
-
-  if (scopes.isNotEmpty && scopes.last.scope == 'closure') {
-    scopes.removeLast();
-  }
-
+  if (scopes.isNotEmpty) scopes.removeLast();
   return scopes;
 }
