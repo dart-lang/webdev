@@ -60,6 +60,7 @@ List<Map<String, dynamic>> frames1Json = [
       },
       {
         "type": "closure",
+        "name": "load__some_module",
         "object": {
           "type": "object",
           "className": "Object",
