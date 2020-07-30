@@ -9,6 +9,7 @@
   module information to `Dwds`.
 - Hide JavaScript type errors when hovering over text in the debugger.
 - Fix an issue where reusing a connection could cause a null error.
+- Improve the heuristic which filters JS scopes for debugging needs.
 
 **Breaking Changes:**
 - Require access to the `.ddc_merged_metadata` file.
