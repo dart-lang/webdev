@@ -134,7 +134,6 @@ class DebugService {
       MetadataProvider metadataProvider,
       AppConnection appConnection,
       LogWriter logWriter,
-      bool restoreBreakpoints,
       {void Function(Map<String, dynamic>) onRequest,
       void Function(Map<String, dynamic>) onResponse,
       bool useSse,
@@ -148,7 +147,6 @@ class DebugService {
         metadataProvider,
         appConnection,
         logWriter,
-        restoreBreakpoints,
         executionContext,
         expressionCompiler);
     var authToken = _makeAuthToken();

@@ -80,8 +80,6 @@ class ChromeProxyService implements VmServiceInterface {
 
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 
-  /// If breakpoints should be restored upon a reload / hot restart.
-  final bool _restoreBreakpoints;
   final _disabledBreakpoints = <Breakpoint>{};
   final _previousBreakpoints = <Breakpoint>{};
 
@@ -96,7 +94,6 @@ class ChromeProxyService implements VmServiceInterface {
     this._metadataProvider,
     this._modules,
     this._locations,
-    this._restoreBreakpoints,
     this.executionContext,
     this._logWriter,
   ) {
@@ -119,7 +116,6 @@ class ChromeProxyService implements VmServiceInterface {
       MetadataProvider metadataProvider,
       AppConnection appConnection,
       LogWriter logWriter,
-      bool restoreBreakpoints,
       ExecutionContext executionContext,
       ExpressionCompiler expressionCompiler) async {
     final vm = VM(
@@ -137,17 +133,8 @@ class ChromeProxyService implements VmServiceInterface {
 
     var modules = Modules(metadataProvider, tabUrl);
     var locations = Locations(assetReader, modules, tabUrl);
-    var service = ChromeProxyService._(
-        vm,
-        tabUrl,
-        assetReader,
-        remoteDebugger,
-        metadataProvider,
-        modules,
-        locations,
-        restoreBreakpoints,
-        executionContext,
-        logWriter);
+    var service = ChromeProxyService._(vm, tabUrl, assetReader, remoteDebugger,
+        metadataProvider, modules, locations, executionContext, logWriter);
     unawaited(service.createIsolate(appConnection));
     await service.createEvaluator(expressionCompiler);
     return service;
@@ -192,14 +179,7 @@ class ChromeProxyService implements VmServiceInterface {
       executionContext,
     );
 
-    for (var breakpoint in _previousBreakpoints) {
-      var lineNumber = lineNumberFor(breakpoint);
-      var oldRef = (breakpoint.location as SourceLocation).script;
-      var dartUri = DartUri(oldRef.uri, uri);
-      var newRef = await _inspector.scriptRefFor(dartUri.serverPath);
-      await (await _debugger)
-          .addBreakpoint(_inspector.isolate.id, newRef.id, lineNumber);
-    }
+    (await _debugger).reestablishBreakpoints(_previousBreakpoints, uri);
 
     unawaited(appConnection.onStart.then((_) async {
       await (await _debugger).resumeFromStart();
@@ -257,12 +237,10 @@ class ChromeProxyService implements VmServiceInterface {
             isolate: _inspector.isolateRef));
     _vm.isolates.removeWhere((ref) => ref.id == isolate.id);
     _inspector = null;
-    if (_restoreBreakpoints) {
-      _previousBreakpoints.clear();
-      _previousBreakpoints
-        ..addAll(isolate.breakpoints)
-        ..addAll(_disabledBreakpoints);
-    }
+    _previousBreakpoints.clear();
+    _previousBreakpoints
+      ..addAll(isolate.breakpoints)
+      ..addAll(_disabledBreakpoints);
     _consoleSubscription.cancel();
     _consoleSubscription = null;
   }

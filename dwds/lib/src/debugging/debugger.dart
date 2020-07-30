@@ -283,6 +283,22 @@ class Debugger extends Domain {
     return breakpoint;
   }
 
+  Future<void> reestablishBreakpoints(
+      Set<Breakpoint> breakpoints, String root) async {
+    for (var breakpoint in breakpoints) {
+      var oldRef = (breakpoint.location as SourceLocation).script;
+      var dartUri = DartUri(oldRef.uri, root);
+      var newRef = await inspector.scriptRefFor(dartUri.serverPath);
+      breakpoint.location = SourceLocation(
+          script: newRef, tokenPos: breakpoint.location.tokenPos as int);
+      // We only need to note the new breakpoint as Chrome handles setting the
+      // breakpoint on newly parsed scripts that match the orignal provided
+      // URL regex.
+      _breakpoints._note(
+          bp: breakpoint, jsId: _breakpoints._jsIdByDartId[breakpoint.id]);
+    }
+  }
+
   /// Remove a Dart breakpoint.
   Future<Success> removeBreakpoint(
       String isolateId, String breakpointId) async {
@@ -699,12 +715,13 @@ class _Breakpoints extends Domain {
   Future<String> _setJsBreakpoint(Location location) async {
     // Location is 0 based according to:
     // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
-    var response =
-        await remoteDebugger.sendCommand('Debugger.setBreakpoint', params: {
-      'location': {
-        'scriptId': location.jsLocation.scriptId,
-        'lineNumber': location.jsLocation.line - 1,
-      }
+
+    // The module can be loaded from a nested path and contain an ETAG suffix.
+    var urlRegex = '.*${location.modulePath}.*';
+    var response = await remoteDebugger
+        .sendCommand('Debugger.setBreakpointByUrl', params: {
+      'urlRegex': urlRegex,
+      'lineNumber': location.jsLocation.line - 1,
     });
     return response.result['breakpointId'] as String;
   }
@@ -728,8 +745,6 @@ class _Breakpoints extends Domain {
     isolate?.breakpoints?.removeWhere((b) => b.id == dartId);
     return _bpByDartId.remove(dartId);
   }
-
-  String dartId(String jsId) => _dartIdByJsId[jsId];
 
   String jsId(String dartId) => _jsIdByDartId[dartId];
 }

@@ -106,8 +106,6 @@ class TestServer {
       hostname: hostname,
       verbose: true,
       urlEncoder: urlEncoder,
-      // ignore: deprecated_member_use_from_same_package
-      restoreBreakpoints: restoreBreakpoints,
       expressionCompiler: expressionCompiler,
     );
 

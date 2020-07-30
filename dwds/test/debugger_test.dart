@@ -58,6 +58,7 @@ void main() async {
     var lineEntry = TargetLineEntry(92, [entry]);
     var location = Location.from(
       'foo.dart',
+      'foo.ddc.js',
       lineEntry,
       entry,
       DartUri('package:foo/foo.dart'),

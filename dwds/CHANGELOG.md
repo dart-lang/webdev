@@ -12,6 +12,8 @@
 
 **Breaking Changes:**
 - Require access to the `.ddc_merged_metadata` file.
+- Remove deprecated parameter `restoreBreakpoints` as breakpoints are now
+  set by regex URL and Chrome automatically reestablishes them.
 
 ## 5.0.0
 
