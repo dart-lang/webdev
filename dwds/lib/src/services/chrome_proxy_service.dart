@@ -179,7 +179,7 @@ class ChromeProxyService implements VmServiceInterface {
       executionContext,
     );
 
-    (await _debugger).reestablishBreakpoints(_previousBreakpoints, uri);
+    await (await _debugger).reestablishBreakpoints(_previousBreakpoints, uri);
 
     unawaited(appConnection.onStart.then((_) async {
       await (await _debugger).resumeFromStart();
