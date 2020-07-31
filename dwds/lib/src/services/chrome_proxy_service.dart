@@ -179,7 +179,7 @@ class ChromeProxyService implements VmServiceInterface {
       executionContext,
     );
 
-    await (await _debugger).reestablishBreakpoints(_previousBreakpoints, uri);
+    await _refreshBreakpoints();
 
     unawaited(appConnection.onStart.then((_) async {
       await (await _debugger).resumeFromStart();
@@ -223,6 +223,20 @@ class ChromeProxyService implements VmServiceInterface {
     if (!_initializedCompleter.isCompleted) _initializedCompleter.complete();
   }
 
+  Future<void> _refreshBreakpoints() async {
+    await (await _debugger).reestablishBreakpoints(_previousBreakpoints, uri);
+
+    for (var breakpoint in _disabledBreakpoints) {
+      var lineNumber = lineNumberFor(breakpoint);
+      var oldRef = (breakpoint.location as SourceLocation).script;
+      var dartUri = DartUri(oldRef.uri, uri);
+      var newRef = await _inspector.scriptRefFor(dartUri.serverPath);
+      await (await _debugger)
+          .addBreakpoint(_inspector.isolate.id, newRef.id, lineNumber);
+    }
+    _disabledBreakpoints.clear();
+  }
+
   /// Should be called when there is a hot restart or full page refresh.
   ///
   /// Clears out the [_inspector] and all related cached information.
@@ -238,9 +252,7 @@ class ChromeProxyService implements VmServiceInterface {
     _vm.isolates.removeWhere((ref) => ref.id == isolate.id);
     _inspector = null;
     _previousBreakpoints.clear();
-    _previousBreakpoints
-      ..addAll(isolate.breakpoints)
-      ..addAll(_disabledBreakpoints);
+    _previousBreakpoints.addAll(isolate.breakpoints);
     _consoleSubscription.cancel();
     _consoleSubscription = null;
   }
