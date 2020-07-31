@@ -227,7 +227,6 @@ class ChromeProxyService implements VmServiceInterface {
     await (await _debugger)
         .reestablishBreakpoints(_previousBreakpoints, _disabledBreakpoints);
     _disabledBreakpoints.clear();
-    _disabledBreakpoints.clear();
   }
 
   /// Should be called when there is a hot restart or full page refresh.
