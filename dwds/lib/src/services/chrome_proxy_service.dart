@@ -179,7 +179,9 @@ class ChromeProxyService implements VmServiceInterface {
       executionContext,
     );
 
-    await _refreshBreakpoints();
+    await (await _debugger)
+        .reestablishBreakpoints(_previousBreakpoints, _disabledBreakpoints);
+    _disabledBreakpoints.clear();
 
     unawaited(appConnection.onStart.then((_) async {
       await (await _debugger).resumeFromStart();
@@ -221,12 +223,6 @@ class ChromeProxyService implements VmServiceInterface {
 
     // The service is considered initialized when the first isolate is created.
     if (!_initializedCompleter.isCompleted) _initializedCompleter.complete();
-  }
-
-  Future<void> _refreshBreakpoints() async {
-    await (await _debugger)
-        .reestablishBreakpoints(_previousBreakpoints, _disabledBreakpoints);
-    _disabledBreakpoints.clear();
   }
 
   /// Should be called when there is a hot restart or full page refresh.
