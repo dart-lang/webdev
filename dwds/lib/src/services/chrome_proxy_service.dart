@@ -224,16 +224,9 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<void> _refreshBreakpoints() async {
-    await (await _debugger).reestablishBreakpoints(_previousBreakpoints, uri);
-
-    for (var breakpoint in _disabledBreakpoints) {
-      var lineNumber = lineNumberFor(breakpoint);
-      var oldRef = (breakpoint.location as SourceLocation).script;
-      var dartUri = DartUri(oldRef.uri, uri);
-      var newRef = await _inspector.scriptRefFor(dartUri.serverPath);
-      await (await _debugger)
-          .addBreakpoint(_inspector.isolate.id, newRef.id, lineNumber);
-    }
+    await (await _debugger)
+        .reestablishBreakpoints(_previousBreakpoints, _disabledBreakpoints);
+    _disabledBreakpoints.clear();
     _disabledBreakpoints.clear();
   }
 
