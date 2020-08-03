@@ -93,7 +93,6 @@ class Dwds {
     // TODO(annagrin): make expressionCompiler argument required
     // [issue 881](https://github.com/dart-lang/webdev/issues/881)
     ExpressionCompiler expressionCompiler,
-    @deprecated bool restoreBreakpoints,
   }) async {
     hostname ??= 'localhost';
     enableDebugging ??= true;
@@ -104,7 +103,6 @@ class Dwds {
     logWriter ??= (level, message) => print(message);
     verbose ??= false;
     globalLoadStrategy = loadStrategy;
-    restoreBreakpoints ??= false;
 
     DevTools devTools;
     String extensionUri;
@@ -148,7 +146,6 @@ class Dwds {
       logWriter,
       extensionBackend,
       urlEncoder,
-      restoreBreakpoints,
       useSseForDebugProxy,
       serveDevTools,
       expressionCompiler,

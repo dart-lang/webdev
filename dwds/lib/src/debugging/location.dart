@@ -21,16 +21,20 @@ class Location {
 
   final DartLocation dartLocation;
 
+  final String modulePath;
+
   /// An arbitrary integer value used to represent this location.
   final int tokenPos;
 
   Location._(
     this.jsLocation,
     this.dartLocation,
+    this.modulePath,
   ) : tokenPos = _startTokenId++;
 
   static Location from(
     String scriptId,
+    String modulePath,
     TargetLineEntry lineEntry,
     TargetEntry entry,
     DartUri dartUri,
@@ -41,8 +45,11 @@ class Location {
     var jsColumn = entry.column;
     // lineEntry data is 0 based according to:
     // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
-    return Location._(JsLocation.fromZeroBased(scriptId, jsLine, jsColumn),
-        DartLocation.fromZeroBased(dartUri, dartLine, dartColumn));
+    return Location._(
+      JsLocation.fromZeroBased(scriptId, jsLine, jsColumn),
+      DartLocation.fromZeroBased(dartUri, dartLine, dartColumn),
+      modulePath,
+    );
   }
 
   @override
@@ -259,6 +266,7 @@ class Locations {
           var dartUri = DartUri(path, _root);
           result.add(Location.from(
             scriptId,
+            modulePath,
             lineEntry,
             entry,
             dartUri,

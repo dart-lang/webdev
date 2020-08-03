@@ -63,7 +63,6 @@ class DevHandler {
   final StreamController<DebugConnection> extensionDebugConnections =
       StreamController<DebugConnection>();
   final UrlEncoder _urlEncoder;
-  final bool _restoreBreakpoints;
   final bool _useSseForDebugProxy;
   final bool _serveDevTools;
   final ExpressionCompiler _expressionCompiler;
@@ -87,7 +86,6 @@ class DevHandler {
       this._logWriter,
       this._extensionBackend,
       this._urlEncoder,
-      this._restoreBreakpoints,
       this._useSseForDebugProxy,
       this._serveDevTools,
       this._expressionCompiler,
@@ -197,7 +195,6 @@ class DevHandler {
       metadataProvider,
       appConnection,
       _logWriter,
-      _restoreBreakpoints,
       onResponse: (response) {
         if (_verbose) {
           if (response['error'] == null) return;
@@ -473,7 +470,6 @@ class DevHandler {
             metadataProvider,
             connection,
             _logWriter,
-            _restoreBreakpoints,
             onResponse: _verbose
                 ? (response) {
                     if (response['error'] == null) return;

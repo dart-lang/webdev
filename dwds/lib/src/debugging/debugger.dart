@@ -48,6 +48,7 @@ class Debugger extends Domain {
   final AssetReader _assetReader;
   final Modules _modules;
   final Locations _locations;
+  final String _root;
 
   Debugger._(
     this._remoteDebugger,
@@ -56,12 +57,12 @@ class Debugger extends Domain {
     this._assetReader,
     this._modules,
     this._locations,
-    String root,
+    this._root,
   )   : _breakpoints = _Breakpoints(
             locations: _locations,
             provider: provider,
             remoteDebugger: _remoteDebugger,
-            root: root),
+            root: _root),
         super(provider);
 
   /// The breakpoints we have set so far, indexable by either
@@ -269,9 +270,45 @@ class Debugger extends Domain {
     int column,
   }) async {
     checkIsolate('addBreakpoint', isolateId);
-
     final breakpoint = await _breakpoints.add(scriptId, line);
+    _notifyBreakpoint(breakpoint);
+    return breakpoint;
+  }
 
+  Future<ScriptRef> _updatedScriptRefFor(Breakpoint breakpoint) async {
+    var oldRef = (breakpoint.location as SourceLocation).script;
+    var dartUri = DartUri(oldRef.uri, _root);
+    return await inspector.scriptRefFor(dartUri.serverPath);
+  }
+
+  Future<void> reestablishBreakpoints(
+    Set<Breakpoint> previousBreakpoints,
+    Set<Breakpoint> disabledBreakpoints,
+  ) async {
+    // Previous breakpoints were never removed from Chrome since we use
+    // `setBreakpointByUrl`. We simply need to update the references.
+    for (var breakpoint in previousBreakpoints) {
+      var scriptRef = await _updatedScriptRefFor(breakpoint);
+      var updatedLocation = await _locations.locationForDart(
+          DartUri(scriptRef.uri, _root), _lineNumberFor(breakpoint));
+      var updatedBreakpoint = _breakpoints._dartBreakpoint(
+          scriptRef, updatedLocation, breakpoint.id);
+      _breakpoints._note(
+          bp: updatedBreakpoint,
+          jsId: _breakpoints._jsIdByDartId[updatedBreakpoint.id]);
+      _notifyBreakpoint(updatedBreakpoint);
+    }
+    // Disabled breakpoints were actually removed from Chrome so simply add
+    // them back.
+    for (var breakpoint in disabledBreakpoints) {
+      await addBreakpoint(
+          inspector.isolate.id,
+          (await _updatedScriptRefFor(breakpoint)).id,
+          _lineNumberFor(breakpoint));
+    }
+  }
+
+  void _notifyBreakpoint(Breakpoint breakpoint) {
     final event = Event(
       kind: EventKind.kBreakpointAdded,
       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -279,8 +316,6 @@ class Debugger extends Domain {
     );
     event.breakpoint = breakpoint;
     _streamNotify('Debug', event);
-
-    return breakpoint;
   }
 
   /// Remove a Dart breakpoint.
@@ -624,7 +659,7 @@ class Debugger extends Domain {
 }
 
 /// Returns the Dart line number for the provided breakpoint.
-int lineNumberFor(Breakpoint breakpoint) =>
+int _lineNumberFor(Breakpoint breakpoint) =>
     int.parse(breakpoint.id.split('#').last);
 
 /// Returns the breakpoint ID for the provided Dart script ID and Dart line
@@ -699,12 +734,13 @@ class _Breakpoints extends Domain {
   Future<String> _setJsBreakpoint(Location location) async {
     // Location is 0 based according to:
     // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
-    var response =
-        await remoteDebugger.sendCommand('Debugger.setBreakpoint', params: {
-      'location': {
-        'scriptId': location.jsLocation.scriptId,
-        'lineNumber': location.jsLocation.line - 1,
-      }
+
+    // The module can be loaded from a nested path and contain an ETAG suffix.
+    var urlRegex = '.*${location.modulePath}.*';
+    var response = await remoteDebugger
+        .sendCommand('Debugger.setBreakpointByUrl', params: {
+      'urlRegex': urlRegex,
+      'lineNumber': location.jsLocation.line - 1,
     });
     return response.result['breakpointId'] as String;
   }
@@ -728,8 +764,6 @@ class _Breakpoints extends Domain {
     isolate?.breakpoints?.removeWhere((b) => b.id == dartId);
     return _bpByDartId.remove(dartId);
   }
-
-  String dartId(String jsId) => _dartIdByJsId[jsId];
 
   String jsId(String dartId) => _jsIdByDartId[dartId];
 }

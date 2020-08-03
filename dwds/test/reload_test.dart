@@ -182,7 +182,8 @@ void main() {
       isolateId = vm.isolates.first.id;
       var isolate = await client.getIsolate(isolateId);
       expect(isolate.pauseEvent.kind, EventKind.kResume);
-      expect(isolate.breakpoints.isEmpty, isTrue);
+      // Previous breakpoint should still exist.
+      expect(isolate.breakpoints.isNotEmpty, isTrue);
     });
   });
 
