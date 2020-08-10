@@ -862,10 +862,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<ProcessMemoryUsage> getProcessMemoryUsage() =>
-      throw UnimplementedError();
+      _rpcNotSupportedFuture('getProcessMemoryUsage');
 
   @override
-  Future<WebSocketTarget> getWebSocketTarget() => throw UnimplementedError();
+  Future<WebSocketTarget> getWebSocketTarget() =>
+      _rpcNotSupportedFuture('getWebSocketTarget');
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
