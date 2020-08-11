@@ -14,6 +14,19 @@ final context = TestContext(
   path: 'append_body/index.html',
 );
 
+Future<Alert> _waitForAlert(TestContext context) async {
+  Alert alert;
+  var attempts = 5;
+  while (attempts-- >= 0) {
+    try {
+      alert = context.webDriver.driver.switchTo.alert;
+      break;
+    } catch (_) {}
+    await Future.delayed(const Duration(seconds: 2));
+  }
+  return alert;
+}
+
 void main() {
   group('Injected client', () {
     setUp(() async {
@@ -49,8 +62,7 @@ void main() {
 
       // Try to open devtools and check for the alert.
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-      await Future.delayed(const Duration(seconds: 2));
-      var alert = context.webDriver.driver.switchTo.alert;
+      var alert = await _waitForAlert(context);
       expect(alert, isNotNull);
       expect(await alert.text,
           contains('This app is already being debugged in a different tab'));
