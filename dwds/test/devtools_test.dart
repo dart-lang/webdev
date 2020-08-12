@@ -16,13 +16,13 @@ final context = TestContext(
 
 Future<Alert> _waitForAlert(TestContext context) async {
   Alert alert;
-  var attempts = 5;
+  var attempts = 100;
   while (attempts-- >= 0) {
     try {
       alert = context.webDriver.driver.switchTo.alert;
       break;
     } catch (_) {}
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(milliseconds: 100));
   }
   return alert;
 }
