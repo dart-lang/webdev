@@ -14,17 +14,14 @@ final context = TestContext(
   path: 'append_body/index.html',
 );
 
-Future<Alert> _waitForAlert(TestContext context) async {
-  Alert alert;
-  var attempts = 100;
-  while (attempts-- >= 0) {
-    try {
-      alert = context.webDriver.driver.switchTo.alert;
-      break;
-    } catch (_) {}
+Future<void> _waitForPageReady(TestContext context) async {
+  var attempt = 100;
+  while (attempt-- > 0) {
+    var content = await context.webDriver.pageSource;
+    if (content.contains('Hello World!')) break;
     await Future.delayed(const Duration(milliseconds: 100));
   }
-  return alert;
+  throw StateError('Page never initialized');
 }
 
 void main() {
@@ -60,9 +57,13 @@ void main() {
       var devToolsWindow = windows[2];
       await newAppWindow.setAsActive();
 
+      // Wait for the page to be ready before trying to open DevTools again.
+      await _waitForPageReady(context);
+
       // Try to open devtools and check for the alert.
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-      var alert = await _waitForAlert(context);
+      await Future.delayed(const Duration(seconds: 2));
+      var alert = context.webDriver.driver.switchTo.alert;
       expect(alert, isNotNull);
       expect(await alert.text,
           contains('This app is already being debugged in a different tab'));
