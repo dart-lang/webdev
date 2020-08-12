@@ -14,6 +14,16 @@ final context = TestContext(
   path: 'append_body/index.html',
 );
 
+Future<void> _waitForPageReady(TestContext context) async {
+  var attempt = 100;
+  while (attempt-- > 0) {
+    var content = await context.webDriver.pageSource;
+    if (content.contains('Hello World!')) return;
+    await Future.delayed(const Duration(milliseconds: 100));
+  }
+  throw StateError('Page never initialized');
+}
+
 void main() {
   group('Injected client', () {
     setUp(() async {
@@ -46,6 +56,9 @@ void main() {
       var newAppWindow = windows[1];
       var devToolsWindow = windows[2];
       await newAppWindow.setAsActive();
+
+      // Wait for the page to be ready before trying to open DevTools again.
+      await _waitForPageReady(context);
 
       // Try to open devtools and check for the alert.
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
