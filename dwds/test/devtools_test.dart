@@ -18,7 +18,7 @@ Future<void> _waitForPageReady(TestContext context) async {
   var attempt = 100;
   while (attempt-- > 0) {
     var content = await context.webDriver.pageSource;
-    if (content.contains('Hello World!')) break;
+    if (content.contains('Hello World!')) return;
     await Future.delayed(const Duration(milliseconds: 100));
   }
   throw StateError('Page never initialized');
