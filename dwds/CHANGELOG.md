@@ -1,4 +1,4 @@
-## 6.0.0-dev
+## 6.0.0
 
 - Depend on the latest `package:devtools` and `package:devtools_server`.
 - Support using WebSockets for the debug backend by passing
