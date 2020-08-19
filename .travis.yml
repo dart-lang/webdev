@@ -16,10 +16,10 @@ services:
 jobs:
   include:
     - stage: analyzer_and_format
-      name: "SDK: 2.9.0-19.0.dev; PKGS: dwds, example, frontend_server_common, webdev; TASKS: `dartanalyzer --fatal-warnings .`"
-      dart: "2.9.0-19.0.dev"
+      name: "SDK: 2.9.1; PKG: dwds; TASKS: `dartanalyzer --fatal-warnings .`"
+      dart: "2.9.1"
       os: linux
-      env: PKGS="dwds example frontend_server_common webdev"
+      env: PKGS="dwds"
       script: ./tool/travis.sh dartanalyzer_1
     - stage: analyzer_and_format
       name: "SDK: dev; PKG: dwds; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`, `pub run test test/build/ensure_version_test.dart`]"
@@ -27,6 +27,12 @@ jobs:
       os: linux
       env: PKGS="dwds"
       script: ./tool/travis.sh dartfmt dartanalyzer_0 test_0
+    - stage: analyzer_and_format
+      name: "SDK: 2.9.0-19.0.dev; PKGS: example, frontend_server_common, webdev; TASKS: `dartanalyzer --fatal-warnings .`"
+      dart: "2.9.0-19.0.dev"
+      os: linux
+      env: PKGS="example frontend_server_common webdev"
+      script: ./tool/travis.sh dartanalyzer_1
     - stage: analyzer_and_format
       name: "SDK: dev; PKGS: example, frontend_server_common; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
       dart: dev
@@ -46,14 +52,14 @@ jobs:
       env: PKGS="webdev"
       script: ./tool/travis.sh dartfmt dartanalyzer_0 test_3
     - stage: unit_test
-      name: "SDK: 2.9.0-19.0.dev; PKG: dwds; TASKS: `pub run test -x frontend-server`"
-      dart: "2.9.0-19.0.dev"
+      name: "SDK: 2.9.1; PKG: dwds; TASKS: `pub run test -x frontend-server`"
+      dart: "2.9.1"
       os: linux
       env: PKGS="dwds"
       script: ./tool/travis.sh test_1
     - stage: unit_test
-      name: "SDK: 2.9.0-19.0.dev; PKG: dwds; TASKS: `pub run test -x frontend-server`"
-      dart: "2.9.0-19.0.dev"
+      name: "SDK: 2.9.1; PKG: dwds; TASKS: `pub run test -x frontend-server`"
+      dart: "2.9.1"
       os: windows
       env: PKGS="dwds"
       script: ./tool/travis.sh test_1
