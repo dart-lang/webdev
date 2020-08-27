@@ -535,6 +535,7 @@ class Debugger extends Domain {
       // before resorting to stepping out.
       if (_isStepping && (await _sourceLocation(e)) == null) {
         if (_stepInCount > _maxStepInCount) {
+          _stepInCount = 0;
           await _remoteDebugger.stepOut();
         } else {
           _stepInCount++;
