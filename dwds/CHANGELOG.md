@@ -1,3 +1,8 @@
+## 6.1.0-dev
+
+- We no longer leverage the Chrome DevTools blackbox logic to black box
+  the Dart SDK. Instead we use our own custom black box logic.
+
 ## 6.0.0
 
 - Depend on the latest `package:devtools` and `package:devtools_server`.

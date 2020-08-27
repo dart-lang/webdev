@@ -101,7 +101,6 @@ class ChromeProxyService implements VmServiceInterface {
       remoteDebugger,
       _streamNotify,
       appInspectorProvider,
-      _assetReader,
       _modules,
       _locations,
       uri,

@@ -38,7 +38,6 @@ void main() async {
       null,
       () => inspector,
       null,
-      null,
       locations,
       root,
     );
