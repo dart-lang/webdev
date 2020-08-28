@@ -473,7 +473,7 @@ class Debugger extends Domain {
 
   // The maximum number of steps into locations without source information
   // before we begin stepping out.
-  final _maxStepInCount = 5;
+  final _maxStepInCount = 10;
 
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
