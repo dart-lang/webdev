@@ -468,12 +468,12 @@ class Debugger extends Domain {
     return dartFrame;
   }
 
-  // The current number of 'step-in's into locations without source information.
+  // The current number of steps into locations without source information.
   var _stepInCount = 0;
 
   // The maximum number of steps into locations without source information
-  // before we begin stepping out.
-  final _maxStepInCount = 10;
+  // before we step out.
+  final _maxStepInCount = 7;
 
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
