@@ -100,6 +100,12 @@ class DwdsVmClient {
     });
     await client.registerService('ext.dwds.screenshot', 'DWDS');
 
+    // TODO(#1091) add support for single client mode.
+    client.registerServiceCallback('_yieldControlToDDS', (_) async {
+      return {'result': Success().toJson()};
+    });
+    await client.registerService('_yieldControlToDDS', 'DWDS');
+
     return DwdsVmClient(client, requestController, responseController);
   }
 }
