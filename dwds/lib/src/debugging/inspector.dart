@@ -406,7 +406,7 @@ function($argsString) {
     final dartUri = DartUri(scriptRef.uri, _root);
     final mappedLocations =
         await _locations.locationsForDart(dartUri.serverPath);
-    // Unlike the Dart VM, the tokem positions match exactly to the possible
+    // Unlike the Dart VM, the token positions match exactly to the possible
     // breakpoints. This is because the token positions are derived from the
     // DDC source maps which Chrome also uses.
     var tokenPositions = <int>[
