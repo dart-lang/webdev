@@ -23,7 +23,6 @@ import '../utilities/shared.dart';
 import 'dart_scope.dart';
 import 'frame_computer.dart';
 import 'location.dart';
-import 'modules.dart';
 import 'remote_debugger.dart';
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
@@ -46,7 +45,6 @@ class Debugger extends Domain {
 
   final StreamNotify _streamNotify;
   final AssetReader _assetReader;
-  final Modules _modules;
   final Locations _locations;
   final String _root;
 
@@ -55,7 +53,6 @@ class Debugger extends Domain {
     this._streamNotify,
     AppInspectorProvider provider,
     this._assetReader,
-    this._modules,
     this._locations,
     this._root,
   )   : _breakpoints = _Breakpoints(
@@ -161,7 +158,6 @@ class Debugger extends Domain {
     StreamNotify streamNotify,
     AppInspectorProvider appInspectorProvider,
     AssetReader assetReader,
-    Modules modules,
     Locations locations,
     String root,
   ) async {
@@ -170,7 +166,6 @@ class Debugger extends Domain {
       streamNotify,
       appInspectorProvider,
       assetReader,
-      modules,
       locations,
       root,
     );
