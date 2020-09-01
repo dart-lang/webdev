@@ -90,6 +90,7 @@ class FrameComputer {
           callFrame.scriptId, callFrame.lineNumber,
           columnNumber: callFrame.columnNumber);
       var tempWipFrame = WipCallFrame({
+        'url': callFrame.url,
         'functionName': callFrame.functionName,
         'location': location.json,
         'scopeChain': [],
