@@ -21,20 +21,16 @@ class Location {
 
   final DartLocation dartLocation;
 
-  final String modulePath;
-
   /// An arbitrary integer value used to represent this location.
   final int tokenPos;
 
   Location._(
     this.jsLocation,
     this.dartLocation,
-    this.modulePath,
   ) : tokenPos = _startTokenId++;
 
   static Location from(
-    String scriptId,
-    String modulePath,
+    String module,
     TargetLineEntry lineEntry,
     TargetEntry entry,
     DartUri dartUri,
@@ -46,9 +42,8 @@ class Location {
     // lineEntry data is 0 based according to:
     // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
     return Location._(
-      JsLocation.fromZeroBased(scriptId, jsLine, jsColumn),
+      JsLocation.fromZeroBased(module, jsLine, jsColumn),
       DartLocation.fromZeroBased(dartUri, dartLine, dartColumn),
-      modulePath,
     );
   }
 
@@ -84,8 +79,7 @@ class DartLocation {
 
 /// Location information for a JS source.
 class JsLocation {
-  /// The script ID as provided by Chrome.
-  final String scriptId;
+  final String module;
 
   /// 1 based row offset within the JS source code.
   final int line;
@@ -94,28 +88,25 @@ class JsLocation {
   final int column;
 
   JsLocation._(
-    this.scriptId,
+    this.module,
     this.line,
     this.column,
   );
 
   @override
-  String toString() => '[$scriptId:$line:$column]';
+  String toString() => '[$module:$line:$column]';
 
-  static JsLocation fromZeroBased(String scriptId, int line, int column) =>
-      JsLocation._(scriptId, line + 1, column + 1);
+  static JsLocation fromZeroBased(String module, int line, int column) =>
+      JsLocation._(module, line + 1, column + 1);
 
-  static JsLocation fromOneBased(String scriptId, int line, int column) =>
-      JsLocation._(scriptId, line, column);
+  static JsLocation fromOneBased(String module, int line, int column) =>
+      JsLocation._(module, line, column);
 }
 
 /// Contains meta data for known [Location]s.
 class Locations {
   /// Map from Dart server path to all corresponding [Location] data.
   final _sourceToLocation = <String, Set<Location>>{};
-
-  /// Map from JS scriptId to all corresponding [Location] data.
-  final _scriptIdToLocation = <String, Set<Location>>{};
 
   /// Map from Dart server path to tokenPosTable as defined in the
   /// Dart VM Service Protocol:
@@ -140,7 +131,6 @@ class Locations {
   /// Clears all location meta data.
   void clearCache() {
     _sourceToTokenPosTable.clear();
-    _scriptIdToLocation.clear();
     _sourceToLocation.clear();
     _moduleToLocations.clear();
     _processedModules.clear();
@@ -151,27 +141,16 @@ class Locations {
     var module = await _modules.moduleForSource(serverPath);
     var cache = _sourceToLocation[serverPath];
     if (cache != null) return cache;
-
-    for (var location in await _locationsForModule(module)) {
-      noteLocation(location.dartLocation.uri.serverPath, location,
-          location.jsLocation.scriptId);
-    }
-
+    await _locationsForModule(module);
     return _sourceToLocation[serverPath] ?? {};
   }
 
-  /// Returns all [Location] data for a provided JS scriptId.
-  Future<Set<Location>> locationsForJs(String scriptId) async {
-    var module = _modules.moduleForScriptId(scriptId);
-    var cache = _scriptIdToLocation[scriptId];
+  /// Returns all [Location] data for a provided JS server path.
+  Future<Set<Location>> locationsForUrl(String url) async {
+    var module = globalLoadStrategy.moduleForServerPath(Uri.parse(url).path);
+    var cache = _moduleToLocations[module];
     if (cache != null) return cache;
-
-    for (var location in await _locationsForModule(module)) {
-      noteLocation(location.dartLocation.uri.serverPath, location,
-          location.jsLocation.scriptId);
-    }
-
-    return _scriptIdToLocation[scriptId] ?? {};
+    return await _locationsForModule(module) ?? {};
   }
 
   /// Find the [Location] for the given Dart source position.
@@ -185,21 +164,10 @@ class Locations {
   /// Find the [Location] for the given JS source position.
   ///
   /// The [line] number is 1-based.
-  Future<Location> locationForJs(String scriptId, int line) async =>
-      (await locationsForJs(scriptId)).firstWhere(
+  Future<Location> locationForJs(String url, int line) async =>
+      (await locationsForUrl(url)).firstWhere(
           (location) => location.jsLocation.line == line,
           orElse: () => null);
-
-  /// Note [location] meta data.
-  void noteLocation(
-      String dartServerPath, Location location, String wipScriptId) {
-    _sourceToLocation
-        .putIfAbsent(dartServerPath, () => <Location>{})
-        .add(location);
-    _scriptIdToLocation
-        .putIfAbsent(wipScriptId, () => <Location>{})
-        .add(location);
-  }
 
   /// Returns the tokenPosTable for the provided Dart script path as defined
   /// in:
@@ -233,6 +201,8 @@ class Locations {
   /// Returns all known [Location]s for the provided [module].
   ///
   /// [module] refers to the JS path of a DDC module without the extension.
+  ///
+  /// This will populate the [_sourceToLocation] and [_moduleToLocations] maps.
   Future<Set<Location>> _locationsForModule(String module) async {
     if (module == null) return {};
     if (_moduleToLocations[module] != null) return _moduleToLocations[module];
@@ -246,8 +216,6 @@ class Locations {
         await _assetReader.sourceMapContents('$modulePath.map');
     var scriptLocation = p.url.dirname('/$modulePath');
     if (sourceMapContents == null) return result;
-    var scriptId = _modules.scriptIdForModule(module);
-    if (scriptId == null) return result;
     // This happens to be a [SingleMapping] today in DDC.
     var mapping = parse(sourceMapContents);
     if (mapping is SingleMapping) {
@@ -265,7 +233,6 @@ class Locations {
               .normalize(p.url.joinAll([scriptLocation, ...relativeSegments]));
           var dartUri = DartUri(path, _root);
           result.add(Location.from(
-            scriptId,
             modulePath,
             lineEntry,
             entry,
@@ -273,6 +240,11 @@ class Locations {
           ));
         }
       }
+    }
+    for (var location in result) {
+      _sourceToLocation
+          .putIfAbsent(location.dartLocation.uri.serverPath, () => <Location>{})
+          .add(location);
     }
     return _moduleToLocations[module] = result;
   }
