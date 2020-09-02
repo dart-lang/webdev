@@ -1,3 +1,9 @@
+## Unreleased
+
+- Add support for the Dart Development Service (DDS). Introduces 'single
+  client mode', which prevents additional direct connections to DWDS when
+  DDS is connected.
+
 ## 6.0.0
 
 - Depend on the latest `package:devtools` and `package:devtools_server`.

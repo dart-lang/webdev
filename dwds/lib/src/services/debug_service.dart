@@ -27,6 +27,9 @@ import '../utilities/shared.dart';
 import 'chrome_proxy_service.dart';
 import 'expression_compiler.dart';
 
+bool _acceptNewConnections = true;
+int _clientsConnected = 0;
+
 void Function(WebSocketChannel, String) _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
   ServiceExtensionRegistry serviceExtensionRegistry, {
@@ -51,9 +54,18 @@ void Function(WebSocketChannel, String) _createNewConnectionHandler(
       if (onRequest != null) onRequest(request);
       return request;
     });
-
+    ++_clientsConnected;
     VmServerConnection(inputStream, responseController.sink,
-        serviceExtensionRegistry, chromeProxyService);
+            serviceExtensionRegistry, chromeProxyService)
+        .done
+        .whenComplete(() async {
+      --_clientsConnected;
+      if (!_acceptNewConnections && _clientsConnected == 0) {
+        // DDS has disconnected so we can allow for clients to connect directly
+        // to DWDS.
+        _acceptNewConnections = true;
+      }
+    });
   };
 }
 
@@ -80,9 +92,18 @@ Future<void> _handleSseConnections(
       if (onRequest != null) onRequest(request);
       return request;
     });
+    ++_clientsConnected;
     var vmServerConnection = VmServerConnection(inputStream,
         responseController.sink, serviceExtensionRegistry, chromeProxyService);
-    unawaited(vmServerConnection.done.whenComplete(sub.cancel));
+    unawaited(vmServerConnection.done.whenComplete(() {
+      --_clientsConnected;
+      if (!_acceptNewConnections && _clientsConnected == 0) {
+        // DDS has disconnected so we can allow for clients to connect directly
+        // to DWDS.
+        _acceptNewConnections = true;
+      }
+      return sub.cancel();
+    }));
   }
 }
 
@@ -90,6 +111,8 @@ Future<void> _handleSseConnections(
 ///
 /// Creates a [ChromeProxyService] from an existing Chrome instance.
 class DebugService {
+  static String _ddsUri;
+
   final VmServiceInterface chromeProxyService;
   final String hostname;
   final ServiceExtensionRegistry serviceExtensionRegistry;
@@ -123,6 +146,15 @@ class DebugService {
           .toString()
       : Uri(scheme: 'ws', host: hostname, port: port, path: '$_authToken')
           .toString();
+
+  static bool yieldControlToDDS(String uri) {
+    if (_clientsConnected > 1) {
+      return false;
+    }
+    _ddsUri = uri;
+    _acceptNewConnections = false;
+    return true;
+  }
 
   static Future<DebugService> start(
       String hostname,
@@ -163,6 +195,13 @@ class DebugService {
           chromeProxyService, serviceExtensionRegistry,
           onRequest: onRequest, onResponse: onResponse));
       handler = (shelf.Request request) {
+        if (!_acceptNewConnections) {
+          return shelf.Response.forbidden(
+            'Cannot connect directly to the VM service as a Dart Development '
+            'Service (DDS) instance has taken control and can be found at '
+            '$_ddsUri.',
+          );
+        }
         if (request.url.pathSegments.first != authToken) {
           return shelf.Response.forbidden('Incorrect auth token');
         }

@@ -21,6 +21,9 @@ class DwdsVmClient {
   final StreamController<Map<String, Object>> _requestController;
   final StreamController<Map<String, Object>> _responseController;
 
+  static const int kFeatureDisabled = 100;
+  static const String kFeatureDisabledMessage = 'Feature is disabled.';
+
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
@@ -99,6 +102,28 @@ class DwdsVmClient {
       return {'result': response.result};
     });
     await client.registerService('ext.dwds.screenshot', 'DWDS');
+
+    client.registerServiceCallback('_yieldControlToDDS', (request) async {
+      final ddsUri = request['uri'] as String;
+      if (ddsUri == null) {
+        return RPCError(
+          request['method'] as String,
+          RPCError.kInvalidParams,
+          "'Missing parameter: 'uri'",
+        ).toMap();
+      }
+      return DebugService.yieldControlToDDS(ddsUri)
+          ? {'result': Success().toJson()}
+          : {
+              'error': {
+                'code': kFeatureDisabled,
+                'message': kFeatureDisabledMessage,
+                'details':
+                    'Existing VM service clients prevent DDS from taking control.',
+              },
+            };
+    });
+    await client.registerService('_yieldControlToDDS', 'DWDS');
 
     return DwdsVmClient(client, requestController, responseController);
   }
