@@ -15,6 +15,7 @@ dependencies:
   built_value: '>=6.7.0 <8.0.0'
   crypto: ^2.0.6
   # devtools_server indirectly depends on devtools so keep this around.
+  dds: ^1.3.1
   devtools: ^0.8.0
   devtools_server: ^0.8.0
   http: ^0.12.0

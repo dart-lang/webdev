@@ -10,6 +10,7 @@ import 'package:args/command_runner.dart';
 import '../logging.dart';
 import '../serve/dev_workflow.dart';
 import 'configuration.dart';
+import 'configuration.dart';
 import 'shared.dart';
 
 /// Command to run a server for local web development with the build daemon.
@@ -44,6 +45,10 @@ refresh: Performs a full page refresh.
         help: 'Specify which port the Chrome debugger is listening on. '
             'If used with $launchInChromeFlag Chrome will be started with the'
             ' debugger listening on this port.')
+    ..addFlag(disableDdsFlag,
+        negatable: false,
+        help: 'Disable the Dart Development Service (DDS). Disabling DDS may '
+        'result in a degraded developer experience in some tools.')
     ..addOption(hostnameFlag,
         help: 'Specify the hostname to serve on.', defaultsTo: 'localhost')
     ..addFlag(hotRestartFlag,

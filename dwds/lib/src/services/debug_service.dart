@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:dds/dds.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -116,10 +117,13 @@ class DebugService {
   final VmServiceInterface chromeProxyService;
   final String hostname;
   final ServiceExtensionRegistry serviceExtensionRegistry;
-  final int port;
+  int get port => _port;
+  int _port;
   final HttpServer _server;
-  final String _authToken;
+  String _authToken;
   final bool _useSse;
+  final bool _spawnDds;
+  DartDevelopmentService _dds;
 
   /// Null until [close] is called.
   ///
@@ -129,23 +133,47 @@ class DebugService {
   DebugService._(
       this.chromeProxyService,
       this.hostname,
-      this.port,
+      this._port,
       this._authToken,
       this.serviceExtensionRegistry,
       this._server,
-      this._useSse);
+      this._useSse,
+      this._spawnDds);
 
   Future<void> close() => _closed ??= _server.close();
 
-  String get uri => _useSse
-      ? Uri(
-              scheme: 'sse',
-              host: hostname,
-              port: port,
-              path: '$_authToken/\$debugHandler')
-          .toString()
-      : Uri(scheme: 'ws', host: hostname, port: port, path: '$_authToken')
+  Future<void> startDartDevelopmentService() async {
+    // Note: DDS can handle both web socket and SSE connections with no
+    // additional configuration.
+    _dds = await DartDevelopmentService.startDartDevelopmentService(Uri(
+      scheme: 'http',
+      host: hostname,
+      port: port,
+      path: '$_authToken',
+    ));
+  }
+
+  String get uri {
+    if (_spawnDds && _dds != null) {
+      // TODO(bkonyi): set the scheme to sse in package:dds.
+      return (_useSse ? _dds.sseUri.replace(scheme: 'sse') : _dds.wsUri)
           .toString();
+    }
+    return (_useSse
+            ? Uri(
+                scheme: 'sse',
+                host: hostname,
+                port: port,
+                path: '$_authToken/\$debugHandler',
+              )
+            : Uri(
+                scheme: 'ws',
+                host: hostname,
+                port: port,
+                path: '$_authToken',
+              ))
+        .toString();
+  }
 
   static bool yieldControlToDDS(String uri) {
     if (_clientsConnected > 1) {
@@ -168,6 +196,7 @@ class DebugService {
       LogWriter logWriter,
       {void Function(Map<String, dynamic>) onRequest,
       void Function(Map<String, dynamic>) onResponse,
+      bool spawnDds = true,
       bool useSse,
       ExpressionCompiler expressionCompiler}) async {
     useSse ??= false;
@@ -184,7 +213,8 @@ class DebugService {
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;
-    if (useSse) {
+    // DDS will always connect to DWDS via web sockets.
+    if (useSse && !spawnDds) {
       var sseHandler = SseHandler(Uri.parse('/$authToken/\$debugHandler'));
       handler = sseHandler.handler;
       unawaited(_handleSseConnections(
@@ -219,6 +249,7 @@ class DebugService {
       serviceExtensionRegistry,
       server,
       useSse,
+      spawnDds,
     );
   }
 }

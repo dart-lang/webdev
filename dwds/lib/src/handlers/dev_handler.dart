@@ -65,6 +65,7 @@ class DevHandler {
   final UrlEncoder _urlEncoder;
   final bool _useSseForDebugProxy;
   final bool _serveDevTools;
+  final bool _spawnDds;
   final ExpressionCompiler _expressionCompiler;
   final DwdsInjector _injected;
 
@@ -89,7 +90,8 @@ class DevHandler {
       this._useSseForDebugProxy,
       this._serveDevTools,
       this._expressionCompiler,
-      this._injected) {
+      this._injected,
+      this._spawnDds) {
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
     if (_extensionBackend != null) {
@@ -213,6 +215,7 @@ class DevHandler {
       // This will provide a websocket based service.
       useSse: false,
       expressionCompiler: _expressionCompiler,
+      spawnDds: _spawnDds,
     );
   }
 
@@ -428,11 +431,14 @@ class DevHandler {
 
   Future<AppDebugServices> _createAppDebugServices(
       String appId, DebugService debugService) async {
+    var webdevClient = await DwdsVmClient.create(debugService);
+    if (_spawnDds) {
+      await debugService.startDartDevelopmentService();
+    }
     _logWriter(
         Level.INFO,
         'Debug service listening on '
         '${debugService.uri}\n');
-    var webdevClient = await DwdsVmClient.create(debugService);
     return AppDebugServices(debugService, webdevClient);
   }
 
@@ -461,24 +467,26 @@ class DevHandler {
         var metadataProvider = FileMetadataProvider(_assetReader);
 
         var debugService = await DebugService.start(
-            _hostname,
-            extensionDebugger,
-            extensionDebugger.executionContext,
-            devToolsRequest.tabUrl,
-            _assetReader,
-            _loadStrategy,
-            metadataProvider,
-            connection,
-            _logWriter,
-            onResponse: _verbose
-                ? (response) {
-                    if (response['error'] == null) return;
-                    _logWriter(Level.WARNING,
-                        'VmService proxy responded with an error:\n$response');
-                  }
-                : null,
-            useSse: _useSseForDebugProxy,
-            expressionCompiler: _expressionCompiler);
+          _hostname,
+          extensionDebugger,
+          extensionDebugger.executionContext,
+          devToolsRequest.tabUrl,
+          _assetReader,
+          _loadStrategy,
+          metadataProvider,
+          connection,
+          _logWriter,
+          onResponse: _verbose
+              ? (response) {
+                  if (response['error'] == null) return;
+                  _logWriter(Level.WARNING,
+                      'VmService proxy responded with an error:\n$response');
+                }
+              : null,
+          useSse: _useSseForDebugProxy,
+          expressionCompiler: _expressionCompiler,
+          spawnDds: _spawnDds,
+        );
         var appServices =
             await _createAppDebugServices(devToolsRequest.appId, debugService);
         unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
