@@ -404,31 +404,14 @@ function($argsString) {
     }
 
     final dartUri = DartUri(scriptRef.uri, _root);
-    final jsModule =
-        await _locations.modules.moduleForSource(dartUri.serverPath);
-    final jsScriptId = _locations.modules.scriptIdForModule(jsModule);
-
-    final possibleLocations = await remoteDebugger
-        .getPossibleBreakpoints(WipLocation.fromValues(jsScriptId, 0));
-
     final mappedLocations =
         await _locations.locationsForDart(dartUri.serverPath);
-
-    // Currently, there's not exact alignment between the source map information
-    // that DDC generates and the locations that V8 believes are executable.
-    // The 'possible breakpoints' source report is currently used by clients in
-    // order to visualize the lines at which the user can set breakpoints. In
-    // order to not under report or over report lines, we don't try and look for
-    // exact matches here, but instead report all DDC token position for lines
-    // where V8 thinks there is something executable.
-    final jsLines =
-        Set<int>.from(possibleLocations.map((loc) => loc.lineNumber + 1));
-    var tokenPositions = <int>[];
-    for (var location in mappedLocations) {
-      if (jsLines.contains(location.jsLocation.line)) {
-        tokenPositions.add(location.tokenPos);
-      }
-    }
+    // Unlike the Dart VM, the token positions match exactly to the possible
+    // breakpoints. This is because the token positions are derived from the
+    // DDC source maps which Chrome also uses.
+    var tokenPositions = <int>[
+      for (var location in mappedLocations) location.tokenPos
+    ];
     tokenPositions.sort();
 
     final range = SourceReportRange(

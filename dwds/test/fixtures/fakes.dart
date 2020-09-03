@@ -124,16 +124,6 @@ class FakeModules implements Modules {
   Future<Map<String, String>> modules() {
     throw UnimplementedError();
   }
-
-  @override
-  Future<Null> noteModule(String url, String scriptId) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  String scriptIdForModule(String server) {
-    throw UnimplementedError();
-  }
 }
 
 class FakeWebkitDebugger implements WebkitDebugger {

@@ -24,8 +24,8 @@ List<Map<String, dynamic>> frames1Json = [
       "lineNumber": 88,
       "columnNumber": 72
     },
-    "location": {"scriptId": "69", "lineNumber": 92, "columnNumber": 8},
-    "url": "http://127.0.0.1:8081/scopes_main.ddc.js",
+    "location": {"scriptId": "69", "lineNumber": 37, "columnNumber": 0},
+    "url": "http://127.0.0.1:8081/foo.ddc.js",
     "scopeChain": [
       {
         "type": "local",
