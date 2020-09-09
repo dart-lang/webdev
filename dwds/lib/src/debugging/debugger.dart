@@ -35,9 +35,6 @@ const _pauseModePauseStates = {
   'unhandled': PauseState.uncaught,
 };
 
-/// Paths to black box in the Chrome debugger.
-const _pathsToBlackBox = {'/packages/stack_trace/'};
-
 class Debugger extends Domain {
   static final logger = Logger('Debugger');
 
@@ -178,6 +175,8 @@ class Debugger extends Domain {
     // miss events.
     // Allow a null debugger/connection for unit tests.
     runZoned(() {
+      // Note the Dart Debug Extension only sends script parsed events for the
+      // SDK.
       _remoteDebugger?.onScriptParsed?.listen((e) {
         _blackBoxIfNecessary(e.script);
       });
@@ -203,12 +202,6 @@ class Debugger extends Domain {
     var url = script.url?.split('?')?.first ?? '';
     if (url.endsWith('dart_sdk.js') || url.endsWith('dart_sdk.ddk.js')) {
       await _blackBoxSdk(script);
-    } else if (_pathsToBlackBox.any(url.contains)) {
-      var content =
-          await _assetReader.dartSourceContents(DartUri(url).serverPath);
-      if (content == null) return;
-      var lines = content.split('\n');
-      await _blackBoxRanges(script.scriptId, [lines.length]);
     }
   }
 
