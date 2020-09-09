@@ -196,7 +196,7 @@ class Debugger extends Domain {
     }));
   }
 
-  /// Black boxes the Dart SDK and paths in [_pathsToBlackBox].
+  /// Black boxes the Dart SDK.
   Future<void> _blackBoxIfNecessary(WipScript script) async {
     // Ignore query parameters.
     var url = script.url?.split('?')?.first ?? '';
