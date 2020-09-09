@@ -248,6 +248,7 @@ Future<void> _startSseClient(
     if (tabId == devToolsTab && attached) {
       detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
       attached = false;
+      queue._attached = false;
       client.close();
       return;
     }
@@ -262,6 +263,8 @@ class _EventQueue {
       this._client, this._currentTab, this._attached, String dwdsVersion) {
     _supportsBatching =
         Version.parse(dwdsVersion ?? '0.0.0') > Version.parse('0.8.1');
+    _limitParsedEvents =
+        Version.parse(dwdsVersion ?? '0.0.0') >= Version.parse('6.1.0');
   }
 
   static const _flushInterval = Duration(milliseconds: 250);
@@ -270,6 +273,8 @@ class _EventQueue {
   final Tab _currentTab;
   bool _attached;
   bool _supportsBatching;
+  // Whether to send only the `scriptParsed` event for the SDK or all events.
+  bool _limitParsedEvents;
 
   /// The pending events.
   final queuedEvents = <ExtensionEvent>[];
@@ -304,14 +309,21 @@ class _EventQueue {
     }
     var event = _extensionEventFor(method, params);
     if (_supportsBatching && method == 'Debugger.scriptParsed') {
-      if (queuedEvents.isEmpty) {
-        _startTimer();
+      var url = (json.decode(stringify(params))['url'] as String) ?? '';
+      if (!_limitParsedEvents || _isSdkUrl(url)) {
+        if (queuedEvents.isEmpty) {
+          _startTimer();
+        }
+        queuedEvents.add(event);
       }
-      queuedEvents.add(event);
     } else {
       _forward(event);
     }
   }
+
+  bool _isSdkUrl(String url) =>
+      // We use contains to ignore URL parameters.
+      url.contains('dart_sdk.js') || url.contains('dart_sdk.ddk.js');
 }
 
 @JS('chrome.browserAction.onClicked.addListener')

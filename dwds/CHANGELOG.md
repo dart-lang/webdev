@@ -1,4 +1,4 @@
-## Unreleased
+## 6.1.0-dev 
 
 - Add support for the Dart Development Service (DDS). Introduces 'single
   client mode', which prevents additional direct connections to DWDS when

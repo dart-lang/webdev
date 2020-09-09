@@ -1,3 +1,7 @@
+## 1.14
+
+- Only send the SDK parsed event.
+
 ## 1.13
 
 - Add support for using WebSockets for connection debug backend.
