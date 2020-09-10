@@ -1,0 +1,15 @@
+# See https://github.com/dart-lang/mono_repo for details	
+stages:	
+  - analyzer_and_format:	
+    - group:	
+      - dartfmt	
+      - dartanalyzer: --fatal-infos --fatal-warnings .	
+      dart: dev	
+    - group:	
+      - dartanalyzer: --fatal-warnings .	
+      dart: [2.9.0-19.0.dev]	
+
+cache:	
+  directories:	
+    - .dart_tool/build	
+    - .dart_tool/pub
