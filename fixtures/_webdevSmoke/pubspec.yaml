@@ -1,8 +1,11 @@
-name: webdev_test_app 
-description: A test fixture to for webdev testing.
+name: _webdevSmoke 
+description: A test fixture for webdev testing.
 
 # The versions in this pubspec should match the requirements
-# defined by webdev. See pubspec.dart for details. 
+# defined by webdev. That is the SDK constraint should be the
+# same as defined by webdev/pubspec.yaml and the build_runner
+# and build_web_compilers constraint should match those defined
+# in pubspec.dart. 
 environment:
   sdk: '>=2.7.0 <3.0.0'
 
