@@ -1,6 +1,6 @@
 ## 2.6.2
 
-- Update min sdk constraint to `>=2.8.0`.
+- Update min sdk constraint to `>=2.8.1`.
 
 ## 2.6.1
 
