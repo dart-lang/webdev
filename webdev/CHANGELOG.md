@@ -1,3 +1,7 @@
+## 2.6.1
+
+- Rollback pre-release dependency of `build_web_compilers`: from `2.12.0-dev.1` to `2.11.0`.
+
 ## 2.6.0
 
 - Require at least `build_web_compilers` version `2.12.0-dev.1`.
