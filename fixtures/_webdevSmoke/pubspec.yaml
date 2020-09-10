@@ -1,0 +1,11 @@
+name: webdev_test_app 
+description: A test fixture to for webdev testing.
+
+ # The versions contained in this pubspec should be pinned to
+ # the minimum versions required by webdev. 
+environment:
+  sdk: 2.7.0
+
+dev_dependencies:
+  build_runner: 1.6.2
+  build_web_compilers: 2.6.1
