@@ -1,6 +1,10 @@
 # See https://github.com/dart-lang/mono_repo for details
 dart:
-  - 2.9.0-19.0.dev
+  # The minimum version should be kept in sync with the
+  # minimum SDK version defined in the webdev pubspec.
+  # This ensures we do not accidentally break users upon
+  # release of webdev.
+  -  2.7.0
   - dev
 
 stages:
@@ -12,9 +16,9 @@ stages:
       dart: dev
     - group:
       - dartanalyzer: --fatal-warnings .
-      dart: [2.9.0-19.0.dev]
+      dart: [2.7.0]
   - unit_test:
     - test: -j 1
     - test: -j 1
       os: windows
-      dart: 2.9.0-19.0.dev 
+      dart: 2.7.0 
