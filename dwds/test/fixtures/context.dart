@@ -13,6 +13,7 @@ import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:build_daemon/data/server_log.dart' as server_log;
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
@@ -28,7 +29,6 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'fakes.dart';
 import 'server.dart';
 import 'utilities.dart';
 
@@ -54,6 +54,7 @@ class TestContext {
   DebugConnection debugConnection;
   WebkitDebugger webkitDebugger;
   http.Client client;
+  ExpressionCompilerService ddcService;
   int port;
   Directory _outputDir;
   File _entryFile;
@@ -104,8 +105,9 @@ class TestContext {
       UrlEncoder urlEncoder,
       bool restoreBreakpoints,
       CompilationMode compilationMode,
-      bool useFakeExpressionCompiler,
-      LogWriter logWriter}) async {
+      bool enableExpressionEvaluation,
+      LogWriter logWriter,
+      bool verbose}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
@@ -113,9 +115,10 @@ class TestContext {
     enableDebugging ??= true;
     waitToDebug ??= false;
     compilationMode ??= CompilationMode.buildDaemon;
-    useFakeExpressionCompiler ??= false;
+    enableExpressionEvaluation ??= false;
     logWriter ??= (Level level, String message) => printOnFailure(message);
     spawnDds ??= true;
+    verbose ??= false;
 
     try {
       client = http.Client();
@@ -145,18 +148,26 @@ class TestContext {
       ExpressionCompiler expressionCompiler;
       AssetReader assetReader;
       Handler assetHandler;
+      MetadataProvider metadataProvider;
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
-      MetadataProvider metadataProvider;
 
+      port = await findUnusedPort();
       switch (compilationMode) {
         case CompilationMode.buildDaemon:
           {
+            var options = [
+              if (enableExpressionEvaluation) ...[
+                '--define',
+                'build_web_compilers|ddc=generate-full-dill=true',
+              ],
+              if (verbose) '--verbose',
+            ];
             daemonClient = await connectClient(
                 workingDirectory,
-                [],
-                (log) => logWriter(
-                    server_log.toLoggingLevel(log.level), log.message));
+                options,
+                (log) =>
+                    logWriter(server_log.toLoggingLevel(log.level), log.message));
             daemonClient.registerBuildTarget(
                 DefaultBuildTarget((b) => b..target = pathToServe));
             daemonClient.startBuild();
@@ -167,57 +178,70 @@ class TestContext {
                 .timeout(const Duration(seconds: 60));
 
             var assetServerPort = daemonPort(workingDirectory);
-            assetHandler = proxyHandler(
-                'http://localhost:$assetServerPort/$pathToServe/',
-                client: client);
+            assetHandler = proxyHandler('http://localhost:$assetServerPort/$pathToServe/', client: client);
             assetReader = ProxyServerAssetReader(assetServerPort, logWriter,
                 root: pathToServe);
-            metadataProvider = MetadataProvider(assetReader, logWriter);
 
             requireStrategy = BuildRunnerRequireStrategyProvider(
                     assetHandler, reloadConfiguration, metadataProvider)
                 .strategy;
 
-            buildResults = daemonClient.buildResults;
+            if (enableExpressionEvaluation) {
+              var ddcAssetHandler = proxyHandler('http://localhost:$assetServerPort/', client: client);
+
+            ddcService = await ExpressionCompilerService.start(
+              'localhost',
+              port,
+              pathToServe,
+              ddcAssetHandler,
+              logWriter,
+              verbose,
+            );
+            expressionCompiler = ddcService;
           }
-          break;
-        case CompilationMode.frontendServer:
-          {
-            var fileSystemRoot = p.dirname(_packagesFilePath);
-            var entryPath =
-                _entryFile.path.substring(fileSystemRoot.length + 1);
-            webRunner = ResidentWebRunner(
-                '${Uri.file(entryPath)}',
-                urlEncoder,
-                fileSystemRoot,
-                _packagesFilePath,
-                [fileSystemRoot],
-                'org-dartlang-app',
-                _outputDir.path,
-                logWriter);
 
-            var assetServerPort = await findUnusedPort();
-            await webRunner.run(hostname, assetServerPort, pathToServe);
+          metadataProvider = MetadataProvider(
+              assetReader, ddcService?.updateDependencies, logWriter);
 
+          buildResults = daemonClient.buildResults;
+        }
+        break;
+      case CompilationMode.frontendServer:
+        {
+          var fileSystemRoot = p.dirname(_packagesFilePath);
+          var entryPath = _entryFile.path.substring(fileSystemRoot.length + 1);
+          webRunner = ResidentWebRunner(
+              '${Uri.file(entryPath)}',
+              urlEncoder,
+              fileSystemRoot,
+              _packagesFilePath,
+              [fileSystemRoot],
+              'org-dartlang-app',
+              _outputDir.path,
+              logWriter,
+              verbose);
+
+          var assetServerPort = await findUnusedPort();
+          await webRunner.run(hostname, assetServerPort, pathToServe);
+
+          if (enableExpressionEvaluation) {
             expressionCompiler = webRunner.expressionCompiler;
-            assetReader = webRunner.devFS.assetServer;
-            assetHandler = webRunner.devFS.assetServer.handleRequest;
-
-            metadataProvider = MetadataProvider(assetReader, logWriter);
-            requireStrategy = FrontendServerRequireStrategyProvider(
-                    reloadConfiguration, metadataProvider)
-                .strategy;
-
-            buildResults = const Stream<BuildResults>.empty();
           }
-          break;
-        default:
-          throw Exception('Unsupported compilation mode: $compilationMode');
-      }
 
-      expressionCompiler = useFakeExpressionCompiler
-          ? FakeExpressionCompiler()
-          : expressionCompiler;
+          assetReader = webRunner.devFS.assetServer;
+          assetHandler = webRunner.devFS.assetServer.handleRequest;
+
+          metadataProvider = MetadataProvider(assetReader, null, logWriter);
+          requireStrategy = FrontendServerRequireStrategyProvider(
+                  reloadConfiguration, metadataProvider)
+              .strategy;
+
+          buildResults = const Stream<BuildResults>.empty();
+        }
+        break;
+      default:
+        throw Exception('Unsupported compilation mode: $compilationMode');
+    }
 
       var debugPort = await findUnusedPort();
       // If the environment variable DWDS_DEBUG_CHROME is set to the string true
@@ -244,7 +268,6 @@ class TestContext {
               'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
       var connection = ChromeConnection('localhost', debugPort);
 
-      port = await findUnusedPort();
       testServer = await TestServer.start(
           hostname,
           port,
@@ -263,8 +286,9 @@ class TestContext {
           urlEncoder,
           restoreBreakpoints,
           expressionCompiler,
-          logWriter,
-          spawnDds);
+          spawnDds,
+          ddcService,
+          logWriter);
 
       appUrl = 'http://localhost:$port/$path';
       await webDriver.get(appUrl);
@@ -299,6 +323,8 @@ class TestContext {
     chromeDriver?.kill();
     DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
+    await ddcService?.stop();
+    ddcService = null;
     await daemonClient?.close();
     await webRunner?.stop();
     await testServer?.stop();

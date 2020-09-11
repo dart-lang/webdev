@@ -18,6 +18,7 @@ void main() {
   // for evaluation
   Timer.periodic(const Duration(seconds: 1), (_) {
     printLocal();
+    printField();
     printGlobal();
   });
 
@@ -27,6 +28,11 @@ void main() {
 void printLocal() {
   var local = 42;
   print('Local is: $local'); // Breakpoint: printLocal
+}
+
+void printField() {
+  var instance = ClassFromPackage(1,2);
+  print('$instance'); // Breakpoint: printField
 }
 
 void printGlobal() {

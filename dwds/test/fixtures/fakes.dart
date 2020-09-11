@@ -12,7 +12,6 @@ import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
@@ -248,37 +247,6 @@ class FakeExecutionContext extends ExecutionContext {
   }
 
   FakeExecutionContext();
-}
-
-/// Fake expression compiler that simply passes expression through,
-/// without actual compilation
-class FakeExpressionCompiler implements ExpressionCompiler {
-  @override
-  Future<ExpressionCompilationResult> compileExpressionToJs(
-      String isolateId,
-      String libraryUri,
-      int line,
-      int column,
-      Map<String, String> jsModules,
-      Map<String, String> jsFrameValues,
-      String moduleName,
-      String expression) async {
-    return ExpressionCompilationResult('''
-      try {
-        (function(x) {
-          let main = require('example/hello_world/main').main;
-          let dart = require('dart_sdk').dart;
-          let core = require('dart_sdk').core;
-          console.log(x);
-          return x;
-        }(
-          $expression
-        ))
-        } catch (error) {
-          console.error(error.name + ": " + error.message);
-          error.name + ": " + error.message;
-        }''', false);
-  }
 }
 
 class FakeStrategy implements LoadStrategy {

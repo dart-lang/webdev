@@ -11,10 +11,13 @@ import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 import 'package:webdev/src/pubspec.dart';
+import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service_io.dart';
 import 'package:webdev/src/serve/utils.dart';
 import 'package:webdev/src/util.dart';
 import 'package:yaml/yaml.dart';
 
+import 'daemon/utils.dart';
 import 'test_utils.dart';
 
 /// Key: name of file in web directory
@@ -103,7 +106,6 @@ void main() {
         }
 
         var process = await runWebDev(args, workingDirectory: exampleDirectory);
-
         var expectedItems = <Object>['Succeeded'];
 
         await checkProcessStdout(process, expectedItems);
@@ -204,5 +206,108 @@ void main() {
         });
       }
     }
+  });
+
+  group('should work with expression evaluation', () {
+    test('enabled', () async {
+      var openPort = await findUnusedPort();
+      var args = ['daemon', 'web:$openPort', '--enable-expression-evaluation'];
+      var process = await runWebDev(args, workingDirectory: exampleDirectory);
+
+      try {
+        // Wait for debug service Uri
+        String wsUri;
+        await expectLater(process.stdout, emitsThrough((message) {
+          wsUri = getDebugServiceUri(message as String);
+          return wsUri != null;
+        }));
+        expect(wsUri, isNotNull);
+
+        var vmService = await vmServiceConnectUri(wsUri);
+        var vm = await vmService.getVM();
+        var isolate = vm.isolates.first;
+        var scripts = await vmService.getScripts(isolate.id);
+
+        await vmService.streamListen('Debug');
+        var stream = vmService.onEvent('Debug');
+
+        var mainScript = scripts.scripts
+            .firstWhere((each) => each.uri.contains('main.dart'));
+
+        var bpLine = await findBreakpointLine(
+            vmService, 'printCounter', isolate.id, mainScript);
+
+        var bp = await vmService.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, bpLine);
+        expect(bp, isNotNull);
+
+        await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var result = await vmService.evaluateInFrame(isolate.id, 0, 'true');
+        expect(
+            result,
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', 'true'));
+
+        vmService.dispose();
+      } finally {
+        await exitWebdev(process);
+        await process.shouldExit();
+      }
+    },
+        skip: 'Expression compiler service does not terminate: '
+            'See https://github.com/dart-lang/sdk/issues/43513');
+
+    test('disabled', () async {
+      var openPort = await findUnusedPort();
+      var args = [
+        'daemon',
+        'web:$openPort',
+        '--no-enable-expression-evaluation'
+      ];
+      var process = await runWebDev(args, workingDirectory: exampleDirectory);
+
+      try {
+        // Wait for debug service Uri
+        String wsUri;
+        await expectLater(process.stdout, emitsThrough((message) {
+          wsUri = getDebugServiceUri(message as String);
+          return wsUri != null;
+        }));
+        expect(wsUri, isNotNull);
+
+        var vmService = await vmServiceConnectUri(wsUri);
+        var vm = await vmService.getVM();
+        var isolate = vm.isolates.first;
+        var scripts = await vmService.getScripts(isolate.id);
+
+        await vmService.streamListen('Debug');
+        var stream = vmService.onEvent('Debug');
+
+        var mainScript = scripts.scripts
+            .firstWhere((each) => each.uri.contains('main.dart'));
+
+        var bpLine = await findBreakpointLine(
+            vmService, 'printCounter', isolate.id, mainScript);
+
+        var bp = await vmService.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, bpLine);
+        expect(bp, isNotNull);
+
+        var event = await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        expect(
+            () => vmService.evaluateInFrame(
+                isolate.id, event.topFrame.index, 'true'),
+            throwsRPCError);
+
+        vmService.dispose();
+      } finally {
+        await exitWebdev(process);
+        await process.shouldExit();
+      }
+    });
   });
 }

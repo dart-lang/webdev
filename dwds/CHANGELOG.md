@@ -20,6 +20,21 @@
 - Require at least `build_web_compilers` version  `2.12.0`.
 - Update min sdk constraint to `>=2.10.0-99.0.dev`.
 
+- Add `ExpressionCompilationService` class that runs ddc in worker mode to
+  support expression evaluation to webdev. Users can enable the feature
+  by passing new `--enable-expression-evaluation` flag to `webdev serve`
+  command.
+
+**Breaking changes:**
+- Change `Dwds.start` to include `MetadataProvider` as a parameter. This
+  enables callers such as webdev to connect metadata provider and expression
+  compilation service, in order for kernel files can be reloaded into the
+  expression compilation service on metadata read.
+
+- Require at least `devtools` and `devtools_server` version `0.9.2-dev.1`.
+- Require at least `build_web_compilers` version  `2.12.0-dev.3`.
+- Update min sdk constraint to `>=2.10.0-93.0.dev`.
+
 ## 6.0.0
 
 - Depend on the latest `package:devtools` and `package:devtools_server`.

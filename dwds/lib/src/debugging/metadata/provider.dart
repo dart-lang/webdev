@@ -16,15 +16,18 @@ import 'module_metadata.dart';
 class MetadataProvider {
   final AssetReader _assetReader;
   final LogWriter _logWriter;
+  final Future<bool> Function(Map<String, String> updateDependencies)
+      _updateDependencies;
 
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
   final Map<String, String> _moduleToSourceMap = {};
   final Map<String, String> _modulePathToModule = {};
   final Map<String, List<String>> _scripts = {};
+
   AsyncMemoizer _metadataMemoizer;
 
-  MetadataProvider(this._assetReader, this._logWriter)
+  MetadataProvider(this._assetReader, this._updateDependencies, this._logWriter)
       : _metadataMemoizer = AsyncMemoizer<void>();
 
   /// A list of all libraries in the Dart application.
@@ -106,16 +109,40 @@ class MetadataProvider {
       // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
       if (entrypoint.endsWith('.bootstrap.js')) {
         _logWriter(Level.INFO, 'Loading debug metadata...');
+
+        var dependencies = <String, String>{};
         var serverPath =
             entrypoint.replaceAll('.bootstrap.js', '.ddc_merged_metadata');
         var merged = await _assetReader.metadataContents(serverPath);
         if (merged != null) {
           // read merged metadata if exists
           for (var contents in merged.split('\n')) {
-            if (contents == null ||
-                contents.isEmpty ||
-                contents.startsWith('// intentionally empty:')) continue;
-            _addMetadata(contents);
+            try {
+              if (contents == null ||
+                  contents.isEmpty ||
+                  contents.startsWith('// intentionally empty:')) continue;
+              var moduleJson = json.decode(contents);
+              var metadata =
+                  ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
+              _addMetadata(metadata);
+              // we are assuming the full dill file is located next to .js
+              // TODO: add location of the full dill to the metadata
+              dependencies[metadata.name] =
+                  metadata.moduleUri.replaceAll('.js', '.full.dill');
+              _logWriter(
+                Level.FINEST, 'Loaded debug metadata for module: ${metadata.name}');
+            } catch (e) {
+              _logWriter(Level.WARNING, 'Failed to read metadata: ${e.message}');
+              rethrow;
+            }
+          }
+        }
+
+        // update dependencies in the expression compiler
+        if (_updateDependencies != null) {
+          if (!(await _updateDependencies(dependencies))) {
+            _logWriter(
+                Level.WARNING, 'Failed to update dependencies: $dependencies');
           }
         }
         _logWriter(Level.INFO, 'Loaded debug metadata');
@@ -123,12 +150,11 @@ class MetadataProvider {
     });
   }
 
-  void _addMetadata(String contents) {
-    var moduleJson = json.decode(contents);
-    var metadata = ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
+  void _addMetadata(ModuleMetadata metadata) {
 
     _moduleToSourceMap[metadata.name] = metadata.sourceMapUri;
     _modulePathToModule[metadata.moduleUri] = metadata.name;
+
     for (var library in metadata.libraries.values) {
       _libraries.add(library.importUri);
       _scripts[library.importUri] = [];
@@ -138,8 +164,6 @@ class MetadataProvider {
         _scripts[library.importUri].add(path);
       }
     }
-    _logWriter(
-        Level.FINEST, 'Loaded debug metadata for module: ${metadata.name}');
   }
 
   void clear() {

@@ -1,8 +1,8 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['frontend-server'])
+@Tags(['expression-compilation-service'])
 @TestOn('vm')
 import 'dart:async';
 
@@ -11,6 +11,7 @@ import 'package:path/path.dart' as p;
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -26,14 +27,18 @@ ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
-void main() async {
+// change to true to debug
+bool get debug => false;
+void logWriter(Level level, String message) =>
+    debug ? print(message) : printOnFailure(message);
+
+void main() {
   group('shared context with evaluation', () {
     setUpAll(() async {
       await context.setUp(
           enableExpressionEvaluation: true,
-          compilationMode: CompilationMode.frontendServer,
-          logWriter: (level, message) => printOnFailure(message),
-          verbose: false);
+          logWriter: logWriter,
+          verbose: debug);
     });
 
     tearDownAll(() async {
@@ -83,6 +88,77 @@ void main() async {
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
       });
+
+      test('field', () async {
+        var line = await context.findBreakpointLine(
+            'printField', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        var event = await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var result = await service.evaluateInFrame(
+            isolate.id, event.topFrame.index, 'instance.field');
+
+        expect(
+            result,
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', '1'));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+      }, skip: 'Requires types to be present in ProgramCompiler');
+
+      test('private field', () async {
+        var line = await context.findBreakpointLine(
+            'printField', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        var event = await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var result = await service.evaluateInFrame(
+            isolate.id, event.topFrame.index, 'instance._field');
+
+        expect(
+            result,
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', '2'));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+      },
+          skip: 'Incorrect JavaScript for types from other libraries: '
+              'https://github.com/dart-lang/sdk/issues/43469');
+
+      test('access instance fields after evaluation', () async {
+        var line = await context.findBreakpointLine(
+            'printField', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        var event = await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var instanceRef = await service.evaluateInFrame(
+            isolate.id, event.topFrame.index, 'instance') as InstanceRef;
+
+        var instance =
+            await service.getObject(isolate.id, instanceRef.id) as Instance;
+
+        var field = instance.fields
+            .firstWhere((BoundField element) => element.decl.name == 'field');
+
+        expect(
+            field.value,
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', '1'));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+      }, skip: 'Requires types to be present in ProgramCompiler');
 
       test('global', () async {
         var line = await context.findBreakpointLine(
@@ -166,7 +242,7 @@ void main() async {
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
-      });
+      }, skip: 'Requires types to be present in ProgramCompiler');
 
       test('error', () async {
         var line = await context.findBreakpointLine(
@@ -185,7 +261,24 @@ void main() async {
             const TypeMatcher<ErrorRef>().having(
                 (instance) => instance.message,
                 'message',
-                'CompilationError: Getter not found: \'typo\'.\ntypo\n^^^^'));
+                matches('CompilationError: Getter not found:.*typo')));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+      });
+
+      test('cannot evaluate in unsupported isolate', () async {
+        var line = await context.findBreakpointLine(
+            'printLocal', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        var event = await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        expect(
+            () => service.evaluateInFrame('bad', event.topFrame.index, 'local'),
+            throwsRPCError);
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
@@ -197,9 +290,8 @@ void main() async {
     setUpAll(() async {
       await context.setUp(
           enableExpressionEvaluation: false,
-          compilationMode: CompilationMode.frontendServer,
-          logWriter: (level, message) => printOnFailure(message),
-          verbose: false);
+          logWriter: logWriter,
+          verbose: debug);
     });
 
     tearDownAll(() async {
