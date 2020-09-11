@@ -1,3 +1,7 @@
+## 2.6.2
+
+- Update min sdk constraint to `>=2.8.1`.
+
 ## 2.6.1
 
 - Rollback release so that we no longer require a dev version of

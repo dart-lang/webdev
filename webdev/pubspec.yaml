@@ -1,13 +1,13 @@
 name: webdev
 # Every time this changes you need to run `pub run build_runner build`.
-version: 2.6.1
+version: 2.6.2
 homepage: https://github.com/dart-lang/webdev
 description: >-
   A CLI for Dart web development. Provides an easy and consistent set of
   features for users and tools to build and deploy web applications with Dart.
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.8.1 <3.0.0"
 
 dependencies:
   args: ^1.5.0

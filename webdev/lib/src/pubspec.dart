@@ -175,6 +175,8 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
   return issues;
 }
 
+// Note the minimum versions should never be dev versions as users will not
+// get them by default.
 Future<void> checkPubspecLock(PubspecLock pubspecLock,
     {@required bool requireBuildWebCompilers}) async {
   var issues = <PackageExceptionDetails>[];
