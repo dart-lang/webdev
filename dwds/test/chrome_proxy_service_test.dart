@@ -37,14 +37,6 @@ void main() {
       await context.tearDown();
     });
 
-    test('getClientName', () async {
-      expect(() => service.getClientName(), throwsRPCError);
-    });
-
-    test('setClientName', () async {
-      expect(() => service.setClientName('foo'), throwsRPCError);
-    });
-
     group('breakpoints', () {
       VM vm;
       Isolate isolate;

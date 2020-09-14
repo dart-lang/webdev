@@ -124,6 +124,8 @@ class ChromeProxyService implements VmServiceInterface {
       version: Platform.version,
       isolates: [],
       isolateGroups: [],
+      systemIsolates: [],
+      systemIsolateGroups: [],
       targetCPU: 'Web',
       hostCPU: 'DWDS',
       architectureBits: -1,
@@ -815,22 +817,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<ClientName> getClientName() {
-    return _rpcNotSupportedFuture('getClientName');
-  }
-
-  @override
-  Future<Success> setClientName(String name) {
-    return _rpcNotSupportedFuture('setClientName');
-  }
-
-  @override
-  Future<Success> requirePermissionToResume(
-      {bool onPauseStart, bool onPauseReload, bool onPauseExit}) {
-    return _rpcNotSupportedFuture('requirePermissionToResume');
-  }
-
-  @override
   Future<ProtocolList> getSupportedProtocols() async {
     var version = semver.Version.parse(vmServiceVersion);
     return ProtocolList(protocols: [
@@ -862,10 +848,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<ProcessMemoryUsage> getProcessMemoryUsage() =>
       _rpcNotSupportedFuture('getProcessMemoryUsage');
-
-  @override
-  Future<WebSocketTarget> getWebSocketTarget() =>
-      _rpcNotSupportedFuture('getWebSocketTarget');
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.

@@ -98,8 +98,12 @@ class AppInspector extends Domain {
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());
   }
 
-  static IsolateRef _toIsolateRef(Isolate isolate) =>
-      IsolateRef(id: isolate.id, name: isolate.name, number: isolate.number);
+  static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef(
+        id: isolate.id,
+        name: isolate.name,
+        number: isolate.number,
+        isSystemIsolate: isolate.isSystemIsolate,
+      );
 
   static Future<AppInspector> initialize(
     AppConnection appConnection,
@@ -124,11 +128,17 @@ class AppInspector extends Domain {
         pauseEvent: Event(
             kind: EventKind.kPauseStart,
             timestamp: time,
-            isolate: IsolateRef(id: id, name: name, number: id)),
+            isolate: IsolateRef(
+              id: id,
+              name: name,
+              number: id,
+              isSystemIsolate: false,
+            )),
         livePorts: 0,
         libraries: [],
         breakpoints: [],
-        exceptionPauseMode: debugger.pauseState)
+        exceptionPauseMode: debugger.pauseState,
+        isSystemIsolate: false)
       ..extensionRPCs = [];
     AppInspector appInspector;
     var provider = () => appInspector;
