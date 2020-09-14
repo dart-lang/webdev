@@ -200,7 +200,7 @@ class Configuration {
       verbose: other._verbose ?? _verbose);
 
   factory Configuration.noInjectedClientDefaults() =>
-      Configuration(startPaused: false, debug: false, debugExtension: false);
+      Configuration(debug: false, debugExtension: false);
 
   bool get startPaused => _startPaused ?? false;
 
