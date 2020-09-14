@@ -29,7 +29,8 @@ const _testItems = <String, bool>{
 void main() {
   String exampleDirectory;
   setUpAll(() async {
-    exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
+    exampleDirectory =
+        p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSmoke'));
 
     var process = await TestProcess.start(pubPath, ['upgrade'],
         workingDirectory: exampleDirectory, environment: getPubEnvironment());

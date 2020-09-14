@@ -23,7 +23,6 @@ import '../utilities/shared.dart';
 import 'dart_scope.dart';
 import 'frame_computer.dart';
 import 'location.dart';
-import 'modules.dart';
 import 'remote_debugger.dart';
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
@@ -46,7 +45,6 @@ class Debugger extends Domain {
 
   final StreamNotify _streamNotify;
   final AssetReader _assetReader;
-  final Modules _modules;
   final Locations _locations;
   final String _root;
 
@@ -55,7 +53,6 @@ class Debugger extends Domain {
     this._streamNotify,
     AppInspectorProvider provider,
     this._assetReader,
-    this._modules,
     this._locations,
     this._root,
   )   : _breakpoints = _Breakpoints(
@@ -161,7 +158,6 @@ class Debugger extends Domain {
     StreamNotify streamNotify,
     AppInspectorProvider appInspectorProvider,
     AssetReader assetReader,
-    Modules modules,
     Locations locations,
     String root,
   ) async {
@@ -170,7 +166,6 @@ class Debugger extends Domain {
       streamNotify,
       appInspectorProvider,
       assetReader,
-      modules,
       locations,
       root,
     );
@@ -185,7 +180,6 @@ class Debugger extends Domain {
     runZoned(() {
       _remoteDebugger?.onScriptParsed?.listen((e) {
         _blackBoxIfNecessary(e.script);
-        _modules.noteModule(e.script.url, e.script.scriptId);
       });
       _remoteDebugger?.onPaused?.listen(_pauseHandler);
       _remoteDebugger?.onResumed?.listen(_resumeHandler);
@@ -361,9 +355,8 @@ class Debugger extends Domain {
   Future<Location> _sourceLocation(DebuggerPausedEvent e) {
     var frame = e.params['callFrames'][0];
     var location = frame['location'];
-    var jsLocation = JsLocation.fromZeroBased(location['scriptId'] as String,
-        location['lineNumber'] as int, location['columnNumber'] as int);
-    return _locations.locationForJs(jsLocation.scriptId, jsLocation.line);
+    return _locations.locationForJs(
+        frame['url'] as String, (location['lineNumber'] as int) + 1);
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
@@ -477,16 +470,16 @@ class Debugger extends Domain {
   }) async {
     var location = frame.location;
     // Chrome is 0 based. Account for this.
-    var jsLocation = JsLocation.fromZeroBased(
-        location.scriptId, location.lineNumber, location.columnNumber);
+    var line = location.lineNumber + 1;
+    var column = location.columnNumber + 1;
     // TODO(sdk/issues/37240) - ideally we look for an exact location instead
     // of the closest location on a given line.
     Location bestLocation;
-    for (var location in await _locations.locationsForJs(jsLocation.scriptId)) {
-      if (location.jsLocation.line == jsLocation.line) {
+    for (var location in await _locations.locationsForUrl(frame.url)) {
+      if (location.jsLocation.line == line) {
         bestLocation ??= location;
-        if ((location.jsLocation.column - jsLocation.column).abs() <
-            (bestLocation.jsLocation.column - jsLocation.column).abs()) {
+        if ((location.jsLocation.column - column).abs() <
+            (bestLocation.jsLocation.column - column).abs()) {
           bestLocation = location;
         }
       }
@@ -736,7 +729,7 @@ class _Breakpoints extends Domain {
     // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
 
     // The module can be loaded from a nested path and contain an ETAG suffix.
-    var urlRegex = '.*${location.modulePath}.*';
+    var urlRegex = '.*${location.jsLocation.module}.*';
     var response = await remoteDebugger
         .sendCommand('Debugger.setBreakpointByUrl', params: {
       'urlRegex': urlRegex,

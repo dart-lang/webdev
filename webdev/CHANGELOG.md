@@ -1,4 +1,13 @@
-## 2.6.0-dev
+## 2.6.2
+
+- Update min sdk constraint to `>=2.8.1`.
+
+## 2.6.1
+
+- Rollback release so that we no longer require a dev version of
+  `package:build_web_compilers`.
+
+## 2.6.0
 
 - Require at least `build_web_compilers` version `2.12.0-dev.1`.
 - Depend on the latest `package:dwds`.

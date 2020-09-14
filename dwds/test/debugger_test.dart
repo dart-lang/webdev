@@ -5,12 +5,12 @@
 @TestOn('vm')
 import 'dart:async';
 
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:source_maps/parser.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     show DebuggerPausedEvent;
@@ -26,18 +26,49 @@ FakeWebkitDebugger webkitDebugger;
 StreamController<DebuggerPausedEvent> pausedController;
 Locations locations;
 
+class TestStrategy extends FakeStrategy {
+  @override
+  String moduleForServerPath(String appUri) {
+    return 'foo.ddc.js';
+  }
+
+  @override
+  String serverPathForModule(String module) {
+    return 'foo/ddc';
+  }
+}
+
+class FakeAssetReader implements AssetReader {
+  @override
+  Future<String> dartSourceContents(String serverPath) =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> metadataContents(String serverPath) =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> sourceMapContents(String serverPath) async =>
+      '{"version":3,"sourceRoot":"","sources":["main.dart"],"names":[],'
+      '"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAUwB,IAAtB,WAAM;AAKJ,'
+      'IAHF,4BAAkB,aAAa,SAAC,GAAG;AACb,MAApB,WAAM;AACN,YAAgC,+CAAO,AAAK,oBAAO,'
+      'yCAAC,WAAW;IAChE;AAC0D,IAA3D,AAAS,AAAK,0DAAO;AAAe,kBAAO;;;AAEvC,gBAAQ;'
+      'AAGV,IAFI,kCAAqC,QAAC;AACX,MAA/B,WAAM,AAAwB,0BAAP,QAAF,AAAE,KAAK,GAAP;'
+      ';EAEzB","file":"main.ddc.js"}';
+}
+
 void main() async {
   setUpAll(() async {
     webkitDebugger = FakeWebkitDebugger();
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
+    globalLoadStrategy = TestStrategy();
     var root = 'fakeRoot';
-    locations = Locations(null, FakeModules(), root);
+    locations = Locations(FakeAssetReader(), FakeModules(), root);
     debugger = await Debugger.create(
       webkitDebugger,
       null,
       () => inspector,
-      null,
       null,
       locations,
       root,
@@ -50,22 +81,6 @@ void main() async {
   test('frames 1', () async {
     // TODO: Generalize this and make it clearer and easier to test
     // different cases.
-
-    // Target entry for Dart source line 12 (zero-based), column 0
-    var entry = TargetEntry(0, 0, 12, 0, 0);
-
-    // Entries for the JS line 92 (zero-based), with just one actual entry
-    var lineEntry = TargetLineEntry(92, [entry]);
-    var location = Location.from(
-      'foo.dart',
-      'foo.ddc.js',
-      lineEntry,
-      entry,
-      DartUri('package:foo/foo.dart'),
-    );
-    // Create a single location in the JS script the location in our hard-coded
-    // frame.
-    locations.noteLocation('dart', location, '69');
 
     var stackComputer = FrameComputer(debugger, frames1);
     var frames = await stackComputer.calculateFrames();

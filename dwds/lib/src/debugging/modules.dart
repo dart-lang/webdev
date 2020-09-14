@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:async/async.dart';
 
-import '../loaders/strategy.dart';
 import '../utilities/dart_uri.dart';
 import 'metadata/provider.dart';
 
@@ -24,9 +23,6 @@ class Modules {
 
   // The Chrome script ID to corresponding module.
   final _scriptIdToModule = <String, String>{};
-
-  // The module to corresponding Chrome script ID.
-  final _moduleToScriptId = <String, String>{};
 
   Modules(this._metadataProvider, String root)
       : _root = root == '' ? '/' : root;
@@ -46,9 +42,6 @@ class Modules {
   /// Returns the module for the Chrome script ID.
   String moduleForScriptId(String scriptId) => _scriptIdToModule[scriptId];
 
-  /// Returns the Chrome script ID for the provided module.
-  String scriptIdForModule(String module) => _moduleToScriptId[module];
-
   /// Returns the containing module for the provided Dart server path.
   Future<String> moduleForSource(String serverPath) async {
     await _moduleMemoizer.runOnce(_initializeMapping);
@@ -65,16 +58,6 @@ class Modules {
   Future<Map<String, String>> modules() async {
     await _moduleMemoizer.runOnce(_initializeMapping);
     return _sourceToModule;
-  }
-
-  /// Checks if the [url] correspond to a module and stores meta data.
-  Future<Null> noteModule(String url, String scriptId) async {
-    var path = Uri.parse(url).path;
-    if (path == null) return;
-    var module = globalLoadStrategy.moduleForServerPath(path);
-    if (module == null) return;
-    _scriptIdToModule[scriptId] = module;
-    _moduleToScriptId[module] = scriptId;
   }
 
   /// Initializes [_sourceToModule] and [_sourceToLibrary].

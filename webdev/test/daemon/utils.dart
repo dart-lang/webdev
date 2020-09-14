@@ -32,7 +32,8 @@ Future<String> waitForAppId(TestProcess webdev) async {
 }
 
 Future<String> prepareWorkspace() async {
-  var exampleDirectory = p.absolute(p.join(p.current, '..', 'example'));
+  var exampleDirectory =
+      p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSmoke'));
 
   var process = await TestProcess.start(pubPath, ['upgrade'],
       workingDirectory: exampleDirectory, environment: getPubEnvironment());
