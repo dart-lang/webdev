@@ -85,6 +85,10 @@ Advanced:
     --tls-cert-key                The file location to a TLS Key to create an
                                   HTTPs server.
                                   Must be used with tls-cert-chain.
+    --start-paused                Starts the application paused after each time
+                                  it is loaded.
+                                  Must be used with either debug or
+                                  debug-extension
 
 Common:
 -h, --help                        Print this usage information.

@@ -76,7 +76,7 @@ refresh: Performs a full page refresh.
         defaultsTo: false,
         negatable: false,
         help: 'Starts the application paused after each time it is loaded.\n'
-            'This implies the $debugFlag')
+            'Must be used with either $debugFlag or $debugExtensionFlag')
     ..addSeparator('Common:');
 
   ServeCommand() {
