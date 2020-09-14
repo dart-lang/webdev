@@ -61,7 +61,10 @@ class DaemonCommand extends Command<int> {
   Future<int> run() async {
     var configuration = Configuration.fromArgs(argResults,
         defaultConfiguration: Configuration(
-            launchInChrome: true, debug: true, autoRun: false, release: false));
+            launchInChrome: true,
+            debug: true,
+            startPaused: true,
+            release: false));
     // Globally trigger verbose logs.
     setVerbosity(configuration.verbose);
     // Validate the pubspec first to ensure we are in a Dart project.

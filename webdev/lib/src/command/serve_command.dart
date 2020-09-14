@@ -72,6 +72,11 @@ refresh: Performs a full page refresh.
     ..addOption(tlsCertKeyFlag,
         help: 'The file location to a TLS Key to create an HTTPs server.\n'
             'Must be used with $tlsCertChainFlag.')
+    ..addFlag(startPausedFlag,
+        defaultsTo: false,
+        negatable: false,
+        help: 'Starts the application paused after each time it is loaded.\n'
+            'This implies the $debugFlag')
     ..addSeparator('Common:');
 
   ServeCommand() {

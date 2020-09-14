@@ -15,8 +15,6 @@ const debugExtensionFlag = 'debug-extension';
 const debugFlag = 'debug';
 const enableInjectedClientFlag = 'injected-client';
 const hostnameFlag = 'hostname';
-const tlsCertChainFlag = 'tls-cert-chain';
-const tlsCertKeyFlag = 'tls-cert-key';
 const hotReloadFlag = 'hot-reload';
 const hotRestartFlag = 'hot-restart';
 const launchAppOption = 'launch-app';
@@ -27,6 +25,9 @@ const outputFlag = 'output';
 const outputNone = 'NONE';
 const releaseFlag = 'release';
 const requireBuildWebCompilersFlag = 'build-web-compilers';
+const startPausedFlag = 'start-paused';
+const tlsCertChainFlag = 'tls-cert-chain';
+const tlsCertKeyFlag = 'tls-cert-key';
 const verboseFlag = 'verbose';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
@@ -74,7 +75,6 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
 }
 
 class Configuration {
-  final bool _autoRun;
   final int _chromeDebugPort;
   final bool _debugExtension;
   final bool _debug;
@@ -91,10 +91,10 @@ class Configuration {
   final bool _release;
   final ReloadConfiguration _reload;
   final bool _requireBuildWebCompilers;
+  final bool _startPaused;
   final bool _verbose;
 
   Configuration({
-    bool autoRun,
     int chromeDebugPort,
     bool debugExtension,
     bool debug,
@@ -111,8 +111,9 @@ class Configuration {
     ReloadConfiguration reload,
     bool release,
     bool requireBuildWebCompilers,
+    bool startPaused,
     bool verbose,
-  })  : _autoRun = autoRun,
+  })  : _startPaused = startPaused,
         _chromeDebugPort = chromeDebugPort,
         _debugExtension = debugExtension,
         _debug = debug,
@@ -147,6 +148,12 @@ class Configuration {
           'with --$debugFlag.');
     }
 
+    if (startPaused && !debug && !debugExtension) {
+      throw InvalidConfiguration(
+          'Must either use --$debugFlag or --$debugExtensionFlag '
+          'with --$startPausedFlag.');
+    }
+
     // Check that no debugging options were passed if the injected client is
     // disabled.
     if (!enableInjectedClient) {
@@ -173,7 +180,6 @@ class Configuration {
   /// Creates a new [Configuration] with all non-null fields from
   /// [other] overriding the values of `this`.
   Configuration _override(Configuration other) => Configuration(
-      autoRun: other._autoRun ?? _autoRun,
       chromeDebugPort: other._chromeDebugPort ?? _chromeDebugPort,
       debugExtension: other._debugExtension ?? _debugExtension,
       debug: other._debug ?? _debug,
@@ -190,13 +196,13 @@ class Configuration {
       reload: other._reload ?? _reload,
       requireBuildWebCompilers:
           other._requireBuildWebCompilers ?? _requireBuildWebCompilers,
+      startPaused: other._startPaused ?? _startPaused,
       verbose: other._verbose ?? _verbose);
 
   factory Configuration.noInjectedClientDefaults() =>
-      Configuration(autoRun: false, debug: false, debugExtension: false);
+      Configuration(startPaused: false, debug: false, debugExtension: false);
 
-  // Whether the application should automatically run when loaded.
-  bool get autoRun => _autoRun ?? true;
+  bool get startPaused => _startPaused ?? false;
 
   int get chromeDebugPort => _chromeDebugPort ?? 0;
 
@@ -296,6 +302,10 @@ class Configuration {
         ? argResults[outputFlag] as String
         : defaultConfiguration.output;
 
+    var startPaused = argResults.options.contains(startPausedFlag)
+        ? argResults[startPausedFlag] as bool
+        : defaultConfiguration.startPaused;
+
     String outputPath;
     String outputInput;
     if (output == 'NONE') {
@@ -327,7 +337,6 @@ class Configuration {
         : defaultConfiguration.verbose;
 
     return Configuration(
-        autoRun: defaultConfiguration.autoRun,
         chromeDebugPort: chromeDebugPort,
         debugExtension: debugExtension,
         debug: debug,
@@ -344,6 +353,7 @@ class Configuration {
         release: release,
         reload: _parseReloadConfiguration(argResults),
         requireBuildWebCompilers: requireBuildWebCompilers,
+        startPaused: startPaused,
         verbose: verbose);
   }
 }

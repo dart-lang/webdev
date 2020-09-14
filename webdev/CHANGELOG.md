@@ -1,3 +1,8 @@
+## 2.7.0-dev
+
+- Support `--start-paused` flag which starts the application in a
+  paused state.
+
 ## 2.6.2
 
 - Update min sdk constraint to `>=2.8.1`.

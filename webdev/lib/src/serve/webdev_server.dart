@@ -49,10 +49,10 @@ class WebDevServer {
     this._server,
     this._protocol,
     this.buildResults,
-    bool autoRun, {
+    bool startPaused, {
     this.dwds,
   }) {
-    if (autoRun) {
+    if (!startPaused) {
       dwds?.connectedApps?.listen((connection) {
         connection.runMain();
       });
@@ -148,7 +148,7 @@ class WebDevServer {
       server,
       protocol,
       filteredBuildResults,
-      options.configuration.autoRun,
+      options.configuration.startPaused,
       dwds: dwds,
     );
   }

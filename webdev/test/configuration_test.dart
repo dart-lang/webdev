@@ -37,6 +37,13 @@ void main() {
         throwsA(isA<InvalidConfiguration>()));
   });
 
+  test('must provide a debug or debugextension when startPaused is true ', () {
+    expect(
+        () => Configuration(
+            debug: false, debugExtension: false, startPaused: true),
+        throwsA(isA<InvalidConfiguration>()));
+  });
+
   test(
       'must not provide debug related configuartion when enableInjectedClient '
       'is false', () {
