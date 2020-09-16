@@ -67,22 +67,16 @@ class LibraryMetadata {
   /// Example package:path/path.dart
   final String importUri;
 
-  /// Library fileUri
-  ///
-  /// Example file:///path/to/path/path.dart
-  final String fileUri;
-
   /// All file uris from the library
   ///
   /// Can be relative paths to the directory of the fileUri
   final List<String> partUris;
 
-  LibraryMetadata(this.name, this.importUri, this.fileUri, this.partUris);
+  LibraryMetadata(this.name, this.importUri, this.partUris);
 
   LibraryMetadata.fromJson(Map<String, dynamic> json)
       : name = json['name'] as String,
         importUri = json['importUri'] as String,
-        fileUri = json['fileUri'] as String,
         partUris =
             List.castFrom<dynamic, String>(json['partUris'] as List<dynamic>);
 
@@ -90,7 +84,6 @@ class LibraryMetadata {
     return {
       'name': name,
       'importUri': importUri,
-      'fileUri': fileUri,
       'partUris': [...partUris]
     };
   }
