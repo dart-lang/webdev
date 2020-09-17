@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -29,7 +30,8 @@ void main() {
     setUpAll(() async {
       await context.setUp(
           compilationMode: CompilationMode.frontendServer,
-          useFileMetadataProvider: true);
+          useFileMetadataProvider: true,
+          logWriter: (Level level, String message) => printOnFailure(message));
     });
 
     tearDownAll(() async {

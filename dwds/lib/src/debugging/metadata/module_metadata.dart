@@ -151,8 +151,7 @@ class ModuleMetadata {
       throw Exception('Unsupported metadata version $version. '
           '\n  Supported versions: '
           '\n    ${ModuleMetadataVersion.current.version} '
-          '\n    ${ModuleMetadataVersion.previous.version} '
-          '\n  Please upgrade dwds package.');
+          '\n    ${ModuleMetadataVersion.previous.version}');
     }
 
     for (var l in json['libraries'] as List<dynamic>) {

@@ -87,13 +87,10 @@ class FileMetadataProvider implements MetadataProvider {
       if (merged != null) {
         // read merged metadata if exists
         for (var contents in merged.split('\n')) {
-          try {
-            _addMetadata(contents);
-          } catch (e) {
-            _logWriter(Level.SEVERE, 'Error reading metadata: ${e.message}');
-          }
+          _addMetadata(contents);
         }
       }
+      _logWriter(Level.INFO, 'Loaded debug metadata');
     }
   }
 
@@ -112,5 +109,7 @@ class FileMetadataProvider implements MetadataProvider {
         _scripts[library.importUri].add(path);
       }
     }
+    _logWriter(
+        Level.FINEST, 'Loaded debug metadata for module: ${metadata.name}');
   }
 }
