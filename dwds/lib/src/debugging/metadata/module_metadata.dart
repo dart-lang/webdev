@@ -27,7 +27,10 @@ class ModuleMetadataVersion {
   ///
   /// TODO(annagrin): create metadata package, make version the same as the
   /// metadata package version, automate updating with the package update
-  static const ModuleMetadataVersion current = ModuleMetadataVersion(1, 0, 0);
+  static const ModuleMetadataVersion current = ModuleMetadataVersion(2, 0, 0);
+
+  /// Previous version supported by the metadata reader
+  static const ModuleMetadataVersion previous = ModuleMetadataVersion(1, 0, 0);
 
   /// Current metadata version created by the reader
   String get version => '$majorVersion.$minorVersion.$patchVersion';
@@ -36,7 +39,7 @@ class ModuleMetadataVersion {
   ///
   /// The minor and patch version changes never remove any fields that current
   /// version supports, so the reader can create current metadata version from
-  /// any file created with a later reader, as long as the major version does
+  /// any file created with a later writer, as long as the major version does
   /// not change.
   bool isCompatibleWith(String version) {
     var parts = version.split('.');
@@ -143,9 +146,13 @@ class ModuleMetadata {
         closureName = json['closureName'] as String,
         sourceMapUri = json['sourceMapUri'] as String,
         moduleUri = json['moduleUri'] as String {
-    var fileVersion = json['version'] as String;
-    if (!ModuleMetadataVersion.current.isCompatibleWith(version)) {
-      throw Exception('Unsupported metadata version $fileVersion');
+    if (!ModuleMetadataVersion.current.isCompatibleWith(version) &&
+        !ModuleMetadataVersion.previous.isCompatibleWith(version)) {
+      throw Exception('Unsupported metadata version $version. '
+          '\n  Supported versions: '
+          '\n    ${ModuleMetadataVersion.current.version} '
+          '\n    ${ModuleMetadataVersion.previous.version} '
+          '\n  Please upgrade dwds package.');
     }
 
     for (var l in json['libraries'] as List<dynamic>) {
