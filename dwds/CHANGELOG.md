@@ -3,6 +3,8 @@
 - Add support for the Dart Development Service (DDS). Introduces 'single
   client mode', which prevents additional direct connections to DWDS when
   DDS is connected.
+- Update metadata reader version to `2.0.0`. Support reading metadata
+  versions `2.0.0` and `1.0.0`.
 
 ## 6.0.0
 

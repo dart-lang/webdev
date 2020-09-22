@@ -4,7 +4,10 @@
 
 import 'dart:convert';
 
-import '../../../dwds.dart';
+import 'package:logging/logging.dart';
+
+import '../../readers/asset_reader.dart';
+import '../../utilities/shared.dart';
 import 'module_metadata.dart';
 
 /// Provider of DDC meta data for a compiled application.
@@ -53,12 +56,13 @@ abstract class MetadataProvider {
 /// A provider of metadata in which data is collected through DDC outputs.
 class FileMetadataProvider implements MetadataProvider {
   final AssetReader _assetReader;
+  final LogWriter _logWriter;
 
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
   final Map<String, List<String>> _scripts = {};
 
-  FileMetadataProvider(this._assetReader);
+  FileMetadataProvider(this._assetReader, this._logWriter);
 
   @override
   Future<List<String>> get libraries {
@@ -83,19 +87,15 @@ class FileMetadataProvider implements MetadataProvider {
       if (merged != null) {
         // read merged metadata if exists
         for (var contents in merged.split('\n')) {
-          try {
-            _addMetadata(contents);
-          } catch (_) {
-            // DDC intentionally writes invalid metadata for some modules.
-            // Skip these errors.
-          }
+          _addMetadata(contents);
         }
       }
+      _logWriter(Level.INFO, 'Loaded debug metadata');
     }
   }
 
   void _addMetadata(String contents) {
-    if (contents == null) return;
+    if (contents == null || contents.isEmpty) return;
 
     var moduleJson = json.decode(contents);
     var metadata = ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
@@ -109,5 +109,7 @@ class FileMetadataProvider implements MetadataProvider {
         _scripts[library.importUri].add(path);
       }
     }
+    _logWriter(
+        Level.FINEST, 'Loaded debug metadata for module: ${metadata.name}');
   }
 }
