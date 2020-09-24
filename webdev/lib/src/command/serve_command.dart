@@ -47,7 +47,8 @@ refresh: Performs a full page refresh.
     ..addFlag(disableDdsFlag,
         negatable: false,
         help: 'Disable the Dart Development Service (DDS). Disabling DDS may '
-        'result in a degraded developer experience in some tools.')
+        'result in a degraded developer experience in some tools.',
+        hide: true)
     ..addOption(hostnameFlag,
         help: 'Specify the hostname to serve on.', defaultsTo: 'localhost')
     ..addFlag(hotRestartFlag,
