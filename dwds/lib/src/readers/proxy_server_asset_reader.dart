@@ -23,7 +23,8 @@ class ProxyServerAssetReader implements AssetReader {
       {String root, String host, bool isHttps}) {
     host ??= 'localhost';
     root ??= '';
-    var scheme = (isHttps ??= false) ? 'https://' : 'http://';
+    isHttps ??= false;
+    var scheme = isHttps ? 'https://' : 'http://';
     var client = isHttps
         ? IOClient(
             HttpClient()..badCertificateCallback = (cert, host, port) => true)
