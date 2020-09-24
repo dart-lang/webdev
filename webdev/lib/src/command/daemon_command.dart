@@ -51,6 +51,10 @@ class DaemonCommand extends Command<int> {
 
   @override
   final argParser = ArgParser()
+    ..addFlag(startPausedFlag,
+        defaultsTo: false,
+        negatable: false,
+        help: 'Starts the application paused after each time it is loaded.')
     ..addMultiOption('launch-app', help: 'The html file to launch in chrome.');
 
   DaemonCommand() {
@@ -60,11 +64,8 @@ class DaemonCommand extends Command<int> {
   @override
   Future<int> run() async {
     var configuration = Configuration.fromArgs(argResults,
-        defaultConfiguration: Configuration(
-            launchInChrome: true,
-            debug: true,
-            startPaused: true,
-            release: false));
+        defaultConfiguration:
+            Configuration(launchInChrome: true, debug: true, release: false));
     // Globally trigger verbose logs.
     setVerbosity(configuration.verbose);
     // Validate the pubspec first to ensure we are in a Dart project.
@@ -107,7 +108,8 @@ class DaemonCommand extends Command<int> {
 
       workflow =
           await DevWorkflow.start(configuration, buildOptions, targetPorts);
-      daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
+      daemon.registerDomain(
+          AppDomain(daemon, workflow.serverManager, configuration.startPaused));
       await daemon.onExit;
       exitCode = 0;
       return 0;

@@ -22,6 +22,7 @@ class AppDomain extends Domain {
   bool _isShutdown = false;
   int _buildProgressEventId;
   var _progressEventId = 0;
+  final bool _startPaused;
 
   final _appStates = <String, _AppState>{};
 
@@ -108,7 +109,9 @@ class AppDomain extends Domain {
       var appState = _AppState(debugConnection, resultSub, stdOutSub);
       _appStates[appId] = appState;
 
-      appConnection.runMain();
+      if (!_startPaused) {
+        appConnection.runMain();
+      }
 
       unawaited(debugConnection.onDone.whenComplete(() {
         appState.dispose();
@@ -120,7 +123,11 @@ class AppDomain extends Domain {
     if (_isShutdown) dispose();
   }
 
-  AppDomain(Daemon daemon, ServerManager serverManager) : super(daemon, 'app') {
+  AppDomain(
+    Daemon daemon,
+    ServerManager serverManager,
+    this._startPaused,
+  ) : super(daemon, 'app') {
     registerHandler('restart', _restart);
     registerHandler('callServiceExtension', _callServiceExtension);
     registerHandler('stop', _stop);
