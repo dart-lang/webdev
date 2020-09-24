@@ -29,8 +29,9 @@ class ProxyServerAssetReader implements AssetReader {
         ? IOClient(
             HttpClient()..badCertificateCallback = (cert, host, port) => true)
         : null;
-    _handler =
-        proxyHandler('$scheme$host:$assetServerPort/$root', client: client);
+    var url = '$scheme$host:$assetServerPort/';
+    if (root != null) url += '$root/';
+    _handler = proxyHandler(url, client: client);
   }
 
   @override
