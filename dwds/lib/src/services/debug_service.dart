@@ -117,10 +117,9 @@ class DebugService {
   final VmServiceInterface chromeProxyService;
   final String hostname;
   final ServiceExtensionRegistry serviceExtensionRegistry;
-  int get port => _port;
-  int _port;
+  final int port;
+  final String authToken;
   final HttpServer _server;
-  String _authToken;
   final bool _useSse;
   final bool _spawnDds;
   DartDevelopmentService _dds;
@@ -133,8 +132,8 @@ class DebugService {
   DebugService._(
       this.chromeProxyService,
       this.hostname,
-      this._port,
-      this._authToken,
+      this.port,
+      this.authToken,
       this.serviceExtensionRegistry,
       this._server,
       this._useSse,
@@ -149,7 +148,7 @@ class DebugService {
       scheme: 'http',
       host: hostname,
       port: port,
-      path: '$_authToken',
+      path: '$authToken',
     ));
   }
 
@@ -164,13 +163,13 @@ class DebugService {
                 scheme: 'sse',
                 host: hostname,
                 port: port,
-                path: '$_authToken/\$debugHandler',
+                path: '$authToken/\$debugHandler',
               )
             : Uri(
                 scheme: 'ws',
                 host: hostname,
                 port: port,
-                path: '$_authToken',
+                path: '$authToken',
               ))
         .toString();
   }

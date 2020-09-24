@@ -10,7 +10,6 @@ import 'package:args/command_runner.dart';
 import '../logging.dart';
 import '../serve/dev_workflow.dart';
 import 'configuration.dart';
-import 'configuration.dart';
 import 'shared.dart';
 
 /// Command to run a server for local web development with the build daemon.
