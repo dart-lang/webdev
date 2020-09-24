@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/io_client.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
@@ -16,15 +17,20 @@ import 'asset_reader.dart';
 class ProxyServerAssetReader implements AssetReader {
   final LogWriter _logWriter;
 
-  final Handler _handler;
+  Handler _handler;
 
-  ProxyServerAssetReader(
-    int assetServerPort,
-    this._logWriter, {
-    String root,
-  }) : _handler = root != null
-            ? proxyHandler('http://localhost:$assetServerPort/$root/')
-            : proxyHandler('http://localhost:$assetServerPort/');
+  ProxyServerAssetReader(int assetServerPort, this._logWriter,
+      {String root, String host, bool isHttps}) {
+    host ??= 'localhost';
+    root ??= '';
+    var scheme = (isHttps ??= false) ? 'https://' : 'http://';
+    var client = isHttps
+        ? IOClient(
+            HttpClient()..badCertificateCallback = (cert, host, port) => true)
+        : null;
+    _handler =
+        proxyHandler('$scheme$host:$assetServerPort/$root', client: client);
+  }
 
   @override
   Future<String> dartSourceContents(String serverPath) =>
