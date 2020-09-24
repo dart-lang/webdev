@@ -108,8 +108,7 @@ class DaemonCommand extends Command<int> {
 
       workflow =
           await DevWorkflow.start(configuration, buildOptions, targetPorts);
-      daemon.registerDomain(
-          AppDomain(daemon, workflow.serverManager, configuration.startPaused));
+      daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
       await daemon.onExit;
       exitCode = 0;
       return 0;
