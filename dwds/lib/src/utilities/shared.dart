@@ -20,6 +20,14 @@ String createId() {
   return '$_nextId';
 }
 
+bool _useIPv6;
+Future<bool> get useIPv6 async {
+  if (_useIPv6 == null) {
+    await findUnusedPort();
+  }
+  return _useIPv6;
+}
+
 /// Returns a port that is probably, but not definitely, not in use.
 ///
 /// This has a built-in race condition: another process may bind this port at
@@ -30,8 +38,10 @@ Future<int> findUnusedPort() async {
   try {
     socket =
         await ServerSocket.bind(InternetAddress.loopbackIPv6, 0, v6Only: true);
+    _useIPv6 = true;
   } on SocketException {
     socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    _useIPv6 = false;
   }
   port = socket.port;
   await socket.close();

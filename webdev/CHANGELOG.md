@@ -1,3 +1,8 @@
+## 2.7.0 - UNRELEASED
+
+- Add support for the Dart Development Service (DDS).
+- Expand `package:vm_service` to version `>=3.0.0 <6.0.0`.
+
 ## 2.6.2
 
 - Update min sdk constraint to `>=2.8.1`.

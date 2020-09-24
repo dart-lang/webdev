@@ -28,6 +28,7 @@ const outputNone = 'NONE';
 const releaseFlag = 'release';
 const requireBuildWebCompilersFlag = 'build-web-compilers';
 const verboseFlag = 'verbose';
+const disableDdsFlag = 'disable-dds';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   var auto = argResults.options.contains(autoOption)
@@ -92,6 +93,7 @@ class Configuration {
   final ReloadConfiguration _reload;
   final bool _requireBuildWebCompilers;
   final bool _verbose;
+  final bool _disableDds;
 
   Configuration({
     bool autoRun,
@@ -112,6 +114,7 @@ class Configuration {
     bool release,
     bool requireBuildWebCompilers,
     bool verbose,
+    bool disableDds,
   })  : _autoRun = autoRun,
         _chromeDebugPort = chromeDebugPort,
         _debugExtension = debugExtension,
@@ -127,7 +130,8 @@ class Configuration {
         _release = release,
         _reload = reload,
         _requireBuildWebCompilers = requireBuildWebCompilers,
-        _verbose = verbose {
+        _verbose = verbose,
+        _disableDds = disableDds {
     _validateConfiguration();
   }
 
@@ -190,7 +194,8 @@ class Configuration {
       reload: other._reload ?? _reload,
       requireBuildWebCompilers:
           other._requireBuildWebCompilers ?? _requireBuildWebCompilers,
-      verbose: other._verbose ?? _verbose);
+      verbose: other._verbose ?? _verbose,
+      disableDds: other._disableDds ?? _disableDds);
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
@@ -203,6 +208,8 @@ class Configuration {
   bool get debugExtension => _debugExtension ?? false;
 
   bool get debug => _debug ?? false;
+
+  bool get disableDds => _disableDds ?? false;
 
   bool get enableInjectedClient => _enableInjectedClient ?? true;
 
@@ -326,6 +333,10 @@ class Configuration {
         ? argResults[verboseFlag] as bool
         : defaultConfiguration.verbose;
 
+    var disableDds = argResults.options.contains(disableDdsFlag)
+        ? argResults[disableDdsFlag] as bool
+        : defaultConfiguration.disableDds;
+
     return Configuration(
         autoRun: defaultConfiguration.autoRun,
         chromeDebugPort: chromeDebugPort,
@@ -344,7 +355,8 @@ class Configuration {
         release: release,
         reload: _parseReloadConfiguration(argResults),
         requireBuildWebCompilers: requireBuildWebCompilers,
-        verbose: verbose);
+        verbose: verbose,
+        disableDds: disableDds);
   }
 }
 

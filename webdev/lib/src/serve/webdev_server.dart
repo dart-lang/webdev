@@ -118,6 +118,7 @@ class WebDevServer {
         verbose: options.configuration.verbose,
         enableDebugExtension: options.configuration.debugExtension,
         enableDebugging: options.configuration.debug,
+        spawnDds: !options.configuration.disableDds,
       );
       pipeline = pipeline.addMiddleware(dwds.middleware);
       cascade = cascade.add(dwds.handler);

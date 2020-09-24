@@ -37,6 +37,7 @@ Isolate get simpleIsolate => Isolate(
       startTime: 0,
       livePorts: 0,
       runnable: false,
+      isSystemIsolate: false,
     );
 
 class FakeInspector extends Domain implements AppInspector {
