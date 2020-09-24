@@ -157,9 +157,7 @@ class DebugService {
 
   String get uri {
     if (_spawnDds && _dds != null) {
-      // TODO(bkonyi): set the scheme to sse in package:dds.
-      return (_useSse ? _dds.sseUri.replace(scheme: 'sse') : _dds.wsUri)
-          .toString();
+      return (_useSse ? _dds.sseUri : _dds.wsUri).toString();
     }
     return (_useSse
             ? Uri(
