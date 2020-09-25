@@ -17,7 +17,7 @@
   so we can remove heuristucs and rely on metadata in mapping modules
   to paths.
 - Require at least `build_web_compilers` version  `2.12.0`.
-- Update min sdk constraint to `>=2.10.0-93.0.dev`.
+- Update min sdk constraint to `>=2.10.0-99.0.dev`.
 
 ## 6.0.0
 

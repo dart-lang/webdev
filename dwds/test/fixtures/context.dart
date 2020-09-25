@@ -177,7 +177,7 @@ class TestContext {
           var fileSystemRoot = p.dirname(_packagesFilePath);
           var entryPath = _entryFile.path.substring(fileSystemRoot.length + 1);
           webRunner = ResidentWebRunner(
-              entryPath,
+              '${Uri.file(entryPath)}',
               urlEncoder,
               fileSystemRoot,
               _packagesFilePath,
