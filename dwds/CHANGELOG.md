@@ -5,6 +5,7 @@
   DDS is connected.
 - Update metadata reader version to `2.0.0`. Support reading metadata
   versions `2.0.0` and `1.0.0`.
+- Support custom hosts and HTTPs traffic in a `ProxyServerAssetReader`.
 
 ## 6.0.0
 
