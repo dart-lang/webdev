@@ -30,7 +30,7 @@ class ProxyServerAssetReader implements AssetReader {
             HttpClient()..badCertificateCallback = (cert, host, port) => true)
         : null;
     var url = '$scheme$host:$assetServerPort/';
-    if (root != null) url += '$root/';
+    if (root?.isNotEmpty ?? false) url += '$root/';
     _handler = proxyHandler(url, client: client);
   }
 
