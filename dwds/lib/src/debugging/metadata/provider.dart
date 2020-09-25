@@ -87,7 +87,12 @@ class FileMetadataProvider implements MetadataProvider {
       if (merged != null) {
         // read merged metadata if exists
         for (var contents in merged.split('\n')) {
-          _addMetadata(contents);
+          try {
+            _addMetadata(contents);
+          } catch (_) {
+            // DDC intentionally writes invalid metadata for some modules.
+            // Skip these errors.
+          }
         }
       }
       _logWriter(Level.INFO, 'Loaded debug metadata');
