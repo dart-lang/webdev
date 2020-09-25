@@ -210,8 +210,8 @@ class Locations {
       return result;
     }
     var modulePath = globalLoadStrategy.serverPathForModule(module);
-    var sourceMapContents =
-        await _assetReader.sourceMapContents('$modulePath.map');
+    var sourceMapPath = globalLoadStrategy.sourceMapPathForModule(module);
+    var sourceMapContents = await _assetReader.sourceMapContents(sourceMapPath);
     var scriptLocation = p.url.dirname('/$modulePath');
     if (sourceMapContents == null) return result;
     // This happens to be a [SingleMapping] today in DDC.

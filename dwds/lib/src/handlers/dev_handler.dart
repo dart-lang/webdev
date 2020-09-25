@@ -51,6 +51,7 @@ class DevHandler {
   final DevTools _devTools;
   final AssetReader _assetReader;
   final LoadStrategy _loadStrategy;
+  final MetadataProvider _metadataProvider;
   final String _hostname;
   final _connectedApps = StreamController<AppConnection>.broadcast();
   final _servicesByAppId = <String, AppDebugServices>{};
@@ -82,6 +83,7 @@ class DevHandler {
       this._devTools,
       this._assetReader,
       this._loadStrategy,
+      this._metadataProvider,
       this._hostname,
       this._verbose,
       this._logWriter,
@@ -181,8 +183,6 @@ class DevHandler {
 
     var webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
-    var metadataProvider = FileMetadataProvider(_assetReader, _logWriter);
-
     return DebugService.start(
       // We assume the user will connect to the debug service on the same
       // machine. This allows consumers of DWDS to provide a `hostname` for
@@ -194,7 +194,7 @@ class DevHandler {
       appTab.url,
       _assetReader,
       _loadStrategy,
-      metadataProvider,
+      _metadataProvider,
       appConnection,
       _logWriter,
       onResponse: (response) {
@@ -464,8 +464,6 @@ class DevHandler {
       }
       var appId = devToolsRequest.appId;
       if (_servicesByAppId[appId] == null) {
-        var metadataProvider = FileMetadataProvider(_assetReader, _logWriter);
-
         var debugService = await DebugService.start(
           _hostname,
           extensionDebugger,
@@ -473,7 +471,7 @@ class DevHandler {
           devToolsRequest.tabUrl,
           _assetReader,
           _loadStrategy,
-          metadataProvider,
+          _metadataProvider,
           connection,
           _logWriter,
           onResponse: _verbose

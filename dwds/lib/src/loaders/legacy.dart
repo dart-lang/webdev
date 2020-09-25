@@ -27,6 +27,14 @@ class LegacyStrategy extends LoadStrategy {
   ///
   final String Function(String module) _serverPathForModule;
 
+  /// Returns the source map path for the provided module.
+  ///
+  /// For example:
+  ///
+  ///   web/main -> main.ddc.js.map
+  ///
+  final String Function(String module) _sourceMapPathForModule;
+
   /// Returns the server path for the app uri.
   ///
   /// For example:
@@ -41,6 +49,7 @@ class LegacyStrategy extends LoadStrategy {
     this.reloadConfiguration,
     this._moduleForServerPath,
     this._serverPathForModule,
+    this._sourceMapPathForModule,
     this._serverPathForAppUri,
   );
 
@@ -73,6 +82,10 @@ class LegacyStrategy extends LoadStrategy {
 
   @override
   String serverPathForModule(String module) => _serverPathForModule(module);
+
+  @override
+  String sourceMapPathForModule(String module) =>
+      _sourceMapPathForModule(module);
 
   @override
   String serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);

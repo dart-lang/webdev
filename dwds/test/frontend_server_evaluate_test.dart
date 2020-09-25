@@ -25,13 +25,17 @@ ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
+// Changing debug to true will print all messages to console
+bool get debug => false;
+void logWriter(Level level, String message) =>
+    debug ? print(message) : printOnFailure(message);
+
 void main() {
   group('shared context with evaluation', () {
     setUpAll(() async {
       await context.setUp(
           compilationMode: CompilationMode.frontendServer,
-          useFileMetadataProvider: true,
-          logWriter: (Level level, String message) => printOnFailure(message));
+          logWriter: logWriter);
     });
 
     tearDownAll(() async {

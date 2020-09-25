@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
+import '../debugging/metadata/provider.dart';
 import 'require.dart';
 import 'strategy.dart';
 
@@ -17,10 +18,14 @@ class BuildRunnerRequireStrategyProvider {
   final Handler _assetHandler;
   final ReloadConfiguration _configuration;
   final _serverPathToModule = <String, String>{};
+  final _moduleToServerPath = <String, String>{};
+  final _moduleToSourceMapPath = <String, String>{};
+  final MetadataProvider _metadataProvider;
 
   RequireStrategy _requireStrategy;
 
-  BuildRunnerRequireStrategyProvider(this._assetHandler, this._configuration);
+  BuildRunnerRequireStrategyProvider(
+      this._assetHandler, this._configuration, this._metadataProvider);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
@@ -29,6 +34,7 @@ class BuildRunnerRequireStrategyProvider {
         _digestsProvider,
         _moduleForServerPath,
         _serverPathForModule,
+        _sourceMapPathForModule,
         _serverPathForAppUri,
       );
 
@@ -42,44 +48,57 @@ class BuildRunnerRequireStrategyProvider {
     var body = await response.readAsString();
     return {
       for (var entry in (json.decode(body) as Map<String, dynamic>).entries)
-        entry.key.replaceAll('.ddc.js', ''): entry.value as String,
+        entry.key: entry.value as String,
     };
   }
 
-  /// Returns the module server path for the provided moduleId.
-  ///
-  ///  web/main -> main.ddc
-  ///  packages/path/path -> packages/path/path.ddc
-  ///
-  String _serverPath(String moduleId) {
-    var path = moduleId.startsWith('packages')
-        ? moduleId
-        : moduleId.split('/').skip(1).join('/');
-    return '$path.ddc';
-  }
+  // /main.ddc.js -> main.ddc.js
+  String _normalizeServerPath(String path) =>
+      path.startsWith('/') ? path.substring(1) : path;
+
+  String _removeJsExtension(String path) =>
+      p.extension(path) == '.js' ? p.withoutExtension(path) : path;
+
+  String _addJsExtension(String path) => '$path.js';
+
+  // web/main.ddc.js -> main.ddc.js
+  // packages/test/test.dart.js -> packages/test/test.dart.js
+  String _stripTopLevelDirectory(String path) =>
+      path.startsWith('packages') ? path : path.split('/').skip(1).join('/');
 
   Future<Map<String, String>> _moduleProvider(String entrypoint) async {
+    await _metadataProvider.initialize(entrypoint, update: true);
     var digests = await _digestsProvider(entrypoint);
-    var result = <String, String>{};
+
     _serverPathToModule.clear();
-    for (var moduleId in digests.keys) {
-      var serverPath = _serverPath(moduleId);
-      _serverPathToModule[serverPath] = moduleId;
-      result[moduleId] = serverPath;
+    _moduleToServerPath.clear();
+    _moduleToSourceMapPath.clear();
+
+    for (var path in digests.keys) {
+      // path is the path including top level directory and .js extension
+      var serverPath = _stripTopLevelDirectory(_removeJsExtension(path));
+
+      var moduleName = (await _metadataProvider.modulePathToModule)[path];
+      var sourceMap = (await _metadataProvider.moduleToSourceMap)[moduleName];
+
+      _serverPathToModule[serverPath] = moduleName;
+      _moduleToServerPath[moduleName] = serverPath;
+      _moduleToSourceMapPath[moduleName] = _stripTopLevelDirectory(sourceMap);
     }
-    return result;
+    return _moduleToServerPath;
   }
 
   String _moduleForServerPath(String serverPath) {
     if (!serverPath.endsWith('$_extension.js')) return null;
-    serverPath =
-        serverPath.startsWith('/') ? serverPath.substring(1) : serverPath;
-    // Remove the .js from the path.
-    serverPath = p.withoutExtension(serverPath);
+    serverPath = _normalizeServerPath(_removeJsExtension(serverPath));
     return _serverPathToModule[serverPath];
   }
 
-  String _serverPathForModule(String module) => '${_serverPath(module)}.js';
+  String _serverPathForModule(String module) =>
+      _addJsExtension(_moduleToServerPath[module]);
+
+  String _sourceMapPathForModule(String module) =>
+      _moduleToSourceMapPath[module];
 
   String _serverPathForAppUri(String appUri) {
     if (appUri.startsWith('org-dartlang-app:')) {

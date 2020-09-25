@@ -13,6 +13,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'data/build_result.dart';
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
+import 'src/debugging/metadata/provider.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injector.dart';
 import 'src/handlers/socket_connections.dart';
@@ -25,6 +26,8 @@ import 'src/utilities/shared.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
+export 'src/debugging/metadata/provider.dart'
+    show MetadataProvider, FileMetadataProvider;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
 export 'src/handlers/socket_connections.dart';
 export 'src/loaders/build_runner_require.dart'
@@ -89,8 +92,8 @@ class Dwds {
     LogWriter logWriter,
     bool verbose,
     UrlEncoder urlEncoder,
-    bool useFileProvider = false,
     bool spawnDds = true,
+    MetadataProvider metadataProvider,
     // TODO(annagrin): make expressionCompiler argument required
     // [issue 881](https://github.com/dart-lang/webdev/issues/881)
     ExpressionCompiler expressionCompiler,
@@ -142,6 +145,7 @@ class Dwds {
       devTools,
       assetReader,
       loadStrategy,
+      metadataProvider,
       hostname,
       verbose,
       logWriter,

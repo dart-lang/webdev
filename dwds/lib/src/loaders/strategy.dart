@@ -80,6 +80,14 @@ abstract class LoadStrategy {
   ///
   String serverPathForModule(String module);
 
+  /// Returns the source map path for the provided module.
+  ///
+  /// For example:
+  ///
+  ///   web/main -> main.ddc.js.map
+  ///
+  String sourceMapPathForModule(String module);
+
   /// Returns the server path for the app uri.
   ///
   /// For example:

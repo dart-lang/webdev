@@ -7,6 +7,7 @@ import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -23,10 +24,15 @@ ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
+// change to true to debug the tests
+bool get debug => false;
+void logWriter(Level level, String message) =>
+    debug ? print(message) : printOnFailure(message);
+
 void main() {
   group('shared context', () {
     setUpAll(() async {
-      await context.setUp();
+      await context.setUp(logWriter: logWriter);
     });
 
     tearDownAll(() async {

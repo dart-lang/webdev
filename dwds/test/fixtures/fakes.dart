@@ -143,6 +143,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
       (_) => null,
       (_) => null,
       (_) => null,
+      (_) => null,
     );
   }
 
@@ -314,6 +315,9 @@ class FakeStrategy implements LoadStrategy {
 
   @override
   String serverPathForModule(String module) => null;
+
+  @override
+  String sourceMapPathForModule(String module) => null;
 
   @override
   String serverPathForAppUri(String appUri) => null;
