@@ -8,12 +8,12 @@ stages:
       dart: dev
     - group:
       - dartanalyzer: --fatal-warnings .
-      dart: [2.9.1]
+      dart: [2.10.0-99.0.dev]
   - unit_test:
     - test: -x frontend-server
-      dart: 2.9.1
+      dart: 2.10.0-99.0.dev
     - test:
       dart: dev
     - test: -x frontend-server
       os: windows
-      dart: 2.9.1
+      dart: 2.10.0-99.0.dev

@@ -2,7 +2,6 @@
 
 - Add support for the Dart Development Service (DDS).
 - Expand `package:vm_service` to version `>=3.0.0 <6.0.0`.
-- Set minimum SDK vrsion to `>=2.9.1`.
 
 ## 2.6.2
 
