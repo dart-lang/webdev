@@ -15,7 +15,8 @@ final context = TestContext();
 
 void main() {
   setUpAll(() async {
-    await context.setUp();
+    // Disable DDS as we're testing DWDS behavior.
+    await context.setUp(spawnDds: false);
   });
 
   tearDownAll(() async {
