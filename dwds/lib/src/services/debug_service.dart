@@ -151,7 +151,7 @@ class DebugService {
         port: port,
         path: '$authToken',
       ),
-      ipv6: await useIPv6,
+      ipv6: await useIPv6ForHost(hostname),
     );
   }
 
