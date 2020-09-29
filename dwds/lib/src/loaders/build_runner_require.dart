@@ -58,7 +58,7 @@ class BuildRunnerRequireStrategyProvider {
       path.startsWith('/') ? path.substring(1) : path;
 
   String _removeJsExtension(String path) =>
-      p.extension(path) == '.js' ? p.withoutExtension(path) : path;
+      path.endsWith('.js') ? p.withoutExtension(path) : path;
 
   String _addJsExtension(String path) => '$path.js';
 
