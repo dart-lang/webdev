@@ -24,7 +24,7 @@ String createId() {
 Future<bool> useIPv6ForHost(String hostname) async {
   final addresses = await InternetAddress.lookup(hostname);
   final address = addresses.firstWhere(
-    (a) => (a.type == InternetAddressType.IPv6),
+    (a) => a.type == InternetAddressType.IPv6,
     orElse: () => null,
   );
   return address != null;
