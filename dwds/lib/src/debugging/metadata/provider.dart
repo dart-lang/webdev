@@ -12,77 +12,8 @@ import '../../readers/asset_reader.dart';
 import '../../utilities/shared.dart';
 import 'module_metadata.dart';
 
-/// Provider of DDC meta data for a compiled application.
-abstract class MetadataProvider {
-  /// A list of all libraries in the Dart application.
-  ///
-  /// Example:
-  ///
-  ///  [
-  ///     dart:web_gl,
-  ///     dart:math,
-  ///     org-dartlang-app:///web/main.dart
-  ///  ]
-  ///
-  Future<List<String>> get libraries;
-
-  /// A map of script to corresponding parts.
-  ///
-  /// Example:
-  ///
-  /// {
-  ///   org-dartlang-app:///web/main.dart :
-  ///     [
-  ///       org-dartlang-app:///web/a.part.dart,
-  ///       org-dartlang-app:///web/b.part.dart,
-  ///     ]
-  ///  }
-  ///
-  Future<Map<String, List<String>>> get scripts;
-
-  /// A map of script to containing module.
-  ///
-  /// Example:
-  ///
-  /// {
-  ///   org-dartlang-app:///web/main.dart :
-  ///   web/main
-  /// }
-  ///
-  Future<Map<String, String>> get scriptToModule;
-
-  /// A map of script to containing module.
-  ///
-  /// Example:
-  ///
-  /// {
-  ///   org-dartlang-app:///web/main.dart :
-  ///   web/main.ddc.js.map
-  /// }
-  ///
-  Future<Map<String, String>> get moduleToSourceMap;
-
-  /// A of module path to module
-  ///
-  /// Example:
-  ///
-  /// {
-  ///   web/main.ddc.js
-  ///   web/main
-  /// }
-  ///
-  Future<Map<String, String>> get modulePathToModule;
-
-  /// Initializes the provider for the given Dart application entrypoint.
-  ///
-  /// Initialization is done only once, even if called multiple
-  /// times, unless [update] is true, in which case the metadata
-  /// is re-initialzed.
-  Future<void> initialize(String entrypointPath, {bool update = false});
-}
-
 /// A provider of metadata in which data is collected through DDC outputs.
-class FileMetadataProvider implements MetadataProvider {
+class MetadataProvider {
   final AssetReader _assetReader;
   final LogWriter _logWriter;
 
@@ -93,30 +24,74 @@ class FileMetadataProvider implements MetadataProvider {
   final Map<String, List<String>> _scripts = {};
   AsyncMemoizer _metadataMemoizer;
 
-  FileMetadataProvider(this._assetReader, this._logWriter)
+  MetadataProvider(this._assetReader, this._logWriter)
       : _metadataMemoizer = AsyncMemoizer<void>();
 
-  @override
-  Future<List<String>> get libraries {
-    return Future.value(_libraries);
-  }
+  /// A list of all libraries in the Dart application.
+  ///
+  /// Example:
+  ///
+  ///  [
+  ///     dart:web_gl,
+  ///     dart:math,
+  ///     org-dartlang-app:///web/main.dart
+  ///  ]
+  ///
+  Future<List<String>> get libraries => Future.value(_libraries);
 
-  @override
+  /// A map of script to containing module.
+  ///
+  /// Example:
+  ///
+  /// {
+  ///   org-dartlang-app:///web/main.dart :
+  ///   web/main
+  /// }
+  ///
   Future<Map<String, String>> get scriptToModule =>
       Future.value(_scriptToModule);
 
-  @override
+  /// A map of script to containing module.
+  ///
+  /// Example:
+  ///
+  /// {
+  ///   org-dartlang-app:///web/main.dart :
+  ///   web/main.ddc.js.map
+  /// }
+  ///
   Future<Map<String, String>> get moduleToSourceMap =>
       Future.value(_moduleToSourceMap);
 
-  @override
+  /// A of module path to module
+  ///
+  /// Example:
+  ///
+  /// {
+  ///   web/main.ddc.js
+  ///   web/main
+  /// }
+  ///
   Future<Map<String, String>> get modulePathToModule =>
       Future.value(_modulePathToModule);
 
-  @override
+  /// A map of script to containing module.
+  ///
+  /// Example:
+  ///
+  /// {
+  ///   org-dartlang-app:///web/main.dart :
+  ///   web/main
+  /// }
+  ///
   Future<Map<String, List<String>>> get scripts => Future.value(_scripts);
 
-  @override
+  /// Initializes the provider for the given Dart application entrypoint.
+  ///
+  /// Initialization is done only once, even if called multiple
+  /// times, unless [update] is true, in which case the metadata
+  /// is re-initialzed.
+  ///
   Future<void> initialize(String entrypoint, {bool update = false}) async {
     // make sure we re-initalize on update, for example, on hot restart.
     if (update) {

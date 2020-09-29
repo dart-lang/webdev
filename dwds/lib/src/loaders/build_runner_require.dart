@@ -14,7 +14,6 @@ import 'strategy.dart';
 
 /// Provides a [RequireStrategy] suitable for use with `package:build_runner`.
 class BuildRunnerRequireStrategyProvider {
-  final _extension = '.ddc';
   final Handler _assetHandler;
   final ReloadConfiguration _configuration;
   final _serverPathToModule = <String, String>{};
@@ -29,7 +28,6 @@ class BuildRunnerRequireStrategyProvider {
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
-        _extension,
         _moduleProvider,
         _digestsProvider,
         _moduleForServerPath,
@@ -39,6 +37,9 @@ class BuildRunnerRequireStrategyProvider {
       );
 
   Future<Map<String, String>> _digestsProvider(String entrypoint) async {
+    await _metadataProvider.initialize(entrypoint, update: false);
+    var modules = await _metadataProvider.modulePathToModule;
+
     var digestsPath = entrypoint.replaceAll('.dart.bootstrap.js', '.digests');
     var response = await _assetHandler(
         Request('GET', Uri.parse('http://foo:0000/$digestsPath')));
@@ -48,7 +49,7 @@ class BuildRunnerRequireStrategyProvider {
     var body = await response.readAsString();
     return {
       for (var entry in (json.decode(body) as Map<String, dynamic>).entries)
-        entry.key: entry.value as String,
+        modules[entry.key]: entry.value as String,
     };
   }
 
@@ -68,18 +69,18 @@ class BuildRunnerRequireStrategyProvider {
 
   Future<Map<String, String>> _moduleProvider(String entrypoint) async {
     await _metadataProvider.initialize(entrypoint, update: true);
-    var digests = await _digestsProvider(entrypoint);
+    var modules = await _metadataProvider.modulePathToModule;
+    var sourceMaps = await _metadataProvider.moduleToSourceMap;
 
     _serverPathToModule.clear();
     _moduleToServerPath.clear();
     _moduleToSourceMapPath.clear();
 
-    for (var path in digests.keys) {
+    for (var path in modules.keys) {
       // path is the path including top level directory and .js extension
       var serverPath = _stripTopLevelDirectory(_removeJsExtension(path));
-
-      var moduleName = (await _metadataProvider.modulePathToModule)[path];
-      var sourceMap = (await _metadataProvider.moduleToSourceMap)[moduleName];
+      var moduleName = modules[path];
+      var sourceMap = sourceMaps[moduleName];
 
       _serverPathToModule[serverPath] = moduleName;
       _moduleToServerPath[moduleName] = serverPath;
@@ -89,7 +90,6 @@ class BuildRunnerRequireStrategyProvider {
   }
 
   String _moduleForServerPath(String serverPath) {
-    if (!serverPath.endsWith('$_extension.js')) return null;
     serverPath = _normalizeServerPath(_removeJsExtension(serverPath));
     return _serverPathToModule[serverPath];
   }

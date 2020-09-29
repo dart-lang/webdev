@@ -11,7 +11,6 @@ class FrontendServerRequireStrategyProvider {
   final Map<String, String> _moduleToPath = {};
   final Map<String, String> _pathToModule = {};
   final Map<String, String> _moduleToSourceMapPath = {};
-  final _extension = '.lib.js';
   RequireStrategy _requireStrategy;
   final MetadataProvider _metadataProvider;
 
@@ -20,7 +19,6 @@ class FrontendServerRequireStrategyProvider {
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
-        _extension,
         _moduleProvider,
         _digestsProvider,
         _moduleForServerPath,

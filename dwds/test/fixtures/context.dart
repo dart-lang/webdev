@@ -163,7 +163,7 @@ class TestContext {
               proxyHandler('http://localhost:$assetServerPort/$pathToServe/');
           assetReader = ProxyServerAssetReader(assetServerPort, logWriter,
               root: pathToServe);
-          metadataProvider = FileMetadataProvider(assetReader, logWriter);
+          metadataProvider = MetadataProvider(assetReader, logWriter);
 
           requireStrategy = BuildRunnerRequireStrategyProvider(
                   assetHandler, reloadConfiguration, metadataProvider)
@@ -193,7 +193,7 @@ class TestContext {
           assetReader = webRunner.devFS.assetServer;
           assetHandler = webRunner.devFS.assetServer.handleRequest;
 
-          metadataProvider = FileMetadataProvider(assetReader, logWriter);
+          metadataProvider = MetadataProvider(assetReader, logWriter);
           requireStrategy = FrontendServerRequireStrategyProvider(
                   reloadConfiguration, metadataProvider)
               .strategy;

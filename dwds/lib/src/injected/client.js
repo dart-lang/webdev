@@ -22299,7 +22299,7 @@
     hotRestart$0: function() {
       var $async$goto = 0,
         $async$completer = P._makeAsyncAwaitCompleter(type$.legacy_bool),
-        $async$returnValue, $async$self = this, result, t1, t2;
+        $async$returnValue, $async$self = this, t1, t2, result;
       var $async$hotRestart$0 = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return P._asyncRethrow($async$result, $async$completer);
@@ -22307,6 +22307,7 @@
           switch ($async$goto) {
             case 0:
               // Function start
+              P.print("RESTART!");
               t1 = $async$self._client._outgoingController;
               t2 = $.$get$serializers();
               type$.legacy_void_Function_legacy_IsolateExitBuilder._as(null);
@@ -22405,6 +22406,18 @@
               modulesToLoad = H.setRuntimeTypeInfo([], type$.JSArray_legacy_String);
               for (t1 = J.getInterceptor$x(newDigests), t3 = J.get$iterator$ax(t1.get$keys(newDigests)); t3.moveNext$0();) {
                 t4 = t3.get$current(t3);
+                line = "_lastKnownDigests: " + H.S($._lastKnownDigests);
+                toZone = $.printToZone;
+                if (toZone == null)
+                  H.printString(line);
+                else
+                  toZone.call$1(line);
+                line = "moduleId: " + H.S(t4);
+                toZone = $.printToZone;
+                if (toZone == null)
+                  H.printString(line);
+                else
+                  toZone.call$1(line);
                 if (!J.containsKey$1$x($._lastKnownDigests, t4)) {
                   line = "Error during script reloading, refreshing the page. \nUnable to find an existing digest for module: " + H.S(t4) + ".";
                   toZone = $.printToZone;

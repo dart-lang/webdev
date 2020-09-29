@@ -26,8 +26,7 @@ import 'src/utilities/shared.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
-export 'src/debugging/metadata/provider.dart'
-    show MetadataProvider, FileMetadataProvider;
+export 'src/debugging/metadata/provider.dart' show MetadataProvider;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
 export 'src/handlers/socket_connections.dart';
 export 'src/loaders/build_runner_require.dart'

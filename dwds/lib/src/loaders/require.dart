@@ -39,9 +39,6 @@ class RequireStrategy extends LoadStrategy {
   @override
   final ReloadConfiguration reloadConfiguration;
 
-  /// The module extension without .js, e.g. `.ddc`.
-  final String _moduleExtension;
-
   final String _requireDigestsPath = r'$requireDigestsPath';
 
   /// Returns a map of module name to corresponding server path (excluding .js)
@@ -100,7 +97,6 @@ class RequireStrategy extends LoadStrategy {
 
   RequireStrategy(
     this.reloadConfiguration,
-    this._moduleExtension,
     this._moduleProvider,
     this._digestsProvider,
     this._moduleForServerPath,
@@ -186,19 +182,27 @@ requirejs.onResourceLoad = function (context, map, depArray) {
 
   Future<String> _requireLoaderSetup(String entrypoint) async {
     var modulePaths = await _moduleProvider(entrypoint);
+    var moduleNames =
+        modulePaths.map((key, value) => MapEntry<String, String>(value, key));
     return '''
 $_baseUrlScript
 let modulePaths = ${const JsonEncoder.withIndent(" ").convert(modulePaths)};
+let moduleNames = ${const JsonEncoder.withIndent(" ").convert(moduleNames)};
 if(!window.\$requireLoader) {
    window.\$requireLoader = {
      digestsPath: '$_requireDigestsPath?entrypoint=$entrypoint',
      // Used in package:build_runner/src/server/build_updates_client/hot_reload_client.dart
      moduleParentsGraph: new Map(),
      moduleLoadingErrorCallbacks: new Map(),
-     forceLoadModule: function (moduleName, callback, onError) {
-       if (moduleName.endsWith('$_moduleExtension')) {
-         moduleName = moduleName.substring(0, moduleName.length - ${_moduleExtension.length});
+     forceLoadModule: function (modulePath, callback, onError) {
+       console.log('modulePath:');
+       console.log(modulePath);
+       let moduleName = moduleNames[modulePath];
+       if (moduleName == null) {
+         moduleName = modulePath;
        }
+       console.log('moduleName:');
+       console.log(moduleName);
        if (typeof onError != 'undefined') {
          var errorCallbacks = \$requireLoader.moduleLoadingErrorCallbacks;
          if (!errorCallbacks.has(moduleName)) {

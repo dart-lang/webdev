@@ -103,7 +103,7 @@ class WebDevServer {
         logWriter,
         root: options.target,
       );
-      var metadataProvider = FileMetadataProvider(assetReader, logWriter);
+      var metadataProvider = MetadataProvider(assetReader, logWriter);
       dwds = await Dwds.start(
         hostname: options.configuration.hostname,
         assetReader: assetReader,
