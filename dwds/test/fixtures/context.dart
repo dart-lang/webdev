@@ -95,6 +95,7 @@ class TestContext {
       bool autoRun,
       bool enableDebugging,
       bool useSse,
+      bool spawnDds,
       String hostname,
       bool waitToDebug,
       UrlEncoder urlEncoder,
@@ -111,6 +112,7 @@ class TestContext {
     compilationMode ??= CompilationMode.buildDaemon;
     useFakeExpressionCompiler ??= false;
     logWriter ??= (Level level, String message) => printOnFailure(message);
+    spawnDds ??= true;
 
     var systemTempDir = Directory.systemTemp;
     _outputDir = systemTempDir.createTempSync('foo bar');
@@ -253,7 +255,8 @@ class TestContext {
         urlEncoder,
         restoreBreakpoints,
         expressionCompiler,
-        logWriter);
+        logWriter,
+        spawnDds);
 
     appUrl = 'http://localhost:$port/$path';
     await webDriver.get(appUrl);

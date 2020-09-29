@@ -72,7 +72,8 @@ class TestServer {
       UrlEncoder urlEncoder,
       bool restoreBreakpoints,
       ExpressionCompiler expressionCompiler,
-      LogWriter logWriter) async {
+      LogWriter logWriter,
+      bool spawnDds) async {
     var pipeline = const Pipeline();
 
     pipeline = pipeline.addMiddleware(_interceptFavicon);
@@ -97,6 +98,7 @@ class TestServer {
       chromeConnection: chromeConnection,
       logWriter: logWriter,
       loadStrategy: strategy,
+      spawnDds: spawnDds,
       metadataProvider: metadataProvider,
       serveDevTools: serveDevTools,
       enableDebugExtension: enableDebugExtension,
