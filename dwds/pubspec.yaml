@@ -1,6 +1,6 @@
 name: dwds
 # Every time this changes you need to run `pub run build_runner build`.
-version: 6.0.0
+version: 7.0.0-dev.1
 # We should not depend on a dev SDK before publishing.
 publish_to: none
 homepage: https://github.com/dart-lang/webdev/tree/master/dwds
@@ -43,11 +43,10 @@ dependencies:
 dev_dependencies:
   args: ^1.0.0
   build: ^1.1.5
-  build_runner: ^1.6.2
   build_daemon: ^2.0.0
+  build_runner: ^1.6.2
   build_version: ^2.0.0
-  build_web_compilers: ^2.12.0-dev.1
-  built_value_generator: '>=6.4.0 <8.0.0'
+  build_web_compilers: ^2.12.0
   graphs: ^0.2.0
   frontend_server_common:
     path: ../frontend_server_common

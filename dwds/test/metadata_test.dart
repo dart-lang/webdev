@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/dwds.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:test/test.dart';
 
 class FakeAssetReader implements AssetReader {
@@ -28,7 +27,7 @@ class FakeAssetReader implements AssetReader {
 
 void main() {
   test('can parse metadata with empty sources', () async {
-    var provider = FileMetadataProvider(
+    var provider = MetadataProvider(
         FakeAssetReader(), (level, message) => printOnFailure(message));
     await provider.initialize('foo.bootstrap.js');
     expect(await provider.libraries,

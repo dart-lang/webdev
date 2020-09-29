@@ -16,8 +16,8 @@ import 'devfs_content.dart';
 import 'frontend_server_client.dart';
 import 'utilities.dart';
 
-final String platformDill =
-    p.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.dill');
+final Uri platformDill =
+    Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.dill'));
 
 class ResidentWebRunner {
   ResidentWebRunner(
@@ -31,7 +31,7 @@ class ResidentWebRunner {
       this.logWriter) {
     generator = ResidentCompiler(dartSdkPath, logWriter,
         packagesPath: packagesPath,
-        platformDill: platformDill,
+        platformDill: '$platformDill',
         fileSystemRoots: fileSystemRoots,
         fileSystemScheme: fileSystemScheme);
     expressionCompiler = TestExpressionCompiler(generator);

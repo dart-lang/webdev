@@ -27,7 +27,8 @@ Future<void> _waitForPageReady(TestContext context) async {
 void main() {
   group('Injected client', () {
     setUp(() async {
-      await context.setUp(serveDevTools: true);
+      await context.setUp(
+          serveDevTools: true, logWriter: (level, message) => print(message));
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
       // Wait for DevTools to actually open.
       await Future.delayed(const Duration(seconds: 2));

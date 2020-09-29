@@ -23,7 +23,7 @@ import 'test_utils.dart';
 const _testItems = <String, bool>{
   'main.dart.js': null,
   'main.dart.bootstrap.js': true,
-  'main.ddc.js': true
+  'main.unsound.ddc.js': true,
 };
 
 void main() {
