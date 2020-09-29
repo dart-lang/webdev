@@ -54,7 +54,7 @@ class BuildRunnerRequireStrategyProvider {
   }
 
   // /main.ddc.js -> main.ddc.js
-  String _normalizeServerPath(String path) =>
+  String _relativizePath(String path) =>
       path.startsWith('/') ? path.substring(1) : path;
 
   String _removeJsExtension(String path) =>
@@ -90,7 +90,7 @@ class BuildRunnerRequireStrategyProvider {
   }
 
   String _moduleForServerPath(String serverPath) {
-    serverPath = _normalizeServerPath(_removeJsExtension(serverPath));
+    serverPath = _relativizePath(_removeJsExtension(serverPath));
     return _serverPathToModule[serverPath];
   }
 

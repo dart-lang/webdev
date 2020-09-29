@@ -39,6 +39,17 @@ class MetadataProvider {
   ///
   Future<List<String>> get libraries => Future.value(_libraries);
 
+  /// A map of library uri to dart scripts.
+  ///
+  /// Example:
+  ///
+  /// {
+  ///   org-dartlang-app:///web/main.dart :
+  ///   { web/main.dart  }
+  /// }
+  ///
+  Future<Map<String, List<String>>> get scripts => Future.value(_scripts);
+
   /// A map of script to containing module.
   ///
   /// Example:
@@ -51,7 +62,7 @@ class MetadataProvider {
   Future<Map<String, String>> get scriptToModule =>
       Future.value(_scriptToModule);
 
-  /// A map of script to containing module.
+  /// A map of module name to source map path.
   ///
   /// Example:
   ///
@@ -60,31 +71,21 @@ class MetadataProvider {
   ///   web/main.ddc.js.map
   /// }
   ///
+  ///
   Future<Map<String, String>> get moduleToSourceMap =>
       Future.value(_moduleToSourceMap);
 
-  /// A of module path to module
+  /// A map of module path to module name
   ///
   /// Example:
   ///
   /// {
-  ///   web/main.ddc.js
+  ///   web/main.ddc.js :
   ///   web/main
   /// }
   ///
   Future<Map<String, String>> get modulePathToModule =>
       Future.value(_modulePathToModule);
-
-  /// A map of script to containing module.
-  ///
-  /// Example:
-  ///
-  /// {
-  ///   org-dartlang-app:///web/main.dart :
-  ///   web/main
-  /// }
-  ///
-  Future<Map<String, List<String>>> get scripts => Future.value(_scripts);
 
   /// Initializes the provider for the given Dart application entrypoint.
   ///
