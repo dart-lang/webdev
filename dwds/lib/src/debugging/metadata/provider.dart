@@ -112,7 +112,8 @@ class MetadataProvider {
         if (merged != null) {
           // read merged metadata if exists
           for (var contents in merged.split('\n')) {
-            if (contents == null || contents.isEmpty ||
+            if (contents == null ||
+                contents.isEmpty ||
                 contents.startsWith('// intentionally empty:')) continue;
             _addMetadata(contents);
           }
@@ -123,7 +124,6 @@ class MetadataProvider {
   }
 
   void _addMetadata(String contents) {
-
     var moduleJson = json.decode(contents);
     var metadata = ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
 
