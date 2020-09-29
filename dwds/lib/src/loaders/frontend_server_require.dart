@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:path/path.dart' as p;
-import '../../dwds.dart';
+import '../debugging/metadata/provider.dart';
+import 'require.dart';
+import 'strategy.dart';
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
 class FrontendServerRequireStrategyProvider {
@@ -35,29 +36,30 @@ class FrontendServerRequireStrategyProvider {
   Future<Map<String, String>> _moduleProvider(String entrypoint) async {
     await _metadataProvider.initialize(entrypoint);
     var modules = await _metadataProvider.modulePathToModule;
+    var sourceMaps = await _metadataProvider.moduleToSourceMap;
+
+    _moduleToPath.clear();
+    _pathToModule.clear();
+    _moduleToSourceMapPath.clear();
 
     for (var modulePath in modules.keys) {
-      var name = modules[modulePath];
-      var path = _convertToJSRequirePath(modulePath);
-      _moduleToPath[name] = path;
-      _pathToModule[path] = name;
-      var sourceMaps = await _metadataProvider.moduleToSourceMap;
-      _moduleToSourceMapPath[name] = _stripTopLevelDirectory(sourceMaps[name]);
+      // modulePath is the path including leading '/' and .js extension
+      var moduleName = modules[modulePath];
+      var serverPath = relativizePath(removeJsExtension(modulePath));
+      var sourceMap = relativizePath(sourceMaps[moduleName]);
+
+      _pathToModule[serverPath] = moduleName;
+      _moduleToPath[moduleName] = serverPath;
+      _moduleToSourceMapPath[moduleName] = sourceMap;
     }
     return _moduleToPath;
   }
 
-  // /web/modulename.lib.js => web/modulename.lib
-  String _convertToJSRequirePath(String modulePath) =>
-      _stripTopLevelDirectory(p.withoutExtension(modulePath));
-
-  String _stripTopLevelDirectory(String path) =>
-      path.startsWith('/') ? path.substring(1) : path;
-
   String _moduleForServerPath(String serverPath) =>
-      _pathToModule[_convertToJSRequirePath(serverPath)];
+      _pathToModule[relativizePath(removeJsExtension(serverPath))];
 
-  String _serverPathForModule(String module) => '${_moduleToPath[module]}.js';
+  String _serverPathForModule(String module) =>
+      addJsExtension(_moduleToPath[module]);
 
   String _sourceMapPathForModule(String module) =>
       _moduleToSourceMapPath[module];

@@ -4,9 +4,23 @@
 
 import 'dart:convert';
 
+import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
 import 'strategy.dart';
+
+String relativizePath(String path) =>
+    path.startsWith('/') ? path.substring(1) : path;
+
+String removeJsExtension(String path) =>
+    path.endsWith('.js') ? p.withoutExtension(path) : path;
+
+String addJsExtension(String path) => '$path.js';
+
+// web/main.ddc.js -> main.ddc.js
+// packages/test/test.dart.js -> packages/test/test.dart.js
+String stripTopLevelDirectory(String path) =>
+    path.startsWith('packages') ? path : path.split('/').skip(1).join('/');
 
 /// JavaScript snippet to determine the base URL of the current path.
 const _baseUrlScript = '''

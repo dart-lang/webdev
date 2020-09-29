@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
 import '../debugging/metadata/provider.dart';
@@ -53,20 +52,6 @@ class BuildRunnerRequireStrategyProvider {
     };
   }
 
-  // /main.ddc.js -> main.ddc.js
-  String _relativizePath(String path) =>
-      path.startsWith('/') ? path.substring(1) : path;
-
-  String _removeJsExtension(String path) =>
-      path.endsWith('.js') ? p.withoutExtension(path) : path;
-
-  String _addJsExtension(String path) => '$path.js';
-
-  // web/main.ddc.js -> main.ddc.js
-  // packages/test/test.dart.js -> packages/test/test.dart.js
-  String _stripTopLevelDirectory(String path) =>
-      path.startsWith('packages') ? path : path.split('/').skip(1).join('/');
-
   Future<Map<String, String>> _moduleProvider(String entrypoint) async {
     await _metadataProvider.initialize(entrypoint, update: true);
     var modules = await _metadataProvider.modulePathToModule;
@@ -76,26 +61,26 @@ class BuildRunnerRequireStrategyProvider {
     _moduleToServerPath.clear();
     _moduleToSourceMapPath.clear();
 
-    for (var path in modules.keys) {
-      // path is the path including top level directory and .js extension
-      var serverPath = _stripTopLevelDirectory(_removeJsExtension(path));
-      var moduleName = modules[path];
-      var sourceMap = sourceMaps[moduleName];
+    for (var modulePath in modules.keys) {
+      // modulePath is the path including top level directory and .js extension
+      var moduleName = modules[modulePath];
+      var serverPath = stripTopLevelDirectory(removeJsExtension(modulePath));
+      var sourceMap = stripTopLevelDirectory(sourceMaps[moduleName]);
 
       _serverPathToModule[serverPath] = moduleName;
       _moduleToServerPath[moduleName] = serverPath;
-      _moduleToSourceMapPath[moduleName] = _stripTopLevelDirectory(sourceMap);
+      _moduleToSourceMapPath[moduleName] = sourceMap;
     }
     return _moduleToServerPath;
   }
 
   String _moduleForServerPath(String serverPath) {
-    serverPath = _relativizePath(_removeJsExtension(serverPath));
+    serverPath = relativizePath(removeJsExtension(serverPath));
     return _serverPathToModule[serverPath];
   }
 
   String _serverPathForModule(String module) =>
-      _addJsExtension(_moduleToServerPath[module]);
+      addJsExtension(_moduleToServerPath[module]);
 
   String _sourceMapPathForModule(String module) =>
       _moduleToSourceMapPath[module];
