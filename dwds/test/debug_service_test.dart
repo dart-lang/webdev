@@ -70,5 +70,5 @@ void main() {
         WebSocket.connect('${context.debugConnection.uri}/ws')
             .then((ws) => ws.close()),
         completes);
-  });
+  }, skip: 'issues/1119');
 }
