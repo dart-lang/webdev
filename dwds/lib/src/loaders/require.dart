@@ -4,9 +4,23 @@
 
 import 'dart:convert';
 
+import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
 import 'strategy.dart';
+
+String relativizePath(String path) =>
+    path.startsWith('/') ? path.substring(1) : path;
+
+String removeJsExtension(String path) =>
+    path.endsWith('.js') ? p.withoutExtension(path) : path;
+
+String addJsExtension(String path) => '$path.js';
+
+// web/main.ddc.js -> main.ddc.js
+// packages/test/test.dart.js -> packages/test/test.dart.js
+String stripTopLevelDirectory(String path) =>
+    path.startsWith('packages') ? path : path.split('/').skip(1).join('/');
 
 /// JavaScript snippet to determine the base URL of the current path.
 const _baseUrlScript = '''
@@ -38,9 +52,6 @@ var baseUrl = (function () {
 class RequireStrategy extends LoadStrategy {
   @override
   final ReloadConfiguration reloadConfiguration;
-
-  /// The module extension without .js, e.g. `.ddc`.
-  final String _moduleExtension;
 
   final String _requireDigestsPath = r'$requireDigestsPath';
 
@@ -80,6 +91,14 @@ class RequireStrategy extends LoadStrategy {
   ///
   final String Function(String module) _serverPathForModule;
 
+  /// Returns the source map path for the provided module.
+  ///
+  /// For example:
+  ///
+  ///   web/main -> main.ddc.js.map
+  ///
+  final String Function(String module) _sourceMapPathForModule;
+
   /// Returns the server path for the app uri.
   ///
   /// For example:
@@ -92,11 +111,11 @@ class RequireStrategy extends LoadStrategy {
 
   RequireStrategy(
     this.reloadConfiguration,
-    this._moduleExtension,
     this._moduleProvider,
     this._digestsProvider,
     this._moduleForServerPath,
     this._serverPathForModule,
+    this._sourceMapPathForModule,
     this._serverPathForAppUri,
   );
 
@@ -177,19 +196,27 @@ requirejs.onResourceLoad = function (context, map, depArray) {
 
   Future<String> _requireLoaderSetup(String entrypoint) async {
     var modulePaths = await _moduleProvider(entrypoint);
+    var moduleNames =
+        modulePaths.map((key, value) => MapEntry<String, String>(value, key));
     return '''
 $_baseUrlScript
 let modulePaths = ${const JsonEncoder.withIndent(" ").convert(modulePaths)};
+let moduleNames = ${const JsonEncoder.withIndent(" ").convert(moduleNames)};
 if(!window.\$requireLoader) {
    window.\$requireLoader = {
      digestsPath: '$_requireDigestsPath?entrypoint=$entrypoint',
      // Used in package:build_runner/src/server/build_updates_client/hot_reload_client.dart
      moduleParentsGraph: new Map(),
      moduleLoadingErrorCallbacks: new Map(),
-     forceLoadModule: function (moduleName, callback, onError) {
-       if (moduleName.endsWith('$_moduleExtension')) {
-         moduleName = moduleName.substring(0, moduleName.length - ${_moduleExtension.length});
+     forceLoadModule: function (modulePath, callback, onError) {
+       console.log('modulePath:');
+       console.log(modulePath);
+       let moduleName = moduleNames[modulePath];
+       if (moduleName == null) {
+         moduleName = modulePath;
        }
+       console.log('moduleName:');
+       console.log(moduleName);
        if (typeof onError != 'undefined') {
          var errorCallbacks = \$requireLoader.moduleLoadingErrorCallbacks;
          if (!errorCallbacks.has(moduleName)) {
@@ -219,6 +246,10 @@ if(!window.\$requireLoader) {
 
   @override
   String serverPathForModule(String module) => _serverPathForModule(module);
+
+  @override
+  String sourceMapPathForModule(String module) =>
+      _sourceMapPathForModule(module);
 
   @override
   String serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);

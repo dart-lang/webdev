@@ -20,7 +20,8 @@ void main() {
     group('and with debugging', () {
       setUp(() async {
         await context.setUp(
-            reloadConfiguration: ReloadConfiguration.liveReload);
+            reloadConfiguration: ReloadConfiguration.liveReload,
+            logWriter: (level, message) => printOnFailure(message));
       });
 
       tearDown(() async {
@@ -42,7 +43,8 @@ void main() {
       setUp(() async {
         await context.setUp(
             reloadConfiguration: ReloadConfiguration.liveReload,
-            enableDebugging: false);
+            enableDebugging: false,
+            logWriter: (level, message) => printOnFailure(message));
       });
 
       tearDown(() async {
@@ -63,7 +65,8 @@ void main() {
 
   group('Injected client', () {
     setUp(() async {
-      await context.setUp();
+      await context.setUp(
+          logWriter: (level, message) => printOnFailure(message));
     });
 
     tearDown(() async {
@@ -191,7 +194,8 @@ void main() {
     group('and with debugging', () {
       setUp(() async {
         await context.setUp(
-            reloadConfiguration: ReloadConfiguration.hotRestart);
+            reloadConfiguration: ReloadConfiguration.hotRestart,
+            logWriter: (level, message) => printOnFailure(message));
       });
 
       tearDown(() async {
@@ -233,7 +237,8 @@ void main() {
       setUp(() async {
         await context.setUp(
             reloadConfiguration: ReloadConfiguration.hotRestart,
-            enableDebugging: false);
+            enableDebugging: false,
+            logWriter: (level, message) => printOnFailure(message));
       });
 
       tearDown(() async {

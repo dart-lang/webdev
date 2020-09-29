@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
-import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -25,13 +24,12 @@ ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
-void main() {
+void main() async {
   group('shared context with evaluation', () {
     setUpAll(() async {
       await context.setUp(
           compilationMode: CompilationMode.frontendServer,
-          useFileMetadataProvider: true,
-          logWriter: (Level level, String message) => printOnFailure(message));
+          logWriter: (level, message) => printOnFailure(message));
     });
 
     tearDownAll(() async {

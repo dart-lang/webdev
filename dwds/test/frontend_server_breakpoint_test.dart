@@ -25,9 +25,11 @@ ChromeProxyService get service =>
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
-  group('shared context with evaluation', () {
+  group('shared context', () {
     setUpAll(() async {
-      await context.setUp(compilationMode: CompilationMode.frontendServer);
+      await context.setUp(
+          compilationMode: CompilationMode.frontendServer,
+          logWriter: (level, message) => printOnFailure(message));
     });
 
     tearDownAll(() async {

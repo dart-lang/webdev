@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
+import 'package:build_daemon/data/server_log.dart' as server_log;
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
@@ -100,7 +101,6 @@ class TestContext {
       bool restoreBreakpoints,
       CompilationMode compilationMode,
       bool useFakeExpressionCompiler,
-      bool useFileMetadataProvider,
       LogWriter logWriter}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
@@ -110,7 +110,6 @@ class TestContext {
     waitToDebug ??= false;
     compilationMode ??= CompilationMode.buildDaemon;
     useFakeExpressionCompiler ??= false;
-    useFileMetadataProvider ??= false;
     logWriter ??= (Level level, String message) => printOnFailure(message);
 
     var systemTempDir = Directory.systemTemp;
@@ -140,12 +139,16 @@ class TestContext {
     Handler assetHandler;
     Stream<BuildResults> buildResults;
     RequireStrategy requireStrategy;
+    MetadataProvider metadataProvider;
 
     switch (compilationMode) {
       case CompilationMode.buildDaemon:
         {
           daemonClient = await connectClient(
-              workingDirectory, [], (log) => printOnFailure(log.toString()));
+              workingDirectory,
+              [],
+              (log) =>
+                  logWriter(server_log.toLoggingLevel(log.level), log.message));
           daemonClient.registerBuildTarget(
               DefaultBuildTarget((b) => b..target = pathToServe));
           daemonClient.startBuild();
@@ -160,8 +163,10 @@ class TestContext {
               proxyHandler('http://localhost:$assetServerPort/$pathToServe/');
           assetReader = ProxyServerAssetReader(assetServerPort, logWriter,
               root: pathToServe);
+          metadataProvider = MetadataProvider(assetReader, logWriter);
+
           requireStrategy = BuildRunnerRequireStrategyProvider(
-                  assetHandler, reloadConfiguration)
+                  assetHandler, reloadConfiguration, metadataProvider)
               .strategy;
 
           buildResults = daemonClient.buildResults;
@@ -172,7 +177,7 @@ class TestContext {
           var fileSystemRoot = p.dirname(_packagesFilePath);
           var entryPath = _entryFile.path.substring(fileSystemRoot.length + 1);
           webRunner = ResidentWebRunner(
-              entryPath,
+              '${Uri.file(entryPath)}',
               urlEncoder,
               fileSystemRoot,
               _packagesFilePath,
@@ -188,8 +193,9 @@ class TestContext {
           assetReader = webRunner.devFS.assetServer;
           assetHandler = webRunner.devFS.assetServer.handleRequest;
 
+          metadataProvider = MetadataProvider(assetReader, logWriter);
           requireStrategy = FrontendServerRequireStrategyProvider(
-                  webRunner.modules, reloadConfiguration)
+                  reloadConfiguration, metadataProvider)
               .strategy;
 
           buildResults = const Stream<BuildResults>.empty();
@@ -210,6 +216,7 @@ class TestContext {
     // since headless Chrome does not support extensions.
     var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
         !enableDebugExtension;
+
     var capabilities = Capabilities.chrome
       ..addAll({
         Capabilities.chromeOptions: {
@@ -234,7 +241,7 @@ class TestContext {
         assetHandler,
         assetReader,
         requireStrategy,
-        useFileMetadataProvider,
+        metadataProvider,
         pathToServe,
         buildResults,
         () async => connection,

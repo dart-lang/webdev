@@ -1,4 +1,4 @@
-## Unreleased
+## Unreleased 7.0.0-dev.1
 
 - Add support for the Dart Development Service (DDS). Introduces 'single
   client mode', which prevents additional direct connections to DWDS when
@@ -6,6 +6,18 @@
 - Update metadata reader version to `2.0.0`. Support reading metadata
   versions `2.0.0` and `1.0.0`.
 - Support custom hosts and HTTPs traffic in a `ProxyServerAssetReader`.
+- Remove heuristics from require strategies and use metadata to look up
+  module paths.
+  - Fix issue where upgrading `build_web_compilers` would cause missing
+    module assets (JavaScript code and source maps).
+
+**Breaking changes:**
+- Change `Dwds.start` to include `MetadataProvider` as a parameter.
+  This enables connecting metadata provider with require strategy
+  so we can remove heuristucs and rely on metadata in mapping modules
+  to paths.
+- Require at least `build_web_compilers` version  `2.12.0`.
+- Update min sdk constraint to `>=2.10.0-99.0.dev`.
 
 ## 6.0.0
 

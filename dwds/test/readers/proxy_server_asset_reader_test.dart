@@ -28,14 +28,14 @@ void main() {
     });
 
     test('can read source maps', () async {
-      var result =
-          await assetReader.dartSourceContents('hello_world/main.ddc.js.map');
+      var result = await assetReader
+          .dartSourceContents('hello_world/main.unsound.ddc.js.map');
       expect(result, isNotNull);
     });
 
     test('returns null if the source map path does not exist', () async {
-      var result =
-          await assetReader.dartSourceContents('hello_world/foo.ddc.js.map');
+      var result = await assetReader
+          .dartSourceContents('hello_world/foo.unsound.ddc.js.map');
       expect(result, isNull);
     });
   });

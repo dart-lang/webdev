@@ -139,7 +139,8 @@ class DebugService {
       this._useSse,
       this._spawnDds);
 
-  Future<void> close() => _closed ??= _server.close();
+  Future<void> close() =>
+      _closed ??= Future.wait([_server.close(), _dds.shutdown()]);
 
   Future<void> startDartDevelopmentService() async {
     // Note: DDS can handle both web socket and SSE connections with no

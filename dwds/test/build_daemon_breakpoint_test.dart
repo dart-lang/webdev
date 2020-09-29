@@ -26,7 +26,8 @@ WipConnection get tabConnection => context.tabConnection;
 void main() {
   group('shared context', () {
     setUpAll(() async {
-      await context.setUp();
+      await context.setUp(
+          logWriter: (level, message) => printOnFailure(message));
     });
 
     tearDownAll(() async {
