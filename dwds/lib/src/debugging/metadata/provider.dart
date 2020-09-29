@@ -87,6 +87,7 @@ class FileMetadataProvider implements MetadataProvider {
       if (merged != null) {
         // read merged metadata if exists
         for (var contents in merged.split('\n')) {
+          if (contents.startsWith('// intentionally empty:')) continue;
           _addMetadata(contents);
         }
       }
