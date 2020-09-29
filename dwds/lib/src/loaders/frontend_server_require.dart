@@ -8,9 +8,9 @@ import '../../dwds.dart';
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
 class FrontendServerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
-  final Map<String, String> _moduleToPath = {};
-  final Map<String, String> _pathToModule = {};
-  final Map<String, String> _moduleToSourceMapPath = {};
+  final _moduleToPath = <String, String>{};
+  final _pathToModule = <String, String>{};
+  final _moduleToSourceMapPath = <String, String>{};
   RequireStrategy _requireStrategy;
   final MetadataProvider _metadataProvider;
 
