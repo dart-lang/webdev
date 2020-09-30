@@ -175,20 +175,23 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
   return issues;
 }
 
+final buildRunnerConstraint = VersionConstraint.parse('>=1.6.2 <2.0.0');
+final buildWebCompilersContraint = VersionConstraint.parse('>=2.6.1 <3.0.0');
+
 // Note the minimum versions should never be dev versions as users will not
 // get them by default.
 Future<void> checkPubspecLock(PubspecLock pubspecLock,
     {@required bool requireBuildWebCompilers}) async {
   var issues = <PackageExceptionDetails>[];
 
-  var buildRunnerIssues = pubspecLock.checkPackage(
-      'build_runner', VersionConstraint.parse('>=1.6.2 <2.0.0'));
+  var buildRunnerIssues =
+      pubspecLock.checkPackage('build_runner', buildRunnerConstraint);
 
   issues.addAll(buildRunnerIssues);
 
   if (requireBuildWebCompilers) {
     issues.addAll(pubspecLock.checkPackage(
-        'build_web_compilers', VersionConstraint.parse('>=2.6.1 <3.0.0')));
+        'build_web_compilers', buildWebCompilersContraint));
   }
 
   if (buildRunnerIssues.isEmpty) {
