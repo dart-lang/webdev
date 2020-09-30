@@ -12,7 +12,7 @@
     module assets (JavaScript code and source maps).
 
 **Breaking changes:**
-- Change `Dwds.start` to include `MetadataProvider` as a parameter.
+- Change `Dwds.start` to require `MetadataProvider` as a parameter.
   This enables connecting metadata provider with require strategy
   so we can remove heuristucs and rely on metadata in mapping modules
   to paths.
