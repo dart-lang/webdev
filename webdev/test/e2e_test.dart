@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(minutes: 5))
-
 import 'dart:io';
 
 import 'package:io/io.dart';
@@ -11,8 +10,10 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
+import 'package:webdev/src/pubspec.dart';
 import 'package:webdev/src/serve/utils.dart';
 import 'package:webdev/src/util.dart';
+import 'package:yaml/yaml.dart';
 
 import 'test_utils.dart';
 
@@ -39,6 +40,20 @@ void main() {
 
     await d.file('.packages', isNotEmpty).validate(exampleDirectory);
     await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
+  });
+
+  test('smoke test is configured properly', () async {
+    var smokeYaml =
+        loadYaml(await File('$exampleDirectory/pubspec.yaml').readAsString())
+            as YamlMap;
+    var webdevYaml =
+        loadYaml(await File('pubspec.yaml').readAsString()) as YamlMap;
+    expect(smokeYaml['environment']['sdk'],
+        equals(webdevYaml['environment']['sdk']));
+    expect(smokeYaml['dev_dependencies']['build_runner'],
+        equals(buildRunnerConstraint.toString()));
+    expect(smokeYaml['dev_dependencies']['build_web_compilers'],
+        equals(buildWebCompilersContraint.toString()));
   });
 
   test('build should fail if targetting an existing directory', () async {
