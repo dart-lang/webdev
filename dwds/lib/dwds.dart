@@ -83,6 +83,7 @@ class Dwds {
     @required ConnectionProvider chromeConnection,
     @required LoadStrategy loadStrategy,
     @required bool enableDebugging,
+    @required MetadataProvider metadataProvider,
     bool enableDebugExtension,
     String hostname,
     bool useSseForDebugProxy,
@@ -92,7 +93,6 @@ class Dwds {
     bool verbose,
     UrlEncoder urlEncoder,
     bool spawnDds = true,
-    MetadataProvider metadataProvider,
     // TODO(annagrin): make expressionCompiler argument required
     // [issue 881](https://github.com/dart-lang/webdev/issues/881)
     ExpressionCompiler expressionCompiler,
