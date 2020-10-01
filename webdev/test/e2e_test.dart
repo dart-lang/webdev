@@ -211,7 +211,7 @@ void main() {
   group('should work with expression evaluation', () {
     test('enabled', () async {
       var openPort = await findUnusedPort();
-      var args = ['daemon', 'web:$openPort', '--enable-expression-evaluation'];
+      var args = ['daemon', 'web:$openPort', '--enable-expression-evaluation', '--verbose'];
       var process = await runWebDev(args, workingDirectory: exampleDirectory);
 
       try {
@@ -255,9 +255,9 @@ void main() {
         await exitWebdev(process);
         await process.shouldExit();
       }
-    },
+    }, timeout: const Timeout(Duration(seconds: 60))/*,
         skip: 'Expression compiler service does not terminate: '
-            'See https://github.com/dart-lang/sdk/issues/43513');
+            'See https://github.com/dart-lang/sdk/issues/43513'*/);
 
     test('disabled', () async {
       var openPort = await findUnusedPort();

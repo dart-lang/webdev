@@ -178,70 +178,72 @@ class TestContext {
                 .timeout(const Duration(seconds: 60));
 
             var assetServerPort = daemonPort(workingDirectory);
-            assetHandler = proxyHandler('http://localhost:$assetServerPort/$pathToServe/', client: client);
+            assetHandler =
+                proxyHandler('http://localhost:$assetServerPort/$pathToServe/', client: client);
             assetReader = ProxyServerAssetReader(assetServerPort, logWriter,
                 root: pathToServe);
 
-            requireStrategy = BuildRunnerRequireStrategyProvider(
-                    assetHandler, reloadConfiguration, metadataProvider)
-                .strategy;
-
             if (enableExpressionEvaluation) {
-              var ddcAssetHandler = proxyHandler('http://localhost:$assetServerPort/', client: client);
+              var ddcAssetHandler =
+                  proxyHandler('http://localhost:$assetServerPort/', client: client);
 
-            ddcService = await ExpressionCompilerService.start(
-              'localhost',
-              port,
-              pathToServe,
-              ddcAssetHandler,
-              logWriter,
-              verbose,
-            );
-            expressionCompiler = ddcService;
-          }
+              ddcService = await ExpressionCompilerService.start(
+                'localhost',
+                port,
+                pathToServe,
+                ddcAssetHandler,
+                logWriter,
+                verbose,
+              );
+              expressionCompiler = ddcService;
+            }
 
-          metadataProvider = MetadataProvider(
-              assetReader, ddcService?.updateDependencies, logWriter);
+            metadataProvider = MetadataProvider(
+                assetReader, ddcService?.updateDependencies, logWriter);
 
-          buildResults = daemonClient.buildResults;
-        }
-        break;
-      case CompilationMode.frontendServer:
-        {
-          var fileSystemRoot = p.dirname(_packagesFilePath);
-          var entryPath = _entryFile.path.substring(fileSystemRoot.length + 1);
-          webRunner = ResidentWebRunner(
-              '${Uri.file(entryPath)}',
-              urlEncoder,
-              fileSystemRoot,
-              _packagesFilePath,
-              [fileSystemRoot],
-              'org-dartlang-app',
-              _outputDir.path,
-              logWriter,
-              verbose);
-
-          var assetServerPort = await findUnusedPort();
-          await webRunner.run(hostname, assetServerPort, pathToServe);
-
-          if (enableExpressionEvaluation) {
-            expressionCompiler = webRunner.expressionCompiler;
-          }
-
-          assetReader = webRunner.devFS.assetServer;
-          assetHandler = webRunner.devFS.assetServer.handleRequest;
-
-          metadataProvider = MetadataProvider(assetReader, null, logWriter);
-          requireStrategy = FrontendServerRequireStrategyProvider(
-                  reloadConfiguration, metadataProvider)
+            requireStrategy = BuildRunnerRequireStrategyProvider(
+                assetHandler, reloadConfiguration, metadataProvider)
               .strategy;
 
-          buildResults = const Stream<BuildResults>.empty();
-        }
-        break;
-      default:
-        throw Exception('Unsupported compilation mode: $compilationMode');
-    }
+            buildResults = daemonClient.buildResults;
+          }
+          break;
+        case CompilationMode.frontendServer:
+          {
+            var fileSystemRoot = p.dirname(_packagesFilePath);
+            var entryPath = _entryFile.path.substring(fileSystemRoot.length + 1);
+            webRunner = ResidentWebRunner(
+                '${Uri.file(entryPath)}',
+                urlEncoder,
+                fileSystemRoot,
+                _packagesFilePath,
+                [fileSystemRoot],
+                'org-dartlang-app',
+                _outputDir.path,
+                logWriter,
+                verbose);
+
+            var assetServerPort = await findUnusedPort();
+            await webRunner.run(hostname, assetServerPort, pathToServe);
+
+            if (enableExpressionEvaluation) {
+              expressionCompiler = webRunner.expressionCompiler;
+            }
+
+            assetReader = webRunner.devFS.assetServer;
+            assetHandler = webRunner.devFS.assetServer.handleRequest;
+
+            metadataProvider = MetadataProvider(assetReader, null, logWriter);
+            requireStrategy = FrontendServerRequireStrategyProvider(
+                    reloadConfiguration, metadataProvider)
+                .strategy;
+
+            buildResults = const Stream<BuildResults>.empty();
+          }
+          break;
+        default:
+          throw Exception('Unsupported compilation mode: $compilationMode');
+      }
 
       var debugPort = await findUnusedPort();
       // If the environment variable DWDS_DEBUG_CHROME is set to the string true
@@ -323,9 +325,8 @@ class TestContext {
     chromeDriver?.kill();
     DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
-    await ddcService?.stop();
-    ddcService = null;
     await daemonClient?.close();
+    await ddcService?.stop();
     await webRunner?.stop();
     await testServer?.stop();
     client?.close();
@@ -335,6 +336,7 @@ class TestContext {
     webDriver = null;
     chromeDriver = null;
     daemonClient = null;
+    ddcService = null;
     webRunner = null;
     testServer = null;
     client = null;

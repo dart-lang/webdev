@@ -11,7 +11,6 @@ import 'package:path/path.dart' as p;
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
-import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -27,18 +26,13 @@ ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
-// change to true to debug
-bool get debug => false;
-void logWriter(Level level, String message) =>
-    debug ? print(message) : printOnFailure(message);
-
 void main() {
   group('shared context with evaluation', () {
     setUpAll(() async {
       await context.setUp(
           enableExpressionEvaluation: true,
-          logWriter: logWriter,
-          verbose: debug);
+          logWriter: (level, message) => print(message),
+          verbose: true);
     });
 
     tearDownAll(() async {
@@ -108,7 +102,7 @@ void main() {
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
-      }, skip: 'Requires types to be present in ProgramCompiler');
+      });
 
       test('private field', () async {
         var line = await context.findBreakpointLine(
@@ -158,7 +152,7 @@ void main() {
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
-      }, skip: 'Requires types to be present in ProgramCompiler');
+      });
 
       test('global', () async {
         var line = await context.findBreakpointLine(
@@ -242,7 +236,7 @@ void main() {
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
-      }, skip: 'Requires types to be present in ProgramCompiler');
+      });
 
       test('error', () async {
         var line = await context.findBreakpointLine(
@@ -284,14 +278,17 @@ void main() {
         await service.removeBreakpoint(isolate.id, bp.id);
       });
     });
+    // build daemon options are different from the next group
+    // so we make sure the daemon is restarted by running this 
+    // group separately
   });
 
   group('shared context with no evaluation', () {
     setUpAll(() async {
       await context.setUp(
           enableExpressionEvaluation: false,
-          logWriter: logWriter,
-          verbose: debug);
+          logWriter: (level, message) => print(message),
+          verbose: true);
     });
 
     tearDownAll(() async {
@@ -339,5 +336,8 @@ void main() {
         await service.removeBreakpoint(isolate.id, bp.id);
       });
     });
+    // build daemon options are different from the previous group
+    // so we make sure the daemon is restarted by running this 
+    // group separately
   });
 }

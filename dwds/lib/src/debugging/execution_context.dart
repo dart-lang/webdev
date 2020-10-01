@@ -26,7 +26,7 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
   Future<int> get id async {
     if (_id != null) return _id;
     while (await _contexts.hasNext
-        .timeout(const Duration(milliseconds: 50), onTimeout: () => false)) {
+        .timeout(const Duration(milliseconds: 500), onTimeout: () => false)) {
       var context = await _contexts.next;
       try {
         var result =
