@@ -16,6 +16,8 @@
   This enables connecting metadata provider with require strategy
   so we can remove heuristucs and rely on metadata in mapping modules
   to paths.
+- Update `MetadataProvider` to throw an `AbsoluteImportUriError` when
+  absolute file paths are used in an import uri.
 - Require at least `build_web_compilers` version  `2.12.0`.
 - Update min sdk constraint to `>=2.10.0-99.0.dev`.
 

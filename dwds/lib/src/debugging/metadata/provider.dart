@@ -130,6 +130,9 @@ class MetadataProvider {
     _moduleToSourceMap[metadata.name] = metadata.sourceMapUri;
     _modulePathToModule[metadata.moduleUri] = metadata.name;
     for (var library in metadata.libraries.values) {
+      if (library.importUri.startsWith('file:/')) {
+        throw AbsoluteImportUriError(library.importUri);
+      }
       _libraries.add(library.importUri);
       _scripts[library.importUri] = [];
 
@@ -149,4 +152,12 @@ class MetadataProvider {
     _scripts.clear();
     _scriptToModule.clear();
   }
+}
+
+class AbsoluteImportUriError implements Exception {
+  final String importUri;
+  AbsoluteImportUriError(this.importUri);
+
+  @override
+  String toString() => "AbsoluteImportUriError: '$importUri'";
 }
