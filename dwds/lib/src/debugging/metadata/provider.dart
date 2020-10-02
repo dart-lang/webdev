@@ -129,10 +129,11 @@ class MetadataProvider {
               // TODO: add location of the full dill to the metadata
               dependencies[metadata.name] =
                   metadata.moduleUri.replaceAll('.js', '.full.dill');
-              _logWriter(
-                Level.FINEST, 'Loaded debug metadata for module: ${metadata.name}');
+              _logWriter(Level.FINEST,
+                  'Loaded debug metadata for module: ${metadata.name}');
             } catch (e) {
-              _logWriter(Level.WARNING, 'Failed to read metadata: ${e.message}');
+              _logWriter(
+                  Level.WARNING, 'Failed to read metadata: ${e.message}');
               rethrow;
             }
           }
@@ -151,7 +152,6 @@ class MetadataProvider {
   }
 
   void _addMetadata(ModuleMetadata metadata) {
-
     _moduleToSourceMap[metadata.name] = metadata.sourceMapUri;
     _modulePathToModule[metadata.moduleUri] = metadata.name;
 

@@ -156,8 +156,8 @@ class ExpressionCompilerService implements ExpressionCompiler {
     var stream = receivePort.asBroadcastStream();
     var sendPort = await stream.first as SendPort;
 
-    var service = ExpressionCompilerService._(
-        isolate, stream, receivePort, sendPort, assetHandler, target, logWriter);
+    var service = ExpressionCompilerService._(isolate, stream, receivePort,
+        sendPort, assetHandler, target, logWriter);
 
     return service;
   }
@@ -253,9 +253,9 @@ class ExpressionCompilerService implements ExpressionCompiler {
     // TODO: make expression compiler worker terminate on shutdown command
     // https://github.com/dart-lang/sdk/issues/43513)
     _sendPort.send({'command': 'Shutdown'});
-    _logWriter(Level.INFO, 'Stopped expression compilation service.');
-    //_worker.kill();
+    _requestCompleter = null;
     _receivePort.close();
     _worker = null;
+    _logWriter(Level.INFO, 'Stopped expression compilation service.');
   }
 }

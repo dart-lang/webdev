@@ -21,9 +21,8 @@
 - Update min sdk constraint to `>=2.10.0-99.0.dev`.
 
 - Add `ExpressionCompilationService` class that runs ddc in worker mode to
-  support expression evaluation to webdev. Users can enable the feature
-  by passing new `--enable-expression-evaluation` flag to `webdev serve`
-  command.
+  support expression evaluation for clients that use build systems to build
+  the code.
 
 **Breaking changes:**
 - Change `Dwds.start` to include `MetadataProvider` as a parameter. This

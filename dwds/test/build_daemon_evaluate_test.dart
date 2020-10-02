@@ -26,12 +26,12 @@ ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
-void main() {
+void main() async {
   group('shared context with evaluation', () {
     setUpAll(() async {
       await context.setUp(
           enableExpressionEvaluation: true,
-          logWriter: (level, message) => print(message),
+          logWriter: (level, message) => printOnFailure(message),
           verbose: true);
     });
 
@@ -278,16 +278,13 @@ void main() {
         await service.removeBreakpoint(isolate.id, bp.id);
       });
     });
-    // build daemon options are different from the next group
-    // so we make sure the daemon is restarted by running this 
-    // group separately
   });
 
   group('shared context with no evaluation', () {
     setUpAll(() async {
       await context.setUp(
           enableExpressionEvaluation: false,
-          logWriter: (level, message) => print(message),
+          logWriter: (level, message) => printOnFailure(message),
           verbose: true);
     });
 
@@ -336,8 +333,5 @@ void main() {
         await service.removeBreakpoint(isolate.id, bp.id);
       });
     });
-    // build daemon options are different from the previous group
-    // so we make sure the daemon is restarted by running this 
-    // group separately
   });
 }

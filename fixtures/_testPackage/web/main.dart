@@ -31,7 +31,7 @@ void printLocal() {
 }
 
 void printField() {
-  var instance = ClassFromPackage(1,2);
+  var instance = ClassFromPackage(1, 2);
   print('$instance'); // Breakpoint: printField
 }
 

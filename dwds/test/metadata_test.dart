@@ -18,7 +18,7 @@ class FakeAssetReader implements AssetReader {
       '"libraries":[{"name":"main",'
       '"importUri":"org-dartlang-app:///web/main.dart",'
       '"fileUri":"org-dartlang-app:///web/main.dart","partUris":[]}]}\n'
-      '// intentionally empty: package blah has no dart sources';
+      '// intentionally empty: package blah has no dart sources\n';
 
   @override
   Future<String> sourceMapContents(String serverPath) =>

@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
@@ -20,6 +19,7 @@ import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
+import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
@@ -53,7 +53,7 @@ class TestContext {
   AppConnection appConnection;
   DebugConnection debugConnection;
   WebkitDebugger webkitDebugger;
-  http.Client client;
+  Client client;
   ExpressionCompilerService ddcService;
   int port;
   Directory _outputDir;
@@ -121,7 +121,7 @@ class TestContext {
     verbose ??= false;
 
     try {
-      client = http.Client();
+      client = Client();
 
       var systemTempDir = Directory.systemTemp;
       _outputDir = systemTempDir.createTempSync('foo bar');
@@ -166,8 +166,8 @@ class TestContext {
             daemonClient = await connectClient(
                 workingDirectory,
                 options,
-                (log) =>
-                    logWriter(server_log.toLoggingLevel(log.level), log.message));
+                (log) => logWriter(
+                    server_log.toLoggingLevel(log.level), log.message));
             daemonClient.registerBuildTarget(
                 DefaultBuildTarget((b) => b..target = pathToServe));
             daemonClient.startBuild();
@@ -202,8 +202,8 @@ class TestContext {
                 assetReader, ddcService?.updateDependencies, logWriter);
 
             requireStrategy = BuildRunnerRequireStrategyProvider(
-                assetHandler, reloadConfiguration, metadataProvider)
-              .strategy;
+                    assetHandler, reloadConfiguration, metadataProvider)
+                .strategy;
 
             buildResults = daemonClient.buildResults;
           }
@@ -211,7 +211,8 @@ class TestContext {
         case CompilationMode.frontendServer:
           {
             var fileSystemRoot = p.dirname(_packagesFilePath);
-            var entryPath = _entryFile.path.substring(fileSystemRoot.length + 1);
+            var entryPath =
+                _entryFile.path.substring(fileSystemRoot.length + 1);
             webRunner = ResidentWebRunner(
                 '${Uri.file(entryPath)}',
                 urlEncoder,

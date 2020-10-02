@@ -488,9 +488,9 @@ class DevHandler {
         var appServices =
             await _createAppDebugServices(devToolsRequest.appId, debugService);
         unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
-            .whenComplete(() {
+            .whenComplete(() async {
           appServices.chromeProxyService.destroyIsolate();
-          appServices.close();
+          await appServices.close();
           _servicesByAppId.remove(devToolsRequest.appId);
           _logWriter(
               Level.INFO,

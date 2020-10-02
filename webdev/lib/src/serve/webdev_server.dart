@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:http/http.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:build_daemon/data/build_status.dart' as daemon;
@@ -72,7 +73,7 @@ class WebDevServer {
     await dwds?.stop();
     await ddcService?.stop();
     await _server.close(force: true);
-    _client?.close();
+    _client.close();
   }
 
   static Future<WebDevServer> start(
@@ -100,10 +101,13 @@ class WebDevServer {
       throw StateError('Unexpected Daemon build result: $result');
     });
 
+    var client = Client();
     var cascade = Cascade();
-    var client = http.Client();
-    var assetHandler = proxyHandler('http://localhost:${options.daemonPort}/${options.target}/', client: client);
-    var ddcAssetHandler = proxyHandler('http://localhost:${options.daemonPort}/', client: client);
+    var assetHandler = proxyHandler(
+        'http://localhost:${options.daemonPort}/${options.target}/',
+        client: client);
+    var ddcAssetHandler =
+        proxyHandler('http://localhost:${options.daemonPort}/', client: client);
     Dwds dwds;
     ExpressionCompilerService ddcService;
     if (options.configuration.enableInjectedClient) {
