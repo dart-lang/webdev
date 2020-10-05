@@ -11,28 +11,21 @@
   - Fix issue where upgrading `build_web_compilers` would cause missing
     module assets (JavaScript code and source maps).
 - Fix issue where open http connections prevent the process for exiting.
-
-**Breaking changes:**
-- Change `Dwds.start` to require `MetadataProvider` as a parameter.
-  This enables connecting metadata provider with require strategy
-  so we can remove heuristucs and rely on metadata in mapping modules
-  to paths.
-- Require at least `build_web_compilers` version  `2.12.0`.
-- Update min sdk constraint to `>=2.10.0-99.0.dev`.
-
 - Add `ExpressionCompilationService` class that runs ddc in worker mode to
   support expression evaluation for clients that use build systems to build
   the code.
 
 **Breaking changes:**
-- Change `Dwds.start` to include `MetadataProvider` as a parameter. This
-  enables callers such as webdev to connect metadata provider and expression
-  compilation service, in order for kernel files can be reloaded into the
-  expression compilation service on metadata read.
 
-- Require at least `devtools` and `devtools_server` version `0.9.2-dev.1`.
-- Require at least `build_web_compilers` version  `2.12.0-dev.3`.
-- Update min sdk constraint to `>=2.10.0-93.0.dev`.
+- Change `Dwds.start` to require `MetadataProvider` as a parameter to:
+  - Enable connecting metadata provider with require strategy so we can 
+    remove heuristucs and rely on metadata in mapping modules to paths.
+  - Enable connecting metadata provider with expression compilation service,
+    so that kernel files can be reloaded in the expression compilation
+    service when the metadata files are read.
+- Require at least `build_web_compilers` version  `2.12.0`.
+- Require at least `devtools` and `devtools_server` version `0.9.2`.
+- Update min sdk constraint to `>=2.10.0-99.0.dev`.
 
 ## 6.0.0
 

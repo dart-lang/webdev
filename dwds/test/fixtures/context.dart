@@ -198,8 +198,8 @@ class TestContext {
               expressionCompiler = ddcService;
             }
 
-            metadataProvider = MetadataProvider(
-                assetReader, ddcService?.updateDependencies, logWriter);
+            metadataProvider =
+                MetadataProvider(assetReader, ddcService, logWriter);
 
             requireStrategy = BuildRunnerRequireStrategyProvider(
                     assetHandler, reloadConfiguration, metadataProvider)

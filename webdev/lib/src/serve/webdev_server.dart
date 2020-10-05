@@ -128,8 +128,8 @@ class WebDevServer {
             )
           : null;
 
-      var metadataProvider = MetadataProvider(
-          assetReader, ddcService?.updateDependencies, logWriter);
+      var metadataProvider =
+          MetadataProvider(assetReader, ddcService, logWriter);
 
       var loadStrategy = BuildRunnerRequireStrategyProvider(
               assetHandler, options.configuration.reload, metadataProvider)

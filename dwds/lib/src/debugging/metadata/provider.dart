@@ -9,6 +9,7 @@ import 'package:async/async.dart';
 import 'package:logging/logging.dart';
 
 import '../../readers/asset_reader.dart';
+import '../../services/expression_compiler_service.dart';
 import '../../utilities/shared.dart';
 import 'module_metadata.dart';
 
@@ -16,8 +17,7 @@ import 'module_metadata.dart';
 class MetadataProvider {
   final AssetReader _assetReader;
   final LogWriter _logWriter;
-  final Future<bool> Function(Map<String, String> updateDependencies)
-      _updateDependencies;
+  final ExpressionCompilerService _compilerService;
 
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
@@ -27,7 +27,7 @@ class MetadataProvider {
 
   AsyncMemoizer _metadataMemoizer;
 
-  MetadataProvider(this._assetReader, this._updateDependencies, this._logWriter)
+  MetadataProvider(this._assetReader, this._compilerService, this._logWriter)
       : _metadataMemoizer = AsyncMemoizer<void>();
 
   /// A list of all libraries in the Dart application.
@@ -115,7 +115,6 @@ class MetadataProvider {
             entrypoint.replaceAll('.bootstrap.js', '.ddc_merged_metadata');
         var merged = await _assetReader.metadataContents(serverPath);
         if (merged != null) {
-          // read merged metadata if exists
           for (var contents in merged.split('\n')) {
             try {
               if (contents == null ||
@@ -126,7 +125,8 @@ class MetadataProvider {
                   ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
               _addMetadata(metadata);
               // we are assuming the full dill file is located next to .js
-              // TODO: add location of the full dill to the metadata
+              // TODO: This is breakable.
+              // Issue: https://github.com/dart-lang/sdk/issues/43684
               dependencies[metadata.name] =
                   metadata.moduleUri.replaceAll('.js', '.full.dill');
               _logWriter(Level.FINEST,
@@ -139,12 +139,10 @@ class MetadataProvider {
           }
         }
 
-        // update dependencies in the expression compiler
-        if (_updateDependencies != null) {
-          if (!(await _updateDependencies(dependencies))) {
-            _logWriter(
-                Level.WARNING, 'Failed to update dependencies: $dependencies');
-          }
+        var updated = await _compilerService?.updateDependencies(dependencies);
+        if (!updated) {
+          _logWriter(
+              Level.WARNING, 'Failed to update dependencies: $dependencies');
         }
         _logWriter(Level.INFO, 'Loaded debug metadata');
       }

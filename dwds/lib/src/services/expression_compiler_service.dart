@@ -18,10 +18,10 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final Stream _responseStream;
   final ReceivePort _receivePort;
   final SendPort _sendPort;
-  Completer<dynamic> _requestCompleter;
   final Handler _assetHandler;
   final String _target;
   final Function(Level, String) _logWriter;
+  Completer<dynamic> _requestCompleter;
 
   ExpressionCompilerService._(
     this._worker,
