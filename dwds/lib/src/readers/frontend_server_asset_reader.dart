@@ -110,5 +110,5 @@ class FrontendServerAssetReader implements AssetReader {
   }
 
   @override
-  Future<void> close() async => Future.value();
+  Future<void> close() async {};
 }
