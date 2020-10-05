@@ -243,7 +243,7 @@ class ChromeProxyService implements VmServiceInterface {
     _inspector = null;
     _previousBreakpoints.clear();
     _previousBreakpoints.addAll(isolate.breakpoints);
-    _consoleSubscription.cancel();
+    _consoleSubscription?.cancel();
     _consoleSubscription = null;
   }
 
