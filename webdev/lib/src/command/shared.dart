@@ -37,6 +37,11 @@ void addSharedArgs(ArgParser argParser,
         defaultsTo: true,
         negatable: true,
         help: 'If a dependency on `build_web_compilers` is required to run.')
+    ..addFlag(disableDdsFlag,
+        negatable: false,
+        help: 'Disable the Dart Development Service (DDS). Disabling DDS may '
+            'result in a degraded developer experience in some tools.',
+        hide: true)
     ..addFlag(verboseFlag,
         abbr: 'v',
         defaultsTo: false,

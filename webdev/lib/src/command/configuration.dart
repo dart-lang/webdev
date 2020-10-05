@@ -355,8 +355,8 @@ class Configuration {
         release: release,
         reload: _parseReloadConfiguration(argResults),
         requireBuildWebCompilers: requireBuildWebCompilers,
-        verbose: verbose,
-        disableDds: disableDds);
+        disableDds: disableDds,
+        verbose: verbose);
   }
 }
 
