@@ -18,7 +18,7 @@
 **Breaking changes:**
 
 - Change `Dwds.start` to require `MetadataProvider` as a parameter to:
-  - Enable connecting metadata provider with require strategy so we can 
+  - Enable connecting metadata provider with require strategy so we can
     remove heuristucs and rely on metadata in mapping modules to paths.
   - Enable connecting metadata provider with expression compilation service,
     so that kernel files can be reloaded in the expression compilation
