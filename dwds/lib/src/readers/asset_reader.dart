@@ -14,4 +14,7 @@ abstract class AssetReader {
 
   /// Returns the contents for the merged metadata output at the provided path.
   Future<String> metadataContents(String serverPath);
+
+  /// Closes connections
+  Future<void> close();
 }

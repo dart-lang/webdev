@@ -55,6 +55,9 @@ class FakeAssetReader implements AssetReader {
       'yCAAC,WAAW;IAChE;AAC0D,IAA3D,AAAS,AAAK,0DAAO;AAAe,kBAAO;;;AAEvC,gBAAQ;'
       'AAGV,IAFI,kCAAqC,QAAC;AACX,MAA/B,WAAM,AAAwB,0BAAP,QAAF,AAAE,KAAK,GAAP;'
       ';EAEzB","file":"main.ddc.js"}';
+
+  @override
+  Future<void> close() async => Future.value();
 }
 
 void main() async {

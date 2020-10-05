@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
@@ -34,7 +35,7 @@ class ServerOptions {
 
 class WebDevServer {
   final HttpServer _server;
-
+  final http.Client _client;
   final String _protocol;
 
   final Stream<BuildResult> buildResults;
@@ -47,6 +48,7 @@ class WebDevServer {
   WebDevServer._(
     this.target,
     this._server,
+    this._client,
     this._protocol,
     this.buildResults,
     bool autoRun, {
@@ -66,6 +68,7 @@ class WebDevServer {
   Future<void> stop() async {
     await dwds?.stop();
     await _server.close(force: true);
+    _client?.close();
   }
 
   static Future<WebDevServer> start(
@@ -94,8 +97,10 @@ class WebDevServer {
     });
 
     var cascade = Cascade();
+    var client = http.Client();
     var assetHandler = proxyHandler(
-        'http://localhost:${options.daemonPort}/${options.target}/');
+        'http://localhost:${options.daemonPort}/${options.target}/',
+        client: client);
     Dwds dwds;
     if (options.configuration.enableInjectedClient) {
       var assetReader = ProxyServerAssetReader(
@@ -149,6 +154,7 @@ class WebDevServer {
     return WebDevServer._(
       options.target,
       server,
+      client,
       protocol,
       filteredBuildResults,
       options.configuration.autoRun,
