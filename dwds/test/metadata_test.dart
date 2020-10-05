@@ -23,6 +23,9 @@ class FakeAssetReader implements AssetReader {
   @override
   Future<String> sourceMapContents(String serverPath) =>
       throw UnimplementedError();
+
+  @override
+  Future<void> close() async {}
 }
 
 void main() {

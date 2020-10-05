@@ -57,7 +57,7 @@ class FakeAssetReader implements AssetReader {
       ';EAEzB","file":"main.ddc.js"}';
 
   @override
-  Future<void> close() async {};
+  Future<void> close() async {}
 }
 
 void main() async {
