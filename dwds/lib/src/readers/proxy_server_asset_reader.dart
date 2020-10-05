@@ -71,5 +71,5 @@ class ProxyServerAssetReader implements AssetReader {
       _readResource(serverPath);
 
   @override
-  Future<void> close() async => _client.close();
+  Future<void> close() => _client.close();
 }
