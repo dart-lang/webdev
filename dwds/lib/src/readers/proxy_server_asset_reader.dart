@@ -18,8 +18,9 @@ import 'asset_reader.dart';
 /// A reader for resources provided by a proxy server.
 class ProxyServerAssetReader implements AssetReader {
   final LogWriter _logWriter;
-  http.Client _client;
+
   Handler _handler;
+  http.Client _client;
 
   ProxyServerAssetReader(int assetServerPort, this._logWriter,
       {String root, String host, bool isHttps}) {

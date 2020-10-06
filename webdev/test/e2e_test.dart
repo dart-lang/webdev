@@ -106,6 +106,7 @@ void main() {
         }
 
         var process = await runWebDev(args, workingDirectory: exampleDirectory);
+
         var expectedItems = <Object>['Succeeded'];
 
         await checkProcessStdout(process, expectedItems);
@@ -212,15 +213,11 @@ void main() {
     test('enabled', () async {
       var openPort = await findUnusedPort();
       // running daemon command that starts dwds without keyboard input
-      // Issue: https://github.com/dart-lang/sdk/issues/43656
-      // dwds redirects the evaluateInFrame calls to an extension
-      // TODO: re-enable dds when fixed.
       var args = [
         'daemon',
         'web:$openPort',
         '--enable-expression-evaluation',
         '--verbose',
-        '--disable-dds'
       ];
       var process = await runWebDev(args, workingDirectory: exampleDirectory);
       VmService vmService;
@@ -265,17 +262,14 @@ void main() {
         await exitWebdev(process);
         await process.shouldExit();
       }
-    },
-        timeout: const Timeout.factor(2),
-        skip: 'Expression compiler service does not terminate: '
-            'See https://github.com/dart-lang/sdk/issues/43513');
+    }, timeout: const Timeout.factor(2));
 
     test('disabled', () async {
       var openPort = await findUnusedPort();
       var args = [
         'daemon',
         'web:$openPort',
-        '--no-enable-expression-evaluation'
+        '--no-enable-expression-evaluation',
       ];
       var process = await runWebDev(args, workingDirectory: exampleDirectory);
 

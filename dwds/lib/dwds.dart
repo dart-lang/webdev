@@ -57,10 +57,10 @@ class Dwds {
   final bool _enableDebugging;
 
   Dwds._(
-    this._assetReader,
     this.middleware,
     this._devTools,
     this._devHandler,
+    this._assetReader,
     this._enableDebugging,
   ) : handler = _devHandler.handler;
 
@@ -163,10 +163,10 @@ class Dwds {
     );
 
     return Dwds._(
-      assetReader,
       injected.middleware,
       devTools,
       devHandler,
+      assetReader,
       enableDebugging,
     );
   }

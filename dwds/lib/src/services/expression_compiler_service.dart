@@ -13,6 +13,22 @@ import 'package:path/path.dart' as p;
 import '../utilities/dart_uri.dart';
 import 'expression_compiler.dart';
 
+/// Service that handles expression compilation requests.
+///
+/// Expression compiler service spawns a dartdevc in expression compilation
+/// mode in an isolate and communicates with the isolate via send/receive
+/// ports. It also handles full dill file read requests from the isolate
+/// and redirects them to the asset server.
+///
+/// Expression compiler serivice provides following API for the client:
+///
+/// [updateDependencies] - (re)load changed full dill files into the
+/// expression compilation worker.
+///
+/// [compileExpressionToJs] - compile expression to JavaScript to support
+/// expression evaluation fetures in the debugger.
+///
+/// [stop] - stop the service.
 class ExpressionCompilerService implements ExpressionCompiler {
   Isolate _worker;
   final Stream _responseStream;
@@ -91,20 +107,13 @@ class ExpressionCompilerService implements ExpressionCompiler {
   /// Starts expression compilation service.
   ///
   /// Starts expression compiler worker in an isolate and creates the
-  /// expression compilation service that communicates to the worker and
-  /// provides following API for the client:
-  ///
-  /// [updateDependencies] - (re)load changed full dill files into the
-  /// expression compilation worker.
-  ///
-  /// [compileExpressionToJs] - compile expression to JavaScript to support
-  /// expression evaluation fetures in the debugger.
-  ///
-  /// [stop] - stop the service.
+  /// expression compilation service that communicates to the worker.
   ///
   /// Performs handshake with the isolate running expression compiler
   /// worker to estabish communication via send/receive ports, returns
   /// the service after the communication is established.
+  ///
+  /// Users need to stop the service by calling [stop].
   static Future<ExpressionCompilerService> start(
     String address,
     int port,
@@ -250,8 +259,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
   /// Terminates the isolate running expression compiler worker
   /// and marks the service as stopped.
   Future<void> stop() async {
-    // TODO: make expression compiler worker terminate on shutdown command
-    // https://github.com/dart-lang/sdk/issues/43513)
     _sendPort.send({'command': 'Shutdown'});
     _requestCompleter = null;
     _receivePort.close();

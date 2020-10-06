@@ -73,7 +73,7 @@ class WebDevServer {
     await dwds?.stop();
     await ddcService?.stop();
     await _server.close(force: true);
-    _client.close();
+    _client?.close();
   }
 
   static Future<WebDevServer> start(
@@ -101,8 +101,8 @@ class WebDevServer {
       throw StateError('Unexpected Daemon build result: $result');
     });
 
-    var client = Client();
     var cascade = Cascade();
+    var client = Client();
     var assetHandler = proxyHandler(
         'http://localhost:${options.daemonPort}/${options.target}/',
         client: client);

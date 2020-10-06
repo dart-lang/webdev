@@ -148,9 +148,9 @@ class TestContext {
       ExpressionCompiler expressionCompiler;
       AssetReader assetReader;
       Handler assetHandler;
-      MetadataProvider metadataProvider;
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
+      MetadataProvider metadataProvider;
 
       port = await findUnusedPort();
       switch (compilationMode) {
@@ -178,14 +178,16 @@ class TestContext {
                 .timeout(const Duration(seconds: 60));
 
             var assetServerPort = daemonPort(workingDirectory);
-            assetHandler =
-                proxyHandler('http://localhost:$assetServerPort/$pathToServe/', client: client);
+            assetHandler = proxyHandler(
+                'http://localhost:$assetServerPort/$pathToServe/',
+                client: client);
             assetReader = ProxyServerAssetReader(assetServerPort, logWriter,
                 root: pathToServe);
 
             if (enableExpressionEvaluation) {
-              var ddcAssetHandler =
-                  proxyHandler('http://localhost:$assetServerPort/', client: client);
+              var ddcAssetHandler = proxyHandler(
+                  'http://localhost:$assetServerPort/',
+                  client: client);
 
               ddcService = await ExpressionCompilerService.start(
                 'localhost',

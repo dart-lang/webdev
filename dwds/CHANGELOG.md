@@ -14,6 +14,8 @@
 - Add `ExpressionCompilationService` class that runs ddc in worker mode to
   support expression evaluation for clients that use build systems to build
   the code.
+- Require at least `devtools` and `devtools_server` version `0.9.2`.
+- Require at least `dds` version `1.4.1`.
 
 **Breaking changes:**
 
@@ -24,7 +26,6 @@
     so that kernel files can be reloaded in the expression compilation
     service when the metadata files are read.
 - Require at least `build_web_compilers` version  `2.12.0`.
-- Require at least `devtools` and `devtools_server` version `0.9.2`.
 - Update min sdk constraint to `>=2.10.0-99.0.dev`.
 
 ## 6.0.0

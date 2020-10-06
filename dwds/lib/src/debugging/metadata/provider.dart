@@ -139,10 +139,12 @@ class MetadataProvider {
           }
         }
 
-        var updated = await _compilerService?.updateDependencies(dependencies);
-        if (!updated) {
-          _logWriter(
-              Level.WARNING, 'Failed to update dependencies: $dependencies');
+        if (_compilerService != null) {
+          var updated = await _compilerService.updateDependencies(dependencies);
+          if (!updated) {
+            _logWriter(
+                Level.WARNING, 'Failed to update dependencies: $dependencies');
+          }
         }
         _logWriter(Level.INFO, 'Loaded debug metadata');
       }
