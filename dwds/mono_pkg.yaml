@@ -19,3 +19,5 @@ stages:
       dart: [2.10.0-99.0.dev]
   - unit_test:
     - test:
+    - test:
+      os: windows
