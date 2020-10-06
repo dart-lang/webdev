@@ -38,6 +38,10 @@ class DwdsInjector {
     String extensionUri,
   }) : _extensionUri = extensionUri;
 
+  MetadataProvider metadataProviderFor(String entrypoint) {
+    return null;
+  }
+
   /// Returns the embedded dev handler paths.
   ///
   /// This will be next to the requested entrypoints.
@@ -81,15 +85,17 @@ class DwdsInjector {
               }
               devHandlerPath = '$requestedUriBase/$devHandlerPath';
               _devHandlerPaths.add(devHandlerPath);
+              var entrypoint = request.url.path;
+              _loadStrategy.initializeEntrypoint(entrypoint);
               body = _injectClientAndHoistMain(
                 body,
                 appId,
                 devHandlerPath,
-                request.url.path,
+                entrypoint,
                 _extensionUri,
                 _loadStrategy,
               );
-              body += await _loadStrategy.bootstrapFor(request.url.path);
+              body += await _loadStrategy.bootstrapFor(entrypoint);
               etag = base64.encode(md5.convert(body.codeUnits).bytes);
               newHeaders[HttpHeaders.etagHeader] = etag;
             }

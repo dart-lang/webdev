@@ -16,15 +16,17 @@ import 'module_metadata.dart';
 class MetadataProvider {
   final AssetReader _assetReader;
   final LogWriter _logWriter;
+  final String entrypoint;
 
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
   final Map<String, String> _moduleToSourceMap = {};
   final Map<String, String> _modulePathToModule = {};
+  final Map<String, String> _moduleToModulePath = {};
   final Map<String, List<String>> _scripts = {};
-  AsyncMemoizer _metadataMemoizer;
+  final AsyncMemoizer _metadataMemoizer;
 
-  MetadataProvider(this._assetReader, this._logWriter)
+  MetadataProvider(this.entrypoint, this._assetReader, this._logWriter)
       : _metadataMemoizer = AsyncMemoizer<void>();
 
   /// A list of all libraries in the Dart application.
@@ -37,7 +39,10 @@ class MetadataProvider {
   ///     org-dartlang-app:///web/main.dart
   ///  ]
   ///
-  Future<List<String>> get libraries => Future.value(_libraries);
+  Future<List<String>> get libraries async {
+    await _initialize();
+    return _libraries;
+  }
 
   /// A map of library uri to dart scripts.
   ///
@@ -48,7 +53,10 @@ class MetadataProvider {
   ///   { web/main.dart  }
   /// }
   ///
-  Future<Map<String, List<String>>> get scripts => Future.value(_scripts);
+  Future<Map<String, List<String>>> get scripts async {
+    await _initialize();
+    return _scripts;
+  }
 
   /// A map of script to containing module.
   ///
@@ -59,8 +67,10 @@ class MetadataProvider {
   ///   web/main
   /// }
   ///
-  Future<Map<String, String>> get scriptToModule =>
-      Future.value(_scriptToModule);
+  Future<Map<String, String>> get scriptToModule async {
+    await _initialize();
+    return _scriptToModule;
+  }
 
   /// A map of module name to source map path.
   ///
@@ -72,8 +82,10 @@ class MetadataProvider {
   /// }
   ///
   ///
-  Future<Map<String, String>> get moduleToSourceMap =>
-      Future.value(_moduleToSourceMap);
+  Future<Map<String, String>> get moduleToSourceMap async {
+    await _initialize();
+    return _moduleToSourceMap;
+  }
 
   /// A map of module path to module name
   ///
@@ -84,8 +96,24 @@ class MetadataProvider {
   ///   web/main
   /// }
   ///
-  Future<Map<String, String>> get modulePathToModule =>
-      Future.value(_modulePathToModule);
+  Future<Map<String, String>> get modulePathToModule async {
+    await _initialize();
+    return _modulePathToModule;
+  }
+
+  /// A map of module to module path
+  ///
+  /// Example:
+  ///
+  /// {
+  ///   web/main
+  ///   web/main.ddc.js :
+  /// }
+  ///
+  Future<Map<String, String>> get moduleToModulePath async {
+    await _initialize();
+    return _moduleToModulePath;
+  }
 
   /// Initializes the provider for the given Dart application entrypoint.
   ///
@@ -93,15 +121,8 @@ class MetadataProvider {
   /// times, unless [update] is true, in which case the metadata
   /// is re-initialzed.
   ///
-  Future<void> initialize(String entrypoint, {bool update = false}) async {
-    // make sure we re-initalize on update, for example, on hot restart.
-    if (update) {
-      _metadataMemoizer = AsyncMemoizer<void>();
-    }
-
-    // read metadata if not already read.
+  Future<void> _initialize() async {
     await _metadataMemoizer.runOnce(() async {
-      clear();
       // The merged metadata resides next to the entrypoint.
       // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
       if (entrypoint.endsWith('.bootstrap.js')) {
@@ -129,6 +150,7 @@ class MetadataProvider {
 
     _moduleToSourceMap[metadata.name] = metadata.sourceMapUri;
     _modulePathToModule[metadata.moduleUri] = metadata.name;
+    _moduleToModulePath[metadata.name] = metadata.moduleUri;
     for (var library in metadata.libraries.values) {
       _libraries.add(library.importUri);
       _scripts[library.importUri] = [];
@@ -140,13 +162,5 @@ class MetadataProvider {
     }
     _logWriter(
         Level.FINEST, 'Loaded debug metadata for module: ${metadata.name}');
-  }
-
-  void clear() {
-    _moduleToSourceMap.clear();
-    _modulePathToModule.clear();
-    _libraries.clear();
-    _scripts.clear();
-    _scriptToModule.clear();
   }
 }

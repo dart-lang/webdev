@@ -41,6 +41,7 @@ export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 export 'src/services/expression_compiler.dart'
     show ExpressionCompilationResult, ExpressionCompiler;
+export 'src/utilities/shared.dart' show LogWriter;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
@@ -144,7 +145,6 @@ class Dwds {
       devTools,
       assetReader,
       loadStrategy,
-      metadataProvider,
       hostname,
       verbose,
       logWriter,

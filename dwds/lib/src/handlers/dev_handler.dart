@@ -23,7 +23,6 @@ import '../../dwds.dart';
 import '../connections/app_connection.dart';
 import '../connections/debug_connection.dart';
 import '../debugging/execution_context.dart';
-import '../debugging/metadata/provider.dart';
 import '../debugging/remote_debugger.dart';
 import '../debugging/webkit_debugger.dart';
 import '../dwds_vm_client.dart';
@@ -51,7 +50,6 @@ class DevHandler {
   final DevTools _devTools;
   final AssetReader _assetReader;
   final LoadStrategy _loadStrategy;
-  final MetadataProvider _metadataProvider;
   final String _hostname;
   final _connectedApps = StreamController<AppConnection>.broadcast();
   final _servicesByAppId = <String, AppDebugServices>{};
@@ -83,7 +81,6 @@ class DevHandler {
       this._devTools,
       this._assetReader,
       this._loadStrategy,
-      this._metadataProvider,
       this._hostname,
       this._verbose,
       this._logWriter,
@@ -194,7 +191,6 @@ class DevHandler {
       appTab.url,
       _assetReader,
       _loadStrategy,
-      _metadataProvider,
       appConnection,
       _logWriter,
       onResponse: (response) {
@@ -471,7 +467,6 @@ class DevHandler {
           devToolsRequest.tabUrl,
           _assetReader,
           _loadStrategy,
-          _metadataProvider,
           connection,
           _logWriter,
           onResponse: _verbose

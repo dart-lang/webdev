@@ -103,17 +103,15 @@ class WebDevServer {
         logWriter,
         root: options.target,
       );
-      var metadataProvider = MetadataProvider(assetReader, logWriter);
       dwds = await Dwds.start(
         hostname: options.configuration.hostname,
         assetReader: assetReader,
-        metadataProvider: metadataProvider,
         buildResults: filteredBuildResults,
         chromeConnection: () async =>
             (await Chrome.connectedInstance).chromeConnection,
         logWriter: logWriter,
-        loadStrategy: BuildRunnerRequireStrategyProvider(
-                assetHandler, options.configuration.reload, metadataProvider)
+        loadStrategy: BuildRunnerRequireStrategyProvider(assetHandler,
+                options.configuration.reload, assetReader, logWriter)
             .strategy,
         serveDevTools:
             options.configuration.debug || options.configuration.debugExtension,

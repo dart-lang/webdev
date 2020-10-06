@@ -4,13 +4,12 @@
 
 import 'package:async/async.dart';
 
+import '../loaders/strategy.dart';
 import '../utilities/dart_uri.dart';
-import 'metadata/provider.dart';
 
 /// Tracks modules for the compiled application.
 class Modules {
   final String _root;
-  final MetadataProvider _metadataProvider;
 
   // The Dart server path to containing module.
   final _sourceToModule = <String, String>{};
@@ -22,19 +21,21 @@ class Modules {
   // The Chrome script ID to corresponding module.
   final _scriptIdToModule = <String, String>{};
 
-  Modules(this._metadataProvider, String root)
-      : _root = root == '' ? '/' : root;
+  String _entrypoint;
+
+  Modules(String root) : _root = root == '' ? '/' : root;
 
   /// Initializes the mapping from source to module.
   ///
   /// Intended to be called multiple times throughout the development workflow,
   /// e.g. after a hot-reload.
-  void initialize() {
+  void initialize(String entrypoint) {
     // We only clear the source to module mapping as script IDs may persist
     // across hot reloads.
     _sourceToModule.clear();
     _sourceToLibrary.clear();
     _moduleMemoizer = AsyncMemoizer();
+    _entrypoint = entrypoint;
   }
 
   /// Returns the module for the Chrome script ID.
@@ -60,7 +61,9 @@ class Modules {
 
   /// Initializes [_sourceToModule] and [_sourceToLibrary].
   Future<void> _initializeMapping() async {
-    var scriptToModule = await _metadataProvider.scriptToModule;
+    var scriptToModule = await globalLoadStrategy
+        .metadataProviderFor(_entrypoint)
+        .scriptToModule;
     for (var script in scriptToModule.keys) {
       var serverPath = DartUri(script, _root).serverPath;
       _sourceToModule[serverPath] = scriptToModule[script];

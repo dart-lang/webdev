@@ -4,6 +4,7 @@
 
 import 'package:shelf/shelf.dart';
 
+import '../../dwds.dart';
 import 'strategy.dart';
 
 /// A load strategy for the legacy module system.
@@ -17,7 +18,8 @@ class LegacyStrategy extends LoadStrategy {
   ///
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
-  final String Function(String sourcePath) _moduleForServerPath;
+  final String Function(String entrypoint, String sourcePath)
+      _moduleForServerPath;
 
   /// Returns the server path for the provided module.
   ///
@@ -25,7 +27,7 @@ class LegacyStrategy extends LoadStrategy {
   ///
   ///   web/main -> main.ddc.js
   ///
-  final String Function(String module) _serverPathForModule;
+  final String Function(String entrypoint, String module) _serverPathForModule;
 
   /// Returns the source map path for the provided module.
   ///
@@ -33,7 +35,8 @@ class LegacyStrategy extends LoadStrategy {
   ///
   ///   web/main -> main.ddc.js.map
   ///
-  final String Function(String module) _sourceMapPathForModule;
+  final String Function(String entrypoint, String module)
+      _sourceMapPathForModule;
 
   /// Returns the server path for the app uri.
   ///
@@ -51,7 +54,9 @@ class LegacyStrategy extends LoadStrategy {
     this._serverPathForModule,
     this._sourceMapPathForModule,
     this._serverPathForAppUri,
-  );
+    AssetReader assetReader,
+    LogWriter logWriter,
+  ) : super(assetReader, logWriter);
 
   @override
   Handler get handler => (request) => null;
@@ -77,15 +82,18 @@ class LegacyStrategy extends LoadStrategy {
       'window.\$dartLoader.forceLoadModule("$clientScript");\n';
 
   @override
-  String moduleForServerPath(String serverPath) =>
-      _moduleForServerPath(serverPath);
+  Future<String> moduleForServerPath(
+          String entrypoint, String serverPath) async =>
+      _moduleForServerPath(entrypoint, serverPath);
 
   @override
-  String serverPathForModule(String module) => _serverPathForModule(module);
+  Future<String> serverPathForModule(String entrypoint, String module) async =>
+      _serverPathForModule(entrypoint, module);
 
   @override
-  String sourceMapPathForModule(String module) =>
-      _sourceMapPathForModule(module);
+  Future<String> sourceMapPathForModule(
+          String entrypoint, String module) async =>
+      _sourceMapPathForModule(entrypoint, module);
 
   @override
   String serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);

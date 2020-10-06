@@ -2,21 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import '../debugging/metadata/provider.dart';
+import 'package:dwds/dwds.dart';
+
 import 'require.dart';
 import 'strategy.dart';
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
 class FrontendServerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
-  final _moduleToPath = <String, String>{};
-  final _pathToModule = <String, String>{};
-  final _moduleToSourceMapPath = <String, String>{};
+  final AssetReader _assetReader;
+  final LogWriter _logWriter;
+
   RequireStrategy _requireStrategy;
-  final MetadataProvider _metadataProvider;
 
   FrontendServerRequireStrategyProvider(
-      this._configuration, this._metadataProvider);
+      this._configuration, this._assetReader, this._logWriter);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
@@ -26,43 +26,48 @@ class FrontendServerRequireStrategyProvider {
         _serverPathForModule,
         _sourceMapPathForModule,
         _serverPathForAppUri,
+        _assetReader,
+        _logWriter,
       );
 
-  Future<Map<String, String>> _digestsProvider(String entrypoint) async {
+  Future<Map<String, String>> _digestsProvider(
+      MetadataProvider metadataProvider) async {
     // TODO(grouma) - provide actual digests.
     return {};
   }
 
-  Future<Map<String, String>> _moduleProvider(String entrypoint) async {
-    await _metadataProvider.initialize(entrypoint);
-    var modules = await _metadataProvider.modulePathToModule;
-    var sourceMaps = await _metadataProvider.moduleToSourceMap;
+  Future<Map<String, String>> _moduleProvider(
+      MetadataProvider metadataProvider) async {
+    var modules = await metadataProvider.modulePathToModule;
 
-    _moduleToPath.clear();
-    _pathToModule.clear();
-    _moduleToSourceMapPath.clear();
+    var moduleToPath = <String, String>{};
 
     for (var modulePath in modules.keys) {
       // modulePath is the path including leading '/' and .js extension
       var moduleName = modules[modulePath];
       var serverPath = relativizePath(removeJsExtension(modulePath));
-      var sourceMap = relativizePath(sourceMaps[moduleName]);
-
-      _pathToModule[serverPath] = moduleName;
-      _moduleToPath[moduleName] = serverPath;
-      _moduleToSourceMapPath[moduleName] = sourceMap;
+      moduleToPath[moduleName] = serverPath;
     }
-    return _moduleToPath;
+    return moduleToPath;
   }
 
-  String _moduleForServerPath(String serverPath) =>
-      _pathToModule[relativizePath(removeJsExtension(serverPath))];
+  Future<String> _moduleForServerPath(
+      MetadataProvider metadataProvider, String serverPath) async {
+    // TODO(grouma) - Fix.
+    return (await metadataProvider.modulePathToModule)[serverPath];
+  }
 
-  String _serverPathForModule(String module) =>
-      addJsExtension(_moduleToPath[module]);
+  Future<String> _serverPathForModule(
+      MetadataProvider metadataProvider, String module) async {
+    // TODO(grouma) - Fix.
+    return (await metadataProvider.moduleToModulePath)[module];
+  }
 
-  String _sourceMapPathForModule(String module) =>
-      _moduleToSourceMapPath[module];
+  Future<String> _sourceMapPathForModule(
+      MetadataProvider metadataProvider, String module) async {
+    // TODO(grouma) - Fix.
+    return (await metadataProvider.moduleToSourceMap)[module];
+  }
 
   String _serverPathForAppUri(String appUri) {
     if (appUri.startsWith('org-dartlang-app:')) {

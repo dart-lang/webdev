@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
+import '../../dwds.dart';
 import 'strategy.dart';
 
 String relativizePath(String path) =>
@@ -63,7 +64,8 @@ class RequireStrategy extends LoadStrategy {
   ///   web/main -> main.ddc
   ///   packages/path/path -> packages/path/path.ddc
   ///
-  final Future<Map<String, String>> Function(String entrypoint) _moduleProvider;
+  final Future<Map<String, String>> Function(MetadataProvider metadataProvider)
+      _moduleProvider;
 
   /// Returns a map of module name to corresponding digest value.
   ///
@@ -72,7 +74,7 @@ class RequireStrategy extends LoadStrategy {
   ///   web/main -> 8363b363f74b41cac955024ab8b94a3f
   ///   packages/path/path -> d348c2a4647e998011fe305f74f22961
   ///
-  final Future<Map<String, String>> Function(String entrypoint)
+  final Future<Map<String, String>> Function(MetadataProvider metadataProvider)
       _digestsProvider;
 
   /// Returns the module for the corresponding server path.
@@ -81,7 +83,8 @@ class RequireStrategy extends LoadStrategy {
   ///
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
-  final String Function(String sourcePath) _moduleForServerPath;
+  final Future<String> Function(MetadataProvider provider, String sourcePath)
+      _moduleForServerPath;
 
   /// Returns the server path for the provided module.
   ///
@@ -89,7 +92,8 @@ class RequireStrategy extends LoadStrategy {
   ///
   ///   web/main -> main.ddc.js
   ///
-  final String Function(String module) _serverPathForModule;
+  final Future<String> Function(MetadataProvider provider, String module)
+      _serverPathForModule;
 
   /// Returns the source map path for the provided module.
   ///
@@ -97,7 +101,8 @@ class RequireStrategy extends LoadStrategy {
   ///
   ///   web/main -> main.ddc.js.map
   ///
-  final String Function(String module) _sourceMapPathForModule;
+  final Future<String> Function(MetadataProvider provider, String module)
+      _sourceMapPathForModule;
 
   /// Returns the server path for the app uri.
   ///
@@ -117,13 +122,17 @@ class RequireStrategy extends LoadStrategy {
     this._serverPathForModule,
     this._sourceMapPathForModule,
     this._serverPathForAppUri,
-  );
+    AssetReader assetReader,
+    LogWriter logWriter,
+  ) : super(assetReader, logWriter);
 
   @override
   Handler get handler => (request) async {
         if (request.url.path.endsWith(_requireDigestsPath)) {
-          var digests =
-              await _digestsProvider(request.url.queryParameters['entrypoint']);
+          var metadataProvider =
+              metadataProviderFor(request.url.queryParameters['entrypoint']);
+          if (metadataProvider == null) return null;
+          var digests = await _digestsProvider(metadataProvider);
           return Response.ok(json.encode(digests));
         }
         return null;
@@ -195,7 +204,8 @@ requirejs.onResourceLoad = function (context, map, depArray) {
       'window.\$requireLoader.forceLoadModule("$clientScript");\n';
 
   Future<String> _requireLoaderSetup(String entrypoint) async {
-    var modulePaths = await _moduleProvider(entrypoint);
+    var metadataProvider = metadataProviderFor(entrypoint);
+    var modulePaths = await _moduleProvider(metadataProvider);
     var moduleNames =
         modulePaths.map((key, value) => MapEntry<String, String>(value, key));
     return '''
@@ -209,14 +219,10 @@ if(!window.\$requireLoader) {
      moduleParentsGraph: new Map(),
      moduleLoadingErrorCallbacks: new Map(),
      forceLoadModule: function (modulePath, callback, onError) {
-       console.log('modulePath:');
-       console.log(modulePath);
        let moduleName = moduleNames[modulePath];
        if (moduleName == null) {
          moduleName = modulePath;
        }
-       console.log('moduleName:');
-       console.log(moduleName);
        if (typeof onError != 'undefined') {
          var errorCallbacks = \$requireLoader.moduleLoadingErrorCallbacks;
          if (!errorCallbacks.has(moduleName)) {
@@ -241,15 +247,22 @@ if(!window.\$requireLoader) {
   }
 
   @override
-  String moduleForServerPath(String serverPath) =>
-      _moduleForServerPath(serverPath);
+  Future<String> moduleForServerPath(String entrypoint, String serverPath) {
+    var metadataProvider = metadataProviderFor(entrypoint);
+    return _moduleForServerPath(metadataProvider, serverPath);
+  }
 
   @override
-  String serverPathForModule(String module) => _serverPathForModule(module);
+  Future<String> serverPathForModule(String entrypoint, String module) {
+    var metadataProvider = metadataProviderFor(entrypoint);
+    return _serverPathForModule(metadataProvider, module);
+  }
 
   @override
-  String sourceMapPathForModule(String module) =>
-      _sourceMapPathForModule(module);
+  Future<String> sourceMapPathForModule(String entrypoint, String module) {
+    var metadataProvider = metadataProviderFor(entrypoint);
+    return _sourceMapPathForModule(metadataProvider, module);
+  }
 
   @override
   String serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);

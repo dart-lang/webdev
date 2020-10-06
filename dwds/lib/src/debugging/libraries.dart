@@ -25,7 +25,9 @@ class LibraryHelper extends Domain {
   /// Note this can return a cached result.
   Future<List<LibraryRef>> get libraryRefs async {
     if (_libraryRefsById.isNotEmpty) return _libraryRefsById.values.toList();
-    var libraries = await inspector.metadataProvider.libraries;
+    var libraries = await globalLoadStrategy
+        .metadataProviderFor(inspector.appConnection.request.entrypointPath)
+        .libraries;
     for (var library in libraries) {
       _libraryRefsById[library] =
           LibraryRef(id: library, name: library, uri: library);

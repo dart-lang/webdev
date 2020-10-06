@@ -122,16 +122,19 @@ class Locations {
   final Modules _modules;
   final String _root;
 
+  String _entrypoint;
+
   Locations(this._assetReader, this._modules, this._root);
 
   Modules get modules => _modules;
 
   /// Clears all location meta data.
-  void clearCache() {
+  void initialize(String entrypoint) {
     _sourceToTokenPosTable.clear();
     _sourceToLocation.clear();
     _moduleToLocations.clear();
     _processedModules.clear();
+    _entrypoint = entrypoint;
   }
 
   /// Returns all [Location] data for a provided Dart source.
@@ -145,7 +148,8 @@ class Locations {
 
   /// Returns all [Location] data for a provided JS server path.
   Future<Set<Location>> locationsForUrl(String url) async {
-    var module = globalLoadStrategy.moduleForServerPath(Uri.parse(url).path);
+    var module = await globalLoadStrategy.moduleForServerPath(
+        _entrypoint, Uri.parse(url).path);
     var cache = _moduleToLocations[module];
     if (cache != null) return cache;
     return await _locationsForModule(module) ?? {};
@@ -209,8 +213,10 @@ class Locations {
     if (module.endsWith('dart_sdk')) {
       return result;
     }
-    var modulePath = globalLoadStrategy.serverPathForModule(module);
-    var sourceMapPath = globalLoadStrategy.sourceMapPathForModule(module);
+    var modulePath =
+        await globalLoadStrategy.serverPathForModule(_entrypoint, module);
+    var sourceMapPath =
+        await globalLoadStrategy.sourceMapPathForModule(_entrypoint, module);
     var sourceMapContents = await _assetReader.sourceMapContents(sourceMapPath);
     var scriptLocation = p.url.dirname('/$modulePath');
     if (sourceMapContents == null) return result;
