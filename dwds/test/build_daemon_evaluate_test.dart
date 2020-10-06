@@ -32,7 +32,7 @@ void main() async {
       await context.setUp(
           enableExpressionEvaluation: true,
           logWriter: (level, message) => printOnFailure(message),
-          verbose: true);
+          verbose: false);
     });
 
     tearDownAll(() async {
