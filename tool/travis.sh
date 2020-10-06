@@ -71,14 +71,18 @@ for PKG in ${PKGS}; do
       pub run test test/build/ensure_version_test.dart || EXIT_CODE=$?
       ;;
     test_1)
+      echo 'pub run test -x expression-compilation-service'
+      pub run test -x expression-compilation-service || EXIT_CODE=$?
+      ;;
+    test_2)
       echo 'pub run test'
       pub run test || EXIT_CODE=$?
       ;;
-    test_2)
+    test_3)
       echo 'pub run test test/build/ensure_build_test.dart'
       pub run test test/build/ensure_build_test.dart || EXIT_CODE=$?
       ;;
-    test_3)
+    test_4)
       echo 'pub run test -j 1'
       pub run test -j 1 || EXIT_CODE=$?
       ;;

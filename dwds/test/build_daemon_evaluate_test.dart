@@ -27,6 +27,22 @@ ChromeProxyService get service =>
 WipConnection get tabConnection => context.tabConnection;
 
 void main() async {
+  Future<void> onBreakPoint(String isolate, ScriptRef script,
+      String breakPointId, Future<void> Function() body) async {
+    Breakpoint bp;
+    try {
+      var line =
+          await context.findBreakpointLine(breakPointId, isolate, script);
+      bp = await service.addBreakpointWithScriptUri(isolate, script.uri, line);
+      await body();
+    } finally {
+      // Remove breakpoint so it doesn't impact other tests or retries.
+      if (bp != null) {
+        await service.removeBreakpoint(isolate, bp.id);
+      }
+    }
+  }
+
   group('shared context with evaluation', () {
     setUpAll(() async {
       await context.setUp(
@@ -63,222 +79,165 @@ void main() async {
       });
 
       test('local', () async {
-        var line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'local');
 
-        var result = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'local');
-
-        expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '42'));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '42'));
+        });
       });
 
       test('field', () async {
-        var line = await context.findBreakpointLine(
-            'printField', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+        await onBreakPoint(isolate.id, mainScript, 'printField', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'instance.field');
 
-        var result = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'instance.field');
-
-        expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '1'));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '1'));
+        });
       });
 
       test('private field', () async {
-        var line = await context.findBreakpointLine(
-            'printField', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+        await onBreakPoint(isolate.id, mainScript, 'printField', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'instance._field');
 
-        var result = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'instance._field');
-
-        expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '2'));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '2'));
+        });
       },
           skip: 'Incorrect JavaScript for types from other libraries: '
               'https://github.com/dart-lang/sdk/issues/43469');
 
       test('access instance fields after evaluation', () async {
-        var line = await context.findBreakpointLine(
-            'printField', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+        await onBreakPoint(isolate.id, mainScript, 'printField', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          var instanceRef = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'instance') as InstanceRef;
 
-        var instanceRef = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'instance') as InstanceRef;
+          var instance =
+              await service.getObject(isolate.id, instanceRef.id) as Instance;
 
-        var instance =
-            await service.getObject(isolate.id, instanceRef.id) as Instance;
+          var field = instance.fields
+              .firstWhere((BoundField element) => element.decl.name == 'field');
 
-        var field = instance.fields
-            .firstWhere((BoundField element) => element.decl.name == 'field');
-
-        expect(
-            field.value,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '1'));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+          expect(
+              field.value,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '1'));
+        });
       });
 
       test('global', () async {
-        var line = await context.findBreakpointLine(
-            'printGlobal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+        await onBreakPoint(isolate.id, mainScript, 'printGlobal', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'valueFromTestPackage');
 
-        var result = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'valueFromTestPackage');
-
-        expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '3'));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '3'));
+        });
       });
 
       test('call core function', () async {
-        var line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'print(local)');
 
-        var result = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'print(local)');
-
-        expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', 'null'));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString,
+                  'valueAsString',
+                  'null'));
+        });
       });
 
       test('call library function with const param', () async {
-        var line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'testLibraryFunction(42)');
 
-        var result = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'testLibraryFunction(42)');
-
-        expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '42'));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '42'));
+        });
       });
 
       test('call library function with local param', () async {
-        var line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'testLibraryFunction(local)');
 
-        var result = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'testLibraryFunction(local)');
-
-        expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '42'));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '42'));
+        });
       });
 
       test('error', () async {
-        var line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+          var error = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'typo');
 
-        var error = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'typo');
-
-        expect(
-            error,
-            const TypeMatcher<ErrorRef>().having(
-                (instance) => instance.message,
-                'message',
-                matches('CompilationError: Getter not found:.*typo')));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+          expect(
+              error,
+              const TypeMatcher<ErrorRef>().having(
+                  (instance) => instance.message,
+                  'message',
+                  matches('CompilationError: Getter not found:.*typo')));
+        });
       });
 
       test('cannot evaluate in unsupported isolate', () async {
-        var line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
-
-        expect(
-            () => service.evaluateInFrame('bad', event.topFrame.index, 'local'),
-            throwsRPCError);
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+          expect(
+              () =>
+                  service.evaluateInFrame('bad', event.topFrame.index, 'local'),
+              throwsRPCError);
+        });
       });
     });
-  });
+  }, timeout: const Timeout.factor(2));
 
   group('shared context with no evaluation', () {
     setUpAll(() async {
@@ -316,21 +275,15 @@ void main() async {
       });
 
       test('cannot evaluate expression', () async {
-        var line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
-
-        expect(
-            () => service.evaluateInFrame(
-                isolate.id, event.topFrame.index, 'local'),
-            throwsRPCError);
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+          expect(
+              () => service.evaluateInFrame(
+                  isolate.id, event.topFrame.index, 'local'),
+              throwsRPCError);
+        });
       });
     });
   });
