@@ -83,8 +83,16 @@ for PKG in ${PKGS}; do
       pub run test test/build/ensure_build_test.dart || EXIT_CODE=$?
       ;;
     test_4)
+      echo 'pub run test -i 1 -x expression-compilation-service'
+      pub run test -i 1 -x expression-compilation-service || EXIT_CODE=$?
+      ;;
+    test_5)
       echo 'pub run test -j 1'
       pub run test -j 1 || EXIT_CODE=$?
+      ;;
+    test_6)
+      echo 'pub run test -j 1 -x expression-compilation-service'
+      pub run test -j 1 -x expression-compilation-service || EXIT_CODE=$?
       ;;
     *)
       echo -e "\033[31mNot expecting TASK '${TASK}'. Error!\033[0m"

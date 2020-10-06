@@ -314,5 +314,5 @@ void main() {
         await process.shouldExit();
       }
     });
-  });
+  }, tags: 'expression-compilation-service');
 }
