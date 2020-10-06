@@ -44,17 +44,11 @@ jobs:
       dart: dev
       os: linux
       env: PKGS="webdev"
-      script: ./tool/travis.sh dartfmt dartanalyzer_0 test_3
+      script: ./tool/travis.sh dartfmt dartanalyzer_0 test_2
     - stage: unit_test
-      name: "SDK: 2.10.0-99.0.dev; PKG: dwds; TASKS: `pub run test -x expression-compilation-service`"
+      name: "SDK: 2.10.0-99.0.dev; PKG: dwds; TASKS: `pub run test`"
       dart: "2.10.0-99.0.dev"
       os: linux
-      env: PKGS="dwds"
-      script: ./tool/travis.sh test_1
-    - stage: unit_test
-      name: "SDK: 2.10.0-99.0.dev; PKG: dwds; TASKS: `pub run test -x expression-compilation-service`"
-      dart: "2.10.0-99.0.dev"
-      os: windows
       env: PKGS="dwds"
       script: ./tool/travis.sh test_1
     - stage: unit_test
@@ -62,31 +56,19 @@ jobs:
       dart: dev
       os: linux
       env: PKGS="dwds"
-      script: ./tool/travis.sh test_2
+      script: ./tool/travis.sh test_1
     - stage: unit_test
-      name: "SDK: dev; PKG: dwds; TASKS: `pub run test`"
-      dart: dev
-      os: windows
-      env: PKGS="dwds"
-      script: ./tool/travis.sh test_2
-    - stage: unit_test
-      name: "SDK: 2.10.0-99.0.dev; PKG: webdev; TASKS: `pub run test -i 1 -x expression-compilation-service`"
+      name: "SDK: 2.10.0-99.0.dev; PKG: webdev; TASKS: `pub run test -j 1`"
       dart: "2.10.0-99.0.dev"
       os: linux
       env: PKGS="webdev"
-      script: ./tool/travis.sh test_4
+      script: ./tool/travis.sh test_3
     - stage: unit_test
       name: "SDK: dev; PKG: webdev; TASKS: `pub run test -j 1`"
       dart: dev
       os: linux
       env: PKGS="webdev"
-      script: ./tool/travis.sh test_5
-    - stage: unit_test
-      name: "SDK: 2.10.0-99.0.dev; PKG: webdev; TASKS: `pub run test -j 1 -x expression-compilation-service`"
-      dart: "2.10.0-99.0.dev"
-      os: windows
-      env: PKGS="webdev"
-      script: ./tool/travis.sh test_6
+      script: ./tool/travis.sh test_3
 
 stages:
   - analyzer_and_format

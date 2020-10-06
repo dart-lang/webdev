@@ -1,4 +1,12 @@
 # See https://github.com/dart-lang/mono_repo for details
+dart:
+  # The minimum version should be kept in sync with the
+  # minimum SDK version defined in the webdev pubspec.
+  # This ensures we do not accidentally break users upon
+  # release of webdev.
+  - 2.10.0-99.0.dev
+  - dev
+
 stages:
   - analyzer_and_format:
     - group:
@@ -10,13 +18,4 @@ stages:
       - dartanalyzer: --fatal-warnings .
       dart: [2.10.0-99.0.dev]
   - unit_test:
-    - test: -x expression-compilation-service
-      dart: 2.10.0-99.0.dev
     - test:
-      dart: dev
-    - test: -x expression-compilation-service
-      os: windows
-      dart: 2.10.0-99.0.dev
-    - test:
-      os: windows
-      dart: dev
