@@ -10,6 +10,7 @@
   module paths.
   - Fix issue where upgrading `build_web_compilers` would cause missing
     module assets (JavaScript code and source maps).
+- Fix issue where open http connections prevent the process for exiting.
 
 **Breaking changes:**
 - Change `Dwds.start` to require `MetadataProvider` as a parameter.

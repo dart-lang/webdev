@@ -51,12 +51,14 @@ class Dwds {
   final Handler handler;
   final DevTools _devTools;
   final DevHandler _devHandler;
+  final AssetReader _assetReader;
   final bool _enableDebugging;
 
   Dwds._(
     this.middleware,
     this._devTools,
     this._devHandler,
+    this._assetReader,
     this._enableDebugging,
   ) : handler = _devHandler.handler;
 
@@ -68,6 +70,7 @@ class Dwds {
   Future<void> stop() async {
     await _devTools?.close();
     await _devHandler.close();
+    await _assetReader.close();
   }
 
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
@@ -161,6 +164,7 @@ class Dwds {
       injected.middleware,
       devTools,
       devHandler,
+      assetReader,
       enableDebugging,
     );
   }

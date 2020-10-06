@@ -4,6 +4,7 @@
 - Expand `package:vm_service` to version `>=3.0.0 <6.0.0`.
 - Require at least `build_web_compilers` version `2.12.0`.
 - Depend on the latest `package:dwds`.
+- Fix issue where open http connections prevent the process for exiting.
 
 ## 2.6.2
 
