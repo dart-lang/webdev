@@ -21,6 +21,7 @@ LoadStrategy get globalLoadStrategy {
 abstract class LoadStrategy {
   final AssetReader _assetReader;
   final LogWriter _logWriter;
+  final _providers = <String, MetadataProvider>{};
 
   LoadStrategy(this._assetReader, this._logWriter);
 
@@ -106,12 +107,14 @@ abstract class LoadStrategy {
   /// an app URI.
   String serverPathForAppUri(String appUri);
 
-  final _providers = <String, MetadataProvider>{};
-
+  /// Returns the [MetadataProvider] for the application located at the provided
+  /// [entrypoint].
   MetadataProvider metadataProviderFor(String entrypoint) =>
       _providers[entrypoint];
 
-  void initializeEntrypoint(String entrypoint) {
+  /// Initializes a [MetadataProvider] for the application located at the
+  /// provided [entrypoint].
+  void trackEntrypoint(String entrypoint) {
     var metadataProvider =
         MetadataProvider(entrypoint, _assetReader, _logWriter);
     _providers[metadataProvider.entrypoint] = metadataProvider;

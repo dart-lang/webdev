@@ -86,7 +86,7 @@ class DwdsInjector {
               devHandlerPath = '$requestedUriBase/$devHandlerPath';
               _devHandlerPaths.add(devHandlerPath);
               var entrypoint = request.url.path;
-              _loadStrategy.initializeEntrypoint(entrypoint);
+              _loadStrategy.trackEntrypoint(entrypoint);
               body = _injectClientAndHoistMain(
                 body,
                 appId,

@@ -17,7 +17,6 @@ class MetadataProvider {
   final AssetReader _assetReader;
   final LogWriter _logWriter;
   final String entrypoint;
-
   final List<String> _libraries = [];
   final Map<String, String> _scriptToModule = {};
   final Map<String, String> _moduleToSourceMap = {};
@@ -115,12 +114,6 @@ class MetadataProvider {
     return _moduleToModulePath;
   }
 
-  /// Initializes the provider for the given Dart application entrypoint.
-  ///
-  /// Initialization is done only once, even if called multiple
-  /// times, unless [update] is true, in which case the metadata
-  /// is re-initialzed.
-  ///
   Future<void> _initialize() async {
     await _metadataMemoizer.runOnce(() async {
       // The merged metadata resides next to the entrypoint.
