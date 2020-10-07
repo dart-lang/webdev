@@ -115,8 +115,9 @@ abstract class LoadStrategy {
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].
   void trackEntrypoint(String entrypoint) {
+    // TODO(grouma) - Provide the compiler.
     var metadataProvider =
-        MetadataProvider(entrypoint, _assetReader, _logWriter);
+        MetadataProvider(entrypoint, _assetReader, _logWriter, null);
     _providers[metadataProvider.entrypoint] = metadataProvider;
   }
 }

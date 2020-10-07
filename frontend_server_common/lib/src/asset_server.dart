@@ -133,7 +133,8 @@ class TestAssetServer implements AssetReader {
   }
 
   /// Tear down the http server running.
-  Future<void> dispose() {
+  @override
+  Future<void> close() {
     return _httpServer.close();
   }
 

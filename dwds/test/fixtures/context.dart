@@ -6,17 +6,20 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:build_daemon/data/server_log.dart' as server_log;
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
+import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
@@ -26,7 +29,6 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'fakes.dart';
 import 'server.dart';
 import 'utilities.dart';
 
@@ -51,6 +53,8 @@ class TestContext {
   AppConnection appConnection;
   DebugConnection debugConnection;
   WebkitDebugger webkitDebugger;
+  Client client;
+  ExpressionCompilerService ddcService;
   int port;
   Directory _outputDir;
   File _entryFile;
@@ -101,8 +105,9 @@ class TestContext {
       UrlEncoder urlEncoder,
       bool restoreBreakpoints,
       CompilationMode compilationMode,
-      bool useFakeExpressionCompiler,
-      LogWriter logWriter}) async {
+      bool enableExpressionEvaluation,
+      LogWriter logWriter,
+      bool verbose}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
@@ -110,170 +115,206 @@ class TestContext {
     enableDebugging ??= true;
     waitToDebug ??= false;
     compilationMode ??= CompilationMode.buildDaemon;
-    useFakeExpressionCompiler ??= false;
+    enableExpressionEvaluation ??= false;
     logWriter ??= (Level level, String message) => printOnFailure(message);
     spawnDds ??= true;
+    verbose ??= false;
 
-    var systemTempDir = Directory.systemTemp;
-    _outputDir = systemTempDir.createTempSync('foo bar');
-
-    var chromeDriverPort = await findUnusedPort();
-    var chromeDriverUrlBase = 'wd/hub';
     try {
-      chromeDriver = await Process.start('chromedriver$_exeExt',
-          ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase']);
-      // On windows this takes a while to boot up, wait for the first line
-      // of stdout as a signal that it is ready.
-      await chromeDriver.stdout
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .first;
+      client = Client();
+
+      var systemTempDir = Directory.systemTemp;
+      _outputDir = systemTempDir.createTempSync('foo bar');
+
+      var chromeDriverPort = await findUnusedPort();
+      var chromeDriverUrlBase = 'wd/hub';
+      try {
+        chromeDriver = await Process.start('chromedriver$_exeExt',
+            ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase']);
+        // On windows this takes a while to boot up, wait for the first line
+        // of stdout as a signal that it is ready.
+        await chromeDriver.stdout
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .first;
+      } catch (e) {
+        throw StateError(
+            'Could not start ChromeDriver. Is it installed?\nError: $e');
+      }
+
+      await Process.run('pub$_batExt', ['upgrade'],
+          workingDirectory: workingDirectory);
+
+      ExpressionCompiler expressionCompiler;
+      AssetReader assetReader;
+      Handler assetHandler;
+      Stream<BuildResults> buildResults;
+      RequireStrategy requireStrategy;
+      MetadataProvider metadataProvider;
+
+      port = await findUnusedPort();
+      switch (compilationMode) {
+        case CompilationMode.buildDaemon:
+          {
+            var options = [
+              if (enableExpressionEvaluation) ...[
+                '--define',
+                'build_web_compilers|ddc=generate-full-dill=true',
+              ],
+              if (verbose) '--verbose',
+            ];
+            daemonClient = await connectClient(
+                workingDirectory,
+                options,
+                (log) => logWriter(
+                    server_log.toLoggingLevel(log.level), log.message));
+            daemonClient.registerBuildTarget(
+                DefaultBuildTarget((b) => b..target = pathToServe));
+            daemonClient.startBuild();
+
+            await daemonClient.buildResults
+                .firstWhere((results) => results.results
+                    .any((result) => result.status == BuildStatus.succeeded))
+                .timeout(const Duration(seconds: 60));
+
+            var assetServerPort = daemonPort(workingDirectory);
+            assetHandler = proxyHandler(
+                'http://localhost:$assetServerPort/$pathToServe/',
+                client: client);
+            assetReader = ProxyServerAssetReader(assetServerPort, logWriter,
+                root: pathToServe);
+
+            if (enableExpressionEvaluation) {
+              var ddcAssetHandler = proxyHandler(
+                  'http://localhost:$assetServerPort/',
+                  client: client);
+
+              ddcService = await ExpressionCompilerService.start(
+                'localhost',
+                port,
+                pathToServe,
+                ddcAssetHandler,
+                logWriter,
+                verbose,
+              );
+              expressionCompiler = ddcService;
+            }
+
+            metadataProvider =
+                MetadataProvider(assetReader, ddcService, logWriter);
+
+            requireStrategy = BuildRunnerRequireStrategyProvider(
+                    assetHandler, reloadConfiguration, metadataProvider)
+                .strategy;
+
+            buildResults = daemonClient.buildResults;
+          }
+          break;
+        case CompilationMode.frontendServer:
+          {
+            var fileSystemRoot = p.dirname(_packagesFilePath);
+            var entryPath =
+                _entryFile.path.substring(fileSystemRoot.length + 1);
+            webRunner = ResidentWebRunner(
+                '${Uri.file(entryPath)}',
+                urlEncoder,
+                fileSystemRoot,
+                _packagesFilePath,
+                [fileSystemRoot],
+                'org-dartlang-app',
+                _outputDir.path,
+                logWriter,
+                verbose);
+
+            var assetServerPort = await findUnusedPort();
+            await webRunner.run(hostname, assetServerPort, pathToServe);
+
+            if (enableExpressionEvaluation) {
+              expressionCompiler = webRunner.expressionCompiler;
+            }
+
+            assetReader = webRunner.devFS.assetServer;
+            assetHandler = webRunner.devFS.assetServer.handleRequest;
+
+            metadataProvider = MetadataProvider(assetReader, null, logWriter);
+            requireStrategy = FrontendServerRequireStrategyProvider(
+                    reloadConfiguration, metadataProvider)
+                .strategy;
+
+            buildResults = const Stream<BuildResults>.empty();
+          }
+          break;
+        default:
+          throw Exception('Unsupported compilation mode: $compilationMode');
+      }
+
+      var debugPort = await findUnusedPort();
+      // If the environment variable DWDS_DEBUG_CHROME is set to the string true
+      // then Chrome will be launched with a UI rather than headless.
+      // If the extension is enabled, then Chrome will be launched with a UI
+      // since headless Chrome does not support extensions.
+      var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
+          !enableDebugExtension;
+
+      var capabilities = Capabilities.chrome
+        ..addAll({
+          Capabilities.chromeOptions: {
+            'args': [
+              'remote-debugging-port=$debugPort',
+              if (enableDebugExtension) '--load-extension=debug_extension/web',
+              if (headless) '--headless'
+            ]
+          }
+        });
+      webDriver = await createDriver(
+          spec: WebDriverSpec.JsonWire,
+          desired: capabilities,
+          uri: Uri.parse(
+              'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
+      var connection = ChromeConnection('localhost', debugPort);
+
+      testServer = await TestServer.start(
+          hostname,
+          port,
+          assetHandler,
+          assetReader,
+          requireStrategy,
+          metadataProvider,
+          pathToServe,
+          buildResults,
+          () async => connection,
+          serveDevTools,
+          enableDebugExtension,
+          autoRun,
+          enableDebugging,
+          useSse,
+          urlEncoder,
+          restoreBreakpoints,
+          expressionCompiler,
+          spawnDds,
+          ddcService,
+          logWriter);
+
+      appUrl = 'http://localhost:$port/$path';
+      await webDriver.get(appUrl);
+      var tab = await connection.getTab((t) => t.url == appUrl);
+      tabConnection = await tab.connect();
+      await tabConnection.runtime.enable();
+      await tabConnection.debugger.enable();
+
+      if (enableDebugExtension) {
+        var extensionTab = await _fetchDartDebugExtensionTab(connection);
+        extensionConnection = await extensionTab.connect();
+        await extensionConnection.runtime.enable();
+      }
+
+      appConnection = await testServer.dwds.connectedApps.first;
+      if (enableDebugging && !waitToDebug) {
+        await startDebugging();
+      }
     } catch (e) {
-      throw StateError(
-          'Could not start ChromeDriver. Is it installed?\nError: $e');
-    }
-
-    await Process.run('pub$_batExt', ['upgrade'],
-        workingDirectory: workingDirectory);
-
-    ExpressionCompiler expressionCompiler;
-    AssetReader assetReader;
-    Handler assetHandler;
-    Stream<BuildResults> buildResults;
-    RequireStrategy requireStrategy;
-    MetadataProvider metadataProvider;
-
-    switch (compilationMode) {
-      case CompilationMode.buildDaemon:
-        {
-          daemonClient = await connectClient(
-              workingDirectory,
-              [],
-              (log) =>
-                  logWriter(server_log.toLoggingLevel(log.level), log.message));
-          daemonClient.registerBuildTarget(
-              DefaultBuildTarget((b) => b..target = pathToServe));
-          daemonClient.startBuild();
-
-          await daemonClient.buildResults
-              .firstWhere((results) => results.results
-                  .any((result) => result.status == BuildStatus.succeeded))
-              .timeout(const Duration(seconds: 60));
-
-          var assetServerPort = daemonPort(workingDirectory);
-          assetHandler =
-              proxyHandler('http://localhost:$assetServerPort/$pathToServe/');
-          assetReader = ProxyServerAssetReader(assetServerPort, logWriter,
-              root: pathToServe);
-          metadataProvider = MetadataProvider(assetReader, logWriter);
-
-          requireStrategy = BuildRunnerRequireStrategyProvider(
-                  assetHandler, reloadConfiguration, metadataProvider)
-              .strategy;
-
-          buildResults = daemonClient.buildResults;
-        }
-        break;
-      case CompilationMode.frontendServer:
-        {
-          var fileSystemRoot = p.dirname(_packagesFilePath);
-          var entryPath = _entryFile.path.substring(fileSystemRoot.length + 1);
-          webRunner = ResidentWebRunner(
-              '${Uri.file(entryPath)}',
-              urlEncoder,
-              fileSystemRoot,
-              _packagesFilePath,
-              [fileSystemRoot],
-              'org-dartlang-app',
-              _outputDir.path,
-              logWriter);
-
-          var assetServerPort = await findUnusedPort();
-          await webRunner.run(hostname, assetServerPort, pathToServe);
-
-          expressionCompiler = webRunner.expressionCompiler;
-          assetReader = webRunner.devFS.assetServer;
-          assetHandler = webRunner.devFS.assetServer.handleRequest;
-
-          metadataProvider = MetadataProvider(assetReader, logWriter);
-          requireStrategy = FrontendServerRequireStrategyProvider(
-                  reloadConfiguration, metadataProvider)
-              .strategy;
-
-          buildResults = const Stream<BuildResults>.empty();
-        }
-        break;
-      default:
-        throw Exception('Unsupported compilation mode: $compilationMode');
-    }
-
-    expressionCompiler = useFakeExpressionCompiler
-        ? FakeExpressionCompiler()
-        : expressionCompiler;
-
-    var debugPort = await findUnusedPort();
-    // If the environment variable DWDS_DEBUG_CHROME is set to the string true
-    // then Chrome will be launched with a UI rather than headless.
-    // If the extension is enabled, then Chrome will be launched with a UI
-    // since headless Chrome does not support extensions.
-    var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
-        !enableDebugExtension;
-
-    var capabilities = Capabilities.chrome
-      ..addAll({
-        Capabilities.chromeOptions: {
-          'args': [
-            'remote-debugging-port=$debugPort',
-            if (enableDebugExtension) '--load-extension=debug_extension/web',
-            if (headless) '--headless'
-          ]
-        }
-      });
-    webDriver = await createDriver(
-        spec: WebDriverSpec.JsonWire,
-        desired: capabilities,
-        uri: Uri.parse(
-            'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
-    var connection = ChromeConnection('localhost', debugPort);
-
-    port = await findUnusedPort();
-    testServer = await TestServer.start(
-        hostname,
-        port,
-        assetHandler,
-        assetReader,
-        requireStrategy,
-        metadataProvider,
-        pathToServe,
-        buildResults,
-        () async => connection,
-        serveDevTools,
-        enableDebugExtension,
-        autoRun,
-        enableDebugging,
-        useSse,
-        urlEncoder,
-        restoreBreakpoints,
-        expressionCompiler,
-        logWriter,
-        spawnDds);
-
-    appUrl = 'http://localhost:$port/$path';
-    await webDriver.get(appUrl);
-    var tab = await connection.getTab((t) => t.url == appUrl);
-    tabConnection = await tab.connect();
-    await tabConnection.runtime.enable();
-    await tabConnection.debugger.enable();
-
-    if (enableDebugExtension) {
-      var extensionTab = await _fetchDartDebugExtensionTab(connection);
-      extensionConnection = await extensionTab.connect();
-      await extensionConnection.runtime.enable();
-    }
-
-    appConnection = await testServer.dwds.connectedApps.first;
-    if (enableDebugging && !waitToDebug) {
-      await startDebugging();
+      await tearDown();
+      rethrow;
     }
   }
 
@@ -288,9 +329,21 @@ class TestContext {
     DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
     await daemonClient?.close();
+    await ddcService?.stop();
     await webRunner?.stop();
     await testServer?.stop();
+    client?.close();
     await _outputDir?.delete(recursive: true);
+
+    // clear the state for next setup
+    webDriver = null;
+    chromeDriver = null;
+    daemonClient = null;
+    ddcService = null;
+    webRunner = null;
+    testServer = null;
+    client = null;
+    _outputDir = null;
   }
 
   Future<void> changeInput() async {

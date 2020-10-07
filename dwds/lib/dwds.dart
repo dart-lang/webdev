@@ -13,7 +13,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'data/build_result.dart';
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
-import 'src/debugging/metadata/provider.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injector.dart';
 import 'src/handlers/socket_connections.dart';
@@ -41,6 +40,8 @@ export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 export 'src/services/expression_compiler.dart'
     show ExpressionCompilationResult, ExpressionCompiler;
+export 'src/services/expression_compiler_service.dart'
+    show ExpressionCompilerService;
 export 'src/utilities/shared.dart' show LogWriter;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
@@ -52,12 +53,14 @@ class Dwds {
   final Handler handler;
   final DevTools _devTools;
   final DevHandler _devHandler;
+  final AssetReader _assetReader;
   final bool _enableDebugging;
 
   Dwds._(
     this.middleware,
     this._devTools,
     this._devHandler,
+    this._assetReader,
     this._enableDebugging,
   ) : handler = _devHandler.handler;
 
@@ -69,6 +72,7 @@ class Dwds {
   Future<void> stop() async {
     await _devTools?.close();
     await _devHandler.close();
+    await _assetReader.close();
   }
 
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
@@ -84,7 +88,6 @@ class Dwds {
     @required ConnectionProvider chromeConnection,
     @required LoadStrategy loadStrategy,
     @required bool enableDebugging,
-    @required MetadataProvider metadataProvider,
     bool enableDebugExtension,
     String hostname,
     bool useSseForDebugProxy,
@@ -161,6 +164,7 @@ class Dwds {
       injected.middleware,
       devTools,
       devHandler,
+      assetReader,
       enableDebugging,
     );
   }

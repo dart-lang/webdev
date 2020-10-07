@@ -21,4 +21,3 @@ stages:
     - test: -j 1
     - test: -j 1
       os: windows
-      dart: 2.10.0-99.0.dev

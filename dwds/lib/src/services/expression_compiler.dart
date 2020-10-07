@@ -13,6 +13,9 @@ class ExpressionCompilationResult {
   /// if compilation has failed
   /// [isError] true if compilation has failed, false otherwise
   ExpressionCompilationResult(this.result, this.isError);
+
+  @override
+  String toString() => 'result: $result, isError:$isError';
 }
 
 /// Interface to provide means of compiling expressions from dart to JavaScript

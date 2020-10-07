@@ -28,12 +28,14 @@ class ResidentWebRunner {
       this.fileSystemRoots,
       this.fileSystemScheme,
       this.outputPath,
-      this.logWriter) {
+      this.logWriter,
+      bool verbose) {
     generator = ResidentCompiler(dartSdkPath, logWriter,
         packagesPath: packagesPath,
         platformDill: '$platformDill',
         fileSystemRoots: fileSystemRoots,
-        fileSystemScheme: fileSystemScheme);
+        fileSystemScheme: fileSystemScheme,
+        verbose: verbose);
     expressionCompiler = TestExpressionCompiler(generator);
   }
 

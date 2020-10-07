@@ -58,7 +58,19 @@ class DwdsVmClient {
 
     client.registerServiceCallback('hotRestart', (request) async {
       await _disableBreakpointsAndResume(client, chromeProxyService);
-      var context = await chromeProxyService.executionContext.id;
+      int context;
+      try {
+        context = await chromeProxyService.executionContext.id;
+      } on StateError catch (e) {
+        // We couldn't find the execution context. `hotRestart` may have been
+        // triggered in the middle of a full reload.
+        return {
+          'error': {
+            'code': RPCError.kInternalError,
+            'message': e.message,
+          }
+        };
+      }
       // Start listening for isolate create events before issuing a hot
       // restart. Only return success after the isolate has fully started.
       var stream = chromeProxyService.onEvent('Isolate');

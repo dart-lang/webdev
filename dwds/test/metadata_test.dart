@@ -23,12 +23,15 @@ class FakeAssetReader implements AssetReader {
   @override
   Future<String> sourceMapContents(String serverPath) =>
       throw UnimplementedError();
+
+  @override
+  Future<void> close() async {}
 }
 
 void main() {
   test('can parse metadata with empty sources', () async {
     var provider = MetadataProvider(
-        FakeAssetReader(), (level, message) => printOnFailure(message));
+        FakeAssetReader(), null, (level, message) => printOnFailure(message));
     await provider.initialize('foo.bootstrap.js');
     expect(await provider.libraries,
         contains('org-dartlang-app:///web/main.dart'));

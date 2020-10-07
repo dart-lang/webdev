@@ -25,12 +25,15 @@ LogWriter _logWriter =
       stackTrace: stackTrace,
       verbose: _verbose,
       withColors: true);
-  stdout.write(log);
-  // Prevent multiline logs and > info messages from being erased.
-  if (level > Level.INFO ||
-      _verbose ||
-      (log.contains('\n') && !log.endsWith('\n'))) {
-    stdout.writeln('');
+
+  if (level >= Level.INFO || _verbose) {
+    stdout.write(log);
+    // Prevent multiline logs and > info messages from being erased.
+    if (level > Level.INFO ||
+        _verbose ||
+        (log.contains('\n') && !log.endsWith('\n'))) {
+      stdout.writeln('');
+    }
   }
 };
 

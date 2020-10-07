@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';
@@ -72,8 +73,9 @@ class TestServer {
       UrlEncoder urlEncoder,
       bool restoreBreakpoints,
       ExpressionCompiler expressionCompiler,
-      LogWriter logWriter,
-      bool spawnDds) async {
+      bool spawnDds,
+      ExpressionCompilerService ddcService,
+      LogWriter logWriter) async {
     var pipeline = const Pipeline();
 
     pipeline = pipeline.addMiddleware(_interceptFavicon);
@@ -112,11 +114,17 @@ class TestServer {
     );
 
     var server = await HttpMultiServer.bind('localhost', port);
-    shelf_io.serveRequests(
-        server,
-        pipeline
-            .addMiddleware(dwds.middleware)
-            .addHandler(Cascade().add(dwds.handler).add(assetHandler).handler));
+    var cascade = Cascade();
+
+    cascade = cascade.add(dwds.handler).add(assetHandler);
+
+    if (ddcService != null) {
+      cascade = cascade.add(ddcService.handler);
+    }
+
+    shelf_io.serveRequests(server,
+        pipeline.addMiddleware(dwds.middleware).addHandler(cascade.handler));
+
     return TestServer._(
       target,
       server,
