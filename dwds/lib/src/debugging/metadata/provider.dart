@@ -132,8 +132,7 @@ class MetadataProvider {
               _logWriter(Level.FINEST,
                   'Loaded debug metadata for module: ${metadata.name}');
             } catch (e) {
-              _logWriter(
-                  Level.WARNING, 'Failed to read metadata: ${e.message}');
+              _logWriter(Level.WARNING, 'Failed to read metadata: $e');
               rethrow;
             }
           }
