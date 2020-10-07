@@ -315,8 +315,7 @@ void main() {
     });
 
     test('evaluateInFrame', () {
-      expect(() => service.evaluateInFrame(null, null, null),
-          throwsUnimplementedError);
+      expect(() => service.evaluateInFrame(null, null, null), throwsRPCError);
     });
 
     test('getAllocationProfile', () {
@@ -1232,134 +1231,6 @@ void main() {
       var logRecord = event.logRecord;
       expect(logRecord.message.valueAsString, message);
       expect(logRecord.loggerName.valueAsString, 'testLogCategory');
-    });
-  });
-
-  group('shared context with fake evaluation', () {
-    setUpAll(() async {
-      await context.setUp(useFakeExpressionCompiler: true);
-    });
-
-    tearDownAll(() async {
-      await context.tearDown();
-    });
-
-    group('evaluateInFrame', () {
-      VM vm;
-      Isolate isolate;
-
-      ScriptList scripts;
-      ScriptRef mainScript;
-      Stream<Event> stream;
-
-      setUp(() async {
-        vm = await service.getVM();
-        isolate = await service.getIsolate(vm.isolates.first.id);
-        scripts = await service.getScripts(isolate.id);
-
-        await service.streamListen('Debug');
-        stream = service.onEvent('Debug');
-
-        mainScript = scripts.scripts
-            .firstWhere((each) => each.uri.contains('main.dart'));
-      });
-
-      tearDown(() async {
-        await service.resume(isolate.id);
-      });
-
-      test('local', () async {
-        expect(service.streamListen('Stdout'), completion(_isSuccess));
-        var output = service.onEvent('Stdout');
-
-        expect(
-            output,
-            emitsThrough(predicate((Event event) =>
-                event.kind == EventKind.kWriteEvent &&
-                String.fromCharCodes(base64.decode(event.bytes))
-                    .contains('42'))));
-
-        var line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
-
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
-
-        var result = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'local');
-
-        expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', '42'));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
-      });
-
-      test('call core function', () async {
-        expect(service.streamListen('Stdout'), completion(_isSuccess));
-        var output = service.onEvent('Stdout');
-
-        expect(
-            output,
-            emitsThrough(predicate((Event event) =>
-                event.kind == EventKind.kWriteEvent &&
-                String.fromCharCodes(base64.decode(event.bytes))
-                    .contains('null'))));
-
-        var line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
-
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
-
-        var result = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'core.print(local)');
-
-        expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', 'null'));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
-      });
-
-      test('error', () async {
-        expect(service.streamListen('Stderr'), completion(_isSuccess));
-        var output = service.onEvent('Stderr');
-
-        expect(
-            output,
-            emitsThrough(predicate((Event event) =>
-                event.kind == EventKind.kWriteEvent &&
-                String.fromCharCodes(base64.decode(event.bytes))
-                    .contains('ReferenceError: typo is not defined'))));
-
-        var line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
-
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
-
-        var error = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'typo');
-
-        expect(
-            error,
-            const TypeMatcher<ErrorRef>().having((instance) => instance.message,
-                'message', 'ReferenceError: typo is not defined'));
-
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
-      });
     });
   });
 }

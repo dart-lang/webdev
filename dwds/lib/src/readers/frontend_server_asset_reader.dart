@@ -108,4 +108,7 @@ class FrontendServerAssetReader implements AssetReader {
     // TODO(grouma) - Implement the merged metadata reader.
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> close() async {}
 }

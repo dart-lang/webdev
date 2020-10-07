@@ -1,1 +1,4 @@
 retry: 3
+
+tags:
+  expression-compilation-service: #Expression compilation service test require dev version of SDK, so we may exclude for stable SDK

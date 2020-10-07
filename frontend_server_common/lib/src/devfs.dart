@@ -53,7 +53,7 @@ class WebDevFS {
 
   Future<void> dispose() {
     fileSystem.currentDirectory = _savedCurrentDirectory;
-    return assetServer.dispose();
+    return assetServer.close();
   }
 
   Future<UpdateFSReport> update({

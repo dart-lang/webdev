@@ -5,6 +5,8 @@
 @TestOn('vm')
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
+
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
@@ -14,8 +16,8 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext(
-    directory: '../fixtures/_testPackage',
-    entry: '../fixtures/_testPackage/web/main.dart',
+    directory: p.join('..', 'fixtures', '_testPackage'),
+    entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
     path: 'index.html',
     pathToServe: 'web');
 

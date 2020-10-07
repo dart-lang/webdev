@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -18,6 +20,7 @@ class ProxyServerAssetReader implements AssetReader {
   final LogWriter _logWriter;
 
   Handler _handler;
+  http.Client _client;
 
   ProxyServerAssetReader(int assetServerPort, this._logWriter,
       {String root, String host, bool isHttps}) {
@@ -25,13 +28,13 @@ class ProxyServerAssetReader implements AssetReader {
     root ??= '';
     isHttps ??= false;
     var scheme = isHttps ? 'https://' : 'http://';
-    var client = isHttps
+    _client = isHttps
         ? IOClient(
             HttpClient()..badCertificateCallback = (cert, host, port) => true)
-        : null;
+        : http.Client();
     var url = '$scheme$host:$assetServerPort/';
     if (root?.isNotEmpty ?? false) url += '$root/';
-    _handler = proxyHandler(url, client: client);
+    _handler = proxyHandler(url, client: _client);
   }
 
   @override
@@ -66,4 +69,7 @@ class ProxyServerAssetReader implements AssetReader {
   @override
   Future<String> metadataContents(String serverPath) =>
       _readResource(serverPath);
+
+  @override
+  Future<void> close() async => _client.close();
 }

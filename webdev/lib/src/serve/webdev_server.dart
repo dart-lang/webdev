@@ -4,7 +4,9 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:http/http.dart';
 
+import 'package:http/http.dart' as http;
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
@@ -34,7 +36,7 @@ class ServerOptions {
 
 class WebDevServer {
   final HttpServer _server;
-
+  final http.Client _client;
   final String _protocol;
 
   final Stream<BuildResult> buildResults;
@@ -42,15 +44,19 @@ class WebDevServer {
   /// Can be null if client.js injection is disabled.
   final Dwds dwds;
 
+  final ExpressionCompilerService ddcService;
+
   final String target;
 
   WebDevServer._(
     this.target,
     this._server,
+    this._client,
     this._protocol,
     this.buildResults,
     bool autoRun, {
     this.dwds,
+    this.ddcService,
   }) {
     if (autoRun) {
       dwds?.connectedApps?.listen((connection) {
@@ -65,7 +71,9 @@ class WebDevServer {
 
   Future<void> stop() async {
     await dwds?.stop();
+    await ddcService?.stop();
     await _server.close(force: true);
+    _client?.close();
   }
 
   static Future<WebDevServer> start(
@@ -94,16 +102,39 @@ class WebDevServer {
     });
 
     var cascade = Cascade();
+    var client = Client();
     var assetHandler = proxyHandler(
-        'http://localhost:${options.daemonPort}/${options.target}/');
+        'http://localhost:${options.daemonPort}/${options.target}/',
+        client: client);
+    var ddcAssetHandler =
+        proxyHandler('http://localhost:${options.daemonPort}/', client: client);
     Dwds dwds;
+    ExpressionCompilerService ddcService;
     if (options.configuration.enableInjectedClient) {
       var assetReader = ProxyServerAssetReader(
         options.daemonPort,
         logWriter,
         root: options.target,
       );
-      var metadataProvider = MetadataProvider(assetReader, logWriter);
+
+      ddcService = options.configuration.enableExpressionEvaluation
+          ? await ExpressionCompilerService.start(
+              options.configuration.hostname,
+              options.port,
+              options.target,
+              ddcAssetHandler,
+              logWriter,
+              options.configuration.verbose,
+            )
+          : null;
+
+      var metadataProvider =
+          MetadataProvider(assetReader, ddcService, logWriter);
+
+      var loadStrategy = BuildRunnerRequireStrategyProvider(
+              assetHandler, options.configuration.reload, metadataProvider)
+          .strategy;
+
       dwds = await Dwds.start(
         hostname: options.configuration.hostname,
         assetReader: assetReader,
@@ -112,21 +143,24 @@ class WebDevServer {
         chromeConnection: () async =>
             (await Chrome.connectedInstance).chromeConnection,
         logWriter: logWriter,
-        loadStrategy: BuildRunnerRequireStrategyProvider(
-                assetHandler, options.configuration.reload, metadataProvider)
-            .strategy,
+        loadStrategy: loadStrategy,
         serveDevTools:
             options.configuration.debug || options.configuration.debugExtension,
         verbose: options.configuration.verbose,
         enableDebugExtension: options.configuration.debugExtension,
         enableDebugging: options.configuration.debug,
         spawnDds: !options.configuration.disableDds,
+        expressionCompiler: ddcService,
       );
       pipeline = pipeline.addMiddleware(dwds.middleware);
       cascade = cascade.add(dwds.handler);
+      cascade = cascade.add(assetHandler);
+      if (ddcService != null) {
+        cascade = cascade.add(ddcService.handler);
+      }
+    } else {
+      cascade = cascade.add(assetHandler);
     }
-
-    cascade = cascade.add(assetHandler);
 
     var hostname = options.configuration.hostname;
     var tlsCertChain = options.configuration.tlsCertChain;
@@ -149,10 +183,12 @@ class WebDevServer {
     return WebDevServer._(
       options.target,
       server,
+      client,
       protocol,
       filteredBuildResults,
       options.configuration.autoRun,
       dwds: dwds,
+      ddcService: ddcService,
     );
   }
 }

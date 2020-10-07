@@ -37,11 +37,14 @@ class FakeAssetReader implements AssetReader {
   @override
   Future<String> sourceMapContents(String serverPath) =>
       throw UnimplementedError();
+
+  @override
+  Future<void> close() async {}
 }
 
 void main() {
   test('can parse metadata with empty sources', () async {
-    var provider = MetadataProvider(FakeAssetReader(_emptySourceMetadata),
+    var provider = MetadataProvider(FakeAssetReader(_emptySourceMetadata), null,
         (level, message) => printOnFailure(message));
     await provider.initialize('foo.bootstrap.js');
     expect(await provider.libraries,
@@ -49,7 +52,7 @@ void main() {
   });
 
   test('throws on metadata with absolute import uris', () async {
-    var provider = MetadataProvider(FakeAssetReader(_fileUriMetadata),
+    var provider = MetadataProvider(FakeAssetReader(_fileUriMetadata), null,
         (level, message) => printOnFailure(message));
     expect(provider.initialize('foo.bootstrap.js'),
         throwsA(const TypeMatcher<AbsoluteImportUriError>()));
