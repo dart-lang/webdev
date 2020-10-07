@@ -39,14 +39,14 @@ class ExpressionCompilerService implements ExpressionCompiler {
     this._logWriter,
   ) : _responseQueue = StreamQueue<dynamic>(_responseStream);
 
-  Future<dynamic> _getResponse(dynamic request) {
+  Future<dynamic> _getResponse(dynamic request) async {
     _sendPort.send(request);
-    return _responseQueue.hasNext.then((value) => value
+    return (await _responseQueue.hasNext)
         ? _responseQueue.next
         : Future.value({
             'succeeded': false,
             'errors': ['compilation service response stream closed'],
-          }));
+          });
   }
 
   /// Handles resource requests from expression compiler worker.
