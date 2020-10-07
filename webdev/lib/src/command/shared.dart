@@ -42,6 +42,11 @@ void addSharedArgs(ArgParser argParser,
         help: 'Disable the Dart Development Service (DDS). Disabling DDS may '
             'result in a degraded developer experience in some tools.',
         hide: true)
+    ..addFlag(enableExpressionEvaluationFlag,
+        abbr: 'e',
+        defaultsTo: false,
+        negatable: true,
+        help: 'Enable expression evaluation features in the debugger.')
     ..addFlag(verboseFlag,
         abbr: 'v',
         defaultsTo: false,
@@ -60,6 +65,12 @@ List<String> buildRunnerArgs(
 
   if (configuration.verbose) {
     arguments.add('--$verboseFlag');
+  }
+
+  if (configuration.enableExpressionEvaluation) {
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|ddc=generate-full-dill=true');
   }
   return arguments;
 }

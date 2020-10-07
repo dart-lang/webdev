@@ -336,9 +336,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     if (_expressionEvaluator != null) {
       var isolate = _inspector?.isolate;
       if (isolate?.id != isolateId) {
-        // TODO: Throw an RPC error here.
-        throw ArgumentError.value(
-            isolateId, 'isolateId', 'Unrecognized isolate id');
+        throw RPCError('evaluateInFrame', RPCError.kInvalidParams,
+            'Unrecognized isolate id: $isolateId. Supported isolate: ${isolate.id}');
       }
 
       try {
@@ -381,9 +380,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       }
     }
 
-    // TODO: Change this to a RPC error.
-    throw UnimplementedError(
-        'Expression evaluation is not supported for this configuration');
+    throw RPCError('evaluateInFrame', RPCError.kInvalidRequest,
+        'Expression evaluation is not supported for this configuration.');
   }
 
   @override
@@ -838,8 +836,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   static RPCError _rpcNotSupported(String method) {
-    return RPCError(
-        method, RPCError.kMethodNotFound, 'Not supported on web devices');
+    return RPCError(method, RPCError.kMethodNotFound,
+        '$method: Not supported on web devices');
   }
 
   static Future<T> _rpcNotSupportedFuture<T>(String method) {

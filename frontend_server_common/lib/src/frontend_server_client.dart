@@ -18,18 +18,7 @@ import 'package:usage/uuid/uuid.dart';
 import 'package_map.dart';
 import 'utilities.dart';
 
-/// Frontend server starter program to use in debug mode
-String get frontendServerStarter =>
-    Platform.environment['DWDS_DEBUG_FRONTEND_SERVER_STARTER'];
-
-/// Will send --verbose and --observe flags to the frontend server
-bool get debugFrontendServer => frontendServerStarter != null;
-
-/// In debug mode, path to frontend_server_starter.dart
-/// Otherwise, path to precompiled snapshot.
-/// In debug mode, frontend_server prints an observatory Uri to stderr.
 String get frontendServerExecutable =>
-    frontendServerStarter ??
     p.join(dartSdkPath, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
 
 typedef CompilerMessageConsumer = void Function(String message,
@@ -92,7 +81,7 @@ class StdoutHandler {
       // the stream. Instead use completeError so that the error is returned
       // from the awaited future that the compiler consumers are expecting.
       compilerOutput.completeError(
-          'Frontend server tests encountered an internal problem'
+          'Frontend server tests encountered an internal problem. '
           'This can be caused by printing to stdout into the stream that is '
           'used for communication between frontend server (in sdk) or '
           'frontend server client (in dwds tests).'
@@ -323,6 +312,7 @@ abstract class ResidentCompiler {
     List<String> fileSystemRoots,
     String fileSystemScheme,
     String platformDill,
+    bool verbose,
     CompilerMessageConsumer compilerMessageConsumer,
   }) = DefaultResidentCompiler;
 
@@ -394,6 +384,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
     this.fileSystemRoots,
     this.fileSystemScheme,
     this.platformDill,
+    this.verbose,
     CompilerMessageConsumer compilerMessageConsumer = printError,
   })  : assert(sdkRoot != null),
         _stdoutHandler =
@@ -406,6 +397,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
   final List<String> fileSystemRoots;
   final String fileSystemScheme;
   final String platformDill;
+  final bool verbose;
 
   void _printTrace(String message) {
     _logWriter(Level.INFO, message);
@@ -498,10 +490,8 @@ class DefaultResidentCompiler implements ResidentCompiler {
 
   Future<CompilerOutput> _compile(
       String scriptUri, String outputFilePath, String packagesFilePath) async {
-    var debug = debugFrontendServer;
     var frontendServer = frontendServerExecutable;
     var args = <String>[
-      if (debug) '--observe',
       frontendServer,
       '--sdk-root',
       sdkRoot,
@@ -532,7 +522,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
       ],
       '--debugger-module-names',
       '--experimental-emit-debug-metadata',
-      if (debug) '--verbose'
+      if (verbose) '--verbose'
     ];
 
     _printTrace(args.join(' '));
@@ -631,7 +621,8 @@ class DefaultResidentCompiler implements ResidentCompiler {
 
   Future<CompilerOutput> _compileExpressionToJs(
       _CompileExpressionToJsRequest request) async {
-    _stdoutHandler.reset(suppressCompilerMessages: true, expectSources: false);
+    _stdoutHandler.reset(
+        suppressCompilerMessages: !verbose, expectSources: false);
 
     // 'compile-expression-to-js' should be invoked after compiler has been started,
     // program was compiled.

@@ -42,10 +42,6 @@ class ExpressionEvaluator {
   ExpressionEvaluator(this._debugger, this._locations, this._modules,
       this._compiler, this._logWriter);
 
-  void _printTrace(String message) {
-    _logWriter(Level.INFO, message);
-  }
-
   RemoteObject _createError(ErrorKind severity, String message) {
     return RemoteObject(
         <String, String>{'type': '$severity', 'value': message});
@@ -72,7 +68,7 @@ class ExpressionEvaluator {
       return _createError(ErrorKind.invalidInput, expression);
     }
 
-    // 1. get js scope and current JS location
+    // get js scope and current JS location
 
     var jsFrame = _debugger.stackComputer.jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
@@ -81,16 +77,10 @@ class ExpressionEvaluator {
     }
 
     var functionName = jsFrame.functionName;
-
     var jsLine = jsFrame.location.lineNumber + 1;
-
-    _printTrace('Expression evaluator: JS location: '
-        '$functionName, $jsLine');
-
     var jsScope = await _collectLocalJsScope(jsFrame);
-    _printTrace('Expression evaluator: Local JS Scope: $jsScope');
 
-    // 2. find corresponding dart location and scope
+    // find corresponding dart location and scope
 
     // TODO(annagrin): handle unknown dart locations
     // Debugger does not map every js location to a dart location,
@@ -112,14 +102,14 @@ class ExpressionEvaluator {
     var libraryUri =
         await _modules.libraryForSource(dartLocation.uri.serverPath);
 
-    _printTrace('Expression evaluator: dart Location: '
-        '$libraryUri:${dartLocation.line}:${dartLocation.column}');
-
     var currentModule =
         await _modules.moduleForSource(dartLocation.uri.serverPath);
     var modules = await _modules.modules();
 
-    _printTrace('Expression evaluator: current module: $currentModule');
+    _logWriter(
+        Level.FINEST,
+        'ExpressionEvaluator: evaluating "$expression" at $currentModule, '
+        '$libraryUri:${dartLocation.line}:${dartLocation.column}');
 
     // TODO(annagrin): Handle same file names under different roots
     // [issue 891](https://github.com/dart-lang/webdev/issues/891)
@@ -146,7 +136,7 @@ class ExpressionEvaluator {
         currentModule,
         expression);
 
-    // 5. send js expression to chrome to evaluate
+    // send js expression to chrome to evaluate
 
     var isError = compilationResult.isError;
     var jsExpression = compilationResult.result;
@@ -174,12 +164,10 @@ class ExpressionEvaluator {
       }
 
       error = error.replaceAll(
-          RegExp('org-dartlang-debug:synthetic_debug_expression:.* Error: '),
+          RegExp('org-dartlang-debug:synthetic_debug_expression:.*:.*Error: '),
           '');
       return _createError(ErrorKind.compilation, error);
     }
-
-    _printTrace('Expression evaluator: jsExpression: $jsExpression');
 
     var result =
         await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsExpression);
@@ -196,9 +184,11 @@ class ExpressionEvaluator {
       }
     }
 
-    _printTrace('Expression evaluator: result: $result');
+    // Return evaluation result or error
 
-    // 6. Return evaluation result or error
+    _logWriter(Level.FINEST,
+        'ExpressionEvaluator: evaluated "$expression" to $result');
+
     return result;
   }
 

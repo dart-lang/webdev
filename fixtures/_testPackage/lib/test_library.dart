@@ -7,3 +7,12 @@ int valueFromTestPackage = 3;
 int testLibraryFunction(int formal) {
   return formal;
 }
+
+class ClassFromPackage {
+  final int field;
+  final int _field;
+  ClassFromPackage(this.field, this._field);
+
+  @override
+  String toString() => 'field: $field, _field: $_field';
+}

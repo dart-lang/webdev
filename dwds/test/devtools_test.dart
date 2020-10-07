@@ -28,7 +28,8 @@ void main() {
   group('Injected client', () {
     setUp(() async {
       await context.setUp(
-          serveDevTools: true, logWriter: (level, message) => print(message));
+          serveDevTools: true,
+          logWriter: (level, message) => printOnFailure(message));
       await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
       // Wait for DevTools to actually open.
       await Future.delayed(const Duration(seconds: 2));

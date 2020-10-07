@@ -27,6 +27,7 @@ const outputFlag = 'output';
 const outputNone = 'NONE';
 const releaseFlag = 'release';
 const requireBuildWebCompilersFlag = 'build-web-compilers';
+const enableExpressionEvaluationFlag = 'enable-expression-evaluation';
 const verboseFlag = 'verbose';
 const disableDdsFlag = 'disable-dds';
 
@@ -92,6 +93,7 @@ class Configuration {
   final bool _release;
   final ReloadConfiguration _reload;
   final bool _requireBuildWebCompilers;
+  final bool _enableExpressionEvaluation;
   final bool _verbose;
   final bool _disableDds;
 
@@ -113,6 +115,7 @@ class Configuration {
     ReloadConfiguration reload,
     bool release,
     bool requireBuildWebCompilers,
+    bool enableExpressionEvaluation,
     bool verbose,
     bool disableDds,
   })  : _autoRun = autoRun,
@@ -130,8 +133,9 @@ class Configuration {
         _release = release,
         _reload = reload,
         _requireBuildWebCompilers = requireBuildWebCompilers,
-        _verbose = verbose,
-        _disableDds = disableDds {
+        _disableDds = disableDds,
+        _enableExpressionEvaluation = enableExpressionEvaluation,
+        _verbose = verbose {
     _validateConfiguration();
   }
 
@@ -194,8 +198,10 @@ class Configuration {
       reload: other._reload ?? _reload,
       requireBuildWebCompilers:
           other._requireBuildWebCompilers ?? _requireBuildWebCompilers,
-      verbose: other._verbose ?? _verbose,
-      disableDds: other._disableDds ?? _disableDds);
+      disableDds: other._disableDds ?? _disableDds,
+      enableExpressionEvaluation:
+          other._enableExpressionEvaluation ?? _enableExpressionEvaluation,
+      verbose: other._verbose ?? _verbose);
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
@@ -232,6 +238,8 @@ class Configuration {
   ReloadConfiguration get reload => _reload ?? ReloadConfiguration.none;
 
   bool get requireBuildWebCompilers => _requireBuildWebCompilers ?? true;
+
+  bool get enableExpressionEvaluation => _enableExpressionEvaluation ?? false;
 
   bool get verbose => _verbose ?? false;
 
@@ -329,6 +337,11 @@ class Configuration {
             ? argResults[requireBuildWebCompilersFlag] as bool
             : defaultConfiguration.requireBuildWebCompilers;
 
+    var enableExpressionEvaluation =
+        argResults.options.contains(enableExpressionEvaluationFlag)
+            ? argResults[enableExpressionEvaluationFlag] as bool
+            : defaultConfiguration.enableExpressionEvaluation;
+
     var verbose = argResults.options.contains(verboseFlag)
         ? argResults[verboseFlag] as bool
         : defaultConfiguration.verbose;
@@ -356,6 +369,7 @@ class Configuration {
         reload: _parseReloadConfiguration(argResults),
         requireBuildWebCompilers: requireBuildWebCompilers,
         disableDds: disableDds,
+        enableExpressionEvaluation: enableExpressionEvaluation,
         verbose: verbose);
   }
 }

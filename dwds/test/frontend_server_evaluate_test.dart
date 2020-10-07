@@ -6,6 +6,8 @@
 @TestOn('vm')
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
+
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
@@ -15,8 +17,8 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext(
-    directory: '../fixtures/_testPackage',
-    entry: '../fixtures/_testPackage/web/main.dart',
+    directory: p.join('..', 'fixtures', '_testPackage'),
+    entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
     path: 'index.html',
     pathToServe: 'web');
 
@@ -28,8 +30,10 @@ void main() async {
   group('shared context with evaluation', () {
     setUpAll(() async {
       await context.setUp(
+          enableExpressionEvaluation: true,
           compilationMode: CompilationMode.frontendServer,
-          logWriter: (level, message) => printOnFailure(message));
+          logWriter: (level, message) => printOnFailure(message),
+          verbose: false);
     });
 
     tearDownAll(() async {
@@ -182,6 +186,62 @@ void main() async {
                 (instance) => instance.message,
                 'message',
                 'CompilationError: Getter not found: \'typo\'.\ntypo\n^^^^'));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+      });
+    });
+  });
+
+  group('shared context with no evaluation', () {
+    setUpAll(() async {
+      await context.setUp(
+          enableExpressionEvaluation: false,
+          compilationMode: CompilationMode.frontendServer,
+          logWriter: (level, message) => printOnFailure(message),
+          verbose: false);
+    });
+
+    tearDownAll(() async {
+      await context.tearDown();
+    });
+
+    group('evaluateInFrame', () {
+      VM vm;
+      Isolate isolate;
+      ScriptList scripts;
+      ScriptRef mainScript;
+      Stream<Event> stream;
+
+      setUp(() async {
+        vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates.first.id);
+        scripts = await service.getScripts(isolate.id);
+
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
+
+        mainScript = scripts.scripts
+            .firstWhere((each) => each.uri.contains('main.dart'));
+      });
+
+      tearDown(() async {
+        await service.resume(isolate.id);
+      });
+
+      test('cannot evaluate expression', () async {
+        var line = await context.findBreakpointLine(
+            'printLocal', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        var event = await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        expect(
+            () => service.evaluateInFrame(
+                isolate.id, event.topFrame.index, 'local'),
+            throwsRPCError);
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);

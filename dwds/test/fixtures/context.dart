@@ -6,19 +6,20 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:build_daemon/data/server_log.dart' as server_log;
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
+import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
@@ -28,7 +29,6 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'fakes.dart';
 import 'server.dart';
 import 'utilities.dart';
 
@@ -53,7 +53,8 @@ class TestContext {
   AppConnection appConnection;
   DebugConnection debugConnection;
   WebkitDebugger webkitDebugger;
-  http.Client client;
+  Client client;
+  ExpressionCompilerService ddcService;
   int port;
   Directory _outputDir;
   File _entryFile;
@@ -104,8 +105,9 @@ class TestContext {
       UrlEncoder urlEncoder,
       bool restoreBreakpoints,
       CompilationMode compilationMode,
-      bool useFakeExpressionCompiler,
-      LogWriter logWriter}) async {
+      bool enableExpressionEvaluation,
+      LogWriter logWriter,
+      bool verbose}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
@@ -113,12 +115,13 @@ class TestContext {
     enableDebugging ??= true;
     waitToDebug ??= false;
     compilationMode ??= CompilationMode.buildDaemon;
-    useFakeExpressionCompiler ??= false;
+    enableExpressionEvaluation ??= false;
     logWriter ??= (Level level, String message) => printOnFailure(message);
     spawnDds ??= true;
+    verbose ??= false;
 
     try {
-      client = http.Client();
+      client = Client();
 
       var systemTempDir = Directory.systemTemp;
       _outputDir = systemTempDir.createTempSync('foo bar');
@@ -149,12 +152,20 @@ class TestContext {
       RequireStrategy requireStrategy;
       MetadataProvider metadataProvider;
 
+      port = await findUnusedPort();
       switch (compilationMode) {
         case CompilationMode.buildDaemon:
           {
+            var options = [
+              if (enableExpressionEvaluation) ...[
+                '--define',
+                'build_web_compilers|ddc=generate-full-dill=true',
+              ],
+              if (verbose) '--verbose',
+            ];
             daemonClient = await connectClient(
                 workingDirectory,
-                [],
+                options,
                 (log) => logWriter(
                     server_log.toLoggingLevel(log.level), log.message));
             daemonClient.registerBuildTarget(
@@ -172,7 +183,25 @@ class TestContext {
                 client: client);
             assetReader = ProxyServerAssetReader(assetServerPort, logWriter,
                 root: pathToServe);
-            metadataProvider = MetadataProvider(assetReader, logWriter);
+
+            if (enableExpressionEvaluation) {
+              var ddcAssetHandler = proxyHandler(
+                  'http://localhost:$assetServerPort/',
+                  client: client);
+
+              ddcService = await ExpressionCompilerService.start(
+                'localhost',
+                port,
+                pathToServe,
+                ddcAssetHandler,
+                logWriter,
+                verbose,
+              );
+              expressionCompiler = ddcService;
+            }
+
+            metadataProvider =
+                MetadataProvider(assetReader, ddcService, logWriter);
 
             requireStrategy = BuildRunnerRequireStrategyProvider(
                     assetHandler, reloadConfiguration, metadataProvider)
@@ -194,16 +223,20 @@ class TestContext {
                 [fileSystemRoot],
                 'org-dartlang-app',
                 _outputDir.path,
-                logWriter);
+                logWriter,
+                verbose);
 
             var assetServerPort = await findUnusedPort();
             await webRunner.run(hostname, assetServerPort, pathToServe);
 
-            expressionCompiler = webRunner.expressionCompiler;
+            if (enableExpressionEvaluation) {
+              expressionCompiler = webRunner.expressionCompiler;
+            }
+
             assetReader = webRunner.devFS.assetServer;
             assetHandler = webRunner.devFS.assetServer.handleRequest;
 
-            metadataProvider = MetadataProvider(assetReader, logWriter);
+            metadataProvider = MetadataProvider(assetReader, null, logWriter);
             requireStrategy = FrontendServerRequireStrategyProvider(
                     reloadConfiguration, metadataProvider)
                 .strategy;
@@ -214,10 +247,6 @@ class TestContext {
         default:
           throw Exception('Unsupported compilation mode: $compilationMode');
       }
-
-      expressionCompiler = useFakeExpressionCompiler
-          ? FakeExpressionCompiler()
-          : expressionCompiler;
 
       var debugPort = await findUnusedPort();
       // If the environment variable DWDS_DEBUG_CHROME is set to the string true
@@ -244,7 +273,6 @@ class TestContext {
               'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
       var connection = ChromeConnection('localhost', debugPort);
 
-      port = await findUnusedPort();
       testServer = await TestServer.start(
           hostname,
           port,
@@ -263,8 +291,9 @@ class TestContext {
           urlEncoder,
           restoreBreakpoints,
           expressionCompiler,
-          logWriter,
-          spawnDds);
+          spawnDds,
+          ddcService,
+          logWriter);
 
       appUrl = 'http://localhost:$port/$path';
       await webDriver.get(appUrl);
@@ -300,6 +329,7 @@ class TestContext {
     DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
     await daemonClient?.close();
+    await ddcService?.stop();
     await webRunner?.stop();
     await testServer?.stop();
     client?.close();
@@ -309,6 +339,7 @@ class TestContext {
     webDriver = null;
     chromeDriver = null;
     daemonClient = null;
+    ddcService = null;
     webRunner = null;
     testServer = null;
     client = null;

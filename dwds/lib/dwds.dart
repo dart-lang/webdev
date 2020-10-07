@@ -41,6 +41,8 @@ export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 export 'src/services/expression_compiler.dart'
     show ExpressionCompilationResult, ExpressionCompiler;
+export 'src/services/expression_compiler_service.dart'
+    show ExpressionCompilerService;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
