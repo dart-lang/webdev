@@ -135,8 +135,7 @@ class MetadataProvider {
               _logWriter(Level.FINEST,
                   'Loaded debug metadata for module: ${metadata.name}');
             } catch (e) {
-              _logWriter(
-                  Level.WARNING, 'Failed to read metadata: ${e.message}');
+              _logWriter(Level.WARNING, 'Failed to read metadata: $e');
               rethrow;
             }
           }
@@ -152,6 +151,9 @@ class MetadataProvider {
     _moduleToModulePath[metadata.name] = metadata.moduleUri;
 
     for (var library in metadata.libraries.values) {
+      if (library.importUri.startsWith('file:/')) {
+        throw AbsoluteImportUriError(library.importUri);
+      }
       _libraries.add(library.importUri);
       _scripts[library.importUri] = [];
 
@@ -161,4 +163,12 @@ class MetadataProvider {
       }
     }
   }
+}
+
+class AbsoluteImportUriError implements Exception {
+  final String importUri;
+  AbsoluteImportUriError(this.importUri);
+
+  @override
+  String toString() => "AbsoluteImportUriError: '$importUri'";
 }
