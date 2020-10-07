@@ -7,8 +7,8 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:logging/logging.dart';
-import 'package:shelf/shelf.dart';
 import 'package:path/path.dart' as p;
+import 'package:shelf/shelf.dart';
 
 import '../utilities/dart_uri.dart';
 import 'expression_compiler.dart';
@@ -171,13 +171,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
     return service;
   }
 
-  /// Update full dill files for changed modules.
-  ///
-  /// [modules]: moduleName -> full dill path
-  ///
-  /// [updateDependencies] needs to be called after every compilation
-  /// to update full dil files for changed modules that are loaded into
-  /// the expression compiler worker.
+  @override
   Future<bool> updateDependencies(Map<String, String> modules) async {
     if (_worker == null) {
       throw StateError('Expression compilation service has stopped');

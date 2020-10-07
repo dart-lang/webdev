@@ -114,10 +114,6 @@ class Locations {
   /// The set of all known [Location]s for a module.
   final _moduleToLocations = <String, Set<Location>>{};
 
-  /// Set of all modules for which the corresponding source map has been
-  /// processed.
-  final _processedModules = <String>{};
-
   final AssetReader _assetReader;
   final Modules _modules;
   final String _root;
@@ -128,12 +124,10 @@ class Locations {
 
   Modules get modules => _modules;
 
-  /// Clears all location meta data.
   void initialize(String entrypoint) {
     _sourceToTokenPosTable.clear();
     _sourceToLocation.clear();
     _moduleToLocations.clear();
-    _processedModules.clear();
     _entrypoint = entrypoint;
   }
 

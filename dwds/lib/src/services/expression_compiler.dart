@@ -49,4 +49,11 @@ abstract class ExpressionCompiler {
       Map<String, String> jsFrameValues,
       String moduleName,
       String expression);
+
+  /// Update full dill files for changed modules.
+  ///
+  /// [modules]: moduleName -> full dill path
+  ///
+  /// [updateDependencies] is called on application load.
+  Future<bool> updateDependencies(Map<String, String> modules);
 }

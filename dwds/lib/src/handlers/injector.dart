@@ -38,10 +38,6 @@ class DwdsInjector {
     String extensionUri,
   }) : _extensionUri = extensionUri;
 
-  MetadataProvider metadataProviderFor(String entrypoint) {
-    return null;
-  }
-
   /// Returns the embedded dev handler paths.
   ///
   /// This will be next to the requested entrypoints.

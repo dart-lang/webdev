@@ -36,36 +36,22 @@ class FrontendServerRequireStrategyProvider {
   }
 
   Future<Map<String, String>> _moduleProvider(
-      MetadataProvider metadataProvider) async {
-    var modules = await metadataProvider.modulePathToModule;
-
-    var moduleToPath = <String, String>{};
-
-    for (var modulePath in modules.keys) {
-      // modulePath is the path including leading '/' and .js extension
-      var moduleName = modules[modulePath];
-      var serverPath = relativizePath(removeJsExtension(modulePath));
-      moduleToPath[moduleName] = serverPath;
-    }
-    return moduleToPath;
-  }
+          MetadataProvider metadataProvider) async =>
+      (await metadataProvider.moduleToModulePath).map((key, value) =>
+          MapEntry(key, relativizePath(removeJsExtension(value))));
 
   Future<String> _moduleForServerPath(
-      MetadataProvider metadataProvider, String serverPath) async {
-    // TODO(grouma) - Fix.
-    return (await metadataProvider.modulePathToModule)[serverPath];
-  }
+          MetadataProvider metadataProvider, String serverPath) async =>
+      (await metadataProvider.modulePathToModule)[relativizePath(serverPath)];
 
   Future<String> _serverPathForModule(
-      MetadataProvider metadataProvider, String module) async {
-    // TODO(grouma) - Fix.
-    return (await metadataProvider.moduleToModulePath)[module];
-  }
+          MetadataProvider metadataProvider, String module) async =>
+      (await metadataProvider.moduleToModulePath)[module] ?? '';
 
   Future<String> _sourceMapPathForModule(
       MetadataProvider metadataProvider, String module) async {
-    // TODO(grouma) - Fix.
-    return (await metadataProvider.moduleToSourceMap)[module];
+    var path = (await metadataProvider.moduleToSourceMap)[module] ?? '';
+    return relativizePath(path);
   }
 
   String _serverPathForAppUri(String appUri) {

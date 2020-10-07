@@ -130,13 +130,6 @@ class WebDevServer {
           logWriter,
           options.configuration.verbose,
         );
-        filteredBuildResults
-            .where((event) => event.status == BuildStatus.succeeded)
-            .listen((_) {
-          var modules = <String, String>{};
-          // TODO(grouma) - gather deps.
-          ddcService.updateDependencies(modules);
-        });
       }
 
       dwds = await Dwds.start(
