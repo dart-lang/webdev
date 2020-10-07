@@ -41,8 +41,12 @@ class ExpressionCompilerService implements ExpressionCompiler {
 
   Future<dynamic> _getResponse(dynamic request) {
     _sendPort.send(request);
-    return _responseQueue.hasNext
-        .then((value) => value ? _responseQueue.next : Future.value(null));
+    return _responseQueue.hasNext.then((value) => value
+        ? _responseQueue.next
+        : Future.value({
+            'succeeded': false,
+            'errors': ['compilation service response stream closed'],
+          }));
   }
 
   /// Handles resource requests from expression compiler worker.
@@ -180,7 +184,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       ]
     });
     var response = event as Map<String, dynamic>;
-    var result = response['succeeded'] as bool;
+    var result = response == null ? false : response['succeeded'] as bool;
     if (result) {
       _logWriter(
           Level.INFO, 'Updated dependencies for expression compilation.');
@@ -223,13 +227,17 @@ class ExpressionCompilerService implements ExpressionCompiler {
     });
 
     var response = event as Map<String, dynamic>;
-    var errors = response['errors'] as List<String>;
-    var error =
-        (errors == null || errors.isEmpty) ? '<unknown error>' : errors.first;
-    var succeeded = response['succeeded'] as bool;
-    var procedure = response['compiledProcedure'] as String;
-    var result = succeeded ? procedure : error;
+    var succeeded = false;
+    var result = '<unknown error>';
 
+    if (response != null) {
+      var errors = response['errors'] as List<String>;
+      var error =
+          (errors == null || errors.isEmpty) ? '<unknown error>' : errors.first;
+      var procedure = response['compiledProcedure'] as String;
+      succeeded = response['succeeded'] as bool;
+      result = succeeded ? procedure : error;
+    }
     return ExpressionCompilationResult(result, !succeeded);
   }
 
