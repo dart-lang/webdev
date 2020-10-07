@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:async/async.dart';
+import 'package:logging/logging.dart';
 
 import '../daemon/app_domain.dart';
 import '../daemon/daemon.dart';
@@ -83,16 +84,18 @@ class DaemonCommand extends Command<int> {
       daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
       var daemonDomain = DaemonDomain(daemon);
       setLogWriter((level, message, {loggerName, error, stackTrace, verbose}) {
-        daemonDomain.sendEvent('daemon.log', {
-          'log': formatLog(
-            level,
-            message,
-            loggerName: loggerName,
-            error: error,
-            stackTrace: stackTrace,
-            verbose: verbose,
-          )
-        });
+        if (verbose || level >= Level.INFO) {
+          daemonDomain.sendEvent('daemon.log', {
+            'log': formatLog(
+              level,
+              message,
+              loggerName: loggerName,
+              error: error,
+              stackTrace: stackTrace,
+              verbose: verbose,
+            )
+          });
+        }
       });
       daemon.registerDomain(daemonDomain);
       var buildOptions = buildRunnerArgs(pubspecLock, configuration);
