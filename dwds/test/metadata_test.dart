@@ -30,9 +30,8 @@ class FakeAssetReader implements AssetReader {
 
 void main() {
   test('can parse metadata with empty sources', () async {
-    var provider = MetadataProvider(
-        FakeAssetReader(), null, (level, message) => printOnFailure(message));
-    await provider.initialize('foo.bootstrap.js');
+    var provider = MetadataProvider('foo.bootstarp.js', FakeAssetReader(),
+        (level, message) => printOnFailure(message));
     expect(await provider.libraries,
         contains('org-dartlang-app:///web/main.dart'));
   });

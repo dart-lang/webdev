@@ -28,14 +28,12 @@ Locations locations;
 
 class TestStrategy extends FakeStrategy {
   @override
-  String moduleForServerPath(String appUri) {
-    return 'foo.ddc.js';
-  }
+  Future<String> moduleForServerPath(String entrypoint, String appUri) async =>
+      'foo.ddc.js';
 
   @override
-  String serverPathForModule(String module) {
-    return 'foo/ddc';
-  }
+  Future<String> serverPathForModule(String entrypoint, String module) async =>
+      'foo/ddc';
 }
 
 class FakeAssetReader implements AssetReader {

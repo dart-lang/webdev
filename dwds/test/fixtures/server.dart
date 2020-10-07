@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';
@@ -61,7 +60,6 @@ class TestServer {
       Handler assetHandler,
       AssetReader assetReader,
       RequireStrategy strategy,
-      MetadataProvider metadataProvider,
       String target,
       Stream<daemon.BuildResults> buildResults,
       Future<ChromeConnection> Function() chromeConnection,
@@ -101,7 +99,6 @@ class TestServer {
       logWriter: logWriter,
       loadStrategy: strategy,
       spawnDds: spawnDds,
-      metadataProvider: metadataProvider,
       serveDevTools: serveDevTools,
       enableDebugExtension: enableDebugExtension,
       enableDebugging: enableDebugging,

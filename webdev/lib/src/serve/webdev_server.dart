@@ -117,20 +117,27 @@ class WebDevServer {
         root: options.target,
       );
 
-      ddcService = options.configuration.enableExpressionEvaluation
-          ? await ExpressionCompilerService.start(
-              options.configuration.hostname,
-              options.port,
-              options.target,
-              ddcAssetHandler,
-              logWriter,
-              options.configuration.verbose,
-            )
-          : null;
-
       var loadStrategy = BuildRunnerRequireStrategyProvider(assetHandler,
               options.configuration.reload, assetReader, logWriter)
           .strategy;
+
+      if (options.configuration.enableExpressionEvaluation) {
+        ddcService = await ExpressionCompilerService.start(
+          options.configuration.hostname,
+          options.port,
+          options.target,
+          ddcAssetHandler,
+          logWriter,
+          options.configuration.verbose,
+        );
+        filteredBuildResults
+            .where((event) => event.status == BuildStatus.succeeded)
+            .listen((_) {
+          var modules = <String, String>{};
+          // TODO(grouma) - gather deps.
+          ddcService.updateDependencies(modules);
+        });
+      }
 
       dwds = await Dwds.start(
         hostname: options.configuration.hostname,
