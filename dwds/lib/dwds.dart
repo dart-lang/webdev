@@ -31,6 +31,8 @@ export 'src/handlers/dev_handler.dart' show AppConnectionException;
 export 'src/handlers/socket_connections.dart';
 export 'src/loaders/build_runner_require.dart'
     show BuildRunnerRequireStrategyProvider;
+export 'src/loaders/frontend_server_require.dart'
+    show FrontendServerRequireStrategyProvider;
 export 'src/loaders/legacy.dart' show LegacyStrategy;
 export 'src/loaders/require.dart' show RequireStrategy;
 export 'src/loaders/strategy.dart' show LoadStrategy, ReloadConfiguration;
@@ -43,6 +45,7 @@ export 'src/services/expression_compiler.dart'
     show ExpressionCompilationResult, ExpressionCompiler;
 export 'src/services/expression_compiler_service.dart'
     show ExpressionCompilerService;
+export 'src/utilities/shared.dart' show LogWriter;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
