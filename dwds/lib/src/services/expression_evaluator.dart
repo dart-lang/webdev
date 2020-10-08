@@ -33,7 +33,7 @@ class ErrorKind {
 /// collect context for evaluation (scope, types, modules), and using
 /// ExpressionCompilerInterface to compile dart expressions to JavaScript.
 class ExpressionEvaluator {
-  final Debugger _debugger;
+  final Future<Debugger> _debugger;
   final Locations _locations;
   final Modules _modules;
   final ExpressionCompiler _compiler;
@@ -70,7 +70,7 @@ class ExpressionEvaluator {
 
     // get js scope and current JS location
 
-    var jsFrame = _debugger.stackComputer.jsFrameForIndex(frameIndex);
+    var jsFrame = (await _debugger).stackComputer.jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
       return _createError(
           ErrorKind.internal, 'No frame with index $frameIndex');
@@ -169,8 +169,8 @@ class ExpressionEvaluator {
       return _createError(ErrorKind.compilation, error);
     }
 
-    var result =
-        await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsExpression);
+    var result = await (await _debugger)
+        .evaluateJsOnCallFrameIndex(frameIndex, jsExpression);
 
     if (result.type == 'string') {
       var error = '${result.value}';
@@ -245,7 +245,7 @@ class ExpressionEvaluator {
     // skip library and main scope
     for (var scope in scopeChain) {
       var scopeProperties =
-          await _debugger.getProperties(scope.object.objectId);
+          await (await _debugger).getProperties(scope.object.objectId);
 
       collectVariables(scope.scope, scopeProperties);
     }

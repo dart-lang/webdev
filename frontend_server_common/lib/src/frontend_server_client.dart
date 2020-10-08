@@ -779,4 +779,7 @@ class TestExpressionCompiler implements ExpressionCompiler {
 
     throw Exception('Failed to compile $expression');
   }
+
+  @override
+  Future<bool> updateDependencies(Map<String, String> modules) async => true;
 }

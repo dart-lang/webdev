@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:shelf/shelf.dart';
 
+import '../../dwds.dart';
 import '../debugging/metadata/provider.dart';
 import 'require.dart';
 import 'strategy.dart';
@@ -15,15 +16,13 @@ import 'strategy.dart';
 class BuildRunnerRequireStrategyProvider {
   final Handler _assetHandler;
   final ReloadConfiguration _configuration;
-  final _serverPathToModule = <String, String>{};
-  final _moduleToServerPath = <String, String>{};
-  final _moduleToSourceMapPath = <String, String>{};
-  final MetadataProvider _metadataProvider;
+  final AssetReader _assetReader;
+  final LogWriter _logWriter;
 
   RequireStrategy _requireStrategy;
 
-  BuildRunnerRequireStrategyProvider(
-      this._assetHandler, this._configuration, this._metadataProvider);
+  BuildRunnerRequireStrategyProvider(this._assetHandler, this._configuration,
+      this._assetReader, this._logWriter);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
@@ -33,13 +32,16 @@ class BuildRunnerRequireStrategyProvider {
         _serverPathForModule,
         _sourceMapPathForModule,
         _serverPathForAppUri,
+        _assetReader,
+        _logWriter,
       );
 
-  Future<Map<String, String>> _digestsProvider(String entrypoint) async {
-    await _metadataProvider.initialize(entrypoint, update: false);
-    var modules = await _metadataProvider.modulePathToModule;
+  Future<Map<String, String>> _digestsProvider(
+      MetadataProvider metadataProvider) async {
+    var modules = await metadataProvider.modulePathToModule;
 
-    var digestsPath = entrypoint.replaceAll('.dart.bootstrap.js', '.digests');
+    var digestsPath = metadataProvider.entrypoint
+        .replaceAll('.dart.bootstrap.js', '.digests');
     var response = await _assetHandler(
         Request('GET', Uri.parse('http://foo:0000/$digestsPath')));
     if (response.statusCode != HttpStatus.ok) {
@@ -52,38 +54,28 @@ class BuildRunnerRequireStrategyProvider {
     };
   }
 
-  Future<Map<String, String>> _moduleProvider(String entrypoint) async {
-    await _metadataProvider.initialize(entrypoint, update: true);
-    var modules = await _metadataProvider.modulePathToModule;
-    var sourceMaps = await _metadataProvider.moduleToSourceMap;
+  Future<Map<String, String>> _moduleProvider(
+          MetadataProvider metadataProvider) async =>
+      (await metadataProvider.moduleToModulePath).map((key, value) =>
+          MapEntry(key, stripTopLevelDirectory(removeJsExtension(value))));
 
-    _serverPathToModule.clear();
-    _moduleToServerPath.clear();
-    _moduleToSourceMapPath.clear();
+  Future<String> _moduleForServerPath(
+          MetadataProvider metadataProvider, String serverPath) async =>
+      (await metadataProvider.modulePathToModule).map((key, value) => MapEntry(
+          stripTopLevelDirectory(key), value))[relativizePath(serverPath)];
 
-    for (var modulePath in modules.keys) {
-      // modulePath is the path including top level directory and .js extension
-      var moduleName = modules[modulePath];
-      var serverPath = stripTopLevelDirectory(removeJsExtension(modulePath));
-      var sourceMap = stripTopLevelDirectory(sourceMaps[moduleName]);
-
-      _serverPathToModule[serverPath] = moduleName;
-      _moduleToServerPath[moduleName] = serverPath;
-      _moduleToSourceMapPath[moduleName] = sourceMap;
-    }
-    return _moduleToServerPath;
+  Future<String> _serverPathForModule(
+      MetadataProvider metadataProvider, String module) async {
+    var result = stripTopLevelDirectory(
+        (await metadataProvider.moduleToModulePath)[module] ?? '');
+    return result;
   }
 
-  String _moduleForServerPath(String serverPath) {
-    serverPath = relativizePath(removeJsExtension(serverPath));
-    return _serverPathToModule[serverPath];
+  Future<String> _sourceMapPathForModule(
+      MetadataProvider metadataProvider, String module) async {
+    var path = (await metadataProvider.moduleToSourceMap)[module] ?? '';
+    return stripTopLevelDirectory(path);
   }
-
-  String _serverPathForModule(String module) =>
-      addJsExtension(_moduleToServerPath[module]);
-
-  String _sourceMapPathForModule(String module) =>
-      _moduleToSourceMapPath[module];
 
   String _serverPathForAppUri(String appUri) {
     if (appUri.startsWith('org-dartlang-app:')) {

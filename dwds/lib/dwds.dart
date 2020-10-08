@@ -13,7 +13,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'data/build_result.dart';
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
-import 'src/debugging/metadata/provider.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injector.dart';
 import 'src/handlers/socket_connections.dart';
@@ -91,7 +90,9 @@ class Dwds {
     @required ConnectionProvider chromeConnection,
     @required LoadStrategy loadStrategy,
     @required bool enableDebugging,
-    @required MetadataProvider metadataProvider,
+    // TODO(annagrin): make expressionCompiler argument required
+    // [issue 881](https://github.com/dart-lang/webdev/issues/881)
+    ExpressionCompiler expressionCompiler,
     bool enableDebugExtension,
     String hostname,
     bool useSseForDebugProxy,
@@ -101,9 +102,6 @@ class Dwds {
     bool verbose,
     UrlEncoder urlEncoder,
     bool spawnDds = true,
-    // TODO(annagrin): make expressionCompiler argument required
-    // [issue 881](https://github.com/dart-lang/webdev/issues/881)
-    ExpressionCompiler expressionCompiler,
   }) async {
     hostname ??= 'localhost';
     enableDebugging ??= true;
@@ -152,7 +150,6 @@ class Dwds {
       devTools,
       assetReader,
       loadStrategy,
-      metadataProvider,
       hostname,
       verbose,
       logWriter,
