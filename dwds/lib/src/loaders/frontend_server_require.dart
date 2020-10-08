@@ -42,7 +42,7 @@ class FrontendServerRequireStrategyProvider {
 
   Future<String> _moduleForServerPath(
           MetadataProvider metadataProvider, String serverPath) async =>
-      (await metadataProvider.modulePathToModule)[relativizePath(serverPath)];
+      (await metadataProvider.modulePathToModule)[serverPath];
 
   Future<String> _serverPathForModule(
           MetadataProvider metadataProvider, String module) async =>
