@@ -18,7 +18,8 @@ class LegacyStrategy extends LoadStrategy {
   ///
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
-  final String Function(String entrypoint, String sourcePath)
+  final Future<String> Function(
+          MetadataProvider metadataProvider, String sourcePath)
       _moduleForServerPath;
 
   /// Returns the server path for the provided module.
@@ -27,7 +28,8 @@ class LegacyStrategy extends LoadStrategy {
   ///
   ///   web/main -> main.ddc.js
   ///
-  final String Function(String entrypoint, String module) _serverPathForModule;
+  final Future<String> Function(
+      MetadataProvider metadataProvider, String module) _serverPathForModule;
 
   /// Returns the source map path for the provided module.
   ///
@@ -35,8 +37,8 @@ class LegacyStrategy extends LoadStrategy {
   ///
   ///   web/main -> main.ddc.js.map
   ///
-  final String Function(String entrypoint, String module)
-      _sourceMapPathForModule;
+  final Future<String> Function(
+      MetadataProvider metadataProvider, String module) _sourceMapPathForModule;
 
   /// Returns the server path for the app uri.
   ///
@@ -84,16 +86,16 @@ class LegacyStrategy extends LoadStrategy {
   @override
   Future<String> moduleForServerPath(
           String entrypoint, String serverPath) async =>
-      _moduleForServerPath(entrypoint, serverPath);
+      _moduleForServerPath(metadataProviderFor(entrypoint), serverPath);
 
   @override
   Future<String> serverPathForModule(String entrypoint, String module) async =>
-      _serverPathForModule(entrypoint, module);
+      _serverPathForModule(metadataProviderFor(entrypoint), module);
 
   @override
   Future<String> sourceMapPathForModule(
           String entrypoint, String module) async =>
-      _sourceMapPathForModule(entrypoint, module);
+      _sourceMapPathForModule(metadataProviderFor(entrypoint), module);
 
   @override
   String serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);
