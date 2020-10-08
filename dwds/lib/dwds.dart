@@ -90,7 +90,9 @@ class Dwds {
     @required ConnectionProvider chromeConnection,
     @required LoadStrategy loadStrategy,
     @required bool enableDebugging,
-    @required ExpressionCompiler expressionCompiler,
+    // TODO(annagrin): make expressionCompiler argument required
+    // [issue 881](https://github.com/dart-lang/webdev/issues/881)
+    ExpressionCompiler expressionCompiler,
     bool enableDebugExtension,
     String hostname,
     bool useSseForDebugProxy,
