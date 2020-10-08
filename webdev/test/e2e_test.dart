@@ -272,6 +272,7 @@ void main() {
         '--no-enable-expression-evaluation',
       ];
       var process = await runWebDev(args, workingDirectory: exampleDirectory);
+      VmService vmService;
 
       try {
         // Wait for debug service Uri
@@ -282,7 +283,7 @@ void main() {
         }));
         expect(wsUri, isNotNull);
 
-        var vmService = await vmServiceConnectUri(wsUri);
+        vmService = await vmServiceConnectUri(wsUri);
         var vm = await vmService.getVM();
         var isolate = vm.isolates.first;
         var scripts = await vmService.getScripts(isolate.id);
@@ -307,9 +308,8 @@ void main() {
             () => vmService.evaluateInFrame(
                 isolate.id, event.topFrame.index, 'true'),
             throwsRPCError);
-
-        vmService.dispose();
       } finally {
+        vmService?.dispose();
         await exitWebdev(process);
         await process.shouldExit();
       }

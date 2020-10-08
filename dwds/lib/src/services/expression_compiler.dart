@@ -50,10 +50,10 @@ abstract class ExpressionCompiler {
       String moduleName,
       String expression);
 
-  /// Update full dill files for changed modules.
+  /// (Re)loads full dill files for changed modules.
   ///
   /// [modules]: moduleName -> full dill path
   ///
-  /// [updateDependencies] is called on application load.
+  /// [updateDependencies] is called during isolate creation.
   Future<bool> updateDependencies(Map<String, String> modules);
 }
