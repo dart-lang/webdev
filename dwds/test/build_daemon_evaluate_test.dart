@@ -56,6 +56,8 @@ void main() async {
       Isolate isolate;
       ScriptList scripts;
       ScriptRef mainScript;
+      ScriptRef libraryScript;
+      ScriptRef testLibraryScript;
       Stream<Event> stream;
 
       setUp(() async {
@@ -68,6 +70,10 @@ void main() async {
 
         mainScript = scripts.scripts
             .firstWhere((each) => each.uri.contains('main.dart'));
+        testLibraryScript = scripts.scripts
+            .firstWhere((each) => each.uri.contains('package:_testPackage/test_library.dart'));
+        libraryScript = scripts.scripts
+            .firstWhere((each) => each.uri.contains('package:_test/library.dart'));
       });
 
       tearDown(() async {
@@ -148,7 +154,7 @@ void main() async {
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
           var result = await service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'valueFromTestPackage');
+              isolate.id, event.topFrame.index, 'valueFromTestLibrary');
 
           expect(
               result,
@@ -201,6 +207,69 @@ void main() async {
               result,
               const TypeMatcher<InstanceRef>().having(
                   (instance) => instance.valueAsString, 'valueAsString', '42'));
+        });
+      });
+
+      test('evaluate expression in another library', () async {
+        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'formal');
+
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '13'));
+        });
+      }, solo: true);
+
+
+      test('evaluate expression in a class constructor in another library', () async {
+        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryConstructor', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'this.field');
+
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '1'));
+        });
+      }, skip: 
+      'Scope is not found for constructors:'
+      'https://github.com/dart-lang/sdk/issues/43728');
+
+      test('evaluate expression in caller frame', () async {
+        await onBreakPoint(isolate.id, testLibraryScript, 'printFromLibrary', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index+  1, 'local');
+
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '1'));
+        });
+      });
+
+      test('evaluate expression in a library in another package', () async {
+        await onBreakPoint(isolate.id, libraryScript, 'printFromPackage', () async {
+          var event = await stream.firstWhere(
+              (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'a');
+
+          expect(
+              result,
+              const TypeMatcher<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', 'Program'));
         });
       });
 

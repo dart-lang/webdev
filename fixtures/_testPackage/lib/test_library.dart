@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-int valueFromTestPackage = 3;
+int valueFromTestLibrary= 3;
 
 int testLibraryFunction(int formal) {
-  return formal;
+  return formal; // Breakpoint: testLibraryFunction
 }
 
 class ClassFromPackage {
   final int field;
   final int _field;
-  ClassFromPackage(this.field, this._field);
+  ClassFromPackage(this.field, this._field) {
+    print('Contructor'); // Breakpoint: testLibraryConstructor
+  }
 
   @override
   String toString() => 'field: $field, _field: $_field';
