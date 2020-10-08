@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:async/async.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:path/path.dart' as p;
@@ -19,44 +20,33 @@ import 'expression_compiler.dart';
 /// mode in an isolate and communicates with the isolate via send/receive
 /// ports. It also handles full dill file read requests from the isolate
 /// and redirects them to the asset server.
-///
-/// Expression compiler serivice provides following API for the client:
-///
-/// [updateDependencies] - (re)load changed full dill files into the
-/// expression compilation worker.
-///
-/// [compileExpressionToJs] - compile expression to JavaScript to support
-/// expression evaluation fetures in the debugger.
-///
-/// [stop] - stop the service.
 class ExpressionCompilerService implements ExpressionCompiler {
   Isolate _worker;
-  final Stream _responseStream;
+  final StreamQueue<dynamic> _responseQueue;
   final ReceivePort _receivePort;
   final SendPort _sendPort;
   final Handler _assetHandler;
   final String _target;
   final Function(Level, String) _logWriter;
-  Completer<dynamic> _requestCompleter;
 
   ExpressionCompilerService._(
     this._worker,
-    this._responseStream,
+    Stream _responseStream,
     this._receivePort,
     this._sendPort,
     this._assetHandler,
     this._target,
     this._logWriter,
-  ) {
-    _responseStream.listen((response) {
-      if (_requestCompleter == null) {
-        _logWriter(Level.WARNING,
-            'ExpressionCompilerService: unexpected response from isolate $response');
-        return;
-      }
-      _requestCompleter.complete(response);
-      _requestCompleter = null;
-    });
+  ) : _responseQueue = StreamQueue<dynamic>(_responseStream);
+
+  Future<dynamic> _getResponse(dynamic request) async {
+    _sendPort.send(request);
+    return (await _responseQueue.hasNext)
+        ? _responseQueue.next
+        : Future.value({
+            'succeeded': false,
+            'errors': ['compilation service response stream closed'],
+          });
   }
 
   /// Handles resource requests from expression compiler worker.
@@ -171,35 +161,30 @@ class ExpressionCompilerService implements ExpressionCompiler {
     return service;
   }
 
-  /// Update full dill files for changed modules.
+  /// (Re)loads full dill files for changed modules.
   ///
   /// [modules]: moduleName -> full dill path
   ///
-  /// [updateDependencies] needs to be called after every compilation
-  /// to update full dil files for changed modules that are loaded into
-  /// the expression compiler worker.
+  /// Needs to be called after every compilation to (re)load full dill files
+  /// for changed modules into the expression compiler worker.
   Future<bool> updateDependencies(Map<String, String> modules) async {
     if (_worker == null) {
       throw StateError('Expression compilation service has stopped');
     }
-    _requestCompleter = Completer<dynamic>();
 
     _logWriter(Level.INFO,
         'Updating dependencies for expression compilation service...');
     _logWriter(Level.FINEST, 'Dependencies: $modules');
 
-    _sendPort.send({
+    var event = await _getResponse({
       'command': 'UpdateDeps',
       'inputs': [
         for (var moduleName in modules.keys)
           {'path': modules[moduleName], 'moduleName': moduleName},
       ]
     });
-
-    var event = await _requestCompleter.future;
     var response = event as Map<String, dynamic>;
-
-    var result = response['succeeded'] as bool;
+    var result = response == null ? false : response['succeeded'] as bool;
     if (result) {
       _logWriter(
           Level.INFO, 'Updated dependencies for expression compilation.');
@@ -224,14 +209,13 @@ class ExpressionCompilerService implements ExpressionCompiler {
     if (_worker == null) {
       throw StateError('Expression compilation service has stopped');
     }
-    _requestCompleter = Completer<dynamic>();
 
     _logWriter(
         Level.FINEST,
         'ExpressionCompilerService: compiling '
         '"$expression" at $libraryUri:$line');
 
-    _sendPort.send({
+    var event = await _getResponse({
       'command': 'CompileExpression',
       'expression': expression,
       'line': line,
@@ -242,25 +226,27 @@ class ExpressionCompilerService implements ExpressionCompiler {
       'moduleName': moduleName,
     });
 
-    var event = await _requestCompleter.future;
     var response = event as Map<String, dynamic>;
-    var errors = response['errors'] as List<String>;
-    var error =
-        (errors == null || errors.isEmpty) ? '<unknown error>' : errors.first;
-    var succeeded = response['succeeded'] as bool;
-    var procedure = response['compiledProcedure'] as String;
-    var result = succeeded ? procedure : error;
+    var succeeded = false;
+    var result = '<unknown error>';
 
+    if (response != null) {
+      var errors = response['errors'] as List<String>;
+      var error =
+          (errors == null || errors.isEmpty) ? '<unknown error>' : errors.first;
+      var procedure = response['compiledProcedure'] as String;
+      succeeded = response['succeeded'] as bool;
+      result = succeeded ? procedure : error;
+    }
     return ExpressionCompilationResult(result, !succeeded);
   }
 
-  /// Stop the service
+  /// Stops the service.
   ///
   /// Terminates the isolate running expression compiler worker
   /// and marks the service as stopped.
   Future<void> stop() async {
     _sendPort.send({'command': 'Shutdown'});
-    _requestCompleter = null;
     _receivePort.close();
     _worker = null;
     _logWriter(Level.INFO, 'Stopped expression compilation service.');
