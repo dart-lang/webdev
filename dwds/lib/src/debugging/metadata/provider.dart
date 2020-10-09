@@ -152,7 +152,7 @@ class MetadataProvider {
 
     for (var library in metadata.libraries.values) {
       if (library.importUri.startsWith('file:/')) {
-        throw AbsoluteImportUriError(library.importUri);
+        throw AbsoluteImportUriException(library.importUri);
       }
       _libraries.add(library.importUri);
       _scripts[library.importUri] = [];
@@ -165,9 +165,9 @@ class MetadataProvider {
   }
 }
 
-class AbsoluteImportUriError implements Exception {
+class AbsoluteImportUriException implements Exception {
   final String importUri;
-  AbsoluteImportUriError(this.importUri);
+  AbsoluteImportUriException(this.importUri);
 
   @override
   String toString() => "AbsoluteImportUriError: '$importUri'";
