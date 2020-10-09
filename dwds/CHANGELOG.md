@@ -18,7 +18,7 @@
 - Require at least `dds` version `1.4.1`.
 - Require at least `build_web_compilers` version  `2.12.0`.
 - Update min sdk constraint to `>=2.10.0-99.0.dev`.
-- Update `MetadataProvider` to throw an `AbsoluteImportUriError` when
+- Update `MetadataProvider` to throw an `AbsoluteImportUriException` when
   absolute file paths are used in an import uri.
 
 **Breaking changes:**

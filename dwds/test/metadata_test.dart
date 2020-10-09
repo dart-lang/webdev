@@ -58,6 +58,6 @@ void main() {
         FakeAssetReader(_fileUriMetadata),
         (level, message) => printOnFailure(message));
     await expectLater(provider.libraries,
-        throwsA(const TypeMatcher<AbsoluteImportUriError>()));
+        throwsA(const TypeMatcher<AbsoluteImportUriException>()));
   });
 }
