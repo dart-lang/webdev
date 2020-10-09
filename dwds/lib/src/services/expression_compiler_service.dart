@@ -22,7 +22,7 @@ import 'expression_compiler.dart';
 /// and redirects them to the asset server.
 class ExpressionCompilerService implements ExpressionCompiler {
   Isolate _worker;
-  final StreamQueue<dynamic> _responseQueue;
+  final StreamQueue<Object> _responseQueue;
   final ReceivePort _receivePort;
   final SendPort _sendPort;
   final Handler _assetHandler;
@@ -31,22 +31,24 @@ class ExpressionCompilerService implements ExpressionCompiler {
 
   ExpressionCompilerService._(
     this._worker,
-    Stream _responseStream,
+    this._responseQueue,
     this._receivePort,
     this._sendPort,
     this._assetHandler,
     this._target,
     this._logWriter,
-  ) : _responseQueue = StreamQueue<dynamic>(_responseStream);
+  );
 
-  Future<dynamic> _getResponse(dynamic request) async {
+  /// Sends [request] on [_sendPort] and returns the next event from the
+  /// response stream.
+  Future<Map<String, Object>> _send(Map<String, Object> request) async {
     _sendPort.send(request);
-    return (await _responseQueue.hasNext)
-        ? _responseQueue.next
-        : Future.value({
+    return await _responseQueue.hasNext
+        ? await _responseQueue.next as Map<String, Object>
+        : {
             'succeeded': false,
             'errors': ['compilation service response stream closed'],
-          });
+          };
   }
 
   /// Handles resource requests from expression compiler worker.
@@ -151,12 +153,11 @@ class ExpressionCompilerService implements ExpressionCompiler {
       checked: false,
     );
 
-    // Wait to get the sendPort from the isolate
-    var stream = receivePort.asBroadcastStream();
-    var sendPort = await stream.first as SendPort;
+    var responseQueue = StreamQueue(receivePort);
+    var sendPort = await responseQueue.next as SendPort;
 
-    var service = ExpressionCompilerService._(isolate, stream, receivePort,
-        sendPort, assetHandler, target, logWriter);
+    var service = ExpressionCompilerService._(isolate, responseQueue,
+        receivePort, sendPort, assetHandler, target, logWriter);
 
     return service;
   }
@@ -171,14 +172,13 @@ class ExpressionCompilerService implements ExpressionCompiler {
         'Updating dependencies for expression compilation service...');
     _logWriter(Level.FINEST, 'Dependencies: $modules');
 
-    var event = await _getResponse({
+    var response = await _send({
       'command': 'UpdateDeps',
       'inputs': [
         for (var moduleName in modules.keys)
           {'path': modules[moduleName], 'moduleName': moduleName},
       ]
     });
-    var response = event as Map<String, dynamic>;
     var result = response == null ? false : response['succeeded'] as bool;
     if (result) {
       _logWriter(
@@ -210,7 +210,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
         'ExpressionCompilerService: compiling '
         '"$expression" at $libraryUri:$line');
 
-    var event = await _getResponse({
+    var response = await _send({
       'command': 'CompileExpression',
       'expression': expression,
       'line': line,
@@ -221,7 +221,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
       'moduleName': moduleName,
     });
 
-    var response = event as Map<String, dynamic>;
     var succeeded = false;
     var result = '<unknown error>';
 
