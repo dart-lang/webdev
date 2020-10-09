@@ -8,6 +8,5 @@ library test_library;
 int aVariable = 3;
 
 String concatenate(String a, String b) {
-  print('Concatenating $a and $b'); // breakPoint printFromPackage
-  return '$a$b';
+  return '$a$b'; // Breakpoint: Concatenate
 }

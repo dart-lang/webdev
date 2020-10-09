@@ -120,12 +120,13 @@ void main() async {
 
           expect(
               result,
-              const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString, 'valueAsString', '2'));
+              const TypeMatcher<ErrorRef>().having(
+                  (instance) => 
+                    instance.message, 
+                    'message', 
+                    contains("The getter '_field' isn't defined")));
         });
-      },
-          skip: 'Incorrect JavaScript for types from other libraries: '
-              'https://github.com/dart-lang/sdk/issues/43469');
+      });
 
       test('access instance fields after evaluation', () async {
         await onBreakPoint(isolate.id, mainScript, 'printField', () async {
@@ -154,7 +155,7 @@ void main() async {
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
           var result = await service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'valueFromTestLibrary');
+              isolate.id, event.topFrame.index, 'testLibraryValue');
 
           expect(
               result,
@@ -210,7 +211,7 @@ void main() async {
         });
       });
 
-      test('evaluate expression in another library', () async {
+      test('evaluate expression in _testPackage/test_library', () async {
         await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction', () async {
           var event = await stream.firstWhere(
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
@@ -221,13 +222,13 @@ void main() async {
           expect(
               result,
               const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString, 'valueAsString', '13'));
+                  (instance) => instance.valueAsString, 'valueAsString', '23'));
         });
-      }, solo: true);
+      });
 
 
-      test('evaluate expression in a class constructor in another library', () async {
-        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryConstructor', () async {
+      test('evaluate expression in a class constructor in _testPackage/test_library', () async {
+        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryClassConstructor', () async {
           var event = await stream.firstWhere(
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
@@ -244,22 +245,22 @@ void main() async {
       'https://github.com/dart-lang/sdk/issues/43728');
 
       test('evaluate expression in caller frame', () async {
-        await onBreakPoint(isolate.id, testLibraryScript, 'printFromLibrary', () async {
+        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction', () async {
           var event = await stream.firstWhere(
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
           var result = await service.evaluateInFrame(
-              isolate.id, event.topFrame.index+  1, 'local');
+              isolate.id, event.topFrame.index + 1, 'local');
 
           expect(
               result,
               const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString, 'valueAsString', '1'));
+                  (instance) => instance.valueAsString, 'valueAsString', '23'));
         });
       });
 
-      test('evaluate expression in a library in another package', () async {
-        await onBreakPoint(isolate.id, libraryScript, 'printFromPackage', () async {
+      test('evaluate expression in  _test/library', () async {
+        await onBreakPoint(isolate.id, libraryScript, 'Concatenate', () async {
           var event = await stream.firstWhere(
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
@@ -269,7 +270,7 @@ void main() async {
           expect(
               result,
               const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString, 'valueAsString', 'Program'));
+                  (instance) => instance.valueAsString, 'valueAsString', 'Hello'));
         });
       });
 

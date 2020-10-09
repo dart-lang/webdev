@@ -12,7 +12,7 @@ void main() {
   // For setting breakpoints.
   Timer.periodic(const Duration(seconds: 1), (_) {
     print('Count is: ${++count}');
-    print(valueFromTestLibrary);
+    print(testLibraryValue);
   });
 
   // for evaluation
@@ -33,13 +33,12 @@ void printLocal() {
 }
 
 void printField() {
-  var local = 1;
-  var instance = ClassFromPackage(local, 2);
+  var instance = TestLibraryClass(1, 2);
   print('$instance'); // Breakpoint: printField
 }
 
 void printGlobal() {
-  print(valueFromTestLibrary); // Breakpoint: printGlobal
+  print(testLibraryValue); // Breakpoint: printGlobal
 }
 
 void printFromTestPackage() {
@@ -47,5 +46,6 @@ void printFromTestPackage() {
 }
 
 void printFromTestLibrary() {
-  print(testLibraryFunction(13));
+  var local = 23;
+  print(testLibraryFunction(local));
 }
