@@ -72,6 +72,23 @@ class FrameComputer {
       await _collectAsyncFrames(dartFrames, frameIndex, asyncFrames);
     }
 
+    // The above method can return several kAsyncSuspensionMarkers together;
+    // remove duplicates.
+    if (dartFrames.length > 1) {
+      for (var i = dartFrames.length - 1; i >= 1; i--) {
+        if (dartFrames[i].kind == FrameKind.kAsyncSuspensionMarker &&
+            dartFrames[i - 1].kind == FrameKind.kAsyncSuspensionMarker) {
+          dartFrames.removeAt(i);
+        }
+      }
+    }
+
+    // Remove any trailing kAsyncSuspensionMarker frame.
+    if (dartFrames.isNotEmpty &&
+        dartFrames.last.kind == FrameKind.kAsyncSuspensionMarker) {
+      dartFrames.removeLast();
+    }
+
     return dartFrames;
   }
 

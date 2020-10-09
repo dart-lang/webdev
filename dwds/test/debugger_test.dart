@@ -12,8 +12,9 @@ import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
-    show DebuggerPausedEvent;
+    show CallFrame, DebuggerPausedEvent, StackTrace, WipCallFrame;
 
 import 'fixtures/context.dart';
 import 'fixtures/debugger_data.dart';
@@ -60,6 +61,28 @@ class FakeAssetReader implements AssetReader {
   Future<void> close() async {}
 }
 
+final sampleSyncFrame = WipCallFrame({
+  'callFrameId': '{"ordinal":0,"injectedScriptId":2}',
+  'functionName': '',
+  'functionLocation': {
+    'scriptId': '69',
+    'lineNumber': 88,
+    'columnNumber': 72,
+  },
+  'location': {'scriptId': '69', 'lineNumber': 37, 'columnNumber': 0},
+  'url': 'http://127.0.0.1:8081/foo.ddc.js',
+  'scopeChain': [],
+  'this': {'type': 'undefined'},
+});
+
+final sampleAsyncFrame = CallFrame({
+  'functionName': 'myFunc',
+  'url': 'http://127.0.0.1:8081/bar.ddc.js',
+  'scriptId': '71',
+  'lineNumber': 40,
+  'columnNumber': 1,
+});
+
 void main() async {
   setUpAll(() async {
     webkitDebugger = FakeWebkitDebugger();
@@ -82,9 +105,6 @@ void main() async {
   /// Test that we get expected variable values from a hard-coded
   /// stack frame.
   test('frames 1', () async {
-    // TODO: Generalize this and make it clearer and easier to test
-    // different cases.
-
     var stackComputer = FrameComputer(debugger, frames1);
     var frames = await stackComputer.calculateFrames();
     expect(frames, isNotNull);
@@ -92,6 +112,56 @@ void main() async {
     var firstFrame = frames[0];
     var frame1Variables = firstFrame.vars.map((each) => each.name).toList();
     expect(frame1Variables, ['a', 'b']);
+  });
+
+  test('creates async frames', () async {
+    var stackComputer = FrameComputer(
+      debugger,
+      [sampleSyncFrame],
+      asyncFrames: StackTrace({
+        'callFrames': [sampleAsyncFrame.json],
+        'parent': StackTrace({
+          'callFrames': [sampleAsyncFrame.json],
+        }).json,
+      }),
+    );
+
+    var frames = await stackComputer.calculateFrames();
+    expect(frames, hasLength(5));
+
+    expect(frames[0].kind, FrameKind.kRegular);
+    expect(frames[1].kind, FrameKind.kAsyncSuspensionMarker);
+    expect(frames[2].kind, FrameKind.kAsyncCausal);
+    expect(frames[3].kind, FrameKind.kAsyncSuspensionMarker);
+    expect(frames[4].kind, FrameKind.kAsyncCausal);
+  });
+
+  test('elides multiple async frames', () async {
+    var stackComputer = FrameComputer(
+      debugger,
+      [sampleSyncFrame],
+      asyncFrames: StackTrace({
+        'callFrames': [sampleAsyncFrame.json],
+        'parent': StackTrace({
+          'callFrames': [],
+          'parent': StackTrace({
+            'callFrames': [sampleAsyncFrame.json],
+            'parent': StackTrace({
+              'callFrames': [],
+            }).json,
+          }).json,
+        }).json,
+      }),
+    );
+
+    var frames = await stackComputer.calculateFrames();
+    expect(frames, hasLength(5));
+
+    expect(frames[0].kind, FrameKind.kRegular);
+    expect(frames[1].kind, FrameKind.kAsyncSuspensionMarker);
+    expect(frames[2].kind, FrameKind.kAsyncCausal);
+    expect(frames[3].kind, FrameKind.kAsyncSuspensionMarker);
+    expect(frames[4].kind, FrameKind.kAsyncCausal);
   });
 
   group('errors', () {
