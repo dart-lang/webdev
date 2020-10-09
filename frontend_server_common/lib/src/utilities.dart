@@ -6,10 +6,7 @@ import 'dart:io';
 
 import 'package:file/file.dart' as fs;
 import 'package:file/local.dart';
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-
-typedef LogWriter = void Function(Level, String);
 
 /// The path to the root directory of the SDK.
 final String _sdkDir = (() {

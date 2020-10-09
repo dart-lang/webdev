@@ -105,7 +105,7 @@ class FakeSseConnection implements SseSocketConnection {
 
 class FakeModules implements Modules {
   @override
-  void initialize() {}
+  void initialize(String entrypoint) {}
 
   @override
   Future<Uri> libraryForSource(String serverPath) {
@@ -135,14 +135,15 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   FakeWebkitDebugger() {
     globalLoadStrategy = RequireStrategy(
-      ReloadConfiguration.none,
-      (_) async => {},
-      (_) async => {},
-      (_) => null,
-      (_) => null,
-      (_) => null,
-      (_) => null,
-    );
+        ReloadConfiguration.none,
+        (_) async => {},
+        (_) async => {},
+        (_, __) async => null,
+        (_, __) async => null,
+        (_, __) async => null,
+        (_) => null,
+        null,
+        null);
   }
 
   @override
@@ -278,14 +279,22 @@ class FakeStrategy implements LoadStrategy {
   String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
 
   @override
-  String moduleForServerPath(String serverPath) => null;
+  Future<String> moduleForServerPath(String entrypoint, String serverPath) =>
+      null;
 
   @override
-  String serverPathForModule(String module) => null;
+  Future<String> serverPathForModule(String entrypoint, String module) => null;
 
   @override
-  String sourceMapPathForModule(String module) => null;
+  Future<String> sourceMapPathForModule(String entrypoint, String module) =>
+      null;
 
   @override
   String serverPathForAppUri(String appUri) => null;
+
+  @override
+  MetadataProvider metadataProviderFor(String entrypoint) => null;
+
+  @override
+  void trackEntrypoint(String entrypoint) {}
 }

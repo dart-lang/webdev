@@ -13,7 +13,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'data/build_result.dart';
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
-import 'src/debugging/metadata/provider.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injector.dart';
 import 'src/handlers/socket_connections.dart';
@@ -31,6 +30,8 @@ export 'src/handlers/dev_handler.dart' show AppConnectionException;
 export 'src/handlers/socket_connections.dart';
 export 'src/loaders/build_runner_require.dart'
     show BuildRunnerRequireStrategyProvider;
+export 'src/loaders/frontend_server_require.dart'
+    show FrontendServerRequireStrategyProvider;
 export 'src/loaders/legacy.dart' show LegacyStrategy;
 export 'src/loaders/require.dart' show RequireStrategy;
 export 'src/loaders/strategy.dart' show LoadStrategy, ReloadConfiguration;
@@ -43,6 +44,7 @@ export 'src/services/expression_compiler.dart'
     show ExpressionCompilationResult, ExpressionCompiler;
 export 'src/services/expression_compiler_service.dart'
     show ExpressionCompilerService;
+export 'src/utilities/shared.dart' show LogWriter;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
@@ -88,7 +90,9 @@ class Dwds {
     @required ConnectionProvider chromeConnection,
     @required LoadStrategy loadStrategy,
     @required bool enableDebugging,
-    @required MetadataProvider metadataProvider,
+    // TODO(annagrin): make expressionCompiler argument required
+    // [issue 881](https://github.com/dart-lang/webdev/issues/881)
+    ExpressionCompiler expressionCompiler,
     bool enableDebugExtension,
     String hostname,
     bool useSseForDebugProxy,
@@ -98,9 +102,6 @@ class Dwds {
     bool verbose,
     UrlEncoder urlEncoder,
     bool spawnDds = true,
-    // TODO(annagrin): make expressionCompiler argument required
-    // [issue 881](https://github.com/dart-lang/webdev/issues/881)
-    ExpressionCompiler expressionCompiler,
   }) async {
     hostname ??= 'localhost';
     enableDebugging ??= true;
@@ -149,7 +150,6 @@ class Dwds {
       devTools,
       assetReader,
       loadStrategy,
-      metadataProvider,
       hostname,
       verbose,
       logWriter,

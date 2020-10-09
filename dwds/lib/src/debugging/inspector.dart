@@ -20,7 +20,6 @@ import 'debugger.dart';
 import 'execution_context.dart';
 import 'instance.dart';
 import 'libraries.dart';
-import 'metadata/provider.dart';
 
 /// An inspector for a running Dart application contained in the
 /// [WipConnection].
@@ -48,7 +47,6 @@ class AppInspector extends Domain {
   final AppConnection appConnection;
   final ExecutionContext _executionContext;
 
-  final MetadataProvider metadataProvider;
   final LibraryHelper libraryHelper;
   final ClassHelper classHelper;
   final InstanceHelper instanceHelper;
@@ -64,7 +62,6 @@ class AppInspector extends Domain {
     this.isolate,
     this.remoteDebugger,
     this.debugger,
-    this.metadataProvider,
     this.libraryHelper,
     this.classHelper,
     this.instanceHelper,
@@ -106,7 +103,6 @@ class AppInspector extends Domain {
   static Future<AppInspector> initialize(
     AppConnection appConnection,
     RemoteDebugger remoteDebugger,
-    MetadataProvider metadataProvider,
     AssetReader assetReader,
     Locations locations,
     String root,
@@ -148,7 +144,6 @@ class AppInspector extends Domain {
       isolate,
       remoteDebugger,
       debugger,
-      metadataProvider,
       libraryHelper,
       classHelper,
       instanceHelper,
@@ -452,7 +447,9 @@ function($argsString) {
   /// reload the inspector will get re-created.
   Future<void> _populateScriptCaches() async {
     var libraryUris = [for (var library in isolate.libraries) library.uri];
-    var scripts = await metadataProvider.scripts;
+    var scripts = await globalLoadStrategy
+        .metadataProviderFor(appConnection.request.entrypointPath)
+        .scripts;
     // For all the non-dart: libraries, find their parts and create scriptRefs
     // for them.
     var userLibraries = libraryUris.where((uri) => !uri.startsWith('dart:'));

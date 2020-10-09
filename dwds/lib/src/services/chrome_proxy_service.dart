@@ -18,7 +18,6 @@ import '../debugging/execution_context.dart';
 import '../debugging/inspector.dart';
 import '../debugging/instance.dart';
 import '../debugging/location.dart';
-import '../debugging/metadata/provider.dart';
 import '../debugging/modules.dart';
 import '../debugging/remote_debugger.dart';
 import '../loaders/strategy.dart';
@@ -65,8 +64,6 @@ class ChromeProxyService implements VmServiceInterface {
 
   final Locations _locations;
 
-  final MetadataProvider _metadataProvider;
-
   final Modules _modules;
 
   final _debuggerCompleter = Completer<Debugger>();
@@ -84,6 +81,8 @@ class ChromeProxyService implements VmServiceInterface {
   final _previousBreakpoints = <Breakpoint>{};
 
   final LogWriter _logWriter;
+
+  final ExpressionCompiler _compiler;
   ExpressionEvaluator _expressionEvaluator;
 
   ChromeProxyService._(
@@ -91,20 +90,25 @@ class ChromeProxyService implements VmServiceInterface {
     this.uri,
     this._assetReader,
     this.remoteDebugger,
-    this._metadataProvider,
     this._modules,
     this._locations,
     this.executionContext,
     this._logWriter,
+    this._compiler,
   ) {
-    _debuggerCompleter.complete(Debugger.create(
+    var debugger = Debugger.create(
       remoteDebugger,
       _streamNotify,
       appInspectorProvider,
       _assetReader,
       _locations,
       uri,
-    ));
+    );
+    _expressionEvaluator = _compiler == null
+        ? null
+        : ExpressionEvaluator(
+            debugger, _locations, _modules, _compiler, _logWriter);
+    _debuggerCompleter.complete(debugger);
   }
 
   static Future<ChromeProxyService> create(
@@ -112,7 +116,6 @@ class ChromeProxyService implements VmServiceInterface {
       String tabUrl,
       AssetReader assetReader,
       LoadStrategy loadStrategy,
-      MetadataProvider metadataProvider,
       AppConnection appConnection,
       LogWriter logWriter,
       ExecutionContext executionContext,
@@ -132,25 +135,31 @@ class ChromeProxyService implements VmServiceInterface {
       pid: -1,
     );
 
-    var modules = Modules(metadataProvider, tabUrl);
+    var modules = Modules(tabUrl);
     var locations = Locations(assetReader, modules, tabUrl);
-    var service = ChromeProxyService._(vm, tabUrl, assetReader, remoteDebugger,
-        metadataProvider, modules, locations, executionContext, logWriter);
+    var service = ChromeProxyService._(
+      vm,
+      tabUrl,
+      assetReader,
+      remoteDebugger,
+      modules,
+      locations,
+      executionContext,
+      logWriter,
+      expressionCompiler,
+    );
     unawaited(service.createIsolate(appConnection));
-    await service.createEvaluator(expressionCompiler);
     return service;
   }
 
-  /// Creates expression evaluator to use in [evaluateInFrame]
-  ///
-  /// Expression evaluation is only supported with scenarios that
-  /// provide non-null [ExpressionCompiler] to [create].
-  /// Otherwise [evaluateInFrame] will throw unsupported exception.
-  Future<void> createEvaluator(ExpressionCompiler compiler) async {
-    _expressionEvaluator = compiler == null
-        ? null
-        : ExpressionEvaluator(
-            await _debugger, _locations, _modules, compiler, _logWriter);
+  /// Initializes metdata in [Locations], [Modules], and [ExpressionCompiler].
+  Future<void> _initializeEntrypoint(String entrypoint) async {
+    _locations.initialize(entrypoint);
+    _modules.initialize(entrypoint);
+    var metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
+    await _compiler?.updateDependencies(
+        (await metadataProvider.moduleToModulePath).map((key, value) =>
+            MapEntry(key, value.replaceAll('.js', '.full.dill'))));
   }
 
   /// Creates a new isolate.
@@ -164,16 +173,12 @@ class ChromeProxyService implements VmServiceInterface {
           'Cannot create multiple isolates for the same app');
     }
 
-    _locations.clearCache();
+    await _initializeEntrypoint(appConnection.request.entrypointPath);
 
-    await _metadataProvider.initialize(appConnection.request.entrypointPath);
-
-    _modules.initialize();
     (await _debugger).notifyPausedAtStart();
     _inspector = await AppInspector.initialize(
       appConnection,
       remoteDebugger,
-      _metadataProvider,
       _assetReader,
       _locations,
       uri,

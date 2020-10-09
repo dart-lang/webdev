@@ -16,17 +16,15 @@
   the code.
 - Require at least `devtools` and `devtools_server` version `0.9.2`.
 - Require at least `dds` version `1.4.1`.
-
-**Breaking changes:**
-
-- Change `Dwds.start` to require `MetadataProvider` as a parameter to:
-  - Enable connecting metadata provider with require strategy so we can
-    remove heuristucs and rely on metadata in mapping modules to paths.
-  - Enable connecting metadata provider with expression compilation service,
-    so that kernel files can be reloaded in the expression compilation
-    service when the metadata files are read.
 - Require at least `build_web_compilers` version  `2.12.0`.
 - Update min sdk constraint to `>=2.10.0-99.0.dev`.
+- Update `MetadataProvider` to throw an `AbsoluteImportUriError` when
+  absolute file paths are used in an import uri.
+
+**Breaking changes:**
+- Change `ExpressionCompiler` to require a new `updateDependencies` method.
+- Update a number of `LoadStrategy` APIs to remove heuristics and rely on
+  the `MetadataProvider`.
 
 ## 6.0.0
 

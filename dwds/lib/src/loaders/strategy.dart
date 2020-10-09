@@ -4,6 +4,9 @@
 
 import 'package:shelf/shelf.dart';
 
+import '../../dwds.dart';
+import '../utilities/shared.dart';
+
 LoadStrategy _globalLoadStrategy;
 
 set globalLoadStrategy(LoadStrategy strategy) => _globalLoadStrategy = strategy;
@@ -16,6 +19,12 @@ LoadStrategy get globalLoadStrategy {
 }
 
 abstract class LoadStrategy {
+  final AssetReader _assetReader;
+  final LogWriter _logWriter;
+  final _providers = <String, MetadataProvider>{};
+
+  LoadStrategy(this._assetReader, this._logWriter);
+
   /// The ID for this strategy.
   ///
   /// This ID is passed to the injected client so that it can react accordingly.
@@ -70,7 +79,7 @@ abstract class LoadStrategy {
   ///
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
-  String moduleForServerPath(String serverPath);
+  Future<String> moduleForServerPath(String entrypoint, String serverPath);
 
   /// Returns the server path for the provided module.
   ///
@@ -78,7 +87,7 @@ abstract class LoadStrategy {
   ///
   ///   web/main -> main.ddc.js
   ///
-  String serverPathForModule(String module);
+  Future<String> serverPathForModule(String entrypoint, String module);
 
   /// Returns the source map path for the provided module.
   ///
@@ -86,7 +95,7 @@ abstract class LoadStrategy {
   ///
   ///   web/main -> main.ddc.js.map
   ///
-  String sourceMapPathForModule(String module);
+  Future<String> sourceMapPathForModule(String entrypoint, String module);
 
   /// Returns the server path for the app uri.
   ///
@@ -97,6 +106,19 @@ abstract class LoadStrategy {
   /// Will return `null` if the provided uri is not
   /// an app URI.
   String serverPathForAppUri(String appUri);
+
+  /// Returns the [MetadataProvider] for the application located at the provided
+  /// [entrypoint].
+  MetadataProvider metadataProviderFor(String entrypoint) =>
+      _providers[entrypoint];
+
+  /// Initializes a [MetadataProvider] for the application located at the
+  /// provided [entrypoint].
+  void trackEntrypoint(String entrypoint) {
+    var metadataProvider =
+        MetadataProvider(entrypoint, _assetReader, _logWriter);
+    _providers[metadataProvider.entrypoint] = metadataProvider;
+  }
 }
 
 enum ReloadConfiguration { none, hotReload, hotRestart, liveReload }

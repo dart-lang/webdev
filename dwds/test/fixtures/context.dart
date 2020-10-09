@@ -6,15 +6,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:build_daemon/data/server_log.dart' as server_log;
 import 'package:dwds/dwds.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
+import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
@@ -150,7 +149,6 @@ class TestContext {
       Handler assetHandler;
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
-      MetadataProvider metadataProvider;
 
       port = await findUnusedPort();
       switch (compilationMode) {
@@ -200,11 +198,8 @@ class TestContext {
               expressionCompiler = ddcService;
             }
 
-            metadataProvider =
-                MetadataProvider(assetReader, ddcService, logWriter);
-
             requireStrategy = BuildRunnerRequireStrategyProvider(
-                    assetHandler, reloadConfiguration, metadataProvider)
+                    assetHandler, reloadConfiguration, assetReader, logWriter)
                 .strategy;
 
             buildResults = daemonClient.buildResults;
@@ -236,9 +231,8 @@ class TestContext {
             assetReader = webRunner.devFS.assetServer;
             assetHandler = webRunner.devFS.assetServer.handleRequest;
 
-            metadataProvider = MetadataProvider(assetReader, null, logWriter);
             requireStrategy = FrontendServerRequireStrategyProvider(
-                    reloadConfiguration, metadataProvider)
+                    reloadConfiguration, assetReader, logWriter)
                 .strategy;
 
             buildResults = const Stream<BuildResults>.empty();
@@ -279,7 +273,6 @@ class TestContext {
           assetHandler,
           assetReader,
           requireStrategy,
-          metadataProvider,
           pathToServe,
           buildResults,
           () async => connection,

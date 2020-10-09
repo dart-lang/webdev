@@ -4,12 +4,12 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'package:http/http.dart';
 
-import 'package:http/http.dart' as http;
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
+import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -117,28 +117,24 @@ class WebDevServer {
         root: options.target,
       );
 
-      ddcService = options.configuration.enableExpressionEvaluation
-          ? await ExpressionCompilerService.start(
-              options.configuration.hostname,
-              options.port,
-              options.target,
-              ddcAssetHandler,
-              logWriter,
-              options.configuration.verbose,
-            )
-          : null;
-
-      var metadataProvider =
-          MetadataProvider(assetReader, ddcService, logWriter);
-
-      var loadStrategy = BuildRunnerRequireStrategyProvider(
-              assetHandler, options.configuration.reload, metadataProvider)
+      var loadStrategy = BuildRunnerRequireStrategyProvider(assetHandler,
+              options.configuration.reload, assetReader, logWriter)
           .strategy;
+
+      if (options.configuration.enableExpressionEvaluation) {
+        ddcService = await ExpressionCompilerService.start(
+          options.configuration.hostname,
+          options.port,
+          options.target,
+          ddcAssetHandler,
+          logWriter,
+          options.configuration.verbose,
+        );
+      }
 
       dwds = await Dwds.start(
         hostname: options.configuration.hostname,
         assetReader: assetReader,
-        metadataProvider: metadataProvider,
         buildResults: filteredBuildResults,
         chromeConnection: () async =>
             (await Chrome.connectedInstance).chromeConnection,
