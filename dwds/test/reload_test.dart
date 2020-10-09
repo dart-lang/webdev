@@ -4,7 +4,6 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 5))
-
 import 'package:dwds/dwds.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -20,8 +19,8 @@ void main() {
     group('and with debugging', () {
       setUp(() async {
         await context.setUp(
-            reloadConfiguration: ReloadConfiguration.liveReload,
-            logWriter: (level, message) => printOnFailure(message));
+          reloadConfiguration: ReloadConfiguration.liveReload,
+        );
       });
 
       tearDown(() async {
@@ -42,9 +41,9 @@ void main() {
     group('and without debugging', () {
       setUp(() async {
         await context.setUp(
-            reloadConfiguration: ReloadConfiguration.liveReload,
-            enableDebugging: false,
-            logWriter: (level, message) => printOnFailure(message));
+          reloadConfiguration: ReloadConfiguration.liveReload,
+          enableDebugging: false,
+        );
       });
 
       tearDown(() async {
@@ -65,8 +64,7 @@ void main() {
 
   group('Injected client', () {
     setUp(() async {
-      await context.setUp(
-          logWriter: (level, message) => printOnFailure(message));
+      await context.setUp();
     });
 
     tearDown(() async {
@@ -194,8 +192,8 @@ void main() {
     group('and with debugging', () {
       setUp(() async {
         await context.setUp(
-            reloadConfiguration: ReloadConfiguration.hotRestart,
-            logWriter: (level, message) => printOnFailure(message));
+          reloadConfiguration: ReloadConfiguration.hotRestart,
+        );
       });
 
       tearDown(() async {
@@ -236,9 +234,9 @@ void main() {
     group('and without debugging', () {
       setUp(() async {
         await context.setUp(
-            reloadConfiguration: ReloadConfiguration.hotRestart,
-            enableDebugging: false,
-            logWriter: (level, message) => printOnFailure(message));
+          reloadConfiguration: ReloadConfiguration.hotRestart,
+          enableDebugging: false,
+        );
       });
 
       tearDown(() async {

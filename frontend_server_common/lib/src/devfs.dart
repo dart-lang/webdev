@@ -21,15 +21,15 @@ import 'utilities.dart';
 final String dartWebSdkPath = p.join(dartSdkPath, 'lib', 'dev_compiler');
 
 class WebDevFS {
-  WebDevFS(
-      {this.fileSystem,
-      this.hostname,
-      this.port,
-      this.packagesFilePath,
-      this.packagesPath,
-      this.root,
-      this.urlTunneller,
-      this.logWriter});
+  WebDevFS({
+    this.fileSystem,
+    this.hostname,
+    this.port,
+    this.packagesFilePath,
+    this.packagesPath,
+    this.root,
+    this.urlTunneller,
+  });
 
   final FileSystem fileSystem;
   TestAssetServer assetServer;
@@ -39,7 +39,6 @@ class WebDevFS {
   final String packagesPath;
   final String root;
   final UrlEncoder urlTunneller;
-  final LogWriter logWriter;
   Directory _savedCurrentDirectory;
   List<Uri> sources;
 
@@ -47,7 +46,7 @@ class WebDevFS {
     _savedCurrentDirectory = fileSystem.currentDirectory;
     fileSystem.currentDirectory = packagesPath;
     assetServer = await TestAssetServer.start(
-        fileSystem, root, hostname, port, urlTunneller, logWriter);
+        fileSystem, root, hostname, port, urlTunneller);
     return Uri.parse('http://$hostname:$port');
   }
 

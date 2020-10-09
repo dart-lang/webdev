@@ -10,12 +10,10 @@ import 'strategy.dart';
 class FrontendServerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
-  final LogWriter _logWriter;
 
   RequireStrategy _requireStrategy;
 
-  FrontendServerRequireStrategyProvider(
-      this._configuration, this._assetReader, this._logWriter);
+  FrontendServerRequireStrategyProvider(this._configuration, this._assetReader);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
@@ -26,7 +24,6 @@ class FrontendServerRequireStrategyProvider {
         _sourceMapPathForModule,
         _serverPathForAppUri,
         _assetReader,
-        _logWriter,
       );
 
   Future<Map<String, String>> _digestsProvider(

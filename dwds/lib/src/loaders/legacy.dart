@@ -57,8 +57,7 @@ class LegacyStrategy extends LoadStrategy {
     this._sourceMapPathForModule,
     this._serverPathForAppUri,
     AssetReader assetReader,
-    LogWriter logWriter,
-  ) : super(assetReader, logWriter);
+  ) : super(assetReader);
 
   @override
   Handler get handler => (request) => null;

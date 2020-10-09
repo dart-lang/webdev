@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:webdev/src/logging.dart';
 
-import '../logging.dart';
 import '../serve/dev_workflow.dart';
 import 'configuration.dart';
 import 'shared.dart';
@@ -85,8 +85,7 @@ refresh: Performs a full page refresh.
   Future<int> run() async {
     Configuration configuration;
     configuration = Configuration.fromArgs(argResults);
-    // Globally trigger verbose logs.
-    setVerbosity(configuration.verbose);
+    configureLogWriter(configuration.verbose);
     var pubspecLock = await readPubspecLock(configuration);
     // Forward remaining arguments as Build Options to the Daemon.
     // This isn't documented. Should it be advertised?

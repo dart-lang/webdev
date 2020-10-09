@@ -36,13 +36,11 @@ enum StdoutState { collectDiagnostic, collectDependencies }
 
 /// Handles stdin/stdout communication with the frontend server.
 class StdoutHandler {
-  final LogWriter _logWriter;
-
   void _printTrace(String message) {
-    _logWriter(Level.INFO, message);
+    Logger.root.info(message);
   }
 
-  StdoutHandler(this._logWriter, {this.consumer = printError}) {
+  StdoutHandler({this.consumer = printError}) {
     reset();
   }
 
@@ -306,8 +304,7 @@ class _RejectRequest extends _CompilationRequest {
 /// restarts the Flutter app.
 abstract class ResidentCompiler {
   factory ResidentCompiler(
-    String sdkRoot,
-    LogWriter logWriter, {
+    String sdkRoot, {
     String packagesPath,
     List<String> fileSystemRoots,
     String fileSystemScheme,
@@ -378,8 +375,7 @@ abstract class ResidentCompiler {
 @visibleForTesting
 class DefaultResidentCompiler implements ResidentCompiler {
   DefaultResidentCompiler(
-    String sdkRoot,
-    this._logWriter, {
+    String sdkRoot, {
     this.packagesPath,
     this.fileSystemRoots,
     this.fileSystemScheme,
@@ -387,12 +383,10 @@ class DefaultResidentCompiler implements ResidentCompiler {
     this.verbose,
     CompilerMessageConsumer compilerMessageConsumer = printError,
   })  : assert(sdkRoot != null),
-        _stdoutHandler =
-            StdoutHandler(_logWriter, consumer: compilerMessageConsumer),
+        _stdoutHandler = StdoutHandler(consumer: compilerMessageConsumer),
         // This is a URI, not a file path, so the forward slash is correct even on Windows.
         sdkRoot = sdkRoot.endsWith('/') ? sdkRoot : '$sdkRoot/';
 
-  final LogWriter _logWriter;
   final String packagesPath;
   final List<String> fileSystemRoots;
   final String fileSystemScheme;
@@ -400,7 +394,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
   final bool verbose;
 
   void _printTrace(String message) {
-    _logWriter(Level.INFO, message);
+    Logger.root.info(message);
   }
 
   @override

@@ -21,7 +21,6 @@ import 'src/readers/asset_reader.dart';
 import 'src/servers/devtools.dart';
 import 'src/servers/extension_backend.dart';
 import 'src/services/expression_compiler.dart';
-import 'src/utilities/shared.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
@@ -44,13 +43,13 @@ export 'src/services/expression_compiler.dart'
     show ExpressionCompilationResult, ExpressionCompiler;
 export 'src/services/expression_compiler_service.dart'
     show ExpressionCompilerService;
-export 'src/utilities/shared.dart' show LogWriter;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
 
 /// The Dart Web Debug Service.
 class Dwds {
+  static final _logger = Logger('DWDS');
   final Middleware middleware;
   final Handler handler;
   final DevTools _devTools;
@@ -98,8 +97,6 @@ class Dwds {
     bool useSseForDebugProxy,
     bool useSseForDebugBackend,
     bool serveDevTools,
-    LogWriter logWriter,
-    bool verbose,
     UrlEncoder urlEncoder,
     bool spawnDds = true,
   }) async {
@@ -109,8 +106,6 @@ class Dwds {
     useSseForDebugProxy ??= true;
     useSseForDebugBackend ??= true;
     serveDevTools ??= true;
-    logWriter ??= (level, message) => print(message);
-    verbose ??= false;
     globalLoadStrategy = loadStrategy;
 
     DevTools devTools;
@@ -136,7 +131,7 @@ class Dwds {
       devTools = await DevTools.start(hostname);
       var uri =
           Uri(scheme: 'http', host: devTools.hostname, port: devTools.port);
-      logWriter(Level.INFO, 'Serving DevTools at $uri\n');
+      _logger.info('Serving DevTools at $uri\n');
     }
 
     var injected = DwdsInjector(
@@ -151,8 +146,6 @@ class Dwds {
       assetReader,
       loadStrategy,
       hostname,
-      verbose,
-      logWriter,
       extensionBackend,
       urlEncoder,
       useSseForDebugProxy,

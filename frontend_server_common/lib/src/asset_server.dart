@@ -22,8 +22,13 @@ import 'package:shelf/shelf_io.dart' as shelf;
 import 'utilities.dart';
 
 class TestAssetServer implements AssetReader {
-  TestAssetServer(this._root, this._httpServer, this._packages,
-      this.internetAddress, this._fileSystem, this._logWriter);
+  TestAssetServer(
+    this._root,
+    this._httpServer,
+    this._packages,
+    this.internetAddress,
+    this._fileSystem,
+  );
 
   // Fallback to "application/octet-stream" on null which
   // makes no claims as to the structure of the data.
@@ -31,7 +36,7 @@ class TestAssetServer implements AssetReader {
   final FileSystem _fileSystem;
 
   void _printTrace(String message) {
-    _logWriter(Level.INFO, message);
+    Logger.root.info(message);
   }
 
   /// Start the web asset server on a [hostname] and [port].
@@ -39,18 +44,18 @@ class TestAssetServer implements AssetReader {
   /// Unhandled exceptions will throw a exception with the error and stack
   /// trace.
   static Future<TestAssetServer> start(
-      FileSystem fileSystem,
-      String root,
-      String hostname,
-      int port,
-      UrlEncoder urlTunneller,
-      LogWriter logWriter) async {
+    FileSystem fileSystem,
+    String root,
+    String hostname,
+    int port,
+    UrlEncoder urlTunneller,
+  ) async {
     var address = (await InternetAddress.lookup(hostname)).first;
     var httpServer = await HttpServer.bind(address, port);
     var packages = await loadPackagesFile(Uri.base.resolve('.packages'),
         loader: (Uri uri) => fileSystem.file(uri).readAsBytes());
-    var server = TestAssetServer(
-        root, httpServer, packages, address, fileSystem, logWriter);
+    var server =
+        TestAssetServer(root, httpServer, packages, address, fileSystem);
 
     return server;
   }
@@ -64,7 +69,6 @@ class TestAssetServer implements AssetReader {
   // ignore: deprecated_member_use
   final Packages _packages;
   final InternetAddress internetAddress;
-  final LogWriter _logWriter;
 
   Uint8List getFile(String path) => _files[path];
 

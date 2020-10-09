@@ -25,6 +25,8 @@
 - Change `ExpressionCompiler` to require a new `updateDependencies` method.
 - Update a number of `LoadStrategy` APIs to remove heuristics and rely on
   the `MetadataProvider`.
+- No longer require a `LogWriter` and corresponding `verbose` arguement
+  but instead properly use `package:logger`.
 
 ## 6.0.0
 

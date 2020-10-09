@@ -63,8 +63,7 @@ class DaemonCommand extends Command<int> {
     var configuration = Configuration.fromArgs(argResults,
         defaultConfiguration: Configuration(
             launchInChrome: true, debug: true, autoRun: false, release: false));
-    // Globally trigger verbose logs.
-    setVerbosity(configuration.verbose);
+    configureLogWriter(configuration.verbose);
     // Validate the pubspec first to ensure we are in a Dart project.
     var pubspecLock = await readPubspecLock(configuration);
 
@@ -83,8 +82,9 @@ class DaemonCommand extends Command<int> {
     try {
       daemon = Daemon(_stdinCommandStream, _stdoutCommandResponse);
       var daemonDomain = DaemonDomain(daemon);
-      setLogWriter((level, message, {loggerName, error, stackTrace, verbose}) {
-        if (verbose || level >= Level.INFO) {
+      configureLogWriter(configuration.verbose, customLogWriter:
+          (level, message, {loggerName, error, stackTrace, verbose}) {
+        if (configuration.verbose || level >= Level.INFO) {
           daemonDomain.sendEvent('daemon.log', {
             'log': formatLog(
               level,
@@ -92,7 +92,6 @@ class DaemonCommand extends Command<int> {
               loggerName: loggerName,
               error: error,
               stackTrace: stackTrace,
-              verbose: verbose,
             )
           });
         }

@@ -11,7 +11,6 @@ import '../debugging/location.dart';
 import '../debugging/modules.dart';
 import '../utilities/ddc_names.dart';
 import '../utilities/objects.dart' as chrome;
-import '../utilities/shared.dart' show LogWriter;
 import 'expression_compiler.dart';
 
 class ErrorKind {
@@ -37,10 +36,10 @@ class ExpressionEvaluator {
   final Locations _locations;
   final Modules _modules;
   final ExpressionCompiler _compiler;
-  final LogWriter _logWriter;
+  final _logger = Logger('ExpressionEvaluator');
 
-  ExpressionEvaluator(this._debugger, this._locations, this._modules,
-      this._compiler, this._logWriter);
+  ExpressionEvaluator(
+      this._debugger, this._locations, this._modules, this._compiler);
 
   RemoteObject _createError(ErrorKind severity, String message) {
     return RemoteObject(
@@ -106,8 +105,7 @@ class ExpressionEvaluator {
         await _modules.moduleForSource(dartLocation.uri.serverPath);
     var modules = await _modules.modules();
 
-    _logWriter(
-        Level.FINEST,
+    _logger.finest(
         'ExpressionEvaluator: evaluating "$expression" at $currentModule, '
         '$libraryUri:${dartLocation.line}:${dartLocation.column}');
 
@@ -186,8 +184,7 @@ class ExpressionEvaluator {
 
     // Return evaluation result or error
 
-    _logWriter(Level.FINEST,
-        'ExpressionEvaluator: evaluated "$expression" to $result');
+    _logger.finest('ExpressionEvaluator: evaluated "$expression" to $result');
 
     return result;
   }

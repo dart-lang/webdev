@@ -28,9 +28,8 @@ class ResidentWebRunner {
       this.fileSystemRoots,
       this.fileSystemScheme,
       this.outputPath,
-      this.logWriter,
       bool verbose) {
-    generator = ResidentCompiler(dartSdkPath, logWriter,
+    generator = ResidentCompiler(dartSdkPath,
         packagesPath: packagesPath,
         platformDill: '$platformDill',
         fileSystemRoots: fileSystemRoots,
@@ -39,7 +38,6 @@ class ResidentWebRunner {
     expressionCompiler = TestExpressionCompiler(generator);
   }
 
-  final LogWriter logWriter;
   final UrlEncoder urlTunneller;
   final String mainPath;
   final String packagesPath;
@@ -61,14 +59,14 @@ class ResidentWebRunner {
     assetBundle = AssetBundleFactory.defaultInstance.createBundle();
 
     devFS = WebDevFS(
-        fileSystem: fileSystem,
-        hostname: hostname,
-        port: port,
-        packagesFilePath: packagesFilePath,
-        packagesPath: packagesPath,
-        root: root,
-        urlTunneller: urlTunneller,
-        logWriter: logWriter);
+      fileSystem: fileSystem,
+      hostname: hostname,
+      port: port,
+      packagesFilePath: packagesFilePath,
+      packagesPath: packagesPath,
+      root: root,
+      urlTunneller: urlTunneller,
+    );
     uri = await devFS.create();
 
     var report = await _updateDevFS();

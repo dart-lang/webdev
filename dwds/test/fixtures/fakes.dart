@@ -141,7 +141,6 @@ class FakeWebkitDebugger implements WebkitDebugger {
         (_, __) async => null,
         (_, __) async => null,
         (_, __) async => null,
-        (_) => null,
         null,
         null);
   }
