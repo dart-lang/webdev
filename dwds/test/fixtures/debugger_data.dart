@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Contains hard-coded test data usable for tests.
-
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 // ignore_for_file: prefer_single_quotes
@@ -84,7 +83,7 @@ List<Map<String, dynamic>> frames1Json = [
         }
       }
     ],
-    "this": {"type": "undefined"}
+    "this": {"type": "undefined"},
   }
 ];
 
