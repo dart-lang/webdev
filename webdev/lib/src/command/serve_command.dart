@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:webdev/src/logging.dart';
 
+import '../logging.dart';
 import '../serve/dev_workflow.dart';
 import 'configuration.dart';
 import 'shared.dart';
