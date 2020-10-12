@@ -16,7 +16,10 @@ void configureLogWriter(bool verbose, {LogWriter customLogWriter}) {
   _verbose = verbose;
   _logWriter = customLogWriter ?? _logWriter;
   Logger.root.onRecord.listen((event) {
-    logWriter(event.level, event.message);
+    logWriter(event.level, event.message,
+        error: '${event.error}',
+        loggerName: event.loggerName,
+        stackTrace: '${event.stackTrace}');
   });
 }
 
