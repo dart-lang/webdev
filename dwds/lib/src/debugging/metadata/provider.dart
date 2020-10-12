@@ -14,7 +14,7 @@ import 'module_metadata.dart';
 /// A provider of metadata in which data is collected through DDC outputs.
 class MetadataProvider {
   final AssetReader _assetReader;
-  final _logger = Logger('MetadtaProvider');
+  final _logger = Logger('MetadataProvider');
   final String entrypoint;
   final _libraries = <String>[];
   final _scriptToModule = <String, String>{};

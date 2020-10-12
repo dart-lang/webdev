@@ -18,6 +18,7 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
+import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
@@ -57,6 +58,7 @@ class TestContext {
   File _entryFile;
   String _packagesFilePath;
   String _entryContents;
+  StreamSubscription<logging.LogRecord> _loggerSub;
 
   /// Top level directory in which we run the test server..
   String workingDirectory;
@@ -116,6 +118,10 @@ class TestContext {
     verbose ??= false;
 
     try {
+      _loggerSub = logging.Logger.root.onRecord.listen((event) {
+        printOnFailure(event.message);
+      });
+
       client = Client();
 
       var systemTempDir = Directory.systemTemp;
@@ -321,6 +327,7 @@ class TestContext {
     await testServer?.stop();
     client?.close();
     await _outputDir?.delete(recursive: true);
+    await _loggerSub?.cancel();
 
     // clear the state for next setup
     webDriver = null;
