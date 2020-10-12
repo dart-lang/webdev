@@ -12,17 +12,16 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
-import '../utilities/shared.dart' show LogWriter;
 import 'asset_reader.dart';
 
 /// A reader for resources provided by a proxy server.
 class ProxyServerAssetReader implements AssetReader {
-  final LogWriter _logWriter;
+  final _logger = Logger('ProxyServerAssetReader');
 
   Handler _handler;
   http.Client _client;
 
-  ProxyServerAssetReader(int assetServerPort, this._logWriter,
+  ProxyServerAssetReader(int assetServerPort,
       {String root, String host, bool isHttps}) {
     host ??= 'localhost';
     root ??= '';
@@ -52,7 +51,7 @@ class ProxyServerAssetReader implements AssetReader {
         await _handler(Request('GET', Uri.parse('http://foo:0000/$path')));
 
     if (response.statusCode != HttpStatus.ok) {
-      _logWriter(Level.WARNING, '''
+      _logger.warning('''
       Failed to load asset at path: $path.
 
       Status code: ${response.statusCode}

@@ -16,7 +16,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_proxy/shelf_proxy.dart';
 
 import '../command/configuration.dart';
-import '../logging.dart';
 import 'chrome.dart';
 import 'handlers/favicon_handler.dart';
 
@@ -113,12 +112,11 @@ class WebDevServer {
     if (options.configuration.enableInjectedClient) {
       var assetReader = ProxyServerAssetReader(
         options.daemonPort,
-        logWriter,
         root: options.target,
       );
 
-      var loadStrategy = BuildRunnerRequireStrategyProvider(assetHandler,
-              options.configuration.reload, assetReader, logWriter)
+      var loadStrategy = BuildRunnerRequireStrategyProvider(
+              assetHandler, options.configuration.reload, assetReader)
           .strategy;
 
       if (options.configuration.enableExpressionEvaluation) {
@@ -127,7 +125,6 @@ class WebDevServer {
           options.port,
           options.target,
           ddcAssetHandler,
-          logWriter,
           options.configuration.verbose,
         );
       }
@@ -138,11 +135,9 @@ class WebDevServer {
         buildResults: filteredBuildResults,
         chromeConnection: () async =>
             (await Chrome.connectedInstance).chromeConnection,
-        logWriter: logWriter,
         loadStrategy: loadStrategy,
         serveDevTools:
             options.configuration.debug || options.configuration.debugExtension,
-        verbose: options.configuration.verbose,
         enableDebugExtension: options.configuration.debugExtension,
         enableDebugging: options.configuration.debug,
         spawnDds: !options.configuration.disableDds,

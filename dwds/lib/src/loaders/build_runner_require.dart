@@ -17,12 +17,11 @@ class BuildRunnerRequireStrategyProvider {
   final Handler _assetHandler;
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
-  final LogWriter _logWriter;
 
   RequireStrategy _requireStrategy;
 
-  BuildRunnerRequireStrategyProvider(this._assetHandler, this._configuration,
-      this._assetReader, this._logWriter);
+  BuildRunnerRequireStrategyProvider(
+      this._assetHandler, this._configuration, this._assetReader);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
@@ -33,7 +32,6 @@ class BuildRunnerRequireStrategyProvider {
         _sourceMapPathForModule,
         _serverPathForAppUri,
         _assetReader,
-        _logWriter,
       );
 
   Future<Map<String, String>> _digestsProvider(

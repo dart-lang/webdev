@@ -47,7 +47,7 @@ class BuildCommand extends Command<int> {
         argResults.rest.where((arg) => arg.startsWith('-')).toList();
 
     var configuration = Configuration.fromArgs(argResults);
-    setVerbosity(configuration.verbose);
+    configureLogWriter(configuration.verbose);
     var pubspecLock = await readPubspecLock(configuration);
     final arguments = buildRunnerArgs(pubspecLock, configuration)
       ..addAll(extraArgs);

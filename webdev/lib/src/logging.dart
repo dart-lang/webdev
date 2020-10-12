@@ -12,8 +12,16 @@ typedef LogWriter = void Function(Level level, String message,
 
 var _verbose = false;
 
-/// Sets the verbosity of the current [logWriter].
-void setVerbosity(bool verbose) => _verbose = verbose;
+void configureLogWriter(bool verbose, {LogWriter customLogWriter}) {
+  _verbose = verbose;
+  _logWriter = customLogWriter ?? _logWriter;
+  Logger.root.onRecord.listen((event) {
+    logWriter(event.level, event.message,
+        error: '${event.error}',
+        loggerName: event.loggerName,
+        stackTrace: '${event.stackTrace}');
+  });
+}
 
 LogWriter _logWriter =
     (level, message, {String error, String loggerName, String stackTrace}) {
@@ -23,7 +31,6 @@ LogWriter _logWriter =
       error: error,
       loggerName: loggerName,
       stackTrace: stackTrace,
-      verbose: _verbose,
       withColors: true);
 
   if (level >= Level.INFO || _verbose) {
@@ -39,34 +46,16 @@ LogWriter _logWriter =
 
 LogWriter get logWriter => _logWriter;
 
-void setLogWriter(
-    void Function(Level, String,
-            {String error, String loggerName, String stackTrace, bool verbose})
-        newWriter) {
-  _logWriter = (level, message,
-          {String error, String loggerName, String stackTrace}) =>
-      newWriter(level, message,
-          error: error,
-          loggerName: loggerName,
-          stackTrace: stackTrace,
-          verbose: _verbose);
-}
-
 /// Colors the message and writes it to stdout.
 String formatLog(Level level, String message,
-    {bool withColors,
-    String error,
-    String loggerName,
-    String stackTrace,
-    bool verbose}) {
-  verbose ??= false;
+    {bool withColors, String error, String loggerName, String stackTrace}) {
   withColors ??= false;
   var buffer = StringBuffer(message);
   if (error != null) {
     buffer.writeln(error);
   }
 
-  if (verbose && stackTrace != null) {
+  if (_verbose && stackTrace != null) {
     buffer.writeln(stackTrace);
   }
 
@@ -84,7 +73,7 @@ String formatLog(Level level, String message,
   }
 
   var loggerNameOutput =
-      (loggerName != null && (verbose || loggerName.contains(' ')))
+      (loggerName != null && (_verbose || loggerName.contains(' ')))
           ? '$loggerName:'
           : '';
   return '$formattedLevel$loggerNameOutput $buffer';

@@ -55,8 +55,7 @@ class DevHandler {
   final _servicesByAppId = <String, AppDebugServices>{};
   final _appConnectionByAppId = <String, AppConnection>{};
   final Stream<BuildResult> buildResults;
-  final bool _verbose;
-  final void Function(Level, String) _logWriter;
+  final _logger = Logger('DevHandler');
   final Future<ChromeConnection> Function() _chromeConnection;
   final ExtensionBackend _extensionBackend;
   final StreamController<DebugConnection> extensionDebugConnections =
@@ -82,8 +81,6 @@ class DevHandler {
       this._assetReader,
       this._loadStrategy,
       this._hostname,
-      this._verbose,
-      this._logWriter,
       this._extensionBackend,
       this._urlEncoder,
       this._useSseForDebugProxy,
@@ -192,13 +189,9 @@ class DevHandler {
       _assetReader,
       _loadStrategy,
       appConnection,
-      _logWriter,
       onResponse: (response) {
-        if (_verbose) {
-          if (response['error'] == null) return;
-          _logWriter(Level.WARNING,
-              'VmService proxy responded with an error:\n$response');
-        }
+        if (response['error'] == null) return;
+        _logger.finest('VmService proxy responded with an error:\n$response');
         if (_enableLogging) {
           _log('vm', '<== ${response.toString().replaceAll('\n', ' ')}');
         }
@@ -235,9 +228,7 @@ class DevHandler {
           .whenComplete(() async {
         await appServices.close();
         _servicesByAppId.remove(appConnection.request.appId);
-        _logWriter(
-            Level.INFO,
-            'Stopped debug service on '
+        _logger.info('Stopped debug service on '
             'ws://${debugService.hostname}:${debugService.port}\n');
       }));
       _servicesByAppId[appId] = appServices;
@@ -431,9 +422,7 @@ class DevHandler {
     if (_spawnDds) {
       await debugService.startDartDevelopmentService();
     }
-    _logWriter(
-        Level.INFO,
-        'Debug service listening on '
+    _logger.info('Debug service listening on '
         '${debugService.uri}\n');
     return AppDebugServices(debugService, webdevClient);
   }
@@ -454,7 +443,7 @@ class DevHandler {
       if (connection == null) {
         // TODO(grouma) - Ideally we surface this warning to the extension so
         // that it can be displayed to the user through an alert.
-        _logWriter(Level.WARNING,
+        _logger.warning(
             'Not connected to an app with id: ${devToolsRequest.appId}');
         return;
       }
@@ -468,14 +457,11 @@ class DevHandler {
           _assetReader,
           _loadStrategy,
           connection,
-          _logWriter,
-          onResponse: _verbose
-              ? (response) {
-                  if (response['error'] == null) return;
-                  _logWriter(Level.WARNING,
-                      'VmService proxy responded with an error:\n$response');
-                }
-              : null,
+          onResponse: (response) {
+            if (response['error'] == null) return;
+            _logger
+                .finest('VmService proxy responded with an error:\n$response');
+          },
           useSse: _useSseForDebugProxy,
           expressionCompiler: _expressionCompiler,
           spawnDds: _spawnDds,
@@ -487,9 +473,7 @@ class DevHandler {
           appServices.chromeProxyService.destroyIsolate();
           await appServices.close();
           _servicesByAppId.remove(devToolsRequest.appId);
-          _logWriter(
-              Level.INFO,
-              'Stopped debug service on '
+          _logger.info('Stopped debug service on '
               '${appServices.debugService.uri}\n');
         }));
         extensionDebugConnections.add(DebugConnection(appServices));

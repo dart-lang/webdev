@@ -45,18 +45,18 @@ class FakeAssetReader implements AssetReader {
 void main() {
   test('can parse metadata with empty sources', () async {
     var provider = MetadataProvider(
-        'foo.bootstrap.js',
-        FakeAssetReader(_emptySourceMetadata),
-        (level, message) => printOnFailure(message));
+      'foo.bootstrap.js',
+      FakeAssetReader(_emptySourceMetadata),
+    );
     expect(await provider.libraries,
         contains('org-dartlang-app:///web/main.dart'));
   });
 
   test('throws on metadata with absolute import uris', () async {
     var provider = MetadataProvider(
-        'foo.bootstrap.js',
-        FakeAssetReader(_fileUriMetadata),
-        (level, message) => printOnFailure(message));
+      'foo.bootstrap.js',
+      FakeAssetReader(_fileUriMetadata),
+    );
     await expectLater(provider.libraries,
         throwsA(const TypeMatcher<AbsoluteImportUriException>()));
   });

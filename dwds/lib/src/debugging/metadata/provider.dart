@@ -9,13 +9,12 @@ import 'package:async/async.dart';
 import 'package:logging/logging.dart';
 
 import '../../readers/asset_reader.dart';
-import '../../utilities/shared.dart';
 import 'module_metadata.dart';
 
 /// A provider of metadata in which data is collected through DDC outputs.
 class MetadataProvider {
   final AssetReader _assetReader;
-  final LogWriter _logWriter;
+  final _logger = Logger('MetadataProvider');
   final String entrypoint;
   final _libraries = <String>[];
   final _scriptToModule = <String, String>{};
@@ -25,7 +24,7 @@ class MetadataProvider {
   final _scripts = <String, List<String>>{};
   final _metadataMemoizer = AsyncMemoizer();
 
-  MetadataProvider(this.entrypoint, this._assetReader, this._logWriter);
+  MetadataProvider(this.entrypoint, this._assetReader);
 
   /// A list of all libraries in the Dart application.
   ///
@@ -118,7 +117,7 @@ class MetadataProvider {
       // The merged metadata resides next to the entrypoint.
       // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
       if (entrypoint.endsWith('.bootstrap.js')) {
-        _logWriter(Level.INFO, 'Loading debug metadata...');
+        _logger.info('Loading debug metadata...');
         var serverPath =
             entrypoint.replaceAll('.bootstrap.js', '.ddc_merged_metadata');
         var merged = await _assetReader.metadataContents(serverPath);
@@ -132,15 +131,15 @@ class MetadataProvider {
               var metadata =
                   ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
               _addMetadata(metadata);
-              _logWriter(Level.FINEST,
-                  'Loaded debug metadata for module: ${metadata.name}');
+              _logger
+                  .fine('Loaded debug metadata for module: ${metadata.name}');
             } catch (e) {
-              _logWriter(Level.WARNING, 'Failed to read metadata: $e');
+              _logger.warning('Failed to read metadata: $e');
               rethrow;
             }
           }
         }
-        _logWriter(Level.INFO, 'Loaded debug metadata');
+        _logger.info('Loaded debug metadata');
       }
     });
   }

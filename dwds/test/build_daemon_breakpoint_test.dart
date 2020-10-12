@@ -5,10 +5,9 @@
 @TestOn('vm')
 import 'dart:async';
 
-import 'package:path/path.dart' as p;
-
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -28,8 +27,7 @@ WipConnection get tabConnection => context.tabConnection;
 void main() {
   group('shared context', () {
     setUpAll(() async {
-      await context.setUp(
-          logWriter: (level, message) => printOnFailure(message));
+      await context.setUp();
     });
 
     tearDownAll(() async {

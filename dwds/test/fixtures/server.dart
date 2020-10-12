@@ -8,7 +8,6 @@ import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
-import 'package:dwds/src/utilities/shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -55,25 +54,25 @@ class TestServer {
   }
 
   static Future<TestServer> start(
-      String hostname,
-      int port,
-      Handler assetHandler,
-      AssetReader assetReader,
-      RequireStrategy strategy,
-      String target,
-      Stream<daemon.BuildResults> buildResults,
-      Future<ChromeConnection> Function() chromeConnection,
-      bool serveDevTools,
-      bool enableDebugExtension,
-      bool autoRun,
-      bool enableDebugging,
-      bool useSse,
-      UrlEncoder urlEncoder,
-      bool restoreBreakpoints,
-      ExpressionCompiler expressionCompiler,
-      bool spawnDds,
-      ExpressionCompilerService ddcService,
-      LogWriter logWriter) async {
+    String hostname,
+    int port,
+    Handler assetHandler,
+    AssetReader assetReader,
+    RequireStrategy strategy,
+    String target,
+    Stream<daemon.BuildResults> buildResults,
+    Future<ChromeConnection> Function() chromeConnection,
+    bool serveDevTools,
+    bool enableDebugExtension,
+    bool autoRun,
+    bool enableDebugging,
+    bool useSse,
+    UrlEncoder urlEncoder,
+    bool restoreBreakpoints,
+    ExpressionCompiler expressionCompiler,
+    bool spawnDds,
+    ExpressionCompilerService ddcService,
+  ) async {
     var pipeline = const Pipeline();
 
     pipeline = pipeline.addMiddleware(_interceptFavicon);
@@ -96,7 +95,6 @@ class TestServer {
       assetReader: assetReader,
       buildResults: filteredBuildResults,
       chromeConnection: chromeConnection,
-      logWriter: logWriter,
       loadStrategy: strategy,
       spawnDds: spawnDds,
       serveDevTools: serveDevTools,
@@ -105,7 +103,6 @@ class TestServer {
       useSseForDebugProxy: useSse,
       useSseForDebugBackend: useSse,
       hostname: hostname,
-      verbose: true,
       urlEncoder: urlEncoder,
       expressionCompiler: expressionCompiler,
     );

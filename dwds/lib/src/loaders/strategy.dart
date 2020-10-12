@@ -5,7 +5,6 @@
 import 'package:shelf/shelf.dart';
 
 import '../../dwds.dart';
-import '../utilities/shared.dart';
 
 LoadStrategy _globalLoadStrategy;
 
@@ -20,10 +19,9 @@ LoadStrategy get globalLoadStrategy {
 
 abstract class LoadStrategy {
   final AssetReader _assetReader;
-  final LogWriter _logWriter;
   final _providers = <String, MetadataProvider>{};
 
-  LoadStrategy(this._assetReader, this._logWriter);
+  LoadStrategy(this._assetReader);
 
   /// The ID for this strategy.
   ///
@@ -115,8 +113,7 @@ abstract class LoadStrategy {
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].
   void trackEntrypoint(String entrypoint) {
-    var metadataProvider =
-        MetadataProvider(entrypoint, _assetReader, _logWriter);
+    var metadataProvider = MetadataProvider(entrypoint, _assetReader);
     _providers[metadataProvider.entrypoint] = metadataProvider;
   }
 }

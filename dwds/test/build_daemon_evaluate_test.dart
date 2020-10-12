@@ -6,10 +6,9 @@
 @TestOn('vm')
 import 'dart:async';
 
-import 'package:path/path.dart' as p;
-
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -45,10 +44,7 @@ void main() async {
 
   group('shared context with evaluation', () {
     setUpAll(() async {
-      await context.setUp(
-          enableExpressionEvaluation: true,
-          logWriter: (level, message) => printOnFailure(message),
-          verbose: false);
+      await context.setUp(enableExpressionEvaluation: true, verbose: false);
     });
 
     tearDownAll(() async {
@@ -241,10 +237,7 @@ void main() async {
 
   group('shared context with no evaluation', () {
     setUpAll(() async {
-      await context.setUp(
-          enableExpressionEvaluation: false,
-          logWriter: (level, message) => printOnFailure(message),
-          verbose: true);
+      await context.setUp(enableExpressionEvaluation: false, verbose: true);
     });
 
     tearDownAll(() async {

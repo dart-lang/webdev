@@ -199,7 +199,6 @@ class DebugService {
       AssetReader assetReader,
       LoadStrategy loadStrategy,
       AppConnection appConnection,
-      LogWriter logWriter,
       {void Function(Map<String, dynamic>) onRequest,
       void Function(Map<String, dynamic>) onResponse,
       bool spawnDds = true,
@@ -212,7 +211,6 @@ class DebugService {
         assetReader,
         loadStrategy,
         appConnection,
-        logWriter,
         executionContext,
         expressionCompiler);
     var authToken = _makeAuthToken();

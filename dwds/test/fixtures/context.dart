@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
-import 'package:build_daemon/data/server_log.dart' as server_log;
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
@@ -19,7 +18,7 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
-import 'package:logging/logging.dart';
+import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
@@ -59,6 +58,7 @@ class TestContext {
   File _entryFile;
   String _packagesFilePath;
   String _entryContents;
+  StreamSubscription<logging.LogRecord> _loggerSub;
 
   /// Top level directory in which we run the test server..
   String workingDirectory;
@@ -105,7 +105,6 @@ class TestContext {
       bool restoreBreakpoints,
       CompilationMode compilationMode,
       bool enableExpressionEvaluation,
-      LogWriter logWriter,
       bool verbose}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
@@ -115,11 +114,14 @@ class TestContext {
     waitToDebug ??= false;
     compilationMode ??= CompilationMode.buildDaemon;
     enableExpressionEvaluation ??= false;
-    logWriter ??= (Level level, String message) => printOnFailure(message);
     spawnDds ??= true;
     verbose ??= false;
 
     try {
+      _loggerSub = logging.Logger.root.onRecord.listen((event) {
+        printOnFailure(event.message);
+      });
+
       client = Client();
 
       var systemTempDir = Directory.systemTemp;
@@ -161,11 +163,8 @@ class TestContext {
               ],
               if (verbose) '--verbose',
             ];
-            daemonClient = await connectClient(
-                workingDirectory,
-                options,
-                (log) => logWriter(
-                    server_log.toLoggingLevel(log.level), log.message));
+            daemonClient = await connectClient(workingDirectory, options,
+                (log) => printOnFailure(log.message));
             daemonClient.registerBuildTarget(
                 DefaultBuildTarget((b) => b..target = pathToServe));
             daemonClient.startBuild();
@@ -179,8 +178,8 @@ class TestContext {
             assetHandler = proxyHandler(
                 'http://localhost:$assetServerPort/$pathToServe/',
                 client: client);
-            assetReader = ProxyServerAssetReader(assetServerPort, logWriter,
-                root: pathToServe);
+            assetReader =
+                ProxyServerAssetReader(assetServerPort, root: pathToServe);
 
             if (enableExpressionEvaluation) {
               var ddcAssetHandler = proxyHandler(
@@ -192,15 +191,16 @@ class TestContext {
                 port,
                 pathToServe,
                 ddcAssetHandler,
-                logWriter,
                 verbose,
               );
               expressionCompiler = ddcService;
             }
 
             requireStrategy = BuildRunnerRequireStrategyProvider(
-                    assetHandler, reloadConfiguration, assetReader, logWriter)
-                .strategy;
+              assetHandler,
+              reloadConfiguration,
+              assetReader,
+            ).strategy;
 
             buildResults = daemonClient.buildResults;
           }
@@ -218,7 +218,6 @@ class TestContext {
                 [fileSystemRoot],
                 'org-dartlang-app',
                 _outputDir.path,
-                logWriter,
                 verbose);
 
             var assetServerPort = await findUnusedPort();
@@ -232,8 +231,9 @@ class TestContext {
             assetHandler = webRunner.devFS.assetServer.handleRequest;
 
             requireStrategy = FrontendServerRequireStrategyProvider(
-                    reloadConfiguration, assetReader, logWriter)
-                .strategy;
+              reloadConfiguration,
+              assetReader,
+            ).strategy;
 
             buildResults = const Stream<BuildResults>.empty();
           }
@@ -268,25 +268,25 @@ class TestContext {
       var connection = ChromeConnection('localhost', debugPort);
 
       testServer = await TestServer.start(
-          hostname,
-          port,
-          assetHandler,
-          assetReader,
-          requireStrategy,
-          pathToServe,
-          buildResults,
-          () async => connection,
-          serveDevTools,
-          enableDebugExtension,
-          autoRun,
-          enableDebugging,
-          useSse,
-          urlEncoder,
-          restoreBreakpoints,
-          expressionCompiler,
-          spawnDds,
-          ddcService,
-          logWriter);
+        hostname,
+        port,
+        assetHandler,
+        assetReader,
+        requireStrategy,
+        pathToServe,
+        buildResults,
+        () async => connection,
+        serveDevTools,
+        enableDebugExtension,
+        autoRun,
+        enableDebugging,
+        useSse,
+        urlEncoder,
+        restoreBreakpoints,
+        expressionCompiler,
+        spawnDds,
+        ddcService,
+      );
 
       appUrl = 'http://localhost:$port/$path';
       await webDriver.get(appUrl);
@@ -327,6 +327,7 @@ class TestContext {
     await testServer?.stop();
     client?.close();
     await _outputDir?.delete(recursive: true);
+    await _loggerSub?.cancel();
 
     // clear the state for next setup
     webDriver = null;
