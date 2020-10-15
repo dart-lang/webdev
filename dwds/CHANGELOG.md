@@ -27,6 +27,7 @@
   the `MetadataProvider`.
 - No longer require a `LogWriter` and corresponding `verbose` arguement
   but instead properly use `package:logger`.
+- `FrontendServerRequireStrategyProvider` now requires a `digestProvider`.
 
 ## 6.0.0
 
