@@ -231,9 +231,7 @@ class TestContext {
             assetHandler = webRunner.devFS.assetServer.handleRequest;
 
             requireStrategy = FrontendServerRequireStrategyProvider(
-              reloadConfiguration,
-              assetReader,
-            ).strategy;
+                reloadConfiguration, assetReader, () async => {}).strategy;
 
             buildResults = const Stream<BuildResults>.empty();
           }

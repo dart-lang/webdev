@@ -10,27 +10,23 @@ import 'strategy.dart';
 class FrontendServerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
+  final Future<Map<String, String>> Function() _digestsProvider;
 
   RequireStrategy _requireStrategy;
 
-  FrontendServerRequireStrategyProvider(this._configuration, this._assetReader);
+  FrontendServerRequireStrategyProvider(
+      this._configuration, this._assetReader, this._digestsProvider);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
         _moduleProvider,
-        _digestsProvider,
+        (_) => _digestsProvider(),
         _moduleForServerPath,
         _serverPathForModule,
         _sourceMapPathForModule,
         _serverPathForAppUri,
         _assetReader,
       );
-
-  Future<Map<String, String>> _digestsProvider(
-      MetadataProvider metadataProvider) async {
-    // TODO(grouma) - provide actual digests.
-    return {};
-  }
 
   Future<Map<String, String>> _moduleProvider(
           MetadataProvider metadataProvider) async =>
