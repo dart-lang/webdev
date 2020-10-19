@@ -14,6 +14,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/logging.dart';
 
 final context = TestContext(
     directory: p.join('..', 'fixtures', '_testPackage'),
@@ -44,7 +45,13 @@ void main() async {
 
   group('shared context with evaluation', () {
     setUpAll(() async {
-      await context.setUp(enableExpressionEvaluation: true, verbose: false);
+      // Note: change printOnFailure to print for debug printing
+      configureLogWriter(
+          customLogWriter: (level, message,
+                  {loggerName, error, stackTrace, verbose}) =>
+              printOnFailure(message));
+
+      await context.setUp(enableExpressionEvaluation: true, verbose: true);
     });
 
     tearDownAll(() async {
@@ -70,10 +77,10 @@ void main() async {
 
         mainScript = scripts.scripts
             .firstWhere((each) => each.uri.contains('main.dart'));
-        testLibraryScript = scripts.scripts
-            .firstWhere((each) => each.uri.contains('package:_testPackage/test_library.dart'));
-        libraryScript = scripts.scripts
-            .firstWhere((each) => each.uri.contains('package:_test/library.dart'));
+        testLibraryScript = scripts.scripts.firstWhere((each) =>
+            each.uri.contains('package:_testPackage/test_library.dart'));
+        libraryScript = scripts.scripts.firstWhere(
+            (each) => each.uri.contains('package:_test/library.dart'));
       });
 
       tearDown(() async {
@@ -121,10 +128,9 @@ void main() async {
           expect(
               result,
               const TypeMatcher<ErrorRef>().having(
-                  (instance) => 
-                    instance.message, 
-                    'message', 
-                    contains("The getter '_field' isn't defined")));
+                  (instance) => instance.message,
+                  'message',
+                  contains("The getter '_field' isn't defined")));
         });
       });
 
@@ -212,7 +218,8 @@ void main() async {
       });
 
       test('evaluate expression in _testPackage/test_library', () async {
-        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction', () async {
+        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction',
+            () async {
           var event = await stream.firstWhere(
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
@@ -226,9 +233,12 @@ void main() async {
         });
       });
 
-
-      test('evaluate expression in a class constructor in _testPackage/test_library', () async {
-        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryClassConstructor', () async {
+      test(
+          'evaluate expression in a class constructor in _testPackage/test_library',
+          () async {
+        await onBreakPoint(
+            isolate.id, testLibraryScript, 'testLibraryClassConstructor',
+            () async {
           var event = await stream.firstWhere(
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
@@ -240,12 +250,13 @@ void main() async {
               const TypeMatcher<InstanceRef>().having(
                   (instance) => instance.valueAsString, 'valueAsString', '1'));
         });
-      }, skip: 
-      'Scope is not found for constructors:'
-      'https://github.com/dart-lang/sdk/issues/43728');
+      },
+          skip: 'Scope is not found for constructors:'
+              'https://github.com/dart-lang/sdk/issues/43728');
 
       test('evaluate expression in caller frame', () async {
-        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction', () async {
+        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction',
+            () async {
           var event = await stream.firstWhere(
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
@@ -270,7 +281,9 @@ void main() async {
           expect(
               result,
               const TypeMatcher<InstanceRef>().having(
-                  (instance) => instance.valueAsString, 'valueAsString', 'Hello'));
+                  (instance) => instance.valueAsString,
+                  'valueAsString',
+                  'Hello'));
         });
       });
 
@@ -307,7 +320,7 @@ void main() async {
 
   group('shared context with no evaluation', () {
     setUpAll(() async {
-      await context.setUp(enableExpressionEvaluation: false, verbose: true);
+      await context.setUp(enableExpressionEvaluation: false, verbose: false);
     });
 
     tearDownAll(() async {

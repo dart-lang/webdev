@@ -153,9 +153,14 @@ class ChromeProxyService implements VmServiceInterface {
     _locations.initialize(entrypoint);
     _modules.initialize(entrypoint);
     var metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
-    await _compiler?.updateDependencies(
-        (await metadataProvider.moduleToModulePath).map((key, value) =>
-            MapEntry(key, value.replaceAll('.js', '.full.dill'))));
+    var modules = await metadataProvider.moduleToModulePath;
+    var dependencies = <String, String>{};
+    for (var module in modules.keys) {
+      var serverPath =
+          await globalLoadStrategy.serverPathForModule(entrypoint, module);
+      dependencies[module] = serverPath.replaceAll('.js', '.full.dill');
+    }
+    await _compiler?.updateDependencies(dependencies);
   }
 
   /// Creates a new isolate.

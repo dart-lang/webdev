@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:io/ansi.dart';
@@ -11,15 +12,17 @@ typedef LogWriter = void Function(Level level, String message,
     {String error, String loggerName, String stackTrace});
 
 var _verbose = false;
+StreamSubscription<LogRecord> _subscription;
 
 void configureLogWriter(bool verbose, {LogWriter customLogWriter}) {
   _verbose = verbose;
   _logWriter = customLogWriter ?? _logWriter;
-  Logger.root.onRecord.listen((event) {
+  Logger.root.level = verbose ? Level.ALL : Level.INFO;
+  _subscription ??= Logger.root.onRecord.listen((event) {
     logWriter(event.level, event.message,
-        error: '${event.error}',
+        error: event.error?.toString(),
         loggerName: event.loggerName,
-        stackTrace: '${event.stackTrace}');
+        stackTrace: event.stackTrace?.toString());
   });
 }
 

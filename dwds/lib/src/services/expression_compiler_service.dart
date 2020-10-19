@@ -27,16 +27,9 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final ReceivePort _receivePort;
   final SendPort _sendPort;
   final Handler _assetHandler;
-  final String _target;
 
-  ExpressionCompilerService._(
-    this._worker,
-    this._responseQueue,
-    this._receivePort,
-    this._sendPort,
-    this._assetHandler,
-    this._target,
-  );
+  ExpressionCompilerService._(this._worker, this._responseQueue,
+      this._receivePort, this._sendPort, this._assetHandler);
 
   /// Sends [request] on [_sendPort] and returns the next event from the
   /// response stream.
@@ -63,8 +56,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
     var uri = request.requestedUri.queryParameters['uri'];
     var query = request.requestedUri.path;
 
-    _logger
-        .finest('ExpressionCompilerService: request: ${request.requestedUri}');
+    _logger.finest('request: ${request.requestedUri}');
 
     if (query != '/getResource' || uri == null) {
       return Response.notFound(uri);
@@ -77,11 +69,9 @@ class ExpressionCompilerService implements ExpressionCompiler {
     var serverPath = uri;
     if (uri.endsWith('.dart')) {
       serverPath = DartUri(uri).serverPath;
-      serverPath = '$_target/$serverPath';
     }
 
-    _logger
-        .finest('ExpressionCompilerService: serverpath for $uri: $serverPath');
+    _logger.finest('serverpath for $uri: $serverPath');
 
     request = Request(
         'GET',
@@ -108,7 +98,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
   static Future<ExpressionCompilerService> start(
     String address,
     int port,
-    String target,
     Handler assetHandler,
     bool verbose,
   ) async {
@@ -135,7 +124,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       if (verbose) '--verbose',
     ];
 
-    _logger.info('Starting expression compilation service...');
+    _logger.info('Starting...');
     _logger.finest('$workerUri ${args.join(' ')}');
 
     final receivePort = ReceivePort();
@@ -154,7 +143,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
     var sendPort = await responseQueue.next as SendPort;
 
     var service = ExpressionCompilerService._(
-        isolate, responseQueue, receivePort, sendPort, assetHandler, target);
+        isolate, responseQueue, receivePort, sendPort, assetHandler);
 
     return service;
   }
@@ -165,7 +154,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       throw StateError('Expression compilation service has stopped');
     }
 
-    _logger.info('Updating dependencies for expression compilation service...');
+    _logger.info('Updating dependencies...');
     _logger.finest('Dependencies: $modules');
 
     var response = await _send({
@@ -177,9 +166,9 @@ class ExpressionCompilerService implements ExpressionCompiler {
     });
     var result = response == null ? false : response['succeeded'] as bool;
     if (result) {
-      _logger.info('Updated dependencies for expression compilation.');
+      _logger.info('Updated dependencies.');
     } else {
-      _logger.info('Failed to update dependencies for expression compilation.');
+      _logger.info('Failed to update dependencies.');
     }
     return result;
   }
@@ -199,8 +188,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       throw StateError('Expression compilation service has stopped');
     }
 
-    _logger.finest('ExpressionCompilerService: compiling '
-        '"$expression" at $libraryUri:$line');
+    _logger.finest('compiling "$expression" at $libraryUri:$line');
 
     var response = await _send({
       'command': 'CompileExpression',
@@ -235,6 +223,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
     _sendPort.send({'command': 'Shutdown'});
     _receivePort.close();
     _worker = null;
-    _logger.info('Stopped expression compilation service.');
+    _logger.info('Stopped.');
   }
 }
