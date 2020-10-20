@@ -51,7 +51,7 @@ void main() async {
                   {loggerName, error, stackTrace, verbose}) =>
               printOnFailure(message));
 
-      await context.setUp(enableExpressionEvaluation: true, verbose: true);
+      await context.setUp(enableExpressionEvaluation: true, verbose: false);
     });
 
     tearDownAll(() async {
