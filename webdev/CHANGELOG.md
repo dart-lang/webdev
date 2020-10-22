@@ -7,7 +7,7 @@
 - Fix issue where open http connections prevent the process for exiting.
 - Add expression evaluation feature under `--enable-expression-evaluation`
   flag passed to `webdev` commands. The feature is disabled by default.
-- Update min sdk constraint to `>=2.10.0-99.0.dev`.
+- Update min sdk constraint to `>=2.10.0`.
 
 ## 2.6.2
 

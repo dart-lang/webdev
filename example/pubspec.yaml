@@ -2,7 +2,7 @@ name: webdev_example_app
 description: A web app example for webdev CLI.
 
 environment:
-  sdk: ">=2.10.0-99.0.dev <3.0.0"
+  sdk: ">=2.10.0 <3.0.0"
 
 dev_dependencies:
   build_runner: '>=1.6.2 <2.0.0'

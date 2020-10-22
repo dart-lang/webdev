@@ -1,4 +1,4 @@
-## Unreleased 7.0.0-dev.1
+## 7.0.0
 
 - Add support for the Dart Development Service (DDS). Introduces 'single
   client mode', which prevents additional direct connections to DWDS when
@@ -17,7 +17,7 @@
 - Require at least `devtools` and `devtools_server` version `0.9.2`.
 - Require at least `dds` version `1.4.1`.
 - Require at least `build_web_compilers` version  `2.12.0`.
-- Update min sdk constraint to `>=2.10.0-99.0.dev`.
+- Update min sdk constraint to `>=2.10.0`.
 - Update `MetadataProvider` to throw an `AbsoluteImportUriException` when
   absolute file paths are used in an import uri.
 
