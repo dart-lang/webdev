@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
+import 'package:build_daemon/data/server_log.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/frontend_server_require.dart';
@@ -27,6 +28,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'logging.dart';
 import 'server.dart';
 import 'utilities.dart';
 
@@ -58,7 +60,7 @@ class TestContext {
   File _entryFile;
   String _packagesFilePath;
   String _entryContents;
-  StreamSubscription<logging.LogRecord> _loggerSub;
+  final _logger = logging.Logger('TestContext');
 
   /// Top level directory in which we run the test server..
   String workingDirectory;
@@ -118,9 +120,7 @@ class TestContext {
     verbose ??= false;
 
     try {
-      _loggerSub = logging.Logger.root.onRecord.listen((event) {
-        printOnFailure(event.message);
-      });
+      configureLogWriter();
 
       client = Client();
 
@@ -164,7 +164,7 @@ class TestContext {
               if (verbose) '--verbose',
             ];
             daemonClient = await connectClient(workingDirectory, options,
-                (log) => printOnFailure(log.message));
+                (log) => _logger.log(toLoggingLevel(log.level), log.message));
             daemonClient.registerBuildTarget(
                 DefaultBuildTarget((b) => b..target = pathToServe));
             daemonClient.startBuild();
@@ -182,15 +182,10 @@ class TestContext {
                 ProxyServerAssetReader(assetServerPort, root: pathToServe);
 
             if (enableExpressionEvaluation) {
-              var ddcAssetHandler = proxyHandler(
-                  'http://localhost:$assetServerPort/',
-                  client: client);
-
               ddcService = await ExpressionCompilerService.start(
                 'localhost',
                 port,
-                pathToServe,
-                ddcAssetHandler,
+                assetHandler,
                 verbose,
               );
               expressionCompiler = ddcService;
@@ -325,7 +320,7 @@ class TestContext {
     await testServer?.stop();
     client?.close();
     await _outputDir?.delete(recursive: true);
-    await _loggerSub?.cancel();
+    stopLogWriter();
 
     // clear the state for next setup
     webDriver = null;

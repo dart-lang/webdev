@@ -105,8 +105,7 @@ class WebDevServer {
     var assetHandler = proxyHandler(
         'http://localhost:${options.daemonPort}/${options.target}/',
         client: client);
-    var ddcAssetHandler =
-        proxyHandler('http://localhost:${options.daemonPort}/', client: client);
+
     Dwds dwds;
     ExpressionCompilerService ddcService;
     if (options.configuration.enableInjectedClient) {
@@ -123,8 +122,7 @@ class WebDevServer {
         ddcService = await ExpressionCompilerService.start(
           options.configuration.hostname,
           options.port,
-          options.target,
-          ddcAssetHandler,
+          assetHandler,
           options.configuration.verbose,
         );
       }

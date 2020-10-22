@@ -7,12 +7,19 @@ import 'dart:html';
 import 'package:_test/library.dart';
 import 'package:_testPackage/test_library.dart';
 
+extension NumberParsing on String {
+  int parseInt() {
+    var ret = int.parse(this);
+    return ret; // Breakpoint: extension
+  }
+}
+
 void main() {
   var count = 0;
   // For setting breakpoints.
   Timer.periodic(const Duration(seconds: 1), (_) {
     print('Count is: ${++count}');
-    print(valueFromTestPackage);
+    print(testLibraryValue);
   });
 
   // for evaluation
@@ -20,6 +27,9 @@ void main() {
     printLocal();
     printField();
     printGlobal();
+    printFromTestLibrary();
+    printFromTestPackage();
+    printCallExtension();
   });
 
   document.body.appendText(concatenate('Program', ' is running!'));
@@ -31,10 +41,24 @@ void printLocal() {
 }
 
 void printField() {
-  var instance = ClassFromPackage(1, 2);
+  var instance = TestLibraryClass(1, 2);
   print('$instance'); // Breakpoint: printField
 }
 
 void printGlobal() {
-  print(valueFromTestPackage); // Breakpoint: printGlobal
+  print(testLibraryValue); // Breakpoint: printGlobal
+}
+
+void printFromTestPackage() {
+  print(concatenate('Hello', ' World'));
+}
+
+void printFromTestLibrary() {
+  var local = 23;
+  print(testLibraryFunction(local));
+}
+
+void printCallExtension() {
+  var local = '23';
+  print(local.parseInt());
 }

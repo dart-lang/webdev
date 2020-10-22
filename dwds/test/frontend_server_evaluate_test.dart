@@ -92,7 +92,7 @@ void main() async {
             (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
         var result = await service.evaluateInFrame(
-            isolate.id, event.topFrame.index, 'valueFromTestPackage');
+            isolate.id, event.topFrame.index, 'testLibraryValue');
 
         expect(
             result,
