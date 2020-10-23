@@ -204,7 +204,7 @@ class Locations {
     if (_moduleToLocations[module] != null) return _moduleToLocations[module];
     var result = <Location>{};
     if (module?.isEmpty ?? true) return _moduleToLocations[module] = result;
-    if (module.endsWith('dart_sdk')) {
+    if (module.endsWith('dart_sdk') || module.endsWith('dart_library')) {
       return result;
     }
     var modulePath =
