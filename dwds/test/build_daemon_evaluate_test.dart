@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
-import 'package:matcher/src/type_matcher.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
