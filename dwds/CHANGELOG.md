@@ -1,3 +1,8 @@
+## 7.0.1
+
+- Fix an issue where we attempted to find locations for the special
+  `dart_library` module.
+
 ## 7.0.0
 
 - Add support for the Dart Development Service (DDS). Introduces 'single
