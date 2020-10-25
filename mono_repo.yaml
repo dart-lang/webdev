@@ -1,4 +1,5 @@
-# See https://github.com/dart-lang/mono_repo for details
+# See https://pub.dev/packages/mono_repo for details
+self_validate: analyzer_and_format
 travis:
   sudo: required
   addons:
