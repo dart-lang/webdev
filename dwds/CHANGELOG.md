@@ -1,3 +1,7 @@
+## 7.0.1 - Unreleased
+
+- Depend on the latest `pacakge:sse`.
+
 ## 7.0.1
 
 - Fix an issue where we attempted to find locations for the special

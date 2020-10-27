@@ -1,3 +1,8 @@
+## 2.7.1 - Unreleased
+
+- Depend on the latest `package:sse`.
+
+
 ## 2.7.0
 
 - Add support for the Dart Development Service (DDS).
