@@ -1,4 +1,4 @@
-## 2.7.0 - UNRELEASED
+## 2.7.0
 
 - Add support for the Dart Development Service (DDS).
 - Expand `package:vm_service` to version `>=3.0.0 <6.0.0`.
