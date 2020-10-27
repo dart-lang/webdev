@@ -1,4 +1,4 @@
-## 7.0.1 - Unreleased
+## 7.0.2 - Unreleased
 
 - Depend on the latest `pacakge:sse`.
 
