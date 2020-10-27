@@ -2,7 +2,7 @@ name: webdev
 # Every time this changes you need to run `pub run build_runner build`.
 version: 2.7.0
 # We should not depend on a dev SDK before publishing.
-publish_to: none
+# publish_to: none
 homepage: https://github.com/dart-lang/webdev
 description: >-
   A CLI for Dart web development. Provides an easy and consistent set of
@@ -18,7 +18,7 @@ dependencies:
   browser_launcher: ^0.1.5
   crypto: ^2.0.6
   dds: ^1.4.1
-  dwds: ^6.0.0
+  dwds: ^7.0.0
   http: ^0.12.0
   http_multi_server: ^2.1.0
   io: ^0.3.2+1
@@ -48,7 +48,3 @@ dev_dependencies:
 
 executables:
   webdev:
-
-dependency_overrides:
-  dwds:
-    path: ../dwds
