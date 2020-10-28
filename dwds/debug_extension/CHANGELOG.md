@@ -1,3 +1,8 @@
+## 1.14
+
+- Depend on the latest `package:sse`.
+
+
 ## 1.13
 
 - Add support for using WebSockets for connection debug backend.
