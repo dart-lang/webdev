@@ -2,7 +2,7 @@
 
 - Depend on the latest `package:sse`.
 - Remove references to Flutter Web as webdev is no longer used with Flutter.
-  Users should be using Flutter Tools shipped with the Fluter SDK.
+  Users should be using Flutter Tools shipped with the Flutter SDK.
 
 
 ## 2.7.0
