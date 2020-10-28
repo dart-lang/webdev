@@ -5,7 +5,7 @@ A command-line tool for developing and deploying web applications with Dart.
 
 ## Requirements
 
-The latest release of `webdev` requires Dart SDK `2.3` or later.
+The latest release of `webdev` requires Dart SDK `2.10.0` or later.
 
 To use `webdev` with a package, make sure you have entries in `pubspec.yaml`
 similar to:
