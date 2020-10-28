@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 
 import '../../dwds.dart';
@@ -32,6 +33,7 @@ class DwdsInjector {
   final LoadStrategy _loadStrategy;
   final String _extensionUri;
   final _devHandlerPaths = StreamController<String>();
+  final _logger = Logger('DwdsInjector');
 
   DwdsInjector(
     this._loadStrategy, {
@@ -79,6 +81,7 @@ class DwdsInjector {
               if (subPath.isNotEmpty) {
                 devHandlerPath = '${subPath.join('/')}/$devHandlerPath';
               }
+              _logger.fine('Recieved request for entrypoint at $requestedUri');
               devHandlerPath = '$requestedUriBase/$devHandlerPath';
               _devHandlerPaths.add(devHandlerPath);
               var entrypoint = request.url.path;
@@ -92,6 +95,7 @@ class DwdsInjector {
                 _loadStrategy,
               );
               body += await _loadStrategy.bootstrapFor(entrypoint);
+              _logger.fine('Injected debugging metadata');
               etag = base64.encode(md5.convert(body.codeUnits).bytes);
               newHeaders[HttpHeaders.etagHeader] = etag;
             }
