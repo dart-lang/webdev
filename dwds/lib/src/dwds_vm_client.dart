@@ -157,5 +157,5 @@ Future<void> _disableBreakpointsAndResume(
       isolate.pauseEvent.kind == EventKind.kPauseBreakpoint) {
     await client.resume(isolate.id);
   }
-  _logger.info('Successfully disabled breakpoints resumed the isolate');
+  _logger.info('Successfully disabled breakpoints and resumed the isolate');
 }
