@@ -57,7 +57,7 @@ class DwdsVmClient {
         debugService.chromeProxyService as ChromeProxyService;
 
     client.registerServiceCallback('hotRestart', (request) async {
-      _logger.fine('Attempting a hot restart');
+      _logger.info('Attempting a hot restart');
       await _disableBreakpointsAndResume(client, chromeProxyService);
       int context;
       try {
@@ -97,16 +97,16 @@ class DwdsVmClient {
         }
       }
       await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
-      _logger.fine('Successful hot restart');
+      _logger.info('Successful hot restart');
       return {'result': Success().toJson()};
     });
     await client.registerService('hotRestart', 'DWDS fullReload');
 
     client.registerServiceCallback('fullReload', (_) async {
-      _logger.fine('Attempting a full reload');
+      _logger.info('Attempting a full reload');
       await chromeProxyService.remoteDebugger.enablePage();
       await chromeProxyService.remoteDebugger.pageReload();
-      _logger.fine('Successful full reload');
+      _logger.info('Successful full reload');
       return {'result': Success().toJson()};
     });
     await client.registerService('fullReload', 'DWDS');
@@ -147,7 +147,7 @@ class DwdsVmClient {
 
 Future<void> _disableBreakpointsAndResume(
     VmService client, ChromeProxyService chromeProxyService) async {
-  _logger.fine('Attempting to disabling breakpoints and resume the isolate');
+  _logger.info('Attempting to disabling breakpoints and resume the isolate');
   var vm = await client.getVM();
   if (vm.isolates.isEmpty) throw StateError('No active isolate to resume.');
   var isolateRef = vm.isolates.first;
@@ -157,5 +157,5 @@ Future<void> _disableBreakpointsAndResume(
       isolate.pauseEvent.kind == EventKind.kPauseBreakpoint) {
     await client.resume(isolate.id);
   }
-  _logger.fine('Successfully disabled breakpoints resumed the isolate');
+  _logger.info('Successfully disabled breakpoints resumed the isolate');
 }

@@ -77,7 +77,7 @@ String formatLog(Level level, String message,
 
   var loggerNameOutput =
       (loggerName != null && (_verbose || loggerName.contains(' ')))
-          ? '$loggerName:'
+          ? ' $loggerName:'
           : '';
   return '$formattedLevel$loggerNameOutput $buffer';
 }

@@ -81,7 +81,7 @@ class DwdsInjector {
               if (subPath.isNotEmpty) {
                 devHandlerPath = '${subPath.join('/')}/$devHandlerPath';
               }
-              _logger.fine('Recieved request for entrypoint at $requestedUri');
+              _logger.info('Received request for entrypoint at $requestedUri');
               devHandlerPath = '$requestedUriBase/$devHandlerPath';
               _devHandlerPaths.add(devHandlerPath);
               var entrypoint = request.url.path;
@@ -95,7 +95,8 @@ class DwdsInjector {
                 _loadStrategy,
               );
               body += await _loadStrategy.bootstrapFor(entrypoint);
-              _logger.fine('Injected debugging metadata');
+              _logger.info('Injected debugging metadata for '
+                  'entrypoint at $requestedUri');
               etag = base64.encode(md5.convert(body.codeUnits).bytes);
               newHeaders[HttpHeaders.etagHeader] = etag;
             }
