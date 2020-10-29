@@ -1,6 +1,8 @@
 ## 7.0.2 - Unreleased
 
 - Depend on the latest `pacakge:sse`.
+- Add more verbose logging around `hotRestart`, `fullReload` and
+  entrypoint injection.
 
 ## 7.0.1
 
