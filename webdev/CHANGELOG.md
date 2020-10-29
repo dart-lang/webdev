@@ -1,4 +1,4 @@
-## 2.7.1 - Unreleased
+## 2.7.1
 
 - Depend on the latest `package:sse`.
 - Remove references to Flutter Web as webdev is no longer used with Flutter.
