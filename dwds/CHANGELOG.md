@@ -1,4 +1,4 @@
-## 7.0.2 - Unreleased
+## 7.0.2
 
 - Depend on the latest `pacakge:sse`.
 - Add more verbose logging around `hotRestart`, `fullReload` and
