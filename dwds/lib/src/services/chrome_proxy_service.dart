@@ -562,6 +562,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Success> resume(String isolateId,
       {String step, int frameIndex}) async {
+    if (_inspector == null) return Success();
     if (_inspector.appConnection.isStarted) {
       return await (await _debugger)
           .resume(isolateId, step: step, frameIndex: frameIndex);

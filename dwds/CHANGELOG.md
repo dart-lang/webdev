@@ -1,3 +1,7 @@
+## 7.0.3 - Unreleased
+
+- Fix a potential null issue while resuming.
+
 ## 7.0.2
 
 - Depend on the latest `pacakge:sse`.
