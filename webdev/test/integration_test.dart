@@ -203,33 +203,6 @@ name: sample
         });
       }
 
-      group('unsupported dependency on', () {
-        var unsupportedPkgs = ['flutter', 'flutter_test'];
-        for (var unsupportedPkg in unsupportedPkgs) {
-          test('`$unsupportedPkg` should fail', () async {
-            await d.file('pubspec.yaml', 'name: sample').create();
-
-            await d
-                .file('pubspec.lock', _pubspecLock(extraPkgs: [unsupportedPkg]))
-                .create();
-
-            await d.file('.packages', '').create();
-            await d.dir(
-                '.dart_tool', [d.file('package_config.json', '')]).create();
-
-            var process =
-                await runWebDev([command], workingDirectory: d.sandbox);
-
-            await checkProcessStdout(process, [
-              'webdev could not run for this project.',
-              'You have a dependency on `$unsupportedPkg` which is not '
-                  'supported for flutter_web tech preview.'
-            ]);
-            await process.shouldExit(78);
-          });
-        }
-      });
-
       test('no pubspec.yaml', () async {
         var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 

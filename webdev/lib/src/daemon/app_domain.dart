@@ -154,7 +154,7 @@ class AppDomain extends Domain {
     if (!fullRestart) {
       return {
         'code': 1,
-        'message': 'hot reload not yet supported by package:flutter_web',
+        'message': 'hot reload not yet supported by webdev',
       };
     }
     // TODO(grouma) - Support pauseAfterRestart.

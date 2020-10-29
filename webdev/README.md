@@ -5,8 +5,7 @@ A command-line tool for developing and deploying web applications with Dart.
 
 ## Requirements
 
-The latest release of `webdev` requires Dart SDK `2.3` or later.
-This corresponds to Flutter SDK `1.5` or later.
+The latest release of `webdev` requires Dart SDK `2.10.0` or later.
 
 To use `webdev` with a package, make sure you have entries in `pubspec.yaml`
 similar to:
@@ -29,8 +28,6 @@ functionality.*
 
 ```console
 $ pub global activate webdev
-# or
-$ flutter pub global activate webdev
 ```
 
 Learn more about activating and using packages [here][pub global].
