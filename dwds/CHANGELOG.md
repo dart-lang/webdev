@@ -1,6 +1,7 @@
 ## 7.0.3 - Unreleased
 
 - Fix a potential null issue while resuming.
+- Depend on the latest `package:vm_service`.
 
 ## 7.0.2
 

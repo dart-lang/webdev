@@ -848,6 +848,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<ProcessMemoryUsage> getProcessMemoryUsage() =>
       _rpcNotSupportedFuture('getProcessMemoryUsage');
+
+  @override
+  Future<PortList> getPorts(String isolateId) => throw UnimplementedError();
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
