@@ -14,4 +14,3 @@ dependencies:
 dev_dependencies:
   build_runner: ^1.6.7
   build_web_compilers: ^2.12.0
-

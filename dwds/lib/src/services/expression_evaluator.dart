@@ -105,8 +105,7 @@ class ExpressionEvaluator {
         await _modules.moduleForSource(dartLocation.uri.serverPath);
     var modules = await _modules.modules();
 
-    _logger.finest(
-        'ExpressionEvaluator: evaluating "$expression" at $currentModule, '
+    _logger.finest('Evaluating "$expression" at $currentModule, '
         '$libraryUri:${dartLocation.line}:${dartLocation.column}');
 
     // TODO(annagrin): Handle same file names under different roots
@@ -184,7 +183,7 @@ class ExpressionEvaluator {
 
     // Return evaluation result or error
 
-    _logger.finest('ExpressionEvaluator: evaluated "$expression" to $result');
+    _logger.finest('Evaluated "$expression" to "$result"');
 
     return result;
   }

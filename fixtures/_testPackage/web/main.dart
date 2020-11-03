@@ -5,6 +5,7 @@
 // @dart=2.9
 
 import 'dart:async';
+import 'dart:core';
 import 'dart:html';
 
 import 'package:_test/library.dart';
@@ -29,6 +30,7 @@ void main() {
   Timer.periodic(const Duration(seconds: 1), (_) {
     printLocal();
     printField();
+    printFieldMain();
     printGlobal();
     printFromTestLibrary();
     printFromTestPackage();
@@ -48,6 +50,11 @@ void printField() {
   print('$instance'); // Breakpoint: printField
 }
 
+void printFieldMain() {
+  var instance = MainClass(1);
+  print('$instance'); // Breakpoint: printFieldMain
+}
+
 void printGlobal() {
   print(testLibraryValue); // Breakpoint: printGlobal
 }
@@ -64,4 +71,9 @@ void printFromTestLibrary() {
 void printCallExtension() {
   var local = '23';
   print(local.parseInt());
+}
+
+class MainClass {
+  int _field;
+  MainClass(this._field);
 }

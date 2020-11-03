@@ -90,33 +90,50 @@ class ExpressionCompilerService implements ExpressionCompiler {
   /// Starts expression compiler worker in an isolate and creates the
   /// expression compilation service that communicates to the worker.
   ///
+  /// Uses [address] and [port] to communicate and [assetHandler] to
+  /// redirect asset requests to the asset server.
+  ///
+  /// [workerPath] is the path for the expression compiler worker,
+  /// [sdkSummaryPath] is the path to the sdk summary dill file
+  /// [librariesPath] is the path to libraries definitions file
+  /// libraries.json.
+  ///
   /// Performs handshake with the isolate running expression compiler
   /// worker to estabish communication via send/receive ports, returns
   /// the service after the communication is established.
   ///
   /// Users need to stop the service by calling [stop].
-  static Future<ExpressionCompilerService> start(
+  static Future<ExpressionCompilerService> startWithPlatform(
     String address,
     int port,
     Handler assetHandler,
+    String workerPath,
+    String sdkSummaryPath,
+    String librariesPath,
     bool verbose,
   ) async {
-    final executable = Platform.resolvedExecutable;
-    final binDir = p.dirname(executable);
-    final sdkDir = p.dirname(binDir);
-
-    final workerPath = p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
     final workerUri = Uri.file(workerPath);
-    final sdkRoot = p.join(sdkDir, 'lib', '_internal');
-    final sdkSummaryPath = Uri.file(p.join(sdkRoot, 'ddc_sdk.dill'));
-    final librariesPath = Uri.file(p.join(sdkRoot, 'lib', 'libraries.json'));
+    if (!File(workerPath).existsSync()) {
+      _logger.severe('Worker path $workerPath does not exist');
+    }
+
+    if (!File(sdkSummaryPath).existsSync()) {
+      _logger.severe('SDK summary path $sdkSummaryPath does not exist');
+    }
+
+    if (!File(librariesPath).existsSync()) {
+      _logger.severe('Libraries path $librariesPath does not exist');
+    }
+
+    final sdkSummaryUri = Uri.file(sdkSummaryPath);
+    final librariesUri = Uri.file(librariesPath);
 
     final args = [
       '--experimental-expression-compiler',
       '--libraries-file',
-      '$librariesPath',
+      '$librariesUri',
       '--dart-sdk-summary',
-      '$sdkSummaryPath',
+      '$sdkSummaryUri',
       '--asset-server-address',
       address,
       '--asset-server-port',
@@ -148,6 +165,37 @@ class ExpressionCompilerService implements ExpressionCompiler {
     return service;
   }
 
+  /// Starts expression compilation service.
+  ///
+  /// Starts expression compiler worker in an isolate and creates the
+  /// expression compilation service that communicates to the worker.
+  ///
+  /// Uses [address] and [port] to communicate and [assetHandler] to
+  /// redirect asset requests to the asset server.
+  ///
+  /// Uses current SDK to find platform, expression compiler worker,
+  /// and libraries definitions.
+  ///
+  /// Performs handshake with the isolate running expression compiler
+  /// worker to estabish communication via send/receive ports, returns
+  /// the service after the communication is established.
+  ///
+  /// Users need to stop the service by calling [stop].
+  static Future<ExpressionCompilerService> start(
+      String address, int port, Handler assetHandler, bool verbose) {
+    final executable = Platform.resolvedExecutable;
+    final binDir = p.dirname(executable);
+    final sdkDir = p.dirname(binDir);
+    final sdkRoot = p.join(sdkDir, 'lib', '_internal');
+
+    var workerPath = p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
+    var sdkSummaryPath = p.join(sdkRoot, 'ddc_sdk.dill');
+    var librariesPath = p.join(sdkRoot, 'lib', 'libraries.json');
+
+    return ExpressionCompilerService.startWithPlatform(address, port,
+        assetHandler, workerPath, sdkSummaryPath, librariesPath, verbose);
+  }
+
   @override
   Future<bool> updateDependencies(Map<String, String> modules) async {
     if (_worker == null) {
@@ -168,7 +216,9 @@ class ExpressionCompilerService implements ExpressionCompiler {
     if (result) {
       _logger.info('Updated dependencies.');
     } else {
-      _logger.info('Failed to update dependencies.');
+      var e = response['exception'];
+      var s = response['stackTrace'];
+      _logger.info('Failed to update dependencies: $e:$s');
     }
     return result;
   }
@@ -206,8 +256,11 @@ class ExpressionCompilerService implements ExpressionCompiler {
 
     if (response != null) {
       var errors = response['errors'] as List<String>;
-      var error =
-          (errors == null || errors.isEmpty) ? '<unknown error>' : errors.first;
+      var e = response['exception'];
+      var s = response['stackTrace'];
+      var error = (errors != null && errors.isNotEmpty)
+          ? errors.first
+          : (e != null ? '$e:$s' : '<unknown error>');
       var procedure = response['compiledProcedure'] as String;
       succeeded = response['succeeded'] as bool;
       result = succeeded ? procedure : error;

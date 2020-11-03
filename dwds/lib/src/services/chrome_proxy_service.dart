@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pedantic/pedantic.dart';
+import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -158,7 +159,7 @@ class ChromeProxyService implements VmServiceInterface {
     for (var module in modules.keys) {
       var serverPath =
           await globalLoadStrategy.serverPathForModule(entrypoint, module);
-      dependencies[module] = serverPath.replaceAll('.js', '.full.dill');
+      dependencies[module] = p.setExtension(serverPath, '.full.dill');
     }
     await _compiler?.updateDependencies(dependencies);
   }
@@ -343,7 +344,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       var isolate = _inspector?.isolate;
       if (isolate?.id != isolateId) {
         throw RPCError('evaluateInFrame', RPCError.kInvalidParams,
-            'Unrecognized isolate id: $isolateId. Supported isolate: ${isolate.id}');
+            'Unrecognized isolate id: $isolateId. Supported isolate: ${isolate?.id}');
       }
 
       try {
