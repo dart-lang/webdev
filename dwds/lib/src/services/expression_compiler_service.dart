@@ -125,7 +125,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
       _logger.severe('Libraries path $librariesPath does not exist');
     }
 
-    _logger.info('Expression compilation worker path: $workerUri');
     final sdkSummaryUri = Uri.file(sdkSummaryPath);
     final librariesUri = Uri.file(librariesPath);
 
