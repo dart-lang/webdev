@@ -1,7 +1,12 @@
-## 7.0.3 - Unreleased
+## 7.1.0 - Unreleased
 
 - Fix a potential null issue while resuming.
 - Depend on the latest `package:vm_service`.
+- Fix crash in expression evaluatio on null isolate.
+- Fix incorrect file name detection for full kernel files.
+- Add `ExpressionCompilerService.startWithPlatform` API
+  to enable running expression compiler worker from
+  a given location.
 
 ## 7.0.2
 
