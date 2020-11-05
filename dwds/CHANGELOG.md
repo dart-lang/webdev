@@ -7,6 +7,7 @@
 - Add `ExpressionCompilerService.startWithPlatform` API
   to enable running expression compiler worker from
   a given location.
+- Support Chrome `skipLists` to improve stepping performance.
 
 ## 7.0.2
 
