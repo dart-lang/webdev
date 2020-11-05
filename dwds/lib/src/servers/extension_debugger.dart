@@ -169,13 +169,15 @@ class ExtensionDebugger implements RemoteDebugger {
   }
 
   @override
-  Future<WipResponse> stepInto() => sendCommand('Debugger.stepInto');
+  Future<WipResponse> stepInto({Map<String, dynamic> params}) =>
+      sendCommand('Debugger.stepInto', params: params);
 
   @override
   Future<WipResponse> stepOut() => sendCommand('Debugger.stepOut');
 
   @override
-  Future<WipResponse> stepOver() => sendCommand('Debugger.stepOver');
+  Future<WipResponse> stepOver({Map<String, dynamic> params}) =>
+      sendCommand('Debugger.stepOver', params: params);
 
   @override
   Future<WipResponse> enablePage() => sendCommand('Page.enable');

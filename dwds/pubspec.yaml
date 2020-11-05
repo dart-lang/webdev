@@ -36,7 +36,7 @@ dependencies:
   # We pin the version because we implement the interface.
   vm_service: 5.2.0
   web_socket_channel: ^1.0.0
-  webkit_inspection_protocol: ^0.7.3
+  webkit_inspection_protocol: ^0.7.4
 
 dev_dependencies:
   args: ^1.0.0

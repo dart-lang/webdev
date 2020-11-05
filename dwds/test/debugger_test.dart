@@ -10,6 +10,7 @@ import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -26,6 +27,7 @@ Debugger debugger;
 FakeWebkitDebugger webkitDebugger;
 StreamController<DebuggerPausedEvent> pausedController;
 Locations locations;
+SkipLists skipLists;
 
 class TestStrategy extends FakeStrategy {
   @override
@@ -89,12 +91,14 @@ void main() async {
     globalLoadStrategy = TestStrategy();
     var root = 'fakeRoot';
     locations = Locations(FakeAssetReader(), FakeModules(), root);
+    skipLists = SkipLists();
     debugger = await Debugger.create(
       webkitDebugger,
       null,
       () => inspector,
       null,
       locations,
+      skipLists,
       root,
     );
     inspector = FakeInspector();

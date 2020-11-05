@@ -58,13 +58,15 @@ class WebkitDebugger implements RemoteDebugger {
       _wipDebugger.removeBreakpoint(breakpointId);
 
   @override
-  Future<WipResponse> stepInto() => _wipDebugger.stepInto();
+  Future<WipResponse> stepInto({Map<String, dynamic> params}) =>
+      _wipDebugger.stepInto(params: params);
 
   @override
   Future<WipResponse> stepOut() => _wipDebugger.stepOut();
 
   @override
-  Future<WipResponse> stepOver() => _wipDebugger.stepOver();
+  Future<WipResponse> stepOver({Map<String, dynamic> params}) =>
+      _wipDebugger.stepOver(params: params);
 
   @override
   Future<WipResponse> enablePage() => _wipDebugger.connection.page.enable();

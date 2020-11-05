@@ -197,13 +197,13 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future<WipResponse> removeBreakpoint(String breakpointId) => null;
 
   @override
-  Future<WipResponse> stepInto() => null;
+  Future<WipResponse> stepInto({Map<String, dynamic> params}) => null;
 
   @override
   Future<WipResponse> stepOut() => null;
 
   @override
-  Future<WipResponse> stepOver() => null;
+  Future<WipResponse> stepOver({Map<String, dynamic> params}) => null;
 
   @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled => null;
