@@ -182,13 +182,13 @@ class Debugger extends Domain {
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.
-    runZoned(() {
+    runZonedGuarded(() {
       _remoteDebugger?.onScriptParsed?.listen((e) {
         _blackBoxIfNecessary(e.script);
       });
       _remoteDebugger?.onPaused?.listen(_pauseHandler);
       _remoteDebugger?.onResumed?.listen(_resumeHandler);
-    }, onError: (e, StackTrace s) {
+    }, (e, StackTrace s) {
       logger.warning('Error handling Chrome event', e, s);
     });
 

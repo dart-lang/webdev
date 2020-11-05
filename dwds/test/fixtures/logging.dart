@@ -46,6 +46,6 @@ void stopLogWriter() {
 
 LogWriter _logWriter = (level, message,
         {String error, String loggerName, String stackTrace}) =>
-    printOnFailure(message);
+    printOnFailure('[$level] $loggerName: $message');
 
 LogWriter get logWriter => _logWriter;

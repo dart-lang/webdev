@@ -29,7 +29,7 @@ import 'run_main.dart';
 // GENERATE:
 // pub run build_runner build web
 Future<void> main() {
-  return runZoned(() async {
+  return runZonedGuarded(() async {
     // Set the unique id for this instance of the app.
     // Test apps may already have this set.
     dartAppInstanceId ??= Uuid().v1();
@@ -123,7 +123,7 @@ Future<void> main() {
       // If not Chromium we just invoke main, devtools aren't supported.
       runMain();
     }
-  }, onError: (error, stackTrace) {
+  }, (error, stackTrace) {
     print('''
 Unhandled error detected in the injected client.js script.
 

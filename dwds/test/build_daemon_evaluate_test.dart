@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:matcher/src/type_matcher.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -49,7 +50,7 @@ void main() async {
       configureLogWriter(
           customLogWriter: (level, message,
                   {loggerName, error, stackTrace, verbose}) =>
-              printOnFailure(message));
+              printOnFailure('[$level] $loggerName: $message'));
 
       await context.setUp(enableExpressionEvaluation: true, verbose: false);
     });
@@ -117,7 +118,7 @@ void main() async {
         });
       });
 
-      test('private field', () async {
+      test('private field from another library', () async {
         await onBreakPoint(isolate.id, mainScript, 'printField', () async {
           var event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -129,6 +130,21 @@ void main() async {
               result,
               isA<ErrorRef>().having((instance) => instance.message, 'message',
                   contains("The getter '_field' isn't defined")));
+        });
+      });
+
+      test('private field from current library', () async {
+        await onBreakPoint(isolate.id, mainScript, 'printFieldMain', () async {
+          var event = await stream
+              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'instance._field');
+
+          expect(
+              result,
+              isA<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '1'));
         });
       });
 
@@ -229,8 +245,7 @@ void main() async {
         });
       });
 
-      test(
-          'evaluate expression in a class constructor in _testPackage/test_library',
+      test('evaluate expression in a class constructor in another library',
           () async {
         await onBreakPoint(
             isolate.id, testLibraryScript, 'testLibraryClassConstructor',
@@ -246,9 +261,7 @@ void main() async {
               isA<InstanceRef>().having(
                   (instance) => instance.valueAsString, 'valueAsString', '1'));
         });
-      },
-          skip: 'Scope is not found for constructors:'
-              'https://github.com/dart-lang/sdk/issues/43728');
+      });
 
       test('evaluate expression in caller frame', () async {
         await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction',
@@ -266,7 +279,7 @@ void main() async {
         });
       });
 
-      test('evaluate expression in  _test/library', () async {
+      test('evaluate expression in  another library', () async {
         await onBreakPoint(isolate.id, libraryScript, 'Concatenate', () async {
           var event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);

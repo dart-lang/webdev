@@ -132,7 +132,8 @@ class AppInspector extends Domain {
         libraries: [],
         breakpoints: [],
         exceptionPauseMode: debugger.pauseState,
-        isSystemIsolate: false)
+        isSystemIsolate: false,
+        isolateFlags: [])
       ..extensionRPCs = [];
     AppInspector appInspector;
     var provider = () => appInspector;
