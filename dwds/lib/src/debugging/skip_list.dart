@@ -27,9 +27,11 @@ class SkipLists {
     var startLine = 0;
     var startColumn = 0;
     for (var location in locations) {
-      // Convert to zero based and do not include the known location.
+      // Account for 1 based.
       var endLine = location.jsLocation.line - 1;
-      var endColumn = location.jsLocation.column - 2;
+      var endColumn = location.jsLocation.column - 1;
+      // Stop before the known location.
+      endColumn -= 1;
       if (endColumn < 0) {
         endLine -= 1;
         endColumn = maxValue;

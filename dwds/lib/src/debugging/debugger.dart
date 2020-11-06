@@ -581,12 +581,12 @@ class Debugger extends Domain {
       if (_isStepping && (await _sourceLocation(e)) == null) {
         var frame = e.params['callFrames'][0];
         var url = '${frame["url"]}';
-        var scirptId = '${frame["location"]["scriptId"]}';
+        var scriptId = '${frame["location"]["scriptId"]}';
         // TODO(grouma) - In the future we should send all previously computed
         // skipLists.
         await _remoteDebugger.stepInto(params: {
           'skipList': await _skipLists.compute(
-            scirptId,
+            scriptId,
             await _locations.locationsForUrl(url),
           )
         });
