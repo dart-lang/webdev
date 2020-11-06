@@ -14,7 +14,8 @@ class SkipLists {
 
   /// Returns a skipList as defined by the Chrome DevTools Protocol.
   ///
-  /// See https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#method-stepInto
+  /// A `skipList` is an array of `LocationRange`s see:
+  /// https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#method-stepInto
   ///
   /// Can return a cached value.
   Future<List<Map<String, dynamic>>> compute(
