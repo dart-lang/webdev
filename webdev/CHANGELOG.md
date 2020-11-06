@@ -1,3 +1,7 @@
+## 2.7.2 - Unreleased
+
+- Depend on the latest `package:dwds`.
+
 ## 2.7.1
 
 - Depend on the latest `package:sse`.

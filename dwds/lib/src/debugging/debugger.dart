@@ -24,6 +24,7 @@ import 'dart_scope.dart';
 import 'frame_computer.dart';
 import 'location.dart';
 import 'remote_debugger.dart';
+import 'skip_list.dart';
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
 ///
@@ -46,6 +47,7 @@ class Debugger extends Domain {
   final StreamNotify _streamNotify;
   final AssetReader _assetReader;
   final Locations _locations;
+  final SkipLists _skipLists;
   final String _root;
 
   Debugger._(
@@ -54,6 +56,7 @@ class Debugger extends Domain {
     AppInspectorProvider provider,
     this._assetReader,
     this._locations,
+    this._skipLists,
     this._root,
   )   : _breakpoints = _Breakpoints(
             locations: _locations,
@@ -159,6 +162,7 @@ class Debugger extends Domain {
     AppInspectorProvider appInspectorProvider,
     AssetReader assetReader,
     Locations locations,
+    SkipLists skipLists,
     String root,
   ) async {
     var debugger = Debugger._(
@@ -167,6 +171,7 @@ class Debugger extends Domain {
       appInspectorProvider,
       assetReader,
       locations,
+      skipLists,
       root,
     );
     await debugger._initialize();
@@ -574,7 +579,17 @@ class Debugger extends Domain {
     } else {
       // If we don't have source location continue stepping.
       if (_isStepping && (await _sourceLocation(e)) == null) {
-        await _remoteDebugger.stepInto();
+        var frame = e.params['callFrames'][0];
+        var url = '${frame["url"]}';
+        var scriptId = '${frame["location"]["scriptId"]}';
+        // TODO(grouma) - In the future we should send all previously computed
+        // skipLists.
+        await _remoteDebugger.stepInto(params: {
+          'skipList': await _skipLists.compute(
+            scriptId,
+            await _locations.locationsForUrl(url),
+          )
+        });
         return;
       }
       event = Event(

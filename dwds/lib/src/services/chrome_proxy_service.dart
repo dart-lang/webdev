@@ -21,6 +21,7 @@ import '../debugging/instance.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
 import '../debugging/remote_debugger.dart';
+import '../debugging/skip_list.dart';
 import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../utilities/dart_uri.dart';
@@ -65,6 +66,8 @@ class ChromeProxyService implements VmServiceInterface {
 
   final Locations _locations;
 
+  final SkipLists _skipLists;
+
   final Modules _modules;
 
   final _debuggerCompleter = Completer<Debugger>();
@@ -93,6 +96,7 @@ class ChromeProxyService implements VmServiceInterface {
     this.remoteDebugger,
     this._modules,
     this._locations,
+    this._skipLists,
     this.executionContext,
     this._compiler,
   ) {
@@ -102,6 +106,7 @@ class ChromeProxyService implements VmServiceInterface {
       appInspectorProvider,
       _assetReader,
       _locations,
+      _skipLists,
       uri,
     );
     _expressionEvaluator = _compiler == null
@@ -135,6 +140,7 @@ class ChromeProxyService implements VmServiceInterface {
 
     var modules = Modules(tabUrl);
     var locations = Locations(assetReader, modules, tabUrl);
+    var skipLists = SkipLists();
     var service = ChromeProxyService._(
       vm,
       tabUrl,
@@ -142,6 +148,7 @@ class ChromeProxyService implements VmServiceInterface {
       remoteDebugger,
       modules,
       locations,
+      skipLists,
       executionContext,
       expressionCompiler,
     );
@@ -153,6 +160,7 @@ class ChromeProxyService implements VmServiceInterface {
   Future<void> _initializeEntrypoint(String entrypoint) async {
     _locations.initialize(entrypoint);
     _modules.initialize(entrypoint);
+    _skipLists.initialize();
     var metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
     var modules = await metadataProvider.moduleToModulePath;
     var dependencies = <String, String>{};

@@ -39,11 +39,11 @@ abstract class RemoteDebugger {
 
   Future<WipResponse> removeBreakpoint(String breakpointId);
 
-  Future<WipResponse> stepInto();
+  Future<WipResponse> stepInto({Map<String, dynamic> params});
 
   Future<WipResponse> stepOut();
 
-  Future<WipResponse> stepOver();
+  Future<WipResponse> stepOver({Map<String, dynamic> params});
 
   Future<WipResponse> enablePage();
 
