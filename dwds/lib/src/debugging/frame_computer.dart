@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pool/pool.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -11,12 +12,18 @@ import 'debugger.dart';
 class FrameComputer {
   final Debugger debugger;
 
+  final _pool = Pool(1);
+
   final List<WipCallFrame> _callFrames;
+  final _computedFrames = <Frame>[];
 
-  // Optional async frames.
-  final StackTrace asyncFrames;
+  var _frameIndex = 0;
 
-  FrameComputer(this.debugger, this._callFrames, {this.asyncFrames});
+  StackTrace _asyncStackTrace;
+  List<CallFrame> _asyncFramesToProcess;
+
+  FrameComputer(this.debugger, this._callFrames, {StackTrace asyncStackTrace})
+      : _asyncStackTrace = asyncStackTrace;
 
   /// Given a frame index, return the corresponding JS frame.
   WipCallFrame jsFrameForIndex(int frameIndex) {
@@ -31,101 +38,88 @@ class FrameComputer {
     return filterScopes(jsFrameForIndex(frameIndex));
   }
 
-  /// Returns the top Dart frame for the Chrome callFrames contained in a
-  /// [DebuggerPausedEvent].
-  ///
-  /// This will return null if there are no suitable frames.
-  Future<Frame> calculateTopFrame() async {
-    for (var frameIndex = 0; frameIndex < _callFrames.length; frameIndex++) {
-      final callFrame = _callFrames[frameIndex];
-      var dartFrame =
-          await debugger.calculateDartFrameFor(callFrame, frameIndex);
-      if (dartFrame != null) {
-        return dartFrame;
-      }
-    }
-    return null;
-  }
-
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
   /// [Frame]s.
-  Future<List<Frame>> calculateFrames() async {
-    // TODO: Investigate the use of package:pool to request information for ~6
-    // frames at a time.
-
-    // Here, we continue to increment the dart frame index even if we don't
-    // create a dart frame; this lets the dart frame index match the javascript
-    // ones.
-    var dartFrames = <Frame>[];
-    var frameIndex = 0;
-    while (frameIndex < _callFrames.length) {
-      final callFrame = _callFrames[frameIndex];
-      var dartFrame =
-          await debugger.calculateDartFrameFor(callFrame, frameIndex);
-      if (dartFrame != null) {
-        dartFrames.add(dartFrame);
+  Future<List<Frame>> calculateFrames({int limit}) async {
+    return _pool.withResource(() async {
+      if (limit != null && _computedFrames.length >= limit) {
+        return _computedFrames.take(limit).toList();
       }
-      frameIndex++;
-    }
 
-    if (asyncFrames != null) {
-      await _collectAsyncFrames(dartFrames, frameIndex, asyncFrames);
-    }
+      await _collectSyncFrames(limit: limit);
+      await _collectAsyncFrames(limit: limit);
 
-    // The above method can return several kAsyncSuspensionMarkers together;
-    // remove duplicates.
-    if (dartFrames.length > 1) {
-      for (var i = dartFrames.length - 1; i >= 1; i--) {
-        if (dartFrames[i].kind == FrameKind.kAsyncSuspensionMarker &&
-            dartFrames[i - 1].kind == FrameKind.kAsyncSuspensionMarker) {
-          dartFrames.removeAt(i);
-        }
+      // Remove any trailing kAsyncSuspensionMarker frame.
+      if (limit == null &&
+          _computedFrames.isNotEmpty &&
+          _computedFrames.last.kind == FrameKind.kAsyncSuspensionMarker) {
+        _computedFrames.removeLast();
       }
-    }
 
-    // Remove any trailing kAsyncSuspensionMarker frame.
-    if (dartFrames.isNotEmpty &&
-        dartFrames.last.kind == FrameKind.kAsyncSuspensionMarker) {
-      dartFrames.removeLast();
-    }
-
-    return dartFrames;
+      return _computedFrames;
+    });
   }
 
-  Future _collectAsyncFrames(
-      List<Frame> dartFrames, int frameIndex, StackTrace asyncFrames) async {
-    // Add an async separator frame.
-    dartFrames.add(
-        Frame(index: frameIndex++, kind: FrameKind.kAsyncSuspensionMarker));
+  Future<void> _collectSyncFrames({int limit}) async {
+    if (limit != null && _computedFrames.length == limit) return;
 
-    // Convert the async JS stack trace frames to JS WipCallFrame, and then to
-    // Dart FrameKind.kAsyncCausal frames.
-    for (var callFrame in asyncFrames.callFrames) {
-      var location = WipLocation.fromValues(
-          callFrame.scriptId, callFrame.lineNumber,
-          columnNumber: callFrame.columnNumber);
-      var tempWipFrame = WipCallFrame({
-        'url': callFrame.url,
-        'functionName': callFrame.functionName,
-        'location': location.json,
-        'scopeChain': [],
-      });
+    if (_frameIndex >= _callFrames.length) return;
 
-      var frame = await debugger.calculateDartFrameFor(
-        tempWipFrame,
-        frameIndex++,
-        populateVariables: false,
-      );
-      if (frame != null) {
-        frame.kind = FrameKind.kAsyncCausal;
-        dartFrames.add(frame);
+    final callFrame = _callFrames[_frameIndex];
+    var dartFrame =
+        await debugger.calculateDartFrameFor(callFrame, _frameIndex++);
+    if (dartFrame != null) {
+      _computedFrames.add(dartFrame);
+    }
+
+    await _collectSyncFrames(limit: limit);
+  }
+
+  Future<void> _collectAsyncFrames({int limit}) async {
+    if (limit != null && _computedFrames.length == limit) return;
+
+    if (_asyncStackTrace == null) return;
+
+    // We are processing a new set of async frames, add a suspension marker.
+    if (_asyncFramesToProcess == null) {
+      if (_computedFrames.last?.kind != FrameKind.kAsyncSuspensionMarker) {
+        _computedFrames.add(Frame(
+            index: _frameIndex++, kind: FrameKind.kAsyncSuspensionMarker));
+      }
+      _asyncFramesToProcess = _asyncStackTrace.callFrames;
+    } else {
+      // Process a single async frame.
+      if (_asyncFramesToProcess.isNotEmpty) {
+        var callFrame = _asyncFramesToProcess.removeAt(0);
+        var location = WipLocation.fromValues(
+            callFrame.scriptId, callFrame.lineNumber,
+            columnNumber: callFrame.columnNumber);
+        var tempWipFrame = WipCallFrame({
+          'url': callFrame.url,
+          'functionName': callFrame.functionName,
+          'location': location.json,
+          'scopeChain': [],
+        });
+
+        var frame = await debugger.calculateDartFrameFor(
+          tempWipFrame,
+          _frameIndex++,
+          populateVariables: false,
+        );
+        if (frame != null) {
+          frame.kind = FrameKind.kAsyncCausal;
+          _computedFrames.add(frame);
+        }
       }
     }
 
     // Async frames are no longer on the stack - we don't have local variable
     // information for them.
-    if (asyncFrames.parent != null) {
-      await _collectAsyncFrames(dartFrames, frameIndex, asyncFrames.parent);
+    if (_asyncFramesToProcess.isEmpty) {
+      _asyncStackTrace = _asyncStackTrace.parent;
+      _asyncFramesToProcess = null;
     }
+
+    await _collectAsyncFrames(limit: limit);
   }
 }

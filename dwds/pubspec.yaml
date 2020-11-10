@@ -34,7 +34,7 @@ dependencies:
   source_maps: ^0.10.0
   sse: ^3.6.0
   # We pin the version because we implement the interface.
-  vm_service: 5.4.0
+  vm_service: 5.5.0
   web_socket_channel: ^1.0.0
   webkit_inspection_protocol: ^0.7.4
 

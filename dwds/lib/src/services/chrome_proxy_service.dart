@@ -7,8 +7,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart' hide LogRecord;
-import 'package:pedantic/pedantic.dart';
 import 'package:path/path.dart' as p;
+import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -458,8 +458,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   ///
   /// Returns null if the corresponding isolate is not paused.
   @override
-  Future<Stack> getStack(String isolateId) async =>
-      (await _debugger).getStack(isolateId);
+  Future<Stack> getStack(String isolateId, {int limit}) async =>
+      (await _debugger).getStack(isolateId, limit: limit);
 
   @override
   Future<VM> getVM() async {

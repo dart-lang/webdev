@@ -120,7 +120,7 @@ void main() async {
     var stackComputer = FrameComputer(
       debugger,
       [sampleSyncFrame],
-      asyncFrames: StackTrace({
+      asyncStackTrace: StackTrace({
         'callFrames': [sampleAsyncFrame.json],
         'parent': StackTrace({
           'callFrames': [sampleAsyncFrame.json],
@@ -142,7 +142,7 @@ void main() async {
     var stackComputer = FrameComputer(
       debugger,
       [sampleSyncFrame],
-      asyncFrames: StackTrace({
+      asyncStackTrace: StackTrace({
         'callFrames': [sampleAsyncFrame.json],
         'parent': StackTrace({
           'callFrames': [],

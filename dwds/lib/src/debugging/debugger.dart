@@ -148,12 +148,12 @@ class Debugger extends Domain {
   /// Returns the current Dart stack for the paused debugger.
   ///
   /// Returns null if the debugger is not paused.
-  Future<Stack> getStack(String isolateId) async {
+  Future<Stack> getStack(String isolateId, {int limit}) async {
     checkIsolate('getStack', isolateId);
     if (stackComputer == null) return null;
 
-    var frames = await stackComputer.calculateFrames();
-    return Stack(frames: frames, messages: []);
+    var frames = await stackComputer.calculateFrames(limit: limit);
+    return Stack(frames: frames, messages: [], truncated: limit != null);
   }
 
   static Future<Debugger> create(
@@ -602,11 +602,12 @@ class Debugger extends Domain {
     stackComputer = FrameComputer(
       this,
       e.getCallFrames().toList(),
-      asyncFrames: e.asyncStackTrace,
+      asyncStackTrace: e.asyncStackTrace,
     );
 
     try {
-      event.topFrame = await stackComputer.calculateTopFrame();
+      var frames = await stackComputer.calculateFrames(limit: 1);
+      event.topFrame = frames.isNotEmpty ? frames.first : null;
     } catch (e, s) {
       // TODO: Return information about the error to the user.
       logger.warning('Error calculating Dart frames', e, s);
