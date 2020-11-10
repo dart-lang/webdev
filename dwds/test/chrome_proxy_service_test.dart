@@ -849,6 +849,15 @@ void main() {
         expect(stack.frames, hasLength(equals(5)));
       });
 
+      test('truncated stacks are properly indicated', () async {
+        var stack = await breakAt('asyncCall', limit: 3);
+        expect(stack, isNotNull);
+        expect(stack.truncated, isTrue);
+        stack = await breakAt('asyncCall');
+        expect(stack, isNotNull);
+        expect(stack.truncated, isFalse);
+      });
+
       test('break on exceptions', () async {
         final oldPauseMode =
             (await service.getIsolate(isolateId)).exceptionPauseMode;
