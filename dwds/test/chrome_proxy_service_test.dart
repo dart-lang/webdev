@@ -775,7 +775,7 @@ void main() {
       }, onPlatform: {'windows': const Skip('issues/721')});
 
       /// Support function for pausing and returning the stack at a line.
-      Future<Stack> breakAt(String breakpointId) async {
+      Future<Stack> breakAt(String breakpointId, {int limit}) async {
         var lineNumber = await context.findBreakpointLine(
             breakpointId, isolateId, mainScript);
         var bp =
@@ -785,7 +785,7 @@ void main() {
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolateId, bp.id);
-        var stack = await service.getStack(isolateId);
+        var stack = await service.getStack(isolateId, limit: limit);
         // Resume as to not impact other tests.
         await service.resume(isolateId);
         return stack;
@@ -834,6 +834,31 @@ void main() {
         var asyncFrames =
             stack.frames.where((frame) => frame.kind == FrameKind.kAsyncCausal);
         expect(asyncFrames, isNotEmpty);
+      });
+
+      test('returns the correct number of frames when a limit is provided',
+          () async {
+        var stack = await breakAt('asyncCall', limit: 4);
+        expect(stack, isNotNull);
+        expect(stack.frames, hasLength(equals(4)));
+        stack = await breakAt('asyncCall', limit: 2);
+        expect(stack, isNotNull);
+        expect(stack.frames, hasLength(equals(2)));
+        stack = await breakAt('asyncCall');
+        expect(stack, isNotNull);
+        expect(stack.frames, hasLength(equals(5)));
+      });
+
+      test('truncated stacks are properly indicated', () async {
+        var stack = await breakAt('asyncCall', limit: 3);
+        expect(stack, isNotNull);
+        expect(stack.truncated, isTrue);
+        stack = await breakAt('asyncCall');
+        expect(stack, isNotNull);
+        expect(stack.truncated, isFalse);
+        stack = await breakAt('asyncCall', limit: 20000);
+        expect(stack, isNotNull);
+        expect(stack.truncated, isFalse);
       });
 
       test('break on exceptions', () async {
