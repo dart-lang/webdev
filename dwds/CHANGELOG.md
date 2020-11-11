@@ -8,6 +8,7 @@
   to enable running expression compiler worker from
   a given location.
 - Support Chrome `skipLists` to improve stepping performance.
+- Export `AbsoluteImportUriException`.
 
 ## 7.0.2
 
