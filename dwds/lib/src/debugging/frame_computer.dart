@@ -12,6 +12,8 @@ import 'debugger.dart';
 class FrameComputer {
   final Debugger debugger;
 
+  // To ensure that the frames are computed only once, we use a pool to guard
+  // the work. Frames are computed sequentially.
   final _pool = Pool(1);
 
   final List<WipCallFrame> _callFrames;
@@ -45,7 +47,8 @@ class FrameComputer {
       if (limit != null && _computedFrames.length >= limit) {
         return _computedFrames.take(limit).toList();
       }
-
+      // TODO(grouma) - We compute the frames sequentially. Consider computing
+      // frames in parallel batches.
       await _collectSyncFrames(limit: limit);
       await _collectAsyncFrames(limit: limit);
 

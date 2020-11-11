@@ -457,6 +457,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   /// Returns the current stack.
   ///
   /// Returns null if the corresponding isolate is not paused.
+  ///
+  /// The returned stack will contain up to [limit] frames if provided.
   @override
   Future<Stack> getStack(String isolateId, {int limit}) async =>
       (await _debugger).getStack(isolateId, limit: limit);

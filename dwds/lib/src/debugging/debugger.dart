@@ -148,12 +148,17 @@ class Debugger extends Domain {
   /// Returns the current Dart stack for the paused debugger.
   ///
   /// Returns null if the debugger is not paused.
+  ///
+  /// The returned stack will contain up to [limit] frames if provided.
   Future<Stack> getStack(String isolateId, {int limit}) async {
     checkIsolate('getStack', isolateId);
     if (stackComputer == null) return null;
 
     var frames = await stackComputer.calculateFrames(limit: limit);
-    return Stack(frames: frames, messages: [], truncated: limit != null);
+    return Stack(
+        frames: frames,
+        messages: [],
+        truncated: limit != null && frames.length == limit);
   }
 
   static Future<Debugger> create(

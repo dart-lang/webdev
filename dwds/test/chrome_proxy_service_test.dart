@@ -856,6 +856,9 @@ void main() {
         stack = await breakAt('asyncCall');
         expect(stack, isNotNull);
         expect(stack.truncated, isFalse);
+        stack = await breakAt('asyncCall', limit: 20000);
+        expect(stack, isNotNull);
+        expect(stack.truncated, isFalse);
       });
 
       test('break on exceptions', () async {
