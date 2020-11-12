@@ -61,7 +61,9 @@ class DwdsVmClient {
       await _disableBreakpointsAndResume(client, chromeProxyService);
       int context;
       try {
+        _logger.info('Attempting to get execution context ID.');
         context = await chromeProxyService.executionContext.id;
+        _logger.info('Got execution context ID.');
       } on StateError catch (e) {
         // We couldn't find the execution context. `hotRestart` may have been
         // triggered in the middle of a full reload.
@@ -76,12 +78,14 @@ class DwdsVmClient {
       // restart. Only return success after the isolate has fully started.
       var stream = chromeProxyService.onEvent('Isolate');
       try {
+        _logger.info('Issuing \$dartHotRestart request.');
         await chromeProxyService.remoteDebugger
             .sendCommand('Runtime.evaluate', params: {
           'expression': r'$dartHotRestart();',
           'awaitPromise': true,
           'contextId': context,
         });
+        _logger.info('\$dartHotRestart request complete.');
       } on WipError catch (exception) {
         var code = exception.error['code'];
         // This corresponds to `Execution context was destroyed` which can
@@ -96,6 +100,8 @@ class DwdsVmClient {
           };
         }
       }
+
+      _logger.info('Waiting for Isolate Start event.');
       await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
       _logger.info('Successful hot restart');
       return {'result': Success().toJson()};
