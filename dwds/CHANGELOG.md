@@ -1,4 +1,4 @@
-## 7.1.0 - Unreleased
+## 7.1.0
 
 - Fix a potential null issue while resuming.
 - Depend on the latest `package:vm_service`.
