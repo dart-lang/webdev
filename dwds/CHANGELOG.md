@@ -1,3 +1,7 @@
+## 7.1.1 - Unreleased
+
+- Properly handle `requireJS` errors during hot restarts.
+
 ## 7.1.0
 
 - Fix a potential null issue while resuming.

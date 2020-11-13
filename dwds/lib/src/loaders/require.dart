@@ -216,28 +216,25 @@ if(!window.\$requireLoader) {
      digestsPath: '$_requireDigestsPath?entrypoint=$entrypoint',
      // Used in package:build_runner/src/server/build_updates_client/hot_reload_client.dart
      moduleParentsGraph: new Map(),
-     moduleLoadingErrorCallbacks: new Map(),
      forceLoadModule: function (modulePath, callback, onError) {
        let moduleName = moduleNames[modulePath];
        if (moduleName == null) {
          moduleName = modulePath;
        }
-       if (typeof onError != 'undefined') {
-         var errorCallbacks = \$requireLoader.moduleLoadingErrorCallbacks;
-         if (!errorCallbacks.has(moduleName)) {
-           errorCallbacks.set(moduleName, new Set());
-         }
-         errorCallbacks.get(moduleName).add(onError);
-       }
        requirejs.undef(moduleName);
-       requirejs([moduleName], function() {
-         if (typeof onError != 'undefined') {
-           errorCallbacks.get(moduleName).delete(onError);
-         }
-         if (typeof callback != 'undefined') {
-           callback();
-         }
-       });
+       try{
+        requirejs([moduleName], function() {
+          if (typeof callback != 'undefined') {
+            callback();
+          }
+        });
+       } catch (error) {
+        if (typeof onError != 'undefined') {
+          onError(error);
+        }else{
+          throw(error);
+        }
+       }
      },
      getModuleLibraries: null, // set up by _initializeTools
    };
