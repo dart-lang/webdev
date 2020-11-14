@@ -682,10 +682,11 @@ String breakpointIdFor(String scriptId, int line) => 'bp/$scriptId#$line';
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
 class _Breakpoints extends Domain {
-  final Map<String, String> _dartIdByJsId = {};
-  final Map<String, String> _jsIdByDartId = {};
+  final _dartIdByJsId = <String, String>{};
+  final _jsIdByDartId = <String, String>{};
 
-  final Map<String, Breakpoint> _bpByDartId = {};
+  final _bpByDartId = <String, Breakpoint>{};
+  final _pendingBreakpoints = <String>{};
 
   final Locations locations;
   final RemoteDebugger remoteDebugger;
@@ -704,15 +705,17 @@ class _Breakpoints extends Domain {
   /// present.
   Future<Breakpoint> add(String scriptId, int line) async {
     final id = breakpointIdFor(scriptId, line);
-    if (_bpByDartId.containsKey(id)) {
+    if (_bpByDartId.containsKey(id) || _pendingBreakpoints.contains(id)) {
       throw RPCError('addBreakpoint', 102, 'Breakpoint already exists.');
     }
+    _pendingBreakpoints.add(id);
 
     var dartScript = inspector.scriptWithId(scriptId);
     var dartUri = DartUri(dartScript.uri, root);
     var location = await locations.locationForDart(dartUri, line);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) {
+      _pendingBreakpoints.remove(id);
       throw RPCError(
           'addBreakpoint',
           102,
@@ -723,10 +726,12 @@ class _Breakpoints extends Domain {
     try {
       var dartBreakpoint = _dartBreakpoint(dartScript, location, id);
       var jsBreakpointId = await _setJsBreakpoint(location);
+      _pendingBreakpoints.remove(id);
       _bpByDartId[id] = dartBreakpoint;
       _note(jsId: jsBreakpointId, bp: dartBreakpoint);
       return dartBreakpoint;
     } on WipError catch (wipError) {
+      _pendingBreakpoints.remove(id);
       throw RPCError('addBreakpoint', 102, '$wipError');
     }
   }
