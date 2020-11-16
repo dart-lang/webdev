@@ -1,12 +1,14 @@
 ## 7.1.1 - Unreleased
 
 - Properly handle `requireJS` errors during hot restarts.
+- Fix an issue where calling add breakpoint in quick succession
+  would corrupt the internal state.
 
 ## 7.1.0
 
 - Fix a potential null issue while resuming.
 - Depend on the latest `package:vm_service`.
-- Fix crash in expression evaluatio on null isolate.
+- Fix crash in expression evaluation on null isolate.
 - Fix incorrect file name detection for full kernel files.
 - Add `ExpressionCompilerService.startWithPlatform` API
   to enable running expression compiler worker from

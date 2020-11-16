@@ -71,6 +71,19 @@ void main() {
         await service.removeBreakpoint(isolate.id, firstBp.id);
       });
 
+      test('addBreakpoint errors when sending the same breakpoint twice',
+          () async {
+        var line = await context.findBreakpointLine(
+            'printHelloWorld', isolate.id, mainScript);
+        var firstBp = service.addBreakpoint(isolate.id, mainScript.id, line);
+        // Set another breakpoint at the same place - expect a failure.
+        var addFuture = service.addBreakpoint(isolate.id, mainScript.id, line);
+        expect(addFuture, throwsA(predicate((e) => e is RPCError)));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, (await firstBp).id);
+      });
+
       test('addBreakpoint in nonsense location throws', () async {
         expect(service.addBreakpoint(isolate.id, mainScript.id, 200000),
             throwsA(predicate((e) => e is RPCError && e.code == 102)));
