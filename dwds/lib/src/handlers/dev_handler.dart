@@ -189,6 +189,7 @@ class DevHandler {
       _assetReader,
       _loadStrategy,
       appConnection,
+      _urlEncoder,
       onResponse: (response) {
         if (response['error'] == null) return;
         _logger.finest('VmService proxy responded with an error:\n$response');
@@ -422,9 +423,16 @@ class DevHandler {
     if (_spawnDds) {
       await debugService.startDartDevelopmentService();
     }
-    _logger.info('Debug service listening on '
-        '${debugService.uri}\n');
-    return AppDebugServices(debugService, webdevClient);
+    var appDebugService = AppDebugServices(debugService, webdevClient);
+    var encodedUri = await debugService.encodedUri;
+    _logger.info('Debug service listening on $encodedUri\n');
+    await appDebugService.chromeProxyService.remoteDebugger
+        .sendCommand('Runtime.evaluate', params: {
+      'expression': 'console.log('
+          '"This app is linked to the debug service: $encodedUri"'
+          ');',
+    });
+    return appDebugService;
   }
 
   void _listenForDebugExtension() async {
@@ -457,6 +465,7 @@ class DevHandler {
           _assetReader,
           _loadStrategy,
           connection,
+          _urlEncoder,
           onResponse: (response) {
             if (response['error'] == null) return;
             _logger
@@ -479,8 +488,8 @@ class DevHandler {
         extensionDebugConnections.add(DebugConnection(appServices));
         _servicesByAppId[appId] = appServices;
       }
-      await _launchDevTools(
-          extensionDebugger, _servicesByAppId[appId].debugService.uri);
+      await _launchDevTools(extensionDebugger,
+          await _servicesByAppId[appId].debugService.encodedUri);
     });
   }
 
@@ -489,10 +498,6 @@ class DevHandler {
     // TODO(grouma) - We may want to log the debugServiceUri if we don't launch
     // DevTools so that users can manually connect.
     if (!_serveDevTools) return;
-
-    if (_urlEncoder != null) {
-      debugServiceUri = await _urlEncoder(debugServiceUri);
-    }
     await remoteDebugger.sendCommand('Target.createTarget', params: {
       'newWindow': true,
       'url': Uri(
