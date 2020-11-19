@@ -86,7 +86,8 @@ class FrameComputer {
 
       // We are processing a new set of async frames, add a suspension marker.
       if (_asyncFramesToProcess == null) {
-        if (_computedFrames.last?.kind != FrameKind.kAsyncSuspensionMarker) {
+        if (_computedFrames.isNotEmpty &&
+            _computedFrames.last.kind != FrameKind.kAsyncSuspensionMarker) {
           _computedFrames.add(Frame(
               index: _frameIndex++, kind: FrameKind.kAsyncSuspensionMarker));
         }
