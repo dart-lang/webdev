@@ -192,7 +192,7 @@ void main() async {
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
-      });
+      }, tags: ['dev-sdk']);
 
       test('error', () async {
         var line = await context.findBreakpointLine(

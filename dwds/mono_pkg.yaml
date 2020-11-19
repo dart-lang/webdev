@@ -10,11 +10,11 @@ stages:
       - dartanalyzer: --fatal-warnings .
       dart: [2.10.0]
   - unit_test:
-    - test: -x expression-compilation-service
+    - test: -x dev-sdk
       dart: 2.10.0
     - test:
       dart: dev
-    - test: -x expression-compilation-service
+    - test: -x dev-sdk
       os: windows
       dart: 2.10.0
     - test:
