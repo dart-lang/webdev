@@ -1,9 +1,13 @@
 ## 7.1.1 - Unreleased
 
 - Properly handle `requireJS` errors during hot restarts.
+- Fix an issue where Dart frame computation could result in a
+  stack overflow for highly nested calls.
 - Fix an issue where calling add breakpoint in quick succession
   would corrupt the internal state.
 - Fix expression evaluation failure inside blocks.
+- Now log the encoded URI of the debug service to both the terminal
+  and application console.
 
 ## 7.1.0
 
