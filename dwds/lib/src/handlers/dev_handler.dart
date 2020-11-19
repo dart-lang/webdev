@@ -483,7 +483,7 @@ class DevHandler {
           await appServices.close();
           _servicesByAppId.remove(devToolsRequest.appId);
           _logger.info('Stopped debug service on '
-              '${appServices.debugService.uri}\n');
+              '${await appServices.debugService.encodedUri}\n');
         }));
         extensionDebugConnections.add(DebugConnection(appServices));
         _servicesByAppId[appId] = appServices;
