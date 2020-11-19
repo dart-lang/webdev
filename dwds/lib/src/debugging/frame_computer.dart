@@ -64,65 +64,65 @@ class FrameComputer {
   }
 
   Future<void> _collectSyncFrames({int limit}) async {
-    if (limit != null && _computedFrames.length == limit) return;
+    while (_frameIndex < _callFrames.length) {
+      if (limit != null && _computedFrames.length == limit) return;
 
-    if (_frameIndex >= _callFrames.length) return;
-
-    final callFrame = _callFrames[_frameIndex];
-    var dartFrame =
-        await debugger.calculateDartFrameFor(callFrame, _frameIndex++);
-    if (dartFrame != null) {
-      _computedFrames.add(dartFrame);
+      final callFrame = _callFrames[_frameIndex];
+      var dartFrame =
+          await debugger.calculateDartFrameFor(callFrame, _frameIndex++);
+      if (dartFrame != null) {
+        _computedFrames.add(dartFrame);
+      }
     }
-
-    await _collectSyncFrames(limit: limit);
   }
 
   Future<void> _collectAsyncFrames({int limit}) async {
-    if (limit != null && _computedFrames.length == limit) return;
-
     if (_asyncStackTrace == null) return;
 
-    // We are processing a new set of async frames, add a suspension marker.
-    if (_asyncFramesToProcess == null) {
-      if (_computedFrames.last?.kind != FrameKind.kAsyncSuspensionMarker) {
-        _computedFrames.add(Frame(
-            index: _frameIndex++, kind: FrameKind.kAsyncSuspensionMarker));
+    while (_asyncStackTrace != null) {
+      if (limit != null && _computedFrames.length == limit) {
+        return;
       }
-      _asyncFramesToProcess = _asyncStackTrace.callFrames;
-    } else {
-      // Process a single async frame.
-      if (_asyncFramesToProcess.isNotEmpty) {
-        var callFrame = _asyncFramesToProcess.removeAt(0);
-        var location = WipLocation.fromValues(
-            callFrame.scriptId, callFrame.lineNumber,
-            columnNumber: callFrame.columnNumber);
-        var tempWipFrame = WipCallFrame({
-          'url': callFrame.url,
-          'functionName': callFrame.functionName,
-          'location': location.json,
-          'scopeChain': [],
-        });
 
-        var frame = await debugger.calculateDartFrameFor(
-          tempWipFrame,
-          _frameIndex++,
-          populateVariables: false,
-        );
-        if (frame != null) {
-          frame.kind = FrameKind.kAsyncCausal;
-          _computedFrames.add(frame);
+      // We are processing a new set of async frames, add a suspension marker.
+      if (_asyncFramesToProcess == null) {
+        if (_computedFrames.last?.kind != FrameKind.kAsyncSuspensionMarker) {
+          _computedFrames.add(Frame(
+              index: _frameIndex++, kind: FrameKind.kAsyncSuspensionMarker));
+        }
+        _asyncFramesToProcess = _asyncStackTrace.callFrames;
+      } else {
+        // Process a single async frame.
+        if (_asyncFramesToProcess.isNotEmpty) {
+          var callFrame = _asyncFramesToProcess.removeAt(0);
+          var location = WipLocation.fromValues(
+              callFrame.scriptId, callFrame.lineNumber,
+              columnNumber: callFrame.columnNumber);
+          var tempWipFrame = WipCallFrame({
+            'url': callFrame.url,
+            'functionName': callFrame.functionName,
+            'location': location.json,
+            'scopeChain': [],
+          });
+
+          var frame = await debugger.calculateDartFrameFor(
+            tempWipFrame,
+            _frameIndex++,
+            populateVariables: false,
+          );
+          if (frame != null) {
+            frame.kind = FrameKind.kAsyncCausal;
+            _computedFrames.add(frame);
+          }
         }
       }
-    }
 
-    // Async frames are no longer on the stack - we don't have local variable
-    // information for them.
-    if (_asyncFramesToProcess.isEmpty) {
-      _asyncStackTrace = _asyncStackTrace.parent;
-      _asyncFramesToProcess = null;
+      // Async frames are no longer on the stack - we don't have local variable
+      // information for them.
+      if (_asyncFramesToProcess.isEmpty) {
+        _asyncStackTrace = _asyncStackTrace.parent;
+        _asyncFramesToProcess = null;
+      }
     }
-
-    await _collectAsyncFrames(limit: limit);
   }
 }
