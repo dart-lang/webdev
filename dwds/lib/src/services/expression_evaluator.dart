@@ -230,15 +230,14 @@ class ExpressionEvaluator {
           var capturedValue = _valueToLiteral(value);
           jsScope[name] = capturedValue ?? name;
         }
-        if (scopeType == 'local') {
+        else {
           jsScope[name] = name;
         }
       }
     }
 
-    var scopeChain = filterScopes(frame).reversed;
-
     // skip library and main scope
+    var scopeChain = filterScopes(frame).reversed;
     for (var scope in scopeChain) {
       var scopeProperties =
           await (await _debugger).getProperties(scope.object.objectId);

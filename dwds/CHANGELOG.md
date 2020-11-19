@@ -3,6 +3,7 @@
 - Properly handle `requireJS` errors during hot restarts.
 - Fix an issue where calling add breakpoint in quick succession
   would corrupt the internal state.
+- Fix expression evaluation failure inside blocks.
 
 ## 7.1.0
 
