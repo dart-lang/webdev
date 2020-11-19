@@ -229,8 +229,7 @@ class ExpressionEvaluator {
 
           var capturedValue = _valueToLiteral(value);
           jsScope[name] = capturedValue ?? name;
-        }
-        else {
+        } else {
           jsScope[name] = name;
         }
       }
