@@ -35,6 +35,7 @@ void main() {
     printFromTestLibrary();
     printFromTestPackage();
     printCallExtension();
+    printLoopVariable();
   });
 
   document.body.appendText(concatenate('Program', ' is running!'));
@@ -71,6 +72,13 @@ void printFromTestLibrary() {
 void printCallExtension() {
   var local = '23';
   print(local.parseInt());
+}
+
+void printLoopVariable() {
+  var list  = <String>['1'];
+  for(var item in list) {
+    print(item); // Breakpoint: printLoopVariable
+  }
 }
 
 class MainClass {

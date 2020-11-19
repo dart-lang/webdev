@@ -228,6 +228,22 @@ void main() async {
         });
       });
 
+      test('loop variable', () async {
+        await onBreakPoint(isolate.id, mainScript, 'printLoopVariable',
+            () async {
+          var event = await stream
+              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'item');
+
+          expect(
+              result,
+              isA<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '1'));
+        });
+      });
+
       test('evaluate expression in _testPackage/test_library', () async {
         await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction',
             () async {
