@@ -5,6 +5,8 @@
   stack overflow for highly nested calls.
 - Fix an issue where calling add breakpoint in quick succession
   would corrupt the internal state.
+- Now log the encoded URI of the debug service to both the terminal
+  and application console.
 
 ## 7.1.0
 

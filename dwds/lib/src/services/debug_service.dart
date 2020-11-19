@@ -121,6 +121,7 @@ class DebugService {
   final HttpServer _server;
   final bool _useSse;
   final bool _spawnDds;
+  final UrlEncoder _urlEncoder;
   DartDevelopmentService _dds;
 
   /// Null until [close] is called.
@@ -136,7 +137,8 @@ class DebugService {
       this.serviceExtensionRegistry,
       this._server,
       this._useSse,
-      this._spawnDds);
+      this._spawnDds,
+      this._urlEncoder);
 
   Future<void> close() => _closed ??= Future.wait([
         _server.close(),
@@ -182,6 +184,14 @@ class DebugService {
         .toString();
   }
 
+  String _encodedUri;
+  Future<String> get encodedUri async {
+    if (_encodedUri != null) return _encodedUri;
+    var encodedUri = uri;
+    if (_urlEncoder != null) encodedUri = await _urlEncoder(encodedUri);
+    return _encodedUri = encodedUri;
+  }
+
   static bool yieldControlToDDS(String uri) {
     if (_clientsConnected > 1) {
       return false;
@@ -199,6 +209,7 @@ class DebugService {
       AssetReader assetReader,
       LoadStrategy loadStrategy,
       AppConnection appConnection,
+      UrlEncoder urlEncoder,
       {void Function(Map<String, dynamic>) onRequest,
       void Function(Map<String, dynamic>) onResponse,
       bool spawnDds = true,
@@ -253,6 +264,7 @@ class DebugService {
       server,
       useSse,
       spawnDds,
+      urlEncoder,
     );
   }
 }
