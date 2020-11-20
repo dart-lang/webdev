@@ -36,8 +36,9 @@ void main() async {
     setUp(() async {
       final systemTempDir = Directory.systemTemp;
       outputDir = systemTempDir.createTempSync('foo bar');
-      final source = p.join(outputDir.path, 'try.dart');
-      final kernel = p.join(outputDir.path, 'try.full.dill');
+      final source = outputDir.uri.resolve('try.dart');
+      final packages = outputDir.uri.resolve('package_config.json');
+      final kernel = outputDir.uri.resolve('try.full.dill');
       final executable = Platform.resolvedExecutable;
       final binDir = p.dirname(executable);
       final dartdevc = p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
@@ -53,8 +54,8 @@ void main() async {
 
       // start expression compilation service
       final port = await findUnusedPort();
-      final assetHandler =
-          (request) => Response(200, body: File(kernel).readAsBytesSync());
+      final assetHandler = (request) =>
+          Response(200, body: File.fromUri(kernel).readAsBytesSync());
       service = await ExpressionCompilerService.start(
           'localhost', port, assetHandler, false);
 
@@ -63,9 +64,26 @@ void main() async {
       shelf_io.serveRequests(server, service.handler);
 
       // generate full dill
-      File(source).writeAsStringSync('''void main() {
-        // breakpoint line
-      }''');
+      File.fromUri(source)
+        ..createSync()
+        ..writeAsStringSync('''void main() {
+          // breakpoint line
+        }''');
+
+      File.fromUri(packages)
+        ..createSync()
+        ..writeAsStringSync('''
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "try",
+            "rootUri": "./",
+            "packageUri": "./"
+          }
+        ]
+      }
+      ''');
 
       final args = [
         dartdevc,
@@ -74,9 +92,11 @@ void main() async {
         'try.js',
         '--experimental-output-compiled-kernel',
         '--multi-root',
-        outputDir.path,
+        '${outputDir.uri}',
         '--multi-root-scheme',
         'org-dartlang-app',
+        '--packages',
+        packages.path,
       ];
       final process = await Process.start(executable, args,
               workingDirectory: outputDir.path)
@@ -87,7 +107,7 @@ void main() async {
       });
       expect(await process.exitCode, 0,
           reason: 'failed running $executable with args $args');
-      expect(File(kernel).existsSync(), true,
+      expect(File.fromUri(kernel).existsSync(), true,
           reason: 'failed to create full dill');
     });
 
