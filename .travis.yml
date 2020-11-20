@@ -50,13 +50,13 @@ jobs:
       env: PKGS="webdev"
       script: tool/travis.sh dartfmt dartanalyzer_0 test_3
     - stage: unit_test
-      name: "SDK: 2.10.0; PKG: dwds; TASKS: `pub run test -x expression-compilation-service`"
+      name: "SDK: 2.10.0; PKG: dwds; TASKS: `pub run test -x dev-sdk`"
       dart: "2.10.0"
       os: linux
       env: PKGS="dwds"
       script: tool/travis.sh test_1
     - stage: unit_test
-      name: "SDK: 2.10.0; PKG: dwds; TASKS: `pub run test -x expression-compilation-service`"
+      name: "SDK: 2.10.0; PKG: dwds; TASKS: `pub run test -x dev-sdk`"
       dart: "2.10.0"
       os: windows
       env: PKGS="dwds"

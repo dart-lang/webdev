@@ -14,6 +14,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/logging.dart';
 
 final context = TestContext(
     directory: p.join('..', 'fixtures', '_testPackage'),
@@ -28,6 +29,12 @@ WipConnection get tabConnection => context.tabConnection;
 void main() async {
   group('shared context with evaluation', () {
     setUpAll(() async {
+      // Note: change 'printOnFailure' to 'print' for debug printing
+      configureLogWriter(
+          customLogWriter: (level, message,
+                  {loggerName, error, stackTrace, verbose}) =>
+              printOnFailure('[$level] $loggerName: $message'));
+
       await context.setUp(
           enableExpressionEvaluation: true,
           compilationMode: CompilationMode.frontendServer,
@@ -165,6 +172,27 @@ void main() async {
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
       });
+
+      test('loop variable', () async {
+        var line = await context.findBreakpointLine(
+            'printLoopVariable', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        var event = await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var result = await service.evaluateInFrame(
+            isolate.id, event.topFrame.index, 'item');
+
+        expect(
+            result,
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', '1'));
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+      }, tags: ['dev-sdk']);
 
       test('error', () async {
         var line = await context.findBreakpointLine(

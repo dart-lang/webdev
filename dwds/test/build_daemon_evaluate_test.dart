@@ -115,7 +115,7 @@ void main() async {
               isA<InstanceRef>().having(
                   (instance) => instance.valueAsString, 'valueAsString', '1'));
         });
-      });
+      }, tags: ['dev-sdk']);
 
       test('private field from another library', () async {
         await onBreakPoint(isolate.id, mainScript, 'printField', () async {
@@ -130,7 +130,7 @@ void main() async {
               isA<ErrorRef>().having((instance) => instance.message, 'message',
                   contains("The getter '_field' isn't defined")));
         });
-      });
+      }, tags: ['dev-sdk']);
 
       test('private field from current library', () async {
         await onBreakPoint(isolate.id, mainScript, 'printFieldMain', () async {
@@ -145,7 +145,7 @@ void main() async {
               isA<InstanceRef>().having(
                   (instance) => instance.valueAsString, 'valueAsString', '1'));
         });
-      });
+      }, tags: ['dev-sdk']);
 
       test('access instance fields after evaluation', () async {
         await onBreakPoint(isolate.id, mainScript, 'printField', () async {
@@ -226,7 +226,23 @@ void main() async {
               isA<InstanceRef>().having(
                   (instance) => instance.valueAsString, 'valueAsString', '42'));
         });
-      });
+      }, tags: ['dev-sdk']);
+
+      test('loop variable', () async {
+        await onBreakPoint(isolate.id, mainScript, 'printLoopVariable',
+            () async {
+          var event = await stream
+              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+          var result = await service.evaluateInFrame(
+              isolate.id, event.topFrame.index, 'item');
+
+          expect(
+              result,
+              isA<InstanceRef>().having(
+                  (instance) => instance.valueAsString, 'valueAsString', '1'));
+        });
+      }, tags: ['dev-sdk']);
 
       test('evaluate expression in _testPackage/test_library', () async {
         await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction',
@@ -260,7 +276,7 @@ void main() async {
               isA<InstanceRef>().having(
                   (instance) => instance.valueAsString, 'valueAsString', '1'));
         });
-      });
+      }, tags: 'dev-sdk');
 
       test('evaluate expression in caller frame', () async {
         await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction',

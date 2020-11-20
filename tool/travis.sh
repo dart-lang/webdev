@@ -75,8 +75,8 @@ for PKG in ${PKGS}; do
         pub run test test/build/ensure_version_test.dart || EXIT_CODE=$?
         ;;
       test_1)
-        echo 'pub run test -x expression-compilation-service'
-        pub run test -x expression-compilation-service || EXIT_CODE=$?
+        echo 'pub run test -x dev-sdk'
+        pub run test -x dev-sdk || EXIT_CODE=$?
         ;;
       test_2)
         echo 'pub run test'

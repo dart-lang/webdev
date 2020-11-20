@@ -5,3 +5,4 @@ tags:
   extension:  # Extension tests require configuration, so we may exclude.
   frontend-server: # Frontend server test require dev version of SDK, so we may exclude for stable SDK
   expression-compilation-service: # Expression compilation service test require dev version of SDK, so we may exclude for stable SDK
+  dev-sdk: # Tests that require dev SDK to pass
