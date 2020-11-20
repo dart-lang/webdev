@@ -8,6 +8,9 @@
 - Fix expression evaluation failure inside blocks.
 - Now log the encoded URI of the debug service to both the terminal
   and application console.
+- Fix an issue where running webdev with expression evaluation
+  enabled would fail to find `libraries.json` file and emit severe
+  error.
 
 ## 7.1.0
 
