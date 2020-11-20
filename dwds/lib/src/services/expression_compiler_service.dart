@@ -218,7 +218,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
     } else {
       var e = response['exception'];
       var s = response['stackTrace'];
-      _logger.info('Failed to update dependencies: $e:$s');
+      _logger.severe('Failed to update dependencies: $e:$s');
     }
     return result;
   }

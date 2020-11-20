@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/dwds.dart';
@@ -19,16 +20,9 @@ import 'fixtures/logging.dart';
 void main() async {
   group('expression compiler service with fake asset server', () {
     ExpressionCompilerService service;
-    var output = StreamController<String>.broadcast();
     HttpServer server;
-    var systemTempDir = Directory.systemTemp;
-    var outputDir = systemTempDir.createTempSync('foo bar');
-    var source = p.join(outputDir.path, 'try.dart');
-    var kernel = p.join(outputDir.path, 'try.full.dill');
-
-    FutureOr<Response> assetHandler(Request request) {
-      return Response(200, body: File(kernel).readAsBytesSync());
-    }
+    StreamController<String> output;
+    Directory outputDir;
 
     Future<void> stop() async {
       await service?.stop();
@@ -39,17 +33,28 @@ void main() async {
       output = null;
     }
 
-    setUpAll(() async {
+    setUp(() async {
+      final systemTempDir = Directory.systemTemp;
+      outputDir = systemTempDir.createTempSync('foo bar');
+      final source = p.join(outputDir.path, 'try.dart');
+      final kernel = p.join(outputDir.path, 'try.full.dill');
+      final executable = Platform.resolvedExecutable;
+      final binDir = p.dirname(executable);
+      final dartdevc = p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
+
       // redirect logs for testing
+      output = StreamController<String>.broadcast();
+      output.stream.listen(printOnFailure);
+
       configureLogWriter(
           customLogWriter: (level, message,
                   {loggerName, error, stackTrace, verbose}) =>
               output.add('[$level] $loggerName: $message'));
 
-      output.stream.listen(printOnFailure);
-
       // start expression compilation service
-      var port = await findUnusedPort();
+      final port = await findUnusedPort();
+      final assetHandler =
+          (request) => Response(200, body: File(kernel).readAsBytesSync());
       service = await ExpressionCompilerService.start(
           'localhost', port, assetHandler, false);
 
@@ -62,28 +67,31 @@ void main() async {
         // breakpoint line
       }''');
 
-      var process = await Process.start(
-              p.join(p.dirname(Platform.resolvedExecutable), 'dartdevc'),
-              [
-                'try.dart',
-                '-o',
-                'try.js',
-                '--experimental-output-compiled-kernel',
-                '--multi-root',
-                outputDir.path,
-                '--multi-root-scheme',
-                'org-dartlang-app',
-              ],
+      final args = [
+        dartdevc,
+        'try.dart',
+        '-o',
+        'try.js',
+        '--experimental-output-compiled-kernel',
+        '--multi-root',
+        outputDir.path,
+        '--multi-root-scheme',
+        'org-dartlang-app',
+      ];
+      final process = await Process.start(executable, args,
               workingDirectory: outputDir.path)
           .then((p) {
-        stdout.addStream(p.stdout);
-        stderr.addStream(p.stderr);
+        transformToLines(p.stdout).listen(output.add);
+        transformToLines(p.stderr).listen(output.add);
         return p;
       });
-      await process.exitCode;
+      expect(await process.exitCode, 0,
+          reason: 'failed running $executable with args $args');
+      expect(File(kernel).existsSync(), true,
+          reason: 'failed to create full dill');
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await stop();
       outputDir.deleteSync(recursive: true);
     });
@@ -101,21 +109,33 @@ void main() async {
       expect(
           output.stream,
           emitsThrough(contains(
-              '[FINEST] ExpressionCompilerService: Compiling "true" at org-dartlang-app:/try.dart:2')));
+              '[FINEST] ExpressionCompilerService: Compiling "true" at')));
       expect(
           output.stream,
           emitsThrough(contains(
               '[FINEST] ExpressionCompilerService: Compiled "true" to:')));
+      expect(output.stream,
+          emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')));
 
       var result = await service.updateDependencies({'try': 'try.full.dill'});
-      expect(result, true);
+      expect(result, true, reason: 'failed to update dependencies');
 
-      var compilationResult = await service.compileExpressionToJs(
+      final compilationResult = await service.compileExpressionToJs(
           '0', 'org-dartlang-app:/try.dart', 2, 1, {}, {}, 'try', 'true');
-      expect(compilationResult.result, contains('return true;'));
-      expect(compilationResult.isError, false);
+
+      expect(
+          compilationResult,
+          isA<ExpressionCompilationResult>()
+              .having((r) => r.result, 'result', contains('return true;'))
+              .having((r) => r.isError, 'isError', false));
 
       await stop();
     });
   });
+}
+
+Stream<String> transformToLines(Stream<List<int>> byteStream) {
+  return byteStream
+      .transform<String>(utf8.decoder)
+      .transform<String>(const LineSplitter());
 }
