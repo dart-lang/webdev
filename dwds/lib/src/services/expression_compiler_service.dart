@@ -190,7 +190,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
 
     var workerPath = p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
     var sdkSummaryPath = p.join(sdkRoot, 'ddc_sdk.dill');
-    var librariesPath = p.join(sdkRoot, 'lib', 'libraries.json');
+    var librariesPath = p.join(sdkDir, 'lib', 'libraries.json');
 
     return ExpressionCompilerService.startWithPlatform(address, port,
         assetHandler, workerPath, sdkSummaryPath, librariesPath, verbose);
@@ -218,7 +218,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
     } else {
       var e = response['exception'];
       var s = response['stackTrace'];
-      _logger.info('Failed to update dependencies: $e:$s');
+      _logger.severe('Failed to update dependencies: $e:$s');
     }
     return result;
   }
@@ -238,7 +238,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       throw StateError('Expression compilation service has stopped');
     }
 
-    _logger.finest('compiling "$expression" at $libraryUri:$line');
+    _logger.finest('Compiling "$expression" at $libraryUri:$line');
 
     var response = await _send({
       'command': 'CompileExpression',
@@ -264,6 +264,11 @@ class ExpressionCompilerService implements ExpressionCompiler {
       var procedure = response['compiledProcedure'] as String;
       succeeded = response['succeeded'] as bool;
       result = succeeded ? procedure : error;
+    }
+    if (succeeded) {
+      _logger.finest('Compiled "$expression" to: $result');
+    } else {
+      _logger.finest('Failed to compile "$expression": $result');
     }
     return ExpressionCompilationResult(result, !succeeded);
   }
