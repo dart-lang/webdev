@@ -10,6 +10,9 @@
   and application console.
 - No longer blacklist the Dart SDK as the `skipLists` support serves
   the same purpose.
+- Fix an issue where running webdev with expression evaluation
+  enabled would fail to find `libraries.json` file and emit severe
+  error.
 
 ## 7.1.0
 
