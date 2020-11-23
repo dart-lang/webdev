@@ -211,7 +211,7 @@ Future<void> _startSseClient(
   // The listener of the `currentTab` receives events from all tabs.
   // We want to forward an event only if it originates from `currentTab`.
   // We know that if `source.tabId` and `currentTab.id` are the same.
-  addDebuggerListener(allowInterop(queue._forwardOrEnqueue));
+  addDebuggerListener(allowInterop(queue._filterAndForward));
 
   onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
     // Detach debugger from all tabs if debugger is cancelled by user.
@@ -269,9 +269,6 @@ class _EventQueue {
   bool _attached;
   bool _supportsSkipLists;
 
-  /// The pending events.
-  final queuedEvents = <ExtensionEvent>[];
-
   /// Forward [event] to the client immediately.
   void _forward(ExtensionEvent event) {
     _client.sink.add(jsonEncode(serializers.serialize(event)));
@@ -283,8 +280,8 @@ class _EventQueue {
         ..params = jsonEncode(json.decode(stringify(params)))
         ..method = jsonEncode(method));
 
-  /// Forward the event, or queue it up if it should be batched.
-  void _forwardOrEnqueue(Debuggee source, String method, Object params) {
+  /// Forward the event if applicable.
+  void _filterAndForward(Debuggee source, String method, Object params) {
     if (source.tabId != _currentTab.id || !_attached) {
       return;
     }
