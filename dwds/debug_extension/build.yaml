@@ -4,7 +4,8 @@ targets:
       build_web_compilers|entrypoint:
         options:
           dart2js_args:
-            - -O4 --csp
+            - -O4 
+            - --csp
         generate_for:
           - web/background.dart
       extension|client_js_copy_builder:

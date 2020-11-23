@@ -8,6 +8,8 @@
 - Fix expression evaluation failure inside blocks.
 - Now log the encoded URI of the debug service to both the terminal
   and application console.
+- No longer blacklist the Dart SDK as the `skipLists` support serves
+  the same purpose.
 
 ## 7.1.0
 

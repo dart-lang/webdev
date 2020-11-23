@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+//@dart=2.9
+
 @JS()
 library background;
 
@@ -260,31 +262,17 @@ Future<void> _startSseClient(
 class _EventQueue {
   _EventQueue(
       this._client, this._currentTab, this._attached, String dwdsVersion) {
-    _supportsBatching =
-        Version.parse(dwdsVersion ?? '0.0.0') > Version.parse('0.8.1');
+    _supportsSkipLists =
+        Version.parse(dwdsVersion ?? '0.0.0') >= Version.parse('7.1.0');
   }
-
-  static const _flushInterval = Duration(milliseconds: 250);
 
   final SocketClient _client;
   final Tab _currentTab;
   bool _attached;
-  bool _supportsBatching;
+  bool _supportsSkipLists;
 
   /// The pending events.
   final queuedEvents = <ExtensionEvent>[];
-
-  void _startTimer() {
-    Timer(_flushInterval, _flush);
-  }
-
-  /// Send all of our pending events in a batch.
-  void _flush() {
-    var events = BuiltList<ExtensionEvent>.from(queuedEvents).toBuilder();
-    _client.sink.add(jsonEncode(
-        serializers.serialize(BatchedEvents((b) => b..events = events))));
-    queuedEvents.clear();
-  }
 
   /// Forward [event] to the client immediately.
   void _forward(ExtensionEvent event) {
@@ -302,15 +290,11 @@ class _EventQueue {
     if (source.tabId != _currentTab.id || !_attached) {
       return;
     }
+
+    if (_supportsSkipLists && method == 'Debugger.scriptParsed') return;
+
     var event = _extensionEventFor(method, params);
-    if (_supportsBatching && method == 'Debugger.scriptParsed') {
-      if (queuedEvents.isEmpty) {
-        _startTimer();
-      }
-      queuedEvents.add(event);
-    } else {
-      _forward(event);
-    }
+    _forward(event);
   }
 }
 

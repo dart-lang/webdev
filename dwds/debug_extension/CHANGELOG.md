@@ -1,3 +1,8 @@
+## 1.15
+
+- No longer send script parsed events when skipLists are supported,
+  improving the IPL of Dart DevTools.
+
 ## 1.14
 
 - Depend on the latest `package:sse`.

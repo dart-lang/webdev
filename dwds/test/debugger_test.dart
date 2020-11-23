@@ -96,7 +96,6 @@ void main() async {
       webkitDebugger,
       null,
       () => inspector,
-      null,
       locations,
       skipLists,
       root,
