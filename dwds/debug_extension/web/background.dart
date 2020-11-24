@@ -211,7 +211,7 @@ Future<void> _startSseClient(
   // The listener of the `currentTab` receives events from all tabs.
   // We want to forward an event only if it originates from `currentTab`.
   // We know that if `source.tabId` and `currentTab.id` are the same.
-  addDebuggerListener(allowInterop(queue._forwardOrEnqueue));
+  addDebuggerListener(allowInterop(queue._filterAndForward));
 
   onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
     // Detach debugger from all tabs if debugger is cancelled by user.
@@ -260,31 +260,14 @@ Future<void> _startSseClient(
 class _EventQueue {
   _EventQueue(
       this._client, this._currentTab, this._attached, String dwdsVersion) {
-    _supportsBatching =
-        Version.parse(dwdsVersion ?? '0.0.0') > Version.parse('0.8.1');
+    _supportsSkipLists =
+        Version.parse(dwdsVersion ?? '0.0.0') >= Version.parse('7.1.0');
   }
-
-  static const _flushInterval = Duration(milliseconds: 250);
 
   final SocketClient _client;
   final Tab _currentTab;
   bool _attached;
-  bool _supportsBatching;
-
-  /// The pending events.
-  final queuedEvents = <ExtensionEvent>[];
-
-  void _startTimer() {
-    Timer(_flushInterval, _flush);
-  }
-
-  /// Send all of our pending events in a batch.
-  void _flush() {
-    var events = BuiltList<ExtensionEvent>.from(queuedEvents).toBuilder();
-    _client.sink.add(jsonEncode(
-        serializers.serialize(BatchedEvents((b) => b..events = events))));
-    queuedEvents.clear();
-  }
+  bool _supportsSkipLists;
 
   /// Forward [event] to the client immediately.
   void _forward(ExtensionEvent event) {
@@ -297,20 +280,16 @@ class _EventQueue {
         ..params = jsonEncode(json.decode(stringify(params)))
         ..method = jsonEncode(method));
 
-  /// Forward the event, or queue it up if it should be batched.
-  void _forwardOrEnqueue(Debuggee source, String method, Object params) {
+  /// Forward the event if applicable.
+  void _filterAndForward(Debuggee source, String method, Object params) {
     if (source.tabId != _currentTab.id || !_attached) {
       return;
     }
+
+    if (_supportsSkipLists && method == 'Debugger.scriptParsed') return;
+
     var event = _extensionEventFor(method, params);
-    if (_supportsBatching && method == 'Debugger.scriptParsed') {
-      if (queuedEvents.isEmpty) {
-        _startTimer();
-      }
-      queuedEvents.add(event);
-    } else {
-      _forward(event);
-    }
+    _forward(event);
   }
 }
 

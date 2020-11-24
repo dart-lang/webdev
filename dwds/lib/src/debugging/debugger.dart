@@ -13,7 +13,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
 import '../loaders/strategy.dart';
-import '../readers/asset_reader.dart';
 import '../services/chrome_proxy_service.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
@@ -36,16 +35,12 @@ const _pauseModePauseStates = {
   'unhandled': PauseState.uncaught,
 };
 
-/// Paths to black box in the Chrome debugger.
-const _pathsToBlackBox = {'/packages/stack_trace/'};
-
 class Debugger extends Domain {
   static final logger = Logger('Debugger');
 
   final RemoteDebugger _remoteDebugger;
 
   final StreamNotify _streamNotify;
-  final AssetReader _assetReader;
   final Locations _locations;
   final SkipLists _skipLists;
   final String _root;
@@ -54,7 +49,6 @@ class Debugger extends Domain {
     this._remoteDebugger,
     this._streamNotify,
     AppInspectorProvider provider,
-    this._assetReader,
     this._locations,
     this._skipLists,
     this._root,
@@ -165,7 +159,6 @@ class Debugger extends Domain {
     RemoteDebugger remoteDebugger,
     StreamNotify streamNotify,
     AppInspectorProvider appInspectorProvider,
-    AssetReader assetReader,
     Locations locations,
     SkipLists skipLists,
     String root,
@@ -174,7 +167,6 @@ class Debugger extends Domain {
       remoteDebugger,
       streamNotify,
       appInspectorProvider,
-      assetReader,
       locations,
       skipLists,
       root,
@@ -188,9 +180,6 @@ class Debugger extends Domain {
     // miss events.
     // Allow a null debugger/connection for unit tests.
     runZonedGuarded(() {
-      _remoteDebugger?.onScriptParsed?.listen((e) {
-        _blackBoxIfNecessary(e.script);
-      });
       _remoteDebugger?.onPaused?.listen(_pauseHandler);
       _remoteDebugger?.onResumed?.listen(_resumeHandler);
     }, (e, StackTrace s) {
@@ -205,52 +194,6 @@ class Debugger extends Domain {
         ?.sendCommand('Debugger.setAsyncCallStackDepth', params: {
       'maxDepth': 128,
     }));
-  }
-
-  /// Black boxes the Dart SDK and paths in [_pathsToBlackBox].
-  Future<void> _blackBoxIfNecessary(WipScript script) async {
-    // Ignore query parameters.
-    var url = script.url?.split('?')?.first ?? '';
-    if (url.endsWith('dart_sdk.js') || url.endsWith('dart_sdk.ddk.js')) {
-      await _blackBoxSdk(script);
-    } else if (_pathsToBlackBox.any(url.contains)) {
-      var content =
-          await _assetReader.dartSourceContents(DartUri(url).serverPath);
-      if (content == null) return;
-      var lines = content.split('\n');
-      await _blackBoxRanges(script.scriptId, [lines.length]);
-    }
-  }
-
-  /// Black boxes the SDK excluding the range which includes exception logic.
-  Future<void> _blackBoxSdk(WipScript script) async {
-    var content =
-        await _assetReader.dartSourceContents(DartUri(script.url).serverPath);
-    if (content == null) return;
-    var sdkSourceLines = content.split('\n');
-    // TODO(grouma) - Find a more robust way to identify this location.
-    var throwIndex = sdkSourceLines.indexWhere(
-        (line) => line.contains('dart.throw = function throw_(exception) {'));
-    if (throwIndex != -1) {
-      await _blackBoxRanges(script.scriptId, [throwIndex, throwIndex + 6]);
-    }
-  }
-
-  Future<void> _blackBoxRanges(String scriptId, List<int> lineNumbers) async {
-    try {
-      await _remoteDebugger
-          .sendCommand('Debugger.setBlackboxedRanges', params: {
-        'scriptId': scriptId,
-        'positions': [
-          {'lineNumber': 0, 'columnNumber': 0},
-          for (var line in lineNumbers) {'lineNumber': line, 'columnNumber': 0},
-        ]
-      });
-    } catch (_) {
-      // Attempting to set ranges immediately after a refresh can cause issues
-      // as the corresponding script will no longer exist. Silently ignore
-      // these failures.
-    }
   }
 
   /// Resumes the Isolate from start.
