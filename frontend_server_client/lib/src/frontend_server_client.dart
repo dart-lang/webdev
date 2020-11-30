@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:async/async.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
-import 'package:uuid/uuid.dart';
 
 import 'shared.dart';
 
@@ -131,7 +130,7 @@ class FrontendServerClient {
               'Subsequent compile invocations must provide a non-empty list '
               'of invalidated uris.');
         }
-        var boundaryKey = Uuid().v4();
+        var boundaryKey = generateUuidV4();
         command.writeln(' $boundaryKey');
         for (var uri in invalidatedUris) {
           command.writeln('$uri');
