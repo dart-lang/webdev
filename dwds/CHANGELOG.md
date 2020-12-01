@@ -1,3 +1,7 @@
+## 7.1.2 - UNRELEASED
+
+- Improve logging around execution contexts.
+
 ## 7.1.1
 
 - Properly handle `requireJS` errors during hot restarts.
