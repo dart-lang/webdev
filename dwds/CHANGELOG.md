@@ -1,4 +1,4 @@
-## 7.1.1 - Unreleased
+## 7.1.1
 
 - Properly handle `requireJS` errors during hot restarts.
 - Fix an issue where Dart frame computation could result in a
