@@ -1,16 +1,7 @@
 # See https://pub.dev/packages/mono_repo for details
 self_validate: analyzer_and_format
-travis:
-  sudo: required
-  addons:
-    chrome: stable
-  before_install:
-    - tool/travis_setup.sh
-    - export PATH=$PATH:$PWD
-  after_failure:
-    - tool/report_failure.sh
-  services:
-    - xvfb
+github:
+  cron:
 
 merge_stages:
 - analyzer_and_format
