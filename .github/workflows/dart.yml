@@ -1,0 +1,343 @@
+# Created with package:mono_repo v3.3.1-dev
+name: Dart CI
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+defaults:
+  run:
+    shell: bash
+env:
+  PUB_ENVIRONMENT: bot.github
+
+jobs:
+  job_001:
+    name: mono_repo self validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:stable"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: latest
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - run: pub global activate mono_repo 3.3.1-dev
+      - run: pub global run mono_repo generate --validate
+  job_002:
+    name: "analyzer_and_format; linux; Dart dev; PKG: dwds; `dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`, `pub run test test/build/ensure_version_test.dart`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:dartfmt-dartanalyzer_0-test_0"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds
+            os:ubuntu-latest;pub-cache-hosted;dart:dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: dev
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: dwds
+        run: tool/ci.sh dartfmt dartanalyzer_0 test_0
+  job_003:
+    name: "analyzer_and_format; linux; Dart 2.10.0; PKGS: dwds, example, frontend_server_common, webdev; `dartanalyzer --fatal-warnings .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:dwds-example-frontend_server_common-webdev;commands:dartanalyzer_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:dwds-example-frontend_server_common-webdev
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: dwds example frontend_server_common webdev
+        run: tool/ci.sh dartanalyzer_1
+  job_004:
+    name: "analyzer_and_format; linux; Dart dev; PKGS: example, fixtures/_webdevSmoke, frontend_server_common; `dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:example-fixtures/_webdevSmoke-frontend_server_common;commands:dartfmt-dartanalyzer_0"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:example-fixtures/_webdevSmoke-frontend_server_common
+            os:ubuntu-latest;pub-cache-hosted;dart:dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: dev
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: example fixtures/_webdevSmoke frontend_server_common
+        run: tool/ci.sh dartfmt dartanalyzer_0
+  job_005:
+    name: "analyzer_and_format; linux; Dart 2.9.0-19.0.dev; PKG: frontend_server_client; `dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.9.0-19.0.dev;packages:frontend_server_client;commands:dartfmt-dartanalyzer_0"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.9.0-19.0.dev;packages:frontend_server_client
+            os:ubuntu-latest;pub-cache-hosted;dart:2.9.0-19.0.dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: dev
+          version: "2.9.0-19.0.dev"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: frontend_server_client
+        run: tool/ci.sh dartfmt dartanalyzer_0
+  job_006:
+    name: "analyzer_and_format; linux; Dart dev; PKG: webdev; `dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`, `pub run test test/build/ensure_build_test.dart`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev;commands:dartfmt-dartanalyzer_0-test_3"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev
+            os:ubuntu-latest;pub-cache-hosted;dart:dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: dev
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: webdev
+        run: tool/ci.sh dartfmt dartanalyzer_0 test_3
+  job_007:
+    name: "unit_test; linux; Dart 2.10.0; PKG: dwds; `pub run test -x dev-sdk`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:dwds;commands:test_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:dwds
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: dwds
+        run: tool/ci.sh test_1
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+  job_008:
+    name: "unit_test; linux; Dart dev; PKG: dwds; `pub run test`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:test_2"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds
+            os:ubuntu-latest;pub-cache-hosted;dart:dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: dev
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: dwds
+        run: tool/ci.sh test_2
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+  job_009:
+    name: "unit_test; windows; Dart 2.10.0; PKG: dwds; `pub run test -x dev-sdk`"
+    runs-on: windows-latest
+    steps:
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: dwds
+        run: tool/ci.sh test_1
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+  job_010:
+    name: "unit_test; windows; Dart dev; PKG: dwds; `pub run test`"
+    runs-on: windows-latest
+    steps:
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: dev
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: dwds
+        run: tool/ci.sh test_2
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+  job_011:
+    name: "unit_test; linux; Dart 2.10.0; PKG: webdev; `pub run test -j 1`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:webdev;commands:test_4"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:webdev
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: webdev
+        run: tool/ci.sh test_4
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+  job_012:
+    name: "unit_test; linux; Dart dev; PKG: webdev; `pub run test -j 1`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev;commands:test_4"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev
+            os:ubuntu-latest;pub-cache-hosted;dart:dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: dev
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: webdev
+        run: tool/ci.sh test_4
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+  job_013:
+    name: "unit_test; windows; Dart 2.10.0; PKG: webdev; `pub run test -j 1`"
+    runs-on: windows-latest
+    steps:
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: webdev
+        run: tool/ci.sh test_4
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+  job_014:
+    name: "unit_test; windows; Dart dev; PKG: webdev; `pub run test -j 1`"
+    runs-on: windows-latest
+    steps:
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: dev
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: webdev
+        run: tool/ci.sh test_4
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
