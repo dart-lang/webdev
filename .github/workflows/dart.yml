@@ -11,6 +11,7 @@ defaults:
     shell: bash
 env:
   PUB_ENVIRONMENT: bot.github
+  DISPLAY: ":99"
 
 jobs:
   job_001:
@@ -151,14 +152,44 @@ jobs:
           TRAVIS_OS_NAME: linux
         run: tool/ci.sh dartfmt dartanalyzer_0 test_3
   job_004:
-    name: "OS: linux; SDK: 2.10.0; PKG: dwds; TASKS: `pub run test -x dev-sdk`"
+    name: "OS: linux; SDK: dev; PKG: dwds; TASKS: [`Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -x dev-sdk`]"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:dwds;commands:test_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:command-test_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds
+            os:ubuntu-latest;pub-cache-hosted;dart:dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: dev
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - env:
+          PKGS: dwds
+          TRAVIS_OS_NAME: linux
+        run: tool/ci.sh command test_1
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_008
+      - job_009
+      - job_010
+  job_005:
+    name: "OS: linux; SDK: 2.10.0; PKG: dwds; TASKS: [`Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -x dev-sdk`]"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:dwds;commands:command-test_1"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
@@ -173,37 +204,7 @@ jobs:
       - env:
           PKGS: dwds
           TRAVIS_OS_NAME: linux
-        run: tool/ci.sh test_1
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_008
-      - job_009
-      - job_010
-  job_005:
-    name: "OS: linux; SDK: dev; PKG: dwds; TASKS: `pub run test`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:test_2"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds
-            os:ubuntu-latest;pub-cache-hosted;dart:dev
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
-        with:
-          release-channel: dev
-      - run: dart --version
-      - uses: actions/checkout@v2
-      - env:
-          PKGS: dwds
-          TRAVIS_OS_NAME: linux
-        run: tool/ci.sh test_2
+        run: tool/ci.sh command test_1
     needs:
       - job_001
       - job_002
@@ -253,14 +254,14 @@ jobs:
       - job_009
       - job_010
   job_011:
-    name: "OS: linux; SDK: 2.10.0; PKG: webdev; TASKS: `pub run test -j 1`"
+    name: "OS: linux; SDK: 2.10.0; PKG: webdev; TASKS: [`Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -j 1`]"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:webdev;commands:test_4"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:webdev;commands:command-test_4"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
@@ -275,7 +276,7 @@ jobs:
       - env:
           PKGS: webdev
           TRAVIS_OS_NAME: linux
-        run: tool/ci.sh test_4
+        run: tool/ci.sh command test_4
     needs:
       - job_001
       - job_002
@@ -284,14 +285,14 @@ jobs:
       - job_009
       - job_010
   job_012:
-    name: "OS: linux; SDK: dev; PKG: webdev; TASKS: `pub run test -j 1`"
+    name: "OS: linux; SDK: dev; PKG: webdev; TASKS: [`Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -j 1`]"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev;commands:test_4"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev;commands:command-test_4"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;dart:dev
@@ -305,7 +306,7 @@ jobs:
       - env:
           PKGS: webdev
           TRAVIS_OS_NAME: linux
-        run: tool/ci.sh test_4
+        run: tool/ci.sh command test_4
     needs:
       - job_001
       - job_002
