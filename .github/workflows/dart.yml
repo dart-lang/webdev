@@ -153,16 +153,16 @@ jobs:
         if: "steps.example_pub_upgrade.conclusion == 'success'"
         working-directory: example
         run: dartanalyzer --fatal-infos --fatal-warnings .
-      - id: fixtures/_webdevSmoke_pub_upgrade
+      - id: fixtures__webdevSmoke_pub_upgrade
         name: "fixtures/_webdevSmoke; pub upgrade --no-precompile"
         working-directory: fixtures/_webdevSmoke
         run: pub upgrade --no-precompile
       - name: "fixtures/_webdevSmoke; dartfmt -n --set-exit-if-changed ."
-        if: "steps.fixtures/_webdevSmoke_pub_upgrade.conclusion == 'success'"
+        if: "steps.fixtures__webdevSmoke_pub_upgrade.conclusion == 'success'"
         working-directory: fixtures/_webdevSmoke
         run: dartfmt -n --set-exit-if-changed .
       - name: "fixtures/_webdevSmoke; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.fixtures/_webdevSmoke_pub_upgrade.conclusion == 'success'"
+        if: "steps.fixtures__webdevSmoke_pub_upgrade.conclusion == 'success'"
         working-directory: fixtures/_webdevSmoke
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: frontend_server_common_pub_upgrade
