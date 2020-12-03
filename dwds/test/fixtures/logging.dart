@@ -40,7 +40,7 @@ void configureLogWriter({LogWriter customLogWriter}) {
 }
 
 void stopLogWriter() {
-  _loggerSub.cancel();
+  _loggerSub?.cancel();
   _loggerSub = null;
 }
 

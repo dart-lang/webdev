@@ -26,7 +26,7 @@ void main() async {
   for (var useSse in [true, false]) {
     group(useSse ? 'SSE' : 'WebSockets', () {
       group('Without encoding', () {
-        setUpAll(() async {
+        setUp(() async {
           await context.setUp(
               enableDebugExtension: true, serveDevTools: true, useSse: useSse);
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
@@ -36,7 +36,7 @@ void main() async {
           await Future.delayed(const Duration(seconds: 2));
         });
 
-        tearDownAll(() async {
+        tearDown(() async {
           await context.tearDown();
         });
 
