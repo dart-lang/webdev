@@ -1,5 +1,4 @@
 # See https://pub.dev/packages/mono_repo for details
-self_validate: analyzer_and_format
 github:
   env:
     DISPLAY: ':99'
