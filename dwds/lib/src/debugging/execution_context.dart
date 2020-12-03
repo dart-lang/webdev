@@ -46,7 +46,7 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
       } catch (_) {
         // Errors may be thrown if we attempt to evaluate in a stale a context.
         // Ignore and continue.
-        _logger.fine('Invalid exeuction context: $context');
+        _logger.fine('Invalid execution context: $context');
       }
     }
     if (_id == null) {
