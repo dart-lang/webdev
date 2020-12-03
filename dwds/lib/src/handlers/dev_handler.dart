@@ -152,9 +152,8 @@ class DevHandler {
       // There is no way to calculate the number of existing execution contexts
       // so we wait for a short while to receive a context.
       while (await contextIdQueue.hasNext
-          .timeout(const Duration(milliseconds: 100), onTimeout: () => false)) {
+          .timeout(const Duration(milliseconds: 50), onTimeout: () => false)) {
         var contextId = await contextIdQueue.next;
-        _logger.fine('Checking context id: $contextId');
         var result = await tabConnection.sendCommand('Runtime.evaluate', {
           'expression': r'window["$dartAppInstanceId"];',
           'contextId': contextId,

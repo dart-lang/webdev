@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v3.3.1-dev
+# Created with package:mono_repo v3.4.0
 
 # Support built in commands on windows out of the box.
 function pub() {
