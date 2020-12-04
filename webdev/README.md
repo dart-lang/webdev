@@ -1,5 +1,4 @@
-[![Pub Package](https://img.shields.io/pub/v/webdev.svg)](https://pub.dartlang.org/packages/webdev)
-[![Build Status](https://travis-ci.org/dart-lang/webdev.svg?branch=master)](https://travis-ci.org/dart-lang/webdev)
+[![Dart](https://github.com/dart-lang/webdev/workflows/Dart/badge.svg)](https://github.com/dart-lang/webdev/actions?query=workflow%3ADart)
 
 A command-line tool for developing and deploying web applications with Dart.
 
