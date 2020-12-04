@@ -10,7 +10,7 @@ A service that proxies between the Chrome debug protocol and the Dart VM service
 ## webdev [![Pub Package](https://img.shields.io/pub/v/webdev.svg)](https://pub.dev/packages/webdev)
 
 * Package: https://pub.dev/packages/webdev
-* [Source code](json_serializable)
+* [Source code](webdev)
 
 A command-line tool for developing and deploying web applications with Dart.
 
