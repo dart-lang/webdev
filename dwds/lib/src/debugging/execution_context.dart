@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
+import 'package:logging/logging.dart';
 
 import 'remote_debugger.dart';
 
@@ -16,6 +17,7 @@ abstract class ExecutionContext {
 /// The execution context in which to do remote evaluations.
 class RemoteDebuggerExecutionContext extends ExecutionContext {
   final RemoteDebugger _remoteDebugger;
+  final _logger = Logger('RemoteDebuggerExecutionContext');
 
   // Contexts that may contain a Dart application.
   StreamQueue<int> _contexts;
@@ -25,9 +27,11 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
   @override
   Future<int> get id async {
     if (_id != null) return _id;
+    _logger.fine('Looking for Dart execution context...');
     while (await _contexts.hasNext
         .timeout(const Duration(milliseconds: 50), onTimeout: () => false)) {
       var context = await _contexts.next;
+      _logger.fine('Checking context id: $context');
       try {
         var result =
             await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
@@ -35,12 +39,14 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
           'contextId': context,
         });
         if (result.result['result']['value'] != null) {
+          _logger.fine('Found valid execution context: $context');
           _id = context;
           break;
         }
       } catch (_) {
         // Errors may be thrown if we attempt to evaluate in a stale a context.
         // Ignore and continue.
+        _logger.fine('Invalid execution context: $context');
       }
     }
     if (_id == null) {
