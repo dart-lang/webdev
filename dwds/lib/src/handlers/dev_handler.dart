@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:async/async.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -142,18 +141,17 @@ class DevHandler {
           _log('  wip', '<== $message');
         });
       }
-      var contextIdQueue = StreamQueue<int>(tabConnection
-          .runtime.onExecutionContextCreated
-          .map((context) => context.id));
+      var contextIds = tabConnection.runtime.onExecutionContextCreated
+          .map((context) => context.id)
+          // There is no way to calculate the number of existing execution
+          // contexts so keep receiving them until there is a 50ms gap after
+          // receiving the last one.
+          .takeUntilGap(const Duration(milliseconds: 50));
       // We enqueue this work as we need to begin listening (`.hasNext`)
       // before events are received.
       unawaited(Future.microtask(() => tabConnection.runtime.enable()));
 
-      // There is no way to calculate the number of existing execution contexts
-      // so we wait for a short while to receive a context.
-      while (await contextIdQueue.hasNext
-          .timeout(const Duration(milliseconds: 50), onTimeout: () => false)) {
-        var contextId = await contextIdQueue.next;
+      await for (var contextId in contextIds) {
         var result = await tabConnection.sendCommand('Runtime.evaluate', {
           'expression': r'window["$dartAppInstanceId"];',
           'contextId': contextId,
@@ -513,4 +511,29 @@ class AppConnectionException implements Exception {
   final String details;
 
   AppConnectionException(this.details);
+}
+
+extension<T> on Stream<T> {
+  /// Forwards events from the original stream until a period of at least [gap]
+  /// occurs in between events, in which case the returned stream will end.
+  Stream<T> takeUntilGap(Duration gap) {
+    final controller = isBroadcast
+        ? StreamController<T>.broadcast(sync: true)
+        : StreamController<T>(sync: true);
+
+    StreamSubscription<T> subscription;
+    Timer _gapTimer;
+    controller.onListen = () {
+      subscription = listen((e) {
+        controller.add(e);
+        _gapTimer?.cancel();
+        _gapTimer = Timer(gap, () {
+          subscription.cancel();
+          controller.close();
+        });
+      }, onError: controller.addError, onDone: controller.close);
+    };
+    // Not handling pause/resume
+    return controller.stream;
+  }
 }
