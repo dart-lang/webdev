@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:async/async.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -123,6 +122,24 @@ class DevHandler {
     }
   }
 
+  Future<List<int>> _collectContexts(WipConnection tabConnection) async {
+    var contexts = <int>[];
+    var result = Completer<List<int>>();
+    Timer collectTimeout;
+    tabConnection.runtime.onExecutionContextCreated.listen((event) {
+      contexts.add(event.id);
+      collectTimeout?.cancel();
+      // There is no way to calculate the number of existing execution
+      // contexts so after we get the first context wait for a short while for
+      // others.
+      collectTimeout = Timer(const Duration(milliseconds: 50), () {
+        if (!result.isCompleted) result.complete(contexts);
+      });
+    });
+    await tabConnection.runtime.enable();
+    return result.future;
+  }
+
   /// Starts a [DebugService] for local debugging.
   Future<DebugService> _startLocalDebugService(
       ChromeConnection chromeConnection, AppConnection appConnection) async {
@@ -142,18 +159,8 @@ class DevHandler {
           _log('  wip', '<== $message');
         });
       }
-      var contextIdQueue = StreamQueue<int>(tabConnection
-          .runtime.onExecutionContextCreated
-          .map((context) => context.id));
-      // We enqueue this work as we need to begin listening (`.hasNext`)
-      // before events are received.
-      unawaited(Future.microtask(() => tabConnection.runtime.enable()));
 
-      // There is no way to calculate the number of existing execution contexts
-      // so we wait for a short while to receive a context.
-      while (await contextIdQueue.hasNext
-          .timeout(const Duration(milliseconds: 100), onTimeout: () => false)) {
-        var contextId = await contextIdQueue.next;
+      for (var contextId in await _collectContexts(tabConnection)) {
         var result = await tabConnection.sendCommand('Runtime.evaluate', {
           'expression': r'window["$dartAppInstanceId"];',
           'contextId': contextId,
