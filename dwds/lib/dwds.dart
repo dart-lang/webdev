@@ -13,6 +13,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'data/build_result.dart';
 import 'src/connections/app_connection.dart';
 import 'src/connections/debug_connection.dart';
+import 'src/events.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injector.dart';
 import 'src/handlers/socket_connections.dart';
@@ -67,6 +68,8 @@ class Dwds {
   ) : handler = _devHandler.handler;
 
   Stream<AppConnection> get connectedApps => _devHandler.connectedApps;
+
+  Stream<DwdsEvent> get events => eventStream;
 
   StreamController<DebugConnection> get extensionDebugConnections =>
       _devHandler.extensionDebugConnections;
