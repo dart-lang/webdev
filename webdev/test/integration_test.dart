@@ -227,23 +227,6 @@ name: sample
         await process.shouldExit(78);
       });
 
-      test('pubspec.yaml, pubspec.lock, no .packages', () async {
-        await d.file('pubspec.yaml', '''
-name: sample
-''').create();
-
-        await d.file('pubspec.lock', _pubspecLock()).create();
-        await d.dir('.dart_tool', [d.file('package_config.json', '')]).create();
-
-        var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
-
-        await checkProcessStdout(process, [
-          'webdev could not run for this project.',
-          'No .packages file found, please run "pub get" first.'
-        ]);
-        await process.shouldExit(78);
-      });
-
       test('should fail if there has been a dependency change', () async {
         await d.file('pubspec.lock', _pubspecLock()).create();
 
