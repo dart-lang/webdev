@@ -28,6 +28,8 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final SendPort _sendPort;
   final Handler _assetHandler;
 
+  Future<void> _dependencyUpdate;
+
   ExpressionCompilerService._(this._worker, this._responseQueue,
       this._receivePort, this._sendPort, this._assetHandler);
 
@@ -201,6 +203,8 @@ class ExpressionCompilerService implements ExpressionCompiler {
     if (_worker == null) {
       throw StateError('Expression compilation service has stopped');
     }
+    var updateCompleter = Completer();
+    _dependencyUpdate = updateCompleter.future;
 
     _logger.info('Updating dependencies...');
     _logger.finest('Dependencies: $modules');
@@ -220,6 +224,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       var s = response['stackTrace'];
       _logger.severe('Failed to update dependencies: $e:$s');
     }
+    updateCompleter.complete();
     return result;
   }
 
@@ -237,6 +242,9 @@ class ExpressionCompilerService implements ExpressionCompiler {
     if (_worker == null) {
       throw StateError('Expression compilation service has stopped');
     }
+
+    _logger.finest('Waiting for dependencies to update');
+    await _dependencyUpdate;
 
     _logger.finest('Compiling "$expression" at $libraryUri:$line');
 

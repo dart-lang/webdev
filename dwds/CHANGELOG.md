@@ -1,6 +1,8 @@
 ## 7.1.2 - UNRELEASED
 
 - Improve logging around execution contexts.
+- Remove the expression compilation dependency update from the create
+  isolate critical path.
 
 ## 7.1.1
 
