@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/events.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -496,6 +497,7 @@ class DevHandler {
     // TODO(grouma) - We may want to log the debugServiceUri if we don't launch
     // DevTools so that users can manually connect.
     if (!_serveDevTools) return;
+    emitEvent(DwdsEvent('DEVTOOLS_LAUNCH', {}));
     await remoteDebugger.sendCommand('Target.createTarget', params: {
       'newWindow': true,
       'url': Uri(

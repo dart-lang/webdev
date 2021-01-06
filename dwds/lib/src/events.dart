@@ -13,4 +13,5 @@ final _eventController = StreamController<DwdsEvent>();
 void emitEvent(DwdsEvent event) => _eventController.sink.add(event);
 
 /// A global stream of [DwdsEvent]s.
-Stream<DwdsEvent> get eventStream => _eventController.stream;
+Stream<DwdsEvent> get eventStream =>
+    _eventController.stream.asBroadcastStream();
