@@ -1,4 +1,4 @@
-## 7.1.2 - UNRELEASED
+## 7.2.0 - UNRELEASED
 
 - Improve logging around execution contexts.
 - Expose new event stream for future use with analytics.
