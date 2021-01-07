@@ -105,6 +105,14 @@ Common:
                                            (defaults to on)
 -e, --[no-]enable-expression-evaluation    Enable expression evaluation features
                                            in the debugger.
+    --[no-]sound-null-safety               If provided, `package:build_runner`
+                                           will be run with sound null safety
+                                           support. If negated,
+                                           `package:build_runner` will be run
+                                           without sound null safety support. If
+                                           not provided, the default
+                                           `package:build_runner` behavior is
+                                           used.
 -v, --verbose                              Enables verbose logging.
 
 Run "webdev help" to see global options.
@@ -136,6 +144,14 @@ Usage: webdev build [arguments]
                                            (defaults to on)
 -e, --[no-]enable-expression-evaluation    Enable expression evaluation features
                                            in the debugger.
+    --[no-]sound-null-safety               If provided, `package:build_runner`
+                                           will be run with sound null safety
+                                           support. If negated,
+                                           `package:build_runner` will be run
+                                           without sound null safety support. If
+                                           not provided, the default
+                                           `package:build_runner` behavior is
+                                           used.
 -v, --verbose                              Enables verbose logging.
 
 Run "webdev help" to see global options.

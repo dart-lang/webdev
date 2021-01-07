@@ -47,6 +47,14 @@ void addSharedArgs(ArgParser argParser,
         defaultsTo: false,
         negatable: true,
         help: 'Enable expression evaluation features in the debugger.')
+    ..addFlag(soundNullSafetyFlag,
+        negatable: true,
+        help: 'If provided, `package:build_runner` will be run with sound null '
+            'safety support. '
+            'If negated, `package:build_runner` will be run without sound null '
+            'safety support. '
+            'If not provided, the default `package:build_runner` behavior is '
+            'used.')
     ..addFlag(verboseFlag,
         abbr: 'v',
         defaultsTo: false,
@@ -72,6 +80,14 @@ List<String> buildRunnerArgs(
       ..add('--define')
       ..add('build_web_compilers|ddc=generate-full-dill=true');
   }
+
+  if (configuration.soundNullSafety != null) {
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers:entrypoint=sound_null_safety='
+          '${configuration.soundNullSafety}');
+  }
+
   return arguments;
 }
 
