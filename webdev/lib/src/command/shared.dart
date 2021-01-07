@@ -49,12 +49,13 @@ void addSharedArgs(ArgParser argParser,
         help: 'Enable expression evaluation features in the debugger.')
     ..addFlag(soundNullSafetyFlag,
         negatable: true,
-        help: 'If provided, `package:build_runner` will be run with sound null '
-            'safety support. '
-            'If negated, `package:build_runner` will be run without sound null '
-            'safety support. '
-            'If not provided, the default `package:build_runner` behavior is '
-            'used.')
+        help:
+            'If provided, `package:build_web_compilers` will be run with sound '
+            'null safety support. '
+            'If negated, `package:build_web_compilers` will be run without '
+            'sound null safety support. '
+            'If not provided, the default `package:build_web_compilers` '
+            'behavior is used.')
     ..addFlag(verboseFlag,
         abbr: 'v',
         defaultsTo: false,
