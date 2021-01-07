@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/events.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -26,6 +25,7 @@ import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
 import '../debugging/webkit_debugger.dart';
 import '../dwds_vm_client.dart';
+import '../events.dart';
 import '../handlers/socket_connections.dart';
 import '../readers/asset_reader.dart';
 import '../servers/devtools.dart';
