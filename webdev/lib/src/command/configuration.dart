@@ -248,8 +248,8 @@ class Configuration {
 
   bool get verbose => _verbose ?? false;
 
-  // Null indicates that the default `package:build_runner` behavior should be
-  // used.
+  // Null indicates that the default `package:build_web_compilers`
+  // behavior should be used.
   bool get soundNullSafety => _soundNullSafety;
 
   /// Returns a new configuration with values updated from the parsed args.
