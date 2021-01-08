@@ -160,10 +160,12 @@ class ChromeProxyService implements VmServiceInterface {
     _locations.initialize(entrypoint);
     _modules.initialize(entrypoint);
     _skipLists.initialize();
-    updateCompilerDependencies(entrypoint);
+    // We do not need to wait for compiler dependencies to be udpated as the
+    // [ExpressionEvaluator] is robust to evaluation requests during updates.
+    unawaited(updateCompilerDependencies(entrypoint));
   }
 
-  void updateCompilerDependencies(String entrypoint) async {
+  Future<void> updateCompilerDependencies(String entrypoint) async {
     var metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
     var modules = await metadataProvider.moduleToModulePath;
     var dependencies = <String, String>{};
