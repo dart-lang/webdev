@@ -29,6 +29,7 @@ const releaseFlag = 'release';
 const requireBuildWebCompilersFlag = 'build-web-compilers';
 const enableExpressionEvaluationFlag = 'enable-expression-evaluation';
 const verboseFlag = 'verbose';
+const soundNullSafetyFlag = 'sound-null-safety';
 const disableDdsFlag = 'disable-dds';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
@@ -96,6 +97,7 @@ class Configuration {
   final bool _enableExpressionEvaluation;
   final bool _verbose;
   final bool _disableDds;
+  final bool _soundNullSafety;
 
   Configuration({
     bool autoRun,
@@ -118,6 +120,7 @@ class Configuration {
     bool enableExpressionEvaluation,
     bool verbose,
     bool disableDds,
+    bool soundNullSafety,
   })  : _autoRun = autoRun,
         _chromeDebugPort = chromeDebugPort,
         _debugExtension = debugExtension,
@@ -135,7 +138,8 @@ class Configuration {
         _requireBuildWebCompilers = requireBuildWebCompilers,
         _disableDds = disableDds,
         _enableExpressionEvaluation = enableExpressionEvaluation,
-        _verbose = verbose {
+        _verbose = verbose,
+        _soundNullSafety = soundNullSafety {
     _validateConfiguration();
   }
 
@@ -201,7 +205,8 @@ class Configuration {
       disableDds: other._disableDds ?? _disableDds,
       enableExpressionEvaluation:
           other._enableExpressionEvaluation ?? _enableExpressionEvaluation,
-      verbose: other._verbose ?? _verbose);
+      verbose: other._verbose ?? _verbose,
+      soundNullSafety: other._soundNullSafety ?? _soundNullSafety);
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
@@ -242,6 +247,10 @@ class Configuration {
   bool get enableExpressionEvaluation => _enableExpressionEvaluation ?? false;
 
   bool get verbose => _verbose ?? false;
+
+  // Null indicates that the default `package:build_web_compilers`
+  // behavior should be used.
+  bool get soundNullSafety => _soundNullSafety;
 
   /// Returns a new configuration with values updated from the parsed args.
   static Configuration fromArgs(ArgResults argResults,
@@ -346,31 +355,37 @@ class Configuration {
         ? argResults[verboseFlag] as bool
         : defaultConfiguration.verbose;
 
+    var soundNullSafety = argResults.options.contains(soundNullSafetyFlag)
+        ? argResults[soundNullSafetyFlag] as bool
+        : defaultConfiguration.soundNullSafety;
+
     var disableDds = argResults.options.contains(disableDdsFlag)
         ? argResults[disableDdsFlag] as bool
         : defaultConfiguration.disableDds;
 
     return Configuration(
-        autoRun: defaultConfiguration.autoRun,
-        chromeDebugPort: chromeDebugPort,
-        debugExtension: debugExtension,
-        debug: debug,
-        enableInjectedClient: enableInjectedClient,
-        hostname: hostname,
-        tlsCertChain: tlsCertChain,
-        tlsCertKey: tlsCertKey,
-        launchApps: launchApps,
-        launchInChrome: launchInChrome,
-        logRequests: logRequests,
-        output: output,
-        outputInput: outputInput,
-        outputPath: outputPath,
-        release: release,
-        reload: _parseReloadConfiguration(argResults),
-        requireBuildWebCompilers: requireBuildWebCompilers,
-        disableDds: disableDds,
-        enableExpressionEvaluation: enableExpressionEvaluation,
-        verbose: verbose);
+      autoRun: defaultConfiguration.autoRun,
+      chromeDebugPort: chromeDebugPort,
+      debugExtension: debugExtension,
+      debug: debug,
+      enableInjectedClient: enableInjectedClient,
+      hostname: hostname,
+      tlsCertChain: tlsCertChain,
+      tlsCertKey: tlsCertKey,
+      launchApps: launchApps,
+      launchInChrome: launchInChrome,
+      logRequests: logRequests,
+      output: output,
+      outputInput: outputInput,
+      outputPath: outputPath,
+      release: release,
+      reload: _parseReloadConfiguration(argResults),
+      requireBuildWebCompilers: requireBuildWebCompilers,
+      disableDds: disableDds,
+      enableExpressionEvaluation: enableExpressionEvaluation,
+      verbose: verbose,
+      soundNullSafety: soundNullSafety,
+    );
   }
 }
 

@@ -37,6 +37,11 @@ void main() {
         throwsA(isA<InvalidConfiguration>()));
   });
 
+  test('soundNullSafety defaults to null', () {
+    var defaultConfiguration = Configuration.fromArgs(null);
+    expect(defaultConfiguration.soundNullSafety, isNull);
+  });
+
   test(
       'must not provide debug related configuartion when enableInjectedClient '
       'is false', () {
