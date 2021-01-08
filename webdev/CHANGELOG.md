@@ -1,6 +1,7 @@
 ## 2.7.2 - Unreleased
 
 - Depend on the latest `package:dwds`.
+- Support new `sound-null-safety` flag. See README.
 
 ## 2.7.1
 
