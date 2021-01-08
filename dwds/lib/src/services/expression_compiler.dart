@@ -40,6 +40,9 @@ abstract class ExpressionCompiler {
   /// variable name is the name originally used in JavaScript to contain the
   /// module object, for example:
   /// { 'dart':'dart_sdk', 'main': '/packages/hello_world_main.dart' }
+  ///
+  /// Should wait for the dependencies to update if called during a call to
+  /// [updateDependencies].
   Future<ExpressionCompilationResult> compileExpressionToJs(
       String isolateId,
       String libraryUri,

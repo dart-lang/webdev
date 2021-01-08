@@ -1,6 +1,8 @@
 ## 7.2.0 - UNRELEASED
 
 - Improve logging around execution contexts.
+- Remove the expression compilation dependency update from the create
+  isolate critical path.
 - Expose new event stream for future use with analytics.
 
 ## 7.1.1
