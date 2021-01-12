@@ -119,7 +119,7 @@ class WebDevServer {
           .strategy;
 
       if (options.configuration.enableExpressionEvaluation) {
-        ddcService = await ExpressionCompilerService.start(
+        ddcService = ExpressionCompilerService(
           options.configuration.hostname,
           options.port,
           assetHandler,

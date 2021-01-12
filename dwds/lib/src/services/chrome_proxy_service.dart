@@ -166,6 +166,7 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<void> updateCompilerDependencies(String entrypoint) async {
+    await _compiler?.initialize(false);
     var metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
     var modules = await metadataProvider.moduleToModulePath;
     var dependencies = <String, String>{};
