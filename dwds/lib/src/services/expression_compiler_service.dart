@@ -253,8 +253,9 @@ class ExpressionCompilerService implements ExpressionCompiler {
           line, column, jsModules, jsFrameValues, moduleName, expression);
 
   @override
-  Future<void> initialize(bool withNullSafety) async {
+  Future<void> initialize({bool withNullSafety}) async {
     if (_compiler.isCompleted) return;
+    withNullSafety ??= false;
 
     final executable = Platform.resolvedExecutable;
     final binDir = p.dirname(executable);
@@ -262,8 +263,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
     final sdkRoot = p.join(sdkDir, 'lib', '_internal');
 
     var workerPath = p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
-    // TODO(grouma) - use entrypoint to conditionally determine which SDK to
-    // load based off the [withNullSafety] argument.
+    // TODO(grouma) - use withNullSafety to load the correct SDK.
     var sdkSummaryPath = p.join(sdkRoot, 'ddc_sdk.dill');
     var librariesPath = p.join(sdkDir, 'lib', 'libraries.json');
 

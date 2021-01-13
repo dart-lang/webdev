@@ -63,5 +63,5 @@ abstract class ExpressionCompiler {
   /// Initializes the compiler with the provided null safety mode.
   ///
   /// May be called multiple times and always before [updateDependencies].
-  Future<void> initialize(bool withNullSafety);
+  Future<void> initialize({bool withNullSafety});
 }

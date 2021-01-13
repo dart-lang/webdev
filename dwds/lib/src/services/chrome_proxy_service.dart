@@ -166,7 +166,9 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<void> updateCompilerDependencies(String entrypoint) async {
-    await _compiler?.initialize(false);
+    // TODO(grouma) - use the entrypoint to determine the null safety mode
+    // and initialize accordingly.
+    await _compiler?.initialize(withNullSafety: false);
     var metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
     var modules = await metadataProvider.moduleToModulePath;
     var dependencies = <String, String>{};
