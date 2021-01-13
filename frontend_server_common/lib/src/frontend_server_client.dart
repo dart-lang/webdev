@@ -776,4 +776,7 @@ class TestExpressionCompiler implements ExpressionCompiler {
 
   @override
   Future<bool> updateDependencies(Map<String, String> modules) async => true;
+
+  @override
+  Future<void> initialize(bool withNullSafety) async {}
 }
