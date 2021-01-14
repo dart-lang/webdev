@@ -56,12 +56,15 @@ class _Compiler {
   /// [librariesPath] is the path to libraries definitions file
   /// libraries.json.
   ///
+  /// [soundNullSafety] indiciates if the compioler should support sound null
+  /// safety.
+  ///
   /// Performs handshake with the isolate running expression compiler
   /// worker to estabish communication via send/receive ports, returns
   /// the service after the communication is established.
   ///
   /// Users need to stop the service by calling [stop].
-  static Future<_Compiler> startWithPlatform(
+  static Future<_Compiler> start(
     String address,
     int port,
     Handler assetHandler,
@@ -69,6 +72,7 @@ class _Compiler {
     String sdkSummaryPath,
     String librariesPath,
     bool verbose,
+    bool soundNullSafety,
   ) async {
     final workerUri = Uri.file(workerPath);
     if (!File(workerPath).existsSync()) {
@@ -97,6 +101,7 @@ class _Compiler {
       '--asset-server-port',
       '$port',
       if (verbose) '--verbose',
+      if (soundNullSafety) '--sound-null-safety',
     ];
 
     _logger.info('Starting...');
@@ -224,6 +229,11 @@ class _Compiler {
 /// Uses [_address] and [_port] to communicate and [_assetHandler] to
 /// redirect asset requests to the asset server.
 ///
+/// [_sdkRoot] is the path to the directory containing the sdk summary files,
+/// [_workerPath] is the path to the DDC worker snapshot,
+/// [_librariesPath] is the path to libraries definitions file
+/// libraries.json.
+///
 /// Users need to stop the service by calling [stop].
 class ExpressionCompilerService implements ExpressionCompiler {
   final _compiler = Completer<_Compiler>();
@@ -232,12 +242,16 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final Handler _assetHandler;
   final bool _verbose;
 
+  final String _sdkRoot;
+  final String _librariesPath;
+  final String _workerPath;
+
   ExpressionCompilerService(
-    this._address,
-    this._port,
-    this._assetHandler,
-    this._verbose,
-  );
+      this._address, this._port, this._assetHandler, this._verbose,
+      {String sdkRoot, String librariesPath, String workerPath})
+      : _sdkRoot = sdkRoot,
+        _librariesPath = librariesPath,
+        _workerPath = workerPath;
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
@@ -253,22 +267,25 @@ class ExpressionCompilerService implements ExpressionCompiler {
           line, column, jsModules, jsFrameValues, moduleName, expression);
 
   @override
-  Future<void> initialize({bool withNullSafety}) async {
+  Future<void> initialize({bool soundNullSafety}) async {
     if (_compiler.isCompleted) return;
-    withNullSafety ??= false;
+    soundNullSafety ??= false;
 
     final executable = Platform.resolvedExecutable;
     final binDir = p.dirname(executable);
     final sdkDir = p.dirname(binDir);
-    final sdkRoot = p.join(sdkDir, 'lib', '_internal');
 
-    var workerPath = p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
-    // TODO(grouma) - use withNullSafety to load the correct SDK.
-    var sdkSummaryPath = p.join(sdkRoot, 'ddc_sdk.dill');
-    var librariesPath = p.join(sdkDir, 'lib', 'libraries.json');
+    var sdkRoot = _sdkRoot ?? p.join(sdkDir, 'lib', '_internal');
+    var sdkSummaryPath = soundNullSafety
+        ? p.join(sdkRoot, 'ddc_outline_sound.dill')
+        : p.join(sdkRoot, 'ddc_sdk.dill');
+    var librariesPath =
+        _librariesPath ?? p.join(sdkDir, 'lib', 'libraries.json');
+    var workerPath =
+        _workerPath ?? p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
 
-    var compiler = await _Compiler.startWithPlatform(_address, _port,
-        _assetHandler, workerPath, sdkSummaryPath, librariesPath, _verbose);
+    var compiler = await _Compiler.start(_address, _port, _assetHandler,
+        workerPath, sdkSummaryPath, librariesPath, _verbose, soundNullSafety);
 
     _compiler.complete(compiler);
   }
