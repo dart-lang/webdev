@@ -11,11 +11,10 @@ class DwdsEvent {
   DwdsEvent(this.type, this.payload);
 }
 
-final _eventController = StreamController<DwdsEvent>();
+final _eventController = StreamController<DwdsEvent>.broadcast();
 
 /// Adds an event to the global [eventStream];
 void emitEvent(DwdsEvent event) => _eventController.sink.add(event);
 
 /// A global stream of [DwdsEvent]s.
-Stream<DwdsEvent> get eventStream =>
-    _eventController.stream.asBroadcastStream();
+Stream<DwdsEvent> get eventStream => _eventController.stream;

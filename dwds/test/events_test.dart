@@ -16,9 +16,16 @@ void main() {
     );
   });
 
-  test('Emits DEVTOOLS_LAUNCH event', () async {
-    await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
+  test('emits DEVTOOLS_LAUNCH event', () async {
+    // The events stream is a broadcast stream so start listening before the
+    // action.
     expect(context.testServer.dwds.events,
         emits(predicate((DwdsEvent event) => event.type == 'DEVTOOLS_LAUNCH')));
+    await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
+  });
+
+  test('events can be listened to multiple times', () async {
+    context.testServer.dwds.events.listen((_) {});
+    context.testServer.dwds.events.listen((_) {});
   });
 }
