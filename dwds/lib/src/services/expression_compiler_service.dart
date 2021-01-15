@@ -101,7 +101,7 @@ class _Compiler {
       '--asset-server-port',
       '$port',
       if (verbose) '--verbose',
-      if (soundNullSafety) '--sound-null-safety',
+      soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
     ];
 
     _logger.info('Starting...');
