@@ -55,13 +55,24 @@ abstract class ExpressionCompiler {
 
   /// (Re)loads full dill files for changed modules.
   ///
-  /// [modules]: moduleName -> full dill path
+  /// [modules]: moduleName -> moduleInfo
   ///
   /// [updateDependencies] is called during isolate creation.
-  Future<bool> updateDependencies(Map<String, String> modules);
+  Future<bool> updateDependencies(Map<String, ModuleInfo> modules);
 
   /// Initializes the compiler with the provided null safety mode.
   ///
   /// May be called multiple times and always before [updateDependencies].
   Future<void> initialize({bool soundNullSafety});
+}
+
+/// Module load information
+class ModuleInfo {
+  /// full kernel path for module
+  final String fullDillPath;
+
+  /// summary kernel path for module
+  final String summaryPath;
+
+  ModuleInfo(this.fullDillPath, this.summaryPath);
 }

@@ -127,7 +127,7 @@ class _Compiler {
     return service;
   }
 
-  Future<bool> updateDependencies(Map<String, String> modules) async {
+  Future<bool> updateDependencies(Map<String, ModuleInfo> modules) async {
     if (_worker == null) {
       throw StateError('Expression compilation service has stopped');
     }
@@ -141,7 +141,11 @@ class _Compiler {
       'command': 'UpdateDeps',
       'inputs': [
         for (var moduleName in modules.keys)
-          {'path': modules[moduleName], 'moduleName': moduleName},
+          {
+            'path': modules[moduleName].fullDillPath,
+            'summaryPath': modules[moduleName].summaryPath,
+            'moduleName': moduleName
+          },
       ]
     });
     var result = response == null ? false : response['succeeded'] as bool;
@@ -291,7 +295,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
   }
 
   @override
-  Future<bool> updateDependencies(Map<String, String> modules) async =>
+  Future<bool> updateDependencies(Map<String, ModuleInfo> modules) async =>
       (await _compiler.future).updateDependencies(modules);
 
   Future<void> stop() async {

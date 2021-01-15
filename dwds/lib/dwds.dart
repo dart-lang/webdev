@@ -43,7 +43,7 @@ export 'src/readers/frontend_server_asset_reader.dart'
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 export 'src/services/expression_compiler.dart'
-    show ExpressionCompilationResult, ExpressionCompiler;
+    show ExpressionCompilationResult, ExpressionCompiler, ModuleInfo;
 export 'src/services/expression_compiler_service.dart'
     show ExpressionCompilerService;
 
