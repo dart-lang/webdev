@@ -9,10 +9,10 @@ import 'dart:io';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';
+import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
-import 'package:path/path.dart' as p;
 
 import 'fixtures/logging.dart';
 
@@ -56,8 +56,10 @@ void main() async {
       final port = await findUnusedPort();
       final assetHandler = (request) =>
           Response(200, body: File.fromUri(kernel).readAsBytesSync());
-      service = await ExpressionCompilerService.start(
-          'localhost', port, assetHandler, false);
+      service =
+          ExpressionCompilerService('localhost', port, assetHandler, false);
+
+      await service.initialize();
 
       // setup asset server
       server = await HttpMultiServer.bind('localhost', port);

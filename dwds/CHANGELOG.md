@@ -1,9 +1,13 @@
-## 7.2.0 - UNRELEASED
+## 8.0.0 - UNRELEASED
 
 - Improve logging around execution contexts.
 - Remove the expression compilation dependency update from the create
   isolate critical path.
 - Expose new event stream for future use with analytics.
+- Update `ExpressionCompiler` to include new `initialize` method which
+  has a parameter for the null safety mode.
+- Update `ExpressionCompilerService` to change how it is instantiated and
+  implement the new `initialize` method.
 
 ## 7.1.1
 

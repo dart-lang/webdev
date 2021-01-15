@@ -14,24 +14,22 @@ import 'package:shelf/shelf.dart';
 import '../utilities/dart_uri.dart';
 import 'expression_compiler.dart';
 
-/// Service that handles expression compilation requests.
-///
-/// Expression compiler service spawns a dartdevc in expression compilation
-/// mode in an isolate and communicates with the isolate via send/receive
-/// ports. It also handles full dill file read requests from the isolate
-/// and redirects them to the asset server.
-class ExpressionCompilerService implements ExpressionCompiler {
-  static final _logger = Logger('ExpressionCompilerService');
-  Isolate _worker;
+final _logger = Logger('ExpressionCompilerService');
+
+class _Compiler {
+  final Isolate _worker;
   final StreamQueue<Object> _responseQueue;
   final ReceivePort _receivePort;
   final SendPort _sendPort;
-  final Handler _assetHandler;
 
   Future<void> _dependencyUpdate;
 
-  ExpressionCompilerService._(this._worker, this._responseQueue,
-      this._receivePort, this._sendPort, this._assetHandler);
+  _Compiler._(
+    this._worker,
+    this._responseQueue,
+    this._receivePort,
+    this._sendPort,
+  );
 
   /// Sends [request] on [_sendPort] and returns the next event from the
   /// response stream.
@@ -43,48 +41,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
             'succeeded': false,
             'errors': ['compilation service response stream closed'],
           };
-  }
-
-  /// Handles resource requests from expression compiler worker.
-  ///
-  /// Handles REST get requests of the form:
-  /// http://host:port/getResource?uri=<resource uri>
-  ///
-  /// Where the resource uri can be a package Uri for a dart file
-  /// or a server path for a full dill file.
-  /// Translates given resource uri to a server path and redirects
-  /// the request to the asset handler.
-  FutureOr<Response> handler(Request request) {
-    var uri = request.requestedUri.queryParameters['uri'];
-    var query = request.requestedUri.path;
-
-    _logger.finest('request: ${request.requestedUri}');
-
-    if (query != '/getResource' || uri == null) {
-      return Response.notFound(uri);
-    }
-
-    if (!uri.endsWith('.dart') && !uri.endsWith('.dill')) {
-      return Response.notFound(uri);
-    }
-
-    var serverPath = uri;
-    if (uri.endsWith('.dart')) {
-      serverPath = DartUri(uri).serverPath;
-    }
-
-    _logger.finest('serverpath for $uri: $serverPath');
-
-    request = Request(
-        'GET',
-        Uri(
-          scheme: request.requestedUri.scheme,
-          host: request.requestedUri.host,
-          port: request.requestedUri.port,
-          path: serverPath,
-        ));
-
-    return _assetHandler(request);
   }
 
   /// Starts expression compilation service.
@@ -100,12 +56,15 @@ class ExpressionCompilerService implements ExpressionCompiler {
   /// [librariesPath] is the path to libraries definitions file
   /// libraries.json.
   ///
+  /// [soundNullSafety] indiciates if the compioler should support sound null
+  /// safety.
+  ///
   /// Performs handshake with the isolate running expression compiler
   /// worker to estabish communication via send/receive ports, returns
   /// the service after the communication is established.
   ///
   /// Users need to stop the service by calling [stop].
-  static Future<ExpressionCompilerService> startWithPlatform(
+  static Future<_Compiler> start(
     String address,
     int port,
     Handler assetHandler,
@@ -113,6 +72,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
     String sdkSummaryPath,
     String librariesPath,
     bool verbose,
+    bool soundNullSafety,
   ) async {
     final workerUri = Uri.file(workerPath);
     if (!File(workerPath).existsSync()) {
@@ -141,6 +101,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       '--asset-server-port',
       '$port',
       if (verbose) '--verbose',
+      soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
     ];
 
     _logger.info('Starting...');
@@ -161,44 +122,11 @@ class ExpressionCompilerService implements ExpressionCompiler {
     var responseQueue = StreamQueue(receivePort);
     var sendPort = await responseQueue.next as SendPort;
 
-    var service = ExpressionCompilerService._(
-        isolate, responseQueue, receivePort, sendPort, assetHandler);
+    var service = _Compiler._(isolate, responseQueue, receivePort, sendPort);
 
     return service;
   }
 
-  /// Starts expression compilation service.
-  ///
-  /// Starts expression compiler worker in an isolate and creates the
-  /// expression compilation service that communicates to the worker.
-  ///
-  /// Uses [address] and [port] to communicate and [assetHandler] to
-  /// redirect asset requests to the asset server.
-  ///
-  /// Uses current SDK to find platform, expression compiler worker,
-  /// and libraries definitions.
-  ///
-  /// Performs handshake with the isolate running expression compiler
-  /// worker to estabish communication via send/receive ports, returns
-  /// the service after the communication is established.
-  ///
-  /// Users need to stop the service by calling [stop].
-  static Future<ExpressionCompilerService> start(
-      String address, int port, Handler assetHandler, bool verbose) {
-    final executable = Platform.resolvedExecutable;
-    final binDir = p.dirname(executable);
-    final sdkDir = p.dirname(binDir);
-    final sdkRoot = p.join(sdkDir, 'lib', '_internal');
-
-    var workerPath = p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
-    var sdkSummaryPath = p.join(sdkRoot, 'ddc_sdk.dill');
-    var librariesPath = p.join(sdkDir, 'lib', 'libraries.json');
-
-    return ExpressionCompilerService.startWithPlatform(address, port,
-        assetHandler, workerPath, sdkSummaryPath, librariesPath, verbose);
-  }
-
-  @override
   Future<bool> updateDependencies(Map<String, String> modules) async {
     if (_worker == null) {
       throw StateError('Expression compilation service has stopped');
@@ -228,7 +156,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
     return result;
   }
 
-  @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
     String isolateId,
     String libraryUri,
@@ -288,7 +215,128 @@ class ExpressionCompilerService implements ExpressionCompiler {
   Future<void> stop() async {
     _sendPort.send({'command': 'Shutdown'});
     _receivePort.close();
-    _worker = null;
     _logger.info('Stopped.');
+  }
+}
+
+/// Service that handles expression compilation requests.
+///
+/// Expression compiler service spawns a dartdevc in expression compilation
+/// mode in an isolate and communicates with the isolate via send/receive
+/// ports. It also handles full dill file read requests from the isolate
+/// and redirects them to the asset server.
+///
+/// Uses [_address] and [_port] to communicate and [_assetHandler] to
+/// redirect asset requests to the asset server.
+///
+/// [_sdkRoot] is the path to the directory containing the sdk summary files,
+/// [_workerPath] is the path to the DDC worker snapshot,
+/// [_librariesPath] is the path to libraries definitions file
+/// libraries.json.
+///
+/// Users need to stop the service by calling [stop].
+class ExpressionCompilerService implements ExpressionCompiler {
+  final _compiler = Completer<_Compiler>();
+  final String _address;
+  final int _port;
+  final Handler _assetHandler;
+  final bool _verbose;
+
+  final String _sdkRoot;
+  final String _librariesPath;
+  final String _workerPath;
+
+  ExpressionCompilerService(
+      this._address, this._port, this._assetHandler, this._verbose,
+      {String sdkRoot, String librariesPath, String workerPath})
+      : _sdkRoot = sdkRoot,
+        _librariesPath = librariesPath,
+        _workerPath = workerPath;
+
+  @override
+  Future<ExpressionCompilationResult> compileExpressionToJs(
+          String isolateId,
+          String libraryUri,
+          int line,
+          int column,
+          Map<String, String> jsModules,
+          Map<String, String> jsFrameValues,
+          String moduleName,
+          String expression) async =>
+      (await _compiler.future).compileExpressionToJs(isolateId, libraryUri,
+          line, column, jsModules, jsFrameValues, moduleName, expression);
+
+  @override
+  Future<void> initialize({bool soundNullSafety}) async {
+    if (_compiler.isCompleted) return;
+    soundNullSafety ??= false;
+
+    final executable = Platform.resolvedExecutable;
+    final binDir = p.dirname(executable);
+    final sdkDir = p.dirname(binDir);
+
+    var sdkRoot = _sdkRoot ?? p.join(sdkDir, 'lib', '_internal');
+    var sdkSummaryPath = soundNullSafety
+        ? p.join(sdkRoot, 'ddc_outline_sound.dill')
+        : p.join(sdkRoot, 'ddc_sdk.dill');
+    var librariesPath =
+        _librariesPath ?? p.join(sdkDir, 'lib', 'libraries.json');
+    var workerPath =
+        _workerPath ?? p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
+
+    var compiler = await _Compiler.start(_address, _port, _assetHandler,
+        workerPath, sdkSummaryPath, librariesPath, _verbose, soundNullSafety);
+
+    _compiler.complete(compiler);
+  }
+
+  @override
+  Future<bool> updateDependencies(Map<String, String> modules) async =>
+      (await _compiler.future).updateDependencies(modules);
+
+  Future<void> stop() async {
+    if (_compiler.isCompleted) return (await _compiler.future).stop();
+  }
+
+  /// Handles resource requests from expression compiler worker.
+  ///
+  /// Handles REST get requests of the form:
+  /// http://host:port/getResource?uri=<resource uri>
+  ///
+  /// Where the resource uri can be a package Uri for a dart file
+  /// or a server path for a full dill file.
+  /// Translates given resource uri to a server path and redirects
+  /// the request to the asset handler.
+  FutureOr<Response> handler(Request request) {
+    var uri = request.requestedUri.queryParameters['uri'];
+    var query = request.requestedUri.path;
+
+    _logger.finest('request: ${request.requestedUri}');
+
+    if (query != '/getResource' || uri == null) {
+      return Response.notFound(uri);
+    }
+
+    if (!uri.endsWith('.dart') && !uri.endsWith('.dill')) {
+      return Response.notFound(uri);
+    }
+
+    var serverPath = uri;
+    if (uri.endsWith('.dart')) {
+      serverPath = DartUri(uri).serverPath;
+    }
+
+    _logger.finest('serverpath for $uri: $serverPath');
+
+    request = Request(
+        'GET',
+        Uri(
+          scheme: request.requestedUri.scheme,
+          host: request.requestedUri.host,
+          port: request.requestedUri.port,
+          path: serverPath,
+        ));
+
+    return _assetHandler(request);
   }
 }

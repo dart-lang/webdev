@@ -182,7 +182,7 @@ class TestContext {
                 ProxyServerAssetReader(assetServerPort, root: pathToServe);
 
             if (enableExpressionEvaluation) {
-              ddcService = await ExpressionCompilerService.start(
+              ddcService = ExpressionCompilerService(
                 'localhost',
                 port,
                 assetHandler,
