@@ -53,7 +53,11 @@ abstract class ExpressionCompiler {
       String moduleName,
       String expression);
 
-  /// (Re)loads full dill files for changed modules.
+  /// Trigger (re-)load of kernel files for modules.
+  ///
+  /// (Re-)load summaries for changed modules and trigger reload
+  /// of full dill file for module on first expression evaluation
+  /// in the module.
   ///
   /// [modules]: moduleName -> moduleInfo
   ///
@@ -68,11 +72,11 @@ abstract class ExpressionCompiler {
 
 /// Module load information
 class ModuleInfo {
-  /// full kernel path for module
   final String fullDillPath;
-
-  /// summary kernel path for module
   final String summaryPath;
 
   ModuleInfo(this.fullDillPath, this.summaryPath);
+
+  @override
+  String toString() => '{ $fullDillPath, $summaryPath }';
 }
