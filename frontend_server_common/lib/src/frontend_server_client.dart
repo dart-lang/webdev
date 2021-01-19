@@ -775,7 +775,8 @@ class TestExpressionCompiler implements ExpressionCompiler {
   }
 
   @override
-  Future<bool> updateDependencies(Map<String, ModuleInfo> modules) async => true;
+  Future<bool> updateDependencies(Map<String, ModuleInfo> modules) async =>
+      true;
 
   @override
   Future<void> initialize({bool soundNullSafety}) async {}
