@@ -70,7 +70,6 @@ abstract class ExpressionCompiler {
   Future<void> initialize({bool soundNullSafety});
 }
 
-/// Module load information
 class ModuleInfo {
   final String fullDillPath;
   final String summaryPath;
