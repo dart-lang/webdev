@@ -8,6 +8,11 @@
   has a parameter for the null safety mode.
 - Update `ExpressionCompilerService` to change how it is instantiated and
   implement the new `initialize` method.
+- Provide summary module paths to the expression compiler
+
+**Breaking changes:**
+- Change `ExpressionCompiler.updateDependencies` method to include
+  module summary paths
 
 ## 7.1.1
 

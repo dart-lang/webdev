@@ -171,11 +171,13 @@ class ChromeProxyService implements VmServiceInterface {
     await _compiler?.initialize(soundNullSafety: false);
     var metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
     var modules = await metadataProvider.moduleToModulePath;
-    var dependencies = <String, String>{};
+    var dependencies = <String, ModuleInfo>{};
     for (var module in modules.keys) {
       var serverPath =
           await globalLoadStrategy.serverPathForModule(entrypoint, module);
-      dependencies[module] = p.setExtension(serverPath, '.full.dill');
+      dependencies[module] = ModuleInfo(
+          p.setExtension(serverPath, '.full.dill'),
+          p.setExtension(serverPath, '.dill'));
     }
     await _compiler?.updateDependencies(dependencies);
   }
