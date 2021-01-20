@@ -143,7 +143,8 @@ class _Compiler {
         for (var moduleName in modules.keys)
           {
             'path': modules[moduleName].fullDillPath,
-            'summaryPath': modules[moduleName].summaryPath,
+            if (modules[moduleName].summaryPath != null)
+              'summaryPath': modules[moduleName].summaryPath,
             'moduleName': moduleName
           },
       ]
