@@ -7,5 +7,6 @@ environment:
 
 dependencies:
   file: ^5.1.0
+  usage: 3.4.2
   dwds:
     path: ../dwds

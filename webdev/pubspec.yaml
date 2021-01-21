@@ -33,7 +33,7 @@ dependencies:
   shelf_proxy: ^0.1.0+5
   shelf_static: ^0.2.8
   sse: ^3.6.0
-  vm_service: '>=3.0.0 <6.0.0'
+  vm_service: '>=3.0.0 <7.0.0'
   webkit_inspection_protocol: '>=0.4.0 <0.8.0'
   yaml: ^2.1.13
 
@@ -51,5 +51,20 @@ executables:
   webdev:
 
 dependency_overrides:
+  devtools:
+    git: 
+      url: 'git@github.com:flutter/devtools.git'
+      ref: 'vm-service'
+      path: 'packages/devtools'
+  devtools_server:
+    git: 
+      url: 'git@github.com:flutter/devtools.git'
+      ref: 'vm-service'
+      path: 'packages/devtools_server'
+  devtools_shared:
+    git: 
+      url: 'git@github.com:flutter/devtools.git'
+      ref: 'vm-service'
+      path: 'packages/devtools_shared'
   dwds:
     path: ../dwds

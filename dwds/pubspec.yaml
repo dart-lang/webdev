@@ -35,7 +35,7 @@ dependencies:
   source_maps: ^0.10.0
   sse: ^3.6.0
   # We pin the version because we implement the interface.
-  vm_service: 5.5.0
+  vm_service: 6.0.0-nullsafety.3
   web_socket_channel: ^1.0.0
   webkit_inspection_protocol: ^0.7.4
 
@@ -55,3 +55,20 @@ dev_dependencies:
   test: ^1.6.0
   uuid: ^2.0.0
   webdriver: ^2.0.0
+
+dependency_overrides:
+  devtools:
+    git: 
+      url: 'git@github.com:flutter/devtools.git'
+      ref: 'vm-service'
+      path: 'packages/devtools'
+  devtools_server:
+    git: 
+      url: 'git@github.com:flutter/devtools.git'
+      ref: 'vm-service'
+      path: 'packages/devtools_server'
+  devtools_shared:
+    git: 
+      url: 'git@github.com:flutter/devtools.git'
+      ref: 'vm-service'
+      path: 'packages/devtools_shared'
