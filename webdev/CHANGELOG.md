@@ -2,6 +2,7 @@
 
 - Depend on the latest `package:dwds`.
 - Support new `sound-null-safety` flag. See README.
+- Support latest `package:vm_service` version `6.x.x`.
 
 ## 2.7.1
 

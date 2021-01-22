@@ -9,6 +9,7 @@
 - Update `ExpressionCompilerService` to change how it is instantiated and
   implement the new `initialize` method.
 - Provide summary module paths to the expression compiler
+- Depend on `package:vm_service` version `6.0.1-nullsafety.0`.
 
 **Breaking changes:**
 - Change `ExpressionCompiler.updateDependencies` method to include
