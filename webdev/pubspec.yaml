@@ -51,20 +51,5 @@ executables:
   webdev:
 
 dependency_overrides:
-  devtools:
-    git: 
-      url: 'git@github.com:flutter/devtools.git'
-      ref: 'vm-service'
-      path: 'packages/devtools'
-  devtools_server:
-    git: 
-      url: 'git@github.com:flutter/devtools.git'
-      ref: 'vm-service'
-      path: 'packages/devtools_server'
-  devtools_shared:
-    git: 
-      url: 'git@github.com:flutter/devtools.git'
-      ref: 'vm-service'
-      path: 'packages/devtools_shared'
   dwds:
     path: ../dwds
