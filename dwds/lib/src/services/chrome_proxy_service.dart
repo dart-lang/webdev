@@ -184,7 +184,7 @@ class ChromeProxyService implements VmServiceInterface {
           // is not a part of the name.
           // TODO: Save locations of summary kernel files in ddc metadata.
           // Issue: https://github.com/dart-lang/sdk/issues/44742
-          p.setExtension(serverPath.replaceAll('.ddk', '.ddc'), '.dill'));
+          p.setExtension(serverPath.replaceAll('.ddk.', '.ddc.'), '.dill'));
     }
     await _compiler?.updateDependencies(dependencies);
   }
