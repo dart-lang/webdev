@@ -1,4 +1,4 @@
-## 8.0.0 - UNRELEASED
+## 8.0.0
 
 - Improve logging around execution contexts.
 - Remove the expression compilation dependency update from the create
