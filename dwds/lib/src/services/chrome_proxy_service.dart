@@ -176,8 +176,15 @@ class ChromeProxyService implements VmServiceInterface {
       var serverPath =
           await globalLoadStrategy.serverPathForModule(entrypoint, module);
       dependencies[module] = ModuleInfo(
+          // TODO: Save locations of full kernel files in ddc metadata.
+          // Issue: https://github.com/dart-lang/sdk/issues/43684
           p.setExtension(serverPath, '.full.dill'),
-          p.setExtension(serverPath, '.dill'));
+          // Replace .ddk to find the summary in google3.
+          // All other cases are coming from build_web_compilers where '.ddk'
+          // is not a part of the name.
+          // TODO: Save locations of summary kernel files in ddc metadata.
+          // Issue: https://github.com/dart-lang/sdk/issues/44742
+          p.setExtension(serverPath.replaceAll('.ddk.', '.ddc.'), '.dill'));
     }
     await _compiler?.updateDependencies(dependencies);
   }
