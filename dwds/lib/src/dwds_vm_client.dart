@@ -34,7 +34,7 @@ class DwdsVmClient {
   Future<void> close() => _closed ??= () async {
         await _requestController.close();
         await _responseController.close();
-        client.dispose();
+        await client.dispose();
       }();
 
   static Future<DwdsVmClient> create(DebugService debugService) async {

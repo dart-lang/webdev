@@ -8,17 +8,17 @@ stages:
       dart: dev
     - group:
       - dartanalyzer: --fatal-warnings .
-      dart: [2.10.0]
+      dart: [2.12.0]
   - unit_test:
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
       - test: -x dev-sdk
       dart: 
         - dev
-        - 2.10.0
+        - 2.12.0
     - test: -x dev-sdk
       os: windows
-      dart: 2.10.0
+      dart: 2.12.0
     - test:
       os: windows
       dart: dev
