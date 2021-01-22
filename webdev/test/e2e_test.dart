@@ -321,7 +321,7 @@ void main() {
             const TypeMatcher<InstanceRef>().having(
                 (instance) => instance.valueAsString, 'valueAsString', 'true'));
       } finally {
-        vmService?.dispose();
+        await vmService?.dispose();
         await exitWebdev(process);
         await process.shouldExit();
       }
@@ -372,7 +372,7 @@ void main() {
                 isolate.id, event.topFrame.index, 'true'),
             throwsRPCError);
       } finally {
-        vmService?.dispose();
+        await vmService?.dispose();
         await exitWebdev(process);
         await process.shouldExit();
       }
