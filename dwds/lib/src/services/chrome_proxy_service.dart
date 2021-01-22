@@ -332,10 +332,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       throw RPCError(method, decodedResponse['code'] as int,
           decodedResponse['message'] as String, decodedResponse['data'] as Map);
     } else {
-      return Response(
-          // TODO(grouma): What should the type be?
-          type: '')
-        ..json = decodedResponse;
+      return Response()..json = decodedResponse;
     }
   }
 
@@ -738,7 +735,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
                   isolate: isolateRef)
                 ..extensionKind = event.args[1].value as String
                 ..extensionData = ExtensionData.parse(
-                    jsonDecode(event.args[2].value as String) as Map));
+                    jsonDecode(event.args[2].value as String)
+                        as Map<String, dynamic>));
           break;
         case 'dart.developer.inspect':
           // All inspected objects should be real objects.
