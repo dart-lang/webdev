@@ -1,3 +1,8 @@
+## 8.0.1
+
+- Support null safe versions of `package:crypto`, `package:uuid` and
+  `package:webdriver`.
+
 ## 8.0.0
 
 - Improve logging around execution contexts.

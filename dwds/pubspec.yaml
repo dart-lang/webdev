@@ -1,6 +1,6 @@
 name: dwds
 # Every time this changes you need to run `pub run build_runner build`.
-version: 8.0.0
+version: 8.0.1
 homepage: https://github.com/dart-lang/webdev/tree/master/dwds
 description: >-
   A service that proxies between the Chrome debug protocol and the Dart VM
@@ -13,7 +13,7 @@ dependencies:
   async: ^2.3.0
   built_collection: ^4.2.0
   built_value: '>=6.7.0 <8.0.0'
-  crypto: ^2.0.6
+  crypto: '>=2.0.6 < 4.0.0'
   dds: ^1.4.1
   # devtools_server indirectly depends on devtools so keep this around.
   devtools: ^0.9.2
@@ -53,5 +53,5 @@ dev_dependencies:
   pubspec_parse: ^0.1.5
   stream_channel: ^2.0.0
   test: ^1.6.0
-  uuid: ^2.0.0
-  webdriver: ^2.0.0
+  uuid: '>=2.0.0 < 4.0.0'
+  webdriver: '>=2.0.0 < 4.0.0'
