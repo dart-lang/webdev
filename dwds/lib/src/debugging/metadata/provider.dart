@@ -16,15 +16,25 @@ class MetadataProvider {
   final AssetReader _assetReader;
   final _logger = Logger('MetadataProvider');
   final String entrypoint;
-  final _libraries = <String>[];
-  final _scriptToModule = <String, String>{};
-  final _moduleToSourceMap = <String, String>{};
-  final _modulePathToModule = <String, String>{};
-  final _moduleToModulePath = <String, String>{};
-  final _scripts = <String, List<String>>{};
+  bool _soundNullSafety;
+  final List<String> _libraries = [];
+  final Map<String, String> _scriptToModule = {};
+  final Map<String, String> _moduleToSourceMap = {};
+  final Map<String, String> _modulePathToModule = {};
+  final Map<String, String> _moduleToModulePath = {};
+  final Map<String, List<String>> _scripts = {};
   final _metadataMemoizer = AsyncMemoizer();
 
-  MetadataProvider(this.entrypoint, this._assetReader);
+  MetadataProvider(this.entrypoint, this._assetReader)
+      : _soundNullSafety = false;
+
+  /// A sound null safety mode for the whole app.
+  ///
+  /// All libraries have to agree on null safety mode.
+  Future<bool> get soundNullSafety async {
+    await _initialize();
+    return _soundNullSafety;
+  }
 
   /// A list of all libraries in the Dart application.
   ///
@@ -114,6 +124,8 @@ class MetadataProvider {
 
   Future<void> _initialize() async {
     await _metadataMemoizer.runOnce(() async {
+      var hasSoundNullSafety = true;
+      var hasUnsoundNullSafety = true;
       // The merged metadata resides next to the entrypoint.
       // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
       if (entrypoint.endsWith('.bootstrap.js')) {
@@ -131,6 +143,8 @@ class MetadataProvider {
               var metadata =
                   ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
               _addMetadata(metadata);
+              hasUnsoundNullSafety &= !metadata.soundNullSafety;
+              hasSoundNullSafety &= metadata.soundNullSafety;
               _logger
                   .fine('Loaded debug metadata for module: ${metadata.name}');
             } catch (e) {
@@ -138,8 +152,13 @@ class MetadataProvider {
               rethrow;
             }
           }
+          if (!hasSoundNullSafety && !hasUnsoundNullSafety) {
+            throw Exception('Metadata contains modules with mixed null safety');
+          }
+          _soundNullSafety = hasSoundNullSafety;
         }
-        _logger.info('Loaded debug metadata');
+        _logger.info('Loaded debug metadata '
+            '(${_soundNullSafety ? "" : "no "}sound null safety)');
       }
     });
   }

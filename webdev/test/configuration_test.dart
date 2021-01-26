@@ -37,9 +37,10 @@ void main() {
         throwsA(isA<InvalidConfiguration>()));
   });
 
-  test('soundNullSafety defaults to null', () {
-    var defaultConfiguration = Configuration.fromArgs(null);
-    expect(defaultConfiguration.soundNullSafety, isNull);
+  test('nullSafety defaults to auto', () {
+    var argResults = argParser.parse(['']);
+    var defaultConfiguration = Configuration.fromArgs(argResults);
+    expect(defaultConfiguration.nullSafety, equals(autoOption));
   });
 
   test(

@@ -28,6 +28,16 @@ void addSharedArgs(ArgParser argParser,
           'A value of "NONE" indicates that no "--output" value should be '
           'passed to `build_runner`.',
     )
+    ..addOption(nullSafetyFlag,
+        abbr: 'n',
+        defaultsTo: autoOption,
+        help:
+            'If "sound", `package:build_web_compilers` will be run with sound '
+            'null safety support. '
+            'If "unsound", `package:build_web_compilers` will be run without '
+            'sound null safety support. '
+            'If "auto", the default `package:build_web_compilers` '
+            'behavior is used.')
     ..addFlag(releaseFlag,
         abbr: 'r',
         defaultsTo: releaseDefault,
@@ -47,15 +57,6 @@ void addSharedArgs(ArgParser argParser,
         defaultsTo: false,
         negatable: true,
         help: 'Enable expression evaluation features in the debugger.')
-    ..addFlag(soundNullSafetyFlag,
-        negatable: true,
-        help:
-            'If provided, `package:build_web_compilers` will be run with sound '
-            'null safety support. '
-            'If negated, `package:build_web_compilers` will be run without '
-            'sound null safety support. '
-            'If not provided, the default `package:build_web_compilers` '
-            'behavior is used.')
     ..addFlag(verboseFlag,
         abbr: 'v',
         defaultsTo: false,
@@ -82,11 +83,11 @@ List<String> buildRunnerArgs(
       ..add('build_web_compilers|ddc=generate-full-dill=true');
   }
 
-  if (configuration.soundNullSafety != null) {
+  if (configuration.nullSafety != autoOption) {
     arguments
       ..add('--define')
       ..add('build_web_compilers:entrypoint=sound_null_safety='
-          '${configuration.soundNullSafety}');
+          '${configuration.nullSafety == "sound"}');
   }
 
   return arguments;
