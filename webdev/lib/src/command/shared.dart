@@ -30,7 +30,8 @@ void addSharedArgs(ArgParser argParser,
     )
     ..addOption(nullSafetyFlag,
         abbr: 'n',
-        defaultsTo: autoOption,
+        defaultsTo: nullSafetyAuto,
+        allowed: [nullSafetySound, nullSafetyUnsound, nullSafetyAuto],
         help:
             'If "sound", `package:build_web_compilers` will be run with sound '
             'null safety support. '
@@ -83,11 +84,11 @@ List<String> buildRunnerArgs(
       ..add('build_web_compilers|ddc=generate-full-dill=true');
   }
 
-  if (configuration.nullSafety != autoOption) {
+  if (configuration.nullSafety != nullSafetyAuto) {
     arguments
       ..add('--define')
       ..add('build_web_compilers:entrypoint=sound_null_safety='
-          '${configuration.nullSafety == "sound"}');
+          '${configuration.nullSafety == nullSafetySound}');
   }
 
   return arguments;

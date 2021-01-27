@@ -42,7 +42,7 @@ changes.
 Usage: webdev serve [arguments] [<directory>[:<port>]]...
     --auto                                 Automatically performs an action
                                            after each build:
-                                           
+
                                            restart: Reload modules and re-invoke
                                            main (loses current state)
                                            refresh: Performs a full page
@@ -160,6 +160,7 @@ Usage: webdev build [arguments]
 -v, --verbose                              Enables verbose logging.
 
 Run "webdev help" to see global options.
+
 ```
 
 [activating]: https://www.dartlang.org/tools/pub/cmd/pub-global#activating-a-package

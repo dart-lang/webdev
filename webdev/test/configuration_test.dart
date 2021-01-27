@@ -9,7 +9,9 @@ import 'package:webdev/src/command/configuration.dart';
 void main() {
   ArgParser argParser;
   setUp(() {
-    argParser = ArgParser()..addFlag('release');
+    argParser = ArgParser()
+      ..addFlag('release')
+      ..addOption(nullSafetyFlag, defaultsTo: nullSafetyAuto);
   });
 
   test('default configuration is correctly applied', () {
@@ -40,7 +42,7 @@ void main() {
   test('nullSafety defaults to auto', () {
     var argResults = argParser.parse(['']);
     var defaultConfiguration = Configuration.fromArgs(argResults);
-    expect(defaultConfiguration.nullSafety, equals(autoOption));
+    expect(defaultConfiguration.nullSafety, equals(nullSafetyAuto));
   });
 
   test(

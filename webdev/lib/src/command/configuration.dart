@@ -30,6 +30,9 @@ const requireBuildWebCompilersFlag = 'build-web-compilers';
 const enableExpressionEvaluationFlag = 'enable-expression-evaluation';
 const verboseFlag = 'verbose';
 const nullSafetyFlag = 'null-safety';
+const nullSafetySound = 'sound';
+const nullSafetyUnsound = 'unsound';
+const nullSafetyAuto = 'auto';
 const disableDdsFlag = 'disable-dds';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {

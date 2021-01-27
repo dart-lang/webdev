@@ -168,7 +168,7 @@ void main() {
           '-o',
           'web:${d.sandbox}',
           '--no-release',
-          'null-safety=unsound'
+          '--null-safety=unsound'
         ];
 
         var process =
