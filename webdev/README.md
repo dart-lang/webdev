@@ -106,7 +106,7 @@ Common:
                                            support. If "auto", the default
                                            `package:build_web_compilers`
                                            behavior is used.
-                                           (defaults to "auto")
+                                           [sound, unsound, auto (default)]
 -r, --[no-]release                         Build with release mode defaults for
                                            builders.
     --[no-]build-web-compilers             If a dependency on
@@ -147,7 +147,7 @@ Usage: webdev build [arguments]
                                            support. If "auto", the default
                                            `package:build_web_compilers`
                                            behavior is used.
-                                           (defaults to "auto")
+                                           [sound, unsound, auto (default)]
 -r, --[no-]release                         Build with release mode defaults for
                                            builders.
                                            (defaults to on)
