@@ -10,6 +10,16 @@ const _emptySourceMetadata =
     '{"version":"1.0.0","name":"web/main","closureName":"load__web__main",'
     '"sourceMapUri":"foo/web/main.ddc.js.map",'
     '"moduleUri":"foo/web/main.ddc.js",'
+    '"soundNullSafety":true,'
+    '"libraries":[{"name":"main",'
+    '"importUri":"org-dartlang-app:///web/main.dart",'
+    '"fileUri":"org-dartlang-app:///web/main.dart","partUris":[]}]}\n'
+    '// intentionally empty: package blah has no dart sources';
+
+const _noNullSafetyMetadata =
+    '{"version":"1.0.0","name":"web/main","closureName":"load__web__main",'
+    '"sourceMapUri":"foo/web/main.ddc.js.map",'
+    '"moduleUri":"foo/web/main.ddc.js",'
     '"libraries":[{"name":"main",'
     '"importUri":"org-dartlang-app:///web/main.dart",'
     '"fileUri":"org-dartlang-app:///web/main.dart","partUris":[]}]}\n'
@@ -19,6 +29,7 @@ const _fileUriMetadata =
     '{"version":"1.0.0","name":"web/main","closureName":"load__web__main",'
     '"sourceMapUri":"foo/web/main.ddc.js.map",'
     '"moduleUri":"foo/web/main.ddc.js",'
+    '"soundNullSafety":true,'
     '"libraries":[{"name":"main",'
     '"importUri":"file:/Users/foo/blah/sample/lib/bar.dart",'
     '"fileUri":"org-dartlang-app:///web/main.dart","partUris":[]}]}\n'
@@ -50,6 +61,17 @@ void main() {
     );
     expect(await provider.libraries,
         contains('org-dartlang-app:///web/main.dart'));
+    expect(await provider.soundNullSafety, isNotNull);
+  });
+
+  test('can parse metadata with no null safety information', () async {
+    var provider = MetadataProvider(
+      'foo.bootstrap.js',
+      FakeAssetReader(_noNullSafetyMetadata),
+    );
+    expect(await provider.libraries,
+        contains('org-dartlang-app:///web/main.dart'));
+    expect(await provider.soundNullSafety, isNull);
   });
 
   test('throws on metadata with absolute import uris', () async {
