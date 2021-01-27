@@ -1,3 +1,7 @@
+## 8.0.2-dev
+
+- Change `ExpressionCompiler` to accept `FutureOr<int>` port configuration.
+
 ## 8.0.1
 
 - Support null safe versions of `package:crypto`, `package:uuid` and

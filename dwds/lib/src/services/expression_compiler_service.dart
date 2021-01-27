@@ -48,9 +48,6 @@ class _Compiler {
   /// Starts expression compiler worker in an isolate and creates the
   /// expression compilation service that communicates to the worker.
   ///
-  /// Uses [address] and [port] to communicate and [assetHandler] to
-  /// redirect asset requests to the asset server.
-  ///
   /// [workerPath] is the path for the expression compiler worker,
   /// [sdkSummaryPath] is the path to the sdk summary dill file
   /// [librariesPath] is the path to libraries definitions file
@@ -67,7 +64,6 @@ class _Compiler {
   static Future<_Compiler> start(
     String address,
     int port,
-    Handler assetHandler,
     String workerPath,
     String sdkSummaryPath,
     String librariesPath,
@@ -243,7 +239,7 @@ class _Compiler {
 class ExpressionCompilerService implements ExpressionCompiler {
   final _compiler = Completer<_Compiler>();
   final String _address;
-  final int _port;
+  final FutureOr<int> _port;
   final Handler _assetHandler;
   final bool _verbose;
 
@@ -289,8 +285,8 @@ class ExpressionCompilerService implements ExpressionCompiler {
     var workerPath =
         _workerPath ?? p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
 
-    var compiler = await _Compiler.start(_address, _port, _assetHandler,
-        workerPath, sdkSummaryPath, librariesPath, _verbose, soundNullSafety);
+    var compiler = await _Compiler.start(_address, await _port, workerPath,
+        sdkSummaryPath, librariesPath, _verbose, soundNullSafety);
 
     _compiler.complete(compiler);
   }
