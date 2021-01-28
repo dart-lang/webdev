@@ -143,8 +143,8 @@ class MetadataProvider {
               var metadata =
                   ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
               _addMetadata(metadata);
-              hasUnsoundNullSafety &= !(metadata.soundNullSafety ?? false);
-              hasSoundNullSafety &= metadata.soundNullSafety ?? false;
+              hasUnsoundNullSafety &= !metadata.soundNullSafety;
+              hasSoundNullSafety &= metadata.soundNullSafety;
               _logger
                   .fine('Loaded debug metadata for module: ${metadata.name}');
             } catch (e) {

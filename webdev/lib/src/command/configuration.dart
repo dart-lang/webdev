@@ -255,7 +255,7 @@ class Configuration {
   ///
   /// 'sound', 'unsound', or 'auto'.
   /// 'auto' indicates that the default `package:build_web_compilers`
-  // behavior should be used.
+  /// behavior should be used.
   String get nullSafety => _nullSafety;
 
   /// Returns a new configuration with values updated from the parsed args.

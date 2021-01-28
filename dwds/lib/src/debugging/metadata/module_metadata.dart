@@ -148,7 +148,7 @@ class ModuleMetadata {
         closureName = json['closureName'] as String,
         sourceMapUri = json['sourceMapUri'] as String,
         moduleUri = json['moduleUri'] as String,
-        soundNullSafety = json['soundNullSafety'] as bool {
+        soundNullSafety = (json['soundNullSafety'] as bool) ?? false {
     if (!ModuleMetadataVersion.current.isCompatibleWith(version) &&
         !ModuleMetadataVersion.previous.isCompatibleWith(version)) {
       throw Exception('Unsupported metadata version $version. '

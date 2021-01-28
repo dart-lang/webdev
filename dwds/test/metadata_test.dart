@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:test/test.dart';
 
@@ -81,5 +82,39 @@ void main() {
     );
     await expectLater(provider.libraries,
         throwsA(const TypeMatcher<AbsoluteImportUriException>()));
+  });
+
+  test('creates metadata from json', () async {
+    const json = {
+      'version': '1.0.0',
+      'name': 'web/main',
+      'closureName': 'load__web__main',
+      'sourceMapUri': 'foo/web/main.ddc.js.map',
+      'moduleUri': 'foo/web/main.ddc.js',
+      'libraries': [
+        {
+          'name': 'main',
+          'importUri': 'org-dartlang-app:///web/main.dart',
+          'partUris': ['org-dartlang-app:///web/main.dart']
+        }
+      ]
+    };
+
+    var metadata = ModuleMetadata.fromJson(json);
+    expect(metadata.version, '1.0.0');
+    expect(metadata.name, 'web/main');
+    expect(metadata.closureName, 'load__web__main');
+    expect(metadata.sourceMapUri, 'foo/web/main.ddc.js.map');
+    expect(metadata.moduleUri, 'foo/web/main.ddc.js');
+    var libraries = metadata.libraries;
+    expect(libraries.length, 1);
+    for (var lib in libraries.values) {
+      expect(lib.name, 'main');
+      expect(lib.importUri, 'org-dartlang-app:///web/main.dart');
+      var parts = lib.partUris;
+      expect(parts.length, 1);
+      expect(parts[0], 'org-dartlang-app:///web/main.dart');
+    }
+    expect(metadata.soundNullSafety, false);
   });
 }
