@@ -134,14 +134,14 @@ void main() {
       });
     }
     test(
-      'and --sound-null-safety',
+      'and --null-safety=sound',
       () async {
         var args = [
           'build',
           '-o',
           'web:${d.sandbox}',
           '--no-release',
-          '--sound-null-safety'
+          '--null-safety=sound'
         ];
 
         var process =
@@ -161,14 +161,14 @@ void main() {
     );
 
     test(
-      'and --no-sound-null-safety',
+      'and --null-safety=unsound',
       () async {
         var args = [
           'build',
           '-o',
           'web:${d.sandbox}',
           '--no-release',
-          '--no-sound-null-safety'
+          '--null-safety=unsound'
         ];
 
         var process =
@@ -272,110 +272,121 @@ void main() {
     }
   });
 
-  group('should work with expression evaluation', () {
-    test('enabled', () async {
-      var openPort = await findUnusedPort();
-      // running daemon command that starts dwds without keyboard input
-      var args = [
-        'daemon',
-        'web:$openPort',
-        '--enable-expression-evaluation',
-        '--verbose',
-      ];
-      var process = await runWebDev(args, workingDirectory: exampleDirectory);
-      VmService vmService;
+  group('should work with ', () {
+    for (var soundNullSafety in [false, true]) {
+      var nullSafetyOption = soundNullSafety ? 'sound' : 'unsound';
+      group('--null-safety=$nullSafetyOption', () {
+        test('and --enable-expression-evaluation', () async {
+          var openPort = await findUnusedPort();
+          // running daemon command that starts dwds without keyboard input
+          var args = [
+            'daemon',
+            'web:$openPort',
+            '--enable-expression-evaluation',
+            '--verbose',
+          ];
+          var process = await runWebDev(args,
+              workingDirectory:
+                  soundNullSafety ? soundExampleDirectory : exampleDirectory);
+          VmService vmService;
 
-      try {
-        // Wait for debug service Uri
-        String wsUri;
-        await expectLater(process.stdout, emitsThrough((message) {
-          wsUri = getDebugServiceUri(message as String);
-          return wsUri != null;
-        }));
-        expect(wsUri, isNotNull);
+          try {
+            // Wait for debug service Uri
+            String wsUri;
+            await expectLater(process.stdout, emitsThrough((message) {
+              wsUri = getDebugServiceUri(message as String);
+              return wsUri != null;
+            }));
+            expect(wsUri, isNotNull);
 
-        vmService = await vmServiceConnectUri(wsUri);
-        var vm = await vmService.getVM();
-        var isolate = vm.isolates.first;
-        var scripts = await vmService.getScripts(isolate.id);
+            vmService = await vmServiceConnectUri(wsUri);
+            var vm = await vmService.getVM();
+            var isolate = vm.isolates.first;
+            var scripts = await vmService.getScripts(isolate.id);
 
-        await vmService.streamListen('Debug');
-        var stream = vmService.onEvent('Debug');
+            await vmService.streamListen('Debug');
+            var stream = vmService.onEvent('Debug');
 
-        var mainScript = scripts.scripts
-            .firstWhere((each) => each.uri.contains('main.dart'));
+            var mainScript = scripts.scripts
+                .firstWhere((each) => each.uri.contains('main.dart'));
 
-        var bpLine = await findBreakpointLine(
-            vmService, 'printCounter', isolate.id, mainScript);
+            var bpLine = await findBreakpointLine(
+                vmService, 'printCounter', isolate.id, mainScript);
 
-        var bp = await vmService.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, bpLine);
-        expect(bp, isNotNull);
+            var bp = await vmService.addBreakpointWithScriptUri(
+                isolate.id, mainScript.uri, bpLine);
+            expect(bp, isNotNull);
 
-        await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+            await stream.firstWhere(
+                (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        var result = await vmService.evaluateInFrame(isolate.id, 0, 'true');
-        expect(
-            result,
-            const TypeMatcher<InstanceRef>().having(
-                (instance) => instance.valueAsString, 'valueAsString', 'true'));
-      } finally {
-        await vmService?.dispose();
-        await exitWebdev(process);
-        await process.shouldExit();
-      }
-    }, timeout: const Timeout.factor(2));
+            var result = await vmService.evaluateInFrame(isolate.id, 0, 'true');
+            expect(
+                result,
+                const TypeMatcher<InstanceRef>().having(
+                    (instance) => instance.valueAsString,
+                    'valueAsString',
+                    'true'));
+          } finally {
+            await vmService?.dispose();
+            await exitWebdev(process);
+            await process.shouldExit();
+          }
+        }, timeout: const Timeout.factor(2));
 
-    test('disabled', () async {
-      var openPort = await findUnusedPort();
-      var args = [
-        'daemon',
-        'web:$openPort',
-        '--no-enable-expression-evaluation',
-      ];
-      var process = await runWebDev(args, workingDirectory: exampleDirectory);
-      VmService vmService;
+        test('and --no-enable-expression-evaluation', () async {
+          var openPort = await findUnusedPort();
+          var args = [
+            'daemon',
+            'web:$openPort',
+            '--no-enable-expression-evaluation',
+          ];
+          var process = await runWebDev(args,
+              workingDirectory:
+                  soundNullSafety ? soundExampleDirectory : exampleDirectory);
+          VmService vmService;
 
-      try {
-        // Wait for debug service Uri
-        String wsUri;
-        await expectLater(process.stdout, emitsThrough((message) {
-          wsUri = getDebugServiceUri(message as String);
-          return wsUri != null;
-        }));
-        expect(wsUri, isNotNull);
+          try {
+            // Wait for debug service Uri
+            String wsUri;
+            await expectLater(process.stdout, emitsThrough((message) {
+              wsUri = getDebugServiceUri(message as String);
+              return wsUri != null;
+            }));
+            expect(wsUri, isNotNull);
 
-        vmService = await vmServiceConnectUri(wsUri);
-        var vm = await vmService.getVM();
-        var isolate = vm.isolates.first;
-        var scripts = await vmService.getScripts(isolate.id);
+            vmService = await vmServiceConnectUri(wsUri);
+            var vm = await vmService.getVM();
+            var isolate = vm.isolates.first;
+            var scripts = await vmService.getScripts(isolate.id);
 
-        await vmService.streamListen('Debug');
-        var stream = vmService.onEvent('Debug');
+            await vmService.streamListen('Debug');
+            var stream = vmService.onEvent('Debug');
 
-        var mainScript = scripts.scripts
-            .firstWhere((each) => each.uri.contains('main.dart'));
+            var mainScript = scripts.scripts
+                .firstWhere((each) => each.uri.contains('main.dart'));
 
-        var bpLine = await findBreakpointLine(
-            vmService, 'printCounter', isolate.id, mainScript);
+            var bpLine = await findBreakpointLine(
+                vmService, 'printCounter', isolate.id, mainScript);
 
-        var bp = await vmService.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, bpLine);
-        expect(bp, isNotNull);
+            var bp = await vmService.addBreakpointWithScriptUri(
+                isolate.id, mainScript.uri, bpLine);
+            expect(bp, isNotNull);
 
-        var event = await stream.firstWhere(
-            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+            var event = await stream.firstWhere(
+                (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-        expect(
-            () => vmService.evaluateInFrame(
-                isolate.id, event.topFrame.index, 'true'),
-            throwsRPCError);
-      } finally {
-        await vmService?.dispose();
-        await exitWebdev(process);
-        await process.shouldExit();
-      }
-    });
+            expect(
+                () => vmService.evaluateInFrame(
+                    isolate.id, event.topFrame.index, 'true'),
+                throwsRPCError);
+          } finally {
+            await vmService?.dispose();
+            await exitWebdev(process);
+            await process.shouldExit();
+          }
+        });
+      });
+    }
   }, tags: 'expression-compilation-service');
 }

@@ -29,7 +29,10 @@ const releaseFlag = 'release';
 const requireBuildWebCompilersFlag = 'build-web-compilers';
 const enableExpressionEvaluationFlag = 'enable-expression-evaluation';
 const verboseFlag = 'verbose';
-const soundNullSafetyFlag = 'sound-null-safety';
+const nullSafetyFlag = 'null-safety';
+const nullSafetySound = 'sound';
+const nullSafetyUnsound = 'unsound';
+const nullSafetyAuto = 'auto';
 const disableDdsFlag = 'disable-dds';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
@@ -97,7 +100,7 @@ class Configuration {
   final bool _enableExpressionEvaluation;
   final bool _verbose;
   final bool _disableDds;
-  final bool _soundNullSafety;
+  final String _nullSafety;
 
   Configuration({
     bool autoRun,
@@ -120,7 +123,7 @@ class Configuration {
     bool enableExpressionEvaluation,
     bool verbose,
     bool disableDds,
-    bool soundNullSafety,
+    String nullSafety,
   })  : _autoRun = autoRun,
         _chromeDebugPort = chromeDebugPort,
         _debugExtension = debugExtension,
@@ -139,7 +142,7 @@ class Configuration {
         _disableDds = disableDds,
         _enableExpressionEvaluation = enableExpressionEvaluation,
         _verbose = verbose,
-        _soundNullSafety = soundNullSafety {
+        _nullSafety = nullSafety {
     _validateConfiguration();
   }
 
@@ -206,7 +209,7 @@ class Configuration {
       enableExpressionEvaluation:
           other._enableExpressionEvaluation ?? _enableExpressionEvaluation,
       verbose: other._verbose ?? _verbose,
-      soundNullSafety: other._soundNullSafety ?? _soundNullSafety);
+      nullSafety: other._nullSafety ?? _nullSafety);
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
@@ -248,9 +251,12 @@ class Configuration {
 
   bool get verbose => _verbose ?? false;
 
-  // Null indicates that the default `package:build_web_compilers`
-  // behavior should be used.
-  bool get soundNullSafety => _soundNullSafety;
+  /// Null safety mode:
+  ///
+  /// 'sound', 'unsound', or 'auto'.
+  /// 'auto' indicates that the default `package:build_web_compilers`
+  /// behavior should be used.
+  String get nullSafety => _nullSafety;
 
   /// Returns a new configuration with values updated from the parsed args.
   static Configuration fromArgs(ArgResults argResults,
@@ -355,9 +361,9 @@ class Configuration {
         ? argResults[verboseFlag] as bool
         : defaultConfiguration.verbose;
 
-    var soundNullSafety = argResults.options.contains(soundNullSafetyFlag)
-        ? argResults[soundNullSafetyFlag] as bool
-        : defaultConfiguration.soundNullSafety;
+    var nullSafety = argResults.options.contains(nullSafetyFlag)
+        ? argResults[nullSafetyFlag] as String
+        : defaultConfiguration.nullSafety;
 
     var disableDds = argResults.options.contains(disableDdsFlag)
         ? argResults[disableDdsFlag] as bool
@@ -384,7 +390,7 @@ class Configuration {
       disableDds: disableDds,
       enableExpressionEvaluation: enableExpressionEvaluation,
       verbose: verbose,
-      soundNullSafety: soundNullSafety,
+      nullSafety: nullSafety,
     );
   }
 }

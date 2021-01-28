@@ -166,10 +166,14 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<void> updateCompilerDependencies(String entrypoint) async {
-    // TODO(grouma) - use the entrypoint to determine the null safety mode
-    // and initialize accordingly.
-    await _compiler?.initialize(soundNullSafety: false);
     var metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
+    var soundNullSafety = await metadataProvider.soundNullSafety;
+
+    _logger.info('Initializing expression compiler for $entrypoint '
+        'with sound null safety: $soundNullSafety');
+
+    await _compiler?.initialize(soundNullSafety: soundNullSafety);
+
     var modules = await metadataProvider.moduleToModulePath;
     var dependencies = <String, ModuleInfo>{};
     for (var module in modules.keys) {

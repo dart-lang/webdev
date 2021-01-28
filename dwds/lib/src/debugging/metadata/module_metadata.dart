@@ -24,9 +24,6 @@ class ModuleMetadataVersion {
   ///
   /// Version follows simple semantic versioning format 'major.minor.patch'
   /// See https://semver.org
-  ///
-  /// TODO(annagrin): create metadata package, make version the same as the
-  /// metadata package version, automate updating with the package update
   static const ModuleMetadataVersion current = ModuleMetadataVersion(2, 0, 0);
 
   /// Previous version supported by the metadata reader
@@ -118,9 +115,14 @@ class ModuleMetadata {
   /// Module uri
   final String moduleUri;
 
+  /// True if the module corresponding to this metadata was compiled with sound
+  /// null safety enabled.
+  final bool soundNullSafety;
+
   final Map<String, LibraryMetadata> libraries = {};
 
   ModuleMetadata(this.name, this.closureName, this.sourceMapUri, this.moduleUri,
+      this.soundNullSafety,
       {this.version}) {
     version ??= ModuleMetadataVersion.current.version;
   }
@@ -145,7 +147,8 @@ class ModuleMetadata {
         name = json['name'] as String,
         closureName = json['closureName'] as String,
         sourceMapUri = json['sourceMapUri'] as String,
-        moduleUri = json['moduleUri'] as String {
+        moduleUri = json['moduleUri'] as String,
+        soundNullSafety = (json['soundNullSafety'] as bool) ?? false {
     if (!ModuleMetadataVersion.current.isCompatibleWith(version) &&
         !ModuleMetadataVersion.previous.isCompatibleWith(version)) {
       throw Exception('Unsupported metadata version $version. '
@@ -166,7 +169,8 @@ class ModuleMetadata {
       'closureName': closureName,
       'sourceMapUri': sourceMapUri,
       'moduleUri': moduleUri,
-      'libraries': [for (var lib in libraries.values) lib.toJson()]
+      'libraries': [for (var lib in libraries.values) lib.toJson()],
+      'soundNullSafety': soundNullSafety
     };
   }
 }

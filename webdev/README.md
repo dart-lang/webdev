@@ -97,6 +97,16 @@ Common:
                                            "--output" value should be passed to
                                            `build_runner`.
                                            (defaults to "NONE")
+-n, --null-safety                          If "sound",
+                                           `package:build_web_compilers` will be
+                                           run with sound null safety support.
+                                           If "unsound",
+                                           `package:build_web_compilers` will be
+                                           run without sound null safety
+                                           support. If "auto", the default
+                                           `package:build_web_compilers`
+                                           behavior is used.
+                                           [sound, unsound, auto (default)]
 -r, --[no-]release                         Build with release mode defaults for
                                            builders.
     --[no-]build-web-compilers             If a dependency on
@@ -105,18 +115,10 @@ Common:
                                            (defaults to on)
 -e, --[no-]enable-expression-evaluation    Enable expression evaluation features
                                            in the debugger.
-    --[no-]sound-null-safety               If provided,
-                                           `package:build_web_compilers` will be
-                                           run with sound null safety support.
-                                           If negated,
-                                           `package:build_web_compilers` will be
-                                           run without sound null safety
-                                           support. If not provided, the default
-                                           `package:build_web_compilers`
-                                           behavior is used.
 -v, --verbose                              Enables verbose logging.
 
 Run "webdev help" to see global options.
+
 ```
 
 ### `webdev build`
@@ -136,6 +138,16 @@ Usage: webdev build [arguments]
                                            "--output" value should be passed to
                                            `build_runner`.
                                            (defaults to "web:build")
+-n, --null-safety                          If "sound",
+                                           `package:build_web_compilers` will be
+                                           run with sound null safety support.
+                                           If "unsound",
+                                           `package:build_web_compilers` will be
+                                           run without sound null safety
+                                           support. If "auto", the default
+                                           `package:build_web_compilers`
+                                           behavior is used.
+                                           [sound, unsound, auto (default)]
 -r, --[no-]release                         Build with release mode defaults for
                                            builders.
                                            (defaults to on)
@@ -145,18 +157,10 @@ Usage: webdev build [arguments]
                                            (defaults to on)
 -e, --[no-]enable-expression-evaluation    Enable expression evaluation features
                                            in the debugger.
-    --[no-]sound-null-safety               If provided,
-                                           `package:build_web_compilers` will be
-                                           run with sound null safety support.
-                                           If negated,
-                                           `package:build_web_compilers` will be
-                                           run without sound null safety
-                                           support. If not provided, the default
-                                           `package:build_web_compilers`
-                                           behavior is used.
 -v, --verbose                              Enables verbose logging.
 
 Run "webdev help" to see global options.
+
 ```
 
 [activating]: https://www.dartlang.org/tools/pub/cmd/pub-global#activating-a-package
