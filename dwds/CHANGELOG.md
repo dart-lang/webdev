@@ -1,6 +1,7 @@
 ## 8.0.2-dev
 
 - Change `ExpressionCompiler` to accept `FutureOr<int>` port configuration.
+- Depend on `package:vm_service` version `6.0.1-nullsafety.1`.
 
 ## 8.0.1
 
