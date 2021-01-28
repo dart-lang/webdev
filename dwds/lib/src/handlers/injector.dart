@@ -47,10 +47,13 @@ class DwdsInjector {
 
   Middleware get middleware => (innerHandler) {
         return (Request request) async {
-          if (request.url.path.endsWith('$_clientScript.js')) {
+          if (request.url.path.endsWith('$_clientScript.js') ||
+              request.url.path.endsWith('$_clientScript.js.map')) {
             var uri = await Isolate.resolvePackageUri(
                 Uri.parse('package:$_clientScript.js'));
-            var result = await File(uri.toFilePath()).readAsString();
+            var result = await File(uri.toFilePath() +
+                    (request.url.path.endsWith('.map') ? '.map' : ''))
+                .readAsString();
             return Response.ok(result, headers: {
               HttpHeaders.contentTypeHeader: 'application/javascript'
             });
