@@ -173,8 +173,6 @@ class RequireRestarter implements Restarter {
   /// Returns `true` if the reload was fully handled, `false` if it failed
   /// explicitly, or `null` for an unhandled reload.
   Future<bool> _reload(List<String> modules) async {
-    _dirtyModules.addAll(modules);
-
     // As function is async, it can potentially be called second time while
     // first invocation is still running. In this case just mark as dirty and
     // wait until loop from the first call will do the work
@@ -183,6 +181,7 @@ class RequireRestarter implements Restarter {
 
     var reloadedModules = 0;
     try {
+      _dirtyModules.addAll(modules);
       String previousModuleId;
       while (_dirtyModules.isNotEmpty) {
         var moduleId = _dirtyModules.first;

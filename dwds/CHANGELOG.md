@@ -1,3 +1,8 @@
+## 8.0.3
+
+- Fix an issue where failed hot restarts would hang indefinitely. 
+
+
 ## 8.0.2
 
 - Change `ExpressionCompiler` to accept `FutureOr<int>` port configuration.
