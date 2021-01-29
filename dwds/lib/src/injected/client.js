@@ -22477,7 +22477,7 @@
     _reload$body$RequireRestarter: function(modules) {
       var $async$goto = 0,
         $async$completer = P._makeAsyncAwaitCompleter(type$.legacy_bool),
-        $async$returnValue, $async$handler = 2, $async$currentError, $async$next = [], $async$self = this, reloadedModules, previousModuleId, moduleId, parentIds, childModule, e, t1, t2, t3, t4, t5, exception, $async$exception;
+        $async$returnValue, $async$handler = 2, $async$currentError, $async$next = [], $async$self = this, reloadedModules, previousModuleId, moduleId, parentIds, childModule, e, t2, t3, t4, t5, exception, t1, $async$exception;
       var $async$_reload$1 = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1) {
           $async$currentError = $async$result;
@@ -22487,7 +22487,6 @@
           switch ($async$goto) {
             case 0:
               // Function start
-              $async$self._dirtyModules.addAll$1(0, modules);
               t1 = $async$self._running.future;
               $async$goto = t1._state === 0 ? 3 : 4;
               break;
@@ -22506,6 +22505,7 @@
               $async$self.set$_running(new P._AsyncCompleter(new P._Future($.Zone__current, type$._Future_legacy_bool), type$._AsyncCompleter_legacy_bool));
               reloadedModules = 0;
               $async$handler = 7;
+              $async$self._dirtyModules.addAll$1(0, modules);
               previousModuleId = null;
               t1 = $async$self.get$_moduleTopologicalCompare(), t2 = type$.legacy_String, t3 = type$.JSArray_legacy_Object, t4 = type$.legacy_dynamic_Function;
             case 10:
