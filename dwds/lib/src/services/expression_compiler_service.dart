@@ -70,7 +70,7 @@ class _Compiler {
     bool verbose,
     bool soundNullSafety,
   ) async {
-    final workerUri = Uri.file(workerPath);
+    final workerUri = p.toUri(p.absolute(workerPath));
     if (!File(workerPath).existsSync()) {
       _logger.severe('Worker path $workerPath does not exist');
     }

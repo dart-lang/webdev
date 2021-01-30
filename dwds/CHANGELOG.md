@@ -1,7 +1,11 @@
+## 8.0.4-dev
+
+- Fix an issue where relative worker paths provided to the `ExpressionCompilerService`
+  would cause a crash. 
+
 ## 8.0.3
 
 - Fix an issue where failed hot restarts would hang indefinitely. 
-
 
 ## 8.0.2
 
