@@ -439,7 +439,8 @@ class SseSocketClient extends SocketClient {
 
 class WebSocketClient extends SocketClient {
   final WebSocketChannel _channel;
-  WebSocketClient(this._channel) {}
+
+  WebSocketClient(this._channel);
 
   @override
   StreamSink<dynamic> get sink => _channel.sink;
