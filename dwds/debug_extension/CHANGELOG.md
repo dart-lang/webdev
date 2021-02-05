@@ -1,3 +1,8 @@
+## 1.16
+
+- Depend on the latest `package:sse`.
+
+
 ## 1.15
 
 - No longer send script parsed events when skipLists are supported,

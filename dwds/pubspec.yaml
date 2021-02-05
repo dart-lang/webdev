@@ -33,7 +33,7 @@ dependencies:
   shelf_static: ^0.2.8
   shelf_web_socket: ^0.2.0
   source_maps: ^0.10.0
-  sse: ^3.6.0
+  sse: ^3.7.0
   # We pin the version because we implement the interface.
   vm_service: 6.0.1-nullsafety.1
   web_socket_channel: ^1.0.0

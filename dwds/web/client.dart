@@ -35,10 +35,6 @@ Future<void> main() {
     dartAppInstanceId ??= Uuid().v1();
 
     var client = SseClient(_fixProtocol(dwdsDevHandlerPath));
-    // Ensure the SSE connection is established before proceeding.
-    // Note that `onOpen` is a broadcast stream so we must listen for this
-    // immediately.
-    await client.onOpen.first;
 
     Restarter restarter;
     if (dartModuleStrategy == 'require-js') {

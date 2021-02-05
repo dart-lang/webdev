@@ -196,7 +196,6 @@ Future<void> _startSseClient(
     client.close();
   }, cancelOnError: true);
 
-  await client.onOpen.first;
   client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
     ..appId = appId
     ..instanceId = instanceId
@@ -421,7 +420,6 @@ external set isDartDebugExtension(_);
 abstract class SocketClient {
   StreamSink<dynamic> get sink;
   Stream<String> get stream;
-  Stream<void> get onOpen;
   void close();
 }
 
@@ -436,27 +434,19 @@ class SseSocketClient extends SocketClient {
   Stream<String> get stream => _client.stream;
 
   @override
-  Stream<void> get onOpen => _client.onOpen;
-
-  @override
   void close() => _client.close();
 }
 
 class WebSocketClient extends SocketClient {
   final WebSocketChannel _channel;
-  final StreamController<void> _openStreamController = StreamController<void>();
-  WebSocketClient(this._channel) {
-    _openStreamController.add(null);
-  }
+
+  WebSocketClient(this._channel);
 
   @override
   StreamSink<dynamic> get sink => _channel.sink;
   @override
   Stream<String> get stream =>
       _channel.stream.map((dynamic o) => o?.toString());
-
-  @override
-  Stream<void> get onOpen => _openStreamController.stream;
 
   @override
   void close() => _channel.sink.close();
