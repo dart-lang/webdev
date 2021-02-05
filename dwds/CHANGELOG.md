@@ -5,6 +5,7 @@
 - Fix an issue where the injected client connection could be lost while the application
   is paused.
 - Support keep-alive for debug service connections.
+- Depend on the latest `package:sse`.
 
 ## 8.0.3
 
