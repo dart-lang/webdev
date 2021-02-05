@@ -229,7 +229,8 @@ class DebugService {
     Handler handler;
     // DDS will always connect to DWDS via web sockets.
     if (useSse && !spawnDds) {
-      var sseHandler = SseHandler(Uri.parse('/$authToken/\$debugHandler'));
+      var sseHandler = SseHandler(Uri.parse('/$authToken/\$debugHandler'),
+          keepAlive: const Duration(seconds: 30));
       handler = sseHandler.handler;
       unawaited(_handleSseConnections(
           sseHandler, chromeProxyService, serviceExtensionRegistry,

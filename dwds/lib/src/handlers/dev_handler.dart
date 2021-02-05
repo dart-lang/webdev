@@ -406,7 +406,11 @@ class DevHandler {
       if (!_sseHandlers.containsKey(uri.path)) {
         // TODO(dantup): WS is not currently supported for injected client.
         var handler = SseSocketHandler(
-            SseHandler(uri, keepAlive: const Duration(seconds: 30)));
+            // We provide an essentially indefinite keep alive duration because
+            // the underlying connection could be lost while the application
+            // is paused. The connection will get re-established after a resume
+            // or cleaned up on a full page refresh.
+            SseHandler(uri, keepAlive: const Duration(days: 3000)));
         _sseHandlers[uri.path] = handler;
         var injectedConnections = handler.connections;
         while (await injectedConnections.hasNext) {

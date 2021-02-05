@@ -2,6 +2,9 @@
 
 - Fix an issue where relative worker paths provided to the `ExpressionCompilerService`
   would cause a crash. 
+- Fix an issue where the injected client connection could be lost while the application
+  is paused.
+- Support keep-alive for debug service connections.
 
 ## 8.0.3
 
