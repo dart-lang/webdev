@@ -1,3 +1,7 @@
+## 1.18
+
+- Depend on the latest `package:sse`.
+
 ## 1.17
 
 - Depend on the latest `package:sse`.

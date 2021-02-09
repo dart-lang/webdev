@@ -7647,12 +7647,11 @@ C.H.cU(r.f,"control",r.gec())
 s=t.aL
 W.dg(r.f,"open",new M.ib(r),!1,s)
 W.dg(r.f,"error",new M.ic(r),!1,s)},
-M:function(a){var s
-this.f.close()
-s=this.b
-if((s.b&1)===0)new P.M(s,H.t(s).h("M<1>")).f1(null,!0).eB(null,t.z)
-this.a.M(0)
-s.M(0)},
+M:function(a){var s,r=this
+r.f.close()
+if(r.d.a.a===0){s=r.b
+new P.M(s,H.t(s).h("M<1>")).f1(null,!0).eB(null,t.z)}r.a.M(0)
+r.b.M(0)},
 ed:function(a){var s=new P.d8([],[]).bT(t.d.a(a).data,!0)
 if(J.J(s,"close"))this.M(0)
 else throw H.a(P.y('Illegal Control Message "'+H.d(s)+'"'))},
