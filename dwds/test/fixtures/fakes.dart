@@ -143,6 +143,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
         (_, __) async => null,
         (_, __) async => null,
         null,
+        (_) async => null,
         null);
   }
 
@@ -297,4 +298,8 @@ class FakeStrategy implements LoadStrategy {
 
   @override
   void trackEntrypoint(String entrypoint) {}
+
+  @override
+  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
+      throw UnimplementedError();
 }

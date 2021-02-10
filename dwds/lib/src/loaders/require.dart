@@ -114,6 +114,15 @@ class RequireStrategy extends LoadStrategy {
   /// an app URI.
   final String Function(String appUri) _serverPathForAppUri;
 
+  /// Returns a map from module id to module info.
+  ///
+  /// For example:
+  ///
+  ///   web/main -> {main.ddc.full.dill, main.ddc.dill}
+  ///
+  final Future<Map<String, ModuleInfo>> Function(
+      MetadataProvider metadataProvider) _moduleInfoForProvider;
+
   RequireStrategy(
     this.reloadConfiguration,
     this._moduleProvider,
@@ -122,6 +131,7 @@ class RequireStrategy extends LoadStrategy {
     this._serverPathForModule,
     this._sourceMapPathForModule,
     this._serverPathForAppUri,
+    this._moduleInfoForProvider,
     AssetReader assetReader,
   ) : super(assetReader);
 
@@ -262,4 +272,8 @@ if(!window.\$requireLoader) {
 
   @override
   String serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);
+
+  @override
+  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
+      _moduleInfoForProvider(metadataProviderFor(entrypoint));
 }

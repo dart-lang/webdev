@@ -1,4 +1,4 @@
-## 8.0.4-dev
+## 9.0.0-dev
 
 - Fix an issue where relative worker paths provided to the `ExpressionCompilerService`
   would cause a crash. 
@@ -6,6 +6,9 @@
   is paused.
 - Support keep-alive for debug service connections.
 - Depend on the latest `package:sse`.
+
+**Breaking changes:**
+- `LoadStrategy`s now require a `moduleInfoForEntrypoint`.
 
 ## 8.0.3
 

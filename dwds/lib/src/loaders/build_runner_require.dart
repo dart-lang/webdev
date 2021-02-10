@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
 import '../../dwds.dart';
@@ -31,6 +32,7 @@ class BuildRunnerRequireStrategyProvider {
         _serverPathForModule,
         _sourceMapPathForModule,
         _serverPathForAppUri,
+        _moduleInfoForProvider,
         _assetReader,
       );
 
@@ -81,5 +83,22 @@ class BuildRunnerRequireStrategyProvider {
       return Uri.parse(appUri).pathSegments.skip(1).join('/');
     }
     return null;
+  }
+
+  Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
+      MetadataProvider metadataProvider) async {
+    var modules = await metadataProvider.modules;
+    var result = <String, ModuleInfo>{};
+    for (var module in modules) {
+      var serverPath = await _serverPathForModule(metadataProvider, module);
+      result[module] = ModuleInfo(
+          // TODO: Save locations of full kernel files in ddc metadata.
+          // Issue: https://github.com/dart-lang/sdk/issues/43684
+          // TODO: Change these to URIs instead of paths when the SDK supports
+          // it.
+          p.setExtension(serverPath, '.full.dill'),
+          p.setExtension(serverPath, '.dill'));
+    }
+    return result;
   }
 }

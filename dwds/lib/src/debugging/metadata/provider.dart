@@ -122,6 +122,20 @@ class MetadataProvider {
     return _moduleToModulePath;
   }
 
+  /// A list of module ids
+  ///
+  /// Example:
+  ///
+  /// [
+  ///   web/main,
+  ///   web/foo/bar
+  /// ]
+  ///
+  Future<List<String>> get modules async {
+    await _initialize();
+    return _moduleToModulePath.keys.toList();
+  }
+
   Future<void> _initialize() async {
     await _metadataMemoizer.runOnce(() async {
       var hasSoundNullSafety = true;

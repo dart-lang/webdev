@@ -95,6 +95,14 @@ abstract class LoadStrategy {
   ///
   Future<String> sourceMapPathForModule(String entrypoint, String module);
 
+  /// Returns a map from module id to module info for the provided entrypoint.
+  ///
+  /// For example:
+  ///
+  ///   web/main -> {main.ddc.full.dill, main.ddc.dill}
+  ///
+  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint);
+
   /// Returns the server path for the app uri.
   ///
   /// For example:
