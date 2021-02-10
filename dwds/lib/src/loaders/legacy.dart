@@ -22,6 +22,15 @@ class LegacyStrategy extends LoadStrategy {
           MetadataProvider metadataProvider, String sourcePath)
       _moduleForServerPath;
 
+  /// Returns a map from module id to module info.
+  ///
+  /// For example:
+  ///
+  ///   web/main -> {main.ddc.full.dill, main.ddc.dill}
+  ///
+  final Future<Map<String, ModuleInfo>> Function(
+      MetadataProvider metadataProvider) _moduleInfoForProvider;
+
   /// Returns the server path for the provided module.
   ///
   /// For example:
@@ -56,6 +65,7 @@ class LegacyStrategy extends LoadStrategy {
     this._serverPathForModule,
     this._sourceMapPathForModule,
     this._serverPathForAppUri,
+    this._moduleInfoForProvider,
     AssetReader assetReader,
   ) : super(assetReader);
 
@@ -86,6 +96,10 @@ class LegacyStrategy extends LoadStrategy {
   Future<String> moduleForServerPath(
           String entrypoint, String serverPath) async =>
       _moduleForServerPath(metadataProviderFor(entrypoint), serverPath);
+
+  @override
+  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
+      _moduleInfoForProvider(metadataProviderFor(entrypoint));
 
   @override
   Future<String> serverPathForModule(String entrypoint, String module) async =>

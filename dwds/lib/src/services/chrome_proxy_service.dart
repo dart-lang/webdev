@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart' hide LogRecord;
-import 'package:path/path.dart' as p;
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
@@ -172,29 +171,12 @@ class ChromeProxyService implements VmServiceInterface {
     _logger.info('Initializing expression compiler for $entrypoint '
         'with sound null safety: $soundNullSafety');
 
-    await _compiler?.initialize(soundNullSafety: soundNullSafety);
-
-    var modules = await metadataProvider.moduleToModulePath;
-    var dependencies = <String, ModuleInfo>{};
-    for (var module in modules.keys) {
-      var serverPath =
-          await globalLoadStrategy.serverPathForModule(entrypoint, module);
-      dependencies[module] = ModuleInfo(
-          // TODO: Save locations of full kernel files in ddc metadata.
-          // Issue: https://github.com/dart-lang/sdk/issues/43684
-          p.setExtension(serverPath, '.full.dill'),
-          // Replace .ddk to find the summary in google3.
-          // All other cases are coming from build_web_compilers where '.ddk'
-          // is not a part of the name.
-          // TODO: Save locations of summary kernel files in ddc metadata.
-          // Issue: https://github.com/dart-lang/sdk/issues/44742
-          p.setExtension(
-              serverPath
-                  .replaceAll('.ddk.', '.ddc.')
-                  .replaceAll('.ddk_sns.', '.ddc_sns.'),
-              '.dill'));
+    if (_compiler != null) {
+      await _compiler.initialize(soundNullSafety: soundNullSafety);
+      var dependencies =
+          await globalLoadStrategy.moduleInfoForEntrypoint(entrypoint);
+      await _compiler.updateDependencies(dependencies);
     }
-    await _compiler?.updateDependencies(dependencies);
   }
 
   /// Creates a new isolate.
