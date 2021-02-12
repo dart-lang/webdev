@@ -6,6 +6,7 @@
   is paused.
 - Support keep-alive for debug service connections.
 - Depend on the latest `package:sse`.
+- Add `DwdsEvent`s around stepping and evaluation.
 
 **Breaking changes:**
 - `LoadStrategy`s now require a `moduleInfoForEntrypoint`.
