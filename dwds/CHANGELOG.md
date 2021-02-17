@@ -6,6 +6,7 @@
   is paused.
 - Support keep-alive for debug service connections.
 - Depend on the latest `package:sse`.
+- Filter out DDC temporary variables from the variable inspection view.
 - Add `DwdsEvent`s around stepping and evaluation.
 
 **Breaking changes:**

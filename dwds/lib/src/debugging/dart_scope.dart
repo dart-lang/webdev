@@ -7,6 +7,10 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import '../utilities/objects.dart';
 import 'debugger.dart';
 
+// TODO(sdk/issues/44262) - use an alternative way to identify synthetic
+// variables.
+final ddcTemporaryVariableRegExp = RegExp(r'^t([0-9])+(\$)?([0-9])*$');
+
 /// Find the visible Dart properties from a JS Scope Chain, coming from the
 /// scopeChain attribute of a Chrome CallFrame corresponding to [frame].
 ///
@@ -55,6 +59,7 @@ Future<List<Property>> visibleProperties({
     // parameters. Hide those.
     return (value.type == 'function' &&
             value.description.startsWith('class ')) ||
+        (ddcTemporaryVariableRegExp.hasMatch(property.name)) ||
         (value.type == 'object' && value.description == 'dart.LegacyType.new');
   });
 

@@ -4,6 +4,7 @@
 
 @TestOn('vm')
 import 'package:dwds/src/connections/debug_connection.dart';
+import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -24,6 +25,21 @@ void main() {
 
   tearDownAll(() async {
     await context.tearDown();
+  });
+
+  group('ddcTemporaryVariableRegExp', () {
+    test('matches correctly', () {
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$10'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't1'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't10'), isTrue);
+
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't'), isFalse);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't10foo'), isFalse);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r't$10foo'), isFalse);
+    });
   });
 
   group('variable scope', () {
