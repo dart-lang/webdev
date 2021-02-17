@@ -9,6 +9,11 @@ class DwdsEvent {
   final Map<String, dynamic> payload;
 
   DwdsEvent(this.type, this.payload);
+
+  @override
+  String toString() {
+    return 'TYPE: $type Payload: $payload';
+  }
 }
 
 final _eventController = StreamController<DwdsEvent>.broadcast();
