@@ -32,7 +32,7 @@ Future<void> main() {
   return runZonedGuarded(() async {
     // Set the unique id for this instance of the app.
     // Test apps may already have this set.
-    dartAppInstanceId ??= Uuid().v1();
+    dartAppInstanceId ??= const Uuid().v1();
 
     var client = SseClient(_fixProtocol(dwdsDevHandlerPath));
 
