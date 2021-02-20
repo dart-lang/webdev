@@ -1,3 +1,7 @@
+## 1.19-dev
+
+- Support cross-extension communication for use with Google specific extensions.
+
 ## 1.18
 
 - Depend on the latest `package:sse`.
