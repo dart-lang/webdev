@@ -8,8 +8,10 @@ description: >-
   A CLI for Dart web development. Provides an easy and consistent set of
   features for users and tools to build and deploy web applications with Dart.
 
+# We require 2.11.99 as we require testing on 2.12 and above but are not
+# prepared to migrate this package to null-safety at this time.
 environment:
-  sdk: ">=2.10.0 <3.0.0"
+  sdk: ">=2.11.99 <3.0.0"
 
 dependencies:
   args: ^1.5.0
