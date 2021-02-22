@@ -61,12 +61,6 @@ void main() {
         var contextQueue = StreamQueue(contextController.stream);
         addDebuggerListener(
             allowInterop((Debuggee source, String method, Object params) async {
-          if (_allowedEvents.contains(method)) {
-            sendMessageToExtensions(Request(
-                name: 'chrome.debugger.event',
-                tabId: source.tabId,
-                options: DebugEvent(method: method, params: params)));
-          }
           if (source.tabId != currentTab.id) {
             return;
           }
@@ -118,7 +112,7 @@ void main() {
   onMessageExternalAddListener(allowInterop(
       (Request request, Sender sender, Function sendResponse) async {
     if (_allowedExtensions.contains(sender.id)) {
-      if (request.name == 'sendCommand') {
+      if (request.name == 'chrome.debugger.sendCommand') {
         try {
           var options = request.options as SendCommandOptions;
           sendCommand(Debuggee(tabId: request.tabId), options.method,
@@ -133,14 +127,24 @@ void main() {
         } catch (e) {
           sendResponse(ErrorResponse()..error = '$e');
         }
-      } else if (request.name == 'encodedUri') {
+      } else if (request.name == 'dwds.encodedUri') {
         sendResponse(_tabIdToEncodedUri[request.tabId]);
-      } else if (request.name == 'startDebugging') {
+      } else if (request.name == 'dwds.startDebugging') {
         startDebugging(null);
       } else {
         sendResponse(
             ErrorResponse()..error = 'Unknown request name: ${request.name}');
       }
+    }
+  }));
+
+  addDebuggerListener(
+      allowInterop((Debuggee source, String method, Object params) async {
+    if (_allowedEvents.contains(method)) {
+      sendMessageToExtensions(Request(
+          name: 'chrome.debugger.event',
+          tabId: source.tabId,
+          options: DebugEvent(method: method, params: params)));
     }
   }));
 }
