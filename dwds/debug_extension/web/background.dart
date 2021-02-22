@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// GENERATE:
-// pub run build_runner build web -o build -r
-
 @JS()
 library background;
 
@@ -404,6 +401,7 @@ external void onMessageExternalAddListener(Function callback);
 external void sendMessage(
     String id, Object message, Object options, Function callback);
 
+// Note: Not checking the lastError when one occurs throws a runtime exception.
 @JS('chrome.runtime.lastError')
 external ChromeError get lastError;
 
