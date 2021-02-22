@@ -62,12 +62,10 @@ void main() {
         addDebuggerListener(
             allowInterop((Debuggee source, String method, Object params) async {
           if (_allowedEvents.contains(method)) {
-            sendMessageToExtensions(Request()
-              ..name = 'chrome.debugger.event'
-              ..tabId = source.tabId
-              ..options = (DebugEvent()
-                ..method = method
-                ..params = params));
+            sendMessageToExtensions(Request(
+                name: 'chrome.debugger.event',
+                tabId: source.tabId,
+                options: DebugEvent(method: method, params: params)));
           }
           if (source.tabId != currentTab.id) {
             return;
@@ -241,10 +239,10 @@ Future<void> _startSseClient(
       }));
     } else if (message is ExtensionEvent) {
       if (message.method == 'dwds.encodedUri') {
-        sendMessageToExtensions(Request()
-          ..name = 'dwds.encodedUri'
-          ..tabId = currentTab.id
-          ..options = message.params);
+        sendMessageToExtensions(Request(
+            name: 'dwds.encodedUri',
+            tabId: currentTab.id,
+            options: message.params));
         _tabIdToEncodedUri[currentTab.id] = message.params;
       }
     }
@@ -445,18 +443,15 @@ class Tab {
 @anonymous
 class Request {
   external int get tabId;
-  external set tabId(int tabId);
   external String get name;
-  external set name(String name);
   external dynamic get options;
-  external set options(dynamic options);
+  external factory Request({int tabId, String name, dynamic options});
 }
 
 @JS()
 @anonymous
 class DebugEvent {
-  external set method(String method);
-  external set params(dynamic params);
+  external factory DebugEvent({String method, dynamic params});
 }
 
 @JS()
