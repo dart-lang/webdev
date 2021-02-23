@@ -480,6 +480,8 @@ class DevHandler {
         );
         var appServices =
             await _createAppDebugServices(devToolsRequest.appId, debugService);
+        var encodedUri = await debugService.encodedUri;
+        extensionDebugger.sendEvent('dwds.encodedUri', encodedUri);
         unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
             .whenComplete(() async {
           appServices.chromeProxyService.destroyIsolate();

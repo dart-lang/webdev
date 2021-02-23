@@ -110,6 +110,13 @@ class ExtensionDebugger implements RemoteDebugger {
     });
   }
 
+  void sendEvent(String method, String params) {
+    sseConnection.sink
+        .add(jsonEncode(serializers.serialize(ExtensionEvent((b) => b
+          ..method = method
+          ..params = params))));
+  }
+
   /// Sends a [command] with optional [params] to Dart Debug Extension
   /// over the SSE connection.
   @override

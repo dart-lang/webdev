@@ -26,10 +26,17 @@ const _notADartAppAlert = 'No Dart application detected.'
     ' Dart debugging. This may require setting a flag. Check the documentation'
     ' for your development server.';
 
-// GENERATE:
-// pub run build_runner build web -o build -r
+// Extensions allowed for cross-extension communication.
+const _allowedExtensions = <String>{};
+
+// Events forwarded to allowed extensions.
+const _allowedEvents = {'Overlay.inspectNodeRequested'};
+
+// Map of Chrome tab ID to encoded vm service protocol URI.
+final _tabIdToEncodedUri = <int, String>{};
+
 void main() {
-  var startDebug = allowInterop((_) {
+  var startDebugging = allowInterop((_) {
     var query = QueryInfo(active: true, currentWindow: true);
     Tab currentTab;
 
@@ -93,14 +100,66 @@ void main() {
       callback(List.from(tabs));
     }));
   });
-  addListener(startDebug);
+  addListener(startDebugging);
 
   // For testing only.
   onFakeClick = allowInterop(() {
-    startDebug(null);
+    startDebugging(null);
   });
 
   isDartDebugExtension = true;
+
+  onMessageExternalAddListener(allowInterop(
+      (Request request, Sender sender, Function sendResponse) async {
+    if (_allowedExtensions.contains(sender.id)) {
+      if (request.name == 'chrome.debugger.sendCommand') {
+        try {
+          var options = request.options as SendCommandOptions;
+          sendCommand(Debuggee(tabId: request.tabId), options.method,
+              options.commandParams, allowInterop(([e]) {
+            // No arguments indicate that an error occurred.
+            if (e == null) {
+              sendResponse(ErrorResponse()..error = stringify(lastError));
+            } else {
+              sendResponse(e);
+            }
+          }));
+        } catch (e) {
+          sendResponse(ErrorResponse()..error = '$e');
+        }
+      } else if (request.name == 'dwds.encodedUri') {
+        sendResponse(_tabIdToEncodedUri[request.tabId]);
+      } else if (request.name == 'dwds.startDebugging') {
+        startDebugging(null);
+      } else {
+        sendResponse(
+            ErrorResponse()..error = 'Unknown request name: ${request.name}');
+      }
+    }
+  }));
+
+  addDebuggerListener(
+      allowInterop((Debuggee source, String method, Object params) async {
+    if (_allowedEvents.contains(method)) {
+      sendMessageToExtensions(Request(
+          name: 'chrome.debugger.event',
+          tabId: source.tabId,
+          options: DebugEvent(method: method, params: params)));
+    }
+  }));
+}
+
+void sendMessageToExtensions(Request request) {
+  for (var extensionId in _allowedExtensions) {
+    try {
+      sendMessage(extensionId, request, RequestOptions(), allowInterop(([e]) {
+        if (e == null) {
+          // Error sending message. Check lastError to silently fail.
+          lastError;
+        }
+      }));
+    } catch (_) {}
+  }
 }
 
 /// Attempts to attach to the Dart application in the provided Tab and execution
@@ -182,13 +241,23 @@ Future<void> _startSseClient(
                 ..result = stringify(e)))));
         }
       }));
+    } else if (message is ExtensionEvent) {
+      if (message.method == 'dwds.encodedUri') {
+        sendMessageToExtensions(Request(
+            name: 'dwds.encodedUri',
+            tabId: currentTab.id,
+            options: message.params));
+        _tabIdToEncodedUri[currentTab.id] = message.params;
+      }
     }
   }, onDone: () {
+    _tabIdToEncodedUri.remove(currentTab.id);
     attached = false;
     queue._attached = false;
     client.close();
     return;
   }, onError: (_) {
+    _tabIdToEncodedUri.remove(currentTab.id);
     alert('Lost app connection.');
     detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
     attached = false;
@@ -327,6 +396,14 @@ external void tabsOnCreatedAddListener(Function callback);
 @JS('chrome.tabs.onRemoved.addListener')
 external void tabsOnRemovedAddListener(Function callback);
 
+@JS('chrome.runtime.onMessageExternal.addListener')
+external void onMessageExternalAddListener(Function callback);
+
+@JS('chrome.runtime.sendMessage')
+external void sendMessage(
+    String id, Object message, Object options, Function callback);
+
+// Note: Not checking the lastError when one occurs throws a runtime exception.
 @JS('chrome.runtime.lastError')
 external ChromeError get lastError;
 
@@ -353,11 +430,10 @@ class RemoveInfo {
 @JS()
 @anonymous
 class Debuggee {
-  external dynamic get tabId;
+  external int get tabId;
   external String get extensionId;
   external String get targetId;
-  external factory Debuggee(
-      {dynamic tabId, String extensionId, String targetId});
+  external factory Debuggee({int tabId, String extensionId, String targetId});
 }
 
 @JS()
@@ -365,6 +441,44 @@ class Debuggee {
 class Tab {
   external int get id;
   external String get url;
+}
+
+@JS()
+@anonymous
+class Request {
+  external int get tabId;
+  external String get name;
+  external dynamic get options;
+  external factory Request({int tabId, String name, dynamic options});
+}
+
+@JS()
+@anonymous
+class DebugEvent {
+  external factory DebugEvent({String method, dynamic params});
+}
+
+@JS()
+@anonymous
+class RequestOptions {}
+
+@JS()
+@anonymous
+class SendCommandOptions {
+  external String get method;
+  external Object get commandParams;
+}
+
+@JS()
+@anonymous
+class Sender {
+  external String get id;
+}
+
+@JS()
+@anonymous
+class ErrorResponse {
+  external set error(String error);
 }
 
 @JS()
