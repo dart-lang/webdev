@@ -128,7 +128,7 @@ void main() {
           sendResponse(ErrorResponse()..error = '$e');
         }
       } else if (request.name == 'dwds.encodedUri') {
-        sendResponse(_tabIdToEncodedUri[request.tabId]);
+        sendResponse(_tabIdToEncodedUri[request.tabId] ?? '');
       } else if (request.name == 'dwds.startDebugging') {
         startDebugging(null);
       } else {
