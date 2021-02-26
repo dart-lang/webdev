@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'shared.dart';
@@ -23,7 +22,7 @@ class FrontendServerClient {
 
   FrontendServerClient._(
       this._entrypoint, this._feServer, this._feServerStdoutLines,
-      {bool verbose})
+      {bool? verbose})
       : _verbose = verbose ?? false,
         _state = _ClientState.waitingForFirstCompile {
     _feServer.stderr.transform(utf8.decoder).listen(stderr.write);
@@ -51,17 +50,18 @@ class FrontendServerClient {
     List<String> fileSystemRoots = const [], // For `fileSystemScheme` uris,
     String fileSystemScheme =
         'org-dartlang-root', // Custom scheme for virtual `fileSystemRoots`.
-    String frontendServerPath, // Defaults to the snapshot in the sdk.
+    String? frontendServerPath, // Defaults to the snapshot in the sdk.
     String packagesJson = '.dart_tool/package_config.json',
-    String sdkRoot, // Defaults to the current SDK root.
+    String? sdkRoot, // Defaults to the current SDK root.
     String target = 'vm', // The kernel target type.
     bool verbose = false, // Verbose logs, including server/client messages
+    bool printIncrementalDependencies = true,
   }) async {
     var feServer = await Process.start(Platform.resolvedExecutable, [
       if (debug) '--observe',
       frontendServerPath ?? _feServerPath,
       '--sdk-root',
-      sdkDir ?? sdkRoot,
+      sdkRoot ?? sdkDir,
       '--platform=$platformKernel',
       '--target=$target',
       if (target == 'dartdevc')
@@ -75,6 +75,7 @@ class FrontendServerClient {
       if (enableHttpUris) '--enable-http-uris',
       '--incremental',
       if (verbose) '--verbose',
+      if (!printIncrementalDependencies) '--no-print-incremental-dependencies',
     ]);
     var feServerStdoutLines = StreamQueue(feServer.stdout
         .transform(utf8.decoder)
@@ -98,7 +99,7 @@ class FrontendServerClient {
   /// [invalidatedUris] must not be null for all but the very first compile.
   ///
   /// The frontend server _does not_ do any of its own invalidation.
-  Future<CompileResult> compile([List<Uri> invalidatedUris]) async {
+  Future<CompileResult?> compile([List<Uri>? invalidatedUris]) async {
     String action;
     switch (_state) {
       case _ClientState.waitingForFirstCompile:
@@ -140,12 +141,12 @@ class FrontendServerClient {
 
       _sendCommand(command.toString());
       var state = _CompileState.started;
-      String feBoundaryKey;
+      late String feBoundaryKey;
       var newSources = <Uri>{};
       var removedSources = <Uri>{};
       var compilerOutputLines = <String>[];
-      int errorCount;
-      String outputDillPath;
+      var errorCount = 0;
+      String? outputDillPath;
       while (
           state != _CompileState.done && await _feServerStdoutLines.hasNext) {
         var line = await _nextInputLine();
@@ -185,6 +186,10 @@ class FrontendServerClient {
         }
       }
 
+      if (outputDillPath == null) {
+        return null;
+      }
+
       return CompileResult._(
           dillOutput: outputDillPath,
           errorCount: errorCount,
@@ -198,24 +203,24 @@ class FrontendServerClient {
 
   /// TODO: Document
   Future<CompileResult> compileExpression({
-    @required String expression,
-    @required List<String> definitions,
-    @required bool isStatic,
-    @required String klass,
-    @required String libraryUri,
-    @required List<String> typeDefinitions,
+    required String expression,
+    required List<String> definitions,
+    required bool isStatic,
+    required String klass,
+    required String libraryUri,
+    required List<String> typeDefinitions,
   }) =>
       throw UnimplementedError();
 
   /// TODO: Document
   Future<CompileResult> compileExpressionToJs({
-    @required String expression,
-    @required int column,
-    @required Map<String, String> jsFrameValues,
-    @required Map<String, String> jsModules,
-    @required String libraryUri,
-    @required int line,
-    @required String moduleName,
+    required String expression,
+    required int column,
+    required Map<String, String> jsFrameValues,
+    required Map<String, String> jsModules,
+    required String libraryUri,
+    required int line,
+    required String moduleName,
   }) =>
       throw UnimplementedError();
 
@@ -244,7 +249,7 @@ class FrontendServerClient {
     }
     _state = _ClientState.rejecting;
     _sendCommand('reject');
-    String boundaryKey;
+    late String boundaryKey;
     var rejectState = _RejectState.started;
     while (rejectState != _RejectState.done &&
         await _feServerStdoutLines.hasNext) {
@@ -321,11 +326,11 @@ class FrontendServerClient {
 /// The result of a compile call.
 class CompileResult {
   const CompileResult._(
-      {@required this.dillOutput,
-      @required this.compilerOutputLines,
-      @required this.errorCount,
-      @required this.newSources,
-      @required this.removedSources});
+      {required this.dillOutput,
+      required this.compilerOutputLines,
+      required this.errorCount,
+      required this.newSources,
+      required this.removedSources});
 
   /// The produced dill output file, this will either be a full dill file or an
   /// incremental dill file.
