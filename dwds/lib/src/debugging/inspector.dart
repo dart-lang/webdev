@@ -315,6 +315,10 @@ function($argsString) {
     return _evaluateInLibrary(library, evalExpression, arguments);
   }
 
+  Future<Library> getLibrary(String isolateId, String objectId) async {
+    return await _getLibrary(isolateId, objectId);
+  }
+
   Future<Library> _getLibrary(String isolateId, String objectId) async {
     if (isolateId != isolate.id) return null;
     var libraryRef = await libraryHelper.libraryRefFor(objectId);

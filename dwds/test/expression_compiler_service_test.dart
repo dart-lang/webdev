@@ -62,7 +62,7 @@ void main() async {
       service =
           ExpressionCompilerService('localhost', port, assetHandler, false);
 
-      await service.initialize();
+      await service.initialize(moduleFormat: 'amd');
 
       // setup asset server
       server = await HttpMultiServer.bind('localhost', port);

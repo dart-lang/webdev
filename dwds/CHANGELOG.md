@@ -22,9 +22,13 @@
   a debug session.
 - Support disabling the launching of Dart DevTools through `Alt + d` with `enableDevtoolsLaunch`.
 - Opt all dart files out of null safety for min SDK constraint update.
+- Support `VMService.evaluate` using expression compiler.
 
 **Breaking changes:**
 - `LoadStrategy`s now require a `moduleInfoForEntrypoint`.
+- Change `ExpressionCompiler.initialize` method to include module format.
+- Add `LoadStrategy.moduleFormat` to be used for communicating current
+  module format to the expression compiler.
 
 ## 8.0.3
 

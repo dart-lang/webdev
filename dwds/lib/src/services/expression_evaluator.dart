@@ -48,6 +48,78 @@ class ExpressionEvaluator {
         <String, String>{'type': '$severity', 'value': message});
   }
 
+  Future<RemoteObject> evaluateExpression(
+      String isolateId, String libraryUri, String expression) async {
+    if (_compiler == null) {
+      return _createError(ErrorKind.internal,
+          'ExpressionEvaluator needs an ExpressionCompiler');
+    }
+
+    if (expression == null || expression.isEmpty) {
+      return _createError(ErrorKind.invalidInput, expression);
+    }
+
+    var module = await _modules.moduleForlibrary(libraryUri);
+
+    _logger.finest('Evaluating "$expression" at $module');
+
+    var compilationResult = await _compiler.compileExpressionToJs(
+        isolateId, libraryUri.toString(), 0, 0, {}, {}, module, expression);
+
+    // send js expression to chrome to evaluate
+
+    var isError = compilationResult.isError;
+    var jsExpression = compilationResult.result;
+
+    if (isError) {
+      // Frontend currently gives a text message including library name
+      // and function name on compilation error. Strip this information
+      // since it is shows syntetic names only used for debugger during
+      // expression evaluation.
+      //
+      // TODO(annagrin): modify frontend to avoid stripping dummy names
+      // [issue 40449](https://github.com/dart-lang/sdk/issues/40449)
+      var error = jsExpression;
+
+      if (error.startsWith('[')) {
+        error = error.substring(1);
+      }
+      if (error.endsWith(']')) {
+        error = error.substring(0, error.lastIndexOf(']'));
+      }
+
+      if (error.contains('InternalError: ')) {
+        error = error.replaceAll('InternalError: ', '');
+        return _createError(ErrorKind.internal, error);
+      }
+
+      error = error.replaceAll(
+          RegExp('org-dartlang-debug:synthetic_debug_expression:.*:.*Error: '),
+          '');
+      return _createError(ErrorKind.compilation, error);
+    }
+
+    var result = await (await _debugger).evaluate(jsExpression);
+
+    if (result.type == 'string') {
+      var error = '${result.value}';
+      if (error.startsWith('ReferenceError: ')) {
+        error = error.replaceFirst('ReferenceError: ', '');
+        return _createError(ErrorKind.reference, error);
+      }
+      if (error.startsWith('TypeError: ')) {
+        error = error.replaceFirst('TypeError: ', '');
+        return _createError(ErrorKind.type, error);
+      }
+    }
+
+    // Return evaluation result or error
+
+    _logger.finest('Evaluated "$expression" to "$result"');
+
+    return result;
+  }
+
   /// Evaluate dart expression inside a given JavaScript frame (function)
   ///
   /// Gets necessary context (types, scope, module names) data from chrome,
@@ -58,7 +130,7 @@ class ExpressionEvaluator {
   /// [isolateId] current isolate ID
   /// [frameIndex] JavaScript frame to evaluate the expression in
   /// [expression] dart expression to evaluate
-  Future<RemoteObject> evaluateExpression(
+  Future<RemoteObject> evaluateExpressionInFrame(
       String isolateId, int frameIndex, String expression) async {
     if (_compiler == null) {
       return _createError(ErrorKind.internal,
