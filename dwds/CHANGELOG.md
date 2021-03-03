@@ -9,6 +9,7 @@
 - Filter out DDC temporary variables from the variable inspection view.
 - Add `DwdsEvent`s around stepping and evaluation.
 - Send an event to the Dart Debug Extension that contains VM service protocol URI. 
+- Depend on `package:vm_service` version `6.1.0+1`.
 
 **Breaking changes:**
 - `LoadStrategy`s now require a `moduleInfoForEntrypoint`.
