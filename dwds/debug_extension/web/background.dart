@@ -27,7 +27,9 @@ const _notADartAppAlert = 'No Dart application detected.'
     ' for your development server.';
 
 // Extensions allowed for cross-extension communication.
-const _allowedExtensions = <String>{};
+const _allowedExtensions = {
+  'nbkbficgbembimioedhceniahniffgpl', // AngularDart DevTools
+};
 
 // Events forwarded to allowed extensions.
 const _allowedEvents = {'Overlay.inspectNodeRequested'};
