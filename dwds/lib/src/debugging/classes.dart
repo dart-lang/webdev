@@ -46,7 +46,8 @@ class ClassHelper extends Domain {
           fields: [],
           functions: [],
           subclasses: [],
-          id: classRef.id);
+          id: classRef.id,
+          traceAllocations: false);
     }
   }
 
@@ -170,6 +171,7 @@ class ClassHelper extends Domain {
         fields: fieldRefs,
         functions: methodRefs,
         subclasses: [],
-        id: classRef.id);
+        id: classRef.id,
+        traceAllocations: false);
   }
 }
