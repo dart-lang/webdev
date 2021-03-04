@@ -63,16 +63,16 @@ class TestContext {
   String _packagesFilePath;
   String _entryContents;
 
-  // Whether to frontend server in sound mode.
-  //
-  // Note: flutter's frontend server is always launched with
-  // the null safety setting inferred from project configurations
-  // or the source code. We skip this inference and just set it
-  // here to the desired value manually.
-  //
-  // Note: build_runner-based setups ignore this setting and read
-  // this value from the ddc debug metadata and pass it to the
-  // expression compiler worker initialiation API.
+  /// Null safety mode for the frontend server.
+  ///
+  /// Note: flutter's frontend server is always launched with
+  /// the null safety setting inferred from project configurations
+  /// or the source code. We skip this inference and just set it
+  /// here to the desired value manually.
+  ///
+  /// Note: build_runner-based setups ignore this setting and read
+  /// this value from the ddc debug metadata and pass it to the
+  /// expression compiler worker initialiation API.
   bool soundNullSafety;
   final _logger = logging.Logger('TestContext');
 
