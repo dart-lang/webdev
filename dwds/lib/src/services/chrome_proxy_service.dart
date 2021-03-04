@@ -903,6 +903,16 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<PortList> getPorts(String isolateId) => throw UnimplementedError();
+
+  @override
+  Future<CpuSamples> getAllocationTraces(String isolateId,
+          {int timeOriginMicros, int timeExtentMicros, String classId}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Success> setTraceClassAllocation(
+          String isolateId, String classId, bool enable) =>
+      throw UnimplementedError();
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
