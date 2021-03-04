@@ -8,6 +8,7 @@ import 'dart:math' show Random;
 import 'package:path/path.dart' as p;
 
 final sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
+final sdkUri = p.toUri(sdkDir).toString();
 
 /// Returns a unique ID in the format:
 ///

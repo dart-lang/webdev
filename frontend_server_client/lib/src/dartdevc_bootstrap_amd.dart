@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 /// The JavaScript bootstrap script to support in-browser hot restart.
 ///
 /// The [requireUrl] loads our cached RequireJS script file. The [mapperUrl]
@@ -13,9 +11,9 @@ import 'package:meta/meta.dart';
 /// mode, and is responsible for bootstrapping the RequireJS modules and
 /// attaching the hot reload hooks.
 String generateAmdBootstrapScript({
-  @required String requireUrl,
-  @required String mapperUrl,
-  @required String entrypoint,
+  required String requireUrl,
+  required String mapperUrl,
+  required String entrypoint,
 }) {
   return '''
 "use strict";
@@ -49,7 +47,7 @@ document.head.appendChild(requireEl);
 /// the file `foo/bar/baz.dart` will generate a property named approximately
 /// `foo__bar__baz`. Rather than attempt to guess, we assume the first property of
 /// this object is the module.
-String generateAmdMainModule({@required String entrypoint}) {
+String generateAmdMainModule({required String entrypoint}) {
   return '''/* ENTRYPOINT_EXTENTION_MARKER */
 // Create the main module loaded below.
 require(["$entrypoint.lib.js", "dart_sdk"], function(app, dart_sdk) {

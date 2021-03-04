@@ -11,14 +11,15 @@ import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
 import 'package:frontend_server_client/frontend_server_client.dart';
 
 void main() async {
-  FrontendServerClient client;
-  PackageConfig packageConfig;
-  String packageRoot;
+  late FrontendServerClient client;
+  late PackageConfig packageConfig;
+  late String packageRoot;
 
   setUp(() async {
     await d.dir('a', [
@@ -26,9 +27,13 @@ void main() async {
 name: a
 dependencies:
   path: ^1.0.0
+
+environment:
+  sdk: '>=2.12.0-0 <3.0.0'
       '''),
       d.dir('bin', [
         d.file('main.dart', '''
+// @dart = 2.8
 import 'package:path/path.dart' as p;
 
 void main() async {
@@ -46,8 +51,9 @@ String get message => p.join('hello', 'world');
       ]),
     ]).create();
     packageRoot = p.join(d.sandbox, 'a');
-    await Process.run(pubExecutable, ['get'], workingDirectory: packageRoot);
-    packageConfig = await findPackageConfig(Directory(packageRoot));
+    await Process.run(Platform.resolvedExecutable, ['pub', 'get'],
+        workingDirectory: packageRoot);
+    packageConfig = (await findPackageConfig(Directory(packageRoot)))!;
   });
 
   tearDown(() async {
@@ -59,6 +65,9 @@ String get message => p.join('hello', 'world');
     client = await FrontendServerClient.start(
         entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
     var result = await client.compile();
+    if (result == null) {
+      fail('Expected compilation to be non-null');
+    }
     client.accept();
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
@@ -84,8 +93,7 @@ String get message => p.join('hello', 'world');
     var observatoryUri =
         '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
     var vmService = await vmServiceConnectUri(observatoryUri);
-    var vm = await vmService.getVM();
-    await vmService.resume(vm.isolates.first.id);
+    var isolate = await waitForIsolatesAndResume(vmService);
 
     expect(await stdoutLines.next, p.join('hello', 'world'));
 
@@ -95,6 +103,10 @@ String get message => p.join('hello', 'world');
     await appFile.writeAsString(newContent);
 
     result = await client.compile([File(entrypoint).uri]);
+    if (result == null) {
+      fail('Expected compilation to be non-null');
+    }
+
     client.accept();
     expect(result.newSources, isEmpty);
     expect(result.removedSources, isEmpty);
@@ -102,8 +114,7 @@ String get message => p.join('hello', 'world');
     expect(result.errorCount, 0);
     expect(result.dillOutput, endsWith('.incremental.dill'));
 
-    await vmService.reloadSources(vm.isolates.first.id,
-        rootLibUri: result.dillOutput);
+    await vmService.reloadSources(isolate.id!, rootLibUri: result.dillOutput);
 
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
     expect(await process.exitCode, 0);
@@ -120,6 +131,10 @@ String get message => p.join('hello', 'world');
     client = await FrontendServerClient.start(
         entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
     var result = await client.compile();
+    if (result == null) {
+      fail('Expected compilation to be non-null');
+    }
+
     client.accept();
     expect(result.errorCount, 2);
     expect(result.compilerOutputLines,
@@ -147,8 +162,8 @@ String get message => p.join('hello', 'world');
     var observatoryUri =
         '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
     var vmService = await vmServiceConnectUri(observatoryUri);
-    var vm = await vmService.getVM();
-    await vmService.resume(vm.isolates.first.id);
+    var isolate = await waitForIsolatesAndResume(vmService);
+
     // The program actually runs regardless of the errors, as they dont affect
     // the runtime behavior.
     expect(await stdoutLines.next, p.join('hello', 'world'));
@@ -156,6 +171,9 @@ String get message => p.join('hello', 'world');
     await entrypointFile
         .writeAsString(originalContent.replaceFirst('hello', 'goodbye'));
     result = await client.compile([entrypointFile.uri]);
+    if (result == null) {
+      fail('Expected compilation to be non-null');
+    }
     client.accept();
     expect(result.errorCount, 0);
     expect(result.compilerOutputLines, isEmpty);
@@ -163,25 +181,29 @@ String get message => p.join('hello', 'world');
     expect(result.removedSources, isEmpty);
     expect(File(result.dillOutput).existsSync(), true);
 
-    await vmService.reloadSources(vm.isolates.first.id,
-        rootLibUri: result.dillOutput);
+    await vmService.reloadSources(isolate.id!, rootLibUri: result.dillOutput);
 
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
     expect(await process.exitCode, 0);
   });
 
   test('can compile and recompile a dartdevc app', () async {
-    var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
+    var entrypoint =
+        p.toUri(p.join(packageRoot, 'bin', 'main.dart')).toString();
     var dartDevcClient = client = await DartDevcFrontendServerClient.start(
         entrypoint, p.join(packageRoot, 'out.dill'));
     var result = await client.compile();
+    if (result == null) {
+      fail('Expected compilation to be non-null');
+    }
     client.accept();
+
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
     expect(
         result.newSources,
         containsAll([
-          File(entrypoint).uri,
+          Uri.parse(entrypoint),
           packageConfig.resolve(Uri.parse('package:path/path.dart')),
         ]));
     expect(result.removedSources, isEmpty);
@@ -190,15 +212,20 @@ String get message => p.join('hello', 'world');
     expect(File(result.jsSourcesOutput).existsSync(), true);
     expect(File(result.jsSourceMapsOutput).existsSync(), true);
 
-    expect(utf8.decode(dartDevcClient.assetBytes('$entrypoint.lib.js')),
+    var entrypointUri = Uri.parse(entrypoint);
+    expect(
+        utf8.decode(dartDevcClient.assetBytes('${entrypointUri.path}.lib.js')!),
         contains('hello'));
 
-    var appFile = File(entrypoint);
+    var appFile = File(entrypointUri.toFilePath());
     var originalContent = await appFile.readAsString();
     var newContent = originalContent.replaceFirst('hello', 'goodbye');
     await appFile.writeAsString(newContent);
 
-    result = await client.compile([File(entrypoint).uri]);
+    result = await client.compile([entrypointUri]);
+    if (result == null) {
+      fail('Expected compilation to be non-null');
+    }
     client.accept();
     expect(result.newSources, isEmpty);
     expect(result.removedSources, isEmpty);
@@ -206,13 +233,31 @@ String get message => p.join('hello', 'world');
     expect(result.errorCount, 0);
     expect(result.jsManifestOutput, endsWith('.incremental.dill.json'));
 
-    expect(utf8.decode(dartDevcClient.assetBytes('$entrypoint.lib.js')),
+    expect(
+        utf8.decode(dartDevcClient.assetBytes('${entrypointUri.path}.lib.js')!),
         contains('goodbye'));
   });
 }
 
-final vmPlatformDill =
-    p.join(sdkDir, 'lib', '_internal', 'vm_platform_strong.dill');
+Future<Isolate> waitForIsolatesAndResume(VmService vmService) async {
+  var vm = await vmService.getVM();
+  var isolates = vm.isolates;
+  while (isolates == null || isolates.isEmpty) {
+    await Future.delayed(const Duration(milliseconds: 100));
+    vm = await vmService.getVM();
+    isolates = vm.isolates;
+  }
+  var isolateRef = isolates.first;
+  var isolate = await vmService.getIsolate(isolateRef.id!);
+  while (isolate.pauseEvent?.kind != EventKind.kPauseStart) {
+    await Future.delayed(const Duration(milliseconds: 100));
+    isolate = await vmService.getIsolate(isolateRef.id!);
+  }
+  await vmService.resume(isolate.id!);
+  return isolate;
+}
+
+final vmPlatformDill = p
+    .toUri(p.join(sdkDir, 'lib', '_internal', 'vm_platform_strong.dill'))
+    .toString();
 final sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
-final pubExecutable = p.join(p.dirname(Platform.resolvedExecutable),
-    'pub${Platform.isWindows ? '.bat' : ''}');
