@@ -249,6 +249,29 @@ class _RecompileRequest extends _CompilationRequest {
       compiler._recompile(this);
 }
 
+class _CompileExpressionRequest extends _CompilationRequest {
+  _CompileExpressionRequest(
+    Completer<CompilerOutput> completer,
+    this.expression,
+    this.definitions,
+    this.typeDefinitions,
+    this.libraryUri,
+    this.klass,
+    this.isStatic,
+  ) : super(completer);
+
+  String expression;
+  List<String> definitions;
+  List<String> typeDefinitions;
+  String libraryUri;
+  String klass;
+  bool isStatic;
+
+  @override
+  Future<CompilerOutput> _run(DefaultResidentCompiler compiler) async =>
+      compiler._compileExpression(this);
+}
+
 class _CompileExpressionToJsRequest extends _CompilationRequest {
   _CompileExpressionToJsRequest(
       Completer<CompilerOutput> completer,
@@ -294,7 +317,6 @@ abstract class ResidentCompiler {
     List<String> fileSystemRoots,
     String fileSystemScheme,
     String platformDill,
-    bool soundNullSafety,
     bool verbose,
     CompilerMessageConsumer compilerMessageConsumer,
   }) = DefaultResidentCompiler;
@@ -318,25 +340,15 @@ abstract class ResidentCompiler {
     String packagesFilePath,
   });
 
-  /// Compiles [expression] in [libraryUri] at[line]:[column] to JavaScript
-  /// in [moduleName].
-  ///
-  /// Values listed in [jsFrameValues] are substituted for their names in the
-  /// [expression].
-  ///
-  /// Ensures that all [jsModules] are loaded and accessible inside the
-  /// expression.
-  ///
-  /// Returns [ExpressionCompilationResult]
-  /// Errors are reported using onDiagnostic function
-  /// [moduleName] is of the form '/packages/hello_world_main.dart'
-  /// [jsFrameValues] is a map from js variable name to its primitive value
-  /// or another variable name, for example
-  /// { 'x': '1', 'y': 'y', 'o': 'null' }
-  /// [jsModules] is a map from variable name to the module name, where
-  /// variable name is the name originally used in JavaScript to contain the
-  /// module object, for example:
-  /// { 'dart':'dart_sdk', 'main': '/packages/hello_world_main.dart' }
+  Future<CompilerOutput> compileExpression(
+    String expression,
+    List<String> definitions,
+    List<String> typeDefinitions,
+    String libraryUri,
+    String klass,
+    bool isStatic,
+  );
+
   Future<CompilerOutput> compileExpressionToJs(
       String libraryUri,
       int line,
@@ -376,7 +388,6 @@ class DefaultResidentCompiler implements ResidentCompiler {
     this.fileSystemRoots,
     this.fileSystemScheme,
     this.platformDill,
-    this.soundNullSafety,
     this.verbose,
     CompilerMessageConsumer compilerMessageConsumer = printError,
   })  : assert(sdkRoot != null),
@@ -388,7 +399,6 @@ class DefaultResidentCompiler implements ResidentCompiler {
   final List<String> fileSystemRoots;
   final String fileSystemScheme;
   final String platformDill;
-  final bool soundNullSafety;
   final bool verbose;
 
   void _printTrace(String message) {
@@ -514,7 +524,6 @@ class DefaultResidentCompiler implements ResidentCompiler {
       ],
       '--debugger-module-names',
       '--experimental-emit-debug-metadata',
-      soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
       if (verbose) '--verbose'
     ];
 
@@ -546,6 +555,49 @@ class DefaultResidentCompiler implements ResidentCompiler {
 
     _server.stdin.writeln('compile $scriptUri');
     _printTrace('<- compile $scriptUri');
+
+    return _stdoutHandler.compilerOutput.future;
+  }
+
+  @override
+  Future<CompilerOutput> compileExpression(
+    String expression,
+    List<String> definitions,
+    List<String> typeDefinitions,
+    String libraryUri,
+    String klass,
+    bool isStatic,
+  ) {
+    if (!_controller.hasListener) {
+      _controller.stream.listen(_handleCompilationRequest);
+    }
+
+    var completer = Completer<CompilerOutput>();
+    _controller.add(_CompileExpressionRequest(completer, expression,
+        definitions, typeDefinitions, libraryUri, klass, isStatic));
+    return completer.future;
+  }
+
+  Future<CompilerOutput> _compileExpression(
+      _CompileExpressionRequest request) async {
+    _stdoutHandler.reset(suppressCompilerMessages: true, expectSources: false);
+
+    // 'compile-expression' should be invoked after compiler has been started,
+    // program was compiled.
+    if (_server == null) {
+      return null;
+    }
+
+    var inputKey = Uuid().generateV4();
+    _server.stdin.writeln('compile-expression $inputKey');
+    _server.stdin.writeln(request.expression);
+    request.definitions?.forEach(_server.stdin.writeln);
+    _server.stdin.writeln(inputKey);
+    request.typeDefinitions?.forEach(_server.stdin.writeln);
+    _server.stdin.writeln(inputKey);
+    _server.stdin.writeln(request.libraryUri ?? '');
+    _server.stdin.writeln(request.klass ?? '');
+    _server.stdin.writeln(request.isStatic ?? false);
 
     return _stdoutHandler.compilerOutput.future;
   }
@@ -735,5 +787,5 @@ class TestExpressionCompiler implements ExpressionCompiler {
       true;
 
   @override
-  Future<void> initialize({String moduleFormat, bool soundNullSafety}) async {}
+  Future<void> initialize({bool soundNullSafety}) async {}
 }
