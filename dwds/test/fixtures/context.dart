@@ -89,8 +89,7 @@ class TestContext {
       {String directory,
       String entry,
       this.path = 'hello_world/index.html',
-      this.pathToServe = 'example',
-      this.soundNullSafety}) {
+      this.pathToServe = 'example'}) {
     var relativeDirectory = p.join('..', 'fixtures', '_test');
 
     var relativeEntry = p.join(
@@ -132,7 +131,6 @@ class TestContext {
     compilationMode ??= CompilationMode.buildDaemon;
     enableExpressionEvaluation ??= false;
     spawnDds ??= true;
-    soundNullSafety ??= true; // used for frontend server only
     verbose ??= false;
 
     try {
@@ -230,7 +228,6 @@ class TestContext {
                 [fileSystemRoot],
                 'org-dartlang-app',
                 _outputDir.path,
-                soundNullSafety,
                 verbose);
 
             var assetServerPort = await findUnusedPort();
