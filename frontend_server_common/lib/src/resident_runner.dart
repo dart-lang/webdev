@@ -21,7 +21,7 @@ import 'utilities.dart';
 final Uri platformDill =
     Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.dill'));
 final Uri soundPlatformDill =
-  Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline_sound.dill'));
+    Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline_sound.dill'));
 
 class ResidentWebRunner {
   ResidentWebRunner(
@@ -36,7 +36,7 @@ class ResidentWebRunner {
       bool verbose) {
     generator = ResidentCompiler(dartSdkPath,
         packagesPath: packagesPath,
-        platformDill: soundNullSafety? '$soundPlatformDill': '$platformDill',
+        platformDill: soundNullSafety ? '$soundPlatformDill' : '$platformDill',
         fileSystemRoots: fileSystemRoots,
         fileSystemScheme: fileSystemScheme,
         soundNullSafety: soundNullSafety,

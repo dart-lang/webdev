@@ -85,8 +85,9 @@ class WebDevFS {
       ),
     );
 
-    var sdk = soundNullSafety? dartSdkSound: dartSdk;
-    var sdkSourceMap = soundNullSafety? dartSdkSourcemapSound: dartSdkSourcemap;
+    var sdk = soundNullSafety ? dartSdkSound : dartSdk;
+    var sdkSourceMap =
+        soundNullSafety ? dartSdkSourcemapSound : dartSdkSourcemap;
 
     assetServer.writeFile('/main_module.digests', '{}');
     assetServer.writeFile('/dart_sdk.js', sdk.readAsStringSync());
