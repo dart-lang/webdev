@@ -178,7 +178,7 @@ class ChromeProxyService implements VmServiceInterface {
 
     if (_compiler != null) {
       await _compiler?.initialize(
-        moduleFormat: moduleFormat, soundNullSafety: soundNullSafety);
+          moduleFormat: moduleFormat, soundNullSafety: soundNullSafety);
       var dependencies =
           await globalLoadStrategy.moduleInfoForEntrypoint(entrypoint);
       var stopwatch = Stopwatch()..start();
@@ -358,8 +358,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   Future<Response> _getEvaluationResult(
-      Future<RemoteObject> Function() evaluation,
-      String expression) async {
+      Future<RemoteObject> Function() evaluation, String expression) async {
     try {
       var result = await evaluation();
       // Handle compilation errors, internal errors,
@@ -403,21 +402,22 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     // TODO(798) - respect disableBreakpoints.
     var stopwatch = Stopwatch()..start();
     dynamic error;
-  
+
     try {
       if (_expressionEvaluator != null) {
         _validateIsolateId(isolateId);
 
         var library = await _inspector?.getLibrary(isolateId, targetId);
         return await _getEvaluationResult(
-          () => _expressionEvaluator.evaluateExpression(isolateId, library.uri, expression), 
-          expression);
+            () => _expressionEvaluator.evaluateExpression(
+                isolateId, library.uri, expression),
+            expression);
       }
 
       // fall back to javascript evaluation
-      var remote = await _inspector?.evaluate(isolateId, targetId, expression, scope: scope);
+      var remote = await _inspector?.evaluate(isolateId, targetId, expression,
+          scope: scope);
       return _inspector?.instanceHelper?.instanceRefFor(remote);
-
     } catch (e) {
       error = e;
       rethrow;
@@ -445,22 +445,22 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         _validateIsolateId(isolateId);
 
         return _getEvaluationResult(
-          () => _expressionEvaluator.evaluateExpressionInFrame(isolateId, frameIndex, expression), 
-          expression); 
+            () => _expressionEvaluator.evaluateExpressionInFrame(
+                isolateId, frameIndex, expression),
+            expression);
       }
       throw RPCError('evaluateInFrame', RPCError.kInvalidRequest,
-        'Expression evaluation is not supported for this configuration.');
-
+          'Expression evaluation is not supported for this configuration.');
     } catch (e) {
       error = e;
       rethrow;
     } finally {
-        emitEvent(DwdsEvent('EVALUATE_IN_FRAME', {
-          'expression': expression,
-          'success': error == null,
-          'exception': error,
-          'elapsedMilliseconds': stopwatch.elapsedMilliseconds,
-        }));
+      emitEvent(DwdsEvent('EVALUATE_IN_FRAME', {
+        'expression': expression,
+        'success': error == null,
+        'exception': error,
+        'elapsedMilliseconds': stopwatch.elapsedMilliseconds,
+      }));
     }
   }
 
