@@ -84,4 +84,7 @@ void printLoopVariable() {
 class MainClass {
   int _field;
   MainClass(this._field);
+
+  @override
+  String toString() => '$_field';
 }

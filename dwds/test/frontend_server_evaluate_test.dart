@@ -241,6 +241,32 @@ void main() async {
 
           tearDown(() async {});
 
+          test('uses symbol from the same library', () async {
+            var library = isolate.libraries.first;
+            var result = await setup.service
+                .evaluate(isolate.id, library.id, 'MainClass(0).toString()');
+
+            expect(
+                result,
+                const TypeMatcher<InstanceRef>().having(
+                    (instance) => instance.valueAsString,
+                    'valueAsString',
+                    '0'));
+          }, tags: ['dev-sdk']);
+
+          test('uses symbol from another library', () async {
+            var library = isolate.libraries.first;
+            var result = await setup.service
+                .evaluate(isolate.id, library.id, 'TestLibraryClass(0,1).toString()');
+
+            expect(
+                result,
+                const TypeMatcher<InstanceRef>().having(
+                    (instance) => instance.valueAsString,
+                    'valueAsString',
+                    'field: 0, _field: 1'));
+          }, tags: ['dev-sdk']);
+
           test('closure call', () async {
             var library = isolate.libraries.first;
             var result = await setup.service
