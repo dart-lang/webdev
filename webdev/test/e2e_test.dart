@@ -369,7 +369,7 @@ void main() {
               await vmService.streamListen('Debug');
 
               var result = await vmService.evaluate(isolate.id, library.id,
-                  '(document?.body?.children[0] as SpanElement)?.text');
+                  '(document?.body?.children?.first as SpanElement)?.text');
 
               expect(
                   result,
