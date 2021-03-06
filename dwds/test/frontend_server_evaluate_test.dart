@@ -61,7 +61,7 @@ void main() async {
       configureLogWriter(
           customLogWriter: (level, message,
                   {loggerName, error, stackTrace, verbose}) =>
-              print('[$level] $loggerName: $message'));
+              printOnFailure('[$level] $loggerName: $message'));
 
       await context.setUp(
           enableExpressionEvaluation: true,
