@@ -29,6 +29,7 @@
 - Change `ExpressionCompiler.initialize` method to include module format.
 - Add `LoadStrategy.moduleFormat` to be used for communicating current
   module format to the expression compiler.
+- Update min sdk constraint to `>=2.13.0-122.0.dev`. (Or bigger... Waiting for SDK to publish)
 
 ## 8.0.3
 
