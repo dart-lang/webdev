@@ -119,6 +119,10 @@ class Dwds {
     if (enableDebugExtension) {
       final handler = useSseForDebugBackend
           ? SseSocketHandler(SseHandler(Uri.parse('/\$debug'),
+              // Proxy servers may actively kill long standing connections.
+              // Allow for clients to reconnect in a short window. Making the
+              // window too long may cause issues if the user closes a debug
+              // session and initites a new one during the keepAlive window.
               keepAlive: const Duration(seconds: 2)))
           : WebSocketSocketHandler();
 
