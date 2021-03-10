@@ -119,7 +119,7 @@ class Dwds {
     if (enableDebugExtension) {
       final handler = useSseForDebugBackend
           ? SseSocketHandler(SseHandler(Uri.parse('/\$debug'),
-              keepAlive: const Duration(seconds: 30)))
+              keepAlive: const Duration(seconds: 2)))
           : WebSocketSocketHandler();
 
       extensionBackend = await ExtensionBackend.start(handler, hostname);
