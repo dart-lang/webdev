@@ -103,7 +103,7 @@ class Dwds {
     bool useSseForDebugBackend,
     bool serveDevTools,
     UrlEncoder urlEncoder,
-    bool spawnDds = true,
+    bool spawnDds,
     bool enableDevtoolsLaunch,
   }) async {
     hostname ??= 'localhost';
@@ -113,6 +113,7 @@ class Dwds {
     useSseForDebugBackend ??= true;
     serveDevTools ??= true;
     enableDevtoolsLaunch ??= true;
+    spawnDds ??= true;
     globalLoadStrategy = loadStrategy;
 
     DevTools devTools;
