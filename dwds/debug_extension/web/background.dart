@@ -133,6 +133,9 @@ void main() {
         sendResponse(_tabIdToEncodedUri[request.tabId] ?? '');
       } else if (request.name == 'dwds.startDebugging') {
         startDebugging(null);
+        // TODO(grouma) - Actually determine if debugging initiated
+        // successfully.
+        sendResponse(true);
       } else {
         sendResponse(
             ErrorResponse()..error = 'Unknown request name: ${request.name}');

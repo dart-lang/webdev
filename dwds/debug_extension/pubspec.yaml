@@ -1,6 +1,6 @@
 name: extension
 publish_to: none
-version: 1.19.0-dev
+version: 1.20.0
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
 description: >-

@@ -1,4 +1,9 @@
-## 1.19-dev
+## 1.20
+
+- Return response when `dwds.startDebugging` is called.
+
+
+## 1.19
 
 - Support cross-extension communication for use with Google specific extensions.
 
