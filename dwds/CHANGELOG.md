@@ -13,6 +13,7 @@
 - Update the `keepAlive` configs to prevent accidental reuse of a connection after stopping
   a debug session.
 - Support disabling the launching of Dart DevTools through `Alt + d` with `enableDevtoolsLaunch`.
+- Opt all dart files out of null safety for min SDK constraint update.
 
 **Breaking changes:**
 - `LoadStrategy`s now require a `moduleInfoForEntrypoint`.

@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'dart:html';
 
 /// Creates a script that will run properly when strict CSP is enforced.
