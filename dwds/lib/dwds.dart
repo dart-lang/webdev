@@ -104,6 +104,7 @@ class Dwds {
     bool serveDevTools,
     UrlEncoder urlEncoder,
     bool spawnDds = true,
+    bool enableDevtoolsLaunch,
   }) async {
     hostname ??= 'localhost';
     enableDebugging ??= true;
@@ -111,6 +112,7 @@ class Dwds {
     useSseForDebugProxy ??= true;
     useSseForDebugBackend ??= true;
     serveDevTools ??= true;
+    enableDevtoolsLaunch ??= true;
     globalLoadStrategy = loadStrategy;
 
     DevTools devTools;
@@ -146,6 +148,7 @@ class Dwds {
     var injected = DwdsInjector(
       loadStrategy,
       extensionUri: extensionUri,
+      enableDevtoolsLaunch: enableDevtoolsLaunch,
     );
 
     var devHandler = DevHandler(

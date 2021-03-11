@@ -34,11 +34,14 @@ class DwdsInjector {
   final String _extensionUri;
   final _devHandlerPaths = StreamController<String>();
   final _logger = Logger('DwdsInjector');
+  final bool _enableDevtoolsLaunch;
 
   DwdsInjector(
     this._loadStrategy, {
     String extensionUri,
-  }) : _extensionUri = extensionUri;
+    bool enableDevtoolsLaunch,
+  })  : _extensionUri = extensionUri,
+        _enableDevtoolsLaunch = enableDevtoolsLaunch;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -93,6 +96,7 @@ class DwdsInjector {
                 entrypoint,
                 _extensionUri,
                 _loadStrategy,
+                _enableDevtoolsLaunch,
               );
               body += await _loadStrategy.bootstrapFor(entrypoint);
               _logger.info('Injected debugging metadata for '
@@ -122,6 +126,7 @@ String _injectClientAndHoistMain(
   String entrypointPath,
   String extensionUri,
   LoadStrategy loadStrategy,
+  bool enableDevtoolsLaunch,
 ) {
   var bodyLines = body.split('\n');
   var extensionIndex =
@@ -140,6 +145,7 @@ String _injectClientAndHoistMain(
     entrypointPath,
     extensionUri,
     loadStrategy,
+    enableDevtoolsLaunch,
   );
   result += '''
   // Injected by dwds for debugging support.
@@ -172,6 +178,7 @@ String _injectedClientSnippet(
   String entrypointPath,
   String extensionUri,
   LoadStrategy loadStrategy,
+  bool enableDevtoolsLaunch,
 ) {
   var injectedBody = 'window.\$dartAppId = "$appId";\n'
       'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
@@ -179,6 +186,7 @@ String _injectedClientSnippet(
       'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
       'window.\$dwdsVersion = "$packageVersion";\n'
       'window.\$dwdsDevHandlerPath = "$devHandlerPath";\n'
+      'window.\$dwdsEnableDevtoolsLaunch = $enableDevtoolsLaunch;\n'
       'window.\$dartEntrypointPath = "$entrypointPath";\n'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
   if (extensionUri != null) {

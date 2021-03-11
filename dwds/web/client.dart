@@ -94,21 +94,23 @@ Future<void> main() {
       // misleading unhandled error message.
     });
 
-    window.onKeyDown.listen((Event e) {
-      if (e is KeyboardEvent &&
-          const [
-            'd',
-            'D',
-            '∂', // alt-d output on Mac
-            'Î', // shift-alt-D output on Mac
-          ].contains(e.key) &&
-          e.altKey &&
-          !e.ctrlKey &&
-          !e.metaKey) {
-        e.preventDefault();
-        launchDevToolsJs();
-      }
-    });
+    if (dwdsEnableDevtoolsLaunch) {
+      window.onKeyDown.listen((Event e) {
+        if (e is KeyboardEvent &&
+            const [
+              'd',
+              'D',
+              '∂', // alt-d output on Mac
+              'Î', // shift-alt-D output on Mac
+            ].contains(e.key) &&
+            e.altKey &&
+            !e.ctrlKey &&
+            !e.metaKey) {
+          e.preventDefault();
+          launchDevToolsJs();
+        }
+      });
+    }
 
     if (_isChromium) {
       client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
@@ -179,5 +181,8 @@ external String get reloadConfiguration;
 
 @JS(r'$dartEntrypointPath')
 external String get dartEntrypointPath;
+
+@JS(r'$dwdsEnableDevtoolsLaunch')
+external bool get dwdsEnableDevtoolsLaunch;
 
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');
