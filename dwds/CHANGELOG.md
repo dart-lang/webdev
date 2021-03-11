@@ -12,6 +12,7 @@
 - Depend on `package:vm_service` version `6.1.0+1`.
 - Update the `keepAlive` configs to prevent accidental reuse of a connection after stopping
   a debug session.
+- Support disabling the launching of Dart DevTools through `Alt + d` with `enableDevtoolsLaunch`.
 
 **Breaking changes:**
 - `LoadStrategy`s now require a `moduleInfoForEntrypoint`.

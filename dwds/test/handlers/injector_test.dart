@@ -163,6 +163,12 @@ void main() {
       expect(result.body.contains('dummy-load-client-snippet'), isTrue);
     });
 
+    test('Injects dwds enable devtools launch configuration', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(result.body.contains('dwdsEnableDevtoolsLaunch'), isTrue);
+    });
+
     test('Delegates to strategy handler', () async {
       var result =
           await http.get('http://localhost:${server.port}/someDummyPath');
