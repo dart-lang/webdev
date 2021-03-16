@@ -7,4 +7,4 @@ stages:
       dart: dev
     - group:
       - dartanalyzer: --fatal-warnings .
-      dart: beta
+      dart: [2.12.0] 
