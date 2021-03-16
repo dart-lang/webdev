@@ -13,11 +13,11 @@ import 'dart:io';
 import 'package:dwds/dwds.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:pedantic/pedantic.dart';
 import 'package:usage/uuid/uuid.dart';
 
-import 'package_map.dart';
 import 'utilities.dart';
 
 String get frontendServerExecutable =>
@@ -159,18 +159,24 @@ class StdoutHandler {
 class PackageUriMapper {
   PackageUriMapper(String scriptPath, String packagesFilePath,
       String fileSystemScheme, List<String> fileSystemRoots) {
-    var packageMap = PackageMap(fileSystem.path.absolute(packagesFilePath)).map;
+    init(scriptPath, packagesFilePath, fileSystemScheme, fileSystemRoots);
+  }
+
+  Future<void> init(String scriptPath, String packagesFilePath,
+      String fileSystemScheme, List<String> fileSystemRoots) async {
+    var packageConfig = await loadPackageConfig(
+        File(fileSystem.path.absolute(packagesFilePath)));
     var isWindowsPath =
         Platform.isWindows && !scriptPath.startsWith('org-dartlang-app');
     var scriptUri = Uri.file(scriptPath, windows: isWindowsPath).toString();
-    for (var packageName in packageMap.keys) {
-      var prefix = packageMap[packageName].toString();
+    for (var package in packageConfig.packages) {
+      var prefix = package.packageUriRoot.toString();
       // Only perform a multi-root mapping if there are multiple roots.
       if (fileSystemScheme != null &&
           fileSystemRoots != null &&
           fileSystemRoots.length > 1 &&
           prefix.contains(fileSystemScheme)) {
-        _packageName = packageName;
+        _packageName = package.name;
         _uriPrefixes = fileSystemRoots
             .map((String name) =>
                 Uri.file(name, windows: Platform.isWindows).toString())
@@ -178,7 +184,7 @@ class PackageUriMapper {
         return;
       }
       if (scriptUri.startsWith(prefix)) {
-        _packageName = packageName;
+        _packageName = package.name;
         _uriPrefixes = <String>[prefix];
         return;
       }

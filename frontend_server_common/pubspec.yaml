@@ -6,6 +6,6 @@ environment:
   sdk: ">=2.10.0 <3.0.0"
 
 dependencies:
-  file: ^5.1.0
+  file: ^6.0.0
   dwds:
     path: ../dwds
