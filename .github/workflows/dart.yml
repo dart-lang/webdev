@@ -1,4 +1,4 @@
-# Created with package:mono_repo v3.4.0
+# Created with package:mono_repo v3.4.7
 name: Dart CI
 on:
   push:
@@ -28,13 +28,13 @@ jobs:
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: stable
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: stable
+      - id: checkout
+        uses: actions/checkout@v2
       - name: mono_repo self validate
-        run: pub global activate mono_repo 3.4.0
+        run: pub global activate mono_repo 3.4.7
       - name: mono_repo self validate
         run: pub global run mono_repo generate --validate
   job_002:
@@ -51,25 +51,26 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: dev
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: dev
+      - id: checkout
+        uses: actions/checkout@v2
       - id: dwds_pub_upgrade
         name: "dwds; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
         run: pub upgrade --no-precompile
       - name: "dwds; dartfmt -n --set-exit-if-changed ."
-        if: "steps.dwds_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: dartfmt -n --set-exit-if-changed .
       - name: "dwds; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.dwds_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - name: dwds; pub run test test/build/ensure_version_test.dart
-        if: "steps.dwds_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: pub run test test/build/ensure_version_test.dart
   job_003:
@@ -86,17 +87,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:beta
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: beta
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: beta
+      - id: checkout
+        uses: actions/checkout@v2
       - id: dwds_pub_upgrade
         name: "dwds; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
         run: pub upgrade --no-precompile
       - name: "dwds; dartanalyzer --fatal-warnings ."
-        if: "steps.dwds_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: dartanalyzer --fatal-warnings .
   job_004:
@@ -113,45 +115,48 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: dev
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: dev
+      - id: checkout
+        uses: actions/checkout@v2
       - id: example_pub_upgrade
         name: "example; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: example
         run: pub upgrade --no-precompile
       - name: "example; dartfmt -n --set-exit-if-changed ."
-        if: "steps.example_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.example_pub_upgrade.conclusion == 'success'"
         working-directory: example
         run: dartfmt -n --set-exit-if-changed .
       - name: "example; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.example_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.example_pub_upgrade.conclusion == 'success'"
         working-directory: example
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: fixtures__webdevSmoke_pub_upgrade
         name: "fixtures/_webdevSmoke; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: fixtures/_webdevSmoke
         run: pub upgrade --no-precompile
       - name: "fixtures/_webdevSmoke; dartfmt -n --set-exit-if-changed ."
-        if: "steps.fixtures__webdevSmoke_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.fixtures__webdevSmoke_pub_upgrade.conclusion == 'success'"
         working-directory: fixtures/_webdevSmoke
         run: dartfmt -n --set-exit-if-changed .
       - name: "fixtures/_webdevSmoke; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.fixtures__webdevSmoke_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.fixtures__webdevSmoke_pub_upgrade.conclusion == 'success'"
         working-directory: fixtures/_webdevSmoke
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: frontend_server_common_pub_upgrade
         name: "frontend_server_common; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: frontend_server_common
         run: pub upgrade --no-precompile
       - name: "frontend_server_common; dartfmt -n --set-exit-if-changed ."
-        if: "steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_common
         run: dartfmt -n --set-exit-if-changed .
       - name: "frontend_server_common; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_common
         run: dartanalyzer --fatal-infos --fatal-warnings .
   job_005:
@@ -168,34 +173,36 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: stable
-          version: "2.12.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.12.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: example_pub_upgrade
         name: "example; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: example
         run: pub upgrade --no-precompile
       - name: "example; dartanalyzer --fatal-warnings ."
-        if: "steps.example_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.example_pub_upgrade.conclusion == 'success'"
         working-directory: example
         run: dartanalyzer --fatal-warnings .
       - id: frontend_server_common_pub_upgrade
         name: "frontend_server_common; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: frontend_server_common
         run: pub upgrade --no-precompile
       - name: "frontend_server_common; dartanalyzer --fatal-warnings ."
-        if: "steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_common
         run: dartanalyzer --fatal-warnings .
       - id: webdev_pub_upgrade
         name: "webdev; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: webdev
         run: pub upgrade --no-precompile
       - name: "webdev; dartanalyzer --fatal-warnings ."
-        if: "steps.webdev_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: dartanalyzer --fatal-warnings .
   job_006:
@@ -212,22 +219,22 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: stable
-          version: "2.12.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.12.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: frontend_server_client_pub_upgrade
         name: "frontend_server_client; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: frontend_server_client
         run: pub upgrade --no-precompile
       - name: "frontend_server_client; dartfmt -n --set-exit-if-changed ."
-        if: "steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_client
         run: dartfmt -n --set-exit-if-changed .
       - name: "frontend_server_client; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_client
         run: dartanalyzer --fatal-infos --fatal-warnings .
   job_007:
@@ -244,67 +251,29 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: dev
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: dev
+      - id: checkout
+        uses: actions/checkout@v2
       - id: webdev_pub_upgrade
         name: "webdev; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: webdev
         run: pub upgrade --no-precompile
       - name: "webdev; dartfmt -n --set-exit-if-changed ."
-        if: "steps.webdev_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: dartfmt -n --set-exit-if-changed .
       - name: "webdev; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.webdev_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - name: webdev; pub run test test/build/ensure_build_test.dart
-        if: "steps.webdev_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: pub run test test/build/ensure_build_test.dart
   job_008:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -x dev-sdk`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:command-test_1"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds
-            os:ubuntu-latest;pub-cache-hosted;dart:dev
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
-        with:
-          release-channel: dev
-      - run: dart --version
-      - uses: actions/checkout@v2
-      - id: dwds_pub_upgrade
-        name: "dwds; pub upgrade --no-precompile"
-        working-directory: dwds
-        run: pub upgrade --no-precompile
-      - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-        if: "steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-      - name: "dwds; pub run test -x dev-sdk"
-        if: "steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-        run: pub run test -x dev-sdk
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-      - job_005
-      - job_006
-      - job_007
-  job_009:
     name: "unit_test; linux; Dart beta; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -x dev-sdk`"
     runs-on: ubuntu-latest
     steps:
@@ -318,21 +287,62 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:beta
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: beta
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: beta
+      - id: checkout
+        uses: actions/checkout@v2
       - id: dwds_pub_upgrade
         name: "dwds; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
         run: pub upgrade --no-precompile
       - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-        if: "steps.dwds_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
       - name: "dwds; pub run test -x dev-sdk"
-        if: "steps.dwds_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+        run: pub run test -x dev-sdk
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
+  job_009:
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -x dev-sdk`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:command-test_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds
+            os:ubuntu-latest;pub-cache-hosted;dart:dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: dart-lang/setup-dart@v1.0
+        with:
+          sdk: dev
+      - id: checkout
+        uses: actions/checkout@v2
+      - id: dwds_pub_upgrade
+        name: "dwds; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+        run: pub upgrade --no-precompile
+      - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+      - name: "dwds; pub run test -x dev-sdk"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: pub run test -x dev-sdk
     needs:
@@ -347,17 +357,18 @@ jobs:
     name: "unit_test; windows; Dart beta; PKG: dwds; `pub run test -x dev-sdk`"
     runs-on: windows-latest
     steps:
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: beta
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: beta
+      - id: checkout
+        uses: actions/checkout@v2
       - id: dwds_pub_upgrade
         name: "dwds; pub.bat upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
         run: pub.bat upgrade --no-precompile
       - name: "dwds; pub run test -x dev-sdk"
-        if: "steps.dwds_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: pub.bat run test -x dev-sdk
     needs:
@@ -372,17 +383,18 @@ jobs:
     name: "unit_test; windows; Dart dev; PKG: dwds; `pub run test`"
     runs-on: windows-latest
     steps:
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: dev
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: dev
+      - id: checkout
+        uses: actions/checkout@v2
       - id: dwds_pub_upgrade
         name: "dwds; pub.bat upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
         run: pub.bat upgrade --no-precompile
       - name: dwds; pub run test
-        if: "steps.dwds_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: pub.bat run test
     needs:
@@ -407,22 +419,22 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: stable
-          version: "2.12.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.12.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: webdev_pub_upgrade
         name: "webdev; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: webdev
         run: pub upgrade --no-precompile
       - name: "webdev; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-        if: "steps.webdev_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
       - name: "webdev; pub run test -j 1"
-        if: "steps.webdev_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: pub run test -j 1
     needs:
@@ -447,21 +459,22 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: dev
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: dev
+      - id: checkout
+        uses: actions/checkout@v2
       - id: webdev_pub_upgrade
         name: "webdev; pub upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: webdev
         run: pub upgrade --no-precompile
       - name: "webdev; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-        if: "steps.webdev_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
       - name: "webdev; pub run test -j 1"
-        if: "steps.webdev_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: pub run test -j 1
     needs:
@@ -476,18 +489,18 @@ jobs:
     name: "unit_test; windows; Dart 2.12.0; PKG: webdev; `pub run test -j 1`"
     runs-on: windows-latest
     steps:
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: stable
-          version: "2.12.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.12.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: webdev_pub_upgrade
         name: "webdev; pub.bat upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: webdev
         run: pub.bat upgrade --no-precompile
       - name: "webdev; pub run test -j 1"
-        if: "steps.webdev_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: pub.bat run test -j 1
     needs:
@@ -502,17 +515,18 @@ jobs:
     name: "unit_test; windows; Dart dev; PKG: webdev; `pub run test -j 1`"
     runs-on: windows-latest
     steps:
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          release-channel: dev
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: dev
+      - id: checkout
+        uses: actions/checkout@v2
       - id: webdev_pub_upgrade
         name: "webdev; pub.bat upgrade --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: webdev
         run: pub.bat upgrade --no-precompile
       - name: "webdev; pub run test -j 1"
-        if: "steps.webdev_pub_upgrade.conclusion == 'success'"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: pub.bat run test -j 1
     needs:
@@ -535,6 +549,13 @@ jobs:
         env:
           CHAT_WEBHOOK_URL: "${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}"
     needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
       - job_008
       - job_009
       - job_010
