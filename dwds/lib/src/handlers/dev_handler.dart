@@ -64,6 +64,7 @@ class DevHandler {
       StreamController<DebugConnection>();
   final UrlEncoder _urlEncoder;
   final bool _useSseForDebugProxy;
+  final bool _useSseForInjectedClient;
   final bool _serveDevTools;
   final bool _spawnDds;
   final ExpressionCompiler _expressionCompiler;
@@ -86,6 +87,7 @@ class DevHandler {
       this._extensionBackend,
       this._urlEncoder,
       this._useSseForDebugProxy,
+      this._useSseForInjectedClient,
       this._serveDevTools,
       this._expressionCompiler,
       this._injected,
@@ -406,13 +408,14 @@ class DevHandler {
     _subs.add(_injected.devHandlerPaths.listen((devHandlerPath) async {
       var uri = Uri.parse(devHandlerPath);
       if (!_sseHandlers.containsKey(uri.path)) {
-        // TODO(dantup): WS is not currently supported for injected client.
-        var handler = SseSocketHandler(
-            // We provide an essentially indefinite keep alive duration because
-            // the underlying connection could be lost while the application
-            // is paused. The connection will get re-established after a resume
-            // or cleaned up on a full page refresh.
-            SseHandler(uri, keepAlive: const Duration(days: 3000)));
+        var handler = _useSseForInjectedClient
+            ? SseSocketHandler(
+                // We provide an essentially indefinite keep alive duration because
+                // the underlying connection could be lost while the application
+                // is paused. The connection will get re-established after a resume
+                // or cleaned up on a full page refresh.
+                SseHandler(uri, keepAlive: const Duration(days: 3000)))
+            : WebSocketSocketHandler();
         _sseHandlers[uri.path] = handler;
         var injectedConnections = handler.connections;
         while (await injectedConnections.hasNext) {

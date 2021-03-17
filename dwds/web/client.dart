@@ -17,9 +17,11 @@ import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
+import 'package:dwds/sockets.dart';
 import 'package:js/js.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'promise.dart';
 import 'reloader/legacy_restarter.dart';
@@ -36,7 +38,11 @@ Future<void> main() {
     // Test apps may already have this set.
     dartAppInstanceId ??= const Uuid().v1();
 
-    var client = SseClient(_fixProtocol(dwdsDevHandlerPath));
+    var fixedPath = _fixProtocol(dwdsDevHandlerPath);
+    var fixedUri = Uri.parse(fixedPath);
+    var client = fixedUri.isScheme('ws') || fixedUri.isScheme('wss')
+        ? WebSocketClient(WebSocketChannel.connect(fixedUri))
+        : SseSocketClient(SseClient(fixedPath));
 
     Restarter restarter;
     if (dartModuleStrategy == 'require-js') {
@@ -150,6 +156,10 @@ String _fixProtocol(String url) {
       // server is also listening on https.
       uri.host != 'localhost') {
     uri = uri.replace(scheme: 'https');
+  } else if (window.location.protocol == 'wss:' &&
+      uri.scheme == 'ws' &&
+      uri.host != 'localhost') {
+    uri = uri.replace(scheme: 'wss');
   }
   return uri.toString();
 }

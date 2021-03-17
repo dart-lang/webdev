@@ -16,6 +16,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
+import 'package:dwds/sockets.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
 import 'package:pedantic/pedantic.dart';
@@ -537,38 +538,3 @@ external set onFakeClick(void Function() f);
 
 @JS('window.isDartDebugExtension')
 external set isDartDebugExtension(_);
-
-abstract class SocketClient {
-  StreamSink<dynamic> get sink;
-  Stream<String> get stream;
-  void close();
-}
-
-class SseSocketClient extends SocketClient {
-  final SseClient _client;
-  SseSocketClient(this._client);
-
-  @override
-  StreamSink<dynamic> get sink => _client.sink;
-
-  @override
-  Stream<String> get stream => _client.stream;
-
-  @override
-  void close() => _client.close();
-}
-
-class WebSocketClient extends SocketClient {
-  final WebSocketChannel _channel;
-
-  WebSocketClient(this._channel);
-
-  @override
-  StreamSink<dynamic> get sink => _channel.sink;
-  @override
-  Stream<String> get stream =>
-      _channel.stream.map((dynamic o) => o?.toString());
-
-  @override
-  void close() => _channel.sink.close();
-}

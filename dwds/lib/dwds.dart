@@ -103,6 +103,7 @@ class Dwds {
     String hostname,
     bool useSseForDebugProxy,
     bool useSseForDebugBackend,
+    bool useSseForInjectedClient,
     bool serveDevTools,
     UrlEncoder urlEncoder,
     bool spawnDds,
@@ -113,6 +114,7 @@ class Dwds {
     enableDebugExtension ??= false;
     useSseForDebugProxy ??= true;
     useSseForDebugBackend ??= true;
+    useSseForInjectedClient ??= true;
     serveDevTools ??= true;
     enableDevtoolsLaunch ??= true;
     spawnDds ??= true;
@@ -150,6 +152,7 @@ class Dwds {
 
     var injected = DwdsInjector(
       loadStrategy,
+      useSseForInjectedClient: useSseForInjectedClient,
       extensionUri: extensionUri,
       enableDevtoolsLaunch: enableDevtoolsLaunch,
     );
@@ -164,6 +167,7 @@ class Dwds {
       extensionBackend,
       urlEncoder,
       useSseForDebugProxy,
+      useSseForInjectedClient,
       serveDevTools,
       expressionCompiler,
       injected,
