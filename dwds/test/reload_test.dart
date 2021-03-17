@@ -62,6 +62,30 @@ void main() {
         expect(source.contains('Gary is awesome!'), isTrue);
       });
     });
+
+    group('and without debugging using WebSockets', () {
+      setUp(() async {
+        await context.setUp(
+          reloadConfiguration: ReloadConfiguration.liveReload,
+          enableDebugging: false,
+          useSse: false,
+        );
+      });
+
+      tearDown(() async {
+        await context.tearDown();
+      });
+
+      test('can live reload changes ', () async {
+        await context.changeInput();
+
+        var source = await context.webDriver.pageSource;
+
+        // A full reload should clear the state.
+        expect(source.contains('Hello World!'), isFalse);
+        expect(source.contains('Gary is awesome!'), isTrue);
+      });
+    });
   });
 
   group('Injected client', () {
