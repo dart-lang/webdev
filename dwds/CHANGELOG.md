@@ -1,4 +1,4 @@
-## 9.0.0-dev
+## 9.0.0
 
 - Fix an issue where relative worker paths provided to the `ExpressionCompilerService`
   would cause a crash. 

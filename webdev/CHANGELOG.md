@@ -1,4 +1,4 @@
-## 2.7.2 - Unreleased
+## 2.7.2
 
 - Depend on the latest `package:dwds`.
 - Support new `null-safety` flag. See README.

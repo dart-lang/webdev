@@ -15,8 +15,7 @@ import 'package:dwds/dwds.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
-import 'package:package_config/discovery.dart'; // ignore: deprecated_member_use
-import 'package:package_config/packages.dart'; // ignore: deprecated_member_use
+import 'package:package_config/package_config.dart'; // ignore: deprecated_member_use
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -53,7 +52,7 @@ class TestAssetServer implements AssetReader {
   ) async {
     var address = (await InternetAddress.lookup(hostname)).first;
     var httpServer = await HttpServer.bind(address, port);
-    var packages = await loadPackagesFile(Uri.base.resolve('.packages'),
+    var packages = await loadPackageConfigUri(Uri.base.resolve('.packages'),
         loader: (Uri uri) => fileSystem.file(uri).readAsBytes());
     var server =
         TestAssetServer(root, httpServer, packages, address, fileSystem);
@@ -68,7 +67,7 @@ class TestAssetServer implements AssetReader {
   final Map<String, Uint8List> _metadata = <String, Uint8List>{};
   String _mergedMetadata;
   // ignore: deprecated_member_use
-  final Packages _packages;
+  final PackageConfig _packages;
   final InternetAddress internetAddress;
 
   Uint8List getFile(String path) => _files[path];
