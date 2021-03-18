@@ -220,7 +220,7 @@ Future<void> _startSseClient(
     var authUrl = uri.replace(path: authenticationPath).toString();
     try {
       await HttpRequest.request(authUrl, method: 'GET', withCredentials: true);
-    } catch (e) {
+    } catch (_) {
       if (window.confirm(
           'Authentication required.\n\nClick OK to authenticate then try again.')) {
         // TODO(grouma) - see if we can get a callback on a successful auth
