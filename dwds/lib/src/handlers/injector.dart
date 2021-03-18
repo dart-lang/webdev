@@ -37,13 +37,16 @@ class DwdsInjector {
   final _devHandlerPaths = StreamController<String>();
   final _logger = Logger('DwdsInjector');
   final bool _enableDevtoolsLaunch;
+  final bool _useSseForInjectedClient;
 
   DwdsInjector(
     this._loadStrategy, {
     String extensionUri,
     bool enableDevtoolsLaunch,
+    bool useSseForInjectedClient,
   })  : _extensionUri = extensionUri,
-        _enableDevtoolsLaunch = enableDevtoolsLaunch;
+        _enableDevtoolsLaunch = enableDevtoolsLaunch,
+        _useSseForInjectedClient = useSseForInjectedClient ?? true;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -79,7 +82,12 @@ class DwdsInjector {
               var requestedUri = request.requestedUri;
               var appId = base64
                   .encode(md5.convert(utf8.encode('$requestedUri')).bytes);
-              var requestedUriBase = '${request.requestedUri.scheme}'
+              var scheme = '${request.requestedUri.scheme}';
+              if (!_useSseForInjectedClient) {
+                // Switch http->ws and https->wss.
+                scheme = scheme.replaceFirst('http', 'ws');
+              }
+              var requestedUriBase = '$scheme'
                   '://${request.requestedUri.authority}';
               var devHandlerPath = '\$dwdsSseHandler';
               var subPath = request.url.pathSegments.toList()..removeLast();
