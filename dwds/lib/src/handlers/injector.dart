@@ -43,10 +43,10 @@ class DwdsInjector {
     this._loadStrategy, {
     String extensionUri,
     bool enableDevtoolsLaunch,
-    bool useSseForInjectedClient = true,
+    bool useSseForInjectedClient,
   })  : _extensionUri = extensionUri,
         _enableDevtoolsLaunch = enableDevtoolsLaunch,
-        _useSseForInjectedClient = useSseForInjectedClient;
+        _useSseForInjectedClient = useSseForInjectedClient ?? true;
 
   /// Returns the embedded dev handler paths.
   ///
