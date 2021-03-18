@@ -1,6 +1,10 @@
 ## 9.1.0
 
 - Support authentication endpoint for the Dart Debug Extension.
+- Support using WebSockets for the injected client by passing
+  `useSseForInjectedClient: false` to `Dwds.start()`. Unlike SSE,
+  WebSockets do not currently support keepAlives here (beyond the
+  standard WebSocket pings to keep the socket alive).
 
 ## 9.0.0
 

@@ -83,7 +83,8 @@ void main() {
     test('embeds the devHandlerPath', () async {
       var result = await http.get(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
-      expect(result.body.contains('window.\$dwdsDevHandlerPath'), isTrue);
+      expect(result.body.contains('window.\$dwdsDevHandlerPath = "http://'),
+          isTrue);
     });
 
     test('emits a devHandlerPath for each entrypoint', () async {
@@ -175,6 +176,52 @@ void main() {
       var result =
           await http.get('http://localhost:${server.port}/someDummyPath');
       expect(result.body, equals('some dummy response'));
+    });
+  });
+
+  group('InjectedHandlerWithoutExtension using WebSockets', () {
+    DwdsInjector injector;
+    setUp(() async {
+      injector = DwdsInjector(loadStrategy, useSseForInjectedClient: false);
+      var pipeline = const Pipeline().addMiddleware(injector.middleware);
+      server = await shelf_io.serve(pipeline.addHandler((request) {
+        if (request.url.path.endsWith(bootstrapJsExtension)) {
+          return Response.ok(
+              '$entrypointExtensionMarker\n'
+              '$mainExtensionMarker\n'
+              'app.main.main()',
+              headers: {HttpHeaders.etagHeader: entryEtag});
+        } else if (request.url.path.endsWith('foo.js')) {
+          return Response.ok('some js',
+              headers: {HttpHeaders.etagHeader: nonEntryEtag});
+        } else {
+          return Response.notFound('Not found');
+        }
+      }), 'localhost', 0);
+    });
+
+    tearDown(() async {
+      await server.close();
+    });
+
+    test('embeds the devHandlerPath', () async {
+      var result = await http.get(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      expect(
+          result.body.contains('window.\$dwdsDevHandlerPath = "ws://'), isTrue);
+    });
+
+    test('emits a devHandlerPath for each entrypoint', () async {
+      await http.get(
+          'http://localhost:${server.port}/foo/entrypoint$bootstrapJsExtension');
+      await http.get(
+          'http://localhost:${server.port}/blah/entrypoint$bootstrapJsExtension');
+      expect(
+          injector.devHandlerPaths,
+          emitsInOrder([
+            'ws://localhost:${server.port}/foo/\$dwdsSseHandler',
+            'ws://localhost:${server.port}/blah/\$dwdsSseHandler'
+          ]));
     });
   });
 

@@ -104,6 +104,7 @@ class TestServer {
       enableDebugging: enableDebugging,
       useSseForDebugProxy: useSse,
       useSseForDebugBackend: useSse,
+      useSseForInjectedClient: useSse,
       hostname: hostname,
       urlEncoder: urlEncoder,
       expressionCompiler: expressionCompiler,
