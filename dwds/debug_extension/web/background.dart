@@ -218,7 +218,10 @@ Future<void> _startSseClient(
   String dwdsVersion,
 ) async {
   if (Version.parse(dwdsVersion ?? '0.0.0') >= Version.parse('9.1.0')) {
-    var authUrl = uri.replace(path: authenticationPath).toString();
+    var authUri = uri.replace(path: authenticationPath);
+    if (authUri.scheme == 'ws') authUri = authUri.replace(scheme: 'http');
+    if (authUri.scheme == 'wss') authUri = authUri.replace(scheme: 'https');
+    var authUrl = authUri.toString();
     try {
       await HttpRequest.request(authUrl, method: 'GET', withCredentials: true);
     } catch (_) {
