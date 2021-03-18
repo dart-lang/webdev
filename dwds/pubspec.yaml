@@ -40,7 +40,7 @@ dependencies:
   webkit_inspection_protocol: ^0.7.4
 
 dev_dependencies:
-  args: ^1.0.0
+  args: ^2.0.0
   build: ^1.1.5
   build_daemon: ^2.0.0
   build_runner: ^1.6.2
