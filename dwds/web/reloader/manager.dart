@@ -10,7 +10,7 @@ import 'dart:html';
 
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/serializers.dart';
-import 'package:dwds/sockets.dart';
+import 'package:dwds/src/sockets.dart';
 
 import 'restarter.dart';
 

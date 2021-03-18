@@ -17,7 +17,7 @@ import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
-import 'package:dwds/sockets.dart';
+import 'package:dwds/src/sockets.dart';
 import 'package:js/js.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';

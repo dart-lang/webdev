@@ -16,7 +16,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
-import 'package:dwds/sockets.dart';
+import 'package:dwds/src/sockets.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
 import 'package:pedantic/pedantic.dart';
