@@ -445,10 +445,15 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       if (_expressionEvaluator != null) {
         _validateIsolateId(isolateId);
 
-        return await _getEvaluationResult(
+        var result = await _getEvaluationResult(
             () => _expressionEvaluator.evaluateExpressionInFrame(
                 isolateId, frameIndex, expression),
             expression);
+
+        if (result is ErrorRef) {
+          error = result;
+        }
+        return result;
       }
       throw RPCError('evaluateInFrame', RPCError.kInvalidRequest,
           'Expression evaluation is not supported for this configuration.');

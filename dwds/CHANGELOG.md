@@ -2,6 +2,8 @@
 
 - Support `VMService.evaluate` using expression compiler.
 - Update min sdk constraint to `>=2.13.0-144.0.dev`.
+- Throw `RPCError` on evaluation if the program is not paused.
+- Record `ErrorRef` returned by evaluation in analytics.
 
 **Breaking changes:**
 - Change `ExpressionCompiler.initialize` method to include module format.

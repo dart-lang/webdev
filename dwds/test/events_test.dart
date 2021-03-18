@@ -127,7 +127,8 @@ void main() {
           context.testServer.dwds.events,
           emits(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE_IN_FRAME' &&
-              event.payload['success'] == true)));
+              event.payload['success'] == false &&
+              event.payload['exception'] is ErrorRef)));
       try {
         await service.evaluateInFrame(
           isolateId,
