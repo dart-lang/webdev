@@ -132,16 +132,16 @@ jobs:
         working-directory: frontend_server_common
         run: dartanalyzer --fatal-infos --fatal-warnings .
   job_004:
-    name: "analyzer_and_format; linux; Dart 2.12.0; PKGS: example, frontend_server_common; `dartanalyzer --fatal-warnings .`"
+    name: "analyzer_and_format; linux; Dart 2.12.0; PKG: example; `dartanalyzer --fatal-warnings .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:example-frontend_server_common;commands:dartanalyzer_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:example;commands:dartanalyzer_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:example-frontend_server_common
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:example
             os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -158,15 +158,6 @@ jobs:
       - name: "example; dartanalyzer --fatal-warnings ."
         if: "always() && steps.example_pub_upgrade.conclusion == 'success'"
         working-directory: example
-        run: dartanalyzer --fatal-warnings .
-      - id: frontend_server_common_pub_upgrade
-        name: "frontend_server_common; pub upgrade --no-precompile"
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: frontend_server_common
-        run: pub upgrade --no-precompile
-      - name: "frontend_server_common; dartanalyzer --fatal-warnings ."
-        if: "always() && steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
-        working-directory: frontend_server_common
         run: dartanalyzer --fatal-warnings .
   job_005:
     name: "analyzer_and_format; linux; Dart 2.12.0; PKG: frontend_server_client; `dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`"
