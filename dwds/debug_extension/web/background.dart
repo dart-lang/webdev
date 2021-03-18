@@ -9,6 +9,7 @@ library background;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:html';
 import 'dart:js';
 
 import 'package:async/async.dart';
@@ -216,6 +217,30 @@ Future<void> _startSseClient(
   Tab currentTab,
   String dwdsVersion,
 ) async {
+  if (Version.parse(dwdsVersion ?? '0.0.0') >= Version.parse('9.1.0')) {
+    var authUri = uri.replace(path: authenticationPath);
+    if (authUri.scheme == 'ws') authUri = authUri.replace(scheme: 'http');
+    if (authUri.scheme == 'wss') authUri = authUri.replace(scheme: 'https');
+    var authUrl = authUri.toString();
+    try {
+      var response = await HttpRequest.request(authUrl,
+          method: 'GET', withCredentials: true);
+      if (!response.responseText
+          .contains('Dart Debug Authentication Success!')) {
+        throw Exception('Not authenticated.');
+      }
+    } catch (_) {
+      if (window.confirm(
+          'Authentication required.\n\nClick OK to authenticate then try again.')) {
+        // TODO(grouma) - see if we can get a callback on a successful auth
+        // and automatically reinitiate the dev workflow.
+        window.open(authUrl, 'Dart DevTools Authentication');
+        detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
+      }
+      return;
+    }
+  }
+
   // Specifies whether the debugger is attached.
   //
   // A debugger is detached if it is closed by user or the target is closed.

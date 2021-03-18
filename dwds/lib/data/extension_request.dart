@@ -10,6 +10,8 @@ import 'package:built_value/serializer.dart';
 
 part 'extension_request.g.dart';
 
+const authenticationPath = '\$dwdsExtensionAuthentication';
+
 /// A request to run a command in the Dart Debug Extension.
 abstract class ExtensionRequest
     implements Built<ExtensionRequest, ExtensionRequestBuilder> {

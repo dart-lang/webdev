@@ -1,3 +1,7 @@
+## 1.21
+
+- Detect authentication issues and prompt accordingly.
+
 ## 1.20
 
 - Return response when `dwds.startDebugging` is called.
