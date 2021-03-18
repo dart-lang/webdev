@@ -4,7 +4,6 @@
 
 // @dart = 2.9
 
-@Tags(['frontend-server'])
 @TestOn('vm')
 import 'dart:async';
 

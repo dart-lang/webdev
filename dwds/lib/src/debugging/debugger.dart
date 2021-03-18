@@ -583,6 +583,29 @@ class Debugger extends Domain {
     _streamNotify('Debug', event);
   }
 
+  /// Evaluate [expression] by calling Chrome's Runtime.evaluate
+  Future<RemoteObject> evaluate(String expression) async {
+    try {
+      return await _remoteDebugger.evaluate(expression);
+    } on ExceptionDetails catch (e) {
+      throw ChromeDebugException(
+        e.json,
+        evalContents: expression,
+        additionalDetails: {
+          'Dart expression': expression,
+        },
+      );
+    }
+  }
+
+  WipCallFrame jsFrameForIndex(int frameIndex) {
+    if (stackComputer == null) {
+      throw RPCError('evaluateInFrame', 106,
+          'Cannot evaluate on a call frame when the program is not paused');
+    }
+    return stackComputer.jsFrameForIndex(frameIndex);
+  }
+
   /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on
   /// the call frame with index [frameIndex] in the currently saved stack.
   ///
@@ -590,12 +613,8 @@ class Debugger extends Domain {
   /// [StateError].
   Future<RemoteObject> evaluateJsOnCallFrameIndex(
       int frameIndex, String expression) {
-    if (stackComputer == null) {
-      throw RPCError('evaluateInFrame', 106,
-          'Cannot evaluate on a call frame when the program is not paused');
-    }
     return evaluateJsOnCallFrame(
-        stackComputer.jsFrameForIndex(frameIndex).callFrameId, expression);
+        jsFrameForIndex(frameIndex).callFrameId, expression);
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on

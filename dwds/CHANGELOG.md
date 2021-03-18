@@ -1,3 +1,15 @@
+## 10.0.0-dev
+
+- Support `VMService.evaluate` using expression compiler.
+- Update min sdk constraint to `>=2.13.0-144.0.dev`.
+- Throw `RPCError` on evaluation if the program is not paused.
+- Record `ErrorRef` returned by evaluation in analytics.
+
+**Breaking changes:**
+- Change `ExpressionCompiler.initialize` method to include module format.
+- Add `LoadStrategy.moduleFormat` to be used for communicating current
+  module format to the expression compiler.
+
 ## 9.1.0
 
 - Support authentication endpoint for the Dart Debug Extension.
