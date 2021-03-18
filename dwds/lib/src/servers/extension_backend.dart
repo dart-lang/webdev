@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:async/async.dart';
 import 'package:http_multi_server/http_multi_server.dart';
+import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 
 import '../handlers/socket_connections.dart';
@@ -33,9 +34,13 @@ class ExtensionBackend {
 
   // Starts the backend on an open port.
   static Future<ExtensionBackend> start(
-      SocketHandler _socketHandler, String hostname) async {
+      SocketHandler _socketHandler, String hostname,
+      {Handler redirectHandler}) async {
     var server = await HttpMultiServer.bind(hostname, 0);
-    serveRequests(server, _socketHandler.handler);
+    var handler = const Pipeline()
+        .addMiddleware(createMiddleware(requestHandler: redirectHandler))
+        .addHandler(_socketHandler.handler);
+    serveRequests(server, handler);
     return ExtensionBackend._(
         _socketHandler, server.address.host, server.port, server);
   }

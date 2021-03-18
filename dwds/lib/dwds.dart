@@ -18,6 +18,7 @@ import 'src/connections/debug_connection.dart';
 import 'src/events.dart';
 import 'src/handlers/dev_handler.dart';
 import 'src/handlers/injector.dart';
+import 'src/handlers/redirector.dart';
 import 'src/handlers/socket_connections.dart';
 import 'src/loaders/strategy.dart';
 import 'src/readers/asset_reader.dart';
@@ -131,7 +132,8 @@ class Dwds {
               keepAlive: const Duration(seconds: 5)))
           : WebSocketSocketHandler();
 
-      extensionBackend = await ExtensionBackend.start(handler, hostname);
+      extensionBackend = await ExtensionBackend.start(handler, hostname,
+          redirectHandler: redirectHandler);
       extensionUri = Uri(
               scheme: useSseForDebugBackend ? 'http' : 'ws',
               host: extensionBackend.hostname,
