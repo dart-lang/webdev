@@ -63,13 +63,28 @@ void main() {
       bootstrap = isolate.libraries.first;
     });
 
-    test('emits EVALUATE events with expression', () async {
+    test('emits EVALUATE events on evaluation success', () async {
       var expression = "helloString('world')";
       expect(
           context.testServer.dwds.events,
           emits(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE' &&
               event.payload['expression'] == expression)));
+      await service.evaluate(
+        isolate.id,
+        bootstrap.id,
+        expression,
+      );
+    });
+
+    test('emits EVALUATE events on evaluation failure', () async {
+      var expression = 'some-bad-expression';
+      expect(
+          context.testServer.dwds.events,
+          emits(predicate((DwdsEvent event) =>
+              event.type == 'EVALUATE' &&
+              event.payload['expression'] == expression &&
+              event.payload['exception'] is ErrorRef)));
       await service.evaluate(
         isolate.id,
         bootstrap.id,

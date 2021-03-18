@@ -410,10 +410,14 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         _validateIsolateId(isolateId);
 
         var library = await _inspector?.getLibrary(isolateId, targetId);
-        return await _getEvaluationResult(
+        var result = await _getEvaluationResult(
             () => _expressionEvaluator.evaluateExpression(
                 isolateId, library.uri, expression),
             expression);
+        if (result is ErrorRef) {
+          error = result;
+        }
+        return result;
       }
       // fall back to javascript evaluation
       var remote = await _inspector?.evaluate(isolateId, targetId, expression,
