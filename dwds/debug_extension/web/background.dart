@@ -223,7 +223,10 @@ Future<void> _startSseClient(
     if (authUri.scheme == 'wss') authUri = authUri.replace(scheme: 'https');
     var authUrl = authUri.toString();
     try {
-      await HttpRequest.request(authUrl, method: 'GET', withCredentials: true);
+      var response = await HttpRequest.request(authUrl,
+          method: 'GET', withCredentials: true);
+      // We should not be redirected.
+      if (response.status != 200) throw Exception('Not authenticated.');
     } catch (_) {
       if (window.confirm(
           'Authentication required.\n\nClick OK to authenticate then try again.')) {
