@@ -15,7 +15,7 @@ import '../../data/extension_request.dart';
 import '../handlers/socket_connections.dart';
 import 'extension_debugger.dart';
 
-const authenticationResponse = 'Success!\n\n'
+const authenticationResponse = 'Dart Debug Authentication Success!\n\n'
     'You can close this tab and launch the Dart Debug Extension again.';
 
 /// A backend for the Dart Debug Extension.

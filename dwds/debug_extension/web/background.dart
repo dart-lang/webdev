@@ -225,8 +225,10 @@ Future<void> _startSseClient(
     try {
       var response = await HttpRequest.request(authUrl,
           method: 'GET', withCredentials: true);
-      // We should not be redirected.
-      if (response.status != 200) throw Exception('Not authenticated.');
+      if (!response.responseText
+          .contains('Dart Debug Authentication Success!')) {
+        throw Exception('Not authenticated.');
+      }
     } catch (_) {
       if (window.confirm(
           'Authentication required.\n\nClick OK to authenticate then try again.')) {
