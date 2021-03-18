@@ -1,3 +1,7 @@
+## 9.1.0
+
+- Support authentication endpoint for the Dart Debug Extension.
+
 ## 9.0.0
 
 - Fix an issue where relative worker paths provided to the `ExpressionCompilerService`
