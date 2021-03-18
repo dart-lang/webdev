@@ -18,18 +18,18 @@ dependencies:
   # devtools_server indirectly depends on devtools so keep this around.
   devtools: ^2.0.0
   devtools_server: ^2.0.0
-  http: ^0.12.0
+  http: '>=0.12.0 < 0.14.0'
   http_multi_server: ^2.0.0
-  logging: ^0.11.3
+  logging: '>=0.11.3 < 2.0.0'
   meta: ^1.1.7
   package_config: ^2.0.0
   path: ^1.6.0
   pedantic: ^1.5.0
   pool: ^1.4.0
   pub_semver: ^2.0.0
-  shelf: ^0.7.0
+  shelf: '>=0.7.0 < 2.0.0'
   shelf_packages_handler: '>=1.0.0 <3.0.0'
-  shelf_proxy: ^0.1.0+6
+  shelf_proxy: '>=0.1.0+6 < 2.0.0'
   shelf_static: ^0.2.8
   shelf_web_socket: ^0.2.0
   source_maps: ^0.10.0
@@ -40,7 +40,7 @@ dependencies:
   webkit_inspection_protocol: ^0.7.4
 
 dev_dependencies:
-  args: ^1.0.0
+  args: ^2.0.0
   build: ^1.1.5
   build_daemon: ^2.0.0
   build_runner: ^1.6.2
