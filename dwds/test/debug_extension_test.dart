@@ -122,5 +122,39 @@ void main() async {
             equals('::1'),
           ));
     });
+
+    Future<String> getLocationHeader(Uri uri) async {
+      final client = http.Client();
+      try {
+        final req = http.Request('HEAD', uri);
+        req.followRedirects = false;
+        final resp = await client.send(req);
+        return resp.headers['location'];
+      } finally {
+        client.close();
+      }
+    }
+
+    test(r'handles redirects at /$redir', () async {
+      var result = await http.get(
+          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension');
+      expect(result.body.contains('dartExtensionUri'), isTrue);
+      var extensionUri = Uri.parse(uriPattern.firstMatch(result.body).group(1));
+      var redirectServiceUri = extensionUri.replace(
+          path: r'/$redir', queryParameters: {'url': 'http://example.org'});
+      var locationHeader = await getLocationHeader(redirectServiceUri);
+      expect(locationHeader, equals('http://example.org'));
+    });
+
+    test(r'handles over-encoded redirects at /%24redir', () async {
+      var result = await http.get(
+          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension');
+      expect(result.body.contains('dartExtensionUri'), isTrue);
+      var extensionUri = Uri.parse(uriPattern.firstMatch(result.body).group(1));
+      var redirectServiceUri = extensionUri.replace(
+          path: r'/%24redir', queryParameters: {'url': 'http%3A//example.org'});
+      var locationHeader = await getLocationHeader(redirectServiceUri);
+      expect(locationHeader, equals('http://example.org'));
+    });
   });
 }
