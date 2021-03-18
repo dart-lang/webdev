@@ -84,7 +84,7 @@ class DwdsInjector {
                   .encode(md5.convert(utf8.encode('$requestedUri')).bytes);
               var scheme = '${request.requestedUri.scheme}';
               if (!_useSseForInjectedClient) {
-                // Switch http->ws and https->wss
+                // Switch http->ws and https->wss.
                 scheme = scheme.replaceFirst('http', 'ws');
               }
               var requestedUriBase = '$scheme'
