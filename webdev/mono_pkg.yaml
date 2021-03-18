@@ -4,7 +4,6 @@ dart:
   # minimum SDK version defined in the webdev pubspec.
   # This ensures we do not accidentally break users upon
   # release of webdev.
-  - 2.12.0
   - dev
 
 stages:
@@ -14,12 +13,9 @@ stages:
       - dartanalyzer: --fatal-infos --fatal-warnings .
       - test: test/build/ensure_build_test.dart
       dart: dev
-    - group:
-      - dartanalyzer: --fatal-warnings .
-      dart: [2.12.0] 
   - unit_test:
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - test: -j 1 -x unreleased-sdk
-    - test: -j 1 -x unreleased-sdk
+      - test: -j 1
+    - test: -j 1
       os: windows

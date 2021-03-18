@@ -1,6 +1,7 @@
 ## 10.0.0-dev
 
 - Support `VMService.evaluate` using expression compiler.
+- Update min sdk constraint to `>=2.13.0-144.0.dev`.
 
 **Breaking changes:**
 - Change `ExpressionCompiler.initialize` method to include module format.

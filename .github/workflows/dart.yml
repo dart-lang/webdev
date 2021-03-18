@@ -74,34 +74,6 @@ jobs:
         working-directory: dwds
         run: pub run test test/build/ensure_version_test.dart
   job_003:
-    name: "analyzer_and_format; linux; Dart beta; PKG: dwds; `dartanalyzer --fatal-warnings .`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:dwds;commands:dartanalyzer_1"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:dwds
-            os:ubuntu-latest;pub-cache-hosted;dart:beta
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
-        with:
-          sdk: beta
-      - id: checkout
-        uses: actions/checkout@v2
-      - id: dwds_pub_upgrade
-        name: "dwds; pub upgrade --no-precompile"
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: dwds
-        run: pub upgrade --no-precompile
-      - name: "dwds; dartanalyzer --fatal-warnings ."
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-        run: dartanalyzer --fatal-warnings .
-  job_004:
     name: "analyzer_and_format; linux; Dart dev; PKGS: example, fixtures/_webdevSmoke, frontend_server_common; `dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`"
     runs-on: ubuntu-latest
     steps:
@@ -159,17 +131,17 @@ jobs:
         if: "always() && steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_common
         run: dartanalyzer --fatal-infos --fatal-warnings .
-  job_005:
-    name: "analyzer_and_format; linux; Dart 2.12.0; PKGS: example, frontend_server_common, webdev; `dartanalyzer --fatal-warnings .`"
+  job_004:
+    name: "analyzer_and_format; linux; Dart 2.12.0; PKGS: example, frontend_server_common; `dartanalyzer --fatal-warnings .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:example-frontend_server_common-webdev;commands:dartanalyzer_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:example-frontend_server_common;commands:dartanalyzer_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:example-frontend_server_common-webdev
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:example-frontend_server_common
             os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -196,16 +168,7 @@ jobs:
         if: "always() && steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_common
         run: dartanalyzer --fatal-warnings .
-      - id: webdev_pub_upgrade
-        name: "webdev; pub upgrade --no-precompile"
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: webdev
-        run: pub upgrade --no-precompile
-      - name: "webdev; dartanalyzer --fatal-warnings ."
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-        run: dartanalyzer --fatal-warnings .
-  job_006:
+  job_005:
     name: "analyzer_and_format; linux; Dart 2.12.0; PKG: frontend_server_client; `dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`"
     runs-on: ubuntu-latest
     steps:
@@ -237,7 +200,7 @@ jobs:
         if: "always() && steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_client
         run: dartanalyzer --fatal-infos --fatal-warnings .
-  job_007:
+  job_006:
     name: "analyzer_and_format; linux; Dart dev; PKG: webdev; `dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`, `pub run test test/build/ensure_build_test.dart`"
     runs-on: ubuntu-latest
     steps:
@@ -245,7 +208,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev;commands:dartfmt-dartanalyzer_0-test_3"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev;commands:dartfmt-dartanalyzer_0-test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;dart:dev
@@ -273,55 +236,15 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: pub run test test/build/ensure_build_test.dart
-  job_008:
-    name: "unit_test; linux; Dart beta; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -x dev-sdk -x unreleased-sdk`"
+  job_007:
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:dwds;commands:command-test_1"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:dwds
-            os:ubuntu-latest;pub-cache-hosted;dart:beta
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
-        with:
-          sdk: beta
-      - id: checkout
-        uses: actions/checkout@v2
-      - id: dwds_pub_upgrade
-        name: "dwds; pub upgrade --no-precompile"
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: dwds
-        run: pub upgrade --no-precompile
-      - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-      - name: "dwds; pub run test -x dev-sdk -x unreleased-sdk"
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-        run: pub run test -x dev-sdk -x unreleased-sdk
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-      - job_005
-      - job_006
-      - job_007
-  job_009:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -x unreleased-sdk`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:command-test_2"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:command-test_1"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;dart:dev
@@ -341,10 +264,10 @@ jobs:
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-      - name: "dwds; pub run test -x unreleased-sdk"
+      - name: dwds; pub run test
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-        run: pub run test -x unreleased-sdk
+        run: pub run test
     needs:
       - job_001
       - job_002
@@ -352,35 +275,8 @@ jobs:
       - job_004
       - job_005
       - job_006
-      - job_007
-  job_010:
-    name: "unit_test; windows; Dart beta; PKG: dwds; `pub run test -x dev-sdk -x unreleased-sdk`"
-    runs-on: windows-latest
-    steps:
-      - uses: dart-lang/setup-dart@v1.0
-        with:
-          sdk: beta
-      - id: checkout
-        uses: actions/checkout@v2
-      - id: dwds_pub_upgrade
-        name: "dwds; pub.bat upgrade --no-precompile"
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: dwds
-        run: pub.bat upgrade --no-precompile
-      - name: "dwds; pub run test -x dev-sdk -x unreleased-sdk"
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-        run: pub.bat run test -x dev-sdk -x unreleased-sdk
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-      - job_005
-      - job_006
-      - job_007
-  job_011:
-    name: "unit_test; windows; Dart dev; PKG: dwds; `pub run test -x unreleased-sdk`"
+  job_008:
+    name: "unit_test; windows; Dart dev; PKG: dwds; `pub run test`"
     runs-on: windows-latest
     steps:
       - uses: dart-lang/setup-dart@v1.0
@@ -393,10 +289,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
         run: pub.bat upgrade --no-precompile
-      - name: "dwds; pub run test -x unreleased-sdk"
+      - name: dwds; pub run test
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-        run: pub.bat run test -x unreleased-sdk
+        run: pub.bat run test
     needs:
       - job_001
       - job_002
@@ -404,56 +300,15 @@ jobs:
       - job_004
       - job_005
       - job_006
-      - job_007
-  job_012:
-    name: "unit_test; linux; Dart 2.12.0; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -j 1 -x unreleased-sdk`"
+  job_009:
+    name: "unit_test; linux; Dart dev; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -j 1`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:webdev;commands:command-test_4"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:webdev
-            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
-        with:
-          sdk: "2.12.0"
-      - id: checkout
-        uses: actions/checkout@v2
-      - id: webdev_pub_upgrade
-        name: "webdev; pub upgrade --no-precompile"
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: webdev
-        run: pub upgrade --no-precompile
-      - name: "webdev; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-      - name: "webdev; pub run test -j 1 -x unreleased-sdk"
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-        run: pub run test -j 1 -x unreleased-sdk
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-      - job_005
-      - job_006
-      - job_007
-  job_013:
-    name: "unit_test; linux; Dart dev; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -j 1 -x unreleased-sdk`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev;commands:command-test_4"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev;commands:command-test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;dart:dev
@@ -473,10 +328,10 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-      - name: "webdev; pub run test -j 1 -x unreleased-sdk"
+      - name: "webdev; pub run test -j 1"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
-        run: pub run test -j 1 -x unreleased-sdk
+        run: pub run test -j 1
     needs:
       - job_001
       - job_002
@@ -484,35 +339,8 @@ jobs:
       - job_004
       - job_005
       - job_006
-      - job_007
-  job_014:
-    name: "unit_test; windows; Dart 2.12.0; PKG: webdev; `pub run test -j 1 -x unreleased-sdk`"
-    runs-on: windows-latest
-    steps:
-      - uses: dart-lang/setup-dart@v1.0
-        with:
-          sdk: "2.12.0"
-      - id: checkout
-        uses: actions/checkout@v2
-      - id: webdev_pub_upgrade
-        name: "webdev; pub.bat upgrade --no-precompile"
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: webdev
-        run: pub.bat upgrade --no-precompile
-      - name: "webdev; pub run test -j 1 -x unreleased-sdk"
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-        run: pub.bat run test -j 1 -x unreleased-sdk
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-      - job_005
-      - job_006
-      - job_007
-  job_015:
-    name: "unit_test; windows; Dart dev; PKG: webdev; `pub run test -j 1 -x unreleased-sdk`"
+  job_010:
+    name: "unit_test; windows; Dart dev; PKG: webdev; `pub run test -j 1`"
     runs-on: windows-latest
     steps:
       - uses: dart-lang/setup-dart@v1.0
@@ -525,10 +353,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: webdev
         run: pub.bat upgrade --no-precompile
-      - name: "webdev; pub run test -j 1 -x unreleased-sdk"
+      - name: "webdev; pub run test -j 1"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
-        run: pub.bat run test -j 1 -x unreleased-sdk
+        run: pub.bat run test -j 1
     needs:
       - job_001
       - job_002
@@ -536,8 +364,7 @@ jobs:
       - job_004
       - job_005
       - job_006
-      - job_007
-  job_016:
+  job_011:
     name: Notify failure
     runs-on: ubuntu-latest
     if: "(github.event_name == 'push' || github.event_name == 'schedule') && failure()"
@@ -559,8 +386,3 @@ jobs:
       - job_008
       - job_009
       - job_010
-      - job_011
-      - job_012
-      - job_013
-      - job_014
-      - job_015

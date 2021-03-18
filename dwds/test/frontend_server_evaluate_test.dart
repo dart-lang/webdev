@@ -253,7 +253,7 @@ void main() async {
             const TypeMatcher<InstanceRef>().having(
                 (instance) => instance.valueAsString, 'valueAsString', '42'));
       });
-    }, tags: ['unreleased-sdk']);
+    });
   });
 
   group('shared context with no evaluation', () {

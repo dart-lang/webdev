@@ -6,21 +6,11 @@ stages:
       - dartanalyzer: --fatal-infos --fatal-warnings .
       - test: test/build/ensure_version_test.dart
       dart: dev
-    - group:
-      - dartanalyzer: --fatal-warnings .
-      dart: beta
   - unit_test:
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - test: -x dev-sdk -x unreleased-sdk
-      dart: beta
-    - group:
-      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - test: -x unreleased-sdk
+      - test:
       dart: dev
-    - test: -x dev-sdk -x unreleased-sdk
-      os: windows
-      dart: beta
-    - test: -x unreleased-sdk
+    - test:
       os: windows
       dart: dev

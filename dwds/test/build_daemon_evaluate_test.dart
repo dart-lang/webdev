@@ -4,7 +4,6 @@
 
 // @dart = 2.9
 
-@Tags(['unreleased-sdk'])
 @TestOn('vm')
 import 'dart:async';
 
