@@ -4,7 +4,6 @@
 
 // @dart = 2.9
 
-@Tags(['frontend-server'])
 @TestOn('vm')
 import 'dart:async';
 
@@ -187,7 +186,7 @@ void main() async {
               const TypeMatcher<InstanceRef>().having(
                   (instance) => instance.valueAsString, 'valueAsString', '1'));
         });
-      }, tags: ['dev-sdk']);
+      });
 
       test('error', () async {
         await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
@@ -229,7 +228,7 @@ void main() async {
             result,
             const TypeMatcher<InstanceRef>().having(
                 (instance) => instance.valueAsString, 'valueAsString', '0'));
-      }, tags: ['dev-sdk']);
+      });
 
       test('uses symbol from another library', () async {
         var library = isolate.libraries.first;
@@ -242,7 +241,7 @@ void main() async {
                 (instance) => instance.valueAsString,
                 'valueAsString',
                 'field: 0, _field: 1'));
-      }, tags: ['dev-sdk']);
+      });
 
       test('closure call', () async {
         var library = isolate.libraries.first;
@@ -253,8 +252,8 @@ void main() async {
             result,
             const TypeMatcher<InstanceRef>().having(
                 (instance) => instance.valueAsString, 'valueAsString', '42'));
-      }, tags: ['dev-sdk']);
-    });
+      });
+    }, tags: ['unreleased-sdk']);
   });
 
   group('shared context with no evaluation', () {

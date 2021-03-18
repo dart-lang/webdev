@@ -449,6 +449,7 @@ void main() {
               await process.shouldExit();
             }
           });
+
           test('evaluate', () async {
             var openPort = await findUnusedPort();
             // running daemon command that starts dwds without keyboard input
@@ -498,5 +499,5 @@ void main() {
         });
       });
     }
-  }, tags: 'expression-compilation-service');
+  }, tags: 'unreleased-sdk');
 }

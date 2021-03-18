@@ -1,4 +1,5 @@
 retry: 3
 
 tags:
-  expression-compilation-service: #Expression compilation service test require dev version of SDK, so we may exclude for stable SDK
+  dev-sdk: # Tests that require dev SDK to pass, we may exclude them for stable SDK.
+  unreleased-sdk: # Tests that require unpublished SDK to pass, so we may exclude them for stable and dev SDK.

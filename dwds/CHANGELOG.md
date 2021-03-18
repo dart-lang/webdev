@@ -1,3 +1,12 @@
+## 10.0.0-dev
+
+- Support `VMService.evaluate` using expression compiler.
+
+**Breaking changes:**
+- Change `ExpressionCompiler.initialize` method to include module format.
+- Add `LoadStrategy.moduleFormat` to be used for communicating current
+  module format to the expression compiler.
+
 ## 9.1.0
 
 - Support authentication endpoint for the Dart Debug Extension.
@@ -22,14 +31,9 @@
   a debug session.
 - Support disabling the launching of Dart DevTools through `Alt + d` with `enableDevtoolsLaunch`.
 - Opt all dart files out of null safety for min SDK constraint update.
-- Support `VMService.evaluate` using expression compiler.
 
 **Breaking changes:**
 - `LoadStrategy`s now require a `moduleInfoForEntrypoint`.
-- Change `ExpressionCompiler.initialize` method to include module format.
-- Add `LoadStrategy.moduleFormat` to be used for communicating current
-  module format to the expression compiler.
-- Update min sdk constraint to `>=2.13.0-122.0.dev`. (Or bigger... Waiting for SDK to publish)
 
 ## 8.0.3
 

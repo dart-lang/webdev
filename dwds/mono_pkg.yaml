@@ -12,13 +12,15 @@ stages:
   - unit_test:
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - test: -x dev-sdk
-      dart: 
-        - dev
-        - beta
-    - test: -x dev-sdk
+      - test: -x dev-sdk -x unreleased-sdk
+      dart: beta
+    - group:
+      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - test: -x unreleased-sdk
+      dart: dev
+    - test: -x dev-sdk -x unreleased-sdk
       os: windows
       dart: beta
-    - test:
+    - test: -x unreleased-sdk
       os: windows
       dart: dev

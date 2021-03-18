@@ -274,7 +274,7 @@ jobs:
         working-directory: webdev
         run: pub run test test/build/ensure_build_test.dart
   job_008:
-    name: "unit_test; linux; Dart beta; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -x dev-sdk`"
+    name: "unit_test; linux; Dart beta; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -x dev-sdk -x unreleased-sdk`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -301,10 +301,10 @@ jobs:
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-      - name: "dwds; pub run test -x dev-sdk"
+      - name: "dwds; pub run test -x dev-sdk -x unreleased-sdk"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-        run: pub run test -x dev-sdk
+        run: pub run test -x dev-sdk -x unreleased-sdk
     needs:
       - job_001
       - job_002
@@ -314,14 +314,14 @@ jobs:
       - job_006
       - job_007
   job_009:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -x dev-sdk`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -x unreleased-sdk`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:command-test_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:command-test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;dart:dev
@@ -341,10 +341,10 @@ jobs:
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-      - name: "dwds; pub run test -x dev-sdk"
+      - name: "dwds; pub run test -x unreleased-sdk"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-        run: pub run test -x dev-sdk
+        run: pub run test -x unreleased-sdk
     needs:
       - job_001
       - job_002
@@ -354,7 +354,7 @@ jobs:
       - job_006
       - job_007
   job_010:
-    name: "unit_test; windows; Dart beta; PKG: dwds; `pub run test -x dev-sdk`"
+    name: "unit_test; windows; Dart beta; PKG: dwds; `pub run test -x dev-sdk -x unreleased-sdk`"
     runs-on: windows-latest
     steps:
       - uses: dart-lang/setup-dart@v1.0
@@ -367,10 +367,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
         run: pub.bat upgrade --no-precompile
-      - name: "dwds; pub run test -x dev-sdk"
+      - name: "dwds; pub run test -x dev-sdk -x unreleased-sdk"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-        run: pub.bat run test -x dev-sdk
+        run: pub.bat run test -x dev-sdk -x unreleased-sdk
     needs:
       - job_001
       - job_002
@@ -380,7 +380,7 @@ jobs:
       - job_006
       - job_007
   job_011:
-    name: "unit_test; windows; Dart dev; PKG: dwds; `pub run test`"
+    name: "unit_test; windows; Dart dev; PKG: dwds; `pub run test -x unreleased-sdk`"
     runs-on: windows-latest
     steps:
       - uses: dart-lang/setup-dart@v1.0
@@ -393,10 +393,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
         run: pub.bat upgrade --no-precompile
-      - name: dwds; pub run test
+      - name: "dwds; pub run test -x unreleased-sdk"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-        run: pub.bat run test
+        run: pub.bat run test -x unreleased-sdk
     needs:
       - job_001
       - job_002
@@ -406,7 +406,7 @@ jobs:
       - job_006
       - job_007
   job_012:
-    name: "unit_test; linux; Dart 2.12.0; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -j 1`"
+    name: "unit_test; linux; Dart 2.12.0; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -j 1 -x unreleased-sdk`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -433,10 +433,10 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-      - name: "webdev; pub run test -j 1"
+      - name: "webdev; pub run test -j 1 -x unreleased-sdk"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
-        run: pub run test -j 1
+        run: pub run test -j 1 -x unreleased-sdk
     needs:
       - job_001
       - job_002
@@ -446,7 +446,7 @@ jobs:
       - job_006
       - job_007
   job_013:
-    name: "unit_test; linux; Dart dev; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -j 1`"
+    name: "unit_test; linux; Dart dev; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `pub run test -j 1 -x unreleased-sdk`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -473,10 +473,10 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
-      - name: "webdev; pub run test -j 1"
+      - name: "webdev; pub run test -j 1 -x unreleased-sdk"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
-        run: pub run test -j 1
+        run: pub run test -j 1 -x unreleased-sdk
     needs:
       - job_001
       - job_002
@@ -486,7 +486,7 @@ jobs:
       - job_006
       - job_007
   job_014:
-    name: "unit_test; windows; Dart 2.12.0; PKG: webdev; `pub run test -j 1`"
+    name: "unit_test; windows; Dart 2.12.0; PKG: webdev; `pub run test -j 1 -x unreleased-sdk`"
     runs-on: windows-latest
     steps:
       - uses: dart-lang/setup-dart@v1.0
@@ -499,10 +499,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: webdev
         run: pub.bat upgrade --no-precompile
-      - name: "webdev; pub run test -j 1"
+      - name: "webdev; pub run test -j 1 -x unreleased-sdk"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
-        run: pub.bat run test -j 1
+        run: pub.bat run test -j 1 -x unreleased-sdk
     needs:
       - job_001
       - job_002
@@ -512,7 +512,7 @@ jobs:
       - job_006
       - job_007
   job_015:
-    name: "unit_test; windows; Dart dev; PKG: webdev; `pub run test -j 1`"
+    name: "unit_test; windows; Dart dev; PKG: webdev; `pub run test -j 1 -x unreleased-sdk`"
     runs-on: windows-latest
     steps:
       - uses: dart-lang/setup-dart@v1.0
@@ -525,10 +525,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: webdev
         run: pub.bat upgrade --no-precompile
-      - name: "webdev; pub run test -j 1"
+      - name: "webdev; pub run test -j 1 -x unreleased-sdk"
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
-        run: pub.bat run test -j 1
+        run: pub.bat run test -j 1 -x unreleased-sdk
     needs:
       - job_001
       - job_002
