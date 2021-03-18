@@ -39,6 +39,15 @@ void main() {
     await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
   });
 
+  test('emits COMPILER_UPDATE_DEPENDENCIES event', () async {
+    // The events stream is a broadcast stream so start listening before the
+    // action.
+    expect(
+        context.testServer.dwds.events,
+        emits(predicate((DwdsEvent event) =>
+            event.type == 'COMPILER_UPDATE_DEPENDENCIES')));
+  });
+
   test('events can be listened to multiple times', () async {
     context.testServer.dwds.events.listen((_) {});
     context.testServer.dwds.events.listen((_) {});
@@ -69,21 +78,94 @@ void main() {
     });
   });
 
-  test('emits EVALUATE_IN_FRAME events', () async {
-    var vm = await service.getVM();
-    var isolate = await service.getIsolate(vm.isolates.first.id);
-    expect(
-        context.testServer.dwds.events,
-        emits(predicate((DwdsEvent event) =>
-            event.type == 'EVALUATE_IN_FRAME' &&
-            event.payload['success'] == false)));
-    try {
-      await service.evaluateInFrame(
-        isolate.id,
-        0,
-        'some-bad-expression',
-      );
-    } catch (_) {}
+  group('evaluateInFrame', () {
+    String isolateId;
+    Stream<Event> stream;
+    ScriptList scripts;
+    ScriptRef mainScript;
+
+    setUpAll(() async {
+      var vm = await service.getVM();
+
+      isolateId = vm.isolates.first.id;
+      scripts = await service.getScripts(isolateId);
+      await service.streamListen('Debug');
+      stream = service.onEvent('Debug');
+      mainScript = scripts.scripts
+          .firstWhere((script) => script.uri.contains('main.dart'));
+    });
+    test('emits EVALUATE_IN_FRAME events on RPC error', () async {
+      expect(
+          context.testServer.dwds.events,
+          emits(predicate((DwdsEvent event) =>
+              event.type == 'EVALUATE_IN_FRAME' &&
+              event.payload['success'] == false &&
+              event.payload['exception'] is RPCError &&
+              (event.payload['exception'] as RPCError)
+                  .message
+                  .contains('program is not paused'))));
+      try {
+        await service.evaluateInFrame(
+          isolateId,
+          0,
+          'some-bad-expression',
+        );
+      } catch (_) {}
+    });
+
+    test('emits EVALUATE_IN_FRAME events on evaluation error', () async {
+      var line = await context.findBreakpointLine(
+          'callPrintCount', isolateId, mainScript);
+      var bp = await service.addBreakpoint(isolateId, mainScript.id, line);
+      // Wait for breakpoint to trigger.
+      await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+      // Evaluation succeeds and return ErrorRef containing compilation error,
+      // so event is marked as success.
+      expect(
+          context.testServer.dwds.events,
+          emits(predicate((DwdsEvent event) =>
+              event.type == 'EVALUATE_IN_FRAME' &&
+              event.payload['success'] == true)));
+      try {
+        await service.evaluateInFrame(
+          isolateId,
+          0,
+          'some-bad-expression',
+        );
+      } catch (_) {} finally {
+        await service.removeBreakpoint(isolateId, bp.id);
+        await service.resume(isolateId);
+      }
+    });
+
+    test('emits EVALUATE_IN_FRAME events on evaluation success', () async {
+      var line = await context.findBreakpointLine(
+          'callPrintCount', isolateId, mainScript);
+      var bp = await service.addBreakpoint(isolateId, mainScript.id, line);
+      // Wait for breakpoint to trigger.
+      await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+      // Evaluation succeeds and return InstanceRef,
+      // so event is marked as success.
+      expect(
+          context.testServer.dwds.events,
+          emits(predicate((DwdsEvent event) =>
+              event.type == 'EVALUATE_IN_FRAME' &&
+              event.payload['success'] == true)));
+      try {
+        await service.evaluateInFrame(
+          isolateId,
+          0,
+          'true',
+        );
+      } catch (_) {} finally {
+        await service.removeBreakpoint(isolateId, bp.id);
+        await service.resume(isolateId);
+      }
+    });
   });
 
   group('resume', () {

@@ -598,6 +598,14 @@ class Debugger extends Domain {
     }
   }
 
+  WipCallFrame jsFrameForIndex(int frameIndex) {
+    if (stackComputer == null) {
+      throw RPCError('evaluateInFrame', 106,
+          'Cannot evaluate on a call frame when the program is not paused');
+    }
+    return stackComputer.jsFrameForIndex(frameIndex);
+  }
+
   /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on
   /// the call frame with index [frameIndex] in the currently saved stack.
   ///
@@ -605,12 +613,8 @@ class Debugger extends Domain {
   /// [StateError].
   Future<RemoteObject> evaluateJsOnCallFrameIndex(
       int frameIndex, String expression) {
-    if (stackComputer == null) {
-      throw RPCError('evaluateInFrame', 106,
-          'Cannot evaluate on a call frame when the program is not paused');
-    }
     return evaluateJsOnCallFrame(
-        stackComputer.jsFrameForIndex(frameIndex).callFrameId, expression);
+        jsFrameForIndex(frameIndex).callFrameId, expression);
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on

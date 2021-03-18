@@ -119,7 +119,7 @@ class ExpressionEvaluator {
     }
 
     // Get JS scope and current JS location.
-    var jsFrame = (await _debugger).stackComputer.jsFrameForIndex(frameIndex);
+    var jsFrame = (await _debugger).jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
       return _createError(
           ErrorKind.internal, 'No frame with index $frameIndex');
