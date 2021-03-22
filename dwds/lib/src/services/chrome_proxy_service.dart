@@ -200,26 +200,32 @@ class ChromeProxyService implements VmServiceInterface {
       throw UnsupportedError(
           'Cannot create multiple isolates for the same app');
     }
-
+    // Waiting for the debugger to be ready before initializing the entrypoint.
+    //
+    // Note: moving `await _debugger` after the `_initalizeEntryPoint` call
+    // causes `getcwd` system calls  to fail. Since that system call is used
+    // in first `Uri.base` call in the isolate, the expression compiler service
+    // will fail to start and load dependencies.
+    var debugger = await _debugger;
     await _initializeEntrypoint(appConnection.request.entrypointPath);
 
-    (await _debugger).notifyPausedAtStart();
+    debugger.notifyPausedAtStart();
     _inspector = await AppInspector.initialize(
       appConnection,
       remoteDebugger,
       _assetReader,
       _locations,
       uri,
-      await _debugger,
+      debugger,
       executionContext,
     );
 
-    await (await _debugger)
-        .reestablishBreakpoints(_previousBreakpoints, _disabledBreakpoints);
+    await debugger.reestablishBreakpoints(
+        _previousBreakpoints, _disabledBreakpoints);
     _disabledBreakpoints.clear();
 
     unawaited(appConnection.onStart.then((_) async {
-      await (await _debugger).resumeFromStart();
+      await debugger.resumeFromStart();
     }));
 
     var isolateRef = _inspector.isolateRef;
