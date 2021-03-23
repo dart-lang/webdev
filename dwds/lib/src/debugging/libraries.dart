@@ -20,7 +20,22 @@ class LibraryHelper extends Domain {
   /// Map of libraryRef ID to [LibraryRef].
   final _libraryRefsById = <String, LibraryRef>{};
 
+  LibraryRef _rootLib;
+
   LibraryHelper(AppInspector Function() provider) : super(provider);
+
+  Future<LibraryRef> get rootLib async {
+    if (_rootLib != null) return _rootLib;
+    // TODO: read entrypoint from app metadata.
+    // Issue: https://github.com/dart-lang/webdev/issues/1290
+    var libraries = await libraryRefs;
+    _rootLib = libraries.firstWhere((lib) {
+      return lib.name.contains('org-dartlang');
+    });
+    return _rootLib ??= _rootLib = libraries.firstWhere((lib) {
+      return lib.name.contains('main');
+    });
+  }
 
   /// Returns all libraryRefs in the app.
   ///

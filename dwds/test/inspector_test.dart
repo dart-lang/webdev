@@ -105,7 +105,7 @@ void main() {
 
     setUp(() async {
       isolateId = inspector.isolate.id;
-      bootstrapLibrary = inspector.isolate.libraries.first;
+      bootstrapLibrary = inspector.isolate.rootLib;
       instance = await inspector.evaluate(
           isolateId, bootstrapLibrary.id, 'libraryPublicFinal');
     });

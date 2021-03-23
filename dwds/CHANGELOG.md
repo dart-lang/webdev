@@ -1,3 +1,8 @@
+## 10.0.2-dev
+
+- Fix missing sdk libraries in `getObject()` calls.
+- Fix incorrect `rootLib` returned by `ChromeProxyService`.
+
 ## 10.0.1
 
 - Support `webkit_inspection_protocol` version `^1.0.0`.
