@@ -203,9 +203,10 @@ class ChromeProxyService implements VmServiceInterface {
     // Waiting for the debugger to be ready before initializing the entrypoint.
     //
     // Note: moving `await _debugger` after the `_initalizeEntryPoint` call
-    // causes `getcwd` system calls  to fail. Since that system call is used
-    // in first `Uri.base` call in the isolate, the expression compiler service
-    // will fail to start and load dependencies.
+    // causes `getcwd` system calls to fail. Since that system call is used
+    // in first `Uri.base` call in the expression compiler service isolate,
+    // the expression compiler service will fail to start.
+    // Issue: https://github.com/dart-lang/webdev/issues/1282
     var debugger = await _debugger;
     await _initializeEntrypoint(appConnection.request.entrypointPath);
 
