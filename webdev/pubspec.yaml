@@ -12,25 +12,25 @@ environment:
   sdk: ">=2.13.0-144.0.dev <3.0.0"
 
 dependencies:
-  args: ^1.5.0
+  args: ^2.0.0
   async: ^2.2.0
   build_daemon: ^2.0.0
   browser_launcher: ^0.1.5
   crypto: ^3.0.0
   dds: ^1.4.1
-  dwds: ^9.0.0
-  http: ^0.12.0
+  dwds: ^10.0.0
+  http: ^0.13.0
   http_multi_server: ^2.1.0
   io: ^0.3.2+1
-  logging: ^0.11.0
+  logging: ^1.0.0
   pedantic: ^1.5.0
   meta: ^1.1.2
   path: ^1.5.1
   pool: ^1.4.0
-  pubspec_parse: ^0.1.4
+  pubspec_parse: ^1.0.0
   pub_semver: ^2.0.0
-  shelf: ^0.7.4
-  shelf_proxy: ^0.1.0+5
+  shelf: ^1.0.0
+  shelf_proxy: ^1.0.0
   shelf_static: ^0.2.8
   sse: ^3.7.0
   vm_service: '>=3.0.0 <7.0.0'
@@ -38,7 +38,7 @@ dependencies:
   yaml: ^3.0.0
 
 dev_dependencies:
-  build: ^1.0.0
+  build: ^2.0.0
   build_runner: ^1.6.2
   build_verify: ^1.0.0
   build_version: ^2.0.0
