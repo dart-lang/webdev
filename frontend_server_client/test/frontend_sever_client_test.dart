@@ -164,7 +164,7 @@ String get message => p.join('hello', 'world');
     var vmService = await vmServiceConnectUri(observatoryUri);
     var isolate = await waitForIsolatesAndResume(vmService);
 
-    // The program actually runs regardless of the errors, as they dont affect
+    // The program actually runs regardless of the errors, as they don't affect
     // the runtime behavior.
     expect(await stdoutLines.next, p.join('hello', 'world'));
 
