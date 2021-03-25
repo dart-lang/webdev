@@ -87,8 +87,8 @@ void main() async {
     });
 
     test('uses the encoded URI', () async {
-      var result = await http.get(
-          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension'));
       expect(result.body.contains('dartExtensionUri'), isTrue);
       expect(result.body.contains('http://some-encoded-url:8081/'), isTrue);
     });
@@ -107,8 +107,8 @@ void main() async {
     });
 
     test('generates an extensionUri with a valid valid hostname', () async {
-      var result = await http.get(
-          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension'));
       expect(result.body.contains('dartExtensionUri'), isTrue);
       var extensionUri = Uri.parse(uriPattern.firstMatch(result.body).group(1));
       expect(

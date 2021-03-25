@@ -604,8 +604,8 @@ void main() {
           var script =
               await service.getObject(isolate.id, scriptRef.id) as Script;
           var serverPath = DartUri(script.uri, 'hello_world/').serverPath;
-          var result =
-              await http.get('http://localhost:${context.port}/$serverPath');
+          var result = await http
+              .get(Uri.parse('http://localhost:${context.port}/$serverPath'));
           expect(script.source, result.body);
           expect(scriptRef.uri, endsWith('.dart'));
           expect(script.tokenPosTable, isNotEmpty);

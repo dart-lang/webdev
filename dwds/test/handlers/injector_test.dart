@@ -47,51 +47,54 @@ void main() {
     });
 
     test('leaves non-entrypoints untouched', () async {
-      var result = await http.get('http://localhost:${server.port}/foo.js');
+      var result =
+          await http.get(Uri.parse('http://localhost:${server.port}/foo.js'));
       expect(result.body, 'some js');
     });
 
     test('does not update etags for non-entrypoints', () async {
-      var result = await http.get('http://localhost:${server.port}/foo.js');
+      var result =
+          await http.get(Uri.parse('http://localhost:${server.port}/foo.js'));
       expect(result.headers[HttpHeaders.etagHeader], nonEntryEtag);
     });
 
     test('replaces main marker with injected client', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(result.body.contains('Injected by dwds'), isTrue);
       expect(result.body.contains(mainExtensionMarker), isFalse);
     });
 
     test('prevents main from being called', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(result.body.contains('window.\$dartRunMain'), isTrue);
     });
 
     test('updates etags for injected responses', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(result.headers[HttpHeaders.etagHeader], isNot(entryEtag));
     });
 
     test('ignores non-js requests', () async {
-      var result = await http.get('http://localhost:${server.port}/main.dart');
+      var result = await http
+          .get(Uri.parse('http://localhost:${server.port}/main.dart'));
       expect(result.body, 'Not found');
     });
 
     test('embeds the devHandlerPath', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(result.body.contains('window.\$dwdsDevHandlerPath = "http://'),
           isTrue);
     });
 
     test('emits a devHandlerPath for each entrypoint', () async {
-      await http.get(
-          'http://localhost:${server.port}/foo/entrypoint$bootstrapJsExtension');
-      await http.get(
-          'http://localhost:${server.port}/blah/entrypoint$bootstrapJsExtension');
+      await http.get(Uri.parse(
+          'http://localhost:${server.port}/foo/entrypoint$bootstrapJsExtension'));
+      await http.get(Uri.parse(
+          'http://localhost:${server.port}/blah/entrypoint$bootstrapJsExtension'));
       expect(
           injector.devHandlerPaths,
           emitsInOrder([
@@ -104,17 +107,19 @@ void main() {
         'Does not return 304 when if-none-match etag matches the original '
         'content etag', () async {
       var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+          Uri.parse(
+              'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'),
           headers: {HttpHeaders.ifNoneMatchHeader: entryEtag});
       expect(result.statusCode, HttpStatus.ok);
     });
 
     test('Does return 304 when if-none-match etag matches the modified etag',
         () async {
-      var originalResponse = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var originalResponse = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       var cachedResponse = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension',
+          Uri.parse(
+              'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'),
           headers: {
             HttpHeaders.ifNoneMatchHeader:
                 originalResponse.headers[HttpHeaders.etagHeader]
@@ -123,14 +128,14 @@ void main() {
     });
 
     test('Does not inject the extension backend port', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(result.body.contains('dartExtensionUri'), isFalse);
     });
 
     test('Has correct DWDS version', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       var expected = r'$dwdsVersion = ';
       var index = result.body.indexOf(expected);
       expect(index, greaterThan(0));
@@ -140,20 +145,20 @@ void main() {
     });
 
     test('Injects bootstrap', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(result.body.contains('dummy_bootstrap'), isTrue);
     });
 
     test('Injects load strategy id', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(result.body.contains('dummy-id'), isTrue);
     });
 
     test('Injects the entrypoint path', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(
           result.body
               .contains('dartEntrypointPath = "entrypoint.bootstrap.js"'),
@@ -161,20 +166,20 @@ void main() {
     });
 
     test('Injects client load snippet', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(result.body.contains('dummy-load-client-snippet'), isTrue);
     });
 
     test('Injects dwds enable devtools launch configuration', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(result.body.contains('dwdsEnableDevtoolsLaunch'), isTrue);
     });
 
     test('Delegates to strategy handler', () async {
-      var result =
-          await http.get('http://localhost:${server.port}/someDummyPath');
+      var result = await http
+          .get(Uri.parse('http://localhost:${server.port}/someDummyPath'));
       expect(result.body, equals('some dummy response'));
     });
   });
@@ -205,17 +210,17 @@ void main() {
     });
 
     test('embeds the devHandlerPath', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(
           result.body.contains('window.\$dwdsDevHandlerPath = "ws://'), isTrue);
     });
 
     test('emits a devHandlerPath for each entrypoint', () async {
-      await http.get(
-          'http://localhost:${server.port}/foo/entrypoint$bootstrapJsExtension');
-      await http.get(
-          'http://localhost:${server.port}/blah/entrypoint$bootstrapJsExtension');
+      await http.get(Uri.parse(
+          'http://localhost:${server.port}/foo/entrypoint$bootstrapJsExtension'));
+      await http.get(Uri.parse(
+          'http://localhost:${server.port}/blah/entrypoint$bootstrapJsExtension'));
       expect(
           injector.devHandlerPaths,
           emitsInOrder([
@@ -244,8 +249,8 @@ void main() {
     });
 
     test('Injects the extension backend port', () async {
-      var result = await http.get(
-          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
       expect(result.body.contains('dartExtensionUri'), isTrue);
     });
   });
