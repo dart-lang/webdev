@@ -22784,7 +22784,8 @@
       var t1;
       H._asStringS(module);
       t1 = J.$get$1$x(J.get$moduleParentsGraph$x(self.$requireLoader), module);
-      return t1 == null ? null : J.cast$1$0$ax(t1, type$.legacy_String);
+      t1 = t1 == null ? null : J.cast$1$0$ax(t1, type$.legacy_String);
+      return t1 == null ? H.setRuntimeTypeInfo([], type$.JSArray_legacy_String) : t1;
     },
     _moduleTopologicalCompare$2: function(module1, module2) {
       var t1, order1, order2, t2, topological;
@@ -22805,7 +22806,7 @@
     _reload$body$RequireRestarter: function(modules) {
       var $async$goto = 0,
         $async$completer = P._makeAsyncAwaitCompleter(type$.legacy_bool),
-        $async$returnValue, $async$handler = 2, $async$currentError, $async$next = [], $async$self = this, reloadedModules, previousModuleId, moduleId, parentIds, childModule, e, t2, t3, t4, t5, exception, t1, $async$exception;
+        $async$returnValue, $async$handler = 2, $async$currentError, $async$next = [], $async$self = this, reloadedModules, previousModuleId, moduleId, parentIds, childModule, e, t2, t3, t4, t5, t6, exception, t1, $async$exception;
       var $async$_reload$1 = P._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1) {
           $async$currentError = $async$result;
@@ -22835,41 +22836,42 @@
               $async$handler = 7;
               $async$self._dirtyModules.addAll$1(0, modules);
               previousModuleId = null;
-              t1 = $async$self.get$_moduleTopologicalCompare(), t2 = type$.legacy_String, t3 = type$.JSArray_legacy_Object, t4 = type$.legacy_dynamic_Function;
+              t1 = $async$self.get$_moduleTopologicalCompare(), t2 = type$.legacy_String, t3 = type$.JSArray_legacy_String, t4 = type$.JSArray_legacy_Object, t5 = type$.legacy_dynamic_Function;
             case 10:
               // for condition
-              if (!(t5 = $async$self._dirtyModules, t5._root != null)) {
+              if (!(t6 = $async$self._dirtyModules, t6._root != null)) {
                 // goto after for
                 $async$goto = 11;
                 break;
               }
-              if (t5._count === 0)
+              if (t6._count === 0)
                 H.throwExpression(H.IterableElementError_noElement());
-              moduleId = t5.get$_collection$_first().key;
+              moduleId = t6.get$_collection$_first().key;
               $async$self._dirtyModules.remove$1(0, moduleId);
-              t5 = H._asStringS(moduleId);
-              t5 = J.$get$1$x(J.get$moduleParentsGraph$x(self.$requireLoader), t5);
-              parentIds = t5 == null ? null : J.cast$1$0$ax(t5, t2);
+              t6 = H._asStringS(moduleId);
+              t6 = J.$get$1$x(J.get$moduleParentsGraph$x(self.$requireLoader), t6);
+              t6 = t6 == null ? null : J.cast$1$0$ax(t6, t2);
+              parentIds = t6 == null ? H.setRuntimeTypeInfo([], t3) : t6;
               $async$goto = parentIds == null || J.get$isEmpty$asx(parentIds) ? 12 : 14;
               break;
             case 12:
               // then
-              t5 = self.$loadModuleConfig.call$1("dart_sdk").dart;
-              childModule = t5.getModuleLibraries.apply(t5, H.setRuntimeTypeInfo([previousModuleId], t3));
-              self.$dartRunMain = P.allowInterop(new X.RequireRestarter__reload_closure(childModule), t4);
+              t6 = self.$loadModuleConfig.call$1("dart_sdk").dart;
+              childModule = t6.getModuleLibraries.apply(t6, H.setRuntimeTypeInfo([previousModuleId], t4));
+              self.$dartRunMain = P.allowInterop(new X.RequireRestarter__reload_closure(childModule), t5);
               // goto join
               $async$goto = 13;
               break;
             case 14:
               // else
-              t5 = reloadedModules;
-              if (typeof t5 !== "number") {
-                $async$returnValue = t5.$add();
+              t6 = reloadedModules;
+              if (typeof t6 !== "number") {
+                $async$returnValue = t6.$add();
                 // goto return
                 $async$goto = 1;
                 break;
               }
-              reloadedModules = t5 + 1;
+              reloadedModules = t6 + 1;
               $async$goto = 15;
               return P._asyncAwait($async$self._reloadModule$1(moduleId), $async$_reload$1);
             case 15:
