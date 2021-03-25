@@ -1,4 +1,8 @@
-## 10.0.0-dev
+## 10.0.1
+
+- Support `webkit_inspection_protocol` version `^1.0.0`.
+
+## 10.0.0
 
 - Support `VMService.evaluate` using expression compiler.
 - Update min sdk constraint to `>=2.13.0-144.0.dev`.
