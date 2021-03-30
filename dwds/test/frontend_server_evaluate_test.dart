@@ -220,7 +220,7 @@ void main() async {
       tearDown(() async {});
 
       test('uses symbol from the same library', () async {
-        var library = isolate.libraries.first;
+        var library = isolate.rootLib;
         var result = await setup.service
             .evaluate(isolate.id, library.id, 'MainClass(0).toString()');
 
@@ -231,7 +231,7 @@ void main() async {
       });
 
       test('uses symbol from another library', () async {
-        var library = isolate.libraries.first;
+        var library = isolate.rootLib;
         var result = await setup.service.evaluate(
             isolate.id, library.id, 'TestLibraryClass(0,1).toString()');
 
@@ -244,7 +244,7 @@ void main() async {
       });
 
       test('closure call', () async {
-        var library = isolate.libraries.first;
+        var library = isolate.rootLib;
         var result = await setup.service
             .evaluate(isolate.id, library.id, '(() => 42)()');
 

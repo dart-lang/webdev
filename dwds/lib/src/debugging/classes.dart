@@ -66,8 +66,14 @@ class ClassHelper extends Domain {
       throw UnsupportedError('unknown library: $libraryId');
     }
     var libraryRef = await inspector.libraryHelper.libraryRefFor(libraryId);
+    if (libraryRef == null) {
+      throw Exception('Could not find library: $libraryId');
+    }
     var classRef = classRefFor(libraryId, splitId.last);
     clazz = await _constructClass(libraryRef, classRef);
+    if (clazz == null) {
+      throw Exception('Could not contruct class: $classRef');
+    }
     return _classes[objectId] = clazz;
   }
 

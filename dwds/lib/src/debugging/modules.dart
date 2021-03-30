@@ -75,7 +75,10 @@ class Modules {
 
     var scriptToModule = await provider.scriptToModule;
     for (var script in scriptToModule.keys) {
-      var serverPath = DartUri(script, _root).serverPath;
+      var serverPath = script.startsWith('dart:')
+          ? script
+          : DartUri(script, _root).serverPath;
+
       _sourceToModule[serverPath] = scriptToModule[script];
       _sourceToLibrary[serverPath] = Uri.parse(script);
       _libraryToModule[script] = scriptToModule[script];

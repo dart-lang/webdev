@@ -27,6 +27,45 @@ class MetadataProvider {
   final Map<String, List<String>> _scripts = {};
   final _metadataMemoizer = AsyncMemoizer();
 
+  /// Implicitly imported libraries in any DDC component.
+  ///
+  /// Currently dart_sdk module does not come with the metadata.
+  /// To allow evaluation of expressions that use libraries and
+  /// types from the SDK (such as a dart Type object), add the
+  /// metadata for dart_sdk manually.
+  ///
+  /// TODO: Generate sdk module metadata to be consumed by debugger.
+  /// Issue: https://github.com/dart-lang/sdk/issues/45477
+  List<String> get sdkLibraries => const [
+        'dart:_runtime',
+        'dart:_debugger',
+        'dart:_foreign_helper',
+        'dart:_interceptors',
+        'dart:_internal',
+        'dart:_isolate_helper',
+        'dart:_js_helper',
+        'dart:_js_primitives',
+        'dart:_metadata',
+        'dart:_native_typed_data',
+        'dart:async',
+        'dart:collection',
+        'dart:convert',
+        'dart:developer',
+        'dart:io',
+        'dart:isolate',
+        'dart:js',
+        'dart:js_util',
+        'dart:math',
+        'dart:typed_data',
+        'dart:indexed_db',
+        'dart:html',
+        'dart:html_common',
+        'dart:svg',
+        'dart:web_audio',
+        'dart:web_gl',
+        'dart:web_sql'
+      ];
+
   MetadataProvider(this.entrypoint, this._assetReader)
       : _soundNullSafety = false;
 
@@ -150,6 +189,7 @@ class MetadataProvider {
             entrypoint.replaceAll('.bootstrap.js', '.ddc_merged_metadata');
         var merged = await _assetReader.metadataContents(serverPath);
         if (merged != null) {
+          _addSdkMetadata();
           for (var contents in merged.split('\n')) {
             try {
               if (contents == null ||
@@ -195,6 +235,16 @@ class MetadataProvider {
       for (var path in library.partUris) {
         _scripts[library.importUri].add(path);
       }
+    }
+  }
+
+  void _addSdkMetadata() {
+    var moduleName = 'dart_sdk';
+
+    for (var lib in sdkLibraries) {
+      _libraries.add(lib);
+      _scripts[lib] = [];
+      _scriptToModule[lib] = moduleName;
     }
   }
 }
