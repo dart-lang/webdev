@@ -29,12 +29,11 @@ class LibraryHelper extends Domain {
     // TODO: read entrypoint from app metadata.
     // Issue: https://github.com/dart-lang/webdev/issues/1290
     var libraries = await libraryRefs;
-    _rootLib = libraries.firstWhere((lib) {
-      return lib.name.contains('org-dartlang');
-    });
-    return _rootLib ??= _rootLib = libraries.firstWhere((lib) {
-      return lib.name.contains('main');
-    });
+    _rootLib = libraries.firstWhere((lib) => lib.name.contains('org-dartlang'));
+    _rootLib =
+        _rootLib ?? libraries.firstWhere((lib) => lib.name.contains('main'));
+    _rootLib = _rootLib ?? (libraries.isNotEmpty ? libraries.last : null);
+    return _rootLib;
   }
 
   /// Returns all libraryRefs in the app.
