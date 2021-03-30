@@ -60,7 +60,7 @@ void main() {
     setUpAll(() async {
       var vm = await service.getVM();
       isolate = await service.getIsolate(vm.isolates.first.id);
-      bootstrap = isolate.libraries.first;
+      bootstrap = isolate.rootLib;
     });
 
     test('emits EVALUATE events on evaluation success', () async {
