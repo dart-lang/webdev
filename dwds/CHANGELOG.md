@@ -3,6 +3,8 @@
 - Support `vm_service` version `6.2.0`.
 - Fix missing sdk libraries in `getObject()` calls.
 - Fix incorrect `rootLib` returned by `ChromeProxyService`.
+- Fix not working breakpoints in library part files.
+- Fix data race in calculating locations for a module.
 
 ## 10.0.1
 

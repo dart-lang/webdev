@@ -2,19 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part 'src/test_part.dart';
+part of '../test_library.dart';
 
-int testLibraryValue = 3;
+int testPartLibraryValue = 4;
 
-int testLibraryFunction(int formal) {
-  return formal; // Breakpoint: testLibraryFunction
+int testLibraryPartFunction(int formal) {
+  return formal; // Breakpoint: testLibraryPartFunction
 }
 
-class TestLibraryClass {
+class TestLibraryPartClass {
   final int field;
   final int _field;
-  TestLibraryClass(this.field, this._field) {
-    print('Contructor'); // Breakpoint: testLibraryClassConstructor
+  
+TestLibraryPartClass(this.field, this._field) {
+    print('Contructor'); // Breakpoint: testLibraryPartClassConstructor
   }
 
   @override

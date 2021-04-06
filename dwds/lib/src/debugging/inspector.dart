@@ -5,7 +5,6 @@
 // @dart = 2.9
 
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -87,6 +86,9 @@ class AppInspector extends Domain {
 
     isolate.libraries.addAll(libraries);
     await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
+
+    var scripts = await _getScripts();
+    await DartUri.recordAbsoluteUris(scripts.map((script) => script.uri));
 
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());
   }
@@ -470,12 +472,10 @@ function($argsString) {
     // for them.
     var userLibraries = libraryUris.where((uri) => !uri.startsWith('dart:'));
     for (var uri in userLibraries) {
-      var parent = uri.substring(0, uri.lastIndexOf('/'));
       var parts = scripts[uri];
       var scriptRefs = [
         ScriptRef(uri: uri, id: createId()),
-        for (var part in parts)
-          ScriptRef(uri: p.url.join(parent, part), id: createId())
+        for (var part in parts) ScriptRef(uri: part, id: createId())
       ];
       var libraryRef = await libraryHelper.libraryRefFor(uri);
       for (var scriptRef in scriptRefs) {
