@@ -364,7 +364,7 @@ void main() {
               vmService = await vmServiceConnectUri(wsUri);
               var vm = await vmService.getVM();
               var isolate = await vmService.getIsolate(vm.isolates.first.id);
-              var library = isolate.libraries.first;
+              var library = isolate.rootLib;
 
               await vmService.streamListen('Debug');
 
@@ -476,7 +476,7 @@ void main() {
               vmService = await vmServiceConnectUri(wsUri);
               var vm = await vmService.getVM();
               var isolate = await vmService.getIsolate(vm.isolates.first.id);
-              var library = isolate.libraries.first;
+              var library = isolate.rootLib;
 
               await vmService.streamListen('Debug');
 

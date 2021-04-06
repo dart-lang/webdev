@@ -4,6 +4,7 @@
 
 // @dart = 2.9
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -32,6 +33,8 @@ class AppInspector extends Domain {
   Future<List<ScriptRef>> _cachedScriptRefs;
 
   Future<List<ScriptRef>> get scriptRefs => _cachedScriptRefs ??= _getScripts();
+
+  final _logger = Logger('AppInspector');
 
   /// Map of scriptRef ID to [ScriptRef].
   final _scriptRefsById = <String, ScriptRef>{};
@@ -80,17 +83,10 @@ class AppInspector extends Domain {
 
   Future<void> _initialize() async {
     var libraries = await libraryHelper.libraryRefs;
+    isolate.rootLib = await libraryHelper.rootLib;
+
     isolate.libraries.addAll(libraries);
-
     await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
-
-    // This relies on the convention that the 2nd to last library is the root
-    // library (and the last one is the bootstrap library).
-    if (libraries.length >= 2) {
-      isolate.rootLib = libraries[libraries.length - 2];
-    } else {
-      isolate.rootLib = libraries.last;
-    }
 
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());
   }
@@ -328,15 +324,28 @@ function($argsString) {
 
   Future<Obj> getObject(String isolateId, String objectId,
       {int offset, int count}) async {
-    var library = await _getLibrary(isolateId, objectId);
-    if (library != null) return library;
-    var clazz = await classHelper.forObjectId(objectId);
-    if (clazz != null) return clazz;
-    var scriptRef = _scriptRefsById[objectId];
-    if (scriptRef != null) return await _getScript(isolateId, scriptRef);
-    var instance = await instanceHelper.instanceFor(remoteObjectFor(objectId),
-        offset: offset, count: count);
-    if (instance != null) return instance;
+    try {
+      var library = await _getLibrary(isolateId, objectId);
+      if (library != null) {
+        return library;
+      }
+      var clazz = await classHelper.forObjectId(objectId);
+      if (clazz != null) {
+        return clazz;
+      }
+      var scriptRef = _scriptRefsById[objectId];
+      if (scriptRef != null) {
+        return await _getScript(isolateId, scriptRef);
+      }
+      var instance = await instanceHelper.instanceFor(remoteObjectFor(objectId),
+          offset: offset, count: count);
+      if (instance != null) {
+        return instance;
+      }
+    } catch (e, s) {
+      _logger.log(Level.FINE, 'getObject failed with exception: $e:$s');
+      rethrow;
+    }
     throw UnsupportedError('Only libraries, instances, classes, and scripts '
         'are supported for getObject');
   }
