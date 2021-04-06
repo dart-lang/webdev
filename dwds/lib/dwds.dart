@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 
 import 'package:logging/logging.dart';
@@ -101,16 +103,21 @@ class Dwds {
     String hostname,
     bool useSseForDebugProxy,
     bool useSseForDebugBackend,
+    bool useSseForInjectedClient,
     bool serveDevTools,
     UrlEncoder urlEncoder,
-    bool spawnDds = true,
+    bool spawnDds,
+    bool enableDevtoolsLaunch,
   }) async {
     hostname ??= 'localhost';
     enableDebugging ??= true;
     enableDebugExtension ??= false;
     useSseForDebugProxy ??= true;
     useSseForDebugBackend ??= true;
+    useSseForInjectedClient ??= true;
     serveDevTools ??= true;
+    enableDevtoolsLaunch ??= true;
+    spawnDds ??= true;
     globalLoadStrategy = loadStrategy;
 
     DevTools devTools;
@@ -119,7 +126,11 @@ class Dwds {
     if (enableDebugExtension) {
       final handler = useSseForDebugBackend
           ? SseSocketHandler(SseHandler(Uri.parse('/\$debug'),
-              keepAlive: const Duration(seconds: 30)))
+              // Proxy servers may actively kill long standing connections.
+              // Allow for clients to reconnect in a short window. Making the
+              // window too long may cause issues if the user closes a debug
+              // session and initites a new one during the keepAlive window.
+              keepAlive: const Duration(seconds: 5)))
           : WebSocketSocketHandler();
 
       extensionBackend = await ExtensionBackend.start(handler, hostname);
@@ -141,7 +152,9 @@ class Dwds {
 
     var injected = DwdsInjector(
       loadStrategy,
+      useSseForInjectedClient: useSseForInjectedClient,
       extensionUri: extensionUri,
+      enableDevtoolsLaunch: enableDevtoolsLaunch,
     );
 
     var devHandler = DevHandler(
@@ -154,6 +167,7 @@ class Dwds {
       extensionBackend,
       urlEncoder,
       useSseForDebugProxy,
+      useSseForInjectedClient,
       serveDevTools,
       expressionCompiler,
       injected,

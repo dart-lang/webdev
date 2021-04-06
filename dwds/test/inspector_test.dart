@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 @TestOn('vm')
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
@@ -103,7 +105,7 @@ void main() {
 
     setUp(() async {
       isolateId = inspector.isolate.id;
-      bootstrapLibrary = inspector.isolate.libraries.first;
+      bootstrapLibrary = inspector.isolate.rootLib;
       instance = await inspector.evaluate(
           isolateId, bootstrapLibrary.id, 'libraryPublicFinal');
     });

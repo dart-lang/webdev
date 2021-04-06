@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // When run locally this test may require a manifest key. This makes it easy to
 // just skip it.
 @Tags(['extension'])
+@Timeout(Duration(seconds: 60))
 @OnPlatform({
   'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
 })
@@ -49,13 +52,19 @@ void main() async {
         });
 
         test('can close DevTools and relaunch', () async {
-          await (await context.webDriver.windows.toList()).last.close();
+          for (var window in await context.webDriver.windows.toList()) {
+            await context.webDriver.driver.switchTo.window(window);
+            if (await context.webDriver.title == 'Dart DevTools') {
+              await window.close();
+              break;
+            }
+          }
 
           // Relaunch DevTools by (fake) clicking the extension.
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
           });
-          await Future.delayed(const Duration(seconds: 2));
+          await Future.delayed(const Duration(seconds: 4));
           var windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
           expect(await context.webDriver.title, 'Dart DevTools');
@@ -78,8 +87,8 @@ void main() async {
     });
 
     test('uses the encoded URI', () async {
-      var result = await http.get(
-          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension'));
       expect(result.body.contains('dartExtensionUri'), isTrue);
       expect(result.body.contains('http://some-encoded-url:8081/'), isTrue);
     });
@@ -98,8 +107,8 @@ void main() async {
     });
 
     test('generates an extensionUri with a valid valid hostname', () async {
-      var result = await http.get(
-          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension');
+      var result = await http.get(Uri.parse(
+          'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension'));
       expect(result.body.contains('dartExtensionUri'), isTrue);
       var extensionUri = Uri.parse(uriPattern.firstMatch(result.body).group(1));
       expect(

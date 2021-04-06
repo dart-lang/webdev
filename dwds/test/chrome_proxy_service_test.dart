@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 @TestOn('vm')
 import 'dart:async';
 import 'dart:convert';
@@ -19,6 +21,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/logging.dart';
 
 final context = TestContext();
 
@@ -30,7 +33,11 @@ WipConnection get tabConnection => context.tabConnection;
 void main() {
   group('shared context', () {
     setUpAll(() async {
-      await context.setUp();
+      configureLogWriter(
+          customLogWriter: (level, message,
+                  {loggerName, error, stackTrace, verbose}) =>
+              printOnFailure('[$level] $loggerName: $message'));
+      await context.setUp(verbose: true);
     });
 
     tearDownAll(() async {
@@ -235,7 +242,7 @@ void main() {
       setUpAll(() async {
         var vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
-        bootstrap = isolate.libraries.first;
+        bootstrap = isolate.rootLib;
       });
 
       group('top level methods', () {
@@ -381,7 +388,7 @@ void main() {
       setUpAll(() async {
         var vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
-        bootstrap = isolate.libraries.first;
+        bootstrap = isolate.rootLib;
         rootLibrary =
             await service.getObject(isolate.id, bootstrap.id) as Library;
       });
@@ -420,6 +427,12 @@ void main() {
                   !f.isConst &&
                   !f.isFinal),
             ]));
+      });
+
+      test('Runtime classes', () async {
+        var testClass = await service.getObject(
+            isolate.id, 'classes|dart:_runtime|_Type') as Class;
+        expect(testClass.name, '_Type');
       });
 
       test('String', () async {
@@ -602,8 +615,8 @@ void main() {
           var script =
               await service.getObject(isolate.id, scriptRef.id) as Script;
           var serverPath = DartUri(script.uri, 'hello_world/').serverPath;
-          var result =
-              await http.get('http://localhost:${context.port}/$serverPath');
+          var result = await http
+              .get(Uri.parse('http://localhost:${context.port}/$serverPath'));
           expect(script.source, result.body);
           expect(scriptRef.uri, endsWith('.dart'));
           expect(script.tokenPosTable, isNotEmpty);
@@ -927,9 +940,16 @@ void main() {
       setUp(() async {
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
-        bootstrap = isolate.libraries.first;
+        bootstrap = isolate.rootLib;
         testInstance = await service.evaluate(
             isolate.id, bootstrap.id, 'myInstance') as InstanceRef;
+      });
+
+      test('rootLib', () async {
+        expect(
+            bootstrap,
+            const TypeMatcher<LibraryRef>().having((library) => library.name,
+                'name', 'org-dartlang-app:///example/hello_world/main.dart'));
       });
 
       test('toString()', () async {

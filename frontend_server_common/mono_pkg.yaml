@@ -4,7 +4,4 @@ stages:
     - group:
       - dartfmt
       - dartanalyzer: --fatal-infos --fatal-warnings .
-      dart: dev
-    - group:
-      - dartanalyzer: --fatal-warnings .
-      dart: beta
+      dart: dev 

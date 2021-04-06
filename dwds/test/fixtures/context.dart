@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -60,6 +62,18 @@ class TestContext {
   File _entryFile;
   String _packagesFilePath;
   String _entryContents;
+
+  /// Null safety mode for the frontend server.
+  ///
+  /// Note: flutter's frontend server is always launched with
+  /// the null safety setting inferred from project configurations
+  /// or the source code. We skip this inference and just set it
+  /// here to the desired value manually.
+  ///
+  /// Note: build_runner-based setups ignore this setting and read
+  /// this value from the ddc debug metadata and pass it to the
+  /// expression compiler worker initialiation API.
+  bool soundNullSafety;
   final _logger = logging.Logger('TestContext');
 
   /// Top level directory in which we run the test server..
@@ -202,6 +216,7 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
+            soundNullSafety ??= true;
             var fileSystemRoot = p.dirname(_packagesFilePath);
             var entryPath =
                 _entryFile.path.substring(fileSystemRoot.length + 1);

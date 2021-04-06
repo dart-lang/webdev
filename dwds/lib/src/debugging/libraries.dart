@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+// @dart = 2.9
+
 import 'package:vm_service/vm_service.dart';
 
 import '../loaders/strategy.dart';
@@ -18,7 +20,21 @@ class LibraryHelper extends Domain {
   /// Map of libraryRef ID to [LibraryRef].
   final _libraryRefsById = <String, LibraryRef>{};
 
+  LibraryRef _rootLib;
+
   LibraryHelper(AppInspector Function() provider) : super(provider);
+
+  Future<LibraryRef> get rootLib async {
+    if (_rootLib != null) return _rootLib;
+    // TODO: read entrypoint from app metadata.
+    // Issue: https://github.com/dart-lang/webdev/issues/1290
+    var libraries = await libraryRefs;
+    _rootLib = libraries.firstWhere((lib) => lib.name.contains('org-dartlang'));
+    _rootLib =
+        _rootLib ?? libraries.firstWhere((lib) => lib.name.contains('main'));
+    _rootLib = _rootLib ?? (libraries.isNotEmpty ? libraries.last : null);
+    return _rootLib;
+  }
 
   /// Returns all libraryRefs in the app.
   ///

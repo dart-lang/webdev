@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert';
 
 import 'package:path/path.dart' as p;
@@ -149,6 +151,9 @@ class RequireStrategy extends LoadStrategy {
 
   @override
   String get id => 'require-js';
+
+  @override
+  String get moduleFormat => 'amd';
 
   @override
   String get loadLibrariesSnippet =>

@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'dartdevc_bootstrap_amd.dart';
@@ -27,19 +26,19 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   final String _entrypoint;
 
   /// The last compile, or `null` once it has been accepted or rejected.
-  CompileResult _lastResult;
+  CompileResult? _lastResult;
 
   /// The bootstrap js contents, provided in [_assets] at
   /// the path `${_entrypointModule}.js`.
   ///
   /// This is `null` if the module format is not supported for bootstrapping.
-  final String _bootstrapJs;
+  final String? _bootstrapJs;
 
   /// The generated main module js contents, provided in [_assets] at
   /// the path `${_entrypointModule}.bootstrap.js`.
   ///
   /// This is `null` if the module format is not supported for bootstrapping.
-  final String _mainModuleJs;
+  final String? _mainModuleJs;
 
   DartDevcFrontendServerClient._(
       this._frontendServerClient, this._entrypoint, String moduleFormat)
@@ -64,11 +63,12 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     List<String> fileSystemRoots = const [], // For `fileSystemScheme` uris,
     String fileSystemScheme =
         'org-dartlang-root', // Custom scheme for virtual `fileSystemRoots`.
-    String frontendServerPath, // Defaults to the snapshot in the sdk.
+    String? frontendServerPath, // Defaults to the snapshot in the sdk.
     String packagesJson = '.dart_tool/package_config.json',
-    String platformKernel, // Defaults to the dartdevc platfrom from the sdk.
-    String sdkRoot, // Defaults to the current SDK root.
+    String? platformKernel, // Defaults to the dartdevc platform from the sdk.
+    String? sdkRoot, // Defaults to the current SDK root.
     bool verbose = false,
+    bool printIncrementalDependencies = true,
   }) async {
     var feServer = await FrontendServerClient.start(
       entrypoint,
@@ -100,7 +100,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   /// Returns `null` if no asset exists at [path].
   ///
   /// In addition to any DDC compiled assets, this serves
-  Uint8List assetBytes(String path) => _assets[path];
+  Uint8List? assetBytes(String path) => _assets[path];
 
   /// The contents of a JS file capable of bootstrapping the current app.
   ///
@@ -108,7 +108,10 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   String bootstrapJs() => throw UnimplementedError();
 
   /// Updates [_assets] for [result].
-  void _updateAssets(CompileResult result) {
+  void _updateAssets(CompileResult? result) {
+    if (result == null) {
+      return;
+    }
     final manifest =
         jsonDecode(File(result.jsManifestOutput).readAsStringSync())
             as Map<String, dynamic>;
@@ -127,31 +130,31 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   }
 
   @override
-  Future<CompileResult> compile([List<Uri> invalidatedUris]) async {
+  Future<CompileResult?> compile([List<Uri>? invalidatedUris]) async {
     return _lastResult = await _frontendServerClient.compile(invalidatedUris);
   }
 
   @override
   Future<CompileResult> compileExpression({
-    @required String expression,
-    @required List<String> definitions,
-    @required bool isStatic,
-    @required String klass,
-    @required String libraryUri,
-    @required List<String> typeDefinitions,
+    required String expression,
+    required List<String> definitions,
+    required bool isStatic,
+    required String klass,
+    required String libraryUri,
+    required List<String> typeDefinitions,
   }) =>
       throw UnsupportedError(
           'Use `compileExpressionToJs` for dartdevc based clients');
 
   @override
   Future<CompileResult> compileExpressionToJs({
-    @required String expression,
-    @required int column,
-    @required Map<String, String> jsFrameValues,
-    @required Map<String, String> jsModules,
-    @required String libraryUri,
-    @required int line,
-    @required String moduleName,
+    required String expression,
+    required int column,
+    required Map<String, String> jsFrameValues,
+    required Map<String, String> jsModules,
+    required String libraryUri,
+    required int line,
+    required String moduleName,
   }) =>
       _frontendServerClient.compileExpressionToJs(
           expression: expression,
@@ -192,16 +195,17 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   /// assets if available.
   void _resetAssets() {
     _assets.clear();
-    if (_bootstrapJs != null) {
-      _assets['$_entrypoint.js'] =
-          Uint8List.fromList(utf8.encode(_bootstrapJs));
+    var bootstrapJs = _bootstrapJs;
+    if (bootstrapJs != null) {
+      _assets['$_entrypoint.js'] = Uint8List.fromList(utf8.encode(bootstrapJs));
     }
-    if (_mainModuleJs != null) {
+    var mainModuleJs = _mainModuleJs;
+    if (mainModuleJs != null) {
       _assets['$_entrypoint.bootstrap.js'] =
-          Uint8List.fromList(utf8.encode(_mainModuleJs));
+          Uint8List.fromList(utf8.encode(mainModuleJs));
     }
   }
 }
 
 final _dartdevcPlatformKernel =
-    p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill');
+    p.toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill')).toString();

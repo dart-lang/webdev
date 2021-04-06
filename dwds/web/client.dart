@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 @JS()
 library hot_reload_client;
 
@@ -15,9 +17,11 @@ import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
+import 'package:dwds/src/sockets.dart';
 import 'package:js/js.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'promise.dart';
 import 'reloader/legacy_restarter.dart';
@@ -34,7 +38,11 @@ Future<void> main() {
     // Test apps may already have this set.
     dartAppInstanceId ??= const Uuid().v1();
 
-    var client = SseClient(_fixProtocol(dwdsDevHandlerPath));
+    var fixedPath = _fixProtocol(dwdsDevHandlerPath);
+    var fixedUri = Uri.parse(fixedPath);
+    var client = fixedUri.isScheme('ws') || fixedUri.isScheme('wss')
+        ? WebSocketClient(WebSocketChannel.connect(fixedUri))
+        : SseSocketClient(SseClient(fixedPath));
 
     Restarter restarter;
     if (dartModuleStrategy == 'require-js') {
@@ -94,21 +102,23 @@ Future<void> main() {
       // misleading unhandled error message.
     });
 
-    window.onKeyDown.listen((Event e) {
-      if (e is KeyboardEvent &&
-          const [
-            'd',
-            'D',
-            '∂', // alt-d output on Mac
-            'Î', // shift-alt-D output on Mac
-          ].contains(e.key) &&
-          e.altKey &&
-          !e.ctrlKey &&
-          !e.metaKey) {
-        e.preventDefault();
-        launchDevToolsJs();
-      }
-    });
+    if (dwdsEnableDevtoolsLaunch) {
+      window.onKeyDown.listen((Event e) {
+        if (e is KeyboardEvent &&
+            const [
+              'd',
+              'D',
+              '∂', // alt-d output on Mac
+              'Î', // shift-alt-D output on Mac
+            ].contains(e.key) &&
+            e.altKey &&
+            !e.ctrlKey &&
+            !e.metaKey) {
+          e.preventDefault();
+          launchDevToolsJs();
+        }
+      });
+    }
 
     if (_isChromium) {
       client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
@@ -146,6 +156,10 @@ String _fixProtocol(String url) {
       // server is also listening on https.
       uri.host != 'localhost') {
     uri = uri.replace(scheme: 'https');
+  } else if (window.location.protocol == 'wss:' &&
+      uri.scheme == 'ws' &&
+      uri.host != 'localhost') {
+    uri = uri.replace(scheme: 'wss');
   }
   return uri.toString();
 }
@@ -179,5 +193,8 @@ external String get reloadConfiguration;
 
 @JS(r'$dartEntrypointPath')
 external String get dartEntrypointPath;
+
+@JS(r'$dwdsEnableDevtoolsLaunch')
+external bool get dwdsEnableDevtoolsLaunch;
 
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');

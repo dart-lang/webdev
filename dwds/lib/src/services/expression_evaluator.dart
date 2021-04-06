@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -9,7 +11,6 @@ import '../debugging/dart_scope.dart';
 import '../debugging/debugger.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
-import '../utilities/ddc_names.dart';
 import '../utilities/objects.dart' as chrome;
 import 'expression_compiler.dart';
 
@@ -38,6 +39,9 @@ class ExpressionEvaluator {
   final ExpressionCompiler _compiler;
   final _logger = Logger('ExpressionEvaluator');
 
+  static final _syntheticNameFilterRegex =
+      RegExp('org-dartlang-debug:synthetic_debug_expression:.*:.*Error: ');
+
   ExpressionEvaluator(
       this._debugger, this._locations, this._modules, this._compiler);
 
@@ -46,17 +50,64 @@ class ExpressionEvaluator {
         <String, String>{'type': '$severity', 'value': message});
   }
 
-  /// Evaluate dart expression inside a given JavaScript frame (function)
+  /// Evaluate dart expression inside a given library.
+  ///
+  /// Uses ExpressionCompiler interface to compile the expression to
+  /// JavaScript and sends evaluate requests to chrome to calculate
+  /// the final result.
+  ///
+  /// Returns remote object containing the result of evaluation or error.
+  ///
+  /// [isolateId] current isolate ID.
+  /// [libraryUri] dart library to evaluate the expression in.
+  /// [expression] dart expression to evaluate.
+  Future<RemoteObject> evaluateExpression(
+      String isolateId, String libraryUri, String expression) async {
+    if (_compiler == null) {
+      return _createError(ErrorKind.internal,
+          'ExpressionEvaluator needs an ExpressionCompiler');
+    }
+
+    if (expression == null || expression.isEmpty) {
+      return _createError(ErrorKind.invalidInput, expression);
+    }
+
+    var module = await _modules.moduleForlibrary(libraryUri);
+
+    _logger.finest('Evaluating "$expression" at $module');
+
+    // Compile expression using an expression compiler, such as
+    // frontend server or expression compiler worker.
+    var compilationResult = await _compiler.compileExpressionToJs(
+        isolateId, libraryUri.toString(), 0, 0, {}, {}, module, expression);
+
+    var isError = compilationResult.isError;
+    var jsResult = compilationResult.result;
+    if (isError) {
+      return _formatCompilationError(jsResult);
+    }
+
+    // Send JS expression to chrome to evaluate.
+    var result = await (await _debugger).evaluate(jsResult);
+    result = _formatEvaluationError(result);
+
+    _logger.finest('Evaluated "$expression" to "$result"');
+    return result;
+  }
+
+  /// Evaluate dart expression inside a given frame (function).
   ///
   /// Gets necessary context (types, scope, module names) data from chrome,
-  /// uses ExpressionCompiler interface to compile the expression to JavaScript,
-  /// and sends evaluate requests to chrome to calculate the final result.
+  /// uses ExpressionCompiler interface to compile the expression to
+  /// JavaScript, and sends evaluate requests to chrome to calculate the
+  /// final result.
   ///
-  /// Returns remote object containing the result of evaluation or error
-  /// [isolateId] current isolate ID
-  /// [frameIndex] JavaScript frame to evaluate the expression in
-  /// [expression] dart expression to evaluate
-  Future<RemoteObject> evaluateExpression(
+  /// Returns remote object containing the result of evaluation or error.
+  ///
+  /// [isolateId] current isolate ID.
+  /// [frameIndex] JavaScript frame to evaluate the expression in.
+  /// [expression] dart expression to evaluate.
+  Future<RemoteObject> evaluateExpressionInFrame(
       String isolateId, int frameIndex, String expression) async {
     if (_compiler == null) {
       return _createError(ErrorKind.internal,
@@ -67,9 +118,8 @@ class ExpressionEvaluator {
       return _createError(ErrorKind.invalidInput, expression);
     }
 
-    // get js scope and current JS location
-
-    var jsFrame = (await _debugger).stackComputer.jsFrameForIndex(frameIndex);
+    // Get JS scope and current JS location.
+    var jsFrame = (await _debugger).jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
       return _createError(
           ErrorKind.internal, 'No frame with index $frameIndex');
@@ -79,15 +129,14 @@ class ExpressionEvaluator {
     var jsLine = jsFrame.location.lineNumber + 1;
     var jsScope = await _collectLocalJsScope(jsFrame);
 
-    // find corresponding dart location and scope
-
+    // Find corresponding dart location and scope.
+    //
     // TODO(annagrin): handle unknown dart locations
     // Debugger does not map every js location to a dart location,
     // so this will result in expressions not evaluated in some
     // cases. Invent location matching strategy for those cases.
     // [issue 890](https://github.com/dart-lang/webdev/issues/890)
     var locationMap = await _locations.locationForJs(jsFrame.url, jsLine);
-
     if (locationMap == null) {
       return _createError(
           ErrorKind.internal,
@@ -103,88 +152,34 @@ class ExpressionEvaluator {
 
     var currentModule =
         await _modules.moduleForSource(dartLocation.uri.serverPath);
-    var modules = await _modules.modules();
 
     _logger.finest('Evaluating "$expression" at $currentModule, '
         '$libraryUri:${dartLocation.line}:${dartLocation.column}');
 
-    // TODO(annagrin): Handle same file names under different roots
-    // [issue 891](https://github.com/dart-lang/webdev/issues/891)
-    var jsModules = {'dart': 'dart_sdk', 'core': 'dart_sdk'};
-    for (var serverPath in modules.keys) {
-      var module = modules[serverPath];
-      var library = await _modules.libraryForSource(serverPath);
-
-      var libraryPath = library.path;
-      if (library.scheme == 'package') {
-        libraryPath = libraryPath.split('/').skip(1).join('/');
-      }
-      var name = pathToJSIdentifier(libraryPath.replaceAll('.dart', ''));
-      jsModules[name] = module;
-    }
-
+    // Compile expression using an expression compiler, such as
+    // frontend server or expression compiler worker.
     var compilationResult = await _compiler.compileExpressionToJs(
         isolateId,
         libraryUri.toString(),
         dartLocation.line,
         dartLocation.column,
-        jsModules,
+        {},
         jsScope,
         currentModule,
         expression);
 
-    // send js expression to chrome to evaluate
-
     var isError = compilationResult.isError;
-    var jsExpression = compilationResult.result;
-
+    var jsResult = compilationResult.result;
     if (isError) {
-      // Frontend currently gives a text message including library name
-      // and function name on compilation error. Strip this information
-      // since it is shows syntetic names only used for debugger during
-      // expression evaluation.
-      //
-      // TODO(annagrin): modify frontend to avoid stripping dummy names
-      // [issue 40449](https://github.com/dart-lang/sdk/issues/40449)
-      var error = jsExpression;
-
-      if (error.startsWith('[')) {
-        error = error.substring(1);
-      }
-      if (error.endsWith(']')) {
-        error = error.substring(0, error.lastIndexOf(']'));
-      }
-
-      if (error.contains('InternalError: ')) {
-        error = error.replaceAll('InternalError: ', '');
-        return _createError(ErrorKind.internal, error);
-      }
-
-      error = error.replaceAll(
-          RegExp('org-dartlang-debug:synthetic_debug_expression:.*:.*Error: '),
-          '');
-      return _createError(ErrorKind.compilation, error);
+      return _formatCompilationError(jsResult);
     }
 
+    // Send JS expression to chrome to evaluate.
     var result = await (await _debugger)
-        .evaluateJsOnCallFrameIndex(frameIndex, jsExpression);
-
-    if (result.type == 'string') {
-      var error = '${result.value}';
-      if (error.startsWith('ReferenceError: ')) {
-        error = error.replaceFirst('ReferenceError: ', '');
-        return _createError(ErrorKind.reference, error);
-      }
-      if (error.startsWith('TypeError: ')) {
-        error = error.replaceFirst('TypeError: ', '');
-        return _createError(ErrorKind.type, error);
-      }
-    }
-
-    // Return evaluation result or error
+        .evaluateJsOnCallFrameIndex(frameIndex, jsResult);
+    result = _formatEvaluationError(result);
 
     _logger.finest('Evaluated "$expression" to "$result"');
-
     return result;
   }
 
@@ -201,6 +196,43 @@ class ExpressionEvaluator {
     return ret;
   }
 
+  RemoteObject _formatCompilationError(String error) {
+    // Frontend currently gives a text message including library name
+    // and function name on compilation error. Strip this information
+    // since it shows syntetic names that are only used for temporary
+    // debug library during expression evaluation.
+    //
+    // TODO(annagrin): modify frontend to avoid stripping dummy names
+    // [issue 40449](https://github.com/dart-lang/sdk/issues/40449)
+    if (error.startsWith('[')) {
+      error = error.substring(1);
+    }
+    if (error.endsWith(']')) {
+      error = error.substring(0, error.lastIndexOf(']'));
+    }
+    if (error.contains('InternalError: ')) {
+      error = error.replaceAll('InternalError: ', '');
+      return _createError(ErrorKind.internal, error);
+    }
+    error = error.replaceAll(_syntheticNameFilterRegex, '');
+    return _createError(ErrorKind.compilation, error);
+  }
+
+  RemoteObject _formatEvaluationError(RemoteObject result) {
+    if (result.type == 'string') {
+      var error = '${result.value}';
+      if (error.startsWith('ReferenceError: ')) {
+        error = error.replaceFirst('ReferenceError: ', '');
+        return _createError(ErrorKind.reference, error);
+      }
+      if (error.startsWith('TypeError: ')) {
+        error = error.replaceFirst('TypeError: ', '');
+        return _createError(ErrorKind.type, error);
+      }
+    }
+    return result;
+  }
+
   Future<Map<String, String>> _collectLocalJsScope(WipCallFrame frame) async {
     var jsScope = <String, String>{};
 
@@ -211,7 +243,7 @@ class ExpressionEvaluator {
         var value = p.value;
 
         if (scopeType == 'closure') {
-          // substitute potentially unavailable captures with their values from
+          // Substitute potentially unavailable captures with their values from
           // the stack.
           //
           // Note: this makes some uncaptured values available for evaluation,

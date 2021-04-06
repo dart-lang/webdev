@@ -1,56 +1,56 @@
 name: dwds
 # Every time this changes you need to run `pub run build_runner build`.
-version: 9.0.0-dev
+version: 10.0.2-dev
 homepage: https://github.com/dart-lang/webdev/tree/master/dwds
 description: >-
   A service that proxies between the Chrome debug protocol and the Dart VM
   service protocol.
 
 environment:
-  sdk: ">=2.10.0 <3.0.0"
+  sdk: ">=2.13.0-144.0.dev <3.0.0"
 
 dependencies:
   async: ^2.3.0
   built_collection: ^4.2.0
-  built_value: '>=6.7.0 <8.0.0'
+  built_value: '>=6.7.0 <9.0.0'
   crypto: '>=2.0.6 < 4.0.0'
   dds: ^1.4.1
   # devtools_server indirectly depends on devtools so keep this around.
-  devtools: ^0.9.2
-  devtools_server: ^0.9.2
-  http: ^0.12.0
-  http_multi_server: ^2.0.0
-  logging: ^0.11.3
+  devtools: ^2.0.0
+  devtools_server: ^2.0.0
+  http: '>=0.12.0 < 0.14.0'
+  http_multi_server: ^3.0.0
+  logging: '>=0.11.3 < 2.0.0'
   meta: ^1.1.7
-  package_config: ^1.9.0
+  package_config: ^2.0.0
   path: ^1.6.0
   pedantic: ^1.5.0
   pool: ^1.4.0
-  pub_semver: ^1.4.2
-  shelf: ^0.7.0
-  shelf_packages_handler: '>=1.0.0 <3.0.0'
-  shelf_proxy: ^0.1.0+6
-  shelf_static: ^0.2.8
-  shelf_web_socket: ^0.2.0
+  pub_semver: ^2.0.0
+  shelf: '>=0.7.0 < 2.0.0'
+  shelf_packages_handler: '^3.0.0'
+  shelf_proxy: '>=0.1.0+6 < 2.0.0'
+  shelf_static: ^1.0.0
+  shelf_web_socket: ^1.0.0
   source_maps: ^0.10.0
   sse: ^3.7.0
   # We pin the version because we implement the interface.
   vm_service: 6.1.0+1
-  web_socket_channel: ^1.0.0
-  webkit_inspection_protocol: ^0.7.4
+  web_socket_channel: ^2.0.0
+  webkit_inspection_protocol: ^1.0.0
 
 dev_dependencies:
-  args: ^1.0.0
-  build: ^1.1.5
+  args: ^2.0.0
+  build: ^2.0.0
   build_daemon: ^2.0.0
   build_runner: ^1.6.2
   build_version: ^2.0.0
   build_web_compilers: ^2.12.0
-  graphs: ^0.2.0
+  graphs: ^1.0.0
   frontend_server_common:
     path: ../frontend_server_common
   js: ^0.6.1
-  pubspec_parse: ^0.1.5
+  pubspec_parse: ^1.0.0
   stream_channel: ^2.0.0
   test: ^1.6.0
   uuid: '>=2.0.0 < 4.0.0'

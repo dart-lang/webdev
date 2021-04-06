@@ -1,8 +1,14 @@
-## 2.7.2 - Unreleased
+## 2.7.3
+
+- Depend on the latest `package:dwds`.
+- Update min sdk constraint to `>=2.13.0-144.0.dev`.
+
+## 2.7.2
 
 - Depend on the latest `package:dwds`.
 - Support new `null-safety` flag. See README.
 - Support latest `package:vm_service` version `6.x.x`.
+- Opt all dart files out of null safety for min SDK constraint update.
 
 ## 2.7.1
 

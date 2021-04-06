@@ -1,4 +1,33 @@
-## 9.0.0-dev
+## 10.0.2-dev
+
+- Fix missing sdk libraries in `getObject()` calls.
+- Fix incorrect `rootLib` returned by `ChromeProxyService`.
+
+## 10.0.1
+
+- Support `webkit_inspection_protocol` version `^1.0.0`.
+
+## 10.0.0
+
+- Support `VMService.evaluate` using expression compiler.
+- Update min sdk constraint to `>=2.13.0-144.0.dev`.
+- Throw `RPCError` on evaluation if the program is not paused.
+- Record `ErrorRef` returned by evaluation in analytics.
+
+**Breaking changes:**
+- Change `ExpressionCompiler.initialize` method to include module format.
+- Add `LoadStrategy.moduleFormat` to be used for communicating current
+  module format to the expression compiler.
+
+## 9.1.0
+
+- Support authentication endpoint for the Dart Debug Extension.
+- Support using WebSockets for the injected client by passing
+  `useSseForInjectedClient: false` to `Dwds.start()`. Unlike SSE,
+  WebSockets do not currently support keepAlives here (beyond the
+  standard WebSocket pings to keep the socket alive).
+
+## 9.0.0
 
 - Fix an issue where relative worker paths provided to the `ExpressionCompilerService`
   would cause a crash. 
@@ -10,6 +39,10 @@
 - Add `DwdsEvent`s around stepping and evaluation.
 - Send an event to the Dart Debug Extension that contains VM service protocol URI. 
 - Depend on `package:vm_service` version `6.1.0+1`.
+- Update the `keepAlive` configs to prevent accidental reuse of a connection after stopping
+  a debug session.
+- Support disabling the launching of Dart DevTools through `Alt + d` with `enableDevtoolsLaunch`.
+- Opt all dart files out of null safety for min SDK constraint update.
 
 **Breaking changes:**
 - `LoadStrategy`s now require a `moduleInfoForEntrypoint`.

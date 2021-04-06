@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -230,7 +232,7 @@ class DebugService {
     // DDS will always connect to DWDS via web sockets.
     if (useSse && !spawnDds) {
       var sseHandler = SseHandler(Uri.parse('/$authToken/\$debugHandler'),
-          keepAlive: const Duration(seconds: 30));
+          keepAlive: const Duration(seconds: 5));
       handler = sseHandler.handler;
       unawaited(_handleSseConnections(
           sseHandler, chromeProxyService, serviceExtensionRegistry,

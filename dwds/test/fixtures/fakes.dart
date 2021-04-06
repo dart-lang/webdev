@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 
 import 'package:dwds/dwds.dart';
@@ -123,6 +125,11 @@ class FakeModules implements Modules {
 
   @override
   Future<Map<String, String>> modules() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<String> moduleForlibrary(String libraryUri) {
     throw UnimplementedError();
   }
 }
@@ -263,6 +270,9 @@ class FakeStrategy implements LoadStrategy {
 
   @override
   String get id => 'dummy-id';
+
+  @override
+  String get moduleFormat => 'dummy-format';
 
   @override
   String get loadLibrariesSnippet => '';

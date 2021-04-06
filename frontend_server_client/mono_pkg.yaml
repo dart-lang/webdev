@@ -4,4 +4,4 @@ stages:
     - group:
       - dartfmt
       - dartanalyzer: --fatal-infos --fatal-warnings .
-      dart: 2.10.0
+      dart: [2.12.0] 

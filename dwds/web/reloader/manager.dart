@@ -2,17 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
+import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
 import 'package:dwds/data/isolate_events.dart';
 import 'package:dwds/data/serializers.dart';
-import 'package:sse/client/sse_client.dart';
+import 'package:dwds/src/sockets.dart';
 
 import 'restarter.dart';
 
 class ReloadingManager {
-  final SseClient _client;
+  final SocketClient _client;
   final Restarter _restarter;
 
   ReloadingManager(this._client, this._restarter);

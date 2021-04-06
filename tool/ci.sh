@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v3.4.0
+# Created with package:mono_repo v3.4.7
 
 # Support built in commands on windows out of the box.
 function pub() {
@@ -79,18 +79,14 @@ for PKG in ${PKGS}; do
         pub run test test/build/ensure_version_test.dart || EXIT_CODE=$?
         ;;
       test_1)
-        echo 'pub run test -x dev-sdk'
-        pub run test -x dev-sdk || EXIT_CODE=$?
-        ;;
-      test_2)
         echo 'pub run test'
         pub run test || EXIT_CODE=$?
         ;;
-      test_3)
+      test_2)
         echo 'pub run test test/build/ensure_build_test.dart'
         pub run test test/build/ensure_build_test.dart || EXIT_CODE=$?
         ;;
-      test_4)
+      test_3)
         echo 'pub run test -j 1'
         pub run test -j 1 || EXIT_CODE=$?
         ;;

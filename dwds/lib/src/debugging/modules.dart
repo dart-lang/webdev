@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:async/async.dart';
 
 import '../loaders/strategy.dart';
@@ -21,6 +23,8 @@ class Modules {
   // The Chrome script ID to corresponding module.
   final _scriptIdToModule = <String, String>{};
 
+  final Map<String, String> _libraryToModule = {};
+
   String _entrypoint;
 
   Modules(String root) : _root = root == '' ? '/' : root;
@@ -34,6 +38,7 @@ class Modules {
     // across hot reloads.
     _sourceToModule.clear();
     _sourceToLibrary.clear();
+    _libraryToModule.clear();
     _moduleMemoizer = AsyncMemoizer();
     _entrypoint = entrypoint;
   }
@@ -53,6 +58,11 @@ class Modules {
     return _sourceToLibrary[serverPath];
   }
 
+  Future<String> moduleForlibrary(String libraryUri) async {
+    await _moduleMemoizer.runOnce(_initializeMapping);
+    return _libraryToModule[libraryUri];
+  }
+
   // Returns mapping from server paths to library paths
   Future<Map<String, String>> modules() async {
     await _moduleMemoizer.runOnce(_initializeMapping);
@@ -61,13 +71,17 @@ class Modules {
 
   /// Initializes [_sourceToModule] and [_sourceToLibrary].
   Future<void> _initializeMapping() async {
-    var scriptToModule = await globalLoadStrategy
-        .metadataProviderFor(_entrypoint)
-        .scriptToModule;
+    var provider = globalLoadStrategy.metadataProviderFor(_entrypoint);
+
+    var scriptToModule = await provider.scriptToModule;
     for (var script in scriptToModule.keys) {
-      var serverPath = DartUri(script, _root).serverPath;
+      var serverPath = script.startsWith('dart:')
+          ? script
+          : DartUri(script, _root).serverPath;
+
       _sourceToModule[serverPath] = scriptToModule[script];
       _sourceToLibrary[serverPath] = Uri.parse(script);
+      _libraryToModule[script] = scriptToModule[script];
     }
   }
 }

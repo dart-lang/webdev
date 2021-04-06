@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+// @dart = 2.9
+
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -64,8 +66,14 @@ class ClassHelper extends Domain {
       throw UnsupportedError('unknown library: $libraryId');
     }
     var libraryRef = await inspector.libraryHelper.libraryRefFor(libraryId);
+    if (libraryRef == null) {
+      throw Exception('Could not find library: $libraryId');
+    }
     var classRef = classRefFor(libraryId, splitId.last);
     clazz = await _constructClass(libraryRef, classRef);
+    if (clazz == null) {
+      throw Exception('Could not contruct class: $classRef');
+    }
     return _classes[objectId] = clazz;
   }
 

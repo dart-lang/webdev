@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Result of compilation of dart expression to JavaScript
 class ExpressionCompilationResult {
   final bool isError;
@@ -21,7 +23,7 @@ class ExpressionCompilationResult {
 /// Interface to provide means of compiling expressions from dart to JavaScript
 /// used to implement expression evaluation in any tools using dwds
 abstract class ExpressionCompiler {
-  /// Compiles [expression] in [libraryUri] at[line]:[column] to JavaScript
+  /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
   /// in [moduleName].
   ///
   /// Values listed in [jsFrameValues] are substituted for their names in the
@@ -64,10 +66,10 @@ abstract class ExpressionCompiler {
   /// [updateDependencies] is called during isolate creation.
   Future<bool> updateDependencies(Map<String, ModuleInfo> modules);
 
-  /// Initializes the compiler with the provided null safety mode.
+  /// Initializes the compiler with null safety mode and module format.
   ///
   /// May be called multiple times and always before [updateDependencies].
-  Future<void> initialize({bool soundNullSafety});
+  Future<void> initialize({String moduleFormat, bool soundNullSafety});
 }
 
 class ModuleInfo {

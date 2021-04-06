@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 @TestOn('vm')
 @Timeout(Duration(minutes: 5))
 import 'package:dwds/dwds.dart';
@@ -43,6 +45,30 @@ void main() {
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.liveReload,
           enableDebugging: false,
+        );
+      });
+
+      tearDown(() async {
+        await context.tearDown();
+      });
+
+      test('can live reload changes ', () async {
+        await context.changeInput();
+
+        var source = await context.webDriver.pageSource;
+
+        // A full reload should clear the state.
+        expect(source.contains('Hello World!'), isFalse);
+        expect(source.contains('Gary is awesome!'), isTrue);
+      });
+    });
+
+    group('and without debugging using WebSockets', () {
+      setUp(() async {
+        await context.setUp(
+          reloadConfiguration: ReloadConfiguration.liveReload,
+          enableDebugging: false,
+          useSse: false,
         );
       });
 

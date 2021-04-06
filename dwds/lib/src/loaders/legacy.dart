@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:shelf/shelf.dart';
 
 import '../../dwds.dart';
@@ -74,6 +76,9 @@ class LegacyStrategy extends LoadStrategy {
 
   @override
   String get id => 'legacy';
+
+  @override
+  String get moduleFormat => 'ddc';
 
   @override
   String get loadLibrariesSnippet =>

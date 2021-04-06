@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['expression-compilation-service'])
+// @dart = 2.9
+
 @TestOn('vm')
 import 'dart:async';
 
@@ -41,7 +42,7 @@ class TestSetup {
 }
 
 void main() async {
-  for (var soundNullSafety in [true, false]) {
+  for (var soundNullSafety in [false, true]) {
     var setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
     var context = setup.context;
     group('${soundNullSafety ? "" : "no "}sound null safety', () {
@@ -138,7 +139,7 @@ void main() async {
                       'valueAsString',
                       '1'));
             });
-          }, tags: ['dev-sdk']);
+          });
 
           test('private field from another library', () async {
             await onBreakPoint(isolate.id, mainScript, 'printField', () async {
@@ -155,7 +156,7 @@ void main() async {
                       'message',
                       contains("The getter '_field' isn't defined")));
             });
-          }, tags: ['dev-sdk']);
+          });
 
           test('private field from current library', () async {
             await onBreakPoint(isolate.id, mainScript, 'printFieldMain',
@@ -173,7 +174,7 @@ void main() async {
                       'valueAsString',
                       '1'));
             });
-          }, tags: ['dev-sdk']);
+          });
 
           test('access instance fields after evaluation', () async {
             await onBreakPoint(isolate.id, mainScript, 'printField', () async {
@@ -264,7 +265,7 @@ void main() async {
                       'valueAsString',
                       '42'));
             });
-          }, tags: ['dev-sdk']);
+          });
 
           test('loop variable', () async {
             await onBreakPoint(isolate.id, mainScript, 'printLoopVariable',
@@ -282,7 +283,7 @@ void main() async {
                       'valueAsString',
                       '1'));
             });
-          }, tags: ['dev-sdk']);
+          });
 
           test('evaluate expression in _testPackage/test_library', () async {
             await onBreakPoint(
@@ -320,7 +321,7 @@ void main() async {
                       'valueAsString',
                       '1'));
             });
-          }, tags: 'dev-sdk');
+          });
 
           test('evaluate expression in caller frame', () async {
             await onBreakPoint(
@@ -385,6 +386,59 @@ void main() async {
                       .evaluateInFrame('bad', event.topFrame.index, 'local'),
                   throwsRPCError);
             });
+          });
+        });
+
+        group('evaluate', () {
+          VM vm;
+          Isolate isolate;
+
+          setUp(() async {
+            vm = await setup.service.getVM();
+            isolate = await setup.service.getIsolate(vm.isolates.first.id);
+
+            await setup.service.streamListen('Debug');
+          });
+
+          tearDown(() async {});
+
+          test('uses symbol from the same library', () async {
+            var library = isolate.rootLib;
+            var result = await setup.service
+                .evaluate(isolate.id, library.id, 'MainClass(0).toString()');
+
+            expect(
+                result,
+                const TypeMatcher<InstanceRef>().having(
+                    (instance) => instance.valueAsString,
+                    'valueAsString',
+                    '0'));
+          });
+
+          test('uses symbol from another library', () async {
+            var library = isolate.rootLib;
+            var result = await setup.service.evaluate(
+                isolate.id, library.id, 'TestLibraryClass(0,1).toString()');
+
+            expect(
+                result,
+                const TypeMatcher<InstanceRef>().having(
+                    (instance) => instance.valueAsString,
+                    'valueAsString',
+                    'field: 0, _field: 1'));
+          });
+
+          test('closure call', () async {
+            var library = isolate.rootLib;
+            var result = await setup.service
+                .evaluate(isolate.id, library.id, '(() => 42)()');
+
+            expect(
+                result,
+                const TypeMatcher<InstanceRef>().having(
+                    (instance) => instance.valueAsString,
+                    'valueAsString',
+                    '42'));
           });
         });
       }, timeout: const Timeout.factor(2));
