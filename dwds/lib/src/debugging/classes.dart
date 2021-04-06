@@ -153,6 +153,7 @@ class ClassHelper extends Domain {
           name: name,
           owner: classRef,
           declaredType: InstanceRef(
+              identityHashCode: createId().hashCode,
               id: createId(),
               kind: InstanceKind.kType,
               classRef: classMetaData.classRef),

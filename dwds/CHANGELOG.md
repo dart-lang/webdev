@@ -1,3 +1,7 @@
+## 10.0.2-dev
+
+- Support `vm_service` version `6.2.0`.
+
 ## 10.0.1
 
 - Support `webkit_inspection_protocol` version `^1.0.0`.
