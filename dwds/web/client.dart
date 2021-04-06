@@ -33,6 +33,16 @@ import 'run_main.dart';
 // GENERATE:
 // pub run build_runner build web
 Future<void> main() {
+  try {
+    sendMessage('pebbhcjfokadbgbnlmogdkkaahmamnap', 'injected-client-started',
+        RequestOptions(), allowInterop(([e]) {
+      if (e == null) {
+        // Error sending message. Check lastError to silently fail.
+        lastError;
+      }
+    }));
+  } catch (_) {}
+
   return runZonedGuarded(() async {
     // Set the unique id for this instance of the app.
     // Test apps may already have this set.
@@ -196,5 +206,22 @@ external String get dartEntrypointPath;
 
 @JS(r'$dwdsEnableDevtoolsLaunch')
 external bool get dwdsEnableDevtoolsLaunch;
+
+@JS()
+class ChromeError {
+  external String get message;
+}
+
+// Note: Not checking the lastError when one occurs throws a runtime exception.
+@JS('chrome.runtime.lastError')
+external ChromeError get lastError;
+
+@JS()
+@anonymous
+class RequestOptions {}
+
+@JS('chrome.runtime.sendMessage')
+external void sendMessage(
+    String id, Object message, Object options, Function callback);
 
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');

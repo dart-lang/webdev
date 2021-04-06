@@ -117,6 +117,7 @@ void main() {
 
   onMessageExternalAddListener(allowInterop(
       (Request request, Sender sender, Function sendResponse) async {
+    // TODO(grouma) - handle events from the injected client.
     if (_allowedExtensions.contains(sender.id)) {
       if (request.name == 'chrome.debugger.sendCommand') {
         try {

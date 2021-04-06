@@ -15,5 +15,11 @@
         "scripts": [
             "background.js"
         ]
+    },
+    "externally_connectable": {
+        "matches": [
+            // TODO(grouma) - Add other supported domains.
+            "*://localhost/*"
+        ]
     }
 }
