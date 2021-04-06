@@ -31,7 +31,10 @@ class InstanceHelper extends Domain {
       String kind, RemoteObject remoteObject) {
     var classRef = classRefFor('dart:core', kind);
     return InstanceRef(
-        kind: kind, classRef: classRef, id: dartIdFor(remoteObject?.value))
+        identityHashCode: dartIdFor(remoteObject?.value).hashCode,
+        kind: kind,
+        classRef: classRef,
+        id: dartIdFor(remoteObject?.value))
       ..valueAsString = '${remoteObject?.value}';
   }
 
@@ -39,6 +42,7 @@ class InstanceHelper extends Domain {
   Instance _primitiveInstance(String kind, RemoteObject remote) {
     if (remote?.objectId == null) return null;
     return Instance(
+        identityHashCode: remote.objectId.hashCode,
         id: remote.objectId,
         kind: kind,
         classRef: classRefFor('dart:core', kind))
@@ -59,7 +63,10 @@ class InstanceHelper extends Domain {
       preview = fullString.substring(start, end);
     }
     return Instance(
-        kind: InstanceKind.kString, classRef: classRefForString, id: createId())
+        identityHashCode: createId().hashCode,
+        kind: InstanceKind.kString,
+        classRef: classRefForString,
+        id: createId())
       ..valueAsString = preview
       ..valueAsStringIsTruncated = truncated
       ..length = fullString.length
@@ -71,6 +78,7 @@ class InstanceHelper extends Domain {
     var result = Instance(
         kind: InstanceKind.kClosure,
         id: remoteObject.objectId,
+        identityHashCode: remoteObject.objectId.hashCode,
         classRef: classRefForClosure);
     return result;
   }
@@ -144,6 +152,7 @@ class InstanceHelper extends Domain {
           declaredType: InstanceRef(
               kind: InstanceKind.kType,
               classRef: instance.classRef,
+              identityHashCode: createId().hashCode,
               id: createId()),
           owner: classRef,
           // TODO(grouma) - Fill these in.
@@ -167,6 +176,7 @@ class InstanceHelper extends Domain {
     var result = Instance(
         kind: InstanceKind.kPlainInstance,
         id: remoteObject.objectId,
+        identityHashCode: remoteObject.objectId.hashCode,
         classRef: classRef)
       ..fields = fields;
     return result;
@@ -218,7 +228,10 @@ class InstanceHelper extends Domain {
         ? associations.length
         : (await instanceRefFor(remoteObject)).length;
     return Instance(
-        kind: InstanceKind.kMap, id: remoteObject.objectId, classRef: classRef)
+        identityHashCode: remoteObject.objectId.hashCode,
+        kind: InstanceKind.kMap,
+        id: remoteObject.objectId,
+        classRef: classRef)
       ..length = length
       ..offset = offset
       ..count = (associations.length == length) ? null : associations.length
@@ -242,7 +255,10 @@ class InstanceHelper extends Domain {
     var fields = await Future.wait(indexed
         .map((property) async => await _instanceRefForRemote(property.value)));
     return Instance(
-        kind: InstanceKind.kList, id: remoteObject.objectId, classRef: classRef)
+        identityHashCode: remoteObject.objectId.hashCode,
+        kind: InstanceKind.kList,
+        id: remoteObject.objectId,
+        classRef: classRef)
       ..length = length
       ..elements = fields
       ..offset = offset
@@ -333,6 +349,7 @@ class InstanceHelper extends Domain {
         // TODO(#777): dartIdFor() will return an ID containing the entire
         // string, even if we're truncating the string value here.
         return InstanceRef(
+            identityHashCode: dartIdFor(remoteObject.value).hashCode,
             id: dartIdFor(remoteObject.value),
             classRef: classRefForString,
             kind: InstanceKind.kString)
@@ -355,6 +372,7 @@ class InstanceHelper extends Domain {
           return InstanceRef(
               kind: InstanceKind.kList,
               id: remoteObject.objectId,
+              identityHashCode: remoteObject.objectId.hashCode,
               classRef: metaData.classRef)
             ..length = metaData.length;
         }
@@ -362,12 +380,14 @@ class InstanceHelper extends Domain {
           return InstanceRef(
               kind: InstanceKind.kMap,
               id: remoteObject.objectId,
+              identityHashCode: remoteObject.objectId.hashCode,
               classRef: metaData.classRef)
             ..length = metaData.length;
         }
         return InstanceRef(
             kind: InstanceKind.kPlainInstance,
             id: remoteObject.objectId,
+            identityHashCode: remoteObject.objectId.hashCode,
             classRef: metaData.classRef);
       case 'function':
         var functionMetaData = await FunctionMetaData.metaDataFor(
@@ -375,6 +395,7 @@ class InstanceHelper extends Domain {
         return InstanceRef(
             kind: InstanceKind.kClosure,
             id: remoteObject.objectId,
+            identityHashCode: remoteObject.objectId.hashCode,
             classRef: classRefForClosure)
           // TODO(grouma) - fill this in properly.
           ..closureFunction = FuncRef(

@@ -1,5 +1,6 @@
 ## 10.0.2-dev
 
+- Support `vm_service` version `6.2.0`.
 - Fix missing sdk libraries in `getObject()` calls.
 - Fix incorrect `rootLib` returned by `ChromeProxyService`.
 
