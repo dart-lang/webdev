@@ -13,8 +13,8 @@ int testLibraryPartFunction(int formal) {
 class TestLibraryPartClass {
   final int field;
   final int _field;
-  
-TestLibraryPartClass(this.field, this._field) {
+
+  TestLibraryPartClass(this.field, this._field) {
     print('Contructor'); // Breakpoint: testLibraryPartClassConstructor
   }
 
