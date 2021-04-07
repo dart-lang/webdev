@@ -234,7 +234,7 @@ class MetadataProvider {
 
       _scriptToModule[library.importUri] = metadata.name;
       for (var path in library.partUris) {
-        // parts in metadata are relative to the library Uri directory
+        // Parts in metadata are relative to the library Uri directory.
         var partPath = p.url.join(p.dirname(library.importUri), path);
         _scripts[library.importUri].add(partPath);
         _scriptToModule[partPath] = metadata.name;
