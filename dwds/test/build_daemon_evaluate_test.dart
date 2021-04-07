@@ -85,6 +85,7 @@ void main() async {
           ScriptRef mainScript;
           ScriptRef libraryScript;
           ScriptRef testLibraryScript;
+          ScriptRef testLibraryPartScript;
           Stream<Event> stream;
 
           setUp(() async {
@@ -99,6 +100,8 @@ void main() async {
                 .firstWhere((each) => each.uri.contains('main.dart'));
             testLibraryScript = scripts.scripts.firstWhere((each) =>
                 each.uri.contains('package:_testPackage/test_library.dart'));
+            testLibraryPartScript = scripts.scripts.firstWhere((each) =>
+                each.uri.contains('package:_testPackage/src/test_part.dart'));
             libraryScript = scripts.scripts.firstWhere(
                 (each) => each.uri.contains('package:_test/library.dart'));
           });
@@ -125,7 +128,8 @@ void main() async {
           });
 
           test('field', () async {
-            await onBreakPoint(isolate.id, mainScript, 'printField', () async {
+            await onBreakPoint(
+                isolate.id, mainScript, 'printFieldFromLibraryClass', () async {
               var event = await stream.firstWhere(
                   (event) => event.kind == EventKind.kPauseBreakpoint);
 
@@ -142,7 +146,8 @@ void main() async {
           });
 
           test('private field from another library', () async {
-            await onBreakPoint(isolate.id, mainScript, 'printField', () async {
+            await onBreakPoint(
+                isolate.id, mainScript, 'printFieldFromLibraryClass', () async {
               var event = await stream.firstWhere(
                   (event) => event.kind == EventKind.kPauseBreakpoint);
 
@@ -177,7 +182,8 @@ void main() async {
           });
 
           test('access instance fields after evaluation', () async {
-            await onBreakPoint(isolate.id, mainScript, 'printField', () async {
+            await onBreakPoint(
+                isolate.id, mainScript, 'printFieldFromLibraryClass', () async {
               var event = await stream.firstWhere(
                   (event) => event.kind == EventKind.kPauseBreakpoint);
 
@@ -267,6 +273,40 @@ void main() async {
             });
           });
 
+          test('call library part function with const param', () async {
+            await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+              var event = await stream.firstWhere(
+                  (event) => event.kind == EventKind.kPauseBreakpoint);
+
+              var result = await setup.service.evaluateInFrame(isolate.id,
+                  event.topFrame.index, 'testLibraryPartFunction(42)');
+
+              expect(
+                  result,
+                  isA<InstanceRef>().having(
+                      (instance) => instance.valueAsString,
+                      'valueAsString',
+                      '42'));
+            });
+          });
+
+          test('call library part function with local param', () async {
+            await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+              var event = await stream.firstWhere(
+                  (event) => event.kind == EventKind.kPauseBreakpoint);
+
+              var result = await setup.service.evaluateInFrame(isolate.id,
+                  event.topFrame.index, 'testLibraryPartFunction(local)');
+
+              expect(
+                  result,
+                  isA<InstanceRef>().having(
+                      (instance) => instance.valueAsString,
+                      'valueAsString',
+                      '42'));
+            });
+          });
+
           test('loop variable', () async {
             await onBreakPoint(isolate.id, mainScript, 'printLoopVariable',
                 () async {
@@ -303,11 +343,30 @@ void main() async {
             });
           });
 
-          test('evaluate expression in a class constructor in another library',
+          test('evaluate expression in a class constructor in a library',
               () async {
             await onBreakPoint(
                 isolate.id, testLibraryScript, 'testLibraryClassConstructor',
                 () async {
+              var event = await stream.firstWhere(
+                  (event) => event.kind == EventKind.kPauseBreakpoint);
+
+              var result = await setup.service.evaluateInFrame(
+                  isolate.id, event.topFrame.index, 'this.field');
+
+              expect(
+                  result,
+                  isA<InstanceRef>().having(
+                      (instance) => instance.valueAsString,
+                      'valueAsString',
+                      '1'));
+            });
+          });
+
+          test('evaluate expression in a class constructor in a library part',
+              () async {
+            await onBreakPoint(isolate.id, testLibraryPartScript,
+                'testLibraryPartClassConstructor', () async {
               var event = await stream.firstWhere(
                   (event) => event.kind == EventKind.kPauseBreakpoint);
 
@@ -341,7 +400,7 @@ void main() async {
             });
           });
 
-          test('evaluate expression in  another library', () async {
+          test('evaluate expression in a library', () async {
             await onBreakPoint(isolate.id, libraryScript, 'Concatenate',
                 () async {
               var event = await stream.firstWhere(

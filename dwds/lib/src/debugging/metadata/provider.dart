@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:async/async.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 
 import '../../readers/asset_reader.dart';
 import 'module_metadata.dart';
@@ -233,7 +234,10 @@ class MetadataProvider {
 
       _scriptToModule[library.importUri] = metadata.name;
       for (var path in library.partUris) {
-        _scripts[library.importUri].add(path);
+        // Parts in metadata are relative to the library Uri directory.
+        var partPath = p.url.join(p.dirname(library.importUri), path);
+        _scripts[library.importUri].add(partPath);
+        _scriptToModule[partPath] = metadata.name;
       }
     }
   }

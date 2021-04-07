@@ -73,15 +73,26 @@ class Modules {
   Future<void> _initializeMapping() async {
     var provider = globalLoadStrategy.metadataProviderFor(_entrypoint);
 
+    var libraryToScripts = await provider.scripts;
     var scriptToModule = await provider.scriptToModule;
-    for (var script in scriptToModule.keys) {
-      var serverPath = script.startsWith('dart:')
-          ? script
-          : DartUri(script, _root).serverPath;
 
-      _sourceToModule[serverPath] = scriptToModule[script];
-      _sourceToLibrary[serverPath] = Uri.parse(script);
-      _libraryToModule[script] = scriptToModule[script];
+    for (var library in libraryToScripts.keys) {
+      var libraryServerPath = library.startsWith('dart:')
+          ? library
+          : DartUri(library, _root).serverPath;
+
+      _sourceToModule[libraryServerPath] = scriptToModule[library];
+      _sourceToLibrary[libraryServerPath] = Uri.parse(library);
+      _libraryToModule[library] = scriptToModule[library];
+
+      for (var script in libraryToScripts[library]) {
+        var scriptServerPath = script.startsWith('dart:')
+            ? script
+            : DartUri(script, _root).serverPath;
+
+        _sourceToModule[scriptServerPath] = scriptToModule[library];
+        _sourceToLibrary[scriptServerPath] = Uri.parse(library);
+      }
     }
   }
 }

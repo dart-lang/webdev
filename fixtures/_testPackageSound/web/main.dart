@@ -22,16 +22,19 @@ void main() async {
   Timer.periodic(const Duration(seconds: 1), (_) {
     print('Count is: ${++count}');
     print(testLibraryValue);
+    print(testPartLibraryValue);
   });
 
   // for evaluation
   Timer.periodic(const Duration(seconds: 1), (_) async {
     await asyncMethod();
-    //printLocal();
-    printField();
+    printLocal();
+    printFieldFromLibraryClass();
+    printFieldFromLibraryPartClass();
     printFieldMain();
     printGlobal();
     printFromTestLibrary();
+    printFromTestLibraryPart();
     printFromTestPackage();
     printCallExtension();
     printLoopVariable();
@@ -54,9 +57,14 @@ void printLocal() {
   print('Local is: $local'); // Breakpoint: printLocal
 }
 
-void printField() {
+void printFieldFromLibraryClass() {
   var instance = TestLibraryClass(1, 2);
-  print('$instance'); // Breakpoint: printField
+  print('$instance'); // Breakpoint: printFieldFromLibraryClass
+}
+
+void printFieldFromLibraryPartClass() {
+  var instance = TestLibraryPartClass(1, 2);
+  print('$instance'); // Breakpoint: printFieldFromLibraryPartClass
 }
 
 void printFieldMain() {
@@ -75,6 +83,11 @@ void printFromTestPackage() {
 void printFromTestLibrary() {
   var local = 23;
   print(testLibraryFunction(local));
+}
+
+void printFromTestLibraryPart() {
+  var local = 23;
+  print(testLibraryPartFunction(local));
 }
 
 void printCallExtension() {
