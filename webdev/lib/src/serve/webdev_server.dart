@@ -16,6 +16,7 @@ import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_proxy/shelf_proxy.dart';
+import 'package:devtools_server/devtools_server.dart';
 
 import '../command/configuration.dart';
 import 'chrome.dart';
@@ -142,6 +143,10 @@ class WebDevServer {
         enableDebugging: options.configuration.debug,
         spawnDds: !options.configuration.disableDds,
         expressionCompiler: ddcService,
+        devtoolsLauncher: (String hostname) async {
+          var server = await serveDevTools(hostname: hostname, enableStdinCommands: false);
+          return DevTools(server.address.host, server.port, server);
+        }
       );
       pipeline = pipeline.addMiddleware(dwds.middleware);
       cascade = cascade.add(dwds.handler);
