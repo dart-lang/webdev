@@ -131,23 +131,23 @@ class WebDevServer {
       }
 
       dwds = await Dwds.start(
-        hostname: options.configuration.hostname,
-        assetReader: assetReader,
-        buildResults: filteredBuildResults,
-        chromeConnection: () async =>
-            (await Chrome.connectedInstance).chromeConnection,
-        loadStrategy: loadStrategy,
-        serveDevTools:
-            options.configuration.debug || options.configuration.debugExtension,
-        enableDebugExtension: options.configuration.debugExtension,
-        enableDebugging: options.configuration.debug,
-        spawnDds: !options.configuration.disableDds,
-        expressionCompiler: ddcService,
-        devtoolsLauncher: (String hostname) async {
-          var server = await serveDevTools(hostname: hostname, enableStdinCommands: false);
-          return DevTools(server.address.host, server.port, server);
-        }
-      );
+          hostname: options.configuration.hostname,
+          assetReader: assetReader,
+          buildResults: filteredBuildResults,
+          chromeConnection: () async =>
+              (await Chrome.connectedInstance).chromeConnection,
+          loadStrategy: loadStrategy,
+          serveDevTools: options.configuration.debug ||
+              options.configuration.debugExtension,
+          enableDebugExtension: options.configuration.debugExtension,
+          enableDebugging: options.configuration.debug,
+          spawnDds: !options.configuration.disableDds,
+          expressionCompiler: ddcService,
+          devtoolsLauncher: (String hostname) async {
+            var server = await serveDevTools(
+                hostname: hostname, enableStdinCommands: false);
+            return DevTools(server.address.host, server.port, server);
+          });
       pipeline = pipeline.addMiddleware(dwds.middleware);
       cascade = cascade.add(dwds.handler);
       cascade = cascade.add(assetHandler);
