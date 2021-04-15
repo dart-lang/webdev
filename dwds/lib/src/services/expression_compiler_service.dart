@@ -24,7 +24,8 @@ class _Compiler {
   final ReceivePort _receivePort;
   final SendPort _sendPort;
 
-  Future<void> _dependencyUpdate;
+  Completer<void> _updateDependenciesCompleter = Completer<void>();
+  Future<void> get dependenciesUpdated => _updateDependenciesCompleter.future;
 
   _Compiler._(
     this._worker,
@@ -132,8 +133,8 @@ class _Compiler {
     if (_worker == null) {
       throw StateError('Expression compilation service has stopped');
     }
-    var updateCompleter = Completer();
-    _dependencyUpdate = updateCompleter.future;
+
+    _updateDependenciesCompleter = Completer<void>();
 
     _logger.info('Updating dependencies...');
     _logger.finest('Dependencies: $modules');
@@ -158,7 +159,7 @@ class _Compiler {
       var s = response['stackTrace'];
       _logger.severe('Failed to update dependencies: $e:$s');
     }
-    updateCompleter.complete();
+    _updateDependenciesCompleter.complete();
     return result;
   }
 
@@ -177,7 +178,7 @@ class _Compiler {
     }
 
     _logger.finest('Waiting for dependencies to update');
-    await _dependencyUpdate;
+    await dependenciesUpdated;
 
     _logger.finest('Compiling "$expression" at $libraryUri:$line');
 
