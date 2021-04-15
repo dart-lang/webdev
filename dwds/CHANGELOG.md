@@ -1,10 +1,15 @@
-## 10.0.2-dev
+## 11.0.0-dev
 
 - Support `vm_service` version `6.2.0`.
 - Fix missing sdk libraries in `getObject()` calls.
 - Fix incorrect `rootLib` returned by `ChromeProxyService`.
 - Fix not working breakpoints in library part files.
 - Fix data race in calculating locations for a module.
+
+**Breaking changes:**
+- `Dwds.start` no longer supports automatically injecting a devtools server. If `serveDevtools` is
+  set to true, then the `devtoolsLauncher` callback must be provided to handle launching the
+  devtools server.
 
 ## 10.0.1
 
@@ -33,14 +38,14 @@
 ## 9.0.0
 
 - Fix an issue where relative worker paths provided to the `ExpressionCompilerService`
-  would cause a crash. 
+  would cause a crash.
 - Fix an issue where the injected client connection could be lost while the application
   is paused.
 - Support keep-alive for debug service connections.
 - Depend on the latest `package:sse`.
 - Filter out DDC temporary variables from the variable inspection view.
 - Add `DwdsEvent`s around stepping and evaluation.
-- Send an event to the Dart Debug Extension that contains VM service protocol URI. 
+- Send an event to the Dart Debug Extension that contains VM service protocol URI.
 - Depend on `package:vm_service` version `6.1.0+1`.
 - Update the `keepAlive` configs to prevent accidental reuse of a connection after stopping
   a debug session.
@@ -52,7 +57,7 @@
 
 ## 8.0.3
 
-- Fix an issue where failed hot restarts would hang indefinitely. 
+- Fix an issue where failed hot restarts would hang indefinitely.
 
 ## 8.0.2
 
@@ -201,7 +206,7 @@
 - Update the `require_restarter` to rerun main after a hot restart to align with
   the legacy strategy. We therefore no longer send a `RunRequest` after a hot
   restart.
-- Compute only the required top frame for a paused event. 
+- Compute only the required top frame for a paused event.
 - Change `streamListen` to return an `RPCError` / error code `-32601` for streams
   that are not handled.
 - Populate information about async Dart frames.
