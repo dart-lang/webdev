@@ -52,9 +52,13 @@ class ChromeProxyService implements VmServiceInterface {
   /// are dynamic and roughly map to chrome tabs.
   final VM _vm;
 
+  /// Signals when isolate is intialized.
   Completer<void> _initializedCompleter = Completer<void>();
-
   Future<void> get isInitialized => _initializedCompleter.future;
+
+  /// Signals when expression compiler is ready to evaluate.
+  Completer<void> _compilerCompleter = Completer<void>();
+  Future<void> get isCompilerInitialized => _compilerCompleter.future;
 
   /// The root URI at which we're serving.
   final String uri;
@@ -183,6 +187,8 @@ class ChromeProxyService implements VmServiceInterface {
           await globalLoadStrategy.moduleInfoForEntrypoint(entrypoint);
       var stopwatch = Stopwatch()..start();
       await _compiler.updateDependencies(dependencies);
+      // Expression evaluation is ready after dependencies are updated.
+      if (!_compilerCompleter.isCompleted) _compilerCompleter.complete();
       emitEvent(DwdsEvent('COMPILER_UPDATE_DEPENDENCIES', {
         'entrypoint': entrypoint,
         'elapsedMilliseconds': stopwatch.elapsedMilliseconds,
@@ -274,6 +280,7 @@ class ChromeProxyService implements VmServiceInterface {
     var isolate = _inspector?.isolate;
     if (isolate == null) return;
     _initializedCompleter = Completer<void>();
+    _compilerCompleter = Completer<void>();
     _streamNotify(
         'Isolate',
         Event(
@@ -418,8 +425,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     dynamic error;
 
     try {
+      await isInitialized;
       if (_expressionEvaluator != null) {
-        await isInitialized;
+        await isCompilerInitialized;
         _validateIsolateId(isolateId);
 
         var library = await _inspector?.getLibrary(isolateId, targetId);
@@ -459,8 +467,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     dynamic error;
 
     try {
+      await isInitialized;
       if (_expressionEvaluator != null) {
-        await isInitialized;
+        await isCompilerInitialized;
         _validateIsolateId(isolateId);
 
         var result = await _getEvaluationResult(
