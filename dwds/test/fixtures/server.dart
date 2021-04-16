@@ -100,7 +100,6 @@ class TestServer {
         chromeConnection: chromeConnection,
         loadStrategy: strategy,
         spawnDds: spawnDds,
-        serveDevTools: serveDevTools,
         enableDebugExtension: enableDebugExtension,
         enableDebugging: enableDebugging,
         useSseForDebugProxy: useSse,
@@ -109,11 +108,13 @@ class TestServer {
         hostname: hostname,
         urlEncoder: urlEncoder,
         expressionCompiler: expressionCompiler,
-        devtoolsLauncher: (hostname) async {
-          var server = await devtools_lancher.serveDevTools(
-              hostname: hostname, enableStdinCommands: false);
-          return DevTools(server.address.host, server.port, server);
-        });
+        devtoolsLauncher: serveDevTools
+            ? (hostname) async {
+                var server = await devtools_lancher.serveDevTools(
+                    hostname: hostname, enableStdinCommands: false);
+                return DevTools(server.address.host, server.port, server);
+              }
+            : null);
 
     var server = await HttpMultiServer.bind('localhost', port);
     var cascade = Cascade();

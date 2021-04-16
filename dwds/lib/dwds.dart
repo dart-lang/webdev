@@ -105,9 +105,9 @@ class Dwds {
     bool useSseForDebugProxy,
     bool useSseForDebugBackend,
     bool useSseForInjectedClient,
-    bool serveDevTools,
     UrlEncoder urlEncoder,
     bool spawnDds,
+    bool enableDevtoolsLaunch,
     DevtoolsLauncher devtoolsLauncher,
   }) async {
     hostname ??= 'localhost';
@@ -116,7 +116,7 @@ class Dwds {
     useSseForDebugProxy ??= true;
     useSseForDebugBackend ??= true;
     useSseForInjectedClient ??= true;
-    serveDevTools ??= true;
+    enableDevtoolsLaunch ??= true;
     spawnDds ??= true;
     globalLoadStrategy = loadStrategy;
 
@@ -143,8 +143,8 @@ class Dwds {
       if (urlEncoder != null) extensionUri = await urlEncoder(extensionUri);
     }
 
-    var enableDevtoolsLaunch = devtoolsLauncher != null;
-    if (enableDevtoolsLaunch) {
+    var serveDevTools = devtoolsLauncher != null;
+    if (serveDevTools) {
       devTools = await devtoolsLauncher(hostname);
       var uri =
           Uri(scheme: 'http', host: devTools.hostname, port: devTools.port);
