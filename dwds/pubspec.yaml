@@ -52,3 +52,6 @@ dev_dependencies:
   test: ^1.6.0
   uuid: '>=2.0.0 < 4.0.0'
   webdriver: '>=2.0.0 < 4.0.0'
+  # devtools_server indirectly depends on devtools so keep this around.
+  devtools: ^2.0.0
+  devtools_server: ^2.0.0
