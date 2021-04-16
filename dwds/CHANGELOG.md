@@ -5,6 +5,9 @@
 - Fix incorrect `rootLib` returned by `ChromeProxyService`.
 - Fix not working breakpoints in library part files.
 - Fix data race in calculating locations for a module.
+- Fix uninitialized isolate after hot restart.
+- Fix intermittent failure caused by evaluation not waiting for dependencies
+  to be updated.
 
 ## 10.0.1
 

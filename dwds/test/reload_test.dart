@@ -90,7 +90,7 @@ void main() {
 
   group('Injected client', () {
     setUp(() async {
-      await context.setUp();
+      await context.setUp(enableExpressionEvaluation: true);
     });
 
     tearDown(() async {
@@ -204,13 +204,66 @@ void main() {
       expect(source.contains('Hello World!'), isTrue);
       expect(source.contains('Gary is awesome!'), isTrue);
 
-      // Should not be paused.
       vm = await client.getVM();
       isolateId = vm.isolates.first.id;
       var isolate = await client.getIsolate(isolateId);
-      expect(isolate.pauseEvent.kind, EventKind.kResume);
+
       // Previous breakpoint should still exist.
       expect(isolate.breakpoints.isNotEmpty, isTrue);
+      var bp = isolate.breakpoints.first;
+
+      // Should pause eventually.
+      await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+      expect(await client.removeBreakpoint(isolate.id, bp.id), isA<Success>());
+      expect(await client.resume(isolate.id), isA<Success>());
+    });
+
+    test('can evaluate expressions after hot restart ', () async {
+      var client = context.debugConnection.vmService;
+      var vm = await client.getVM();
+      var isolateId = vm.isolates.first.id;
+      await client.streamListen('Debug');
+      var stream = client.onEvent('Debug');
+      var scriptList = await client.getScripts(isolateId);
+      var main = scriptList.scripts
+          .firstWhere((script) => script.uri.contains('main.dart'));
+      var bpLine =
+          await context.findBreakpointLine('printCount', isolateId, main);
+      await client.addBreakpoint(isolateId, main.id, bpLine);
+      await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+      await client.callServiceExtension('hotRestart');
+
+      vm = await client.getVM();
+      isolateId = vm.isolates.first.id;
+      var isolate = await client.getIsolate(isolateId);
+      var library = isolate.rootLib.uri;
+      var bp = isolate.breakpoints.first;
+
+      // Should pause eventually.
+      var event = await stream
+          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+      // Expression evaluation while paused on a breakpoint should work.
+      var result = await client.evaluateInFrame(
+          isolate.id, event.topFrame.index, 'count');
+      expect(
+          result,
+          isA<InstanceRef>().having((instance) => instance.valueAsString,
+              'valueAsString', greaterThanOrEqualTo('0')));
+
+      await client.removeBreakpoint(isolateId, bp.id);
+      await client.resume(isolateId);
+
+      // Expression evaluation while running should work.
+      result = await client.evaluate(isolateId, library, 'true');
+      expect(
+          result,
+          isA<InstanceRef>().having(
+              (instance) => instance.valueAsString, 'valueAsString', 'true'));
     });
   });
 
