@@ -7,9 +7,8 @@
 - Fix data race in calculating locations for a module.
 
 **Breaking changes:**
-- `Dwds.start` no longer supports automatically injecting a devtools server. If `serveDevtools` is
-  set to true, then the `devtoolsLauncher` callback must be provided to handle launching the
-  devtools server.
+- `Dwds.start` no longer supports automatically injecting a devtools server. A `devtoolsLauncher`
+  callback must be provided to support launching devtools.
 
 ## 10.0.1
 

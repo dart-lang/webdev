@@ -108,7 +108,6 @@ class Dwds {
     bool serveDevTools,
     UrlEncoder urlEncoder,
     bool spawnDds,
-    bool enableDevtoolsLaunch,
     DevtoolsLauncher devtoolsLauncher,
   }) async {
     hostname ??= 'localhost';
@@ -118,10 +117,8 @@ class Dwds {
     useSseForDebugBackend ??= true;
     useSseForInjectedClient ??= true;
     serveDevTools ??= true;
-    enableDevtoolsLaunch ??= true;
     spawnDds ??= true;
     globalLoadStrategy = loadStrategy;
-    assert(enableDevtoolsLaunch == false || devtoolsLauncher != null);
 
     DevTools devTools;
     String extensionUri;
@@ -146,7 +143,8 @@ class Dwds {
       if (urlEncoder != null) extensionUri = await urlEncoder(extensionUri);
     }
 
-    if (serveDevTools) {
+    var enableDevtoolsLaunch = devtoolsLauncher != null;
+    if (enableDevtoolsLaunch) {
       devTools = await devtoolsLauncher(hostname);
       var uri =
           Uri(scheme: 'http', host: devTools.hostname, port: devTools.port);
