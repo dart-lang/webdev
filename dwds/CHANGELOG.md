@@ -1,4 +1,4 @@
-## 11.0.0-dev
+## 11.0.0
 
 - Support `vm_service` version `6.2.0`.
 - Fix missing sdk libraries in `getObject()` calls.
