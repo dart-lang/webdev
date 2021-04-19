@@ -43,6 +43,7 @@ export 'src/readers/asset_reader.dart' show AssetReader;
 export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
+export 'src/servers/devtools.dart';
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 export 'src/services/expression_compiler.dart'
     show ExpressionCompilationResult, ExpressionCompiler, ModuleInfo;
@@ -104,10 +105,10 @@ class Dwds {
     bool useSseForDebugProxy,
     bool useSseForDebugBackend,
     bool useSseForInjectedClient,
-    bool serveDevTools,
     UrlEncoder urlEncoder,
     bool spawnDds,
     bool enableDevtoolsLaunch,
+    DevtoolsLauncher devtoolsLauncher,
   }) async {
     hostname ??= 'localhost';
     enableDebugging ??= true;
@@ -115,7 +116,6 @@ class Dwds {
     useSseForDebugProxy ??= true;
     useSseForDebugBackend ??= true;
     useSseForInjectedClient ??= true;
-    serveDevTools ??= true;
     enableDevtoolsLaunch ??= true;
     spawnDds ??= true;
     globalLoadStrategy = loadStrategy;
@@ -143,8 +143,9 @@ class Dwds {
       if (urlEncoder != null) extensionUri = await urlEncoder(extensionUri);
     }
 
+    var serveDevTools = devtoolsLauncher != null;
     if (serveDevTools) {
-      devTools = await DevTools.start(hostname);
+      devTools = await devtoolsLauncher(hostname);
       var uri =
           Uri(scheme: 'http', host: devTools.hostname, port: devTools.port);
       _logger.info('Serving DevTools at $uri\n');

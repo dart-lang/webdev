@@ -14,6 +14,7 @@ import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+import 'package:devtools_server/devtools_server.dart' as devtools_lancher;
 
 Handler _interceptFavicon(Handler handler) {
   return (request) async {
@@ -94,21 +95,26 @@ class TestServer {
     });
 
     var dwds = await Dwds.start(
-      assetReader: assetReader,
-      buildResults: filteredBuildResults,
-      chromeConnection: chromeConnection,
-      loadStrategy: strategy,
-      spawnDds: spawnDds,
-      serveDevTools: serveDevTools,
-      enableDebugExtension: enableDebugExtension,
-      enableDebugging: enableDebugging,
-      useSseForDebugProxy: useSse,
-      useSseForDebugBackend: useSse,
-      useSseForInjectedClient: useSse,
-      hostname: hostname,
-      urlEncoder: urlEncoder,
-      expressionCompiler: expressionCompiler,
-    );
+        assetReader: assetReader,
+        buildResults: filteredBuildResults,
+        chromeConnection: chromeConnection,
+        loadStrategy: strategy,
+        spawnDds: spawnDds,
+        enableDebugExtension: enableDebugExtension,
+        enableDebugging: enableDebugging,
+        useSseForDebugProxy: useSse,
+        useSseForDebugBackend: useSse,
+        useSseForInjectedClient: useSse,
+        hostname: hostname,
+        urlEncoder: urlEncoder,
+        expressionCompiler: expressionCompiler,
+        devtoolsLauncher: serveDevTools
+            ? (hostname) async {
+                var server = await devtools_lancher.serveDevTools(
+                    hostname: hostname, enableStdinCommands: false);
+                return DevTools(server.address.host, server.port, server);
+              }
+            : null);
 
     var server = await HttpMultiServer.bind('localhost', port);
     var cascade = Cascade();

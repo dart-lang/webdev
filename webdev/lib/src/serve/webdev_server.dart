@@ -16,6 +16,7 @@ import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_proxy/shelf_proxy.dart';
+import 'package:devtools_server/devtools_server.dart';
 
 import '../command/configuration.dart';
 import 'chrome.dart';
@@ -128,21 +129,26 @@ class WebDevServer {
           options.configuration.verbose,
         );
       }
-
+      var shouldServeDevTools =
+          options.configuration.debug || options.configuration.debugExtension;
       dwds = await Dwds.start(
-        hostname: options.configuration.hostname,
-        assetReader: assetReader,
-        buildResults: filteredBuildResults,
-        chromeConnection: () async =>
-            (await Chrome.connectedInstance).chromeConnection,
-        loadStrategy: loadStrategy,
-        serveDevTools:
-            options.configuration.debug || options.configuration.debugExtension,
-        enableDebugExtension: options.configuration.debugExtension,
-        enableDebugging: options.configuration.debug,
-        spawnDds: !options.configuration.disableDds,
-        expressionCompiler: ddcService,
-      );
+          hostname: options.configuration.hostname,
+          assetReader: assetReader,
+          buildResults: filteredBuildResults,
+          chromeConnection: () async =>
+              (await Chrome.connectedInstance).chromeConnection,
+          loadStrategy: loadStrategy,
+          enableDebugExtension: options.configuration.debugExtension,
+          enableDebugging: options.configuration.debug,
+          spawnDds: !options.configuration.disableDds,
+          expressionCompiler: ddcService,
+          devtoolsLauncher: shouldServeDevTools
+              ? (String hostname) async {
+                  var server = await serveDevTools(
+                      hostname: hostname, enableStdinCommands: false);
+                  return DevTools(server.address.host, server.port, server);
+                }
+              : null);
       pipeline = pipeline.addMiddleware(dwds.middleware);
       cascade = cascade.add(dwds.handler);
       cascade = cascade.add(assetHandler);
