@@ -288,7 +288,6 @@ class InstanceHelper extends Domain {
     //
     // For maps and lists it's more complicated. Treat the actual SDK versions
     // of these as special.
-    // TODO(alanknight): Handle superclass fields.
     final fieldNameExpression = '''function() {
       const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
       const sdk_utils = sdk.dart;
@@ -302,7 +301,9 @@ class InstanceHelper extends Domain {
       const privateFields = sdk_utils.getOwnPropertySymbols(fields);
       const nonSymbolNames = privateFields.map(sym => sym.description);
       const publicFieldNames = sdk_utils.getOwnPropertyNames(fields);
-      return nonSymbolNames.concat(publicFieldNames).join(',');
+      const symbolNames =  Object.getOwnPropertySymbols(this)
+                            .map(sym => sym.description.split('.').slice(-1)[0]);
+      return nonSymbolNames.concat(publicFieldNames).concat(symbolNames).join(',');
     }
     ''';
     var allNames = (await inspector

@@ -141,6 +141,7 @@ void main() {
           instance.fields.map((boundField) => boundField.decl.name).toList();
       expect(fieldNames, [
         '_privateField',
+        'abstractField',
         'closure',
         'count',
         'message',
