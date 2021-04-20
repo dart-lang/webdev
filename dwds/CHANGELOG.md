@@ -1,3 +1,8 @@
+## 11.0.1-dev
+
+- Do not send `kServiceExtensionAdded` events to subscribers
+  on the terminating isolate during hot restart.
+
 ## 11.0.0-dev
 
 - Support `vm_service` version `6.2.0`.
@@ -6,10 +11,8 @@
 - Fix not working breakpoints in library part files.
 - Fix data race in calculating locations for a module.
 - Fix uninitialized isolate after hot restart.
-- Fix intermittent failure caused by evaluation not waiting
-  for dependencies to be updated.
-- Do not send `kServiceExtensionAdded` events to subscribers
-  on the terminating isolate during hot restart.
+- Fix intermittent failure caused by evaluation not waiting for dependencies
+  to be updated.
 
 **Breaking changes:**
 - `Dwds.start` no longer supports automatically injecting a devtools server. A `devtoolsLauncher`
