@@ -60,6 +60,8 @@ class DwdsVmClient {
 
     client.registerServiceCallback('hotRestart', (request) async {
       _logger.info('Attempting a hot restart');
+
+      chromeProxyService.terminatingIsolates = true;
       await _disableBreakpointsAndResume(client, chromeProxyService);
       int context;
       try {
@@ -105,6 +107,8 @@ class DwdsVmClient {
 
       _logger.info('Waiting for Isolate Start event.');
       await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
+      chromeProxyService.terminatingIsolates = false;
+
       _logger.info('Successful hot restart');
       return {'result': Success().toJson()};
     });
