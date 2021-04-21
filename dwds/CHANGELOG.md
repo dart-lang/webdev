@@ -1,3 +1,8 @@
+## 11.0.1-dev
+
+- Do not send `kServiceExtensionAdded` events to subscribers
+  on the terminating isolate during hot restart.
+
 ## 11.0.0-dev
 
 - Support `vm_service` version `6.2.0`.

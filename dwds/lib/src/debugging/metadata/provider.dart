@@ -51,6 +51,7 @@ class MetadataProvider {
         'dart:async',
         'dart:collection',
         'dart:convert',
+        'dart:core',
         'dart:developer',
         'dart:io',
         'dart:isolate',
