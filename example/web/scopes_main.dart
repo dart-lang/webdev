@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// An example with more complicated scope
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -75,7 +74,11 @@ String libraryFunction(String arg) {
   return concat;
 }
 
-class MyTestClass<T> {
+abstract class MyAbstractClass {
+  String abstractField = 'abstract-field-value';
+}
+
+class MyTestClass<T> extends MyAbstractClass {
   final String message;
 
   String notFinal;

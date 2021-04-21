@@ -84,6 +84,7 @@ void main() {
         properties.map((p) => p.name).where((x) => x != '__proto__').toList();
     var expected = [
       '_privateField',
+      'abstractField',
       'closure',
       'count',
       'message',
