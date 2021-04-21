@@ -41,6 +41,9 @@ const _allowedEvents = {'Overlay.inspectNodeRequested'};
 // Map of Chrome tab ID to encoded vm service protocol URI.
 final _tabIdToEncodedUri = <int, String>{};
 
+// We will need to listen to tab changes to update this list.
+final _debuggableTabs = <int>{};
+
 void main() {
   var startDebugging = allowInterop((_) {
     var query = QueryInfo(active: true, currentWindow: true);
@@ -51,6 +54,8 @@ void main() {
     // Extracts the extension backend port from the injected JS.
     var callback = allowInterop((List<Tab> tabs) async {
       currentTab = tabs[0];
+      // Only support debugging known debugabble targets.
+      if (!_debuggableTabs.contains(currentTab.id)) return;
       attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() async {
         if (lastError != null) {
           String alertMessage;
@@ -114,6 +119,14 @@ void main() {
   });
 
   isDartDebugExtension = true;
+
+  onMessageAddListener(allowInterop(
+      (Request request, Sender sender, Function sendResponse) async {
+    // TODO - Save sender.tab.id then update the extension icon indicating
+    // debugging is now available.
+    _debuggableTabs.add(sender.tab.id);
+    sendResponse(true);
+  }));
 
   onMessageExternalAddListener(allowInterop(
       (Request request, Sender sender, Function sendResponse) async {
@@ -432,6 +445,9 @@ external void tabsOnRemovedAddListener(Function callback);
 @JS('chrome.runtime.onMessageExternal.addListener')
 external void onMessageExternalAddListener(Function callback);
 
+@JS('chrome.runtime.onMessage.addListener')
+external void onMessageAddListener(Function callback);
+
 @JS('chrome.runtime.sendMessage')
 external void sendMessage(
     String id, Object message, Object options, Function callback);
@@ -506,6 +522,7 @@ class SendCommandOptions {
 @anonymous
 class Sender {
   external String get id;
+  external Tab get tab;
 }
 
 @JS()

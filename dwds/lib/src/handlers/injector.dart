@@ -158,6 +158,10 @@ String _injectClientAndHoistMain(
     enableDevtoolsLaunch,
   );
   result += '''
+
+  document.dispatchEvent(new CustomEvent('dart-app-ready', {
+  }));
+
   // Injected by dwds for debugging support.
   if(!window.\$dwdsInitialized) {
     window.\$dwdsInitialized = true;
