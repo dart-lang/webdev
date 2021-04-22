@@ -70,25 +70,27 @@ void main() {
         expect(firstBp, isNotNull);
         expect(firstBp.id, isNotNull);
 
-        // Set another breakpoint at the same place - expect a failure.
-        var addFuture = service.addBreakpoint(isolate.id, mainScript.id, line);
-        expect(addFuture, throwsA(predicate((e) => e is RPCError)));
+        var secondBp =
+            await service.addBreakpoint(isolate.id, mainScript.id, line);
+        expect(secondBp, isNotNull);
+        expect(secondBp.id, isNotNull);
+
+        expect(firstBp.id, equals(secondBp.id));
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, firstBp.id);
       });
 
-      test('addBreakpoint errors when sending the same breakpoint twice',
+      test('addBreakpoint succeeds when sending the same breakpoint twice',
           () async {
         var line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id, mainScript);
         var firstBp = service.addBreakpoint(isolate.id, mainScript.id, line);
-        // Set another breakpoint at the same place - expect a failure.
-        var addFuture = service.addBreakpoint(isolate.id, mainScript.id, line);
-        expect(addFuture, throwsA(predicate((e) => e is RPCError)));
+        var secondBp = service.addBreakpoint(isolate.id, mainScript.id, line);
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, (await firstBp).id);
+        expect((await firstBp).id, equals((await secondBp).id));
       });
 
       test('addBreakpoint in nonsense location throws', () async {
@@ -138,7 +140,7 @@ void main() {
         expect(() => service.removeBreakpoint(null, null), throwsRPCError);
       });
 
-      test("removeBreakpoint doesn't exist", () {
+      test("removeBreakpoint that doesn't exist fails", () {
         expect(
             () => service.removeBreakpoint(isolate.id, '1234'), throwsRPCError);
       });

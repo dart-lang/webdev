@@ -1,12 +1,14 @@
 ## 11.0.1-dev
 
-- Allow adding existing breakpoints and removing non-existing ones.
+- Make adding and removing breakpoints match VM behavior:
+  - Allow adding existing breakpoints.
+  - Throw `RPCError` when removing non-existent breakpoints.
+
 
 ## 11.0.0
 
 - Do not send `kServiceExtensionAdded` events to subscribers
   on the terminating isolate during hot restart.
-
 - Support `vm_service` version `6.2.0`.
 - Fix missing sdk libraries in `getObject()` calls.
 - Fix incorrect `rootLib` returned by `ChromeProxyService`.

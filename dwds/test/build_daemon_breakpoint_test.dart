@@ -89,7 +89,7 @@ void main() {
         await service.removeBreakpoint(isolate.id, bp.id);
       });
 
-      test('set existing breakpoint', () async {
+      test('set existing breakpoint succeeds', () async {
         var line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
         var bp1 = await service.addBreakpointWithScriptUri(
@@ -113,7 +113,8 @@ void main() {
         expect(currentIsolate.breakpoints, isEmpty);
       });
 
-      test('set breakpoints at the same line simultaneously', () async {
+      test('set breakpoints at the same line simultaneously succeeds',
+          () async {
         var line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
         var futures = [
@@ -138,7 +139,7 @@ void main() {
         expect(currentIsolate.breakpoints, isEmpty);
       });
 
-      test('remove non-existing breakpoint', () async {
+      test('remove non-existing breakpoint fails', () async {
         var line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
         var bp = await service.addBreakpointWithScriptUri(
@@ -152,7 +153,8 @@ void main() {
 
         // Remove breakpoints so they don't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
-        await service.removeBreakpoint(isolate.id, bp.id);
+        await expectLater(
+            service.removeBreakpoint(isolate.id, bp.id), throwsRPCError);
 
         currentIsolate = await service.getIsolate(isolate.id);
         expect(currentIsolate.breakpoints, isEmpty);

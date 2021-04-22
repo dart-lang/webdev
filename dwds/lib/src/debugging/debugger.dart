@@ -271,24 +271,23 @@ class Debugger extends Domain {
   Future<Success> removeBreakpoint(
       String isolateId, String breakpointId) async {
     checkIsolate('removeBreakpoint', isolateId);
-    if (breakpointId == null) {
-      throwInvalidParam('removeBreakpoint', 'breakpointId not provided');
+    if (!_breakpoints._bpByDartId.containsKey(breakpointId)) {
+      throwInvalidParam(
+          'removeBreakpoint', 'invalid breakpoint id $breakpointId');
     }
-    if (_breakpoints._bpByDartId.containsKey(breakpointId)) {
-      final jsId = _breakpoints.jsId(breakpointId);
-      await _removeBreakpoint(jsId);
+    final jsId = _breakpoints.jsId(breakpointId);
+    await _removeBreakpoint(jsId);
 
-      var bp = await _breakpoints.remove(jsId: jsId, dartId: breakpointId);
-      if (bp != null) {
-        _streamNotify(
-          'Debug',
-          Event(
-              kind: EventKind.kBreakpointRemoved,
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              isolate: inspector.isolateRef)
-            ..breakpoint = bp,
-        );
-      }
+    var bp = await _breakpoints.remove(jsId: jsId, dartId: breakpointId);
+    if (bp != null) {
+      _streamNotify(
+        'Debug',
+        Event(
+            kind: EventKind.kBreakpointRemoved,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            isolate: inspector.isolateRef)
+          ..breakpoint = bp,
+      );
     }
     return Success();
   }
