@@ -159,7 +159,6 @@ String _injectClientAndHoistMain(
   );
   result += '''
   // Injected by dwds for debugging support.
-  document.dispatchEvent(new CustomEvent('dart-app-ready', {}));
   if(!window.\$dwdsInitialized) {
     window.\$dwdsInitialized = true;
     window.\$dartMainTearOffs = [$mainFunction];
@@ -170,6 +169,7 @@ String _injectClientAndHoistMain(
       });
     }
     $injectedClientSnippet
+    window.top.document.dispatchEvent(new CustomEvent('dart-app-ready', {}));
   } else {
     if(window.\$dartMainExecuted){
      $mainFunction();
