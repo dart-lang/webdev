@@ -2,9 +2,6 @@
 
 - Do not send `kServiceExtensionAdded` events to subscribers
   on the terminating isolate during hot restart.
-
-## 11.0.0-dev
-
 - Support `vm_service` version `6.2.0`.
 - Fix missing sdk libraries in `getObject()` calls.
 - Fix incorrect `rootLib` returned by `ChromeProxyService`.
@@ -13,6 +10,8 @@
 - Fix uninitialized isolate after hot restart.
 - Fix intermittent failure caused by evaluation not waiting for dependencies
   to be updated.
+- The injected client now posts an event when the app is initially loaded.
+  This is intended to be consumed by the Dart Debug Extension.
 
 **Breaking changes:**
 - `Dwds.start` no longer supports automatically injecting a devtools server. A `devtoolsLauncher`
