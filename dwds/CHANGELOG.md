@@ -10,8 +10,8 @@
 - Fix uninitialized isolate after hot restart.
 - Fix intermittent failure caused by evaluation not waiting for dependencies
   to be updated.
-- The injected client now posts an event when the app is initially loaded.
-  This is intended to be consumed by the Dart Debug Extension.
+- Along with the injected metadata we now post a document level event.
+  This event is intended to be consumed by the Dart Debug Extension.
 
 **Breaking changes:**
 - `Dwds.start` no longer supports automatically injecting a devtools server. A `devtoolsLauncher`
