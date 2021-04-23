@@ -8,8 +8,9 @@
         "default_icon": "dart_grey.png"
     },
     "permissions": [
+        "debugger",
         "tabs",
-        "debugger"
+        "webNavigation"
     ],
     "background": {
         "scripts": [

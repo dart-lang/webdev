@@ -12,7 +12,6 @@ import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
 
-import 'package:async/async.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
@@ -20,7 +19,6 @@ import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/sockets.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
-import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -42,6 +40,8 @@ const _allowedEvents = {'Overlay.inspectNodeRequested'};
 final _tabIdToEncodedUri = <int, String>{};
 
 final _debuggableTabs = <int>{};
+
+final _tabsToAttach = <Tab>{};
 
 final _debugSessions = <DebugSession>[];
 
@@ -80,42 +80,9 @@ void main() {
           alert(alertMessage);
           return;
         }
-        var contextController = StreamController<int>();
-        var contextQueue = StreamQueue(contextController.stream);
-        addDebuggerListener(
-            allowInterop((Debuggee source, String method, Object params) async {
-          if (source.tabId != currentTab.id) {
-            return;
-          }
-          if (method == 'Runtime.executionContextCreated') {
-            var context = json.decode(stringify(params))['context'];
-            contextController.add(context['id'] as int);
-          }
-        }));
-        // We enqueue this work as we need to begin listening (`.hasNext`)
-        // before events are received.
-        unawaited(Future.microtask(() => sendCommand(
-            Debuggee(tabId: currentTab.id),
-            'Runtime.enable',
-            EmptyParam(),
-            allowInterop((e) {}))));
-        var didAttach = false;
-        // There is no way to calculate the number of existing execution contexts
-        // so we wait for a short while to recieve a context.
-        while (await contextQueue.hasNext.timeout(
-            const Duration(milliseconds: 50),
-            onTimeout: () => false)) {
-          var context = await contextQueue.next;
-          if (await _tryAttach(context, currentTab)) {
-            didAttach = true;
-            break;
-          }
-        }
-        if (!didAttach) {
-          alert(_notADartAppAlert);
-          detach(Debuggee(tabId: currentTab.id), allowInterop(() {}));
-          return;
-        }
+        _tabsToAttach.add(currentTab);
+        sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable',
+            EmptyParam(), allowInterop((e) {}));
       }));
     });
 
@@ -143,9 +110,24 @@ void main() {
     _updateIcon();
   }));
 
-  tabsOnUpdatedAddlistener(allowInterop((int tabId, ChangeInfo changeInfo, __) {
-    if (changeInfo.status == 'loading') {
-      _debuggableTabs.remove(tabId);
+  addDebuggerListener(
+      allowInterop((Debuggee source, String method, Object params) async {
+    var tab = _tabsToAttach.firstWhere((tab) => tab.id == source.tabId,
+        orElse: () => null);
+    if (tab != null) {
+      if (method == 'Runtime.executionContextCreated') {
+        var context = json.decode(stringify(params))['context'];
+        if (await _tryAttach(context['id'] as int, tab)) {
+          _tabsToAttach.remove(tab);
+        }
+      }
+    }
+  }));
+
+  webNavigationOnCommittedAddListener(
+      allowInterop((NavigationInfo navigationInfo) {
+    if (navigationInfo.transitionType != 'auto_subframe' &&
+        _debuggableTabs.remove(navigationInfo.tabId)) {
       _updateIcon();
     }
   }));
@@ -440,8 +422,8 @@ external void tabsOnCreatedAddListener(Function callback);
 @JS('chrome.windows.onFocusChanged.addListener')
 external void windowOnFocusChangeAddListener(Function callback);
 
-@JS('chrome.tabs.onUpdated.addListener')
-external void tabsOnUpdatedAddlistener(Function callback);
+@JS('chrome.webNavigation.onCommitted.addListener')
+external void webNavigationOnCommittedAddListener(Function callback);
 
 @JS('chrome.tabs.onActivated.addListener')
 external void tabsOnActivatedAddListener(Function callback);
@@ -517,8 +499,9 @@ class ActiveInfo {
 
 @JS()
 @anonymous
-class ChangeInfo {
-  external String get status;
+class NavigationInfo {
+  external String get transitionType;
+  external int get tabId;
 }
 
 @JS()
