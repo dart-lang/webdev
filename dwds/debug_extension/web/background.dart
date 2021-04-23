@@ -90,7 +90,7 @@ void main() {
       callback(List.from(tabs));
     }));
   });
-  addListener(startDebugging);
+  browserActionOnClickedAddListener(startDebugging);
 
   // For testing only.
   onFakeClick = allowInterop(() {
@@ -103,6 +103,8 @@ void main() {
       (Request request, Sender sender, Function sendResponse) async {
     _debuggableTabs.add(sender.tab.id);
     _updateIcon();
+    // TODO(grouma) - We can conditionally auto start debugging here.
+    // For example: startDebugging(null);
     sendResponse(true);
   }));
 
@@ -112,11 +114,11 @@ void main() {
 
   addDebuggerListener(
       allowInterop((Debuggee source, String method, Object params) async {
-    var tab = _tabsToAttach.firstWhere((tab) => tab.id == source.tabId,
-        orElse: () => null);
-    if (tab != null) {
-      if (method == 'Runtime.executionContextCreated') {
-        var context = json.decode(stringify(params))['context'];
+    if (method == 'Runtime.executionContextCreated') {
+      var context = json.decode(stringify(params))['context'];
+      var tab = _tabsToAttach.firstWhere((tab) => tab.id == source.tabId,
+          orElse: () => null);
+      if (tab != null) {
         if (await _tryAttach(context['id'] as int, tab)) {
           _tabsToAttach.remove(tab);
         }
@@ -238,6 +240,7 @@ Future<bool> _tryAttach(int contextId, Tab tab) async {
           returnByValue: true,
           contextId: contextId), allowInterop((e) {
     String extensionUri, appId, instanceId, dwdsVersion;
+    print(stringify(e));
     if (e.result.value == null) {
       successCompleter.complete(false);
       return;
@@ -388,7 +391,7 @@ void _filterAndForward(Debuggee source, String method, Object params) {
 }
 
 @JS('chrome.browserAction.onClicked.addListener')
-external void addListener(Function callback);
+external void browserActionOnClickedAddListener(Function callback);
 
 @JS('chrome.debugger.sendCommand')
 external void sendCommand(

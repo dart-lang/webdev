@@ -10,7 +10,7 @@
 - Fix uninitialized isolate after hot restart.
 - Fix intermittent failure caused by evaluation not waiting for dependencies
   to be updated.
-- Along with the injected metadata we now post a document level event.
+- The injected client now posts a top level event when the Dart application is loaded.
   This event is intended to be consumed by the Dart Debug Extension.
 
 **Breaking changes:**

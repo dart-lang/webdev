@@ -129,6 +129,7 @@ Future<void> main() {
       // If not Chromium we just invoke main, devtools aren't supported.
       runMain();
     }
+    dispatchEvent(CustomEvent('dart-app-ready'));
   }, (error, stackTrace) {
     print('''
 Unhandled error detected in the injected client.js script.
@@ -196,5 +197,8 @@ external String get dartEntrypointPath;
 
 @JS(r'$dwdsEnableDevtoolsLaunch')
 external bool get dwdsEnableDevtoolsLaunch;
+
+@JS('window.top.document.dispatchEvent')
+external void dispatchEvent(CustomEvent event);
 
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');

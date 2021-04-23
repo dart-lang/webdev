@@ -12,6 +12,7 @@ import 'dart:isolate';
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../dwds.dart';
 import '../loaders/strategy.dart';
@@ -169,7 +170,6 @@ String _injectClientAndHoistMain(
       });
     }
     $injectedClientSnippet
-    window.top.document.dispatchEvent(new CustomEvent('dart-app-ready', {}));
   } else {
     if(window.\$dartMainExecuted){
      $mainFunction();
@@ -192,6 +192,7 @@ String _injectedClientSnippet(
   bool enableDevtoolsLaunch,
 ) {
   var injectedBody = 'window.\$dartAppId = "$appId";\n'
+      'window.\$dartAppInstanceId = "${const Uuid().v1()}";\n'
       'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
       'window.\$dartModuleStrategy = "${loadStrategy.id}";\n'
       'window.\$loadModuleConfig = ${loadStrategy.loadModuleSnippet};\n'
