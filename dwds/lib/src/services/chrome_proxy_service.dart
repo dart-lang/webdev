@@ -96,6 +96,8 @@ class ChromeProxyService implements VmServiceInterface {
   final ExpressionCompiler _compiler;
   ExpressionEvaluator _expressionEvaluator;
 
+  bool terminatingIsolates = false;
+
   ChromeProxyService._(
     this._vm,
     this.uri,
@@ -834,10 +836,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   void _setUpChromeConsoleListeners(IsolateRef isolateRef) {
     _consoleSubscription =
         remoteDebugger.onConsoleAPICalled.listen((event) async {
+      if (terminatingIsolates) return;
       if (event.type != 'debug') return;
 
       var isolate = _inspector?.isolate;
       if (isolate == null) return;
+      if (isolateRef.id != isolate.id) return;
 
       var firstArgValue = event.args[0].value as String;
       switch (firstArgValue) {
