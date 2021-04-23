@@ -8,8 +8,8 @@
 import 'dart:io';
 
 import 'package:dwds/src/version.dart';
-import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 
 void main() {

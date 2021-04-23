@@ -7,8 +7,8 @@
 @TestOn('vm')
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
