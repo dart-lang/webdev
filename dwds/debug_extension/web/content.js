@@ -11,7 +11,7 @@ document.addEventListener('dart-app-ready', function (e) {
     sendMessage(e);
 });
 
-var targetNode = document;
+var targetNode = document.head;
 var observerOptions = {
     childList: true,
     attributes: true,
