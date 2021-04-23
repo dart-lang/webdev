@@ -112,8 +112,11 @@ void main() {
     _updateIcon();
   }));
 
-  addDebuggerListener(
-      allowInterop((Debuggee source, String method, Object params) async {
+  addDebuggerListener(allowInterop((
+    Debuggee source,
+    String method,
+    Object params,
+  ) async {
     if (method == 'Runtime.executionContextCreated') {
       var context = json.decode(stringify(params))['context'];
       var tab = _tabsToAttach.firstWhere((tab) => tab.id == source.tabId,
@@ -240,7 +243,6 @@ Future<bool> _tryAttach(int contextId, Tab tab) async {
           returnByValue: true,
           contextId: contextId), allowInterop((e) {
     String extensionUri, appId, instanceId, dwdsVersion;
-    print(stringify(e));
     if (e.result.value == null) {
       successCompleter.complete(false);
       return;
