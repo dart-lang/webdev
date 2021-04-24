@@ -1,3 +1,7 @@
+## 1.22
+
+- Detect Dart applications and update the icon accordingly.
+
 ## 1.21
 
 - Detect authentication issues and prompt accordingly.
