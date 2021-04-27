@@ -1,4 +1,4 @@
-## 11.0.0-dev
+## 11.0.0
 
 - Do not send `kServiceExtensionAdded` events to subscribers
   on the terminating isolate during hot restart.
