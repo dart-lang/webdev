@@ -1,4 +1,4 @@
-## 11.0.1-dev
+## 11.0.1
 
 - Make adding and removing breakpoints match VM behavior:
   - Allow adding existing breakpoints.
