@@ -88,6 +88,77 @@ void main() {
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
       });
+
+      test('set existing breakpoint succeeds', () async {
+        var line = await context.findBreakpointLine(
+            'printLocal', isolate.id, mainScript);
+        var bp1 = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+        var bp2 = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        expect(bp1, equals(bp2));
+        expect(bp1, isNotNull);
+
+        await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var currentIsolate = await service.getIsolate(isolate.id);
+        expect(currentIsolate.breakpoints, containsAll([bp1]));
+
+        // Remove breakpoints so they don't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp1.id);
+
+        currentIsolate = await service.getIsolate(isolate.id);
+        expect(currentIsolate.breakpoints, isEmpty);
+      });
+
+      test('set breakpoints at the same line simultaneously succeeds',
+          () async {
+        var line = await context.findBreakpointLine(
+            'printLocal', isolate.id, mainScript);
+        var futures = [
+          service.addBreakpointWithScriptUri(isolate.id, mainScript.uri, line),
+          service.addBreakpointWithScriptUri(isolate.id, mainScript.uri, line),
+        ];
+
+        var breakpoints = await Future.wait(futures);
+        expect(breakpoints[0], equals(breakpoints[1]));
+        expect(breakpoints[0], isNotNull);
+
+        await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var currentIsolate = await service.getIsolate(isolate.id);
+        expect(currentIsolate.breakpoints, containsAll([breakpoints[0]]));
+
+        // Remove breakpoints so they don't impact other tests.
+        await service.removeBreakpoint(isolate.id, breakpoints[0].id);
+
+        currentIsolate = await service.getIsolate(isolate.id);
+        expect(currentIsolate.breakpoints, isEmpty);
+      });
+
+      test('remove non-existing breakpoint fails', () async {
+        var line = await context.findBreakpointLine(
+            'printLocal', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        var currentIsolate = await service.getIsolate(isolate.id);
+        expect(currentIsolate.breakpoints, containsAll([bp]));
+
+        // Remove breakpoints so they don't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+        await expectLater(
+            service.removeBreakpoint(isolate.id, bp.id), throwsRPCError);
+
+        currentIsolate = await service.getIsolate(isolate.id);
+        expect(currentIsolate.breakpoints, isEmpty);
+      });
     });
   });
 }

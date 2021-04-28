@@ -1,3 +1,10 @@
+## 11.0.1
+
+- Make adding and removing breakpoints match VM behavior:
+  - Allow adding existing breakpoints.
+  - Throw `RPCError` when removing non-existent breakpoints.
+
+
 ## 11.0.0
 
 - Do not send `kServiceExtensionAdded` events to subscribers
