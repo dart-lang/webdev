@@ -237,6 +237,34 @@ String get message => p.join('hello', 'world');
         utf8.decode(dartDevcClient.assetBytes('${entrypointUri.path}.lib.js')!),
         contains('goodbye'));
   });
+
+  test('can enable experiments', () async {
+    await d.dir('a', [
+      d.dir('bin', [
+        d.file('nnbd.dart', '''
+// @dart=2.10
+
+// Compile time error if nnbd is enabled
+int x;
+
+void main() {
+  print(x);
+}
+''')
+      ])
+    ]).create();
+    var entrypoint = p.join(packageRoot, 'bin', 'nnbd.dart');
+    client = await FrontendServerClient.start(
+        entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill,
+        enabledExperiments: ['non-nullable']);
+    var result = await client.compile();
+    if (result == null) {
+      fail('Expected compilation to be non-null');
+    }
+    client.accept();
+    expect(result.errorCount, 1);
+    expect(result.compilerOutputLines, contains(contains('int x;')));
+  });
 }
 
 Future<Isolate> waitForIsolatesAndResume(VmService vmService) async {
