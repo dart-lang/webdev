@@ -46,6 +46,7 @@ class FrontendServerClient {
     String platformKernel, {
     String dartdevcModuleFormat = 'amd',
     bool debug = false,
+    List<String>? enabledExperiments,
     bool enableHttpUris = false,
     List<String> fileSystemRoots = const [], // For `fileSystemScheme` uris,
     String fileSystemScheme =
@@ -76,6 +77,9 @@ class FrontendServerClient {
       '--incremental',
       if (verbose) '--verbose',
       if (!printIncrementalDependencies) '--no-print-incremental-dependencies',
+      if (enabledExperiments != null)
+        for (var experiment in enabledExperiments)
+          '--enable-experiment=$experiment',
     ]);
     var feServerStdoutLines = StreamQueue(feServer.stdout
         .transform(utf8.decoder)
