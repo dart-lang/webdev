@@ -1,3 +1,7 @@
+## 11.0.2
+
+- Implement `_flutter.listViews` extension method in dwds vm client.
+
 ## 11.0.1
 
 - Make adding and removing breakpoints match VM behavior:
