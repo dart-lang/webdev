@@ -58,6 +58,28 @@ class DwdsVmClient {
     var chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
 
+    // Register '_flutter.listViews' method on the chrome proxy service vm.
+    // In native world, this method is provided by the engine, but the web
+    // engine is not aware of the VM uri or the isolates.
+    //
+    // Issue: https://github.com/dart-lang/webdev/issues/1315
+    client.registerServiceCallback('_flutter.listViews', (request) async {
+      final vm = await chromeProxyService.getVM();
+      final isolates = vm.isolates;
+      return <String, dynamic>{
+        'result': <String, Object>{
+          'views': <Object>[
+            for (var isolate in isolates)
+              <String, Object>{
+                'id': isolate.id,
+                'isolate': isolate.toJson(),
+              }
+          ],
+        }
+      };
+    });
+    await client.registerService('_flutter.listViews', 'DWDS listViews');
+
     client.registerServiceCallback('hotRestart', (request) async {
       _logger.info('Attempting a hot restart');
 
