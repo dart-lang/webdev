@@ -59,9 +59,9 @@ name: sample
   });
 
   var invalidRanges = <String, List<String>>{
-    'build_runner': ['0.8.9', '2.0.0'],
-    'build_web_compilers': ['0.3.5', '3.0.0'],
-    'build_daemon': ['0.3.0', '0.4.1'],
+    'build_runner': ['0.8.9', '3.0.0'],
+    'build_web_compilers': ['0.3.5', '4.0.0'],
+    'build_daemon': ['0.3.0', '4.0.0'],
   };
 
   for (var command in ['build', 'serve', 'daemon']) {
@@ -152,15 +152,15 @@ name: sample
               switch (entry.key) {
                 case 'build_runner':
                   buildRunnerVersion = version;
-                  supportedRange = '>=$_supportedBuildRunnerVersion <2.0.0';
+                  supportedRange = '>=$_supportedBuildRunnerVersion <3.0.0';
                   break;
                 case 'build_web_compilers':
                   webCompilersVersion = version;
-                  supportedRange = '>=$_supportedWebCompilersVersion <3.0.0';
+                  supportedRange = '>=$_supportedWebCompilersVersion <4.0.0';
                   break;
                 case 'build_daemon':
                   buildDaemonVersion = version;
-                  supportedRange = '^0.4.0';
+                  supportedRange = '>=$_supportedBuildDaemonVersion <4.0.0';
               }
 
               await d.file('pubspec.yaml', '''
