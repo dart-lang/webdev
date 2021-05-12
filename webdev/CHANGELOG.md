@@ -1,3 +1,8 @@
+## 2.7.4
+
+- Allow the latest build_runner, build_web_compilers, and build_daemon
+  packages.
+
 ## 2.7.3
 
 - Depend on the latest `package:dwds`.
