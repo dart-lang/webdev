@@ -37,6 +37,8 @@ void main() {
       expect(ddcTemporaryVariableRegExp.hasMatch(r't4$0'), isTrue);
       expect(ddcTemporaryVariableRegExp.hasMatch(r't1'), isTrue);
       expect(ddcTemporaryVariableRegExp.hasMatch(r't10'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r'__t$TL'), isTrue);
+      expect(ddcTemporaryVariableRegExp.hasMatch(r'__t$StringN'), isTrue);
 
       expect(ddcTemporaryVariableRegExp.hasMatch(r't'), isFalse);
       expect(ddcTemporaryVariableRegExp.hasMatch(r't10foo'), isFalse);
