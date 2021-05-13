@@ -91,12 +91,25 @@ class ClassHelper extends Domain {
           'name': clazz.name,
           'dartName': sdkUtils.typeName(clazz)
         };
-      // TODO(jakemac): static methods once ddc supports them
-      var methods = sdkUtils.getMethods(clazz);
-      var methodNames = methods ? Object.keys(methods) : [];
+
+      // TODO(grouma) - we display all inherited methods. Ideally this
+      // information is collected through the DDC metadata files.
+      var proto = clazz.prototype;
+      var methodNames = [];
+      for (; proto != null; proto = Object.getPrototypeOf(proto)) {
+        var methods = Object.getOwnPropertyNames(proto);
+        for (var i=0; i<methods.length; i++){
+          if (methodNames.indexOf(methods[i]) == -1
+              && typeof proto[methods[i]] == 'function'
+              && methods[i] != 'constructor'){
+              methodNames.push(methods[i]);
+          }
+        }
+        if(proto.constructor.name == 'Object') break;
+      }
+
       descriptor['methods'] = {};
       for (var name of methodNames) {
-        var method = methods[name];
         descriptor['methods'][name] = {
           // TODO(jakemac): how can we get actual const info?
           "isConst": false,
