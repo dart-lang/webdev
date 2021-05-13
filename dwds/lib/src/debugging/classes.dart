@@ -92,8 +92,8 @@ class ClassHelper extends Domain {
           'dartName': sdkUtils.typeName(clazz)
         };
 
-      // TODO(grouma) - we display all inherited methods. Ideally this
-      // information is collected through the DDC metadata files.
+      // TODO(grouma) - we display all inherited methods since we don't provide
+      // the superClass information. This is technically not correct.
       var proto = clazz.prototype;
       var methodNames = [];
       for (; proto != null; proto = Object.getPrototypeOf(proto)) {
