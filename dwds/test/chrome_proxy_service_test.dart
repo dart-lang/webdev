@@ -412,6 +412,9 @@ void main() {
             testClass.functions,
             unorderedEquals([
               predicate((FuncRef f) => f.name == 'hello' && !f.isStatic),
+              predicate((FuncRef f) => f.name == '_equals' && !f.isStatic),
+              predicate((FuncRef f) => f.name == 'toString' && !f.isStatic),
+              predicate((FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic),
             ]));
         expect(
             testClass.fields,
