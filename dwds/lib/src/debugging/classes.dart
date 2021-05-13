@@ -98,7 +98,7 @@ class ClassHelper extends Domain {
       var methodNames = [];
       for (; proto != null; proto = Object.getPrototypeOf(proto)) {
         var methods = Object.getOwnPropertyNames(proto);
-        for (var i=0; i<methods.length; i++){
+        for (var i = 0; i < methods.length; i++){
           if (methodNames.indexOf(methods[i]) == -1
               && typeof proto[methods[i]] == 'function'
               && methods[i] != 'constructor'){
