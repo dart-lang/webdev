@@ -7,7 +7,6 @@
 import 'package:shelf/shelf.dart';
 
 import '../../dwds.dart';
-import 'strategy.dart';
 
 /// A load strategy for the legacy module system.
 class LegacyStrategy extends LoadStrategy {

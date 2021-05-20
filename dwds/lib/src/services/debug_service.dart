@@ -24,10 +24,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../dwds.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
-import '../readers/asset_reader.dart';
 import '../utilities/shared.dart';
 import 'chrome_proxy_service.dart';
-import 'expression_compiler.dart';
 
 bool _acceptNewConnections = true;
 int _clientsConnected = 0;

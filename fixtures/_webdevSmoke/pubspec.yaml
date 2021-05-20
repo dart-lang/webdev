@@ -1,4 +1,4 @@
-name: _webdevSmoke 
+name: _webdev_smoke
 description: A test fixture for webdev testing.
 
 # The versions in this pubspec should match the requirements

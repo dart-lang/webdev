@@ -1,4 +1,4 @@
-name: _testPackage
+name: _test_package
 version: 1.0.0
 description: >-
   A fake package used for testing imports. Imports _test.

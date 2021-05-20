@@ -8,7 +8,6 @@ import 'package:path/path.dart' as p;
 
 import '../../dwds.dart';
 import 'require.dart';
-import 'strategy.dart';
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
 class FrontendServerRequireStrategyProvider {
