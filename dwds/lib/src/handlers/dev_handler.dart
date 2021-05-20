@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/data/debug_event.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -17,6 +16,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../data/build_result.dart';
 import '../../data/connect_request.dart';
+import '../../data/debug_event.dart';
 import '../../data/devtools_request.dart';
 import '../../data/error_response.dart';
 import '../../data/isolate_events.dart';
