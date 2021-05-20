@@ -93,9 +93,9 @@ void main() async {
         mainScript = scripts.scripts
             .firstWhere((each) => each.uri.contains('main.dart'));
         testLibraryScript = scripts.scripts.firstWhere((each) =>
-            each.uri.contains('package:_testPackage/test_library.dart'));
+            each.uri.contains('package:_test_package/test_library.dart'));
         testLibraryPartScript = scripts.scripts.firstWhere((each) =>
-            each.uri.contains('package:_testPackage/src/test_part.dart'));
+            each.uri.contains('package:_test_package/src/test_part.dart'));
         libraryScript = scripts.scripts.firstWhere(
             (each) => each.uri.contains('package:_test/library.dart'));
       });
@@ -311,7 +311,7 @@ void main() async {
         });
       });
 
-      test('evaluate expression in _testPackage/test_library', () async {
+      test('evaluate expression in _test_package/test_library', () async {
         await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction',
             () async {
           var event = await stream

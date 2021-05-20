@@ -11,9 +11,7 @@ import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
 import '../../dwds.dart';
-import '../debugging/metadata/provider.dart';
 import 'require.dart';
-import 'strategy.dart';
 
 /// Provides a [RequireStrategy] suitable for use with `package:build_runner`.
 class BuildRunnerRequireStrategyProvider {

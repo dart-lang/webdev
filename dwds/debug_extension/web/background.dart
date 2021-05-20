@@ -10,7 +10,6 @@ library background;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
-import 'dart:js';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/devtools_request.dart';

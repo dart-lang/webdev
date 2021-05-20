@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/dwds.dart';
-import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:path/path.dart' as p;

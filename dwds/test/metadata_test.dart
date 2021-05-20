@@ -6,7 +6,6 @@
 
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:test/test.dart';
 
 const _emptySourceMetadata =

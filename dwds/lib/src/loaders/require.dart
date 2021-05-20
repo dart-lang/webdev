@@ -10,7 +10,6 @@ import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
 import '../../dwds.dart';
-import 'strategy.dart';
 
 String relativizePath(String path) =>
     path.startsWith('/') ? path.substring(1) : path;

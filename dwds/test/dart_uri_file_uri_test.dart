@@ -50,7 +50,7 @@ void main() {
     var testPackageLib =
         Uri.file(p.join(testPackageDir, 'lib', 'test_library.dart'));
     var uri = DartUri('$testPackageLib');
-    expect(uri.serverPath, 'packages/_testPackage/test_library.dart');
+    expect(uri.serverPath, 'packages/_test_package/test_library.dart');
   });
 
   test('file path to another package', () {

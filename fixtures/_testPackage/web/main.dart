@@ -9,7 +9,7 @@ import 'dart:core';
 import 'dart:html';
 
 import 'package:_test/library.dart';
-import 'package:_testPackage/test_library.dart';
+import 'package:_test_package/test_library.dart';
 
 extension NumberParsing on String {
   int parseInt() {
@@ -88,14 +88,14 @@ void printCallExtension() {
 }
 
 void printLoopVariable() {
-  var list  = <String>['1'];
-  for(var item in list) {
+  var list = <String>['1'];
+  for (var item in list) {
     print(item); // Breakpoint: printLoopVariable
   }
 }
 
 class MainClass {
-  int _field;
+  final int _field;
   MainClass(this._field);
 
   @override
