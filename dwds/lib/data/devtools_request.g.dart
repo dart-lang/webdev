@@ -1,6 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-
-// @dart = 2.9
+// @dart=2.9
 
 part of 'devtools_request.dart';
 
@@ -31,16 +30,18 @@ class _$DevToolsRequestSerializer
       serializers.serialize(object.instanceId,
           specifiedType: const FullType(String)),
     ];
-    if (object.contextId != null) {
+    Object value;
+    value = object.contextId;
+    if (value != null) {
       result
         ..add('contextId')
-        ..add(serializers.serialize(object.contextId,
-            specifiedType: const FullType(int)));
+        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     }
-    if (object.tabUrl != null) {
+    value = object.tabUrl;
+    if (value != null) {
       result
         ..add('tabUrl')
-        ..add(serializers.serialize(object.tabUrl,
+        ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
     }
     return result;
@@ -56,7 +57,7 @@ class _$DevToolsRequestSerializer
     while (iterator.moveNext()) {
       final key = iterator.current as String;
       iterator.moveNext();
-      final dynamic value = iterator.current;
+      final Object value = iterator.current;
       switch (key) {
         case 'appId':
           result.appId = serializers.deserialize(value,
@@ -99,10 +100,12 @@ class _$DevToolsResponseSerializer
       serializers.serialize(object.promptExtension,
           specifiedType: const FullType(bool)),
     ];
-    if (object.error != null) {
+    Object value;
+    value = object.error;
+    if (value != null) {
       result
         ..add('error')
-        ..add(serializers.serialize(object.error,
+        ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
     }
     return result;
@@ -118,7 +121,7 @@ class _$DevToolsResponseSerializer
     while (iterator.moveNext()) {
       final key = iterator.current as String;
       iterator.moveNext();
-      final dynamic value = iterator.current;
+      final Object value = iterator.current;
       switch (key) {
         case 'success':
           result.success = serializers.deserialize(value,
@@ -155,12 +158,9 @@ class _$DevToolsRequest extends DevToolsRequest {
   _$DevToolsRequest._(
       {this.appId, this.instanceId, this.contextId, this.tabUrl})
       : super._() {
-    if (appId == null) {
-      throw new BuiltValueNullFieldError('DevToolsRequest', 'appId');
-    }
-    if (instanceId == null) {
-      throw new BuiltValueNullFieldError('DevToolsRequest', 'instanceId');
-    }
+    BuiltValueNullFieldError.checkNotNull(appId, 'DevToolsRequest', 'appId');
+    BuiltValueNullFieldError.checkNotNull(
+        instanceId, 'DevToolsRequest', 'instanceId');
   }
 
   @override
@@ -223,11 +223,12 @@ class DevToolsRequestBuilder
   DevToolsRequestBuilder();
 
   DevToolsRequestBuilder get _$this {
-    if (_$v != null) {
-      _appId = _$v.appId;
-      _instanceId = _$v.instanceId;
-      _contextId = _$v.contextId;
-      _tabUrl = _$v.tabUrl;
+    final $v = _$v;
+    if ($v != null) {
+      _appId = $v.appId;
+      _instanceId = $v.instanceId;
+      _contextId = $v.contextId;
+      _tabUrl = $v.tabUrl;
       _$v = null;
     }
     return this;
@@ -235,9 +236,7 @@ class DevToolsRequestBuilder
 
   @override
   void replace(DevToolsRequest other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$DevToolsRequest;
   }
 
@@ -250,8 +249,10 @@ class DevToolsRequestBuilder
   _$DevToolsRequest build() {
     final _$result = _$v ??
         new _$DevToolsRequest._(
-            appId: appId,
-            instanceId: instanceId,
+            appId: BuiltValueNullFieldError.checkNotNull(
+                appId, 'DevToolsRequest', 'appId'),
+            instanceId: BuiltValueNullFieldError.checkNotNull(
+                instanceId, 'DevToolsRequest', 'instanceId'),
             contextId: contextId,
             tabUrl: tabUrl);
     replace(_$result);
@@ -273,12 +274,10 @@ class _$DevToolsResponse extends DevToolsResponse {
 
   _$DevToolsResponse._({this.success, this.promptExtension, this.error})
       : super._() {
-    if (success == null) {
-      throw new BuiltValueNullFieldError('DevToolsResponse', 'success');
-    }
-    if (promptExtension == null) {
-      throw new BuiltValueNullFieldError('DevToolsResponse', 'promptExtension');
-    }
+    BuiltValueNullFieldError.checkNotNull(
+        success, 'DevToolsResponse', 'success');
+    BuiltValueNullFieldError.checkNotNull(
+        promptExtension, 'DevToolsResponse', 'promptExtension');
   }
 
   @override
@@ -334,10 +333,11 @@ class DevToolsResponseBuilder
   DevToolsResponseBuilder();
 
   DevToolsResponseBuilder get _$this {
-    if (_$v != null) {
-      _success = _$v.success;
-      _promptExtension = _$v.promptExtension;
-      _error = _$v.error;
+    final $v = _$v;
+    if ($v != null) {
+      _success = $v.success;
+      _promptExtension = $v.promptExtension;
+      _error = $v.error;
       _$v = null;
     }
     return this;
@@ -345,9 +345,7 @@ class DevToolsResponseBuilder
 
   @override
   void replace(DevToolsResponse other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$DevToolsResponse;
   }
 
@@ -360,7 +358,11 @@ class DevToolsResponseBuilder
   _$DevToolsResponse build() {
     final _$result = _$v ??
         new _$DevToolsResponse._(
-            success: success, promptExtension: promptExtension, error: error);
+            success: BuiltValueNullFieldError.checkNotNull(
+                success, 'DevToolsResponse', 'success'),
+            promptExtension: BuiltValueNullFieldError.checkNotNull(
+                promptExtension, 'DevToolsResponse', 'promptExtension'),
+            error: error);
     replace(_$result);
     return _$result;
   }

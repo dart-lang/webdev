@@ -1,6 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-
-// @dart = 2.9
+// @dart=2.9
 
 part of 'isolate_events.dart';
 
@@ -87,9 +86,7 @@ class IsolateExitBuilder implements Builder<IsolateExit, IsolateExitBuilder> {
 
   @override
   void replace(IsolateExit other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$IsolateExit;
   }
 
@@ -144,9 +141,7 @@ class IsolateStartBuilder
 
   @override
   void replace(IsolateStart other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$IsolateStart;
   }
 

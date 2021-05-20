@@ -1,6 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-
-// @dart = 2.9
+// @dart=2.9
 
 part of 'build_result.dart';
 
@@ -79,7 +78,7 @@ class _$BuildResultSerializer implements StructuredSerializer<BuildResult> {
     while (iterator.moveNext()) {
       final key = iterator.current as String;
       iterator.moveNext();
-      final dynamic value = iterator.current;
+      final Object value = iterator.current;
       switch (key) {
         case 'status':
           result.status = serializers.deserialize(value,
@@ -100,9 +99,7 @@ class _$BuildResult extends BuildResult {
       (new BuildResultBuilder()..update(updates)).build();
 
   _$BuildResult._({this.status}) : super._() {
-    if (status == null) {
-      throw new BuiltValueNullFieldError('BuildResult', 'status');
-    }
+    BuiltValueNullFieldError.checkNotNull(status, 'BuildResult', 'status');
   }
 
   @override
@@ -140,8 +137,9 @@ class BuildResultBuilder implements Builder<BuildResult, BuildResultBuilder> {
   BuildResultBuilder();
 
   BuildResultBuilder get _$this {
-    if (_$v != null) {
-      _status = _$v.status;
+    final $v = _$v;
+    if ($v != null) {
+      _status = $v.status;
       _$v = null;
     }
     return this;
@@ -149,9 +147,7 @@ class BuildResultBuilder implements Builder<BuildResult, BuildResultBuilder> {
 
   @override
   void replace(BuildResult other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$BuildResult;
   }
 
@@ -162,7 +158,10 @@ class BuildResultBuilder implements Builder<BuildResult, BuildResultBuilder> {
 
   @override
   _$BuildResult build() {
-    final _$result = _$v ?? new _$BuildResult._(status: status);
+    final _$result = _$v ??
+        new _$BuildResult._(
+            status: BuiltValueNullFieldError.checkNotNull(
+                status, 'BuildResult', 'status'));
     replace(_$result);
     return _$result;
   }

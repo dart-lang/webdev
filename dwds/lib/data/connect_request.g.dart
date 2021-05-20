@@ -1,6 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-
-// @dart = 2.9
+// @dart=2.9
 
 part of 'connect_request.dart';
 
@@ -46,7 +45,7 @@ class _$ConnectRequestSerializer
     while (iterator.moveNext()) {
       final key = iterator.current as String;
       iterator.moveNext();
-      final dynamic value = iterator.current;
+      final Object value = iterator.current;
       switch (key) {
         case 'appId':
           result.appId = serializers.deserialize(value,
@@ -80,15 +79,11 @@ class _$ConnectRequest extends ConnectRequest {
 
   _$ConnectRequest._({this.appId, this.instanceId, this.entrypointPath})
       : super._() {
-    if (appId == null) {
-      throw new BuiltValueNullFieldError('ConnectRequest', 'appId');
-    }
-    if (instanceId == null) {
-      throw new BuiltValueNullFieldError('ConnectRequest', 'instanceId');
-    }
-    if (entrypointPath == null) {
-      throw new BuiltValueNullFieldError('ConnectRequest', 'entrypointPath');
-    }
+    BuiltValueNullFieldError.checkNotNull(appId, 'ConnectRequest', 'appId');
+    BuiltValueNullFieldError.checkNotNull(
+        instanceId, 'ConnectRequest', 'instanceId');
+    BuiltValueNullFieldError.checkNotNull(
+        entrypointPath, 'ConnectRequest', 'entrypointPath');
   }
 
   @override
@@ -144,10 +139,11 @@ class ConnectRequestBuilder
   ConnectRequestBuilder();
 
   ConnectRequestBuilder get _$this {
-    if (_$v != null) {
-      _appId = _$v.appId;
-      _instanceId = _$v.instanceId;
-      _entrypointPath = _$v.entrypointPath;
+    final $v = _$v;
+    if ($v != null) {
+      _appId = $v.appId;
+      _instanceId = $v.instanceId;
+      _entrypointPath = $v.entrypointPath;
       _$v = null;
     }
     return this;
@@ -155,9 +151,7 @@ class ConnectRequestBuilder
 
   @override
   void replace(ConnectRequest other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ConnectRequest;
   }
 
@@ -170,9 +164,12 @@ class ConnectRequestBuilder
   _$ConnectRequest build() {
     final _$result = _$v ??
         new _$ConnectRequest._(
-            appId: appId,
-            instanceId: instanceId,
-            entrypointPath: entrypointPath);
+            appId: BuiltValueNullFieldError.checkNotNull(
+                appId, 'ConnectRequest', 'appId'),
+            instanceId: BuiltValueNullFieldError.checkNotNull(
+                instanceId, 'ConnectRequest', 'instanceId'),
+            entrypointPath: BuiltValueNullFieldError.checkNotNull(
+                entrypointPath, 'ConnectRequest', 'entrypointPath'));
     replace(_$result);
     return _$result;
   }

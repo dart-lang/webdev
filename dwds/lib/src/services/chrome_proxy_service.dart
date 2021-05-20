@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/data/debug_event.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
@@ -830,6 +831,57 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       }
     });
     return controller;
+  }
+
+  Future<void> parseDebugEvent(DebugEvent debugEvent) async {
+    if (terminatingIsolates) return;
+
+    var isolate = _inspector?.isolate;
+    if (isolate == null) return;
+
+    switch (debugEvent.type) {
+      case 'dart.developer.registerExtension':
+        var service = debugEvent.eventData.first;
+        isolate.extensionRPCs.add(service);
+        _streamNotify(
+            EventStreams.kIsolate,
+            Event(
+                kind: EventKind.kServiceExtensionAdded,
+                timestamp: DateTime.now().millisecondsSinceEpoch,
+                isolate: isolate)
+              ..extensionRPC = service);
+        break;
+      case 'dart.developer.postEvent':
+        _streamNotify(
+            EventStreams.kExtension,
+            Event(
+                kind: EventKind.kExtension,
+                timestamp: DateTime.now().millisecondsSinceEpoch,
+                isolate: isolate)
+              ..extensionKind = debugEvent.eventData.first
+              ..extensionData = ExtensionData.parse(
+                  jsonDecode(debugEvent.eventData.last)
+                      as Map<String, dynamic>));
+        break;
+      case 'dart.developer.inspect':
+        var value = RemoteObject(
+            jsonDecode(debugEvent.eventData.first) as Map<String, dynamic>);
+        // All inspected objects should be real objects.
+        if (value.type != 'object') break;
+
+        var inspectee = await _inspector.instanceHelper.instanceRefFor(value);
+        _streamNotify(
+            EventStreams.kDebug,
+            Event(
+                kind: EventKind.kInspect,
+                timestamp: DateTime.now().millisecondsSinceEpoch,
+                isolate: isolate)
+              ..inspectee = inspectee
+              ..timestamp = debugEvent.timestamp);
+        break;
+      default:
+        break;
+    }
   }
 
   /// Listens for chrome console events and handles the ones we care about.

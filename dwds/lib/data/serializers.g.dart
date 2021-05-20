@@ -1,6 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-
-// @dart = 2.9
+// @dart=2.9
 
 part of 'serializers.dart';
 
@@ -13,6 +12,7 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(BuildResult.serializer)
       ..add(BuildStatus.serializer)
       ..add(ConnectRequest.serializer)
+      ..add(DebugEvent.serializer)
       ..add(DevToolsRequest.serializer)
       ..add(DevToolsResponse.serializer)
       ..add(ErrorResponse.serializer)
@@ -24,7 +24,10 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(RunRequest.serializer)
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(ExtensionEvent)]),
-          () => new ListBuilder<ExtensionEvent>()))
+          () => new ListBuilder<ExtensionEvent>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => new ListBuilder<String>()))
     .build();
 
 // ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new

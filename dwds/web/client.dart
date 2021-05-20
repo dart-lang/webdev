@@ -11,8 +11,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/data/connect_request.dart';
+import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/run_request.dart';
@@ -57,6 +59,17 @@ Future<void> main() {
 
     hotRestartJs = allowInterop(() {
       return toPromise(manager.hotRestart());
+    });
+
+    emitDebugEvent = allowInterop((String type, List<Object> eventData) {
+      var encodedList = <String>[];
+      for (var data in eventData) {
+        encodedList.add(jsonEncode(data));
+      }
+      client.sink.add(jsonEncode(serializers.serialize(DebugEvent((b) => b
+        ..timestamp = (DateTime.now().millisecondsSinceEpoch)
+        ..type = type
+        ..eventData = BuiltList<String>.from(encodedList).toBuilder()))));
     });
 
     launchDevToolsJs = allowInterop(() {
@@ -200,5 +213,8 @@ external bool get dwdsEnableDevtoolsLaunch;
 
 @JS('window.top.document.dispatchEvent')
 external void dispatchEvent(CustomEvent event);
+
+@JS(r'$emitDebugEvent')
+external set emitDebugEvent(void Function(String, List<Object>) func);
 
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');

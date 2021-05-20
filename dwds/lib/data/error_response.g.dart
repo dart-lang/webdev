@@ -1,6 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-
-// @dart = 2.9
+// @dart=2.9
 
 part of 'error_response.dart';
 
@@ -42,7 +41,7 @@ class _$ErrorResponseSerializer implements StructuredSerializer<ErrorResponse> {
     while (iterator.moveNext()) {
       final key = iterator.current as String;
       iterator.moveNext();
-      final dynamic value = iterator.current;
+      final Object value = iterator.current;
       switch (key) {
         case 'error':
           result.error = serializers.deserialize(value,
@@ -69,12 +68,9 @@ class _$ErrorResponse extends ErrorResponse {
       (new ErrorResponseBuilder()..update(updates)).build();
 
   _$ErrorResponse._({this.error, this.stackTrace}) : super._() {
-    if (error == null) {
-      throw new BuiltValueNullFieldError('ErrorResponse', 'error');
-    }
-    if (stackTrace == null) {
-      throw new BuiltValueNullFieldError('ErrorResponse', 'stackTrace');
-    }
+    BuiltValueNullFieldError.checkNotNull(error, 'ErrorResponse', 'error');
+    BuiltValueNullFieldError.checkNotNull(
+        stackTrace, 'ErrorResponse', 'stackTrace');
   }
 
   @override
@@ -121,9 +117,10 @@ class ErrorResponseBuilder
   ErrorResponseBuilder();
 
   ErrorResponseBuilder get _$this {
-    if (_$v != null) {
-      _error = _$v.error;
-      _stackTrace = _$v.stackTrace;
+    final $v = _$v;
+    if ($v != null) {
+      _error = $v.error;
+      _stackTrace = $v.stackTrace;
       _$v = null;
     }
     return this;
@@ -131,9 +128,7 @@ class ErrorResponseBuilder
 
   @override
   void replace(ErrorResponse other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ErrorResponse;
   }
 
@@ -144,8 +139,12 @@ class ErrorResponseBuilder
 
   @override
   _$ErrorResponse build() {
-    final _$result =
-        _$v ?? new _$ErrorResponse._(error: error, stackTrace: stackTrace);
+    final _$result = _$v ??
+        new _$ErrorResponse._(
+            error: BuiltValueNullFieldError.checkNotNull(
+                error, 'ErrorResponse', 'error'),
+            stackTrace: BuiltValueNullFieldError.checkNotNull(
+                stackTrace, 'ErrorResponse', 'stackTrace'));
     replace(_$result);
     return _$result;
   }

@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/data/debug_event.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -264,6 +265,10 @@ class DevHandler {
             await _handleIsolateExit(appConnection);
           } else if (message is IsolateStart) {
             await _handleIsolateStart(appConnection, injectedConnection);
+          } else if (message is DebugEvent) {
+            await _servicesByAppId[appConnection.request.appId]
+                ?.chromeProxyService
+                ?.parseDebugEvent(message);
           }
         }
       } catch (e, s) {

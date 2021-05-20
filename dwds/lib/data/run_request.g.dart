@@ -1,6 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-
-// @dart = 2.9
+// @dart=2.9
 
 part of 'run_request.dart';
 
@@ -66,9 +65,7 @@ class RunRequestBuilder implements Builder<RunRequest, RunRequestBuilder> {
 
   @override
   void replace(RunRequest other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$RunRequest;
   }
 
