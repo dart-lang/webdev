@@ -1,4 +1,4 @@
-name: extension
+name: _extension
 publish_to: none
 version: 1.22.0
 author: Dart Team <misc@dartlang.org>
