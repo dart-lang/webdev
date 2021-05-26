@@ -116,7 +116,12 @@ class WebSocketSocketHandler extends SocketHandler {
       _connectionsStreamQueue ??= StreamQueue(_connectionsStream.stream);
 
   @override
-  FutureOr<Response> handler(Request request) => _handler(request);
+  FutureOr<Response> handler(Request request) {
+    print('MY NEW REQUEST: $request');
+    var result = _handler(request);
+    print('RESULT: $result');
+    return result;
+  }
 
   @override
   void shutdown() {}

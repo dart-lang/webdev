@@ -1,4 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// @dart=2.9
 
 part of 'debug_event.dart';
 
@@ -15,9 +16,9 @@ class _$DebugEventSerializer implements StructuredSerializer<DebugEvent> {
   final String wireName = 'DebugEvent';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, DebugEvent object,
+  Iterable<Object> serialize(Serializers serializers, DebugEvent object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object?>[
+    final result = <Object>[
       'type',
       serializers.serialize(object.type, specifiedType: const FullType(String)),
       'eventData',
@@ -33,7 +34,7 @@ class _$DebugEventSerializer implements StructuredSerializer<DebugEvent> {
   }
 
   @override
-  DebugEvent deserialize(Serializers serializers, Iterable<Object?> serialized,
+  DebugEvent deserialize(Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new DebugEventBuilder();
 
@@ -41,7 +42,7 @@ class _$DebugEventSerializer implements StructuredSerializer<DebugEvent> {
     while (iterator.moveNext()) {
       final key = iterator.current as String;
       iterator.moveNext();
-      final Object? value = iterator.current;
+      final Object value = iterator.current;
       switch (key) {
         case 'type':
           result.type = serializers.deserialize(value,
@@ -49,8 +50,8 @@ class _$DebugEventSerializer implements StructuredSerializer<DebugEvent> {
           break;
         case 'eventData':
           result.eventData.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(String)]))!
+                  specifiedType:
+                      const FullType(BuiltList, const [const FullType(String)]))
               as BuiltList<Object>);
           break;
         case 'timestamp':
@@ -72,12 +73,10 @@ class _$DebugEvent extends DebugEvent {
   @override
   final int timestamp;
 
-  factory _$DebugEvent([void Function(DebugEventBuilder)? updates]) =>
+  factory _$DebugEvent([void Function(DebugEventBuilder) updates]) =>
       (new DebugEventBuilder()..update(updates)).build();
 
-  _$DebugEvent._(
-      {required this.type, required this.eventData, required this.timestamp})
-      : super._() {
+  _$DebugEvent._({this.type, this.eventData, this.timestamp}) : super._() {
     BuiltValueNullFieldError.checkNotNull(type, 'DebugEvent', 'type');
     BuiltValueNullFieldError.checkNotNull(eventData, 'DebugEvent', 'eventData');
     BuiltValueNullFieldError.checkNotNull(timestamp, 'DebugEvent', 'timestamp');
@@ -116,21 +115,20 @@ class _$DebugEvent extends DebugEvent {
 }
 
 class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
-  _$DebugEvent? _$v;
+  _$DebugEvent _$v;
 
-  String? _type;
-  String? get type => _$this._type;
-  set type(String? type) => _$this._type = type;
+  String _type;
+  String get type => _$this._type;
+  set type(String type) => _$this._type = type;
 
-  ListBuilder<String>? _eventData;
+  ListBuilder<String> _eventData;
   ListBuilder<String> get eventData =>
       _$this._eventData ??= new ListBuilder<String>();
-  set eventData(ListBuilder<String>? eventData) =>
-      _$this._eventData = eventData;
+  set eventData(ListBuilder<String> eventData) => _$this._eventData = eventData;
 
-  int? _timestamp;
-  int? get timestamp => _$this._timestamp;
-  set timestamp(int? timestamp) => _$this._timestamp = timestamp;
+  int _timestamp;
+  int get timestamp => _$this._timestamp;
+  set timestamp(int timestamp) => _$this._timestamp = timestamp;
 
   DebugEventBuilder();
 
@@ -152,7 +150,7 @@ class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
   }
 
   @override
-  void update(void Function(DebugEventBuilder)? updates) {
+  void update(void Function(DebugEventBuilder) updates) {
     if (updates != null) updates(this);
   }
 
@@ -168,7 +166,7 @@ class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
               timestamp: BuiltValueNullFieldError.checkNotNull(
                   timestamp, 'DebugEvent', 'timestamp'));
     } catch (_) {
-      late String _$failedField;
+      String _$failedField;
       try {
         _$failedField = 'eventData';
         eventData.build();

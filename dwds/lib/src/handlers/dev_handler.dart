@@ -246,6 +246,7 @@ class DevHandler {
     AppConnection appConnection;
     injectedConnection.stream.listen((data) async {
       try {
+        print('new message: $data');
         var message = serializers.deserialize(jsonDecode(data));
         if (message is ConnectRequest) {
           if (appConnection != null) {
@@ -253,6 +254,7 @@ class DevHandler {
                 'Please file an issue at '
                 'https://github.com/dart-lang/webdev/issues/new.');
           }
+          print('is connect');
           appConnection =
               await _handleConnectRequest(message, injectedConnection);
         } else {
@@ -382,6 +384,7 @@ class DevHandler {
             existingAppConection?.isInKeepAlivePeriod == true);
 
     if (canReuseConnection) {
+      print('can reuse');
       // Disconnect any old connection (eg. those in the keep-alive waiting
       // state when reloading the page).
       existingAppConection?.shutDown();
@@ -393,6 +396,7 @@ class DevHandler {
     }
     _appConnectionByAppId[message.appId] = connection;
     _connectedApps.add(connection);
+    print('return');
     return connection;
   }
 
@@ -424,7 +428,9 @@ class DevHandler {
         _sseHandlers[uri.path] = handler;
         var injectedConnections = handler.connections;
         while (await injectedConnections.hasNext) {
+          print('new connection');
           _handleConnection(await injectedConnections.next);
+          print('done handle');
         }
       }
     }));

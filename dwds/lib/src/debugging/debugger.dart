@@ -568,6 +568,7 @@ class Debugger extends Domain {
 
   /// Handles resume events coming from the Chrome connection.
   Future<void> _resumeHandler(DebuggerResumedEvent _) async {
+    print('RESUMING');
     // We can receive a resume event in the middle of a reload which will result
     // in a null isolate.
     var isolate = inspector?.isolate;
