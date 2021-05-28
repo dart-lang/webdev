@@ -212,7 +212,4 @@ external void dispatchEvent(CustomEvent event);
 @JS(r'$emitDebugEvent')
 external set emitDebugEvent(void Function(String, String) func);
 
-@JS('JSON.stringify')
-external String stringify(o);
-
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');

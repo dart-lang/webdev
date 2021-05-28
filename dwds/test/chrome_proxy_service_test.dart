@@ -407,14 +407,17 @@ void main() {
       test('Classes', () async {
         var testClass = await service.getObject(
             isolate.id, rootLibrary.classes.first.id) as Class;
-
         expect(
             testClass.functions,
             unorderedEquals([
+              predicate((FuncRef f) => f.name == 'message' && !f.isStatic),
+              predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic),
               predicate((FuncRef f) => f.name == 'hello' && !f.isStatic),
               predicate((FuncRef f) => f.name == '_equals' && !f.isStatic),
+              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic),
               predicate((FuncRef f) => f.name == 'toString' && !f.isStatic),
               predicate((FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic),
+              predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic),
             ]));
         expect(
             testClass.fields,

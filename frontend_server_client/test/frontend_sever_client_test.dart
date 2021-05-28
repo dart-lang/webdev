@@ -7,14 +7,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:frontend_server_client/frontend_server_client.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
-import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test/test.dart';
+import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
-
-import 'package:frontend_server_client/frontend_server_client.dart';
 
 void main() async {
   late FrontendServerClient client;

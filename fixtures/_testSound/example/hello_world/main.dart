@@ -39,7 +39,7 @@ void main() async {
   context['registerExtension'] = (String method) {
     registerExtension(method,
         (String method, Map<String, String> parameters) async {
-      return ServiceExtensionResponse.result(jsonEncode(parameters ?? {}));
+      return ServiceExtensionResponse.result(jsonEncode(parameters));
     });
   };
 
@@ -69,7 +69,8 @@ void main() async {
 
   // Register one up front before the proxy connects, the isolate should still
   // recognize this as an available extension.
-  registerExtension('ext.hello_world.existing', (_, __) => Future.value(ServiceExtensionResponse.error(0, '')));
+  registerExtension('ext.hello_world.existing',
+      (_, __) => Future.value(ServiceExtensionResponse.error(0, '')));
 
   window.console.debug('Page Ready');
 }
@@ -117,8 +118,7 @@ class MyTestClass {
 
   String notFinal;
 
-  MyTestClass({this.message = 'world'}):
-    notFinal = 'wonderful';
+  MyTestClass({this.message = 'world'}) : notFinal = 'wonderful';
 
   String hello() => message;
 }
