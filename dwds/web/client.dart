@@ -11,7 +11,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/debug_event.dart';
@@ -61,15 +60,11 @@ Future<void> main() {
       return toPromise(manager.hotRestart());
     });
 
-    emitDebugEvent = allowInterop((String type, List<Object> eventData) {
-      var encodedList = <String>[];
-      for (var data in eventData) {
-        encodedList.add(jsonEncode(data));
-      }
+    emitDebugEvent = allowInterop((String kind, String eventData) {
       client.sink.add(jsonEncode(serializers.serialize(DebugEvent((b) => b
         ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-        ..type = type
-        ..eventData = BuiltList<String>.from(encodedList).toBuilder()))));
+        ..kind = kind
+        ..eventData = eventData))));
     });
 
     launchDevToolsJs = allowInterop(() {
@@ -215,6 +210,9 @@ external bool get dwdsEnableDevtoolsLaunch;
 external void dispatchEvent(CustomEvent event);
 
 @JS(r'$emitDebugEvent')
-external set emitDebugEvent(void Function(String, List<Object>) func);
+external set emitDebugEvent(void Function(String, String) func);
+
+@JS('JSON.stringify')
+external String stringify(o);
 
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');

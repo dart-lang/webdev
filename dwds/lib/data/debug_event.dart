@@ -17,9 +17,9 @@ abstract class DebugEvent implements Built<DebugEvent, DebugEventBuilder> {
 
   DebugEvent._();
 
-  String get type;
+  String get kind;
 
-  BuiltList<String> get eventData;
+  String get eventData;
 
   int get timestamp;
 }

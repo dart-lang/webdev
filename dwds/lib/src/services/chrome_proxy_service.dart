@@ -839,49 +839,15 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     var isolate = _inspector?.isolate;
     if (isolate == null) return;
 
-    switch (debugEvent.type) {
-      case 'dart.developer.registerExtension':
-        var service = debugEvent.eventData.first;
-        isolate.extensionRPCs.add(service);
-        _streamNotify(
-            EventStreams.kIsolate,
-            Event(
-                kind: EventKind.kServiceExtensionAdded,
-                timestamp: DateTime.now().millisecondsSinceEpoch,
-                isolate: isolate)
-              ..extensionRPC = service);
-        break;
-      case 'dart.developer.postEvent':
-        _streamNotify(
-            EventStreams.kExtension,
-            Event(
-                kind: EventKind.kExtension,
-                timestamp: DateTime.now().millisecondsSinceEpoch,
-                isolate: isolate)
-              ..extensionKind = debugEvent.eventData.first
-              ..extensionData = ExtensionData.parse(
-                  jsonDecode(debugEvent.eventData.last)
-                      as Map<String, dynamic>));
-        break;
-      case 'dart.developer.inspect':
-        var value = RemoteObject(
-            jsonDecode(debugEvent.eventData.first) as Map<String, dynamic>);
-        // All inspected objects should be real objects.
-        if (value.type != 'object') break;
-
-        var inspectee = await _inspector.instanceHelper.instanceRefFor(value);
-        _streamNotify(
-            EventStreams.kDebug,
-            Event(
-                kind: EventKind.kInspect,
-                timestamp: DateTime.now().millisecondsSinceEpoch,
-                isolate: isolate)
-              ..inspectee = inspectee
-              ..timestamp = debugEvent.timestamp);
-        break;
-      default:
-        break;
-    }
+    _streamNotify(
+        EventStreams.kExtension,
+        Event(
+            kind: EventKind.kExtension,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            isolate: isolate)
+          ..extensionKind = debugEvent.kind
+          ..extensionData = ExtensionData.parse(
+              jsonDecode(debugEvent.eventData) as Map<String, dynamic>));
   }
 
   /// Listens for chrome console events and handles the ones we care about.
@@ -908,6 +874,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
                   isolate: isolateRef)
                 ..extensionRPC = service);
           break;
+        // TODO(grouma) - Remove when the min SDK has updated to migrate users
+        // over to the injected client communication approach.
         case 'dart.developer.postEvent':
           _streamNotify(
               EventStreams.kExtension,

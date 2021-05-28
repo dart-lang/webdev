@@ -27,7 +27,6 @@ class AppConnection {
   Future<void> get onStart => _startedCompleter.future;
 
   void runMain() {
-    print('RUNNING MAIN');
     if (_startedCompleter.isCompleted) {
       throw StateError('Main has already started.');
     }

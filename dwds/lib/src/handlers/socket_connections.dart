@@ -117,9 +117,7 @@ class WebSocketSocketHandler extends SocketHandler {
 
   @override
   FutureOr<Response> handler(Request request) {
-    print('MY NEW REQUEST: $request');
     var result = _handler(request);
-    print('RESULT: $result');
     return result;
   }
 

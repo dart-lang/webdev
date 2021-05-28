@@ -19,12 +19,11 @@ class _$DebugEventSerializer implements StructuredSerializer<DebugEvent> {
   Iterable<Object> serialize(Serializers serializers, DebugEvent object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
-      'type',
-      serializers.serialize(object.type, specifiedType: const FullType(String)),
+      'kind',
+      serializers.serialize(object.kind, specifiedType: const FullType(String)),
       'eventData',
       serializers.serialize(object.eventData,
-          specifiedType:
-              const FullType(BuiltList, const [const FullType(String)])),
+          specifiedType: const FullType(String)),
       'timestamp',
       serializers.serialize(object.timestamp,
           specifiedType: const FullType(int)),
@@ -44,15 +43,13 @@ class _$DebugEventSerializer implements StructuredSerializer<DebugEvent> {
       iterator.moveNext();
       final Object value = iterator.current;
       switch (key) {
-        case 'type':
-          result.type = serializers.deserialize(value,
+        case 'kind':
+          result.kind = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'eventData':
-          result.eventData.replace(serializers.deserialize(value,
-                  specifiedType:
-                      const FullType(BuiltList, const [const FullType(String)]))
-              as BuiltList<Object>);
+          result.eventData = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
           break;
         case 'timestamp':
           result.timestamp = serializers.deserialize(value,
@@ -67,17 +64,17 @@ class _$DebugEventSerializer implements StructuredSerializer<DebugEvent> {
 
 class _$DebugEvent extends DebugEvent {
   @override
-  final String type;
+  final String kind;
   @override
-  final BuiltList<String> eventData;
+  final String eventData;
   @override
   final int timestamp;
 
   factory _$DebugEvent([void Function(DebugEventBuilder) updates]) =>
       (new DebugEventBuilder()..update(updates)).build();
 
-  _$DebugEvent._({this.type, this.eventData, this.timestamp}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(type, 'DebugEvent', 'type');
+  _$DebugEvent._({this.kind, this.eventData, this.timestamp}) : super._() {
+    BuiltValueNullFieldError.checkNotNull(kind, 'DebugEvent', 'kind');
     BuiltValueNullFieldError.checkNotNull(eventData, 'DebugEvent', 'eventData');
     BuiltValueNullFieldError.checkNotNull(timestamp, 'DebugEvent', 'timestamp');
   }
@@ -93,7 +90,7 @@ class _$DebugEvent extends DebugEvent {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is DebugEvent &&
-        type == other.type &&
+        kind == other.kind &&
         eventData == other.eventData &&
         timestamp == other.timestamp;
   }
@@ -101,13 +98,13 @@ class _$DebugEvent extends DebugEvent {
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc(0, type.hashCode), eventData.hashCode), timestamp.hashCode));
+        $jc($jc(0, kind.hashCode), eventData.hashCode), timestamp.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('DebugEvent')
-          ..add('type', type)
+          ..add('kind', kind)
           ..add('eventData', eventData)
           ..add('timestamp', timestamp))
         .toString();
@@ -117,14 +114,13 @@ class _$DebugEvent extends DebugEvent {
 class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
   _$DebugEvent _$v;
 
-  String _type;
-  String get type => _$this._type;
-  set type(String type) => _$this._type = type;
+  String _kind;
+  String get kind => _$this._kind;
+  set kind(String kind) => _$this._kind = kind;
 
-  ListBuilder<String> _eventData;
-  ListBuilder<String> get eventData =>
-      _$this._eventData ??= new ListBuilder<String>();
-  set eventData(ListBuilder<String> eventData) => _$this._eventData = eventData;
+  String _eventData;
+  String get eventData => _$this._eventData;
+  set eventData(String eventData) => _$this._eventData = eventData;
 
   int _timestamp;
   int get timestamp => _$this._timestamp;
@@ -135,8 +131,8 @@ class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
   DebugEventBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _type = $v.type;
-      _eventData = $v.eventData.toBuilder();
+      _kind = $v.kind;
+      _eventData = $v.eventData;
       _timestamp = $v.timestamp;
       _$v = null;
     }
@@ -156,26 +152,14 @@ class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
 
   @override
   _$DebugEvent build() {
-    _$DebugEvent _$result;
-    try {
-      _$result = _$v ??
-          new _$DebugEvent._(
-              type: BuiltValueNullFieldError.checkNotNull(
-                  type, 'DebugEvent', 'type'),
-              eventData: eventData.build(),
-              timestamp: BuiltValueNullFieldError.checkNotNull(
-                  timestamp, 'DebugEvent', 'timestamp'));
-    } catch (_) {
-      String _$failedField;
-      try {
-        _$failedField = 'eventData';
-        eventData.build();
-      } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'DebugEvent', _$failedField, e.toString());
-      }
-      rethrow;
-    }
+    final _$result = _$v ??
+        new _$DebugEvent._(
+            kind: BuiltValueNullFieldError.checkNotNull(
+                kind, 'DebugEvent', 'kind'),
+            eventData: BuiltValueNullFieldError.checkNotNull(
+                eventData, 'DebugEvent', 'eventData'),
+            timestamp: BuiltValueNullFieldError.checkNotNull(
+                timestamp, 'DebugEvent', 'timestamp'));
     replace(_$result);
     return _$result;
   }
