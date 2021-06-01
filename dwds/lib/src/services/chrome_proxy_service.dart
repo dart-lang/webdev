@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/data/register_event.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
@@ -16,6 +15,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../data/debug_event.dart';
+import '../../data/register_event.dart';
 import '../../dwds.dart';
 import '../debugging/debugger.dart';
 import '../debugging/execution_context.dart';
