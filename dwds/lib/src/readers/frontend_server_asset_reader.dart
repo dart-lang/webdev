@@ -112,5 +112,11 @@ class FrontendServerAssetReader implements AssetReader {
   }
 
   @override
+  Future<String> symbolsContents(String serverPath) {
+    // TODO(grouma) - Implement the debug symbols reader.
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> close() async {}
 }

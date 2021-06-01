@@ -142,8 +142,8 @@ void main() async {
       expect(output.stream,
           emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')));
 
-      var result = await service
-          .updateDependencies({'try': ModuleInfo('try.full.dill', 'try.dill')});
+      var result = await service.updateDependencies(
+          {'try': ModuleInfo('try.full.dill', 'try.dill', 'try.js.symbols')});
       expect(result, true, reason: 'failed to update dependencies');
 
       final compilationResult = await service.compileExpressionToJs(

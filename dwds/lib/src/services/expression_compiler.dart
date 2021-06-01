@@ -4,6 +4,8 @@
 
 // @dart = 2.9
 
+import '../debugging/metadata/module_metadata.dart';
+
 /// Result of compilation of dart expression to JavaScript
 class ExpressionCompilationResult {
   final bool isError;
@@ -70,14 +72,4 @@ abstract class ExpressionCompiler {
   ///
   /// May be called multiple times and always before [updateDependencies].
   Future<void> initialize({String moduleFormat, bool soundNullSafety});
-}
-
-class ModuleInfo {
-  final String fullDillPath;
-  final String summaryPath;
-
-  ModuleInfo(this.fullDillPath, this.summaryPath);
-
-  @override
-  String toString() => '{ $fullDillPath, $summaryPath }';
 }

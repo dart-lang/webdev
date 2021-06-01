@@ -65,10 +65,12 @@ class FrontendServerRequireStrategyProvider {
     for (var module in modules.keys) {
       var modulePath = modules[module];
       result[module] = ModuleInfo(
-          // TODO: Save locations of full kernel files in ddc metadata.
-          // Issue: https://github.com/dart-lang/sdk/issues/43684
-          p.setExtension(modulePath, '.full.dill'),
-          p.setExtension(modulePath, '.dill'));
+        // TODO: Save locations of full kernel files in ddc metadata.
+        // Issue: https://github.com/dart-lang/sdk/issues/43684
+        p.setExtension(modulePath, '.full.dill'),
+        p.setExtension(modulePath, '.dill'),
+        p.setExtension(modulePath, '.symbols'),
+      );
     }
     return result;
   }

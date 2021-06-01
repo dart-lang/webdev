@@ -27,6 +27,7 @@ import 'src/services/expression_compiler.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
+export 'src/debugging/metadata/module_metadata.dart' show ModuleInfo;
 export 'src/debugging/metadata/provider.dart'
     show MetadataProvider, AbsoluteImportUriException;
 export 'src/events.dart' show DwdsEvent;
@@ -46,7 +47,7 @@ export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/servers/devtools.dart';
 export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
 export 'src/services/expression_compiler.dart'
-    show ExpressionCompilationResult, ExpressionCompiler, ModuleInfo;
+    show ExpressionCompilationResult, ExpressionCompiler;
 export 'src/services/expression_compiler_service.dart'
     show ExpressionCompilerService;
 

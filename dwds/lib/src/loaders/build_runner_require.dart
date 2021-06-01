@@ -92,12 +92,14 @@ class BuildRunnerRequireStrategyProvider {
     for (var module in modules) {
       var serverPath = await _serverPathForModule(metadataProvider, module);
       result[module] = ModuleInfo(
-          // TODO: Save locations of full kernel files in ddc metadata.
-          // Issue: https://github.com/dart-lang/sdk/issues/43684
-          // TODO: Change these to URIs instead of paths when the SDK supports
-          // it.
-          p.setExtension(serverPath, '.full.dill'),
-          p.setExtension(serverPath, '.dill'));
+        // TODO: Save locations of full kernel files in ddc metadata.
+        // Issue: https://github.com/dart-lang/sdk/issues/43684
+        // TODO: Change these to URIs instead of paths when the SDK supports
+        // it.
+        p.setExtension(serverPath, '.full.dill'),
+        p.setExtension(serverPath, '.dill'),
+        p.setExtension(serverPath, '.symbols'),
+      );
     }
     return result;
   }
