@@ -7,16 +7,16 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
-part 'debug_event.g.dart';
+part 'register_event.g.dart';
 
-abstract class DebugEvent implements Built<DebugEvent, DebugEventBuilder> {
-  static Serializer<DebugEvent> get serializer => _$debugEventSerializer;
+abstract class RegisterEvent
+    implements Built<RegisterEvent, RegisterEventBuilder> {
+  static Serializer<RegisterEvent> get serializer => _$registerEventSerializer;
 
-  factory DebugEvent([Function(DebugEventBuilder) updates]) = _$DebugEvent;
+  factory RegisterEvent([Function(RegisterEventBuilder) updates]) =
+      _$RegisterEvent;
 
-  DebugEvent._();
-
-  String get kind;
+  RegisterEvent._();
 
   String get eventData;
 

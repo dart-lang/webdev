@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/data/register_event.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
@@ -263,6 +264,10 @@ class DevHandler {
             await _servicesByAppId[appConnection.request.appId]
                 ?.chromeProxyService
                 ?.parseDebugEvent(message);
+          } else if (message is RegisterEvent) {
+            await _servicesByAppId[appConnection.request.appId]
+                ?.chromeProxyService
+                ?.parseRegisterEvent(message);
           }
         }
       } catch (e, s) {

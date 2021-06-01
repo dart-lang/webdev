@@ -16,6 +16,7 @@ import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
+import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/sockets.dart';
@@ -64,6 +65,12 @@ Future<void> main() {
       client.sink.add(jsonEncode(serializers.serialize(DebugEvent((b) => b
         ..timestamp = (DateTime.now().millisecondsSinceEpoch)
         ..kind = kind
+        ..eventData = eventData))));
+    });
+
+    emitRegisterEvent = allowInterop((String eventData) {
+      client.sink.add(jsonEncode(serializers.serialize(RegisterEvent((b) => b
+        ..timestamp = (DateTime.now().millisecondsSinceEpoch)
         ..eventData = eventData))));
     });
 
@@ -211,5 +218,8 @@ external void dispatchEvent(CustomEvent event);
 
 @JS(r'$emitDebugEvent')
 external set emitDebugEvent(void Function(String, String) func);
+
+@JS(r'$emitRegisterEvent')
+external set emitRegisterEvent(void Function(String) func);
 
 bool get _isChromium => window.navigator.userAgent.contains('Chrome');

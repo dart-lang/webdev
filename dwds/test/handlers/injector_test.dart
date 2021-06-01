@@ -182,6 +182,24 @@ void main() {
           .get(Uri.parse('http://localhost:${server.port}/someDummyPath'));
       expect(result.body, equals('some dummy response'));
     });
+
+    test('the injected client contains a global \$emitDebugEvent', () async {
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/dwds/src/injected/client.js'));
+      expect(result.body, contains('\$emitDebugEvent'));
+    });
+
+    test('the injected client contains a global \$emitRegisterEvent', () async {
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/dwds/src/injected/client.js'));
+      expect(result.body, contains('\$emitRegisterEvent'));
+    });
+
+    test('serves the injected client', () async {
+      var result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/dwds/src/injected/client.js'));
+      expect(result.statusCode, HttpStatus.ok);
+    });
   });
 
   group('InjectedHandlerWithoutExtension using WebSockets', () {
