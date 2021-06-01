@@ -9,27 +9,31 @@ import 'package:built_value/serializer.dart';
 
 import 'build_result.dart';
 import 'connect_request.dart';
+import 'debug_event.dart';
 import 'devtools_request.dart';
 import 'error_response.dart';
 import 'extension_request.dart';
 import 'isolate_events.dart';
+import 'register_event.dart';
 import 'run_request.dart';
 
 part 'serializers.g.dart';
 
 /// Serializers for all the types used in DWDS communication.
 @SerializersFor([
+  BatchedEvents,
   BuildResult,
+  ConnectRequest,
+  DebugEvent,
   DevToolsRequest,
   DevToolsResponse,
-  ConnectRequest,
-  RunRequest,
   IsolateExit,
   IsolateStart,
   ExtensionRequest,
   ExtensionResponse,
   ExtensionEvent,
-  BatchedEvents,
   ErrorResponse,
+  RegisterEvent,
+  RunRequest,
 ])
 final Serializers serializers = _$serializers;

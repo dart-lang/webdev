@@ -16,9 +16,11 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../data/build_result.dart';
 import '../../data/connect_request.dart';
+import '../../data/debug_event.dart';
 import '../../data/devtools_request.dart';
 import '../../data/error_response.dart';
 import '../../data/isolate_events.dart';
+import '../../data/register_event.dart';
 import '../../data/serializers.dart';
 import '../../dwds.dart';
 import '../debugging/execution_context.dart';
@@ -258,6 +260,14 @@ class DevHandler {
             await _handleIsolateExit(appConnection);
           } else if (message is IsolateStart) {
             await _handleIsolateStart(appConnection, injectedConnection);
+          } else if (message is DebugEvent) {
+            await _servicesByAppId[appConnection.request.appId]
+                ?.chromeProxyService
+                ?.parseDebugEvent(message);
+          } else if (message is RegisterEvent) {
+            await _servicesByAppId[appConnection.request.appId]
+                ?.chromeProxyService
+                ?.parseRegisterEvent(message);
           }
         }
       } catch (e, s) {

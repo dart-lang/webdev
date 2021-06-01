@@ -1,3 +1,8 @@
+## 11.1.0
+
+- Add global functions to the injected client for `dart.developer.postEvent`
+  and `dart.developer.registerExtension`.
+
 ## 11.0.2
 
 - Implement `_flutter.listViews` extension method in dwds vm client.

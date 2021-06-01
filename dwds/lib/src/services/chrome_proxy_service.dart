@@ -14,6 +14,8 @@ import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import '../../data/debug_event.dart';
+import '../../data/register_event.dart';
 import '../../dwds.dart';
 import '../debugging/debugger.dart';
 import '../debugging/execution_context.dart';
@@ -829,6 +831,44 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     return controller;
   }
 
+  /// Parses the [DebugEvent] and emits a corresponding Dart VM Service
+  /// protocol [Event].
+  Future<void> parseDebugEvent(DebugEvent debugEvent) async {
+    if (terminatingIsolates) return;
+
+    var isolate = _inspector?.isolate;
+    if (isolate == null) return;
+
+    _streamNotify(
+        EventStreams.kExtension,
+        Event(
+            kind: EventKind.kExtension,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            isolate: isolate)
+          ..extensionKind = debugEvent.kind
+          ..extensionData = ExtensionData.parse(
+              jsonDecode(debugEvent.eventData) as Map<String, dynamic>));
+  }
+
+  /// Parses the [RegisterEvent] and emits a corresponding Dart VM Service
+  /// protocol [Event].
+  Future<void> parseRegisterEvent(RegisterEvent registerEvent) async {
+    if (terminatingIsolates) return;
+
+    var isolate = _inspector?.isolate;
+    if (isolate == null) return;
+
+    var service = registerEvent.eventData;
+    isolate.extensionRPCs.add(service);
+    _streamNotify(
+        EventStreams.kIsolate,
+        Event(
+            kind: EventKind.kServiceExtensionAdded,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            isolate: isolate)
+          ..extensionRPC = service);
+  }
+
   /// Listens for chrome console events and handles the ones we care about.
   void _setUpChromeConsoleListeners(IsolateRef isolateRef) {
     _consoleSubscription =
@@ -841,6 +881,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       if (isolateRef.id != isolate.id) return;
 
       var firstArgValue = event.args[0].value as String;
+      // TODO(grouma) - Remove when the min SDK has updated to migrate users
+      // over to the injected client communication approach.
       switch (firstArgValue) {
         case 'dart.developer.registerExtension':
           var service = event.args[1].value as String;

@@ -1,6 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-
-// @dart = 2.9
+// @dart=2.9
 
 part of 'extension_request.dart';
 
@@ -34,10 +33,12 @@ class _$ExtensionRequestSerializer
       serializers.serialize(object.command,
           specifiedType: const FullType(String)),
     ];
-    if (object.commandParams != null) {
+    Object value;
+    value = object.commandParams;
+    if (value != null) {
       result
         ..add('commandParams')
-        ..add(serializers.serialize(object.commandParams,
+        ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
     }
     return result;
@@ -53,7 +54,7 @@ class _$ExtensionRequestSerializer
     while (iterator.moveNext()) {
       final key = iterator.current as String;
       iterator.moveNext();
-      final dynamic value = iterator.current;
+      final Object value = iterator.current;
       switch (key) {
         case 'id':
           result.id = serializers.deserialize(value,
@@ -94,10 +95,12 @@ class _$ExtensionResponseSerializer
       serializers.serialize(object.result,
           specifiedType: const FullType(String)),
     ];
-    if (object.error != null) {
+    Object value;
+    value = object.error;
+    if (value != null) {
       result
         ..add('error')
-        ..add(serializers.serialize(object.error,
+        ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
     }
     return result;
@@ -113,7 +116,7 @@ class _$ExtensionResponseSerializer
     while (iterator.moveNext()) {
       final key = iterator.current as String;
       iterator.moveNext();
-      final dynamic value = iterator.current;
+      final Object value = iterator.current;
       switch (key) {
         case 'id':
           result.id = serializers.deserialize(value,
@@ -170,7 +173,7 @@ class _$ExtensionEventSerializer
     while (iterator.moveNext()) {
       final key = iterator.current as String;
       iterator.moveNext();
-      final dynamic value = iterator.current;
+      final Object value = iterator.current;
       switch (key) {
         case 'params':
           result.params = serializers.deserialize(value,
@@ -216,7 +219,7 @@ class _$BatchedEventsSerializer implements StructuredSerializer<BatchedEvents> {
     while (iterator.moveNext()) {
       final key = iterator.current as String;
       iterator.moveNext();
-      final dynamic value = iterator.current;
+      final Object value = iterator.current;
       switch (key) {
         case 'events':
           result.events.replace(serializers.deserialize(value,
@@ -245,12 +248,9 @@ class _$ExtensionRequest extends ExtensionRequest {
 
   _$ExtensionRequest._({this.id, this.command, this.commandParams})
       : super._() {
-    if (id == null) {
-      throw new BuiltValueNullFieldError('ExtensionRequest', 'id');
-    }
-    if (command == null) {
-      throw new BuiltValueNullFieldError('ExtensionRequest', 'command');
-    }
+    BuiltValueNullFieldError.checkNotNull(id, 'ExtensionRequest', 'id');
+    BuiltValueNullFieldError.checkNotNull(
+        command, 'ExtensionRequest', 'command');
   }
 
   @override
@@ -306,10 +306,11 @@ class ExtensionRequestBuilder
   ExtensionRequestBuilder();
 
   ExtensionRequestBuilder get _$this {
-    if (_$v != null) {
-      _id = _$v.id;
-      _command = _$v.command;
-      _commandParams = _$v.commandParams;
+    final $v = _$v;
+    if ($v != null) {
+      _id = $v.id;
+      _command = $v.command;
+      _commandParams = $v.commandParams;
       _$v = null;
     }
     return this;
@@ -317,9 +318,7 @@ class ExtensionRequestBuilder
 
   @override
   void replace(ExtensionRequest other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExtensionRequest;
   }
 
@@ -332,7 +331,11 @@ class ExtensionRequestBuilder
   _$ExtensionRequest build() {
     final _$result = _$v ??
         new _$ExtensionRequest._(
-            id: id, command: command, commandParams: commandParams);
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, 'ExtensionRequest', 'id'),
+            command: BuiltValueNullFieldError.checkNotNull(
+                command, 'ExtensionRequest', 'command'),
+            commandParams: commandParams);
     replace(_$result);
     return _$result;
   }
@@ -354,15 +357,11 @@ class _$ExtensionResponse extends ExtensionResponse {
 
   _$ExtensionResponse._({this.id, this.success, this.result, this.error})
       : super._() {
-    if (id == null) {
-      throw new BuiltValueNullFieldError('ExtensionResponse', 'id');
-    }
-    if (success == null) {
-      throw new BuiltValueNullFieldError('ExtensionResponse', 'success');
-    }
-    if (result == null) {
-      throw new BuiltValueNullFieldError('ExtensionResponse', 'result');
-    }
+    BuiltValueNullFieldError.checkNotNull(id, 'ExtensionResponse', 'id');
+    BuiltValueNullFieldError.checkNotNull(
+        success, 'ExtensionResponse', 'success');
+    BuiltValueNullFieldError.checkNotNull(
+        result, 'ExtensionResponse', 'result');
   }
 
   @override
@@ -424,11 +423,12 @@ class ExtensionResponseBuilder
   ExtensionResponseBuilder();
 
   ExtensionResponseBuilder get _$this {
-    if (_$v != null) {
-      _id = _$v.id;
-      _success = _$v.success;
-      _result = _$v.result;
-      _error = _$v.error;
+    final $v = _$v;
+    if ($v != null) {
+      _id = $v.id;
+      _success = $v.success;
+      _result = $v.result;
+      _error = $v.error;
       _$v = null;
     }
     return this;
@@ -436,9 +436,7 @@ class ExtensionResponseBuilder
 
   @override
   void replace(ExtensionResponse other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExtensionResponse;
   }
 
@@ -451,7 +449,13 @@ class ExtensionResponseBuilder
   _$ExtensionResponse build() {
     final _$result = _$v ??
         new _$ExtensionResponse._(
-            id: id, success: success, result: result, error: error);
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, 'ExtensionResponse', 'id'),
+            success: BuiltValueNullFieldError.checkNotNull(
+                success, 'ExtensionResponse', 'success'),
+            result: BuiltValueNullFieldError.checkNotNull(
+                result, 'ExtensionResponse', 'result'),
+            error: error);
     replace(_$result);
     return _$result;
   }
@@ -467,12 +471,8 @@ class _$ExtensionEvent extends ExtensionEvent {
       (new ExtensionEventBuilder()..update(updates)).build();
 
   _$ExtensionEvent._({this.params, this.method}) : super._() {
-    if (params == null) {
-      throw new BuiltValueNullFieldError('ExtensionEvent', 'params');
-    }
-    if (method == null) {
-      throw new BuiltValueNullFieldError('ExtensionEvent', 'method');
-    }
+    BuiltValueNullFieldError.checkNotNull(params, 'ExtensionEvent', 'params');
+    BuiltValueNullFieldError.checkNotNull(method, 'ExtensionEvent', 'method');
   }
 
   @override
@@ -520,9 +520,10 @@ class ExtensionEventBuilder
   ExtensionEventBuilder();
 
   ExtensionEventBuilder get _$this {
-    if (_$v != null) {
-      _params = _$v.params;
-      _method = _$v.method;
+    final $v = _$v;
+    if ($v != null) {
+      _params = $v.params;
+      _method = $v.method;
       _$v = null;
     }
     return this;
@@ -530,9 +531,7 @@ class ExtensionEventBuilder
 
   @override
   void replace(ExtensionEvent other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExtensionEvent;
   }
 
@@ -543,8 +542,12 @@ class ExtensionEventBuilder
 
   @override
   _$ExtensionEvent build() {
-    final _$result =
-        _$v ?? new _$ExtensionEvent._(params: params, method: method);
+    final _$result = _$v ??
+        new _$ExtensionEvent._(
+            params: BuiltValueNullFieldError.checkNotNull(
+                params, 'ExtensionEvent', 'params'),
+            method: BuiltValueNullFieldError.checkNotNull(
+                method, 'ExtensionEvent', 'method'));
     replace(_$result);
     return _$result;
   }
@@ -558,9 +561,7 @@ class _$BatchedEvents extends BatchedEvents {
       (new BatchedEventsBuilder()..update(updates)).build();
 
   _$BatchedEvents._({this.events}) : super._() {
-    if (events == null) {
-      throw new BuiltValueNullFieldError('BatchedEvents', 'events');
-    }
+    BuiltValueNullFieldError.checkNotNull(events, 'BatchedEvents', 'events');
   }
 
   @override
@@ -600,8 +601,9 @@ class BatchedEventsBuilder
   BatchedEventsBuilder();
 
   BatchedEventsBuilder get _$this {
-    if (_$v != null) {
-      _events = _$v.events?.toBuilder();
+    final $v = _$v;
+    if ($v != null) {
+      _events = $v.events.toBuilder();
       _$v = null;
     }
     return this;
@@ -609,9 +611,7 @@ class BatchedEventsBuilder
 
   @override
   void replace(BatchedEvents other) {
-    if (other == null) {
-      throw new ArgumentError.notNull('other');
-    }
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$BatchedEvents;
   }
 
