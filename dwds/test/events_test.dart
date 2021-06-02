@@ -63,6 +63,20 @@ void main() {
       bootstrap = isolate.rootLib;
     });
 
+    test('can emit event through service extension', () async {
+      expect(
+          context.testServer.dwds.events,
+          emits(predicate((DwdsEvent event) =>
+              event.type == 'foo-event' && event.payload['data'] == 1234)));
+
+      var response = await context.debugConnection.vmService
+          .callServiceExtension('ext.dwds.emitEvent', args: {
+        'type': 'foo-event',
+        'payload': {'data': 1234},
+      });
+      expect(response.type, 'Success');
+    });
+
     test('emits EVALUATE events on evaluation success', () async {
       var expression = "helloString('world')";
       expect(

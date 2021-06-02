@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'events.dart';
 import 'services/chrome_proxy_service.dart' show ChromeProxyService;
 import 'services/debug_service.dart';
 
@@ -152,6 +153,13 @@ class DwdsVmClient {
       return {'result': response.result};
     });
     await client.registerService('ext.dwds.screenshot', 'DWDS');
+
+    client.registerServiceCallback('ext.dwds.emitEvent', (event) async {
+      emitEvent(DwdsEvent(
+          event['type'] as String, event['payload'] as Map<String, dynamic>));
+      return {'result': Success().toJson()};
+    });
+    await client.registerService('ext.dwds.emitEvent', 'DWDS');
 
     client.registerServiceCallback('_yieldControlToDDS', (request) async {
       final ddsUri = request['uri'] as String;

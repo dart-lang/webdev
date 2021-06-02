@@ -2,6 +2,8 @@
 
 - Add global functions to the injected client for `dart.developer.postEvent`
   and `dart.developer.registerExtension`.
+- Register new service extension `ext.dwds.emitEvent` so clients can emit
+  events. This is intended to be used for analytics.
 
 ## 11.0.2
 
