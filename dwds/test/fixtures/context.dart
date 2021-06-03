@@ -176,7 +176,7 @@ class TestContext {
               ],
               if (enableDebugSymbols) ...[
                 '--define',
-                'build_web_compilers|ddc=generate-symbols=true',
+                'build_web_compilers|ddc=generate-debug-symbols=true',
               ],
               if (verbose) '--verbose',
             ];
