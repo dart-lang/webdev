@@ -22,7 +22,7 @@ dev_dependencies:
   build_web_compilers: ">=1.2.0 <3.0.0"
   build_runner: ">=1.5.0 <2.0.0"
   built_collection: ^4.2.0
-  dwds: ^11.0.0 
+  dwds: ^11.0.0
   webdev: ^2.0.0
 
 dependency_overrides:
