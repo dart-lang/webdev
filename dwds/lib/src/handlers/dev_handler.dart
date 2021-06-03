@@ -64,6 +64,7 @@ class DevHandler {
   final bool _serveDevTools;
   final bool _spawnDds;
   final ExpressionCompiler _expressionCompiler;
+  final bool _enableDebugSymbols;
   final DwdsInjector _injected;
 
   /// Null until [close] is called.
@@ -86,6 +87,7 @@ class DevHandler {
       this._useSseForInjectedClient,
       this._serveDevTools,
       this._expressionCompiler,
+      this._enableDebugSymbols,
       this._injected,
       this._spawnDds) {
     _subs.add(buildResults.listen(_emitBuildResults));
@@ -204,6 +206,7 @@ class DevHandler {
       // This will provide a websocket based service.
       useSse: false,
       expressionCompiler: _expressionCompiler,
+      enableDebugSymbols: _enableDebugSymbols,
       spawnDds: _spawnDds,
     );
   }
@@ -485,6 +488,7 @@ class DevHandler {
           },
           useSse: _useSseForDebugProxy,
           expressionCompiler: _expressionCompiler,
+          enableDebugSymbols: _enableDebugSymbols,
           spawnDds: _spawnDds,
         );
         var appServices =

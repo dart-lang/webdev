@@ -31,6 +31,7 @@ class WebDevFS {
     this.packagesPath,
     this.root,
     this.urlTunneller,
+    this.enableDebugSymbols = false,
   });
 
   final FileSystem fileSystem;
@@ -41,6 +42,7 @@ class WebDevFS {
   final String packagesPath;
   final String root;
   final UrlEncoder urlTunneller;
+  final bool enableDebugSymbols;
   Directory _savedCurrentDirectory;
   List<Uri> sources;
 
@@ -126,8 +128,11 @@ class WebDevFS {
           parentDirectory.childFile('${compilerOutput.outputFilename}.map');
       metadataFile = parentDirectory
           .childFile('${compilerOutput.outputFilename}.metadata');
-      symbolsFile =
-          parentDirectory.childFile('${compilerOutput.outputFilename}.symbols');
+
+      symbolsFile = enableDebugSymbols
+          ? parentDirectory
+              .childFile('${compilerOutput.outputFilename}.symbols')
+          : null;
       modules = assetServer.write(
           codeFile, manifestFile, sourcemapFile, metadataFile, symbolsFile);
     } on FileSystemException catch (err) {

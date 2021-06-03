@@ -158,7 +158,7 @@ class TestAssetServer implements AssetReader {
     var codeBytes = codeFile.readAsBytesSync();
     var sourcemapBytes = sourcemapFile.readAsBytesSync();
     var metadataBytes = metadataFile.readAsBytesSync();
-    var symbolsBytes = symbolsFile.readAsBytesSync();
+    var symbolsBytes = symbolsFile?.readAsBytesSync();
     var manifest =
         castStringKeyedMap(json.decode(manifestFile.readAsStringSync()));
     for (var filePath in manifest.keys) {
@@ -171,11 +171,10 @@ class TestAssetServer implements AssetReader {
       var sourcemapOffsets =
           (offsets['sourcemap'] as List<dynamic>).cast<int>();
       var metadataOffsets = (offsets['metadata'] as List<dynamic>).cast<int>();
-      var symbolsOffsets = (offsets['symbols'] as List<dynamic>).cast<int>();
+
       if (codeOffsets.length != 2 ||
           sourcemapOffsets.length != 2 ||
-          metadataOffsets.length != 2 ||
-          symbolsOffsets.length != 2) {
+          metadataOffsets.length != 2) {
         _printTrace('Invalid manifest byte offsets: $offsets');
         continue;
       }
@@ -219,18 +218,25 @@ class TestAssetServer implements AssetReader {
       );
       _metadata['$filePath.metadata'] = metadataView;
 
-      var symbolsStart = symbolsOffsets[0];
-      var symbolsEnd = symbolsOffsets[1];
-      if (symbolsStart < 0 || symbolsEnd > symbolsBytes.lengthInBytes) {
-        _printTrace('Invalid byte index: [$symbolsStart, $symbolsEnd]');
-        continue;
+      if (symbolsBytes != null) {
+        var symbolsOffsets = (offsets['symbols'] as List<dynamic>).cast<int>();
+        if (symbolsOffsets.length != 2) {
+          _printTrace('Invalid manifest byte offsets: $offsets');
+          continue;
+        }
+        var symbolsStart = symbolsOffsets[0];
+        var symbolsEnd = symbolsOffsets[1];
+        if (symbolsStart < 0 || symbolsEnd > symbolsBytes.lengthInBytes) {
+          _printTrace('Invalid byte index: [$symbolsStart, $symbolsEnd]');
+          continue;
+        }
+        var symbolsView = Uint8List.view(
+          symbolsBytes.buffer,
+          symbolsStart,
+          symbolsEnd - symbolsStart,
+        );
+        _metadata['$filePath.symbols'] = symbolsView;
       }
-      var symbolsView = Uint8List.view(
-        symbolsBytes.buffer,
-        symbolsStart,
-        symbolsEnd - symbolsStart,
-      );
-      _metadata['$filePath.symbols'] = symbolsView;
 
       modules.add(filePath);
     }

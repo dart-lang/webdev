@@ -115,6 +115,8 @@ Common:
                                            (defaults to on)
 -e, --[no-]enable-expression-evaluation    Enable expression evaluation features
                                            in the debugger.
+-s, --[no-]enable-debug-symbols            Enable expression evaluation features
+                                           in the debugger.
 -v, --verbose                              Enables verbose logging.
 
 Run "webdev help" to see global options.
@@ -156,6 +158,8 @@ Usage: webdev build [arguments]
                                            run.
                                            (defaults to on)
 -e, --[no-]enable-expression-evaluation    Enable expression evaluation features
+                                           in the debugger.
+-s, --[no-]enable-debug-symbols            Enable expression evaluation features
                                            in the debugger.
 -v, --verbose                              Enables verbose logging.
 

@@ -1,3 +1,8 @@
+## 2.8.0-dev
+
+- Read DDC debug symbols under a `--enable-debug-symbols` flag.
+  Disabled by default. The feature is under development.
+
 ## 2.7.5
 
 - Depend on the latest `package:dwds`.

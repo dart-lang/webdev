@@ -118,6 +118,7 @@ class TestContext {
       bool restoreBreakpoints,
       CompilationMode compilationMode,
       bool enableExpressionEvaluation,
+      bool enableDebugSymbols,
       bool verbose}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
@@ -127,6 +128,7 @@ class TestContext {
     waitToDebug ??= false;
     compilationMode ??= CompilationMode.buildDaemon;
     enableExpressionEvaluation ??= false;
+    enableDebugSymbols ??= false;
     spawnDds ??= true;
     verbose ??= false;
 
@@ -171,6 +173,10 @@ class TestContext {
               if (enableExpressionEvaluation) ...[
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
+              ],
+              if (enableDebugSymbols) ...[
+                '--define',
+                'build_web_compilers|ddc=generate-symbols=true',
               ],
               if (verbose) '--verbose',
             ];
@@ -225,6 +231,7 @@ class TestContext {
                 [fileSystemRoot],
                 'org-dartlang-app',
                 _outputDir.path,
+                enableDebugSymbols,
                 verbose);
 
             var assetServerPort = await findUnusedPort();
@@ -289,6 +296,7 @@ class TestContext {
         urlEncoder,
         restoreBreakpoints,
         expressionCompiler,
+        enableDebugSymbols,
         spawnDds,
         ddcService,
       );

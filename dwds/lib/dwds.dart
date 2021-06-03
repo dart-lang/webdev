@@ -101,6 +101,7 @@ class Dwds {
     // TODO(annagrin): make expressionCompiler argument required
     // [issue 881](https://github.com/dart-lang/webdev/issues/881)
     ExpressionCompiler expressionCompiler,
+    bool enableDebugSymbols,
     bool enableDebugExtension,
     String hostname,
     bool useSseForDebugProxy,
@@ -120,6 +121,7 @@ class Dwds {
     enableDevtoolsLaunch ??= true;
     spawnDds ??= true;
     globalLoadStrategy = loadStrategy;
+    enableDebugSymbols ??= false;
 
     DevTools devTools;
     String extensionUri;
@@ -172,6 +174,7 @@ class Dwds {
       useSseForInjectedClient,
       serveDevTools,
       expressionCompiler,
+      enableDebugSymbols,
       injected,
       spawnDds,
     );

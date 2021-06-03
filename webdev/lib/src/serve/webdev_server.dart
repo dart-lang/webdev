@@ -142,6 +142,7 @@ class WebDevServer {
           enableDebugging: options.configuration.debug,
           spawnDds: !options.configuration.disableDds,
           expressionCompiler: ddcService,
+          enableDebugSymbols: options.configuration.enableDebugSymbols,
           devtoolsLauncher: shouldServeDevTools
               ? (String hostname) async {
                   var server = await serveDevTools(
