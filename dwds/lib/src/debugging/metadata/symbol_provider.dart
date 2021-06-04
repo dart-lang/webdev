@@ -41,7 +41,7 @@ class SymbolTableProvider {
           try {
             var symbolsJson = json.decode(symbols) as Map<String, dynamic>;
             var moduleSymbols = ModuleSymbols.fromJson(symbolsJson);
-            _symbolTable.addSymbols(moduleSymbols);
+            _symbolTable._addSymbols(moduleSymbols);
             _logger.fine('Loaded debug symbols for module: $module');
           } catch (e, s) {
             _logger.severe('Failed to read symbols for $module: $e:$s');
@@ -51,7 +51,7 @@ class SymbolTableProvider {
           _logger.severe('Cannot find symbols file for $module');
         }
       }
-
+      _symbolTable._validate();
       _logger.info('Loaded debug symbols.');
     });
   }
@@ -70,9 +70,6 @@ class SymbolTable {
   final Map<String, ScopeSymbol> scopes = {};
   final Map<String, VariableSymbol> variables = {};
   final Map<String, FunctionSymbol> globalFunctions = {};
-
-  // build-in types
-  // TODO: read from dart_sdk symbols?
 
   static LibrarySymbol _makeBuiltInLibrarySymbol(String uri) => LibrarySymbol(
         name: uri,
@@ -106,14 +103,10 @@ class SymbolTable {
         optionalParameterTypeIds: [],
       );
 
-  // runtime types
-
   static LibrarySymbol runtimeLibrarySymbol =
       _makeBuiltInLibrarySymbol('dart:_runtime');
   static ClassSymbol typeType =
       _makeBuiltInClassSymbol('Type', '_Type', runtimeLibrarySymbol.id);
-
-  // coretypes
 
   static LibrarySymbol coreLibrarySymbol =
       _makeBuiltInLibrarySymbol('dart:core');
@@ -145,8 +138,6 @@ class SymbolTable {
   static ClassSymbol linkedMapType = _makeCoreClassSymbol('LinkedMap');
   static ClassSymbol identityMapType = _makeCoreClassSymbol('IdentityMap');
   static ClassSymbol jsArrayType = _makeCoreClassSymbol('JSArray');
-
-  // end build-in types
 
   static LibrarySymbol unresolvedLibrary =
       _makeBuiltInLibrarySymbol('unresolved_library');
@@ -339,17 +330,25 @@ class SymbolTable {
     return 'Symbol(${cls.name}.${symbol.name})';
   }
 
+  /// Collect all dart variables in scope at the current position.
+  ///
+  /// Given the current scope represented by [symbol], and a location
+  /// [tokenPos], walk the scope chain starting from the library
+  /// and ending by the innermost scope, collecting all variables in
+  /// scope (i.e. defined in the scope chain above the [tokenPos]).
   List<VariableSymbol> getVariablesInScope(ScopeSymbol symbol, int tokenPos) {
     var variables = <VariableSymbol>[];
     var scopeChain = <ScopeSymbol>[];
     for (var current = symbol;
         current != null;
         current = getEnclosingScope(current)) {
-      scopeChain.add(current); // library is last
+      scopeChain.add(current);
     }
+    // Make the scope chain start from the outermost scope (library).
     scopeChain = scopeChain.reversed.toList();
 
-    // Collect variables in scope, from outer scope to inner.
+    // Collect variables in scope above tokenPos,
+    // starting from the outermost scope.
     for (var scope in scopeChain) {
       for (var id in scope.variableIds) {
         var variable = getVariableSymbol(id);
@@ -361,7 +360,7 @@ class SymbolTable {
     return variables;
   }
 
-  void addSymbols(ModuleSymbols symbols) {
+  void _addSymbols(ModuleSymbols symbols) {
     // TODO: skip null ids in ddc during symbol generation
     for (var element in symbols.libraries) {
       if (element.localId != null) {
@@ -432,7 +431,7 @@ class SymbolTable {
     }
   }
 
-  void validate() {
+  void _validate() {
     for (var e in scopes.values) {
       if (e.scopeId != null && !scopes.containsKey(e.scopeId)) {
         _logger.warning('Unresolved encosing scope reference ${e.scopeId}');

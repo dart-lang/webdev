@@ -64,7 +64,8 @@ void addSharedArgs(ArgParser argParser,
         abbr: 's',
         defaultsTo: false,
         negatable: true,
-        help: 'Use debug symbols for variable inspection in the debugger.')
+        help: 'Use debug symbols for variable inspection in the debugger.',
+        hide: true)
     ..addFlag(verboseFlag,
         abbr: 'v',
         defaultsTo: false,
