@@ -337,6 +337,12 @@ class SymbolTable {
   /// and ending by the innermost scope, collecting all variables in
   /// scope (i.e. defined in the scope chain above the [tokenPos]).
   List<VariableSymbol> getVariablesInScope(ScopeSymbol symbol, int tokenPos) {
+    bool isInScope(VariableSymbol variable, int tokenPos) {
+      return (variable.kind != VariableSymbolKind.formal &&
+              variable.kind != VariableSymbolKind.local) ||
+          variable.location.endTokenPos < tokenPos;
+    }
+
     var variables = <VariableSymbol>[];
     var scopeChain = <ScopeSymbol>[];
     for (var current = symbol;
@@ -352,7 +358,7 @@ class SymbolTable {
     for (var scope in scopeChain) {
       for (var id in scope.variableIds) {
         var variable = getVariableSymbol(id);
-        if (variable.location.endTokenPos < tokenPos) {
+        if (isInScope(variable, tokenPos)) {
           variables.add(variable);
         }
       }
