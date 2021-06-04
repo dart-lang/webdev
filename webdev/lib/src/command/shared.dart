@@ -92,6 +92,12 @@ List<String> buildRunnerArgs(
       ..add('build_web_compilers|ddc=generate-full-dill=true');
   }
 
+  if (configuration.enableDebugSymbols) {
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|ddc=output-debug-symbols=true');
+  }
+
   if (configuration.nullSafety != nullSafetyAuto) {
     arguments
       ..add('--define')
