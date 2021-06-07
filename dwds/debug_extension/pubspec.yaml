@@ -1,6 +1,6 @@
-name: _extension
+name: extension
 publish_to: none
-version: 1.22.0
+version: 1.23.0
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/webdev
 description: >-
@@ -14,14 +14,14 @@ dependencies:
   js: ^0.6.1+1
   pedantic: ^1.5.0
   pub_semver: ^2.0.0
-  sse: ^3.8.1
+  sse: ^4.1.0
   web_socket_channel: ^2.0.0
 
 dev_dependencies:
   build: ^2.0.0
   build_web_compilers: ">=1.2.0 <3.0.0"
   build_runner: ">=1.5.0 <2.0.0"
-  built_collection: ^4.2.0
+  built_collection: ^5.0.0
   dwds: ^11.0.0
   webdev: ^2.0.0
 

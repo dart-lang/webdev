@@ -1,3 +1,5 @@
+## 11.1.1-dev
+
 ## 11.1.0
 
 - Add global functions to the injected client for `dart.developer.postEvent`
