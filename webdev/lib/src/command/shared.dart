@@ -95,7 +95,7 @@ List<String> buildRunnerArgs(
   if (configuration.enableDebugSymbols) {
     arguments
       ..add('--define')
-      ..add('build_web_compilers|ddc=output-debug-symbols=true');
+      ..add('build_web_compilers|ddc=emit-debug-symbols=true');
   }
 
   if (configuration.nullSafety != nullSafetyAuto) {
