@@ -1049,6 +1049,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Success> setTraceClassAllocation(
           String isolateId, String classId, bool enable) =>
       throw UnimplementedError();
+
+  @override
+  Future<Breakpoint> setBreakpointState(
+          String isolateId, String breakpointId, bool enable) =>
+      throw UnimplementedError();
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
