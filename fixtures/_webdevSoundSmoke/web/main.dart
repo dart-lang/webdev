@@ -21,4 +21,3 @@ void main() {
     print('Counter is: ${++count}'); // Breakpoint: printCounter
   });
 }
-  
