@@ -14,7 +14,7 @@ void main() {
   Chrome chrome;
 
   Future<void> launchChrome({int port}) async {
-    chrome = await Chrome.start([_googleUrl], port: port);
+    chrome = await Chrome.start([_googleUrl], port: port ?? 0);
   }
 
   tearDown(() async {

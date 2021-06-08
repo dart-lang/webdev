@@ -1,3 +1,9 @@
+## 1.23
+
+- Depend on the latest `package:sse` to improve stability of the connection with many
+  concurrent requests. 
+
+
 ## 1.22
 
 - Detect Dart applications and update the icon accordingly.

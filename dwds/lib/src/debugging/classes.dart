@@ -24,8 +24,10 @@ final classRefForString = classRefFor('dart:core', InstanceKind.kString);
 final classRefForUnknown = classRefFor('dart:core', 'Unknown');
 
 /// Returns a [ClassRef] for the provided library ID and class name.
-ClassRef classRefFor(String libraryId, String name) =>
-    ClassRef(id: 'classes|$libraryId|$name', name: name);
+ClassRef classRefFor(String libraryId, String name) => ClassRef(
+    id: 'classes|$libraryId|$name',
+    name: name,
+    library: LibraryRef(id: libraryId, name: libraryId, uri: libraryId));
 
 /// Keeps track of Dart classes available in the running application.
 class ClassHelper extends Domain {
