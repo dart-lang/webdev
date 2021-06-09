@@ -1,4 +1,6 @@
-## 2.7.5-dev
+## 2.7.5
+
+- Depend on the latest `package:dwds`.
 
 ## 2.7.4
 
