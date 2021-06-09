@@ -1,4 +1,6 @@
-## 11.1.1-dev
+## 11.1.1
+
+- Update versions of `package:sse`, `package:vm_service`, `package:dds`.
 
 ## 11.1.0
 
