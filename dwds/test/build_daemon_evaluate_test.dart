@@ -477,6 +477,24 @@ void main() async {
 
           tearDown(() async {});
 
+          test('with scope', () async {
+            var library = isolate.rootLib;
+            var object = await setup.service
+                .evaluate(isolate.id, library.id, 'MainClass(0)');
+
+            var param = object as InstanceRef;
+            var result = await setup.service.evaluate(
+                isolate.id, library.id, 't.toString()',
+                scope: {'t': param.id});
+
+            expect(
+                result,
+                const TypeMatcher<InstanceRef>().having(
+                    (instance) => instance.valueAsString,
+                    'valueAsString',
+                    '0'));
+          });
+
           test('uses symbol from the same library', () async {
             var library = isolate.rootLib;
             var result = await setup.service

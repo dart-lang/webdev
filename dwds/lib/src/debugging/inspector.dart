@@ -208,6 +208,25 @@ class AppInspector extends Domain {
     return RemoteObject(result.result['result'] as Map<String, Object>);
   }
 
+  /// Calls Chrome's Runtime.callFunctionOn method with a global function.
+  ///
+  /// [evalExpression] should be a JS function definition that can accept
+  /// [arguments].
+  Future<RemoteObject> jsCallFunction(
+      String evalExpression, List<RemoteObject> arguments,
+      {bool returnByValue = false}) async {
+    var jsArguments = arguments.map(callArgumentFor).toList();
+    var result =
+        await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
+      'functionDeclaration': evalExpression,
+      'arguments': jsArguments,
+      'executionContextId': await contextId,
+      'returnByValue': returnByValue,
+    });
+    handleErrorIfPresent(result, evalContents: evalExpression);
+    return RemoteObject(result.result['result'] as Map<String, Object>);
+  }
+
   Future<RemoteObject> evaluate(
       String isolateId, String targetId, String expression,
       {Map<String, String> scope}) async {
@@ -311,6 +330,13 @@ function($argsString) {
 }
     ''';
     return _evaluateInLibrary(library, evalExpression, arguments);
+  }
+
+  /// Call [function] with objects referred by [argumentIds] as arguments.
+  Future<RemoteObject> callFunction(
+      String function, Iterable<String> argumentIds) async {
+    var arguments = argumentIds.map(remoteObjectFor).toList();
+    return jsCallFunction(function, arguments);
   }
 
   Future<Library> getLibrary(String isolateId, String objectId) async {
