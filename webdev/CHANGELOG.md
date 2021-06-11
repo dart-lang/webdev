@@ -1,6 +1,7 @@
 ## 2.7.5
 
 - Depend on the latest `package:dwds`.
+- Update min sdk constraint to `>=2.13.0`.
 
 ## 2.7.4
 
