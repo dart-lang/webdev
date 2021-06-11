@@ -4,16 +4,18 @@
 
 // @dart = 2.9
 
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../loaders/strategy.dart';
 import '../utilities/domain.dart';
-import '../utilities/shared.dart';
 import 'inspector.dart';
 import 'metadata/class.dart';
 
 /// Keeps track of Dart libraries available in the running application.
 class LibraryHelper extends Domain {
+  final Logger _logger = Logger('LibraryHelper');
+
   /// Map of library ID to [Library].
   final _librariesById = <String, Library>{};
 
@@ -91,16 +93,26 @@ class LibraryHelper extends Domain {
       'returnByValue': true,
       'contextId': await inspector.contextId,
     });
-    handleErrorIfPresent(result, evalContents: expression);
-    var classDescriptors = (result.result['result']['value']['classes'] as List)
-        .cast<Map<String, Object>>();
-    var classRefs = classDescriptors.map<ClassRef>((classDescriptor) {
-      var classMetaData = ClassMetaData(
-          jsName: classDescriptor['name'],
-          libraryId: libraryRef.id,
-          dartName: classDescriptor['dartName']);
-      return classMetaData.classRef;
-    }).toList();
+    List<ClassRef> classRefs;
+    if (result.result.containsKey('exceptionDetails')) {
+      // Unreferenced libraries are not loaded at runtime,
+      // return empty library object for consistency among
+      // VM Service implementations.
+      // TODO: Collect library and class information from debug symbols.
+      _logger.warning('Library ${libraryRef.uri} is not loaded. '
+          'This can happen for unreferenced libraries.');
+    } else {
+      var classDescriptors =
+          (result.result['result']['value']['classes'] as List)
+              .cast<Map<String, Object>>();
+      classRefs = classDescriptors.map<ClassRef>((classDescriptor) {
+        var classMetaData = ClassMetaData(
+            jsName: classDescriptor['name'],
+            libraryId: libraryRef.id,
+            dartName: classDescriptor['dartName']);
+        return classMetaData.classRef;
+      }).toList();
+    }
     return Library(
         name: libraryRef.name,
         uri: libraryRef.uri,
