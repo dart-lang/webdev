@@ -100,7 +100,7 @@ class ExpressionEvaluator {
     if (scope != null && scope.isNotEmpty) {
       // Strip try/catch.
       // TODO: remove adding try/catch block in expression compiler.
-      //
+      // https://github.com/dart-lang/webdev/issues/1341
       var lines = jsResult.split('\n');
       var inner = lines.getRange(2, lines.length - 3).join('\n');
       var function = 'function(t) {'
@@ -131,14 +131,14 @@ class ExpressionEvaluator {
   /// [expression] dart expression to evaluate.
   Future<RemoteObject> evaluateExpressionInFrame(String isolateId,
       int frameIndex, String expression, Map<String, String> scope) async {
-    if (scope != null && scope.isNotEmpty) {
-      return _createError(ErrorKind.internal,
-          'ExpressionEvaluator does not support overriding scope');
-    }
-
     if (_compiler == null) {
       return _createError(ErrorKind.internal,
           'ExpressionEvaluator needs an ExpressionCompiler');
+    }
+
+    if (scope != null && scope.isNotEmpty) {
+      return _createError(ErrorKind.internal,
+          'ExpressionEvaluator does not support overriding scope');
     }
 
     if (expression == null || expression.isEmpty) {
