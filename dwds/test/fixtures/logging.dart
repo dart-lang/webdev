@@ -33,7 +33,8 @@ StreamSubscription<LogRecord> _loggerSub;
 void configureLogWriter({LogWriter customLogWriter}) {
   _logWriter = customLogWriter ?? _logWriter;
   Logger.root.level = Level.ALL;
-  _loggerSub ??= Logger.root.onRecord.listen((event) {
+  _loggerSub?.cancel();
+  _loggerSub = Logger.root.onRecord.listen((event) {
     logWriter(event.level, event.message,
         error: '${event.error}',
         loggerName: event.loggerName,

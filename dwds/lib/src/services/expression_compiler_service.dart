@@ -315,34 +315,38 @@ class ExpressionCompilerService implements ExpressionCompiler {
   /// the request to the asset handler.
   FutureOr<Response> handler(Request request) {
     var uri = request.requestedUri.queryParameters['uri'];
-    var query = request.requestedUri.path;
+    try {
+      var query = request.requestedUri.path;
+      _logger.finest('request: ${request.requestedUri}');
 
-    _logger.finest('request: ${request.requestedUri}');
+      if (query != '/getResource' || uri == null) {
+        return Response.notFound(uri);
+      }
 
-    if (query != '/getResource' || uri == null) {
+      if (!uri.endsWith('.dart') && !uri.endsWith('.dill')) {
+        return Response.notFound(uri);
+      }
+
+      var serverPath = uri;
+      if (uri.endsWith('.dart')) {
+        serverPath = DartUri(uri).serverPath;
+      }
+
+      _logger.finest('serverpath for $uri: $serverPath');
+
+      request = Request(
+          'GET',
+          Uri(
+            scheme: request.requestedUri.scheme,
+            host: request.requestedUri.host,
+            port: request.requestedUri.port,
+            path: serverPath,
+          ));
+
+      return _assetHandler(request);
+    } catch (e, s) {
+      _logger.severe('Error loading $uri: $e:$s');
       return Response.notFound(uri);
     }
-
-    if (!uri.endsWith('.dart') && !uri.endsWith('.dill')) {
-      return Response.notFound(uri);
-    }
-
-    var serverPath = uri;
-    if (uri.endsWith('.dart')) {
-      serverPath = DartUri(uri).serverPath;
-    }
-
-    _logger.finest('serverpath for $uri: $serverPath');
-
-    request = Request(
-        'GET',
-        Uri(
-          scheme: request.requestedUri.scheme,
-          host: request.requestedUri.host,
-          port: request.requestedUri.port,
-          path: serverPath,
-        ));
-
-    return _assetHandler(request);
   }
 }

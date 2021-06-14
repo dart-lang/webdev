@@ -39,6 +39,14 @@ class TestSetup {
   ChromeProxyService get service =>
       fetchChromeProxyService(context.debugConnection);
   WipConnection get tabConnection => context.tabConnection;
+
+  static void setCurrentLogWriter() {
+    // Note: change 'printOnFailure' to 'print' for debug printing
+    configureLogWriter(
+        customLogWriter: (level, message,
+                {loggerName, error, stackTrace, verbose}) =>
+            printOnFailure('[$level] $loggerName: $message'));
+  }
 }
 
 void main() async {
@@ -65,17 +73,16 @@ void main() async {
 
       group('shared context with evaluation', () {
         setUpAll(() async {
-          // Note: change 'printOnFailure' to 'print' for debug printing
-          configureLogWriter(
-              customLogWriter: (level, message,
-                      {loggerName, error, stackTrace, verbose}) =>
-                  printOnFailure('[$level] $loggerName: $message'));
-
+          TestSetup.setCurrentLogWriter();
           await context.setUp(enableExpressionEvaluation: true, verbose: false);
         });
 
         tearDownAll(() async {
           await context.tearDown();
+        });
+
+        setUp(() async {
+          TestSetup.setCurrentLogWriter();
         });
 
         group('evaluateInFrame', () {
@@ -504,12 +511,17 @@ void main() async {
 
       group('shared context with no evaluation', () {
         setUpAll(() async {
+          TestSetup.setCurrentLogWriter();
           await context.setUp(
               enableExpressionEvaluation: false, verbose: false);
         });
 
         tearDownAll(() async {
           await context.tearDown();
+        });
+
+        setUp(() async {
+          TestSetup.setCurrentLogWriter();
         });
 
         group('evaluateInFrame', () {
