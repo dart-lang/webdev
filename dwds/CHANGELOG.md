@@ -1,3 +1,8 @@
+## 11.1.2-dev
+
+- Return empty library from `ChromeProxyService.getObject` for
+  libraries present in medatata but not lodaded at runtime.
+
 ## 11.1.1
 
 - Update versions of `package:sse`, `package:vm_service`, `package:dds`.
