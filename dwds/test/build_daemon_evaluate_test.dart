@@ -74,7 +74,7 @@ void main() async {
       group('shared context with evaluation', () {
         setUpAll(() async {
           TestSetup.setCurrentLogWriter();
-          await context.setUp(enableExpressionEvaluation: true, verbose: false);
+          await context.setUp(enableExpressionEvaluation: true, verbose: true);
         });
 
         tearDownAll(() async {

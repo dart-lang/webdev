@@ -313,7 +313,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
   /// or a server path for a full dill file.
   /// Translates given resource uri to a server path and redirects
   /// the request to the asset handler.
-  FutureOr<Response> handler(Request request) {
+  FutureOr<Response> handler(Request request) async {
     var uri = request.requestedUri.queryParameters['uri'];
     try {
       var query = request.requestedUri.path;
@@ -343,7 +343,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
             path: serverPath,
           ));
 
-      return _assetHandler(request);
+      return await _assetHandler(request);
     } catch (e, s) {
       _logger.severe('Error loading $uri: $e:$s');
       return Response.notFound(uri);
