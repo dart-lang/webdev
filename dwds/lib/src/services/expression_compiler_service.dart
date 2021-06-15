@@ -334,14 +334,35 @@ class ExpressionCompilerService implements ExpressionCompiler {
 
       _logger.finest('serverpath for $uri: $serverPath');
 
+      _logger.finest('Request for $uri:');
+      _logger.finest({
+        'handlerPath': request.handlerPath,
+        'method': request.method,
+        'protocolVersion': request.protocolVersion,
+        'requestedUri': request.requestedUri,
+        'url': request.url,
+        'contentLength': request.contentLength,
+        'context': request.context,
+        'encoding': request.encoding,
+        'headers': request.headers,
+        'isEmpty': request.isEmpty,
+        'mimeType': request.mimeType,
+      }.toString());
+
       request = Request(
-          request.method,
-          Uri(
-            scheme: request.requestedUri.scheme,
-            host: request.requestedUri.host,
-            port: request.requestedUri.port,
-            path: serverPath,
-          ));
+        request.method,
+        Uri(
+          scheme: request.requestedUri.scheme,
+          host: request.requestedUri.host,
+          port: request.requestedUri.port,
+          path: serverPath,
+        ),
+        protocolVersion: request.protocolVersion,
+        context: request.context,
+        headers: request.headers,
+        handlerPath: request.handlerPath,
+        encoding: request.encoding,
+      );
 
       return await _assetHandler(request);
     } catch (e, s) {
