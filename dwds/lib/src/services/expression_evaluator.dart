@@ -136,11 +136,6 @@ class ExpressionEvaluator {
           'ExpressionEvaluator needs an ExpressionCompiler');
     }
 
-    if (scope != null && scope.isNotEmpty) {
-      return _createError(ErrorKind.internal,
-          'ExpressionEvaluator does not support overriding scope');
-    }
-
     if (expression == null || expression.isEmpty) {
       return _createError(ErrorKind.invalidInput, expression);
     }

@@ -212,7 +212,7 @@ class AppInspector extends Domain {
   ///
   /// [evalExpression] should be a JS function definition that can accept
   /// [arguments].
-  Future<RemoteObject> jsCallFunction(
+  Future<RemoteObject> _jsCallFunction(
       String evalExpression, List<RemoteObject> arguments,
       {bool returnByValue = false}) async {
     var jsArguments = arguments.map(callArgumentFor).toList();
@@ -336,7 +336,7 @@ function($argsString) {
   Future<RemoteObject> callFunction(
       String function, Iterable<String> argumentIds) async {
     var arguments = argumentIds.map(remoteObjectFor).toList();
-    return jsCallFunction(function, arguments);
+    return _jsCallFunction(function, arguments);
   }
 
   Future<Library> getLibrary(String isolateId, String objectId) async {

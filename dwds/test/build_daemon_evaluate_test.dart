@@ -126,6 +126,27 @@ void main() async {
             await setup.service.resume(isolate.id);
           });
 
+          test('with scope override is not supported yet', () async {
+            await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+              var event = await stream.firstWhere(
+                  (event) => event.kind == EventKind.kPauseBreakpoint);
+
+              var object = await setup.service.evaluateInFrame(
+                  isolate.id, event.topFrame.index, 'MainClass(0)');
+
+              var param = object as InstanceRef;
+
+              expect(
+                  () => setup.service.evaluateInFrame(
+                        isolate.id,
+                        event.topFrame.index,
+                        't.toString()',
+                        scope: {'t': param.id},
+                      ),
+                  throwsRPCError);
+            });
+          });
+
           test('local', () async {
             await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
               var event = await stream.firstWhere(
@@ -477,7 +498,7 @@ void main() async {
 
           tearDown(() async {});
 
-          test('with scope', () async {
+          test('with scope override', () async {
             var library = isolate.rootLib;
             var object = await setup.service
                 .evaluate(isolate.id, library.id, 'MainClass(0)');
