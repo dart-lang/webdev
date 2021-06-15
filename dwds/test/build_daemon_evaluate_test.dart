@@ -40,8 +40,14 @@ class TestSetup {
       fetchChromeProxyService(context.debugConnection);
   WipConnection get tabConnection => context.tabConnection;
 
+  /// Redirect the logs for the current zone to emit on failure.
+  ///
+  /// All messages are stored and reported on test failure.
+  /// Needs to be called in both setUpAll() and setUp() to store
+  /// the logs in the current zone.
+  ///
+  /// Note: change 'printOnFailure' to 'print' for debug printing.
   static void setCurrentLogWriter() {
-    // Note: change 'printOnFailure' to 'print' for debug printing
     configureLogWriter(
         customLogWriter: (level, message,
                 {loggerName, error, stackTrace, verbose}) =>
