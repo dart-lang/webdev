@@ -317,7 +317,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
     var uri = request.requestedUri.queryParameters['uri'];
     try {
       var query = request.requestedUri.path;
-      _logger.finest('request: ${request.requestedUri}');
+      _logger.finest('request: ${request.method} ${request.requestedUri}');
 
       if (query != '/getResource' || uri == null) {
         return Response.notFound(uri);
@@ -335,7 +335,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       _logger.finest('serverpath for $uri: $serverPath');
 
       request = Request(
-          'GET',
+          request.method,
           Uri(
             scheme: request.requestedUri.scheme,
             host: request.requestedUri.host,
