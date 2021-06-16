@@ -15,6 +15,7 @@ import 'package:webdriver/async_core.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/logging.dart';
 
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
@@ -23,8 +24,23 @@ WipConnection get tabConnection => context.tabConnection;
 
 final context = TestContext();
 
+/// Redirect the logs for the current zone to emit on failure.
+///
+/// All messages are stored and reported on test failure.
+/// Needs to be called in both setUpAll() and setUp() to store
+/// the logs in the current zone.
+///
+/// Note: change 'printOnFailure' to 'print' for debug printing.
+void setCurrentLogWriter() {
+  configureLogWriter(
+      customLogWriter: (level, message,
+              {loggerName, error, stackTrace, verbose}) =>
+          printOnFailure('[$level] $loggerName: $message'));
+}
+
 void main() {
   setUpAll(() async {
+    setCurrentLogWriter();
     await context.setUp(
       serveDevTools: true,
       enableExpressionEvaluation: true,
@@ -58,9 +74,14 @@ void main() {
     LibraryRef bootstrap;
 
     setUpAll(() async {
+      setCurrentLogWriter();
       var vm = await service.getVM();
       isolate = await service.getIsolate(vm.isolates.first.id);
       bootstrap = isolate.rootLib;
+    });
+
+    setUp(() async {
+      setCurrentLogWriter();
     });
 
     test('can emit event through service extension', () async {
@@ -114,6 +135,7 @@ void main() {
     ScriptRef mainScript;
 
     setUpAll(() async {
+      setCurrentLogWriter();
       var vm = await service.getVM();
 
       isolateId = vm.isolates.first.id;
@@ -123,6 +145,11 @@ void main() {
       mainScript = scripts.scripts
           .firstWhere((script) => script.uri.contains('main.dart'));
     });
+
+    setUp(() async {
+      setCurrentLogWriter();
+    });
+
     test('emits EVALUATE_IN_FRAME events on RPC error', () async {
       expect(
           context.testServer.dwds.events,
@@ -205,6 +232,7 @@ void main() {
     ScriptRef mainScript;
 
     setUp(() async {
+      setCurrentLogWriter();
       var vm = await service.getVM();
       isolateId = vm.isolates.first.id;
       scripts = await service.getScripts(isolateId);
