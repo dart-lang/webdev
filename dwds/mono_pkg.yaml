@@ -2,8 +2,8 @@
 stages:
   - analyzer_and_format:
     - group:
-      - dartfmt
-      - dartanalyzer: --fatal-infos --fatal-warnings .
+      - format
+      - analyze: --fatal-infos --fatal-warnings .
       - test: test/build/ensure_version_test.dart
       dart: dev
   - unit_test:
