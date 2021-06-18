@@ -1,26 +1,35 @@
 #!/bin/bash
-# Created with package:mono_repo v3.4.7
+# Created with package:mono_repo v5.0.0
 
 # Support built in commands on windows out of the box.
+# When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
+# then "flutter" is called instead of "pub".
+# This assumes that the Flutter SDK has been installed in a previous step.
 function pub() {
-  if [[ $TRAVIS_OS_NAME == "windows" ]]; then
-    command pub.bat "$@"
+  if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
+    command flutter pub "$@"
   else
-    command pub "$@"
+    command dart pub "$@"
   fi
 }
-function dartfmt() {
-  if [[ $TRAVIS_OS_NAME == "windows" ]]; then
-    command dartfmt.bat "$@"
+# When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
+# then "flutter" is called instead of "pub".
+# This assumes that the Flutter SDK has been installed in a previous step.
+function format() {
+  if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
+    command flutter format "$@"
   else
-    command dartfmt "$@"
+    command dart format "$@"
   fi
 }
-function dartanalyzer() {
-  if [[ $TRAVIS_OS_NAME == "windows" ]]; then
-    command dartanalyzer.bat "$@"
+# When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
+# then "flutter" is called instead of "pub".
+# This assumes that the Flutter SDK has been installed in a previous step.
+function analyze() {
+  if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
+    command flutter analyze "$@"
   else
-    command dartanalyzer "$@"
+    command dart analyze "$@"
   fi
 }
 
@@ -47,48 +56,48 @@ for PKG in ${PKGS}; do
     exit 64
   fi
 
-  pub upgrade --no-precompile || EXIT_CODE=$?
+  dart pub upgrade || EXIT_CODE=$?
 
   if [[ ${EXIT_CODE} -ne 0 ]]; then
-    echo -e "\033[31mPKG: ${PKG}; 'pub upgrade' - FAILED  (${EXIT_CODE})\033[0m"
-    FAILURES+=("${PKG}; 'pub upgrade'")
+    echo -e "\033[31mPKG: ${PKG}; 'dart pub upgrade' - FAILED  (${EXIT_CODE})\033[0m"
+    FAILURES+=("${PKG}; 'dart pub upgrade'")
   else
     for TASK in "$@"; do
       EXIT_CODE=0
       echo
       echo -e "\033[1mPKG: ${PKG}; TASK: ${TASK}\033[22m"
       case ${TASK} in
+      analyze_0)
+        echo 'dart analyze --fatal-infos --fatal-warnings .'
+        dart analyze --fatal-infos --fatal-warnings . || EXIT_CODE=$?
+        ;;
+      analyze_1)
+        echo 'dart analyze --fatal-warnings .'
+        dart analyze --fatal-warnings . || EXIT_CODE=$?
+        ;;
       command)
         echo 'Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &'
         Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & || EXIT_CODE=$?
         ;;
-      dartanalyzer_0)
-        echo 'dartanalyzer --fatal-infos --fatal-warnings .'
-        dartanalyzer --fatal-infos --fatal-warnings . || EXIT_CODE=$?
-        ;;
-      dartanalyzer_1)
-        echo 'dartanalyzer --fatal-warnings .'
-        dartanalyzer --fatal-warnings . || EXIT_CODE=$?
-        ;;
-      dartfmt)
-        echo 'dartfmt -n --set-exit-if-changed .'
-        dartfmt -n --set-exit-if-changed . || EXIT_CODE=$?
+      format)
+        echo 'dart format --output=none --set-exit-if-changed .'
+        dart format --output=none --set-exit-if-changed . || EXIT_CODE=$?
         ;;
       test_0)
-        echo 'pub run test test/build/ensure_version_test.dart'
-        pub run test test/build/ensure_version_test.dart || EXIT_CODE=$?
+        echo 'dart test test/build/ensure_version_test.dart'
+        dart test test/build/ensure_version_test.dart || EXIT_CODE=$?
         ;;
       test_1)
-        echo 'pub run test'
-        pub run test || EXIT_CODE=$?
+        echo 'dart test'
+        dart test || EXIT_CODE=$?
         ;;
       test_2)
-        echo 'pub run test test/build/ensure_build_test.dart'
-        pub run test test/build/ensure_build_test.dart || EXIT_CODE=$?
+        echo 'dart test test/build/ensure_build_test.dart'
+        dart test test/build/ensure_build_test.dart || EXIT_CODE=$?
         ;;
       test_3)
-        echo 'pub run test -j 1'
-        pub run test -j 1 || EXIT_CODE=$?
+        echo 'dart test -j 1'
+        dart test -j 1 || EXIT_CODE=$?
         ;;
       *)
         echo -e "\033[31mUnknown TASK '${TASK}' - TERMINATING JOB\033[0m"
