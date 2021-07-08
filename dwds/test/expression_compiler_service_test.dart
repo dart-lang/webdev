@@ -65,7 +65,8 @@ void main() async {
 
       // setup asset server
       server = await HttpMultiServer.bind('localhost', port);
-      shelf_io.serveRequests(server, service.handler);
+      shelf_io.serveRequests(
+          server, Cascade().add(service.handler).add(assetHandler).handler);
 
       // generate full dill
       File.fromUri(source)

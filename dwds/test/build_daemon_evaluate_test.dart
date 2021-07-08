@@ -39,6 +39,20 @@ class TestSetup {
   ChromeProxyService get service =>
       fetchChromeProxyService(context.debugConnection);
   WipConnection get tabConnection => context.tabConnection;
+
+  /// Redirect the logs for the current zone to emit on failure.
+  ///
+  /// All messages are stored and reported on test failure.
+  /// Needs to be called in both setUpAll() and setUp() to store
+  /// the logs in the current zone.
+  ///
+  /// Note: change 'printOnFailure' to 'print' for debug printing.
+  static void setCurrentLogWriter() {
+    configureLogWriter(
+        customLogWriter: (level, message,
+                {loggerName, error, stackTrace, verbose}) =>
+            printOnFailure('[$level] $loggerName: $message'));
+  }
 }
 
 void main() async {
@@ -65,17 +79,16 @@ void main() async {
 
       group('shared context with evaluation', () {
         setUpAll(() async {
-          // Note: change 'printOnFailure' to 'print' for debug printing
-          configureLogWriter(
-              customLogWriter: (level, message,
-                      {loggerName, error, stackTrace, verbose}) =>
-                  printOnFailure('[$level] $loggerName: $message'));
-
-          await context.setUp(enableExpressionEvaluation: true, verbose: false);
+          TestSetup.setCurrentLogWriter();
+          await context.setUp(enableExpressionEvaluation: true, verbose: true);
         });
 
         tearDownAll(() async {
           await context.tearDown();
+        });
+
+        setUp(() async {
+          TestSetup.setCurrentLogWriter();
         });
 
         group('evaluateInFrame', () {
@@ -504,12 +517,17 @@ void main() async {
 
       group('shared context with no evaluation', () {
         setUpAll(() async {
+          TestSetup.setCurrentLogWriter();
           await context.setUp(
               enableExpressionEvaluation: false, verbose: false);
         });
 
         tearDownAll(() async {
           await context.tearDown();
+        });
+
+        setUp(() async {
+          TestSetup.setCurrentLogWriter();
         });
 
         group('evaluateInFrame', () {

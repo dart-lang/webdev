@@ -313,36 +313,46 @@ class ExpressionCompilerService implements ExpressionCompiler {
   /// or a server path for a full dill file.
   /// Translates given resource uri to a server path and redirects
   /// the request to the asset handler.
-  FutureOr<Response> handler(Request request) {
+  FutureOr<Response> handler(Request request) async {
     var uri = request.requestedUri.queryParameters['uri'];
-    var query = request.requestedUri.path;
+    try {
+      var query = request.requestedUri.path;
+      _logger.finest('request: ${request.method} ${request.requestedUri}');
 
-    _logger.finest('request: ${request.requestedUri}');
+      if (query != '/getResource' || uri == null) {
+        return Response.notFound(uri);
+      }
 
-    if (query != '/getResource' || uri == null) {
-      return Response.notFound(uri);
-    }
+      if (!uri.endsWith('.dart') && !uri.endsWith('.dill')) {
+        return Response.notFound(uri);
+      }
 
-    if (!uri.endsWith('.dart') && !uri.endsWith('.dill')) {
-      return Response.notFound(uri);
-    }
+      var serverPath = uri;
+      if (uri.endsWith('.dart')) {
+        serverPath = DartUri(uri).serverPath;
+      }
 
-    var serverPath = uri;
-    if (uri.endsWith('.dart')) {
-      serverPath = DartUri(uri).serverPath;
-    }
+      _logger.finest('serverpath for $uri: $serverPath');
 
-    _logger.finest('serverpath for $uri: $serverPath');
-
-    request = Request(
-        'GET',
+      request = Request(
+        request.method,
         Uri(
           scheme: request.requestedUri.scheme,
           host: request.requestedUri.host,
           port: request.requestedUri.port,
           path: serverPath,
-        ));
+        ),
+        protocolVersion: request.protocolVersion,
+        context: request.context,
+        headers: request.headers,
+        handlerPath: request.handlerPath,
+        encoding: request.encoding,
+      );
 
-    return _assetHandler(request);
+      return await _assetHandler(request);
+    } catch (e, s) {
+      _logger.severe('Error loading $uri: $e:$s');
+      rethrow;
+    }
   }
 }

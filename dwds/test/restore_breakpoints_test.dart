@@ -5,6 +5,8 @@
 // @dart = 2.9
 
 @TestOn('vm')
+import 'dart:async';
+
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
@@ -73,7 +75,7 @@ void main() {
       isolate = await service.getIsolate(vm.isolates.first.id);
 
       expect(isolate.breakpoints.length, equals(1));
-    });
+    }, timeout: const Timeout.factor(2));
 
     test('restore after hot restart', () async {
       var firstBp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
@@ -97,6 +99,6 @@ void main() {
       isolate = await service.getIsolate(vm.isolates.first.id);
 
       expect(isolate.breakpoints.length, equals(1));
-    });
+    }, timeout: const Timeout.factor(2));
   });
 }

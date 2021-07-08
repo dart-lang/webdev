@@ -2,6 +2,7 @@
 
 - Return empty library from `ChromeProxyService.getObject` for
   libraries present in medatata but not lodaded at runtime.
+- Log failures to load kernel during expression evaluation.
 
 ## 11.1.1
 

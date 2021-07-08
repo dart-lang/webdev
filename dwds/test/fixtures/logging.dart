@@ -16,24 +16,42 @@ StreamSubscription<LogRecord> _loggerSub;
 
 /// Configure test log writer.
 ///
-/// Tests and groups of tests can use this to configure
-/// individual log writers on setup.
+/// Tests and groups of tests can use this to configure individual
+/// log writers on setup.
 ///
-/// For example, to verbose printing during debugging:
+/// Note that the logwriter needs to be set in both `setUpAll` and
+/// `setUp` to store messages for the same zone as the failure in
+/// order to report all stored messages on that failure.
+///
+/// For example, to enable verbose printing during debugging:
+///
+/// void setCurrentLogWriter() {
+///   // Note: change 'printOnFailure' to 'print' for debug printing.
+///   configureLogWriter(
+///        customLogWriter: (level, message,
+///                {loggerName, error, stackTrace, verbose}) =>
+///            printOnFailure('[$level] $loggerName: $message'));
+///  }
 ///
 /// group('shared context', () {
 ///     setUpAll(() async {
-///       configureLogWriter(
-///           customLogWriter: (level, message,
-///                   {loggerName, error, stackTrace, verbose}) =>
-///               print(message));
-///
+///       // Set the logger for the current group.
+///       setCurrentLogWriter();
 ///       await context.setUp();
 ///     });
+///
+///     setUp(() async {
+///       // Reset the logger for the current test.
+///       setCurrentLogWriter();
+///     });
+///
+///     ...
+/// });
 void configureLogWriter({LogWriter customLogWriter}) {
   _logWriter = customLogWriter ?? _logWriter;
   Logger.root.level = Level.ALL;
-  _loggerSub ??= Logger.root.onRecord.listen((event) {
+  _loggerSub?.cancel();
+  _loggerSub = Logger.root.onRecord.listen((event) {
     logWriter(event.level, event.message,
         error: '${event.error}',
         loggerName: event.loggerName,
