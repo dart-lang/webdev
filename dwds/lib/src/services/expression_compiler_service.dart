@@ -334,21 +334,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
 
       _logger.finest('serverpath for $uri: $serverPath');
 
-      _logger.finest('Request for $uri:');
-      _logger.finest({
-        'handlerPath': request.handlerPath,
-        'method': request.method,
-        'protocolVersion': request.protocolVersion,
-        'requestedUri': request.requestedUri,
-        'url': request.url,
-        'contentLength': request.contentLength,
-        'context': request.context,
-        'encoding': request.encoding,
-        'headers': request.headers,
-        'isEmpty': request.isEmpty,
-        'mimeType': request.mimeType,
-      }.toString());
-
       request = Request(
         request.method,
         Uri(
@@ -367,7 +352,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       return await _assetHandler(request);
     } catch (e, s) {
       _logger.severe('Error loading $uri: $e:$s');
-      return Response.notFound(uri);
+      rethrow;
     }
   }
 }
