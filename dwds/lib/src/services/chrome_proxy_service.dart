@@ -95,7 +95,7 @@ class ChromeProxyService implements VmServiceInterface {
   final ExpressionCompiler _compiler;
   ExpressionEvaluator _expressionEvaluator;
 
-  final bool _enableDebugSymbols;
+  bool _enableDebugSymbols;
 
   bool terminatingIsolates = false;
 
@@ -125,7 +125,8 @@ class ChromeProxyService implements VmServiceInterface {
     _debuggerCompleter.complete(debugger);
 
     if (_enableDebugSymbols) {
-      throw UnimplementedError('Debug symbols are not uset yet.');
+      _logger.warning('Ignoring --enable-debug-symbols (not implemented yet).');
+      _enableDebugSymbols = false;
     }
   }
 

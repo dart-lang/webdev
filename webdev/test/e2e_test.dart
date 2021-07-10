@@ -274,6 +274,36 @@ void main() {
     }
   });
 
+  group('should not yet work with --enable-debug-symbols', () {
+    test('run webdev', () async {
+      var openPort = await findUnusedPort();
+      // running daemon command that starts dwds without keyboard input
+      var args = [
+        'daemon',
+        'web:$openPort',
+        '--enable-expression-evaluation',
+        '--enable-debug-symbols',
+        '--verbose',
+      ];
+      var process = await runWebDev(args, workingDirectory: exampleDirectory);
+      try {
+        await expectLater(process.stdout,
+            emitsThrough(contains('Ignoring --enable-debug-symbols')));
+
+        // Wait for debug service Uri
+        String wsUri;
+        await expectLater(process.stdout, emitsThrough((String m) {
+          wsUri = getDebugServiceUri(m);
+          return wsUri != null;
+        }));
+        expect(wsUri, isNotNull);
+      } finally {
+        await exitWebdev(process);
+        await process.shouldExit();
+      }
+    });
+  });
+
   group('should work with ', () {
     for (var soundNullSafety in [false, true]) {
       var nullSafetyOption = soundNullSafety ? 'sound' : 'unsound';

@@ -179,8 +179,12 @@ class SymbolTable {
     functionTypes.addAll({
       unresolvedFunctionType.id: unresolvedFunctionType,
     });
-    types..addAll(classes)..addAll(functionTypes);
-    scopes..addAll(classes)..addAll(libraries);
+    types
+      ..addAll(classes)
+      ..addAll(functionTypes);
+    scopes
+      ..addAll(classes)
+      ..addAll(libraries);
   }
 
   FunctionSymbol getGlobalFunction(String localId) {
