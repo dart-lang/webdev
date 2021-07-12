@@ -191,7 +191,8 @@ void main() {
           0,
           'some-bad-expression',
         );
-      } catch (_) {} finally {
+      } catch (_) {
+      } finally {
         await service.removeBreakpoint(isolateId, bp.id);
         await service.resume(isolateId);
       }
@@ -218,7 +219,8 @@ void main() {
           0,
           'true',
         );
-      } catch (_) {} finally {
+      } catch (_) {
+      } finally {
         await service.removeBreakpoint(isolateId, bp.id);
         await service.resume(isolateId);
       }
