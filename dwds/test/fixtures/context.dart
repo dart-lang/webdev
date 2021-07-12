@@ -14,6 +14,7 @@ import 'package:build_daemon/data/build_target.dart';
 import 'package:build_daemon/data/server_log.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
+import 'package:dwds/src/handlers/proxy_handler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
@@ -21,7 +22,7 @@ import 'package:http/http.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
-import 'package:shelf_proxy/shelf_proxy.dart';
+//import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
@@ -186,7 +187,7 @@ class TestContext {
                 .timeout(const Duration(seconds: 60));
 
             var assetServerPort = daemonPort(workingDirectory);
-            assetHandler = proxyHandler(
+            assetHandler = assetProxyHandler(
                 'http://localhost:$assetServerPort/$pathToServe/',
                 client: client);
             assetReader =

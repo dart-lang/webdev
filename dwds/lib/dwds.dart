@@ -31,6 +31,7 @@ export 'src/debugging/metadata/provider.dart'
     show MetadataProvider, AbsoluteImportUriException;
 export 'src/events.dart' show DwdsEvent;
 export 'src/handlers/dev_handler.dart' show AppConnectionException;
+export 'src/handlers/proxy_handler.dart' show assetProxyHandler;
 export 'src/handlers/socket_connections.dart';
 export 'src/loaders/build_runner_require.dart'
     show BuildRunnerRequireStrategyProvider;

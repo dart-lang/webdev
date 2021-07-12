@@ -35,7 +35,7 @@ void setCurrentLogWriter() {
   configureLogWriter(
       customLogWriter: (level, message,
               {loggerName, error, stackTrace, verbose}) =>
-          printOnFailure('[$level] $loggerName: $message'));
+          print('[$level] $loggerName: $message'));
 }
 
 void main() {
@@ -44,6 +44,7 @@ void main() {
     await context.setUp(
       serveDevTools: true,
       enableExpressionEvaluation: true,
+      verbose: true,
     );
   });
 
