@@ -33,8 +33,7 @@ final context = TestContext();
 /// Note: change 'printOnFailure' to 'print' for debug printing.
 void setCurrentLogWriter() {
   configureLogWriter(
-      customLogWriter: (level, message,
-              {error, loggerName, stackTrace}) =>
+      customLogWriter: (level, message, {error, loggerName, stackTrace}) =>
           print('[$level] $loggerName: $message'));
 }
 

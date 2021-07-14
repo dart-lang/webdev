@@ -49,8 +49,7 @@ class TestSetup {
   /// Note: change 'printOnFailure' to 'print' for debug printing.
   static void setCurrentLogWriter() {
     configureLogWriter(
-        customLogWriter: (level, message,
-                {error, loggerName, stackTrace}) =>
+        customLogWriter: (level, message, {error, loggerName, stackTrace}) =>
             print('[$level] $loggerName: $message'));
   }
 }

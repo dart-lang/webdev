@@ -50,8 +50,7 @@ void main() async {
       output.stream.listen(printOnFailure);
 
       configureLogWriter(
-          customLogWriter: (level, message,
-                  {error, loggerName, stackTrace}) =>
+          customLogWriter: (level, message, {error, loggerName, stackTrace}) =>
               output.add('[$level] $loggerName: $message'));
 
       // start expression compilation service

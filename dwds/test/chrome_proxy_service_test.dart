@@ -32,8 +32,7 @@ WipConnection get tabConnection => context.tabConnection;
 
 void setCurrentLogWriter() {
   configureLogWriter(
-      customLogWriter: (level, message,
-              {error, loggerName, stackTrace}) =>
+      customLogWriter: (level, message, {error, loggerName, stackTrace}) =>
           print('[$level] $loggerName: $message'));
 }
 

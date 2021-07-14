@@ -127,11 +127,13 @@ class TestServer {
       cascade = cascade.add(ddcService.handler);
     }
 
-    shelf_io.serveRequests(server,
+    shelf_io.serveRequests(
+        server,
         pipeline
-          .addMiddleware(logRequests(logger: (message, isError) => _logger.finest(message)))
-          .addMiddleware(dwds.middleware)
-          .addHandler(cascade.handler));
+            .addMiddleware(logRequests(
+                logger: (message, isError) => _logger.finest(message)))
+            .addMiddleware(dwds.middleware)
+            .addHandler(cascade.handler));
 
     return TestServer._(
       target,
