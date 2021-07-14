@@ -51,7 +51,7 @@ void main() async {
 
       configureLogWriter(
           customLogWriter: (level, message,
-                  {loggerName, error, stackTrace, verbose}) =>
+                  {error, loggerName, stackTrace}) =>
               output.add('[$level] $loggerName: $message'));
 
       // start expression compilation service

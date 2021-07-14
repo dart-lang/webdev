@@ -50,7 +50,7 @@ class TestSetup {
   static void setCurrentLogWriter() {
     configureLogWriter(
         customLogWriter: (level, message,
-                {loggerName, error, stackTrace, verbose}) =>
+                {error, loggerName, stackTrace}) =>
             print('[$level] $loggerName: $message'));
   }
 }
