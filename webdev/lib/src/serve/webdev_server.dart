@@ -16,7 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
-//import 'package:shelf_proxy/shelf_proxy.dart';
+import 'package:shelf_proxy/shelf_proxy.dart';
 
 import '../command/configuration.dart';
 import 'chrome.dart';
@@ -105,7 +105,7 @@ class WebDevServer {
 
     var cascade = Cascade();
     var client = Client();
-    var assetHandler = assetProxyHandler(
+    var assetHandler = proxyHandler(
         'http://localhost:${options.daemonPort}/${options.target}/',
         client: client);
 
