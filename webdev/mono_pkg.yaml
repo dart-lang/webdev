@@ -10,7 +10,7 @@ stages:
   - analyzer_and_format:
     - group:
       - format
-      - analyze: --fatal-infos --fatal-warnings .
+      - analyze: --fatal-infos .
       - test: test/build/ensure_build_test.dart
       dart: dev
   - unit_test:

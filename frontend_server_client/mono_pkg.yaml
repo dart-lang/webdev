@@ -3,5 +3,5 @@ stages:
   - analyzer_and_format:
     - group:
       - format
-      - analyze: --fatal-infos --fatal-warnings .
-      dart: [2.12.0] 
+      - analyze: --fatal-infos .
+      dart: [2.12.0]
