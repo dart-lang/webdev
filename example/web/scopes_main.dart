@@ -9,7 +9,7 @@ import 'dart:collection';
 final libraryPublicFinal = MyTestClass();
 
 final _libraryPrivateFinal = 1;
-Object libraryNull;
+Object? libraryNull;
 var libraryPublic = <String>['library', 'public', 'variable'];
 var notAList = NotReallyAList();
 
@@ -28,7 +28,7 @@ void main() async {
   var local = 'local in main';
   var intLocalInMain = 42;
   var testClass = MyTestClass();
-  Object localThatsNull;
+  Object? localThatsNull;
   identityMap['a'] = 1;
   identityMap['b'] = 2;
   map['a'] = [1, 2, 3];
@@ -81,7 +81,7 @@ abstract class MyAbstractClass {
 class MyTestClass<T> extends MyAbstractClass {
   final String message;
 
-  String notFinal;
+  String? notFinal;
 
   MyTestClass({this.message = 'world'}) {
     myselfField = this;
@@ -104,7 +104,7 @@ class MyTestClass<T> extends MyAbstractClass {
   //ignore: avoid_returning_this
   MyTestClass get myselfGetter => this;
 
-  MyTestClass myselfField;
+  late final MyTestClass myselfField;
 
   var count = 0;
 
@@ -129,16 +129,16 @@ class MyTestClass<T> extends MyAbstractClass {
 
   Function closure = someFunction;
 
-  String Function() tornOff;
+  late final String Function() tornOff;
 }
 
-Function someFunction() => null;
+Function? someFunction() => null;
 
 // ignore: unused_element
 int _libraryPrivateFunction(int a, int b) => a + b;
 
-class NotReallyAList extends ListBase {
-  final List _internal;
+class NotReallyAList extends ListBase<Object> {
+  final List<Object> _internal;
 
   NotReallyAList() : _internal = [];
 
@@ -146,7 +146,7 @@ class NotReallyAList extends ListBase {
   Object operator [](x) => _internal[x];
 
   @override
-  operator []=(x, y) => _internal[x] = y;
+  operator []=(int x, Object y) => _internal[x] = y;
 
   @override
   int get length => _internal.length;
