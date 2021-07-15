@@ -5,16 +5,19 @@ description: >-
   Dart SDK.
 homepage: https://github.com/dart-lang/webdev/tree/master/frontend_server_client
 repository: https://github.com/dart-lang/webdev
+
 environment:
   sdk: ">=2.12.0 <3.0.0"
+
 dependencies:
   async: ^2.5.0
   path: ^1.8.0
+
 dev_dependencies:
   package_config: ^2.0.0
   shelf: ^1.0.0
-  shelf_packages_handler: ^2.0.1
-  shelf_static: ^0.2.6
+  shelf_packages_handler: ^3.0.0
+  shelf_static: ^1.1.0
   test: ^1.16.0
   test_descriptor: ^2.0.0
-  vm_service: ^6.1.0
+  vm_service: ^7.1.0
