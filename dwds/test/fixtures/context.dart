@@ -19,6 +19,7 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
+import 'package:http/io_client.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
@@ -134,7 +135,10 @@ class TestContext {
     try {
       configureLogWriter();
 
-      client = Client();
+      client = IOClient(HttpClient()
+        ..maxConnectionsPerHost = 200
+        ..connectionTimeout = const Duration(seconds: 30)
+        ..idleTimeout = const Duration(seconds: 30));
 
       var systemTempDir = Directory.systemTemp;
       _outputDir = systemTempDir.createTempSync('foo bar');
