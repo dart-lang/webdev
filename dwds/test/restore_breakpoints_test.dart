@@ -14,6 +14,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/logging.dart';
 
 final context = TestContext();
 ChromeProxyService get service =>
@@ -22,6 +23,9 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   setUpAll(() async {
+    configureLogWriter(
+        customLogWriter: (level, message, {error, loggerName, stackTrace}) =>
+            print('[$level] $loggerName: $message'));
     await context.setUp(restoreBreakpoints: true);
   });
 

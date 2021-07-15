@@ -60,6 +60,12 @@ void addSharedArgs(ArgParser argParser,
         defaultsTo: false,
         negatable: true,
         help: 'Enable expression evaluation features in the debugger.')
+    ..addFlag(enableDebugSymbolsFlag,
+        abbr: 's',
+        defaultsTo: false,
+        negatable: true,
+        help: 'Use debug symbols for variable inspection in the debugger.',
+        hide: true)
     ..addFlag(verboseFlag,
         abbr: 'v',
         defaultsTo: false,
@@ -84,6 +90,12 @@ List<String> buildRunnerArgs(
     arguments
       ..add('--define')
       ..add('build_web_compilers|ddc=generate-full-dill=true');
+  }
+
+  if (configuration.enableDebugSymbols) {
+    arguments
+      ..add('--define')
+      ..add('build_web_compilers|ddc=emit-debug-symbols=true');
   }
 
   if (configuration.nullSafety != nullSafetyAuto) {

@@ -13,6 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
+import '../debugging/metadata/module_metadata.dart';
 import '../utilities/dart_uri.dart';
 import 'expression_compiler.dart';
 

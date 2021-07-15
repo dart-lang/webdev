@@ -52,6 +52,10 @@ class FakeAssetReader implements AssetReader {
       throw UnimplementedError();
 
   @override
+  Future<String> symbolsContents(String serverPath) =>
+      throw UnimplementedError();
+
+  @override
   Future<void> close() async {}
 }
 

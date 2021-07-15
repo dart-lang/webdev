@@ -30,6 +30,7 @@ class ResidentWebRunner {
       this.fileSystemRoots,
       this.fileSystemScheme,
       this.outputPath,
+      this.enableDebugSymbols,
       bool verbose) {
     generator = ResidentCompiler(dartSdkPath,
         packagesPath: packagesPath,
@@ -47,6 +48,7 @@ class ResidentWebRunner {
   final String outputPath;
   final List<String> fileSystemRoots;
   final String fileSystemScheme;
+  final bool enableDebugSymbols;
 
   ResidentCompiler generator;
   ExpressionCompiler expressionCompiler;
@@ -68,6 +70,7 @@ class ResidentWebRunner {
       packagesPath: packagesPath,
       root: root,
       urlTunneller: urlTunneller,
+      enableDebugSymbols: enableDebugSymbols,
     );
     uri = await devFS.create();
 

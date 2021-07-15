@@ -176,3 +176,14 @@ class ModuleMetadata {
     };
   }
 }
+
+class ModuleInfo {
+  final String fullDillPath;
+  final String summaryPath;
+  final String symbolsPath;
+
+  ModuleInfo(this.fullDillPath, this.summaryPath, this.symbolsPath);
+
+  @override
+  String toString() => '{ $fullDillPath, $summaryPath, $symbolsPath }';
+}

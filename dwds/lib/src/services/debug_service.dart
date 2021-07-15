@@ -214,7 +214,8 @@ class DebugService {
       void Function(Map<String, dynamic>) onResponse,
       bool spawnDds = true,
       bool useSse,
-      ExpressionCompiler expressionCompiler}) async {
+      ExpressionCompiler expressionCompiler,
+      bool enableDebugSymbols}) async {
     useSse ??= false;
     var chromeProxyService = await ChromeProxyService.create(
         remoteDebugger,
@@ -223,7 +224,8 @@ class DebugService {
         loadStrategy,
         appConnection,
         executionContext,
-        expressionCompiler);
+        expressionCompiler,
+        enableDebugSymbols);
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;

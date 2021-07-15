@@ -101,7 +101,7 @@ void main() {
       test('addBreakpoint on a part file', () async {
         var partScript = scripts.scripts
             .firstWhere((script) => script.uri.contains('part.dart'));
-        var bp = await service.addBreakpoint(isolate.id, partScript.id, 10);
+        var bp = await service.addBreakpoint(isolate.id, partScript.id, 12);
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
         expect(bp.id, isNotNull);

@@ -95,6 +95,8 @@ class ChromeProxyService implements VmServiceInterface {
   final ExpressionCompiler _compiler;
   ExpressionEvaluator _expressionEvaluator;
 
+  bool _enableDebugSymbols;
+
   bool terminatingIsolates = false;
 
   ChromeProxyService._(
@@ -107,6 +109,7 @@ class ChromeProxyService implements VmServiceInterface {
     this._skipLists,
     this.executionContext,
     this._compiler,
+    this._enableDebugSymbols,
   ) {
     var debugger = Debugger.create(
       remoteDebugger,
@@ -120,6 +123,11 @@ class ChromeProxyService implements VmServiceInterface {
         ? null
         : ExpressionEvaluator(debugger, _locations, _modules, _compiler);
     _debuggerCompleter.complete(debugger);
+
+    if (_enableDebugSymbols) {
+      _logger.warning('Ignoring --enable-debug-symbols (not implemented yet).');
+      _enableDebugSymbols = false;
+    }
   }
 
   static Future<ChromeProxyService> create(
@@ -129,7 +137,8 @@ class ChromeProxyService implements VmServiceInterface {
       LoadStrategy loadStrategy,
       AppConnection appConnection,
       ExecutionContext executionContext,
-      ExpressionCompiler expressionCompiler) async {
+      ExpressionCompiler expressionCompiler,
+      bool enableDebugSymbols) async {
     final vm = VM(
       name: 'ChromeDebugProxy',
       operatingSystem: Platform.operatingSystem,
@@ -158,6 +167,7 @@ class ChromeProxyService implements VmServiceInterface {
       skipLists,
       executionContext,
       expressionCompiler,
+      enableDebugSymbols,
     );
     unawaited(service.createIsolate(appConnection));
     return service;

@@ -72,6 +72,7 @@ class TestServer {
     UrlEncoder urlEncoder,
     bool restoreBreakpoints,
     ExpressionCompiler expressionCompiler,
+    bool enableDebugSymbols,
     bool spawnDds,
     ExpressionCompilerService ddcService,
   ) async {
@@ -107,6 +108,7 @@ class TestServer {
         hostname: hostname,
         urlEncoder: urlEncoder,
         expressionCompiler: expressionCompiler,
+        enableDebugSymbols: enableDebugSymbols,
         devtoolsLauncher: serveDevTools
             ? (hostname) async {
                 var server = await devtools_lancher.serveDevTools(

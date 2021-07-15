@@ -30,6 +30,7 @@ const outputNone = 'NONE';
 const releaseFlag = 'release';
 const requireBuildWebCompilersFlag = 'build-web-compilers';
 const enableExpressionEvaluationFlag = 'enable-expression-evaluation';
+const enableDebugSymbolsFlag = 'enable-debug-symbols';
 const verboseFlag = 'verbose';
 const nullSafetyFlag = 'null-safety';
 const nullSafetySound = 'sound';
@@ -100,6 +101,7 @@ class Configuration {
   final ReloadConfiguration _reload;
   final bool _requireBuildWebCompilers;
   final bool _enableExpressionEvaluation;
+  final bool _enableDebugSymbols;
   final bool _verbose;
   final bool _disableDds;
   final String _nullSafety;
@@ -123,6 +125,7 @@ class Configuration {
     bool release,
     bool requireBuildWebCompilers,
     bool enableExpressionEvaluation,
+    bool enableDebugSymbols,
     bool verbose,
     bool disableDds,
     String nullSafety,
@@ -143,6 +146,7 @@ class Configuration {
         _requireBuildWebCompilers = requireBuildWebCompilers,
         _disableDds = disableDds,
         _enableExpressionEvaluation = enableExpressionEvaluation,
+        _enableDebugSymbols = enableDebugSymbols,
         _verbose = verbose,
         _nullSafety = nullSafety {
     _validateConfiguration();
@@ -210,6 +214,7 @@ class Configuration {
       disableDds: other._disableDds ?? _disableDds,
       enableExpressionEvaluation:
           other._enableExpressionEvaluation ?? _enableExpressionEvaluation,
+      enableDebugSymbols: other._enableDebugSymbols ?? _enableDebugSymbols,
       verbose: other._verbose ?? _verbose,
       nullSafety: other._nullSafety ?? _nullSafety);
 
@@ -250,6 +255,8 @@ class Configuration {
   bool get requireBuildWebCompilers => _requireBuildWebCompilers ?? true;
 
   bool get enableExpressionEvaluation => _enableExpressionEvaluation ?? false;
+
+  bool get enableDebugSymbols => _enableDebugSymbols ?? false;
 
   bool get verbose => _verbose ?? false;
 
@@ -359,6 +366,10 @@ class Configuration {
             ? argResults[enableExpressionEvaluationFlag] as bool
             : defaultConfiguration.enableExpressionEvaluation;
 
+    var enableDebugSymbols = argResults.options.contains(enableDebugSymbolsFlag)
+        ? argResults[enableDebugSymbolsFlag] as bool
+        : defaultConfiguration.enableDebugSymbols;
+
     var verbose = argResults.options.contains(verboseFlag)
         ? argResults[verboseFlag] as bool
         : defaultConfiguration.verbose;
@@ -391,6 +402,7 @@ class Configuration {
       requireBuildWebCompilers: requireBuildWebCompilers,
       disableDds: disableDds,
       enableExpressionEvaluation: enableExpressionEvaluation,
+      enableDebugSymbols: enableDebugSymbols,
       verbose: verbose,
       nullSafety: nullSafety,
     );

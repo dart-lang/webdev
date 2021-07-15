@@ -51,6 +51,10 @@ class FakeAssetReader implements AssetReader {
       throw UnimplementedError();
 
   @override
+  Future<String> symbolsContents(String serverPath) =>
+      throw UnimplementedError();
+
+  @override
   Future<String> sourceMapContents(String serverPath) async =>
       '{"version":3,"sourceRoot":"","sources":["main.dart"],"names":[],'
       '"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAUwB,IAAtB,WAAM;AAKJ,'
