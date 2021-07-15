@@ -21,23 +21,17 @@ ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
-void setCurrentLogWriter() {
-  configureLogWriter(
-      customLogWriter: (level, message, {error, loggerName, stackTrace}) =>
-          print('[$level] $loggerName: $message'));
-}
-
 void main() {
   setUpAll(() async {
-    setCurrentLogWriter();
+    configureLogWriter(
+        customLogWriter: (level, message, {error, loggerName, stackTrace}) =>
+            print('[$level] $loggerName: $message'));
     await context.setUp(restoreBreakpoints: true);
   });
 
   tearDownAll(() async {
     await context.tearDown();
   });
-
-  setUp(setCurrentLogWriter);
 
   group('breakpoints', () {
     VM vm;
@@ -47,7 +41,6 @@ void main() {
     Stream<Event> isolateEventStream;
 
     setUp(() async {
-      setCurrentLogWriter();
       vm = await fetchChromeProxyService(context.debugConnection).getVM();
       isolate = await fetchChromeProxyService(context.debugConnection)
           .getIsolate(vm.isolates.first.id);
