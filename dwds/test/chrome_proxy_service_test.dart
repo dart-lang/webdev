@@ -30,13 +30,16 @@ ChromeProxyService get service =>
 
 WipConnection get tabConnection => context.tabConnection;
 
+void setCurrentLogWriter() {
+  configureLogWriter(
+      customLogWriter: (level, message, {error, loggerName, stackTrace}) =>
+          print('[$level] $loggerName: $message'));
+}
+
 void main() {
   group('shared context', () {
     setUpAll(() async {
-      configureLogWriter(
-          customLogWriter: (level, message,
-                  {loggerName, error, stackTrace, verbose}) =>
-              printOnFailure('[$level] $loggerName: $message'));
+      setCurrentLogWriter();
       await context.setUp(verbose: true);
     });
 
@@ -52,6 +55,7 @@ void main() {
       ScriptRef mainScript;
 
       setUp(() async {
+        setCurrentLogWriter();
         vm = await fetchChromeProxyService(context.debugConnection).getVM();
         isolate = await fetchChromeProxyService(context.debugConnection)
             .getIsolate(vm.isolates.first.id);
@@ -156,6 +160,8 @@ void main() {
     });
 
     group('callServiceExtension', () {
+      setUp(setCurrentLogWriter);
+
       test('success', () async {
         var serviceMethod = 'ext.test.callServiceExtension';
         await tabConnection.runtime
@@ -204,6 +210,8 @@ void main() {
     });
 
     group('VMTimeline', () {
+      setUp(setCurrentLogWriter);
+
       test('clearVMTimeline', () {
         expect(() => service.clearVMTimeline(), throwsRPCError);
       });
@@ -248,6 +256,8 @@ void main() {
       });
 
       group('top level methods', () {
+        setUp(setCurrentLogWriter);
+
         test('can return strings', () async {
           expect(
               await service.evaluate(
@@ -300,6 +310,8 @@ void main() {
         });
 
         group('with provided scope', () {
+          setUp(setCurrentLogWriter);
+
           Future<InstanceRef> createRemoteObject(String message) async {
             return await service.evaluate(
                     isolate.id, bootstrap.id, 'createObject("$message")')
@@ -357,6 +369,8 @@ void main() {
     });
 
     group('getIsolate', () {
+      setUp(setCurrentLogWriter);
+
       test('works for existing isolates', () async {
         var vm = await service.getVM();
         var result = await service.getIsolate(vm.isolates.first.id);
@@ -394,6 +408,8 @@ void main() {
         rootLibrary =
             await service.getObject(isolate.id, bootstrap.id) as Library;
       });
+
+      setUp(setCurrentLogWriter);
 
       test('Libraries', () async {
         expect(rootLibrary, isNotNull);
@@ -649,6 +665,8 @@ void main() {
     });
 
     group('getSourceReport', () {
+      setUp(setCurrentLogWriter);
+
       test('Coverage report', () async {
         var vm = await service.getVM();
         var isolateId = vm.isolates.first.id;
@@ -693,6 +711,7 @@ void main() {
       ScriptRef mainScript;
 
       setUp(() async {
+        setCurrentLogWriter();
         var vm = await service.getVM();
         isolateId = vm.isolates.first.id;
         scripts = await service.getScripts(isolateId);
@@ -727,6 +746,7 @@ void main() {
       ScriptRef mainScript;
 
       setUp(() async {
+        setCurrentLogWriter();
         var vm = await service.getVM();
         isolateId = vm.isolates.first.id;
         scripts = await service.getScripts(isolateId);
@@ -795,6 +815,7 @@ void main() {
       ScriptRef mainScript;
 
       setUp(() async {
+        setCurrentLogWriter();
         var vm = await service.getVM();
         isolateId = vm.isolates.first.id;
         scripts = await service.getScripts(isolateId);
@@ -946,6 +967,7 @@ void main() {
       InstanceRef testInstance;
 
       setUp(() async {
+        setCurrentLogWriter();
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
         bootstrap = isolate.rootLib;
@@ -1147,6 +1169,7 @@ void main() {
         Stream<Event> eventStream;
 
         setUp(() async {
+          setCurrentLogWriter();
           expect(await service.streamListen('Debug'),
               const TypeMatcher<Success>());
           eventStream = service.onEvent('Debug');

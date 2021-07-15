@@ -14,14 +14,16 @@ import 'package:build_daemon/data/build_target.dart';
 import 'package:build_daemon/data/server_log.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
+import 'package:dwds/src/handlers/proxy_handler.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
+import 'package:http/io_client.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
-import 'package:shelf_proxy/shelf_proxy.dart';
+//import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
@@ -133,7 +135,10 @@ class TestContext {
     try {
       configureLogWriter();
 
-      client = Client();
+      client = IOClient(HttpClient()
+        ..maxConnectionsPerHost = 200
+        ..connectionTimeout = const Duration(seconds: 30)
+        ..idleTimeout = const Duration(seconds: 30));
 
       var systemTempDir = Directory.systemTemp;
       _outputDir = systemTempDir.createTempSync('foo bar');
@@ -145,10 +150,23 @@ class TestContext {
             ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase']);
         // On windows this takes a while to boot up, wait for the first line
         // of stdout as a signal that it is ready.
-        await chromeDriver.stdout
+
+        final stdOutLines = chromeDriver.stdout
             .transform(utf8.decoder)
             .transform(const LineSplitter())
-            .first;
+            .asBroadcastStream();
+
+        final stdErrLines = chromeDriver.stderr
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .asBroadcastStream();
+
+        stdOutLines
+            .listen((line) => _logger.finest('ChromeDriver stdout: $line'));
+        stdErrLines
+            .listen((line) => _logger.warning('ChromeDriver stderr: $line'));
+
+        await stdOutLines.first;
       } catch (e) {
         throw StateError(
             'Could not start ChromeDriver. Is it installed?\nError: $e');
@@ -186,7 +204,7 @@ class TestContext {
                 .timeout(const Duration(seconds: 60));
 
             var assetServerPort = daemonPort(workingDirectory);
-            assetHandler = proxyHandler(
+            assetHandler = assetProxyHandler(
                 'http://localhost:$assetServerPort/$pathToServe/',
                 client: client);
             assetReader =

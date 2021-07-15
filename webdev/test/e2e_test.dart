@@ -227,7 +227,10 @@ void main() {
         // Wait for the initial build to finish.
         await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
 
-        var client = HttpClient();
+        var client = HttpClient()
+          ..maxConnectionsPerHost = 200
+          ..connectionTimeout = const Duration(seconds: 30)
+          ..idleTimeout = const Duration(seconds: 30);
 
         try {
           for (var entry in _testItems.entries) {

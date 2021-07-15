@@ -12,8 +12,9 @@ import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
-import 'package:shelf_proxy/shelf_proxy.dart';
+//import 'package:shelf_proxy/shelf_proxy.dart';
 
+import '../handlers/proxy_handler.dart';
 import 'asset_reader.dart';
 
 /// A reader for resources provided by a proxy server.
@@ -29,13 +30,17 @@ class ProxyServerAssetReader implements AssetReader {
     root ??= '';
     isHttps ??= false;
     var scheme = isHttps ? 'https://' : 'http://';
-    _client = isHttps
-        ? IOClient(
-            HttpClient()..badCertificateCallback = (cert, host, port) => true)
-        : http.Client();
+    var inner = HttpClient()
+      ..maxConnectionsPerHost = 200
+      ..connectionTimeout = const Duration(seconds: 30)
+      ..idleTimeout = const Duration(seconds: 30);
+    if (isHttps) {
+      inner.badCertificateCallback = (cert, host, port) => true;
+    }
+    _client = IOClient(inner);
     var url = '$scheme$host:$assetServerPort/';
     if (root?.isNotEmpty ?? false) url += '$root/';
-    _handler = proxyHandler(url, client: _client);
+    _handler = assetProxyHandler(url, client: _client);
   }
 
   @override
