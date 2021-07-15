@@ -11,9 +11,12 @@ import 'package:devtools_server/devtools_server.dart' as devtools_lancher;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:http_multi_server/http_multi_server.dart';
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+Logger _logger = Logger('TestServer');
 
 Handler _interceptFavicon(Handler handler) {
   return (request) async {
@@ -126,8 +129,13 @@ class TestServer {
       cascade = cascade.add(ddcService.handler);
     }
 
-    shelf_io.serveRequests(server,
-        pipeline.addMiddleware(dwds.middleware).addHandler(cascade.handler));
+    shelf_io.serveRequests(
+        server,
+        pipeline
+            .addMiddleware(dwds.middleware)
+            .addMiddleware(logRequests(
+                logger: (message, isError) => _logger.finest(message)))
+            .addHandler(cascade.handler));
 
     return TestServer._(
       target,
