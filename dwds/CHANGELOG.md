@@ -4,6 +4,7 @@
   libraries present in medatata but not lodaded at runtime.
 - Log failures to load kernel during expression evaluation.
 - Show lowered final fields using their original dart names.
+- Limit simultaneous connections to asset server to prevent broken sockets.
 
 ## 11.1.1
 
