@@ -137,16 +137,16 @@ Function? someFunction() => null;
 // ignore: unused_element
 int _libraryPrivateFunction(int a, int b) => a + b;
 
-class NotReallyAList extends ListBase<Object> {
-  final List<Object> _internal;
+class NotReallyAList extends ListBase<Object?> {
+  final List<Object?> _internal;
 
   NotReallyAList() : _internal = [];
 
   @override
-  Object operator [](x) => _internal[x];
+  Object? operator [](x) => _internal[x];
 
   @override
-  operator []=(int x, Object y) => _internal[x] = y;
+  operator []=(int x, Object? y) => _internal[x] = y;
 
   @override
   int get length => _internal.length;
