@@ -14,7 +14,7 @@ void main() {
     print('Hello World');
     return ServiceExtensionResponse.result(json.encode({'success': true}));
   });
-  document.body.append(SpanElement()..text = 'Hello World!!');
+  document.body!.append(SpanElement()..text = 'Hello World!!');
 
   var count = 0;
   Timer.periodic(const Duration(seconds: 1), (_) {

@@ -67,13 +67,9 @@ for PKG in ${PKGS}; do
       echo
       echo -e "\033[1mPKG: ${PKG}; TASK: ${TASK}\033[22m"
       case ${TASK} in
-      analyze_0)
-        echo 'dart analyze --fatal-infos --fatal-warnings .'
-        dart analyze --fatal-infos --fatal-warnings . || EXIT_CODE=$?
-        ;;
-      analyze_1)
-        echo 'dart analyze --fatal-warnings .'
-        dart analyze --fatal-warnings . || EXIT_CODE=$?
+      analyze)
+        echo 'dart analyze --fatal-infos .'
+        dart analyze --fatal-infos . || EXIT_CODE=$?
         ;;
       command)
         echo 'Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &'
