@@ -45,14 +45,16 @@ void main() {
       var request = Request('GET', Uri.parse('http://foo:0000/$path'));
       var response = await assetHandler(request);
       var result = await response.readAsString();
-      expect(result, isNotNull, reason: 'Failed to read $path');
+      expect(result, isNotNull,
+          reason: 'Failed to read $path: ${response.statusCode}');
     }
 
     Future<void> readAsBytes(String path) async {
       var request = Request('GET', Uri.parse('http://foo:0000/$path'));
       var response = await assetHandler(request);
       var result = response.read().toList();
-      expect(result, isNotNull, reason: 'Failed to read $path');
+      expect(result, isNotNull,
+          reason: 'Failed to read $path: ${response.statusCode}');
     }
 
     test('can read dill files', () async {
