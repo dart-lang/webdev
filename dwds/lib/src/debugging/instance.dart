@@ -299,11 +299,17 @@ class InstanceHelper extends Domain {
         return fields.join(',');
       }
       const privateFields = sdk_utils.getOwnPropertySymbols(fields);
-      const nonSymbolNames = privateFields.map(sym => sym.description);
+      const nonSymbolNames = privateFields
+                            .map(sym => sym.description
+                              .split('#').slice(-1)[0]);
       const publicFieldNames = sdk_utils.getOwnPropertyNames(fields);
       const symbolNames =  Object.getOwnPropertySymbols(this)
-                            .map(sym => sym.description.split('.').slice(-1)[0]);
-      return nonSymbolNames.concat(publicFieldNames).concat(symbolNames).join(',');
+                            .map(sym => sym.description
+                              .split('#').slice(-1)[0]
+                              .split('.').slice(-1)[0]);
+      return nonSymbolNames
+        .concat(publicFieldNames)
+        .concat(symbolNames).join(',');
     }
     ''';
     var allNames = (await inspector

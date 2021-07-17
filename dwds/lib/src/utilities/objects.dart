@@ -45,6 +45,11 @@ class Property {
     var nonSymbol = (rawName.startsWith(prefix))
         ? rawName.substring(prefix.length, rawName.length - 1)
         : rawName;
+    // Adjust names for late fields:
+    // '_#MyTestClass#myselfField' -> 'myselfField'
+    // TODO(annagrin): Use debug symbols to map from dart to JS symbols.
+    // https://github.com/dart-lang/sdk/issues/40273
+    nonSymbol = nonSymbol.split('#').last;
     return nonSymbol.split('.').last;
   }
 

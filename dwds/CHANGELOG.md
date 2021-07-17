@@ -3,6 +3,7 @@
 - Return empty library from `ChromeProxyService.getObject` for
   libraries present in medatata but not lodaded at runtime.
 - Log failures to load kernel during expression evaluation.
+- Show lowered final fields using their original dart names.
 
 ## 11.1.1
 
