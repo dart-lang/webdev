@@ -14,15 +14,24 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/logging.dart';
 
 final context = TestContext();
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
+void setCurrentLogWriter() {
+  configureLogWriter(
+      customLogWriter: (level, message,
+              {loggerName, error, stackTrace, verbose}) =>
+          printOnFailure('[$level] $loggerName: $message'));
+}
+
 void main() {
   setUpAll(() async {
-    await context.setUp(restoreBreakpoints: true);
+    setCurrentLogWriter();
+    await context.setUp(restoreBreakpoints: true, verbose: true);
   });
 
   tearDownAll(() async {
@@ -37,6 +46,7 @@ void main() {
     Stream<Event> isolateEventStream;
 
     setUp(() async {
+      setCurrentLogWriter();
       vm = await fetchChromeProxyService(context.debugConnection).getVM();
       isolate = await fetchChromeProxyService(context.debugConnection)
           .getIsolate(vm.isolates.first.id);
@@ -84,7 +94,7 @@ void main() {
 
       var eventsDone = expectLater(
           isolateEventStream,
-          emitsThrough(emitsInOrder([
+          emits(emitsInOrder([
             predicate((Event event) => event.kind == EventKind.kIsolateExit),
             predicate((Event event) => event.kind == EventKind.kIsolateStart),
             predicate(
