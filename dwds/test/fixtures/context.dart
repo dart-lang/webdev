@@ -149,10 +149,22 @@ class TestContext {
             ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase']);
         // On windows this takes a while to boot up, wait for the first line
         // of stdout as a signal that it is ready.
-        await chromeDriver.stdout
+        final stdOutLines = chromeDriver.stdout
             .transform(utf8.decoder)
             .transform(const LineSplitter())
-            .first;
+            .asBroadcastStream();
+
+        final stdErrLines = chromeDriver.stderr
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .asBroadcastStream();
+
+        stdOutLines
+            .listen((line) => _logger.finest('ChromeDriver stdout: $line'));
+        stdErrLines
+            .listen((line) => _logger.warning('ChromeDriver stderr: $line'));
+
+        await stdOutLines.first;
       } catch (e) {
         throw StateError(
             'Could not start ChromeDriver. Is it installed?\nError: $e');
