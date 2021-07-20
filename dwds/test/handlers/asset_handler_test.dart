@@ -13,7 +13,15 @@ import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 
 import '../fixtures/context.dart';
+import '../fixtures/logging.dart';
 import '../fixtures/utilities.dart';
+
+void setCurrentLogWriter() {
+  configureLogWriter(
+      customLogWriter: (level, message,
+              {loggerName, error, stackTrace, verbose}) =>
+          printOnFailure('[$level] $loggerName: $message'));
+}
 
 void main() {
   group('Asset handler', () {
@@ -22,7 +30,8 @@ void main() {
     http.Client client;
 
     setUpAll(() async {
-      await context.setUp(enableExpressionEvaluation: true);
+      setCurrentLogWriter();
+      await context.setUp(enableExpressionEvaluation: true, verbose: true);
 
       client = IOClient(HttpClient()
         ..maxConnectionsPerHost = 200
@@ -37,9 +46,15 @@ void main() {
           client: client);
     });
 
-    tearDownAll(() {
+    tearDownAll(() async {
+      print('stopppping....');
       client.close();
+      print('client closed');
+      await context.tearDown();
+      print('service closed');
     });
+
+    setUp(setCurrentLogWriter);
 
     Future<void> readAsString(String path) async {
       var request = Request('GET', Uri.parse('http://foo:0000/$path'));
@@ -52,7 +67,7 @@ void main() {
     Future<void> readAsBytes(String path) async {
       var request = Request('GET', Uri.parse('http://foo:0000/$path'));
       var response = await assetHandler(request);
-      var result = response.read().toList();
+      var result = await response.read().toList();
       expect(result, isNotNull,
           reason: 'Failed to read $path: ${response.statusCode}');
     }
