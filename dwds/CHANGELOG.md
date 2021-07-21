@@ -6,6 +6,7 @@
 - Show lowered final fields using their original dart names.
 - Limit simultaneous connections to asset server to prevent broken sockets.
 - Fix hangs in hot restart.
+- Initial support for passing scope to `ChromeProxyService.evaluate`.
 
 ## 11.1.1
 

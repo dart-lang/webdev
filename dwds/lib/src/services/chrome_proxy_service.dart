@@ -116,9 +116,6 @@ class ChromeProxyService implements VmServiceInterface {
       _skipLists,
       uri,
     );
-    _expressionEvaluator = _compiler == null
-        ? null
-        : ExpressionEvaluator(debugger, _locations, _modules, _compiler);
     _debuggerCompleter.complete(debugger);
   }
 
@@ -227,6 +224,10 @@ class ChromeProxyService implements VmServiceInterface {
       debugger,
       executionContext,
     );
+
+    _expressionEvaluator = _compiler == null
+        ? null
+        : ExpressionEvaluator(_inspector, _locations, _modules, _compiler);
 
     await debugger.reestablishBreakpoints(
         _previousBreakpoints, _disabledBreakpoints);
@@ -434,7 +435,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         var library = await _inspector?.getLibrary(isolateId, targetId);
         var result = await _getEvaluationResult(
             () => _expressionEvaluator.evaluateExpression(
-                isolateId, library.uri, expression),
+                isolateId, library.uri, expression, scope),
             expression);
         if (result is ErrorRef) {
           error = result;
@@ -473,9 +474,19 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         await isCompilerInitialized;
         _validateIsolateId(isolateId);
 
+        if (scope != null) {
+          // TODO(annagrin): Implement scope support.
+          // Issue: https://github.com/dart-lang/webdev/issues/1344
+          throw RPCError(
+              'evaluateInFrame',
+              RPCError.kInvalidRequest,
+              'Expression evaluation with scope is not supported '
+                  'for this configuration.');
+        }
+
         var result = await _getEvaluationResult(
             () => _expressionEvaluator.evaluateExpressionInFrame(
-                isolateId, frameIndex, expression),
+                isolateId, frameIndex, expression, scope),
             expression);
 
         if (result is ErrorRef) {

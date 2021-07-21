@@ -8,7 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../debugging/dart_scope.dart';
-import '../debugging/debugger.dart';
+import '../debugging/inspector.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
 import '../utilities/objects.dart' as chrome;
@@ -33,7 +33,7 @@ class ErrorKind {
 /// collect context for evaluation (scope, types, modules), and using
 /// ExpressionCompilerInterface to compile dart expressions to JavaScript.
 class ExpressionEvaluator {
-  final Future<Debugger> _debugger;
+  final AppInspector _inspector;
   final Locations _locations;
   final Modules _modules;
   final ExpressionCompiler _compiler;
@@ -43,7 +43,7 @@ class ExpressionEvaluator {
       RegExp('org-dartlang-debug:synthetic_debug_expression:.*:.*Error: ');
 
   ExpressionEvaluator(
-      this._debugger, this._locations, this._modules, this._compiler);
+      this._inspector, this._locations, this._modules, this._compiler);
 
   RemoteObject _createError(ErrorKind severity, String message) {
     return RemoteObject(
@@ -62,7 +62,11 @@ class ExpressionEvaluator {
   /// [libraryUri] dart library to evaluate the expression in.
   /// [expression] dart expression to evaluate.
   Future<RemoteObject> evaluateExpression(
-      String isolateId, String libraryUri, String expression) async {
+    String isolateId,
+    String libraryUri,
+    String expression,
+    Map<String, String> scope,
+  ) async {
     if (_compiler == null) {
       return _createError(ErrorKind.internal,
           'ExpressionEvaluator needs an ExpressionCompiler');
@@ -74,6 +78,10 @@ class ExpressionEvaluator {
 
     var module = await _modules.moduleForlibrary(libraryUri);
 
+    if (scope != null && scope.isNotEmpty) {
+      var params = scope.keys.join(', ');
+      expression = '($params) => $expression';
+    }
     _logger.finest('Evaluating "$expression" at $module');
 
     // Compile expression using an expression compiler, such as
@@ -88,8 +96,22 @@ class ExpressionEvaluator {
     }
 
     // Send JS expression to chrome to evaluate.
-    var result = await (await _debugger).evaluate(jsResult);
-    result = _formatEvaluationError(result);
+    RemoteObject result;
+    if (scope != null && scope.isNotEmpty) {
+      // Strip try/catch.
+      // TODO: remove adding try/catch block in expression compiler.
+      // https://github.com/dart-lang/webdev/issues/1341
+      var lines = jsResult.split('\n');
+      var inner = lines.getRange(2, lines.length - 3).join('\n');
+      var function = 'function(t) {'
+          '  return $inner(t);'
+          '}';
+      result = await _inspector.callFunction(function, scope.values);
+      result = _formatEvaluationError(result);
+    } else {
+      result = await _inspector.debugger.evaluate(jsResult);
+      result = _formatEvaluationError(result);
+    }
 
     _logger.finest('Evaluated "$expression" to "$result"');
     return result;
@@ -107,8 +129,8 @@ class ExpressionEvaluator {
   /// [isolateId] current isolate ID.
   /// [frameIndex] JavaScript frame to evaluate the expression in.
   /// [expression] dart expression to evaluate.
-  Future<RemoteObject> evaluateExpressionInFrame(
-      String isolateId, int frameIndex, String expression) async {
+  Future<RemoteObject> evaluateExpressionInFrame(String isolateId,
+      int frameIndex, String expression, Map<String, String> scope) async {
     if (_compiler == null) {
       return _createError(ErrorKind.internal,
           'ExpressionEvaluator needs an ExpressionCompiler');
@@ -119,7 +141,7 @@ class ExpressionEvaluator {
     }
 
     // Get JS scope and current JS location.
-    var jsFrame = (await _debugger).jsFrameForIndex(frameIndex);
+    var jsFrame = _inspector.debugger.jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
       return _createError(
           ErrorKind.internal, 'No frame with index $frameIndex');
@@ -175,7 +197,7 @@ class ExpressionEvaluator {
     }
 
     // Send JS expression to chrome to evaluate.
-    var result = await (await _debugger)
+    var result = await _inspector.debugger
         .evaluateJsOnCallFrameIndex(frameIndex, jsResult);
     result = _formatEvaluationError(result);
 
@@ -271,7 +293,7 @@ class ExpressionEvaluator {
     var scopeChain = filterScopes(frame).reversed;
     for (var scope in scopeChain) {
       var scopeProperties =
-          await (await _debugger).getProperties(scope.object.objectId);
+          await _inspector.debugger.getProperties(scope.object.objectId);
 
       collectVariables(scope.scope, scopeProperties);
     }
