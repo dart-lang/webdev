@@ -25,7 +25,7 @@ void setCurrentLogWriter() {
   configureLogWriter(
       customLogWriter: (level, message,
               {loggerName, error, stackTrace, verbose}) =>
-          print('[$level] $loggerName: $message'));
+          printOnFailure('[$level] $loggerName: $message'));
 }
 
 void main() {

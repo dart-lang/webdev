@@ -37,7 +37,7 @@ void main() {
           customLogWriter: (level, message,
                   {loggerName, error, stackTrace, verbose}) =>
               printOnFailure('[$level] $loggerName: $message'));
-      await context.setUp(verbose: true);
+      await context.setUp(verbose: false);
     });
 
     tearDownAll(() async {

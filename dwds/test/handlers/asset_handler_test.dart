@@ -47,11 +47,8 @@ void main() {
     });
 
     tearDownAll(() async {
-      print('stopppping....');
       client.close();
-      print('client closed');
       await context.tearDown();
-      print('service closed');
     });
 
     setUp(setCurrentLogWriter);
