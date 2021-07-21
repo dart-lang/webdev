@@ -55,15 +55,6 @@ void main() {
     await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
   });
 
-  test('emits COMPILER_UPDATE_DEPENDENCIES event', () async {
-    // The events stream is a broadcast stream so start listening before the
-    // action.
-    expect(
-        context.testServer.dwds.events,
-        emits(predicate((DwdsEvent event) =>
-            event.type == 'COMPILER_UPDATE_DEPENDENCIES')));
-  });
-
   test('events can be listened to multiple times', () async {
     context.testServer.dwds.events.listen((_) {});
     context.testServer.dwds.events.listen((_) {});
@@ -102,7 +93,7 @@ void main() {
       var expression = "helloString('world')";
       expect(
           context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) =>
+          emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE' &&
               event.payload['expression'] == expression)));
       await service.evaluate(
@@ -116,7 +107,7 @@ void main() {
       var expression = 'some-bad-expression';
       expect(
           context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) =>
+          emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE' &&
               event.payload['expression'] == expression &&
               event.payload['exception'] is ErrorRef)));
@@ -153,7 +144,7 @@ void main() {
     test('emits EVALUATE_IN_FRAME events on RPC error', () async {
       expect(
           context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) =>
+          emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE_IN_FRAME' &&
               event.payload['success'] == false &&
               event.payload['exception'] is RPCError &&
@@ -181,7 +172,7 @@ void main() {
       // so event is marked as success.
       expect(
           context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) =>
+          emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE_IN_FRAME' &&
               event.payload['success'] == false &&
               event.payload['exception'] is ErrorRef)));
@@ -210,7 +201,7 @@ void main() {
       // so event is marked as success.
       expect(
           context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) =>
+          emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE_IN_FRAME' &&
               event.payload['success'] == true)));
       try {

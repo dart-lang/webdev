@@ -11,8 +11,8 @@ import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:devtools_server/devtools_server.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
-import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -104,7 +104,10 @@ class WebDevServer {
     });
 
     var cascade = Cascade();
-    var client = Client();
+    var client = IOClient(HttpClient()
+      ..maxConnectionsPerHost = 200
+      ..idleTimeout = const Duration(seconds: 30)
+      ..connectionTimeout = const Duration(seconds: 30));
     var assetHandler = proxyHandler(
         'http://localhost:${options.daemonPort}/${options.target}/',
         client: client);
