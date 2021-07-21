@@ -1,4 +1,4 @@
-## 11.1.2-dev
+## 11.1.2
 
 - Return empty library from `ChromeProxyService.getObject` for
   libraries present in medatata but not loaded at runtime.
@@ -7,6 +7,8 @@
 - Limit simultaneous connections to asset server to prevent broken sockets.
 - Fix hangs in hot restart.
 - Initial support for passing scope to `ChromeProxyService.evaluate`.
+- Require `build_web_compilers` version `3.0.0` so current version
+  of dwds could be used with SDK stable `2.13.x` versions.
 
 ## 11.1.1
 
