@@ -189,15 +189,27 @@ class DwdsVmClient {
 
 Future<void> _disableBreakpointsAndResume(
     VmService client, ChromeProxyService chromeProxyService) async {
-  _logger.info('Attempting to disabling breakpoints and resume the isolate');
+  _logger.info('Attempting to disable breakpoints and resume the isolate');
   var vm = await client.getVM();
   if (vm.isolates.isEmpty) throw StateError('No active isolate to resume.');
   var isolateRef = vm.isolates.first;
+
+  // Pause the app to prevent it from hitting a breakpoint
+  // during hot restart and stalling hot restart execution.
+  // Then wait for the app to pause or to hit a breakpoint.
+  var debug = chromeProxyService.onEvent('Debug').firstWhere((event) =>
+      event.kind == EventKind.kPauseInterrupted ||
+      event.kind == EventKind.kPauseBreakpoint);
+
+  await client.pause(isolateRef.id);
+
   var isolate = await client.getIsolate(isolateRef.id);
-  await chromeProxyService.disableBreakpoints();
-  if (isolate.pauseEvent.kind == EventKind.kPauseInterrupted ||
-      isolate.pauseEvent.kind == EventKind.kPauseBreakpoint) {
-    await client.resume(isolate.id);
+  if (isolate.pauseEvent.kind != EventKind.kPauseInterrupted &&
+      isolate.pauseEvent.kind != EventKind.kPauseBreakpoint) {
+    await debug;
   }
+
+  await chromeProxyService.disableBreakpoints();
+  await client.resume(isolateRef.id);
   _logger.info('Successfully disabled breakpoints and resumed the isolate');
 }
