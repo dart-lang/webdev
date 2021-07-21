@@ -331,6 +331,10 @@ class Debugger extends Domain {
   }
 
   bool _isNativeJsObject(vm_service.InstanceRef instanceRef) =>
+      // New type representation of JS objects reifies them to JavaScriptObject.
+      (instanceRef?.classRef?.name == 'JavaScriptObject' &&
+          instanceRef?.classRef?.library?.uri == 'dart:_interceptors') ||
+      // Old type representation still needed to support older SDK versions.
       instanceRef?.classRef?.name == 'NativeJavaScriptObject';
 
   Future<BoundVariable> _boundVariable(Property property) async {
