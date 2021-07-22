@@ -166,6 +166,12 @@ void main() async {
 
           test('Type does not show native JavaScript object fields', () async {
             await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+              Future<Instance> getInstance(InstanceRef ref) async {
+                var result = await setup.service.getObject(isolate.id, ref.id);
+                expect(result, isA<Instance>());
+                return result as Instance;
+              }
+
               var event = await stream.firstWhere(
                   (event) => event.kind == EventKind.kPauseBreakpoint);
 
@@ -175,30 +181,25 @@ void main() async {
               var instanceRef = result as InstanceRef;
 
               // Type
-              result =
-                  await setup.service.getObject(isolate.id, instanceRef.id);
-              expect(result, isA<Instance>());
-              var instance = result as Instance;
-
-              // Type._type
-              var valueRef = instance.fields[0].value as InstanceRef;
-              result = await setup.service.getObject(isolate.id, valueRef.id);
-              expect(result, isA<Instance>());
-              instance = result as Instance;
-
+              var instance = await getInstance(instanceRef);
               for (var field in instance.fields) {
                 var name = field.decl.name;
 
-                // Type._type.<name>
-                var valueRef = field.value as InstanceRef;
-                result = await setup.service.getObject(isolate.id, valueRef.id);
+                // Type.<name> (i.e. Type._type)
+                instance = await getInstance(field.value as InstanceRef);
+                for (var field in instance.fields) {
+                  var nestedName = field.decl.name;
 
-                expect(
-                    result,
-                    isA<Instance>().having(
-                        (instance) => instance.classRef.name,
-                        '$name: classRef.name',
-                        isNot(contains('JavaScriptObject'))));
+                  // Type.<name>.<nestedName> (i.e Type._type._subtypeCache)
+                  instance = await getInstance(field.value as InstanceRef);
+
+                  expect(
+                      instance,
+                      isA<Instance>().having(
+                          (instance) => instance.classRef.name,
+                          'Type.$name.$nestedName: classRef.name',
+                          isNot(contains('JavaScriptObject'))));
+                }
               }
             });
           });
