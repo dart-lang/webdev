@@ -325,17 +325,9 @@ class Debugger extends Domain {
     // JavaScript objects
     return boundVariables
         .where((bv) =>
-            bv != null &&
-            !_isNativeJsObject(bv.value as vm_service.InstanceRef))
+            bv != null && !isNativeJsObject(bv.value as vm_service.InstanceRef))
         .toList();
   }
-
-  bool _isNativeJsObject(vm_service.InstanceRef instanceRef) =>
-      // New type representation of JS objects reifies them to JavaScriptObject.
-      (instanceRef?.classRef?.name == 'JavaScriptObject' &&
-          instanceRef?.classRef?.library?.uri == 'dart:_interceptors') ||
-      // Old type representation still needed to support older SDK versions.
-      instanceRef?.classRef?.name == 'NativeJavaScriptObject';
 
   Future<BoundVariable> _boundVariable(Property property) async {
     // We return one level of properties from this object. Sub-properties are
@@ -511,7 +503,7 @@ class Debugger extends Domain {
 
           // TODO: The exception object generally doesn't get converted to a
           // Dart object (and instead has a classRef name of 'NativeJavaScriptObject').
-          if (_isNativeJsObject(exception)) {
+          if (isNativeJsObject(exception)) {
             if (obj.description != null) {
               // Create a string exception object.
               exception = await inspector.instanceHelper
@@ -638,6 +630,13 @@ class Debugger extends Domain {
     }
   }
 }
+
+bool isNativeJsObject(vm_service.InstanceRef instanceRef) =>
+    // New type representation of JS objects reifies them to JavaScriptObject.
+    (instanceRef?.classRef?.name == 'JavaScriptObject' &&
+        instanceRef?.classRef?.library?.uri == 'dart:_interceptors') ||
+    // Old type representation still needed to support older SDK versions.
+    instanceRef?.classRef?.name == 'NativeJavaScriptObject';
 
 /// Returns the Dart line number for the provided breakpoint.
 int _lineNumberFor(Breakpoint breakpoint) =>

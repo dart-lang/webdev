@@ -15,6 +15,7 @@ import '../utilities/domain.dart';
 import '../utilities/objects.dart';
 import '../utilities/shared.dart';
 import 'classes.dart';
+import 'debugger.dart';
 import 'inspector.dart';
 import 'metadata/class.dart';
 import 'metadata/function.dart';
@@ -169,16 +170,18 @@ class InstanceHelper extends Domain {
   Future<Instance> _plainInstanceFor(ClassRef classRef,
       RemoteObject remoteObject, List<Property> properties) async {
     var dartProperties = await _dartFieldsFor(properties, remoteObject);
-    var fields = await Future.wait(
+    var boundFields = await Future.wait(
         dartProperties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)));
-    fields = fields.toList()
+    boundFields = boundFields
+        .where((bv) => bv != null && !isNativeJsObject(bv.value as InstanceRef))
+        .toList()
       ..sort((a, b) => a.decl.name.compareTo(b.decl.name));
     var result = Instance(
         kind: InstanceKind.kPlainInstance,
         id: remoteObject.objectId,
         identityHashCode: remoteObject.objectId.hashCode,
         classRef: classRef)
-      ..fields = fields;
+      ..fields = boundFields;
     return result;
   }
 

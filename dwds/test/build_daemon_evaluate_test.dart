@@ -164,6 +164,45 @@ void main() async {
             });
           });
 
+          test('Type does not show native JavaScript object fields', () async {
+            await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+              var event = await stream.firstWhere(
+                  (event) => event.kind == EventKind.kPauseBreakpoint);
+
+              var result = await setup.service
+                  .evaluateInFrame(isolate.id, event.topFrame.index, 'Type');
+              expect(result, isA<InstanceRef>());
+              var instanceRef = result as InstanceRef;
+
+              // Type
+              result =
+                  await setup.service.getObject(isolate.id, instanceRef.id);
+              expect(result, isA<Instance>());
+              var instance = result as Instance;
+
+              // Type._type
+              var valueRef = instance.fields[0].value as InstanceRef;
+              result = await setup.service.getObject(isolate.id, valueRef.id);
+              expect(result, isA<Instance>());
+              instance = result as Instance;
+
+              for (var field in instance.fields) {
+                var name = field.decl.name;
+
+                // Type._type.<name>
+                var valueRef = field.value as InstanceRef;
+                result = await setup.service.getObject(isolate.id, valueRef.id);
+
+                expect(
+                    result,
+                    isA<Instance>().having(
+                        (instance) => instance.classRef.name,
+                        '$name: classRef.name',
+                        isNot(contains('JavaScriptObject'))));
+              }
+            });
+          });
+
           test('field', () async {
             await onBreakPoint(
                 isolate.id, mainScript, 'printFieldFromLibraryClass', () async {
