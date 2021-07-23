@@ -371,7 +371,7 @@ function($argsString) {
         return instance;
       }
     } catch (e, s) {
-      _logger.log(Level.FINE, 'getObject failed with exception: $e:$s');
+      _logger.fine('getObject $objectId failed', e, s);
       rethrow;
     }
     throw UnsupportedError('Only libraries, instances, classes, and scripts '
