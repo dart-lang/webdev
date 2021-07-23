@@ -198,7 +198,10 @@ void main() async {
                       isA<Instance>().having(
                           (instance) => instance.classRef.name,
                           'Type.$name.$nestedName: classRef.name',
-                          isNot(contains('JavaScriptObject'))));
+                          isNot(isIn([
+                            'NativeJavaScriptObject',
+                            'JavaScriptObject',
+                          ]))));
                 }
               }
             });
