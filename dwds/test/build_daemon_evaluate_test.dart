@@ -46,13 +46,9 @@ class TestSetup {
   /// Needs to be called in both setUpAll() and setUp() to store
   /// the logs in the current zone.
   ///
-  /// Note: change 'printOnFailure' to 'print' for debug printing.
-  static void setCurrentLogWriter() {
-    configureLogWriter(
-        customLogWriter: (level, message,
-                {loggerName, error, stackTrace, verbose}) =>
-            printOnFailure('[$level] $loggerName: $message'));
-  }
+  /// Note: set 'debug' to 'true' for debug printing.
+  static void setCurrentLogWriter() =>
+      configureLogWriter(customLogWriter: createLogWriter(debug: false));
 }
 
 void main() async {
@@ -90,9 +86,7 @@ void main() async {
           await context.tearDown();
         });
 
-        setUp(() async {
-          TestSetup.setCurrentLogWriter();
-        });
+        setUp(TestSetup.setCurrentLogWriter);
 
         group('evaluateInFrame', () {
           VM vm;
@@ -105,6 +99,7 @@ void main() async {
           Stream<Event> stream;
 
           setUp(() async {
+            TestSetup.setCurrentLogWriter();
             vm = await setup.service.getVM();
             isolate = await setup.service.getIsolate(vm.isolates.first.id);
             scripts = await setup.service.getScripts(isolate.id);
@@ -533,6 +528,7 @@ void main() async {
           Isolate isolate;
 
           setUp(() async {
+            TestSetup.setCurrentLogWriter();
             vm = await setup.service.getVM();
             isolate = await setup.service.getIsolate(vm.isolates.first.id);
 
@@ -613,9 +609,7 @@ void main() async {
           await context.tearDown();
         });
 
-        setUp(() async {
-          TestSetup.setCurrentLogWriter();
-        });
+        setUp(TestSetup.setCurrentLogWriter);
 
         group('evaluateInFrame', () {
           VM vm;

@@ -21,12 +21,9 @@ ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
-void setCurrentLogWriter() {
-  configureLogWriter(
-      customLogWriter: (level, message,
-              {loggerName, error, stackTrace, verbose}) =>
-          printOnFailure('[$level] $loggerName: $message'));
-}
+/// Note: set 'debug' to 'true' for debug printing.
+void setCurrentLogWriter() =>
+    configureLogWriter(customLogWriter: createLogWriter(debug: false));
 
 void main() {
   setUpAll(() async {

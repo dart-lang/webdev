@@ -29,7 +29,7 @@ StreamSubscription<LogRecord> _loggerSub;
 ///   // Note: change 'printOnFailure' to 'print' for debug printing.
 ///   configureLogWriter(
 ///        customLogWriter: (level, message,
-///                {loggerName, error, stackTrace, verbose}) =>
+///                {error, loggerName, stackTrace}) =>
 ///            printOnFailure('[$level] $loggerName: $message'));
 ///  }
 ///
@@ -53,9 +53,9 @@ void configureLogWriter({LogWriter customLogWriter}) {
   _loggerSub?.cancel();
   _loggerSub = Logger.root.onRecord.listen((event) {
     logWriter(event.level, event.message,
-        error: '${event.error}',
+        error: event.error?.toString(),
         loggerName: event.loggerName,
-        stackTrace: '${event.stackTrace}');
+        stackTrace: event.stackTrace?.toString());
   });
 }
 
@@ -64,8 +64,16 @@ void stopLogWriter() {
   _loggerSub = null;
 }
 
-LogWriter _logWriter = (level, message,
-        {String error, String loggerName, String stackTrace}) =>
-    printOnFailure('[$level] $loggerName: $message');
+LogWriter _logWriter = createLogWriter();
+
+LogWriter createLogWriter({bool debug}) =>
+    (level, message, {String error, String loggerName, String stackTrace}) {
+      var printFn = debug ? print : printOnFailure;
+      var errorMessage = error == null ? '' : ':\n$error';
+      var stackMessage = stackTrace == null ? '' : ':\n$stackTrace';
+      printFn('[$level] $loggerName: $message'
+          '$errorMessage'
+          '$stackMessage');
+    };
 
 LogWriter get logWriter => _logWriter;

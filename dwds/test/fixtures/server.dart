@@ -11,9 +11,12 @@ import 'package:devtools_server/devtools_server.dart' as devtools_lancher;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:http_multi_server/http_multi_server.dart';
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+Logger _logger = Logger('TestServer');
 
 Handler _interceptFavicon(Handler handler) {
   return (request) async {
@@ -124,8 +127,12 @@ class TestServer {
       cascade = cascade.add(ddcService.handler);
     }
 
-    shelf_io.serveRequests(server,
-        pipeline.addMiddleware(dwds.middleware).addHandler(cascade.handler));
+    shelf_io.serveRequests(
+        server,
+        pipeline
+            .addMiddleware(_logRequests)
+            .addMiddleware(dwds.middleware)
+            .addHandler(cascade.handler));
 
     return TestServer._(
       target,
@@ -135,5 +142,38 @@ class TestServer {
       autoRun,
       assetReader,
     );
+  }
+
+  /// [Middleware] that logs all requests, inspired by [logRequests].
+  static Handler _logRequests(Handler innerHandler) {
+    return (Request request) async {
+      var watch = Stopwatch()..start();
+      try {
+        var response = await innerHandler(request);
+        var logFn =
+            response.statusCode >= 500 ? _logger.warning : _logger.finest;
+        var msg = _requestLabel(response.statusCode, request.requestedUri,
+            request.method, watch.elapsed);
+        logFn(msg);
+        return response;
+      } catch (error, stackTrace) {
+        if (error is HijackException) rethrow;
+        var msg = _requestLabel(
+            500, request.requestedUri, request.method, watch.elapsed);
+        _logger.severe(msg, error, stackTrace);
+        rethrow;
+      }
+    };
+  }
+
+  static String _requestLabel(
+      int statusCode, Uri requestedUri, String method, Duration elapsedTime) {
+    return '$elapsedTime '
+        '$method [$statusCode] '
+        '${requestedUri.path}${_formatQuery(requestedUri.query)}';
+  }
+
+  static String _formatQuery(String query) {
+    return query == '' ? '' : '?$query';
   }
 }

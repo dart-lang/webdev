@@ -16,12 +16,9 @@ import '../fixtures/context.dart';
 import '../fixtures/logging.dart';
 import '../fixtures/utilities.dart';
 
-void setCurrentLogWriter() {
-  configureLogWriter(
-      customLogWriter: (level, message,
-              {loggerName, error, stackTrace, verbose}) =>
-          printOnFailure('[$level] $loggerName: $message'));
-}
+/// Note: set 'debug' to 'true' for debug printing.
+void setCurrentLogWriter() =>
+    configureLogWriter(customLogWriter: createLogWriter(debug: false));
 
 void main() {
   group('Asset handler', () {
@@ -31,7 +28,7 @@ void main() {
 
     setUpAll(() async {
       setCurrentLogWriter();
-      await context.setUp(enableExpressionEvaluation: true, verbose: true);
+      await context.setUp(enableExpressionEvaluation: true, verbose: false);
 
       client = IOClient(HttpClient()
         ..maxConnectionsPerHost = 200
