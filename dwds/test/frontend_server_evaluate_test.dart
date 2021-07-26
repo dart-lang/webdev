@@ -31,13 +31,15 @@ class TestSetup {
   ChromeProxyService get service =>
       fetchChromeProxyService(context.debugConnection);
   WipConnection get tabConnection => context.tabConnection;
-
-  /// Note: set 'debug' to 'true' for debug printing.
-  static void setCurrentLogWriter() =>
-      configureLogWriter(customLogWriter: createLogWriter(debug: false));
 }
 
 void main() async {
+  // Enable verbose logging for debugging.
+  var debug = false;
+
+  // Change to 'false' to silence frontend server messages.
+  var verboseCompiler = true;
+
   var setup = TestSetup.unsound();
   var context = setup.context;
 
@@ -60,11 +62,11 @@ void main() async {
 
   group('shared context with evaluation', () {
     setUpAll(() async {
-      TestSetup.setCurrentLogWriter();
+      setCurrentLogWriter(debug: debug);
       await context.setUp(
           enableExpressionEvaluation: true,
           compilationMode: CompilationMode.frontendServer,
-          verbose: false);
+          verboseCompiler: verboseCompiler);
     });
 
     tearDownAll(() async {
@@ -72,7 +74,7 @@ void main() async {
     });
 
     setUp(() async {
-      TestSetup.setCurrentLogWriter();
+      setCurrentLogWriter(debug: debug);
     });
 
     group('evaluateInFrame', () {
@@ -465,11 +467,11 @@ void main() async {
 
   group('shared context with no evaluation', () {
     setUpAll(() async {
-      TestSetup.setCurrentLogWriter();
+      setCurrentLogWriter(debug: debug);
       await context.setUp(
           enableExpressionEvaluation: false,
           compilationMode: CompilationMode.frontendServer,
-          verbose: false);
+          verboseCompiler: verboseCompiler);
     });
 
     tearDownAll(() async {
@@ -477,7 +479,7 @@ void main() async {
     });
 
     setUp(() async {
-      TestSetup.setCurrentLogWriter();
+      setCurrentLogWriter(debug: debug);
     });
 
     group('evaluateInFrame', () {
@@ -508,8 +510,8 @@ void main() async {
           var event = await stream.firstWhere(
               (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-          expect(
-              () => setup.service
+          await expectLater(
+              setup.service
                   .evaluateInFrame(isolate.id, event.topFrame.index, 'local'),
               throwsRPCError);
         });

@@ -28,9 +28,3 @@ final String pubPath =
 
 const fs.FileSystem fileSystem = LocalFileSystem();
 
-void printError(String message, {StackTrace stackTrace}) {
-  if (stackTrace != null) {
-    print('$message: $stackTrace');
-  }
-  print(message);
-}

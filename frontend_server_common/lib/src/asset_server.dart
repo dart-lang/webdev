@@ -21,6 +21,8 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import 'utilities.dart';
 
+Logger _logger = Logger('TestAssetServer');
+
 class TestAssetServer implements AssetReader {
   TestAssetServer(
     this._root,
@@ -34,10 +36,6 @@ class TestAssetServer implements AssetReader {
   // makes no claims as to the structure of the data.
   static const String _defaultMimeType = 'application/octet-stream';
   final FileSystem _fileSystem;
-
-  void _printTrace(String message) {
-    Logger.root.info(message);
-  }
 
   /// Start the web asset server on a [hostname] and [port].
   ///
@@ -160,7 +158,7 @@ class TestAssetServer implements AssetReader {
         castStringKeyedMap(json.decode(manifestFile.readAsStringSync()));
     for (var filePath in manifest.keys) {
       if (filePath == null) {
-        _printTrace('Invalid manfiest file: $filePath');
+        _logger.severe('Invalid manfiest file: $filePath');
         continue;
       }
       var offsets = castStringKeyedMap(manifest[filePath]);
@@ -171,14 +169,14 @@ class TestAssetServer implements AssetReader {
       if (codeOffsets.length != 2 ||
           sourcemapOffsets.length != 2 ||
           metadataOffsets.length != 2) {
-        _printTrace('Invalid manifest byte offsets: $offsets');
+        _logger.severe('Invalid manifest byte offsets: $offsets');
         continue;
       }
 
       var codeStart = codeOffsets[0];
       var codeEnd = codeOffsets[1];
       if (codeStart < 0 || codeEnd > codeBytes.lengthInBytes) {
-        _printTrace('Invalid byte index: [$codeStart, $codeEnd]');
+        _logger.severe('Invalid byte index: [$codeStart, $codeEnd]');
         continue;
       }
       var byteView = Uint8List.view(
@@ -191,7 +189,7 @@ class TestAssetServer implements AssetReader {
       var sourcemapStart = sourcemapOffsets[0];
       var sourcemapEnd = sourcemapOffsets[1];
       if (sourcemapStart < 0 || sourcemapEnd > sourcemapBytes.lengthInBytes) {
-        _printTrace('Invalid byte index: [$sourcemapStart, $sourcemapEnd]');
+        _logger.severe('Invalid byte index: [$sourcemapStart, $sourcemapEnd]');
         continue;
       }
       var sourcemapView = Uint8List.view(
@@ -204,7 +202,7 @@ class TestAssetServer implements AssetReader {
       var metadataStart = metadataOffsets[0];
       var metadataEnd = metadataOffsets[1];
       if (metadataStart < 0 || metadataEnd > metadataBytes.lengthInBytes) {
-        _printTrace('Invalid byte index: [$metadataStart, $metadataEnd]');
+        _logger.severe('Invalid byte index: [$metadataStart, $metadataEnd]');
         continue;
       }
       var metadataView = Uint8List.view(

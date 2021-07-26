@@ -14,39 +14,41 @@ typedef LogWriter = void Function(Level level, String message,
 
 StreamSubscription<LogRecord> _loggerSub;
 
-/// Configure test log writer.
+/// Redirect the logs for the current zone to emit on failure.
 ///
-/// Tests and groups of tests can use this to configure individual
-/// log writers on setup.
+/// If [debug] is false, messages are stored and reported on test failure.
+/// If [debug] is true, messages are always printed to the console.
 ///
-/// Note that the logwriter needs to be set in both `setUpAll` and
-/// `setUp` to store messages for the same zone as the failure in
-/// order to report all stored messages on that failure.
+/// Note that the logwriter uses [printOnFailure] that stores the messages
+/// on the current zone. As a result, [setCurrentLogWriter] needs to be set
+/// in both `setUpAll` and `setUp` to store messages for the same zone as the
+/// failure in order to report all stored messages on that failure.
 ///
-/// For example, to enable verbose printing during debugging:
+/// For example:
 ///
-/// void setCurrentLogWriter() {
-///   // Note: change 'printOnFailure' to 'print' for debug printing.
-///   configureLogWriter(
-///        customLogWriter: (level, message,
-///                {error, loggerName, stackTrace}) =>
-///            printOnFailure('[$level] $loggerName: $message'));
-///  }
+/// // Enable verbose logging for debugging.
+/// bool debug = true;
 ///
 /// group('shared context', () {
 ///     setUpAll(() async {
 ///       // Set the logger for the current group.
-///       setCurrentLogWriter();
-///       await context.setUp();
+///       setCurrentLogWriter(debug: debug);
+///       ...
 ///     });
-///
 ///     setUp(() async {
 ///       // Reset the logger for the current test.
-///       setCurrentLogWriter();
+///       setCurrentLogWriter(debug: debug);
+///       ...
 ///     });
-///
 ///     ...
 /// });
+void setCurrentLogWriter({bool debug = false}) =>
+    configureLogWriter(customLogWriter: createLogWriter(debug: debug));
+
+/// Configure test log writer.
+///
+/// Tests and groups of tests can use this to configure individual
+/// log writers on setup.
 void configureLogWriter({LogWriter customLogWriter}) {
   _logWriter = customLogWriter ?? _logWriter;
   Logger.root.level = Level.ALL;
@@ -66,7 +68,7 @@ void stopLogWriter() {
 
 LogWriter _logWriter = createLogWriter();
 
-LogWriter createLogWriter({bool debug}) =>
+LogWriter createLogWriter({bool debug = false}) =>
     (level, message, {String error, String loggerName, String stackTrace}) {
       var printFn = debug ? print : printOnFailure;
       var errorMessage = error == null ? '' : ':\n$error';

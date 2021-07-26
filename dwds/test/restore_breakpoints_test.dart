@@ -21,14 +21,12 @@ ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
-/// Note: set 'debug' to 'true' for debug printing.
-void setCurrentLogWriter() =>
-    configureLogWriter(customLogWriter: createLogWriter(debug: false));
-
 void main() {
   setUpAll(() async {
     setCurrentLogWriter();
-    await context.setUp(restoreBreakpoints: true, verbose: true);
+    await context.setUp(
+      restoreBreakpoints: true,
+    );
   });
 
   tearDownAll(() async {

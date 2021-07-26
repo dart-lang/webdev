@@ -10,6 +10,7 @@
 import 'dart:async';
 
 import 'package:dwds/dwds.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 import 'asset.dart';
@@ -20,6 +21,8 @@ import 'utilities.dart';
 
 final Uri platformDill =
     Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.dill'));
+
+Logger _logger = Logger('ResidentWebRunner');
 
 class ResidentWebRunner {
   ResidentWebRunner(
@@ -73,7 +76,7 @@ class ResidentWebRunner {
 
     var report = await _updateDevFS();
     if (!report.success) {
-      printError('Failed to compile application.');
+      _logger.severe('Failed to compile application.');
       return 1;
     }
 

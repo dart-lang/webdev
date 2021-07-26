@@ -39,6 +39,8 @@ import 'injector.dart';
 /// Note: this should not be checked in enabled.
 const _enableLogging = false;
 
+final _logger = Logger('DevHandler');
+
 /// SSE handler to enable development features like hot reload and
 /// opening DevTools.
 class DevHandler {
@@ -53,7 +55,6 @@ class DevHandler {
   final _servicesByAppId = <String, AppDebugServices>{};
   final _appConnectionByAppId = <String, AppConnection>{};
   final Stream<BuildResult> buildResults;
-  final _logger = Logger('DevHandler');
   final Future<ChromeConnection> Function() _chromeConnection;
   final ExtensionBackend _extensionBackend;
   final StreamController<DebugConnection> extensionDebugConnections =

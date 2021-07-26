@@ -30,15 +30,11 @@ ChromeProxyService get service =>
 
 WipConnection get tabConnection => context.tabConnection;
 
-/// Note: set 'debug' to 'true' for debug printing.
-void setCurrentLogWriter() =>
-    configureLogWriter(customLogWriter: createLogWriter(debug: false));
-
 void main() {
   group('shared context', () {
     setUpAll(() async {
       setCurrentLogWriter();
-      await context.setUp(verbose: false);
+      await context.setUp(verboseCompiler: false);
     });
 
     tearDownAll(() async {

@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:dwds/dwds.dart';
 import 'package:file/file.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
@@ -21,6 +22,8 @@ import 'frontend_server_client.dart';
 import 'utilities.dart';
 
 final String dartWebSdkPath = p.join(dartSdkPath, 'lib', 'dev_compiler');
+
+Logger _logger = Logger('WebDevFs');
 
 class WebDevFS {
   WebDevFS({
@@ -184,7 +187,7 @@ Future<void> writeBundle(
     try {
       bundleDir.deleteSync(recursive: true);
     } on FileSystemException catch (err) {
-      printError('Failed to clean up asset directory ${bundleDir.path}: $err\n'
+      _logger.warning('Failed to clean up asset directory ${bundleDir.path}: $err\n'
           'To clean build artifacts, use the command "flutter clean".');
     }
   }

@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
-import 'package:build_daemon/data/server_log.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -74,7 +73,7 @@ class TestContext {
   /// this value from the ddc debug metadata and pass it to the
   /// expression compiler worker initialiation API.
   bool soundNullSafety;
-  final _logger = logging.Logger('TestContext');
+  final _logger = logging.Logger('Context');
 
   /// Top level directory in which we run the test server..
   String workingDirectory;
@@ -121,7 +120,7 @@ class TestContext {
       bool restoreBreakpoints,
       CompilationMode compilationMode,
       bool enableExpressionEvaluation,
-      bool verbose}) async {
+      bool verboseCompiler}) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
@@ -131,7 +130,7 @@ class TestContext {
     compilationMode ??= CompilationMode.buildDaemon;
     enableExpressionEvaluation ??= false;
     spawnDds ??= true;
-    verbose ??= false;
+    verboseCompiler ??= false;
 
     try {
       configureLogWriter();
@@ -190,10 +189,16 @@ class TestContext {
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
               ],
-              if (verbose) '--verbose',
+              '--verbose',
             ];
-            daemonClient = await connectClient(workingDirectory, options,
-                (log) => _logger.log(toLoggingLevel(log.level), log.message));
+            daemonClient =
+                await connectClient(workingDirectory, options, (log) {
+              var record = log.toLogRecord();
+              var name =
+                  record.loggerName == '' ? '' : '${record.loggerName}: ';
+              _logger.log(record.level, '$name${record.message}', record.error,
+                  record.stackTrace);
+            });
             daemonClient.registerBuildTarget(
                 DefaultBuildTarget((b) => b..target = pathToServe));
             daemonClient.startBuild();
@@ -215,7 +220,7 @@ class TestContext {
                 'localhost',
                 port,
                 assetHandler,
-                verbose,
+                verboseCompiler,
               );
               expressionCompiler = ddcService;
             }
@@ -243,7 +248,7 @@ class TestContext {
                 [fileSystemRoot],
                 'org-dartlang-app',
                 _outputDir.path,
-                verbose);
+                verboseCompiler);
 
             var assetServerPort = await findUnusedPort();
             await webRunner.run(hostname, assetServerPort, pathToServe);

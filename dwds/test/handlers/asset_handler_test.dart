@@ -16,10 +16,6 @@ import '../fixtures/context.dart';
 import '../fixtures/logging.dart';
 import '../fixtures/utilities.dart';
 
-/// Note: set 'debug' to 'true' for debug printing.
-void setCurrentLogWriter() =>
-    configureLogWriter(customLogWriter: createLogWriter(debug: false));
-
 void main() {
   group('Asset handler', () {
     final context = TestContext();
@@ -28,7 +24,10 @@ void main() {
 
     setUpAll(() async {
       setCurrentLogWriter();
-      await context.setUp(enableExpressionEvaluation: true, verbose: false);
+      await context.setUp(
+        enableExpressionEvaluation: true,
+        verboseCompiler: false,
+      );
 
       client = IOClient(HttpClient()
         ..maxConnectionsPerHost = 200
