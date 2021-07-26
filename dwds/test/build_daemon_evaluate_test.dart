@@ -164,6 +164,49 @@ void main() async {
             });
           });
 
+          test('Type does not show native JavaScript object fields', () async {
+            await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+              Future<Instance> getInstance(InstanceRef ref) async {
+                var result = await setup.service.getObject(isolate.id, ref.id);
+                expect(result, isA<Instance>());
+                return result as Instance;
+              }
+
+              var event = await stream.firstWhere(
+                  (event) => event.kind == EventKind.kPauseBreakpoint);
+
+              var result = await setup.service
+                  .evaluateInFrame(isolate.id, event.topFrame.index, 'Type');
+              expect(result, isA<InstanceRef>());
+              var instanceRef = result as InstanceRef;
+
+              // Type
+              var instance = await getInstance(instanceRef);
+              for (var field in instance.fields) {
+                var name = field.decl.name;
+
+                // Type.<name> (i.e. Type._type)
+                instance = await getInstance(field.value as InstanceRef);
+                for (var field in instance.fields) {
+                  var nestedName = field.decl.name;
+
+                  // Type.<name>.<nestedName> (i.e Type._type._subtypeCache)
+                  instance = await getInstance(field.value as InstanceRef);
+
+                  expect(
+                      instance,
+                      isA<Instance>().having(
+                          (instance) => instance.classRef.name,
+                          'Type.$name.$nestedName: classRef.name',
+                          isNot(isIn([
+                            'NativeJavaScriptObject',
+                            'JavaScriptObject',
+                          ]))));
+                }
+              }
+            });
+          });
+
           test('field', () async {
             await onBreakPoint(
                 isolate.id, mainScript, 'printFieldFromLibraryClass', () async {
