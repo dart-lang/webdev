@@ -25,8 +25,8 @@ Logger _serverLogger = Logger('FrontendServer');
 
 void defaultConsumer(String message, {StackTrace stackTrace}) =>
     stackTrace == null
-      ? _serverLogger.info(message)
-      : _serverLogger.severe(message, null, stackTrace);
+        ? _serverLogger.info(message)
+        : _serverLogger.severe(message, null, stackTrace);
 
 String get frontendServerExecutable =>
     p.join(dartSdkPath, 'bin', 'snapshots', 'frontend_server.dart.snapshot');

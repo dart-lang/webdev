@@ -186,9 +186,10 @@ Future<void> writeBundle(
   if (bundleDir.existsSync()) {
     try {
       bundleDir.deleteSync(recursive: true);
-    } on FileSystemException catch (err) {
-      _logger.warning('Failed to clean up asset directory ${bundleDir.path}: $err\n'
-          'To clean build artifacts, use the command "flutter clean".');
+    } on FileSystemException catch (e, s) {
+      _logger.warning(
+          'Failed to clean up asset directory ${bundleDir.path}.\n'
+          'To clean build artifacts, use the command "flutter clean".', e, s);
     }
   }
   bundleDir.createSync(recursive: true);

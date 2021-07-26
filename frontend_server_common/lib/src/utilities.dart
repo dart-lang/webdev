@@ -27,4 +27,3 @@ final String pubPath =
     p.join(_sdkDir, 'bin', Platform.isWindows ? 'pub.bat' : 'pub');
 
 const fs.FileSystem fileSystem = LocalFileSystem();
-
