@@ -72,6 +72,38 @@ void main() {
       return stack;
     }
 
+    Future<Instance> getInstance(InstanceRef ref) async {
+      var result = await service.getObject(isolateId, ref.id);
+      expect(result, isA<Instance>());
+      return result as Instance;
+    }
+
+    void expectDartObject(String variableName, Instance instance) {
+      expect(
+          instance,
+          isA<Instance>().having(
+              (instance) => instance.classRef.name,
+              '$variableName: classRef.name',
+              isNot(isIn([
+                'NativeJavaScriptObject',
+                'JavaScriptObject',
+              ]))));
+    }
+
+    Future<void> expectDartVariables(Map<String, InstanceRef> variables) async {
+      for (var name in variables.keys) {
+        var instance = await getInstance(variables[name]);
+        expectDartObject(name, instance);
+      }
+    }
+
+    Map<String, InstanceRef> getFrameVariables(Frame frame) {
+      return <String, InstanceRef>{
+        for (var variable in frame.vars)
+          variable.name: variable.value as InstanceRef,
+      };
+    }
+
     setUp(() async {
       vm = await service.getVM();
       isolateId = vm.isolates.first.id;
@@ -88,17 +120,19 @@ void main() {
 
     test('variables in static function', () async {
       stack = await breakAt('staticFunction', mainScript);
-      var frame = stack.frames.first;
-      var variableNames = frame.vars.map((variable) => variable.name).toList()
-        ..sort();
+      var variables = getFrameVariables(stack.frames.first);
+      await expectDartVariables(variables);
+
+      var variableNames = variables.keys.toList()..sort();
       expect(variableNames, containsAll(['formal']));
     });
 
     test('variables in function', () async {
       stack = await breakAt('nestedFunction', mainScript);
-      var frame = stack.frames.first;
-      var variableNames = frame.vars.map((variable) => variable.name).toList()
-        ..sort();
+      var variables = getFrameVariables(stack.frames.first);
+      await expectDartVariables(variables);
+
+      var variableNames = variables.keys.toList()..sort();
       expect(
           variableNames,
           containsAll([
@@ -115,19 +149,33 @@ void main() {
 
     test('variables in closure nested in method', () async {
       stack = await breakAt('nestedClosure', mainScript);
-      var frame = stack.frames.first;
-      var variableNames = frame.vars.map((variable) => variable.name).toList()
-        ..sort();
+      var variables = getFrameVariables(stack.frames.first);
+      await expectDartVariables(variables);
+
+      var variableNames = variables.keys.toList()..sort();
       expect(variableNames,
           ['closureLocalInsideMethod', 'local', 'parameter', 'this']);
     });
 
     test('variables in method', () async {
       stack = await breakAt('printMethod', mainScript);
-      var frame = stack.frames.first;
-      var variableNames = frame.vars.map((variable) => variable.name).toList()
-        ..sort();
+      var variables = getFrameVariables(stack.frames.first);
+      await expectDartVariables(variables);
+
+      var variableNames = variables.keys.toList()..sort();
       expect(variableNames, ['this']);
+    });
+
+    test('variables in extension method', () async {
+      stack = await breakAt('extension', mainScript);
+      var variables = getFrameVariables(stack.frames.first);
+      await expectDartVariables(variables);
+
+      var variableNames = variables.keys.toList()..sort();
+      // Note: '$this' should change to 'this', and 'return' should
+      //disappear after debug symbols are available.
+      // https://github.com/dart-lang/webdev/issues/1371
+      expect(variableNames, ['\$this', 'ret', 'return']);
     });
 
     test('evaluateJsOnCallFrame', () async {
