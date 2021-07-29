@@ -9,7 +9,6 @@ import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-//import 'package:vm_service/vm_service.dart' as vm_service;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;

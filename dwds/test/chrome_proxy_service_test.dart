@@ -825,7 +825,7 @@ void main() {
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
           return await service.getStack(isolateId, limit: limit);
         } finally {
-          // Remove breakpoint amd resume so it doesn't impact other tests.
+          // Remove breakpoint and resume so it doesn't impact other tests.
           if (bp != null) {
             await service.removeBreakpoint(isolateId, bp.id);
           }
