@@ -36,8 +36,10 @@ final _batExt = Platform.isWindows ? '.bat' : '';
 final _exeExt = Platform.isWindows ? '.exe' : '';
 
 const isRPCError = TypeMatcher<RPCError>();
+const isSentinelException = TypeMatcher<SentinelException>();
 
 final Matcher throwsRPCError = throwsA(isRPCError);
+final Matcher throwsSentinelException = throwsA(isSentinelException);
 
 enum CompilationMode { buildDaemon, frontendServer }
 

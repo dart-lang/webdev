@@ -9,7 +9,6 @@ import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:vm_service/vm_service.dart' as vm_service;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
@@ -148,7 +147,11 @@ class Debugger extends Domain {
   /// The returned stack will contain up to [limit] frames if provided.
   Future<Stack> getStack(String isolateId, {int limit}) async {
     checkIsolate('getStack', isolateId);
-    if (stackComputer == null) return null;
+
+    if (stackComputer == null) {
+      throw RPCError('getStack', RPCError.kInternalError,
+          'Cannot compute stack when application is not paused');
+    }
 
     var frames = await stackComputer.calculateFrames(limit: limit);
     return Stack(
@@ -324,8 +327,7 @@ class Debugger extends Domain {
     // Filter out variables that do not come from dart code, such as native
     // JavaScript objects
     return boundVariables
-        .where((bv) =>
-            bv != null && !isNativeJsObject(bv.value as vm_service.InstanceRef))
+        .where((bv) => bv != null && !isNativeJsObject(bv.value as InstanceRef))
         .toList();
   }
 
@@ -631,7 +633,7 @@ class Debugger extends Domain {
   }
 }
 
-bool isNativeJsObject(vm_service.InstanceRef instanceRef) =>
+bool isNativeJsObject(InstanceRef instanceRef) =>
     // New type representation of JS objects reifies them to JavaScriptObject.
     (instanceRef?.classRef?.name == 'JavaScriptObject' &&
         instanceRef?.classRef?.library?.uri == 'dart:_interceptors') ||

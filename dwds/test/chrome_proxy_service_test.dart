@@ -107,8 +107,9 @@ void main() {
         expect(bp.id, isNotNull);
       });
 
-      test('addBreakpointAtEntry', () {
-        expect(() => service.addBreakpointAtEntry(null, null), throwsRPCError);
+      test('addBreakpointAtEntry', () async {
+        await expectLater(
+            service.addBreakpointAtEntry(null, null), throwsRPCError);
       });
 
       test('addBreakpointWithScriptUri', () async {
@@ -136,13 +137,16 @@ void main() {
         expect(bp.id, isNotNull);
       });
 
-      test('removeBreakpoint null arguments', () {
-        expect(() => service.removeBreakpoint(null, null), throwsRPCError);
+      test('removeBreakpoint null arguments', () async {
+        await expectLater(
+            service.removeBreakpoint(null, null), throwsSentinelException);
+        await expectLater(
+            service.removeBreakpoint(isolate.id, null), throwsRPCError);
       });
 
-      test("removeBreakpoint that doesn't exist fails", () {
-        expect(
-            () => service.removeBreakpoint(isolate.id, '1234'), throwsRPCError);
+      test("removeBreakpoint that doesn't exist fails", () async {
+        await expectLater(
+            service.removeBreakpoint(isolate.id, '1234'), throwsRPCError);
       });
 
       test('add and remove breakpoint', () async {
@@ -204,24 +208,24 @@ void main() {
     });
 
     group('VMTimeline', () {
-      test('clearVMTimeline', () {
-        expect(() => service.clearVMTimeline(), throwsRPCError);
+      test('clearVMTimeline', () async {
+        await expectLater(service.clearVMTimeline(), throwsRPCError);
       });
 
-      test('getVMTimelineMicros', () {
-        expect(() => service.getVMTimelineMicros(), throwsRPCError);
+      test('getVMTimelineMicros', () async {
+        await expectLater(service.getVMTimelineMicros(), throwsRPCError);
       });
 
-      test('getVMTimeline', () {
-        expect(() => service.getVMTimeline(), throwsRPCError);
+      test('getVMTimeline', () async {
+        await expectLater(service.getVMTimeline(), throwsRPCError);
       });
 
-      test('getVMTimelineFlags', () {
-        expect(() => service.getVMTimelineFlags(), throwsRPCError);
+      test('getVMTimelineFlags', () async {
+        await expectLater(service.getVMTimelineFlags(), throwsRPCError);
       });
 
-      test('setVMTimelineFlags', () {
-        expect(() => service.setVMTimelineFlags(null), throwsRPCError);
+      test('setVMTimelineFlags', () async {
+        await expectLater(service.setVMTimelineFlags(null), throwsRPCError);
       });
     });
 
@@ -336,24 +340,25 @@ void main() {
       });
     });
 
-    test('evaluateInFrame', () {
-      expect(() => service.evaluateInFrame(null, null, null), throwsRPCError);
+    test('evaluateInFrame', () async {
+      await expectLater(
+          service.evaluateInFrame(null, null, null), throwsRPCError);
     });
 
-    test('getAllocationProfile', () {
-      expect(() => service.getAllocationProfile(null), throwsRPCError);
+    test('getAllocationProfile', () async {
+      await expectLater(service.getAllocationProfile(null), throwsRPCError);
     });
 
-    test('getClassList', () {
-      expect(() => service.getClassList(null), throwsRPCError);
+    test('getClassList', () async {
+      await expectLater(service.getClassList(null), throwsRPCError);
     });
 
     test('getFlagList', () async {
       expect(await service.getFlagList(), isA<FlagList>());
     });
 
-    test('getInstances', () {
-      expect(() => service.getInstances(null, null, null), throwsRPCError);
+    test('getInstances', () async {
+      await expectLater(service.getInstances(null, null, null), throwsRPCError);
     });
 
     group('getIsolate', () {
@@ -653,16 +658,16 @@ void main() {
         var vm = await service.getVM();
         var isolateId = vm.isolates.first.id;
 
-        expect(() => service.getSourceReport(isolateId, ['Coverage']),
-            throwsRPCError);
+        await expectLater(
+            service.getSourceReport(isolateId, ['Coverage']), throwsRPCError);
       });
 
       test('report type not understood', () async {
         var vm = await service.getVM();
         var isolateId = vm.isolates.first.id;
 
-        expect(() => service.getSourceReport(isolateId, ['FooBar']),
-            throwsRPCError);
+        await expectLater(
+            service.getSourceReport(isolateId, ['FooBar']), throwsRPCError);
       });
 
       test('PossibleBreakpoints report', () async {
@@ -804,25 +809,28 @@ void main() {
             .firstWhere((each) => each.uri.contains('main.dart'));
       });
 
-      test('returns null if not paused', () async {
-        expect(await service.getStack(isolateId), isNull);
-      }, onPlatform: {'windows': const Skip('issues/721')});
+      test('throws if not paused', () async {
+        await expectLater(service.getStack(isolateId), throwsRPCError);
+      });
 
       /// Support function for pausing and returning the stack at a line.
       Future<Stack> breakAt(String breakpointId, {int limit}) async {
-        var lineNumber = await context.findBreakpointLine(
+        var line = await context.findBreakpointLine(
             breakpointId, isolateId, mainScript);
-        var bp =
-            await service.addBreakpoint(isolateId, mainScript.id, lineNumber);
-        // Wait for breakpoint to trigger.
-        await stream
-            .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
-        // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolateId, bp.id);
-        var stack = await service.getStack(isolateId, limit: limit);
-        // Resume as to not impact other tests.
-        await service.resume(isolateId);
-        return stack;
+        Breakpoint bp;
+        try {
+          bp = await service.addBreakpoint(isolateId, mainScript.id, line);
+          // Wait for breakpoint to trigger.
+          await stream
+              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+          return await service.getStack(isolateId, limit: limit);
+        } finally {
+          // Remove breakpoint and resume so it doesn't impact other tests.
+          if (bp != null) {
+            await service.removeBreakpoint(isolateId, bp.id);
+          }
+          await service.resume(isolateId);
+        }
       }
 
       test('returns stack when broken', () async {
@@ -1048,11 +1056,11 @@ void main() {
       });
     });
 
-    test('kill', () {
-      expect(() => service.kill(null), throwsRPCError);
+    test('kill', () async {
+      await expectLater(service.kill(null), throwsRPCError);
     });
 
-    test('onEvent', () {
+    test('onEvent', () async {
       expect(() => service.onEvent(null), throwsRPCError);
     });
 
@@ -1085,21 +1093,22 @@ void main() {
     });
 
     test('getInboundReferences', () async {
-      expect(
-          () => service.getInboundReferences(null, null, null), throwsRPCError);
+      await expectLater(
+          service.getInboundReferences(null, null, null), throwsRPCError);
     });
 
     test('getRetainingPath', () async {
-      expect(() => service.getRetainingPath(null, null, null), throwsRPCError);
+      await expectLater(
+          service.getRetainingPath(null, null, null), throwsRPCError);
     });
 
     test('registerService', () async {
-      expect(
-          () => service.registerService('ext.foo.bar', null), throwsRPCError);
+      await expectLater(
+          service.registerService('ext.foo.bar', null), throwsRPCError);
     });
 
-    test('reloadSources', () {
-      expect(() => service.reloadSources(null), throwsRPCError);
+    test('reloadSources', () async {
+      await expectLater(service.reloadSources(null), throwsRPCError);
     });
 
     test('setExceptionPauseMode', () async {
@@ -1111,17 +1120,17 @@ void main() {
       // Make sure this is the last one - or future tests might hang.
       expect(
           await service.setExceptionPauseMode(isolateId, 'none'), _isSuccess);
-      expect(
+      await expectLater(
           service.setExceptionPauseMode(isolateId, 'invalid'), throwsRPCError);
     });
 
-    test('setFlag', () {
-      expect(() => service.setFlag(null, null), throwsRPCError);
+    test('setFlag', () async {
+      await expectLater(service.setFlag(null, null), throwsRPCError);
     });
 
-    test('setLibraryDebuggable', () {
-      expect(
-          () => service.setLibraryDebuggable(null, null, null), throwsRPCError);
+    test('setLibraryDebuggable', () async {
+      await expectLater(
+          service.setLibraryDebuggable(null, null, null), throwsRPCError);
     });
 
     test('setName', () async {
@@ -1138,8 +1147,8 @@ void main() {
       expect(vm.name, 'foo');
     });
 
-    test('streamCancel', () {
-      expect(() => service.streamCancel(null), throwsRPCError);
+    test('streamCancel', () async {
+      await expectLater(service.streamCancel(null), throwsRPCError);
     });
 
     group('streamListen/onEvent', () {
