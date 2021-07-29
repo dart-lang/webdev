@@ -32,7 +32,8 @@ abstract class Domain {
   /// isolate id.
   Isolate checkIsolate(String methodName, String isolateId) {
     if (isolateId != inspector.isolate?.id) {
-      throwInvalidParam(methodName, 'Unrecognized isolateId: $isolateId');
+      throwSentinel(methodName, SentinelKind.kCollected,
+          'Unrecognized isolateId: $isolateId');
     }
     return inspector.isolate;
   }
@@ -40,5 +41,11 @@ abstract class Domain {
   @alwaysThrows
   void throwInvalidParam(String method, String message) {
     throw RPCError(method, RPCError.kInvalidParams, message);
+  }
+
+  @alwaysThrows
+  void throwSentinel(String method, String kind, String message) {
+    var data = <String, String>{'kind': kind, 'valueAsString': message};
+    throw SentinelException.parse(method, data);
   }
 }
