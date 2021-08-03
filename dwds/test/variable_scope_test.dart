@@ -173,7 +173,7 @@ void main() {
 
       var variableNames = variables.keys.toList()..sort();
       // Note: '$this' should change to 'this', and 'return' should
-      //disappear after debug symbols are available.
+      // disappear after debug symbols are available.
       // https://github.com/dart-lang/webdev/issues/1371
       expect(variableNames, ['\$this', 'ret', 'return']);
     });
