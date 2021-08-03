@@ -847,15 +847,15 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<void> parseDebugEvent(DebugEvent debugEvent) async {
     if (terminatingIsolates) return;
 
-    var isolate = _inspector?.isolate;
-    if (isolate == null) return;
+    var isolateRef = _inspector?.isolateRef;
+    if (isolateRef == null) return;
 
     _streamNotify(
         EventStreams.kExtension,
         Event(
             kind: EventKind.kExtension,
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            isolate: isolate)
+            isolate: isolateRef)
           ..extensionKind = debugEvent.kind
           ..extensionData = ExtensionData.parse(
               jsonDecode(debugEvent.eventData) as Map<String, dynamic>));
@@ -868,15 +868,17 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
     var isolate = _inspector?.isolate;
     if (isolate == null) return;
-
     var service = registerEvent.eventData;
     isolate.extensionRPCs.add(service);
+
+    var isolateRef = _inspector?.isolateRef;
+    if (isolateRef == null) return;
     _streamNotify(
         EventStreams.kIsolate,
         Event(
             kind: EventKind.kServiceExtensionAdded,
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            isolate: isolate)
+            isolate: isolateRef)
           ..extensionRPC = service);
   }
 
