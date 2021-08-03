@@ -1,10 +1,11 @@
-## 11.2.0-dev
+## 11.2.0
 
 - Throw `SentinelException` instead of `RPCError` on vm service
   API on unrecognized isolate.
 - Throw `RPCError` in `getStack` if the application is not paused.
 - Recognize `dart:ui` library when debugging flutter apps.
 - Fix hang on hot restart when the application has a breakpoint.
+- Fix out of memory issue during sending debug event notifications.
 
 ## 11.1.2
 - Return empty library from `ChromeProxyService.getObject` for
