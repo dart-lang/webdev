@@ -59,6 +59,8 @@ void main() async {
     localList.add('abc');
     var f = testClass.methodWithVariables();
     print(f('parameter'));
+    var num = '1234'.someExtensionMethod();
+    print('$num');
   });
 
   print(_libraryPrivateFinal);
@@ -153,4 +155,11 @@ class NotReallyAList extends ListBase<Object?> {
 
   @override
   set length(x) => _internal.length = x;
+}
+
+extension NumberParsing on String {
+  int someExtensionMethod() {
+    var ret = int.parse(this);
+    return ret; // Breakpoint: extension
+  }
 }
