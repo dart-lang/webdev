@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:http_multi_server/http_multi_server.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -54,8 +53,11 @@ void main() async {
                   {loggerName, error, stackTrace, verbose}) =>
               output.add('[$level] $loggerName: $message'));
 
+      // start asset server
+      server = await startHttpServer('localhost');
+      var port = server.port;
+
       // start expression compilation service
-      final port = await findUnusedPort();
       final assetHandler = (request) =>
           Response(200, body: File.fromUri(kernel).readAsBytesSync());
       service =
@@ -64,7 +66,6 @@ void main() async {
       await service.initialize(moduleFormat: 'amd');
 
       // setup asset server
-      server = await HttpMultiServer.bind('localhost', port);
       shelf_io.serveRequests(
           server, Cascade().add(service.handler).add(assetHandler).handler);
 
