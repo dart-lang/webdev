@@ -39,23 +39,19 @@ class TestSetup {
   ChromeProxyService get service =>
       fetchChromeProxyService(context.debugConnection);
   WipConnection get tabConnection => context.tabConnection;
-
-  /// Redirect the logs for the current zone to emit on failure.
-  ///
-  /// All messages are stored and reported on test failure.
-  /// Needs to be called in both setUpAll() and setUp() to store
-  /// the logs in the current zone.
-  ///
-  /// Note: change 'printOnFailure' to 'print' for debug printing.
-  static void setCurrentLogWriter() {
-    configureLogWriter(
-        customLogWriter: (level, message,
-                {loggerName, error, stackTrace, verbose}) =>
-            printOnFailure('[$level] $loggerName: $message'));
-  }
 }
 
 void main() async {
+  // Enable verbose logging for debugging.
+  var debug = false;
+
+  // Change to 'true' to print expression compiler messages to console.
+  //
+  // Note: expression compiler runs in an isolate, so its output is not
+  // currently redirected to a logger. As a result, it will be printed
+  // regardless of the logger settings.
+  var verboseCompiler = false;
+
   for (var soundNullSafety in [false, true]) {
     var setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
     var context = setup.context;
@@ -79,10 +75,10 @@ void main() async {
 
       group('shared context with evaluation', () {
         setUpAll(() async {
-          TestSetup.setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
           await context.setUp(
             enableExpressionEvaluation: true,
-            verbose: false,
+            verboseCompiler: verboseCompiler,
           );
         });
 
@@ -90,9 +86,7 @@ void main() async {
           await context.tearDown();
         });
 
-        setUp(() async {
-          TestSetup.setCurrentLogWriter();
-        });
+        setUp(() => setCurrentLogWriter(debug: debug));
 
         group('evaluateInFrame', () {
           VM vm;
@@ -105,6 +99,7 @@ void main() async {
           Stream<Event> stream;
 
           setUp(() async {
+            setCurrentLogWriter(debug: debug);
             vm = await setup.service.getVM();
             isolate = await setup.service.getIsolate(vm.isolates.first.id);
             scripts = await setup.service.getScripts(isolate.id);
@@ -136,7 +131,7 @@ void main() async {
 
               var param = object as InstanceRef;
 
-              expect(
+              await expectLater(
                   () => setup.service.evaluateInFrame(
                         isolate.id,
                         event.topFrame.index,
@@ -520,8 +515,8 @@ void main() async {
               var event = await stream.firstWhere(
                   (event) => event.kind == EventKind.kPauseBreakpoint);
 
-              expect(
-                  () => setup.service
+              await expectLater(
+                  setup.service
                       .evaluateInFrame('bad', event.topFrame.index, 'local'),
                   throwsRPCError);
             });
@@ -533,6 +528,7 @@ void main() async {
           Isolate isolate;
 
           setUp(() async {
+            setCurrentLogWriter(debug: debug);
             vm = await setup.service.getVM();
             isolate = await setup.service.getIsolate(vm.isolates.first.id);
 
@@ -602,10 +598,10 @@ void main() async {
 
       group('shared context with no evaluation', () {
         setUpAll(() async {
-          TestSetup.setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
           await context.setUp(
             enableExpressionEvaluation: false,
-            verbose: false,
+            verboseCompiler: verboseCompiler,
           );
         });
 
@@ -613,9 +609,7 @@ void main() async {
           await context.tearDown();
         });
 
-        setUp(() async {
-          TestSetup.setCurrentLogWriter();
-        });
+        setUp(() => setCurrentLogWriter(debug: debug));
 
         group('evaluateInFrame', () {
           VM vm;
@@ -645,8 +639,8 @@ void main() async {
               var event = await stream.firstWhere(
                   (event) => event.kind == EventKind.kPauseBreakpoint);
 
-              expect(
-                  () => setup.service.evaluateInFrame(
+              await expectLater(
+                  setup.service.evaluateInFrame(
                       isolate.id, event.topFrame.index, 'local'),
                   throwsRPCError);
             });

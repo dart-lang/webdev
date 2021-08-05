@@ -351,7 +351,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
 
       return await _assetHandler(request);
     } catch (e, s) {
-      _logger.severe('Error loading $uri: $e:$s');
+      _logger.severe('Error loading $uri', e, s);
       rethrow;
     }
   }

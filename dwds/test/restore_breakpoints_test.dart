@@ -21,17 +21,12 @@ ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
 
-void setCurrentLogWriter() {
-  configureLogWriter(
-      customLogWriter: (level, message,
-              {loggerName, error, stackTrace, verbose}) =>
-          printOnFailure('[$level] $loggerName: $message'));
-}
-
 void main() {
   setUpAll(() async {
     setCurrentLogWriter();
-    await context.setUp(restoreBreakpoints: true, verbose: true);
+    await context.setUp(
+      restoreBreakpoints: true,
+    );
   });
 
   tearDownAll(() async {

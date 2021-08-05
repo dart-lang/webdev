@@ -24,20 +24,6 @@ WipConnection get tabConnection => context.tabConnection;
 
 final context = TestContext();
 
-/// Redirect the logs for the current zone to emit on failure.
-///
-/// All messages are stored and reported on test failure.
-/// Needs to be called in both setUpAll() and setUp() to store
-/// the logs in the current zone.
-///
-/// Note: change 'printOnFailure' to 'print' for debug printing.
-void setCurrentLogWriter() {
-  configureLogWriter(
-      customLogWriter: (level, message,
-              {loggerName, error, stackTrace, verbose}) =>
-          printOnFailure('[$level] $loggerName: $message'));
-}
-
 void main() {
   setUpAll(() async {
     setCurrentLogWriter();

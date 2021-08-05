@@ -10,8 +10,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:file/file.dart';
+import 'package:logging/logging.dart';
 
 import 'utilities.dart';
+
+Logger _logger = Logger('DevFsContent');
 
 /// Common superclass for content copied to the device.
 abstract class DevFSContent {
@@ -79,7 +82,7 @@ class DevFSFileContent extends DevFSContent {
       }
     }
     if (_fileStat == null) {
-      printError(
+      _logger.severe(
           'Unable to get status of file "${file.path}": file not found.');
     }
   }

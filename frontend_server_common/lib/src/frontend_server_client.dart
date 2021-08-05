@@ -20,6 +20,14 @@ import 'package:usage/uuid/uuid.dart';
 
 import 'utilities.dart';
 
+Logger _logger = Logger('FrontendServerClient');
+Logger _serverLogger = Logger('FrontendServer');
+
+void defaultConsumer(String message, {StackTrace stackTrace}) =>
+    stackTrace == null
+        ? _serverLogger.info(message)
+        : _serverLogger.severe(message, null, stackTrace);
+
 String get frontendServerExecutable =>
     p.join(dartSdkPath, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
 
@@ -38,11 +46,7 @@ enum StdoutState { collectDiagnostic, collectDependencies }
 
 /// Handles stdin/stdout communication with the frontend server.
 class StdoutHandler {
-  void _printTrace(String message) {
-    Logger.root.info(message);
-  }
-
-  StdoutHandler({this.consumer = printError}) {
+  StdoutHandler({@required this.consumer}) {
     reset();
   }
 
@@ -137,7 +141,7 @@ class StdoutHandler {
           sources.remove(Uri.parse(message.substring(1)));
           break;
         default:
-          _printTrace('Unexpected prefix for $message uri - ignoring');
+          _logger.warning('Unexpected prefix for $message uri - ignoring');
       }
     }
   }
@@ -389,7 +393,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
     this.fileSystemScheme,
     this.platformDill,
     this.verbose,
-    CompilerMessageConsumer compilerMessageConsumer = printError,
+    CompilerMessageConsumer compilerMessageConsumer = defaultConsumer,
   })  : assert(sdkRoot != null),
         _stdoutHandler = StdoutHandler(consumer: compilerMessageConsumer),
         // This is a URI, not a file path, so the forward slash is correct even on Windows.
@@ -400,10 +404,6 @@ class DefaultResidentCompiler implements ResidentCompiler {
   final String fileSystemScheme;
   final String platformDill;
   final bool verbose;
-
-  void _printTrace(String message) {
-    Logger.root.info(message);
-  }
 
   @override
   void addFileSystemRoot(String root) {
@@ -461,14 +461,14 @@ class DefaultResidentCompiler implements ResidentCompiler {
         ? '${_mapFilename(request.mainPath, packageUriMapper)} '
         : '';
     _server.stdin.writeln('recompile $mainUri$inputKey');
-    _printTrace('<- recompile $mainUri$inputKey');
+    _logger.info('<- recompile $mainUri$inputKey');
     for (var fileUri in request.invalidatedFiles) {
       var message = _mapFileUri(fileUri.toString(), packageUriMapper);
       _server.stdin.writeln(message);
-      _printTrace(message);
+      _logger.info(message);
     }
     _server.stdin.writeln(inputKey);
-    _printTrace('<- $inputKey');
+    _logger.info('<- $inputKey');
 
     return _stdoutHandler.compilerOutput.future;
   }
@@ -527,7 +527,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
       if (verbose) '--verbose'
     ];
 
-    _printTrace(args.join(' '));
+    _logger.info(args.join(' '));
     _server = await Process.start(Platform.resolvedExecutable, args,
         workingDirectory: packagesPath);
     _server.stdout
@@ -545,7 +545,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
     _server.stderr
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
-        .listen(printError);
+        .listen(_logger.info);
 
     unawaited(_server.exitCode.then((int code) {
       if (code != 0) {
@@ -554,7 +554,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
     }));
 
     _server.stdin.writeln('compile $scriptUri');
-    _printTrace('<- compile $scriptUri');
+    _logger.info('<- compile $scriptUri');
 
     return _stdoutHandler.compilerOutput.future;
   }
@@ -655,7 +655,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
   void accept() {
     if (_compileRequestNeedsConfirmation) {
       _server.stdin.writeln('accept');
-      _printTrace('<- accept');
+      _logger.info('<- accept');
     }
     _compileRequestNeedsConfirmation = false;
   }
@@ -677,7 +677,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
     }
     _stdoutHandler.reset(expectSources: false);
     _server.stdin.writeln('reject');
-    _printTrace('<- reject');
+    _logger.info('<- reject');
     _compileRequestNeedsConfirmation = false;
     return _stdoutHandler.compilerOutput.future;
   }
@@ -685,12 +685,12 @@ class DefaultResidentCompiler implements ResidentCompiler {
   @override
   void reset() {
     _server?.stdin?.writeln('reset');
-    _printTrace('<- reset');
+    _logger.info('<- reset');
   }
 
   Future<int> quit() async {
     _server.stdin.writeln('quit');
-    _printTrace('<- quit');
+    _logger.info('<- quit');
     return _server.exitCode;
   }
 
@@ -749,7 +749,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
       return 0;
     }
 
-    _printTrace('killing pid ${_server.pid}');
+    _logger.info('killing pid ${_server.pid}');
     _server.kill();
     return _server.exitCode;
   }

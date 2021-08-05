@@ -27,10 +27,3 @@ final String pubPath =
     p.join(_sdkDir, 'bin', Platform.isWindows ? 'pub.bat' : 'pub');
 
 const fs.FileSystem fileSystem = LocalFileSystem();
-
-void printError(String message, {StackTrace stackTrace}) {
-  if (stackTrace != null) {
-    print('$message: $stackTrace');
-  }
-  print(message);
-}
