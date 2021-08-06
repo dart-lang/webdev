@@ -11,7 +11,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dds/dds.dart';
-import 'package:http_multi_server/http_multi_server.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart' hide Response;
@@ -253,13 +252,12 @@ class DebugService {
         return innerHandler(request);
       };
     }
-    var port = await findUnusedPort();
-    var server = await HttpMultiServer.bind(hostname, port);
+    var server = await startHttpServer(hostname);
     serveRequests(server, handler);
     return DebugService._(
       chromeProxyService,
       server.address.host,
-      port,
+      server.port,
       authToken,
       serviceExtensionRegistry,
       server,

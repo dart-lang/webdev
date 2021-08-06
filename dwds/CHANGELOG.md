@@ -1,3 +1,7 @@
+## 11.2.1-dev
+
+- Recover from used port errors when starting debug service.
+
 ## 11.2.0
 
 - Throw `SentinelException` instead of `RPCError` on vm service
