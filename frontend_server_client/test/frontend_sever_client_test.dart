@@ -296,7 +296,7 @@ void main() {
     var process =
         await Process.run(Platform.resolvedExecutable, [result.dillOutput]);
 
-    expect(process.stdout, 'hello world\n');
+    expect(process.stdout, startsWith('hello world'));
     expect(process.exitCode, 0);
   });
 }
