@@ -264,6 +264,41 @@ void main() {
     expect(result.errorCount, 1);
     expect(result.compilerOutputLines, contains(contains('int x;')));
   });
+
+  test('can compile filenames with spaces', () async {
+    await d.dir('a', [
+      d.dir('bin', [
+        d.file('main with spaces.dart', '''
+void main() {
+  print('hello world');
+}
+''')
+      ]),
+    ]).create();
+
+    var entrypoint = p.join(packageRoot, 'bin', 'main with spaces.dart');
+    client = await FrontendServerClient.start(
+        entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
+    var result = await client.compile();
+    if (result == null) {
+      fail('Expected compilation to be non-null');
+    }
+    client.accept();
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.errorCount, 0);
+    expect(
+        result.newSources,
+        containsAll([
+          File(entrypoint).uri,
+        ]));
+    expect(result.removedSources, isEmpty);
+    expect(File(result.dillOutput).existsSync(), true);
+    var process =
+        await Process.run(Platform.resolvedExecutable, [result.dillOutput]);
+
+    expect(process.stdout, 'hello world\n');
+    expect(process.exitCode, 0);
+  });
 }
 
 Future<Isolate> waitForIsolatesAndResume(VmService vmService) async {

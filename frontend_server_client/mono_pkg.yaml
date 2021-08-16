@@ -1,7 +1,15 @@
 # See https://pub.dev/packages/mono_repo for details
+os:
+  - windows
+  - linux
+
 stages:
   - analyzer_and_format:
     - group:
       - format
       - analyze: --fatal-infos .
-      dart: [2.12.0]
+      dart: dev
+    - test:
+      dart:
+        - stable
+        - dev
