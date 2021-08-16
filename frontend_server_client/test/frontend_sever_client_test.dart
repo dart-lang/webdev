@@ -117,7 +117,10 @@ String get message => p.join('hello', 'world');
 
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
     expect(await process.exitCode, 0);
-  });
+  },
+      skip: Platform.isWindows
+          ? 'https://github.com/dart-lang/webdev/issues/1383'
+          : false);
 
   test('can handle compile errors and reload fixes', () async {
     var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
