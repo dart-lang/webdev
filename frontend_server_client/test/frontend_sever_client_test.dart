@@ -265,7 +265,7 @@ void main() {
     expect(result.compilerOutputLines, contains(contains('int x;')));
   });
 
-  test('can compile filenames with spaces', () async {
+  test('can compile and recompile filenames with spaces', () async {
     await d.dir('a', [
       d.dir('bin', [
         d.file('main with spaces.dart', '''
@@ -277,8 +277,8 @@ void main() {
     ]).create();
 
     var entrypoint = p.join(packageRoot, 'bin', 'main with spaces.dart');
-    client = await FrontendServerClient.start(
-        entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
+    client = await FrontendServerClient.start(entrypoint,
+        p.join(packageRoot, 'out with spaces.dill'), vmPlatformDill);
     var result = await client.compile();
     if (result == null) {
       fail('Expected compilation to be non-null');
@@ -293,11 +293,29 @@ void main() {
         ]));
     expect(result.removedSources, isEmpty);
     expect(File(result.dillOutput).existsSync(), true);
-    var process =
+    var processResult =
         await Process.run(Platform.resolvedExecutable, [result.dillOutput]);
 
-    expect(process.stdout, startsWith('hello world'));
-    expect(process.exitCode, 0);
+    expect(processResult.stdout, startsWith('hello world'));
+    expect(processResult.exitCode, 0);
+
+    var appFile = File(entrypoint);
+    var originalContent = await appFile.readAsString();
+    var newContent = originalContent.replaceFirst('hello', 'goodbye');
+    await appFile.writeAsString(newContent);
+    result = await client.compile([appFile.uri]);
+    if (result == null) {
+      fail('Expected compilation to be non-null');
+    }
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.errorCount, 0);
+    expect(result.newSources, isEmpty);
+    expect(result.removedSources, isEmpty);
+
+    processResult =
+        await Process.run(Platform.resolvedExecutable, [result.dillOutput]);
+    expect(processResult.stdout, startsWith('goodbye world'));
+    expect(processResult.exitCode, 0);
   });
 }
 
