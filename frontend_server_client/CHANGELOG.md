@@ -1,3 +1,8 @@
+## 2.1.1
+
+- Fix a bug where spaces in the output dill path would cause a parse error when
+  reading the error count output.
+
 ## 2.1.0
 
 - Support enabling experiments when starting the compiler.

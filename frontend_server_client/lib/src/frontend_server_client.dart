@@ -171,8 +171,8 @@ class FrontendServerClient {
             if (line.startsWith(feBoundaryKey)) {
               state = _CompileState.done;
               var parts = line.split(' ');
-              outputDillPath = parts[1];
-              errorCount = int.parse(parts[2]);
+              outputDillPath = parts.getRange(1, parts.length - 1).join(' ');
+              errorCount = int.parse(parts.last);
               continue;
             }
             var diffUri = Uri.parse(line.substring(1));

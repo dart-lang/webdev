@@ -94,7 +94,7 @@ String get message => p.join('hello', 'world');
     var vmService = await vmServiceConnectUri(observatoryUri);
     var isolate = await waitForIsolatesAndResume(vmService);
 
-    expect(await stdoutLines.next, p.join('hello', 'world'));
+    await expectLater(stdoutLines, emitsThrough(p.join('hello', 'world')));
 
     var appFile = File(entrypoint);
     var originalContent = await appFile.readAsString();
@@ -117,7 +117,10 @@ String get message => p.join('hello', 'world');
 
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
     expect(await process.exitCode, 0);
-  });
+  },
+      skip: Platform.isWindows
+          ? 'https://github.com/dart-lang/webdev/issues/1383'
+          : false);
 
   test('can handle compile errors and reload fixes', () async {
     var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
@@ -165,7 +168,7 @@ String get message => p.join('hello', 'world');
 
     // The program actually runs regardless of the errors, as they don't affect
     // the runtime behavior.
-    expect(await stdoutLines.next, p.join('hello', 'world'));
+    await expectLater(stdoutLines, emitsThrough(p.join('hello', 'world')));
 
     await entrypointFile
         .writeAsString(originalContent.replaceFirst('hello', 'goodbye'));
@@ -184,7 +187,10 @@ String get message => p.join('hello', 'world');
 
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
     expect(await process.exitCode, 0);
-  });
+  },
+      skip: Platform.isWindows
+          ? 'https://github.com/dart-lang/webdev/issues/1383'
+          : false);
 
   test('can compile and recompile a dartdevc app', () async {
     var entrypoint =
@@ -263,6 +269,59 @@ void main() {
     client.accept();
     expect(result.errorCount, 1);
     expect(result.compilerOutputLines, contains(contains('int x;')));
+  });
+
+  test('can compile and recompile filenames with spaces', () async {
+    await d.dir('a', [
+      d.dir('bin', [
+        d.file('main with spaces.dart', '''
+void main() {
+  print('hello world');
+}
+''')
+      ]),
+    ]).create();
+
+    var entrypoint = p.join(packageRoot, 'bin', 'main with spaces.dart');
+    client = await FrontendServerClient.start(entrypoint,
+        p.join(packageRoot, 'out with spaces.dill'), vmPlatformDill);
+    var result = await client.compile();
+    if (result == null) {
+      fail('Expected compilation to be non-null');
+    }
+    client.accept();
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.errorCount, 0);
+    expect(
+        result.newSources,
+        containsAll([
+          File(entrypoint).uri,
+        ]));
+    expect(result.removedSources, isEmpty);
+    expect(File(result.dillOutput).existsSync(), true);
+    var processResult =
+        await Process.run(Platform.resolvedExecutable, [result.dillOutput]);
+
+    expect(processResult.stdout, startsWith('hello world'));
+    expect(processResult.exitCode, 0);
+
+    var appFile = File(entrypoint);
+    var originalContent = await appFile.readAsString();
+    var newContent = originalContent.replaceFirst('hello', 'goodbye');
+    await appFile.writeAsString(newContent);
+    result = await client.compile([appFile.uri]);
+    if (result == null) {
+      fail('Expected compilation to be non-null');
+    }
+    expect(result.compilerOutputLines, isEmpty);
+    expect(result.errorCount, 0);
+    expect(result.newSources, isEmpty);
+    expect(result.removedSources, isEmpty);
+
+    processResult =
+        await Process.run(Platform.resolvedExecutable, [result.dillOutput]);
+    expect(processResult.stdout, startsWith('goodbye world'));
+    expect(processResult.exitCode, 0);
   });
 }
 

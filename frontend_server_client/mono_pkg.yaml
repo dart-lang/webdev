@@ -4,4 +4,12 @@ stages:
     - group:
       - format
       - analyze: --fatal-infos .
-      dart: [2.12.0]
+      dart: dev
+  - unit_test:
+    - test:
+      dart:
+        - stable
+        - dev
+      os:
+        - windows
+        - linux
