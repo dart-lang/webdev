@@ -280,6 +280,11 @@ class ExtensionDebugger implements RemoteDebugger {
       (WipEvent event) => ScriptParsedEvent(event.json));
 
   @override
+  Stream<TargetCrashedEvent> get onTargetCrashed => eventStream(
+      'Inspector.targetCrashed',
+      (WipEvent event) => TargetCrashedEvent(event.json));
+
+  @override
   Map<String, WipScript> get scripts => UnmodifiableMapView(_scripts);
 
   String _pauseStateToString(PauseState state) {

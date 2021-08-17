@@ -11,6 +11,7 @@ import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/modules.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/domain.dart';
@@ -173,6 +174,9 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   @override
   Stream<ScriptParsedEvent> get onScriptParsed => null;
+
+  @override
+  Stream<TargetCrashedEvent> get onTargetCrashed => null;
 
   @override
   Future<WipResponse> pause() => null;

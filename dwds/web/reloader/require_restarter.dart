@@ -17,7 +17,6 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
 import '../promise.dart';
-import '../run_main.dart';
 import 'restarter.dart';
 
 /// The last known digests of all the modules in the application.
@@ -129,7 +128,6 @@ class RequireRestarter implements Restarter {
     }
 
     callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
-    runMain();
     return result;
   }
 
