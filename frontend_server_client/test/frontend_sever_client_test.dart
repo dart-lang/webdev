@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 @TestOn('vm')
-@Timeout.factor(2)
 import 'dart:convert';
 import 'dart:io';
 
@@ -20,10 +19,8 @@ void main() async {
   late FrontendServerClient client;
   late PackageConfig packageConfig;
   late String packageRoot;
-  late Stopwatch watch;
 
   setUp(() async {
-    watch = Stopwatch()..start();
     await d.dir('a', [
       d.file('pubspec.yaml', '''
 name: a
@@ -59,18 +56,14 @@ String get message => p.join('hello', 'world');
   });
 
   tearDown(() async {
-    print('shutting down client: ${watch.elapsed}');
     await client.shutdown();
-    print('client shut down: ${watch.elapsed}');
   });
 
   test('can compile, recompile, and hot reload a vm app', () async {
     var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
     client = await FrontendServerClient.start(
         entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
-    print('client started: ${watch.elapsed}');
     var result = await client.compile();
-    print('compiled: ${watch.elapsed}');
     if (result == null) {
       fail('Expected compilation to be non-null');
     }
@@ -91,7 +84,6 @@ String get message => p.join('hello', 'world');
       '--pause-isolates-on-start',
       result.dillOutput
     ]);
-    print('started app: ${watch.elapsed}');
     addTearDown(process.kill);
     var stdoutLines = StreamQueue(
         process.stdout.transform(utf8.decoder).transform(const LineSplitter()));
@@ -100,21 +92,16 @@ String get message => p.join('hello', 'world');
     var observatoryUri =
         '${observatoryLine.split(' ').last.replaceFirst('http', 'ws')}ws';
     var vmService = await vmServiceConnectUri(observatoryUri);
-    print('got vm service uri: ${watch.elapsed}');
     var isolate = await waitForIsolatesAndResume(vmService);
-    print('connected to isolate and resumed: ${watch.elapsed}');
 
     await expectLater(stdoutLines, emitsThrough(p.join('hello', 'world')));
-    print('got app output: ${watch.elapsed}');
 
     var appFile = File(entrypoint);
     var originalContent = await appFile.readAsString();
     var newContent = originalContent.replaceFirst('hello', 'goodbye');
     await appFile.writeAsString(newContent);
-    print('Updated file: ${watch.elapsed}');
 
     result = await client.compile([File(entrypoint).uri]);
-    print('Recompiled: ${watch.elapsed}');
     if (result == null) {
       fail('Expected compilation to be non-null');
     }
@@ -127,12 +114,9 @@ String get message => p.join('hello', 'world');
     expect(result.dillOutput, endsWith('.incremental.dill'));
 
     await vmService.reloadSources(isolate.id!, rootLibUri: result.dillOutput);
-    print('Reloaded sources: ${watch.elapsed}');
 
     expect(await stdoutLines.next, p.join('goodbye', 'world'));
-    print('Got updated output line: ${watch.elapsed}');
     expect(await process.exitCode, 0);
-    print('Process exited: ${watch.elapsed}');
   });
 
   test('can handle compile errors and reload fixes', () async {
