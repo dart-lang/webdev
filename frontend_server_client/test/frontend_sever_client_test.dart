@@ -20,8 +20,10 @@ void main() async {
   late FrontendServerClient client;
   late PackageConfig packageConfig;
   late String packageRoot;
+  late Stopwatch watch;
 
   setUp(() async {
+    watch = Stopwatch()..start();
     await d.dir('a', [
       d.file('pubspec.yaml', '''
 name: a
@@ -57,11 +59,12 @@ String get message => p.join('hello', 'world');
   });
 
   tearDown(() async {
+    print('shutting down client: ${watch.elapsed}');
     await client.shutdown();
+    print('client shut downshutting down client: ${watch.elapsed}');
   });
 
   test('can compile, recompile, and hot reload a vm app', () async {
-    var watch = Stopwatch()..start();
     var entrypoint = p.join(packageRoot, 'bin', 'main.dart');
     client = await FrontendServerClient.start(
         entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
