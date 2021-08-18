@@ -61,7 +61,7 @@ String get message => p.join('hello', 'world');
   tearDown(() async {
     print('shutting down client: ${watch.elapsed}');
     await client.shutdown();
-    print('client shut downshutting down client: ${watch.elapsed}');
+    print('client shut down: ${watch.elapsed}');
   });
 
   test('can compile, recompile, and hot reload a vm app', () async {

@@ -295,10 +295,11 @@ class FrontendServerClient {
   }
 
   /// Stop the service gracefully (using the shutdown command)
-  Future<int> shutdown() {
-    _feServerStdoutLines.cancel();
+  Future<int> shutdown() async {
     _sendCommand('quit');
-    return _feServer.exitCode;
+    var exitCode = await _feServer.exitCode;
+    await _feServerStdoutLines.cancel();
+    return exitCode;
   }
 
   /// Kills the server forcefully by calling `kill` on the process, and
