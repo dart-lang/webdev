@@ -296,9 +296,12 @@ class FrontendServerClient {
 
   /// Stop the service gracefully (using the shutdown command)
   Future<int> shutdown() async {
+    print('sending quit command');
     _sendCommand('quit');
     var exitCode = await _feServer.exitCode;
+    print('server exited with $exitCode');
     await _feServerStdoutLines.cancel();
+    print('cancelled stdout listener');
     return exitCode;
   }
 
