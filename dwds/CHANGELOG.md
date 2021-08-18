@@ -1,6 +1,7 @@
-## 11.2.1-dev
+## 11.2.1
 
 - Recover from used port errors when starting debug service.
+- Update min SDK constraint to `2.13.0`.
 
 ## 11.2.0
 
