@@ -1,3 +1,8 @@
+## 2.1.2
+
+- Force kill the frontend server after one second when calling shutdown. It
+  appears to hang on windows sometimes.
+
 ## 2.1.1
 
 - Fix a bug where spaces in the output dill path would cause a parse error when
