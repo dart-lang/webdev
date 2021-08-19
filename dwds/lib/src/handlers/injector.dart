@@ -159,9 +159,9 @@ String _injectClientAndHoistMain(
   );
   result += '''
   // Injected by dwds for debugging support.
-  if(!window.\$dwdsInitialized) {
+  if (!window.\$dwdsInitialized) {
     window.\$dwdsInitialized = true;
-    window.\$dartMainTearOffs = [$mainFunction];
+    window.\$dartMainTearOffs = new Array();
     window.\$dartRunMain = function() {
       window.\$dartMainExecuted = true;
       window.\$dartMainTearOffs.forEach(function(main){
@@ -169,13 +169,10 @@ String _injectClientAndHoistMain(
       });
     }
     $injectedClientSnippet
-  } else {
-    if(window.\$dartMainExecuted){
-     $mainFunction();
-    }else {
-     window.\$dartMainTearOffs.push($mainFunction);
-    }
+  } else if (window.\$dartMainExecuted) {
+    $mainFunction();
   }
+  window.\$dartMainTearOffs.push($mainFunction);
   ''';
   result += bodyLines.sublist(extensionIndex + 2).join('\n');
   return result;

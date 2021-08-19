@@ -139,10 +139,14 @@ class RequireStrategy extends LoadStrategy {
   @override
   Handler get handler => (request) async {
         if (request.url.path.endsWith(_requireDigestsPath)) {
-          var metadataProvider =
-              metadataProviderFor(request.url.queryParameters['entrypoint']);
-          if (metadataProvider == null) return null;
-          var digests = await _digestsProvider(metadataProvider);
+          var entrypoints = request.url.queryParametersAll['entrypoint'] ?? [];
+          var metadataProviders =
+              entrypoints.map(metadataProviderFor).where((m) => m != null);
+          if (metadataProviders.isEmpty) return null;
+          var digests = {
+            for (var metadataProvider in metadataProviders)
+              ...await _digestsProvider(metadataProvider),
+          };
           return Response.ok(json.encode(digests));
         }
         return null;
@@ -177,9 +181,9 @@ $_baseUrlScript;
 require.config({
     baseUrl: baseUrl,
     waitSeconds: 0,
-    paths: modulePaths 
+    paths: modulePaths
 });
-const modulesGraph = new Map();
+var modulesGraph = (typeof modulesGraph === 'undefined') ? new Map() : modulesGraph;
 requirejs.onResourceLoad = function (context, map, depArray) {
   const name = map.name;
   const depNameArray = depArray.map((dep) => dep.name);
@@ -221,13 +225,22 @@ requirejs.onResourceLoad = function (context, map, depArray) {
     var modulePaths = await _moduleProvider(metadataProvider);
     var moduleNames =
         modulePaths.map((key, value) => MapEntry<String, String>(value, key));
+    var modulePathSetters = modulePaths.keys
+        .map((key) => 'modulePaths.set("$key", "${modulePaths[key]}");')
+        .join('\n');
+    var moduleNameSetters = moduleNames.keys
+        .map((key) => 'moduleNames.set("$key", "${moduleNames[key]}");')
+        .join('\n');
     return '''
 $_baseUrlScript
-let modulePaths = ${const JsonEncoder.withIndent(" ").convert(modulePaths)};
-let moduleNames = ${const JsonEncoder.withIndent(" ").convert(moduleNames)};
+var modulePaths = (typeof modulePaths === 'undefined') ? new Map() : modulePaths;
+var moduleNames = (typeof moduleNames === 'undefined') ? new Map() : moduleNames;
+$modulePathSetters
+$moduleNameSetters
 if(!window.\$requireLoader) {
    window.\$requireLoader = {
-     digestsPath: '$_requireDigestsPath?entrypoint=$entrypoint',
+     entrypoints: new Array(),
+     digestsPath: '$_requireDigestsPath',
      // Used in package:build_runner/src/server/build_updates_client/hot_reload_client.dart
      moduleParentsGraph: new Map(),
      forceLoadModule: function (modulePath, callback, onError) {
@@ -253,6 +266,7 @@ if(!window.\$requireLoader) {
      getModuleLibraries: null, // set up by _initializeTools
    };
 }
+window.\$requireLoader.entrypoints.push('$entrypoint');
 ''';
   }
 

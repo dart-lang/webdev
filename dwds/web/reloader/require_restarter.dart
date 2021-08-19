@@ -54,6 +54,9 @@ class RequireLoader {
   external String get digestsPath;
 
   @JS()
+  external List<String> get entrypoints;
+
+  @JS()
   external JsMap<String, List<String>> get moduleParentsGraph;
 
   @JS()
@@ -136,8 +139,11 @@ class RequireRestarter implements Restarter {
   List<String> _allModules() => keys(requireLoader.moduleParentsGraph);
 
   Future<Map<String, String>> _getDigests() async {
-    var request = await HttpRequest.request(requireLoader.digestsPath,
-        responseType: 'json', method: 'GET');
+    var uri = Uri(
+        path: requireLoader.digestsPath,
+        queryParameters: {'entrypoint': requireLoader.entrypoints});
+    var request =
+        await HttpRequest.request('$uri', responseType: 'json', method: 'GET');
     return (request.response as Map).cast<String, String>();
   }
 
