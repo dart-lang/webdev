@@ -160,7 +160,10 @@ class ClassHelper extends Domain {
           name: name,
           owner: classRef,
           isConst: descriptor['isConst'] as bool,
-          isStatic: descriptor['isStatic'] as bool));
+          isStatic: descriptor['isStatic'] as bool,
+          // TODO(annagrin): get information about getters and setters from symbols.
+          // https://github.com/dart-lang/sdk/issues/46723
+          implicit: false));
     });
     var fieldRefs = <FieldRef>[];
     var fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
