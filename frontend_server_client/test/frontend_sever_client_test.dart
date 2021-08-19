@@ -235,7 +235,7 @@ String get message => p.join('hello', 'world');
     expect(
         utf8.decode(dartDevcClient.assetBytes('${entrypointUri.path}.lib.js')!),
         contains('goodbye'));
-  }, timeout: const Timeout.factor(2));
+  });
 
   test('can enable experiments', () async {
     await d.dir('a', [
