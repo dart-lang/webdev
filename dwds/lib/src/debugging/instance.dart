@@ -414,7 +414,10 @@ class InstanceHelper extends Domain {
               // TODO(alanknight): The right ClassRef
               owner: classRefForUnknown,
               isConst: false,
-              isStatic: false)
+              isStatic: false,
+              // TODO(annagrin): get information about getters and setters from symbols.
+              // https://github.com/dart-lang/sdk/issues/46723
+              implicit: false)
           ..closureContext = (ContextRef(length: 0, id: createId()));
       default:
         // Return null for an unsupported type. This is likely a JS construct.

@@ -1,3 +1,8 @@
+## 11.2.2
+
+- Depend on `dds` version `2.1.1`.
+- Depend on `vm_service` vesrion `7.2.0`.
+
 ## 11.2.1
 
 - Recover from used port errors when starting debug service.
