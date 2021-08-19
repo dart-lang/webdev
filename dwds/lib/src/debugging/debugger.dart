@@ -9,6 +9,7 @@ import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pool/pool.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
@@ -18,7 +19,6 @@ import '../services/chrome_proxy_service.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
-import '../utilities/mutex.dart';
 import '../utilities/objects.dart' show Property;
 import '../utilities/shared.dart';
 import 'dart_scope.dart';
@@ -674,6 +674,8 @@ class _Breakpoints extends Domain {
 
   final _bpByDartId = <String, Future<Breakpoint>>{};
 
+  final _pool = Pool(1);
+
   final Locations locations;
   final RemoteDebugger remoteDebugger;
 
@@ -734,8 +736,6 @@ class _Breakpoints extends Domain {
     return breakpoint;
   }
 
-  Mutex breakpointMutex = Mutex();
-
   /// Calls the Chrome protocol setBreakpoint and returns the remote ID.
   Future<String> _setJsBreakpoint(Location location) async {
     // Location is 0 based according to:
@@ -745,7 +745,7 @@ class _Breakpoints extends Domain {
     var urlRegex = '.*${location.jsLocation.module}.*';
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
     // simultaneously by serializing the requests.
-    return breakpointMutex.runGuarded(() async {
+    return _pool.withResource(() async {
       var response = await remoteDebugger
           .sendCommand('Debugger.setBreakpointByUrl', params: {
         'urlRegex': urlRegex,
