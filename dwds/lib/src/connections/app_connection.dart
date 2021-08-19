@@ -16,7 +16,7 @@ import '../handlers/socket_connections.dart';
 class AppConnection {
   /// The initial connection request sent from the application in the browser.
   final ConnectRequest request;
-  var _startedCompleter = Completer<void>();
+  final _startedCompleter = Completer<void>();
   final SocketConnection _connection;
 
   AppConnection(this.request, this._connection);
@@ -32,9 +32,5 @@ class AppConnection {
     }
     _connection.sink.add(jsonEncode(serializers.serialize(RunRequest())));
     _startedCompleter.complete();
-  }
-
-  void reset() {
-    _startedCompleter = Completer<void>();
   }
 }

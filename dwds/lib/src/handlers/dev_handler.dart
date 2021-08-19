@@ -407,13 +407,9 @@ class DevHandler {
 
   Future<void> _handleIsolateStart(
       AppConnection appConnection, SocketConnection sseConnection) async {
-    // App is not running yet, reset `isStarted` state.
-    appConnection.reset();
     await _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
         ?.createIsolate(appConnection);
-    // Now run.
-    appConnection.runMain();
   }
 
   void _listen() async {

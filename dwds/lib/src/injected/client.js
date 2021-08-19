@@ -24358,6 +24358,7 @@
             case 8:
               // join
               self.$loadModuleConfig.call$1("dart_sdk").dart.hotRestart();
+              V.runMain();
               $async$returnValue = result;
               // goto return
               $async$goto = 1;
