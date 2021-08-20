@@ -1,3 +1,10 @@
+## 11.2.3-dev
+
+- Fix race causing intermittent `Aww, snap` errors on starting debugger
+  with multiple breakpoints in source.
+- Fix needing chrome to be focus in order to wait for the isolate to
+  exit on hot restart.
+
 ## 11.2.2
 
 - Depend on `dds` version `2.1.1`.

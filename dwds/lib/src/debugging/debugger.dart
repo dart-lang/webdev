@@ -9,6 +9,7 @@ import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pool/pool.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
@@ -187,6 +188,7 @@ class Debugger extends Domain {
     runZonedGuarded(() {
       _remoteDebugger?.onPaused?.listen(_pauseHandler);
       _remoteDebugger?.onResumed?.listen(_resumeHandler);
+      _remoteDebugger?.onTargetCrashed?.listen(_crashHandler);
     }, (e, StackTrace s) {
       logger.warning('Error handling Chrome event', e, s);
     });
@@ -580,6 +582,23 @@ class Debugger extends Domain {
     _streamNotify('Debug', event);
   }
 
+  /// Handles targetCrashed events coming from the Chrome connection.
+  Future<void> _crashHandler(TargetCrashedEvent _) async {
+    // We can receive a resume event in the middle of a reload which will result
+    // in a null isolate.
+    var isolate = inspector?.isolate;
+    if (isolate == null) return;
+
+    stackComputer = null;
+    var event = Event(
+        kind: EventKind.kIsolateExit,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isolate: inspector.isolateRef);
+    isolate.pauseEvent = event;
+    _streamNotify('Isolate', event);
+    logger.severe('Target crashed!');
+  }
+
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate
   Future<RemoteObject> evaluate(String expression) async {
     try {
@@ -655,6 +674,8 @@ class _Breakpoints extends Domain {
 
   final _bpByDartId = <String, Future<Breakpoint>>{};
 
+  final _pool = Pool(1);
+
   final Locations locations;
   final RemoteDebugger remoteDebugger;
 
@@ -722,12 +743,16 @@ class _Breakpoints extends Domain {
 
     // The module can be loaded from a nested path and contain an ETAG suffix.
     var urlRegex = '.*${location.jsLocation.module}.*';
-    var response = await remoteDebugger
-        .sendCommand('Debugger.setBreakpointByUrl', params: {
-      'urlRegex': urlRegex,
-      'lineNumber': location.jsLocation.line - 1,
+    // Prevent `Aww, snap!` errors when setting multiple breakpoints
+    // simultaneously by serializing the requests.
+    return _pool.withResource(() async {
+      var response = await remoteDebugger
+          .sendCommand('Debugger.setBreakpointByUrl', params: {
+        'urlRegex': urlRegex,
+        'lineNumber': location.jsLocation.line - 1,
+      });
+      return response.result['breakpointId'] as String;
     });
-    return response.result['breakpointId'] as String;
   }
 
   /// Records the internal Dart <=> JS breakpoint id mapping and adds the

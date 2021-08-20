@@ -142,6 +142,9 @@ class DevHandler {
         tabConnection.onReceive.listen((message) {
           _log('  wip', '<== $message');
         });
+        tabConnection.onNotification.listen((message) {
+          _log('  wip', '<== $message');
+        });
       }
       var contextIds = tabConnection.runtime.onExecutionContextCreated
           .map((context) => context.id)

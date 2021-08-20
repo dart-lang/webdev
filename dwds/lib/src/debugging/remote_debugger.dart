@@ -6,6 +6,10 @@
 
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+class TargetCrashedEvent extends WipEvent {
+  TargetCrashedEvent(Map<String, dynamic> json) : super(json);
+}
+
 /// A generic debugger used in remote debugging.
 abstract class RemoteDebugger {
   Stream<ConsoleAPIEvent> get onConsoleAPICalled;
@@ -19,6 +23,8 @@ abstract class RemoteDebugger {
   Stream<DebuggerResumedEvent> get onResumed;
 
   Stream<ScriptParsedEvent> get onScriptParsed;
+
+  Stream<TargetCrashedEvent> get onTargetCrashed;
 
   Map<String, WipScript> get scripts;
 

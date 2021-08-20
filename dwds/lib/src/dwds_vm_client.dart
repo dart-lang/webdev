@@ -194,22 +194,28 @@ Future<void> _disableBreakpointsAndResume(
   if (vm.isolates.isEmpty) throw StateError('No active isolate to resume.');
   var isolateRef = vm.isolates.first;
 
-  // Pause the app to prevent it from hitting a breakpoint
-  // during hot restart and stalling hot restart execution.
-  // Then wait for the app to pause or to hit a breakpoint.
-  var debug = chromeProxyService.onEvent('Debug').firstWhere((event) =>
-      event.kind == EventKind.kPauseInterrupted ||
-      event.kind == EventKind.kPauseBreakpoint);
-
-  await client.pause(isolateRef.id);
-
-  var isolate = await client.getIsolate(isolateRef.id);
-  if (isolate.pauseEvent.kind != EventKind.kPauseInterrupted &&
-      isolate.pauseEvent.kind != EventKind.kPauseBreakpoint) {
-    await debug;
-  }
-
   await chromeProxyService.disableBreakpoints();
-  await client.resume(isolateRef.id);
+  try {
+    // Any checks for paused status result in race conditions or hangs
+    // at this point:
+    //
+    // - `getIsolate()` and check for status:
+    //    the app migth still pause on existing breakpoint.
+    //
+    // - `pause()` and wait for `Debug.paused` event:
+    //   chrome does not send the `Debug.Paused `notification
+    //   without shifting focus to chrome.
+    //
+    // Instead, just try resuming and
+    // ignore failures indicating that the app is already running:
+    //
+    // WipError -32000 Can only perform operation while paused.
+    await client.resume(isolateRef.id);
+  } on RPCError catch (e, s) {
+    if (!e.message.contains('Can only perform operation while paused')) {
+      _logger.severe('Hot restart failed to resume exiting isolate', e, s);
+      rethrow;
+    }
+  }
   _logger.info('Successfully disabled breakpoints and resumed the isolate');
 }

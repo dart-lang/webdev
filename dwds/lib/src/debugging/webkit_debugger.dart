@@ -113,6 +113,11 @@ class WebkitDebugger implements RemoteDebugger {
   Stream<ScriptParsedEvent> get onScriptParsed => _wipDebugger.onScriptParsed;
 
   @override
+  Stream<TargetCrashedEvent> get onTargetCrashed => _wipDebugger.eventStream(
+      'Inspector.targetCrashed',
+      (WipEvent event) => TargetCrashedEvent(event.json));
+
+  @override
   Map<String, WipScript> get scripts => _wipDebugger.scripts;
 
   @override
