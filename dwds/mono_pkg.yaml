@@ -6,11 +6,18 @@ stages:
       - analyze: --fatal-infos .
       - test: test/build/ensure_version_test.dart
       dart: dev
+    - group:
+      - analyze: --fatal-warnings .
+      dart: beta
   - unit_test:
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
       - test:
-      dart: dev
+      dart:
+        - dev
+        - beta
     - test:
       os: windows
-      dart: dev
+      dart:
+        - dev
+        - beta

@@ -3,4 +3,3 @@ retry: 3
 
 tags:
   extension:  # Extension tests require configuration, so we may exclude.
-  dev-sdk: # Tests that require dev SDK to pass, we may exclude them for stable SDK.
