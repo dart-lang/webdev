@@ -2,7 +2,7 @@
 
 - Depend on the latest `package:dwds`.
 - Update min sdk constraint to `>=2.13.0`.
-- Support the latest `pkgackage:build_daemon`.
+- Support the latest `package:build_daemon`.
 
 ## 2.7.4
 
