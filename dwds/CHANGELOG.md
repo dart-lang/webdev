@@ -1,4 +1,4 @@
-## 11.2.3-dev
+## 11.2.3
 
 - Fix race causing intermittent `Aww, snap` errors on starting debugger
   with multiple breakpoints in source.
