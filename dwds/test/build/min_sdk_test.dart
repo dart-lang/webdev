@@ -17,15 +17,14 @@ void main() {
     var pubspec = Pubspec.parse(File('pubspec.yaml').readAsStringSync());
     var sdkVersion = Version.parse(Platform.version.split(' ')[0]);
     sdkVersion = Version(sdkVersion.major, sdkVersion.minor, 0);
-    
-    var sdkConstraint = VersionConstraint.compatibleWith(sdkVersion); 
+
+    var sdkConstraint = VersionConstraint.compatibleWith(sdkVersion);
     var pubspecSdkConstraint = pubspec.environment['sdk'];
     expect(sdkConstraint.allowsAll(pubspecSdkConstraint), true,
         reason:
-          'Min sdk constraint is outdated. Please update SDK constraint in '
-          'pubspec to allow latest stable and backwards compatible versions. '
-          'Current stable: $sdkVersion, '
-          'Dwds pubspec constraint: $pubspecSdkConstraint'
-    );
+            'Min sdk constraint is outdated. Please update SDK constraint in '
+            'pubspec to allow latest stable and backwards compatible versions.'
+            '\n  Current stable: $sdkVersion,'
+            '\n  Dwds pubspec constraint: $pubspecSdkConstraint');
   });
 }
