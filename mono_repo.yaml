@@ -3,7 +3,7 @@ self_validate: analyzer_and_format
 github:
   env:
     DISPLAY: ':99'
-  cron: '0 0 * * 0'
+  cron: '0 0 * * 0' # "At 00:00 (UTC) on Sunday."
   on_completion:
     - name: "Notify failure"
       runs-on: ubuntu-latest
@@ -16,6 +16,10 @@ github:
               "${CHAT_WEBHOOK_URL}"
           env:
             CHAT_WEBHOOK_URL: ${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}
+  stages:
+      - name: beta_cron
+        # Only run this stage for scheduled cron jobs
+        if: github.event_name == 'schedule'
 
 merge_stages:
 - analyzer_and_format
