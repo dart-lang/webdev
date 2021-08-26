@@ -20,7 +20,7 @@ final String _sdkDir = (() {
 })();
 
 final String dartPath = p.join(_sdkDir, 'bin', 'dart');
-final String pubSnapshot =
-    p.join(_sdkDir, 'bin', 'snapshots', 'pub.dart.snapshot');
+final String dartdevSnapshot =
+    p.join(_sdkDir, 'bin', 'snapshots', 'dartdev.dart.snapshot');
 final String pubPath =
     p.join(_sdkDir, 'bin', Platform.isWindows ? 'pub.bat' : 'pub');
