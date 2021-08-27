@@ -16,10 +16,6 @@ Future<BuildDaemonClient> connectClient(String workingDirectory,
         List<String> options, Function(ServerLog) logHandler) =>
     BuildDaemonClient.connect(
         workingDirectory,
-        // On Windows we need to call the snapshot directly otherwise
-        // the process will start in a disjoint cmd without access to
-        // STDIO. We also want to ensure the version of pub is consistent with
-        // the SDK that was used to launch webdev.
         [dartPath]
           ..addAll(['run', 'build_runner', 'daemon'])
           ..addAll(options),
