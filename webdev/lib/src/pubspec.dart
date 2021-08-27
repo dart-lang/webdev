@@ -55,7 +55,7 @@ dev_dependencies:
 }
 
 Future _runPubDeps() async {
-  var result = Process.runSync(pubPath, ['deps']);
+  var result = Process.runSync(dartPath, ['pub', 'deps']);
 
   if (result.exitCode == 65 || result.exitCode == 66) {
     throw PackageException(
@@ -64,8 +64,8 @@ Future _runPubDeps() async {
 
   if (result.exitCode != 0) {
     throw ProcessException(
-        pubPath,
-        ['deps'],
+        dartPath,
+        ['pub', 'deps'],
         '***OUT***\n${result.stdout}\n***ERR***\n${result.stderr}\n***',
         exitCode);
   }

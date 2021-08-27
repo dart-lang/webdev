@@ -43,7 +43,7 @@ Future<String> prepareWorkspace() async {
   var exampleDirectory =
       p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSmoke'));
 
-  var process = await TestProcess.start(pubPath, ['upgrade'],
+  var process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
       workingDirectory: exampleDirectory, environment: getPubEnvironment());
 
   await process.shouldExit(0);
