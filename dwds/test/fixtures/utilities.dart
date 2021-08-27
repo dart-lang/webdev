@@ -20,8 +20,8 @@ Future<BuildDaemonClient> connectClient(String workingDirectory,
         // the process will start in a disjoint cmd without access to
         // STDIO. We also want to ensure the version of pub is consistent with
         // the SDK that was used to launch webdev.
-        [dartPath, dartdevSnapshot]
-          ..addAll(['pub', 'run', 'build_runner', 'daemon'])
+        [dartPath]
+          ..addAll(['run', 'build_runner', 'daemon'])
           ..addAll(options),
         logHandler: logHandler);
 
@@ -36,8 +36,6 @@ final String _sdkDir = (() {
 
 final String dartSdkPath = _sdkDir;
 final String dartPath = p.join(_sdkDir, 'bin', 'dart');
-final String dartdevSnapshot =
-    p.join(_sdkDir, 'bin', 'snapshots', 'dartdev.dart.snapshot');
 
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {

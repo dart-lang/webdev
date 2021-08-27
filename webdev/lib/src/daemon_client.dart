@@ -22,8 +22,8 @@ Future<BuildDaemonClient> connectClient(String workingDirectory,
         // the process will start in a disjoint cmd without access to
         // STDIO. We also want to ensure the version of pub is consistent with
         // the SDK that was used to launch webdev.
-        [dartPath, dartdevSnapshot]
-          ..addAll(['pub', 'run', 'build_runner', 'daemon'])
+        [dartPath]
+          ..addAll(['run', 'build_runner', 'daemon'])
           ..addAll(options),
         logHandler: logHandler);
 
