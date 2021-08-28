@@ -42,12 +42,12 @@ void main() {
     soundExampleDirectory =
         p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
 
-    var process = await TestProcess.start(pubPath, ['upgrade'],
+    var process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
         workingDirectory: exampleDirectory, environment: getPubEnvironment());
 
     await process.shouldExit(0);
 
-    process = await TestProcess.start(pubPath, ['upgrade'],
+    process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
         workingDirectory: soundExampleDirectory,
         environment: getPubEnvironment());
 

@@ -16,11 +16,7 @@ Future<BuildDaemonClient> connectClient(String workingDirectory,
         List<String> options, Function(ServerLog) logHandler) =>
     BuildDaemonClient.connect(
         workingDirectory,
-        // On Windows we need to call the snapshot directly otherwise
-        // the process will start in a disjoint cmd without access to
-        // STDIO. We also want to ensure the version of pub is consistent with
-        // the SDK that was used to launch webdev.
-        [dartPath, pubSnapshot]
+        [dartPath]
           ..addAll(['run', 'build_runner', 'daemon'])
           ..addAll(options),
         logHandler: logHandler);
@@ -36,10 +32,6 @@ final String _sdkDir = (() {
 
 final String dartSdkPath = _sdkDir;
 final String dartPath = p.join(_sdkDir, 'bin', 'dart');
-final String pubSnapshot =
-    p.join(_sdkDir, 'bin', 'snapshots', 'pub.dart.snapshot');
-final String pubPath =
-    p.join(_sdkDir, 'bin', Platform.isWindows ? 'pub.bat' : 'pub');
 
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {
