@@ -31,7 +31,6 @@ import 'logging.dart';
 import 'server.dart';
 import 'utilities.dart';
 
-final _batExt = Platform.isWindows ? '.bat' : '';
 final _exeExt = Platform.isWindows ? '.exe' : '';
 
 const isRPCError = TypeMatcher<RPCError>();
@@ -171,7 +170,7 @@ class TestContext {
             'Could not start ChromeDriver. Is it installed?\nError: $e');
       }
 
-      await Process.run('pub$_batExt', ['upgrade'],
+      await Process.run(dartPath, ['pub', 'upgrade'],
           workingDirectory: workingDirectory);
 
       ExpressionCompiler expressionCompiler;
