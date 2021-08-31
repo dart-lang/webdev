@@ -503,10 +503,8 @@ void main() async {
 
               expect(
                   error,
-                  isA<ErrorRef>().having(
-                      (instance) => instance.message,
-                      'message',
-                      matches('CompilationError: Getter not found:.*typo')));
+                  isA<ErrorRef>().having((instance) => instance.message,
+                      'message', contains('CompilationError:')));
             });
           });
 
