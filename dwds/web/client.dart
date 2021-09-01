@@ -99,6 +99,7 @@ Future<void> main() {
         if (!event.success) {
           var alert = 'DevTools failed to open with:\n${event.error}';
           if (event.promptExtension && window.confirm(alert)) {
+            // ignore: unsafe_html
             window.open('https://goo.gle/dart-debug-extension', '_blank');
           } else {
             window.alert(alert);
