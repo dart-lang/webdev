@@ -410,7 +410,7 @@ void main() async {
               const TypeMatcher<ErrorRef>().having(
                   (instance) => instance.message,
                   'message',
-                  'CompilationError: Getter not found: \'typo\'.\ntypo\n^^^^'));
+                  contains('CompilationError:')));
         });
       });
     });

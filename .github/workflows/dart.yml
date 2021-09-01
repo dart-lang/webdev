@@ -45,7 +45,7 @@ jobs:
         uses: actions/cache@v2.1.6
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:format-analyze-test_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:format-analyze_0-test_0"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;dart:dev
@@ -81,7 +81,7 @@ jobs:
         uses: actions/cache@v2.1.6
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:example-fixtures/_webdevSmoke-frontend_server_client-frontend_server_common;commands:format-analyze"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:example-fixtures/_webdevSmoke-frontend_server_client-frontend_server_common;commands:format-analyze_0"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:example-fixtures/_webdevSmoke-frontend_server_client-frontend_server_common
             os:ubuntu-latest;pub-cache-hosted;dart:dev
@@ -152,7 +152,7 @@ jobs:
         uses: actions/cache@v2.1.6
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev;commands:format-analyze-test_2"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev;commands:format-analyze_0-test_4"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;dart:dev
@@ -181,6 +181,51 @@ jobs:
         working-directory: webdev
         run: dart test test/build/ensure_build_test.dart
   job_005:
+    name: "analyzer_and_format; linux; Dart stable; PKGS: dwds, webdev; `dart analyze .`, `dart test test/build/min_sdk_test.dart --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2.1.6
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:stable;packages:dwds-webdev;commands:analyze_1-test_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:stable;packages:dwds-webdev
+            os:ubuntu-latest;pub-cache-hosted;dart:stable
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: stable
+      - id: checkout
+        uses: actions/checkout@v2.3.4
+      - id: dwds_pub_upgrade
+        name: dwds; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+        run: dart pub upgrade
+      - name: dwds; dart analyze .
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+        run: dart analyze .
+      - name: "dwds; dart test test/build/min_sdk_test.dart --run-skipped"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+        run: dart test test/build/min_sdk_test.dart --run-skipped
+      - id: webdev_pub_upgrade
+        name: webdev; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: webdev
+        run: dart pub upgrade
+      - name: webdev; dart analyze .
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+        run: dart analyze .
+      - name: "webdev; dart test test/build/min_sdk_test.dart --run-skipped"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+        run: dart test test/build/min_sdk_test.dart --run-skipped
+  job_006:
     name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -188,7 +233,7 @@ jobs:
         uses: actions/cache@v2.1.6
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:command-test_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds;commands:command-test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;dart:dev
@@ -217,7 +262,8 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_006:
+      - job_005
+  job_007:
     name: "unit_test; linux; Dart dev; PKG: frontend_server_client; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -225,7 +271,7 @@ jobs:
         uses: actions/cache@v2.1.6
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:frontend_server_client;commands:test_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:frontend_server_client;commands:test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:dev;packages:frontend_server_client
             os:ubuntu-latest;pub-cache-hosted;dart:dev
@@ -250,7 +296,8 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_007:
+      - job_005
+  job_008:
     name: "unit_test; linux; Dart dev; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
     runs-on: ubuntu-latest
     steps:
@@ -287,7 +334,46 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_008:
+      - job_005
+  job_009:
+    name: "unit_test; linux; Dart stable; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2.1.6
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:stable;packages:dwds;commands:command-test_2"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:stable;packages:dwds
+            os:ubuntu-latest;pub-cache-hosted;dart:stable
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: stable
+      - id: checkout
+        uses: actions/checkout@v2.3.4
+      - id: dwds_pub_upgrade
+        name: dwds; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+        run: dart pub upgrade
+      - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+      - name: dwds; dart test
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+        run: dart test
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_010:
     name: "unit_test; linux; Dart stable; PKG: frontend_server_client; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -295,7 +381,7 @@ jobs:
         uses: actions/cache@v2.1.6
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:stable;packages:frontend_server_client;commands:test_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:stable;packages:frontend_server_client;commands:test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:stable;packages:frontend_server_client
             os:ubuntu-latest;pub-cache-hosted;dart:stable
@@ -320,7 +406,46 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_009:
+      - job_005
+  job_011:
+    name: "unit_test; linux; Dart stable; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2.1.6
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:stable;packages:webdev;commands:command-test_3"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:stable;packages:webdev
+            os:ubuntu-latest;pub-cache-hosted;dart:stable
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: stable
+      - id: checkout
+        uses: actions/checkout@v2.3.4
+      - id: webdev_pub_upgrade
+        name: webdev; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: webdev
+        run: dart pub upgrade
+      - name: "webdev; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+      - name: "webdev; dart test -j 1"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+        run: dart test -j 1
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_012:
     name: "unit_test; windows; Dart dev; PKG: dwds; `dart test`"
     runs-on: windows-latest
     steps:
@@ -343,7 +468,8 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_010:
+      - job_005
+  job_013:
     name: "unit_test; windows; Dart dev; PKG: frontend_server_client; `dart test`"
     runs-on: windows-latest
     steps:
@@ -366,7 +492,8 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_011:
+      - job_005
+  job_014:
     name: "unit_test; windows; Dart dev; PKG: webdev; `dart test -j 1`"
     runs-on: windows-latest
     steps:
@@ -389,7 +516,32 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_012:
+      - job_005
+  job_015:
+    name: "unit_test; windows; Dart stable; PKG: dwds; `dart test`"
+    runs-on: windows-latest
+    steps:
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: stable
+      - id: checkout
+        uses: actions/checkout@v2.3.4
+      - id: dwds_pub_upgrade
+        name: dwds; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+        run: dart pub upgrade
+      - name: dwds; dart test
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+        run: dart test
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_016:
     name: "unit_test; windows; Dart stable; PKG: frontend_server_client; `dart test`"
     runs-on: windows-latest
     steps:
@@ -412,7 +564,302 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_013:
+      - job_005
+  job_017:
+    name: "unit_test; windows; Dart stable; PKG: webdev; `dart test -j 1`"
+    runs-on: windows-latest
+    steps:
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: stable
+      - id: checkout
+        uses: actions/checkout@v2.3.4
+      - id: webdev_pub_upgrade
+        name: webdev; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: webdev
+        run: dart pub upgrade
+      - name: "webdev; dart test -j 1"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+        run: dart test -j 1
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_018:
+    name: "beta_cron; linux; Dart beta; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2.1.6
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:dwds;commands:command-test_3"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:dwds
+            os:ubuntu-latest;pub-cache-hosted;dart:beta
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: beta
+      - id: checkout
+        uses: actions/checkout@v2.3.4
+      - id: dwds_pub_upgrade
+        name: dwds; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+        run: dart pub upgrade
+      - name: "dwds; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+      - name: "dwds; dart test -j 1"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+        run: dart test -j 1
+    if: "github.event_name == 'schedule'"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
+      - job_008
+      - job_009
+      - job_010
+      - job_011
+      - job_012
+      - job_013
+      - job_014
+      - job_015
+      - job_016
+      - job_017
+  job_019:
+    name: "beta_cron; linux; Dart beta; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2.1.6
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:webdev;commands:command-test_3"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:webdev
+            os:ubuntu-latest;pub-cache-hosted;dart:beta
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: beta
+      - id: checkout
+        uses: actions/checkout@v2.3.4
+      - id: webdev_pub_upgrade
+        name: webdev; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: webdev
+        run: dart pub upgrade
+      - name: "webdev; Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+        run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
+      - name: "webdev; dart test -j 1"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+        run: dart test -j 1
+    if: "github.event_name == 'schedule'"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
+      - job_008
+      - job_009
+      - job_010
+      - job_011
+      - job_012
+      - job_013
+      - job_014
+      - job_015
+      - job_016
+      - job_017
+  job_020:
+    name: "beta_cron; linux; Dart beta; PKG: dwds; `dart analyze .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2.1.6
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:dwds;commands:analyze_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:dwds
+            os:ubuntu-latest;pub-cache-hosted;dart:beta
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: beta
+      - id: checkout
+        uses: actions/checkout@v2.3.4
+      - id: dwds_pub_upgrade
+        name: dwds; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+        run: dart pub upgrade
+      - name: dwds; dart analyze .
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+        run: dart analyze .
+    if: "github.event_name == 'schedule'"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
+      - job_008
+      - job_009
+      - job_010
+      - job_011
+      - job_012
+      - job_013
+      - job_014
+      - job_015
+      - job_016
+      - job_017
+  job_021:
+    name: "beta_cron; linux; Dart beta; PKG: webdev; `dart analyze .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2.1.6
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:webdev;commands:analyze_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:beta;packages:webdev
+            os:ubuntu-latest;pub-cache-hosted;dart:beta
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: beta
+      - id: checkout
+        uses: actions/checkout@v2.3.4
+      - id: webdev_pub_upgrade
+        name: webdev; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: webdev
+        run: dart pub upgrade
+      - name: webdev; dart analyze .
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+        run: dart analyze .
+    if: "github.event_name == 'schedule'"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
+      - job_008
+      - job_009
+      - job_010
+      - job_011
+      - job_012
+      - job_013
+      - job_014
+      - job_015
+      - job_016
+      - job_017
+  job_022:
+    name: "beta_cron; windows; Dart beta; PKG: dwds; `dart test -j 1`"
+    runs-on: windows-latest
+    steps:
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: beta
+      - id: checkout
+        uses: actions/checkout@v2.3.4
+      - id: dwds_pub_upgrade
+        name: dwds; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: dwds
+        run: dart pub upgrade
+      - name: "dwds; dart test -j 1"
+        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds
+        run: dart test -j 1
+    if: "github.event_name == 'schedule'"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
+      - job_008
+      - job_009
+      - job_010
+      - job_011
+      - job_012
+      - job_013
+      - job_014
+      - job_015
+      - job_016
+      - job_017
+  job_023:
+    name: "beta_cron; windows; Dart beta; PKG: webdev; `dart test -j 1`"
+    runs-on: windows-latest
+    steps:
+      - uses: dart-lang/setup-dart@v1.2
+        with:
+          sdk: beta
+      - id: checkout
+        uses: actions/checkout@v2.3.4
+      - id: webdev_pub_upgrade
+        name: webdev; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: webdev
+        run: dart pub upgrade
+      - name: "webdev; dart test -j 1"
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+        run: dart test -j 1
+    if: "github.event_name == 'schedule'"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
+      - job_008
+      - job_009
+      - job_010
+      - job_011
+      - job_012
+      - job_013
+      - job_014
+      - job_015
+      - job_016
+      - job_017
+  job_024:
     name: Notify failure
     runs-on: ubuntu-latest
     if: "(github.event_name == 'push' || github.event_name == 'schedule') && failure()"
@@ -436,3 +883,14 @@ jobs:
       - job_010
       - job_011
       - job_012
+      - job_013
+      - job_014
+      - job_015
+      - job_016
+      - job_017
+      - job_018
+      - job_019
+      - job_020
+      - job_021
+      - job_022
+      - job_023
