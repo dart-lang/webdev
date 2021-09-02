@@ -574,13 +574,15 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       {String scriptId,
       int tokenPos,
       int endTokenPos,
-      bool forceCompile}) async {
+      bool forceCompile,
+      bool reportLines}) async {
     await isInitialized;
     return _inspector?.getSourceReport(isolateId, reports,
         scriptId: scriptId,
         tokenPos: tokenPos,
         endTokenPos: endTokenPos,
-        forceCompile: forceCompile);
+        forceCompile: forceCompile,
+        reportLines: reportLines);
   }
 
   /// Returns the current stack.
