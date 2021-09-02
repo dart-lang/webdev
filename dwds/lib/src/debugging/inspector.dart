@@ -420,7 +420,11 @@ function($argsString) {
   ///
   /// Currently this implements the 'PossibleBreakpoints' report kind.
   Future<SourceReport> getSourceReport(String isolateId, List<String> reports,
-      {String scriptId, int tokenPos, int endTokenPos, bool forceCompile}) {
+      {String scriptId,
+      int tokenPos,
+      int endTokenPos,
+      bool forceCompile,
+      bool reportLines}) {
     checkIsolate('getSourceReport', isolateId);
 
     if (reports.contains(SourceReportKind.kCoverage)) {
