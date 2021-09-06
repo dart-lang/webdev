@@ -1,5 +1,9 @@
 ## 11.3.1-dev
 
+- Encode extension url asynchronously.
+- Use default constant port for debug service.
+  - If we fail binding to the port, fall back to previous strategy
+    of finding unbound ports.
 - Add metrics measuring DevTools Initial Page Load time.
 - Add `ext.dwds.sendEvent` service extension to dwds so other tools
   can send events to the debugger.

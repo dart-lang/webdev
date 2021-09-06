@@ -33,7 +33,7 @@ const _clientScript = 'dwds/src/injected/client';
 /// information.
 class DwdsInjector {
   final LoadStrategy _loadStrategy;
-  final String _extensionUri;
+  final Future<String> _extensionUri;
   final _devHandlerPaths = StreamController<String>();
   final _logger = Logger('DwdsInjector');
   final bool _enableDevtoolsLaunch;
@@ -41,7 +41,7 @@ class DwdsInjector {
 
   DwdsInjector(
     this._loadStrategy, {
-    String extensionUri,
+    Future<String> extensionUri,
     bool enableDevtoolsLaunch,
     bool useSseForInjectedClient,
   })  : _extensionUri = extensionUri,
@@ -104,7 +104,7 @@ class DwdsInjector {
                 appId,
                 devHandlerPath,
                 entrypoint,
-                _extensionUri,
+                await _extensionUri,
                 _loadStrategy,
                 _enableDevtoolsLaunch,
               );
