@@ -74,10 +74,12 @@ void main() {
 
   test('emits DEBUGGER_READY event', () async {
     await expectEventDuring(
-      matchesEvent(DwdsEventKind.debuggerReady, {}),
+      matchesEvent(DwdsEventKind.debuggerReady, {
+        'elapsedMilliseconds': isNotNull,
+      }),
       () => keyboard.sendChord([Keyboard.alt, 'd']),
     );
-  }, skip: 'https://github.com/dart-lang/webdev/issues/1406');
+  });
 
   test('events can be listened to multiple times', () async {
     events.listen((_) {});
@@ -90,18 +92,6 @@ void main() {
         () => vmService.callServiceExtension('ext.dwds.emitEvent', args: {
               'type': 'foo-event',
               'payload': {'data': 1234},
-            }));
-    expect(response.type, 'Success');
-  });
-
-  test('can receive DevtoolsEvent and emit DEBUGGER_READY event', () async {
-    final response = await expectEventDuring(
-        matchesEvent(DwdsEventKind.debuggerReady, {
-          'elapsedMilliseconds': isNotNull,
-        }),
-        () => vmService.callServiceExtension('ext.dwds.sendEvent', args: {
-              'type': 'DevtoolsEvent',
-              'payload': {'screen': 'debugger', 'action': 'screenReady'},
             }));
     expect(response.type, 'Success');
   });
@@ -275,7 +265,7 @@ void main() {
 
     test('emits GET_SCRIPTS events', () async {
       await expectEventDuring(
-          matchesEvent(DwdsEventKind.getSourceReport, {
+          matchesEvent(DwdsEventKind.getScripts, {
             'elapsedMilliseconds': isNotNull,
           }),
           () => service.getScripts(isolateId));
