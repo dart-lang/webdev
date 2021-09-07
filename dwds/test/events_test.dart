@@ -81,7 +81,10 @@ void main() {
           context.testServer.dwds.events,
           emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE' &&
-              event.payload['expression'] == expression)));
+              event.payload['expression'] == expression &&
+              event.payload['success'] == true &&
+              event.payload['error'] == null &&
+              event.payload['exception'] == null)));
       await service.evaluate(
         isolate.id,
         bootstrap.id,
@@ -96,7 +99,9 @@ void main() {
           emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE' &&
               event.payload['expression'] == expression &&
-              event.payload['exception'] is ErrorRef)));
+              event.payload['success'] == false &&
+              event.payload['error'] is ErrorRef &&
+              event.payload['exception'] == null)));
       await service.evaluate(
         isolate.id,
         bootstrap.id,
@@ -130,9 +135,10 @@ void main() {
     test('emits EVALUATE_IN_FRAME events on RPC error', () async {
       expect(
           context.testServer.dwds.events,
-          emitsThrough(predicate((DwdsEvent event) =>
+          emits(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE_IN_FRAME' &&
               event.payload['success'] == false &&
+              event.payload['error'] == null &&
               event.payload['exception'] is RPCError &&
               (event.payload['exception'] as RPCError)
                   .message
@@ -161,7 +167,8 @@ void main() {
           emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE_IN_FRAME' &&
               event.payload['success'] == false &&
-              event.payload['exception'] is ErrorRef)));
+              event.payload['error'] is ErrorRef &&
+              event.payload['exception'] == null)));
       try {
         await service.evaluateInFrame(
           isolateId,
@@ -189,7 +196,9 @@ void main() {
           context.testServer.dwds.events,
           emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE_IN_FRAME' &&
-              event.payload['success'] == true)));
+              event.payload['success'] == true &&
+              event.payload['error'] == null &&
+              event.payload['exception'] == null)));
       try {
         await service.evaluateInFrame(
           isolateId,
@@ -201,6 +210,105 @@ void main() {
         await service.removeBreakpoint(isolateId, bp.id);
         await service.resume(isolateId);
       }
+    });
+  });
+
+  group('getSourceReport', () {
+    String isolateId;
+    ScriptList scripts;
+    ScriptRef mainScript;
+
+    setUp(() async {
+      setCurrentLogWriter();
+      var vm = await service.getVM();
+      isolateId = vm.isolates.first.id;
+      scripts = await service.getScripts(isolateId);
+
+      mainScript = scripts.scripts
+          .firstWhere((script) => script.uri.contains('main.dart'));
+    });
+
+    test('emits GET_SOURCE_REPORT events', () async {
+      expect(
+          context.testServer.dwds.events,
+          emitsInOrder([
+            predicate((DwdsEvent event) => event.type == 'GET_SOURCE_REPORT'),
+            predicate((DwdsEvent event) =>
+                event.type == 'DEBUGGER_READY' &&
+                event.payload['elapsedMilliseconds'] != null),
+          ]));
+      await service.getSourceReport(
+          isolateId, [SourceReportKind.kPossibleBreakpoints],
+          scriptId: mainScript.id);
+    });
+  });
+
+  group('getObject', () {
+    String isolateId;
+    ScriptList scripts;
+    ScriptRef mainScript;
+
+    setUp(() async {
+      setCurrentLogWriter();
+      var vm = await service.getVM();
+      isolateId = vm.isolates.first.id;
+      scripts = await service.getScripts(isolateId);
+
+      mainScript = scripts.scripts
+          .firstWhere((script) => script.uri.contains('main.dart'));
+    });
+
+    test('emits GET_OBJECT events', () async {
+      expect(
+          context.testServer.dwds.events,
+          emits(predicate((DwdsEvent event) =>
+              event.type == 'GET_OBJECT' &&
+              event.payload['type'] == 'Script')));
+      await service.getObject(isolateId, mainScript.id);
+    });
+  });
+
+  group('getSripts', () {
+    String isolateId;
+
+    setUp(() async {
+      setCurrentLogWriter();
+      var vm = await service.getVM();
+      isolateId = vm.isolates.first.id;
+    });
+
+    test('emits GET_SCRIPTS events', () async {
+      expect(context.testServer.dwds.events,
+          emits(predicate((DwdsEvent event) => event.type == 'GET_SCRIPTS')));
+      await service.getScripts(isolateId);
+    });
+  });
+
+  group('getIsolate', () {
+    String isolateId;
+
+    setUp(() async {
+      setCurrentLogWriter();
+      var vm = await service.getVM();
+      isolateId = vm.isolates.first.id;
+    });
+
+    test('emits GET_ISOLATE events', () async {
+      expect(context.testServer.dwds.events,
+          emits(predicate((DwdsEvent event) => event.type == 'GET_ISOLATE')));
+      await service.getIsolate(isolateId);
+    });
+  });
+
+  group('getVM', () {
+    setUp(() async {
+      setCurrentLogWriter();
+    });
+
+    test('emits GET_VM events', () async {
+      expect(context.testServer.dwds.events,
+          emits(predicate((DwdsEvent event) => event.type == 'GET_VM')));
+      await service.getVM();
     });
   });
 

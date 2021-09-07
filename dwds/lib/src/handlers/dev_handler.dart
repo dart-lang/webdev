@@ -209,6 +209,7 @@ class DevHandler {
       useSse: false,
       expressionCompiler: _expressionCompiler,
       spawnDds: _spawnDds,
+      dwdsStats: DwdsStats(DateTime.now()),
     );
   }
 
@@ -490,6 +491,7 @@ class DevHandler {
           useSse: _useSseForDebugProxy,
           expressionCompiler: _expressionCompiler,
           spawnDds: _spawnDds,
+          dwdsStats: DwdsStats(DateTime.now()),
         );
         var appServices =
             await _createAppDebugServices(devToolsRequest.appId, debugService);

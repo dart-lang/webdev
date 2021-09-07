@@ -6,6 +6,30 @@
 
 import 'dart:async';
 
+class DwdsStats {
+  final DateTime debuggerStart;
+  DateTime _debuggerReady;
+
+  DateTime get debuggerReady {
+    return _debuggerReady;
+  }
+
+  set debuggerReady(DateTime value) {
+    if (_debuggerReady != null) return;
+    _debuggerReady = value;
+  }
+
+  int get debuggerReadyElapsed {
+    if (_debuggerReady == null) {
+      throw StateError('debuggerReady is not set in DwdsStats');
+    }
+    return _debuggerReady.millisecondsSinceEpoch -
+        debuggerStart.millisecondsSinceEpoch;
+  }
+
+  DwdsStats(this.debuggerStart);
+}
+
 class DwdsEvent {
   final String type;
   final Map<String, dynamic> payload;

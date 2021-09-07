@@ -95,6 +95,8 @@ class ChromeProxyService implements VmServiceInterface {
   final ExpressionCompiler _compiler;
   ExpressionEvaluator _expressionEvaluator;
 
+  final DwdsStats _dwdsStats;
+
   bool terminatingIsolates = false;
 
   ChromeProxyService._(
@@ -107,6 +109,7 @@ class ChromeProxyService implements VmServiceInterface {
     this._skipLists,
     this.executionContext,
     this._compiler,
+    this._dwdsStats,
   ) {
     var debugger = Debugger.create(
       remoteDebugger,
@@ -126,7 +129,8 @@ class ChromeProxyService implements VmServiceInterface {
       LoadStrategy loadStrategy,
       AppConnection appConnection,
       ExecutionContext executionContext,
-      ExpressionCompiler expressionCompiler) async {
+      ExpressionCompiler expressionCompiler,
+      DwdsStats dwdsStats) async {
     final vm = VM(
       name: 'ChromeDebugProxy',
       operatingSystem: Platform.operatingSystem,
@@ -155,6 +159,7 @@ class ChromeProxyService implements VmServiceInterface {
       skipLists,
       executionContext,
       expressionCompiler,
+      dwdsStats,
     );
     unawaited(service.createIsolate(appConnection));
     return service;
@@ -423,40 +428,28 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     bool disableBreakpoints,
   }) async {
     // TODO(798) - respect disableBreakpoints.
-    var stopwatch = Stopwatch()..start();
-    dynamic error;
-
-    try {
+    return withEvent(() async {
       await isInitialized;
       if (_expressionEvaluator != null) {
         await isCompilerInitialized;
         _validateIsolateId(isolateId);
 
         var library = await _inspector?.getLibrary(isolateId, targetId);
-        var result = await _getEvaluationResult(
+        return await _getEvaluationResult(
             () => _expressionEvaluator.evaluateExpression(
                 isolateId, library.uri, expression, scope),
             expression);
-        if (result is ErrorRef) {
-          error = result;
-        }
-        return result;
       }
       // fall back to javascript evaluation
       var remote = await _inspector?.evaluate(isolateId, targetId, expression,
           scope: scope);
-      return _inspector?.instanceHelper?.instanceRefFor(remote);
-    } catch (e) {
-      error = e;
-      rethrow;
-    } finally {
-      emitEvent(DwdsEvent('EVALUATE', {
-        'expression': expression,
-        'success': error == null,
-        'exception': error,
-        'elapsedMilliseconds': stopwatch.elapsedMilliseconds,
-      }));
-    }
+      return await _inspector?.instanceHelper?.instanceRefFor(remote);
+    },
+        (result) => DwdsEvent('EVALUATE', {
+              'expression': expression,
+              'success': result != null && result is InstanceRef,
+              if (result is ErrorRef) 'error': result,
+            }));
   }
 
   @override
@@ -465,10 +458,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       {Map<String, String> scope, bool disableBreakpoints}) async {
     // TODO(798) - respect disableBreakpoints.
 
-    var stopwatch = Stopwatch()..start();
-    dynamic error;
-
-    try {
+    return withEvent(() async {
       await isInitialized;
       if (_expressionEvaluator != null) {
         await isCompilerInitialized;
@@ -484,29 +474,19 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
                   'for this configuration.');
         }
 
-        var result = await _getEvaluationResult(
+        return await _getEvaluationResult(
             () => _expressionEvaluator.evaluateExpressionInFrame(
                 isolateId, frameIndex, expression, scope),
             expression);
-
-        if (result is ErrorRef) {
-          error = result;
-        }
-        return result;
       }
       throw RPCError('evaluateInFrame', RPCError.kInvalidRequest,
           'Expression evaluation is not supported for this configuration.');
-    } catch (e) {
-      error = e;
-      rethrow;
-    } finally {
-      emitEvent(DwdsEvent('EVALUATE_IN_FRAME', {
-        'expression': expression,
-        'success': error == null,
-        'exception': error,
-        'elapsedMilliseconds': stopwatch.elapsedMilliseconds,
-      }));
-    }
+    },
+        (result) => DwdsEvent('EVALUATE_IN_FRAME', {
+              'expression': expression,
+              'success': result != null && result is InstanceRef,
+              if (result is ErrorRef) 'error': result,
+            }));
   }
 
   @override
@@ -545,8 +525,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Isolate> getIsolate(String isolateId) async {
-    await isInitialized;
-    return _getIsolate(isolateId);
+    return withEvent(() async {
+      await isInitialized;
+      return _getIsolate(isolateId);
+    }, (result) => DwdsEvent('GET_ISOLATE', {}));
   }
 
   @override
@@ -558,15 +540,19 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Obj> getObject(String isolateId, String objectId,
       {int offset, int count}) async {
-    await isInitialized;
-    return _inspector?.getObject(isolateId, objectId,
-        offset: offset, count: count);
+    return await withEvent(() async {
+      await isInitialized;
+      return await _inspector?.getObject(isolateId, objectId,
+          offset: offset, count: count);
+    }, (result) => DwdsEvent('GET_OBJECT', {'type': result.type}));
   }
 
   @override
   Future<ScriptList> getScripts(String isolateId) async {
-    await isInitialized;
-    return _inspector?.getScripts(isolateId);
+    return await withEvent(() async {
+      await isInitialized;
+      return await _inspector?.getScripts(isolateId);
+    }, (result) => DwdsEvent('GET_SCRIPTS', {}));
   }
 
   @override
@@ -576,13 +562,24 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       int endTokenPos,
       bool forceCompile,
       bool reportLines}) async {
-    await isInitialized;
-    return _inspector?.getSourceReport(isolateId, reports,
-        scriptId: scriptId,
-        tokenPos: tokenPos,
-        endTokenPos: endTokenPos,
-        forceCompile: forceCompile,
-        reportLines: reportLines);
+    var result = await withEvent(() async {
+      await isInitialized;
+      return await _inspector?.getSourceReport(isolateId, reports,
+          scriptId: scriptId,
+          tokenPos: tokenPos,
+          endTokenPos: endTokenPos,
+          forceCompile: forceCompile,
+          reportLines: reportLines);
+    }, (result) => DwdsEvent('GET_SOURCE_REPORT', {}));
+
+    if (_dwdsStats.debuggerReady == null) {
+      _dwdsStats.debuggerReady = DateTime.now();
+      emitEvent(DwdsEvent('DEBUGGER_READY', {
+        'elapsedMilliseconds': _dwdsStats.debuggerReadyElapsed,
+      }));
+    }
+
+    return result;
   }
 
   /// Returns the current stack.
@@ -598,8 +595,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<VM> getVM() async {
-    await isInitialized;
-    return _vm;
+    return withEvent(() async {
+      await isInitialized;
+      return _vm;
+    }, (result) => DwdsEvent('GET_VM', {}));
   }
 
   @override
@@ -1069,6 +1068,27 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Breakpoint> setBreakpointState(
           String isolateId, String breakpointId, bool enable) =>
       throw UnimplementedError();
+
+  Future<T> withEvent<T>(
+      Future<T> Function() function, DwdsEvent Function(T result) event) async {
+    var stopwatch = Stopwatch()..start();
+    T result;
+    try {
+      return result = await function();
+    } catch (e) {
+      emitEvent(event(result)
+        ..payload.addAll({
+          'exception': e,
+          'elapsedMilliseconds': stopwatch.elapsedMilliseconds,
+        }));
+      rethrow;
+    } finally {
+      emitEvent(event(result)
+        ..payload.addAll({
+          'elapsedMilliseconds': stopwatch.elapsedMilliseconds,
+        }));
+    }
+  }
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.

@@ -2,6 +2,8 @@
 
 - Update SDK constraint to `>=2.14.0 <3.0.0`
 - Depend on `vm_service` version `7.3.0`.
+- Add metrics for API on the critical path for DevTools IPL.
+- Add metrics for total DevTools IPL.
 
 ## 11.2.3
 
