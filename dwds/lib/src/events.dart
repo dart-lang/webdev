@@ -7,19 +7,21 @@
 import 'dart:async';
 
 class DwdsStats {
+  /// Timestamp for the point when the user starts the debugger
+  /// by either clicking the debugger extension button or
+  /// starting debugging in the UI.
   final DateTime debuggerStart;
+
+  /// Timestamp for the point when the debugger becomes
+  /// available and fuctional for the user.
   DateTime _debuggerReady;
-
-  DateTime get debuggerReady {
-    return _debuggerReady;
-  }
-
-  set debuggerReady(DateTime value) {
-    if (_debuggerReady != null) return;
-    _debuggerReady = value;
-  }
+  DateTime get debuggerReady => _debuggerReady;
+  set debuggerReady(DateTime value) => _debuggerReady ??= value;
 
   int get debuggerReadyElapsed {
+    if (debuggerStart == null) {
+      throw StateError('debuggerStart is not set in DwdsStats');
+    }
     if (_debuggerReady == null) {
       throw StateError('debuggerReady is not set in DwdsStats');
     }

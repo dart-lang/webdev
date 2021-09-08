@@ -428,7 +428,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     bool disableBreakpoints,
   }) async {
     // TODO(798) - respect disableBreakpoints.
-    return withEvent(() async {
+    return _withEvent(() async {
       await isInitialized;
       if (_expressionEvaluator != null) {
         await isCompilerInitialized;
@@ -448,7 +448,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         (result) => DwdsEvent('EVALUATE', {
               'expression': expression,
               'success': result != null && result is InstanceRef,
-              if (result is ErrorRef) 'error': result,
+              if (result != null && result is ErrorRef) 'error': result,
             }));
   }
 
@@ -458,7 +458,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       {Map<String, String> scope, bool disableBreakpoints}) async {
     // TODO(798) - respect disableBreakpoints.
 
-    return withEvent(() async {
+    return _withEvent(() async {
       await isInitialized;
       if (_expressionEvaluator != null) {
         await isCompilerInitialized;
@@ -485,7 +485,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         (result) => DwdsEvent('EVALUATE_IN_FRAME', {
               'expression': expression,
               'success': result != null && result is InstanceRef,
-              if (result is ErrorRef) 'error': result,
+              if (result != null && result is ErrorRef) 'error': result,
             }));
   }
 
@@ -525,7 +525,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Isolate> getIsolate(String isolateId) async {
-    return withEvent(() async {
+    return _withEvent(() async {
       await isInitialized;
       return _getIsolate(isolateId);
     }, (result) => DwdsEvent('GET_ISOLATE', {}));
@@ -540,16 +540,19 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Obj> getObject(String isolateId, String objectId,
       {int offset, int count}) async {
-    return await withEvent(() async {
+    return await _withEvent(() async {
       await isInitialized;
       return await _inspector?.getObject(isolateId, objectId,
           offset: offset, count: count);
-    }, (result) => DwdsEvent('GET_OBJECT', {'type': result.type}));
+    },
+        (result) => DwdsEvent('GET_OBJECT', {
+              if (result != null) 'type': result.type,
+            }));
   }
 
   @override
   Future<ScriptList> getScripts(String isolateId) async {
-    return await withEvent(() async {
+    return await _withEvent(() async {
       await isInitialized;
       return await _inspector?.getScripts(isolateId);
     }, (result) => DwdsEvent('GET_SCRIPTS', {}));
@@ -562,7 +565,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       int endTokenPos,
       bool forceCompile,
       bool reportLines}) async {
-    var result = await withEvent(() async {
+    var result = await _withEvent(() async {
       await isInitialized;
       return await _inspector?.getSourceReport(isolateId, reports,
           scriptId: scriptId,
@@ -595,7 +598,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<VM> getVM() async {
-    return withEvent(() async {
+    return _withEvent(() async {
       await isInitialized;
       return _vm;
     }, (result) => DwdsEvent('GET_VM', {}));
@@ -1069,7 +1072,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           String isolateId, String breakpointId, bool enable) =>
       throw UnimplementedError();
 
-  Future<T> withEvent<T>(
+  /// Call [function] and record its execution time.
+  ///
+  /// Calls [event] to create the event to be recorded,
+  /// and appends time and exception details to it if
+  /// available.
+  Future<T> _withEvent<T>(
       Future<T> Function() function, DwdsEvent Function(T result) event) async {
     var stopwatch = Stopwatch()..start();
     T result;
