@@ -540,14 +540,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Obj> getObject(String isolateId, String objectId,
       {int offset, int count}) async {
-    return await _withEvent(() async {
-      await isInitialized;
-      return await _inspector?.getObject(isolateId, objectId,
-          offset: offset, count: count);
-    },
-        (result) => DwdsEvent('GET_OBJECT', {
-              if (result != null) 'type': result.type,
-            }));
+    await isInitialized;
+    return _inspector?.getObject(isolateId, objectId,
+        offset: offset, count: count);
   }
 
   @override

@@ -33,12 +33,19 @@ void main() {
     );
   });
 
+  tearDownAll(() async {
+    await context.tearDown();
+  });
+
   test('emits DEVTOOLS_LAUNCH event', () async {
     // The events stream is a broadcast stream so start listening before the
     // action.
-    expect(context.testServer.dwds.events,
-        emits(predicate((DwdsEvent event) => event.type == 'DEVTOOLS_LAUNCH')));
+    var events = expectLater(
+        context.testServer.dwds.events,
+        emitsThrough(
+            predicate((DwdsEvent event) => event.type == 'DEVTOOLS_LAUNCH')));
     await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
+    await events;
   });
 
   test('events can be listened to multiple times', () async {
@@ -62,9 +69,9 @@ void main() {
     });
 
     test('can emit event through service extension', () async {
-      expect(
+      var events = expectLater(
           context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) =>
+          emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'foo-event' && event.payload['data'] == 1234)));
 
       var response = await context.debugConnection.vmService
@@ -73,11 +80,12 @@ void main() {
         'payload': {'data': 1234},
       });
       expect(response.type, 'Success');
+      await events;
     });
 
     test('emits EVALUATE events on evaluation success', () async {
       var expression = "helloString('world')";
-      expect(
+      var events = expectLater(
           context.testServer.dwds.events,
           emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE' &&
@@ -90,11 +98,12 @@ void main() {
         bootstrap.id,
         expression,
       );
+      await events;
     });
 
     test('emits EVALUATE events on evaluation failure', () async {
       var expression = 'some-bad-expression';
-      expect(
+      var events = expectLater(
           context.testServer.dwds.events,
           emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE' &&
@@ -107,6 +116,7 @@ void main() {
         bootstrap.id,
         expression,
       );
+      await events;
     });
   });
 
@@ -133,9 +143,9 @@ void main() {
     });
 
     test('emits EVALUATE_IN_FRAME events on RPC error', () async {
-      expect(
+      var events = expectLater(
           context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) =>
+          emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE_IN_FRAME' &&
               event.payload['success'] == false &&
               event.payload['error'] == null &&
@@ -150,6 +160,7 @@ void main() {
           'some-bad-expression',
         );
       } catch (_) {}
+      await events;
     });
 
     test('emits EVALUATE_IN_FRAME events on evaluation error', () async {
@@ -162,7 +173,7 @@ void main() {
 
       // Evaluation succeeds and return ErrorRef containing compilation error,
       // so event is marked as success.
-      expect(
+      var events = expectLater(
           context.testServer.dwds.events,
           emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE_IN_FRAME' &&
@@ -177,6 +188,7 @@ void main() {
         );
       } catch (_) {
       } finally {
+        await events;
         await service.removeBreakpoint(isolateId, bp.id);
         await service.resume(isolateId);
       }
@@ -192,7 +204,7 @@ void main() {
 
       // Evaluation succeeds and return InstanceRef,
       // so event is marked as success.
-      expect(
+      var events = expectLater(
           context.testServer.dwds.events,
           emitsThrough(predicate((DwdsEvent event) =>
               event.type == 'EVALUATE_IN_FRAME' &&
@@ -207,6 +219,7 @@ void main() {
         );
       } catch (_) {
       } finally {
+        await events;
         await service.removeBreakpoint(isolateId, bp.id);
         await service.resume(isolateId);
       }
@@ -229,7 +242,7 @@ void main() {
     });
 
     test('emits GET_SOURCE_REPORT events', () async {
-      expect(
+      var events = expectLater(
           context.testServer.dwds.events,
           emitsInOrder([
             predicate((DwdsEvent event) => event.type == 'GET_SOURCE_REPORT'),
@@ -240,31 +253,7 @@ void main() {
       await service.getSourceReport(
           isolateId, [SourceReportKind.kPossibleBreakpoints],
           scriptId: mainScript.id);
-    });
-  });
-
-  group('getObject', () {
-    String isolateId;
-    ScriptList scripts;
-    ScriptRef mainScript;
-
-    setUp(() async {
-      setCurrentLogWriter();
-      var vm = await service.getVM();
-      isolateId = vm.isolates.first.id;
-      scripts = await service.getScripts(isolateId);
-
-      mainScript = scripts.scripts
-          .firstWhere((script) => script.uri.contains('main.dart'));
-    });
-
-    test('emits GET_OBJECT events', () async {
-      expect(
-          context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) =>
-              event.type == 'GET_OBJECT' &&
-              event.payload['type'] == 'Script')));
-      await service.getObject(isolateId, mainScript.id);
+      await events;
     });
   });
 
@@ -278,9 +267,12 @@ void main() {
     });
 
     test('emits GET_SCRIPTS events', () async {
-      expect(context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) => event.type == 'GET_SCRIPTS')));
+      var events = expectLater(
+          context.testServer.dwds.events,
+          emitsThrough(
+              predicate((DwdsEvent event) => event.type == 'GET_SCRIPTS')));
       await service.getScripts(isolateId);
+      await events;
     });
   });
 
@@ -294,9 +286,12 @@ void main() {
     });
 
     test('emits GET_ISOLATE events', () async {
-      expect(context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) => event.type == 'GET_ISOLATE')));
+      var events = expectLater(
+          context.testServer.dwds.events,
+          emitsThrough(
+              predicate((DwdsEvent event) => event.type == 'GET_ISOLATE')));
       await service.getIsolate(isolateId);
+      await events;
     });
   });
 
@@ -306,9 +301,10 @@ void main() {
     });
 
     test('emits GET_VM events', () async {
-      expect(context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) => event.type == 'GET_VM')));
+      var events = expectLater(context.testServer.dwds.events,
+          emitsThrough(predicate((DwdsEvent event) => event.type == 'GET_VM')));
       await service.getVM();
+      await events;
     });
   });
 
@@ -342,9 +338,10 @@ void main() {
     });
 
     test('emits RESUME events', () async {
-      expect(context.testServer.dwds.events,
-          emits(predicate((DwdsEvent event) => event.type == 'RESUME')));
+      var events = expectLater(context.testServer.dwds.events,
+          emitsThrough(predicate((DwdsEvent event) => event.type == 'RESUME')));
       await service.resume(isolateId, step: 'Into');
+      await events;
     });
   });
 }
