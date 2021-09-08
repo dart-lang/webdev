@@ -25,8 +25,14 @@ WipConnection get tabConnection => context.tabConnection;
 final context = TestContext();
 
 void main() {
+  Future initialEvents;
+
   setUpAll(() async {
     setCurrentLogWriter();
+    initialEvents = expectLater(
+        eventStream,
+        emitsThrough(predicate((DwdsEvent event) =>
+            event.type == 'COMPILER_UPDATE_DEPENDENCIES')));
     await context.setUp(
       serveDevTools: true,
       enableExpressionEvaluation: true,
@@ -99,6 +105,10 @@ void main() {
         expression,
       );
       await events;
+    });
+
+    test('emits COMPILER_UPDATE_DEPENDENCIES event', () async {
+      await initialEvents;
     });
 
     test('emits EVALUATE events on evaluation failure', () async {

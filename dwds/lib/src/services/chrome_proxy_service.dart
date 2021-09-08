@@ -188,14 +188,16 @@ class ChromeProxyService implements VmServiceInterface {
           moduleFormat: moduleFormat, soundNullSafety: soundNullSafety);
       var dependencies =
           await globalLoadStrategy.moduleInfoForEntrypoint(entrypoint);
-      var stopwatch = Stopwatch()..start();
-      await _compiler.updateDependencies(dependencies);
-      // Expression evaluation is ready after dependencies are updated.
-      if (!_compilerCompleter.isCompleted) _compilerCompleter.complete();
-      emitEvent(DwdsEvent('COMPILER_UPDATE_DEPENDENCIES', {
-        'entrypoint': entrypoint,
-        'elapsedMilliseconds': stopwatch.elapsedMilliseconds,
-      }));
+      await _withEvent(() async {
+        var result = await _compiler.updateDependencies(dependencies);
+        // Expression evaluation is ready after dependencies are updated.
+        if (!_compilerCompleter.isCompleted) _compilerCompleter.complete();
+        return result;
+      },
+          (result) => DwdsEvent('COMPILER_UPDATE_DEPENDENCIES', {
+                'entrypoint': entrypoint,
+                if (result != null) 'result': result,
+              }));
     }
   }
 
@@ -715,15 +717,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       {String step, int frameIndex}) async {
     if (_inspector == null) throw StateError('No running isolate.');
     if (_inspector.appConnection.isStarted) {
-      var stopwatch = Stopwatch()..start();
-      await isInitialized;
-      var result = await (await _debugger)
-          .resume(isolateId, step: step, frameIndex: frameIndex);
-      emitEvent(DwdsEvent('RESUME', {
-        'step': step,
-        'elapsedMilliseconds': stopwatch.elapsedMilliseconds,
-      }));
-      return result;
+      return _withEvent(() async {
+        await isInitialized;
+        return await (await _debugger)
+            .resume(isolateId, step: step, frameIndex: frameIndex);
+      }, (result) => DwdsEvent('RESUME', {'step': step}));
     } else {
       _inspector.appConnection.runMain();
       return Success();
