@@ -575,10 +575,15 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           reportLines: reportLines);
     }, (result) => DwdsEvent('GET_SOURCE_REPORT', {}));
 
-    if (_dwdsStats.debuggerReady == null) {
-      _dwdsStats.debuggerReady = DateTime.now();
+    // This metric is an approximation of the "debugger is ready"
+    // time when using devtools. It currently has flaws:
+    // - it does not make sense for other debugger uses
+    // - is also can be invalidated later.
+    // Issue: https://github.com/dart-lang/webdev/issues/1406
+    if (_dwdsStats.isFirstDebuggerReady()) {
       emitEvent(DwdsEvent('DEBUGGER_READY', {
-        'elapsedMilliseconds': _dwdsStats.debuggerReadyElapsed,
+        'elapsedMilliseconds':
+            DateTime.now().difference(_dwdsStats.debuggerStart).inMilliseconds,
       }));
     }
 
