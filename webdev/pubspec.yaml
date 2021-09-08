@@ -1,6 +1,6 @@
 name: webdev
 # Every time this changes you need to run `pub run build_runner build`.
-version: 2.7.5
+version: 2.7.6-dev
 # We should not depend on a dev SDK before publishing.
 # publish_to: none
 homepage: https://github.com/dart-lang/webdev
@@ -9,7 +9,7 @@ description: >-
   features for users and tools to build and deploy web applications with Dart.
 
 environment:
-  sdk: ">=2.13.0 <3.0.0"
+  sdk: ">=2.14.0 <3.0.0"
 
 dependencies:
   args: ^2.0.0
@@ -49,6 +49,10 @@ dev_dependencies:
   test_descriptor: ^2.0.0
   test_process: ^2.0.2
   webdriver: ^3.0.0
+
+dependency_overrides:
+  dwds:
+    path: ../dwds
 
 executables:
   webdev:
