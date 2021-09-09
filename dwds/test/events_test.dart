@@ -88,9 +88,7 @@ void main() {
     await events;
   });
 
-  test(
-      'can receive DevtoolsReady event and emit DEBUGGER_READY '
-      'event through service extension', () async {
+  test('can receive DevtoolsEvent and emit DEBUGGER_READY event', () async {
     var events = expectLater(
         context.testServer.dwds.events,
         emitsThrough(predicate((DwdsEvent event) =>
@@ -99,8 +97,8 @@ void main() {
 
     var response = await context.debugConnection.vmService
         .callServiceExtension('ext.dwds.sendEvent', args: {
-      'type': 'DevtoolsReady',
-      'payload': {},
+      'type': 'DevtoolsEvent',
+      'payload': {'screen': 'debugger'},
     });
     expect(response.type, 'Success');
     await events;

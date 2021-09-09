@@ -157,12 +157,16 @@ class DwdsVmClient {
 
     client.registerServiceCallback('ext.dwds.sendEvent', (event) async {
       var type = event['type'] as String;
+      var payload = event['payload'] as Map<String, dynamic>;
       switch (type) {
-        case 'DevtoolsReady':
+        case 'DevtoolsEvent':
           {
-            emitEvent(DwdsEvent.debuggerReady(DateTime.now()
-                .difference(dwdsStats.debuggerStart)
-                .inMilliseconds));
+            var screen = payload == null ? null : payload['screen'];
+            if (screen == 'debugger' && dwdsStats.isFirstDebuggerReady()) {
+              emitEvent(DwdsEvent.debuggerReady(DateTime.now()
+                  .difference(dwdsStats.debuggerStart)
+                  .inMilliseconds));
+            }
           }
       }
       return {'result': Success().toJson()};
