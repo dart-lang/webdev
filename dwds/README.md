@@ -9,6 +9,6 @@ with the native Dart VM to also work with Dart Web applications compiled with
 
 At a basic level, DWDS proxies between:
 * Developer tools that are written against the
-  [Dart VM Service Protocol](https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md)
+  [Dart VM Service Protocol](https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md)
 * Execution environments that expose the
   [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol)
