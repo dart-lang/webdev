@@ -1,6 +1,7 @@
-## 11.3.0-dev
+## 11.3.0
 
 - Update SDK constraint to `>=2.14.0 <3.0.0`
+- Depend on `vm_service` version `7.3.0`.
 
 ## 11.2.3
 
@@ -12,7 +13,7 @@
 ## 11.2.2
 
 - Depend on `dds` version `2.1.1`.
-- Depend on `vm_service` vesrion `7.2.0`.
+- Depend on `vm_service` version `7.2.0`.
 
 ## 11.2.1
 
