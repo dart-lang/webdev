@@ -98,7 +98,7 @@ void main() {
     var response = await context.debugConnection.vmService
         .callServiceExtension('ext.dwds.sendEvent', args: {
       'type': 'DevtoolsEvent',
-      'payload': {'screen': 'debugger'},
+      'payload': {'screen': 'debugger', 'action': 'screenReady'},
     });
     expect(response.type, 'Success');
     await events;

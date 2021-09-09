@@ -156,19 +156,7 @@ class DwdsVmClient {
     await client.registerService('ext.dwds.screenshot', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.sendEvent', (event) async {
-      var type = event['type'] as String;
-      var payload = event['payload'] as Map<String, dynamic>;
-      switch (type) {
-        case 'DevtoolsEvent':
-          {
-            var screen = payload == null ? null : payload['screen'];
-            if (screen == 'debugger' && dwdsStats.isFirstDebuggerReady()) {
-              emitEvent(DwdsEvent.debuggerReady(DateTime.now()
-                  .difference(dwdsStats.debuggerStart)
-                  .inMilliseconds));
-            }
-          }
-      }
+      _processSendEvent(event, chromeProxyService, dwdsStats);
       return {'result': Success().toJson()};
     });
     await client.registerService('ext.dwds.sendEvent', 'DWDS');
@@ -203,6 +191,28 @@ class DwdsVmClient {
     await client.registerService('_yieldControlToDDS', 'DWDS');
 
     return DwdsVmClient(client, requestController, responseController);
+  }
+}
+
+void _processSendEvent(Map<String, dynamic> event,
+    ChromeProxyService chromeProxyService, DwdsStats dwdsStats) {
+  var type = event['type'] as String;
+  var payload = event['payload'] as Map<String, dynamic>;
+  switch (type) {
+    case 'DevtoolsEvent':
+      {
+        var screen = payload == null ? null : payload['screen'];
+        var action = payload == null ? null : payload['action'];
+        if (screen == 'debugger' &&
+            action == 'screenReady' &&
+            dwdsStats.isFirstDebuggerReady()) {
+          emitEvent(DwdsEvent.debuggerReady(DateTime.now()
+              .difference(dwdsStats.debuggerStart)
+              .inMilliseconds));
+        } else {
+          _logger.warning('Ignoring unknown event: $event');
+        }
+      }
   }
 }
 
