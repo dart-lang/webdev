@@ -518,7 +518,7 @@ class DevHandler {
     // TODO(grouma) - We may want to log the debugServiceUri if we don't launch
     // DevTools so that users can manually connect.
     if (!_serveDevTools) return;
-    emitEvent(DwdsEvent('DEVTOOLS_LAUNCH', {}));
+    emitEvent(DwdsEvent.devtoolsLaunch());
     await remoteDebugger.sendCommand('Target.createTarget', params: {
       'newWindow': true,
       'url': Uri(

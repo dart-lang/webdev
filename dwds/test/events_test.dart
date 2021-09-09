@@ -32,7 +32,8 @@ void main() {
     initialEvents = expectLater(
         eventStream,
         emitsThrough(predicate((DwdsEvent event) =>
-            event.type == 'COMPILER_UPDATE_DEPENDENCIES')));
+            event.type == DwdsEventKind.compilerUpdateDependencies &&
+            event.payload['elapsedMilliseconds'] != null)));
     await context.setUp(
       serveDevTools: true,
       enableExpressionEvaluation: true,
@@ -48,8 +49,8 @@ void main() {
     // action.
     var events = expectLater(
         context.testServer.dwds.events,
-        emitsThrough(
-            predicate((DwdsEvent event) => event.type == 'DEVTOOLS_LAUNCH')));
+        emitsThrough(predicate(
+            (DwdsEvent event) => event.type == DwdsEventKind.devtoolsLaunch)));
     await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
     await events;
   });
@@ -94,11 +95,12 @@ void main() {
       var events = expectLater(
           context.testServer.dwds.events,
           emitsThrough(predicate((DwdsEvent event) =>
-              event.type == 'EVALUATE' &&
+              event.type == DwdsEventKind.evaluate &&
               event.payload['expression'] == expression &&
               event.payload['success'] == true &&
               event.payload['error'] == null &&
-              event.payload['exception'] == null)));
+              event.payload['exception'] == null &&
+              event.payload['elapsedMilliseconds'] != null)));
       await service.evaluate(
         isolate.id,
         bootstrap.id,
@@ -116,11 +118,12 @@ void main() {
       var events = expectLater(
           context.testServer.dwds.events,
           emitsThrough(predicate((DwdsEvent event) =>
-              event.type == 'EVALUATE' &&
+              event.type == DwdsEventKind.evaluate &&
               event.payload['expression'] == expression &&
               event.payload['success'] == false &&
               event.payload['error'] is ErrorRef &&
-              event.payload['exception'] == null)));
+              event.payload['exception'] == null &&
+              event.payload['elapsedMilliseconds'] != null)));
       await service.evaluate(
         isolate.id,
         bootstrap.id,
@@ -156,9 +159,10 @@ void main() {
       var events = expectLater(
           context.testServer.dwds.events,
           emitsThrough(predicate((DwdsEvent event) =>
-              event.type == 'EVALUATE_IN_FRAME' &&
+              event.type == DwdsEventKind.evaluateInFrame &&
               event.payload['success'] == false &&
               event.payload['error'] == null &&
+              event.payload['elapsedMilliseconds'] != null &&
               event.payload['exception'] is RPCError &&
               (event.payload['exception'] as RPCError)
                   .message
@@ -186,10 +190,11 @@ void main() {
       var events = expectLater(
           context.testServer.dwds.events,
           emitsThrough(predicate((DwdsEvent event) =>
-              event.type == 'EVALUATE_IN_FRAME' &&
+              event.type == DwdsEventKind.evaluateInFrame &&
               event.payload['success'] == false &&
               event.payload['error'] is ErrorRef &&
-              event.payload['exception'] == null)));
+              event.payload['exception'] == null &&
+              event.payload['elapsedMilliseconds'] != null)));
       try {
         await service.evaluateInFrame(
           isolateId,
@@ -217,10 +222,11 @@ void main() {
       var events = expectLater(
           context.testServer.dwds.events,
           emitsThrough(predicate((DwdsEvent event) =>
-              event.type == 'EVALUATE_IN_FRAME' &&
+              event.type == DwdsEventKind.evaluateInFrame &&
               event.payload['success'] == true &&
               event.payload['error'] == null &&
-              event.payload['exception'] == null)));
+              event.payload['exception'] == null &&
+              event.payload['elapsedMilliseconds'] != null)));
       try {
         await service.evaluateInFrame(
           isolateId,
@@ -255,9 +261,11 @@ void main() {
       var events = expectLater(
           context.testServer.dwds.events,
           emitsInOrder([
-            predicate((DwdsEvent event) => event.type == 'GET_SOURCE_REPORT'),
             predicate((DwdsEvent event) =>
-                event.type == 'DEBUGGER_READY' &&
+                event.type == DwdsEventKind.getSourceReport &&
+                event.payload['elapsedMilliseconds'] != null),
+            predicate((DwdsEvent event) =>
+                event.type == DwdsEventKind.debuggerReady &&
                 event.payload['elapsedMilliseconds'] != null),
           ]));
       await service.getSourceReport(
@@ -279,8 +287,9 @@ void main() {
     test('emits GET_SCRIPTS events', () async {
       var events = expectLater(
           context.testServer.dwds.events,
-          emitsThrough(
-              predicate((DwdsEvent event) => event.type == 'GET_SCRIPTS')));
+          emitsThrough(predicate((DwdsEvent event) =>
+              event.type == DwdsEventKind.getScripts &&
+              event.payload['elapsedMilliseconds'] != null)));
       await service.getScripts(isolateId);
       await events;
     });
@@ -298,8 +307,9 @@ void main() {
     test('emits GET_ISOLATE events', () async {
       var events = expectLater(
           context.testServer.dwds.events,
-          emitsThrough(
-              predicate((DwdsEvent event) => event.type == 'GET_ISOLATE')));
+          emitsThrough(predicate((DwdsEvent event) =>
+              event.type == DwdsEventKind.getIsolate &&
+              event.payload['elapsedMilliseconds'] != null)));
       await service.getIsolate(isolateId);
       await events;
     });
@@ -311,8 +321,11 @@ void main() {
     });
 
     test('emits GET_VM events', () async {
-      var events = expectLater(context.testServer.dwds.events,
-          emitsThrough(predicate((DwdsEvent event) => event.type == 'GET_VM')));
+      var events = expectLater(
+          context.testServer.dwds.events,
+          emitsThrough(predicate((DwdsEvent event) =>
+              event.type == DwdsEventKind.getVM &&
+              event.payload['elapsedMilliseconds'] != null)));
       await service.getVM();
       await events;
     });
@@ -348,8 +361,11 @@ void main() {
     });
 
     test('emits RESUME events', () async {
-      var events = expectLater(context.testServer.dwds.events,
-          emitsThrough(predicate((DwdsEvent event) => event.type == 'RESUME')));
+      var events = expectLater(
+          context.testServer.dwds.events,
+          emitsThrough(predicate((DwdsEvent event) =>
+              event.type == DwdsEventKind.resume &&
+              event.payload['elapsedMilliseconds'] != null)));
       await service.resume(isolateId, step: 'Into');
       await events;
     });
