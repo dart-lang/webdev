@@ -23,7 +23,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../dwds.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
-import '../events.dart';
 import '../utilities/shared.dart';
 import 'chrome_proxy_service.dart';
 
@@ -214,8 +213,7 @@ class DebugService {
       void Function(Map<String, dynamic>) onResponse,
       bool spawnDds = true,
       bool useSse,
-      ExpressionCompiler expressionCompiler,
-      DwdsStats dwdsStats}) async {
+      ExpressionCompiler expressionCompiler}) async {
     useSse ??= false;
     var chromeProxyService = await ChromeProxyService.create(
         remoteDebugger,
@@ -224,8 +222,7 @@ class DebugService {
         loadStrategy,
         appConnection,
         executionContext,
-        expressionCompiler,
-        dwdsStats);
+        expressionCompiler);
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;

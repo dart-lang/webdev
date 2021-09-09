@@ -55,9 +55,55 @@ void main() {
     await events;
   });
 
+  test('emits DEBUGGER_READY event', () async {
+    // The events stream is a broadcast stream so start listening before the
+    // action.
+    var events = expectLater(
+        context.testServer.dwds.events,
+        emitsThrough(predicate(
+            (DwdsEvent event) => event.type == DwdsEventKind.debuggerReady)));
+    await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
+    await events;
+  },
+      skip:
+          'https://github.com/dart-lang/webdev/issues/1406'); // Not implemented yet.
+
   test('events can be listened to multiple times', () async {
     context.testServer.dwds.events.listen((_) {});
     context.testServer.dwds.events.listen((_) {});
+  });
+
+  test('can emit event through service extension', () async {
+    var events = expectLater(
+        context.testServer.dwds.events,
+        emitsThrough(predicate((DwdsEvent event) =>
+            event.type == 'foo-event' && event.payload['data'] == 1234)));
+
+    var response = await context.debugConnection.vmService
+        .callServiceExtension('ext.dwds.emitEvent', args: {
+      'type': 'foo-event',
+      'payload': {'data': 1234},
+    });
+    expect(response.type, 'Success');
+    await events;
+  });
+
+  test(
+      'can receive DevtoolsReady event and emit DEBUGGER_READY '
+      'event through service extension', () async {
+    var events = expectLater(
+        context.testServer.dwds.events,
+        emitsThrough(predicate((DwdsEvent event) =>
+            event.type == DwdsEventKind.debuggerReady &&
+            event.payload['elapsedMilliseconds'] != null)));
+
+    var response = await context.debugConnection.vmService
+        .callServiceExtension('ext.dwds.sendEvent', args: {
+      'type': 'DevtoolsReady',
+      'payload': {},
+    });
+    expect(response.type, 'Success');
+    await events;
   });
 
   group('evaluate', () {
@@ -73,21 +119,6 @@ void main() {
 
     setUp(() async {
       setCurrentLogWriter();
-    });
-
-    test('can emit event through service extension', () async {
-      var events = expectLater(
-          context.testServer.dwds.events,
-          emitsThrough(predicate((DwdsEvent event) =>
-              event.type == 'foo-event' && event.payload['data'] == 1234)));
-
-      var response = await context.debugConnection.vmService
-          .callServiceExtension('ext.dwds.emitEvent', args: {
-        'type': 'foo-event',
-        'payload': {'data': 1234},
-      });
-      expect(response.type, 'Success');
-      await events;
     });
 
     test('emits EVALUATE events on evaluation success', () async {
@@ -260,14 +291,11 @@ void main() {
     test('emits GET_SOURCE_REPORT events', () async {
       var events = expectLater(
           context.testServer.dwds.events,
-          emitsInOrder([
+          emitsThrough(
             predicate((DwdsEvent event) =>
                 event.type == DwdsEventKind.getSourceReport &&
                 event.payload['elapsedMilliseconds'] != null),
-            predicate((DwdsEvent event) =>
-                event.type == DwdsEventKind.debuggerReady &&
-                event.payload['elapsedMilliseconds'] != null),
-          ]));
+          ));
       await service.getSourceReport(
           isolateId, [SourceReportKind.kPossibleBreakpoints],
           scriptId: mainScript.id);

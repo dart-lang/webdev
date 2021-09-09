@@ -95,8 +95,6 @@ class ChromeProxyService implements VmServiceInterface {
   final ExpressionCompiler _compiler;
   ExpressionEvaluator _expressionEvaluator;
 
-  final DwdsStats _dwdsStats;
-
   bool terminatingIsolates = false;
 
   ChromeProxyService._(
@@ -109,7 +107,6 @@ class ChromeProxyService implements VmServiceInterface {
     this._skipLists,
     this.executionContext,
     this._compiler,
-    this._dwdsStats,
   ) {
     var debugger = Debugger.create(
       remoteDebugger,
@@ -123,14 +120,14 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   static Future<ChromeProxyService> create(
-      RemoteDebugger remoteDebugger,
-      String tabUrl,
-      AssetReader assetReader,
-      LoadStrategy loadStrategy,
-      AppConnection appConnection,
-      ExecutionContext executionContext,
-      ExpressionCompiler expressionCompiler,
-      DwdsStats dwdsStats) async {
+    RemoteDebugger remoteDebugger,
+    String tabUrl,
+    AssetReader assetReader,
+    LoadStrategy loadStrategy,
+    AppConnection appConnection,
+    ExecutionContext executionContext,
+    ExpressionCompiler expressionCompiler,
+  ) async {
     final vm = VM(
       name: 'ChromeDebugProxy',
       operatingSystem: Platform.operatingSystem,
@@ -159,7 +156,6 @@ class ChromeProxyService implements VmServiceInterface {
       skipLists,
       executionContext,
       expressionCompiler,
-      dwdsStats,
     );
     unawaited(service.createIsolate(appConnection));
     return service;
@@ -548,7 +544,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       int endTokenPos,
       bool forceCompile,
       bool reportLines}) async {
-    var result = await _captureElapsedTime(() async {
+    return await _captureElapsedTime(() async {
       await isInitialized;
       return await _inspector?.getSourceReport(isolateId, reports,
           scriptId: scriptId,
@@ -557,18 +553,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           forceCompile: forceCompile,
           reportLines: reportLines);
     }, (result) => DwdsEvent.getSourceReport());
-
-    // This metric is an approximation of the "debugger is ready"
-    // time when using devtools. It currently has flaws:
-    // - it does not make sense for other debugger uses
-    // - is also can be invalidated later.
-    // Issue: https://github.com/dart-lang/webdev/issues/1406
-    if (_dwdsStats.isFirstDebuggerReady()) {
-      emitEvent(DwdsEvent.debuggerReady(
-          DateTime.now().difference(_dwdsStats.debuggerStart).inMilliseconds));
-    }
-
-    return result;
   }
 
   /// Returns the current stack.

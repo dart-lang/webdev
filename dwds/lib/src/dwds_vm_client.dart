@@ -40,7 +40,8 @@ class DwdsVmClient {
         await client.dispose();
       }();
 
-  static Future<DwdsVmClient> create(DebugService debugService) async {
+  static Future<DwdsVmClient> create(
+      DebugService debugService, DwdsStats dwdsStats) async {
     // Set up hot restart as an extension.
     var requestController = StreamController<Map<String, Object>>();
     var responseController = StreamController<Map<String, Object>>();
@@ -153,6 +154,20 @@ class DwdsVmClient {
       return {'result': response.result};
     });
     await client.registerService('ext.dwds.screenshot', 'DWDS');
+
+    client.registerServiceCallback('ext.dwds.sendEvent', (event) async {
+      var type = event['type'] as String;
+      switch (type) {
+        case 'DevtoolsReady':
+          {
+            emitEvent(DwdsEvent.debuggerReady(DateTime.now()
+                .difference(dwdsStats.debuggerStart)
+                .inMilliseconds));
+          }
+      }
+      return {'result': Success().toJson()};
+    });
+    await client.registerService('ext.dwds.sendEvent', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.emitEvent', (event) async {
       emitEvent(DwdsEvent(
