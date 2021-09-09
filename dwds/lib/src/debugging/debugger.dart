@@ -101,7 +101,7 @@ class Debugger extends Domain {
   /// Resumes the debugger.
   ///
   /// Step parameter options:
-  /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#resume
+  /// https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#resume
   ///
   /// If the step parameter is not provided, the program will resume regular
   /// execution.
