@@ -112,7 +112,7 @@ class Locations {
 
   /// `tokenPosTable` for Dart server path, as defined in the
   /// Dart VM Service Protocol:
-  /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#script
+  /// https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#script
   final Map<String, List<List<int>>> _sourceToTokenPosTable = {};
 
   /// The set of all known [Location]s for a module.
@@ -170,7 +170,7 @@ class Locations {
 
   /// Returns the tokenPosTable for the provided Dart script path as defined
   /// in:
-  /// https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#script
+  /// https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#script
   Future<List<List<int>>> tokenPosTableFor(String serverPath) async {
     var tokenPosTable = _sourceToTokenPosTable[serverPath];
     if (tokenPosTable != null) return tokenPosTable;
