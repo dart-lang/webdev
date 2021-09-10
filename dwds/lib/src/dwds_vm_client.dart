@@ -40,7 +40,8 @@ class DwdsVmClient {
         await client.dispose();
       }();
 
-  static Future<DwdsVmClient> create(DebugService debugService) async {
+  static Future<DwdsVmClient> create(
+      DebugService debugService, DwdsStats dwdsStats) async {
     // Set up hot restart as an extension.
     var requestController = StreamController<Map<String, Object>>();
     var responseController = StreamController<Map<String, Object>>();
@@ -154,6 +155,12 @@ class DwdsVmClient {
     });
     await client.registerService('ext.dwds.screenshot', 'DWDS');
 
+    client.registerServiceCallback('ext.dwds.sendEvent', (event) async {
+      _processSendEvent(event, chromeProxyService, dwdsStats);
+      return {'result': Success().toJson()};
+    });
+    await client.registerService('ext.dwds.sendEvent', 'DWDS');
+
     client.registerServiceCallback('ext.dwds.emitEvent', (event) async {
       emitEvent(DwdsEvent(
           event['type'] as String, event['payload'] as Map<String, dynamic>));
@@ -184,6 +191,28 @@ class DwdsVmClient {
     await client.registerService('_yieldControlToDDS', 'DWDS');
 
     return DwdsVmClient(client, requestController, responseController);
+  }
+}
+
+void _processSendEvent(Map<String, dynamic> event,
+    ChromeProxyService chromeProxyService, DwdsStats dwdsStats) {
+  var type = event['type'] as String;
+  var payload = event['payload'] as Map<String, dynamic>;
+  switch (type) {
+    case 'DevtoolsEvent':
+      {
+        var screen = payload == null ? null : payload['screen'];
+        var action = payload == null ? null : payload['action'];
+        if (screen == 'debugger' &&
+            action == 'screenReady' &&
+            dwdsStats.isFirstDebuggerReady()) {
+          emitEvent(DwdsEvent.debuggerReady(DateTime.now()
+              .difference(dwdsStats.debuggerStart)
+              .inMilliseconds));
+        } else {
+          _logger.warning('Ignoring unknown event: $event');
+        }
+      }
   }
 }
 

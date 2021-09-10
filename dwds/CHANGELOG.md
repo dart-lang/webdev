@@ -1,3 +1,29 @@
+## 11.3.1-dev
+
+- Add metrics measuring DevTools Initial Page Load time.
+- Add `ext.dwds.sendEvent` service extension to dwds so other tools
+  can send events to the debugger.
+  Event format:
+  ```
+  {
+    'type': '<event type>',
+    'payload': {
+      'screen: '<screen name>',
+      'action: '<action name>',
+    }
+  }
+  ```
+  Currently supported event values:
+  ```
+  {
+    'type: 'DevtoolsEvent',
+    'payload': {
+      'screen': 'debugger'
+      'action': 'screenReady'
+    }
+  }
+  ```
+
 ## 11.3.0
 
 - Update SDK constraint to `>=2.14.0 <3.0.0`
