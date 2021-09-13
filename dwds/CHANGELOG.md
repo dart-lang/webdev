@@ -9,8 +9,8 @@
     'type': '<event type>',
     'payload': {
       'screen: '<screen name>',
-      'action: '<action name>',
-    },
+      'action: '<action name>'
+    }
   }
   ```
   Currently supported event values:
@@ -19,8 +19,8 @@
     'type: 'DevtoolsEvent',
     'payload': {
       'screen': 'debugger',
-      'action': 'pageReady',
-    },
+      'action': 'pageReady'
+    }
   }
   ```
 
