@@ -79,7 +79,9 @@ void main() {
       }),
       () => keyboard.sendChord([Keyboard.alt, 'd']),
     );
-  });
+  },
+      skip: 'Enable after publishing of '
+          'https://github.com/flutter/devtools/pull/3346');
 
   test('events can be listened to multiple times', () async {
     events.listen((_) {});
