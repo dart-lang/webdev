@@ -203,12 +203,14 @@ void _processSendEvent(Map<String, dynamic> event,
       {
         var screen = payload == null ? null : payload['screen'];
         var action = payload == null ? null : payload['action'];
-        if (screen == 'debugger' &&
-            action == 'screenReady' &&
-            dwdsStats.isFirstDebuggerReady()) {
-          emitEvent(DwdsEvent.debuggerReady(DateTime.now()
-              .difference(dwdsStats.debuggerStart)
-              .inMilliseconds));
+        if (screen == 'debugger' && action == 'pageReady') {
+          if (dwdsStats.isFirstDebuggerReady()) {
+            emitEvent(DwdsEvent.debuggerReady(DateTime.now()
+                .difference(dwdsStats.debuggerStart)
+                .inMilliseconds));
+          } else {
+            _logger.warning('Ignoring already received event: $event');
+          }
         } else {
           _logger.warning('Ignoring unknown event: $event');
         }

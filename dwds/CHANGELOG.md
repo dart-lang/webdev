@@ -9,7 +9,7 @@
     'type': '<event type>',
     'payload': {
       'screen: '<screen name>',
-      'action: '<action name>',
+      'action: '<action name>'
     }
   }
   ```
@@ -18,8 +18,8 @@
   {
     'type: 'DevtoolsEvent',
     'payload': {
-      'screen': 'debugger'
-      'action': 'screenReady'
+      'screen': 'debugger',
+      'action': 'pageReady'
     }
   }
   ```
