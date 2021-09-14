@@ -252,7 +252,8 @@ void main() {
     setUp(() async {
       var extensionUri = 'http://localhost:4000';
       var pipeline = const Pipeline().addMiddleware(
-          DwdsInjector(loadStrategy, extensionUri: extensionUri).middleware);
+          DwdsInjector(loadStrategy, extensionUri: Future.value(extensionUri))
+              .middleware);
       server = await shelf_io.serve(pipeline.addHandler((request) {
         return Response.ok(
             '$entrypointExtensionMarker\n'

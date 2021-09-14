@@ -52,19 +52,21 @@ Future<int> findUnusedPort() async {
 ///
 /// Retries a few times to recover from errors due to
 /// another thread or process opening the same port.
+/// Starts by trying to bind to [port] if specified.
 Future<HttpServer> startHttpServer(String hostname, {int port}) async {
   HttpServer httpServer;
   var retries = 5;
   var i = 0;
+  port = port ?? await findUnusedPort();
   while (i < retries) {
     i++;
     try {
-      httpServer =
-          await HttpMultiServer.bind(hostname, port ?? await findUnusedPort());
+      httpServer = await HttpMultiServer.bind(hostname, port);
     } on SocketException {
       if (i == retries) rethrow;
     }
     if (httpServer != null || i == retries) return httpServer;
+    port = await findUnusedPort();
     await Future<void>.delayed(const Duration(milliseconds: 100));
   }
   return httpServer;

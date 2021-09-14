@@ -252,7 +252,7 @@ class DebugService {
         return innerHandler(request);
       };
     }
-    var server = await startHttpServer(hostname);
+    var server = await startHttpServer(hostname, port: 44456);
     serveRequests(server, handler);
     return DebugService._(
       chromeProxyService,

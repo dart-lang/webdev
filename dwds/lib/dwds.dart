@@ -121,7 +121,7 @@ class Dwds {
     globalLoadStrategy = loadStrategy;
 
     DevTools devTools;
-    String extensionUri;
+    Future<String> extensionUri;
     ExtensionBackend extensionBackend;
     if (enableDebugExtension) {
       final handler = useSseForDebugBackend
@@ -134,13 +134,13 @@ class Dwds {
           : WebSocketSocketHandler();
 
       extensionBackend = await ExtensionBackend.start(handler, hostname);
-      extensionUri = Uri(
+      extensionUri = Future.value(Uri(
               scheme: useSseForDebugBackend ? 'http' : 'ws',
               host: extensionBackend.hostname,
               port: extensionBackend.port,
               path: r'$debug')
-          .toString();
-      if (urlEncoder != null) extensionUri = await urlEncoder(extensionUri);
+          .toString());
+      if (urlEncoder != null) extensionUri = urlEncoder(await extensionUri);
     }
 
     var serveDevTools = devtoolsLauncher != null;
