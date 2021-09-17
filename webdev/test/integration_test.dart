@@ -5,13 +5,20 @@
 // @dart = 2.9
 
 import 'dart:async';
+import 'dart:io';
 
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
 import 'test_utils.dart';
 
 void main() {
+  var sdkVersion = Version.parse(Platform.version.split(' ')[0]);
+  var firstSdkVersionWithoutPub = Version(2, 15, 0, pre: '0');
+  var pubCommand =
+      sdkVersion.compareTo(firstSdkVersionWithoutPub) < 0 ? 'pub' : 'dart pub';
+
   test('non-existant commands create errors', () async {
     var process = await runWebDev(['monkey']);
 
@@ -224,7 +231,7 @@ name: sample
 
         await checkProcessStdout(process, [
           'webdev could not run for this project.',
-          'No pubspec.lock file found, please run "dart pub get" first.'
+          'No pubspec.lock file found, please run "$pubCommand get" first.'
         ]);
         await process.shouldExit(78);
       });
@@ -251,7 +258,7 @@ dependencies:
           // See https://github.com/dart-lang/linter/issues/965
           // ignore: prefer_adjacent_string_concatenation
           'The pubspec.yaml file has changed since the pubspec.lock file ' +
-              'was generated, please run "dart pub get" again.'
+              'was generated, please run "$pubCommand get" again.'
         ]);
         await process.shouldExit(78);
       });
