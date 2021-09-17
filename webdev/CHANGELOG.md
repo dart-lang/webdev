@@ -1,4 +1,4 @@
-## 2.7.6-dev
+## 2.7.6
 
 - Update SDK constraint to `>=2.14.0 <3.0.0`
 

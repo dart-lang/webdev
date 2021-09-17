@@ -11,7 +11,8 @@ import 'package:dwds/dwds.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-final _batExt = Platform.isWindows ? '.bat' : '';
+import '../fixtures/utilities.dart';
+
 final packagesDir = p.relative('../fixtures/_test', from: p.current);
 
 void main() {
@@ -31,7 +32,7 @@ void main() {
   }
 
   setUpAll(() async {
-    await Process.run('pub$_batExt', ['upgrade'],
+    await Process.run(dartPath, ['pub', 'upgrade'],
         workingDirectory: packagesDir);
   });
 
