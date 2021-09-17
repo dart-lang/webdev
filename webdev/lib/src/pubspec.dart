@@ -34,11 +34,11 @@ class PackageExceptionDetails {
       {this.description, bool missingDependency})
       : _missingDependency = missingDependency ?? false;
 
-  static const noPubspecLock = PackageExceptionDetails._(
-      '`pubspec.lock` does not exist.',
-      description:
-          'Run `$appName` in a Dart package directory. Run `pub get` first.',
-      missingDependency: true);
+  static const noPubspecLock =
+      PackageExceptionDetails._('`pubspec.lock` does not exist.',
+          description: 'Run `$appName` in a Dart package directory. '
+              'Run `dart pub get` first.',
+          missingDependency: true);
 
   static PackageExceptionDetails missingDep(
           String pkgName, VersionConstraint constraint) =>
