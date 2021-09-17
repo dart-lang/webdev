@@ -16,6 +16,7 @@ import 'test_utils.dart';
 void main() {
   var sdkVersion = Version.parse(Platform.version.split(' ')[0]);
   var firstSdkVersionWithoutPub = Version(2, 15, 0, pre: '0');
+
   var pubCommand =
       sdkVersion.compareTo(firstSdkVersionWithoutPub) < 0 ? 'pub' : 'dart pub';
 
