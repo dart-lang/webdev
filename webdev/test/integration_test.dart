@@ -224,7 +224,7 @@ name: sample
 
         await checkProcessStdout(process, [
           'webdev could not run for this project.',
-          'No pubspec.lock file found, please run "pub get" first.'
+          'No pubspec.lock file found, please run "dart pub get" first.'
         ]);
         await process.shouldExit(78);
       });
@@ -251,7 +251,7 @@ dependencies:
           // See https://github.com/dart-lang/linter/issues/965
           // ignore: prefer_adjacent_string_concatenation
           'The pubspec.yaml file has changed since the pubspec.lock file ' +
-              'was generated, please run "pub get" again.'
+              'was generated, please run "dart pub get" again.'
         ]);
         await process.shouldExit(78);
       });
