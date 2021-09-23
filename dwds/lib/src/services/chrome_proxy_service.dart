@@ -533,7 +533,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<ScriptList> getScripts(String isolateId) async {
     return await _captureElapsedTime(() async {
       await isInitialized;
-      return await _inspector?.getScripts(isolateId);
+      return _inspector?.getScripts(isolateId);
     }, (result) => DwdsEvent.getScripts());
   }
 

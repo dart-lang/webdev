@@ -87,7 +87,7 @@ class AppInspector extends Domain {
     isolate.libraries.addAll(libraries);
     await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
 
-    var scripts = await _getScripts();
+    var scripts = await scriptRefs;
     await DartUri.recordAbsoluteUris(scripts.map((script) => script.uri));
 
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());
