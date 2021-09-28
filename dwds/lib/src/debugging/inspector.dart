@@ -30,10 +30,9 @@ import 'libraries.dart';
 /// Provides information about currently loaded scripts and objects and support
 /// for eval.
 class AppInspector extends Domain {
-  final _scriptCacheMemoizer = AsyncMemoizer<void>();
+  final _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
 
-  Future<List<ScriptRef>> get scriptRefs =>
-      _populateScriptCaches().then((_) => _scriptRefsById.values.toList());
+  Future<List<ScriptRef>> get scriptRefs => _populateScriptCaches();
 
   final _logger = Logger('AppInspector');
 
@@ -490,7 +489,7 @@ function($argsString) {
   /// This populates [_scriptRefsById], [_scriptIdToLibraryId] and
   /// [_serverPathToScriptRef]. It is a one-time operation, because if we do a
   /// reload the inspector will get re-created.
-  Future<void> _populateScriptCaches() async {
+  Future<List<ScriptRef>> _populateScriptCaches() async {
     return _scriptCacheMemoizer.runOnce(() async {
       var libraryUris = [for (var library in isolate.libraries) library.uri];
       var scripts = await globalLoadStrategy
@@ -513,6 +512,7 @@ function($argsString) {
               scriptRef;
         }
       }
+      return _scriptRefsById.values.toList();
     });
   }
 
