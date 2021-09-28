@@ -4,6 +4,7 @@
 
 // @dart = 2.9
 
+import 'package:async/async.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -29,9 +30,10 @@ import 'libraries.dart';
 /// Provides information about currently loaded scripts and objects and support
 /// for eval.
 class AppInspector extends Domain {
-  Future<List<ScriptRef>> _cachedScriptRefs;
+  final _scriptCacheMemoizer = AsyncMemoizer<void>();
 
-  Future<List<ScriptRef>> get scriptRefs => _cachedScriptRefs ??= _getScripts();
+  Future<List<ScriptRef>> get scriptRefs =>
+      _populateScriptCaches().then((_) => _scriptRefsById.values.toList());
 
   final _logger = Logger('AppInspector');
 
@@ -483,38 +485,35 @@ function($argsString) {
     return ScriptList(scripts: await scriptRefs);
   }
 
-  Future<List<ScriptRef>> _getScripts() async {
-    await _populateScriptCaches();
-    return _scriptRefsById.values.toList();
-  }
-
   /// Request and cache <ScriptRef>s for all the scripts in the application.
   ///
   /// This populates [_scriptRefsById], [_scriptIdToLibraryId] and
   /// [_serverPathToScriptRef]. It is a one-time operation, because if we do a
   /// reload the inspector will get re-created.
   Future<void> _populateScriptCaches() async {
-    var libraryUris = [for (var library in isolate.libraries) library.uri];
-    var scripts = await globalLoadStrategy
-        .metadataProviderFor(appConnection.request.entrypointPath)
-        .scripts;
-    // For all the non-dart: libraries, find their parts and create scriptRefs
-    // for them.
-    var userLibraries = libraryUris.where((uri) => !uri.startsWith('dart:'));
-    for (var uri in userLibraries) {
-      var parts = scripts[uri];
-      var scriptRefs = [
-        ScriptRef(uri: uri, id: createId()),
-        for (var part in parts) ScriptRef(uri: part, id: createId())
-      ];
-      var libraryRef = await libraryHelper.libraryRefFor(uri);
-      for (var scriptRef in scriptRefs) {
-        _scriptRefsById[scriptRef.id] = scriptRef;
-        _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
-        _serverPathToScriptRef[DartUri(scriptRef.uri, _root).serverPath] =
-            scriptRef;
+    return _scriptCacheMemoizer.runOnce(() async {
+      var libraryUris = [for (var library in isolate.libraries) library.uri];
+      var scripts = await globalLoadStrategy
+          .metadataProviderFor(appConnection.request.entrypointPath)
+          .scripts;
+      // For all the non-dart: libraries, find their parts and create scriptRefs
+      // for them.
+      var userLibraries = libraryUris.where((uri) => !uri.startsWith('dart:'));
+      for (var uri in userLibraries) {
+        var parts = scripts[uri];
+        var scriptRefs = [
+          ScriptRef(uri: uri, id: createId()),
+          for (var part in parts) ScriptRef(uri: part, id: createId())
+        ];
+        var libraryRef = await libraryHelper.libraryRefFor(uri);
+        for (var scriptRef in scriptRefs) {
+          _scriptRefsById[scriptRef.id] = scriptRef;
+          _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
+          _serverPathToScriptRef[DartUri(scriptRef.uri, _root).serverPath] =
+              scriptRef;
+        }
       }
-    }
+    });
   }
 
   /// Look up the script by id in an isolate.
