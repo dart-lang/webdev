@@ -1,3 +1,7 @@
+## 2.7.7-dev
+
+- Handle and log http request serving errors.
+
 ## 2.7.6
 
 - Update SDK constraint to `>=2.14.0 <3.0.0`
