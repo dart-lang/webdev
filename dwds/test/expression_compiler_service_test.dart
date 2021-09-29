@@ -10,12 +10,14 @@ import 'dart:io';
 
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 
 import 'fixtures/logging.dart';
+
+Logger _logger = Logger('ExpressionCompilerServiceTest');
 
 @TestOn('vm')
 void main() async {
@@ -65,8 +67,11 @@ void main() async {
       await service.initialize(moduleFormat: 'amd');
 
       // setup asset server
-      shelf_io.serveRequests(
-          server, Cascade().add(service.handler).add(assetHandler).handler);
+      serveHttpRequests(
+          server, Cascade().add(service.handler).add(assetHandler).handler,
+          (e, s) {
+        _logger.warning('Error serving requests', e, s);
+      });
 
       // generate full dill
       File.fromUri(source)

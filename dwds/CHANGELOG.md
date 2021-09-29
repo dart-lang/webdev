@@ -1,6 +1,7 @@
 ## 11.4.0
 
 - Fix duplicated scripts returned by `VmService.getScripts` API.
+- Handle and log http request serving errors.
 - Encode extension url asynchronously.
 - Use default constant port for debug service.
   - If we fail binding to the port, fall back to previous strategy

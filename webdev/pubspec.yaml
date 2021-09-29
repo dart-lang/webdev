@@ -1,6 +1,6 @@
 name: webdev
 # Every time this changes you need to run `pub run build_runner build`.
-version: 2.7.6
+version: 2.7.7-dev
 # We should not depend on a dev SDK before publishing.
 # publish_to: none
 homepage: https://github.com/dart-lang/webdev
@@ -32,6 +32,7 @@ dependencies:
   shelf: ^1.0.0
   shelf_proxy: ^1.0.0
   shelf_static: ^1.0.0
+  stack_trace: ^1.10.0
   sse: ^4.1.0
   vm_service: '>=3.0.0 <8.0.0'
   webkit_inspection_protocol: '>=0.4.0 <2.0.0'

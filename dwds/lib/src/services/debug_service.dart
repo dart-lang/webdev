@@ -11,10 +11,10 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dds/dds.dart';
+import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart' hide Response;
-import 'package:shelf/shelf_io.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:vm_service/vm_service.dart';
@@ -28,6 +28,8 @@ import 'chrome_proxy_service.dart';
 
 bool _acceptNewConnections = true;
 int _clientsConnected = 0;
+
+Logger _logger = Logger('DebugService');
 
 void Function(WebSocketChannel, String) _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
@@ -253,7 +255,9 @@ class DebugService {
       };
     }
     var server = await startHttpServer(hostname, port: 44456);
-    serveRequests(server, handler);
+    serveHttpRequests(server, handler, (e, s) {
+      _logger.warning('Error serving requests', e, s);
+    });
     return DebugService._(
       chromeProxyService,
       server.address.host,

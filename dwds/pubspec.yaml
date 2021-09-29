@@ -30,6 +30,7 @@ dependencies:
   shelf_static: ^1.0.0
   shelf_web_socket: ^1.0.0
   source_maps: ^0.10.0
+  stack_trace: ^1.10.0
   sse: ^4.1.0
   # We pin the version because we implement the interface.
   vm_service: 7.3.0
