@@ -654,14 +654,20 @@ void main() {
       var isolateId = vm.isolates.first.id;
       var scripts = await service.getScripts(isolateId);
       expect(scripts, isNotNull);
-      expect(scripts.scripts, hasLength(greaterThan(0)));
-      // Test for a known script
-      expect(scripts.scripts.map((s) => s.uri),
-          contains('package:path/path.dart'));
-      // Should return part files as well.
-      expect(
-          scripts.scripts.map((s) => s.uri), contains(endsWith('part.dart')));
-      expect(scripts.scripts.map((s) => s.uri),
+      expect(scripts.scripts, isNotEmpty);
+
+      var scriptUris = scripts.scripts.map((s) => s.uri);
+
+      // Contains main script only once.
+      expect(scriptUris.where((uri) => uri.contains('hello_world/main.dart')),
+          hasLength(1));
+
+      // Containts a known script.
+      expect(scriptUris, contains('package:path/path.dart'));
+
+      // Containts part files as well.
+      expect(scriptUris, contains(endsWith('part.dart')));
+      expect(scriptUris,
           contains('package:intl/src/intl/date_format_helpers.dart'));
     });
 
