@@ -14,6 +14,10 @@ import 'package:stack_trace/stack_trace.dart';
 
 const appName = 'webdev';
 
+/// Handles [requests] using [handler].
+///
+/// Captures all sync and async stack error traces and passes
+/// them to the [onError] handler.
 void serveHttpRequests(Stream<HttpRequest> requests, Handler handler,
     void Function(Object, StackTrace) onError) {
   return Chain.capture(() {
