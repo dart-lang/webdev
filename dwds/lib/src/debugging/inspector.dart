@@ -489,6 +489,8 @@ function($argsString) {
   /// This populates [_scriptRefsById], [_scriptIdToLibraryId] and
   /// [_serverPathToScriptRef]. It is a one-time operation, because if we do a
   /// reload the inspector will get re-created.
+  ///
+  /// Returns the list of scripts refs cached.
   Future<List<ScriptRef>> _populateScriptCaches() async {
     return _scriptCacheMemoizer.runOnce(() async {
       var libraryUris = [for (var library in isolate.libraries) library.uri];
