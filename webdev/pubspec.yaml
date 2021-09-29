@@ -32,6 +32,7 @@ dependencies:
   shelf: ^1.0.0
   shelf_proxy: ^1.0.0
   shelf_static: ^1.0.0
+  stack_trace: ^1.10.0
   sse: ^4.1.0
   vm_service: '>=3.0.0 <8.0.0'
   webkit_inspection_protocol: '>=0.4.0 <2.0.0'

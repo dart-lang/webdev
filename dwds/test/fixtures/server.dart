@@ -10,10 +10,10 @@ import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:devtools_server/devtools_server.dart' as devtools_lancher;
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 Logger _logger = Logger('TestServer');
@@ -127,12 +127,14 @@ class TestServer {
       cascade = cascade.add(ddcService.handler);
     }
 
-    shelf_io.serveRequests(
+    serveHttpRequests(
         server,
         pipeline
             .addMiddleware(_logRequests)
             .addMiddleware(dwds.middleware)
-            .addHandler(cascade.handler));
+            .addHandler(cascade.handler), (e, s) {
+      _logger.warning('Error handling requests', e, s);
+    });
 
     return TestServer._(
       target,

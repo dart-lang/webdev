@@ -4,11 +4,22 @@
 
 // @dart = 2.9
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 const appName = 'webdev';
+
+void serveHttpRequests(Stream<HttpRequest> requests, Handler handler,
+    void Function(Object, StackTrace) onError) {
+  return Chain.capture(() {
+    serveRequests(requests, handler);
+  }, onError: onError);
+}
 
 /// The path to the root directory of the SDK.
 final String _sdkDir = (() {

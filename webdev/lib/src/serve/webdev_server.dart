@@ -14,13 +14,16 @@ import 'package:dwds/dwds.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:http_multi_server/http_multi_server.dart';
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_proxy/shelf_proxy.dart';
 
 import '../command/configuration.dart';
+import '../util.dart';
 import 'chrome.dart';
 import 'handlers/favicon_handler.dart';
+
+Logger _logger = Logger('WebDevServer');
 
 class ServerOptions {
   final Configuration configuration;
@@ -179,7 +182,10 @@ class WebDevServer {
       server = await HttpMultiServer.bind(hostname, options.port);
     }
 
-    shelf_io.serveRequests(server, pipeline.addHandler(cascade.handler));
+    serveHttpRequests(server, pipeline.addHandler(cascade.handler), (e, s) {
+      _logger.warning('Error serving requests', e, s);
+    });
+
     return WebDevServer._(
       options.target,
       server,

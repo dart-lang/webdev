@@ -4,11 +4,16 @@
 
 // @dart = 2.9
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:http_multi_server/http_multi_server.dart';
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart';
+import 'package:stack_trace/stack_trace.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    as wip;
 
 import '../../dwds.dart' show ChromeDebugException;
 
@@ -72,9 +77,16 @@ Future<HttpServer> startHttpServer(String hostname, {int port}) async {
   return httpServer;
 }
 
-/// Throws an [ExceptionDetails] object if `exceptionDetails` is present on the
+void serveHttpRequests(Stream<HttpRequest> requests, Handler handler,
+    void Function(Object, StackTrace) onError) {
+  return Chain.capture(() {
+    serveRequests(requests, handler);
+  }, onError: onError);
+}
+
+/// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
 /// result.
-void handleErrorIfPresent(WipResponse response,
+void handleErrorIfPresent(wip.WipResponse response,
     {String evalContents, Object additionalDetails}) {
   if (response == null) return;
   if (response.result.containsKey('exceptionDetails')) {
