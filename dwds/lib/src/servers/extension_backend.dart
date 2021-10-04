@@ -57,7 +57,7 @@ class ExtensionBackend {
     var server = await HttpMultiServer.bind(hostname, 0);
     serveHttpRequests(server, cascade.handler, (e, s) {
       _logger.warning('Error serving requests', e);
-      emitEvent(DwdsEvent.httpRequestException('ExtensionBackend', e, s));
+      emitEvent(DwdsEvent.httpRequestException('ExtensionBackend', '$e:$s'));
     });
     return ExtensionBackend._(
         _socketHandler, server.address.host, server.port, server);

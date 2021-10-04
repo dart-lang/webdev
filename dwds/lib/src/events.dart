@@ -95,12 +95,10 @@ class DwdsEvent {
           'elapsedMilliseconds': elapsedMilliseconds,
         });
 
-  DwdsEvent.httpRequestException(
-      String server, Object exception, StackTrace stackTrace)
+  DwdsEvent.httpRequestException(String server, String exception)
       : this(DwdsEventKind.httpRequestException, {
           'server': server,
-          'exception': exception.toString(),
-          'stackTrace': stackTrace.toString(),
+          'exception': exception,
         });
 
   void addException(dynamic exception) {

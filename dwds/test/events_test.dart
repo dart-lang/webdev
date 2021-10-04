@@ -52,8 +52,7 @@ void main() {
           pipe(eventStream),
           emitsThrough(matchesEvent(DwdsEventKind.httpRequestException, {
             'server': 'FakeServer',
-            'exception': 'Exception: async error',
-            'stackTrace': isNotNull,
+            'exception': startsWith('Exception: async error'),
           })));
 
       // Start serving requests with a failing handler in an error zone.
@@ -61,7 +60,7 @@ void main() {
         unawaited(throwAsyncException());
         return null;
       }, (e, s) {
-        emitEvent(DwdsEvent.httpRequestException('FakeServer', e, s));
+        emitEvent(DwdsEvent.httpRequestException('FakeServer', '$e:$s'));
       });
 
       // Send a request.
@@ -128,9 +127,9 @@ void main() {
 
     test('emits DEBUGGER_READY event', () async {
       await expectEventDuring(
-        emitsThrough(matchesEvent(DwdsEventKind.debuggerReady, {
+        matchesEvent(DwdsEventKind.debuggerReady, {
           'elapsedMilliseconds': isNotNull,
-        })),
+        }),
         () => keyboard.sendChord([Keyboard.alt, 'd']),
       );
     },
@@ -139,9 +138,9 @@ void main() {
 
     test('emits DEVTOOLS_LOAD events', () async {
       await expectEventDuring(
-        emitsThrough(matchesEvent(DwdsEventKind.devToolsLoad, {
+        matchesEvent(DwdsEventKind.devToolsLoad, {
           'elapsedMilliseconds': isNotNull,
-        })),
+        }),
         () => keyboard.sendChord([Keyboard.alt, 'd']),
       );
     },

@@ -258,7 +258,7 @@ class DebugService {
     var server = await startHttpServer(hostname, port: 44456);
     serveHttpRequests(server, handler, (e, s) {
       _logger.warning('Error serving requests', e);
-      emitEvent(DwdsEvent.httpRequestException('DebugService', e, s));
+      emitEvent(DwdsEvent.httpRequestException('DebugService', '$e:$s'));
     });
     return DebugService._(
       chromeProxyService,
