@@ -5,10 +5,13 @@
 // @dart = 2.9
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:dwds/src/utilities/shared.dart';
+import 'package:http_multi_server/http_multi_server.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/async_core.dart';
@@ -25,323 +28,402 @@ WipConnection get tabConnection => context.tabConnection;
 final context = TestContext();
 
 void main() {
-  Future initialEvents;
-  VmService vmService;
-  Keyboard keyboard;
-  Stream<DwdsEvent> events;
-
-  /// Runs [action] and waits for an event matching [eventMatcher].
-  Future<T> expectEventDuring<T>(
-      Matcher eventMatcher, Future<T> Function() action,
-      {Timeout timeout}) async {
-    // The events stream is a broadcast stream so start listening
-    // before the action.
-    final events = expectLater(
-        pipe(context.testServer.dwds.events, timeout: timeout),
-        emitsThrough(eventMatcher));
-    final result = await action();
-    await events;
-    return result;
-  }
-
-  setUpAll(() async {
-    setCurrentLogWriter();
-    initialEvents = expectLater(
-        pipe(eventStream, timeout: const Timeout.factor(5)),
-        emitsThrough(matchesEvent(DwdsEventKind.compilerUpdateDependencies, {
-          'entrypoint': 'hello_world/main.dart.bootstrap.js',
-          'elapsedMilliseconds': isNotNull
-        })));
-    await context.setUp(
-      serveDevTools: true,
-      enableExpressionEvaluation: true,
-    );
-    vmService = context.debugConnection.vmService;
-    keyboard = context.webDriver.driver.keyboard;
-    events = context.testServer.dwds.events;
-  });
-
-  tearDownAll(() async {
-    await context.tearDown();
-  });
-
-  test('emits DEVTOOLS_LAUNCH event', () async {
-    await expectEventDuring(
-      matchesEvent(DwdsEventKind.devtoolsLaunch, {}),
-      () => keyboard.sendChord([Keyboard.alt, 'd']),
-    );
-  });
-
-  test('emits DEBUGGER_READY event', () async {
-    await expectEventDuring(
-      matchesEvent(DwdsEventKind.debuggerReady, {
-        'elapsedMilliseconds': isNotNull,
-      }),
-      () => keyboard.sendChord([Keyboard.alt, 'd']),
-    );
-  },
-      skip: 'Enable after publishing of '
-          'https://github.com/flutter/devtools/pull/3346');
-
-  test('events can be listened to multiple times', () async {
-    events.listen((_) {});
-    events.listen((_) {});
-  });
-
-  test('can emit event through service extension', () async {
-    final response = await expectEventDuring(
-        matchesEvent('foo-event', {'data': 1234}),
-        () => vmService.callServiceExtension('ext.dwds.emitEvent', args: {
-              'type': 'foo-event',
-              'payload': {'data': 1234},
-            }));
-    expect(response.type, 'Success');
-  });
-
-  group('evaluate', () {
-    Isolate isolate;
-    LibraryRef bootstrap;
-
-    setUpAll(() async {
-      setCurrentLogWriter();
-      final vm = await service.getVM();
-      isolate = await service.getIsolate(vm.isolates.first.id);
-      bootstrap = isolate.rootLib;
-    });
+  group('serve requests', () {
+    HttpServer server;
 
     setUp(() async {
       setCurrentLogWriter();
-    });
-
-    test('emits EVALUATE events on evaluation success', () async {
-      final expression = "helloString('world')";
-      await expectEventDuring(
-          matchesEvent(DwdsEventKind.evaluate, {
-            'expression': expression,
-            'success': isTrue,
-            'elapsedMilliseconds': isNotNull,
-          }),
-          () => service.evaluate(isolate.id, bootstrap.id, expression));
-    });
-
-    test('emits COMPILER_UPDATE_DEPENDENCIES event', () async {
-      await initialEvents;
-    });
-
-    test('emits EVALUATE events on evaluation failure', () async {
-      final expression = 'some-bad-expression';
-      await expectEventDuring(
-          matchesEvent(DwdsEventKind.evaluate, {
-            'expression': expression,
-            'success': isFalse,
-            'error': isA<ErrorRef>(),
-            'elapsedMilliseconds': isNotNull,
-          }),
-          () => service.evaluate(isolate.id, bootstrap.id, expression));
-    });
-  });
-
-  group('evaluateInFrame', () {
-    String isolateId;
-    Stream<Event> stream;
-    ScriptList scripts;
-    ScriptRef mainScript;
-
-    setUpAll(() async {
-      setCurrentLogWriter();
-      final vm = await service.getVM();
-
-      isolateId = vm.isolates.first.id;
-      scripts = await service.getScripts(isolateId);
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
-      mainScript = scripts.scripts
-          .firstWhere((script) => script.uri.contains('main.dart'));
-    });
-
-    setUp(() async {
-      setCurrentLogWriter();
-    });
-
-    test('emits EVALUATE_IN_FRAME events on RPC error', () async {
-      final expression = 'some-bad-expression';
-      await expectEventDuring(
-          matchesEvent(DwdsEventKind.evaluateInFrame, {
-            'expression': expression,
-            'success': isFalse,
-            'exception': isA<RPCError>().having(
-                (e) => e.message, 'message', contains('program is not paused')),
-            'elapsedMilliseconds': isNotNull,
-          }),
-          () => service
-              .evaluateInFrame(isolateId, 0, expression)
-              .catchError((_) {}));
-    });
-
-    test('emits EVALUATE_IN_FRAME events on evaluation error', () async {
-      final line = await context.findBreakpointLine(
-          'callPrintCount', isolateId, mainScript);
-      final bp = await service.addBreakpoint(isolateId, mainScript.id, line);
-      // Wait for breakpoint to trigger.
-      await stream
-          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
-
-      // Evaluation succeeds and return ErrorRef containing compilation error,
-      // so event is marked as success.
-      final expression = 'some-bad-expression';
-      await expectEventDuring(
-          matchesEvent(DwdsEventKind.evaluateInFrame, {
-            'expression': expression,
-            'success': isFalse,
-            'error': isA<ErrorRef>(),
-            'elapsedMilliseconds': isNotNull,
-          }),
-          () => service
-              .evaluateInFrame(isolateId, 0, expression)
-              .catchError((_) {}));
-
-      await service.removeBreakpoint(isolateId, bp.id);
-      await service.resume(isolateId);
-    });
-
-    test('emits EVALUATE_IN_FRAME events on evaluation success', () async {
-      final line = await context.findBreakpointLine(
-          'callPrintCount', isolateId, mainScript);
-      final bp = await service.addBreakpoint(isolateId, mainScript.id, line);
-      // Wait for breakpoint to trigger.
-      await stream
-          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
-
-      // Evaluation succeeds and return InstanceRef,
-      // so event is marked as success.
-      final expression = 'true';
-      await expectEventDuring(
-          matchesEvent(DwdsEventKind.evaluateInFrame, {
-            'expression': expression,
-            'success': isTrue,
-            'elapsedMilliseconds': isNotNull,
-          }),
-          () => service
-              .evaluateInFrame(isolateId, 0, expression)
-              .catchError((_) {}));
-
-      await service.removeBreakpoint(isolateId, bp.id);
-      await service.resume(isolateId);
-    });
-  });
-
-  group('getSourceReport', () {
-    String isolateId;
-    ScriptList scripts;
-    ScriptRef mainScript;
-
-    setUp(() async {
-      setCurrentLogWriter();
-      final vm = await service.getVM();
-      isolateId = vm.isolates.first.id;
-      scripts = await service.getScripts(isolateId);
-
-      mainScript = scripts.scripts
-          .firstWhere((script) => script.uri.contains('main.dart'));
-    });
-
-    test('emits GET_SOURCE_REPORT events', () async {
-      await expectEventDuring(
-          matchesEvent(DwdsEventKind.getSourceReport, {
-            'elapsedMilliseconds': isNotNull,
-          }),
-          () => service.getSourceReport(
-              isolateId, [SourceReportKind.kPossibleBreakpoints],
-              scriptId: mainScript.id));
-    });
-  });
-
-  group('getSripts', () {
-    String isolateId;
-
-    setUp(() async {
-      setCurrentLogWriter();
-      final vm = await service.getVM();
-      isolateId = vm.isolates.first.id;
-    });
-
-    test('emits GET_SCRIPTS events', () async {
-      await expectEventDuring(
-          matchesEvent(DwdsEventKind.getScripts, {
-            'elapsedMilliseconds': isNotNull,
-          }),
-          () => service.getScripts(isolateId));
-    });
-  });
-
-  group('getIsolate', () {
-    String isolateId;
-
-    setUp(() async {
-      setCurrentLogWriter();
-      final vm = await service.getVM();
-      isolateId = vm.isolates.first.id;
-    });
-
-    test('emits GET_ISOLATE events', () async {
-      await expectEventDuring(
-          matchesEvent(DwdsEventKind.getIsolate, {
-            'elapsedMilliseconds': isNotNull,
-          }),
-          () => service.getIsolate(isolateId));
-    });
-  });
-
-  group('getVM', () {
-    setUp(() async {
-      setCurrentLogWriter();
-    });
-
-    test('emits GET_VM events', () async {
-      await expectEventDuring(
-          matchesEvent(DwdsEventKind.getVM, {
-            'elapsedMilliseconds': isNotNull,
-          }),
-          () => service.getVM());
-    });
-  });
-
-  group('resume', () {
-    String isolateId;
-    Stream<Event> stream;
-    ScriptList scripts;
-    ScriptRef mainScript;
-
-    setUp(() async {
-      setCurrentLogWriter();
-      final vm = await service.getVM();
-      isolateId = vm.isolates.first.id;
-      scripts = await service.getScripts(isolateId);
-      await service.streamListen('Debug');
-      stream = service.onEvent('Debug');
-      mainScript = scripts.scripts
-          .firstWhere((script) => script.uri.contains('main.dart'));
-      final line = await context.findBreakpointLine(
-          'callPrintCount', isolateId, mainScript);
-      final bp = await service.addBreakpoint(isolateId, mainScript.id, line);
-      // Wait for breakpoint to trigger.
-      await stream
-          .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
-      await service.removeBreakpoint(isolateId, bp.id);
+      server = await HttpMultiServer.bind('localhost', 0);
     });
 
     tearDown(() async {
-      // Resume execution to not impact other tests.
-      await service.resume(isolateId);
+      await server?.close();
     });
 
-    test('emits RESUME events', () async {
+    test('emits HTTP_REQUEST_EXCEPTION event', () async {
+      final throwAsyncException = () async {
+        await Future.delayed(const Duration(milliseconds: 100));
+        throw Exception('async error');
+      };
+
+      // The events stream is a broadcast stream so start listening
+      // before the action.
+      final events = expectLater(
+          pipe(eventStream),
+          emitsThrough(matchesEvent(DwdsEventKind.httpRequestException, {
+            'server': 'FakeServer',
+            'exception': 'Exception: async error',
+            'stackTrace': isNotNull,
+          })));
+
+      // Start serving requests with a failing handler in an error zone.
+      serveHttpRequests(server, (request) async {
+        unawaited(throwAsyncException());
+        return null;
+      }, (e, s) {
+        emitEvent(DwdsEvent.httpRequestException('FakeServer', e, s));
+      });
+
+      // Send a request.
+      final client = HttpClient();
+      var request =
+          await client.getUrl(Uri.parse('http://localhost:${server.port}/foo'));
+
+      // Ignore the response.
+      var response = await request.close();
+      await response.drain();
+
+      // Wait for expected events.
+      await events;
+    });
+  });
+
+  group('with dwds', () {
+    Future initialEvents;
+    VmService vmService;
+    Keyboard keyboard;
+    Stream<DwdsEvent> events;
+
+    /// Runs [action] and waits for an event matching [eventMatcher].
+    Future<T> expectEventDuring<T>(
+        Matcher eventMatcher, Future<T> Function() action,
+        {Timeout timeout}) async {
+      // The events stream is a broadcast stream so start listening
+      // before the action.
+      final events = expectLater(
+          pipe(context.testServer.dwds.events, timeout: timeout),
+          emitsThrough(eventMatcher));
+      final result = await action();
+      await events;
+      return result;
+    }
+
+    setUpAll(() async {
+      setCurrentLogWriter();
+      initialEvents = expectLater(
+          pipe(eventStream, timeout: const Timeout.factor(5)),
+          emitsThrough(matchesEvent(DwdsEventKind.compilerUpdateDependencies, {
+            'entrypoint': 'hello_world/main.dart.bootstrap.js',
+            'elapsedMilliseconds': isNotNull
+          })));
+      await context.setUp(
+        serveDevTools: true,
+        enableExpressionEvaluation: true,
+      );
+      vmService = context.debugConnection.vmService;
+      keyboard = context.webDriver.driver.keyboard;
+      events = context.testServer.dwds.events;
+    });
+
+    tearDownAll(() async {
+      await context.tearDown();
+    });
+
+    test('emits DEVTOOLS_LAUNCH event', () async {
       await expectEventDuring(
-          matchesEvent(DwdsEventKind.resume, {
-            'step': 'Into',
-            'elapsedMilliseconds': isNotNull,
-          }),
-          () => service.resume(isolateId, step: 'Into'));
+        matchesEvent(DwdsEventKind.devtoolsLaunch, {}),
+        () => keyboard.sendChord([Keyboard.alt, 'd']),
+      );
+    });
+
+    test('emits DEBUGGER_READY event', () async {
+      await expectEventDuring(
+        emitsThrough(matchesEvent(DwdsEventKind.debuggerReady, {
+          'elapsedMilliseconds': isNotNull,
+        })),
+        () => keyboard.sendChord([Keyboard.alt, 'd']),
+      );
+    },
+        skip: 'Enable after publishing of '
+            'https://github.com/flutter/devtools/pull/3346');
+
+    test('emits DEVTOOLS_LOAD events', () async {
+      await expectEventDuring(
+        emitsThrough(matchesEvent(DwdsEventKind.devToolsLoad, {
+          'elapsedMilliseconds': isNotNull,
+        })),
+        () => keyboard.sendChord([Keyboard.alt, 'd']),
+      );
+    },
+        skip: 'Enable after publishing of '
+            'https://github.com/flutter/devtools/pull/3346');
+
+    test('events can be listened to multiple times', () async {
+      events.listen((_) {});
+      events.listen((_) {});
+    });
+
+    test('can emit event through service extension', () async {
+      final response = await expectEventDuring(
+          matchesEvent('foo-event', {'data': 1234}),
+          () => vmService.callServiceExtension('ext.dwds.emitEvent', args: {
+                'type': 'foo-event',
+                'payload': {'data': 1234},
+              }));
+      expect(response.type, 'Success');
+    });
+
+    group('evaluate', () {
+      Isolate isolate;
+      LibraryRef bootstrap;
+
+      setUpAll(() async {
+        setCurrentLogWriter();
+        final vm = await service.getVM();
+        isolate = await service.getIsolate(vm.isolates.first.id);
+        bootstrap = isolate.rootLib;
+      });
+
+      setUp(() async {
+        setCurrentLogWriter();
+      });
+
+      test('emits EVALUATE events on evaluation success', () async {
+        final expression = "helloString('world')";
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.evaluate, {
+              'expression': expression,
+              'success': isTrue,
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => service.evaluate(isolate.id, bootstrap.id, expression));
+      });
+
+      test('emits COMPILER_UPDATE_DEPENDENCIES event', () async {
+        await initialEvents;
+      });
+
+      test('emits EVALUATE events on evaluation failure', () async {
+        final expression = 'some-bad-expression';
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.evaluate, {
+              'expression': expression,
+              'success': isFalse,
+              'error': isA<ErrorRef>(),
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => service.evaluate(isolate.id, bootstrap.id, expression));
+      });
+    });
+
+    group('evaluateInFrame', () {
+      String isolateId;
+      Stream<Event> stream;
+      ScriptList scripts;
+      ScriptRef mainScript;
+
+      setUpAll(() async {
+        setCurrentLogWriter();
+        final vm = await service.getVM();
+
+        isolateId = vm.isolates.first.id;
+        scripts = await service.getScripts(isolateId);
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
+        mainScript = scripts.scripts
+            .firstWhere((script) => script.uri.contains('main.dart'));
+      });
+
+      setUp(() async {
+        setCurrentLogWriter();
+      });
+
+      test('emits EVALUATE_IN_FRAME events on RPC error', () async {
+        final expression = 'some-bad-expression';
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.evaluateInFrame, {
+              'expression': expression,
+              'success': isFalse,
+              'exception': isA<RPCError>().having((e) => e.message, 'message',
+                  contains('program is not paused')),
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => service
+                .evaluateInFrame(isolateId, 0, expression)
+                .catchError((_) {}));
+      });
+
+      test('emits EVALUATE_IN_FRAME events on evaluation error', () async {
+        final line = await context.findBreakpointLine(
+            'callPrintCount', isolateId, mainScript);
+        final bp = await service.addBreakpoint(isolateId, mainScript.id, line);
+        // Wait for breakpoint to trigger.
+        await stream
+            .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+        // Evaluation succeeds and return ErrorRef containing compilation error,
+        // so event is marked as success.
+        final expression = 'some-bad-expression';
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.evaluateInFrame, {
+              'expression': expression,
+              'success': isFalse,
+              'error': isA<ErrorRef>(),
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => service
+                .evaluateInFrame(isolateId, 0, expression)
+                .catchError((_) {}));
+
+        await service.removeBreakpoint(isolateId, bp.id);
+        await service.resume(isolateId);
+      });
+
+      test('emits EVALUATE_IN_FRAME events on evaluation success', () async {
+        final line = await context.findBreakpointLine(
+            'callPrintCount', isolateId, mainScript);
+        final bp = await service.addBreakpoint(isolateId, mainScript.id, line);
+        // Wait for breakpoint to trigger.
+        await stream
+            .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+        // Evaluation succeeds and return InstanceRef,
+        // so event is marked as success.
+        final expression = 'true';
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.evaluateInFrame, {
+              'expression': expression,
+              'success': isTrue,
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => service
+                .evaluateInFrame(isolateId, 0, expression)
+                .catchError((_) {}));
+
+        await service.removeBreakpoint(isolateId, bp.id);
+        await service.resume(isolateId);
+      });
+    });
+
+    group('getSourceReport', () {
+      String isolateId;
+      ScriptList scripts;
+      ScriptRef mainScript;
+
+      setUp(() async {
+        setCurrentLogWriter();
+        final vm = await service.getVM();
+        isolateId = vm.isolates.first.id;
+        scripts = await service.getScripts(isolateId);
+
+        mainScript = scripts.scripts
+            .firstWhere((script) => script.uri.contains('main.dart'));
+      });
+
+      test('emits GET_SOURCE_REPORT events', () async {
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.getSourceReport, {
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => service.getSourceReport(
+                isolateId, [SourceReportKind.kPossibleBreakpoints],
+                scriptId: mainScript.id));
+      });
+    });
+
+    group('getSripts', () {
+      String isolateId;
+
+      setUp(() async {
+        setCurrentLogWriter();
+        final vm = await service.getVM();
+        isolateId = vm.isolates.first.id;
+      });
+
+      test('emits GET_SCRIPTS events', () async {
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.getScripts, {
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => service.getScripts(isolateId));
+      });
+    });
+
+    group('getIsolate', () {
+      String isolateId;
+
+      setUp(() async {
+        setCurrentLogWriter();
+        final vm = await service.getVM();
+        isolateId = vm.isolates.first.id;
+      });
+
+      test('emits GET_ISOLATE events', () async {
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.getIsolate, {
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => service.getIsolate(isolateId));
+      });
+    });
+
+    group('getVM', () {
+      setUp(() async {
+        setCurrentLogWriter();
+      });
+
+      test('emits GET_VM events', () async {
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.getVM, {
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => service.getVM());
+      });
+    });
+
+    group('hotRestart', () {
+      setUp(() async {
+        setCurrentLogWriter();
+      });
+
+      test('emits HOT_RESTART event', () async {
+        var client = context.debugConnection.vmService;
+
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.hotRestart, {
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => client.callServiceExtension('hotRestart'));
+      });
+    });
+
+    group('resume', () {
+      String isolateId;
+      Stream<Event> stream;
+      ScriptList scripts;
+      ScriptRef mainScript;
+
+      setUp(() async {
+        setCurrentLogWriter();
+        final vm = await service.getVM();
+        isolateId = vm.isolates.first.id;
+        scripts = await service.getScripts(isolateId);
+        await service.streamListen('Debug');
+        stream = service.onEvent('Debug');
+        mainScript = scripts.scripts
+            .firstWhere((script) => script.uri.contains('main.dart'));
+        final line = await context.findBreakpointLine(
+            'callPrintCount', isolateId, mainScript);
+        final bp = await service.addBreakpoint(isolateId, mainScript.id, line);
+        // Wait for breakpoint to trigger.
+        await stream
+            .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+        await service.removeBreakpoint(isolateId, bp.id);
+      });
+
+      tearDown(() async {
+        // Resume execution to not impact other tests.
+        await service.resume(isolateId);
+      });
+
+      test('emits RESUME events', () async {
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.resume, {
+              'step': 'Into',
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => service.resume(isolateId, step: 'Into'));
+      });
     });
   });
 }

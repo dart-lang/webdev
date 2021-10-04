@@ -86,7 +86,9 @@ class Dwds {
 
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
     if (!_enableDebugging) throw StateError('Debugging is not enabled.');
-    var appDebugServices = await _devHandler.loadAppServices(appConnection);
+    final dwdsStats = DwdsStats(DateTime.now());
+    var appDebugServices =
+        await _devHandler.loadAppServices(appConnection, dwdsStats);
     await appDebugServices.chromeProxyService.isInitialized;
     return DebugConnection(appDebugServices);
   }

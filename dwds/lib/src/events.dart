@@ -12,6 +12,9 @@ class DwdsStats {
   /// The time when the user starts the debugger.
   final DateTime debuggerStart;
 
+  /// The time when dwds launches DevTools.
+  DateTime devToolsStart;
+
   var _isDebuggerReady = false;
 
   /// Records and returns whether the debugger became ready.
@@ -28,13 +31,16 @@ class DwdsEventKind {
   static const String compilerUpdateDependencies =
       'COMPILER_UPDATE_DEPENDENCIES';
   static const String devtoolsLaunch = 'DEVTOOLS_LAUNCH';
+  static const String devToolsLoad = 'DEVTOOLS_LOAD';
+  static const String debuggerReady = 'DEBUGGER_READY';
   static const String evaluate = 'EVALUATE';
   static const String evaluateInFrame = 'EVALUATE_IN_FRAME';
   static const String getIsolate = 'GET_ISOLATE';
   static const String getScripts = 'GET_SCRIPTS';
   static const String getSourceReport = 'GET_SOURCE_REPORT';
-  static const String debuggerReady = 'DEBUGGER_READY';
   static const String getVM = 'GET_VM';
+  static const String hotRestart = 'HOT_RESTART';
+  static const String httpRequestException = 'HTTP_REQUEST_EXCEPTION';
   static const String resume = 'RESUME';
 
   DwdsEventKind._();
@@ -77,9 +83,24 @@ class DwdsEvent {
 
   DwdsEvent.getSourceReport() : this(DwdsEventKind.getSourceReport, {});
 
+  DwdsEvent.hotRestart() : this(DwdsEventKind.hotRestart, {});
+
   DwdsEvent.debuggerReady(int elapsedMilliseconds)
       : this(DwdsEventKind.debuggerReady, {
           'elapsedMilliseconds': elapsedMilliseconds,
+        });
+
+  DwdsEvent.devToolsLoad(int elapsedMilliseconds)
+      : this(DwdsEventKind.devToolsLoad, {
+          'elapsedMilliseconds': elapsedMilliseconds,
+        });
+
+  DwdsEvent.httpRequestException(
+      String server, Object exception, StackTrace stackTrace)
+      : this(DwdsEventKind.httpRequestException, {
+          'server': server,
+          'exception': exception.toString(),
+          'stackTrace': stackTrace.toString(),
         });
 
   void addException(dynamic exception) {
@@ -103,3 +124,24 @@ void emitEvent(DwdsEvent event) => _eventController.sink.add(event);
 
 /// A global stream of [DwdsEvent]s.
 Stream<DwdsEvent> get eventStream => _eventController.stream;
+
+/// Call [function] and record its execution time.
+///
+/// Calls [event] to create the event to be recorded,
+/// and appends time and exception details to it if
+/// available.
+Future<T> captureElapsedTime<T>(
+    Future<T> Function() function, DwdsEvent Function(T result) event) async {
+  var stopwatch = Stopwatch()..start();
+  T result;
+  try {
+    return result = await function();
+  } catch (e) {
+    emitEvent(event(result)
+      ..addException(e)
+      ..addElapsedTime(stopwatch.elapsedMilliseconds));
+    rethrow;
+  } finally {
+    emitEvent(event(result)..addElapsedTime(stopwatch.elapsedMilliseconds));
+  }
+}
