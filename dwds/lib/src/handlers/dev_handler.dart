@@ -221,8 +221,8 @@ class DevHandler {
     );
   }
 
-  Future<AppDebugServices> loadAppServices(AppConnection appConnection) async {
-    var dwdsStats = DwdsStats(DateTime.now());
+  Future<AppDebugServices> loadAppServices(
+      AppConnection appConnection, DwdsStats dwdsStats) async {
     var appId = appConnection.request.appId;
     if (_servicesByAppId[appId] == null) {
       var debugService = await _startLocalDebugService(
@@ -321,9 +321,10 @@ class DevHandler {
       return;
     }
 
+    var dwdsStats = DwdsStats(DateTime.now());
     AppDebugServices appServices;
     try {
-      appServices = await loadAppServices(appConnection);
+      appServices = await loadAppServices(appConnection, dwdsStats);
     } catch (_) {
       var error = 'Unable to connect debug services to your '
           'application. Most likely this means you are trying to '
@@ -364,6 +365,7 @@ class DevHandler {
           ..promptExtension = false))));
 
     appServices.connectedInstanceId = appConnection.request.instanceId;
+    dwdsStats.devToolsStart = DateTime.now();
     await _launchDevTools(appServices.chromeProxyService.remoteDebugger,
         appServices.debugService.uri);
   }
@@ -511,6 +513,7 @@ class DevHandler {
         extensionDebugConnections.add(DebugConnection(appServices));
         _servicesByAppId[appId] = appServices;
       }
+      dwdsStats.devToolsStart = DateTime.now();
       await _launchDevTools(extensionDebugger,
           await _servicesByAppId[appId].debugService.encodedUri);
     });

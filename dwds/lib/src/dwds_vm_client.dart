@@ -80,71 +80,19 @@ class DwdsVmClient {
         }
       };
     });
-    await client.registerService('_flutter.listViews', 'DWDS listViews');
+    await client.registerService('_flutter.listViews', 'DWDS');
 
-    client.registerServiceCallback('hotRestart', (request) async {
-      _logger.info('Attempting a hot restart');
+    client.registerServiceCallback(
+        'hotRestart',
+        (request) => captureElapsedTime(
+            () => _hotRestart(chromeProxyService, client),
+            (_) => DwdsEvent.hotRestart()));
+    await client.registerService('hotRestart', 'DWDS');
 
-      chromeProxyService.terminatingIsolates = true;
-      await _disableBreakpointsAndResume(client, chromeProxyService);
-      int context;
-      try {
-        _logger.info('Attempting to get execution context ID.');
-        context = await chromeProxyService.executionContext.id;
-        _logger.info('Got execution context ID.');
-      } on StateError catch (e) {
-        // We couldn't find the execution context. `hotRestart` may have been
-        // triggered in the middle of a full reload.
-        return {
-          'error': {
-            'code': RPCError.kInternalError,
-            'message': e.message,
-          }
-        };
-      }
-      // Start listening for isolate create events before issuing a hot
-      // restart. Only return success after the isolate has fully started.
-      var stream = chromeProxyService.onEvent('Isolate');
-      try {
-        _logger.info('Issuing \$dartHotRestart request.');
-        await chromeProxyService.remoteDebugger
-            .sendCommand('Runtime.evaluate', params: {
-          'expression': r'$dartHotRestart();',
-          'awaitPromise': true,
-          'contextId': context,
-        });
-        _logger.info('\$dartHotRestart request complete.');
-      } on WipError catch (exception) {
-        var code = exception.error['code'];
-        // This corresponds to `Execution context was destroyed` which can
-        // occur during a hot restart that must fall back to a full reload.
-        if (code != RPCError.kServerError) {
-          return {
-            'error': {
-              'code': exception.error['code'],
-              'message': exception.error['message'],
-              'data': exception,
-            }
-          };
-        }
-      }
-
-      _logger.info('Waiting for Isolate Start event.');
-      await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
-      chromeProxyService.terminatingIsolates = false;
-
-      _logger.info('Successful hot restart');
-      return {'result': Success().toJson()};
-    });
-    await client.registerService('hotRestart', 'DWDS fullReload');
-
-    client.registerServiceCallback('fullReload', (_) async {
-      _logger.info('Attempting a full reload');
-      await chromeProxyService.remoteDebugger.enablePage();
-      await chromeProxyService.remoteDebugger.pageReload();
-      _logger.info('Successful full reload');
-      return {'result': Success().toJson()};
-    });
+    client.registerServiceCallback(
+        'fullReload',
+        (request) => captureElapsedTime(() => _fullReload(chromeProxyService),
+            (_) => DwdsEvent.fullReload()));
     await client.registerService('fullReload', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.screenshot', (_) async {
@@ -205,6 +153,9 @@ void _processSendEvent(Map<String, dynamic> event,
         var action = payload == null ? null : payload['action'];
         if (screen == 'debugger' && action == 'pageReady') {
           if (dwdsStats.isFirstDebuggerReady()) {
+            emitEvent(DwdsEvent.devToolsLoad(DateTime.now()
+                .difference(dwdsStats.devToolsStart)
+                .inMilliseconds));
             emitEvent(DwdsEvent.debuggerReady(DateTime.now()
                 .difference(dwdsStats.debuggerStart)
                 .inMilliseconds));
@@ -216,6 +167,71 @@ void _processSendEvent(Map<String, dynamic> event,
         }
       }
   }
+}
+
+Future<Map<String, dynamic>> _hotRestart(
+    ChromeProxyService chromeProxyService, VmService client) async {
+  _logger.info('Attempting a hot restart');
+
+  chromeProxyService.terminatingIsolates = true;
+  await _disableBreakpointsAndResume(client, chromeProxyService);
+  int context;
+  try {
+    _logger.info('Attempting to get execution context ID.');
+    context = await chromeProxyService.executionContext.id;
+    _logger.info('Got execution context ID.');
+  } on StateError catch (e) {
+    // We couldn't find the execution context. `hotRestart` may have been
+    // triggered in the middle of a full reload.
+    return {
+      'error': {
+        'code': RPCError.kInternalError,
+        'message': e.message,
+      }
+    };
+  }
+  // Start listening for isolate create events before issuing a hot
+  // restart. Only return success after the isolate has fully started.
+  var stream = chromeProxyService.onEvent('Isolate');
+  try {
+    _logger.info('Issuing \$dartHotRestart request.');
+    await chromeProxyService.remoteDebugger
+        .sendCommand('Runtime.evaluate', params: {
+      'expression': r'$dartHotRestart();',
+      'awaitPromise': true,
+      'contextId': context,
+    });
+    _logger.info('\$dartHotRestart request complete.');
+  } on WipError catch (exception) {
+    var code = exception.error['code'];
+    // This corresponds to `Execution context was destroyed` which can
+    // occur during a hot restart that must fall back to a full reload.
+    if (code != RPCError.kServerError) {
+      return {
+        'error': {
+          'code': exception.error['code'],
+          'message': exception.error['message'],
+          'data': exception,
+        }
+      };
+    }
+  }
+
+  _logger.info('Waiting for Isolate Start event.');
+  await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
+  chromeProxyService.terminatingIsolates = false;
+
+  _logger.info('Successful hot restart');
+  return {'result': Success().toJson()};
+}
+
+Future<Map<String, dynamic>> _fullReload(
+    ChromeProxyService chromeProxyService) async {
+  _logger.info('Attempting a full reload');
+  await chromeProxyService.remoteDebugger.enablePage();
+  await chromeProxyService.remoteDebugger.pageReload();
+  _logger.info('Successful full reload');
+  return {'result': Success().toJson()};
 }
 
 Future<void> _disableBreakpointsAndResume(

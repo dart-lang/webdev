@@ -8,12 +8,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async/async.dart';
-
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 
 import '../../data/extension_request.dart';
+import '../events.dart';
 import '../handlers/socket_connections.dart';
 import '../utilities/shared.dart';
 import 'extension_debugger.dart';
@@ -21,7 +21,7 @@ import 'extension_debugger.dart';
 const authenticationResponse = 'Dart Debug Authentication Success!\n\n'
     'You can close this tab and launch the Dart Debug Extension again.';
 
-Logger _logger = Logger('ExtensiobBackend');
+Logger _logger = Logger('ExtensionBackend');
 
 /// A backend for the Dart Debug Extension.
 ///
@@ -56,7 +56,8 @@ class ExtensionBackend {
     }).add(_socketHandler.handler);
     var server = await HttpMultiServer.bind(hostname, 0);
     serveHttpRequests(server, cascade.handler, (e, s) {
-      _logger.warning('Error serving requests', e, s);
+      _logger.warning('Error serving requests', e);
+      emitEvent(DwdsEvent.httpRequestException('ExtensionBackend', '$e:$s'));
     });
     return ExtensionBackend._(
         _socketHandler, server.address.host, server.port, server);

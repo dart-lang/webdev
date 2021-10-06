@@ -23,6 +23,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../dwds.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
+import '../events.dart';
 import '../utilities/shared.dart';
 import 'chrome_proxy_service.dart';
 
@@ -256,7 +257,8 @@ class DebugService {
     }
     var server = await startHttpServer(hostname, port: 44456);
     serveHttpRequests(server, handler, (e, s) {
-      _logger.warning('Error serving requests', e, s);
+      _logger.warning('Error serving requests', e);
+      emitEvent(DwdsEvent.httpRequestException('DebugService', '$e:$s'));
     });
     return DebugService._(
       chromeProxyService,

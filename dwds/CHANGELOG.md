@@ -6,7 +6,11 @@
 - Use default constant port for debug service.
   - If we fail binding to the port, fall back to previous strategy
     of finding unbound ports.
-- Add metrics measuring DevTools Initial Page Load time.
+- Add metrics measuring
+  - DevTools Initial Page Load time
+  - Various VM API
+  - Hot restart
+  - Http request handling exceptions
 - Add `ext.dwds.sendEvent` service extension to dwds so other tools
   can send events to the debugger.
   Event format:
