@@ -424,6 +424,22 @@ void main() {
             () => service.resume(isolateId, step: 'Into'));
       });
     });
+
+    group('fullReload', () {
+      setUp(() async {
+        setCurrentLogWriter();
+      });
+
+      test('emits FULL_RELOAD event', () async {
+        var client = context.debugConnection.vmService;
+
+        await expectEventDuring(
+            matchesEvent(DwdsEventKind.fullReload, {
+              'elapsedMilliseconds': isNotNull,
+            }),
+            () => client.callServiceExtension('fullReload'));
+      });
+    });
   });
 }
 

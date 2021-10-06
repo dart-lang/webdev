@@ -80,22 +80,19 @@ class DwdsVmClient {
         }
       };
     });
-    await client.registerService('_flutter.listViews', 'DWDS listViews');
+    await client.registerService('_flutter.listViews', 'DWDS');
 
-    client.registerServiceCallback('hotRestart', (request) async {
-      return await captureElapsedTime(
-          () => _hotRestart(chromeProxyService, client),
-          (result) => DwdsEvent.hotRestart());
-    });
-    await client.registerService('hotRestart', 'DWDS fullReload');
+    client.registerServiceCallback(
+        'hotRestart',
+        (request) => captureElapsedTime(
+            () => _hotRestart(chromeProxyService, client),
+            (_) => DwdsEvent.hotRestart()));
+    await client.registerService('hotRestart', 'DWDS');
 
-    client.registerServiceCallback('fullReload', (_) async {
-      _logger.info('Attempting a full reload');
-      await chromeProxyService.remoteDebugger.enablePage();
-      await chromeProxyService.remoteDebugger.pageReload();
-      _logger.info('Successful full reload');
-      return {'result': Success().toJson()};
-    });
+    client.registerServiceCallback(
+        'fullReload',
+        (request) => captureElapsedTime(() => _fullReload(chromeProxyService),
+            (_) => DwdsEvent.fullReload()));
     await client.registerService('fullReload', 'DWDS');
 
     client.registerServiceCallback('ext.dwds.screenshot', (_) async {
@@ -225,6 +222,15 @@ Future<Map<String, dynamic>> _hotRestart(
   chromeProxyService.terminatingIsolates = false;
 
   _logger.info('Successful hot restart');
+  return {'result': Success().toJson()};
+}
+
+Future<Map<String, dynamic>> _fullReload(
+    ChromeProxyService chromeProxyService) async {
+  _logger.info('Attempting a full reload');
+  await chromeProxyService.remoteDebugger.enablePage();
+  await chromeProxyService.remoteDebugger.pageReload();
+  _logger.info('Successful full reload');
   return {'result': Success().toJson()};
 }
 

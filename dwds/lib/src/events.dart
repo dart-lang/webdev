@@ -35,6 +35,7 @@ class DwdsEventKind {
   static const String debuggerReady = 'DEBUGGER_READY';
   static const String evaluate = 'EVALUATE';
   static const String evaluateInFrame = 'EVALUATE_IN_FRAME';
+  static const String fullReload = 'FULL_RELOAD';
   static const String getIsolate = 'GET_ISOLATE';
   static const String getScripts = 'GET_SCRIPTS';
   static const String getSourceReport = 'GET_SOURCE_REPORT';
@@ -84,6 +85,8 @@ class DwdsEvent {
   DwdsEvent.getSourceReport() : this(DwdsEventKind.getSourceReport, {});
 
   DwdsEvent.hotRestart() : this(DwdsEventKind.hotRestart, {});
+
+  DwdsEvent.fullReload() : this(DwdsEventKind.fullReload, {});
 
   DwdsEvent.debuggerReady(int elapsedMilliseconds)
       : this(DwdsEventKind.debuggerReady, {
