@@ -235,7 +235,7 @@ class AppInspector extends Domain {
       String isolateId, String targetId, String expression,
       {Map<String, String> scope}) async {
     scope ??= {};
-    var library = await _getLibrary(isolateId, targetId);
+    var library = await getLibrary(isolateId, targetId);
     if (library == null) {
       throw UnsupportedError(
           'Evaluate is only supported when `targetId` is a library.');
@@ -343,11 +343,7 @@ function($argsString) {
     return _jsCallFunction(function, arguments);
   }
 
-  Future<Library> getLibrary(String isolateId, String objectId) {
-    return _getLibrary(isolateId, objectId);
-  }
-
-  Future<Library> _getLibrary(String isolateId, String objectId) async {
+  Future<Library> getLibrary(String isolateId, String objectId) async {
     if (isolateId != isolate.id) return null;
     var libraryRef = await libraryHelper.libraryRefFor(objectId);
     if (libraryRef == null) return null;
@@ -357,7 +353,7 @@ function($argsString) {
   Future<Obj> getObject(String isolateId, String objectId,
       {int offset, int count}) async {
     try {
-      var library = await _getLibrary(isolateId, objectId);
+      var library = await getLibrary(isolateId, objectId);
       if (library != null) {
         return library;
       }

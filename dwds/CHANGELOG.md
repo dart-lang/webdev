@@ -11,6 +11,7 @@
   - Various VM API
   - Hot restart
   - Http request handling exceptions
+- Only return scripts included in the library with Library object.
 - Add `ext.dwds.sendEvent` service extension to dwds so other tools
   can send events to the debugger.
   Event format:

@@ -425,12 +425,14 @@ void main() {
         var library =
             await service.getObject(isolate.id, rootLibrary.id) as Library;
         expect(library.scripts, hasLength(2));
-        expect(library.scripts, [
-          predicate((ScriptRef s) =>
-              s.uri == 'org-dartlang-app:///example/hello_world/main.dart'),
-          predicate((ScriptRef s) =>
-              s.uri == 'org-dartlang-app:///example/hello_world/part.dart'),
-        ]);
+        expect(
+            library.scripts,
+            unorderedEquals([
+              predicate((ScriptRef s) =>
+                  s.uri == 'org-dartlang-app:///example/hello_world/main.dart'),
+              predicate((ScriptRef s) =>
+                  s.uri == 'org-dartlang-app:///example/hello_world/part.dart'),
+            ]));
       });
 
       test('Can get the same library in parallel', () async {
