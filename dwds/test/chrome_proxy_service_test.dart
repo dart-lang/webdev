@@ -412,13 +412,36 @@ void main() {
 
       setUp(setCurrentLogWriter);
 
-      test('Libraries', () async {
+      test('root Library', () async {
         expect(rootLibrary, isNotNull);
         // TODO: library names change with kernel dart-lang/sdk#36736
         expect(rootLibrary.uri, endsWith('main.dart'));
         expect(rootLibrary.classes, hasLength(1));
         var testClass = rootLibrary.classes.first;
         expect(testClass.name, 'MyTestClass');
+      });
+
+      test('Library only contains included scripts', () async {
+        var library =
+            await service.getObject(isolate.id, rootLibrary.id) as Library;
+        expect(library.scripts, hasLength(2));
+        expect(library.scripts, [
+          predicate((ScriptRef s) =>
+              s.uri == 'org-dartlang-app:///example/hello_world/main.dart'),
+          predicate((ScriptRef s) =>
+              s.uri == 'org-dartlang-app:///example/hello_world/part.dart'),
+        ]);
+      });
+
+      test('Can get the same library in parallel', () async {
+        var futures = [
+          service.getObject(isolate.id, rootLibrary.id),
+          service.getObject(isolate.id, rootLibrary.id),
+        ];
+        var results = await Future.wait(futures);
+        var library1 = results[0] as Library;
+        var library2 = results[1] as Library;
+        expect(library1, equals(library2));
       });
 
       test('Classes', () async {
