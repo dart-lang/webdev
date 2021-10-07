@@ -118,7 +118,7 @@ class LibraryHelper extends Domain {
         uri: libraryRef.uri,
         debuggable: true,
         dependencies: [],
-        scripts: await inspector.scriptRefs,
+        scripts: await inspector.scriptRefsForLibrary(libraryRef.id),
         variables: [],
         functions: [],
         classes: classRefs,

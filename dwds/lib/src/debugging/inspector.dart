@@ -45,6 +45,9 @@ class AppInspector extends Domain {
   /// Map of [ScriptRef] id to containing [LibraryRef] id.
   final _scriptIdToLibraryId = <String, String>{};
 
+  /// Map of [Library] id to included [ScriptRef]s.
+  final _libraryIdToScriptRefs = <String, List<ScriptRef>>{};
+
   final RemoteDebugger remoteDebugger;
   final Debugger debugger;
   final Isolate isolate;
@@ -232,7 +235,7 @@ class AppInspector extends Domain {
       String isolateId, String targetId, String expression,
       {Map<String, String> scope}) async {
     scope ??= {};
-    var library = await _getLibrary(isolateId, targetId);
+    var library = await getLibrary(isolateId, targetId);
     if (library == null) {
       throw UnsupportedError(
           'Evaluate is only supported when `targetId` is a library.');
@@ -341,10 +344,6 @@ function($argsString) {
   }
 
   Future<Library> getLibrary(String isolateId, String objectId) async {
-    return await _getLibrary(isolateId, objectId);
-  }
-
-  Future<Library> _getLibrary(String isolateId, String objectId) async {
     if (isolateId != isolate.id) return null;
     var libraryRef = await libraryHelper.libraryRefFor(objectId);
     if (libraryRef == null) return null;
@@ -354,7 +353,7 @@ function($argsString) {
   Future<Obj> getObject(String isolateId, String objectId,
       {int offset, int count}) async {
     try {
-      var library = await _getLibrary(isolateId, objectId);
+      var library = await getLibrary(isolateId, objectId);
       if (library != null) {
         return library;
       }
@@ -410,11 +409,14 @@ function($argsString) {
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
   Future<ScriptRef> scriptRefFor(String uri) async {
-    if (_serverPathToScriptRef.isEmpty) {
-      // TODO(grouma) - populate the server path cache a better way.
-      await getScripts(isolate.id);
-    }
+    await _populateScriptCaches();
     return _serverPathToScriptRef[uri];
+  }
+
+  /// Returns the [ScriptRef]s in the library with [libraryId].
+  Future<List<ScriptRef>> scriptRefsForLibrary(String libraryId) async {
+    await _populateScriptCaches();
+    return _libraryIdToScriptRefs[libraryId];
   }
 
   /// Return the VM SourceReport for the given parameters.
@@ -486,8 +488,10 @@ function($argsString) {
 
   /// Request and cache <ScriptRef>s for all the scripts in the application.
   ///
-  /// This populates [_scriptRefsById], [_scriptIdToLibraryId] and
-  /// [_serverPathToScriptRef]. It is a one-time operation, because if we do a
+  /// This populates [_scriptRefsById], [_scriptIdToLibraryId],
+  /// [_libraryIdToScriptRefs] and [_serverPathToScriptRef].
+  ///
+  /// It is a one-time operation, because if we do a
   /// reload the inspector will get re-created.
   ///
   /// Returns the list of scripts refs cached.
@@ -507,11 +511,13 @@ function($argsString) {
           for (var part in parts) ScriptRef(uri: part, id: createId())
         ];
         var libraryRef = await libraryHelper.libraryRefFor(uri);
+        _libraryIdToScriptRefs.putIfAbsent(libraryRef.id, () => <ScriptRef>[]);
         for (var scriptRef in scriptRefs) {
           _scriptRefsById[scriptRef.id] = scriptRef;
           _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
           _serverPathToScriptRef[DartUri(scriptRef.uri, _root).serverPath] =
               scriptRef;
+          _libraryIdToScriptRefs[libraryRef.id].add(scriptRef);
         }
       }
       return _scriptRefsById.values.toList();
