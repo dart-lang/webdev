@@ -15,5 +15,5 @@ dependencies:
   shelf: ^1.1.4
   package_config: ^2.0.0
   path: ^1.8.0
-  pedantic: ^1.11.0
   usage: ^4.0.0
+  lints: ^1.0.1

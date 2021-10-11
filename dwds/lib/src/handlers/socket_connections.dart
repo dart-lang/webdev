@@ -7,7 +7,6 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';

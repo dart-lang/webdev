@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../serve/server_manager.dart';
