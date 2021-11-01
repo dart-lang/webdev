@@ -362,6 +362,8 @@ class Debugger extends Domain {
   /// List/Map and [offset] and [count] should indicate the desired range.
   Future<RemoteObject> _subrange(
       String id, int offset, int count, int length) async {
+    assert(offset != null);
+    assert(length != null);
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
     var receiver = remoteObjectFor(id);
@@ -399,7 +401,7 @@ class Debugger extends Domain {
   Future<List<Property>> getProperties(String objectId,
       {int offset, int count, int length}) async {
     var rangeId = objectId;
-    if (length != null && offset != null || count != null) {
+    if (length != null && (offset != null || count != null)) {
       var range = await _subrange(objectId, offset ?? 0, count, length);
       rangeId = range.objectId;
     }
