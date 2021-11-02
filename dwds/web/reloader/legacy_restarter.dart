@@ -12,9 +12,15 @@ import 'restarter.dart';
 
 class LegacyRestarter implements Restarter {
   @override
-  Future<bool> restart() async {
+  Future<bool> restart({String runId}) async {
     var dartLibrary = context['dart_library'] as JsObject;
-    dartLibrary.callMethod('reload');
+    if (runId == null) {
+      dartLibrary.callMethod('reload');
+    } else {
+      dartLibrary.callMethod('reload', [
+        JsObject.jsify({'runId': runId})
+      ]);
+    }
     var reloadCompleter = Completer<bool>();
     StreamSubscription sub;
     sub = window.onMessage.listen((event) {

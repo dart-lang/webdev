@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:logging/logging.dart';
+import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -194,14 +195,16 @@ Future<Map<String, dynamic>> _hotRestart(
   // restart. Only return success after the isolate has fully started.
   var stream = chromeProxyService.onEvent('Isolate');
   try {
-    _logger.info('Issuing \$dartHotRestart request.');
+    // Generate run id to hot restart all apps loaded into the tab.
+    var runId = const Uuid().v4().toString();
+    _logger.info('Issuing \$dartHotRestartDwds request');
     await chromeProxyService.remoteDebugger
         .sendCommand('Runtime.evaluate', params: {
-      'expression': r'$dartHotRestart();',
+      'expression': '\$dartHotRestartDwds(\'$runId\');',
       'awaitPromise': true,
       'contextId': context,
     });
-    _logger.info('\$dartHotRestart request complete.');
+    _logger.info('\$dartHotRestartDwds request complete.');
   } on WipError catch (exception) {
     var code = exception.error['code'];
     // This corresponds to `Execution context was destroyed` which can
