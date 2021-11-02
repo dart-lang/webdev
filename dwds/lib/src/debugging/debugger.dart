@@ -654,12 +654,16 @@ class Debugger extends Domain {
   }
 }
 
-bool isNativeJsObject(InstanceRef instanceRef) =>
-    // New type representation of JS objects reifies them to JavaScriptObject.
-    (instanceRef?.classRef?.name == 'JavaScriptObject' &&
-        instanceRef?.classRef?.library?.uri == 'dart:_interceptors') ||
-    // Old type representation still needed to support older SDK versions.
-    instanceRef?.classRef?.name == 'NativeJavaScriptObject';
+bool isNativeJsObject(InstanceRef instanceRef) {
+  // New type representation of JS objects reifies them to a type suffixed with
+  // JavaScriptObject.
+  var className = instanceRef?.classRef?.name;
+  return (className != null &&
+          className.endsWith('JavaScriptObject') &&
+          instanceRef?.classRef?.library?.uri == 'dart:_interceptors') ||
+      // Old type representation still needed to support older SDK versions.
+      className == 'NativeJavaScriptObject';
+}
 
 /// Returns the Dart line number for the provided breakpoint.
 int _lineNumberFor(Breakpoint breakpoint) =>
