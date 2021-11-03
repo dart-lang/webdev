@@ -11,15 +11,19 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/logging.dart';
 
 final context = TestContext(
   path: 'append_body/index.html',
 );
 
 void main() {
+  // set to true for debug logging.
+  var debug = false;
   group('Injected client with live reload', () {
     group('and with debugging', () {
       setUp(() async {
+        setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.liveReload,
         );
@@ -42,6 +46,7 @@ void main() {
 
     group('and without debugging', () {
       setUp(() async {
+        setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.liveReload,
           enableDebugging: false,
@@ -65,6 +70,7 @@ void main() {
 
     group('and without debugging using WebSockets', () {
       setUp(() async {
+        setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.liveReload,
           enableDebugging: false,
@@ -90,6 +96,7 @@ void main() {
 
   group('Injected client', () {
     setUp(() async {
+      setCurrentLogWriter(debug: debug);
       await context.setUp(enableExpressionEvaluation: true);
     });
 
@@ -270,6 +277,7 @@ void main() {
   group('Injected client with hot restart', () {
     group('and with debugging', () {
       setUp(() async {
+        setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.hotRestart,
         );
@@ -312,6 +320,7 @@ void main() {
 
     group('and without debugging', () {
       setUp(() async {
+        setCurrentLogWriter(debug: debug);
         await context.setUp(
           reloadConfiguration: ReloadConfiguration.hotRestart,
           enableDebugging: false,
