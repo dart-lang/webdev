@@ -22,9 +22,15 @@ class ReloadingManager {
 
   /// Attemps to perform a hot restart and returns whether it was successful or
   /// not.
-  Future<bool> hotRestart() async {
+  ///
+  /// [runId] is used to hot restart code in the browser for all apps that
+  /// - are loaded on the same page
+  /// - called hotRestart with the same runId
+  ///
+  /// The apps are restarted at the same time on the first call.
+  Future<bool> hotRestart({String runId}) async {
     _beforeRestart();
-    var result = await _restarter.restart();
+    var result = await _restarter.restart(runId: runId);
     _afterRestart(result);
     return result;
   }

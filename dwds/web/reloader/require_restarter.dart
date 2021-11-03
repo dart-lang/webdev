@@ -100,7 +100,7 @@ class RequireRestarter implements Restarter {
   }
 
   @override
-  Future<bool> restart() async {
+  Future<bool> restart({String runId}) async {
     var developer = getProperty(require('dart_sdk'), 'developer');
     if (callMethod(getProperty(developer, '_extensions'), 'containsKey',
         ['ext.flutter.disassemble']) as bool) {
@@ -127,7 +127,6 @@ class RequireRestarter implements Restarter {
       _updateGraph();
       result = await _reload(modulesToLoad);
     }
-
     callMethod(getProperty(require('dart_sdk'), 'dart'), 'hotRestart', []);
     runMain();
     return result;
