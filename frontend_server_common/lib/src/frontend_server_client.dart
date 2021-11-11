@@ -15,7 +15,6 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
-import 'package:pedantic/pedantic.dart';
 import 'package:usage/uuid/uuid.dart';
 
 import 'utilities.dart';

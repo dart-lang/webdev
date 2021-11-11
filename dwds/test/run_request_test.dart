@@ -5,12 +5,10 @@
 // @dart = 2.9
 
 @Timeout(Duration(minutes: 2))
-
 import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
