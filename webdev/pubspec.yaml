@@ -23,7 +23,6 @@ dependencies:
   http_multi_server: ^3.0.0
   io: ^1.0.0
   logging: ^1.0.0
-  pedantic: ^1.5.0
   meta: ^1.1.2
   path: ^1.5.1
   pool: ^1.4.0

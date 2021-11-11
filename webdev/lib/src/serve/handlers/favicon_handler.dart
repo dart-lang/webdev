@@ -4,10 +4,10 @@
 
 // @dart = 2.9
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 
 Handler interceptFavicon(Handler handler) {
