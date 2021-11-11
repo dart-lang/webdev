@@ -33,7 +33,7 @@ dependencies:
   sse: ^4.1.0
   uuid: '>=2.0.0 <4.0.0'
   # We pin the version because we implement the interface.
-  vm_service: 7.3.0
+  vm_service: 7.4.0
   web_socket_channel: ^2.0.0
   webkit_inspection_protocol: ^1.0.0
 

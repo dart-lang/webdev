@@ -1036,6 +1036,15 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Breakpoint> setBreakpointState(
           String isolateId, String breakpointId, bool enable) =>
       throw UnimplementedError();
+
+  @override
+  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
+      throw UnimplementedError();
+
+  @override
+  Future<UriList> lookupResolvedPackageUris(
+          String isolateId, List<String> uris) =>
+      throw UnimplementedError();
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
