@@ -41,10 +41,10 @@ void main() {
     });
 
     test('emits HTTP_REQUEST_EXCEPTION event', () async {
-      final throwAsyncException = () async {
+      Future<void> throwAsyncException() async {
         await Future.delayed(const Duration(milliseconds: 100));
         throw Exception('async error');
-      };
+      }
 
       // The events stream is a broadcast stream so start listening
       // before the action.

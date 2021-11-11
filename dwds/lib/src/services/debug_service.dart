@@ -154,7 +154,7 @@ class DebugService {
         scheme: 'http',
         host: hostname,
         port: port,
-        path: '$authToken',
+        path: authToken,
       ),
       serviceUri: Uri(
         scheme: 'http',
@@ -180,7 +180,7 @@ class DebugService {
                 scheme: 'ws',
                 host: hostname,
                 port: port,
-                path: '$authToken',
+                path: authToken,
               ))
         .toString();
   }

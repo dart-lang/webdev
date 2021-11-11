@@ -343,7 +343,7 @@ class TestContext {
     webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
   }
 
-  Future<Null> tearDown() async {
+  Future<void> tearDown() async {
     await webDriver?.quit(closeSession: true);
     chromeDriver?.kill();
     DartUri.currentDirectory = p.current;
