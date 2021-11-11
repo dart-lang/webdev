@@ -140,7 +140,7 @@ class AppInspector extends Domain {
         isolateFlags: [])
       ..extensionRPCs = [];
     AppInspector appInspector;
-    var provider = () => appInspector;
+    AppInspector provider() => appInspector;
     var libraryHelper = LibraryHelper(provider);
     var classHelper = ClassHelper(provider);
     var instanceHelper = InstanceHelper(provider);

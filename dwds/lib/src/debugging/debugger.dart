@@ -181,7 +181,7 @@ class Debugger extends Domain {
     return debugger;
   }
 
-  Future<Null> _initialize() async {
+  Future<void> _initialize() async {
     // We must add a listener before enabling the debugger otherwise we will
     // miss events.
     // Allow a null debugger/connection for unit tests.

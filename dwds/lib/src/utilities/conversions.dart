@@ -5,7 +5,6 @@
 // @dart = 2.9
 
 /// Functions for converting between the different object references we use.
-
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Convert [argument] to a form usable in WIP evaluation calls.
@@ -81,7 +80,7 @@ RemoteObject remoteObjectFor(String dartId) {
 /// RemoteObjects.
 String dartIdFor(Object argument) {
   if (argument == null) {
-    return '$_nullId';
+    return _nullId;
   }
   if (argument is double) {
     return '$_prefixForDoubleIds$argument';
