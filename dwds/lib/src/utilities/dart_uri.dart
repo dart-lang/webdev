@@ -78,8 +78,7 @@ class DartUri {
       // Both currentDirectoryUri and the libraryUri path should have '/'
       // separators, so we can join them as url paths to get the absolute file
       // url.
-      var libraryPath =
-          p.url.join('$currentDirectoryUri', uri.path.substring(1));
+      var libraryPath = p.url.join(currentDirectoryUri, uri.path.substring(1));
       _libraryNamesByPath[libraryPath] = libraryUri;
     } else if (uri.scheme == 'package') {
       var libraryPath = _packageConfig.resolve(uri);

@@ -14,11 +14,8 @@ import 'package:path/path.dart' as p;
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(String workingDirectory,
         List<String> options, Function(ServerLog) logHandler) =>
-    BuildDaemonClient.connect(
-        workingDirectory,
-        [dartPath]
-          ..addAll(['run', 'build_runner', 'daemon'])
-          ..addAll(options),
+    BuildDaemonClient.connect(workingDirectory,
+        [dartPath, 'run', 'build_runner', 'daemon', ...options],
         logHandler: logHandler);
 
 /// The path to the root directory of the SDK.
