@@ -21,7 +21,6 @@ dependencies:
   meta: ^1.1.7
   package_config: ^2.0.0
   path: ^1.6.0
-  pedantic: ^1.5.0
   pool: ^1.4.0
   pub_semver: ^2.0.0
   shelf: '>=0.7.0 <2.0.0'
