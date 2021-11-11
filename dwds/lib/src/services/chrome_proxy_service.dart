@@ -1038,13 +1038,17 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       throw UnimplementedError();
 
   @override
-  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
-      throw UnimplementedError();
+  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) {
+    // TODO(https://github.com/dart-lang/webdev/issues/1446): implement.
+    throw UnimplementedError();
+  }
 
   @override
   Future<UriList> lookupResolvedPackageUris(
-          String isolateId, List<String> uris) =>
-      throw UnimplementedError();
+      String isolateId, List<String> uris) {
+    // TODO(https://github.com/dart-lang/webdev/issues/1446): implement.
+    throw UnimplementedError();
+  }
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
