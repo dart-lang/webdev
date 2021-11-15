@@ -1050,8 +1050,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     throw UnimplementedError();
   }
 
-  /// Prevent DWDS from blocking Dart SDK rolls if changes in
-  /// package:vm_service are unimplemented in DWDS.
+  /// Prevent DWDS from blocking Dart SDK rolls if changes in package:vm_service
+  /// are unimplemented in DWDS.
   @override
   dynamic noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
