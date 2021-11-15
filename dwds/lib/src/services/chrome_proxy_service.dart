@@ -1037,6 +1037,13 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Breakpoint> setBreakpointState(
           String isolateId, String breakpointId, bool enable) =>
       throw UnimplementedError();
+
+  /// Prevent DWDS from blocking Dart SDK rolls if changes in
+  /// package:vm_service are unimplemented in DWDS.
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
