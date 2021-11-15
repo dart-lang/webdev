@@ -3,7 +3,7 @@ publish_to: none
 description: >-
   Frontend server integration code to use for dwds tests. Mimicks flutter code.
 environment:
-  sdk: ">=2.10.0 <3.0.0"
+  sdk: ">=2.14.0 <3.0.0"
 
 dependencies:
   dwds:
@@ -15,5 +15,4 @@ dependencies:
   shelf: ^1.1.4
   package_config: ^2.0.0
   path: ^1.8.0
-  pedantic: ^1.11.0
   usage: ^4.0.0

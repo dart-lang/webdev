@@ -82,7 +82,7 @@ class DwdsInjector {
               var requestedUri = request.requestedUri;
               var appId = base64
                   .encode(md5.convert(utf8.encode('$requestedUri')).bytes);
-              var scheme = '${request.requestedUri.scheme}';
+              var scheme = request.requestedUri.scheme;
               if (!_useSseForInjectedClient) {
                 // Switch http->ws and https->wss.
                 scheme = scheme.replaceFirst('http', 'ws');

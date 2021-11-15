@@ -1,3 +1,16 @@
+## 11.5.0-dev
+
+- Support hot restart in a multi-app scenario with legacy modules.
+  - Rename `$dartHotRestart` in the injected client to `$dartHotRestartDwds`.
+  - Make `$dartHotRestartDwds` take a `runId`.
+  - No change in behavior for single applications.
+  - For a multi-app scenario using legacy modules, this will make all
+    sub-apps with the same `runId` restart at the same time once.
+
+  Note that multi-app scenario is currently only supported for legacy modules,
+  used by DDR, and is not yet supported for amd modules that are used by
+  flutter tools and webdev.
+
 ## 11.4.0
 
 - Fix duplicated scripts returned by `VmService.getScripts` API.

@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart' hide LogRecord;
-import 'package:pedantic/pedantic.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -1037,6 +1036,19 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Breakpoint> setBreakpointState(
           String isolateId, String breakpointId, bool enable) =>
       throw UnimplementedError();
+
+  @override
+  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) {
+    // TODO(https://github.com/dart-lang/webdev/issues/1446): implement.
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<UriList> lookupResolvedPackageUris(
+      String isolateId, List<String> uris) {
+    // TODO(https://github.com/dart-lang/webdev/issues/1446): implement.
+    throw UnimplementedError();
+  }
 
   /// Prevent DWDS from blocking Dart SDK rolls if changes in
   /// package:vm_service are unimplemented in DWDS.

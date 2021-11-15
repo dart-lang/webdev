@@ -59,7 +59,7 @@ void main() async {
       var port = server.port;
 
       // start expression compilation service
-      final assetHandler = (request) =>
+      Response assetHandler(request) =>
           Response(200, body: File.fromUri(kernel).readAsBytesSync());
       service =
           ExpressionCompilerService('localhost', port, assetHandler, false);

@@ -28,6 +28,7 @@ void configureLogWriter(bool verbose, {LogWriter customLogWriter}) {
   });
 }
 
+// ignore: prefer_function_declarations_over_variables
 LogWriter _logWriter =
     (level, message, {String error, String loggerName, String stackTrace}) {
   // Erases the previous line

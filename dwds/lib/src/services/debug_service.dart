@@ -12,7 +12,6 @@ import 'dart:typed_data';
 
 import 'package:dds/dds.dart';
 import 'package:logging/logging.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart' hide Response;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
@@ -155,7 +154,7 @@ class DebugService {
         scheme: 'http',
         host: hostname,
         port: port,
-        path: '$authToken',
+        path: authToken,
       ),
       serviceUri: Uri(
         scheme: 'http',
@@ -181,7 +180,7 @@ class DebugService {
                 scheme: 'ws',
                 host: hostname,
                 port: port,
-                path: '$authToken',
+                path: authToken,
               ))
         .toString();
   }

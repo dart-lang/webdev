@@ -12,7 +12,7 @@ final ScriptElement Function() _createScript = (() {
 })();
 
 // According to the CSP3 spec a nonce must be a valid base64 string.
-final _noncePattern = RegExp('^[\\w+\/_-]+[=]{0,2}\$');
+final _noncePattern = RegExp('^[\\w+/_-]+[=]{0,2}\$');
 
 /// Returns CSP nonce, if set for any script tag.
 String _findNonce() {
