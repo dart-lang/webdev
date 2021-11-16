@@ -1049,6 +1049,13 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     // TODO(https://github.com/dart-lang/webdev/issues/1446): implement.
     throw UnimplementedError();
   }
+
+  /// Prevent DWDS from blocking Dart SDK rolls if changes in package:vm_service
+  /// are unimplemented in DWDS.
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
 }
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stderr` logs.
