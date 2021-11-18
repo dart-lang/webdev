@@ -223,4 +223,4 @@ external set emitDebugEvent(void Function(String, String) func);
 @JS(r'$emitRegisterEvent')
 external set emitRegisterEvent(void Function(String) func);
 
-bool get _isChromium => window.navigator.userAgent.contains('Chrome');
+bool get _isChromium => window.navigator.vendor.contains('Google');
