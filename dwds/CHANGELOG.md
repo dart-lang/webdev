@@ -11,6 +11,8 @@
   used by DDR, and is not yet supported for amd modules that are used by
   flutter tools and webdev.
 
+- Fix chrome detection in iPhone emulation mode in chrome or edge browsers.
+
 ## 11.4.0
 
 - Fix duplicated scripts returned by `VmService.getScripts` API.
