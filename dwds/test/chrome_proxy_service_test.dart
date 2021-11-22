@@ -649,6 +649,16 @@ void main() {
         expect(obj.valueAsString, '42');
       });
 
+      test('num 2', () async {
+        var ref = await service.evaluate(
+            isolate.id, bootstrap.id, 'helloNum(42)') as InstanceRef;
+        var obj = await service.getObject(isolate.id, ref.id,
+            offset: 0, count: 0) as Instance;
+        expect(obj.kind, InstanceKind.kDouble);
+        expect(obj.classRef.name, 'Double');
+        expect(obj.valueAsString, '42');
+      });
+
       test('null', () async {
         var ref = await service.evaluate(
             isolate.id, bootstrap.id, 'helloNum(null)') as InstanceRef;

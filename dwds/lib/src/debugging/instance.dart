@@ -91,11 +91,15 @@ class InstanceHelper extends Domain {
   /// [count] allow retrieving a sub-range of properties.
   Future<Instance> instanceFor(RemoteObject remoteObject,
       {int offset, int count}) async {
+    print('REMOTE OBJECT TYPE ${remoteObject?.type}');
+    print('REMOTE OBJECT VALUE ${remoteObject?.value}');
     var primitive = _primitiveInstanceOrNull(remoteObject, offset, count);
+    print('got here');
     if (primitive != null) {
       return primitive;
     }
 
+    print('now got here');
     // TODO: This is checking the JS object ID for the dart pattern we use for
     // VM objects, which seems wrong (and, we catch 'string' types above).
     if (isStringId(remoteObject.objectId)) {
@@ -108,6 +112,7 @@ class InstanceHelper extends Domain {
     if (metaData.jsName == 'Function') {
       return _closureInstanceFor(remoteObject);
     }
+    print('finally got here');
 
     var properties = await inspector.debugger.getProperties(
         remoteObject.objectId,
@@ -137,6 +142,7 @@ class InstanceHelper extends Domain {
       case 'boolean':
         return _primitiveInstance(InstanceKind.kBool, remoteObject);
       case 'undefined':
+        print('return here');
         return _primitiveInstance(InstanceKind.kNull, remoteObject);
       default:
         return null;

@@ -39,6 +39,9 @@ void main() {
 
   final url = 'org-dartlang-app:///web/scopes_main.dart';
 
+  final remoteNumber =
+      RemoteObject({'objectId': 'objects/double-5.25', 'value': '5.25'});
+
   String libraryVariableExpression(String variable) =>
       '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
       '["$url"]["$variable"];';
@@ -222,6 +225,23 @@ void main() {
       expect(instance.elements, isNull);
       var field = instance.fields.first;
       expect(field.decl.name, '_internal');
+    });
+
+    test('for a number', () async {
+      var instance =
+          await instanceHelper.instanceFor(remoteNumber, offset: 0, count: 0);
+
+      // var remoteObject =
+      //     await inspector.jsEvaluate(libraryVariableExpression('justADouble'));
+      // var ref = await instanceHelper.instanceRefFor(remoteObject);
+      // var remoteObject = RemoteObject(})
+
+      // print('REMOTE OBJECT $remoteObject');
+      // print('REF $ref');
+
+      // var remoteObject = RemoteObject({'objectId': 'objects/double-5.25', 'value': '5.25', 'type': 'number'});
+      // var instance = await instanceHelper.instanceFor(remoteObject);
+      expect(instance.kind, InstanceKind.kNull);
     });
   });
 }
