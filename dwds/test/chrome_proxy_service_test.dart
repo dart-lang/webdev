@@ -479,6 +479,40 @@ void main() {
             ]));
       });
 
+      test('Classes with offset', () async {
+        var testClass = await service.getObject(
+                isolate.id, rootLibrary.classes.first.id, offset: 0, count: 0)
+            as Class;
+        expect(
+            testClass.functions,
+            unorderedEquals([
+              predicate((FuncRef f) => f.name == 'message' && !f.isStatic),
+              predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic),
+              predicate((FuncRef f) => f.name == 'hello' && !f.isStatic),
+              predicate((FuncRef f) => f.name == '_equals' && !f.isStatic),
+              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic),
+              predicate((FuncRef f) => f.name == 'toString' && !f.isStatic),
+              predicate((FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic),
+              predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic),
+            ]));
+        expect(
+            testClass.fields,
+            unorderedEquals([
+              predicate((FieldRef f) =>
+                  f.name == 'message' &&
+                  f.declaredType != null &&
+                  !f.isStatic &&
+                  !f.isConst &&
+                  f.isFinal),
+              predicate((FieldRef f) =>
+                  f.name == 'notFinal' &&
+                  f.declaredType != null &&
+                  !f.isStatic &&
+                  !f.isConst &&
+                  !f.isFinal),
+            ]));
+      });
+
       test('Runtime classes', () async {
         var testClass = await service.getObject(
             isolate.id, 'classes|dart:_runtime|_Type') as Class;
