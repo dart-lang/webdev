@@ -19,8 +19,6 @@ var identityMap = <String, int>{};
 
 var map = <Object, Object>{};
 
-var justADouble = 5.25;
-
 void staticFunction(int formal) {
   print(formal); // Breakpoint: staticFunction
 }

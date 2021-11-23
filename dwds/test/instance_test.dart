@@ -157,6 +157,30 @@ void main() {
       }
     });
 
+    test('for class object with offset', () async {
+      var remoteObject = await libraryPublicFinal();
+      var instance = await instanceHelper.instanceFor(remoteObject, offset: 0);
+      expect(instance.kind, InstanceKind.kPlainInstance);
+      var classRef = instance.classRef;
+      expect(classRef, isNotNull);
+      expect(classRef.name, 'MyTestClass<dynamic>');
+      var fieldNames =
+          instance.fields.map((boundField) => boundField.decl.name).toList();
+      expect(fieldNames, [
+        '_privateField',
+        'abstractField',
+        'closure',
+        'count',
+        'message',
+        'myselfField',
+        'notFinal',
+        'tornOff',
+      ]);
+      for (var field in instance.fields) {
+        expect(field.decl.declaredType, isNotNull);
+      }
+    });
+
     test('for closure', () async {
       var remoteObject = await libraryPublicFinal();
       var properties = await debugger.getProperties(remoteObject.objectId);

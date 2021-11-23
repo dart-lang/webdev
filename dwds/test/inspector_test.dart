@@ -61,17 +61,6 @@ void main() {
       var clazz = await inspector.getObject(isolateId, classRef.id) as Class;
       expect(clazz.name, 'MyTestClass<dynamic>');
     });
-
-    test('for a primitive', () async {
-      var isolateId = inspector.isolate.id;
-      var remoteObject =
-          await inspector.jsEvaluate(libraryVariableExpression('justADouble'));
-      print(
-          'object id is ${remoteObject.objectId}'); // This is null. Seems to be expected, see https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#type-RemoteObject.
-      var instance = await inspector.getObject(isolateId, remoteObject.objectId)
-          as Instance;
-      expect(instance.kind, InstanceKind.kDouble);
-    });
   });
 
   group('loadField', () {

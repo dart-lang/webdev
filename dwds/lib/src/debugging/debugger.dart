@@ -401,8 +401,7 @@ class Debugger extends Domain {
   Future<List<Property>> getProperties(String objectId,
       {int offset, int count, int length}) async {
     var rangeId = objectId;
-    // if (length != null && (offset != null || count != null)) {
-    if (offset != null || count != null) {
+    if (length != null && (offset != null || count != null)) {
       var range = await _subrange(objectId, offset ?? 0, count, length);
       rangeId = range.objectId;
     }
