@@ -475,6 +475,12 @@ void main() {
                   !f.isStatic &&
                   !f.isConst &&
                   !f.isFinal),
+              predicate((FieldRef f) =>
+                  f.name == 'staticMessage' &&
+                  f.declaredType != null &&
+                  f.isStatic &&
+                  !f.isConst &&
+                  !f.isFinal),
             ]));
       });
 

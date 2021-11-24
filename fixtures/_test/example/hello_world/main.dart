@@ -117,6 +117,8 @@ class MyTestClass {
 
   String notFinal;
 
+  static final String staticMessage = 'static';
+
   MyTestClass({this.message = 'world'});
 
   String hello() => message;
