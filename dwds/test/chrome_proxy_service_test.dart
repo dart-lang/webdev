@@ -451,6 +451,7 @@ void main() {
         expect(
             testClass.functions,
             unorderedEquals([
+              predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic),
               predicate((FuncRef f) => f.name == 'message' && !f.isStatic),
               predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic),
               predicate((FuncRef f) => f.name == 'hello' && !f.isStatic),

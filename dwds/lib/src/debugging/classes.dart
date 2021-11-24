@@ -152,6 +152,17 @@ class ClassHelper extends Domain {
         }
       }
 
+      descriptor['staticMethods'] = {};
+      var staticMethodNames = sdkUtils.getStaticMethods(clazz) ?? [];
+      for (var name of staticMethodNames) {
+        descriptor['methods'][name] = {
+          // DDC only provides names of static members, we set isConst
+          // to false even though it could be true.
+          "isConst": false,
+          "isStatic": true,
+        } 
+      }
+
       return descriptor;
     })()
     ''';
@@ -170,6 +181,9 @@ class ClassHelper extends Domain {
     var classDescriptor = result.value as Map<String, dynamic>;
     var methodRefs = <FuncRef>[];
     var methodDescriptors = classDescriptor['methods'] as Map<String, dynamic>;
+    var staticMethodDescriptors =
+        classDescriptor['staticMethods'] as Map<String, dynamic>;
+    methodDescriptors.addAll(staticMethodDescriptors);
     methodDescriptors.forEach((name, descriptor) {
       var methodId = 'methods|${classRef.id}|$name';
       methodRefs.add(FuncRef(
