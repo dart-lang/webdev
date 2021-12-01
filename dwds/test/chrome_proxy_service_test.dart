@@ -1261,6 +1261,99 @@ void main() {
           service.getRetainingPath(null, null, null), throwsRPCError);
     });
 
+    test('lookupResolvedPackageUris converts package and org-dartlang-app uris',
+        () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+      var scriptList = await service.getScripts(isolateId);
+
+      var uris = [...scriptList.scripts.map((e) => e.uri)];
+      var resolvedUris =
+          await service.lookupResolvedPackageUris(isolateId, uris);
+
+      expect(
+          resolvedUris.uris,
+          containsAll([
+            contains('/_test/example/hello_world/main.dart'),
+            contains('/lib/path.dart'),
+            contains('/lib/src/path_set.dart'),
+          ]));
+    });
+
+    test('lookupResolvedPackageUris does not translate non-exsitent paths',
+        () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+
+      var resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
+        'dart:io', // dart:io is not imported
+        'does_not_exist.dart',
+      ]);
+      expect(resolvedUris.uris, [null, null]);
+    });
+
+    test('lookupResolvedPackageUris translates dart uris', () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+
+      var resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
+        'dart:html',
+        'dart:async',
+      ]);
+
+      expect(resolvedUris.uris, [
+        'org-dartlang-sdk:///sdk/lib/html/html.dart',
+        'org-dartlang-sdk:///sdk/lib/async/async.dart',
+      ]);
+    }, skip: 'https://github.com/dart-lang/webdev/issues/1457');
+
+    test('lookupPackageUris finds package and org-dartlang-app paths',
+        () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+      var scriptList = await service.getScripts(isolateId);
+
+      var uris = [...scriptList.scripts.map((e) => e.uri)];
+      var resolvedUris =
+          await service.lookupResolvedPackageUris(isolateId, uris);
+
+      var packageUris = await service.lookupPackageUris(
+          isolateId, resolvedUris.uris as List<String>);
+      expect(
+          packageUris.uris,
+          containsAll([
+            'org-dartlang-app:///example/hello_world/main.dart',
+            'package:path/path.dart',
+            'package:path/src/path_set.dart',
+          ]));
+    });
+
+    test('lookupPackageUris does not translate non-exsitent paths', () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+
+      var resolvedUris = await service.lookupPackageUris(isolateId, [
+        'org-dartlang-sdk:///sdk/lib/io/io.dart', // dart:io is not imported
+        'does_not_exist.dart',
+      ]);
+      expect(resolvedUris.uris, [null, null]);
+    });
+
+    test('lookupPackageUris translates dart uris', () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+
+      var resolvedUris = await service.lookupPackageUris(isolateId, [
+        'org-dartlang-sdk:///sdk/lib/html/html.dart',
+        'org-dartlang-sdk:///sdk/lib/async/async.dart',
+      ]);
+
+      expect(resolvedUris.uris, [
+        'dart:html',
+        'dart:async',
+      ]);
+    }, skip: 'https://github.com/dart-lang/webdev/issues/1457');
+
     test('registerService', () async {
       await expectLater(
           service.registerService('ext.foo.bar', null), throwsRPCError);

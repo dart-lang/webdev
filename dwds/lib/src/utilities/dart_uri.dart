@@ -51,38 +51,46 @@ class DartUri {
   static PackageConfig _packageConfig;
 
   /// All of the known libraries, indexed by their absolute file URL.
-  static final Map<String, String> _libraryNamesByPath = {};
+  static final Map<String, String> _resolvedUriToUri = {};
+
+  /// All of the known absolute library paths, indexed by their library URL.
+  static final Map<String, String> _uriToResolvedUri = {};
 
   /// Record all of the libraries, indexed by their absolute file: URI.
   static Future<void> recordAbsoluteUris(Iterable<String> libraryUris) async {
     if (_shouldRecord) {
       await _loadPackageConfig(_packagesUri);
-      _libraryNamesByPath.clear();
+      _resolvedUriToUri.clear();
+      _uriToResolvedUri.clear();
       for (var uri in libraryUris) {
         _recordAbsoluteUri(uri);
       }
     }
   }
 
+  static String toPackageUri(String uri) => _resolvedUriToUri[uri];
+
+  static String toResolvedUri(String uri) => _uriToResolvedUri[uri];
+
   /// Record the library represented by package: or org-dartlang-app: uris
   /// indexed by absolute file: URI.
   static void _recordAbsoluteUri(String libraryUri) {
     var uri = Uri.parse(libraryUri);
-    if (uri.scheme == 'dart' ||
-        (uri.scheme == '' && !uri.path.endsWith('.dart'))) {
-      // We ignore dart: libraries, and non-Dart libraries referenced by path.
-      // e.g. main.dart.bootstrap
-      // TODO(alanknight): These should not be showing up in the library list,
-      // fix _getLibraryRefs and then remove this check.
+    if (uri.scheme == '' && !uri.path.endsWith('.dart')) {
+      // ignore non-dart files
+    } else if (uri.scheme == 'dart') {
+      // TODO: implement to match the VM service API
     } else if (uri.scheme == 'org-dartlang-app' || uri.scheme == 'google3') {
       // Both currentDirectoryUri and the libraryUri path should have '/'
       // separators, so we can join them as url paths to get the absolute file
       // url.
       var libraryPath = p.url.join(currentDirectoryUri, uri.path.substring(1));
-      _libraryNamesByPath[libraryPath] = libraryUri;
+      _uriToResolvedUri[libraryUri] = libraryPath;
+      _resolvedUriToUri[libraryPath] = libraryUri;
     } else if (uri.scheme == 'package') {
       var libraryPath = _packageConfig.resolve(uri);
-      _libraryNamesByPath['$libraryPath'] = libraryUri;
+      _uriToResolvedUri[libraryUri] = '$libraryPath';
+      _resolvedUriToUri['$libraryPath'] = libraryUri;
     } else {
       throw ArgumentError.value(libraryUri, 'URI scheme not allowed');
     }
@@ -139,7 +147,7 @@ class DartUri {
 
   /// Construct from a file: URI
   factory DartUri._fromFileUri(String uri) {
-    var libraryName = _libraryNamesByPath[uri];
+    var libraryName = _resolvedUriToUri[uri];
     if (libraryName != null) return DartUri(libraryName);
     // This is not one of our recorded libraries.
     throw ArgumentError.value(uri, 'uri', 'Unknown library');
