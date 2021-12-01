@@ -12,6 +12,8 @@
   flutter tools and webdev.
 
 - Fix chrome detection in iPhone emulation mode in chrome or edge browsers.
+- Reliably find unused port for extension backend http service.
+- Ignore offset / count parameters in getObject if the object has no length
 
 ## 11.4.0
 

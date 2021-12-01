@@ -499,28 +499,6 @@ void main() {
         expect(world.valueAsString, 'world');
       });
 
-      test('Strings with offset', () async {
-        var worldRef = await service.evaluate(
-            isolate.id, bootstrap.id, "helloString('world')") as InstanceRef;
-        var world = await service.getObject(isolate.id, worldRef.id,
-            count: 2, offset: 1) as Instance;
-        expect(world.valueAsString, 'or');
-        expect(world.count, 2);
-        expect(world.length, 5);
-        expect(world.offset, 1);
-      });
-
-      test('Strings with offset off the end', () async {
-        var worldRef = await service.evaluate(
-            isolate.id, bootstrap.id, "helloString('world')") as InstanceRef;
-        var world = await service.getObject(isolate.id, worldRef.id,
-            count: 5, offset: 3) as Instance;
-        expect(world.valueAsString, 'ld');
-        expect(world.count, 2);
-        expect(world.length, 5);
-        expect(world.offset, 3);
-      });
-
       test('Large strings not truncated', () async {
         var largeString = await service.evaluate(
                 isolate.id, bootstrap.id, "helloString('${'abcde' * 250}')")
@@ -571,30 +549,6 @@ void main() {
         expect(sixth.valueAsString, '5');
       });
 
-      test('Lists with count/offset', () async {
-        var list = await createList();
-        var inst = await service.getObject(isolate.id, list.objectId,
-            count: 7, offset: 4) as Instance;
-        expect(inst.length, 1001);
-        expect(inst.offset, 4);
-        expect(inst.count, 7);
-        var fifth = inst.elements[0] as InstanceRef;
-        expect(fifth.valueAsString, '100');
-        var sixth = inst.elements[1] as InstanceRef;
-        expect(sixth.valueAsString, '5');
-      });
-
-      test('Lists running off the end', () async {
-        var list = await createList();
-        var inst = await service.getObject(isolate.id, list.objectId,
-            count: 5, offset: 1000) as Instance;
-        expect(inst.length, 1001);
-        expect(inst.offset, 1000);
-        expect(inst.count, 1);
-        var only = inst.elements[0] as InstanceRef;
-        expect(only.valueAsString, '5');
-      });
-
       test('Maps', () async {
         var map = await createMap();
         var inst =
@@ -608,33 +562,6 @@ void main() {
         var sixth = inst.associations[5];
         expect(sixth.key.valueAsString, '5');
         expect(sixth.value.valueAsString, '995');
-      });
-
-      test('Maps with count/offset', () async {
-        var map = await createMap();
-        var inst = await service.getObject(isolate.id, map.objectId,
-            count: 7, offset: 4) as Instance;
-        expect(inst.length, 1001);
-        expect(inst.offset, 4);
-        expect(inst.count, 7);
-        var fifth = inst.associations[0];
-        expect(fifth.key.valueAsString, '4');
-        expect(fifth.value.valueAsString, '996');
-        var sixth = inst.associations[1];
-        expect(sixth.key.valueAsString, '5');
-        expect(sixth.value.valueAsString, '995');
-      });
-
-      test('Maps running off the end', () async {
-        var map = await createMap();
-        var inst = await service.getObject(isolate.id, map.objectId,
-            count: 5, offset: 1000) as Instance;
-        expect(inst.length, 1001);
-        expect(inst.offset, 1000);
-        expect(inst.count, 1);
-        var only = inst.associations[0];
-        expect(only.key.valueAsString, '1000');
-        expect(only.value.valueAsString, '0');
       });
 
       test('bool', () async {
@@ -677,6 +604,190 @@ void main() {
           expect(scriptRef.uri, endsWith('.dart'));
           expect(script.tokenPosTable, isNotEmpty);
         }
+      });
+
+      group('getObject called with offset/count parameters', () {
+        test('Lists with offset/count are truncated', () async {
+          var list = await createList();
+          var inst = await service.getObject(
+            isolate.id,
+            list.objectId,
+            count: 7,
+            offset: 4,
+          ) as Instance;
+          expect(inst.length, 1001);
+          expect(inst.offset, 4);
+          expect(inst.count, 7);
+          var fifth = inst.elements[0] as InstanceRef;
+          expect(fifth.valueAsString, '100');
+          var sixth = inst.elements[1] as InstanceRef;
+          expect(sixth.valueAsString, '5');
+        });
+
+        test('Lists are truncated to the end if offset/count runs off the end',
+            () async {
+          var list = await createList();
+          var inst = await service.getObject(
+            isolate.id,
+            list.objectId,
+            count: 5,
+            offset: 1000,
+          ) as Instance;
+          expect(inst.length, 1001);
+          expect(inst.offset, 1000);
+          expect(inst.count, 1);
+          var only = inst.elements[0] as InstanceRef;
+          expect(only.valueAsString, '5');
+        });
+
+        test('Maps with offset/count are truncated', () async {
+          var map = await createMap();
+          var inst = await service.getObject(
+            isolate.id,
+            map.objectId,
+            count: 7,
+            offset: 4,
+          ) as Instance;
+          expect(inst.length, 1001);
+          expect(inst.offset, 4);
+          expect(inst.count, 7);
+          var fifth = inst.associations[0];
+          expect(fifth.key.valueAsString, '4');
+          expect(fifth.value.valueAsString, '996');
+          var sixth = inst.associations[1];
+          expect(sixth.key.valueAsString, '5');
+          expect(sixth.value.valueAsString, '995');
+        });
+
+        test('Maps are truncated to the end if offset/count runs off the end',
+            () async {
+          var map = await createMap();
+          var inst = await service.getObject(
+            isolate.id,
+            map.objectId,
+            count: 5,
+            offset: 1000,
+          ) as Instance;
+          expect(inst.length, 1001);
+          expect(inst.offset, 1000);
+          expect(inst.count, 1);
+          var only = inst.associations[0];
+          expect(only.key.valueAsString, '1000');
+          expect(only.value.valueAsString, '0');
+        });
+
+        test('Strings with offset/count are truncated', () async {
+          var worldRef = await service.evaluate(
+              isolate.id, bootstrap.id, "helloString('world')") as InstanceRef;
+          var world = await service.getObject(
+            isolate.id,
+            worldRef.id,
+            count: 2,
+            offset: 1,
+          ) as Instance;
+          expect(world.valueAsString, 'or');
+          expect(world.count, 2);
+          expect(world.length, 5);
+          expect(world.offset, 1);
+        });
+
+        test(
+            'Strings are truncated to the end if offset/count runs off the end',
+            () async {
+          var worldRef = await service.evaluate(
+              isolate.id, bootstrap.id, "helloString('world')") as InstanceRef;
+          var world = await service.getObject(
+            isolate.id,
+            worldRef.id,
+            count: 5,
+            offset: 3,
+          ) as Instance;
+          expect(world.valueAsString, 'ld');
+          expect(world.count, 2);
+          expect(world.length, 5);
+          expect(world.offset, 3);
+        });
+
+        test('offset/count parameters are ignored for Classes', () async {
+          var testClass = await service.getObject(
+            isolate.id,
+            rootLibrary.classes.first.id,
+            offset: 100,
+            count: 100,
+          ) as Class;
+          expect(
+              testClass.functions,
+              unorderedEquals([
+                predicate((FuncRef f) => f.name == 'message' && !f.isStatic),
+                predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic),
+                predicate((FuncRef f) => f.name == 'hello' && !f.isStatic),
+                predicate((FuncRef f) => f.name == '_equals' && !f.isStatic),
+                predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic),
+                predicate((FuncRef f) => f.name == 'toString' && !f.isStatic),
+                predicate(
+                    (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic),
+                predicate(
+                    (FuncRef f) => f.name == 'runtimeType' && !f.isStatic),
+              ]));
+          expect(
+              testClass.fields,
+              unorderedEquals([
+                predicate((FieldRef f) =>
+                    f.name == 'message' &&
+                    f.declaredType != null &&
+                    !f.isStatic &&
+                    !f.isConst &&
+                    f.isFinal),
+                predicate((FieldRef f) =>
+                    f.name == 'notFinal' &&
+                    f.declaredType != null &&
+                    !f.isStatic &&
+                    !f.isConst &&
+                    !f.isFinal),
+              ]));
+        });
+
+        test('offset/count parameters are ignored for bools', () async {
+          var ref = await service.evaluate(
+              isolate.id, bootstrap.id, 'helloBool(true)') as InstanceRef;
+          var obj = await service.getObject(
+            isolate.id,
+            ref.id,
+            offset: 100,
+            count: 100,
+          ) as Instance;
+          expect(obj.kind, InstanceKind.kBool);
+          expect(obj.classRef.name, 'Bool');
+          expect(obj.valueAsString, 'true');
+        });
+
+        test('offset/count parameters are ignored for nums', () async {
+          var ref = await service.evaluate(
+              isolate.id, bootstrap.id, 'helloNum(42)') as InstanceRef;
+          var obj = await service.getObject(
+            isolate.id,
+            ref.id,
+            offset: 100,
+            count: 100,
+          ) as Instance;
+          expect(obj.kind, InstanceKind.kDouble);
+          expect(obj.classRef.name, 'Double');
+          expect(obj.valueAsString, '42');
+        });
+
+        test('offset/count parameters are ignored for null', () async {
+          var ref = await service.evaluate(
+              isolate.id, bootstrap.id, 'helloNum(null)') as InstanceRef;
+          var obj = await service.getObject(
+            isolate.id,
+            ref.id,
+            offset: 100,
+            count: 100,
+          ) as Instance;
+          expect(obj.kind, InstanceKind.kNull);
+          expect(obj.classRef.name, 'Null');
+          expect(obj.valueAsString, 'null');
+        });
       });
     });
 

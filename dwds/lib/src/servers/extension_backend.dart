@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async/async.dart';
-import 'package:http_multi_server/http_multi_server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 
@@ -54,7 +53,7 @@ class ExtensionBackend {
       }
       return Response.notFound('');
     }).add(_socketHandler.handler);
-    var server = await HttpMultiServer.bind(hostname, 0);
+    var server = await startHttpServer(hostname);
     serveHttpRequests(server, cascade.handler, (e, s) {
       _logger.warning('Error serving requests', e);
       emitEvent(DwdsEvent.httpRequestException('ExtensionBackend', '$e:$s'));
