@@ -362,6 +362,8 @@ class Debugger extends Domain {
   /// List/Map and [offset] and [count] should indicate the desired range.
   Future<RemoteObject> _subrange(
       String id, int offset, int count, int length) async {
+    assert(offset != null);
+    assert(length != null);
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
     var receiver = remoteObjectFor(id);
@@ -395,12 +397,11 @@ class Debugger extends Domain {
   /// Note that the property names are JS names, e.g.
   /// Symbol(DartClass.actualName) and will need to be converted. For a system
   /// List or Map, [offset] and/or [count] can be provided to indicate a desired
-  /// range of entries. If those are provided, then [length] should also be
-  /// provided to indicate the total length of the List/Map.
+  /// range of entries. They will be ignored if there is no [length].
   Future<List<Property>> getProperties(String objectId,
       {int offset, int count, int length}) async {
     var rangeId = objectId;
-    if (offset != null || count != null) {
+    if (length != null && (offset != null || count != null)) {
       var range = await _subrange(objectId, offset ?? 0, count, length);
       rangeId = range.objectId;
     }
