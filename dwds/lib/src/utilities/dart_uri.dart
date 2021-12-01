@@ -50,11 +50,33 @@ class DartUri {
   /// The way we resolve file: URLs into package: URLs
   static PackageConfig _packageConfig;
 
+  /// All of the known absolute library paths, indexed by their library URL.
+  ///
+  /// Examples:
+  ///
+  /// We are assuming that all library uris are coming from
+  /// https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#getscripts)
+  /// and can be translated to their absolute paths and back.
+  ///
+  /// dart:html <->
+  ///   org-dartlang-sdk:///sdk/lib/io/io.dart
+  /// (not suported, issue: https://github.com/dart-lang/webdev/issues/1457)
+  ///
+  /// org-dartlang-app:///example/hello_world/main.dart <->
+  ///   file:///source/webdev/fixtures/_test/example/hello_world/main.dart,
+  ///
+  /// org-dartlang-app:///example/hello_world/part.dart <->
+  ///   file:///source/webdev/fixtures/_test/example/hello_world/part.dart,
+  ///
+  /// package:path/path.dart <->
+  ///   file:///.pub-cache/hosted/pub.dartlang.org/path-1.8.0/lib/path.dart,
+  ///
+  /// package:path/src/path_set.dart <->
+  ///   file:///.pub-cache/hosted/pub.dartlang.org/path-1.8.0/lib/src/path_set.dart,
+  static final Map<String, String> _uriToResolvedUri = {};
+
   /// All of the known libraries, indexed by their absolute file URL.
   static final Map<String, String> _resolvedUriToUri = {};
-
-  /// All of the known absolute library paths, indexed by their library URL.
-  static final Map<String, String> _uriToResolvedUri = {};
 
   /// Record all of the libraries, indexed by their absolute file: URI.
   static Future<void> recordAbsoluteUris(Iterable<String> libraryUris) async {
