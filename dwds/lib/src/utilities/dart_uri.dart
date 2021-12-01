@@ -80,6 +80,7 @@ class DartUri {
       // ignore non-dart files
     } else if (uri.scheme == 'dart') {
       // TODO: implement to match the VM service API
+      // Issue: https://github.com/dart-lang/webdev/issues/1457
     } else if (uri.scheme == 'org-dartlang-app' || uri.scheme == 'google3') {
       // Both currentDirectoryUri and the libraryUri path should have '/'
       // separators, so we can join them as url paths to get the absolute file
