@@ -1,4 +1,4 @@
-## 11.5.0-dev
+## 11.5.0
 
 - Support hot restart in a multi-app scenario with legacy modules.
   - Rename `$dartHotRestart` in the injected client to `$dartHotRestartDwds`.
