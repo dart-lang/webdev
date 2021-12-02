@@ -59,8 +59,8 @@ class DartUri {
   /// and can be translated to their absolute paths and back.
   ///
   /// dart:html <->
-  ///   org-dartlang-sdk:///sdk/lib/io/io.dart
-  /// (not suported, issue: https://github.com/dart-lang/webdev/issues/1457)
+  ///   org-dartlang-sdk:///sdk/lib/html/html.dart
+  /// (not supported, issue: https://github.com/dart-lang/webdev/issues/1457)
   ///
   /// org-dartlang-app:///example/hello_world/main.dart <->
   ///   file:///source/webdev/fixtures/_test/example/hello_world/main.dart,
