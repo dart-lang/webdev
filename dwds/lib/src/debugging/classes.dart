@@ -117,7 +117,7 @@ class ClassHelper extends Domain {
           "isStatic": false,
         }
       }
-      // TODO(jakemac): static fields once ddc supports them
+
       var fields = sdkUtils.getFields(clazz);
       var fieldNames = fields ? Object.keys(fields) : [];
       descriptor['fields'] = {};
@@ -135,6 +135,34 @@ class ClassHelper extends Domain {
           "classRefLibraryId" : field["type"][libraryUri],
         }
       }
+
+      // TODO(elliette): The following static member information is minimal and 
+      // should be replaced once DDC provides full symbol information (see 
+      // https://github.com/dart-lang/sdk/issues/40273):
+
+      descriptor['staticFields'] = {};
+      var staticFieldNames = sdkUtils.getStaticFields(clazz) ?? [];
+      for (const name of staticFieldNames) {
+        descriptor['staticFields'][name] = {
+          "isStatic": true,
+          // DDC only provides names of static members, we set isConst/isFinal 
+          // to false even though they could be true.
+          "isConst": false,
+          "isFinal": false,
+        }
+      }
+
+      descriptor['staticMethods'] = {};
+      var staticMethodNames = sdkUtils.getStaticMethods(clazz) ?? [];
+      for (var name of staticMethodNames) {
+        descriptor['methods'][name] = {
+          // DDC only provides names of static members, we set isConst
+          // to false even though it could be true.
+          "isConst": false,
+          "isStatic": true,
+        } 
+      }
+
       return descriptor;
     })()
     ''';
@@ -153,6 +181,9 @@ class ClassHelper extends Domain {
     var classDescriptor = result.value as Map<String, dynamic>;
     var methodRefs = <FuncRef>[];
     var methodDescriptors = classDescriptor['methods'] as Map<String, dynamic>;
+    var staticMethodDescriptors =
+        classDescriptor['staticMethods'] as Map<String, dynamic>;
+    methodDescriptors.addAll(staticMethodDescriptors);
     methodDescriptors.forEach((name, descriptor) {
       var methodId = 'methods|${classRef.id}|$name';
       methodRefs.add(FuncRef(
@@ -176,14 +207,37 @@ class ClassHelper extends Domain {
           name: name,
           owner: classRef,
           declaredType: InstanceRef(
-              identityHashCode: createId().hashCode,
-              id: createId(),
-              kind: InstanceKind.kType,
-              classRef: classMetaData.classRef),
+            identityHashCode: createId().hashCode,
+            id: createId(),
+            kind: InstanceKind.kType,
+            // TODO(elliette): Is this the same as classRef?
+            classRef: classMetaData.classRef,
+          ),
           isConst: descriptor['isConst'] as bool,
           isFinal: descriptor['isFinal'] as bool,
           isStatic: descriptor['isStatic'] as bool,
           id: createId()));
+    });
+
+    var staticFieldDescriptors =
+        classDescriptor['staticFields'] as Map<String, dynamic>;
+    staticFieldDescriptors.forEach((name, descriptor) async {
+      fieldRefs.add(
+        FieldRef(
+          name: name,
+          owner: classRef,
+          declaredType: InstanceRef(
+            identityHashCode: createId().hashCode,
+            id: createId(),
+            kind: InstanceKind.kType,
+            classRef: classRef,
+          ),
+          isConst: descriptor['isConst'] as bool,
+          isFinal: descriptor['isFinal'] as bool,
+          isStatic: descriptor['isStatic'] as bool,
+          id: createId(),
+        ),
+      );
     });
 
     // TODO: Implement the rest of these

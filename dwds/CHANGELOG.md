@@ -1,4 +1,4 @@
-## 11.5.0-dev
+## 11.5.0
 
 - Support hot restart in a multi-app scenario with legacy modules.
   - Rename `$dartHotRestart` in the injected client to `$dartHotRestartDwds`.
@@ -13,7 +13,8 @@
 
 - Fix chrome detection in iPhone emulation mode in chrome or edge browsers.
 - Reliably find unused port for extension backend http service.
-- Ignore offset / count parameters in getObject if the object has no length
+- Ignore offset / count parameters in getObject if the object has no length.
+- Include static member information for classes
 
 ## 11.4.0
 
