@@ -14,6 +14,7 @@
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
+import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
 
@@ -68,6 +69,33 @@ void main() async {
           var windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
           expect(await context.webDriver.title, 'Dart DevTools');
+        });
+      });
+
+      group('With a sharded Dart app', () {
+        setUp(() async {
+          await context.setUp(
+              enableDebugExtension: true, serveDevTools: true, useSse: useSse);
+          var htmlTag = context.webDriver.findElement(const By.tagName('html'));
+
+          await context.webDriver.execute(
+              "arguments[0].setAttribute('data-multiple-dart-apps', 'true');",
+              [htmlTag]);
+        });
+
+        tearDown(() async {
+          await context.tearDown();
+        });
+
+        test('opens an alert', () async {
+          await context.extensionConnection.sendCommand('Runtime.evaluate', {
+            'expression': 'fakeClick()',
+          });
+          // Wait for the alert to open.
+          await Future.delayed(const Duration(seconds: 2));
+
+          var alert = context.webDriver.switchTo.alert;
+          expect(alert.text, 'An alert');
         });
       });
     });
