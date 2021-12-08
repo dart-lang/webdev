@@ -18,6 +18,10 @@ import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
 
+// Instructions for running:
+// * From the /dwds/debug_extension, build the extension: pub run build_runner build web -o build -r
+// * From the /dwds, run: dart test test/debug_extension_test.dart
+// * See note for Googlers below as well
 // [For Googlers]
 // A whitelisted developer key is needed to run these tests locally.
 // Add a developer key to dwds/debug_extension/web/manifest.json.
@@ -76,11 +80,14 @@ void main() async {
         setUp(() async {
           await context.setUp(
               enableDebugExtension: true, serveDevTools: true, useSse: useSse);
-          var htmlTag = context.webDriver.findElement(const By.tagName('html'));
+          var htmlTag =
+              await context.webDriver.findElement(const By.tagName('html'));
 
           await context.webDriver.execute(
               "arguments[0].setAttribute('data-multiple-dart-apps', 'true');",
               [htmlTag]);
+          // Wait for extension to register the attribute changes:
+          await Future.delayed(const Duration(seconds: 2));
         });
 
         tearDown(() async {
@@ -93,9 +100,8 @@ void main() async {
           });
           // Wait for the alert to open.
           await Future.delayed(const Duration(seconds: 2));
-
           var alert = context.webDriver.switchTo.alert;
-          expect(alert.text, 'An alert');
+          expect(alert, isNotNull);
         });
       });
     });
