@@ -1,3 +1,7 @@
+## 11.5.2-dev
+
+- Show an alert in the Dart Debug Extension for a multi-app scenario.
+
 ## 11.5.1
 
 - Update SDK contraint to `>=2.15.0 <3.0.0`.
@@ -19,7 +23,6 @@
 - Reliably find unused port for extension backend http service.
 - Ignore offset / count parameters in getObject if the object has no length.
 - Include static member information for classes.
-- Show an alert in the Dart Debug Extension for a multi-app scenario.
 
 ## 11.4.0
 
