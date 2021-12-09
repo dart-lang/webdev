@@ -1,3 +1,14 @@
+## 12.0.0-dev
+
+- Update SDK constraint to `>=2.15.0 <3.0.0`.
+- Update `vm_service` version to `^7.5.0`.
+- Make `ExpressionCompilerService` infer location of `libraries.json` from
+  `sdkDir` parameter.
+
+**Breaking changes:**
+
+- Add `sdkDir` argument to `Dwds.start` to help file resolution for sdk uris.
+
 ## 11.5.0-dev
 
 - Support hot restart in a multi-app scenario with legacy modules.

@@ -1286,10 +1286,11 @@ void main() {
       var isolateId = vm.isolates.first.id;
 
       var resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
-        'dart:io', // dart:io is not imported
-        'does_not_exist.dart',
+        'package:does/not/exist.dart',
+        'dart:does_not_exist',
+        'file:///does_not_exist.dart',
       ]);
-      expect(resolvedUris.uris, [null, null]);
+      expect(resolvedUris.uris, [null, null, null]);
     });
 
     test('lookupResolvedPackageUris translates dart uris', () async {
@@ -1302,10 +1303,10 @@ void main() {
       ]);
 
       expect(resolvedUris.uris, [
-        'org-dartlang-sdk:///sdk/lib/html/html.dart',
+        'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
         'org-dartlang-sdk:///sdk/lib/async/async.dart',
       ]);
-    }, skip: 'https://github.com/dart-lang/webdev/issues/1457');
+    });
 
     test('lookupPackageUris finds package and org-dartlang-app paths',
         () async {
@@ -1333,10 +1334,11 @@ void main() {
       var isolateId = vm.isolates.first.id;
 
       var resolvedUris = await service.lookupPackageUris(isolateId, [
-        'org-dartlang-sdk:///sdk/lib/io/io.dart', // dart:io is not imported
+        'org-dartlang-sdk:///sdk/does/not/exist.dart',
         'does_not_exist.dart',
+        'file:///does_not_exist.dart',
       ]);
-      expect(resolvedUris.uris, [null, null]);
+      expect(resolvedUris.uris, [null, null, null]);
     });
 
     test('lookupPackageUris translates dart uris', () async {
@@ -1344,7 +1346,7 @@ void main() {
       var isolateId = vm.isolates.first.id;
 
       var resolvedUris = await service.lookupPackageUris(isolateId, [
-        'org-dartlang-sdk:///sdk/lib/html/html.dart',
+        'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
         'org-dartlang-sdk:///sdk/lib/async/async.dart',
       ]);
 
@@ -1352,7 +1354,7 @@ void main() {
         'dart:html',
         'dart:async',
       ]);
-    }, skip: 'https://github.com/dart-lang/webdev/issues/1457');
+    });
 
     test('registerService', () async {
       await expectLater(

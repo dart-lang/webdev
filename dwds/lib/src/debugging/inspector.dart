@@ -66,18 +66,18 @@ class AppInspector extends Domain {
   final String _root;
 
   AppInspector._(
-    this.appConnection,
-    this.isolate,
-    this.remoteDebugger,
-    this.debugger,
-    this.libraryHelper,
-    this.classHelper,
-    this.instanceHelper,
-    this._assetReader,
-    this._locations,
-    this._root,
-    this._executionContext,
-  )   : isolateRef = _toIsolateRef(isolate),
+      this.appConnection,
+      this.isolate,
+      this.remoteDebugger,
+      this.debugger,
+      this.libraryHelper,
+      this.classHelper,
+      this.instanceHelper,
+      this._assetReader,
+      this._locations,
+      this._root,
+      this._executionContext)
+      : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
   /// We are the inspector, so this getter is trivial.
@@ -87,11 +87,11 @@ class AppInspector extends Domain {
   Future<void> _initialize() async {
     var libraries = await libraryHelper.libraryRefs;
     isolate.rootLib = await libraryHelper.rootLib;
-
     isolate.libraries.addAll(libraries);
-    await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
 
     var scripts = await scriptRefs;
+
+    await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
     await DartUri.recordAbsoluteUris(scripts.map((script) => script.uri));
 
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());
@@ -105,14 +105,13 @@ class AppInspector extends Domain {
       );
 
   static Future<AppInspector> initialize(
-    AppConnection appConnection,
-    RemoteDebugger remoteDebugger,
-    AssetReader assetReader,
-    Locations locations,
-    String root,
-    Debugger debugger,
-    ExecutionContext executionContext,
-  ) async {
+      AppConnection appConnection,
+      RemoteDebugger remoteDebugger,
+      AssetReader assetReader,
+      Locations locations,
+      String root,
+      Debugger debugger,
+      ExecutionContext executionContext) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;
     var name = 'main()';

@@ -213,15 +213,8 @@ class ChromeProxyService implements VmServiceInterface {
     await _initializeEntrypoint(appConnection.request.entrypointPath);
 
     debugger.notifyPausedAtStart();
-    _inspector = await AppInspector.initialize(
-      appConnection,
-      remoteDebugger,
-      _assetReader,
-      _locations,
-      uri,
-      debugger,
-      executionContext,
-    );
+    _inspector = await AppInspector.initialize(appConnection, remoteDebugger,
+        _assetReader, _locations, uri, debugger, executionContext);
 
     _expressionEvaluator = _compiler == null
         ? null

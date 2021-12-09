@@ -235,10 +235,8 @@ class _Compiler {
 /// Uses [_address] and [_port] to communicate and [_assetHandler] to
 /// redirect asset requests to the asset server.
 ///
-/// [_sdkRoot] is the path to the directory containing the sdk summary files,
+/// [_sdkDir] is the path to the SDK installation directory,
 /// [_workerPath] is the path to the DDC worker snapshot,
-/// [_librariesPath] is the path to libraries definitions file
-/// libraries.json.
 ///
 /// Users need to stop the service by calling [stop].
 class ExpressionCompilerService implements ExpressionCompiler {
@@ -248,15 +246,13 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final Handler _assetHandler;
   final bool _verbose;
 
-  final String _sdkRoot;
-  final String _librariesPath;
+  final String _sdkDir;
   final String _workerPath;
 
   ExpressionCompilerService(
       this._address, this._port, this._assetHandler, this._verbose,
-      {String sdkRoot, String librariesPath, String workerPath})
-      : _sdkRoot = sdkRoot,
-        _librariesPath = librariesPath,
+      {String sdkDir, String workerPath})
+      : _sdkDir = sdkDir,
         _workerPath = workerPath;
 
   @override
@@ -277,16 +273,14 @@ class ExpressionCompilerService implements ExpressionCompiler {
     if (_compiler.isCompleted) return;
     soundNullSafety ??= false;
 
-    final executable = Platform.resolvedExecutable;
-    final binDir = p.dirname(executable);
-    final sdkDir = p.dirname(binDir);
+    final binDir = p.dirname(Platform.resolvedExecutable);
+    var sdkDir = _sdkDir ?? p.dirname(binDir);
 
-    var sdkRoot = _sdkRoot ?? p.join(sdkDir, 'lib', '_internal');
+    var sdkSummaryRoot = p.join(sdkDir, 'lib', '_internal');
     var sdkSummaryPath = soundNullSafety
-        ? p.join(sdkRoot, 'ddc_outline_sound.dill')
-        : p.join(sdkRoot, 'ddc_sdk.dill');
-    var librariesPath =
-        _librariesPath ?? p.join(sdkDir, 'lib', 'libraries.json');
+        ? p.join(sdkSummaryRoot, 'ddc_outline_sound.dill')
+        : p.join(sdkSummaryRoot, 'ddc_sdk.dill');
+    var librariesPath = p.join(sdkDir, 'lib', 'libraries.json');
     var workerPath =
         _workerPath ?? p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
 
