@@ -1,3 +1,7 @@
+## 11.5.1
+
+- Update SDK contraint to `>=2.15.0 <3.0.0`.
+
 ## 11.5.0
 
 - Support hot restart in a multi-app scenario with legacy modules.
