@@ -17,6 +17,7 @@ import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/utilities.dart';
 
 // Instructions for running:
 // * From the /dwds/debug_extension, build the extension: pub run build_runner build web -o build -r
@@ -86,8 +87,6 @@ void main() async {
           await context.webDriver.execute(
               "arguments[0].setAttribute('data-multiple-dart-apps', 'true');",
               [htmlTag]);
-          // Wait for extension to register the attribute changes:
-          await Future.delayed(const Duration(seconds: 2));
         });
 
         tearDown(() async {
@@ -99,8 +98,8 @@ void main() async {
             'expression': 'fakeClick()',
           });
           // Wait for the alert to open.
-          await Future.delayed(const Duration(seconds: 2));
-          var alert = context.webDriver.switchTo.alert;
+          var alert =
+              await retryFn<Alert>(() => context.webDriver.switchTo.alert);
           expect(alert, isNotNull);
         });
       });

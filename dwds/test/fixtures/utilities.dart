@@ -41,3 +41,30 @@ int daemonPort(String workingDirectory) {
 
 String _assetServerPortFilePath(String workingDirectory) =>
     '${daemonWorkspace(workingDirectory)}/.asset_server_port';
+
+/// Retries a callback function with a delay until the result is non-null.
+Future<T> retryFn<T>(
+  T Function() callback, {
+  int retryCount = 3,
+  int delayInMs = 1000,
+  String failureMessage = 'Function did not succeed after retries.',
+}) async {
+  if (retryCount == 0) {
+    throw Exception(failureMessage);
+  }
+
+  await Future.delayed(Duration(milliseconds: delayInMs));
+  try {
+    final result = callback();
+    if (result != null) return result;
+  } catch (_) {
+    // Ignore any exceptions.
+  }
+
+  return retryFn<T>(
+    callback,
+    retryCount: retryCount - 1,
+    delayInMs: delayInMs,
+    failureMessage: failureMessage,
+  );
+}
