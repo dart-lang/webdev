@@ -1,4 +1,4 @@
-## 11.5.1-dev
+## 11.5.1
 
 - Update SDK contraint to `>=2.15.0 <3.0.0`.
 
