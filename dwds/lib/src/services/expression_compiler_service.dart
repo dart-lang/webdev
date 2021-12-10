@@ -235,8 +235,8 @@ class _Compiler {
 /// Uses [_address] and [_port] to communicate and [_assetHandler] to
 /// redirect asset requests to the asset server.
 ///
-/// [_sdkDir] is the path to the SDK installation directory,
-/// [_workerPath] is the path to the DDC worker snapshot,
+/// [_sdkDir] is the path to the SDK installation directory.
+/// [_workerPath] is the path to the DDC worker snapshot.
 ///
 /// Users need to stop the service by calling [stop].
 class ExpressionCompilerService implements ExpressionCompiler {

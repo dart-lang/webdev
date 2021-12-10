@@ -89,7 +89,7 @@ void main() {
         Directory(fakeLibrariesDir).createSync();
         File(librariesPath).copySync(fakeLibrariesPath);
 
-        await DartUri.initialize(sdkDir: Uri.parse(fakeSdkDir));
+        await DartUri.initialize(sdkDir: Uri.file(fakeSdkDir));
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
