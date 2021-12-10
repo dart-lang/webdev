@@ -1,6 +1,7 @@
-## 2.7.7-dev
+## 2.7.7
 
 - Handle and log http request serving errors.
+- Update SDK contraint to `>=2.15.0 <3.0.0`.
 
 ## 2.7.6
 
