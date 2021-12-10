@@ -66,18 +66,18 @@ class AppInspector extends Domain {
   final String _root;
 
   AppInspector._(
-      this.appConnection,
-      this.isolate,
-      this.remoteDebugger,
-      this.debugger,
-      this.libraryHelper,
-      this.classHelper,
-      this.instanceHelper,
-      this._assetReader,
-      this._locations,
-      this._root,
-      this._executionContext)
-      : isolateRef = _toIsolateRef(isolate),
+    this.appConnection,
+    this.isolate,
+    this.remoteDebugger,
+    this.debugger,
+    this.libraryHelper,
+    this.classHelper,
+    this.instanceHelper,
+    this._assetReader,
+    this._locations,
+    this._root,
+    this._executionContext,
+  )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
   /// We are the inspector, so this getter is trivial.

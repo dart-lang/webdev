@@ -652,13 +652,13 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<UriList> lookupResolvedPackageUris(
       String isolateId, List<String> uris) async {
     await isInitialized;
-    return UriList(uris: <String>[...uris.map(DartUri.toResolvedUri)]);
+    return UriList(uris: uris.map(DartUri.toResolvedUri).toList());
   }
 
   @override
   Future<UriList> lookupPackageUris(String isolateId, List<String> uris) async {
     await isInitialized;
-    return UriList(uris: <String>[...uris.map(DartUri.toPackageUri)]);
+    return UriList(uris: uris.map(DartUri.toPackageUri).toList());
   }
 
   @override
