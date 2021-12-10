@@ -656,6 +656,19 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
+  Future<UriList> lookupResolvedPackageUris(
+      String isolateId, List<String> uris) async {
+    await isInitialized;
+    return UriList(uris: uris.map(DartUri.toResolvedUri).toList());
+  }
+
+  @override
+  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) async {
+    await isInitialized;
+    return UriList(uris: uris.map(DartUri.toPackageUri).toList());
+  }
+
+  @override
   Future<Success> registerService(String service, String alias) async {
     return _rpcNotSupportedFuture('registerService');
   }
@@ -1036,19 +1049,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Breakpoint> setBreakpointState(
           String isolateId, String breakpointId, bool enable) =>
       throw UnimplementedError();
-
-  @override
-  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) {
-    // TODO(https://github.com/dart-lang/webdev/issues/1446): implement.
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<UriList> lookupResolvedPackageUris(
-      String isolateId, List<String> uris) {
-    // TODO(https://github.com/dart-lang/webdev/issues/1446): implement.
-    throw UnimplementedError();
-  }
 
   /// Prevent DWDS from blocking Dart SDK rolls if changes in package:vm_service
   /// are unimplemented in DWDS.

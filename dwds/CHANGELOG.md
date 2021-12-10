@@ -1,6 +1,14 @@
-## 11.5.2-dev
+## 12.0.0-dev
 
+- Implement `lookupResolvedPackageUris` and `lookupPackageUris` vm service API.
+- Update `vm_service` version to `^7.5.0`.
+- Make `ExpressionCompilerService` infer location of `libraries.json` from
+  `sdkDir` parameter.
 - Show an alert in the Dart Debug Extension for a multi-app scenario.
+
+**Breaking changes:**
+
+- Add `sdkDir` argument to `Dwds.start` to help file resolution for sdk uris.
 
 ## 11.5.1
 
