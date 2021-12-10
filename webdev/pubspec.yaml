@@ -50,5 +50,10 @@ dev_dependencies:
   test_process: ^2.0.2
   webdriver: ^3.0.0
 
+# Uncomment for development versions
+# dependency_overrides:
+#   dwds:
+#     path: ../dwds
+
 executables:
   webdev:
