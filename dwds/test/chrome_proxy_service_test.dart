@@ -1267,7 +1267,7 @@ void main() {
       var isolateId = vm.isolates.first.id;
       var scriptList = await service.getScripts(isolateId);
 
-      var uris = [...scriptList.scripts.map((e) => e.uri)];
+      var uris = scriptList.scripts.map((e) => e.uri).toList();
       var resolvedUris =
           await service.lookupResolvedPackageUris(isolateId, uris);
 
@@ -1280,7 +1280,7 @@ void main() {
           ]));
     });
 
-    test('lookupResolvedPackageUris does not translate non-exsitent paths',
+    test('lookupResolvedPackageUris does not translate non-existent paths',
         () async {
       var vm = await service.getVM();
       var isolateId = vm.isolates.first.id;
@@ -1314,7 +1314,7 @@ void main() {
       var isolateId = vm.isolates.first.id;
       var scriptList = await service.getScripts(isolateId);
 
-      var uris = [...scriptList.scripts.map((e) => e.uri)];
+      var uris = scriptList.scripts.map((e) => e.uri).toList();
       var resolvedUris =
           await service.lookupResolvedPackageUris(isolateId, uris);
 
@@ -1329,7 +1329,7 @@ void main() {
           ]));
     });
 
-    test('lookupPackageUris does not translate non-exsitent paths', () async {
+    test('lookupPackageUris does not translate non-existent paths', () async {
       var vm = await service.getVM();
       var isolateId = vm.isolates.first.id;
 
