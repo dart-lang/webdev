@@ -1,39 +1,35 @@
-var hasSent = false;
+const MULTIPLE_APPS_ATTRIBUTE = 'data-multiple-dart-apps';
+
+const MULTIPLE_APPS_WARNING = 'It appears that you are running multiple Dart apps ' +
+    'and/or sub-apps. Dart debugging is currently not supported in a multi-app ' +
+    'environment.';
 
 function sendMessage(e) {
-    if (hasSent) return;
-    hasSent = true;
-    chrome.runtime.sendMessage(e, function (response) {
-    });
+    const hasMultipleApps = document
+        .documentElement
+        .getAttribute(MULTIPLE_APPS_ATTRIBUTE);
+    const warning = hasMultipleApps == 'true' ?  MULTIPLE_APPS_WARNING : '';
+    chrome.runtime.sendMessage(Object.assign(e, {warning: warning}));
 }
 
-document.addEventListener('dart-app-ready', function (e) {
+document.addEventListener('dart-app-ready', function(e) {
     sendMessage(e);
 });
 
-var targetNode = document.head;
-var observerOptions = {
-    childList: true,
-    attributes: true,
-    subtree: true
-};
 
-function callback(mutationList, observer) {
-    mutationList.forEach((mutation) => {
-        if (mutation.type == 'childList') {
-            var addedNodes = mutation.addedNodes
-            for (var i = 0; i < addedNodes.length; i++) {
-                if (addedNodes[i].tagName == 'SCRIPT' &&
-                    addedNodes[i].src.includes('dart_sdk.js')) {
-                    sendMessage({});
-                }
-            }
+function multipleDartAppsCallback(mutationList) {
+    mutationList.forEach(function(mutation) {
+        if (mutation.type !== "attributes") return;
+        if (mutation.attributeName === MULTIPLE_APPS_ATTRIBUTE) {
+            sendMessage({});
         }
     });
-}
+};
 
-// TODO(grouma) - This will become unnecessary when package:dwds version 11.0.0
-// hits Flutter stable.
-var observer = new MutationObserver(callback);
-observer.observe(targetNode, observerOptions);
+// Watch for changes to the multiple apps data-attribute and update accordingly:
+var multipleDartAppsObserver = new MutationObserver(multipleDartAppsCallback);
+multipleDartAppsObserver.observe(document.documentElement, {
+    attributeFilter: [MULTIPLE_APPS_ATTRIBUTE]
+});
+
 
