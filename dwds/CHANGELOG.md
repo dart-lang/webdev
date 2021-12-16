@@ -5,12 +5,16 @@
 - Make `ExpressionCompilerService` infer location of `libraries.json` from
   `sdkDir` parameter.
 - Show an alert in the Dart Debug Extension for a multi-app scenario.
+- Fix a bug where `dartEmitDebugEvents` was set as a `String` instead of `bool`
+  in the injected client.
 
 **Breaking changes:**
 
-- Add `sdkDir` argument to `Dwds.start` to help file resolution for sdk uris.
+- Add `sdkDir` and `librariesPath` arguments to `Dwds.start` to help file
+  resolution for sdk uris.
 - Add `emitDebugEvents` argument to `Dwds.start` to suppress emitting debug
   events from the injected client.
+- Replace `sdkRoot` parameter by `sdkDir` in `ExpressionCompilerService`.
 
 ## 11.5.1
 

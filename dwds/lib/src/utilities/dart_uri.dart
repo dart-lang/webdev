@@ -154,11 +154,11 @@ class DartUri {
   static String currentDirectoryUri = '${p.toUri(currentDirectory)}';
 
   /// Record library and script uris to enable resolving library and script paths.
-  static Future<void> initialize({Uri sdkDir}) async {
+  static Future<void> initialize({Uri sdkDir, Uri librariesPath}) async {
     _sdkDir =
         sdkDir ?? p.toUri(p.dirname(p.dirname(Platform.resolvedExecutable)));
 
-    var librariesPath =
+    librariesPath ??=
         p.toUri(p.join(_sdkDir.toFilePath(), 'lib', 'libraries.json'));
     var packagesUri = p.toUri(p.join(currentDirectory, '.packages'));
 

@@ -237,6 +237,7 @@ class _Compiler {
 ///
 /// [_sdkDir] is the path to the SDK installation directory.
 /// [_workerPath] is the path to the DDC worker snapshot.
+/// [_librariesPath] is the path to the libraries.json spec.
 ///
 /// Users need to stop the service by calling [stop].
 class ExpressionCompilerService implements ExpressionCompiler {
@@ -248,12 +249,14 @@ class ExpressionCompilerService implements ExpressionCompiler {
 
   final String _sdkDir;
   final String _workerPath;
+  final String _librariesPath;
 
   ExpressionCompilerService(
       this._address, this._port, this._assetHandler, this._verbose,
-      {String sdkDir, String workerPath})
+      {String sdkDir, String workerPath, String librariesPath})
       : _sdkDir = sdkDir,
-        _workerPath = workerPath;
+        _workerPath = workerPath,
+        _librariesPath = librariesPath;
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
@@ -280,7 +283,8 @@ class ExpressionCompilerService implements ExpressionCompiler {
     var sdkSummaryPath = soundNullSafety
         ? p.join(sdkSummaryRoot, 'ddc_outline_sound.dill')
         : p.join(sdkSummaryRoot, 'ddc_sdk.dill');
-    var librariesPath = p.join(sdkDir, 'lib', 'libraries.json');
+    var librariesPath =
+        _librariesPath ?? p.join(sdkDir, 'lib', 'libraries.json');
     var workerPath =
         _workerPath ?? p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
 
