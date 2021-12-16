@@ -113,6 +113,7 @@ class Dwds {
     bool enableDevtoolsLaunch,
     DevtoolsLauncher devtoolsLauncher,
     Uri sdkDir,
+    bool emitDebugEvents,
   }) async {
     hostname ??= 'localhost';
     enableDebugging ??= true;
@@ -123,6 +124,7 @@ class Dwds {
     enableDevtoolsLaunch ??= true;
     spawnDds ??= true;
     globalLoadStrategy = loadStrategy;
+    emitDebugEvents ??= true;
 
     await DartUri.initialize(sdkDir: sdkDir);
 
@@ -162,6 +164,7 @@ class Dwds {
       useSseForInjectedClient: useSseForInjectedClient,
       extensionUri: extensionUri,
       enableDevtoolsLaunch: enableDevtoolsLaunch,
+      emitDebugEvents: emitDebugEvents,
     );
 
     var devHandler = DevHandler(

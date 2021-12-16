@@ -62,10 +62,12 @@ Future<void> main() {
     });
 
     emitDebugEvent = allowInterop((String kind, String eventData) {
-      client.sink.add(jsonEncode(serializers.serialize(DebugEvent((b) => b
-        ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-        ..kind = kind
-        ..eventData = eventData))));
+      if (dartEmitDebugEvents) {
+        client.sink.add(jsonEncode(serializers.serialize(DebugEvent((b) => b
+          ..timestamp = (DateTime.now().millisecondsSinceEpoch)
+          ..kind = kind
+          ..eventData = eventData))));
+      }
     });
 
     emitRegisterEvent = allowInterop((String eventData) {
@@ -216,6 +218,9 @@ external bool get dwdsEnableDevtoolsLaunch;
 
 @JS('window.top.document.dispatchEvent')
 external void dispatchEvent(CustomEvent event);
+
+@JS(r'$dartEmitDebugEvents')
+external bool get dartEmitDebugEvents;
 
 @JS(r'$emitDebugEvent')
 external set emitDebugEvent(void Function(String, String) func);
