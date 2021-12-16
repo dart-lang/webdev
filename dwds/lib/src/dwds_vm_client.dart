@@ -154,12 +154,16 @@ void _processSendEvent(Map<String, dynamic> event,
         var action = payload == null ? null : payload['action'];
         if (screen == 'debugger' && action == 'pageReady') {
           if (dwdsStats.isFirstDebuggerReady()) {
-            emitEvent(DwdsEvent.devToolsLoad(DateTime.now()
-                .difference(dwdsStats.devToolsStart)
-                .inMilliseconds));
-            emitEvent(DwdsEvent.debuggerReady(DateTime.now()
-                .difference(dwdsStats.debuggerStart)
-                .inMilliseconds));
+            if (dwdsStats.devToolsStart != null) {
+              emitEvent(DwdsEvent.devToolsLoad(DateTime.now()
+                  .difference(dwdsStats.devToolsStart)
+                  .inMilliseconds));
+            }
+            if (dwdsStats.debuggerStart != null) {
+              emitEvent(DwdsEvent.debuggerReady(DateTime.now()
+                  .difference(dwdsStats.debuggerStart)
+                  .inMilliseconds));
+            }
           } else {
             _logger.warning('Ignoring already received event: $event');
           }
