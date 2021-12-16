@@ -9,6 +9,8 @@
 **Breaking changes:**
 
 - Add `sdkDir` argument to `Dwds.start` to help file resolution for sdk uris.
+- Add `emitDebugEvents` argument to `Dwds.start` to suppress emitting debug
+  events from the injected client.
 
 ## 11.5.1
 
