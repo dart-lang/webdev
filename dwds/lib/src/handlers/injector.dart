@@ -205,7 +205,7 @@ String _injectedClientSnippet(
       'window.\$dwdsDevHandlerPath = "$devHandlerPath";\n'
       'window.\$dwdsEnableDevtoolsLaunch = $enableDevtoolsLaunch;\n'
       'window.\$dartEntrypointPath = "$entrypointPath";\n'
-      'window.\$emitDebugEvents = "$emitDebugEvents";\n'
+      'window.\$dartEmitDebugEvents = "$emitDebugEvents";\n'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';

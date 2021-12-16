@@ -186,7 +186,7 @@ void main() {
     test('the injected client contains a global \$emitDebugEvents', () async {
       var result = await http.get(Uri.parse(
           'http://localhost:${server.port}/dwds/src/injected/client.js'));
-      expect(result.body, contains('\$emitDebugEvents'));
+      expect(result.body, contains('\$dartEmitDebugEvents'));
     });
 
     test('the injected client contains a global \$emitDebugEvent', () async {

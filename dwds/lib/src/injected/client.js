@@ -23768,7 +23768,7 @@
       var t1, t2, t3;
       A._asStringS(kind);
       A._asStringS(eventData);
-      if (A.boolConversionCheck(self.$emitDebugEvents)) {
+      if (A.boolConversionCheck(self.$dartEmitDebugEvents)) {
         t1 = this.client.get$sink();
         t2 = $.$get$serializers();
         t3 = new A.DebugEventBuilder();
