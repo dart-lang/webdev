@@ -113,6 +113,7 @@ class Dwds {
     bool enableDevtoolsLaunch,
     DevtoolsLauncher devtoolsLauncher,
     Uri sdkDir,
+    Uri librariesPath,
     bool emitDebugEvents,
   }) async {
     hostname ??= 'localhost';
@@ -126,7 +127,7 @@ class Dwds {
     globalLoadStrategy = loadStrategy;
     emitDebugEvents ??= true;
 
-    await DartUri.initialize(sdkDir: sdkDir);
+    await DartUri.initialize(sdkDir: sdkDir, librariesPath: librariesPath);
 
     DevTools devTools;
     Future<String> extensionUri;
