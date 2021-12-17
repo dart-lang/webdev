@@ -13,6 +13,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'fixtures/fakes.dart';
+import 'fixtures/logging.dart';
 
 class TestStrategy extends FakeStrategy {
   @override
@@ -107,6 +108,59 @@ void main() {
         var unresolved =
             DartUri.toPackageUri('org-dartlang-sdk:///sdk/lib/io/io.dart');
         expect(unresolved, 'dart:io');
+      });
+    });
+
+    group('initialized with other SDK directory with no libraries spec', () {
+      Directory outputDir;
+      var logs = <String>[];
+
+      void logWriter(level, message,
+          {String error, String loggerName, String stackTrace}) {
+        var errorMessage = error == null ? '' : ':\n$error';
+        var stackMessage = stackTrace == null ? '' : ':\n$stackTrace';
+        logs.add('[$level] $loggerName: $message'
+            '$errorMessage'
+            '$stackMessage');
+      }
+
+      setUpAll(() async {
+        configureLogWriter(customLogWriter: logWriter);
+        var systemTempDir = Directory.systemTemp;
+        outputDir = systemTempDir.createTempSync('foo bar');
+
+        var fakeSdkDir = outputDir.path;
+        var fakeLibrariesDir = p.join(fakeSdkDir, 'lib');
+        var fakeLibrariesPath = p.join(fakeLibrariesDir, 'libraries.json');
+
+        await DartUri.initialize(
+            sdkDir: Uri.file(fakeSdkDir),
+            librariesPath: Uri.file(fakeLibrariesPath));
+        await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
+
+        expect(
+            logs,
+            containsAll([
+              contains('[WARNING] DartUri: Cannot read libraries spec:'),
+              contains('[WARNING] DartUri: Unresolved uri: dart:io'),
+              contains('[WARNING] DartUri: Unresolved uri: dart:html'),
+            ]));
+      });
+
+      tearDownAll(() async {
+        DartUri.clear();
+        await outputDir?.delete(recursive: true);
+      });
+
+      test('cannot resolve uris', () {
+        var resolved = DartUri.toResolvedUri('dart:io');
+        expect(resolved, null);
+      });
+
+      test('cannot unresolve uris', () {
+        var unresolved =
+            DartUri.toPackageUri('org-dartlang-sdk:///sdk/lib/io/io.dart');
+        expect(unresolved, null);
       });
     });
   });

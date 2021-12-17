@@ -160,6 +160,7 @@ class DartUri {
 
     librariesPath ??=
         p.toUri(p.join(_sdkDir.toFilePath(), 'lib', 'libraries.json'));
+
     var packagesUri = p.toUri(p.join(currentDirectory, '.packages'));
 
     clear();
@@ -169,6 +170,8 @@ class DartUri {
 
   /// Clear the uri resolution tables.
   static void clear() {
+    _librariesSpec = null;
+    _packageConfig = null;
     _resolvedUriToUri.clear();
     _uriToResolvedUri.clear();
   }
@@ -198,8 +201,10 @@ class DartUri {
       var json = File.fromUri(uri).readAsStringSync();
       _librariesSpec =
           LibrariesSpecification.parse(uri, json).specificationFor('dartdevc');
-    } on LibrariesSpecificationException catch (e, s) {
-      _logger.warning('Cannot read libraries spec: $uri', e, s);
+    } on LibrariesSpecificationException catch (e) {
+      _logger.warning('Cannot parse libraries spec: $uri', e);
+    } on Exception catch (e) {
+      _logger.warning('Cannot read libraries spec: $uri', e);
     }
   }
 
