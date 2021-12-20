@@ -67,6 +67,8 @@ class Debugger extends Domain {
 
   PauseState _pauseState = PauseState.none;
 
+  bool _pausedOverlayVisible = false;
+
   String get pauseState => _pauseModePauseStates.entries
       .firstWhere((entry) => entry.value == _pauseState)
       .key;
@@ -392,6 +394,25 @@ class Debugger extends Domain {
     return await inspector.jsCallFunctionOn(receiver, expression, args);
   }
 
+  // Renders the paused at breakpoint overlay over the application.
+  void _showPausedOverlay() async {
+    if (_pausedOverlayVisible) return;
+    handleErrorIfPresent(await _remoteDebugger?.sendCommand('DOM.enable'));
+    handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.enable'));
+    handleErrorIfPresent(await _remoteDebugger
+        ?.sendCommand('Overlay.setPausedInDebuggerMessage', params: {
+      'message': 'Paused in Dart DevTools',
+    }));
+    _pausedOverlayVisible = true;
+  }
+
+  // Removes the paused at breakpoint overlay from the application.
+  void _hidePausedOverlay() async {
+    if (!_pausedOverlayVisible) return;
+    handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.disable'));
+    _pausedOverlayVisible = false;
+  }
+
   /// Calls the Chrome Runtime.getProperties API for the object with [objectId].
   ///
   /// Note that the property names are JS names, e.g.
@@ -563,6 +584,7 @@ class Debugger extends Domain {
       logger.warning('Error calculating Dart frames', e, s);
     }
 
+    _showPausedOverlay();
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
   }
@@ -579,6 +601,8 @@ class Debugger extends Domain {
         kind: EventKind.kResume,
         timestamp: DateTime.now().millisecondsSinceEpoch,
         isolate: inspector.isolateRef);
+
+    _hidePausedOverlay();
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
   }
