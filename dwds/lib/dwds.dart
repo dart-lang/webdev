@@ -24,6 +24,7 @@ import 'src/readers/asset_reader.dart';
 import 'src/servers/devtools.dart';
 import 'src/servers/extension_backend.dart';
 import 'src/services/expression_compiler.dart';
+import 'src/utilities/dart_uri.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
@@ -111,6 +112,9 @@ class Dwds {
     bool spawnDds,
     bool enableDevtoolsLaunch,
     DevtoolsLauncher devtoolsLauncher,
+    Uri sdkDir,
+    Uri librariesPath,
+    bool emitDebugEvents,
   }) async {
     hostname ??= 'localhost';
     enableDebugging ??= true;
@@ -121,6 +125,9 @@ class Dwds {
     enableDevtoolsLaunch ??= true;
     spawnDds ??= true;
     globalLoadStrategy = loadStrategy;
+    emitDebugEvents ??= true;
+
+    await DartUri.initialize(sdkDir: sdkDir, librariesPath: librariesPath);
 
     DevTools devTools;
     Future<String> extensionUri;
@@ -158,6 +165,7 @@ class Dwds {
       useSseForInjectedClient: useSseForInjectedClient,
       extensionUri: extensionUri,
       enableDevtoolsLaunch: enableDevtoolsLaunch,
+      emitDebugEvents: emitDebugEvents,
     );
 
     var devHandler = DevHandler(

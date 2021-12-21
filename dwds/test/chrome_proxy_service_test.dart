@@ -1295,6 +1295,101 @@ void main() {
           service.getRetainingPath(null, null, null), throwsRPCError);
     });
 
+    test('lookupResolvedPackageUris converts package and org-dartlang-app uris',
+        () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+      var scriptList = await service.getScripts(isolateId);
+
+      var uris = scriptList.scripts.map((e) => e.uri).toList();
+      var resolvedUris =
+          await service.lookupResolvedPackageUris(isolateId, uris);
+
+      expect(
+          resolvedUris.uris,
+          containsAll([
+            contains('/_test/example/hello_world/main.dart'),
+            contains('/lib/path.dart'),
+            contains('/lib/src/path_set.dart'),
+          ]));
+    });
+
+    test('lookupResolvedPackageUris does not translate non-existent paths',
+        () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+
+      var resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
+        'package:does/not/exist.dart',
+        'dart:does_not_exist',
+        'file:///does_not_exist.dart',
+      ]);
+      expect(resolvedUris.uris, [null, null, null]);
+    });
+
+    test('lookupResolvedPackageUris translates dart uris', () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+
+      var resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
+        'dart:html',
+        'dart:async',
+      ]);
+
+      expect(resolvedUris.uris, [
+        'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
+        'org-dartlang-sdk:///sdk/lib/async/async.dart',
+      ]);
+    });
+
+    test('lookupPackageUris finds package and org-dartlang-app paths',
+        () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+      var scriptList = await service.getScripts(isolateId);
+
+      var uris = scriptList.scripts.map((e) => e.uri).toList();
+      var resolvedUris =
+          await service.lookupResolvedPackageUris(isolateId, uris);
+
+      var packageUris = await service.lookupPackageUris(
+          isolateId, resolvedUris.uris as List<String>);
+      expect(
+          packageUris.uris,
+          containsAll([
+            'org-dartlang-app:///example/hello_world/main.dart',
+            'package:path/path.dart',
+            'package:path/src/path_set.dart',
+          ]));
+    });
+
+    test('lookupPackageUris does not translate non-existent paths', () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+
+      var resolvedUris = await service.lookupPackageUris(isolateId, [
+        'org-dartlang-sdk:///sdk/does/not/exist.dart',
+        'does_not_exist.dart',
+        'file:///does_not_exist.dart',
+      ]);
+      expect(resolvedUris.uris, [null, null, null]);
+    });
+
+    test('lookupPackageUris translates dart uris', () async {
+      var vm = await service.getVM();
+      var isolateId = vm.isolates.first.id;
+
+      var resolvedUris = await service.lookupPackageUris(isolateId, [
+        'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
+        'org-dartlang-sdk:///sdk/lib/async/async.dart',
+      ]);
+
+      expect(resolvedUris.uris, [
+        'dart:html',
+        'dart:async',
+      ]);
+    });
+
     test('registerService', () async {
       await expectLater(
           service.registerService('ext.foo.bar', null), throwsRPCError);

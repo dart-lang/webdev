@@ -1,8 +1,11 @@
+## 1.24
+
+- Detect Dart applications in multi-app environments and show an alert.
+
 ## 1.23
 
 - Depend on the latest `package:sse` to improve stability of the connection with many
   concurrent requests. 
-
 
 ## 1.22
 

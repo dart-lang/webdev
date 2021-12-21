@@ -38,15 +38,18 @@ class DwdsInjector {
   final _logger = Logger('DwdsInjector');
   final bool _enableDevtoolsLaunch;
   final bool _useSseForInjectedClient;
+  final bool _emitDebugEvents;
 
   DwdsInjector(
     this._loadStrategy, {
     Future<String> extensionUri,
     bool enableDevtoolsLaunch,
     bool useSseForInjectedClient,
+    bool emitDebugEvents,
   })  : _extensionUri = extensionUri,
         _enableDevtoolsLaunch = enableDevtoolsLaunch,
-        _useSseForInjectedClient = useSseForInjectedClient ?? true;
+        _useSseForInjectedClient = useSseForInjectedClient ?? true,
+        _emitDebugEvents = emitDebugEvents ?? true;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -107,6 +110,7 @@ class DwdsInjector {
                 await _extensionUri,
                 _loadStrategy,
                 _enableDevtoolsLaunch,
+                _emitDebugEvents,
               );
               body += await _loadStrategy.bootstrapFor(entrypoint);
               _logger.info('Injected debugging metadata for '
@@ -137,6 +141,7 @@ String _injectClientAndHoistMain(
   String extensionUri,
   LoadStrategy loadStrategy,
   bool enableDevtoolsLaunch,
+  bool emitDebugEvents,
 ) {
   var bodyLines = body.split('\n');
   var extensionIndex =
@@ -156,6 +161,7 @@ String _injectClientAndHoistMain(
     extensionUri,
     loadStrategy,
     enableDevtoolsLaunch,
+    emitDebugEvents,
   );
   result += '''
   // Injected by dwds for debugging support.
@@ -189,6 +195,7 @@ String _injectedClientSnippet(
   String extensionUri,
   LoadStrategy loadStrategy,
   bool enableDevtoolsLaunch,
+  bool emitDebugEvents,
 ) {
   var injectedBody = 'window.\$dartAppId = "$appId";\n'
       'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
@@ -198,6 +205,7 @@ String _injectedClientSnippet(
       'window.\$dwdsDevHandlerPath = "$devHandlerPath";\n'
       'window.\$dwdsEnableDevtoolsLaunch = $enableDevtoolsLaunch;\n'
       'window.\$dartEntrypointPath = "$entrypointPath";\n'
+      'window.\$dartEmitDebugEvents = $emitDebugEvents;\n'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';

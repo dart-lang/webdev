@@ -14,9 +14,15 @@
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
+import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/utilities.dart';
 
+// Instructions for running:
+// * From the /dwds/debug_extension, build the extension: pub run build_runner build web -o build -r
+// * From the /dwds, run: dart test test/debug_extension_test.dart
+// * See note for Googlers below as well
 // [For Googlers]
 // A whitelisted developer key is needed to run these tests locally.
 // Add a developer key to dwds/debug_extension/web/manifest.json.
@@ -68,6 +74,33 @@ void main() async {
           var windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
           expect(await context.webDriver.title, 'Dart DevTools');
+        });
+      });
+
+      group('With a sharded Dart app', () {
+        setUp(() async {
+          await context.setUp(
+              enableDebugExtension: true, serveDevTools: true, useSse: useSse);
+          var htmlTag =
+              await context.webDriver.findElement(const By.tagName('html'));
+
+          await context.webDriver.execute(
+              "arguments[0].setAttribute('data-multiple-dart-apps', 'true');",
+              [htmlTag]);
+        });
+
+        tearDown(() async {
+          await context.tearDown();
+        });
+
+        test('opens an alert', () async {
+          await context.extensionConnection.sendCommand('Runtime.evaluate', {
+            'expression': 'fakeClick()',
+          });
+          // Wait for the alert to open.
+          var alert =
+              await retryFn<Alert>(() => context.webDriver.switchTo.alert);
+          expect(alert, isNotNull);
         });
       });
     });

@@ -87,11 +87,11 @@ class AppInspector extends Domain {
   Future<void> _initialize() async {
     var libraries = await libraryHelper.libraryRefs;
     isolate.rootLib = await libraryHelper.rootLib;
-
     isolate.libraries.addAll(libraries);
-    await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
 
     var scripts = await scriptRefs;
+
+    await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
     await DartUri.recordAbsoluteUris(scripts.map((script) => script.uri));
 
     isolate.extensionRPCs.addAll(await _getExtensionRpcs());

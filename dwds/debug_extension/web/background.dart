@@ -38,6 +38,9 @@ const _allowedEvents = {'Overlay.inspectNodeRequested'};
 // Map of Chrome tab ID to encoded vm service protocol URI.
 final _tabIdToEncodedUri = <int, String>{};
 
+// Map of Chrome tab ID to warnings for that tab.
+final _tabIdToWarning = <int, String>{};
+
 final _debuggableTabs = <int>{};
 
 final _tabsToAttach = <Tab>{};
@@ -62,10 +65,10 @@ void main() {
 
   // Marks the current tab as debuggable and changes the extension icon to blue
   // when it receives a message.
-  // TODO(elliette): Currently the only message this ever receives is from
-  // context.js, which sends a message when it receives a "dart-app-ready" event
-  // from DWDS. Consider making it explicit what message this is listening for.
-  onMessageAddListener(allowInterop(_markTabAsDebuggable));
+  // TODO(elliette): Currently the only messages this ever receives is from
+  // the context script. Consider making it explicit what messages this is
+  // listening for.
+  onMessageAddListener(allowInterop(_maybeMarkTabAsDebuggable));
 
   // Attaches a debug session to the app when the extension receives a
   // Runtime.executionContextCreated event from DWDS:
@@ -135,6 +138,12 @@ void _startDebugging(_) {
   // Extracts the extension backend port from the injected JS.
   var attachDebuggerToTab = allowInterop((Tab currentTab) async {
     if (!_debuggableTabs.contains(currentTab.id)) return;
+
+    if (_tabIdToWarning.containsKey(currentTab.id)) {
+      alert(_tabIdToWarning[currentTab.id]);
+      return;
+    }
+
     attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() async {
       if (lastError != null) {
         String alertMessage;
@@ -158,8 +167,12 @@ void _startDebugging(_) {
   }));
 }
 
-void _markTabAsDebuggable(
+void _maybeMarkTabAsDebuggable(
     Request request, Sender sender, Function sendResponse) async {
+  // Register any warnings for the tab:
+  if (request.warning != '') {
+    _tabIdToWarning[sender.tab.id] = request.warning;
+  }
   _debuggableTabs.add(sender.tab.id);
   _updateIcon();
   // TODO(grouma) - We can conditionally auto start debugging here.
@@ -405,9 +418,20 @@ void _updateIcon() {
   var query = QueryInfo(active: true, currentWindow: true);
   queryTabs(query, allowInterop((List tabs) {
     var tabList = List<Tab>.from(tabs);
-    if (tabList.isEmpty || _debuggableTabs.contains(tabList.first.id)) {
+    // If tabList is empty, the user has likely navigated to a different window.
+    // Therefore, do not update the icon:
+    if (tabList.isEmpty || tabList.first == null || tabList.first.id == null) {
+      return;
+    }
+
+    if (_tabIdToWarning.containsKey(tabList.first.id)) {
+      // Set the warning icon (red):
+      setIcon(IconInfo(path: 'dart_warning.png'));
+    } else if (_debuggableTabs.contains(tabList.first.id)) {
+      // Set the debuggable icon (blue):
       setIcon(IconInfo(path: 'dart.png'));
     } else {
+      // Set the default icon (grey):
       setIcon(IconInfo(path: 'dart_grey.png'));
     }
   }));
@@ -557,6 +581,7 @@ class Request {
   external int get tabId;
   external String get name;
   external dynamic get options;
+  external String get warning;
   external factory Request({int tabId, String name, dynamic options});
 }
 
