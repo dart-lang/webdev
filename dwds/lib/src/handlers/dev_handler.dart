@@ -63,6 +63,7 @@ class DevHandler {
   final bool _useSseForInjectedClient;
   final bool _serveDevTools;
   final bool _spawnDds;
+  final bool _launchDevToolsInNewWindow;
   final ExpressionCompiler _expressionCompiler;
   final DwdsInjector _injected;
 
@@ -87,7 +88,8 @@ class DevHandler {
       this._serveDevTools,
       this._expressionCompiler,
       this._injected,
-      this._spawnDds) {
+      this._spawnDds,
+      this._launchDevToolsInNewWindow) {
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
     if (_extensionBackend != null) {
@@ -525,7 +527,7 @@ class DevHandler {
     if (!_serveDevTools) return;
     emitEvent(DwdsEvent.devtoolsLaunch());
     await remoteDebugger.sendCommand('Target.createTarget', params: {
-      'newWindow': true,
+      'newWindow': _launchDevToolsInNewWindow,
       'url': Uri(
           scheme: 'http',
           host: _devTools.hostname,
