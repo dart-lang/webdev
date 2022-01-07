@@ -7,6 +7,7 @@
 - Show an alert in the Dart Debug Extension for a multi-app scenario.
 - Fix a bug where `dartEmitDebugEvents` was set as a `String` instead of `bool`
   in the injected client.
+- Emit a warning instead of crashing on missing `libraries.json`.
 
 **Breaking changes:**
 
