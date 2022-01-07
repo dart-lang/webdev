@@ -203,7 +203,7 @@ class DartUri {
           LibrariesSpecification.parse(uri, json).specificationFor('dartdevc');
     } on LibrariesSpecificationException catch (e) {
       _logger.warning('Cannot parse libraries spec: $uri', e);
-    } on Exception catch (e) {
+    } on FileSystemException catch (e) {
       _logger.warning('Cannot read libraries spec: $uri', e);
     }
   }
