@@ -876,32 +876,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       if (isolateRef.id != isolate.id) return;
 
       var firstArgValue = event.args[0].value as String;
-      // TODO(grouma) - Remove when the min SDK has updated to migrate users
-      // over to the injected client communication approach.
+      // TODO(nshahan) - Migrate 'inspect' and 'log' events to the injected
+      // client communication approach as well?
       switch (firstArgValue) {
-        case 'dart.developer.registerExtension':
-          var service = event.args[1].value as String;
-          isolate.extensionRPCs.add(service);
-          _streamNotify(
-              EventStreams.kIsolate,
-              Event(
-                  kind: EventKind.kServiceExtensionAdded,
-                  timestamp: DateTime.now().millisecondsSinceEpoch,
-                  isolate: isolateRef)
-                ..extensionRPC = service);
-          break;
-        case 'dart.developer.postEvent':
-          _streamNotify(
-              EventStreams.kExtension,
-              Event(
-                  kind: EventKind.kExtension,
-                  timestamp: DateTime.now().millisecondsSinceEpoch,
-                  isolate: isolateRef)
-                ..extensionKind = event.args[1].value as String
-                ..extensionData = ExtensionData.parse(
-                    jsonDecode(event.args[2].value as String)
-                        as Map<String, dynamic>));
-          break;
         case 'dart.developer.inspect':
           // All inspected objects should be real objects.
           if (event.args[1].type != 'object') break;

@@ -8,6 +8,9 @@
 - Fix a bug where `dartEmitDebugEvents` was set as a `String` instead of `bool`
   in the injected client.
 - Emit a warning instead of crashing on missing `libraries.json`.
+- Remove dead code for reading `'dart.developer.registerExtension'` and
+  `'dart.developer.postEvent'` events from the chrome console. These messages
+  haven't been written to the console since dwds v11.1.0 and Dart SDK v2.14.0.
 
 **Breaking changes:**
 
