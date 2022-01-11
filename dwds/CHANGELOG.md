@@ -19,6 +19,8 @@
 - Add `emitDebugEvents` argument to `Dwds.start` to suppress emitting debug
   events from the injected client.
 - Replace `sdkRoot` parameter by `sdkDir` in `ExpressionCompilerService`.
+- Adds an additional parameter to launch Dart DevTools in the same window as
+  the connected Dart app.
 
 ## 11.5.1
 
