@@ -110,8 +110,11 @@ class Dwds {
     bool useSseForInjectedClient,
     UrlEncoder urlEncoder,
     bool spawnDds,
+    // TODO(elliette): DevTools is inconsistently capitalized throughout this
+    // file. Change all occurances of devtools/Devtools to devTools/DevTools.
     bool enableDevtoolsLaunch,
     DevtoolsLauncher devtoolsLauncher,
+    bool launchDevToolsInNewWindow,
     Uri sdkDir,
     Uri librariesPath,
     bool emitDebugEvents,
@@ -123,6 +126,7 @@ class Dwds {
     useSseForDebugBackend ??= true;
     useSseForInjectedClient ??= true;
     enableDevtoolsLaunch ??= true;
+    launchDevToolsInNewWindow ??= true;
     spawnDds ??= true;
     globalLoadStrategy = loadStrategy;
     emitDebugEvents ??= true;
@@ -183,6 +187,7 @@ class Dwds {
       expressionCompiler,
       injected,
       spawnDds,
+      launchDevToolsInNewWindow,
     );
 
     return Dwds._(

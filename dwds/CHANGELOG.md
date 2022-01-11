@@ -7,6 +7,10 @@
 - Show an alert in the Dart Debug Extension for a multi-app scenario.
 - Fix a bug where `dartEmitDebugEvents` was set as a `String` instead of `bool`
   in the injected client.
+- Emit a warning instead of crashing on missing `libraries.json`.
+- Remove dead code for reading `'dart.developer.registerExtension'` and
+  `'dart.developer.postEvent'` events from the chrome console. These messages
+  haven't been written to the console since dwds v11.1.0 and Dart SDK v2.14.0.
 
 **Breaking changes:**
 
@@ -15,6 +19,8 @@
 - Add `emitDebugEvents` argument to `Dwds.start` to suppress emitting debug
   events from the injected client.
 - Replace `sdkRoot` parameter by `sdkDir` in `ExpressionCompilerService`.
+- Adds an additional parameter to launch Dart DevTools in the same window as
+  the connected Dart app.
 
 ## 11.5.1
 
