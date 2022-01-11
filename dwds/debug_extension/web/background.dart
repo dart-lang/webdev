@@ -136,34 +136,36 @@ void _startDebugging(_) {
 
   // Sends commands to debugger attached to the current tab.
   // Extracts the extension backend port from the injected JS.
-  var attachDebuggerToTab = allowInterop((Tab currentTab) async {
-    if (!_debuggableTabs.contains(currentTab.id)) return;
-
-    if (_tabIdToWarning.containsKey(currentTab.id)) {
-      alert(_tabIdToWarning[currentTab.id]);
-      return;
-    }
-
-    attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() async {
-      if (lastError != null) {
-        String alertMessage;
-        if (lastError.message.contains('Cannot access') ||
-            lastError.message.contains('Cannot attach')) {
-          alertMessage = _notADartAppAlert;
-        } else {
-          alertMessage = 'DevTools is already opened on a different window.';
-        }
-        alert(alertMessage);
-        return;
-      }
-      _tabsToAttach.add(currentTab);
-      sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable',
-          EmptyParam(), allowInterop((e) {}));
-    }));
-  });
+  var attachDebuggerToTab = allowInterop(_attachDebuggerToTab);
 
   queryTabs(getCurrentTabQuery, allowInterop((List<Tab> tabs) {
     attachDebuggerToTab(tabs[0]);
+  }));
+}
+
+void _attachDebuggerToTab(Tab currentTab) async {
+  if (!_debuggableTabs.contains(currentTab.id)) return;
+
+  if (_tabIdToWarning.containsKey(currentTab.id)) {
+    alert(_tabIdToWarning[currentTab.id]);
+    return;
+  }
+
+  attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() async {
+    if (lastError != null) {
+      String alertMessage;
+      if (lastError.message.contains('Cannot access') ||
+          lastError.message.contains('Cannot attach')) {
+        alertMessage = _notADartAppAlert;
+      } else {
+        alertMessage = 'DevTools is already opened on a different window.';
+      }
+      alert(alertMessage);
+      return;
+    }
+    _tabsToAttach.add(currentTab);
+    sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
+        allowInterop((e) {}));
   }));
 }
 
