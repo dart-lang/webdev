@@ -223,15 +223,18 @@ void _handleMessageFromExternalExtensions(
     if (request.name == 'chrome.debugger.sendCommand') {
       try {
         var options = request.options as SendCommandOptions;
-        sendCommand(Debuggee(tabId: request.tabId), options.method,
-            options.commandParams, allowInterop(([e]) {
+
+        void sendResponseOrError([e]) {
           // No arguments indicate that an error occurred.
           if (e == null) {
             sendResponse(ErrorResponse()..error = stringify(lastError));
           } else {
             sendResponse(e);
           }
-        }));
+        }
+
+        sendCommand(Debuggee(tabId: request.tabId), options.method,
+            options.commandParams, allowInterop(sendResponseOrError));
       } catch (e) {
         sendResponse(ErrorResponse()..error = '$e');
       }
