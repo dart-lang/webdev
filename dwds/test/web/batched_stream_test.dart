@@ -15,48 +15,40 @@ import '../../web/batched_stream.dart';
 
 void main() {
   group('Batched stream controller', () {
-    test('Emits batches', () async {
+    test('emits batches', () async {
       const size = 100;
       const delay = Duration(milliseconds: 1000);
 
       var batchOne = List<int>.generate(size, (index) => index);
       var batchTwo = List<int>.generate(size, (index) => size + index);
-      var inputController = StreamController<int>();
 
       // Setup controller.
       var controller = BatchedStreamController<int>(delay: 500);
 
-      // Setup output listener.
-      var outputEmitted = expectLater(
+      // Verify the output.
+      expect(
           controller.stream,
           emitsInOrder([
             batchOne,
             batchTwo,
           ]));
 
-      // Setup input.
+      // Add input.
+      var inputController = StreamController<int>();
       var inputAdded = controller.sink.addStream(inputController.stream);
 
-      // Add input.
       batchOne.forEach(inputController.sink.add);
       await Future.delayed(delay);
       batchTwo.forEach(inputController.sink.add);
-      await inputController.sink.close();
 
-      // Wait for input to finish.
+      await inputController.close();
       await inputAdded;
       await controller.close();
-
-      // Verify the output.
-      await outputEmitted;
     });
 
-    test('Emits all inputs in order', () async {
+    test('emits all inputs in order', () async {
       const size = 10;
       const delay = Duration(milliseconds: 200);
-
-      var input = List<int>.generate(size, (index) => index);
-      var inputController = StreamController<int>();
 
       // Setup controller.
       var controller = BatchedStreamController<int>(delay: 500);
@@ -64,17 +56,17 @@ void main() {
       // Setup output listener.
       var output = controller.stream.toList();
 
-      // Setup input.
+      // Add input.
+      var inputController = StreamController<int>();
       var inputAdded = controller.sink.addStream(inputController.stream);
 
-      // Add input.
+      var input = List<int>.generate(size, (index) => index);
       for (var e in input) {
         inputController.sink.add(e);
         await Future.delayed(delay);
       }
-      await inputController.sink.close();
 
-      // Wait for input to finish.
+      await inputController.close();
       await inputAdded;
       await controller.close();
 

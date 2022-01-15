@@ -27,9 +27,9 @@ class BatchedStreamController<T> {
   BatchedStreamController({
     int delay = _batchDelayMilliseconds,
   }) : _batchDelay = delay {
-    _inputController = StreamController<T>(onCancel: close);
+    _inputController = StreamController<T>();
     _inputQueue = StreamQueue<T>(_inputController.stream);
-    _outputController = StreamController<List<T>>(onCancel: close);
+    _outputController = StreamController<List<T>>();
 
     unawaited(_batchAndSendEvents());
   }
@@ -41,8 +41,8 @@ class BatchedStreamController<T> {
   Stream<List<T>> get stream => _outputController.stream;
 
   /// Close the controller.
-  Future<dynamic> close() {
-    _inputController.close();
+  Future<dynamic> close() async {
+    unawaited(_inputController.close());
     return _completer.future.then((value) => _outputController.close());
   }
 
