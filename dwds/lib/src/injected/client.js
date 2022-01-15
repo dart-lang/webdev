@@ -24532,11 +24532,13 @@
       var t1, t2;
       A._asStringS(kind);
       A._asStringS(eventData);
-      t1 = this.debugEventController._inputController;
-      t1.toString;
-      t2 = new A.DebugEventBuilder();
-      type$.legacy_void_Function_legacy_DebugEventBuilder._as(new A.main___closure1(kind, eventData)).call$1(t2);
-      t1.add$1(0, A._instanceType(t1)._precomputed1._as(t2.build$0()));
+      if (A.boolConversionCheck(self.$dartEmitDebugEvents)) {
+        t1 = this.debugEventController._inputController;
+        t1.toString;
+        t2 = new A.DebugEventBuilder();
+        type$.legacy_void_Function_legacy_DebugEventBuilder._as(new A.main___closure1(kind, eventData)).call$1(t2);
+        t1.add$1(0, A._instanceType(t1)._precomputed1._as(t2.build$0()));
+      }
     },
     $signature: 73
   };
