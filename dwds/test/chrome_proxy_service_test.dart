@@ -1481,18 +1481,64 @@ void main() {
         });
       });
 
-      test('Extension', () async {
-        expect(service.streamListen(EventStreams.kExtension),
-            completion(_isSuccess));
-        var stream = service.onEvent(EventStreams.kExtension);
-        var eventKind = 'my.custom.event';
-        expect(
-            stream,
-            emitsThrough(predicate((Event event) =>
-                event.kind == EventKind.kExtension &&
-                event.extensionKind == eventKind &&
-                event.extensionData.data['example'] == 'data')));
-        await tabConnection.runtime.evaluate("postEvent('$eventKind');");
+      group('Extension', () {
+        Stream<Event> eventStream;
+
+        setUp(() async {
+          setCurrentLogWriter();
+          expect(await service.streamListen('Extension'),
+              const TypeMatcher<Success>());
+          eventStream = service.onEvent('Extension');
+        });
+
+        test('Custom debug event', () async {
+          var eventKind = 'my.custom.event';
+          expect(
+              eventStream,
+              emitsThrough(predicate((Event event) =>
+                  event.kind == EventKind.kExtension &&
+                  event.extensionKind == eventKind &&
+                  event.extensionData.data['example'] == 'data')));
+          await tabConnection.runtime.evaluate("postEvent('$eventKind');");
+        });
+
+        test('Batched debug events from injected client', () async {
+          var eventKind = EventKind.kExtension;
+          var extensionKind = 'MyEvent';
+          var eventData = 'eventData';
+          var delay = const Duration(milliseconds: 2000);
+
+          TypeMatcher<Event> eventMatcher(
+                  String data) =>
+              const TypeMatcher<Event>()
+                  .having((event) => event.kind, 'kind', eventKind)
+                  .having((event) => event.extensionKind, 'extensionKind',
+                      extensionKind)
+                  .having((event) => event.extensionData.data['eventData'],
+                      'eventData', data);
+
+          String emitDebugEvent(String data) =>
+              "\$emitDebugEvent('$extensionKind', '{ \"$eventData\": \"$data\" }');";
+
+          var size = 2;
+          var batch1 = List.generate(size, (int i) => 'data$i');
+          var batch2 = List.generate(size, (int i) => 'data${size + i}');
+
+          expect(
+              eventStream,
+              emitsInOrder([
+                ...batch1.map(eventMatcher),
+                ...batch2.map(eventMatcher),
+              ]));
+
+          for (var data in batch1) {
+            await tabConnection.runtime.evaluate(emitDebugEvent(data));
+          }
+          await Future.delayed(delay);
+          for (var data in batch2) {
+            await tabConnection.runtime.evaluate(emitDebugEvent(data));
+          }
+        });
       });
 
       test('GC', () async {
@@ -1539,6 +1585,25 @@ void main() {
           await eventsDone;
           expect((await service.getVM()).isolates.first.id,
               isNot(initialIsolateId));
+        });
+
+        test('RegisterExtension events from injected client', () async {
+          var eventKind = EventKind.kServiceExtensionAdded;
+          var extensions = List.generate(10, (index) => 'extension$index');
+
+          TypeMatcher<Event> eventMatcher(String extension) =>
+              const TypeMatcher<Event>()
+                  .having((event) => event.kind, 'kind', eventKind)
+                  .having((event) => event.extensionRPC, 'RPC', extension);
+
+          String emitRegisterEvent(String extension) =>
+              "\$emitRegisterEvent('$extension')";
+
+          expect(
+              isolateEventStream, emitsInOrder(extensions.map(eventMatcher)));
+          for (var extension in extensions) {
+            await tabConnection.runtime.evaluate(emitRegisterEvent(extension));
+          }
         });
       });
 
