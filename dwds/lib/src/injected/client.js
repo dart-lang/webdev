@@ -24532,7 +24532,6 @@
       var t1, t2;
       A._asStringS(kind);
       A._asStringS(eventData);
-      A.print("Client: debug event: " + A.S(kind) + ", " + A.S(eventData));
       t1 = this.debugEventController._inputController;
       t1.toString;
       t2 = new A.DebugEventBuilder();

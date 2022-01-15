@@ -73,7 +73,6 @@ Future<void> main() {
     });
 
     emitDebugEvent = allowInterop((String kind, String eventData) {
-      print('Client: debug event: $kind, $eventData');
       debugEventController.sink.add(DebugEvent((b) => b
         ..timestamp = (DateTime.now().millisecondsSinceEpoch)
         ..kind = kind
