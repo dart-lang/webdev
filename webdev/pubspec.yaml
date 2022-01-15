@@ -53,7 +53,7 @@ dev_dependencies:
 # Uncomment for development versions
 dependency_overrides:
    dwds:
-     path: ../dwds
+    path: ../dwds
 
 executables:
   webdev:
