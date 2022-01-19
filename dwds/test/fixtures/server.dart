@@ -7,7 +7,7 @@
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart' as daemon;
-import 'package:devtools_server/devtools_server.dart' as devtools_lancher;
+import 'package:dds/devtools_server.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/utilities/shared.dart';
@@ -112,8 +112,11 @@ class TestServer {
         expressionCompiler: expressionCompiler,
         devtoolsLauncher: serveDevTools
             ? (hostname) async {
-                var server = await devtools_lancher.serveDevTools(
-                    hostname: hostname, enableStdinCommands: false);
+                var server = await DevToolsServer().serveDevTools(
+                  hostname: hostname,
+                  enableStdinCommands: false,
+                  customDevToolsPath: devToolsPath,
+                );
                 return DevTools(server.address.host, server.port, server);
               }
             : null);

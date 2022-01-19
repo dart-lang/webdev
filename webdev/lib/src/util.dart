@@ -35,3 +35,4 @@ final String _sdkDir = (() {
 })();
 
 final String dartPath = p.join(_sdkDir, 'bin', 'dart');
+final String devToolsPath = p.join(_sdkDir, 'bin', 'resources', 'devtools');
