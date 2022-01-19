@@ -16,6 +16,8 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'utilities.dart';
+
 Logger _logger = Logger('TestServer');
 
 Handler _interceptFavicon(Handler handler) {
