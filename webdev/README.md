@@ -155,6 +155,7 @@ Usage: webdev build [arguments]
                                            (defaults to on)
 -e, --[no-]enable-expression-evaluation    Enable expression evaluation features
                                            in the debugger.
+                                           (defaults to on)
 -v, --verbose                              Enables verbose logging.
 
 Run "webdev help" to see global options.
