@@ -23,6 +23,7 @@ const hotReloadFlag = 'hot-reload';
 const hotRestartFlag = 'hot-restart';
 const launchAppOption = 'launch-app';
 const launchInChromeFlag = 'launch-in-chrome';
+const userDataDirFlag = 'user-data-dir';
 const liveReloadFlag = 'live-reload';
 const logRequestsFlag = 'log-requests';
 const outputFlag = 'output';
@@ -92,6 +93,7 @@ class Configuration {
   final String _tlsCertKey;
   final List<String> _launchApps;
   final bool _launchInChrome;
+  final String _userDataDir;
   final bool _logRequests;
   final String _output;
   final String outputInput;
@@ -115,6 +117,7 @@ class Configuration {
     String tlsCertKey,
     List<String> launchApps,
     bool launchInChrome,
+    String userDataDir,
     bool logRequests,
     String output,
     this.outputInput,
@@ -136,6 +139,7 @@ class Configuration {
         _tlsCertKey = tlsCertKey,
         _launchApps = launchApps,
         _launchInChrome = launchInChrome,
+        _userDataDir = userDataDir,
         _logRequests = logRequests,
         _output = output,
         _release = release,
@@ -185,6 +189,11 @@ class Configuration {
       throw InvalidConfiguration(
           '--$launchAppOption can only be used with --$launchInChromeFlag');
     }
+
+    if (userDataDir != null && !launchInChrome) {
+      throw InvalidConfiguration(
+          '--$userDataDir can only be used with --$launchInChromeFlag');
+    }
   }
 
   /// Creates a new [Configuration] with all non-null fields from
@@ -201,6 +210,7 @@ class Configuration {
       tlsCertKey: other._tlsCertKey ?? _tlsCertKey,
       launchApps: other._launchApps ?? _launchApps,
       launchInChrome: other._launchInChrome ?? _launchInChrome,
+      userDataDir: other._userDataDir ?? _userDataDir,
       logRequests: other._logRequests ?? _logRequests,
       output: other._output ?? _output,
       release: other._release ?? _release,
@@ -238,6 +248,8 @@ class Configuration {
   List<String> get launchApps => _launchApps ?? [];
 
   bool get launchInChrome => _launchInChrome ?? false;
+
+  String get userDataDir => _userDataDir;
 
   bool get logRequests => _logRequests ?? false;
 
@@ -320,6 +332,10 @@ class Configuration {
             ? true
             : defaultConfiguration.launchInChrome;
 
+    var userDataDir = argResults.options.contains(userDataDirFlag)
+        ? argResults[userDataDirFlag] as String
+        : defaultConfiguration.userDataDir;
+
     var logRequests = argResults.options.contains(logRequestsFlag)
         ? argResults[logRequestsFlag] as bool
         : defaultConfiguration.logRequests;
@@ -382,6 +398,7 @@ class Configuration {
       tlsCertKey: tlsCertKey,
       launchApps: launchApps,
       launchInChrome: launchInChrome,
+      userDataDir: userDataDir,
       logRequests: logRequests,
       output: output,
       outputInput: outputInput,

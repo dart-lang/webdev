@@ -59,6 +59,10 @@ refresh: Performs a full page refresh.
         help: 'Automatically launches your application in Chrome with the '
             'debug port open. Use $chromeDebugPortFlag to specify a specific '
             'port to attach to an already running chrome instance instead.')
+    ..addOption(userDataDirFlag,
+        help: 'Use with $launchInChromeFlag to specify user data directory '
+            'to pass to chrome. Will start chrome window logged into default '
+            'profile with enabled extensions.')
     ..addFlag(liveReloadFlag,
         negatable: false,
         help: 'Automatically refreshes the page after each successful build.\n'
