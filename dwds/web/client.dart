@@ -69,7 +69,7 @@ Future<void> main() {
         BatchedStreamController<DebugEvent>(delay: _batchDelayMilliseconds);
     debugEventController.stream.listen((events) {
       client.sink.add(jsonEncode(serializers.serialize(BatchedDebugEvents(
-          (b) => b..events = ListBuilder<DebugEvent>(events)))));
+          (b) => b.events = ListBuilder<DebugEvent>(events)))));
     });
 
     emitDebugEvent = allowInterop((String kind, String eventData) {
