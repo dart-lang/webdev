@@ -31,9 +31,11 @@ ChromeProxyService get service =>
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
+  // Change to true to see verbose output from the tests.
+  var debug = false;
   group('shared context', () {
     setUpAll(() async {
-      setCurrentLogWriter();
+      setCurrentLogWriter(debug: debug);
       await context.setUp(verboseCompiler: false);
     });
 
@@ -49,7 +51,7 @@ void main() {
       ScriptRef mainScript;
 
       setUp(() async {
-        setCurrentLogWriter();
+        setCurrentLogWriter(debug: debug);
         vm = await fetchChromeProxyService(context.debugConnection).getVM();
         isolate = await fetchChromeProxyService(context.debugConnection)
             .getIsolate(vm.isolates.first.id);
@@ -158,7 +160,9 @@ void main() {
     });
 
     group('callServiceExtension', () {
-      setUp(setCurrentLogWriter);
+      setUp(() {
+        setCurrentLogWriter(debug: debug);
+      });
 
       test('success', () async {
         var serviceMethod = 'ext.test.callServiceExtension';
@@ -208,7 +212,9 @@ void main() {
     });
 
     group('VMTimeline', () {
-      setUp(setCurrentLogWriter);
+      setUp(() {
+        setCurrentLogWriter(debug: debug);
+      });
 
       test('clearVMTimeline', () async {
         await expectLater(service.clearVMTimeline(), throwsRPCError);
@@ -248,14 +254,16 @@ void main() {
       LibraryRef bootstrap;
 
       setUpAll(() async {
-        setCurrentLogWriter();
+        setCurrentLogWriter(debug: debug);
         var vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
         bootstrap = isolate.rootLib;
       });
 
       group('top level methods', () {
-        setUp(setCurrentLogWriter);
+        setUp(() {
+          setCurrentLogWriter(debug: debug);
+        });
 
         test('can return strings', () async {
           expect(
@@ -309,7 +317,9 @@ void main() {
         });
 
         group('with provided scope', () {
-          setUp(setCurrentLogWriter);
+          setUp(() {
+            setCurrentLogWriter(debug: debug);
+          });
 
           Future<InstanceRef> createRemoteObject(String message) async {
             return await service.evaluate(
@@ -369,7 +379,9 @@ void main() {
     });
 
     group('getIsolate', () {
-      setUp(setCurrentLogWriter);
+      setUp(() {
+        setCurrentLogWriter(debug: debug);
+      });
 
       test('works for existing isolates', () async {
         var vm = await service.getVM();
@@ -402,7 +414,7 @@ void main() {
       Library rootLibrary;
 
       setUpAll(() async {
-        setCurrentLogWriter();
+        setCurrentLogWriter(debug: debug);
         var vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
         bootstrap = isolate.rootLib;
@@ -410,7 +422,9 @@ void main() {
             await service.getObject(isolate.id, bootstrap.id) as Library;
       });
 
-      setUp(setCurrentLogWriter);
+      setUp(() {
+        setCurrentLogWriter(debug: debug);
+      });
 
       test('root Library', () async {
         expect(rootLibrary, isNotNull);
@@ -841,7 +855,9 @@ void main() {
     });
 
     group('getSourceReport', () {
-      setUp(setCurrentLogWriter);
+      setUp(() {
+        setCurrentLogWriter(debug: debug);
+      });
 
       test('Coverage report', () async {
         var vm = await service.getVM();
@@ -887,7 +903,7 @@ void main() {
       ScriptRef mainScript;
 
       setUp(() async {
-        setCurrentLogWriter();
+        setCurrentLogWriter(debug: debug);
         var vm = await service.getVM();
         isolateId = vm.isolates.first.id;
         scripts = await service.getScripts(isolateId);
@@ -922,7 +938,7 @@ void main() {
       ScriptRef mainScript;
 
       setUp(() async {
-        setCurrentLogWriter();
+        setCurrentLogWriter(debug: debug);
         var vm = await service.getVM();
         isolateId = vm.isolates.first.id;
         scripts = await service.getScripts(isolateId);
@@ -991,7 +1007,7 @@ void main() {
       ScriptRef mainScript;
 
       setUp(() async {
-        setCurrentLogWriter();
+        setCurrentLogWriter(debug: debug);
         var vm = await service.getVM();
         isolateId = vm.isolates.first.id;
         scripts = await service.getScripts(isolateId);
@@ -1146,7 +1162,7 @@ void main() {
       InstanceRef testInstance;
 
       setUp(() async {
-        setCurrentLogWriter();
+        setCurrentLogWriter(debug: debug);
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
         bootstrap = isolate.rootLib;
@@ -1444,7 +1460,7 @@ void main() {
         Stream<Event> eventStream;
 
         setUp(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
           expect(await service.streamListen('Debug'),
               const TypeMatcher<Success>());
           eventStream = service.onEvent('Debug');
@@ -1485,7 +1501,7 @@ void main() {
         Stream<Event> eventStream;
 
         setUp(() async {
-          setCurrentLogWriter();
+          setCurrentLogWriter(debug: debug);
           expect(await service.streamListen('Extension'),
               const TypeMatcher<Success>());
           eventStream = service.onEvent('Extension');

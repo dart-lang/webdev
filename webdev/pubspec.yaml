@@ -52,7 +52,7 @@ dev_dependencies:
 
 # Uncomment for development versions
 dependency_overrides:
-   dwds:
+  dwds:
     path: ../dwds
 
 executables:
