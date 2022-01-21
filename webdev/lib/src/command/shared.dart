@@ -57,7 +57,7 @@ void addSharedArgs(ArgParser argParser,
         hide: true)
     ..addFlag(enableExpressionEvaluationFlag,
         abbr: 'e',
-        defaultsTo: false,
+        defaultsTo: true,
         negatable: true,
         help: 'Enable expression evaluation features in the debugger.')
     ..addFlag(verboseFlag,
