@@ -60,87 +60,53 @@ class DebugSession {
 }
 
 void main() {
-  var startDebugging = allowInterop((_) {
-    var query = QueryInfo(active: true, currentWindow: true);
-    Tab currentTab;
+  // Start debugging when a user clicks the Dart Debug Extension:
+  browserActionOnClickedAddListener(allowInterop(_startDebugging));
 
-    // Sends commands to debugger attached to the current tab.
-    //
-    // Extracts the extension backend port from the injected JS.
-    var callback = allowInterop((List<Tab> tabs) async {
-      currentTab = tabs[0];
-      if (!_debuggableTabs.contains(currentTab.id)) return;
+  // Marks the current tab as debuggable and changes the extension icon to blue
+  // when it receives a message.
+  // TODO(elliette): Currently the only messages this ever receives is from
+  // the context script. Consider making it explicit what messages this is
+  // listening for.
+  onMessageAddListener(allowInterop(_maybeMarkTabAsDebuggable));
 
-      if (_tabIdToWarning.containsKey(currentTab.id)) {
-        alert(_tabIdToWarning[currentTab.id]);
-        return;
-      }
+  // Attaches a debug session to the app when the extension receives a
+  // Runtime.executionContextCreated event from DWDS:
+  addDebuggerListener(allowInterop(_maybeAttachDebugSession));
 
-      attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() async {
-        if (lastError != null) {
-          String alertMessage;
-          if (lastError.message.contains('Cannot access') ||
-              lastError.message.contains('Cannot attach')) {
-            alertMessage = _notADartAppAlert;
-          } else {
-            alertMessage = 'DevTools is already opened on a different window.';
-          }
-          alert(alertMessage);
-          return;
-        }
-        _tabsToAttach.add(currentTab);
-        sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable',
-            EmptyParam(), allowInterop((e) {}));
-      }));
-    });
+  // When a Dart application tab is closed, detach the corresponding debug
+  // session:
+  tabsOnRemovedAddListener(allowInterop(_maybeDetachDebugSessionForTab));
 
-    queryTabs(query, allowInterop((List tabs) {
-      callback(List.from(tabs));
-    }));
-  });
-  browserActionOnClickedAddListener(startDebugging);
-
-  // For testing only.
-  onFakeClick = allowInterop(() {
-    startDebugging(null);
-  });
-
-  isDartDebugExtension = true;
-
-  onMessageAddListener(allowInterop(
-      (Request request, Sender sender, Function sendResponse) async {
-    // Register any warnings for the tab:
-    if (request.warning != '') {
-      _tabIdToWarning[sender.tab.id] = request.warning;
-    }
-    _debuggableTabs.add(sender.tab.id);
-    _updateIcon();
-    // TODO(grouma) - We can conditionally auto start debugging here.
-    // For example: startDebugging(null);
-    sendResponse(true);
+  // When a debug session is detached, remove the reference to it:
+  onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
+    _maybeRemoveDebugSessionForTab(source.tabId);
   }));
 
+  // Save the tab ID for the opened DevTools.
+  tabsOnCreatedAddListener(allowInterop(_maybeSaveDevToolsTabId));
+
+  // Forward debugger events to the backend if applicable.
+  addDebuggerListener(allowInterop(_filterAndForwardToBackend));
+
+  // Maybe update the extension icon when a user clicks the tab:
   tabsOnActivatedAddListener(allowInterop((ActiveInfo info) {
     _updateIcon();
   }));
 
-  addDebuggerListener(allowInterop((
-    Debuggee source,
-    String method,
-    Object params,
-  ) async {
-    if (method == 'Runtime.executionContextCreated') {
-      var context = json.decode(stringify(params))['context'];
-      var tab = _tabsToAttach.firstWhere((tab) => tab.id == source.tabId,
-          orElse: () => null);
-      if (tab != null) {
-        if (await _tryAttach(context['id'] as int, tab)) {
-          _tabsToAttach.remove(tab);
-        }
-      }
-    }
+  // Message handler enabling communication with external Chrome extensions:
+  onMessageExternalAddListener(
+      allowInterop(_handleMessageFromExternalExtensions));
+
+  // Message forwarder enabling communication with external Chrome extensions:
+  addDebuggerListener(allowInterop(_forwardMessageToExternalExtensions));
+
+  // Maybe update the extension icon when the window focus changes:
+  windowOnFocusChangeAddListener(allowInterop((_) {
+    _updateIcon();
   }));
 
+  // Maybe update the extension icon during tab navigation:
   webNavigationOnCommittedAddListener(
       allowInterop((NavigationInfo navigationInfo) {
     if (navigationInfo.transitionType != 'auto_subframe' &&
@@ -149,84 +115,166 @@ void main() {
     }
   }));
 
-  windowOnFocusChangeAddListener(allowInterop((_) {
-    _updateIcon();
+  /// Everything after this is for testing only.
+  /// TODO(elliette): Figure out if there is a workaround that would allow us to
+  /// remove this.
+  ///
+  /// An automated click on the extension icon is not supported by WebDriver.
+  /// We initiate a fake click from the `debug_extension_test`
+  /// after the extension is loaded.
+  onFakeClick = allowInterop(() {
+    _startDebugging(null);
+  });
+
+  /// This is how we determine the extension tab to connect to during E2E tests.
+  isDartDebugExtension = true;
+}
+
+// Gets the current tab, then attaches the debugger to it:
+void _startDebugging(_) {
+  final getCurrentTabQuery = QueryInfo(active: true, currentWindow: true);
+
+  // Sends commands to debugger attached to the current tab.
+  // Extracts the extension backend port from the injected JS.
+  var attachDebuggerToTab = allowInterop(_attachDebuggerToTab);
+
+  queryTabs(getCurrentTabQuery, allowInterop((List<Tab> tabs) {
+    attachDebuggerToTab(tabs[0]);
   }));
+}
 
-  tabsOnRemovedAddListener(allowInterop((int tabId, _) {
-    _debuggableTabs.remove(tabId);
-    var session = _debugSessions.firstWhere(
-        (session) =>
-            session.appTabId == tabId || session.devtoolsTabId == tabId,
-        orElse: () => null);
-    if (session != null) {
-      session.socketClient.close();
-      _debugSessions.remove(session);
-      detach(Debuggee(tabId: session.appTabId), allowInterop(() {}));
-    }
-  }));
+void _attachDebuggerToTab(Tab currentTab) async {
+  if (!_debuggableTabs.contains(currentTab.id)) return;
 
-  onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
-    var session = _debugSessions.firstWhere(
-        (session) => session.appTabId == source.tabId,
-        orElse: () => null);
-    if (session != null) {
-      session.socketClient.close();
-      _debugSessions.remove(session);
-    }
-  }));
+  if (_tabIdToWarning.containsKey(currentTab.id)) {
+    alert(_tabIdToWarning[currentTab.id]);
+    return;
+  }
 
-  tabsOnCreatedAddListener(allowInterop((Tab tab) async {
-    // Remembers the ID of the DevTools tab.
-    //
-    // This assumes that the next launched tab after a session is created is the
-    // DevTools tab.
-    if (_debugSessions.isNotEmpty) _debugSessions.last.devtoolsTabId ??= tab.id;
-  }));
-
-  addDebuggerListener(allowInterop(_filterAndForward));
-
-  onMessageExternalAddListener(allowInterop(
-      (Request request, Sender sender, Function sendResponse) async {
-    if (_allowedExtensions.contains(sender.id)) {
-      if (request.name == 'chrome.debugger.sendCommand') {
-        try {
-          var options = request.options as SendCommandOptions;
-          sendCommand(Debuggee(tabId: request.tabId), options.method,
-              options.commandParams, allowInterop(([e]) {
-            // No arguments indicate that an error occurred.
-            if (e == null) {
-              sendResponse(ErrorResponse()..error = stringify(lastError));
-            } else {
-              sendResponse(e);
-            }
-          }));
-        } catch (e) {
-          sendResponse(ErrorResponse()..error = '$e');
-        }
-      } else if (request.name == 'dwds.encodedUri') {
-        sendResponse(_tabIdToEncodedUri[request.tabId] ?? '');
-      } else if (request.name == 'dwds.startDebugging') {
-        startDebugging(null);
-        // TODO(grouma) - Actually determine if debugging initiated
-        // successfully.
-        sendResponse(true);
+  attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() async {
+    if (lastError != null) {
+      String alertMessage;
+      if (lastError.message.contains('Cannot access') ||
+          lastError.message.contains('Cannot attach')) {
+        alertMessage = _notADartAppAlert;
       } else {
-        sendResponse(
-            ErrorResponse()..error = 'Unknown request name: ${request.name}');
+        alertMessage = 'DevTools is already opened on a different window.';
       }
+      alert(alertMessage);
+      return;
     }
+    _tabsToAttach.add(currentTab);
+    sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
+        allowInterop((e) {}));
   }));
+}
 
-  addDebuggerListener(
-      allowInterop((Debuggee source, String method, Object params) async {
-    if (_allowedEvents.contains(method)) {
-      sendMessageToExtensions(Request(
-          name: 'chrome.debugger.event',
-          tabId: source.tabId,
-          options: DebugEvent(method: method, params: params)));
+void _maybeMarkTabAsDebuggable(
+    Request request, Sender sender, Function sendResponse) async {
+  // Register any warnings for the tab:
+  if (request.warning != '') {
+    _tabIdToWarning[sender.tab.id] = request.warning;
+  }
+  _debuggableTabs.add(sender.tab.id);
+  _updateIcon();
+  // TODO(grouma) - We can conditionally auto start debugging here.
+  // For example: _startDebugging(null);
+  sendResponse(true);
+}
+
+void _maybeAttachDebugSession(
+  Debuggee source,
+  String method,
+  Object params,
+) async {
+  // Return early if it's not a Runtime.executionContextCreated event (sent from
+  // DWDS):
+  if (method != 'Runtime.executionContextCreated') return;
+
+  var context = json.decode(stringify(params))['context'];
+  var tab = _tabsToAttach.firstWhere((tab) => tab.id == source.tabId,
+      orElse: () => null);
+  if (tab != null) {
+    if (await _tryAttach(context['id'] as int, tab)) {
+      _tabsToAttach.remove(tab);
     }
-  }));
+  }
+}
+
+void _maybeDetachDebugSessionForTab(int tabId, _) {
+  final removedTabId = _maybeRemoveDebugSessionForTab(tabId);
+
+  if (removedTabId != -1) {
+    detach(Debuggee(tabId: removedTabId), allowInterop(() {}));
+  }
+}
+
+void _maybeSaveDevToolsTabId(Tab tab) async {
+  // Remembers the ID of the DevTools tab.
+  //
+  // This assumes that the next launched tab after a session is created is the
+  // DevTools tab.
+  if (_debugSessions.isNotEmpty) _debugSessions.last.devtoolsTabId ??= tab.id;
+}
+
+void _handleMessageFromExternalExtensions(
+    Request request, Sender sender, Function sendResponse) async {
+  if (_allowedExtensions.contains(sender.id)) {
+    if (request.name == 'chrome.debugger.sendCommand') {
+      try {
+        var options = request.options as SendCommandOptions;
+
+        void sendResponseOrError([e]) {
+          // No arguments indicate that an error occurred.
+          if (e == null) {
+            sendResponse(ErrorResponse()..error = stringify(lastError));
+          } else {
+            sendResponse(e);
+          }
+        }
+
+        sendCommand(Debuggee(tabId: request.tabId), options.method,
+            options.commandParams, allowInterop(sendResponseOrError));
+      } catch (e) {
+        sendResponse(ErrorResponse()..error = '$e');
+      }
+    } else if (request.name == 'dwds.encodedUri') {
+      sendResponse(_tabIdToEncodedUri[request.tabId] ?? '');
+    } else if (request.name == 'dwds.startDebugging') {
+      _startDebugging(null);
+      // TODO(grouma) - Actually determine if debugging initiated
+      // successfully.
+      sendResponse(true);
+    } else {
+      sendResponse(
+          ErrorResponse()..error = 'Unknown request name: ${request.name}');
+    }
+  }
+}
+
+void _forwardMessageToExternalExtensions(
+    Debuggee source, String method, Object params) async {
+  if (_allowedEvents.contains(method)) {
+    sendMessageToExtensions(Request(
+        name: 'chrome.debugger.event',
+        tabId: source.tabId,
+        options: DebugEvent(method: method, params: params)));
+  }
+}
+
+// Tries to remove the debug session for the specified tab. If no session is
+// found, returns -1. Otherwise returns the tab ID.
+int _maybeRemoveDebugSessionForTab(int tabId) {
+  var session = _debugSessions.firstWhere(
+      (session) => session.appTabId == tabId || session.devtoolsTabId == tabId,
+      orElse: () => null);
+  if (session != null) {
+    session.socketClient.close();
+    _debugSessions.remove(session);
+    return session.appTabId;
+  } else {
+    return -1;
+  }
 }
 
 void sendMessageToExtensions(Request request) {
@@ -400,8 +448,8 @@ ExtensionEvent _extensionEventFor(String method, Object params) =>
       ..params = jsonEncode(json.decode(stringify(params)))
       ..method = jsonEncode(method));
 
-/// Forward the event if applicable.
-void _filterAndForward(Debuggee source, String method, Object params) {
+/// Forward debugger events to the backend if applicable.
+void _filterAndForwardToBackend(Debuggee source, String method, Object params) {
   var debugSession = _debugSessions.firstWhere(
       (session) => session.appTabId == source.tabId,
       orElse: () => null);
