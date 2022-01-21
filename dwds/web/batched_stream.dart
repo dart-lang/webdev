@@ -9,10 +9,10 @@ import 'package:async/async.dart';
 
 /// Stream controller allowing to batch events.
 class BatchedStreamController<T> {
-  static const _batchDelayMilliseconds = 1000;
+  static const _defaultBatchDelayMilliseconds = 1000;
   static const _checkDelayMilliseconds = 100;
 
-  final int _batchDelay;
+  final int _batchDelayMilliseconds;
 
   StreamController<T> _inputController;
   StreamQueue<T> _inputQueue;
@@ -25,8 +25,8 @@ class BatchedStreamController<T> {
   /// Collects events from input [sink] and emits them in batches to the
   /// output [stream] every [delay] milliseconds. Keeps the original order.
   BatchedStreamController({
-    int delay = _batchDelayMilliseconds,
-  }) : _batchDelay = delay {
+    int delay = _defaultBatchDelayMilliseconds,
+  }) : _batchDelayMilliseconds = delay {
     _inputController = StreamController<T>();
     _inputQueue = StreamQueue<T>(_inputController.stream);
     _outputController = StreamController<List<T>>();
@@ -46,19 +46,26 @@ class BatchedStreamController<T> {
     return _completer.future.then((value) => _outputController.close());
   }
 
-  /// Send events to the output in a batch every [_batchDelay].
+  /// Send events to the output in a batch every [_batchDelayMilliseconds].
   Future<void> _batchAndSendEvents() async {
     const duration = Duration(milliseconds: _checkDelayMilliseconds);
     var buffer = <T>[];
 
+    // Batch events every `_batchDelayMilliseconds`.
+    //
+    // Note that events might arrive at random intervals, so collecting
+    // a predetermined number of events to send in a batch might delay
+    // the batch indefinitely.  Instead, check for new events every
+    // `_checkDelayMilliseconds` to make sure batches are sent in regular
+    // intervals.
     var lastSendTime = DateTime.now().millisecondsSinceEpoch;
-    while (await _inputQueue.hasNext.timeout(duration, onTimeout: () => true)) {
-      if (await _inputQueue.hasNext.timeout(duration, onTimeout: () => false)) {
+    while (await _hasEventOrTimeOut(duration)) {
+      if (await _hasEventDuring(duration)) {
         buffer.add(await _inputQueue.next);
       }
 
       var now = DateTime.now().millisecondsSinceEpoch;
-      if (now > lastSendTime + _batchDelay) {
+      if (now > lastSendTime + _batchDelayMilliseconds) {
         lastSendTime = now;
         if (buffer.isNotEmpty) {
           _outputController.sink.add(List.from(buffer));
@@ -72,4 +79,10 @@ class BatchedStreamController<T> {
     }
     _completer.complete(true);
   }
+
+  Future<bool> _hasEventOrTimeOut(Duration duration) =>
+      _inputQueue.hasNext.timeout(duration, onTimeout: () => true);
+
+  Future<bool> _hasEventDuring(Duration duration) =>
+      _inputQueue.hasNext.timeout(duration, onTimeout: () => false);
 }

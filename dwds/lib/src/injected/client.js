@@ -8672,14 +8672,14 @@
     },
     BatchedStreamController: function BatchedStreamController(t0, t1, t2) {
       var _ = this;
-      _._batchDelay = t0;
+      _._batchDelayMilliseconds = t0;
       _._outputController = _._inputQueue = _._inputController = null;
       _._completer = t1;
       _.$ti = t2;
     },
-    BatchedStreamController__batchAndSendEvents_closure: function BatchedStreamController__batchAndSendEvents_closure() {
+    BatchedStreamController__hasEventOrTimeOut_closure: function BatchedStreamController__hasEventOrTimeOut_closure() {
     },
-    BatchedStreamController__batchAndSendEvents_closure0: function BatchedStreamController__batchAndSendEvents_closure0() {
+    BatchedStreamController__hasEventDuring_closure: function BatchedStreamController__hasEventDuring_closure() {
     },
     main() {
       return A.runZonedGuarded(new A.main_closure(), new A.main_closure0(), type$.legacy_Future_void);
@@ -19152,6 +19152,11 @@
     $isResult: 1
   };
   A.StreamQueue.prototype = {
+    get$hasNext() {
+      var t1 = new A._Future($.Zone__current, type$._Future_bool);
+      this._addRequest$1(new A._HasNextRequest(new A._AsyncCompleter(t1, type$._AsyncCompleter_bool), this.$ti._eval$1("_HasNextRequest<1>")));
+      return t1;
+    },
     _updateRequests$0() {
       var t1, t2, t3, t4, _this = this;
       for (t1 = _this._requestQueue, t2 = _this._eventQueue; !t1.get$isEmpty(t1);) {
@@ -24282,7 +24287,7 @@
     _batchAndSendEvents$0() {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.void),
-        $async$self = this, t5, t6, t7, lastSendTime0, t8, lastEvent, t1, buffer, lastSendTime, t2, t3, t4, $async$temp1, $async$temp2;
+        $async$self = this, t2, t3, t4, t5, lastSendTime0, t6, lastEvent, t1, buffer, lastSendTime, $async$temp1, $async$temp2;
       var $async$_batchAndSendEvents$0 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -24293,45 +24298,36 @@
               t1 = $async$self.$ti;
               buffer = A._setArrayType([], t1._eval$1("JSArray<1*>"));
               lastSendTime = Date.now();
-              t2 = $async$self._batchDelay;
-              t3 = type$._Future_bool;
-              t4 = type$._AsyncCompleter_bool;
-              t1 = t1._eval$1("1*");
+              t2 = $async$self._batchDelayMilliseconds, t1 = t1._eval$1("1*");
             case 2:
-              // while condition
-              t5 = $async$self._inputQueue;
-              t6 = new A._Future($.Zone__current, t3);
-              t5._addRequest$1(new A._HasNextRequest(new A._AsyncCompleter(t6, t4), t5.$ti._eval$1("_HasNextRequest<1>")));
+              // for condition
               $async$temp1 = A;
               $async$goto = 4;
-              return A._asyncAwait(t6.timeout$2$onTimeout(0, B.Duration_100000, new A.BatchedStreamController__batchAndSendEvents_closure()), $async$_batchAndSendEvents$0);
+              return A._asyncAwait($async$self._hasEventOrTimeOut$1(B.Duration_100000), $async$_batchAndSendEvents$0);
             case 4:
               // returning from await.
               if (!$async$temp1.boolConversionCheck($async$result)) {
-                // goto after while
+                // goto after for
                 $async$goto = 3;
                 break;
               }
-              t5 = $async$self._inputQueue;
-              t6 = new A._Future($.Zone__current, t3);
-              t5._addRequest$1(new A._HasNextRequest(new A._AsyncCompleter(t6, t4), t5.$ti._eval$1("_HasNextRequest<1>")));
               $async$temp1 = A;
               $async$goto = 7;
-              return A._asyncAwait(t6.timeout$2$onTimeout(0, B.Duration_100000, new A.BatchedStreamController__batchAndSendEvents_closure0()), $async$_batchAndSendEvents$0);
+              return A._asyncAwait($async$self._hasEventDuring$1(B.Duration_100000), $async$_batchAndSendEvents$0);
             case 7:
               // returning from await.
               $async$goto = $async$temp1.boolConversionCheck($async$result) ? 5 : 6;
               break;
             case 5:
               // then
-              t5 = $async$self._inputQueue;
-              t6 = t5.$ti;
-              t7 = new A._Future($.Zone__current, t6._eval$1("_Future<1>"));
-              t5._addRequest$1(new A._NextRequest(new A._AsyncCompleter(t7, t6._eval$1("_AsyncCompleter<1>")), t6._eval$1("_NextRequest<1>")));
+              t3 = $async$self._inputQueue;
+              t4 = t3.$ti;
+              t5 = new A._Future($.Zone__current, t4._eval$1("_Future<1>"));
+              t3._addRequest$1(new A._NextRequest(new A._AsyncCompleter(t5, t4._eval$1("_AsyncCompleter<1>")), t4._eval$1("_NextRequest<1>")));
               $async$temp1 = B.JSArray_methods;
               $async$temp2 = buffer;
               $async$goto = 8;
-              return A._asyncAwait(t7, $async$_batchAndSendEvents$0);
+              return A._asyncAwait(t5, $async$_batchAndSendEvents$0);
             case 8:
               // returning from await.
               $async$temp1.add$1($async$temp2, $async$result);
@@ -24340,34 +24336,34 @@
               lastSendTime0 = Date.now();
               if (lastSendTime0 > lastSendTime + t2) {
                 if (buffer.length !== 0) {
-                  t5 = $async$self._outputController;
-                  t6 = A._instanceType(t5);
-                  t7 = t6._precomputed1._as(A.List_List$from(buffer, true, t1));
-                  t8 = t5._state;
-                  if (t8 >= 4)
-                    A.throwExpression(t5._badEventState$0());
-                  if ((t8 & 1) !== 0)
-                    t5._sendData$1(t7);
-                  else if ((t8 & 3) === 0) {
-                    t5 = t5._ensurePendingEvents$0();
-                    t6 = new A._DelayedData(t7, t6._eval$1("_DelayedData<1>"));
-                    lastEvent = t5.lastPendingEvent;
+                  t3 = $async$self._outputController;
+                  t4 = A._instanceType(t3);
+                  t5 = t4._precomputed1._as(A.List_List$from(buffer, true, t1));
+                  t6 = t3._state;
+                  if (t6 >= 4)
+                    A.throwExpression(t3._badEventState$0());
+                  if ((t6 & 1) !== 0)
+                    t3._sendData$1(t5);
+                  else if ((t6 & 3) === 0) {
+                    t3 = t3._ensurePendingEvents$0();
+                    t4 = new A._DelayedData(t5, t4._eval$1("_DelayedData<1>"));
+                    lastEvent = t3.lastPendingEvent;
                     if (lastEvent == null)
-                      t5.firstPendingEvent = t5.lastPendingEvent = t6;
+                      t3.firstPendingEvent = t3.lastPendingEvent = t4;
                     else {
-                      lastEvent.set$next(0, t6);
-                      t5.lastPendingEvent = t6;
+                      lastEvent.set$next(0, t4);
+                      t3.lastPendingEvent = t4;
                     }
                   }
                   B.JSArray_methods.set$length(buffer, 0);
                 }
                 lastSendTime = lastSendTime0;
               }
-              // goto while condition
+              // goto for condition
               $async$goto = 2;
               break;
             case 3:
-              // after while
+              // after for
               if (buffer.length !== 0) {
                 t2 = $async$self._outputController;
                 t2.add$1(0, A._instanceType(t2)._precomputed1._as(A.List_List$from(buffer, true, t1)));
@@ -24379,6 +24375,12 @@
       });
       return A._asyncStartSync($async$_batchAndSendEvents$0, $async$completer);
     },
+    _hasEventOrTimeOut$1(duration) {
+      return this._inputQueue.get$hasNext().timeout$2$onTimeout(0, duration, new A.BatchedStreamController__hasEventOrTimeOut_closure());
+    },
+    _hasEventDuring$1(duration) {
+      return this._inputQueue.get$hasNext().timeout$2$onTimeout(0, duration, new A.BatchedStreamController__hasEventDuring_closure());
+    },
     set$_inputController(_inputController) {
       this._inputController = this.$ti._eval$1("StreamController<1*>*")._as(_inputController);
     },
@@ -24389,13 +24391,13 @@
       this._outputController = this.$ti._eval$1("StreamController<List<1*>*>*")._as(_outputController);
     }
   };
-  A.BatchedStreamController__batchAndSendEvents_closure.prototype = {
+  A.BatchedStreamController__hasEventOrTimeOut_closure.prototype = {
     call$0() {
       return true;
     },
     $signature: 25
   };
-  A.BatchedStreamController__batchAndSendEvents_closure0.prototype = {
+  A.BatchedStreamController__hasEventDuring_closure.prototype = {
     call$0() {
       return false;
     },
@@ -25309,7 +25311,7 @@
     _inherit(A.MapBase, A.MapMixin);
     _inheritMany(A.MapBase, [A.CastMap, A.JsLinkedHashMap, A._HashMap, A._JsonMap, A._AttributeMap]);
     _inheritMany(A.Error, [A.LateError, A.ReachabilityError, A.NotNullableError, A.TypeError, A.JsNoSuchMethodError, A.UnknownJsTypeError, A.RuntimeError, A.AssertionError, A._Error, A.JsonUnsupportedObjectError, A.NullThrownError, A.ArgumentError, A.NoSuchMethodError, A.UnsupportedError, A.UnimplementedError, A.StateError, A.ConcurrentModificationError, A.CyclicInitializationError, A.BuiltValueNullFieldError, A.BuiltValueNestedFieldError, A.DeserializationError]);
-    _inheritMany(A.Closure0Args, [A.nullFuture_closure, A._AsyncRun__scheduleImmediateJsOverride_internalCallback, A._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, A._TimerImpl_internalCallback, A._TimerImpl$periodic_closure, A.Future_Future$microtask_closure, A._Future__addListener_closure, A._Future__prependListeners_closure, A._Future__chainForeignFuture_closure1, A._Future__asyncCompleteWithValue_closure, A._Future__chainFuture_closure, A._Future__asyncCompleteError_closure, A._Future__propagateToListeners_handleWhenCompleteCallback, A._Future__propagateToListeners_handleValueCallback, A._Future__propagateToListeners_handleError, A._Future_timeout_closure, A.Stream_length_closure0, A.Stream_first_closure, A._StreamController__subscribe_closure, A._StreamController__recordCancel_complete, A._BufferingStreamSubscription_asFuture_closure, A._BufferingStreamSubscription_asFuture__closure, A._BufferingStreamSubscription__sendError_sendError, A._BufferingStreamSubscription__sendDone_sendDone, A._PendingEvents_schedule_closure, A._cancelAndValue_closure, A._CustomZone_bindCallback_closure, A._CustomZone_bindCallbackGuarded_closure, A._rootHandleError_closure, A._RootZone_bindCallback_closure, A._RootZone_bindCallbackGuarded_closure, A.StreamQueue__ensureListening_closure0, A.Serializers_Serializers_closure, A.Serializers_Serializers_closure0, A.Serializers_Serializers_closure1, A.Serializers_Serializers_closure2, A.Serializers_Serializers_closure3, A._$serializers_closure, A._$serializers_closure0, A.Logger_Logger_closure, A.SseClient_closure, A.SseClient__closure, A.SseClient__onOutgoingMessage_closure, A.GuaranteeChannel_closure, A.GuaranteeChannel__closure, A.HtmlWebSocketChannel__listen_closure, A.BatchedStreamController__batchAndSendEvents_closure, A.BatchedStreamController__batchAndSendEvents_closure0, A.main_closure, A.main__closure3, A.RequireRestarter__reload_closure, A.RequireRestarter__reloadModule_closure, A._createScript_closure, A._createScript__closure, A._createScript__closure0]);
+    _inheritMany(A.Closure0Args, [A.nullFuture_closure, A._AsyncRun__scheduleImmediateJsOverride_internalCallback, A._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback, A._TimerImpl_internalCallback, A._TimerImpl$periodic_closure, A.Future_Future$microtask_closure, A._Future__addListener_closure, A._Future__prependListeners_closure, A._Future__chainForeignFuture_closure1, A._Future__asyncCompleteWithValue_closure, A._Future__chainFuture_closure, A._Future__asyncCompleteError_closure, A._Future__propagateToListeners_handleWhenCompleteCallback, A._Future__propagateToListeners_handleValueCallback, A._Future__propagateToListeners_handleError, A._Future_timeout_closure, A.Stream_length_closure0, A.Stream_first_closure, A._StreamController__subscribe_closure, A._StreamController__recordCancel_complete, A._BufferingStreamSubscription_asFuture_closure, A._BufferingStreamSubscription_asFuture__closure, A._BufferingStreamSubscription__sendError_sendError, A._BufferingStreamSubscription__sendDone_sendDone, A._PendingEvents_schedule_closure, A._cancelAndValue_closure, A._CustomZone_bindCallback_closure, A._CustomZone_bindCallbackGuarded_closure, A._rootHandleError_closure, A._RootZone_bindCallback_closure, A._RootZone_bindCallbackGuarded_closure, A.StreamQueue__ensureListening_closure0, A.Serializers_Serializers_closure, A.Serializers_Serializers_closure0, A.Serializers_Serializers_closure1, A.Serializers_Serializers_closure2, A.Serializers_Serializers_closure3, A._$serializers_closure, A._$serializers_closure0, A.Logger_Logger_closure, A.SseClient_closure, A.SseClient__closure, A.SseClient__onOutgoingMessage_closure, A.GuaranteeChannel_closure, A.GuaranteeChannel__closure, A.HtmlWebSocketChannel__listen_closure, A.BatchedStreamController__hasEventOrTimeOut_closure, A.BatchedStreamController__hasEventDuring_closure, A.main_closure, A.main__closure3, A.RequireRestarter__reload_closure, A.RequireRestarter__reloadModule_closure, A._createScript_closure, A._createScript__closure, A._createScript__closure0]);
     _inheritMany(A.EfficientLengthIterable, [A.ListIterable, A.EmptyIterable, A.LinkedHashMapKeyIterable, A._HashMapKeyIterable]);
     _inheritMany(A.ListIterable, [A.SubListIterable, A.MappedListIterable, A.ReversedListIterable, A.ListQueue, A._JsonMapKeyIterable]);
     _inherit(A.EfficientLengthMappedIterable, A.MappedIterable);
