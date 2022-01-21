@@ -164,7 +164,7 @@ class DartUri {
     var packagesUri = p.toUri(p.join(currentDirectory, '.packages'));
 
     clear();
-    _loadLibrariesConfig(librariesPath);
+    await _loadLibrariesConfig(librariesPath);
     return await _loadPackageConfig(packagesUri);
   }
 
@@ -196,11 +196,11 @@ class DartUri {
 
   /// Load and parse libraries.json spec file.
   /// Used for resolving `dart:` libraries uris.
-  static void _loadLibrariesConfig(Uri uri) {
+  static Future<void> _loadLibrariesConfig(Uri uri) async {
     try {
-      var json = File.fromUri(uri).readAsStringSync();
-      _librariesSpec =
-          LibrariesSpecification.parse(uri, json).specificationFor('dartdevc');
+      var spec = await LibrariesSpecification.load(
+          uri, (uri) => File.fromUri(uri).readAsString());
+      _librariesSpec = spec.specificationFor('dartdevc');
     } on LibrariesSpecificationException catch (e) {
       _logger.warning('Cannot parse libraries spec: $uri', e);
     } on FileSystemException catch (e) {

@@ -11,6 +11,8 @@
 - Remove dead code for reading `'dart.developer.registerExtension'` and
   `'dart.developer.postEvent'` events from the chrome console. These messages
   haven't been written to the console since dwds v11.1.0 and Dart SDK v2.14.0.
+- Batch debug events sent from injected client to dwds to relieve network load. 
+- Update `_fe_analyzer_shared` version to `33.0.0`
 
 **Breaking changes:**
 

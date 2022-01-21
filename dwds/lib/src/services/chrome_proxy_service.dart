@@ -824,6 +824,14 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     return controller;
   }
 
+  /// Parses the [BatchedDebugEvents] and emits corresponding Dart VM Service
+  /// protocol [Event]s.
+  Future<void> parseBatchedDebugEvents(BatchedDebugEvents debugEvents) async {
+    for (var debugEvent in debugEvents.events) {
+      await parseDebugEvent(debugEvent);
+    }
+  }
+
   /// Parses the [DebugEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
   Future<void> parseDebugEvent(DebugEvent debugEvent) async {
