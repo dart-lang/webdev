@@ -69,7 +69,7 @@ void main() async {
         ..method = jsonEncode('Debugger.scriptParsed')
         ..params = jsonEncode(scriptParsedParams));
       var batch =
-          BatchedEvents((b) => b..events = ListBuilder([event1, event2]));
+          BatchedEvents((b) => b.events = ListBuilder([event1, event2]));
       connection.controllerIncoming.sink
           .add(jsonEncode(serializers.serialize(batch)));
       var wipEvent = await extensionDebugger.onNotification.first;

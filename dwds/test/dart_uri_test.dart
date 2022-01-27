@@ -141,7 +141,7 @@ void main() {
         expect(
             logs,
             containsAll([
-              contains('[WARNING] DartUri: Cannot read libraries spec:'),
+              contains('[WARNING] DartUri: Cannot parse libraries spec:'),
               contains('[WARNING] DartUri: Unresolved uri: dart:io'),
               contains('[WARNING] DartUri: Unresolved uri: dart:html'),
             ]));

@@ -249,7 +249,7 @@ class Configuration {
 
   bool get requireBuildWebCompilers => _requireBuildWebCompilers ?? true;
 
-  bool get enableExpressionEvaluation => _enableExpressionEvaluation ?? false;
+  bool get enableExpressionEvaluation => _enableExpressionEvaluation ?? true;
 
   bool get verbose => _verbose ?? false;
 
