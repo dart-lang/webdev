@@ -7,7 +7,7 @@
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart' as daemon;
-import 'package:devtools_server/devtools_server.dart' as devtools_lancher;
+import 'package:dds/devtools_server.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/utilities/shared.dart';
@@ -15,6 +15,8 @@ import 'package:http_multi_server/http_multi_server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+
+import 'utilities.dart';
 
 Logger _logger = Logger('TestServer');
 
@@ -112,8 +114,11 @@ class TestServer {
         expressionCompiler: expressionCompiler,
         devtoolsLauncher: serveDevTools
             ? (hostname) async {
-                var server = await devtools_lancher.serveDevTools(
-                    hostname: hostname, enableStdinCommands: false);
+                var server = await DevToolsServer().serveDevTools(
+                  hostname: hostname,
+                  enableStdinCommands: false,
+                  customDevToolsPath: devToolsPath,
+                );
                 return DevTools(server.address.host, server.port, server);
               }
             : null);
