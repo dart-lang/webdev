@@ -4,6 +4,7 @@
 
 // @dart = 2.9
 
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -21,4 +22,18 @@ abstract class DebugEvent implements Built<DebugEvent, DebugEventBuilder> {
   String get eventData;
 
   int get timestamp;
+}
+
+/// A batched group of events, currently always Debugger.scriptParsed
+abstract class BatchedDebugEvents
+    implements Built<BatchedDebugEvents, BatchedDebugEventsBuilder> {
+  static Serializer<BatchedDebugEvents> get serializer =>
+      _$batchedDebugEventsSerializer;
+
+  factory BatchedDebugEvents([Function(BatchedDebugEventsBuilder) updates]) =
+      _$BatchedDebugEvents;
+
+  BatchedDebugEvents._();
+
+  BuiltList<DebugEvent> get events;
 }

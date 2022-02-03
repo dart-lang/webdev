@@ -22,6 +22,7 @@ part 'serializers.g.dart';
 /// Serializers for all the types used in DWDS communication.
 @SerializersFor([
   BatchedEvents,
+  BatchedDebugEvents,
   BuildResult,
   ConnectRequest,
   DebugEvent,

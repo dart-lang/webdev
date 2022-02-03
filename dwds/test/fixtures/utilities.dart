@@ -29,6 +29,7 @@ final String _sdkDir = (() {
 
 final String dartSdkPath = _sdkDir;
 final String dartPath = p.join(_sdkDir, 'bin', 'dart');
+final String devToolsPath = p.join(_sdkDir, 'bin', 'resources', 'devtools');
 
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {

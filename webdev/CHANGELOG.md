@@ -1,6 +1,8 @@
-## 2.7.8-dev
+## 2.7.8
 
 - Update `vm_service` to `^8.1.0`.
+- Enable expression evaluation by default.
+- Update the Dart minimum SDK to `>=2.16.0`.
 
 ## 2.7.7
 

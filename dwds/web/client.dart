@@ -11,6 +11,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/debug_event.dart';
@@ -25,12 +26,15 @@ import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import 'batched_stream.dart';
 import 'promise.dart';
 import 'reloader/legacy_restarter.dart';
 import 'reloader/manager.dart';
 import 'reloader/require_restarter.dart';
 import 'reloader/restarter.dart';
 import 'run_main.dart';
+
+const _batchDelayMilliseconds = 1000;
 
 // GENERATE:
 // pub run build_runner build web
@@ -61,12 +65,19 @@ Future<void> main() {
       return toPromise(manager.hotRestart(runId: runId));
     });
 
+    var debugEventController =
+        BatchedStreamController<DebugEvent>(delay: _batchDelayMilliseconds);
+    debugEventController.stream.listen((events) {
+      client.sink.add(jsonEncode(serializers.serialize(BatchedDebugEvents(
+          (b) => b.events = ListBuilder<DebugEvent>(events)))));
+    });
+
     emitDebugEvent = allowInterop((String kind, String eventData) {
       if (dartEmitDebugEvents) {
-        client.sink.add(jsonEncode(serializers.serialize(DebugEvent((b) => b
+        debugEventController.sink.add(DebugEvent((b) => b
           ..timestamp = (DateTime.now().millisecondsSinceEpoch)
           ..kind = kind
-          ..eventData = eventData))));
+          ..eventData = eventData));
       }
     });
 
