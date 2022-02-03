@@ -7,7 +7,7 @@ description: >-
   service protocol.
 
 environment:
-  sdk: ">=2.15.0 <3.0.0"
+  sdk: ">=2.16.0 <3.0.0"
 
 dependencies:
   _fe_analyzer_shared: ^33.0.0
