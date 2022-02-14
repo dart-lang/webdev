@@ -10,7 +10,9 @@
     "permissions": [
         "debugger",
         "tabs",
-        "webNavigation"
+        "webNavigation",
+        "http://*/*",
+        "https://*/*"
     ],
     "background": {
         "scripts": [
@@ -23,7 +25,7 @@
                 "<all_urls>"
             ],
             "js": [
-                "content.js"
+                "detector.js"
             ],
             "run_at": "document_end"
         }

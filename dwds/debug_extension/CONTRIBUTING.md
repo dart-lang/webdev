@@ -1,3 +1,6 @@
+Note: all is working, citc client is embed-dart-devtools-g3
+Currently that is sending the wrong devtools uri
+
 ## Building
 
 - With dart2js:
@@ -28,11 +31,11 @@ pub run build_runner build web -o build
 
 ### Build and upload your local extension
 
-* Build the extension following the instructions above
+* Build the extension following the instructions above (note only dart2js works: pub run build_runner build web -o build -r)
 * Visit chrome://extensions
 * Toggle "Developer mode" on
 * Click the "Load unpacked" button
-* Select the extension directory: `/dwds/debug_extension/build/web`
+* Select the extension directory: `/dwds/debug_extension/web`
 
 ### Debug your local extension
 * Click the Extensions puzzle piece, and pin the Dart Debug Extension with the dev icon (unpin the published version so you don't confuse them)

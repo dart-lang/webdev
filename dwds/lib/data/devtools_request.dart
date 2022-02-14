@@ -33,6 +33,10 @@ abstract class DevToolsRequest
   /// Belongs to the tab that requests the DevTools
   @nullable
   String get tabUrl;
+
+  /// If this is a uri only request.
+  @nullable
+  bool get uriOnly;
 }
 
 /// A response to a [DevToolsRequest].
