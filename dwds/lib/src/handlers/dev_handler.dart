@@ -372,7 +372,7 @@ class DevHandler {
     appServices.connectedInstanceId = appConnection.request.instanceId;
     dwdsStats.devToolsStart = DateTime.now();
     await _launchDevTools(appServices.chromeProxyService.remoteDebugger,
-        appServices.debugService.uri);
+        _constructDevToolsUri(appServices.debugService.uri));
   }
 
   Future<AppConnection> _handleConnectRequest(
