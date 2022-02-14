@@ -1,4 +1,5 @@
 (function loadDetectorScript() {
+    const DETECTOR_SCRIPT = 'detector-script';
     const MULTIPLE_APPS_ATTRIBUTE = 'data-multiple-dart-apps';
 
     const MULTIPLE_APPS_WARNING = 'It appears that you are running multiple Dart apps ' +
@@ -10,7 +11,7 @@
             .documentElement
             .getAttribute(MULTIPLE_APPS_ATTRIBUTE);
         const warning = hasMultipleApps == 'true' ? MULTIPLE_APPS_WARNING : '';
-        chrome.runtime.sendMessage(Object.assign(e, { warning: warning, sender: 'detector-script' }));
+        chrome.runtime.sendMessage(Object.assign(e, { warning: warning, sender: DETECTOR_SCRIPT }));
     }
 
     document.addEventListener('dart-app-ready', function (e) {

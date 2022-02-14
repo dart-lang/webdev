@@ -95,7 +95,7 @@ void main() {
     _startDebugging(DebuggerTrigger.extensionIcon);
   }));
 
-// Handles any incoming messages from the content scripts (detector.js, panel.js, devtools.js).
+// Handles any incoming messages from the content scripts (detector, panel).
   onMessageAddListener(allowInterop(_handleMessageFromContentScripts));
 
   // Attaches a debug session to the app when the extension receives a
@@ -143,14 +143,10 @@ void main() {
     }
   }));
 
+  // Notify the panel script controlling the Dart DevTools panel in Chrome
+  // DevTools of any relevant changes so that it can update accordingly:
   final devToolsPanelListener =
-      Listener<List<DevToolsPanel>>((List<DevToolsPanel> panels) {
-    for (final panel in panels) {
-      simpleSendMessage(panel.panelId,
-          SimpleMessage(recipient: 'panel-script', body: panel.devToolsUri));
-    }
-  });
-
+      Listener<List<DevToolsPanel>>(_notifyPanelScriptOfChanges);
   _devToolsPanelsNotifier.addListener(devToolsPanelListener);
 
   /// Everything after this is for testing only.
@@ -223,10 +219,13 @@ void _attachDebuggerToTab(Tab currentTab) async {
 
 void _handleMessageFromContentScripts(
     Request request, Sender sender, Function sendResponse) {
-  if (request.sender.startsWith('detector-script')) {
-    _maybeMarkTabAsDebuggable(request, sender, sendResponse);
-  } else if (request.sender.startsWith('panel-script')) {
-    _handleDevToolsOpen(request, sender);
+  switch (request.sender) {
+    case 'detector-script':
+      _maybeMarkTabAsDebuggable(request, sender, sendResponse);
+      break;
+    case 'panel-script':
+      _handleDevToolsOpen(request, sender);
+      break;
   }
 }
 
@@ -357,6 +356,13 @@ int _maybeRemoveDebugSessionForTab(int tabId) {
     return session.appTabId;
   } else {
     return -1;
+  }
+}
+
+void _notifyPanelScriptOfChanges(List<DevToolsPanel> panels) {
+  for (final panel in panels) {
+    sendSimpleMessage(panel.panelId,
+        SimpleMessage(recipient: 'panel-script', body: panel.devToolsUri));
   }
 }
 
@@ -663,7 +669,7 @@ external void sendMessage(
     String id, Object message, Object options, Function callback);
 
 @JS('chrome.runtime.sendMessage')
-external void simpleSendMessage(String id, Object message);
+external void sendSimpleMessage(String id, SimpleMessage message);
 
 // For debugging purposes:
 @JS('console.log')

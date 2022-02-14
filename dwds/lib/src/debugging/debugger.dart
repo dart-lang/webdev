@@ -395,13 +395,17 @@ class Debugger extends Domain {
   }
 
   // Renders the paused at breakpoint overlay over the application.
+  // TODO(elliette): Detect whether or not Chrome DevTools is also open, and
+  // if so don't show this overlay. Chrome DevTools also adds an overlay above
+  // this one. Currently we just make sure our overlay message is shorter than
+  // Chrome DevTools message, so that our overlay is hidden.
   void _showPausedOverlay() async {
     if (_pausedOverlayVisible) return;
     handleErrorIfPresent(await _remoteDebugger?.sendCommand('DOM.enable'));
     handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.enable'));
     handleErrorIfPresent(await _remoteDebugger
         ?.sendCommand('Overlay.setPausedInDebuggerMessage', params: {
-      'message': 'Paused in Dart DevTools',
+      'message': 'Paused',
     }));
     _pausedOverlayVisible = true;
   }

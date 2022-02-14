@@ -1,6 +1,3 @@
-Note: all is working, citc client is embed-dart-devtools-g3
-Currently that is sending the wrong devtools uri
-
 ## Building
 
 - With dart2js:
@@ -9,6 +6,7 @@ Currently that is sending the wrong devtools uri
 pub run build_runner build web -o build -r
 ```
 
+TODO(elliette): Building with DDC no longer works, figure out why.
 - With DDC:
 
 ```
@@ -31,7 +29,7 @@ pub run build_runner build web -o build
 
 ### Build and upload your local extension
 
-* Build the extension following the instructions above (note only dart2js works: pub run build_runner build web -o build -r)
+* Build the extension following the instructions above
 * Visit chrome://extensions
 * Toggle "Developer mode" on
 * Click the "Load unpacked" button
