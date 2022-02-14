@@ -1,3 +1,8 @@
+## 12.0.1-dev
+- Change wording of paused overlay from "Paused in Dart DevTools" to "Paused"
+- Allow sending back the Dart DevTools URL from DWDS instead of launching 
+  Dart DevTools, to support embedding Dart DevTools in Chrome DevTools.
+  
 ## 12.0.0
 
 - Implement `lookupResolvedPackageUris` and `lookupPackageUris` vm service API.
