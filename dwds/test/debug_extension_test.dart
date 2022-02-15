@@ -132,7 +132,7 @@ void main() async {
         test('can launch DevTools', () async {
           var windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
-          expect(await context.webDriver.title, 'Flutter DevTools');
+          expect(await context.webDriver.title, 'Dart DevTools');
         });
 
         test('can close DevTools and relaunch', () async {
@@ -151,7 +151,7 @@ void main() async {
           await Future.delayed(const Duration(seconds: 4));
           var windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
-          expect(await context.webDriver.title, 'Flutter DevTools');
+          expect(await context.webDriver.title, 'Dart DevTools');
         });
       });
     });
