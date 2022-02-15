@@ -185,7 +185,8 @@ void _startDebugging(DebuggerTrigger debuggerTrigger) {
     } else {
       alert('''
           Could not find a Dart app to start debugging. 
-          Has the Dart Debug Extension icon turned blue yet?
+          The Dart Debug Extension will turn blue when 
+          a Dart application is detected.
           ''');
     }
   }));
