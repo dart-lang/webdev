@@ -19,13 +19,15 @@
             "background.js"
         ]
     },
-    "content_scripts": [{
-        "matches": [
-            "<all_urls>"
-        ],
-        "js": [
-            "detector.js"
-        ],
-        "run_at": "document_end"
-    }]
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "detector.js"
+            ],
+            "run_at": "document_end"
+        }   
+    ]
 }
