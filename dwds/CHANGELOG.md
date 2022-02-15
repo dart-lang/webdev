@@ -1,3 +1,6 @@
+## 12.1.0
+- Update _fe_analyzer_shared to version ^34.0.0.
+
 ## 12.0.0
 
 - Implement `lookupResolvedPackageUris` and `lookupPackageUris` vm service API.
