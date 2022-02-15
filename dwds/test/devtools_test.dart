@@ -49,45 +49,51 @@ void main() {
       expect(await context.webDriver.pageSource, contains('Flutter'));
     });
 
-    test('can not launch devtools for the same app in multiple tabs', () async {
-      var appUrl = await context.webDriver.currentUrl;
-      // Open a new tab, select it, and navigate to the app
-      await context.webDriver.driver
-          .execute("window.open('$appUrl', '_blank');", []);
-      await Future.delayed(const Duration(seconds: 2));
-      var windows = await context.webDriver.windows.toList();
-      var oldAppWindow = windows[0];
-      var newAppWindow = windows[1];
-      var devToolsWindow = windows[2];
-      await newAppWindow.setAsActive();
+    test(
+      'can not launch devtools for the same app in multiple tabs',
+      () async {
+        var appUrl = await context.webDriver.currentUrl;
+        // Open a new tab, select it, and navigate to the app
+        await context.webDriver.driver
+            .execute("window.open('$appUrl', '_blank');", []);
+        await Future.delayed(const Duration(seconds: 2));
+        var windows = await context.webDriver.windows.toList();
+        var oldAppWindow = windows[0];
+        var newAppWindow = windows[1];
+        var devToolsWindow = windows[2];
+        await newAppWindow.setAsActive();
 
-      // Wait for the page to be ready before trying to open DevTools again.
-      await _waitForPageReady(context);
+        // Wait for the page to be ready before trying to open DevTools again.
+        await _waitForPageReady(context);
 
-      // Try to open devtools and check for the alert.
-      await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-      await Future.delayed(const Duration(seconds: 2));
-      var alert = context.webDriver.driver.switchTo.alert;
-      expect(alert, isNotNull);
-      expect(await alert.text,
-          contains('This app is already being debugged in a different tab'));
-      await alert.accept();
+        // Try to open devtools and check for the alert.
+        await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
+        await Future.delayed(const Duration(seconds: 2));
+        var alert = context.webDriver.driver.switchTo.alert;
+        expect(alert, isNotNull);
+        expect(await alert.text,
+            contains('This app is already being debugged in a different tab'));
+        await alert.accept();
 
-      // Now close the old app and try to re-open devtools.
-      await oldAppWindow.setAsActive();
-      await oldAppWindow.close();
-      await devToolsWindow.setAsActive();
-      await devToolsWindow.close();
-      await newAppWindow.setAsActive();
-      await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
-      await Future.delayed(const Duration(seconds: 2));
-      windows = await context.webDriver.windows.toList();
-      devToolsWindow = windows.firstWhere((window) => window != newAppWindow);
-      await devToolsWindow.setAsActive();
-      // TODO(grouma): switch back to `fixture.webdriver.title` when
-      // https://github.com/flutter/devtools/issues/2045 is fixed.
-      expect(await context.webDriver.pageSource, contains('Flutter'));
-    });
+        // Now close the old app and try to re-open devtools.
+        await oldAppWindow.setAsActive();
+        await oldAppWindow.close();
+        await devToolsWindow.setAsActive();
+        await devToolsWindow.close();
+        await newAppWindow.setAsActive();
+        await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
+        await Future.delayed(const Duration(seconds: 2));
+        windows = await context.webDriver.windows.toList();
+        devToolsWindow = windows.firstWhere((window) => window != newAppWindow);
+        await devToolsWindow.setAsActive();
+        // TODO(grouma): switch back to `fixture.webdriver.title` when
+        // https://github.com/flutter/devtools/issues/2045 is fixed.
+        expect(await context.webDriver.pageSource, contains('Flutter'));
+      },
+      // TODO(elliette): Enable this test once
+      // https://github.com/dart-lang/webdev/issues/1504 is resolved.
+      skip: true,
+    );
 
     test('destroys and recreates the isolate during a page refresh', () async {
       // This test is the same as one in reload_test, but runs here when there
