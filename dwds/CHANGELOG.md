@@ -1,3 +1,7 @@
+## 12.1.1
+- Add `ChromeProxyService.streamCpuSamplesWithUserTag` API that throws.
+  This fixes a dwds crash when the method is called from DevTools.
+
 ## 12.1.0
 - Update _fe_analyzer_shared to version ^34.0.0.
 

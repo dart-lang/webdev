@@ -1035,6 +1035,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           String isolateId, String breakpointId, bool enable) =>
       throw UnimplementedError();
 
+  @override
+  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>
+      throw UnimplementedError();
+
   /// Prevent DWDS from blocking Dart SDK rolls if changes in package:vm_service
   /// are unimplemented in DWDS.
   @override
