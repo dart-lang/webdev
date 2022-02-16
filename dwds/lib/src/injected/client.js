@@ -8215,16 +8215,17 @@
     },
     _$DevToolsResponseSerializer: function _$DevToolsResponseSerializer() {
     },
-    _$DevToolsRequest: function _$DevToolsRequest(t0, t1, t2, t3) {
+    _$DevToolsRequest: function _$DevToolsRequest(t0, t1, t2, t3, t4) {
       var _ = this;
       _.appId = t0;
       _.instanceId = t1;
       _.contextId = t2;
       _.tabUrl = t3;
+      _.uriOnly = t4;
     },
     DevToolsRequestBuilder: function DevToolsRequestBuilder() {
       var _ = this;
-      _._tabUrl = _._contextId = _._devtools_request$_instanceId = _._devtools_request$_appId = _._devtools_request$_$v = null;
+      _._uriOnly = _._tabUrl = _._contextId = _._devtools_request$_instanceId = _._devtools_request$_appId = _._devtools_request$_$v = null;
     },
     _$DevToolsResponse: function _$DevToolsResponse(t0, t1, t2) {
       this.success = t0;
@@ -22310,6 +22311,11 @@
         B.JSArray_methods.add$1(result, "tabUrl");
         B.JSArray_methods.add$1(result, serializers.serialize$2$specifiedType(value, B.FullType_h8g));
       }
+      value = object.uriOnly;
+      if (value != null) {
+        B.JSArray_methods.add$1(result, "uriOnly");
+        B.JSArray_methods.add$1(result, serializers.serialize$2$specifiedType(value, B.FullType_MtR));
+      }
       return result;
     },
     serialize$2(serializers, object) {
@@ -22339,6 +22345,10 @@
           case "tabUrl":
             t1 = A._asStringS(serializers.deserialize$2$specifiedType(value, B.FullType_h8g));
             result.get$_devtools_request$_$this()._tabUrl = t1;
+            break;
+          case "uriOnly":
+            t1 = A._asBoolS(serializers.deserialize$2$specifiedType(value, B.FullType_MtR));
+            result.get$_devtools_request$_$this()._uriOnly = t1;
             break;
         }
       }
@@ -22427,11 +22437,11 @@
         return false;
       if (other === _this)
         return true;
-      return other instanceof A.DevToolsRequest && _this.appId === other.appId && _this.instanceId === other.instanceId && _this.contextId == other.contextId && _this.tabUrl == other.tabUrl;
+      return other instanceof A.DevToolsRequest && _this.appId === other.appId && _this.instanceId === other.instanceId && _this.contextId == other.contextId && _this.tabUrl == other.tabUrl && _this.uriOnly == other.uriOnly;
     },
     get$hashCode(_) {
       var _this = this;
-      return A.$jf(A.$jc(A.$jc(A.$jc(A.$jc(0, B.JSString_methods.get$hashCode(_this.appId)), B.JSString_methods.get$hashCode(_this.instanceId)), J.get$hashCode$(_this.contextId)), J.get$hashCode$(_this.tabUrl)));
+      return A.$jf(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(0, B.JSString_methods.get$hashCode(_this.appId)), B.JSString_methods.get$hashCode(_this.instanceId)), J.get$hashCode$(_this.contextId)), J.get$hashCode$(_this.tabUrl)), J.get$hashCode$(_this.uriOnly)));
     },
     toString$0(_) {
       var _this = this,
@@ -22441,6 +22451,7 @@
       t2.add$2(t1, "instanceId", _this.instanceId);
       t2.add$2(t1, "contextId", _this.contextId);
       t2.add$2(t1, "tabUrl", _this.tabUrl);
+      t2.add$2(t1, "uriOnly", _this.uriOnly);
       return t2.toString$0(t1);
     }
   };
@@ -22453,6 +22464,7 @@
         _this._devtools_request$_instanceId = $$v.instanceId;
         _this._contextId = $$v.contextId;
         _this._tabUrl = $$v.tabUrl;
+        _this._uriOnly = $$v.uriOnly;
         _this._devtools_request$_$v = null;
       }
       return _this;
@@ -22468,7 +22480,7 @@
         t2 = _this.get$_devtools_request$_$this()._devtools_request$_instanceId;
         if (t2 == null)
           A.throwExpression(A.BuiltValueNullFieldError$(_s15_, "instanceId"));
-        _$result = new A._$DevToolsRequest(t1, t2, _this.get$_devtools_request$_$this()._contextId, _this.get$_devtools_request$_$this()._tabUrl);
+        _$result = new A._$DevToolsRequest(t1, t2, _this.get$_devtools_request$_$this()._contextId, _this.get$_devtools_request$_$this()._tabUrl, _this.get$_devtools_request$_$this()._uriOnly);
       }
       A.ArgumentError_checkNotNull(_$result, "other", type$.legacy_DevToolsRequest);
       return _this._devtools_request$_$v = _$result;
