@@ -90,9 +90,6 @@ void main() {
         // https://github.com/flutter/devtools/issues/2045 is fixed.
         expect(await context.webDriver.pageSource, contains('Flutter'));
       },
-      // TODO(elliette): Enable this test once
-      // https://github.com/dart-lang/webdev/issues/1504 is resolved.
-      skip: true,
     );
 
     test('destroys and recreates the isolate during a page refresh', () async {
