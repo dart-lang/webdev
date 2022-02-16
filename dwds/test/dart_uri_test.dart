@@ -7,6 +7,7 @@
 @TestOn('vm')
 import 'dart:io';
 
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
@@ -54,7 +55,7 @@ void main() {
 
     group('initialized with current SDK directory', () {
       setUpAll(() async {
-        await DartUri.initialize();
+        await DartUri.initialize(SdkConfiguration.standard());
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
@@ -90,7 +91,11 @@ void main() {
         Directory(fakeLibrariesDir).createSync();
         File(librariesPath).copySync(fakeLibrariesPath);
 
-        await DartUri.initialize(sdkDir: Uri.file(fakeSdkDir));
+        var sdkConfiguration = SdkConfiguration(
+          sdkDirectory: fakeSdkDir,
+          librariesPath: fakeLibrariesPath,
+        );
+        await DartUri.initialize(sdkConfiguration);
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
@@ -133,9 +138,11 @@ void main() {
         var fakeLibrariesDir = p.join(fakeSdkDir, 'lib');
         var fakeLibrariesPath = p.join(fakeLibrariesDir, 'libraries.json');
 
-        await DartUri.initialize(
-            sdkDir: Uri.file(fakeSdkDir),
-            librariesPath: Uri.file(fakeLibrariesPath));
+        var sdkConfiguration = SdkConfiguration(
+          sdkDirectory: fakeSdkDir,
+          librariesPath: fakeLibrariesPath,
+        );
+        await DartUri.initialize(sdkConfiguration);
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
 
         expect(

@@ -105,21 +105,23 @@ class TestContext {
     _entryContents = _entryFile.readAsStringSync();
   }
 
-  Future<void> setUp(
-      {ReloadConfiguration reloadConfiguration,
-      bool serveDevTools,
-      bool enableDebugExtension,
-      bool autoRun,
-      bool enableDebugging,
-      bool useSse,
-      bool spawnDds,
-      String hostname,
-      bool waitToDebug,
-      UrlEncoder urlEncoder,
-      bool restoreBreakpoints,
-      CompilationMode compilationMode,
-      bool enableExpressionEvaluation,
-      bool verboseCompiler}) async {
+  Future<void> setUp({
+    ReloadConfiguration reloadConfiguration,
+    bool serveDevTools,
+    bool enableDebugExtension,
+    bool autoRun,
+    bool enableDebugging,
+    bool useSse,
+    bool spawnDds,
+    String hostname,
+    bool waitToDebug,
+    UrlEncoder urlEncoder,
+    bool restoreBreakpoints,
+    CompilationMode compilationMode,
+    bool enableExpressionEvaluation,
+    bool verboseCompiler,
+    SdkConfigurationInterface sdkConfiguration,
+  }) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
@@ -130,6 +132,7 @@ class TestContext {
     enableExpressionEvaluation ??= false;
     spawnDds ??= true;
     verboseCompiler ??= false;
+    sdkConfiguration ??= SdkConfiguration.standard();
 
     try {
       configureLogWriter();
@@ -219,7 +222,8 @@ class TestContext {
                 'localhost',
                 port,
                 assetHandler,
-                verboseCompiler,
+                verbose: verboseCompiler,
+                sdkConfiguration: sdkConfiguration,
               );
               expressionCompiler = ddcService;
             }

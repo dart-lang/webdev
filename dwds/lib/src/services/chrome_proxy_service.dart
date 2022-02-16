@@ -94,6 +94,8 @@ class ChromeProxyService implements VmServiceInterface {
   final ExpressionCompiler _compiler;
   ExpressionEvaluator _expressionEvaluator;
 
+  final SdkConfigurationInterface _sdkConfiguration;
+
   bool terminatingIsolates = false;
 
   ChromeProxyService._(
@@ -106,6 +108,7 @@ class ChromeProxyService implements VmServiceInterface {
     this._skipLists,
     this.executionContext,
     this._compiler,
+    this._sdkConfiguration,
   ) {
     var debugger = Debugger.create(
       remoteDebugger,
@@ -126,6 +129,7 @@ class ChromeProxyService implements VmServiceInterface {
     AppConnection appConnection,
     ExecutionContext executionContext,
     ExpressionCompiler expressionCompiler,
+    SdkConfigurationInterface sdkConfiguration,
   ) async {
     final vm = VM(
       name: 'ChromeDebugProxy',
@@ -155,6 +159,7 @@ class ChromeProxyService implements VmServiceInterface {
       skipLists,
       executionContext,
       expressionCompiler,
+      sdkConfiguration,
     );
     unawaited(service.createIsolate(appConnection));
     return service;
@@ -221,6 +226,7 @@ class ChromeProxyService implements VmServiceInterface {
       uri,
       debugger,
       executionContext,
+      _sdkConfiguration,
     );
 
     _expressionEvaluator = _compiler == null
@@ -1033,6 +1039,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Breakpoint> setBreakpointState(
           String isolateId, String breakpointId, bool enable) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>
       throw UnimplementedError();
 
   /// Prevent DWDS from blocking Dart SDK rolls if changes in package:vm_service

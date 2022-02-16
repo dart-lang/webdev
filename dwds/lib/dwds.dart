@@ -24,7 +24,7 @@ import 'src/readers/asset_reader.dart';
 import 'src/servers/devtools.dart';
 import 'src/servers/extension_backend.dart';
 import 'src/services/expression_compiler.dart';
-import 'src/utilities/dart_uri.dart';
+import 'src/utilities/sdk_configuration.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
@@ -50,6 +50,8 @@ export 'src/services/expression_compiler.dart'
     show ExpressionCompilationResult, ExpressionCompiler, ModuleInfo;
 export 'src/services/expression_compiler_service.dart'
     show ExpressionCompilerService;
+export 'src/utilities/sdk_configuration.dart'
+    show SdkConfiguration, SdkConfigurationInterface;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
@@ -115,8 +117,7 @@ class Dwds {
     bool enableDevtoolsLaunch,
     DevtoolsLauncher devtoolsLauncher,
     bool launchDevToolsInNewWindow,
-    Uri sdkDir,
-    Uri librariesPath,
+    SdkConfigurationInterface sdkConfiguration,
     bool emitDebugEvents,
   }) async {
     hostname ??= 'localhost';
@@ -131,7 +132,7 @@ class Dwds {
     globalLoadStrategy = loadStrategy;
     emitDebugEvents ??= true;
 
-    await DartUri.initialize(sdkDir: sdkDir, librariesPath: librariesPath);
+    sdkConfiguration ??= SdkConfiguration.standard();
 
     DevTools devTools;
     Future<String> extensionUri;
@@ -188,6 +189,7 @@ class Dwds {
       injected,
       spawnDds,
       launchDevToolsInNewWindow,
+      sdkConfiguration,
     );
 
     return Dwds._(

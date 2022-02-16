@@ -66,6 +66,7 @@ class DevHandler {
   final bool _launchDevToolsInNewWindow;
   final ExpressionCompiler _expressionCompiler;
   final DwdsInjector _injected;
+  final SdkConfigurationInterface _sdkConfiguration;
 
   /// Null until [close] is called.
   ///
@@ -75,21 +76,23 @@ class DevHandler {
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
   DevHandler(
-      this._chromeConnection,
-      this.buildResults,
-      this._devTools,
-      this._assetReader,
-      this._loadStrategy,
-      this._hostname,
-      this._extensionBackend,
-      this._urlEncoder,
-      this._useSseForDebugProxy,
-      this._useSseForInjectedClient,
-      this._serveDevTools,
-      this._expressionCompiler,
-      this._injected,
-      this._spawnDds,
-      this._launchDevToolsInNewWindow) {
+    this._chromeConnection,
+    this.buildResults,
+    this._devTools,
+    this._assetReader,
+    this._loadStrategy,
+    this._hostname,
+    this._extensionBackend,
+    this._urlEncoder,
+    this._useSseForDebugProxy,
+    this._useSseForInjectedClient,
+    this._serveDevTools,
+    this._expressionCompiler,
+    this._injected,
+    this._spawnDds,
+    this._launchDevToolsInNewWindow,
+    this._sdkConfiguration,
+  ) {
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
     if (_extensionBackend != null) {
@@ -210,6 +213,7 @@ class DevHandler {
       useSse: false,
       expressionCompiler: _expressionCompiler,
       spawnDds: _spawnDds,
+      sdkConfiguration: _sdkConfiguration,
     );
   }
 
@@ -499,6 +503,7 @@ class DevHandler {
           useSse: _useSseForDebugProxy,
           expressionCompiler: _expressionCompiler,
           spawnDds: _spawnDds,
+          sdkConfiguration: _sdkConfiguration,
         );
         var appServices = await _createAppDebugServices(
           devToolsRequest.appId,

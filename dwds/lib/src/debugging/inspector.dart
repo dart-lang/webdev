@@ -17,6 +17,7 @@ import '../readers/asset_reader.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
+import '../utilities/sdk_configuration.dart';
 import '../utilities/shared.dart';
 import 'classes.dart';
 import 'debugger.dart';
@@ -64,6 +65,7 @@ class AppInspector extends Domain {
 
   /// The root URI from which the application is served.
   final String _root;
+  final SdkConfigurationInterface _sdkConfiguration;
 
   AppInspector._(
     this.appConnection,
@@ -77,6 +79,7 @@ class AppInspector extends Domain {
     this._locations,
     this._root,
     this._executionContext,
+    this._sdkConfiguration,
   )   : isolateRef = _toIsolateRef(isolate),
         super.forInspector();
 
@@ -91,6 +94,7 @@ class AppInspector extends Domain {
 
     var scripts = await scriptRefs;
 
+    await DartUri.initialize(_sdkConfiguration);
     await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
     await DartUri.recordAbsoluteUris(scripts.map((script) => script.uri));
 
@@ -112,6 +116,7 @@ class AppInspector extends Domain {
     String root,
     Debugger debugger,
     ExecutionContext executionContext,
+    SdkConfigurationInterface sdkConfiguration,
   ) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;
@@ -156,6 +161,7 @@ class AppInspector extends Domain {
       locations,
       root,
       executionContext,
+      sdkConfiguration,
     );
     await appInspector._initialize();
     return appInspector;
