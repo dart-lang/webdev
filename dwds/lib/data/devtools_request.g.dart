@@ -44,6 +44,13 @@ class _$DevToolsRequestSerializer
         ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
     }
+    value = object.uriOnly;
+    if (value != null) {
+      result
+        ..add('uriOnly')
+        ..add(
+            serializers.serialize(value, specifiedType: const FullType(bool)));
+    }
     return result;
   }
 
@@ -74,6 +81,10 @@ class _$DevToolsRequestSerializer
         case 'tabUrl':
           result.tabUrl = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
+          break;
+        case 'uriOnly':
+          result.uriOnly = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
           break;
       }
     }
@@ -151,12 +162,14 @@ class _$DevToolsRequest extends DevToolsRequest {
   final int contextId;
   @override
   final String tabUrl;
+  @override
+  final bool uriOnly;
 
   factory _$DevToolsRequest([void Function(DevToolsRequestBuilder) updates]) =>
       (new DevToolsRequestBuilder()..update(updates)).build();
 
   _$DevToolsRequest._(
-      {this.appId, this.instanceId, this.contextId, this.tabUrl})
+      {this.appId, this.instanceId, this.contextId, this.tabUrl, this.uriOnly})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(appId, 'DevToolsRequest', 'appId');
     BuiltValueNullFieldError.checkNotNull(
@@ -178,15 +191,18 @@ class _$DevToolsRequest extends DevToolsRequest {
         appId == other.appId &&
         instanceId == other.instanceId &&
         contextId == other.contextId &&
-        tabUrl == other.tabUrl;
+        tabUrl == other.tabUrl &&
+        uriOnly == other.uriOnly;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc($jc(0, appId.hashCode), instanceId.hashCode),
-            contextId.hashCode),
-        tabUrl.hashCode));
+        $jc(
+            $jc($jc($jc(0, appId.hashCode), instanceId.hashCode),
+                contextId.hashCode),
+            tabUrl.hashCode),
+        uriOnly.hashCode));
   }
 
   @override
@@ -195,7 +211,8 @@ class _$DevToolsRequest extends DevToolsRequest {
           ..add('appId', appId)
           ..add('instanceId', instanceId)
           ..add('contextId', contextId)
-          ..add('tabUrl', tabUrl))
+          ..add('tabUrl', tabUrl)
+          ..add('uriOnly', uriOnly))
         .toString();
   }
 }
@@ -220,6 +237,10 @@ class DevToolsRequestBuilder
   String get tabUrl => _$this._tabUrl;
   set tabUrl(String tabUrl) => _$this._tabUrl = tabUrl;
 
+  bool _uriOnly;
+  bool get uriOnly => _$this._uriOnly;
+  set uriOnly(bool uriOnly) => _$this._uriOnly = uriOnly;
+
   DevToolsRequestBuilder();
 
   DevToolsRequestBuilder get _$this {
@@ -229,6 +250,7 @@ class DevToolsRequestBuilder
       _instanceId = $v.instanceId;
       _contextId = $v.contextId;
       _tabUrl = $v.tabUrl;
+      _uriOnly = $v.uriOnly;
       _$v = null;
     }
     return this;
@@ -254,7 +276,8 @@ class DevToolsRequestBuilder
             instanceId: BuiltValueNullFieldError.checkNotNull(
                 instanceId, 'DevToolsRequest', 'instanceId'),
             contextId: contextId,
-            tabUrl: tabUrl);
+            tabUrl: tabUrl,
+            uriOnly: uriOnly);
     replace(_$result);
     return _$result;
   }

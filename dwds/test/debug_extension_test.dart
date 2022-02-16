@@ -103,6 +103,57 @@ void main() async {
           expect(alert, isNotNull);
         });
       });
+
+      // TODO(elliette): Figure out a way to verify that the Dart panel is added
+      // to Chrome DevTools. This might not be possible to test with WebDriver,
+      // because WebDriver doesn't allow you to interact with Chrome DevTools.
+      group('With an internal Dart app', () {
+        setUp(() async {
+          await context.setUp(
+              enableDebugExtension: true, serveDevTools: true, useSse: false);
+          var htmlTag =
+              await context.webDriver.findElement(const By.tagName('html'));
+
+          await context.webDriver.execute(
+              "arguments[0].setAttribute('data-ddr-dart-app', 'true');",
+              [htmlTag]);
+
+          await context.extensionConnection.sendCommand('Runtime.evaluate', {
+            'expression': 'fakeClick()',
+          });
+          // Wait for DevTools to actually open.
+          await Future.delayed(const Duration(seconds: 2));
+        });
+
+        tearDown(() async {
+          await context.tearDown();
+        });
+
+        test('can launch DevTools', () async {
+          var windows = await context.webDriver.windows.toList();
+          await context.webDriver.driver.switchTo.window(windows.last);
+          expect(await context.webDriver.title, 'Dart DevTools');
+        });
+
+        test('can close DevTools and relaunch', () async {
+          for (var window in await context.webDriver.windows.toList()) {
+            await context.webDriver.driver.switchTo.window(window);
+            if (await context.webDriver.title == 'Dart DevTools') {
+              await window.close();
+              break;
+            }
+          }
+
+          // Relaunch DevTools by (fake) clicking the extension.
+          await context.extensionConnection.sendCommand('Runtime.evaluate', {
+            'expression': 'fakeClick()',
+          });
+          await Future.delayed(const Duration(seconds: 4));
+          var windows = await context.webDriver.windows.toList();
+          await context.webDriver.driver.switchTo.window(windows.last);
+          expect(await context.webDriver.title, 'Dart DevTools');
+        });
+      });
     });
   }
 

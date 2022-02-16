@@ -372,7 +372,7 @@ class DevHandler {
     appServices.connectedInstanceId = appConnection.request.instanceId;
     dwdsStats.devToolsStart = DateTime.now();
     await _launchDevTools(appServices.chromeProxyService.remoteDebugger,
-        appServices.debugService.uri);
+        _constructDevToolsUri(appServices.debugService.uri));
   }
 
   Future<AppConnection> _handleConnectRequest(
@@ -518,26 +518,38 @@ class DevHandler {
         extensionDebugConnections.add(DebugConnection(appServices));
         _servicesByAppId[appId] = appServices;
       }
-      dwdsStats.devToolsStart = DateTime.now();
-      await _launchDevTools(extensionDebugger,
+      final devToolsUri = _constructDevToolsUri(
           await _servicesByAppId[appId].debugService.encodedUri);
+      dwdsStats.devToolsStart = DateTime.now();
+
+      // If we only want the URI, then return early.
+      if (devToolsRequest.uriOnly != null && devToolsRequest.uriOnly) {
+        extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
+        return;
+      }
+
+      await _launchDevTools(extensionDebugger, devToolsUri);
     });
   }
 
   Future<void> _launchDevTools(
-      RemoteDebugger remoteDebugger, String debugServiceUri) async {
+      RemoteDebugger remoteDebugger, String devToolsUri) async {
     // TODO(grouma) - We may want to log the debugServiceUri if we don't launch
     // DevTools so that users can manually connect.
     if (!_serveDevTools) return;
     emitEvent(DwdsEvent.devtoolsLaunch());
     await remoteDebugger.sendCommand('Target.createTarget', params: {
       'newWindow': _launchDevToolsInNewWindow,
-      'url': Uri(
-          scheme: 'http',
-          host: _devTools.hostname,
-          port: _devTools.port,
-          queryParameters: {'uri': debugServiceUri}).toString(),
+      'url': devToolsUri,
     });
+  }
+
+  String _constructDevToolsUri(String debugServiceUri) {
+    return Uri(
+        scheme: 'http',
+        host: _devTools.hostname,
+        port: _devTools.port,
+        queryParameters: {'uri': debugServiceUri}).toString();
   }
 }
 
