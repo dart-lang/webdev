@@ -1,4 +1,4 @@
-## 12.1.1
+## 12.1.1-dev
 - Add `ChromeProxyService.streamCpuSamplesWithUserTag` API that throws.
   This fixes a dwds crash when the method is called from DevTools.
 - Change wording of paused overlay from "Paused in Dart DevTools" to "Paused"
