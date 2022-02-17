@@ -216,7 +216,7 @@ class DebugService {
     bool spawnDds = true,
     bool useSse,
     ExpressionCompiler expressionCompiler,
-    SdkConfigurationInterface sdkConfiguration,
+    SdkConfigurationProvider sdkConfigurationProvider,
   }) async {
     useSse ??= false;
     var chromeProxyService = await ChromeProxyService.create(
@@ -227,7 +227,7 @@ class DebugService {
       appConnection,
       executionContext,
       expressionCompiler,
-      sdkConfiguration,
+      sdkConfigurationProvider,
     );
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();

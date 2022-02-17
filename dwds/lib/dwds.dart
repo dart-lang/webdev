@@ -51,7 +51,7 @@ export 'src/services/expression_compiler.dart'
 export 'src/services/expression_compiler_service.dart'
     show ExpressionCompilerService;
 export 'src/utilities/sdk_configuration.dart'
-    show SdkConfiguration, SdkConfigurationInterface;
+    show SdkConfiguration, SdkConfigurationProvider;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
@@ -117,7 +117,7 @@ class Dwds {
     bool enableDevtoolsLaunch,
     DevtoolsLauncher devtoolsLauncher,
     bool launchDevToolsInNewWindow,
-    SdkConfigurationInterface sdkConfiguration,
+    SdkConfigurationProvider sdkConfigurationProvider,
     bool emitDebugEvents,
   }) async {
     hostname ??= 'localhost';
@@ -132,7 +132,7 @@ class Dwds {
     globalLoadStrategy = loadStrategy;
     emitDebugEvents ??= true;
 
-    sdkConfiguration ??= SdkConfiguration.standard();
+    sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
     DevTools devTools;
     Future<String> extensionUri;
@@ -189,7 +189,7 @@ class Dwds {
       injected,
       spawnDds,
       launchDevToolsInNewWindow,
-      sdkConfiguration,
+      sdkConfigurationProvider,
     );
 
     return Dwds._(

@@ -108,7 +108,7 @@ class DartUri {
   /// For example: `/Users/me/.dart-sdks/2.15.0`
   ///
   /// Used to resolve SDK urls according to vm_service protocol.
-  static SdkConfigurationInterface _sdkConfiguration;
+  static SdkConfiguration _sdkConfiguration;
 
   /// All of the known absolute library paths, indexed by their library URL.
   ///
@@ -155,14 +155,13 @@ class DartUri {
   static String currentDirectoryUri = '${p.toUri(currentDirectory)}';
 
   /// Record library and script uris to enable resolving library and script paths.
-  static Future<void> initialize(
-      SdkConfigurationInterface sdkConfiguration) async {
-    await sdkConfiguration.validateSdkDir();
+  static Future<void> initialize(SdkConfiguration sdkConfiguration) async {
+    sdkConfiguration.validateSdkDir();
     _sdkConfiguration = sdkConfiguration;
     var packagesUri = p.toUri(p.join(currentDirectory, '.packages'));
 
     clear();
-    await _loadLibrariesConfig(await _sdkConfiguration.librariesUri);
+    await _loadLibrariesConfig(_sdkConfiguration.librariesUri);
     await _loadPackageConfig(packagesUri);
   }
 
@@ -176,9 +175,8 @@ class DartUri {
 
   /// Record all of the libraries, indexed by their absolute file: URI.
   static Future<void> recordAbsoluteUris(Iterable<String> libraryUris) async {
-    var sdkDirectoryUri = await _sdkConfiguration.sdkDirectoryUri;
     for (var uri in libraryUris) {
-      _recordAbsoluteUri(Uri.parse(uri), sdkDirectoryUri);
+      _recordAbsoluteUri(uri);
     }
   }
 
@@ -209,22 +207,21 @@ class DartUri {
 
   /// Record the library represented by package: or org-dartlang-app: uris
   /// indexed by absolute file: URI.
-  static void _recordAbsoluteUri(Uri uri, Uri sdkDirectoryUri) {
+  static void _recordAbsoluteUri(String libraryUri) {
+    var uri = Uri.parse(libraryUri);
     if (uri.scheme.isEmpty && !uri.path.endsWith('.dart')) {
       // ignore non-dart files
       return;
     }
 
-    var libraryUri = '$uri';
     String libraryPath;
     switch (uri.scheme) {
       case 'dart':
         var libSpec = _librariesSpec?.libraryInfoFor(uri.path);
         libraryPath = libSpec?.uri?.path;
-        if (sdkDirectoryUri != null) {
-          libraryPath = libraryPath?.replaceAll(
-              sdkDirectoryUri.path, 'org-dartlang-sdk:///sdk');
-        }
+        var sdkDir = _sdkConfiguration.sdkDirectoryUri;
+        libraryPath =
+            libraryPath?.replaceAll(sdkDir.path, 'org-dartlang-sdk:///sdk');
         break;
       case 'org-dartlang-app':
       case 'google3':

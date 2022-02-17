@@ -14,6 +14,7 @@ import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
@@ -120,7 +121,7 @@ class TestContext {
     CompilationMode compilationMode,
     bool enableExpressionEvaluation,
     bool verboseCompiler,
-    SdkConfigurationInterface sdkConfiguration,
+    SdkConfigurationProvider sdkConfigurationProvider,
   }) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
@@ -132,7 +133,7 @@ class TestContext {
     enableExpressionEvaluation ??= false;
     spawnDds ??= true;
     verboseCompiler ??= false;
-    sdkConfiguration ??= SdkConfiguration.standard();
+    sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
     try {
       configureLogWriter();
@@ -223,7 +224,7 @@ class TestContext {
                 port,
                 assetHandler,
                 verbose: verboseCompiler,
-                sdkConfiguration: sdkConfiguration,
+                sdkConfigurationProvider: sdkConfigurationProvider,
               );
               expressionCompiler = ddcService;
             }

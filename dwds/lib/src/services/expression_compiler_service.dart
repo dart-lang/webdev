@@ -66,16 +66,16 @@ class _Compiler {
     int port,
     String moduleFormat,
     bool soundNullSafety,
-    SdkConfigurationInterface sdkConfiguration,
+    SdkConfiguration sdkConfiguration,
     bool verbose,
   ) async {
-    await sdkConfiguration.validate();
+    sdkConfiguration.validate();
 
-    final librariesUri = await sdkConfiguration.librariesUri;
-    final workerUri = await sdkConfiguration.compilerWorkerUri;
+    final librariesUri = sdkConfiguration.librariesUri;
+    final workerUri = sdkConfiguration.compilerWorkerUri;
     final sdkSummaryUri = soundNullSafety
-        ? await sdkConfiguration.soundSdkSummaryUri
-        : await sdkConfiguration.unsoundSdkSummaryUri;
+        ? sdkConfiguration.soundSdkSummaryUri
+        : sdkConfiguration.unsoundSdkSummaryUri;
 
     final args = [
       '--experimental-expression-compiler',
@@ -223,9 +223,9 @@ class _Compiler {
 /// Uses [_address] and [_port] to communicate and [_assetHandler] to
 /// redirect asset requests to the asset server.
 ///
-/// [_sdkConfiguration] describes the locations of SDK files used in
-/// expression compilation (summaries, libraries spec, compiler worker
-/// snapshot).
+/// Configuration created by [_sdkConfigurationProvider] describes the
+/// locations of SDK files used in expression compilation (summaries,
+/// libraries spec, compiler worker snapshot).
 ///
 /// Users need to stop the service by calling [stop].
 class ExpressionCompilerService implements ExpressionCompiler {
@@ -235,16 +235,17 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final Handler _assetHandler;
   final bool _verbose;
 
-  final SdkConfigurationInterface _sdkConfiguration;
+  final SdkConfigurationProvider _sdkConfigurationProvider;
 
   ExpressionCompilerService(
     this._address,
     this._port,
     this._assetHandler, {
     bool verbose = false,
-    SdkConfigurationInterface sdkConfiguration,
+    SdkConfigurationProvider sdkConfigurationProvider,
   })  : _verbose = verbose,
-        _sdkConfiguration = sdkConfiguration ?? SdkConfiguration.standard();
+        _sdkConfigurationProvider =
+            sdkConfigurationProvider ?? DefaultSdkConfigurationProvider();
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
@@ -269,7 +270,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       await _port,
       moduleFormat,
       soundNullSafety,
-      _sdkConfiguration,
+      await _sdkConfigurationProvider.configuration,
       _verbose,
     );
 

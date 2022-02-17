@@ -7,9 +7,9 @@
 @TestOn('vm')
 import 'dart:io';
 
-import 'package:dwds/dwds.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -55,7 +55,9 @@ void main() {
 
     group('initialized with current SDK directory', () {
       setUpAll(() async {
-        await DartUri.initialize(SdkConfiguration.standard());
+        var sdkConfiguration =
+            await DefaultSdkConfigurationProvider().configuration;
+        await DartUri.initialize(sdkConfiguration);
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 

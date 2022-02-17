@@ -65,7 +65,7 @@ class AppInspector extends Domain {
 
   /// The root URI from which the application is served.
   final String _root;
-  final SdkConfigurationInterface _sdkConfiguration;
+  final SdkConfiguration _sdkConfiguration;
 
   AppInspector._(
     this.appConnection,
@@ -116,7 +116,7 @@ class AppInspector extends Domain {
     String root,
     Debugger debugger,
     ExecutionContext executionContext,
-    SdkConfigurationInterface sdkConfiguration,
+    SdkConfiguration sdkConfiguration,
   ) async {
     var id = createId();
     var time = DateTime.now().millisecondsSinceEpoch;

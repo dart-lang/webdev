@@ -21,131 +21,117 @@ class InvalidSdkConfigurationException implements Exception {
   }
 }
 
-/// Interface describing the SDK layout.
+/// SDK configuration provider interface.
 ///
-/// Note: Supports lazily populated configurations.
-/// Call [validate] method to make sure the files in the
-/// configuration layout exist before reading the files.
-abstract class SdkConfigurationInterface {
-  Future<String> get sdkDirectory;
-  Future<String> get unsoundSdkSummaryPath;
-  Future<String> get soundSdkSummaryPath;
-  Future<String> get librariesPath;
-  Future<String> get compilerWorkerPath;
+/// Supports lazily populated configurations by allowing to create
+/// configuration asyncronously.
+abstract class SdkConfigurationProvider {
+  Future<SdkConfiguration> get configuration;
+}
 
-  Future<Uri> get sdkDirectoryUri =>
-      sdkDirectory.then((value) => value == null ? null : p.toUri(value));
+/// Data class describing the SDK layout.
+///
+/// Provides helpers to convert paths to uris that work on all platforms.
+///
+/// Call [validate] method to make sure the files in the configuration
+/// layout exist before reading the files.
+class SdkConfiguration {
+  String sdkDirectory;
+  String unsoundSdkSummaryPath;
+  String soundSdkSummaryPath;
+  String librariesPath;
+  String compilerWorkerPath;
 
-  Future<Uri> get soundSdkSummaryUri => soundSdkSummaryPath
-      .then((value) => value == null ? null : p.toUri(value));
+  SdkConfiguration({
+    this.sdkDirectory,
+    this.unsoundSdkSummaryPath,
+    this.soundSdkSummaryPath,
+    this.librariesPath,
+    this.compilerWorkerPath,
+  });
 
-  Future<Uri> get unsoundSdkSummaryUri => unsoundSdkSummaryPath
-      .then((value) => value == null ? null : p.toUri(value));
+  static Uri _toUri(String path) => path == null ? null : p.toUri(path);
+  static Uri _toAbsoluteUri(String path) =>
+      path == null ? null : p.toUri(p.absolute(path));
 
-  Future<Uri> get librariesUri =>
-      librariesPath.then((value) => value == null ? null : p.toUri(value));
+  Uri get sdkDirectoryUri => _toUri(sdkDirectory);
+  Uri get soundSdkSummaryUri => _toUri(soundSdkSummaryPath);
+  Uri get unsoundSdkSummaryUri => _toUri(unsoundSdkSummaryPath);
+  Uri get librariesUri => _toUri(librariesPath);
 
   /// Note: has to be ///file: Uri to run in an isolate.
-  Future<Uri> get compilerWorkerUri => compilerWorkerPath
-      .then((value) => value == null ? null : p.toUri(p.absolute(value)));
+  Uri get compilerWorkerUri => _toAbsoluteUri(compilerWorkerPath);
 
   /// Throws [InvalidSdkConfigurationException] if configuration does not
   /// exist on disk.
-  Future<void> validate() async {
-    await validateSdkDir();
+  void validate() {
+    validateSdkDir();
 
-    var libraries = await librariesPath;
-    if (libraries == null || !File(libraries).existsSync()) {
+    if (unsoundSdkSummaryPath == null ||
+        !File(unsoundSdkSummaryPath).existsSync()) {
       throw InvalidSdkConfigurationException(
-          'Libraries spec $libraries does not exist');
+          'Sdk summary $unsoundSdkSummaryPath does not exist');
     }
 
-    var unsoundSdkSummary = await unsoundSdkSummaryPath;
-    if (unsoundSdkSummary == null || !File(unsoundSdkSummary).existsSync()) {
+    if (soundSdkSummaryPath == null ||
+        !File(soundSdkSummaryPath).existsSync()) {
       throw InvalidSdkConfigurationException(
-          'Sdk summary $unsoundSdkSummary does not exist');
+          'Sdk summary $soundSdkSummaryPath does not exist');
     }
 
-    var soundSdkSummary = await soundSdkSummaryPath;
-    if (soundSdkSummary == null || !File(soundSdkSummary).existsSync()) {
+    if (librariesPath == null || !File(librariesPath).existsSync()) {
       throw InvalidSdkConfigurationException(
-          'Sdk summary $soundSdkSummary does not exist');
+          'Libraries spec $librariesPath does not exist');
     }
 
-    var compilerWorker = await compilerWorkerPath;
-    if (compilerWorker == null || !File(compilerWorker).existsSync()) {
+    if (compilerWorkerPath == null || !File(compilerWorkerPath).existsSync()) {
       throw InvalidSdkConfigurationException(
-          'Compiler worker $compilerWorker does not exist');
+          'Compiler worker $compilerWorkerPath does not exist');
     }
   }
 
   /// Throws [InvalidSdkConfigurationException] if SDK root does not
   /// exist on the disk.
-  Future<void> validateSdkDir() async {
-    var sdkDir = await sdkDirectory;
-    if (sdkDir == null || !Directory(sdkDir).existsSync()) {
+  void validateSdkDir() {
+    if (sdkDirectory == null || !Directory(sdkDirectory).existsSync()) {
       throw InvalidSdkConfigurationException(
-          'Sdk directory $sdkDir does not exist');
+          'Sdk directory $sdkDirectory does not exist');
     }
   }
 }
 
 /// Implementation for the default SDK configuration layout.
-class SdkConfiguration extends SdkConfigurationInterface {
-  final String _sdkDirectory;
-  final String _unsoundSdkSummaryPath;
-  final String _soundSdkSummaryPath;
-  final String _librariesPath;
-  final String _compilerWorkerPath;
+class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
+  SdkConfiguration _configuration;
 
-  SdkConfiguration({
-    String sdkDirectory,
-    String unsoundSdkSummaryPath,
-    String soundSdkSummaryPath,
-    String librariesPath,
-    String compilerWorkerPath,
-  })  : _sdkDirectory = sdkDirectory,
-        _unsoundSdkSummaryPath = unsoundSdkSummaryPath,
-        _soundSdkSummaryPath = soundSdkSummaryPath,
-        _librariesPath = librariesPath,
-        _compilerWorkerPath = compilerWorkerPath;
-
-  @override
-  Future<String> get sdkDirectory async => _sdkDirectory;
-
-  @override
-  Future<String> get unsoundSdkSummaryPath async => _unsoundSdkSummaryPath;
-
-  @override
-  Future<String> get soundSdkSummaryPath async => _soundSdkSummaryPath;
-
-  @override
-  Future<String> get librariesPath async => _librariesPath;
-
-  @override
-  Future<String> get compilerWorkerPath async => _compilerWorkerPath;
+  DefaultSdkConfigurationProvider();
 
   /// Create and validate configuration matching the default SDK layout.
-  factory SdkConfiguration.standard() {
-    final binDir = p.dirname(Platform.resolvedExecutable);
-    final sdkDir = p.dirname(binDir);
+  @override
+  Future<SdkConfiguration> get configuration async {
+    if (_configuration == null) {
+      final binDir = p.dirname(Platform.resolvedExecutable);
+      final sdkDir = p.dirname(binDir);
 
-    if (sdkDir == null || !Directory(sdkDir).existsSync()) {
-      throw InvalidSdkConfigurationException(
-          'Could not detect default SDK configuration. '
-          'Directory $sdkDir does not exist.');
+      if (sdkDir == null || !Directory(sdkDir).existsSync()) {
+        throw InvalidSdkConfigurationException(
+            'Could not detect default SDK configuration. '
+            'Directory $sdkDir does not exist.');
+      }
+
+      _configuration = SdkConfiguration(
+        sdkDirectory: sdkDir,
+        unsoundSdkSummaryPath:
+            p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill'),
+        soundSdkSummaryPath:
+            p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill'),
+        librariesPath: p.join(sdkDir, 'lib', 'libraries.json'),
+        compilerWorkerPath:
+            p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
+      );
+
+      _configuration.validate();
     }
-
-    var configuration = SdkConfiguration(
-      sdkDirectory: sdkDir,
-      unsoundSdkSummaryPath: p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill'),
-      soundSdkSummaryPath:
-          p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill'),
-      librariesPath: p.join(sdkDir, 'lib', 'libraries.json'),
-      compilerWorkerPath: p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
-    );
-
-    configuration.validate();
-    return configuration;
+    return _configuration;
   }
 }

@@ -18,17 +18,17 @@ var _throwsDoesNotExistException = throwsA(
 void main() {
   group('Basic configuration', () {
     test('Can validate default configuration layout', () async {
-      var defaultConfiguration = SdkConfiguration.standard();
-      await defaultConfiguration.validateSdkDir();
-      await defaultConfiguration.validate();
+      var defaultConfiguration =
+          await DefaultSdkConfigurationProvider().configuration;
+      defaultConfiguration.validateSdkDir();
+      defaultConfiguration.validate();
     });
 
     test('Cannot validate an empty configuration layout', () async {
       var emptyConfiguration = SdkConfiguration();
-      await expectLater(
-          emptyConfiguration.validateSdkDir(), _throwsDoesNotExistException);
-      await expectLater(
-          emptyConfiguration.validate(), _throwsDoesNotExistException);
+      expect(() => emptyConfiguration.validateSdkDir(),
+          _throwsDoesNotExistException);
+      expect(() => emptyConfiguration.validate(), _throwsDoesNotExistException);
     });
   });
 
@@ -45,30 +45,31 @@ void main() {
     });
 
     test('Can validate existing configuration layout', () async {
-      var defaultSdkConfiguration = SdkConfiguration.standard();
+      var defaultSdkConfiguration =
+          await DefaultSdkConfigurationProvider().configuration;
 
       var sdkDirectory = outputDir.path;
       var librariesDir = p.join(sdkDirectory, 'specs');
       var librariesPath = p.join(librariesDir, 'libraries.json');
 
       Directory(librariesDir).createSync(recursive: true);
-      File(await defaultSdkConfiguration.librariesPath).copySync(librariesPath);
+      File(defaultSdkConfiguration.librariesPath).copySync(librariesPath);
 
       var summariesDir = p.join(sdkDirectory, 'summaries');
       var unsoundSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
       var soundSdkSummaryPath = p.join(summariesDir, 'ddc_outline_sound.dill');
 
       Directory(summariesDir).createSync(recursive: true);
-      File(await defaultSdkConfiguration.unsoundSdkSummaryPath)
+      File(defaultSdkConfiguration.unsoundSdkSummaryPath)
           .copySync(unsoundSdkSummaryPath);
-      File(await defaultSdkConfiguration.soundSdkSummaryPath)
+      File(defaultSdkConfiguration.soundSdkSummaryPath)
           .copySync(soundSdkSummaryPath);
 
       var workerDir = p.join(sdkDirectory, 'snapshots');
       var compilerWorkerPath = p.join(workerDir, 'dartdevc.dart.snapshot');
 
       Directory(workerDir).createSync(recursive: true);
-      File(await defaultSdkConfiguration.compilerWorkerPath)
+      File(defaultSdkConfiguration.compilerWorkerPath)
           .copySync(compilerWorkerPath);
 
       var sdkConfiguration = SdkConfiguration(
@@ -79,17 +80,15 @@ void main() {
         compilerWorkerPath: compilerWorkerPath,
       );
 
-      expect(await sdkConfiguration.sdkDirectory, equals(sdkDirectory));
-      expect(await sdkConfiguration.unsoundSdkSummaryPath,
+      expect(sdkConfiguration.sdkDirectory, equals(sdkDirectory));
+      expect(sdkConfiguration.unsoundSdkSummaryPath,
           equals(unsoundSdkSummaryPath));
-      expect(await sdkConfiguration.soundSdkSummaryPath,
-          equals(soundSdkSummaryPath));
-      expect(await sdkConfiguration.librariesPath, equals(librariesPath));
-      expect(await sdkConfiguration.compilerWorkerPath,
-          equals(compilerWorkerPath));
+      expect(sdkConfiguration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
+      expect(sdkConfiguration.librariesPath, equals(librariesPath));
+      expect(sdkConfiguration.compilerWorkerPath, equals(compilerWorkerPath));
 
-      await expectLater(sdkConfiguration.validateSdkDir(), completes);
-      await expectLater(sdkConfiguration.validate(), completes);
+      sdkConfiguration.validateSdkDir();
+      sdkConfiguration.validate();
     });
 
     test('Cannot validate non-existing configuration layout', () async {
@@ -110,9 +109,8 @@ void main() {
         compilerWorkerPath: compilerWorkerPath,
       );
 
-      await expectLater(sdkConfiguration.validateSdkDir(), completes);
-      await expectLater(
-          sdkConfiguration.validate(), _throwsDoesNotExistException);
+      sdkConfiguration.validateSdkDir();
+      expect(() => sdkConfiguration.validate(), _throwsDoesNotExistException);
     });
   });
 }

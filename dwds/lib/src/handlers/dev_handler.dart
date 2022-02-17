@@ -66,7 +66,7 @@ class DevHandler {
   final bool _launchDevToolsInNewWindow;
   final ExpressionCompiler _expressionCompiler;
   final DwdsInjector _injected;
-  final SdkConfigurationInterface _sdkConfiguration;
+  final SdkConfigurationProvider _sdkConfigurationProvider;
 
   /// Null until [close] is called.
   ///
@@ -91,7 +91,7 @@ class DevHandler {
     this._injected,
     this._spawnDds,
     this._launchDevToolsInNewWindow,
-    this._sdkConfiguration,
+    this._sdkConfigurationProvider,
   ) {
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
@@ -213,7 +213,7 @@ class DevHandler {
       useSse: false,
       expressionCompiler: _expressionCompiler,
       spawnDds: _spawnDds,
-      sdkConfiguration: _sdkConfiguration,
+      sdkConfigurationProvider: _sdkConfigurationProvider,
     );
   }
 
@@ -503,7 +503,7 @@ class DevHandler {
           useSse: _useSseForDebugProxy,
           expressionCompiler: _expressionCompiler,
           spawnDds: _spawnDds,
-          sdkConfiguration: _sdkConfiguration,
+          sdkConfigurationProvider: _sdkConfigurationProvider,
         );
         var appServices = await _createAppDebugServices(
           devToolsRequest.appId,
