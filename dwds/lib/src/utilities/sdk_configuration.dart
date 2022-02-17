@@ -36,8 +36,14 @@ abstract class SdkConfigurationInterface {
   Future<Uri> get sdkDirectoryUri =>
       sdkDirectory.then((value) => value == null ? null : Uri.parse(value));
 
+  Future<Uri> get soundSdkSummaryUri => soundSdkSummaryPath
+      .then((value) => value == null ? null : Uri.file(value));
+
+  Future<Uri> get unsoundSdkSummaryUri => unsoundSdkSummaryPath
+      .then((value) => value == null ? null : Uri.file(value));
+
   Future<Uri> get librariesUri =>
-      librariesPath.then((value) => value == null ? null : Uri.parse(value));
+      librariesPath.then((value) => value == null ? null : Uri.file(value));
 
   /// Note: has to be ///file: Uri to run in an isolate.
   Future<Uri> get compilerWorkerUri => compilerWorkerPath

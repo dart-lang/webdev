@@ -74,15 +74,15 @@ class _Compiler {
     final librariesUri = await sdkConfiguration.librariesUri;
     final workerUri = await sdkConfiguration.compilerWorkerUri;
     final sdkSummaryUri = soundNullSafety
-        ? await sdkConfiguration.soundSdkSummaryPath
-        : await sdkConfiguration.unsoundSdkSummaryPath;
+        ? await sdkConfiguration.soundSdkSummaryUri
+        : await sdkConfiguration.unsoundSdkSummaryUri;
 
     final args = [
       '--experimental-expression-compiler',
       '--libraries-file',
       '$librariesUri',
       '--dart-sdk-summary',
-      sdkSummaryUri,
+      '$sdkSummaryUri',
       '--asset-server-address',
       address,
       '--asset-server-port',
