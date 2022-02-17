@@ -67,7 +67,10 @@ class Debugger extends Domain {
 
   PauseState _pauseState = PauseState.none;
 
-  bool _pausedOverlayVisible = false;
+  // TODO(elliette): https://github.com/dart-lang/webdev/issues/1501 Re-enable
+  // after checking with Chrome team if there is a way to check if the Chrome
+  // DevTools is showing an overlay. Both cannot be shown at the same time:
+  // bool _pausedOverlayVisible = false;
 
   String get pauseState => _pauseModePauseStates.entries
       .firstWhere((entry) => entry.value == _pauseState)
