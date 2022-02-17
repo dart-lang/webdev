@@ -23,7 +23,7 @@
         if (isDartApp) {
           created = true
           chrome.devtools.panels.create(
-            'Dart', '', 'panel.html'
+            'Dart Debugger', '', 'panel.html'
           );
         }
       },
