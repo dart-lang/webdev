@@ -588,7 +588,10 @@ class Debugger extends Domain {
       logger.warning('Error calculating Dart frames', e, s);
     }
 
-    _showPausedOverlay();
+    // TODO(elliette): https://github.com/dart-lang/webdev/issues/1501 Re-enable
+    // after checking with Chrome team if there is a way to check if the Chrome
+    // DevTools is showing an overlay. Both cannot be shown at the same time.
+    // _showPausedOverlay();
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
   }
@@ -606,7 +609,10 @@ class Debugger extends Domain {
         timestamp: DateTime.now().millisecondsSinceEpoch,
         isolate: inspector.isolateRef);
 
-    _hidePausedOverlay();
+    // TODO(elliette): https://github.com/dart-lang/webdev/issues/1501 Re-enable
+    // after checking with Chrome team if there is a way to check if the Chrome
+    // DevTools is showing an overlay. Both cannot be shown at the same time.
+    // _hidePausedOverlay();
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
   }
