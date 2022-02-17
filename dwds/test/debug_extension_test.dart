@@ -31,6 +31,12 @@ import 'fixtures/utilities.dart';
 // See go/extension-identification.
 
 final context = TestContext();
+
+// TODO(elliette): Instead of setting a time to load, check for element on page.
+// See: https://github.com/dart-lang/webdev/issues/1512
+// Time for Dart DevTools to load, in seconds.
+final devToolsLoadTime = const Duration(seconds: 4);
+
 void main() async {
   for (var useSse in [true, false]) {
     group(useSse ? 'SSE' : 'WebSockets', () {
@@ -42,7 +48,7 @@ void main() async {
             'expression': 'fakeClick()',
           });
           // Wait for DevTools to actually open.
-          await Future.delayed(const Duration(seconds: 2));
+          await Future.delayed(devToolsLoadTime);
         });
 
         tearDown(() async {
@@ -70,7 +76,7 @@ void main() async {
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
           });
-          await Future.delayed(const Duration(seconds: 4));
+          await Future.delayed(devToolsLoadTime);
           var windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
           expect(await context.webDriver.title, 'Dart DevTools');
@@ -122,7 +128,7 @@ void main() async {
             'expression': 'fakeClick()',
           });
           // Wait for DevTools to actually open.
-          await Future.delayed(const Duration(seconds: 2));
+          await Future.delayed(devToolsLoadTime);
         });
 
         tearDown(() async {
@@ -148,7 +154,7 @@ void main() async {
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
           });
-          await Future.delayed(const Duration(seconds: 4));
+          await Future.delayed(devToolsLoadTime);
           var windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
           expect(await context.webDriver.title, 'Dart DevTools');
