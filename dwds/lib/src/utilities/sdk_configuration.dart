@@ -4,12 +4,6 @@
 
 // @dart=2.9
 
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:file/file.dart';
@@ -29,15 +23,20 @@ class InvalidSdkConfigurationException implements Exception {
   }
 }
 
+/// SDK configuration provider interface.
+///
+/// Supports lazily populated configurations by allowing to create
+/// configuration asyncronously.
 abstract class SdkConfigurationProvider {
   Future<SdkConfiguration> get configuration;
 }
 
 /// Data class describing the SDK layout.
 ///
-/// Note: Supports lazily populated configurations.
-/// Call [validate] method to make sure the files in the
-/// configuration layout exist before reading the files.
+/// Provides helpers to convert paths to uris that work on all platforms.
+///
+/// Call [validate] method to make sure the files in the configuration
+/// layout exist before reading the files.
 class SdkConfiguration {
   String sdkDirectory;
   String unsoundSdkSummaryPath;
