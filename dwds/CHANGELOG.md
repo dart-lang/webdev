@@ -1,8 +1,15 @@
-## 12.1.1-dev
+## 13.0.0-dev
 - Change wording of paused overlay from "Paused in Dart DevTools" to "Paused"
 - Allow sending back the Dart DevTools URL from DWDS instead of launching 
   Dart DevTools, to support embedding Dart DevTools in Chrome DevTools.
 - Temporarily disable the paused in debugger overlay.
+- Add `SdkConfiguration` and `SdkConfigurationProvider` classes to allow
+  for lazily created SDK configurations.
+
+**Breaking changes:**
+- `Dwds.start` and `ExpressionCompilerService` now take 
+  `sdkConfigurationProvider` argument instead of separate SDK-related file 
+  paths.
 
 ## 12.1.0
 - Update _fe_analyzer_shared to version ^34.0.0.
