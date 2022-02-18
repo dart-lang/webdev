@@ -81,7 +81,7 @@ void main() async {
           await context.webDriver.driver.switchTo.window(windows.last);
           expect(await context.webDriver.title, 'Dart DevTools');
         });
-      }, skip: 'https://github.com/dart-lang/webdev/issues/1512');
+      });
 
       group('With a sharded Dart app', () {
         setUp(() async {
