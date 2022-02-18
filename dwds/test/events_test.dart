@@ -11,7 +11,6 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:http_multi_server/http_multi_server.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/async_core.dart';
@@ -33,7 +32,7 @@ void main() {
 
     setUp(() async {
       setCurrentLogWriter();
-      server = await HttpMultiServer.bind('localhost', 0);
+      server = await startHttpServer('localhost', port: 0);
     });
 
     tearDown(() async {
