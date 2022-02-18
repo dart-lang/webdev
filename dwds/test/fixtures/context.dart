@@ -14,6 +14,7 @@ import 'package:build_daemon/data/build_target.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
@@ -105,21 +106,23 @@ class TestContext {
     _entryContents = _entryFile.readAsStringSync();
   }
 
-  Future<void> setUp(
-      {ReloadConfiguration reloadConfiguration,
-      bool serveDevTools,
-      bool enableDebugExtension,
-      bool autoRun,
-      bool enableDebugging,
-      bool useSse,
-      bool spawnDds,
-      String hostname,
-      bool waitToDebug,
-      UrlEncoder urlEncoder,
-      bool restoreBreakpoints,
-      CompilationMode compilationMode,
-      bool enableExpressionEvaluation,
-      bool verboseCompiler}) async {
+  Future<void> setUp({
+    ReloadConfiguration reloadConfiguration,
+    bool serveDevTools,
+    bool enableDebugExtension,
+    bool autoRun,
+    bool enableDebugging,
+    bool useSse,
+    bool spawnDds,
+    String hostname,
+    bool waitToDebug,
+    UrlEncoder urlEncoder,
+    bool restoreBreakpoints,
+    CompilationMode compilationMode,
+    bool enableExpressionEvaluation,
+    bool verboseCompiler,
+    SdkConfigurationProvider sdkConfigurationProvider,
+  }) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
     enableDebugExtension ??= false;
@@ -130,6 +133,7 @@ class TestContext {
     enableExpressionEvaluation ??= false;
     spawnDds ??= true;
     verboseCompiler ??= false;
+    sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
     try {
       configureLogWriter();
@@ -219,7 +223,8 @@ class TestContext {
                 'localhost',
                 port,
                 assetHandler,
-                verboseCompiler,
+                verbose: verboseCompiler,
+                sdkConfigurationProvider: sdkConfigurationProvider,
               );
               expressionCompiler = ddcService;
             }
