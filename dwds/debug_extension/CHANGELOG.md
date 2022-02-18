@@ -1,3 +1,7 @@
+## 1.25
+
+- Embed Dart DevTools in Chrome DevTools.
+
 ## 1.24
 
 - Detect Dart applications in multi-app environments and show an alert.

@@ -6,6 +6,8 @@
 pub run build_runner build web -o build -r
 ```
 
+TODO(elliette): Building with DDC no longer works, figure out why. 
+See https://github.com/dart-lang/webdev/issues/1506
 - With DDC:
 
 ```
@@ -32,7 +34,7 @@ pub run build_runner build web -o build
 * Visit chrome://extensions
 * Toggle "Developer mode" on
 * Click the "Load unpacked" button
-* Select the extension directory: `/dwds/debug_extension/build/web`
+* Select the extension directory: `/dwds/debug_extension/web`
 
 ### Debug your local extension
 * Click the Extensions puzzle piece, and pin the Dart Debug Extension with the dev icon (unpin the published version so you don't confuse them)

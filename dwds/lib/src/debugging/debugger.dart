@@ -67,7 +67,10 @@ class Debugger extends Domain {
 
   PauseState _pauseState = PauseState.none;
 
-  bool _pausedOverlayVisible = false;
+  // TODO(elliette): https://github.com/dart-lang/webdev/issues/1501 Re-enable
+  // after checking with Chrome team if there is a way to check if the Chrome
+  // DevTools is showing an overlay. Both cannot be shown at the same time:
+  // bool _pausedOverlayVisible = false;
 
   String get pauseState => _pauseModePauseStates.entries
       .firstWhere((entry) => entry.value == _pauseState)
@@ -394,24 +397,28 @@ class Debugger extends Domain {
     return await inspector.jsCallFunctionOn(receiver, expression, args);
   }
 
+  // TODO(elliette): https://github.com/dart-lang/webdev/issues/1501 Re-enable
+  // after checking with Chrome team if there is a way to check if the Chrome
+  // DevTools is showing an overlay. Both cannot be shown at the same time:
+
   // Renders the paused at breakpoint overlay over the application.
-  void _showPausedOverlay() async {
-    if (_pausedOverlayVisible) return;
-    handleErrorIfPresent(await _remoteDebugger?.sendCommand('DOM.enable'));
-    handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.enable'));
-    handleErrorIfPresent(await _remoteDebugger
-        ?.sendCommand('Overlay.setPausedInDebuggerMessage', params: {
-      'message': 'Paused in Dart DevTools',
-    }));
-    _pausedOverlayVisible = true;
-  }
+  // void _showPausedOverlay() async {
+  //   if (_pausedOverlayVisible) return;
+  //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('DOM.enable'));
+  //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.enable'));
+  //   handleErrorIfPresent(await _remoteDebugger
+  //       ?.sendCommand('Overlay.setPausedInDebuggerMessage', params: {
+  //     'message': 'Paused',
+  //   }));
+  //   _pausedOverlayVisible = true;
+  // }
 
   // Removes the paused at breakpoint overlay from the application.
-  void _hidePausedOverlay() async {
-    if (!_pausedOverlayVisible) return;
-    handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.disable'));
-    _pausedOverlayVisible = false;
-  }
+  // void _hidePausedOverlay() async {
+  //   if (!_pausedOverlayVisible) return;
+  //   handleErrorIfPresent(await _remoteDebugger?.sendCommand('Overlay.disable'));
+  //   _pausedOverlayVisible = false;
+  // }
 
   /// Calls the Chrome Runtime.getProperties API for the object with [objectId].
   ///
@@ -584,7 +591,10 @@ class Debugger extends Domain {
       logger.warning('Error calculating Dart frames', e, s);
     }
 
-    _showPausedOverlay();
+    // TODO(elliette): https://github.com/dart-lang/webdev/issues/1501 Re-enable
+    // after checking with Chrome team if there is a way to check if the Chrome
+    // DevTools is showing an overlay. Both cannot be shown at the same time.
+    // _showPausedOverlay();
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
   }
@@ -602,7 +612,10 @@ class Debugger extends Domain {
         timestamp: DateTime.now().millisecondsSinceEpoch,
         isolate: inspector.isolateRef);
 
-    _hidePausedOverlay();
+    // TODO(elliette): https://github.com/dart-lang/webdev/issues/1501 Re-enable
+    // after checking with Chrome team if there is a way to check if the Chrome
+    // DevTools is showing an overlay. Both cannot be shown at the same time.
+    // _hidePausedOverlay();
     isolate.pauseEvent = event;
     _streamNotify('Debug', event);
   }
