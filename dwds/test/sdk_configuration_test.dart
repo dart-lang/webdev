@@ -8,6 +8,7 @@
 import 'dart:io';
 
 import 'package:dwds/src/utilities/sdk_configuration.dart';
+import 'package:file/memory.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -113,4 +114,55 @@ void main() {
       expect(() => sdkConfiguration.validate(), _throwsDoesNotExistException);
     });
   });
+
+  group('SDK configuration', () {
+    MemoryFileSystem fs;
+
+    var root = '/root';
+    var sdkDirectory = root;
+    var soundSdkSummaryPath = _dartSoundSdkSummaryPath(sdkDirectory);
+    var unsoundSdkSummaryPath = _dartUnsoundSdkSummaryPath(sdkDirectory);
+    var librariesPath = _librariesPath(sdkDirectory);
+    var compilerWorkerPath = _compilerWorkerPath(root);
+
+    setUp(() async {
+      fs = MemoryFileSystem();
+      await fs.directory(sdkDirectory).create(recursive: true);
+      await fs.file(soundSdkSummaryPath).create(recursive: true);
+      await fs.file(unsoundSdkSummaryPath).create(recursive: true);
+      await fs.file(librariesPath).create(recursive: true);
+      await fs.file(compilerWorkerPath).create(recursive: true);
+    });
+
+    test('Can create and validate default SDK configuration', () async {
+      var configuration = SdkConfiguration(
+        sdkDirectory: sdkDirectory,
+        soundSdkSummaryPath: soundSdkSummaryPath,
+        unsoundSdkSummaryPath: unsoundSdkSummaryPath,
+        librariesPath: librariesPath,
+        compilerWorkerPath: compilerWorkerPath,
+      );
+
+      expect(configuration.sdkDirectory, equals(sdkDirectory));
+      expect(configuration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
+      expect(
+          configuration.unsoundSdkSummaryPath, equals(unsoundSdkSummaryPath));
+      expect(configuration.librariesPath, equals(librariesPath));
+      expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
+
+      configuration.validateSdkDir(fileSystem: fs);
+      configuration.validate(fileSystem: fs);
+    });
+  });
 }
+
+String _dartUnsoundSdkSummaryPath(String sdkDir) =>
+    p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill');
+
+String _dartSoundSdkSummaryPath(String sdkDir) =>
+    p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill');
+
+String _librariesPath(String sdkDir) => p.join(sdkDir, 'lib', 'libraries.json');
+
+String _compilerWorkerPath(String binDir) =>
+    p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');

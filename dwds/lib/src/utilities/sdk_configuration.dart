@@ -4,8 +4,16 @@
 
 // @dart=2.9
 
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// @dart=2.9
+
 import 'dart:io';
 
+import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
 
 class InvalidSdkConfigurationException implements Exception {
@@ -21,20 +29,15 @@ class InvalidSdkConfigurationException implements Exception {
   }
 }
 
-/// SDK configuration provider interface.
-///
-/// Supports lazily populated configurations by allowing to create
-/// configuration asyncronously.
 abstract class SdkConfigurationProvider {
   Future<SdkConfiguration> get configuration;
 }
 
 /// Data class describing the SDK layout.
 ///
-/// Provides helpers to convert paths to uris that work on all platforms.
-///
-/// Call [validate] method to make sure the files in the configuration
-/// layout exist before reading the files.
+/// Note: Supports lazily populated configurations.
+/// Call [validate] method to make sure the files in the
+/// configuration layout exist before reading the files.
 class SdkConfiguration {
   String sdkDirectory;
   String unsoundSdkSummaryPath;
@@ -64,27 +67,30 @@ class SdkConfiguration {
 
   /// Throws [InvalidSdkConfigurationException] if configuration does not
   /// exist on disk.
-  void validate() {
-    validateSdkDir();
+  void validate({FileSystem fileSystem}) {
+    fileSystem ??= const LocalFileSystem();
+
+    validateSdkDir(fileSystem: fileSystem);
 
     if (unsoundSdkSummaryPath == null ||
-        !File(unsoundSdkSummaryPath).existsSync()) {
+        !fileSystem.file(unsoundSdkSummaryPath).existsSync()) {
       throw InvalidSdkConfigurationException(
           'Sdk summary $unsoundSdkSummaryPath does not exist');
     }
 
     if (soundSdkSummaryPath == null ||
-        !File(soundSdkSummaryPath).existsSync()) {
+        !fileSystem.file(soundSdkSummaryPath).existsSync()) {
       throw InvalidSdkConfigurationException(
           'Sdk summary $soundSdkSummaryPath does not exist');
     }
 
-    if (librariesPath == null || !File(librariesPath).existsSync()) {
+    if (librariesPath == null || !fileSystem.file(librariesPath).existsSync()) {
       throw InvalidSdkConfigurationException(
           'Libraries spec $librariesPath does not exist');
     }
 
-    if (compilerWorkerPath == null || !File(compilerWorkerPath).existsSync()) {
+    if (compilerWorkerPath == null ||
+        !fileSystem.file(compilerWorkerPath).existsSync()) {
       throw InvalidSdkConfigurationException(
           'Compiler worker $compilerWorkerPath does not exist');
     }
@@ -92,8 +98,10 @@ class SdkConfiguration {
 
   /// Throws [InvalidSdkConfigurationException] if SDK root does not
   /// exist on the disk.
-  void validateSdkDir() {
-    if (sdkDirectory == null || !Directory(sdkDirectory).existsSync()) {
+  void validateSdkDir({FileSystem fileSystem}) {
+    fileSystem ??= const LocalFileSystem();
+    if (sdkDirectory == null ||
+        !fileSystem.directory(sdkDirectory).existsSync()) {
       throw InvalidSdkConfigurationException(
           'Sdk directory $sdkDirectory does not exist');
     }
@@ -113,12 +121,6 @@ class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
       final binDir = p.dirname(Platform.resolvedExecutable);
       final sdkDir = p.dirname(binDir);
 
-      if (sdkDir == null || !Directory(sdkDir).existsSync()) {
-        throw InvalidSdkConfigurationException(
-            'Could not detect default SDK configuration. '
-            'Directory $sdkDir does not exist.');
-      }
-
       _configuration = SdkConfiguration(
         sdkDirectory: sdkDir,
         unsoundSdkSummaryPath:
@@ -129,8 +131,6 @@ class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
         compilerWorkerPath:
             p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
       );
-
-      _configuration.validate();
     }
     return _configuration;
   }
