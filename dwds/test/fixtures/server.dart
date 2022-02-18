@@ -11,7 +11,6 @@ import 'package:dds/devtools_server.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:http_multi_server/http_multi_server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -123,7 +122,7 @@ class TestServer {
               }
             : null);
 
-    var server = await HttpMultiServer.bind('localhost', port);
+    var server = await startHttpServer('localhost', port: port);
     var cascade = Cascade();
 
     cascade = cascade.add(dwds.handler).add(assetHandler);
