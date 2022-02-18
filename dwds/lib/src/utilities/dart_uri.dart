@@ -156,12 +156,19 @@ class DartUri {
 
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize(SdkConfiguration sdkConfiguration) async {
-    sdkConfiguration.validateSdkDir();
     _sdkConfiguration = sdkConfiguration;
     var packagesUri = p.toUri(p.join(currentDirectory, '.packages'));
 
     clear();
-    await _loadLibrariesConfig(_sdkConfiguration.librariesUri);
+
+    // Allow for tests can supplying empty configurations.
+    if (_sdkConfiguration.sdkDirectory != null) {
+      _sdkConfiguration.validateSdkDir();
+    }
+    if (_sdkConfiguration.librariesUri != null) {
+      await _loadLibrariesConfig(_sdkConfiguration.librariesUri);
+    }
+
     await _loadPackageConfig(packagesUri);
   }
 

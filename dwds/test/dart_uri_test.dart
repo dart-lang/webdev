@@ -53,6 +53,21 @@ void main() {
       expect(uri.serverPath, 'web/main.dart');
     });
 
+    group('initialized with empty configuration', () {
+      setUpAll(() async {
+        var sdkConfiguration =
+            await FakeSdkConfigurationProvider().configuration;
+        await DartUri.initialize(sdkConfiguration);
+        await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
+      });
+
+      tearDownAll(DartUri.clear);
+      test('cannot resolve uris', () async {
+        var resolved = DartUri.toResolvedUri('dart:io');
+        expect(resolved, isNull);
+      });
+    });
+
     group('initialized with current SDK directory', () {
       setUpAll(() async {
         var sdkConfiguration =
@@ -173,4 +188,9 @@ void main() {
       });
     });
   });
+}
+
+class FakeSdkConfigurationProvider extends SdkConfigurationProvider {
+  @override
+  Future<SdkConfiguration> get configuration async => SdkConfiguration();
 }
