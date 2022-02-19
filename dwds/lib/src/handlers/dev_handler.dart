@@ -226,14 +226,13 @@ class DevHandler {
     );
   }
 
-  Future<AppDebugServices> loadAppServices(
-      AppConnection appConnection, DwdsStats dwdsStats) async {
+  Future<AppDebugServices> loadAppServices(AppConnection appConnection) async {
     var appId = appConnection.request.appId;
     if (_servicesByAppId[appId] == null) {
       var debugService = await _startLocalDebugService(
           await _chromeConnection(), appConnection);
       var appServices = await _createAppDebugServices(
-          appConnection.request.appId, debugService, dwdsStats);
+          appConnection.request.appId, debugService);
       unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
           .whenComplete(() async {
         await appServices.close();
@@ -329,11 +328,10 @@ class DevHandler {
                 'Otherwise check the docs for the tool you are using.'))));
       return;
     }
-
-    var dwdsStats = DwdsStats(DateTime.now());
+    var debuggerStart = DateTime.now();
     AppDebugServices appServices;
     try {
-      appServices = await loadAppServices(appConnection, dwdsStats);
+      appServices = await loadAppServices(appConnection);
     } catch (_) {
       var error = 'Unable to connect debug services to your '
           'application. Most likely this means you are trying to '
@@ -374,7 +372,10 @@ class DevHandler {
           ..promptExtension = false))));
 
     appServices.connectedInstanceId = appConnection.request.instanceId;
-    dwdsStats.devToolsStart = DateTime.now();
+    appServices.dwdsStats.updateLoadTime(
+      debuggerStart: debuggerStart,
+      devToolsStart: DateTime.now(),
+    );
     await _launchDevTools(appServices.chromeProxyService.remoteDebugger,
         _constructDevToolsUri(appServices.debugService.uri));
   }
@@ -446,12 +447,14 @@ class DevHandler {
   }
 
   Future<AppDebugServices> _createAppDebugServices(
-      String appId, DebugService debugService, DwdsStats dwdsStats) async {
+      String appId, DebugService debugService) async {
+    var dwdsStats = DwdsStats();
     var webdevClient = await DwdsVmClient.create(debugService, dwdsStats);
     if (_spawnDds) {
       await debugService.startDartDevelopmentService();
     }
-    var appDebugService = AppDebugServices(debugService, webdevClient);
+    var appDebugService =
+        AppDebugServices(debugService, webdevClient, dwdsStats);
     var encodedUri = await debugService.encodedUri;
     _logger.info('Debug service listening on $encodedUri\n');
     await appDebugService.chromeProxyService.remoteDebugger
@@ -475,7 +478,6 @@ class DevHandler {
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
     extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
-      var dwdsStats = DwdsStats(DateTime.now());
       var connection = _appConnectionByAppId[devToolsRequest.appId];
       if (connection == null) {
         // TODO(grouma) - Ideally we surface this warning to the extension so
@@ -484,6 +486,7 @@ class DevHandler {
             'Not connected to an app with id: ${devToolsRequest.appId}');
         return;
       }
+      var debuggerStart = DateTime.now();
       var appId = devToolsRequest.appId;
       if (_servicesByAppId[appId] == null) {
         var debugService = await DebugService.start(
@@ -508,7 +511,6 @@ class DevHandler {
         var appServices = await _createAppDebugServices(
           devToolsRequest.appId,
           debugService,
-          dwdsStats,
         );
         var encodedUri = await debugService.encodedUri;
         extensionDebugger.sendEvent('dwds.encodedUri', encodedUri);
@@ -523,16 +525,19 @@ class DevHandler {
         extensionDebugConnections.add(DebugConnection(appServices));
         _servicesByAppId[appId] = appServices;
       }
-      final devToolsUri = _constructDevToolsUri(
-          await _servicesByAppId[appId].debugService.encodedUri);
-      dwdsStats.devToolsStart = DateTime.now();
+      var appServices = _servicesByAppId[appId];
+      final devToolsUri =
+          _constructDevToolsUri(await appServices.debugService.encodedUri);
 
       // If we only want the URI, then return early.
       if (devToolsRequest.uriOnly != null && devToolsRequest.uriOnly) {
         extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
         return;
       }
-
+      appServices.dwdsStats.updateLoadTime(
+        debuggerStart: debuggerStart,
+        devToolsStart: DateTime.now(),
+      );
       await _launchDevTools(extensionDebugger, devToolsUri);
     });
   }
