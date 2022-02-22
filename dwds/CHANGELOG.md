@@ -5,6 +5,7 @@
 - Temporarily disable the paused in debugger overlay.
 - Add `SdkConfiguration` and `SdkConfigurationProvider` classes to allow
   for lazily created SDK configurations.
+- Add an `ide` query parameter to the Dart DevTools URL for analytics.
 
 **Breaking changes:**
 - `Dwds.start` and `ExpressionCompilerService` now take 

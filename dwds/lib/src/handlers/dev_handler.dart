@@ -375,8 +375,10 @@ class DevHandler {
 
     appServices.connectedInstanceId = appConnection.request.instanceId;
     dwdsStats.devToolsStart = DateTime.now();
-    await _launchDevTools(appServices.chromeProxyService.remoteDebugger,
-        _constructDevToolsUri(appServices.debugService.uri));
+    await _launchDevTools(
+        appServices.chromeProxyService.remoteDebugger,
+        _constructDevToolsUri(appServices.debugService.uri,
+            ideQueryParam: 'Dwds'));
   }
 
   Future<AppConnection> _handleConnectRequest(
@@ -523,16 +525,24 @@ class DevHandler {
         extensionDebugConnections.add(DebugConnection(appServices));
         _servicesByAppId[appId] = appServices;
       }
-      final devToolsUri = _constructDevToolsUri(
-          await _servicesByAppId[appId].debugService.encodedUri);
+      final encodedUri = await _servicesByAppId[appId].debugService.encodedUri;
       dwdsStats.devToolsStart = DateTime.now();
 
-      // If we only want the URI, then return early.
+      // If we only want the URI, this means we are embedding Dart DevTools in
+      // Chrome DevTools. Therefore return early.
       if (devToolsRequest.uriOnly != null && devToolsRequest.uriOnly) {
+        final devToolsUri = _constructDevToolsUri(
+          encodedUri,
+          ideQueryParam: 'ChromeDevTools',
+        );
         extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
         return;
       }
 
+      final devToolsUri = _constructDevToolsUri(
+        encodedUri,
+        ideQueryParam: 'DebugExtension',
+      );
       await _launchDevTools(extensionDebugger, devToolsUri);
     });
   }
@@ -549,12 +559,16 @@ class DevHandler {
     });
   }
 
-  String _constructDevToolsUri(String debugServiceUri) {
-    return Uri(
+  String _constructDevToolsUri(
+    String debugServiceUri, {
+    String ideQueryParam = '',
+  }) {
+    final uri = Uri(
         scheme: 'http',
         host: _devTools.hostname,
         port: _devTools.port,
         queryParameters: {'uri': debugServiceUri}).toString();
+    return ideQueryParam.isEmpty ? uri : '$uri?ide=$ideQueryParam';
   }
 }
 
