@@ -563,12 +563,14 @@ class DevHandler {
     String debugServiceUri, {
     String ideQueryParam = '',
   }) {
-    final uri = Uri(
+    return Uri(
         scheme: 'http',
         host: _devTools.hostname,
         port: _devTools.port,
-        queryParameters: {'uri': debugServiceUri}).toString();
-    return ideQueryParam.isEmpty ? uri : '$uri?ide=$ideQueryParam';
+        queryParameters: {
+          'uri': debugServiceUri,
+          if (ideQueryParam.isNotEmpty) 'ide': ideQueryParam,
+        }).toString();
   }
 }
 
