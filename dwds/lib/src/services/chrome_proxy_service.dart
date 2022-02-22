@@ -94,6 +94,8 @@ class ChromeProxyService implements VmServiceInterface {
   final ExpressionCompiler _compiler;
   ExpressionEvaluator _expressionEvaluator;
 
+  final SdkConfigurationProvider _sdkConfigurationProvider;
+
   bool terminatingIsolates = false;
 
   ChromeProxyService._(
@@ -106,6 +108,7 @@ class ChromeProxyService implements VmServiceInterface {
     this._skipLists,
     this.executionContext,
     this._compiler,
+    this._sdkConfigurationProvider,
   ) {
     var debugger = Debugger.create(
       remoteDebugger,
@@ -126,6 +129,7 @@ class ChromeProxyService implements VmServiceInterface {
     AppConnection appConnection,
     ExecutionContext executionContext,
     ExpressionCompiler expressionCompiler,
+    SdkConfigurationProvider sdkConfigurationProvider,
   ) async {
     final vm = VM(
       name: 'ChromeDebugProxy',
@@ -155,6 +159,7 @@ class ChromeProxyService implements VmServiceInterface {
       skipLists,
       executionContext,
       expressionCompiler,
+      sdkConfigurationProvider,
     );
     unawaited(service.createIsolate(appConnection));
     return service;
@@ -211,6 +216,7 @@ class ChromeProxyService implements VmServiceInterface {
     // Issue: https://github.com/dart-lang/webdev/issues/1282
     var debugger = await _debugger;
     await _initializeEntrypoint(appConnection.request.entrypointPath);
+    var sdkConfiguration = await _sdkConfigurationProvider.configuration;
 
     debugger.notifyPausedAtStart();
     _inspector = await AppInspector.initialize(
@@ -221,6 +227,7 @@ class ChromeProxyService implements VmServiceInterface {
       uri,
       debugger,
       executionContext,
+      sdkConfiguration,
     );
 
     _expressionEvaluator = _compiler == null
@@ -1033,6 +1040,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Breakpoint> setBreakpointState(
           String isolateId, String breakpointId, bool enable) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>
       throw UnimplementedError();
 
   /// Prevent DWDS from blocking Dart SDK rolls if changes in package:vm_service

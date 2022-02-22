@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -52,9 +53,26 @@ void main() {
       expect(uri.serverPath, 'web/main.dart');
     });
 
+    group('initialized with empty configuration', () {
+      setUpAll(() async {
+        var sdkConfiguration =
+            await FakeSdkConfigurationProvider().configuration;
+        await DartUri.initialize(sdkConfiguration);
+        await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
+      });
+
+      tearDownAll(DartUri.clear);
+      test('cannot resolve uris', () async {
+        var resolved = DartUri.toResolvedUri('dart:io');
+        expect(resolved, isNull);
+      });
+    });
+
     group('initialized with current SDK directory', () {
       setUpAll(() async {
-        await DartUri.initialize();
+        var sdkConfiguration =
+            await DefaultSdkConfigurationProvider().configuration;
+        await DartUri.initialize(sdkConfiguration);
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
@@ -90,7 +108,11 @@ void main() {
         Directory(fakeLibrariesDir).createSync();
         File(librariesPath).copySync(fakeLibrariesPath);
 
-        await DartUri.initialize(sdkDir: Uri.file(fakeSdkDir));
+        var sdkConfiguration = SdkConfiguration(
+          sdkDirectory: fakeSdkDir,
+          librariesPath: fakeLibrariesPath,
+        );
+        await DartUri.initialize(sdkConfiguration);
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
@@ -133,9 +155,11 @@ void main() {
         var fakeLibrariesDir = p.join(fakeSdkDir, 'lib');
         var fakeLibrariesPath = p.join(fakeLibrariesDir, 'libraries.json');
 
-        await DartUri.initialize(
-            sdkDir: Uri.file(fakeSdkDir),
-            librariesPath: Uri.file(fakeLibrariesPath));
+        var sdkConfiguration = SdkConfiguration(
+          sdkDirectory: fakeSdkDir,
+          librariesPath: fakeLibrariesPath,
+        );
+        await DartUri.initialize(sdkConfiguration);
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
 
         expect(
@@ -164,4 +188,9 @@ void main() {
       });
     });
   });
+}
+
+class FakeSdkConfigurationProvider extends SdkConfigurationProvider {
+  @override
+  Future<SdkConfiguration> get configuration async => SdkConfiguration();
 }

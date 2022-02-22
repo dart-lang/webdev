@@ -5,15 +5,14 @@
 // @dart = 2.9
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
 import '../utilities/dart_uri.dart';
+import '../utilities/sdk_configuration.dart';
 import 'expression_compiler.dart';
 
 final _logger = Logger('ExpressionCompilerService');
@@ -50,10 +49,9 @@ class _Compiler {
   /// Starts expression compiler worker in an isolate and creates the
   /// expression compilation service that communicates to the worker.
   ///
-  /// [workerPath] is the path for the expression compiler worker,
-  /// [sdkSummaryPath] is the path to the sdk summary dill file
-  /// [librariesPath] is the path to libraries definitions file
-  /// libraries.json.
+  /// [sdkConfiguration] describes the locations of SDK files used in
+  /// expression compilation (summaries, libraries spec, compiler worker
+  /// snapshot).
   ///
   /// [soundNullSafety] indiciates if the compioler should support sound null
   /// safety.
@@ -66,28 +64,18 @@ class _Compiler {
   static Future<_Compiler> start(
     String address,
     int port,
-    String workerPath,
-    String sdkSummaryPath,
-    String librariesPath,
     String moduleFormat,
-    bool verbose,
     bool soundNullSafety,
+    SdkConfiguration sdkConfiguration,
+    bool verbose,
   ) async {
-    final workerUri = p.toUri(p.absolute(workerPath));
-    if (!File.fromUri(workerUri).existsSync()) {
-      _logger.severe('Worker path $workerPath does not exist');
-    }
+    sdkConfiguration.validate();
 
-    if (!File(sdkSummaryPath).existsSync()) {
-      _logger.severe('SDK summary path $sdkSummaryPath does not exist');
-    }
-
-    if (!File(librariesPath).existsSync()) {
-      _logger.severe('Libraries path $librariesPath does not exist');
-    }
-
-    final sdkSummaryUri = Uri.file(sdkSummaryPath);
-    final librariesUri = Uri.file(librariesPath);
+    final librariesUri = sdkConfiguration.librariesUri;
+    final workerUri = sdkConfiguration.compilerWorkerUri;
+    final sdkSummaryUri = soundNullSafety
+        ? sdkConfiguration.soundSdkSummaryUri
+        : sdkConfiguration.unsoundSdkSummaryUri;
 
     final args = [
       '--experimental-expression-compiler',
@@ -235,9 +223,9 @@ class _Compiler {
 /// Uses [_address] and [_port] to communicate and [_assetHandler] to
 /// redirect asset requests to the asset server.
 ///
-/// [_sdkDir] is the path to the SDK installation directory.
-/// [_workerPath] is the path to the DDC worker snapshot.
-/// [_librariesPath] is the path to the libraries.json spec.
+/// Configuration created by [_sdkConfigurationProvider] describes the
+/// locations of SDK files used in expression compilation (summaries,
+/// libraries spec, compiler worker snapshot).
 ///
 /// Users need to stop the service by calling [stop].
 class ExpressionCompilerService implements ExpressionCompiler {
@@ -247,16 +235,17 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final Handler _assetHandler;
   final bool _verbose;
 
-  final String _sdkDir;
-  final String _workerPath;
-  final String _librariesPath;
+  final SdkConfigurationProvider _sdkConfigurationProvider;
 
   ExpressionCompilerService(
-      this._address, this._port, this._assetHandler, this._verbose,
-      {String sdkDir, String workerPath, String librariesPath})
-      : _sdkDir = sdkDir,
-        _workerPath = workerPath,
-        _librariesPath = librariesPath;
+    this._address,
+    this._port,
+    this._assetHandler, {
+    bool verbose = false,
+    SdkConfigurationProvider sdkConfigurationProvider,
+  })  : _verbose = verbose,
+        _sdkConfigurationProvider =
+            sdkConfigurationProvider ?? DefaultSdkConfigurationProvider();
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
@@ -276,20 +265,14 @@ class ExpressionCompilerService implements ExpressionCompiler {
     if (_compiler.isCompleted) return;
     soundNullSafety ??= false;
 
-    final binDir = p.dirname(Platform.resolvedExecutable);
-    var sdkDir = _sdkDir ?? p.dirname(binDir);
-
-    var sdkSummaryRoot = p.join(sdkDir, 'lib', '_internal');
-    var sdkSummaryPath = soundNullSafety
-        ? p.join(sdkSummaryRoot, 'ddc_outline_sound.dill')
-        : p.join(sdkSummaryRoot, 'ddc_sdk.dill');
-    var librariesPath =
-        _librariesPath ?? p.join(sdkDir, 'lib', 'libraries.json');
-    var workerPath =
-        _workerPath ?? p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
-
-    var compiler = await _Compiler.start(_address, await _port, workerPath,
-        sdkSummaryPath, librariesPath, moduleFormat, _verbose, soundNullSafety);
+    var compiler = await _Compiler.start(
+      _address,
+      await _port,
+      moduleFormat,
+      soundNullSafety,
+      await _sdkConfigurationProvider.configuration,
+      _verbose,
+    );
 
     _compiler.complete(compiler);
   }

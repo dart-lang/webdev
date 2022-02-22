@@ -203,28 +203,32 @@ class DebugService {
   }
 
   static Future<DebugService> start(
-      String hostname,
-      RemoteDebugger remoteDebugger,
-      ExecutionContext executionContext,
-      String tabUrl,
-      AssetReader assetReader,
-      LoadStrategy loadStrategy,
-      AppConnection appConnection,
-      UrlEncoder urlEncoder,
-      {void Function(Map<String, dynamic>) onRequest,
-      void Function(Map<String, dynamic>) onResponse,
-      bool spawnDds = true,
-      bool useSse,
-      ExpressionCompiler expressionCompiler}) async {
+    String hostname,
+    RemoteDebugger remoteDebugger,
+    ExecutionContext executionContext,
+    String tabUrl,
+    AssetReader assetReader,
+    LoadStrategy loadStrategy,
+    AppConnection appConnection,
+    UrlEncoder urlEncoder, {
+    void Function(Map<String, dynamic>) onRequest,
+    void Function(Map<String, dynamic>) onResponse,
+    bool spawnDds = true,
+    bool useSse,
+    ExpressionCompiler expressionCompiler,
+    SdkConfigurationProvider sdkConfigurationProvider,
+  }) async {
     useSse ??= false;
     var chromeProxyService = await ChromeProxyService.create(
-        remoteDebugger,
-        tabUrl,
-        assetReader,
-        loadStrategy,
-        appConnection,
-        executionContext,
-        expressionCompiler);
+      remoteDebugger,
+      tabUrl,
+      assetReader,
+      loadStrategy,
+      appConnection,
+      executionContext,
+      expressionCompiler,
+      sdkConfigurationProvider,
+    );
     var authToken = _makeAuthToken();
     var serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;

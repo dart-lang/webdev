@@ -61,8 +61,8 @@ void main() async {
       // start expression compilation service
       Response assetHandler(request) =>
           Response(200, body: File.fromUri(kernel).readAsBytesSync());
-      service =
-          ExpressionCompilerService('localhost', port, assetHandler, false);
+      service = ExpressionCompilerService('localhost', port, assetHandler,
+          verbose: false);
 
       await service.initialize(moduleFormat: 'amd');
 
