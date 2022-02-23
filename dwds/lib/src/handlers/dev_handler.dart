@@ -545,9 +545,7 @@ class DevHandler {
         ideQueryParam: 'DebugExtension',
       );
       appServices.dwdsStats.updateLoadTime(
-        debuggerStart: debuggerStart,
-        devToolsStart: DateTime.now()
-      );
+          debuggerStart: debuggerStart, devToolsStart: DateTime.now());
       await _launchDevTools(extensionDebugger, devToolsUri);
     });
   }
