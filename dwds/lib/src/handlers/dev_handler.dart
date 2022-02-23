@@ -376,8 +376,10 @@ class DevHandler {
       debuggerStart: debuggerStart,
       devToolsStart: DateTime.now(),
     );
-    await _launchDevTools(appServices.chromeProxyService.remoteDebugger,
-        _constructDevToolsUri(appServices.debugService.uri));
+    await _launchDevTools(
+        appServices.chromeProxyService.remoteDebugger,
+        _constructDevToolsUri(appServices.debugService.uri,
+            ideQueryParam: 'Dwds'));
   }
 
   Future<AppConnection> _handleConnectRequest(
@@ -525,18 +527,26 @@ class DevHandler {
         extensionDebugConnections.add(DebugConnection(appServices));
         _servicesByAppId[appId] = appServices;
       }
-      var appServices = _servicesByAppId[appId];
-      final devToolsUri =
-          _constructDevToolsUri(await appServices.debugService.encodedUri);
+      final appServices = _servicesByAppId[appId];
+      final encodedUri = await appServices.debugService.encodedUri;
 
-      // If we only want the URI, then return early.
+      // If we only want the URI, this means we are embedding Dart DevTools in
+      // Chrome DevTools. Therefore return early.
       if (devToolsRequest.uriOnly != null && devToolsRequest.uriOnly) {
+        final devToolsUri = _constructDevToolsUri(
+          encodedUri,
+          ideQueryParam: 'ChromeDevTools',
+        );
         extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
         return;
       }
+      final devToolsUri = _constructDevToolsUri(
+        encodedUri,
+        ideQueryParam: 'DebugExtension',
+      );
       appServices.dwdsStats.updateLoadTime(
         debuggerStart: debuggerStart,
-        devToolsStart: DateTime.now(),
+        devToolsStart: DateTime.now()
       );
       await _launchDevTools(extensionDebugger, devToolsUri);
     });
@@ -554,12 +564,18 @@ class DevHandler {
     });
   }
 
-  String _constructDevToolsUri(String debugServiceUri) {
+  String _constructDevToolsUri(
+    String debugServiceUri, {
+    String ideQueryParam = '',
+  }) {
     return Uri(
         scheme: 'http',
         host: _devTools.hostname,
         port: _devTools.port,
-        queryParameters: {'uri': debugServiceUri}).toString();
+        queryParameters: {
+          'uri': debugServiceUri,
+          if (ideQueryParam.isNotEmpty) 'ide': ideQueryParam,
+        }).toString();
   }
 }
 

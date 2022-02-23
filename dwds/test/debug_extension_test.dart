@@ -38,6 +38,23 @@ final context = TestContext();
 final devToolsLoadTime = const Duration(seconds: 4);
 
 void main() async {
+  Future<void> waitForDartDevToolsWithRetry({
+    int retryCount = 6,
+    Duration retryWait = const Duration(seconds: 1),
+  }) async {
+    if (retryCount == 0) return;
+    var windows = await context.webDriver.windows.toList();
+    await context.webDriver.driver.switchTo.window(windows.last);
+    final title = await context.webDriver.title;
+    if (title == 'Dart DevTools') return;
+
+    await Future.delayed(retryWait);
+    return waitForDartDevToolsWithRetry(
+      retryCount: retryCount--,
+      retryWait: retryWait,
+    );
+  }
+
   for (var useSse in [true, false]) {
     group(useSse ? 'SSE' : 'WebSockets', () {
       group('Without encoding', () {
@@ -61,6 +78,8 @@ void main() async {
           // TODO(grouma): switch back to `fixture.webdriver.title` when
           // https://github.com/flutter/devtools/issues/2045 is fixed.
           expect(await context.webDriver.pageSource, contains('Flutter'));
+          expect(await context.webDriver.currentUrl,
+              contains('ide=DebugExtension'));
         });
 
         test('can close DevTools and relaunch', () async {
@@ -76,11 +95,9 @@ void main() async {
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
           });
-          await Future.delayed(devToolsLoadTime);
-          var windows = await context.webDriver.windows.toList();
-          await context.webDriver.driver.switchTo.window(windows.last);
+          await waitForDartDevToolsWithRetry();
           expect(await context.webDriver.title, 'Dart DevTools');
-        }, skip: 'https://github.com/dart-lang/webdev/issues/1512');
+        });
       });
 
       group('With a sharded Dart app', () {
@@ -154,11 +171,9 @@ void main() async {
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
           });
-          await Future.delayed(devToolsLoadTime);
-          var windows = await context.webDriver.windows.toList();
-          await context.webDriver.driver.switchTo.window(windows.last);
+          await waitForDartDevToolsWithRetry();
           expect(await context.webDriver.title, 'Dart DevTools');
-        }, skip: 'https://github.com/dart-lang/webdev/issues/1512');
+        });
       });
     });
   }
