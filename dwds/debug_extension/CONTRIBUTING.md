@@ -66,3 +66,12 @@ This will build to the `/build/web` directory.
 10. Save as draft, and verify that the new version is correct.
 11. Publish. The extension will be published immediately after going through the review process. 
 
+## Rollback process 
+> The Chrome Web Store Developer Dashboard does not support rollbacks. Instead you must re-publish an earlier version. This means that the extension will still have to go through the review process, which can take anywhere from a few hours (most common) to a few days.
+1. Find the previous version you want to rollback to in the go/dart-debug-extension-zips folder. 
+> > *You must be a Googler to do this. Ask for help if not.*
+2. Unzip the version you have chosen, and in `manifest.json` edit the version number to be the next sequential version after the current "bad" version (eg, the bad version is `1.28.0` and you are rolling back to version `1.27.0`. Therefore you change `1.27.0` to `1.29.0`).
+3. Re-zip the directory and rename it to the new version number. Add it to the go/dart-debug-extension-zips folder.
+4. Now, follow steps 6 - 11 in [Release process](#release-process).
+
+
