@@ -1,3 +1,7 @@
+## 1.26
+
+- Support embedded debugging experience in environments with no Dart app ID. 
+
 ## 1.25
 
 - Embed Dart DevTools in Chrome DevTools.

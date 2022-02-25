@@ -123,3 +123,10 @@ iframe {
     transform: translate(-50%, -50%) scale(0);
     transition: transform 0s;
 }
+
+.material-button:disabled {
+    background-color: #d3d3d3;
+    color: #696969;
+    box-shadow: none;
+    cursor: initial;
+}

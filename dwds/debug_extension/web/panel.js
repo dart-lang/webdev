@@ -10,6 +10,7 @@
     const PANEL_SCRIPT = 'panel-script';
     const START_DEBUGGING = 'start-debugging';
     const DEVTOOLS_OPEN = 'devtools-open';
+    const DEFAULT_DART_ID = 'defaultDartId';
 
     const chromeTheme = chrome.devtools.panels.themeName;
     const backgroundColor = chromeTheme == CHROME_DARK ? DARK_COLOR : LIGHT_COLOR;
@@ -21,6 +22,7 @@
     // Helper functions:
     function sendStartDebuggingRequest() {
         if (!appId) return;
+        document.getElementById(DEBUGGING_BUTTON).setAttribute('disabled', true);
         chrome.runtime.sendMessage({ sender: PANEL_SCRIPT, message: START_DEBUGGING, dartAppId: appId });
     }
 
@@ -42,7 +44,9 @@
             currentDevToolsUrl = devToolsUrl;
 
             if (!devToolsUrl) {
-                // Debugger has been disconnected, remove the IFRAME for Dart DevTools:
+                // Debugger has been disconnected, remove the IFRAME for Dart DevTools
+                // and enable the start debugging button:
+                document.getElementById(DEBUGGING_BUTTON).removeAttribute('disabled');
                 const iframe = document.getElementById(IFRAME_ID);
                 if (!!iframe) iframeContainer.removeChild(iframe);
             } else {
@@ -61,7 +65,8 @@
     chrome.devtools.inspectedWindow.eval(
         'window.$dartAppId',
         function (dartAppId) {
-            appId = dartAppId;
+            appId = dartAppId ?? DEFAULT_DART_ID;
+            document.getElementById(DEBUGGING_BUTTON).removeAttribute('disabled');
             chrome.runtime.sendMessage({ sender: PANEL_SCRIPT, message: DEVTOOLS_OPEN, dartAppId: dartAppId });
         },
     );
