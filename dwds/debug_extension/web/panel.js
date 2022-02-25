@@ -10,7 +10,7 @@
     const PANEL_SCRIPT = 'panel-script';
     const START_DEBUGGING = 'start-debugging';
     const DEVTOOLS_OPEN = 'devtools-open';
-    const DEFAULT_DART_ID = 'defaultDartId';
+    const DEFAULT_APP_ID = 'defaultAppId';
 
     const chromeTheme = chrome.devtools.panels.themeName;
     const backgroundColor = chromeTheme == CHROME_DARK ? DARK_COLOR : LIGHT_COLOR;
@@ -65,7 +65,7 @@
     chrome.devtools.inspectedWindow.eval(
         'window.$dartAppId',
         function (dartAppId) {
-            appId = dartAppId ?? DEFAULT_DART_ID;
+            appId = dartAppId ?? DEFAULT_APP_ID;
             document.getElementById(DEBUGGING_BUTTON).removeAttribute('disabled');
             chrome.runtime.sendMessage({ sender: PANEL_SCRIPT, message: DEVTOOLS_OPEN, dartAppId: dartAppId });
         },
