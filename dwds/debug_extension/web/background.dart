@@ -225,21 +225,21 @@ void _handleMessageFromContentScripts(
       _maybeMarkTabAsDebuggable(request, sender, sendResponse);
       break;
     case 'panel-script':
-      _handleDevToolsOpen(request, sender);
+      _handleMessageFromPanelScript(request, sender);
       break;
   }
 }
 
-void _handleDevToolsOpen(Request request, Sender sender) {
-  if (request.message == 'devtools-open') {
-    _updateOrCreateDevToolsPanel(request.dartAppId, (panel) {
-      panel.panelId = sender.id;
-    });
-    return;
-  }
-
-  if (request.message == 'start-debugging') {
-    _startDebugging(DebuggerTrigger.dartPanel);
+void _handleMessageFromPanelScript(Request request, Sender sender) {
+  switch (request.message) {
+    case 'devtools-open':
+      _updateOrCreateDevToolsPanel(request.dartAppId, (panel) {
+        panel.panelId = sender.id;
+      });
+      break;
+    case 'start-debugging':
+      _startDebugging(DebuggerTrigger.dartPanel);
+      break;
   }
 }
 

@@ -21,6 +21,7 @@
     // Helper functions:
     function sendStartDebuggingRequest() {
         if (!appId) return;
+        document.getElementById(DEBUGGING_BUTTON).setAttribute('disabled', true);
         chrome.runtime.sendMessage({ sender: PANEL_SCRIPT, message: START_DEBUGGING, dartAppId: appId });
     }
 
@@ -42,7 +43,9 @@
             currentDevToolsUrl = devToolsUrl;
 
             if (!devToolsUrl) {
-                // Debugger has been disconnected, remove the IFRAME for Dart DevTools:
+                // Debugger has been disconnected, remove the IFRAME for Dart DevTools
+                // and enable the start debugging button:
+                document.getElementById(DEBUGGING_BUTTON).removeAttribute('disabled');
                 const iframe = document.getElementById(IFRAME_ID);
                 if (!!iframe) iframeContainer.removeChild(iframe);
             } else {
@@ -59,9 +62,19 @@
     });
 
     chrome.devtools.inspectedWindow.eval(
-        'window.$dartAppId',
+        `
+        function findDartAppId(frame) {
+            if (frame.$dartAppId) return frame.$dartAppId;
+            const frames = frame.frames;
+            for (let i = 0; i < frames.length; i++) {
+                return findDartAppId(frames[i]);
+            }
+        }
+        findDartAppId(window);
+        `,
         function (dartAppId) {
             appId = dartAppId;
+            document.getElementById(DEBUGGING_BUTTON).removeAttribute('disabled');
             chrome.runtime.sendMessage({ sender: PANEL_SCRIPT, message: DEVTOOLS_OPEN, dartAppId: dartAppId });
         },
     );
