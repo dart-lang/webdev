@@ -10,21 +10,27 @@ import 'package:vm_service/vm_service.dart';
 
 class DwdsStats {
   /// The time when the user starts the debugger.
-  final DateTime debuggerStart;
+  DateTime _debuggerStart;
+  DateTime get debuggerStart => _debuggerStart;
 
   /// The time when dwds launches DevTools.
-  DateTime devToolsStart;
+  DateTime _devToolsStart;
+  DateTime get devToolsStart => _devToolsStart;
 
-  var _isDebuggerReady = false;
-
-  /// Records and returns whether the debugger became ready.
-  bool isFirstDebuggerReady() {
-    final wasReady = _isDebuggerReady;
-    _isDebuggerReady = true;
-    return !wasReady;
+  /// Records and returns weither the debugger is ready.
+  bool _isFirstDebuggerReady = true;
+  bool get isFirstDebuggerReady {
+    var wasReady = _isFirstDebuggerReady;
+    _isFirstDebuggerReady = false;
+    return wasReady;
   }
 
-  DwdsStats(this.debuggerStart);
+  void updateLoadTime({DateTime debuggerStart, DateTime devToolsStart}) {
+    _debuggerStart = debuggerStart;
+    _devToolsStart = devToolsStart;
+  }
+
+  DwdsStats();
 }
 
 class DwdsEventKind {

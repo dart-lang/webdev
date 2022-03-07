@@ -150,10 +150,9 @@ void _processSendEvent(Map<String, dynamic> event,
   switch (type) {
     case 'DevtoolsEvent':
       {
-        var screen = payload == null ? null : payload['screen'];
         var action = payload == null ? null : payload['action'];
-        if (screen == 'debugger' && action == 'pageReady') {
-          if (dwdsStats.isFirstDebuggerReady()) {
+        if (action == 'pageReady') {
+          if (dwdsStats.isFirstDebuggerReady) {
             if (dwdsStats.devToolsStart != null) {
               emitEvent(DwdsEvent.devToolsLoad(DateTime.now()
                   .difference(dwdsStats.devToolsStart)
@@ -165,6 +164,7 @@ void _processSendEvent(Map<String, dynamic> event,
                   .inMilliseconds));
             }
           } else {
+            print('Ignoring already received event: $event');
             _logger.warning('Ignoring already received event: $event');
           }
         } else {
