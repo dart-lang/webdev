@@ -68,8 +68,15 @@ Future<void> main() {
     var debugEventController =
         BatchedStreamController<DebugEvent>(delay: _batchDelayMilliseconds);
     debugEventController.stream.listen((events) {
-      client.sink.add(jsonEncode(serializers.serialize(BatchedDebugEvents(
-          (b) => b.events = ListBuilder<DebugEvent>(events)))));
+      try {
+        client.sink.add(jsonEncode(serializers.serialize(BatchedDebugEvents(
+            (b) => b.events = ListBuilder<DebugEvent>(events)))));
+      } on StateError catch (_) {
+        // An error is propagated on a full page reload as Chrome presumably
+        // forces the SSE connection to close in a bad state.
+        print('Cannot send BatchedDEbugEvents($events). '
+            'Injected client connection is closed.');
+      }
     });
 
     emitDebugEvent = allowInterop((String kind, String eventData) {
@@ -82,9 +89,16 @@ Future<void> main() {
     });
 
     emitRegisterEvent = allowInterop((String eventData) {
-      client.sink.add(jsonEncode(serializers.serialize(RegisterEvent((b) => b
-        ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-        ..eventData = eventData))));
+      try {
+        client.sink.add(jsonEncode(serializers.serialize(RegisterEvent((b) => b
+          ..timestamp = (DateTime.now().millisecondsSinceEpoch)
+          ..eventData = eventData))));
+      } on StateError catch (_) {
+        // An error is propagated on a full page reload as Chrome presumably
+        // forces the SSE connection to close in a bad state.
+        print('Cannot send RegisterEvent($eventData). '
+            'Injected client connection is closed.');
+      }
     });
 
     launchDevToolsJs = allowInterop(() {
@@ -93,9 +107,17 @@ Future<void> main() {
             'Dart DevTools is only supported on Chromium based browsers.');
         return;
       }
-      client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
-        ..appId = dartAppId
-        ..instanceId = dartAppInstanceId))));
+      try {
+        client.sink
+            .add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
+              ..appId = dartAppId
+              ..instanceId = dartAppInstanceId))));
+      } on StateError catch (_) {
+        // An error is propagated on a full page reload as Chrome presumably
+        // forces the SSE connection to close in a bad state.
+        print('Cannot send DevToolsRequest. '
+            'Injected client connection is closed.');
+      }
     });
 
     client.stream.listen((serialized) async {
@@ -150,10 +172,17 @@ Future<void> main() {
     }
 
     if (_isChromium) {
-      client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
-        ..appId = dartAppId
-        ..instanceId = dartAppInstanceId
-        ..entrypointPath = dartEntrypointPath))));
+      try {
+        client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
+          ..appId = dartAppId
+          ..instanceId = dartAppInstanceId
+          ..entrypointPath = dartEntrypointPath))));
+      } on StateError catch (_) {
+        // An error is propagated on a full page reload as Chrome presumably
+        // forces the SSE connection to close in a bad state.
+        print('Cannot send ConnectRequest. '
+            'Injected client connection is closed.');
+      }
     } else {
       // If not Chromium we just invoke main, devtools aren't supported.
       runMain();
