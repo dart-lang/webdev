@@ -169,20 +169,15 @@ void main() {
       var client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
 
-      // The event just before hot restart is never received,
-      // but the injected client continues to work and send
-      // events after hot restart.
+      // The event just before hot restart might never be received,
+      // but the injected client continues to work and send events
+      // after hot restart.
       var eventsDone = expectLater(
           client.onIsolateEvent,
-          emitsInOrder([
-            _hasKind(EventKind.kIsolateExit),
-            _hasKind(EventKind.kIsolateStart),
-            _hasKind(EventKind.kIsolateRunnable),
-            _hasKind(EventKind.kServiceExtensionAdded).having(
-                (e) => e.extensionRPC, 'service', 'ext.flutter.disassemble'),
+          emitsThrough(
             _hasKind(EventKind.kServiceExtensionAdded)
                 .having((e) => e.extensionRPC, 'service', 'ext.bar'),
-          ]));
+          ));
 
       var vm = await client.getVM();
       var isolateId = vm.isolates.first.id;
@@ -214,7 +209,7 @@ void main() {
       var source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
       expect(source, contains('Hello World!'));
-    });
+    }, solo: true);
 
     test('can refresh the page via the fullReload service extension', () async {
       var client = context.debugConnection.vmService;
