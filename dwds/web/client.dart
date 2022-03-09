@@ -68,37 +68,31 @@ Future<void> main() {
     var debugEventController =
         BatchedStreamController<DebugEvent>(delay: _batchDelayMilliseconds);
     debugEventController.stream.listen((events) {
-      try {
-        client.sink.add(jsonEncode(serializers.serialize(BatchedDebugEvents(
-            (b) => b.events = ListBuilder<DebugEvent>(events)))));
-      } on StateError catch (_) {
-        // An error is propagated on a full page reload as Chrome presumably
-        // forces the SSE connection to close in a bad state.
-        print('Cannot send BatchedDEbugEvents($events). '
-            'Injected client connection is closed.');
+      if (dartEmitDebugEvents) {
+        _trySendEvent(
+            client.sink,
+            jsonEncode(serializers.serialize(BatchedDebugEvents(
+                (b) => b.events = ListBuilder<DebugEvent>(events)))));
       }
     });
 
     emitDebugEvent = allowInterop((String kind, String eventData) {
       if (dartEmitDebugEvents) {
-        debugEventController.sink.add(DebugEvent((b) => b
-          ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-          ..kind = kind
-          ..eventData = eventData));
+        _trySendEvent(
+            debugEventController.sink,
+            DebugEvent((b) => b
+              ..timestamp = (DateTime.now().millisecondsSinceEpoch)
+              ..kind = kind
+              ..eventData = eventData));
       }
     });
 
     emitRegisterEvent = allowInterop((String eventData) {
-      try {
-        client.sink.add(jsonEncode(serializers.serialize(RegisterEvent((b) => b
-          ..timestamp = (DateTime.now().millisecondsSinceEpoch)
-          ..eventData = eventData))));
-      } on StateError catch (_) {
-        // An error is propagated on a full page reload as Chrome presumably
-        // forces the SSE connection to close in a bad state.
-        print('Cannot send RegisterEvent($eventData). '
-            'Injected client connection is closed.');
-      }
+      _trySendEvent(
+          client.sink,
+          jsonEncode(serializers.serialize(RegisterEvent((b) => b
+            ..timestamp = (DateTime.now().millisecondsSinceEpoch)
+            ..eventData = eventData))));
     });
 
     launchDevToolsJs = allowInterop(() {
@@ -107,17 +101,11 @@ Future<void> main() {
             'Dart DevTools is only supported on Chromium based browsers.');
         return;
       }
-      try {
-        client.sink
-            .add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
-              ..appId = dartAppId
-              ..instanceId = dartAppInstanceId))));
-      } on StateError catch (_) {
-        // An error is propagated on a full page reload as Chrome presumably
-        // forces the SSE connection to close in a bad state.
-        print('Cannot send DevToolsRequest. '
-            'Injected client connection is closed.');
-      }
+      _trySendEvent(
+          client.sink,
+          jsonEncode(serializers.serialize(DevToolsRequest((b) => b
+            ..appId = dartAppId
+            ..instanceId = dartAppInstanceId))));
     });
 
     client.stream.listen((serialized) async {
@@ -172,17 +160,12 @@ Future<void> main() {
     }
 
     if (_isChromium) {
-      try {
-        client.sink.add(jsonEncode(serializers.serialize(ConnectRequest((b) => b
-          ..appId = dartAppId
-          ..instanceId = dartAppInstanceId
-          ..entrypointPath = dartEntrypointPath))));
-      } on StateError catch (_) {
-        // An error is propagated on a full page reload as Chrome presumably
-        // forces the SSE connection to close in a bad state.
-        print('Cannot send ConnectRequest. '
-            'Injected client connection is closed.');
-      }
+      _trySendEvent(
+          client.sink,
+          jsonEncode(serializers.serialize(ConnectRequest((b) => b
+            ..appId = dartAppId
+            ..instanceId = dartAppInstanceId
+            ..entrypointPath = dartEntrypointPath))));
     } else {
       // If not Chromium we just invoke main, devtools aren't supported.
       runMain();
@@ -203,6 +186,17 @@ $error
 $stackTrace
 ''');
   });
+}
+
+void _trySendEvent<T>(StreamSink<T> sink, T serialized) {
+  try {
+    sink.add(serialized);
+  } on StateError catch (_) {
+    // An error is propagated on a full page reload as Chrome presumably
+    // forces the SSE connection to close in a bad state.
+    print('Cannot send event $serialized. '
+        'Injected client connection is closed.');
+  }
 }
 
 /// Returns [url] modified if necessary so that, if the current page is served
