@@ -6,6 +6,7 @@
 - Add `SdkConfiguration` and `SdkConfigurationProvider` classes to allow
   for lazily created SDK configurations.
 - Add an `ide` query parameter to the Dart DevTools URL for analytics.
+- Migrate .packages to package_config.json.
 
 **Breaking changes:**
 - `Dwds.start` and `ExpressionCompilerService` now take 
