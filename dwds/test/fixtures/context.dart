@@ -98,7 +98,8 @@ class TestContext {
         .absolute(directory ?? p.relative(relativeDirectory, from: p.current)));
 
     DartUri.currentDirectory = workingDirectory;
-    _packagesFilePath = p.join(workingDirectory, '.packages');
+    _packagesFilePath =
+        p.join(workingDirectory, '.dart_tool/package_config.json');
 
     _entryFile = File(p.normalize(
         p.absolute(entry ?? p.relative(relativeEntry, from: p.current))));

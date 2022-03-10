@@ -50,7 +50,8 @@ class TestAssetServer implements AssetReader {
   ) async {
     var address = (await InternetAddress.lookup(hostname)).first;
     var httpServer = await HttpServer.bind(address, port);
-    var packages = await loadPackageConfigUri(Uri.base.resolve('.packages'),
+    var packages = await loadPackageConfigUri(
+        Uri.base.resolve('.dart_tool/package_config.json'),
         loader: (Uri uri) => fileSystem.file(uri).readAsBytes());
     var server =
         TestAssetServer(root, httpServer, packages, address, fileSystem);

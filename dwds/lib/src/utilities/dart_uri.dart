@@ -157,7 +157,8 @@ class DartUri {
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize(SdkConfiguration sdkConfiguration) async {
     _sdkConfiguration = sdkConfiguration;
-    var packagesUri = p.toUri(p.join(currentDirectory, '.packages'));
+    var packagesUri =
+        p.toUri(p.join(currentDirectory, '.dart_tool/package_config.json'));
 
     clear();
 
@@ -190,8 +191,8 @@ class DartUri {
   /// Returns the dirname for the server URI.
   static String _dirForServerUri(String uri) => p.dirname(Uri.parse(uri).path);
 
-  /// Load the .packages file associated with the running application so we can
-  /// resolve file URLs into package: URLs appropriately.
+  /// Load the .dart_tool/package_config.json file associated with the running
+  /// application so we can resolve file URLs into package: URLs appropriately.
   static Future<void> _loadPackageConfig(Uri uri) async {
     _packageConfig = await loadPackageConfigUri(uri, onError: (e) {
       _logger.warning('Cannot read packages spec: $uri', e);
