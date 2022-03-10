@@ -132,7 +132,7 @@ class WebDevServer {
           options.configuration.hostname,
           options.port,
           assetHandler,
-          options.configuration.verbose,
+          verbose: options.configuration.verbose,
         );
       }
       var shouldServeDevTools =
