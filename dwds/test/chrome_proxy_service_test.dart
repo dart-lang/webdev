@@ -1368,8 +1368,8 @@ void main() {
       var resolvedUris =
           await service.lookupResolvedPackageUris(isolateId, uris);
 
-      var packageUris = await service.lookupPackageUris(
-          isolateId, resolvedUris.uris as List<String>);
+      var packageUris =
+          await service.lookupPackageUris(isolateId, resolvedUris.uris);
       expect(
           packageUris.uris,
           containsAll([
