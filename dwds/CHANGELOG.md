@@ -1,4 +1,4 @@
-## 13.0.0-dev
+## 13.0.0
 - Change wording of paused overlay from "Paused in Dart DevTools" to "Paused"
 - Allow sending back the Dart DevTools URL from DWDS instead of launching
   Dart DevTools, to support embedding Dart DevTools in Chrome DevTools.
@@ -10,6 +10,7 @@
 - Add an `ide` query parameter to the Dart DevTools URL for analytics.
 - Fix a race where injected client crashed on events send just before hot
   restart.
+- Update `vm_service` version to `^8.2.1`.
 
 **Breaking changes:**
 - `Dwds.start` and `ExpressionCompilerService` now take
