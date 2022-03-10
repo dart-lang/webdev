@@ -10,6 +10,9 @@
 - Add an `ide` query parameter to the Dart DevTools URL for analytics.
 - Fix a race where injected client crashed on events send just before hot
   restart.
+- Remove verbose printing on receiving DevTools events.
+- Update `vm_service` version to `^8.2.0`.
+
 
 **Breaking changes:**
 - `Dwds.start` and `ExpressionCompilerService` now take

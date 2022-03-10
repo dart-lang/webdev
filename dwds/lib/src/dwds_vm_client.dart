@@ -150,25 +150,31 @@ void _processSendEvent(Map<String, dynamic> event,
   switch (type) {
     case 'DevtoolsEvent':
       {
+        _logger.finest('Received DevTools event: $event');
         var action = payload == null ? null : payload['action'];
         if (action == 'pageReady') {
           if (dwdsStats.isFirstDebuggerReady) {
             if (dwdsStats.devToolsStart != null) {
-              emitEvent(DwdsEvent.devToolsLoad(DateTime.now()
+              var time = DateTime.now()
                   .difference(dwdsStats.devToolsStart)
-                  .inMilliseconds));
+                  .inMilliseconds;
+              emitEvent(DwdsEvent.devToolsLoad(time));
+              _logger.fine('DevTools load time: $time ms');
             }
             if (dwdsStats.debuggerStart != null) {
-              emitEvent(DwdsEvent.debuggerReady(DateTime.now()
+              var time = DateTime.now()
                   .difference(dwdsStats.debuggerStart)
-                  .inMilliseconds));
+                  .inMilliseconds;
+              emitEvent(DwdsEvent.debuggerReady(time));
+              _logger.fine('Debugger ready time: $time ms');
             }
           } else {
-            print('Ignoring already received event: $event');
-            _logger.warning('Ignoring already received event: $event');
+            _logger
+                .finest('Debugger and DevTools startup times alredy recorded.'
+                    ' Ignoring $event.');
           }
         } else {
-          _logger.warning('Ignoring unknown event: $event');
+          _logger.finest('Ignoring unknown event: $event');
         }
       }
   }
