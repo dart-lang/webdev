@@ -8,6 +8,8 @@
 - Fix an issue in reporting DevTools stats where the DevTools load time was
   not always recorded.
 - Add an `ide` query parameter to the Dart DevTools URL for analytics.
+- Fix a race where injected client crashed on events send just before hot
+  restart.
 
 **Breaking changes:**
 - `Dwds.start` and `ExpressionCompilerService` now take
