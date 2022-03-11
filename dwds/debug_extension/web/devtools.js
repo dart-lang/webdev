@@ -20,12 +20,25 @@
       `document.documentElement.hasAttribute("${DDR_DART_APP_ATTRIBUTE}")`,
       {useContentScriptContext: true}, 
       function (isDartApp) {
-        if (isDartApp) {
-          created = true
-          chrome.devtools.panels.create(
-            'Dart Debugger', '', 'panel.html'
-          );
-        }
+        if (!isDartApp) return;
+        chrome.devtools.inspectedWindow.eval(
+          '!!window._flutter_web_set_location_strategy',
+          function (isFlutterWeb) {
+            created = true;
+            if (isFlutterWeb) {
+              chrome.devtools.panels.create(
+                  'Flutter Debugger', '', 'debugger_panel.html'
+                );
+                chrome.devtools.panels.create(
+                  'Flutter Inspector', '', 'inspector_panel.html'
+                );
+              } else {
+                chrome.devtools.panels.create(
+                  'Dart Debugger', '', 'debugger_panel.html'
+                );
+              }
+          }
+        );
       },
     )
   }
