@@ -1,15 +1,17 @@
 (function loadDevToolsScript() {
   const DDR_DART_APP_ATTRIBUTE = 'data-ddr-dart-app';
-  let created = false;
+
+  let debuggerCreated = false;
+  let inspectorCreated = false;
   let checkDartCount = 0;
   let checkFlutterCount = 0;
 
-  chrome.devtools.network.onNavigated.addListener(createPanelIfDartApp)
-  const checkDartAppInterval = setInterval(createPanelIfDartApp, 1000)
-  createPanelIfDartApp()
+  chrome.devtools.network.onNavigated.addListener(createDebuggerPanelIfDartApp)
+  const checkDartAppInterval = setInterval(createDebuggerPanelIfDartApp, 1000)
+  createDebuggerPanelIfDartApp()
 
-  function createPanelIfDartApp() {
-    if (created || checkDartCount++ > 20) {
+  function createDebuggerPanelIfDartApp() {
+    if (debuggerCreated || checkDartCount++ > 20) {
       clearInterval(checkDartAppInterval);
       return;
     }
@@ -26,38 +28,20 @@
       { useContentScriptContext: true },
       function (isDartApp) {
         if (!isDartApp) return;
-        checkIsAngularApp();
-      });
-  }
 
-  function checkIsAngularApp() {
-    chrome.devtools.inspectedWindow.eval('window.$isAngularApp',
-      function (angularAppMode) {
-        // If the value is 'debug', then this is an Angular app 
-        // and we can create the Dart Debugger panel immediately:
-        if (angularAppMode == 'debug') {
-          created = true;
-          chrome.devtools.panels.create(
-            'Dart Debugger', '', 'debugger_panel.html'
-          );
-        // Otherwise, clear the interval checking for a Dart app
-        // and instead check to see if this is a Flutter app:
-        } else {
-          clearInterval(checkDartAppInterval);
-          createPanelsIfFlutterApp();
-        }
-      });
-  }
-
-  function createPanelsIfFlutterApp() {
-    const checkFlutterAppInterval = setInterval(function() {
-      if (checkFlutterCount++ > 10) {
-        // If Flutter is not detected after 10 seconds, still
-        // create the Dart Debugger panel:
-        clearInterval(checkFlutterAppInterval);
         chrome.devtools.panels.create(
           'Dart Debugger', '', 'debugger_panel.html'
-        );
+          );
+        debuggerCreated = true;
+        createInspectorPanelIfFlutterApp();
+      });
+  }
+
+  function createInspectorPanelIfFlutterApp() {
+    const checkFlutterAppInterval = setInterval(function () {
+      if (inspectorCreated|| checkFlutterCount++ > 10) {
+        clearInterval(checkFlutterAppInterval);
+        return;
       }
 
       // The following value is loaded asynchronously, which is why
@@ -66,14 +50,11 @@
         '!!window._flutter_web_set_location_strategy',
         function (isFlutterWeb) {
           if (isFlutterWeb) {
-            clearInterval(checkFlutterAppInterval);
             chrome.devtools.panels.create(
-                'Flutter Debugger', '', 'debugger_panel.html'
+              'Flutter Inspector', '', 'inspector_panel.html'
               );
-              chrome.devtools.panels.create(
-                'Flutter Inspector', '', 'inspector_panel.html'
-              );
-            }
+            inspectorCreated = true;
+          }
         }
       );
     }, 1000)
