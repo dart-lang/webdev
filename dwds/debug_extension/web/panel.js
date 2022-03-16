@@ -10,6 +10,8 @@
     const PANEL_SCRIPT = 'panel-script';
     const START_DEBUGGING = 'start-debugging';
     const DEVTOOLS_OPEN = 'devtools-open';
+    const PANEL_BODY = 'panelBody';
+    const PANEL_ATTRIBUTE = 'data-panel';
 
     const chromeTheme = chrome.devtools.panels.themeName;
     const backgroundColor = chromeTheme == CHROME_DARK ? DARK_COLOR : LIGHT_COLOR;
@@ -17,6 +19,7 @@
 
     let appId = null;
     let currentDevToolsUrl = '';
+    let panel = '';
 
     // Helper functions:
     function sendStartDebuggingRequest() {
@@ -26,6 +29,7 @@
     }
 
     window.onload = function () {
+        panel = document.getElementById(PANEL_BODY).getAttribute(PANEL_ATTRIBUTE)
         document.getElementById(DEBUGGING_BUTTON).addEventListener('click', sendStartDebuggingRequest);
         // Set the background and text color of the panel to match the Chrome theme:
         document.body.style.backgroundColor = `#${backgroundColor}`;
@@ -51,7 +55,8 @@
             } else {
                 // Debugger has benn connected, add an IFRAME for Dart DevTools:
                 const iframe = document.createElement(IFRAME_TAG);
-                const src = `${devToolsUrl}&embed=true&page=debugger&backgroundColor=${backgroundColor}`;
+                if (panel == '') return;
+                const src = `${devToolsUrl}&embed=true&page=${panel}&backgroundColor=${backgroundColor}`;
                 iframe.setAttribute('src', src);
                 iframe.setAttribute('scrolling', 'no');
                 iframe.id = IFRAME_ID;   

@@ -1,3 +1,7 @@
+## 1.27
+
+- Support embedded debugger and inspector in Chrome DevTools for Flutter Web apps. 
+
 ## 1.26
 
 - Support embedded debugging experience in environments with no Dart app ID. 
