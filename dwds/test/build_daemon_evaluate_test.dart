@@ -493,7 +493,7 @@ void main() async {
             });
           });
 
-          test('error', () async {
+          test('compilation error', () async {
             await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
               var event = await stream.firstWhere(
                   (event) => event.kind == EventKind.kPauseBreakpoint);
@@ -507,6 +507,21 @@ void main() async {
                       'message', contains('CompilationError:')));
             });
           });
+
+          test('module load error', () async {
+            await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+              var event = await stream.firstWhere(
+                  (event) => event.kind == EventKind.kPauseBreakpoint);
+
+              var error = await setup.service.evaluateInFrame(
+                  isolate.id, event.topFrame.index, 'd.deferredPrintLocal()');
+
+              expect(
+                  error,
+                  isA<ErrorRef>().having((instance) => instance.message,
+                      'message', contains('LoadModuleError:')));
+            });
+          }, skip: 'https://github.com/dart-lang/sdk/issues/48587');
 
           test('cannot evaluate in unsupported isolate', () async {
             await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
