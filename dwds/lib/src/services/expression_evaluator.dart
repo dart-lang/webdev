@@ -42,10 +42,15 @@ class ExpressionEvaluator {
   final ExpressionCompiler _compiler;
   final _logger = Logger('ExpressionEvaluator');
 
+  /// Strip synthetic library name from compiler error messages.
   static final _syntheticNameFilterRegex =
       RegExp('org-dartlang-debug:synthetic_debug_expression:.*:.*Error: ');
 
-  static final _modulePathRegex =
+  /// Find module path from the XHR call network error message received from chrome.
+  ///
+  /// Example:
+  /// NetworkError: Failed to load 'http://<hostname>.com/path/to/module.js?<cache_busting_token>'
+  static final _loadModuleErrorRegex =
       RegExp(r".*Failed to load '.*\.com/(.*\.js).*");
 
   ExpressionEvaluator(this._entrypoint, this._inspector, this._locations,
@@ -256,15 +261,15 @@ class ExpressionEvaluator {
         error = error.replaceFirst('TypeError: ', '');
         return _createError(ErrorKind.type, error);
       } else if (error.startsWith('NetworkError: ')) {
-        var modulePath = _modulePathRegex.firstMatch(error)?.group(1);
+        var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
         var module = modulePath != null
             ? await globalLoadStrategy.moduleForServerPath(
                 _entrypoint, modulePath)
             : 'unknown';
         modulePath ??= 'unknown';
         error = 'Module is not loaded : $module (path: $modulePath). '
-            'Deferred library loading in expression '
-            'evaluation is not supported.';
+            'Accessing libraries that have not yet been used in the '
+            'application is not supported during expression evaluation.';
         return _createError(ErrorKind.loadModule, error);
       }
     }
