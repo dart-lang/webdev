@@ -12,7 +12,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dwds/dwds.dart';
-import 'package:file/file.dart';
+import 'package:file/file.dart' hide Directory;
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:package_config/package_config.dart'; // ignore: deprecated_member_use
@@ -50,9 +50,13 @@ class TestAssetServer implements AssetReader {
   ) async {
     var address = (await InternetAddress.lookup(hostname)).first;
     var httpServer = await HttpServer.bind(address, port);
+    print('ROOT IS $root');
+    print('URI IS ${Uri.base}');
+    // var packages = await findPackageConfig(Directory.fromUri(Uri.base));
     var packages = await loadPackageConfigUri(
-        Uri.base.resolve('.dart_tool/package_config.json'),
+        Uri.base.resolve('package_config.json'),
         loader: (Uri uri) => fileSystem.file(uri).readAsBytes());
+    print('======== PACKAGE VERSION IS ${packages.version}');
     var server =
         TestAssetServer(root, httpServer, packages, address, fileSystem);
 
