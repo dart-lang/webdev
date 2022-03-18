@@ -215,7 +215,8 @@ class ChromeProxyService implements VmServiceInterface {
     // the expression compiler service will fail to start.
     // Issue: https://github.com/dart-lang/webdev/issues/1282
     var debugger = await _debugger;
-    await _initializeEntrypoint(appConnection.request.entrypointPath);
+    var entrypoint = appConnection.request.entrypointPath;
+    await _initializeEntrypoint(entrypoint);
     var sdkConfiguration = await _sdkConfigurationProvider.configuration;
 
     debugger.notifyPausedAtStart();
@@ -232,7 +233,13 @@ class ChromeProxyService implements VmServiceInterface {
 
     _expressionEvaluator = _compiler == null
         ? null
-        : ExpressionEvaluator(_inspector, _locations, _modules, _compiler);
+        : ExpressionEvaluator(
+            entrypoint,
+            _inspector,
+            _locations,
+            _modules,
+            _compiler,
+          );
 
     await debugger.reestablishBreakpoints(
         _previousBreakpoints, _disabledBreakpoints);

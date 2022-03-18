@@ -11,6 +11,7 @@ import '../debugging/dart_scope.dart';
 import '../debugging/inspector.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
+import '../loaders/strategy.dart';
 import '../utilities/objects.dart' as chrome;
 import 'expression_compiler.dart';
 
@@ -23,6 +24,7 @@ class ErrorKind {
   static const ErrorKind reference = ErrorKind._('ReferenceError');
   static const ErrorKind internal = ErrorKind._('InternalError');
   static const ErrorKind invalidInput = ErrorKind._('InvalidInputError');
+  static const ErrorKind loadModule = ErrorKind._('LoadModuleError');
 
   @override
   String toString() => _kind;
@@ -33,17 +35,26 @@ class ErrorKind {
 /// collect context for evaluation (scope, types, modules), and using
 /// ExpressionCompilerInterface to compile dart expressions to JavaScript.
 class ExpressionEvaluator {
+  final String _entrypoint;
   final AppInspector _inspector;
   final Locations _locations;
   final Modules _modules;
   final ExpressionCompiler _compiler;
   final _logger = Logger('ExpressionEvaluator');
 
+  /// Strip synthetic library name from compiler error messages.
   static final _syntheticNameFilterRegex =
       RegExp('org-dartlang-debug:synthetic_debug_expression:.*:.*Error: ');
 
-  ExpressionEvaluator(
-      this._inspector, this._locations, this._modules, this._compiler);
+  /// Find module path from the XHR call network error message received from chrome.
+  ///
+  /// Example:
+  /// NetworkError: Failed to load 'http://<hostname>.com/path/to/module.js?<cache_busting_token>'
+  static final _loadModuleErrorRegex =
+      RegExp(r".*Failed to load '.*\.com/(.*\.js).*");
+
+  ExpressionEvaluator(this._entrypoint, this._inspector, this._locations,
+      this._modules, this._compiler);
 
   RemoteObject _createError(ErrorKind severity, String message) {
     return RemoteObject(
@@ -107,10 +118,10 @@ class ExpressionEvaluator {
           '  return $inner(t);'
           '}';
       result = await _inspector.callFunction(function, scope.values);
-      result = _formatEvaluationError(result);
+      result = await _formatEvaluationError(result);
     } else {
       result = await _inspector.debugger.evaluate(jsResult);
-      result = _formatEvaluationError(result);
+      result = await _formatEvaluationError(result);
     }
 
     _logger.finest('Evaluated "$expression" to "$result"');
@@ -199,7 +210,7 @@ class ExpressionEvaluator {
     // Send JS expression to chrome to evaluate.
     var result = await _inspector.debugger
         .evaluateJsOnCallFrameIndex(frameIndex, jsResult);
-    result = _formatEvaluationError(result);
+    result = await _formatEvaluationError(result);
 
     _logger.finest('Evaluated "$expression" to "$result"');
     return result;
@@ -240,16 +251,26 @@ class ExpressionEvaluator {
     return _createError(ErrorKind.compilation, error);
   }
 
-  RemoteObject _formatEvaluationError(RemoteObject result) {
+  Future<RemoteObject> _formatEvaluationError(RemoteObject result) async {
     if (result.type == 'string') {
       var error = '${result.value}';
       if (error.startsWith('ReferenceError: ')) {
         error = error.replaceFirst('ReferenceError: ', '');
         return _createError(ErrorKind.reference, error);
-      }
-      if (error.startsWith('TypeError: ')) {
+      } else if (error.startsWith('TypeError: ')) {
         error = error.replaceFirst('TypeError: ', '');
         return _createError(ErrorKind.type, error);
+      } else if (error.startsWith('NetworkError: ')) {
+        var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
+        var module = modulePath != null
+            ? await globalLoadStrategy.moduleForServerPath(
+                _entrypoint, modulePath)
+            : 'unknown';
+        modulePath ??= 'unknown';
+        error = 'Module is not loaded : $module (path: $modulePath). '
+            'Accessing libraries that have not yet been used in the '
+            'application is not supported during expression evaluation.';
+        return _createError(ErrorKind.loadModule, error);
       }
     }
     return result;
