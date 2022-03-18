@@ -158,68 +158,6 @@ class StdoutHandler {
   }
 }
 
-/// Converts filesystem paths to package URIs.
-class PackageUriMapper {
-  PackageUriMapper(String scriptPath, String packagesFilePath,
-      String fileSystemScheme, List<String> fileSystemRoots) {
-    init(scriptPath, packagesFilePath, fileSystemScheme, fileSystemRoots);
-  }
-
-  Future<void> init(String scriptPath, String packagesFilePath,
-      String fileSystemScheme, List<String> fileSystemRoots) async {
-    var packageConfig = await loadPackageConfig(
-        File(fileSystem.path.absolute(packagesFilePath)));
-    var isWindowsPath =
-        Platform.isWindows && !scriptPath.startsWith('org-dartlang-app');
-    var scriptUri = Uri.file(scriptPath, windows: isWindowsPath).toString();
-    for (var package in packageConfig.packages) {
-      var prefix = package.packageUriRoot.toString();
-      // Only perform a multi-root mapping if there are multiple roots.
-      if (fileSystemScheme != null &&
-          fileSystemRoots != null &&
-          fileSystemRoots.length > 1 &&
-          prefix.contains(fileSystemScheme)) {
-        _packageName = package.name;
-        _uriPrefixes = fileSystemRoots
-            .map((String name) =>
-                Uri.file(name, windows: Platform.isWindows).toString())
-            .toList();
-        return;
-      }
-      if (scriptUri.startsWith(prefix)) {
-        _packageName = package.name;
-        _uriPrefixes = <String>[prefix];
-        return;
-      }
-    }
-  }
-
-  String _packageName;
-  List<String> _uriPrefixes;
-
-  Uri map(String scriptPath) {
-    if (_packageName == null) {
-      return null;
-    }
-    var scriptUri =
-        Uri.file(scriptPath, windows: Platform.isWindows).toString();
-    for (var uriPrefix in _uriPrefixes) {
-      if (scriptUri.startsWith(uriPrefix)) {
-        return Uri.parse(
-            'package:$_packageName/${scriptUri.substring(uriPrefix.length)}');
-      }
-    }
-    return null;
-  }
-
-  static Uri findUri(String scriptPath, String packagesFilePath,
-      String fileSystemScheme, List<String> fileSystemRoots) {
-    return PackageUriMapper(
-            scriptPath, packagesFilePath, fileSystemScheme, fileSystemRoots)
-        .map(scriptPath);
-  }
-}
-
 /// Class that allows to serialize compilation requests to the compiler.
 abstract class _CompilationRequest {
   _CompilationRequest(this.completer);
@@ -236,16 +174,16 @@ abstract class _CompilationRequest {
 class _RecompileRequest extends _CompilationRequest {
   _RecompileRequest(
     Completer<CompilerOutput> completer,
-    this.mainPath,
+    this.mainUri,
     this.invalidatedFiles,
     this.outputPath,
-    this.packagesFilePath,
+    this.packageConfig,
   ) : super(completer);
 
-  String mainPath;
+  Uri mainUri;
   List<Uri> invalidatedFiles;
   String outputPath;
-  String packagesFilePath;
+  PackageConfig packageConfig;
 
   @override
   Future<CompilerOutput> _run(DefaultResidentCompiler compiler) async =>
@@ -316,7 +254,7 @@ class _RejectRequest extends _CompilationRequest {
 abstract class ResidentCompiler {
   factory ResidentCompiler(
     String sdkRoot, {
-    String packagesPath,
+    String packageConfigPath,
     List<String> fileSystemRoots,
     String fileSystemScheme,
     String platformDill,
@@ -330,18 +268,14 @@ abstract class ResidentCompiler {
   void addFileSystemRoot(String root);
 
   /// If invoked for the first time, it compiles Dart script identified by
-  /// [mainPath], [invalidatedFiles] list is ignored.
+  /// [mainUri], [invalidatedFiles] list is ignored.
   /// On successive runs [invalidatedFiles] indicates which files need to be
-  /// recompiled. If [mainPath] is null, previously used [mainPath] entry
+  /// recompiled. If [mainUri] is null, previously used [mainUri] entry
   /// point that is used for recompilation.
   /// Binary file name is returned if compilation was successful, otherwise
   /// null is returned.
-  Future<CompilerOutput> recompile(
-    String mainPath,
-    List<Uri> invalidatedFiles, {
-    @required String outputPath,
-    String packagesFilePath,
-  });
+  Future<CompilerOutput> recompile(Uri mainUri, List<Uri> invalidatedFiles,
+      {@required String outputPath, @required PackageConfig packageConfig});
 
   Future<CompilerOutput> compileExpression(
     String expression,
@@ -387,7 +321,7 @@ abstract class ResidentCompiler {
 class DefaultResidentCompiler implements ResidentCompiler {
   DefaultResidentCompiler(
     String sdkRoot, {
-    this.packagesPath,
+    this.packageConfigPath,
     this.fileSystemRoots,
     this.fileSystemScheme,
     this.platformDill,
@@ -398,7 +332,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
         // This is a URI, not a file path, so the forward slash is correct even on Windows.
         sdkRoot = sdkRoot.endsWith('/') ? sdkRoot : '$sdkRoot/';
 
-  final String packagesPath;
+  final String packageConfigPath;
   final List<String> fileSystemRoots;
   final String fileSystemScheme;
   final String platformDill;
@@ -420,8 +354,9 @@ class DefaultResidentCompiler implements ResidentCompiler {
       StreamController<_CompilationRequest>();
 
   @override
-  Future<CompilerOutput> recompile(String mainPath, List<Uri> invalidatedFiles,
-      {@required String outputPath, String packagesFilePath}) async {
+  Future<CompilerOutput> recompile(Uri mainUri, List<Uri> invalidatedFiles,
+      {@required String outputPath,
+      @required PackageConfig packageConfig}) async {
     assert(outputPath != null);
     if (!_controller.hasListener) {
       _controller.stream.listen(_handleCompilationRequest);
@@ -429,40 +364,34 @@ class DefaultResidentCompiler implements ResidentCompiler {
 
     var completer = Completer<CompilerOutput>();
     _controller.add(_RecompileRequest(
-        completer, mainPath, invalidatedFiles, outputPath, packagesFilePath));
+        completer, mainUri, invalidatedFiles, outputPath, packageConfig));
     return completer.future;
   }
 
   Future<CompilerOutput> _recompile(_RecompileRequest request) async {
     _stdoutHandler.reset();
 
-    // First time recompile is called we actually have to compile the app from
-    // scratch ignoring list of invalidated files.
-    PackageUriMapper packageUriMapper;
-    if (request.packagesFilePath != null) {
-      packageUriMapper = PackageUriMapper(
-        request.mainPath,
-        request.packagesFilePath,
-        fileSystemScheme,
-        fileSystemRoots,
-      );
-    }
+    final mainUri =
+        request.packageConfig.toPackageUri(request.mainUri)?.toString() ??
+            toMultiRootPath(request.mainUri, fileSystemScheme, fileSystemRoots);
 
     _compileRequestNeedsConfirmation = true;
 
     if (_server == null) {
-      return _compile(_mapFilename(request.mainPath, packageUriMapper),
-          request.outputPath, request.packagesFilePath);
+      return _compile(mainUri, request.outputPath);
     }
 
     var inputKey = Uuid().generateV4();
-    var mainUri = request.mainPath != null
-        ? '${_mapFilename(request.mainPath, packageUriMapper)} '
-        : '';
     _server.stdin.writeln('recompile $mainUri$inputKey');
     _logger.info('<- recompile $mainUri$inputKey');
     for (var fileUri in request.invalidatedFiles) {
-      var message = _mapFileUri(fileUri.toString(), packageUriMapper);
+      String message;
+      if (fileUri.scheme == 'package') {
+        message = fileUri.toString();
+      } else {
+        message = request.packageConfig.toPackageUri(fileUri)?.toString() ??
+            toMultiRootPath(fileUri, fileSystemScheme, fileSystemRoots);
+      }
       _server.stdin.writeln(message);
       _logger.info(message);
     }
@@ -490,7 +419,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
   }
 
   Future<CompilerOutput> _compile(
-      String scriptUri, String outputFilePath, String packagesFilePath) async {
+      String scriptUri, String outputFilePath) async {
     var frontendServer = frontendServerExecutable;
     var args = <String>[
       frontendServer,
@@ -501,12 +430,9 @@ class DefaultResidentCompiler implements ResidentCompiler {
       '-Ddart.developer.causal_async_stacks=true',
       '--output-dill',
       outputFilePath,
-      if (packagesFilePath != null) ...<String>[
+      if (packageConfigPath != null) ...<String>[
         '--packages',
-        packagesFilePath,
-      ] else if (packagesPath != null) ...<String>[
-        '--packages',
-        packagesPath,
+        packageConfigPath,
       ],
       if (fileSystemRoots != null)
         for (final String root in fileSystemRoots) ...<String>[
@@ -527,8 +453,9 @@ class DefaultResidentCompiler implements ResidentCompiler {
     ];
 
     _logger.info(args.join(' '));
+    var projectDirectory = p.dirname(p.dirname(packageConfigPath));
     _server = await Process.start(Platform.resolvedExecutable, args,
-        workingDirectory: packagesPath);
+        workingDirectory: projectDirectory);
     _server.stdout
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
@@ -693,46 +620,6 @@ class DefaultResidentCompiler implements ResidentCompiler {
     return _server.exitCode;
   }
 
-  String _mapFilename(String filename, PackageUriMapper packageUriMapper) {
-    return _doMapFilename(filename, packageUriMapper) ?? filename;
-  }
-
-  String _mapFileUri(String fileUri, PackageUriMapper packageUriMapper) {
-    String filename;
-    try {
-      filename = Uri.parse(fileUri).toFilePath();
-    } on UnsupportedError catch (_) {
-      return fileUri;
-    }
-    return _doMapFilename(filename, packageUriMapper) ?? fileUri;
-  }
-
-  String _doMapFilename(String filename, PackageUriMapper packageUriMapper) {
-    if (packageUriMapper != null) {
-      var packageUri = packageUriMapper.map(filename);
-      if (packageUri != null) {
-        return packageUri.toString();
-      }
-    }
-
-    if (fileSystemRoots != null) {
-      for (var root in fileSystemRoots) {
-        if (filename.startsWith(root)) {
-          return Uri(
-                  scheme: fileSystemScheme,
-                  path: filename.substring(root.length))
-              .toString();
-        }
-      }
-    }
-    if (Platform.isWindows &&
-        fileSystemRoots != null &&
-        fileSystemRoots.length > 1) {
-      return Uri.file(filename, windows: Platform.isWindows).toString();
-    }
-    return null;
-  }
-
   @override
   Future<dynamic> shutdown() async {
     // Server was never successfully created.
@@ -787,4 +674,21 @@ class TestExpressionCompiler implements ExpressionCompiler {
 
   @override
   Future<void> initialize({String moduleFormat, bool soundNullSafety}) async {}
+}
+
+/// Convert a file URI into a multi-root scheme URI if provided, otherwise
+/// return unmodified.
+@visibleForTesting
+String toMultiRootPath(
+    Uri fileUri, String scheme, List<String> fileSystemRoots) {
+  if (scheme == null || fileSystemRoots.isEmpty || fileUri.scheme != 'file') {
+    return fileUri.toString();
+  }
+  final filePath = fileUri.toFilePath(windows: Platform.isWindows);
+  for (final fileSystemRoot in fileSystemRoots) {
+    if (filePath.startsWith(fileSystemRoot)) {
+      return '$scheme://${filePath.substring(fileSystemRoot.length)}';
+    }
+  }
+  return fileUri.toString();
 }

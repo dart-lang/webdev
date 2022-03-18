@@ -101,9 +101,14 @@ class TestContext {
     _packagesFilePath =
         p.join(workingDirectory, '.dart_tool/package_config.json');
 
-    _entryFile = File(p.normalize(
-        p.absolute(entry ?? p.relative(relativeEntry, from: p.current))));
+    var entryFilePath = p.normalize(
+        p.absolute(entry ?? p.relative(relativeEntry, from: p.current)));
 
+    _logger.info('Serving: $pathToServe/$path');
+    _logger.info('Packages: $_packagesFilePath');
+    _logger.info('Entry: $entryFilePath');
+
+    _entryFile = File(entryFilePath);
     _entryContents = _entryFile.readAsStringSync();
   }
 
@@ -242,15 +247,14 @@ class TestContext {
         case CompilationMode.frontendServer:
           {
             soundNullSafety ??= true;
-            var fileSystemRoot = p.dirname(_packagesFilePath);
+            var projectDirectory = p.dirname(p.dirname(_packagesFilePath));
             var entryPath =
-                _entryFile.path.substring(fileSystemRoot.length + 1);
+                _entryFile.path.substring(projectDirectory.length + 1);
             webRunner = ResidentWebRunner(
                 '${Uri.file(entryPath)}',
                 urlEncoder,
-                fileSystemRoot,
                 _packagesFilePath,
-                [fileSystemRoot],
+                [projectDirectory],
                 'org-dartlang-app',
                 _outputDir.path,
                 verboseCompiler);

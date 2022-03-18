@@ -28,14 +28,13 @@ class ResidentWebRunner {
   ResidentWebRunner(
       this.mainPath,
       this.urlTunneller,
-      this.packagesPath,
-      this.packagesFilePath,
+      this.packageConfigPath,
       this.fileSystemRoots,
       this.fileSystemScheme,
       this.outputPath,
       bool verbose) {
     generator = ResidentCompiler(dartSdkPath,
-        packagesPath: packagesPath,
+        packageConfigPath: packageConfigPath,
         platformDill: '$platformDill',
         fileSystemRoots: fileSystemRoots,
         fileSystemScheme: fileSystemScheme,
@@ -45,8 +44,7 @@ class ResidentWebRunner {
 
   final UrlEncoder urlTunneller;
   final String mainPath;
-  final String packagesPath;
-  final String packagesFilePath;
+  final String packageConfigPath;
   final String outputPath;
   final List<String> fileSystemRoots;
   final String fileSystemScheme;
@@ -67,8 +65,7 @@ class ResidentWebRunner {
       fileSystem: fileSystem,
       hostname: hostname,
       port: port,
-      packagesFilePath: packagesFilePath,
-      packagesPath: packagesPath,
+      packageConfigPath: packageConfigPath,
       root: root,
       urlTunneller: urlTunneller,
     );
