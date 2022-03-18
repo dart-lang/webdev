@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:core';
 import 'dart:html';
 
+import 'package:_test/deferred_library.dart' deferred as d;
 import 'package:_test/library.dart';
 import 'package:_test_package/test_library.dart';
 
@@ -101,6 +102,10 @@ void printLoopVariable() {
   for (var item in list) {
     print(item); // Breakpoint: printLoopVariable
   }
+}
+
+Future<void> printDeferred() async {
+  d.deferredPrintLocal();
 }
 
 class MainClass {
