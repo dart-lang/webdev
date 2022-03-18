@@ -29,14 +29,14 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   // Enable verbose logging for debugging.
-  var debug = true;
+  var debug = false;
 
   // Change to 'true' to print expression compiler messages to console.
   //
   // Note: expression compiler runs in an isolate, so its output is not
   // currently redirected to a logger. As a result, it will be printed
   // regardless of the logger settings.
-  var verboseCompiler = true;
+  var verboseCompiler = false;
 
   group('shared context', () {
     setUpAll(() async {
