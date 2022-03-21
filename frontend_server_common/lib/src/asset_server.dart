@@ -12,7 +12,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dwds/dwds.dart';
-import 'package:file/file.dart' hide Directory;
+import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:package_config/package_config.dart'; // ignore: deprecated_member_use
