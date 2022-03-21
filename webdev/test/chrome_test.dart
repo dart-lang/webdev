@@ -35,9 +35,11 @@ void main() {
 
   group('chrome with temp data dir', () {
     tearDown(() async {
-      var tabs = await chrome.chromeConnection.getTabs();
-      for (var tab in tabs) {
-        await closeTab(tab);
+      var tabs = await chrome?.chromeConnection?.getTabs();
+      if (tabs != null) {
+        for (var tab in tabs) {
+          await closeTab(tab);
+        }
       }
       await chrome?.close();
       chrome = null;
@@ -97,9 +99,11 @@ void main() {
     });
 
     tearDown(() async {
-      var tabs = await chrome.chromeConnection.getTabs();
-      for (var tab in tabs) {
-        await closeTab(tab);
+      var tabs = await chrome?.chromeConnection?.getTabs();
+      if (tabs != null) {
+        for (var tab in tabs) {
+          await closeTab(tab);
+        }
       }
       await chrome.close();
       chrome = null;

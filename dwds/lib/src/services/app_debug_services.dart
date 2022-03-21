@@ -7,6 +7,7 @@
 import 'dart:async';
 
 import '../dwds_vm_client.dart';
+import '../events.dart';
 import 'chrome_proxy_service.dart' show ChromeProxyService;
 import 'debug_service.dart';
 
@@ -14,6 +15,7 @@ import 'debug_service.dart';
 class AppDebugServices {
   final DebugService debugService;
   final DwdsVmClient dwdsVmClient;
+  final DwdsStats dwdsStats;
 
   ChromeProxyService get chromeProxyService =>
       debugService.chromeProxyService as ChromeProxyService;
@@ -28,7 +30,7 @@ class AppDebugServices {
   /// We only allow a given app to be debugged in a single tab at a time.
   String connectedInstanceId;
 
-  AppDebugServices(this.debugService, this.dwdsVmClient);
+  AppDebugServices(this.debugService, this.dwdsVmClient, this.dwdsStats);
 
   Future<void> close() =>
       _closed ??= Future.wait([debugService.close(), dwdsVmClient.close()]);

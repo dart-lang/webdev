@@ -1,4 +1,4 @@
-# Created with package:mono_repo v6.0.0
+# Created with package:mono_repo v6.1.0
 name: Dart CI
 on:
   push:
@@ -32,9 +32,9 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - name: mono_repo self validate
-        run: dart pub global activate mono_repo 6.0.0
+        run: dart pub global activate mono_repo 6.1.0
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
@@ -55,7 +55,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -91,7 +91,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: example_pub_upgrade
         name: example; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -162,7 +162,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -198,7 +198,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -243,7 +243,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -281,7 +281,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -315,7 +315,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -353,7 +353,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -391,7 +391,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -425,7 +425,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -453,7 +453,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -477,7 +477,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -501,7 +501,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -525,7 +525,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -549,7 +549,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -573,7 +573,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -607,7 +607,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -658,7 +658,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -709,7 +709,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -756,7 +756,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -793,7 +793,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -830,7 +830,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"

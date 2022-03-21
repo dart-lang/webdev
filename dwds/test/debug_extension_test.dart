@@ -31,7 +31,30 @@ import 'fixtures/utilities.dart';
 // See go/extension-identification.
 
 final context = TestContext();
+
+// TODO(elliette): Instead of setting a time to load, check for element on page.
+// See: https://github.com/dart-lang/webdev/issues/1512
+// Time for Dart DevTools to load, in seconds.
+final devToolsLoadTime = const Duration(seconds: 4);
+
 void main() async {
+  Future<void> waitForDartDevToolsWithRetry({
+    int retryCount = 6,
+    Duration retryWait = const Duration(seconds: 1),
+  }) async {
+    if (retryCount == 0) return;
+    var windows = await context.webDriver.windows.toList();
+    await context.webDriver.driver.switchTo.window(windows.last);
+    final title = await context.webDriver.title;
+    if (title == 'Dart DevTools') return;
+
+    await Future.delayed(retryWait);
+    return waitForDartDevToolsWithRetry(
+      retryCount: retryCount--,
+      retryWait: retryWait,
+    );
+  }
+
   for (var useSse in [true, false]) {
     group(useSse ? 'SSE' : 'WebSockets', () {
       group('Without encoding', () {
@@ -42,7 +65,7 @@ void main() async {
             'expression': 'fakeClick()',
           });
           // Wait for DevTools to actually open.
-          await Future.delayed(const Duration(seconds: 2));
+          await Future.delayed(devToolsLoadTime);
         });
 
         tearDown(() async {
@@ -55,6 +78,8 @@ void main() async {
           // TODO(grouma): switch back to `fixture.webdriver.title` when
           // https://github.com/flutter/devtools/issues/2045 is fixed.
           expect(await context.webDriver.pageSource, contains('Flutter'));
+          expect(await context.webDriver.currentUrl,
+              contains('ide=DebugExtension'));
         });
 
         test('can close DevTools and relaunch', () async {
@@ -70,9 +95,7 @@ void main() async {
           await context.extensionConnection.sendCommand('Runtime.evaluate', {
             'expression': 'fakeClick()',
           });
-          await Future.delayed(const Duration(seconds: 4));
-          var windows = await context.webDriver.windows.toList();
-          await context.webDriver.driver.switchTo.window(windows.last);
+          await waitForDartDevToolsWithRetry();
           expect(await context.webDriver.title, 'Dart DevTools');
         });
       });
@@ -101,6 +124,55 @@ void main() async {
           var alert =
               await retryFn<Alert>(() => context.webDriver.switchTo.alert);
           expect(alert, isNotNull);
+        });
+      });
+
+      // TODO(elliette): Figure out a way to verify that the Dart panel is added
+      // to Chrome DevTools. This might not be possible to test with WebDriver,
+      // because WebDriver doesn't allow you to interact with Chrome DevTools.
+      group('With an internal Dart app', () {
+        setUp(() async {
+          await context.setUp(
+              enableDebugExtension: true, serveDevTools: true, useSse: false);
+          var htmlTag =
+              await context.webDriver.findElement(const By.tagName('html'));
+
+          await context.webDriver.execute(
+              "arguments[0].setAttribute('data-ddr-dart-app', 'true');",
+              [htmlTag]);
+
+          await context.extensionConnection.sendCommand('Runtime.evaluate', {
+            'expression': 'fakeClick()',
+          });
+          // Wait for DevTools to actually open.
+          await Future.delayed(devToolsLoadTime);
+        });
+
+        tearDown(() async {
+          await context.tearDown();
+        });
+
+        test('can launch DevTools', () async {
+          var windows = await context.webDriver.windows.toList();
+          await context.webDriver.driver.switchTo.window(windows.last);
+          expect(await context.webDriver.title, 'Dart DevTools');
+        });
+
+        test('can close DevTools and relaunch', () async {
+          for (var window in await context.webDriver.windows.toList()) {
+            await context.webDriver.driver.switchTo.window(window);
+            if (await context.webDriver.title == 'Dart DevTools') {
+              await window.close();
+              break;
+            }
+          }
+
+          // Relaunch DevTools by (fake) clicking the extension.
+          await context.extensionConnection.sendCommand('Runtime.evaluate', {
+            'expression': 'fakeClick()',
+          });
+          await waitForDartDevToolsWithRetry();
+          expect(await context.webDriver.title, 'Dart DevTools');
         });
       });
     });

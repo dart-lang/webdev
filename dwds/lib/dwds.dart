@@ -24,7 +24,7 @@ import 'src/readers/asset_reader.dart';
 import 'src/servers/devtools.dart';
 import 'src/servers/extension_backend.dart';
 import 'src/services/expression_compiler.dart';
-import 'src/utilities/dart_uri.dart';
+import 'src/utilities/sdk_configuration.dart';
 
 export 'src/connections/app_connection.dart' show AppConnection;
 export 'src/connections/debug_connection.dart' show DebugConnection;
@@ -50,6 +50,8 @@ export 'src/services/expression_compiler.dart'
     show ExpressionCompilationResult, ExpressionCompiler, ModuleInfo;
 export 'src/services/expression_compiler_service.dart'
     show ExpressionCompilerService;
+export 'src/utilities/sdk_configuration.dart'
+    show SdkConfiguration, SdkConfigurationProvider;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 typedef UrlEncoder = Future<String> Function(String url);
@@ -87,9 +89,7 @@ class Dwds {
 
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
     if (!_enableDebugging) throw StateError('Debugging is not enabled.');
-    final dwdsStats = DwdsStats(DateTime.now());
-    var appDebugServices =
-        await _devHandler.loadAppServices(appConnection, dwdsStats);
+    var appDebugServices = await _devHandler.loadAppServices(appConnection);
     await appDebugServices.chromeProxyService.isInitialized;
     return DebugConnection(appDebugServices);
   }
@@ -115,8 +115,7 @@ class Dwds {
     bool enableDevtoolsLaunch,
     DevtoolsLauncher devtoolsLauncher,
     bool launchDevToolsInNewWindow,
-    Uri sdkDir,
-    Uri librariesPath,
+    SdkConfigurationProvider sdkConfigurationProvider,
     bool emitDebugEvents,
   }) async {
     hostname ??= 'localhost';
@@ -131,7 +130,7 @@ class Dwds {
     globalLoadStrategy = loadStrategy;
     emitDebugEvents ??= true;
 
-    await DartUri.initialize(sdkDir: sdkDir, librariesPath: librariesPath);
+    sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
     DevTools devTools;
     Future<String> extensionUri;
@@ -188,6 +187,7 @@ class Dwds {
       injected,
       spawnDds,
       launchDevToolsInNewWindow,
+      sdkConfigurationProvider,
     );
 
     return Dwds._(

@@ -11,7 +11,6 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:http_multi_server/http_multi_server.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/async_core.dart';
@@ -33,7 +32,7 @@ void main() {
 
     setUp(() async {
       setCurrentLogWriter();
-      server = await HttpMultiServer.bind('localhost', 0);
+      server = await startHttpServer('localhost', port: 0);
     });
 
     tearDown(() async {
@@ -97,6 +96,20 @@ void main() {
       return result;
     }
 
+    /// Runs [action] and waits for an event matching [eventMatcher].
+    Future<T> expectEventsDuring<T>(
+        List<Matcher> eventMatchers, Future<T> Function() action,
+        {Timeout timeout}) async {
+      // The events stream is a broadcast stream so start listening
+      // before the action.
+      final events = eventMatchers.map((matcher) => expectLater(
+          pipe(context.testServer.dwds.events, timeout: timeout),
+          emitsThrough(matcher)));
+      final result = await action();
+      await Future.wait(events);
+      return result;
+    }
+
     setUpAll(() async {
       setCurrentLogWriter();
       initialEvents = expectLater(
@@ -118,34 +131,26 @@ void main() {
       await context.tearDown();
     });
 
+    test('emits DEBUGGER_READY and DEVTOOLS_LOAD events', () async {
+      await expectEventsDuring(
+        [
+          matchesEvent(DwdsEventKind.debuggerReady, {
+            'elapsedMilliseconds': isNotNull,
+          }),
+          matchesEvent(DwdsEventKind.devToolsLoad, {
+            'elapsedMilliseconds': isNotNull,
+          }),
+        ],
+        () => keyboard.sendChord([Keyboard.alt, 'd']),
+      );
+    });
+
     test('emits DEVTOOLS_LAUNCH event', () async {
       await expectEventDuring(
         matchesEvent(DwdsEventKind.devtoolsLaunch, {}),
         () => keyboard.sendChord([Keyboard.alt, 'd']),
       );
     });
-
-    test('emits DEBUGGER_READY event', () async {
-      await expectEventDuring(
-        matchesEvent(DwdsEventKind.debuggerReady, {
-          'elapsedMilliseconds': isNotNull,
-        }),
-        () => keyboard.sendChord([Keyboard.alt, 'd']),
-      );
-    },
-        skip: 'Enable after publishing of '
-            'https://github.com/flutter/devtools/pull/3346');
-
-    test('emits DEVTOOLS_LOAD events', () async {
-      await expectEventDuring(
-        matchesEvent(DwdsEventKind.devToolsLoad, {
-          'elapsedMilliseconds': isNotNull,
-        }),
-        () => keyboard.sendChord([Keyboard.alt, 'd']),
-      );
-    },
-        skip: 'Enable after publishing of '
-            'https://github.com/flutter/devtools/pull/3346');
 
     test('events can be listened to multiple times', () async {
       events.listen((_) {});

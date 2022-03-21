@@ -165,6 +165,52 @@ void main() {
       expect(source, contains('Gary is awesome!'));
     });
 
+    test('can send events before and after hot restart', () async {
+      var client = context.debugConnection.vmService;
+      await client.streamListen('Isolate');
+
+      // The event just before hot restart might never be received,
+      // but the injected client continues to work and send events
+      // after hot restart.
+      var eventsDone = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(
+            _hasKind(EventKind.kServiceExtensionAdded)
+                .having((e) => e.extensionRPC, 'service', 'ext.bar'),
+          ));
+
+      var vm = await client.getVM();
+      var isolateId = vm.isolates.first.id;
+      var isolate = await client.getIsolate(isolateId);
+      var library = isolate.rootLib.uri;
+
+      await client.evaluate(
+        isolateId,
+        library,
+        "registerExtension('ext.foo', (method, params) {})",
+      );
+
+      expect(await client.callServiceExtension('hotRestart'),
+          const TypeMatcher<Success>());
+
+      vm = await client.getVM();
+      isolateId = vm.isolates.first.id;
+      isolate = await client.getIsolate(isolateId);
+      library = isolate.rootLib.uri;
+
+      await client.evaluate(
+        isolateId,
+        library,
+        "registerExtension('ext.bar', (method, params) {})",
+      );
+
+      await eventsDone;
+
+      var source = await context.webDriver.pageSource;
+      // Main is re-invoked which shouldn't clear the state.
+      expect(source, contains('Hello World!'));
+    });
+
     test('can refresh the page via the fullReload service extension', () async {
       var client = context.debugConnection.vmService;
       await client.streamListen('Isolate');

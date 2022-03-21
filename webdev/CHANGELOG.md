@@ -3,6 +3,7 @@
 - Update `vm_service` to `^8.1.0`.
 - Enable expression evaluation by default.
 - Update the Dart minimum SDK to `>=2.16.0`.
+- Depend on the latest DWDS (12.0.0)
 
 ## 2.7.7
 

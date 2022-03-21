@@ -47,28 +47,56 @@ final _tabsToAttach = <Tab>{};
 
 final _debugSessions = <DebugSession>[];
 
+final _devToolsPanelsNotifier = Notifier(<DevToolsPanel>[]);
+
+// Keeps track of the most recent Dart tab that was opened. This is a heuristic
+// to let us guess which tab the user is trying to debug if they start debugging
+// from the Chrome DevTools Dart panel (which doesn't have a tab ID).
+Tab _mostRecentDartTab;
+
+// Keeps track of how debugging was triggered. This lets us know if we should
+// open Dart DevTools in a new window/tab or embed it in Chrome DevTools.
+DebuggerTrigger _debuggerTrigger;
+
 class DebugSession {
   final SocketClient socketClient;
 
   // The tab ID that contains the running Dart application.
   final int appTabId;
 
+  // The Dart app ID.
+  final String appId;
+
   // The tab ID that contains the corresponding Dart DevTools.
   int devtoolsTabId;
 
-  DebugSession(this.socketClient, this.appTabId);
+  DebugSession(this.socketClient, this.appTabId, this.appId);
 }
+
+class DevToolsPanel {
+  // The Dart app ID.
+  final String appId;
+
+  // The Chrome DevTools panel ID.
+  String panelId;
+
+  // The URI for the embedded Dart DevTools, or an empty string if the debugger
+  // is disconnected.
+  String devToolsUri = '';
+
+  DevToolsPanel(this.appId);
+}
+
+enum DebuggerTrigger { extensionIcon, dartPanel, dwds }
 
 void main() {
   // Start debugging when a user clicks the Dart Debug Extension:
-  browserActionOnClickedAddListener(allowInterop(_startDebugging));
+  browserActionOnClickedAddListener(allowInterop((_) {
+    _startDebugging(DebuggerTrigger.extensionIcon);
+  }));
 
-  // Marks the current tab as debuggable and changes the extension icon to blue
-  // when it receives a message.
-  // TODO(elliette): Currently the only messages this ever receives is from
-  // the context script. Consider making it explicit what messages this is
-  // listening for.
-  onMessageAddListener(allowInterop(_maybeMarkTabAsDebuggable));
+// Handles any incoming messages from the content scripts (detector, panel).
+  onMessageAddListener(allowInterop(_handleMessageFromContentScripts));
 
   // Attaches a debug session to the app when the extension receives a
   // Runtime.executionContextCreated event from DWDS:
@@ -115,6 +143,12 @@ void main() {
     }
   }));
 
+  // Notify the panel script controlling the Dart DevTools panel in Chrome
+  // DevTools of any relevant changes so that it can update accordingly:
+  final devToolsPanelListener =
+      Listener<List<DevToolsPanel>>(_notifyPanelScriptOfChanges);
+  _devToolsPanelsNotifier.addListener(devToolsPanelListener);
+
   /// Everything after this is for testing only.
   /// TODO(elliette): Figure out if there is a workaround that would allow us to
   /// remove this.
@@ -123,7 +157,7 @@ void main() {
   /// We initiate a fake click from the `debug_extension_test`
   /// after the extension is loaded.
   onFakeClick = allowInterop(() {
-    _startDebugging(null);
+    _startDebugging(DebuggerTrigger.extensionIcon);
   });
 
   /// This is how we determine the extension tab to connect to during E2E tests.
@@ -131,7 +165,12 @@ void main() {
 }
 
 // Gets the current tab, then attaches the debugger to it:
-void _startDebugging(_) {
+void _startDebugging(DebuggerTrigger debuggerTrigger) {
+  // Set how the debugging request was triggered. This will determine whether we
+  // launch Dart DevTools in a new Chrome window / tab or in the Chrome DevTools
+  // Dart panel:
+  _debuggerTrigger = debuggerTrigger;
+
   final getCurrentTabQuery = QueryInfo(active: true, currentWindow: true);
 
   // Sends commands to debugger attached to the current tab.
@@ -139,7 +178,17 @@ void _startDebugging(_) {
   var attachDebuggerToTab = allowInterop(_attachDebuggerToTab);
 
   queryTabs(getCurrentTabQuery, allowInterop((List<Tab> tabs) {
-    attachDebuggerToTab(tabs[0]);
+    if (tabs != null && tabs.isNotEmpty) {
+      attachDebuggerToTab(tabs[0]);
+    } else if (_mostRecentDartTab != null) {
+      attachDebuggerToTab(_mostRecentDartTab);
+    } else {
+      alert('''
+          Could not find a Dart app to start debugging. 
+          The Dart Debug Extension will turn blue when 
+          a Dart application is detected.
+          ''');
+    }
   }));
 }
 
@@ -169,6 +218,31 @@ void _attachDebuggerToTab(Tab currentTab) async {
   }));
 }
 
+void _handleMessageFromContentScripts(
+    Request request, Sender sender, Function sendResponse) {
+  switch (request.sender) {
+    case 'detector-script':
+      _maybeMarkTabAsDebuggable(request, sender, sendResponse);
+      break;
+    case 'panel-script':
+      _handleMessageFromPanelScript(request, sender);
+      break;
+  }
+}
+
+void _handleMessageFromPanelScript(Request request, Sender sender) {
+  switch (request.message) {
+    case 'devtools-open':
+      _updateOrCreateDevToolsPanel(request.dartAppId, (panel) {
+        panel.panelId = sender.id;
+      });
+      break;
+    case 'start-debugging':
+      _startDebugging(DebuggerTrigger.dartPanel);
+      break;
+  }
+}
+
 void _maybeMarkTabAsDebuggable(
     Request request, Sender sender, Function sendResponse) async {
   // Register any warnings for the tab:
@@ -195,7 +269,9 @@ void _maybeAttachDebugSession(
   var tab = _tabsToAttach.firstWhere((tab) => tab.id == source.tabId,
       orElse: () => null);
   if (tab != null) {
-    if (await _tryAttach(context['id'] as int, tab)) {
+    final launchInChromeDevTools =
+        _debuggerTrigger == DebuggerTrigger.dartPanel;
+    if (await _tryAttach(context['id'] as int, tab, launchInChromeDevTools)) {
       _tabsToAttach.remove(tab);
     }
   }
@@ -241,7 +317,7 @@ void _handleMessageFromExternalExtensions(
     } else if (request.name == 'dwds.encodedUri') {
       sendResponse(_tabIdToEncodedUri[request.tabId] ?? '');
     } else if (request.name == 'dwds.startDebugging') {
-      _startDebugging(null);
+      _startDebugging(DebuggerTrigger.dwds);
       // TODO(grouma) - Actually determine if debugging initiated
       // successfully.
       sendResponse(true);
@@ -271,9 +347,23 @@ int _maybeRemoveDebugSessionForTab(int tabId) {
   if (session != null) {
     session.socketClient.close();
     _debugSessions.remove(session);
+
+    // Notify the Dart DevTools panel that the session has been detached by
+    // setting the URI to an empty string:
+    _updateOrCreateDevToolsPanel(session.appId, (panel) {
+      panel.devToolsUri = '';
+    });
+
     return session.appTabId;
   } else {
     return -1;
+  }
+}
+
+void _notifyPanelScriptOfChanges(List<DevToolsPanel> panels) {
+  for (final panel in panels) {
+    sendSimpleMessage(panel.panelId,
+        SimpleMessage(recipient: 'panel-script', body: panel.devToolsUri));
   }
 }
 
@@ -292,7 +382,8 @@ void sendMessageToExtensions(Request request) {
 
 /// Attempts to attach to the Dart application in the provided Tab and execution
 /// context.
-Future<bool> _tryAttach(int contextId, Tab tab) async {
+Future<bool> _tryAttach(
+    int contextId, Tab tab, bool launchInChromeDevTools) async {
   var successCompleter = Completer<bool>();
   sendCommand(
       Debuggee(tabId: tab.id),
@@ -318,6 +409,7 @@ Future<bool> _tryAttach(int contextId, Tab tab) async {
       contextId,
       tab,
       dwdsVersion,
+      launchInChromeDevTools,
     );
     successCompleter.complete(true);
   }));
@@ -335,6 +427,7 @@ Future<void> _startSseClient(
   int contextId,
   Tab currentTab,
   String dwdsVersion,
+  bool launchInChromeDevTools,
 ) async {
   if (Version.parse(dwdsVersion ?? '0.0.0') >= Version.parse('9.1.0')) {
     var authUri = uri.replace(path: authenticationPath);
@@ -366,7 +459,7 @@ Future<void> _startSseClient(
   var client = uri.isScheme('ws') || uri.isScheme('wss')
       ? WebSocketClient(WebSocketChannel.connect(uri))
       : SseSocketClient(SseClient(uri.toString()));
-  _debugSessions.add(DebugSession(client, currentTab.id));
+  _debugSessions.add(DebugSession(client, currentTab.id, appId));
   print('Connected to DWDS version $dwdsVersion with appId=$appId');
   client.stream.listen((data) {
     var message = serializers.deserialize(jsonDecode(data));
@@ -398,6 +491,12 @@ Future<void> _startSseClient(
             options: message.params));
         _tabIdToEncodedUri[currentTab.id] = message.params;
       }
+
+      if (message.method == 'dwds.devtoolsUri') {
+        _updateOrCreateDevToolsPanel(appId, (panel) {
+          panel.devToolsUri = message.params;
+        });
+      }
     }
   }, onDone: () {
     _tabIdToEncodedUri.remove(currentTab.id);
@@ -413,10 +512,29 @@ Future<void> _startSseClient(
     ..appId = appId
     ..instanceId = instanceId
     ..contextId = contextId
-    ..tabUrl = currentTab.url))));
+    ..tabUrl = currentTab.url
+    ..uriOnly = launchInChromeDevTools))));
 
   sendCommand(Debuggee(tabId: currentTab.id), 'Runtime.enable', EmptyParam(),
       allowInterop((e) {}));
+}
+
+void _updateOrCreateDevToolsPanel(
+    String appId, void Function(DevToolsPanel panel) update) {
+  final devToolsPanels = _devToolsPanelsNotifier.value;
+  var panelAlreadyExists = false;
+  for (final panel in devToolsPanels) {
+    if (panel.appId == appId) {
+      panelAlreadyExists = true;
+      update(panel);
+    }
+  }
+  if (!panelAlreadyExists) {
+    final newPanel = DevToolsPanel(appId);
+    update(newPanel);
+    devToolsPanels.add(newPanel);
+  }
+  _devToolsPanelsNotifier.setValue(devToolsPanels);
 }
 
 void _updateIcon() {
@@ -434,6 +552,7 @@ void _updateIcon() {
       setIcon(IconInfo(path: 'dart_warning.png'));
     } else if (_debuggableTabs.contains(tabList.first.id)) {
       // Set the debuggable icon (blue):
+      _mostRecentDartTab = tabList.first;
       setIcon(IconInfo(path: 'dart.png'));
     } else {
       // Set the default icon (grey):
@@ -461,6 +580,36 @@ void _filterAndForwardToBackend(Debuggee source, String method, Object params) {
   var event = _extensionEventFor(method, params);
 
   debugSession.socketClient.sink.add(jsonEncode(serializers.serialize(event)));
+}
+
+class Notifier<T> {
+  Notifier(T value) : _value = value;
+
+  T _value;
+  final List<Listener> _listeners = <Listener>[];
+
+  T get value => _value;
+
+  void setValue(T value) {
+    _value = value;
+    notifyListeners();
+  }
+
+  void addListener(Listener listener) {
+    _listeners.add(listener);
+  }
+
+  void notifyListeners() {
+    for (final listener in _listeners) {
+      listener.onChange(_value);
+    }
+  }
+}
+
+class Listener<T> {
+  Listener(this.onChange);
+
+  void Function(T value) onChange;
 }
 
 @JS('chrome.browserAction.onClicked.addListener')
@@ -519,6 +668,14 @@ external void setIcon(IconInfo iconInfo);
 @JS('chrome.runtime.sendMessage')
 external void sendMessage(
     String id, Object message, Object options, Function callback);
+
+@JS('chrome.runtime.sendMessage')
+external void sendSimpleMessage(String id, SimpleMessage message);
+
+// For debugging purposes:
+@JS('console.log')
+external void consoleLog(String header,
+    [String style1, String style2, String style3]);
 
 // Note: Not checking the lastError when one occurs throws a runtime exception.
 @JS('chrome.runtime.lastError')
@@ -582,11 +739,22 @@ class NavigationInfo {
 
 @JS()
 @anonymous
+class SimpleMessage {
+  external String get recipient;
+  external String get body;
+  external factory SimpleMessage({String recipient, String body});
+}
+
+@JS()
+@anonymous
 class Request {
+  external String get dartAppId;
+  external String get sender;
   external int get tabId;
   external String get name;
   external dynamic get options;
   external String get warning;
+  external String get message;
   external factory Request({int tabId, String name, dynamic options});
 }
 

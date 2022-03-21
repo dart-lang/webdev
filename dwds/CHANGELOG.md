@@ -1,3 +1,27 @@
+## 13.0.0-dev
+- Change wording of paused overlay from "Paused in Dart DevTools" to "Paused"
+- Allow sending back the Dart DevTools URL from DWDS instead of launching
+  Dart DevTools, to support embedding Dart DevTools in Chrome DevTools.
+- Temporarily disable the paused in debugger overlay.
+- Add `SdkConfiguration` and `SdkConfigurationProvider` classes to allow
+  for lazily created SDK configurations.
+- Fix an issue in reporting DevTools stats where the DevTools load time was
+  not always recorded.
+- Add an `ide` query parameter to the Dart DevTools URL for analytics.
+- Fix a race where injected client crashed on events send just before hot
+  restart.
+- Remove verbose printing on receiving DevTools events.
+- Update `vm_service` version to `^8.2.0`.
+- Update error message on expression evaluation using unloaded libraries.
+
+**Breaking changes:**
+- `Dwds.start` and `ExpressionCompilerService` now take
+  `sdkConfigurationProvider` argument instead of separate SDK-related file
+  paths.
+
+## 12.1.0
+- Update _fe_analyzer_shared to version ^34.0.0.
+
 ## 12.0.0
 
 - Implement `lookupResolvedPackageUris` and `lookupPackageUris` vm service API.
