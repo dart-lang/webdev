@@ -125,8 +125,9 @@ void main() {
     expect(fileTo.statSync().modified, isNot(equals(stats.modified)));
 
     await updatePath(from.path, to.path);
-    expect(fileTo.statSync().modified, equals(stats.modified));
+    print('Actual: ${fileTo.statSync()}, expected $stats');
     expect(fileTo.readAsStringSync(), equals('contentsFrom'));
+    expect(fileTo.statSync().modified, equals(stats.modified));
   });
 
   test('updatePath does not update newer files', () async {

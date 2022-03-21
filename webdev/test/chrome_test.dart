@@ -147,7 +147,7 @@ String _closeTabUrl(String id) => '/json/close/$id';
 
 Future<String> _evaluateExpression(WipPage page, String expression) async {
   var result = '';
-  while (result.isEmpty) {
+  while (result == null || result.isEmpty) {
     await Future.delayed(const Duration(milliseconds: 100));
     var wipResponse = await page.sendCommand(
       'Runtime.evaluate',

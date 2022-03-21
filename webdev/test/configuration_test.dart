@@ -13,6 +13,7 @@ void main() {
   setUp(() {
     argParser = ArgParser()
       ..addFlag('release')
+      ..addFlag(launchInChromeFlag, defaultsTo: false)
       ..addOption(nullSafetyFlag, defaultsTo: nullSafetyAuto)
       ..addOption(userDataDirFlag, defaultsTo: null);
   });
@@ -50,7 +51,7 @@ void main() {
 
   test('can read user data dir from args ', () {
     var argResults =
-        argParser.parse(['--launch-in-chrome --user-data-dir=tempdir']);
+        argParser.parse(['--launch-in-chrome', '--user-data-dir=tempdir']);
     var configuration = Configuration.fromArgs(argResults);
     expect(configuration.userDataDir, equals('tempdir'));
   });
