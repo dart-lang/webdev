@@ -1,3 +1,13 @@
+## 2.7.9-dev
+
+- Add an option to pass user data directory to chrome: `user-data-dir`
+  Example:
+  ```
+    webdev serve \
+      --debug --debug-extension \
+      --user-data-dir='/Users/<user>/Library/Application Support/Google/Chrome'
+  ```
+
 ## 2.7.8
 
 - Update `vm_service` to `^8.1.0`.

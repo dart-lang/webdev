@@ -83,16 +83,14 @@ void main() {
 
     setUp(() {
       logController = StreamController<String>();
-      logStream = logController.stream.asBroadcastStream();
+      logStream = logController.stream;
 
       void _logWriter(Level level, String message,
           {String error, String loggerName, String stackTrace}) {
-        if (level >= Level.SEVERE) {
+        if (level >= Level.INFO) {
           logController.add('[$level] $loggerName: $message');
         }
       }
-
-      logStream.listen(print);
 
       configureLogWriter(true, customLogWriter: _logWriter);
       dataDir = Directory.systemTemp.createTempSync(_userDataDirName);
@@ -108,6 +106,10 @@ void main() {
       await chrome.close();
       chrome = null;
 
+      expect(
+          logStream,
+          emitsThrough(matches('Starting chrome with user data directory:'
+              '.*chrome_user_data_copy')));
       await logController.close();
       dataDir?.deleteSync(recursive: true);
     });
