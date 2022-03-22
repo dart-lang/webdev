@@ -118,11 +118,12 @@ void main() {
     var fileTo = File(p.join(to.path, '1'));
 
     fileTo.writeAsStringSync('contentsTo');
-    await Future.delayed(const Duration(milliseconds: 10));
+    await Future.delayed(const Duration(seconds: 1));
     fileFrom.writeAsStringSync('contentsFrom');
 
-    expect(fileTo.statSync().modified,
-        isNot(equals(fileFrom.statSync().modified)));
+    var stats = fileFrom.statSync();
+    expect(fileTo.statSync().modified, isNot(equals(stats.modified)));
+
     expect(fileTo.readAsStringSync(), equals('contentsTo'));
     await updatePath(from.path, to.path);
     expect(fileTo.readAsStringSync(), equals('contentsFrom'));
@@ -133,7 +134,7 @@ void main() {
     var fileTo = File(p.join(to.path, '1'));
 
     fileFrom.writeAsStringSync('contentsFrom');
-    await Future.delayed(const Duration(milliseconds: 10));
+    await Future.delayed(const Duration(seconds: 1));
     fileTo.writeAsStringSync('contentsTo');
 
     var stats = fileFrom.statSync();
