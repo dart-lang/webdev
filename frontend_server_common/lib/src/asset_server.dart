@@ -27,7 +27,7 @@ class TestAssetServer implements AssetReader {
   TestAssetServer(
     this._root,
     this._httpServer,
-    this._packages,
+    this._packageConfig,
     this.internetAddress,
     this._fileSystem,
   );
@@ -47,14 +47,12 @@ class TestAssetServer implements AssetReader {
     String hostname,
     int port,
     UrlEncoder urlTunneller,
+    PackageConfig packageConfig,
   ) async {
     var address = (await InternetAddress.lookup(hostname)).first;
     var httpServer = await HttpServer.bind(address, port);
-    var packages = await loadPackageConfigUri(Uri.base.resolve('.packages'),
-        loader: (Uri uri) => fileSystem.file(uri).readAsBytes());
     var server =
-        TestAssetServer(root, httpServer, packages, address, fileSystem);
-
+        TestAssetServer(root, httpServer, packageConfig, address, fileSystem);
     return server;
   }
 
@@ -64,8 +62,7 @@ class TestAssetServer implements AssetReader {
   final Map<String, Uint8List> _sourcemaps = <String, Uint8List>{};
   final Map<String, Uint8List> _metadata = <String, Uint8List>{};
   String _mergedMetadata;
-  // ignore: deprecated_member_use
-  final PackageConfig _packages;
+  final PackageConfig _packageConfig;
   final InternetAddress internetAddress;
 
   Uint8List getFile(String path) => _files[path];
@@ -241,7 +238,7 @@ class TestAssetServer implements AssetReader {
     // The file might have been a package file which is signaled by a
     // `/packages/<package>/<path>` request.
     if (segments.first == 'packages') {
-      var packageFile = _fileSystem.file(_packages
+      var packageFile = _fileSystem.file(_packageConfig
           .resolve(Uri(scheme: 'package', pathSegments: segments.skip(1))));
       if (packageFile.existsSync()) {
         return packageFile;

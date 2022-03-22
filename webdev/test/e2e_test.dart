@@ -53,7 +53,9 @@ void main() {
 
     await process.shouldExit(0);
 
-    await d.file('.packages', isNotEmpty).validate(exampleDirectory);
+    await d
+        .file('.dart_tool/package_config.json', isNotEmpty)
+        .validate(exampleDirectory);
     await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
   });
 

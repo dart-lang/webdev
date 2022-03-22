@@ -12,6 +12,7 @@
   restart.
 - Remove verbose printing on receiving DevTools events.
 - Update `vm_service` version to `^8.2.0`.
+- Migrate .packages to package_config.json.
 - Update error message on expression evaluation using unloaded libraries.
 
 **Breaking changes:**

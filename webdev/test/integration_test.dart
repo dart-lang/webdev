@@ -53,9 +53,9 @@ name: sample
             ))
         .create();
 
-    await d.file('.packages', '''
-''').create();
     await d.dir('.dart_tool', [d.file('package_config.json', '')]).create();
+    await d.file('.dart_tool/package_config.json', '''
+''').create();
 
     var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
@@ -84,10 +84,10 @@ name: sample
               .file('pubspec.lock', _pubspecLock(runnerVersion: null))
               .create();
 
-          await d.file('.packages', '''
-''').create();
           await d
               .dir('.dart_tool', [d.file('package_config.json', '')]).create();
+          await d.file('.dart_tool/package_config.json', '''
+''').create();
 
           var process = await runWebDev([command], workingDirectory: d.sandbox);
 
@@ -107,10 +107,10 @@ name: sample
               .file('pubspec.lock', _pubspecLock(webCompilersVersion: null))
               .create();
 
-          await d.file('.packages', '''
-''').create();
           await d
               .dir('.dart_tool', [d.file('package_config.json', '')]).create();
+          await d.file('.dart_tool/package_config.json', '''
+''').create();
 
           var process = await runWebDev(['serve'], workingDirectory: d.sandbox);
 
@@ -132,10 +132,10 @@ name: sample
               .file('pubspec.lock', _pubspecLock(webCompilersVersion: null))
               .create();
 
-          await d.file('.packages', '''
-''').create();
           await d
               .dir('.dart_tool', [d.file('package_config.json', '')]).create();
+          await d.file('.dart_tool/package_config.json', '''
+''').create();
 
           // Required for webdev to not complain about nothing to serve.
           await d.dir('web').create();
@@ -184,10 +184,10 @@ name: sample
                           daemonVersion: buildDaemonVersion))
                   .create();
 
-              await d.file('.packages', '''
-''').create();
               await d.dir(
                   '.dart_tool', [d.file('package_config.json', '')]).create();
+              await d.file('.dart_tool/package_config.json', '''
+''').create();
 
               var process =
                   await runWebDev(['serve'], workingDirectory: d.sandbox);
@@ -240,8 +240,8 @@ name: sample
       test('should fail if there has been a dependency change', () async {
         await d.file('pubspec.lock', _pubspecLock()).create();
 
-        await d.file('.packages', '').create();
         await d.dir('.dart_tool', [d.file('package_config.json', '')]).create();
+        await d.file('.dart_tool/package_config.json', '').create();
 
         // Ensure there is a noticeable delta in the creation times
         await Future.delayed(const Duration(milliseconds: 1100));

@@ -15,6 +15,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/logging.dart';
 
 final context = TestContext(
     directory: p.join('..', 'fixtures', '_testPackage'),
@@ -27,10 +28,22 @@ ChromeProxyService get service =>
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
+  // Enable verbose logging for debugging.
+  var debug = false;
+
+  // Change to 'true' to print expression compiler messages to console.
+  //
+  // Note: expression compiler runs in an isolate, so its output is not
+  // currently redirected to a logger. As a result, it will be printed
+  // regardless of the logger settings.
+  var verboseCompiler = false;
+
   group('shared context', () {
     setUpAll(() async {
+      setCurrentLogWriter(debug: debug);
       await context.setUp(
         compilationMode: CompilationMode.frontendServer,
+        verboseCompiler: verboseCompiler,
       );
     });
 
@@ -46,6 +59,7 @@ void main() {
       Stream<Event> stream;
 
       setUp(() async {
+        setCurrentLogWriter(debug: debug);
         vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
         scripts = await service.getScripts(isolate.id);

@@ -12,6 +12,7 @@ import 'package:dwds/dwds.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
 import 'asset.dart';
@@ -30,8 +31,7 @@ class WebDevFS {
     this.fileSystem,
     this.hostname,
     this.port,
-    this.packagesFilePath,
-    this.packagesPath,
+    this.packageConfigPath,
     this.root,
     this.urlTunneller,
   });
@@ -40,24 +40,31 @@ class WebDevFS {
   TestAssetServer assetServer;
   final String hostname;
   final int port;
-  final String packagesFilePath;
-  final String packagesPath;
+  final String packageConfigPath;
   final String root;
   final UrlEncoder urlTunneller;
   Directory _savedCurrentDirectory;
   List<Uri> sources;
+  PackageConfig _packageConfig;
 
   Future<Uri> create() async {
     _savedCurrentDirectory = fileSystem.currentDirectory;
-    fileSystem.currentDirectory = packagesPath;
+    // package_config.json is located in <project directory>/.dart_tool/package_config
+    var projectDirectory = p.dirname(p.dirname(packageConfigPath));
+
+    fileSystem.currentDirectory = projectDirectory;
+
+    _packageConfig = await loadPackageConfigUri(Uri.file(packageConfigPath),
+        loader: (Uri uri) => fileSystem.file(uri).readAsBytes());
+
     assetServer = await TestAssetServer.start(
-        fileSystem, root, hostname, port, urlTunneller);
+        fileSystem, root, hostname, port, urlTunneller, _packageConfig);
     return Uri.parse('http://$hostname:$port');
   }
 
   Future<void> dispose() {
     fileSystem.currentDirectory = _savedCurrentDirectory;
-    return assetServer.close();
+    return assetServer?.close();
   }
 
   Future<UpdateFSReport> update({
@@ -102,11 +109,9 @@ class WebDevFS {
     generator.reset();
 
     var compilerOutput = await generator.recompile(
-      'org-dartlang-app:///$mainPath',
-      invalidatedFiles,
-      outputPath: p.join(dillOutputPath, 'app.dill'),
-      packagesFilePath: packagesFilePath,
-    );
+        Uri.parse('org-dartlang-app:///$mainPath'), invalidatedFiles,
+        outputPath: p.join(dillOutputPath, 'app.dill'),
+        packageConfig: _packageConfig);
     if (compilerOutput == null || compilerOutput.errorCount > 0) {
       return UpdateFSReport(success: false);
     }
