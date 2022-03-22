@@ -121,7 +121,8 @@ void main() {
     await Future.delayed(const Duration(milliseconds: 10));
     fileFrom.writeAsStringSync('contentsFrom');
 
-    expect(fileTo.statSync().modified, isNot(equals(fileFrom.statSync().modified)));
+    expect(fileTo.statSync().modified,
+        isNot(equals(fileFrom.statSync().modified)));
     expect(fileTo.readAsStringSync(), equals('contentsTo'));
     await updatePath(from.path, to.path);
     expect(fileTo.readAsStringSync(), equals('contentsFrom'));
