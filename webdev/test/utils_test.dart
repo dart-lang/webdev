@@ -121,13 +121,10 @@ void main() {
     await Future.delayed(const Duration(milliseconds: 10));
     fileFrom.writeAsStringSync('contentsFrom');
 
-    var stats = fileFrom.statSync();
-    expect(fileTo.statSync().modified, isNot(equals(stats.modified)));
-
+    expect(fileTo.statSync().modified, isNot(equals(fileFrom.statSync().modified)));
+    expect(fileTo.readAsStringSync(), equals('contentsTo'));
     await updatePath(from.path, to.path);
-    print('Actual: ${fileTo.statSync()}, expected $stats');
     expect(fileTo.readAsStringSync(), equals('contentsFrom'));
-    expect(fileTo.statSync().modified, equals(stats.modified));
   });
 
   test('updatePath does not update newer files', () async {
