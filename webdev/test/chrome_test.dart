@@ -4,6 +4,7 @@
 
 // @dart = 2.9
 
+@Timeout(Duration(seconds: 60))
 import 'dart:async';
 import 'dart:io';
 
