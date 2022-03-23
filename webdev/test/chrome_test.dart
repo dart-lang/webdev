@@ -75,6 +75,7 @@ void main() {
 
       if (Platform.isWindows) {
         // --user-data-dir is not supported on Windows yet
+        // Issue: https://github.com/dart-lang/webdev/issues/1545
         expect(result, isNot(contains('chrome_user_data')));
       } else {
         expect(result, contains('chrome_user_data'));
@@ -112,6 +113,7 @@ void main() {
       await chrome?.close();
       chrome = null;
 
+      // Issue: https://github.com/dart-lang/webdev/issues/1545
       if (!Platform.isWindows) {
         expect(
             logStream,
@@ -147,6 +149,7 @@ void main() {
 
       if (Platform.isWindows) {
         // --user-data-dir is not supported on Windows yet
+        // Issue: https://github.com/dart-lang/webdev/issues/1545
         expect(result, isNot(contains('chrome_user_data_copy')));
       } else {
         expect(result, contains('chrome_user_data_copy'));
@@ -167,12 +170,17 @@ void main() {
           "document.getElementById('profile_path').textContent");
 
       expect(result, contains('chrome_user_data_copy'));
-    }, skip: Platform.isWindows);
+    }, onPlatform: {
+      'windows': const Skip('https://github.com/dart-lang/webdev/issues/1545')
+    });
 
     test('cannot auto detect default chrome directory on windows', () async {
       var userDataDir = autoDetectChromeUserDataDirectory();
       expect(userDataDir, isNull);
-    }, skip: !Platform.isWindows);
+    }, onPlatform: {
+      'linux': const Skip('https://github.com/dart-lang/webdev/issues/1545'),
+      'mac-os': const Skip('https://github.com/dart-lang/webdev/issues/1545'),
+    });
   });
 }
 

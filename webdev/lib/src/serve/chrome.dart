@@ -53,6 +53,7 @@ class Chrome {
     String dir;
     // Re-using the directory causes flakiness on Windows, so on that platform
     // pass null to have it create a directory.
+    // Issue: https://github.com/dart-lang/webdev/issues/1545
     if (!Platform.isWindows) {
       var userDataTemp = path.join(Directory.current.absolute.path,
           '.dart_tool', 'webdev', 'chrome_user_data');
