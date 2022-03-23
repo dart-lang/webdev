@@ -165,13 +165,13 @@ void main() {
       var result = await _evaluateExpression(wipConnection.page,
           "document.getElementById('profile_path').textContent");
 
-      if (Platform.isWindows) {
-        // --user-data-dir is not supported on Windows yet
-        expect(result, isNot(contains('chrome_user_data_copy')));
-      } else {
-        expect(result, contains('chrome_user_data_copy'));
-      }
-    });
+      expect(result, contains('chrome_user_data_copy'));
+    }, skip: Platform.isWindows);
+
+    test('cannot auto detect default chrome directory on windows', () async {
+      var userDataDir = autoDetectChromeUserDataDirectory();
+      expect(userDataDir, isNull);
+    }, skip: !Platform.isWindows);
   });
 }
 
