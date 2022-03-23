@@ -72,7 +72,9 @@ Future<Chrome> _startChrome(
   ];
   try {
     if (configuration.launchInChrome) {
-      var userDataDir = configuration.userDataDir;
+      var userDataDir = configuration.userDataDir == autoOption
+          ? autoDetectChromeUserDataDirectory()
+          : configuration.userDataDir;
       return await Chrome.start(uris,
           port: configuration.chromeDebugPort, userDataDir: userDataDir);
     } else if (configuration.chromeDebugPort != 0) {

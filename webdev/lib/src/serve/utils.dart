@@ -65,6 +65,7 @@ Future<void> _removeDeleted(String from, String to) async {
     return;
   }
 
+  if (!Directory(to).existsSync()) return;
   await for (final file in Directory(to).list()) {
     final copyFrom = p.join(from, p.relative(file.path, from: to));
     if (file is File) {

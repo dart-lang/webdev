@@ -79,7 +79,9 @@ class Chrome {
         } catch (e, s) {
           dir = userDataTemp;
           signIn = false;
-          Directory(dir).deleteSync(recursive: true);
+          if (Directory(dir).existsSync()) {
+            Directory(dir).deleteSync(recursive: true);
+          }
           _logger.severe('Failed to copy user data directory', e, s);
           _logger.severe('Launching with temp profile instead.');
           rethrow;
@@ -124,4 +126,30 @@ class ChromeError extends Error {
   String toString() {
     return 'ChromeError: $details';
   }
+}
+
+String autoDetectChromeUserDataDirectory() {
+  Directory directory;
+  if (Platform.isMacOS) {
+    var home = Platform.environment['HOME'];
+    directory = Directory(
+        path.join(home, 'Library', 'Application Support', 'Google', 'Chrome'));
+  } else if (Platform.isLinux) {
+    var home = Platform.environment['HOME'];
+    directory = Directory(path.join(home, '.config', 'google-chrome'));
+  } else {
+    _logger.warning('Auto detecting chrome user data directory option is not '
+        'supported for ${Platform.operatingSystem}');
+    return null;
+  }
+
+  if (directory.existsSync()) {
+    _logger.info('Auto detected chrome user data directory: ${directory.path}');
+    return directory.path;
+  }
+
+  _logger.warning('Cannot automatically detect chrome user data directory. '
+      'Directory does not exist: ${directory.path}');
+
+  return null;
 }

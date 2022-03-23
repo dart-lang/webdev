@@ -62,6 +62,12 @@ void main() {
     expect(configuration.userDataDir, equals('temp'));
   });
 
+  test('can set user data directory to auto with launchInChrome ', () {
+    var configuration =
+        Configuration(launchInChrome: true, userDataDir: 'auto');
+    expect(configuration.userDataDir, equals('auto'));
+  });
+
   test('must set launchInChrome is to true if using user data directory ', () {
     expect(() => Configuration(launchInChrome: false, userDataDir: 'temp'),
         throwsA(isA<InvalidConfiguration>()));

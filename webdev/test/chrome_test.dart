@@ -72,8 +72,13 @@ void main() {
       var result = await _evaluateExpression(wipConnection.page,
           "document.getElementById('profile_path').textContent");
 
-      expect(result, contains('chrome_user_data'));
-    }, skip: Platform.isWindows);
+      if (Platform.isWindows) {
+        // --user-data-dir is not supported on Windows yet
+        expect(result, isNot(contains('chrome_user_data')));
+      } else {
+        expect(result, contains('chrome_user_data'));
+      }
+    });
   });
 
   group('chrome with user data dir', () {
@@ -103,7 +108,7 @@ void main() {
           await closeTab(tab);
         }
       }
-      await chrome.close();
+      await chrome?.close();
       chrome = null;
 
       if (!Platform.isWindows) {
@@ -139,8 +144,34 @@ void main() {
       var result = await _evaluateExpression(wipConnection.page,
           "document.getElementById('profile_path').textContent");
 
-      expect(result, contains('chrome_user_data_copy'));
-    }, skip: Platform.isWindows);
+      if (Platform.isWindows) {
+        // --user-data-dir is not supported on Windows yet
+        expect(result, isNot(contains('chrome_user_data_copy')));
+      } else {
+        expect(result, contains('chrome_user_data_copy'));
+      }
+    });
+
+    test('can auto detect default chrome directory', () async {
+      var userDataDir = autoDetectChromeUserDataDirectory();
+      expect(userDataDir, isNotNull);
+
+      expect(Directory(userDataDir).existsSync(), isTrue);
+
+      await launchChrome(userDataDir: userDataDir);
+      await openTab(_chromeVersionUrl);
+
+      var wipConnection = await connectToTab(_chromeVersionUrl);
+      var result = await _evaluateExpression(wipConnection.page,
+          "document.getElementById('profile_path').textContent");
+
+      if (Platform.isWindows) {
+        // --user-data-dir is not supported on Windows yet
+        expect(result, isNot(contains('chrome_user_data_copy')));
+      } else {
+        expect(result, contains('chrome_user_data_copy'));
+      }
+    });
   });
 }
 

@@ -40,6 +40,21 @@ void main() {
     expect(subDirTo.existsSync(), isFalse);
   });
 
+  test('updatePath creates non-existing directories', () async {
+    var subDirFrom = Directory(p.join(from.path, '1'));
+    var subDirTo = Directory(p.join(to.path, '2'));
+
+    subDirFrom.createSync();
+
+    expect(subDirFrom.existsSync(), isTrue);
+    expect(subDirTo.existsSync(), isFalse);
+
+    await updatePath(subDirFrom.path, subDirTo.path);
+
+    expect(subDirFrom.existsSync(), isTrue);
+    expect(subDirTo.existsSync(), isTrue);
+  });
+
   test('updatePath removes stale directories', () async {
     var subDirFrom = Directory(p.join(from.path, '1'));
     var subDirTo = Directory(p.join(to.path, '2'));
@@ -143,5 +158,53 @@ void main() {
     await updatePath(from.path, to.path);
     expect(fileTo.statSync().modified, isNot(equals(stats.modified)));
     expect(fileTo.readAsStringSync(), equals('contentsTo'));
+  });
+
+  test('updatePath updates stale files and directories', () async {
+    var subDirFrom = Directory(p.join(from.path, '1'));
+    var subDirTo1 = Directory(p.join(to.path, '1'));
+    var subDirTo2 = Directory(p.join(to.path, '2'));
+
+    subDirFrom.createSync();
+    subDirTo1.createSync();
+    subDirTo2.createSync();
+
+    var fileFrom = File(p.join(subDirFrom.path, 'a'));
+    var fileTo1 = File(p.join(subDirTo1.path, 'a'));
+    var fileTo2 = File(p.join(subDirTo2.path, 'b'));
+
+    fileTo1.writeAsStringSync('contentsTo1');
+    fileTo2.writeAsStringSync('contentsTo2');
+    await Future.delayed(const Duration(seconds: 1));
+    fileFrom.writeAsStringSync('contentsFrom');
+
+    await updatePath(from.path, to.path);
+
+    expect(fileTo1.readAsStringSync(), equals('contentsFrom'));
+    expect(fileTo2.existsSync(), isFalse);
+  });
+
+  test('updatePath does not update newer files and directories', () async {
+    var subDirFrom = Directory(p.join(from.path, '1'));
+    var subDirTo1 = Directory(p.join(to.path, '1'));
+    var subDirTo2 = Directory(p.join(to.path, '2'));
+
+    subDirFrom.createSync();
+    subDirTo1.createSync();
+    subDirTo2.createSync();
+
+    var fileFrom = File(p.join(subDirFrom.path, 'a'));
+    var fileTo1 = File(p.join(subDirTo1.path, 'a'));
+    var fileTo2 = File(p.join(subDirTo2.path, 'b'));
+
+    fileFrom.writeAsStringSync('contentsFrom');
+    await Future.delayed(const Duration(seconds: 1));
+    fileTo1.writeAsStringSync('contentsTo1');
+    fileTo2.writeAsStringSync('contentsTo2');
+
+    await updatePath(from.path, to.path);
+
+    expect(fileTo1.readAsStringSync(), equals('contentsTo1'));
+    expect(fileTo2.existsSync(), isFalse);
   });
 }
