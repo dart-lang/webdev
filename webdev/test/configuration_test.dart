@@ -13,7 +13,9 @@ void main() {
   setUp(() {
     argParser = ArgParser()
       ..addFlag('release')
-      ..addOption(nullSafetyFlag, defaultsTo: nullSafetyAuto);
+      ..addFlag(launchInChromeFlag, defaultsTo: false)
+      ..addOption(nullSafetyFlag, defaultsTo: nullSafetyAuto)
+      ..addOption(userDataDirFlag, defaultsTo: null);
   });
 
   test('default configuration is correctly applied', () {
@@ -38,6 +40,36 @@ void main() {
 
   test('must provide a debug port when launchInChrome is false ', () {
     expect(() => Configuration(debug: true, launchInChrome: false),
+        throwsA(isA<InvalidConfiguration>()));
+  });
+
+  test('user data directory defaults to null ', () {
+    var argResults = argParser.parse(['']);
+    var defaultConfiguration = Configuration.fromArgs(argResults);
+    expect(defaultConfiguration.userDataDir, isNull);
+  });
+
+  test('can read user data dir from args ', () {
+    var argResults =
+        argParser.parse(['--launch-in-chrome', '--user-data-dir=tempdir']);
+    var configuration = Configuration.fromArgs(argResults);
+    expect(configuration.userDataDir, equals('tempdir'));
+  });
+
+  test('can set user data directory with launchInChrome ', () {
+    var configuration =
+        Configuration(launchInChrome: true, userDataDir: 'temp');
+    expect(configuration.userDataDir, equals('temp'));
+  });
+
+  test('can set user data directory to auto with launchInChrome ', () {
+    var configuration =
+        Configuration(launchInChrome: true, userDataDir: 'auto');
+    expect(configuration.userDataDir, equals('auto'));
+  });
+
+  test('must set launchInChrome is to true if using user data directory ', () {
+    expect(() => Configuration(launchInChrome: false, userDataDir: 'temp'),
         throwsA(isA<InvalidConfiguration>()));
   });
 

@@ -72,6 +72,15 @@ Advanced:
                                            specify a specific port to attach to
                                            an already running chrome instance
                                            instead.
+    --user-data-dir                        Use with launch-in-chrome to specify
+                                           user data directory to pass to
+                                           chrome. Will start chrome window
+                                           logged into default profile with
+                                           enabled extensions. Use `auto` as a
+                                           value to infer the default directory
+                                           for the current OS. Note: only
+                                           supported for Mac OS X and linux
+                                           platforms.
     --log-requests                         Enables logging for each request to
                                            the server.
     --tls-cert-chain                       The file location to a TLS

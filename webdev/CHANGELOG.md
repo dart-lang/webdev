@@ -1,3 +1,25 @@
+## 2.7.9-dev
+
+- Add an option to pass user data directory to chrome: `user-data-dir`.
+  Auto detect user data directory based on the current OS if `auto` is
+  given as a value. If `null` is given as a value (default), fall back
+  to the existing behavior (i.e. creating/reusing a temp directory).
+ 
+  Note: not supported for Windows yet due to flakiness it introduces.
+  
+  Example using user-specified directory:
+  ```
+    webdev serve \
+      --debug --debug-extension \
+      --user-data-dir='/Users/<user>/Library/Application Support/Google/Chrome'
+  ```
+  Example using auto-detected directory:
+  ```
+    webdev serve \
+      --debug --debug-extension \
+      --user-data-dir=auto
+  ```
+
 ## 2.7.8
 
 - Update `vm_service` to `^8.1.0`.
