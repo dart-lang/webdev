@@ -81,6 +81,14 @@ refresh: Performs a full page refresh.
     ..addOption(tlsCertKeyFlag,
         help: 'The file location to a TLS Key to create an HTTPs server.\n'
             'Must be used with $tlsCertChainFlag.')
+    ..addOption(
+      singlePageFlag,
+      help: 'Serve the given asset in single-page mode. \n'
+          "All requests that don't end in a file extension are forwarded to "
+          'that that `index.html`. Requests with a file extension in their URL '
+          'are resolved as assets relative to the given `index.html`.',
+      valueHelp: 'Index HTML asset id',
+    )
     ..addSeparator('Common:');
 
   ServeCommand() {

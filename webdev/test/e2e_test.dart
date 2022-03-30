@@ -7,6 +7,7 @@
 @Timeout(Duration(minutes: 5))
 import 'dart:io';
 
+import 'package:http/http.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
@@ -251,6 +252,39 @@ void main() {
         await process.shouldExit();
       });
     }
+  });
+
+  test('should serve single-page applications', () async {
+    var openPort = await findUnusedPort();
+    var process = await runWebDev(
+        ['serve', '--spa=web/index.html', 'web:$openPort'],
+        workingDirectory: exampleDirectory);
+
+    // Wait for the initial build to finish.
+    await expectLater(process.stdout, emitsThrough(contains('Succeeded')));
+
+    final client = Client();
+
+    Future<void> checkServesIndex(String path) async {
+      final response =
+          await client.get(Uri.parse('http://localhost:$openPort/$path'));
+
+      expect(response.statusCode, 200,
+          reason: 'Should serve index.html at $path');
+      expect(response.body, contains('<title>webdev example</title>'));
+    }
+
+    await checkServesIndex('index.html');
+    await checkServesIndex('');
+    await checkServesIndex('/nested/route/for/spa');
+
+    // Files with an extension are resolved next to the entrypoint
+    final dartResponse =
+        await client.get(Uri.parse('http://localhost:$openPort/main.dart'));
+    expect(dartResponse.body, contains("print('Hello World')"));
+    client.close();
+    await process.kill();
+    await process.shouldExit();
   });
 
   group('Should fail with invalid build directories', () {

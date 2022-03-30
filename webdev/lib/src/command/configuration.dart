@@ -37,6 +37,7 @@ const nullSafetySound = 'sound';
 const nullSafetyUnsound = 'unsound';
 const nullSafetyAuto = 'auto';
 const disableDdsFlag = 'disable-dds';
+const singlePageFlag = 'spa';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   var auto = argResults.options.contains(autoOption)
@@ -105,6 +106,7 @@ class Configuration {
   final bool _verbose;
   final bool _disableDds;
   final String _nullSafety;
+  final String singlePageApplicationEntrypoint;
 
   Configuration({
     bool autoRun,
@@ -129,6 +131,7 @@ class Configuration {
     bool verbose,
     bool disableDds,
     String nullSafety,
+    this.singlePageApplicationEntrypoint,
   })  : _autoRun = autoRun,
         _chromeDebugPort = chromeDebugPort,
         _debugExtension = debugExtension,
@@ -410,6 +413,7 @@ class Configuration {
       enableExpressionEvaluation: enableExpressionEvaluation,
       verbose: verbose,
       nullSafety: nullSafety,
+      singlePageApplicationEntrypoint: argResults[singlePageFlag] as String,
     );
   }
 }

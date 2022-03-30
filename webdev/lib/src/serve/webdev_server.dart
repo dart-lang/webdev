@@ -15,6 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 
@@ -114,6 +115,31 @@ class WebDevServer {
     var assetHandler = proxyHandler(
         'http://localhost:${options.daemonPort}/${options.target}/',
         client: client);
+    var singlePageEntrypoint =
+        options.configuration.singlePageApplicationEntrypoint;
+
+    // If this server serves the single page entrypoint asset, serve all URLs
+    // without an extension as the SPA and all others relative to this
+    // entrypoint.
+    if (singlePageEntrypoint != null &&
+        path.url.isWithin(options.target, singlePageEntrypoint)) {
+      var defaultProxy = assetHandler;
+      var relativeEntrypoint =
+          path.relative(singlePageEntrypoint, from: options.target);
+
+      assetHandler = (request) {
+        if (path.extension(request.url.path).isEmpty) {
+          return defaultProxy(Request(
+            request.method,
+            request.requestedUri.replace(path: relativeEntrypoint),
+            headers: request.headers,
+            body: request.read(),
+          ));
+        }
+
+        return defaultProxy(request);
+      };
+    }
 
     Dwds dwds;
     ExpressionCompilerService ddcService;
