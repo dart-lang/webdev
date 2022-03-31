@@ -530,6 +530,9 @@ class DevHandler {
       final appServices = _servicesByAppId[appId];
       final encodedUri = await appServices.debugService.encodedUri;
 
+      appServices.dwdsStats.updateLoadTime(
+          debuggerStart: debuggerStart, devToolsStart: DateTime.now());
+
       // If we only want the URI, this means we are embedding Dart DevTools in
       // Chrome DevTools. Therefore return early.
       if (devToolsRequest.uriOnly != null && devToolsRequest.uriOnly) {
@@ -544,8 +547,6 @@ class DevHandler {
         encodedUri,
         ideQueryParam: 'DebugExtension',
       );
-      appServices.dwdsStats.updateLoadTime(
-          debuggerStart: debuggerStart, devToolsStart: DateTime.now());
       await _launchDevTools(extensionDebugger, devToolsUri);
     });
   }
