@@ -136,9 +136,11 @@ void main() {
         [
           matchesEvent(DwdsEventKind.debuggerReady, {
             'elapsedMilliseconds': isNotNull,
+            'screen': equals('debugger'),
           }),
           matchesEvent(DwdsEventKind.devToolsLoad, {
             'elapsedMilliseconds': isNotNull,
+            'screen': equals('debugger'),
           }),
         ],
         () => keyboard.sendChord([Keyboard.alt, 'd']),
