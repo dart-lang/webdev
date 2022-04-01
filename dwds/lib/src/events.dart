@@ -94,14 +94,16 @@ class DwdsEvent {
 
   DwdsEvent.fullReload() : this(DwdsEventKind.fullReload, {});
 
-  DwdsEvent.debuggerReady(int elapsedMilliseconds)
+  DwdsEvent.debuggerReady(int elapsedMilliseconds, String screen)
       : this(DwdsEventKind.debuggerReady, {
           'elapsedMilliseconds': elapsedMilliseconds,
+          'screen': screen,
         });
 
-  DwdsEvent.devToolsLoad(int elapsedMilliseconds)
+  DwdsEvent.devToolsLoad(int elapsedMilliseconds, String screen)
       : this(DwdsEventKind.devToolsLoad, {
           'elapsedMilliseconds': elapsedMilliseconds,
+          'screen': screen,
         });
 
   DwdsEvent.httpRequestException(String server, String exception)

@@ -151,21 +151,22 @@ void _processSendEvent(Map<String, dynamic> event,
     case 'DevtoolsEvent':
       {
         _logger.finest('Received DevTools event: $event');
-        var action = payload == null ? null : payload['action'];
+        var action = payload == null ? null : payload['action'] as String;
+        var screen = payload == null ? null : payload['screen'] as String;
         if (action == 'pageReady') {
           if (dwdsStats.isFirstDebuggerReady) {
             if (dwdsStats.devToolsStart != null) {
               var time = DateTime.now()
                   .difference(dwdsStats.devToolsStart)
                   .inMilliseconds;
-              emitEvent(DwdsEvent.devToolsLoad(time));
+              emitEvent(DwdsEvent.devToolsLoad(time, screen));
               _logger.fine('DevTools load time: $time ms');
             }
             if (dwdsStats.debuggerStart != null) {
               var time = DateTime.now()
                   .difference(dwdsStats.debuggerStart)
                   .inMilliseconds;
-              emitEvent(DwdsEvent.debuggerReady(time));
+              emitEvent(DwdsEvent.debuggerReady(time, screen));
               _logger.fine('Debugger ready time: $time ms');
             }
           } else {

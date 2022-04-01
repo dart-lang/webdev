@@ -14,6 +14,8 @@
 - Update `vm_service` version to `^8.2.0`.
 - Migrate .packages to package_config.json.
 - Update error message on expression evaluation using unloaded libraries.
+- Add `screen` field to the `DebuggerReady` event.
+- Report `DebuggerReady` events for DevTools embedded into Chrome Devtools.
 
 **Breaking changes:**
 - `Dwds.start` and `ExpressionCompilerService` now take
