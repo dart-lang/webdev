@@ -24,6 +24,7 @@
   paths.
 - Add `basePath` parameter to `FrontendServerRequireStrategy`.
 
+
 ## 12.1.0
 - Update _fe_analyzer_shared to version ^34.0.0.
 
