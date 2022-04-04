@@ -22,6 +22,7 @@
 - `Dwds.start` and `ExpressionCompilerService` now take
   `sdkConfigurationProvider` argument instead of separate SDK-related file
   paths.
+- Add `basePath` parameter to `FrontendServerRequireStrategy`.
 
 ## 12.1.0
 - Update _fe_analyzer_shared to version ^34.0.0.

@@ -19,8 +19,8 @@ class FrontendServerRequireStrategyProvider {
   RequireStrategy _requireStrategy;
 
   FrontendServerRequireStrategyProvider(this._configuration, this._assetReader,
-      this._digestsProvider, String root)
-      : _basePath = basePathForServerUri(root);
+      this._digestsProvider, String basePath)
+      : _basePath = basePathForServerUri(basePath);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
