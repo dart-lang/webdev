@@ -11,8 +11,19 @@ import 'package:shelf/shelf.dart';
 
 import '../../dwds.dart';
 
+String basePathForServerUri(String url) {
+  var uri = Uri.parse(url);
+  var base = uri.path.endsWith('.html') ? p.dirname(uri.path) : uri.path;
+  if (base.isNotEmpty) {
+    base = makeAbsolutePath(base);
+  }
+  return base;
+}
+
 String relativizePath(String path) =>
     path.startsWith('/') ? path.substring(1) : path;
+
+String makeAbsolutePath(String path) => path.startsWith('/') ? path : '/$path';
 
 String removeJsExtension(String path) =>
     path.endsWith('.js') ? p.withoutExtension(path) : path;

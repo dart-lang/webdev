@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
+import '../loaders/require.dart';
 import '../loaders/strategy.dart';
 import 'sdk_configuration.dart';
 
@@ -40,15 +41,21 @@ class DartUri {
   /// JS script. The dirname of that path should give us the missing prefix.
   factory DartUri(String uri, [String serverUri]) {
     var serverPath = globalLoadStrategy.serverPathForAppUri(uri);
-    if (serverPath != null) return DartUri._(serverPath);
+    if (serverPath != null) {
+      return DartUri._(serverPath);
+    }
     if (uri.startsWith('package:')) {
       return DartUri._fromPackageUri(uri, serverUri: serverUri);
     }
-    if (uri.startsWith('file:')) return DartUri._fromFileUri(uri);
+    if (uri.startsWith('file:')) {
+      return DartUri._fromFileUri(uri, serverUri: serverUri);
+    }
     if (uri.startsWith('/packages/')) {
       return DartUri._fromRelativePath(uri, serverUri: serverUri);
     }
-    if (uri.startsWith('/')) return DartUri._fromRelativePath(uri);
+    if (uri.startsWith('/')) {
+      return DartUri._fromRelativePath(uri, serverUri: serverUri);
+    }
     if (uri.startsWith('http:') || uri.startsWith('https:')) {
       return DartUri(Uri.parse(uri).path);
     }
@@ -56,20 +63,24 @@ class DartUri {
     throw FormatException('Unsupported URI form', uri);
   }
 
+  @override
+  String toString() => 'DartUri: $serverPath';
+
   /// Construct from a package: URI
   factory DartUri._fromPackageUri(String uri, {String serverUri}) {
+    var basePath = basePathForServerUri(serverUri);
     var packagePath = 'packages/${uri.substring("package:".length)}';
     if (serverUri != null) {
-      return DartUri._fromRelativePath(
-          p.url.join(_dirForServerUri(serverUri), packagePath));
+      var relativePath = p.url.join(basePath, packagePath);
+      return DartUri._fromRelativePath(relativePath);
     }
     return DartUri._(packagePath);
   }
 
   /// Construct from a file: URI
-  factory DartUri._fromFileUri(String uri) {
+  factory DartUri._fromFileUri(String uri, {String serverUri}) {
     var libraryName = _resolvedUriToUri[uri];
-    if (libraryName != null) return DartUri(libraryName);
+    if (libraryName != null) return DartUri(libraryName, serverUri);
     // This is not one of our recorded libraries.
     throw ArgumentError.value(uri, 'uri', 'Unknown library');
   }
@@ -80,8 +91,8 @@ class DartUri {
     uri = uri[0] == '/' ? uri.substring(1) : uri;
 
     if (serverUri != null) {
-      return DartUri._fromRelativePath(
-          p.url.join(_dirForServerUri(serverUri), uri));
+      var basePath = basePathForServerUri(serverUri);
+      return DartUri._fromRelativePath(p.url.join(basePath, uri));
     }
     return DartUri._(uri);
   }
@@ -187,9 +198,6 @@ class DartUri {
       _recordAbsoluteUri(uri);
     }
   }
-
-  /// Returns the dirname for the server URI.
-  static String _dirForServerUri(String uri) => p.dirname(Uri.parse(uri).path);
 
   /// Load the .dart_tool/package_config.json file associated with the running
   /// application so we can resolve file URLs into package: URLs appropriately.

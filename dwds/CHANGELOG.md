@@ -16,6 +16,7 @@
 - Update error message on expression evaluation using unloaded libraries.
 - Add `screen` field to the `DebuggerReady` event.
 - Report `DebuggerReady` events for DevTools embedded into Chrome Devtools.
+- Fix breakpoints not hitting after changing a base in index.html.
 
 **Breaking changes:**
 - `Dwds.start` and `ExpressionCompilerService` now take

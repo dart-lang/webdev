@@ -14,11 +14,13 @@ class FrontendServerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
   final Future<Map<String, String>> Function() _digestsProvider;
+  final String _basePath;
 
   RequireStrategy _requireStrategy;
 
-  FrontendServerRequireStrategyProvider(
-      this._configuration, this._assetReader, this._digestsProvider);
+  FrontendServerRequireStrategyProvider(this._configuration, this._assetReader,
+      this._digestsProvider, String root)
+      : _basePath = basePathForServerUri(root);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
@@ -32,28 +34,35 @@ class FrontendServerRequireStrategyProvider {
         _assetReader,
       );
 
+  String _removeBasePath(String path) =>
+      path.startsWith(_basePath) ? path.substring(_basePath.length) : null;
+
+  String _addBasePath(String serverPath) => p.join(_basePath, serverPath);
+
   Future<Map<String, String>> _moduleProvider(
           MetadataProvider metadataProvider) async =>
       (await metadataProvider.moduleToModulePath).map((key, value) =>
           MapEntry(key, relativizePath(removeJsExtension(value))));
 
   Future<String> _moduleForServerPath(
-          MetadataProvider metadataProvider, String serverPath) async =>
-      (await metadataProvider.modulePathToModule)[serverPath];
+      MetadataProvider metadataProvider, String serverPath) async {
+    var modulePathToModule = await metadataProvider.modulePathToModule;
+    return modulePathToModule[_removeBasePath(serverPath)];
+  }
 
   Future<String> _serverPathForModule(
           MetadataProvider metadataProvider, String module) async =>
-      (await metadataProvider.moduleToModulePath)[module] ?? '';
+      _addBasePath((await metadataProvider.moduleToModulePath)[module] ?? '');
 
   Future<String> _sourceMapPathForModule(
       MetadataProvider metadataProvider, String module) async {
     var path = (await metadataProvider.moduleToSourceMap)[module] ?? '';
-    return relativizePath(path);
+    return _addBasePath(relativizePath(path));
   }
 
   String _serverPathForAppUri(String appUri) {
     if (appUri.startsWith('org-dartlang-app:')) {
-      return Uri.parse(appUri).path.substring(1);
+      return _addBasePath(Uri.parse(appUri).path.substring(1));
     }
     return null;
   }
