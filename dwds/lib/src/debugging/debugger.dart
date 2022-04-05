@@ -465,6 +465,12 @@ class Debugger extends Domain {
     // of the closest location on a given line.
     Location bestLocation;
     var url = urlForScriptId(location.scriptId);
+
+    if (url == null) {
+      logger.severe('Failed to create dart frame for ${frame.functionName}: '
+          'cannot find location for script ${location.scriptId}');
+    }
+
     for (var location in await _locations.locationsForUrl(url)) {
       if (location.jsLocation.line == line) {
         bestLocation ??= location;
@@ -567,6 +573,11 @@ class Debugger extends Domain {
         var frame = e.params['callFrames'][0];
         var scriptId = '${frame["location"]["scriptId"]}';
         var url = urlForScriptId(scriptId);
+
+        if (url == null) {
+          logger.severe('Stepping failed: '
+              'cannot find location for script $scriptId');
+        }
 
         // TODO(grouma) - In the future we should send all previously computed
         // skipLists.
