@@ -12,6 +12,7 @@ import 'package:shelf/shelf.dart';
 import '../../dwds.dart';
 
 String basePathForServerUri(String url) {
+  if (url == null) return null;
   var uri = Uri.parse(url);
   var base = uri.path.endsWith('.html') ? p.dirname(uri.path) : uri.path;
   if (base.isNotEmpty) {
