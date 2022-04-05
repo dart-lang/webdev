@@ -312,7 +312,8 @@ class Debugger extends Domain {
     }
   }
 
-  String urlForScriptId(String scriptId) =>
+  /// Returns Chrome script uri for Chrome script ID.
+  String _urlForScriptId(String scriptId) =>
       _remoteDebugger.scripts[scriptId]?.url;
 
   /// Returns source [Location] for the paused event.
@@ -325,7 +326,7 @@ class Debugger extends Domain {
     var scriptId = location['scriptId'] as String;
     var lineNumber = location['lineNumber'] as int;
 
-    var url = urlForScriptId(scriptId);
+    var url = _urlForScriptId(scriptId);
     return _locations.locationForJs(url, lineNumber + 1);
   }
 
@@ -462,7 +463,7 @@ class Debugger extends Domain {
     var line = location.lineNumber + 1;
     var column = location.columnNumber + 1;
 
-    var url = urlForScriptId(location.scriptId);
+    var url = _urlForScriptId(location.scriptId);
     if (url == null) {
       logger.severe('Failed to create dart frame for ${frame.functionName}: '
           'cannot find location for script ${location.scriptId}');
@@ -573,7 +574,7 @@ class Debugger extends Domain {
         var frame = e.params['callFrames'][0];
         var scriptId = '${frame["location"]["scriptId"]}';
 
-        var url = urlForScriptId(scriptId);
+        var url = _urlForScriptId(scriptId);
         if (url == null) {
           logger.severe('Stepping failed: '
               'cannot find location for script $scriptId');
