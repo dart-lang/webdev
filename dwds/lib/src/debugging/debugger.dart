@@ -461,16 +461,16 @@ class Debugger extends Domain {
     // Chrome is 0 based. Account for this.
     var line = location.lineNumber + 1;
     var column = location.columnNumber + 1;
-    // TODO(sdk/issues/37240) - ideally we look for an exact location instead
-    // of the closest location on a given line.
-    Location bestLocation;
-    var url = urlForScriptId(location.scriptId);
 
+    var url = urlForScriptId(location.scriptId);
     if (url == null) {
       logger.severe('Failed to create dart frame for ${frame.functionName}: '
           'cannot find location for script ${location.scriptId}');
     }
 
+    // TODO(sdk/issues/37240) - ideally we look for an exact location instead
+    // of the closest location on a given line.
+    Location bestLocation;
     for (var location in await _locations.locationsForUrl(url)) {
       if (location.jsLocation.line == line) {
         bestLocation ??= location;
@@ -572,8 +572,8 @@ class Debugger extends Domain {
       if (_isStepping && (await _sourceLocation(e)) == null) {
         var frame = e.params['callFrames'][0];
         var scriptId = '${frame["location"]["scriptId"]}';
-        var url = urlForScriptId(scriptId);
 
+        var url = urlForScriptId(scriptId);
         if (url == null) {
           logger.severe('Stepping failed: '
               'cannot find location for script $scriptId');
