@@ -16,6 +16,7 @@
 - Update error message on expression evaluation using unloaded libraries.
 - Add `screen` field to the `DebuggerReady` event.
 - Report `DebuggerReady` events for DevTools embedded into Chrome Devtools.
+- Fix missing `CallFrame.url` after update to Chrome 100.
 
 **Breaking changes:**
 - `Dwds.start` and `ExpressionCompilerService` now take

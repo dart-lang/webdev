@@ -312,6 +312,10 @@ class Debugger extends Domain {
     }
   }
 
+  /// Returns Chrome script uri for Chrome script ID.
+  String _urlForScriptId(String scriptId) =>
+      _remoteDebugger.scripts[scriptId]?.url;
+
   /// Returns source [Location] for the paused event.
   ///
   /// If we do not have [Location] data for the embedded JS location, null is
@@ -319,8 +323,11 @@ class Debugger extends Domain {
   Future<Location> _sourceLocation(DebuggerPausedEvent e) {
     var frame = e.params['callFrames'][0];
     var location = frame['location'];
-    return _locations.locationForJs(
-        frame['url'] as String, (location['lineNumber'] as int) + 1);
+    var scriptId = location['scriptId'] as String;
+    var lineNumber = location['lineNumber'] as int;
+
+    var url = _urlForScriptId(scriptId);
+    return _locations.locationForJs(url, lineNumber + 1);
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
@@ -455,10 +462,17 @@ class Debugger extends Domain {
     // Chrome is 0 based. Account for this.
     var line = location.lineNumber + 1;
     var column = location.columnNumber + 1;
+
+    var url = _urlForScriptId(location.scriptId);
+    if (url == null) {
+      logger.severe('Failed to create dart frame for ${frame.functionName}: '
+          'cannot find location for script ${location.scriptId}');
+    }
+
     // TODO(sdk/issues/37240) - ideally we look for an exact location instead
     // of the closest location on a given line.
     Location bestLocation;
-    for (var location in await _locations.locationsForUrl(frame.url)) {
+    for (var location in await _locations.locationsForUrl(url)) {
       if (location.jsLocation.line == line) {
         bestLocation ??= location;
         if ((location.jsLocation.column - column).abs() <
@@ -558,8 +572,14 @@ class Debugger extends Domain {
       // If we don't have source location continue stepping.
       if (_isStepping && (await _sourceLocation(e)) == null) {
         var frame = e.params['callFrames'][0];
-        var url = '${frame["url"]}';
         var scriptId = '${frame["location"]["scriptId"]}';
+
+        var url = _urlForScriptId(scriptId);
+        if (url == null) {
+          logger.severe('Stepping failed: '
+              'cannot find location for script $scriptId');
+        }
+
         // TODO(grouma) - In the future we should send all previously computed
         // skipLists.
         await _remoteDebugger.stepInto(params: {
