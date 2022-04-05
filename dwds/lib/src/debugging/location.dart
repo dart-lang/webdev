@@ -40,6 +40,7 @@ class Location {
     var dartColumn = entry.sourceColumn;
     var jsLine = lineEntry.line;
     var jsColumn = entry.column;
+    print('Location: $jsLine:$jsColumn');
     // lineEntry data is 0 based according to:
     // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
     return Location._(
@@ -155,17 +156,21 @@ class Locations {
   /// Find the [Location] for the given Dart source position.
   ///
   /// The [line] number is 1-based.
-  Future<Location> locationForDart(DartUri uri, int line) async =>
+  Future<Location> locationForDart(DartUri uri, int line, int column) async =>
       (await locationsForDart(uri.serverPath)).firstWhere(
-          (location) => location.dartLocation.line == line,
+          (location) =>
+              location.dartLocation.line == line &&
+              location.dartLocation.column >= column,
           orElse: () => null);
 
   /// Find the [Location] for the given JS source position.
   ///
   /// The [line] number is 1-based.
-  Future<Location> locationForJs(String url, int line) async =>
+  Future<Location> locationForJs(String url, int line, int column) async =>
       (await locationsForUrl(url)).firstWhere(
-          (location) => location.jsLocation.line == line,
+          (location) =>
+              location.jsLocation.line == line &&
+              location.jsLocation.column >= column,
           orElse: () => null);
 
   /// Returns the tokenPosTable for the provided Dart script path as defined

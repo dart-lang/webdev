@@ -228,8 +228,9 @@ class Debugger extends Domain {
     int line, {
     int column,
   }) async {
+    column ??= 0;
     checkIsolate('addBreakpoint', isolateId);
-    final breakpoint = await _breakpoints.add(scriptId, line);
+    final breakpoint = await _breakpoints.add(scriptId, line, column);
     _notifyBreakpoint(breakpoint);
     return breakpoint;
   }
@@ -249,7 +250,9 @@ class Debugger extends Domain {
     for (var breakpoint in previousBreakpoints) {
       var scriptRef = await _updatedScriptRefFor(breakpoint);
       var updatedLocation = await _locations.locationForDart(
-          DartUri(scriptRef.uri, _root), _lineNumberFor(breakpoint));
+          DartUri(scriptRef.uri, _root),
+          _lineNumberFor(breakpoint),
+          _columnNumberFor(breakpoint));
       var updatedBreakpoint = _breakpoints._dartBreakpoint(
           scriptRef, updatedLocation, breakpoint.id);
       _breakpoints._note(
@@ -263,7 +266,8 @@ class Debugger extends Domain {
       await addBreakpoint(
           inspector.isolate.id,
           (await _updatedScriptRefFor(breakpoint)).id,
-          _lineNumberFor(breakpoint));
+          _lineNumberFor(breakpoint),
+          column: _columnNumberFor(breakpoint));
     }
   }
 
@@ -324,10 +328,11 @@ class Debugger extends Domain {
     var frame = e.params['callFrames'][0];
     var location = frame['location'];
     var scriptId = location['scriptId'] as String;
-    var lineNumber = location['lineNumber'] as int;
+    var line = location['lineNumber'] as int;
+    var column = location['columnNumber'] as int;
 
     var url = _urlForScriptId(scriptId);
-    return _locations.locationForJs(url, lineNumber + 1);
+    return _locations.locationForJs(url, line + 1, column + 1);
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
@@ -723,14 +728,23 @@ bool isNativeJsObject(InstanceRef instanceRef) {
 
 /// Returns the Dart line number for the provided breakpoint.
 int _lineNumberFor(Breakpoint breakpoint) =>
-    int.parse(breakpoint.id.split('#').last);
+    int.parse(breakpoint.id.split('#').last.split(':').first);
+
+/// Returns the Dart line number for the provided breakpoint.
+int _columnNumberFor(Breakpoint breakpoint) =>
+    int.parse(breakpoint.id.split('#').last.split(':').last);
 
 /// Returns the breakpoint ID for the provided Dart script ID and Dart line
 /// number.
-String breakpointIdFor(String scriptId, int line) => 'bp/$scriptId#$line';
+String breakpointIdFor(String scriptId, int line, int column) {
+  var id = 'bp/$scriptId#$line:$column';
+  print('breakpointIdFor: $scriptId, $line, $column: $id');
+  return id;
+}
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
 class _Breakpoints extends Domain {
+  final _logger = Logger('_Breakpoints');
   final _dartIdByJsId = <String, String>{};
   final _jsIdByDartId = <String, String>{};
 
@@ -752,11 +766,12 @@ class _Breakpoints extends Domain {
   }) : super(provider);
 
   Future<Breakpoint> _createBreakpoint(
-      String id, String scriptId, int line) async {
+      String id, String scriptId, int line, int column) async {
     var dartScript = inspector.scriptWithId(scriptId);
     var dartUri = DartUri(dartScript.uri, root);
-    var location = await locations.locationForDart(dartUri, line);
-
+    var location = await locations.locationForDart(dartUri, line, column);
+    _logger.warning(
+        '_createBreakpoint: uri: $dartUri, line: $line, column :$column, location: $location');
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) {
       throw RPCError(
@@ -779,10 +794,10 @@ class _Breakpoints extends Domain {
 
   /// Adds a breakpoint at [scriptId] and [line] or returns an existing one if
   /// present.
-  Future<Breakpoint> add(String scriptId, int line) async {
-    final id = breakpointIdFor(scriptId, line);
+  Future<Breakpoint> add(String scriptId, int line, int column) async {
+    final id = breakpointIdFor(scriptId, line, column);
     return _bpByDartId.putIfAbsent(
-        id, () => _createBreakpoint(id, scriptId, line));
+        id, () => _createBreakpoint(id, scriptId, line, column));
   }
 
   /// Create a Dart breakpoint at [location] in [dartScript] with [id].
@@ -812,6 +827,7 @@ class _Breakpoints extends Domain {
           .sendCommand('Debugger.setBreakpointByUrl', params: {
         'urlRegex': urlRegex,
         'lineNumber': location.jsLocation.line - 1,
+        'columnNumber': location.jsLocation.column - 1,
       });
       return response.result['breakpointId'] as String;
     });
