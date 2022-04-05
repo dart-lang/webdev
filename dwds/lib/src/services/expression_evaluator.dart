@@ -160,6 +160,7 @@ class ExpressionEvaluator {
 
     var functionName = jsFrame.functionName;
     var jsLine = jsFrame.location.lineNumber + 1;
+    var jsScriptId = jsFrame.location.scriptId;
     var jsScope = await _collectLocalJsScope(jsFrame);
 
     // Find corresponding dart location and scope.
@@ -169,12 +170,13 @@ class ExpressionEvaluator {
     // so this will result in expressions not evaluated in some
     // cases. Invent location matching strategy for those cases.
     // [issue 890](https://github.com/dart-lang/webdev/issues/890)
-    var locationMap = await _locations.locationForJs(jsFrame.url, jsLine);
+    var url = urlForScriptId(jsScriptId);
+    var locationMap = await _locations.locationForJs(url, jsLine);
     if (locationMap == null) {
       return _createError(
           ErrorKind.internal,
           'Cannot find Dart location for JS location: '
-          'url: ${jsFrame.url}'
+          'url: $url, '
           'function: $functionName, '
           'line: $jsLine');
     }
@@ -321,4 +323,7 @@ class ExpressionEvaluator {
 
     return jsScope;
   }
+
+  String urlForScriptId(String scriptId) =>
+      _inspector.remoteDebugger.scripts[scriptId]?.url;
 }

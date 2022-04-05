@@ -312,6 +312,9 @@ class Debugger extends Domain {
     }
   }
 
+  String urlForScriptId(String scriptId) =>
+      _remoteDebugger.scripts[scriptId]?.url;
+
   /// Returns source [Location] for the paused event.
   ///
   /// If we do not have [Location] data for the embedded JS location, null is
@@ -319,8 +322,11 @@ class Debugger extends Domain {
   Future<Location> _sourceLocation(DebuggerPausedEvent e) {
     var frame = e.params['callFrames'][0];
     var location = frame['location'];
-    return _locations.locationForJs(
-        frame['url'] as String, (location['lineNumber'] as int) + 1);
+    var scriptId = location['scriptId'] as String;
+    var lineNumber = location['lineNumber'] as int;
+
+    var url = urlForScriptId(scriptId);
+    return _locations.locationForJs(url, lineNumber + 1);
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
@@ -458,7 +464,8 @@ class Debugger extends Domain {
     // TODO(sdk/issues/37240) - ideally we look for an exact location instead
     // of the closest location on a given line.
     Location bestLocation;
-    for (var location in await _locations.locationsForUrl(frame.url)) {
+    var url = urlForScriptId(location.scriptId);
+    for (var location in await _locations.locationsForUrl(url)) {
       if (location.jsLocation.line == line) {
         bestLocation ??= location;
         if ((location.jsLocation.column - column).abs() <
@@ -558,8 +565,9 @@ class Debugger extends Domain {
       // If we don't have source location continue stepping.
       if (_isStepping && (await _sourceLocation(e)) == null) {
         var frame = e.params['callFrames'][0];
-        var url = '${frame["url"]}';
         var scriptId = '${frame["location"]["scriptId"]}';
+        var url = urlForScriptId(scriptId);
+
         // TODO(grouma) - In the future we should send all previously computed
         // skipLists.
         await _remoteDebugger.stepInto(params: {
