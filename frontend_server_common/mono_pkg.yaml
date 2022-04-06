@@ -4,4 +4,4 @@ stages:
     - group:
       - format
       - analyze: --fatal-infos .
-      sdk: dev
+      sdk: stable
