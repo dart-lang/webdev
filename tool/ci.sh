@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v5.0.4
+# Created with package:mono_repo v6.2.0
 
 # Support built in commands on windows out of the box.
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
@@ -88,20 +88,16 @@ for PKG in ${PKGS}; do
         dart test test/build/ensure_version_test.dart || EXIT_CODE=$?
         ;;
       test_1)
-        echo 'dart test test/build/min_sdk_test.dart --run-skipped'
-        dart test test/build/min_sdk_test.dart --run-skipped || EXIT_CODE=$?
-        ;;
-      test_2)
         echo 'dart test'
         dart test || EXIT_CODE=$?
+        ;;
+      test_2)
+        echo 'dart test test/build/ensure_build_test.dart'
+        dart test test/build/ensure_build_test.dart || EXIT_CODE=$?
         ;;
       test_3)
         echo 'dart test -j 1'
         dart test -j 1 || EXIT_CODE=$?
-        ;;
-      test_4)
-        echo 'dart test test/build/ensure_build_test.dart'
-        dart test test/build/ensure_build_test.dart || EXIT_CODE=$?
         ;;
       *)
         echo -e "\033[31mUnknown TASK '${TASK}' - TERMINATING JOB\033[0m"

@@ -4,12 +4,11 @@ stages:
     - group:
       - format
       - analyze: --fatal-infos .
-      dart: dev
+      sdk: stable
   - unit_test:
     - test:
-      dart:
+      sdk:
         - stable
-        - dev
       os:
         - windows
         - linux

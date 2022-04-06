@@ -5,30 +5,18 @@ stages:
       - format
       - analyze: --fatal-infos .
       - test: test/build/ensure_version_test.dart
-      dart: dev
+      sdk: stable
     - group:
       - analyze: .
-      - test: test/build/min_sdk_test.dart --run-skipped
-      dart: stable
+      sdk: stable
   - unit_test:
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
       - test:
-      dart:
-        - dev
+      sdk:
         - stable
     - test:
       os: windows
-      dart:
-        - dev
+      sdk:
         - stable
-  - beta_cron:
-    - analyze: .
-      dart: beta
-    - group:
-      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - test: -j 1
-      dart: beta
-    - test: -j 1
-      os: windows
-      dart: beta
+  
