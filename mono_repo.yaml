@@ -22,10 +22,6 @@ github:
               "${CHAT_WEBHOOK_URL}"
           env:
             CHAT_WEBHOOK_URL: ${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}
-  stages:
-      - name: beta_cron
-        # Only run this stage for scheduled cron jobs
-        if: github.event_name == 'schedule'
 
 merge_stages:
 - analyzer_and_format
