@@ -3,10 +3,10 @@ name: Dart CI
 on:
   push:
     branches:
-      - dwds-v11.5.1-hotfix
+      - dwds-v11.5.1-base
   pull_request:
     branches:
-      - dwds-v11.5.1-hotfix
+      - dwds-v11.5.1-base
 defaults:
   run:
     shell: bash
