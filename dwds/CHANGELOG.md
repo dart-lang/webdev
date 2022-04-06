@@ -1,4 +1,4 @@
-## 13.0.0-dev
+## 13.0.0
 - Change wording of paused overlay from "Paused in Dart DevTools" to "Paused"
 - Allow sending back the Dart DevTools URL from DWDS instead of launching
   Dart DevTools, to support embedding Dart DevTools in Chrome DevTools.
