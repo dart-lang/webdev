@@ -2,9 +2,11 @@
 name: Dart CI
 on:
   push:
-  branches:
-    - dwds-v11.5.1-hotfix
+    branches:
+      - dwds-v11.5.1-hotfix
   pull_request:
+    branches:
+      - dwds-v11.5.1-hotfix
 defaults:
   run:
     shell: bash
@@ -618,7 +620,6 @@ jobs:
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: dart test -j 1
-    if: "github.event_name == 'schedule'"
     needs:
       - job_001
       - job_002
@@ -669,7 +670,6 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: dart test -j 1
-    if: "github.event_name == 'schedule'"
     needs:
       - job_001
       - job_002
@@ -716,7 +716,6 @@ jobs:
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: dart analyze .
-    if: "github.event_name == 'schedule'"
     needs:
       - job_001
       - job_002
@@ -763,7 +762,6 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: dart analyze .
-    if: "github.event_name == 'schedule'"
     needs:
       - job_001
       - job_002
@@ -800,7 +798,6 @@ jobs:
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: dart test -j 1
-    if: "github.event_name == 'schedule'"
     needs:
       - job_001
       - job_002
@@ -837,7 +834,6 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: dart test -j 1
-    if: "github.event_name == 'schedule'"
     needs:
       - job_001
       - job_002
