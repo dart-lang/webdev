@@ -96,12 +96,12 @@ for PKG in ${PKGS}; do
         dart test || EXIT_CODE=$?
         ;;
       test_3)
-        echo 'dart test -j 1'
-        dart test -j 1 || EXIT_CODE=$?
-        ;;
-      test_4)
         echo 'dart test test/build/ensure_build_test.dart'
         dart test test/build/ensure_build_test.dart || EXIT_CODE=$?
+        ;;
+      test_4)
+        echo 'dart test -j 1'
+        dart test -j 1 || EXIT_CODE=$?
         ;;
       *)
         echo -e "\033[31mUnknown TASK '${TASK}' - TERMINATING JOB\033[0m"
