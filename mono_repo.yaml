@@ -1,9 +1,13 @@
 # See https://pub.dev/packages/mono_repo for details
 self_validate: analyzer_and_format
 github:
+  on:
+    push:
+    branches:
+      - dwds-v11.5.1-hotfix
+    pull_request:
   env:
     DISPLAY: ':99'
-  cron: '0 0 * * 0' # "At 00:00 (UTC) on Sunday."
   on_completion:
     - name: "Notify failure"
       runs-on: ubuntu-latest
