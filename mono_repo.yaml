@@ -3,9 +3,11 @@ self_validate: analyzer_and_format
 github:
   on:
     push:
-    branches:
-      - dwds-v11.5.1-hotfix
+      branches:
+        - dwds-v11.5.1-hotfix
     pull_request:
+      branches:
+        - dwds-v11.5.1-hotfix
   env:
     DISPLAY: ':99'
   on_completion:
