@@ -6,8 +6,6 @@ github:
       branches:
         - dwds-v11.5.1-base
     pull_request:
-      branches:
-        - dwds-v11.5.1-base
   env:
     DISPLAY: ':99'
   on_completion:

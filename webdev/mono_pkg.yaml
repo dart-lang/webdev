@@ -8,7 +8,6 @@ stages:
       sdk: stable
     - group:
       - analyze: .
-      - test: test/build/min_sdk_test.dart --run-skipped
       sdk: stable
   - unit_test:
     - group:

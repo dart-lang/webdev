@@ -5,8 +5,6 @@ on:
     branches:
       - dwds-v11.5.1-base
   pull_request:
-    branches:
-      - dwds-v11.5.1-base
 defaults:
   run:
     shell: bash
@@ -37,14 +35,14 @@ jobs:
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
-    name: "analyzer_and_format; linux; PKGS: dwds, webdev; `dart analyze .`, `dart test test/build/min_sdk_test.dart --run-skipped`"
+    name: "analyzer_and_format; linux; PKGS: dwds, webdev; `dart analyze .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds-webdev;commands:analyze_1-test_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds-webdev;commands:analyze_1"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds-webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
@@ -64,10 +62,6 @@ jobs:
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
         run: dart analyze .
-      - name: "dwds; dart test test/build/min_sdk_test.dart --run-skipped"
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-        run: dart test test/build/min_sdk_test.dart --run-skipped
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -77,10 +71,6 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: dart analyze .
-      - name: "webdev; dart test test/build/min_sdk_test.dart --run-skipped"
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-        run: dart test test/build/min_sdk_test.dart --run-skipped
   job_003:
     name: "analyzer_and_format; linux; PKG: dwds; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`, `dart test test/build/ensure_version_test.dart`"
     runs-on: ubuntu-latest
@@ -196,7 +186,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:format-analyze_0-test_3"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:format-analyze_0-test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
@@ -232,7 +222,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds;commands:command-test_2"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds;commands:command-test_1"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
@@ -270,7 +260,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client;commands:test_2"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client;commands:test_1"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
@@ -304,7 +294,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:command-test_4"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:command-test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
