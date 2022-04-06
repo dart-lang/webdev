@@ -384,8 +384,6 @@ void _filterAndForward(Debuggee source, String method, Object params) {
 
   if (debugSession == null) return;
 
-  if (method == 'Debugger.scriptParsed') return;
-
   var event = _extensionEventFor(method, params);
 
   debugSession.socketClient.sink.add(jsonEncode(serializers.serialize(event)));

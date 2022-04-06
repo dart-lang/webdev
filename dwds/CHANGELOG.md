@@ -1,3 +1,7 @@
+## 11.5.2
+
+- Hotfix: Fix missing `CallFrame.url` after update to Chrome 100.
+
 ## 11.5.1
 
 - Update SDK contraint to `>=2.15.0 <3.0.0`.
