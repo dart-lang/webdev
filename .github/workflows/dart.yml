@@ -5,8 +5,6 @@ on:
     branches:
       - dwds-v11.5.1-base
   pull_request:
-    branches:
-      - dwds-v11.5.1-base
 defaults:
   run:
     shell: bash
@@ -37,16 +35,16 @@ jobs:
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
-    name: "analyzer_and_format; linux; PKGS: dwds, webdev; `dart analyze .`, `dart test test/build/min_sdk_test.dart --run-skipped`"
+    name: "analyzer_and_format; linux; PKG: dwds; `dart analyze .`, `dart test test/build/min_sdk_test.dart --run-skipped`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds-webdev;commands:analyze_1-test_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds;commands:analyze_1-test_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds-webdev
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -67,19 +65,6 @@ jobs:
       - name: "dwds; dart test test/build/min_sdk_test.dart --run-skipped"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-        run: dart test test/build/min_sdk_test.dart --run-skipped
-      - id: webdev_pub_upgrade
-        name: webdev; dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: webdev
-        run: dart pub upgrade
-      - name: webdev; dart analyze .
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-        run: dart analyze .
-      - name: "webdev; dart test test/build/min_sdk_test.dart --run-skipped"
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
         run: dart test test/build/min_sdk_test.dart --run-skipped
   job_003:
     name: "analyzer_and_format; linux; PKG: dwds; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`, `dart test test/build/ensure_version_test.dart`"
@@ -189,6 +174,34 @@ jobs:
         working-directory: frontend_server_common
         run: dart analyze --fatal-infos .
   job_005:
+    name: "analyzer_and_format; linux; PKG: webdev; `dart analyze .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v3
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:analyze_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: dart-lang/setup-dart@v1.3
+        with:
+          sdk: stable
+      - id: checkout
+        uses: actions/checkout@v3.0.0
+      - id: webdev_pub_upgrade
+        name: webdev; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: webdev
+        run: dart pub upgrade
+      - name: webdev; dart analyze .
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+        run: dart analyze .
+  job_006:
     name: "analyzer_and_format; linux; PKG: webdev; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`, `dart test test/build/ensure_build_test.dart`"
     runs-on: ubuntu-latest
     steps:
@@ -224,7 +237,7 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
         run: dart test test/build/ensure_build_test.dart
-  job_006:
+  job_007:
     name: "unit_test; linux; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -262,7 +275,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_007:
+      - job_006
+  job_008:
     name: "unit_test; linux; PKG: frontend_server_client; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -296,7 +310,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_008:
+      - job_006
+  job_009:
     name: "unit_test; linux; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
     runs-on: ubuntu-latest
     steps:
@@ -334,7 +349,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_009:
+      - job_006
+  job_010:
     name: "unit_test; windows; PKG: dwds; `dart test`"
     runs-on: windows-latest
     steps:
@@ -358,7 +374,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_010:
+      - job_006
+  job_011:
     name: "unit_test; windows; PKG: frontend_server_client; `dart test`"
     runs-on: windows-latest
     steps:
@@ -382,7 +399,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_011:
+      - job_006
+  job_012:
     name: "unit_test; windows; PKG: webdev; `dart test -j 1`"
     runs-on: windows-latest
     steps:
@@ -406,7 +424,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_012:
+      - job_006
+  job_013:
     name: Notify failure
     runs-on: ubuntu-latest
     if: "(github.event_name == 'push' || github.event_name == 'schedule') && failure()"
@@ -429,3 +448,4 @@ jobs:
       - job_009
       - job_010
       - job_011
+      - job_012
