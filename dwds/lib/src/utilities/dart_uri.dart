@@ -42,6 +42,10 @@ class DartUri {
   factory DartUri(String uri, [String serverUri]) {
     var serverPath = globalLoadStrategy.serverPathForAppUri(uri);
     if (serverPath != null) {
+      if (serverUri != null) {
+        var basePath = basePathForServerUri(serverUri);
+        serverPath = serverPath.replaceAll(basePath, '');
+      }
       return DartUri._(serverPath);
     }
     if (uri.startsWith('package:')) {
