@@ -1,4 +1,8 @@
-## 13.0.0-dev
+## 13.0.1-dev
+
+- Fix breakpoints not hitting after changing a base in index.html.
+
+## 13.0.0
 - Change wording of paused overlay from "Paused in Dart DevTools" to "Paused"
 - Allow sending back the Dart DevTools URL from DWDS instead of launching
   Dart DevTools, to support embedding Dart DevTools in Chrome DevTools.
@@ -16,7 +20,7 @@
 - Update error message on expression evaluation using unloaded libraries.
 - Add `screen` field to the `DebuggerReady` event.
 - Report `DebuggerReady` events for DevTools embedded into Chrome Devtools.
-- Fix breakpoints not hitting after changing a base in index.html.
+- Fix missing `CallFrame.url` after update to Chrome 100.
 
 **Breaking changes:**
 - `Dwds.start` and `ExpressionCompilerService` now take

@@ -1,3 +1,7 @@
+## 1.28
+
+- Support Chrome 100 updates to the remote debugging protocol.
+
 ## 1.27
 
 - Support embedded debugger and inspector in Chrome DevTools for Flutter Web apps. 
