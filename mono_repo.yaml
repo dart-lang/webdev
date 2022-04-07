@@ -8,6 +8,6 @@ github:
     pull_request:
   env:
     DISPLAY: ':99'
-    
+
 merge_stages:
 - analyzer_and_format

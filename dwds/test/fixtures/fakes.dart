@@ -116,9 +116,6 @@ class FakeModules implements Modules {
   }
 
   @override
-  String moduleForScriptId(String serverId) => '';
-
-  @override
   Future<String> moduleForSource(String serverPath) {
     throw UnimplementedError();
   }
@@ -135,13 +132,14 @@ class FakeModules implements Modules {
 }
 
 class FakeWebkitDebugger implements WebkitDebugger {
+  final Map<String, WipScript> _scripts;
   @override
   Future disable() => null;
 
   @override
   Future enable() => null;
 
-  FakeWebkitDebugger() {
+  FakeWebkitDebugger({Map<String, WipScript> scripts}) : _scripts = scripts {
     globalLoadStrategy = RequireStrategy(
         ReloadConfiguration.none,
         (_) async => {},
@@ -185,7 +183,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Future<WipResponse> resume() => null;
 
   @override
-  Map<String, WipScript> get scripts => null;
+  Map<String, WipScript> get scripts => _scripts;
 
   List<WipResponse> results = variables1;
   int resultsReturned = 0;
