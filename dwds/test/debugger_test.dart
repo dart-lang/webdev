@@ -17,7 +17,7 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
-    show CallFrame, DebuggerPausedEvent, StackTrace, WipCallFrame;
+    show CallFrame, DebuggerPausedEvent, StackTrace, WipCallFrame, WipScript;
 
 import 'fixtures/context.dart';
 import 'fixtures/debugger_data.dart';
@@ -72,22 +72,31 @@ final sampleSyncFrame = WipCallFrame({
     'columnNumber': 72,
   },
   'location': {'scriptId': '69', 'lineNumber': 37, 'columnNumber': 0},
-  'url': 'http://127.0.0.1:8081/foo.ddc.js',
+  'url': '',
   'scopeChain': [],
   'this': {'type': 'undefined'},
 });
 
 final sampleAsyncFrame = CallFrame({
   'functionName': 'myFunc',
-  'url': 'http://127.0.0.1:8081/bar.ddc.js',
+  'url': '',
   'scriptId': '71',
   'lineNumber': 40,
   'columnNumber': 1,
 });
 
+final Map<String, WipScript> scripts = {
+  '69': WipScript(<String, dynamic>{
+    'url': 'http://127.0.0.1:8081/foo.ddc.js',
+  }),
+  '71': WipScript(<String, dynamic>{
+    'url': 'http://127.0.0.1:8081/bar.ddc.js',
+  }),
+};
+
 void main() async {
   setUpAll(() async {
-    webkitDebugger = FakeWebkitDebugger();
+    webkitDebugger = FakeWebkitDebugger(scripts: scripts);
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
     globalLoadStrategy = TestStrategy();
