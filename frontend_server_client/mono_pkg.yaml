@@ -8,7 +8,6 @@ stages:
   - unit_test:
     - test:
       sdk:
-        - stable
         - dev
       os:
         - windows

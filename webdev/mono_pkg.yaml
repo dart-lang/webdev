@@ -8,27 +8,15 @@ stages:
       sdk: dev
     - group:
       - analyze: .
-      - test: test/build/min_sdk_test.dart --run-skipped
-      sdk: stable
+      sdk: dev
   - unit_test:
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
       - test: -j 1
       sdk:
         - dev
-        - stable
     - test: -j 1
       os: windows
       sdk:
         - dev
-        - stable
-  - beta_cron:
-    - analyze: .
-      sdk: beta
-    - group:
-      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - test: -j 1
-      sdk: beta
-    - test: -j 1
-      os: windows
-      sdk: beta
+
