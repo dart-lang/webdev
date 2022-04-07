@@ -1,3 +1,7 @@
+## 12.1.1
+
+- Hotfix: Fix missing `CallFrame.url` after update to Chrome 100.
+
 ## 12.1.0
 - Update _fe_analyzer_shared to version ^34.0.0.
 
