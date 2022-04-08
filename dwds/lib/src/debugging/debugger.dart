@@ -741,7 +741,6 @@ String breakpointIdFor(String scriptId, int line, int column) =>
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
 class _Breakpoints extends Domain {
-  final _logger = Logger('_Breakpoints');
   final _dartIdByJsId = <String, String>{};
   final _jsIdByDartId = <String, String>{};
 
@@ -767,8 +766,6 @@ class _Breakpoints extends Domain {
     var dartScript = inspector.scriptWithId(scriptId);
     var dartUri = DartUri(dartScript.uri, root);
     var location = await locations.locationForDart(dartUri, line, column);
-    _logger.warning(
-        '_createBreakpoint: uri: $dartUri, line: $line, column :$column, location: $location');
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) {
       throw RPCError(
