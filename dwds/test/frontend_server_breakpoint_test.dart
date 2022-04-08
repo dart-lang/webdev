@@ -88,7 +88,7 @@ void main() {
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
-      }, solo: true);
+      });
 
       test('set breakpoint again', () async {
         var line = await context.findBreakpointLine(
@@ -100,6 +100,26 @@ void main() {
             (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
         expect(bp, isNotNull);
+
+        // Remove breakpoint so it doesn't impact other tests.
+        await service.removeBreakpoint(isolate.id, bp.id);
+      });
+
+      test('set breakpoint inside a JavaScript line succeeds', () async {
+        var line = await context.findBreakpointLine(
+            'printNestedObjectsMultiLine', isolate.id, mainScript);
+        var bp = await service.addBreakpointWithScriptUri(
+            isolate.id, mainScript.uri, line);
+
+        await stream.firstWhere(
+            (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+        expect(bp, isNotNull);
+        expect(
+            bp.location,
+            isA<SourceLocation>()
+                .having((loc) => loc.script, 'script', equals(mainScript))
+                .having((loc) => loc.line, 'line', equals(line)));
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);

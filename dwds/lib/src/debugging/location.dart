@@ -40,7 +40,7 @@ class Location {
     var dartColumn = entry.sourceColumn;
     var jsLine = lineEntry.line;
     var jsColumn = entry.column;
-    print('Location: $jsLine:$jsColumn');
+
     // lineEntry data is 0 based according to:
     // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
     return Location._(

@@ -40,6 +40,7 @@ void main() async {
     printCallExtension();
     printLoopVariable();
     printGeneric<int>(0);
+    printNestedObjectsMultiLine();
   });
 
   document.body?.appendText(concatenate('Program', ' is running!'));
@@ -108,9 +109,24 @@ Future<void> printDeferred() async {
   d.deferredPrintLocal();
 }
 
+void printNestedObjectsMultiLine() {
+  print(
+    EnclosingMainClass(
+      MainClass(0) // Breakpoint: printNestedObjectsMultiLine
+    ));
+}
+
 class MainClass {
   final int _field;
   MainClass(this._field);
+
+  @override
+  String toString() => '$_field';
+}
+
+class EnclosingMainClass {
+  final MainClass _field;
+  EnclosingMainClass(this._field);
 
   @override
   String toString() => '$_field';

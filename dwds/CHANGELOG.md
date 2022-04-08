@@ -1,3 +1,6 @@
+## 13.1.1-dev
+- Add column information to breakpoints to allow precise breakpoint placement.
+
 ## 13.1.0
 - Update _fe_analyzer_shared to version ^38.0.0.
 

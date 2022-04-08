@@ -736,11 +736,8 @@ int _columnNumberFor(Breakpoint breakpoint) =>
 
 /// Returns the breakpoint ID for the provided Dart script ID and Dart line
 /// number.
-String breakpointIdFor(String scriptId, int line, int column) {
-  var id = 'bp/$scriptId#$line:$column';
-  print('breakpointIdFor: $scriptId, $line, $column: $id');
-  return id;
-}
+String breakpointIdFor(String scriptId, int line, int column) =>
+    'bp/$scriptId#$line:$column';
 
 /// Keeps track of the Dart and JS breakpoint Ids that correspond.
 class _Breakpoints extends Domain {
@@ -807,7 +804,12 @@ class _Breakpoints extends Domain {
       id: id,
       breakpointNumber: int.parse(createId()),
       resolved: true,
-      location: SourceLocation(script: dartScript, tokenPos: location.tokenPos),
+      location: SourceLocation(
+        script: dartScript,
+        tokenPos: location.tokenPos,
+        line: location.dartLocation.line,
+        column: location.dartLocation.column,
+      ),
       enabled: true,
     )..id = id;
     return breakpoint;
