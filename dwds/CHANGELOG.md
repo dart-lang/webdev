@@ -1,3 +1,6 @@
+## 13.1.0
+- Update _fe_analyzer_shared to version ^38.0.0.
+
 ## 13.0.0
 - Change wording of paused overlay from "Paused in Dart DevTools" to "Paused"
 - Allow sending back the Dart DevTools URL from DWDS instead of launching
