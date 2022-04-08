@@ -1,6 +1,8 @@
-## 13.0.1-dev
-
+## 13.1.1-dev
 - Fix breakpoints not hitting after changing a base in index.html.
+
+## 13.1.0
+- Update _fe_analyzer_shared to version ^38.0.0.
 
 ## 13.0.0
 - Change wording of paused overlay from "Paused in Dart DevTools" to "Paused"
