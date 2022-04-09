@@ -1,5 +1,41 @@
 ## Local Development
 
+### With Flutter tools (recommended)
+
+1. Fork and download the [Flutter repo](https://github.com/flutter/flutter). Detailed instructions can be found [here](https://github.com/flutter/flutter/wiki/Setting-up-the-Framework-development-environment).
+2. Add an alias to your `.bashrc`/`.zshrc` for Flutter Tools:
+```
+alias flutter_tools='/YOUR_PATH/flutter/bin/dart --observe /YOUR_PATH/flutter/packages/flutter_tools/bin/flutter_tools.dart'
+```
+
+> **Explanation:**
+> * `/PATH_TO_YOUR_FLUTTER_REPO/bin/dart`: This is the path to the Dart SDK that Flutter Tools uses
+> * `--observe`: This flag specifies we want a Dart DevTools URL for debugging
+> * `/PATH_TO_YOUR_FLUTTER_REPO/packages/flutter_tools/bin/flutter_tools.dart`: This is the path to Flutter Tools itself
+>
+> *More details can be found at the Flutter Tools [README](https://github.com/flutter/flutter/blob/master/packages/flutter_tools/README.md).*
+3. In your Flutter Tools [`pubspec.yaml`](https://github.com/flutter/flutter/blob/master/packages/flutter_tools/pubspec.yaml), change the DWDS dependency to point to your local DWDS: 
+```
+  dwds:
+    path: /YOUR_PATH/dwds
+```
+4. Choose a Flutter app to run (eg, the [old](https://github.com/flutter/flutter/tree/master/dev/integration_tests/flutter_gallery) or [new](https://github.com/flutter/gallery) Flutter Gallery apps).
+5. From the Flutter app repo, run your local Flutter Tools with alias you defined in step #2:
+```
+flutter_tools run -d chrome
+```
+6. Open up the **first** Dart DevTools URL you see printed:
+```
+...
+The Dart VM service is listening on http://127.0.0.1:8181/ajXIPMLq6iI=/
+The Dart DevTools debugger and profiler is available at: http://127.0.0.1:8181/ajXIPMLq6iI=/devtools/#/?uri=ws%3A%2F%2F127.0.0.1%3A8181%2FajXIPMLq6iI%3D%2Fws   <== THIS ONE!
+Launching lib/main.dart on Chrome in debug mode...
+...
+```
+7. The Dart DevTools you open is connected to your Flutter Tools, but because of the path dependency added in step #3, you can debug your local DWDS as well.
+
+### With WebDev
+
 1. In the `/webdev` directory, run `pub global activate --source path webdev` (this only needs to be run once)
 2. Uncomment the dwds dependency override in `/webdev/webdev/pubspec.yaml`, then run `dart run build_runner build` from `/webdev/webdev` directory
     * *Note: You will have to comment and build, and then uncomment and build, each time you need to pick up new changes*
