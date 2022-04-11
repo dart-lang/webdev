@@ -332,7 +332,7 @@ class Debugger extends Domain {
     var column = location['columnNumber'] as int;
 
     var url = _urlForScriptId(scriptId);
-    return _locations.locationForJs(url, line + 1, column + 1);
+    return _locations.locationForJs(url, line, column);
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
@@ -464,9 +464,8 @@ class Debugger extends Domain {
     bool populateVariables = true,
   }) async {
     var location = frame.location;
-    // Chrome is 0 based. Account for this.
-    var line = location.lineNumber + 1;
-    var column = location.columnNumber + 1;
+    var line = location.lineNumber;
+    var column = location.columnNumber;
 
     var url = _urlForScriptId(location.scriptId);
     if (url == null) {
@@ -730,7 +729,7 @@ bool isNativeJsObject(InstanceRef instanceRef) {
 int _lineNumberFor(Breakpoint breakpoint) =>
     int.parse(breakpoint.id.split('#').last.split(':').first);
 
-/// Returns the Dart line number for the provided breakpoint.
+/// Returns the Dart column number for the provided breakpoint.
 int _columnNumberFor(Breakpoint breakpoint) =>
     int.parse(breakpoint.id.split('#').last.split(':').last);
 
@@ -814,9 +813,6 @@ class _Breakpoints extends Domain {
 
   /// Calls the Chrome protocol setBreakpoint and returns the remote ID.
   Future<String> _setJsBreakpoint(Location location) async {
-    // Location is 0 based according to:
-    // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
-
     // The module can be loaded from a nested path and contain an ETAG suffix.
     var urlRegex = '.*${location.jsLocation.module}.*';
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
@@ -825,8 +821,8 @@ class _Breakpoints extends Domain {
       var response = await remoteDebugger
           .sendCommand('Debugger.setBreakpointByUrl', params: {
         'urlRegex': urlRegex,
-        'lineNumber': location.jsLocation.line - 1,
-        'columnNumber': location.jsLocation.column - 1,
+        'lineNumber': location.jsLocation.line,
+        'columnNumber': location.jsLocation.column,
       });
       return response.result['breakpointId'] as String;
     });

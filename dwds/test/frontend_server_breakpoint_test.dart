@@ -108,8 +108,10 @@ void main() {
       test('set breakpoint inside a JavaScript line succeeds', () async {
         var line = await context.findBreakpointLine(
             'printNestedObjectsMultiLine', isolate.id, mainScript);
+        var column = 0;
         var bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+            isolate.id, mainScript.uri, line,
+            column: column);
 
         await stream.firstWhere(
             (Event event) => event.kind == EventKind.kPauseBreakpoint);
@@ -119,7 +121,8 @@ void main() {
             bp.location,
             isA<SourceLocation>()
                 .having((loc) => loc.script, 'script', equals(mainScript))
-                .having((loc) => loc.line, 'line', equals(line)));
+                .having((loc) => loc.line, 'line', equals(line))
+                .having((loc) => loc.column, 'column', greaterThan(column)));
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);

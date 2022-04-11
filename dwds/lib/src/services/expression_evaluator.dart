@@ -159,9 +159,9 @@ class ExpressionEvaluator {
     }
 
     var functionName = jsFrame.functionName;
-    var jsLine = jsFrame.location.lineNumber + 1;
+    var jsLine = jsFrame.location.lineNumber;
     var jsScriptId = jsFrame.location.scriptId;
-    var jsColumn = jsFrame.location.columnNumber + 1;
+    var jsColumn = jsFrame.location.columnNumber;
     var jsScope = await _collectLocalJsScope(jsFrame);
 
     // Find corresponding dart location and scope.
