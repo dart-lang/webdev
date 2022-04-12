@@ -76,7 +76,7 @@ void main() {
 
       test('set breakpoint inside a JavaScript line succeeds on', () async {
         var line = await context.findBreakpointLine(
-            'printNestedObjectsMultiLine', isolate.id, mainScript);
+            'printNestedObjectMultiLine', isolate.id, mainScript);
         var column = 0;
         var bp = await service.addBreakpointWithScriptUri(
             isolate.id, mainScript.uri, line,

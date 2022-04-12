@@ -101,8 +101,9 @@ Future<void> printDeferred() async {
 }
 
 void printNestedObjectsMultiLine() {
-  print(
-      EnclosingMainClass(MainClass(0) // Breakpoint: printNestedObjectsMultiLine
+  print(// Breakpoint: printEnclosingFunctionMultiLine
+      EnclosingMainClass(// Breakpoint: printEnclosingObjectMultiLine
+          MainClass(0) // Breakpoint: printNestedObjectMultiLine
           ));
 }
 
