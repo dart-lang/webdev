@@ -345,6 +345,7 @@ int _maybeRemoveDebugSessionForTab(int tabId) {
       (session) => session.appTabId == tabId || session.devtoolsTabId == tabId,
       orElse: () => null);
   if (session != null) {
+    consoleLog('SESSION IS NOT NULL, THEREFORE CLOSE SESSION');
     session.socketClient.close();
     _debugSessions.remove(session);
 
@@ -500,12 +501,12 @@ Future<void> _startSseClient(
     }
   }, onDone: () {
     _tabIdToEncodedUri.remove(currentTab.id);
-    client.close();
+    _maybeDetachDebugSessionForTab(currentTab.id, null);
     return;
   }, onError: (_) {
     _tabIdToEncodedUri.remove(currentTab.id);
     alert('Lost app connection.');
-    client.close();
+    _maybeDetachDebugSessionForTab(currentTab.id, null);
   }, cancelOnError: true);
 
   client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b
