@@ -277,8 +277,8 @@ void _maybeAttachDebugSession(
   }
 }
 
-// Tries to remove the debug session for the specified tab, and detach the 
-// debugger associated with that debug session. 
+// Tries to remove the debug session for the specified tab, and detach the
+// debugger associated with that debug session.
 void _removeAndDetachDebugSessionForTab(int tabId, _) {
   final removedTabId = _removeDebugSessionForTab(tabId);
 
