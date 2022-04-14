@@ -23,9 +23,10 @@ import 'package:sse/client/sse_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 const _notADartAppAlert = 'No Dart application detected.'
-    ' Your development server should inject metadata to indicate support for'
-    ' Dart debugging. This may require setting a flag. Check the documentation'
-    ' for your development server.';
+    ' Are you trying to debug an application that includes a Chrome hosted app '
+    ' (an application listed in chrome://apps)? If so, debugging is disabled.  '
+    ' You can fix this by removing the application from chrome://apps. Please '
+    ' see https://bugs.chromium.org/p/chromium/issues/detail?id=885025#c11.';
 
 // Extensions allowed for cross-extension communication.
 const _allowedExtensions = {
