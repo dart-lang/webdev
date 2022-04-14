@@ -1,3 +1,7 @@
+## 1.29
+
+- Provide a detailed error message when the debugger fails to connect.
+
 ## 1.28
 
 - Support Chrome 100 updates to the remote debugging protocol.
