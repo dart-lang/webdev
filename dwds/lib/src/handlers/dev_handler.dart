@@ -567,6 +567,7 @@ class DevHandler {
     String debugServiceUri, {
     String ideQueryParam = '',
   }) {
+    if (!_serveDevTools) return null;
     return Uri(
         scheme: 'http',
         host: _devTools.hostname,
