@@ -1,5 +1,5 @@
 ## 13.1.1-dev
-
+- Add column information to breakpoints to allow precise breakpoint placement.
 - Remove dependency on `package:_fe_analyzer_shared`.
   Note: this removes current incomplete support for resolving `dart:` uris.
 - Fix issues discovered when using flutter tools with web server device:
@@ -7,7 +7,6 @@
     used.
   - Fix crash when using flutter tools with web server device.
   - Remove clearing all scripts on page load for extension debugger.
-
 
 ## 13.1.0
 - Update _fe_analyzer_shared to version ^38.0.0.
