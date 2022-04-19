@@ -4,10 +4,6 @@
 
 // @dart = 2.9
 
-import 'dart:io';
-
-// ignore: implementation_imports
-import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
@@ -41,6 +37,8 @@ class DartUri {
   factory DartUri(String uri, [String serverUri]) {
     var serverPath = globalLoadStrategy.serverPathForAppUri(uri);
     if (serverPath != null) return DartUri._(serverPath);
+    // TODO(annagrin): Support creating DartUris from `dart:` uris.
+    // Issue: https://github.com/dart-lang/webdev/issues/1584
     if (uri.startsWith('package:')) {
       return DartUri._fromPackageUri(uri, serverUri: serverUri);
     }
@@ -97,9 +95,6 @@ class DartUri {
 
   /// The way we resolve file: URLs into package: URLs
   static PackageConfig _packageConfig;
-
-  /// The way we resolve dart: URLs into org-dartland-sdk: URLs
-  static TargetLibrariesSpecification _librariesSpec;
 
   /// SDK installation directory.
   ///
@@ -166,16 +161,12 @@ class DartUri {
     if (_sdkConfiguration.sdkDirectory != null) {
       _sdkConfiguration.validateSdkDir();
     }
-    if (_sdkConfiguration.librariesUri != null) {
-      await _loadLibrariesConfig(_sdkConfiguration.librariesUri);
-    }
 
     await _loadPackageConfig(packagesUri);
   }
 
   /// Clear the uri resolution tables.
   static void clear() {
-    _librariesSpec = null;
     _packageConfig = null;
     _resolvedUriToUri.clear();
     _uriToResolvedUri.clear();
@@ -199,20 +190,6 @@ class DartUri {
     });
   }
 
-  /// Load and parse libraries.json spec file.
-  /// Used for resolving `dart:` libraries uris.
-  static Future<void> _loadLibrariesConfig(Uri uri) async {
-    try {
-      var spec = await LibrariesSpecification.load(
-          uri, (uri) => File.fromUri(uri).readAsString());
-      _librariesSpec = spec.specificationFor('dartdevc');
-    } on LibrariesSpecificationException catch (e) {
-      _logger.warning('Cannot parse libraries spec: $uri', e);
-    } on FileSystemException catch (e) {
-      _logger.warning('Cannot read libraries spec: $uri', e);
-    }
-  }
-
   /// Record the library represented by package: or org-dartlang-app: uris
   /// indexed by absolute file: URI.
   static void _recordAbsoluteUri(String libraryUri) {
@@ -225,12 +202,9 @@ class DartUri {
     String libraryPath;
     switch (uri.scheme) {
       case 'dart':
-        var libSpec = _librariesSpec?.libraryInfoFor(uri.path);
-        libraryPath = libSpec?.uri?.path;
-        var sdkDir = _sdkConfiguration.sdkDirectoryUri;
-        libraryPath =
-            libraryPath?.replaceAll(sdkDir.path, 'org-dartlang-sdk:///sdk');
-        break;
+        // TODO(annagrin): Support resolving `dart:` uris.
+        // Issue: https://github.com/dart-lang/webdev/issues/1584
+        return;
       case 'org-dartlang-app':
       case 'google3':
         // Both currentDirectoryUri and the libraryUri path should have '/'
@@ -249,7 +223,7 @@ class DartUri {
       _uriToResolvedUri[libraryUri] = libraryPath;
       _resolvedUriToUri[libraryPath] = libraryUri;
     } else {
-      _logger.warning('Unresolved uri: $uri');
+      _logger.fine('Unresolved uri: $uri');
     }
   }
 }

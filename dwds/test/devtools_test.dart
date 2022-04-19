@@ -6,6 +6,8 @@
 
 @Timeout(Duration(minutes: 5))
 @TestOn('vm')
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
@@ -137,6 +139,30 @@ void main() {
       await alert.accept();
     });
   });
+
+  group('Injected client with debug extension and without DevTools', () {
+    setUp(() async {
+      await context.setUp(enableDebugExtension: true, serveDevTools: false);
+    });
+
+    tearDown(() async {
+      await context.tearDown();
+    });
+
+    test('gives a good error if devtools is not served', () async {
+      // Click on extension
+      await context.extensionConnection.sendCommand('Runtime.evaluate', {
+        'expression': 'fakeClick()',
+      });
+      // Try to open devtools and check for the alert.
+      await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
+      await Future.delayed(const Duration(seconds: 2));
+      var alert = context.webDriver.driver.switchTo.alert;
+      expect(alert, isNotNull);
+      expect(await alert.text, contains('--debug'));
+      await alert.accept();
+    });
+  }, tags: ['extension'], skip: Platform.isWindows);
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>
