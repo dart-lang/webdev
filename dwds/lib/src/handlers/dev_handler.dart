@@ -93,10 +93,7 @@ class DevHandler {
     this._launchDevToolsInNewWindow,
     this._sdkConfigurationProvider,
   ) {
-    if (_serveDevTools && _devTools == null) {
-      throw StateError('DevHandler cannot serve DevTools: _devTools '
-          'must be provided if _serveDevTools is true');
-    }
+    _validateDevToolsOptions();
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
     if (_extensionBackend != null) {
@@ -559,11 +556,25 @@ class DevHandler {
     });
   }
 
+  void _ensureServeDevtools() {
+    if (!_serveDevTools) {
+      _logger.severe('Expected _serveDevTools');
+      throw StateError('Expected _serveDevTools');
+    }
+  }
+
+  void _validateDevToolsOptions() {
+    if (_serveDevTools && _devTools == null) {
+      _logger.severe('DevHandler: invalid DevTools options');
+      throw StateError('DevHandler: invalid DevTools options');
+    }
+  }
+
   Future<void> _launchDevTools(
       RemoteDebugger remoteDebugger, String devToolsUri) async {
+    _ensureServeDevtools();
     // TODO(grouma) - We may want to log the debugServiceUri if we don't launch
     // DevTools so that users can manually connect.
-    assert(_serveDevTools);
     emitEvent(DwdsEvent.devtoolsLaunch());
     await remoteDebugger.sendCommand('Target.createTarget', params: {
       'newWindow': _launchDevToolsInNewWindow,
@@ -575,8 +586,7 @@ class DevHandler {
     String debugServiceUri, {
     String ideQueryParam = '',
   }) {
-    assert(_serveDevTools);
-    assert(_devTools != null);
+    _ensureServeDevtools();
     return Uri(
         scheme: 'http',
         host: _devTools.hostname,
