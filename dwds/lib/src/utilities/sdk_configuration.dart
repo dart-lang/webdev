@@ -70,6 +70,24 @@ class SdkConfiguration {
     fileSystem ??= const LocalFileSystem();
 
     validateSdkDir(fileSystem: fileSystem);
+    validateSummaries(fileSystem: fileSystem);
+    validateLibrariesSpec(fileSystem: fileSystem);
+    validateCompilerWorker(fileSystem: fileSystem);
+  }
+
+  /// Throws [InvalidSdkConfigurationException] if SDK root does not
+  /// exist on the disk.
+  void validateSdkDir({FileSystem fileSystem}) {
+    fileSystem ??= const LocalFileSystem();
+    if (sdkDirectory == null ||
+        !fileSystem.directory(sdkDirectory).existsSync()) {
+      throw InvalidSdkConfigurationException(
+          'Sdk directory $sdkDirectory does not exist');
+    }
+  }
+
+  void validateSummaries({FileSystem fileSystem}) {
+    fileSystem ??= const LocalFileSystem();
 
     if (unsoundSdkSummaryPath == null ||
         !fileSystem.file(unsoundSdkSummaryPath).existsSync()) {
@@ -82,27 +100,24 @@ class SdkConfiguration {
       throw InvalidSdkConfigurationException(
           'Sdk summary $soundSdkSummaryPath does not exist');
     }
+  }
+
+  void validateLibrariesSpec({FileSystem fileSystem}) {
+    fileSystem ??= const LocalFileSystem();
 
     if (librariesPath == null || !fileSystem.file(librariesPath).existsSync()) {
       throw InvalidSdkConfigurationException(
           'Libraries spec $librariesPath does not exist');
     }
+  }
+
+  void validateCompilerWorker({FileSystem fileSystem}) {
+    fileSystem ??= const LocalFileSystem();
 
     if (compilerWorkerPath == null ||
         !fileSystem.file(compilerWorkerPath).existsSync()) {
       throw InvalidSdkConfigurationException(
           'Compiler worker $compilerWorkerPath does not exist');
-    }
-  }
-
-  /// Throws [InvalidSdkConfigurationException] if SDK root does not
-  /// exist on the disk.
-  void validateSdkDir({FileSystem fileSystem}) {
-    fileSystem ??= const LocalFileSystem();
-    if (sdkDirectory == null ||
-        !fileSystem.directory(sdkDirectory).existsSync()) {
-      throw InvalidSdkConfigurationException(
-          'Sdk directory $sdkDirectory does not exist');
     }
   }
 }
