@@ -40,6 +40,7 @@ class Location {
     var dartColumn = entry.sourceColumn;
     var jsLine = lineEntry.line;
     var jsColumn = entry.column;
+
     // lineEntry data is 0 based according to:
     // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
     return Location._(
@@ -71,21 +72,18 @@ class DartLocation {
   @override
   String toString() => '[${uri.serverPath}:$line:$column]';
 
-  static DartLocation fromZeroBased(DartUri uri, int line, int column) =>
+  factory DartLocation.fromZeroBased(DartUri uri, int line, int column) =>
       DartLocation._(uri, line + 1, column + 1);
-
-  static DartLocation fromOneBased(DartUri uri, int line, int column) =>
-      DartLocation._(uri, line, column);
 }
 
 /// Location information for a JS source.
 class JsLocation {
   final String module;
 
-  /// 1 based row offset within the JS source code.
+  /// 0 based row offset within the JS source code.
   final int line;
 
-  /// 1 based column offset within the JS source code.
+  /// 0 based column offset within the JS source code.
   final int column;
 
   JsLocation._(
@@ -97,10 +95,9 @@ class JsLocation {
   @override
   String toString() => '[$module:$line:$column]';
 
-  static JsLocation fromZeroBased(String module, int line, int column) =>
-      JsLocation._(module, line + 1, column + 1);
-
-  static JsLocation fromOneBased(String module, int line, int column) =>
+  // JS Location is 0 based according to:
+  // https://chromedevtools.github.io/devtools-protocol/tot/Debugger#type-Location
+  factory JsLocation.fromZeroBased(String module, int line, int column) =>
       JsLocation._(module, line, column);
 }
 
@@ -155,17 +152,21 @@ class Locations {
   /// Find the [Location] for the given Dart source position.
   ///
   /// The [line] number is 1-based.
-  Future<Location> locationForDart(DartUri uri, int line) async =>
+  Future<Location> locationForDart(DartUri uri, int line, int column) async =>
       (await locationsForDart(uri.serverPath)).firstWhere(
-          (location) => location.dartLocation.line == line,
+          (location) =>
+              location.dartLocation.line == line &&
+              location.dartLocation.column >= column,
           orElse: () => null);
 
   /// Find the [Location] for the given JS source position.
   ///
-  /// The [line] number is 1-based.
-  Future<Location> locationForJs(String url, int line) async =>
+  /// The [line] number is 0-based.
+  Future<Location> locationForJs(String url, int line, int column) async =>
       (await locationsForUrl(url)).firstWhere(
-          (location) => location.jsLocation.line == line,
+          (location) =>
+              location.jsLocation.line == line &&
+              location.jsLocation.column >= column,
           orElse: () => null);
 
   /// Returns the tokenPosTable for the provided Dart script path as defined
