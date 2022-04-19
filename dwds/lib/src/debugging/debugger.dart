@@ -771,7 +771,7 @@ class _Breakpoints extends Domain {
     if (location == null) {
       _logger.fine('Failed to set breakpoint $id '
           '(${dartUri.serverPath}:$line:$column): '
-          'cannot find dart location.');
+          'cannot find Dart location.');
       throw RPCError(
           'addBreakpoint',
           102,
