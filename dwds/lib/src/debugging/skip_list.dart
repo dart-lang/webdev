@@ -31,8 +31,8 @@ class SkipLists {
     var startColumn = 0;
     for (var location in locations) {
       // Account for 1 based.
-      var endLine = location.jsLocation.line - 1;
-      var endColumn = location.jsLocation.column - 1;
+      var endLine = location.jsLocation.line;
+      var endColumn = location.jsLocation.column;
       // Stop before the known location.
       endColumn -= 1;
       if (endColumn < 0) {
@@ -42,8 +42,8 @@ class SkipLists {
       if (endLine > startLine || endColumn > startColumn) {
         ranges.add(
             _rangeFor(scriptId, startLine, startColumn, endLine, endColumn));
-        startLine = location.jsLocation.line - 1;
-        startColumn = location.jsLocation.column;
+        startLine = location.jsLocation.line;
+        startColumn = location.jsLocation.column + 1;
       }
     }
     ranges.add(_rangeFor(scriptId, startLine, startColumn, maxValue, maxValue));

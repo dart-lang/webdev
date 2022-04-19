@@ -5,6 +5,7 @@ homepage: https://github.com/dart-lang/webdev/tree/master/dwds
 description: >-
   A service that proxies between the Chrome debug protocol and the Dart VM
   service protocol.
+repository: https://github.com/dart-lang/webdev/tree/master/dwds
 
 environment:
   sdk: ">=2.16.0 <3.0.0"
