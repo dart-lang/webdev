@@ -93,6 +93,10 @@ class DevHandler {
     this._launchDevToolsInNewWindow,
     this._sdkConfigurationProvider,
   ) {
+    if (_serveDevTools && _devTools == null) {
+      throw StateError('DevHandler cannot serve DevTools: _devTools '
+          'must be provided if _serveDevTools is true');
+    }
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
     if (_extensionBackend != null) {
@@ -376,10 +380,12 @@ class DevHandler {
       debuggerStart: debuggerStart,
       devToolsStart: DateTime.now(),
     );
-    await _launchDevTools(
-        appServices.chromeProxyService.remoteDebugger,
-        _constructDevToolsUri(appServices.debugService.uri,
-            ideQueryParam: 'Dwds'));
+    if (_serveDevTools) {
+      await _launchDevTools(
+          appServices.chromeProxyService.remoteDebugger,
+          _constructDevToolsUri(appServices.debugService.uri,
+              ideQueryParam: 'Dwds'));
+    }
   }
 
   Future<AppConnection> _handleConnectRequest(
@@ -533,21 +539,23 @@ class DevHandler {
       appServices.dwdsStats.updateLoadTime(
           debuggerStart: debuggerStart, devToolsStart: DateTime.now());
 
-      // If we only want the URI, this means we are embedding Dart DevTools in
-      // Chrome DevTools. Therefore return early.
-      if (devToolsRequest.uriOnly != null && devToolsRequest.uriOnly) {
+      if (_serveDevTools) {
+        // If we only want the URI, this means we are embedding Dart DevTools in
+        // Chrome DevTools. Therefore return early.
+        if (devToolsRequest.uriOnly != null && devToolsRequest.uriOnly) {
+          final devToolsUri = _constructDevToolsUri(
+            encodedUri,
+            ideQueryParam: 'ChromeDevTools',
+          );
+          extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
+          return;
+        }
         final devToolsUri = _constructDevToolsUri(
           encodedUri,
-          ideQueryParam: 'ChromeDevTools',
+          ideQueryParam: 'DebugExtension',
         );
-        extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
-        return;
+        await _launchDevTools(extensionDebugger, devToolsUri);
       }
-      final devToolsUri = _constructDevToolsUri(
-        encodedUri,
-        ideQueryParam: 'DebugExtension',
-      );
-      await _launchDevTools(extensionDebugger, devToolsUri);
     });
   }
 
@@ -555,7 +563,7 @@ class DevHandler {
       RemoteDebugger remoteDebugger, String devToolsUri) async {
     // TODO(grouma) - We may want to log the debugServiceUri if we don't launch
     // DevTools so that users can manually connect.
-    if (!_serveDevTools) return;
+    assert(_serveDevTools);
     emitEvent(DwdsEvent.devtoolsLaunch());
     await remoteDebugger.sendCommand('Target.createTarget', params: {
       'newWindow': _launchDevToolsInNewWindow,
@@ -567,7 +575,8 @@ class DevHandler {
     String debugServiceUri, {
     String ideQueryParam = '',
   }) {
-    if (!_serveDevTools) return null;
+    assert(_serveDevTools);
+    assert(_devTools != null);
     return Uri(
         scheme: 'http',
         host: _devTools.hostname,
