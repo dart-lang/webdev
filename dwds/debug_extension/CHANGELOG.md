@@ -1,3 +1,7 @@
+## 1.29
+
+- Notify the debugger and inspector panels when the debug session is disconnected.
+
 ## 1.28
 
 - Support Chrome 100 updates to the remote debugging protocol.
