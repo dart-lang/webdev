@@ -105,11 +105,11 @@ void main() {
 
   // When a Dart application tab is closed, detach the corresponding debug
   // session:
-  tabsOnRemovedAddListener(allowInterop(_maybeDetachDebugSessionForTab));
+  tabsOnRemovedAddListener(allowInterop(_removeAndDetachDebugSessionForTab));
 
   // When a debug session is detached, remove the reference to it:
   onDetachAddListener(allowInterop((Debuggee source, DetachReason reason) {
-    _maybeRemoveDebugSessionForTab(source.tabId);
+    _removeDebugSessionForTab(source.tabId);
   }));
 
   // Save the tab ID for the opened DevTools.
@@ -278,11 +278,35 @@ void _maybeAttachDebugSession(
   }
 }
 
-void _maybeDetachDebugSessionForTab(int tabId, _) {
-  final removedTabId = _maybeRemoveDebugSessionForTab(tabId);
+// Tries to remove the debug session for the specified tab, and detach the
+// debugger associated with that debug session.
+void _removeAndDetachDebugSessionForTab(int tabId, _) {
+  final removedTabId = _removeDebugSessionForTab(tabId);
 
   if (removedTabId != -1) {
     detach(Debuggee(tabId: removedTabId), allowInterop(() {}));
+  }
+}
+
+// Tries to remove the debug session for the specified tab. If no session is
+// found, returns -1. Otherwise returns the tab ID.
+int _removeDebugSessionForTab(int tabId) {
+  var session = _debugSessions.firstWhere(
+      (session) => session.appTabId == tabId || session.devtoolsTabId == tabId,
+      orElse: () => null);
+  if (session != null) {
+    session.socketClient.close();
+    _debugSessions.remove(session);
+
+    // Notify the Dart DevTools panel that the session has been detached by
+    // setting the URI to an empty string:
+    _updateOrCreateDevToolsPanel(session.appId, (panel) {
+      panel.devToolsUri = '';
+    });
+
+    return session.appTabId;
+  } else {
+    return -1;
   }
 }
 
@@ -336,28 +360,6 @@ void _forwardMessageToExternalExtensions(
         name: 'chrome.debugger.event',
         tabId: source.tabId,
         options: DebugEvent(method: method, params: params)));
-  }
-}
-
-// Tries to remove the debug session for the specified tab. If no session is
-// found, returns -1. Otherwise returns the tab ID.
-int _maybeRemoveDebugSessionForTab(int tabId) {
-  var session = _debugSessions.firstWhere(
-      (session) => session.appTabId == tabId || session.devtoolsTabId == tabId,
-      orElse: () => null);
-  if (session != null) {
-    session.socketClient.close();
-    _debugSessions.remove(session);
-
-    // Notify the Dart DevTools panel that the session has been detached by
-    // setting the URI to an empty string:
-    _updateOrCreateDevToolsPanel(session.appId, (panel) {
-      panel.devToolsUri = '';
-    });
-
-    return session.appTabId;
-  } else {
-    return -1;
   }
 }
 
@@ -501,12 +503,12 @@ Future<void> _startSseClient(
     }
   }, onDone: () {
     _tabIdToEncodedUri.remove(currentTab.id);
-    client.close();
+    _removeAndDetachDebugSessionForTab(currentTab.id, null);
     return;
   }, onError: (_) {
     _tabIdToEncodedUri.remove(currentTab.id);
     alert('Lost app connection.');
-    client.close();
+    _removeAndDetachDebugSessionForTab(currentTab.id, null);
   }, cancelOnError: true);
 
   client.sink.add(jsonEncode(serializers.serialize(DevToolsRequest((b) => b

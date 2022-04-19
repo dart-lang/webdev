@@ -3,10 +3,10 @@ name: webdev
 version: 2.7.9-dev
 # We should not depend on a dev SDK before publishing.
 # publish_to: none
-homepage: https://github.com/dart-lang/webdev
 description: >-
   A CLI for Dart web development. Provides an easy and consistent set of
   features for users and tools to build and deploy web applications with Dart.
+repository: https://github.com/dart-lang/webdev/tree/master/webdev
 
 environment:
   sdk: ">=2.16.0 <3.0.0"

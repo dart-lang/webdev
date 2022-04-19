@@ -1,3 +1,7 @@
+## 13.1.1-dev
+- Add column information to breakpoints to allow precise breakpoint placement.
+- Split SDK validation methods to allow validation of separate components.
+
 ## 13.1.0
 - Update _fe_analyzer_shared to version ^38.0.0.
 
