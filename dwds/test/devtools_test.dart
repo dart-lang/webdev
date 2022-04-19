@@ -6,6 +6,8 @@
 
 @Timeout(Duration(minutes: 5))
 @TestOn('vm')
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/io.dart';
@@ -160,7 +162,7 @@ void main() {
       expect(await alert.text, contains('--debug'));
       await alert.accept();
     });
-  }, tags: ['extension']);
+  }, tags: ['extension'], skip: Platform.isWindows);
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>
