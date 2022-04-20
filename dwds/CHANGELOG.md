@@ -8,6 +8,7 @@
     used.
   - Fix crash when using flutter tools with web server device.
   - Remove clearing all scripts on page load for extension debugger.
+- Find best locations for call frames, breakpoints, or expression evaluation.
 
 ## 13.1.0
 - Update _fe_analyzer_shared to version ^38.0.0.

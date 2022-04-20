@@ -474,18 +474,7 @@ class Debugger extends Domain {
       return null;
     }
 
-    // TODO(sdk/issues/37240) - ideally we look for an exact location instead
-    // of the closest location on a given line.
-    Location bestLocation;
-    for (var location in await _locations.locationsForUrl(url)) {
-      if (location.jsLocation.line == line) {
-        bestLocation ??= location;
-        if ((location.jsLocation.column - column).abs() <
-            (bestLocation.jsLocation.column - column).abs()) {
-          bestLocation = location;
-        }
-      }
-    }
+    var bestLocation = await _locations.locationForJs(url, line, column);
     if (bestLocation == null) return null;
 
     var script =

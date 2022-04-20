@@ -152,22 +152,54 @@ class Locations {
   /// Find the [Location] for the given Dart source position.
   ///
   /// The [line] number is 1-based.
-  Future<Location> locationForDart(DartUri uri, int line, int column) async =>
-      (await locationsForDart(uri.serverPath)).firstWhere(
-          (location) =>
-              location.dartLocation.line == line &&
-              location.dartLocation.column >= column,
-          orElse: () => null);
+  Future<Location> locationForDart(DartUri uri, int line, int column) async {
+    return _bestDartLocation(
+        await locationsForDart(uri.serverPath), line, column);
+  }
 
   /// Find the [Location] for the given JS source position.
   ///
   /// The [line] number is 0-based.
-  Future<Location> locationForJs(String url, int line, int column) async =>
-      (await locationsForUrl(url)).firstWhere(
-          (location) =>
-              location.jsLocation.line == line &&
-              location.jsLocation.column >= column,
-          orElse: () => null);
+  Future<Location> locationForJs(String url, int line, int column) async {
+    return _bestJsLocation(await locationsForUrl(url), line, column);
+  }
+
+  /// Find closest existing JavaScript location for the line nd column.
+  ///
+  /// Chrome locations are either exact or placed at the first chracter
+  /// of the line, so find the closest location on the column or after.
+  Location _bestJsLocation(Iterable<Location> locations, int line, int column) {
+    Location bestLocation;
+    for (var location in locations) {
+      if (location.jsLocation.line == line &&
+          location.jsLocation.column >= column) {
+        bestLocation ??= location;
+        if (location.jsLocation.column < bestLocation.jsLocation.column) {
+          bestLocation = location;
+        }
+      }
+    }
+    return bestLocation;
+  }
+
+  /// Find closest existing Dart location for the line and column.
+  ///
+  /// Dart locations are either exact or placed at the start of the line,
+  /// so find the closest location on the column or after.
+  Location _bestDartLocation(
+      Iterable<Location> locations, int line, int column) {
+    Location bestLocation;
+    for (var location in locations) {
+      if (location.dartLocation.line == line &&
+          location.dartLocation.column >= column) {
+        bestLocation ??= location;
+        if (location.dartLocation.column < bestLocation.dartLocation.column) {
+          bestLocation = location;
+        }
+      }
+    }
+    return bestLocation;
+  }
 
   /// Returns the tokenPosTable for the provided Dart script path as defined
   /// in:
