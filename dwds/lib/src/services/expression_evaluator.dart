@@ -179,7 +179,8 @@ class ExpressionEvaluator {
           'Cannot find Dart location for JS location: '
           'url: $url, '
           'function: $functionName, '
-          'line: $jsLine');
+          'line: $jsLine, '
+          'column: $jsColumn');
     }
 
     var dartLocation = locationMap.dartLocation;
