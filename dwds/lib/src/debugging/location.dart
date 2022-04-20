@@ -162,15 +162,12 @@ class Locations {
   /// Find the [Location] for the given JS source position.
   ///
   /// The [line] number is 0-based.
-  Future<Location> locationForJs(String url, int line, int column) async {
-    var locations = await locationsForUrl(url);
-    var locationsForLine = locations.where(
-      (location) => location.jsLocation.line == line,
-    );
-    return locationsForLine.lastWhere(
-        (location) => location.jsLocation.column <= column,
-        orElse: () => null);
-  }
+  Future<Location> locationForJs(String url, int line, int column) async =>
+      (await locationsForUrl(url)).firstWhere(
+          (location) =>
+              location.jsLocation.line == line &&
+              location.jsLocation.column >= column,
+          orElse: () => null);
 
   /// Returns the tokenPosTable for the provided Dart script path as defined
   /// in:

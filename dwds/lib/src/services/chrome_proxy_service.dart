@@ -119,7 +119,6 @@ class ChromeProxyService implements VmServiceInterface {
       uri,
     );
     _debuggerCompleter.complete(debugger);
-    _logger.info('Created chrome proxy service for $uri');
   }
 
   static Future<ChromeProxyService> create(
