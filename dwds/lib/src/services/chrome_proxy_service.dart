@@ -338,6 +338,17 @@ class ChromeProxyService implements VmServiceInterface {
       String isolateId, String scriptUri, int line,
       {int column}) async {
     await isInitialized;
+    if (Uri.parse(scriptUri).scheme == 'dart') {
+      _logger.finest('Cannot set breakpoint at $scriptUri:$line:$column: '
+          'breakpoints in dart SDK locations are not supported yet.');
+      // TODO(annagrin): Support setting breakpoints in dart SDK locations.
+      // Issue: https://github.com/dart-lang/webdev/issues/1584
+      throw RPCError(
+          'addBreakpoint',
+          102,
+          'The VM is unable to add a breakpoint '
+              'at the specified line or function');
+    }
     var dartUri = DartUri(scriptUri, uri);
     var ref = await _inspector.scriptRefFor(dartUri.serverPath);
     return (await _debugger)

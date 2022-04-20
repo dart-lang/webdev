@@ -1,6 +1,13 @@
 ## 13.1.1-dev
 - Add column information to breakpoints to allow precise breakpoint placement.
 - Split SDK validation methods to allow validation of separate components.
+- Remove dependency on `package:_fe_analyzer_shared`.
+  Note: this removes current incomplete support for resolving `dart:` uris.
+- Fix issues discovered when using flutter tools with web server device:
+  - Remove `dart:web_sql` from the list of SDK libraries as it is no longer
+    used.
+  - Fix crash when using flutter tools with web server device.
+  - Remove clearing all scripts on page load for extension debugger.
 - Fix breakpoints not hitting after changing a base in index.html.
 
 ## 13.1.0
