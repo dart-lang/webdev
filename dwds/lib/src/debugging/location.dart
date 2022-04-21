@@ -153,39 +153,23 @@ class Locations {
   ///
   /// The [line] number is 1-based.
   Future<Location> locationForDart(DartUri uri, int line, int column) async {
-    return _bestDartLocation(
-        await locationsForDart(uri.serverPath), line, column);
+    var locations = await locationsForDart(uri.serverPath);
+    return _bestDartLocation(locations, line, column);
   }
 
   /// Find the [Location] for the given JS source position.
   ///
   /// The [line] number is 0-based.
   Future<Location> locationForJs(String url, int line, int column) async {
-    return _bestJsLocation(await locationsForUrl(url), line, column);
-  }
-
-  /// Find closest existing JavaScript location for the line nd column.
-  ///
-  /// Chrome locations are either exact or placed at the first chracter
-  /// of the line, so find the closest location on the column or after.
-  Location _bestJsLocation(Iterable<Location> locations, int line, int column) {
-    Location bestLocation;
-    for (var location in locations) {
-      if (location.jsLocation.line == line &&
-          location.jsLocation.column >= column) {
-        bestLocation ??= location;
-        if (location.jsLocation.column < bestLocation.jsLocation.column) {
-          bestLocation = location;
-        }
-      }
-    }
-    return bestLocation;
+    var locations = await locationsForUrl(url);
+    return _bestJsLocation(locations, line, column);
   }
 
   /// Find closest existing Dart location for the line and column.
   ///
-  /// Dart locations are either exact or placed at the start of the line,
-  /// so find the closest location on the column or after.
+  /// Dart columns for breakpoints are either exact or start at the
+  /// beginning of the line - return the first existing location
+  /// that comes after the given column.
   Location _bestDartLocation(
       Iterable<Location> locations, int line, int column) {
     Location bestLocation;
@@ -199,6 +183,48 @@ class Locations {
       }
     }
     return bestLocation;
+  }
+
+  /// Find closest existing JavaScript location for the line and column.
+  ///
+  /// Some JS locations are not stored in the source maps, so we find the
+  /// closest existing location, preferring the one coming after the given
+  /// column.
+  ///
+  /// For example:
+  ///
+  ///   - `t33 = main.doSomething()` in top frame:
+  ///      Current column is at `t33`. Return existing location starting
+  ///      at `main`.
+  ///   - `main.doSomething()` in top frame:
+  ///      Current column is at `main`. Return existing location starting
+  ///      at `main`.
+  ///   - `main.doSomething()` in a frame down the stack:
+  ///      Current column is at `doSomething`. Source map do not have a
+  ///      location stored that starts at `doSomething(). Return existing
+  ///      location starting at `main`.
+  Location _bestJsLocation(Iterable<Location> locations, int line, int column) {
+    Location bestBeforeLocation;
+    Location bestAfterLocation;
+    for (var location in locations) {
+      if (location.jsLocation.line == line) {
+        if (location.jsLocation.column >= column) {
+          bestAfterLocation ??= location;
+          if (location.jsLocation.column <
+              bestAfterLocation.jsLocation.column) {
+            bestAfterLocation = location;
+          }
+        }
+        if (location.jsLocation.column <= column) {
+          bestBeforeLocation ??= location;
+          if (location.jsLocation.column >
+              bestBeforeLocation.jsLocation.column) {
+            bestBeforeLocation = location;
+          }
+        }
+      }
+    }
+    return bestAfterLocation ?? bestBeforeLocation;
   }
 
   /// Returns the tokenPosTable for the provided Dart script path as defined
