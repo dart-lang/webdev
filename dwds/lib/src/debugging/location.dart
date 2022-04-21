@@ -200,8 +200,8 @@ class Locations {
   ///      Current column is at `main`. Return existing location starting
   ///      at `main`.
   ///   - `main.doSomething()` in a frame down the stack:
-  ///      Current column is at `doSomething`. Source map do not have a
-  ///      location stored that starts at `doSomething(). Return existing
+  ///      Current column is at `doSomething`. Source map does not have a
+  ///      location stored that starts at `doSomething()`. Return existing
   ///      location starting at `main`.
   Location _bestJsLocation(Iterable<Location> locations, int line, int column) {
     Location bestBeforeLocation;
