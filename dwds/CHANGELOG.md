@@ -1,4 +1,4 @@
-## 13.1.1-dev
+## 14.0.0-dev
 - Add column information to breakpoints to allow precise breakpoint placement.
 - Split SDK validation methods to allow validation of separate components.
 - Remove dependency on `package:_fe_analyzer_shared`.
@@ -8,7 +8,11 @@
     used.
   - Fix crash when using flutter tools with web server device.
   - Remove clearing all scripts on page load for extension debugger.
+- Fix breakpoints not hitting after changing a base in index.html.
 - Find best locations for call frames, breakpoints, or expression evaluation.
+
+**Breaking changes:**
+- Add `basePath` parameter to `FrontendServerRequireStrategy`.
 
 ## 13.1.0
 - Update _fe_analyzer_shared to version ^38.0.0.
