@@ -317,7 +317,7 @@ class Debugger extends Domain {
   }
 
   /// Returns Chrome script uri for Chrome script ID.
-  String _urlForScriptId(String scriptId) =>
+  String urlForScriptId(String scriptId) =>
       _remoteDebugger.scripts[scriptId]?.url;
 
   /// Returns source [Location] for the paused event.
@@ -331,7 +331,7 @@ class Debugger extends Domain {
     var line = location['lineNumber'] as int;
     var column = location['columnNumber'] as int;
 
-    var url = _urlForScriptId(scriptId);
+    var url = urlForScriptId(scriptId);
     return _locations.locationForJs(url, line, column);
   }
 
@@ -467,25 +467,14 @@ class Debugger extends Domain {
     var line = location.lineNumber;
     var column = location.columnNumber;
 
-    var url = _urlForScriptId(location.scriptId);
+    var url = urlForScriptId(location.scriptId);
     if (url == null) {
       logger.severe('Failed to create dart frame for ${frame.functionName}: '
           'cannot find location for script ${location.scriptId}');
       return null;
     }
 
-    // TODO(sdk/issues/37240) - ideally we look for an exact location instead
-    // of the closest location on a given line.
-    Location bestLocation;
-    for (var location in await _locations.locationsForUrl(url)) {
-      if (location.jsLocation.line == line) {
-        bestLocation ??= location;
-        if ((location.jsLocation.column - column).abs() <
-            (bestLocation.jsLocation.column - column).abs()) {
-          bestLocation = location;
-        }
-      }
-    }
+    var bestLocation = await _locations.locationForJs(url, line, column);
     if (bestLocation == null) return null;
 
     var script =
@@ -506,7 +495,11 @@ class Debugger extends Domain {
         kind: CodeKind.kDart,
         id: createId(),
       ),
-      location: SourceLocation(tokenPos: bestLocation.tokenPos, script: script),
+      location: SourceLocation(
+          line: bestLocation.dartLocation.line,
+          column: bestLocation.dartLocation.column,
+          tokenPos: bestLocation.tokenPos,
+          script: script),
       kind: FrameKind.kRegular,
     );
 
@@ -579,7 +572,7 @@ class Debugger extends Domain {
         var frame = e.params['callFrames'][0];
         var scriptId = '${frame["location"]["scriptId"]}';
 
-        var url = _urlForScriptId(scriptId);
+        var url = urlForScriptId(scriptId);
         if (url == null) {
           logger.severe('Stepping failed: '
               'cannot find location for script $scriptId');

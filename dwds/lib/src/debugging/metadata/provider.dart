@@ -216,7 +216,7 @@ class MetadataProvider {
           _soundNullSafety = hasSoundNullSafety;
         }
         _logger.info('Loaded debug metadata '
-            '(${_soundNullSafety ? "" : "no "}sound null safety)');
+            '(${_soundNullSafety ? "sound" : "weak"} null safety)');
       }
     });
   }

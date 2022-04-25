@@ -4,22 +4,24 @@
 
 // @dart = 2.9
 
+import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import 'dart_scope.dart';
 import 'debugger.dart';
 
 class FrameComputer {
   final Debugger debugger;
+
+  final _logger = Logger('FrameComputer');
 
   // To ensure that the frames are computed only once, we use a pool to guard
   // the work. Frames are computed sequentially.
   final _pool = Pool(1);
 
   final List<WipCallFrame> _callFrames;
-  final _computedFrames = <Frame>[];
+  final List<Frame> _computedFrames = [];
 
   var _frameIndex = 0;
 
@@ -34,12 +36,6 @@ class FrameComputer {
     // Clients can send us indices greater than the number of JS frames as async
     // frames don't have corresponding WipCallFrames.
     return frameIndex < _callFrames.length ? _callFrames[frameIndex] : null;
-  }
-
-  /// Return the WipScopes for the given JavaScript frame index that are
-  /// pertinent for Dart debugging.
-  List<WipScope> getWipScopesForFrameIndex(int frameIndex) {
-    return filterScopes(jsFrameForIndex(frameIndex));
   }
 
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
@@ -101,6 +97,14 @@ class FrameComputer {
           var location = WipLocation.fromValues(
               callFrame.scriptId, callFrame.lineNumber,
               columnNumber: callFrame.columnNumber);
+
+          var url = callFrame.url ?? debugger.urlForScriptId(location.scriptId);
+          if (url == null) {
+            _logger.severe(
+                'Failed to create dart frame for ${callFrame.functionName}: '
+                'cannot find location for script ${callFrame.scriptId}');
+          }
+
           var tempWipFrame = WipCallFrame({
             'url': callFrame.url,
             'functionName': callFrame.functionName,

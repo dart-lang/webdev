@@ -55,7 +55,7 @@ void main() async {
   for (var soundNullSafety in [false, true]) {
     var setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
     var context = setup.context;
-    group('${soundNullSafety ? "" : "no "}sound null safety', () {
+    group('${soundNullSafety ? "sound" : "weak"} null safety', () {
       Future<void> onBreakPoint(String isolate, ScriptRef script,
           String breakPointId, Future<void> Function() body) async {
         Breakpoint bp;
@@ -107,14 +107,17 @@ void main() async {
             await setup.service.streamListen('Debug');
             stream = setup.service.onEvent('Debug');
 
+            var testPackage =
+                soundNullSafety ? '_test_package_sound' : '_test_package';
+            var test = soundNullSafety ? '_test_sound' : '_test';
             mainScript = scripts.scripts
                 .firstWhere((each) => each.uri.contains('main.dart'));
             testLibraryScript = scripts.scripts.firstWhere((each) =>
-                each.uri.contains('package:_test_package/test_library.dart'));
+                each.uri.contains('package:$testPackage/test_library.dart'));
             testLibraryPartScript = scripts.scripts.firstWhere((each) =>
-                each.uri.contains('package:_test_package/src/test_part.dart'));
+                each.uri.contains('package:$testPackage/src/test_part.dart'));
             libraryScript = scripts.scripts.firstWhere(
-                (each) => each.uri.contains('package:_test/library.dart'));
+                (each) => each.uri.contains('package:$test/library.dart'));
           });
 
           tearDown(() async {
