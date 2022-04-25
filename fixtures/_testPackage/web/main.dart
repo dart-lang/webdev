@@ -40,7 +40,8 @@ void main() {
     printFromTestPackage();
     printCallExtension();
     printLoopVariable();
-    printNestedObjectsMultiLine();
+    printObjectMultiLine(); // Breakpoint: callPrintObjectMultiLine
+    printNestedObjectsMultiLine(); // Breakpoint: callPrintEnclosingFunctionMultiLine
   });
 
   document.body.appendText(concatenate('Program', ' is running!'));
@@ -101,23 +102,56 @@ Future<void> printDeferred() async {
 }
 
 void printNestedObjectsMultiLine() {
-  print(// Breakpoint: printEnclosingFunctionMultiLine
-      EnclosingMainClass(// Breakpoint: printEnclosingObjectMultiLine
-          MainClass(0) // Breakpoint: printNestedObjectMultiLine
+  printEnclosingObject(// Breakpoint: printEnclosingFunctionMultiLine
+      EnclosingClass(// Breakpoint: printEnclosingObjectMultiLine
+          EnclosedClass(0) // Breakpoint: printNestedObjectMultiLine
           ));
+}
+
+void printObjectMultiLine() {
+  print(// Breakpoint: printMultiLine
+    createObject() // Breakpoint: printObjectMultiLine
+      ..initialize(),
+  );
+}
+
+void printEnclosingObject(EnclosingClass o) {
+  print(o); // Breakpoint: printEnclosingObject
+}
+
+ClassWithMethod createObject() {
+  return ClassWithMethod(0); // Breakpoint: createObjectWithMethod
 }
 
 class MainClass {
   final int _field;
-  MainClass(this._field);
+  MainClass(this._field); // Breakpoint: newMainClass
 
   @override
   String toString() => '$_field';
 }
 
-class EnclosingMainClass {
-  final MainClass _field;
-  EnclosingMainClass(this._field);
+class EnclosedClass {
+  final int _field;
+  EnclosedClass(this._field); // Breakpoint: newEnclosedClass
+
+  @override
+  String toString() => '$_field';
+}
+
+class ClassWithMethod {
+  final int _field;
+  ClassWithMethod(this._field);
+
+  void initialize() {}
+
+  @override
+  String toString() => '$_field';
+}
+
+class EnclosingClass {
+  final EnclosedClass _field;
+  EnclosingClass(this._field); // Breakpoint: newEnclosingClass
 
   @override
   String toString() => '$_field';

@@ -189,7 +189,16 @@ class Locations {
   ///
   /// Some JS locations are not stored in the source maps, so we find the
   /// closest existing location, preferring the one coming after the given
-  /// column.
+  /// column, if the current break is at an expression statement, or the
+  /// one coming before if the current break is at a function call.
+  ///
+  /// This is a known problem that other code bases solve using by finding
+  /// the closest location to the current one:
+  ///
+  /// https://github.com/microsoft/vscode-js-debug/blob/536f96bae61a3d87546b61bc7916097904c81429/src/common/sourceUtils.ts#L286
+  ///
+  /// Unfortunately, this approach fails for Flutter code too often, as it
+  /// frequently contains multi-line statements with nested objects.
   ///
   /// For example:
   ///
@@ -204,27 +213,51 @@ class Locations {
   ///      location stored that starts at `doSomething()`. Return existing
   ///      location starting at `main`.
   Location _bestJsLocation(Iterable<Location> locations, int line, int column) {
-    Location bestBeforeLocation;
-    Location bestAfterLocation;
-    for (var location in locations) {
-      if (location.jsLocation.line == line) {
-        if (location.jsLocation.column >= column) {
-          bestAfterLocation ??= location;
-          if (location.jsLocation.column <
-              bestAfterLocation.jsLocation.column) {
-            bestAfterLocation = location;
-          }
-        }
-        if (location.jsLocation.column <= column) {
-          bestBeforeLocation ??= location;
-          if (location.jsLocation.column >
-              bestBeforeLocation.jsLocation.column) {
-            bestBeforeLocation = location;
-          }
-        }
+    Location bestLocationBefore;
+    Location bestLocationAfter;
+
+    var locationsAfter = locations.where((location) =>
+        location.jsLocation.line == line &&
+        location.jsLocation.column >= column);
+    var locationsBefore = locations.where((location) =>
+        location.jsLocation.line == line &&
+        location.jsLocation.column < column);
+
+    for (var location in locationsAfter) {
+      bestLocationAfter ??= location;
+      if (location.jsLocation.column < bestLocationAfter.jsLocation.column) {
+        bestLocationAfter = location;
       }
     }
-    return bestAfterLocation ?? bestBeforeLocation;
+    for (var location in locationsBefore) {
+      bestLocationBefore ??= location;
+      if (location.jsLocation.column > bestLocationBefore.jsLocation.column) {
+        bestLocationBefore = location;
+      }
+    }
+    if (bestLocationAfter == null) return bestLocationBefore;
+    if (bestLocationBefore == null) return bestLocationAfter;
+
+    if (bestLocationAfter.jsLocation.line == line &&
+        bestLocationAfter.jsLocation.column == column) {
+      // Prefer exact match.
+      return bestLocationAfter;
+    }
+
+    // Return the closest location after the current if the current location
+    // is at the beginning of the line (i.e. on expression statement).
+    // Return the closest location before the current if the current location
+    // is in the middle of the line (i.e. on function call).
+    if (locationsBefore.length == 1 &&
+        locationsBefore.first.jsLocation.column == 0) {
+      // Best guess on whether the the current location is at the beginning of
+      // the line (i.e. expression statement):
+      // The only location on the left has column 0, so only spaces are on the
+      // left.
+      return bestLocationAfter;
+    }
+    // Current column is in the middle of the line (i.e .function call).
+    return bestLocationBefore;
   }
 
   /// Returns the tokenPosTable for the provided Dart script path as defined

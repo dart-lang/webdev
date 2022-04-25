@@ -155,7 +155,9 @@ class ExpressionEvaluator {
     var jsFrame = _inspector.debugger.jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
       return _createError(
-          ErrorKind.internal, 'No frame with index $frameIndex');
+          ErrorKind.internal,
+          'Expression evaluation in async frames '
+          'is not supported. No frame with index $frameIndex.');
     }
 
     var functionName = jsFrame.functionName;
@@ -165,12 +167,6 @@ class ExpressionEvaluator {
     var jsScope = await _collectLocalJsScope(jsFrame);
 
     // Find corresponding dart location and scope.
-    //
-    // TODO(annagrin): handle unknown dart locations
-    // Debugger does not map every js location to a dart location,
-    // so this will result in expressions not evaluated in some
-    // cases. Invent location matching strategy for those cases.
-    // [issue 890](https://github.com/dart-lang/webdev/issues/890)
     var url = _urlForScriptId(jsScriptId);
     var locationMap = await _locations.locationForJs(url, jsLine, jsColumn);
     if (locationMap == null) {
