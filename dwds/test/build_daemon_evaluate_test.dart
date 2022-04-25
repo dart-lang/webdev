@@ -109,7 +109,7 @@ void main() async {
 
             var testPackage =
                 soundNullSafety ? '_test_package_sound' : '_test_package';
-            var test = soundNullSafety ? '_test_sound' : '_package';
+            var test = soundNullSafety ? '_test_sound' : '_test';
             mainScript = scripts.scripts
                 .firstWhere((each) => each.uri.contains('main.dart'));
             testLibraryScript = scripts.scripts.firstWhere((each) =>
