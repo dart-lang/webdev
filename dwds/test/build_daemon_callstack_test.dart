@@ -50,7 +50,7 @@ void main() {
       var setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
       var context = setup.context;
 
-      group('${soundNullSafety ? "" : "no "}sound null safety |', () {
+      group('${soundNullSafety ? "sound" : "weak"} null safety |', () {
         setUpAll(() async {
           setCurrentLogWriter(debug: debug);
           await context.setUp(enableExpressionEvaluation: true);

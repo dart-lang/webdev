@@ -55,7 +55,7 @@ void main() async {
   for (var soundNullSafety in [/*false, */ true]) {
     var setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
     var context = setup.context;
-    group('${soundNullSafety ? "" : "no "}sound null safety', () {
+    group('${soundNullSafety ? "sound" : "weak"} null safety', () {
       Future<void> onBreakPoint(String isolate, ScriptRef script,
           String breakPointId, Future<void> Function() body) async {
         Breakpoint bp;
