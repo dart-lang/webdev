@@ -52,7 +52,7 @@ void main() async {
   // regardless of the logger settings.
   var verboseCompiler = false;
 
-  for (var soundNullSafety in [/*false, */ true]) {
+  for (var soundNullSafety in [false,  true]) {
     var setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
     var context = setup.context;
     group('${soundNullSafety ? "sound" : "weak"} null safety', () {
