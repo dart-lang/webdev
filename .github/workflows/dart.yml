@@ -1,4 +1,4 @@
-# Created with package:mono_repo v6.1.0
+# Created with package:mono_repo v6.2.2
 name: Dart CI
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable"
@@ -32,9 +32,9 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - name: mono_repo self validate
-        run: dart pub global activate mono_repo 6.1.0
+        run: dart pub global activate mono_repo 6.2.2
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:format-analyze_0-test_0"
@@ -55,7 +55,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-fixtures/_webdevSmoke-frontend_server_client-frontend_server_common;commands:format-analyze_0"
@@ -91,7 +91,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: example_pub_upgrade
         name: example; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -149,7 +149,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:format-analyze_0-test_4"
@@ -162,7 +162,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -185,7 +185,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds-webdev;commands:analyze_1-test_1"
@@ -198,7 +198,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -230,7 +230,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_2"
@@ -243,7 +243,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -268,7 +268,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:frontend_server_client;commands:test_2"
@@ -281,7 +281,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -302,7 +302,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:command-test_3"
@@ -315,7 +315,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -340,7 +340,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds;commands:command-test_2"
@@ -353,7 +353,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -378,7 +378,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client;commands:test_2"
@@ -391,7 +391,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -412,7 +412,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:command-test_3"
@@ -425,7 +425,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -453,7 +453,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -477,7 +477,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -501,7 +501,7 @@ jobs:
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -525,7 +525,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -549,7 +549,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -573,7 +573,7 @@ jobs:
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -594,7 +594,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:command-test_3"
@@ -607,7 +607,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -645,7 +645,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:command-test_3"
@@ -658,7 +658,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -696,7 +696,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:analyze_1"
@@ -709,7 +709,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -743,7 +743,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:analyze_1"
@@ -756,7 +756,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -793,7 +793,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -830,7 +830,7 @@ jobs:
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
