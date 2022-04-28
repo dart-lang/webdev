@@ -276,6 +276,9 @@ class FakeStrategy implements LoadStrategy {
   String get moduleFormat => 'dummy-format';
 
   @override
+  String get loadLibrariesModule => '';
+
+  @override
   String get loadLibrariesSnippet => '';
 
   @override

@@ -29,6 +29,30 @@ void main() {
       _validateRange(skipList.last, 10, 21, maxValue, maxValue);
     });
 
+    test('do not include start of the file', () async {
+      var skipList = await skipLists.compute('123', {
+        Location.from(
+            'foo', TargetLineEntry(0, []), TargetEntry(0, 0, 0, 0), null),
+        Location.from(
+            'foo', TargetLineEntry(10, []), TargetEntry(20, 0, 0, 0), null),
+      });
+      expect(skipList.length, 2);
+      _validateRange(skipList[0], 0, 1, 10, 19);
+      _validateRange(skipList.last, 10, 21, maxValue, maxValue);
+    });
+
+    test('does not depend on order of locations', () async {
+      var skipList = await skipLists.compute('123', {
+        Location.from(
+            'foo', TargetLineEntry(10, []), TargetEntry(20, 0, 0, 0), null),
+        Location.from(
+            'foo', TargetLineEntry(0, []), TargetEntry(0, 0, 0, 0), null),
+      });
+      expect(skipList.length, 2);
+      _validateRange(skipList[0], 0, 1, 10, 19);
+      _validateRange(skipList.last, 10, 21, maxValue, maxValue);
+    });
+
     test('contains the provided id', () async {
       var id = '123';
       var skipList = await skipLists.compute(id, {});

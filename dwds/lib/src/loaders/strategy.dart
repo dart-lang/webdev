@@ -36,6 +36,11 @@ abstract class LoadStrategy {
   /// expression evaluation.
   String get moduleFormat;
 
+  /// Module containing code for loading libraries.
+  ///
+  /// Used for preventing stepping into the library loading code.
+  String get loadLibrariesModule;
+
   /// Returns a snippet of JS code that loads all Dart libraries into a `libs`
   /// variable.
   String get loadLibrariesSnippet;

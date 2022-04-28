@@ -10,9 +10,17 @@
   - Remove clearing all scripts on page load for extension debugger.
 - Fix breakpoints not hitting after changing a base in index.html.
 - Find best locations for call frames, breakpoints, or expression evaluation.
+- Fix issues discovered when using legacy module system, debug extension,
+  and JIT modules:
+  - Improve step-into times by not stepping into library loading code.
+  - Fix incorrect skip lists due to unsorted locations.
+  - Fix memory leak in extension debugger by removing stale script IDs.
+  - Allow mapping JS locations to Dart locations matching other JS lines,
+    to match the behavior of Chrome DevTools.
 
 **Breaking changes:**
 - Add `basePath` parameter to `FrontendServerRequireStrategy`.
+- Add `loadLibrariesModule` getter to `LoadStrategy` interface.
 
 ## 13.1.0
 - Update _fe_analyzer_shared to version ^38.0.0.

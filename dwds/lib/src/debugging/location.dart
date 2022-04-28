@@ -69,6 +69,13 @@ class DartLocation {
     this.column,
   );
 
+  int compareTo(DartLocation other) => compareToLine(other.line, other.column);
+
+  int compareToLine(int otherLine, int otherColumn) {
+    var result = line.compareTo(otherLine);
+    return result == 0 ? column.compareTo(otherColumn) : result;
+  }
+
   @override
   String toString() => '[${uri.serverPath}:$line:$column]';
 
@@ -91,6 +98,13 @@ class JsLocation {
     this.line,
     this.column,
   );
+
+  int compareTo(JsLocation other) => compareToLine(other.line, other.column);
+
+  int compareToLine(int otherLine, int otherColumn) {
+    var result = line.compareTo(otherLine);
+    return result == 0 ? column.compareTo(otherColumn) : result;
+  }
 
   @override
   String toString() => '[$module:$line:$column]';
@@ -177,7 +191,7 @@ class Locations {
       if (location.dartLocation.line == line &&
           location.dartLocation.column >= column) {
         bestLocation ??= location;
-        if (location.dartLocation.column < bestLocation.dartLocation.column) {
+        if (location.dartLocation.compareTo(bestLocation.dartLocation) < 0) {
           bestLocation = location;
         }
       }
@@ -216,40 +230,42 @@ class Locations {
     Location bestLocationBefore;
     Location bestLocationAfter;
 
-    var locationsAfter = locations.where((location) =>
-        location.jsLocation.line == line &&
-        location.jsLocation.column >= column);
-    var locationsBefore = locations.where((location) =>
-        location.jsLocation.line == line &&
-        location.jsLocation.column < column);
+    var locationsAfter = locations.where(
+        (location) => location.jsLocation.compareToLine(line, column) >= 0);
+
+    var locationsBefore = locations.where(
+        (location) => location.jsLocation.compareToLine(line, column) < 0);
 
     for (var location in locationsAfter) {
       bestLocationAfter ??= location;
-      if (location.jsLocation.column < bestLocationAfter.jsLocation.column) {
+      if (location.jsLocation.compareTo(bestLocationAfter.jsLocation) < 0) {
         bestLocationAfter = location;
       }
     }
     for (var location in locationsBefore) {
       bestLocationBefore ??= location;
-      if (location.jsLocation.column > bestLocationBefore.jsLocation.column) {
+      if (location.jsLocation.compareTo(bestLocationBefore.jsLocation) > 0) {
         bestLocationBefore = location;
       }
     }
     if (bestLocationAfter == null) return bestLocationBefore;
-    if (bestLocationBefore == null) return bestLocationAfter;
-
     if (bestLocationAfter.jsLocation.line == line &&
         bestLocationAfter.jsLocation.column == column) {
       // Prefer exact match.
       return bestLocationAfter;
     }
 
+    // Do not return dart locations for library setup code.
+    if (bestLocationBefore == null) return null;
+
     // Return the closest location after the current if the current location
     // is at the beginning of the line (i.e. on expression statement).
     // Return the closest location before the current if the current location
     // is in the middle of the line (i.e. on function call).
-    if (locationsBefore.length == 1 &&
-        locationsBefore.first.jsLocation.column == 0) {
+    var sameLineLocationsBefore =
+        locationsBefore.where((location) => location.jsLocation.line == line);
+    if (sameLineLocationsBefore.length == 1 &&
+        sameLineLocationsBefore.first.jsLocation.column == 0) {
       // Best guess on whether the the current location is at the beginning of
       // the line (i.e. expression statement):
       // The only location on the left has column 0, so only spaces are on the
