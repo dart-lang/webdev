@@ -177,9 +177,10 @@ void _startDebugging(DebuggerTrigger debuggerTrigger) {
   // Extracts the extension backend port from the injected JS.
   var attachDebuggerToTab = allowInterop(_attachDebuggerToTab);
 
-  queryTabs(getCurrentTabQuery, allowInterop((List<Tab> tabs) {
-    if (tabs != null && tabs.isNotEmpty) {
-      attachDebuggerToTab(tabs[0]);
+  queryTabs(getCurrentTabQuery, allowInterop((List tabs) {
+    final tabList = List<Tab>.from(tabs);
+    if (tabList != null && tabList.isNotEmpty) {
+      attachDebuggerToTab(tabList[0]);
     } else if (_mostRecentDartTab != null) {
       attachDebuggerToTab(_mostRecentDartTab);
     } else {
