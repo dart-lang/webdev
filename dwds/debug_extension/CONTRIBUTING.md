@@ -8,7 +8,6 @@ pub run build_runner build web -o build -r
 
 This will build to the `/web` directory.
 
-
 - With DDC:
 
 ```
