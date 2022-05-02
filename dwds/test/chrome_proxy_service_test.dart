@@ -1356,7 +1356,7 @@ void main() {
         'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
         'org-dartlang-sdk:///sdk/lib/async/async.dart',
       ]);
-    });
+    }, skip: 'https://github.com/dart-lang/webdev/issues/1584');
 
     test('lookupPackageUris finds package and org-dartlang-app paths',
         () async {
@@ -1404,7 +1404,7 @@ void main() {
         'dart:html',
         'dart:async',
       ]);
-    });
+    }, skip: 'https://github.com/dart-lang/webdev/issues/1584');
 
     test('registerService', () async {
       await expectLater(

@@ -72,6 +72,10 @@ class TestContext {
   /// Note: build_runner-based setups ignore this setting and read
   /// this value from the ddc debug metadata and pass it to the
   /// expression compiler worker initialiation API.
+  ///
+  /// TODO(annagrin): Currently setting sound null safety for frontend
+  /// server tests fails due to missing sound SDK JavaScript and maps.
+  /// Issue: https://github.com/dart-lang/webdev/issues/1591
   bool soundNullSafety;
   final _logger = logging.Logger('Context');
 
@@ -125,6 +129,7 @@ class TestContext {
     UrlEncoder urlEncoder,
     bool restoreBreakpoints,
     CompilationMode compilationMode,
+    bool soundNullSafety,
     bool enableExpressionEvaluation,
     bool verboseCompiler,
     SdkConfigurationProvider sdkConfigurationProvider,
@@ -140,6 +145,7 @@ class TestContext {
     spawnDds ??= true;
     verboseCompiler ??= false;
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
+    soundNullSafety ??= false;
 
     try {
       configureLogWriter();
@@ -246,7 +252,6 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
-            soundNullSafety ??= true;
             var projectDirectory = p.dirname(p.dirname(_packagesFilePath));
             var entryPath =
                 _entryFile.path.substring(projectDirectory.length + 1);
@@ -257,6 +262,7 @@ class TestContext {
                 [projectDirectory],
                 'org-dartlang-app',
                 _outputDir.path,
+                soundNullSafety,
                 verboseCompiler);
 
             var assetServerPort = await findUnusedPort();
@@ -270,7 +276,8 @@ class TestContext {
             assetHandler = webRunner.devFS.assetServer.handleRequest;
 
             requireStrategy = FrontendServerRequireStrategyProvider(
-                reloadConfiguration, assetReader, () async => {}).strategy;
+                    reloadConfiguration, assetReader, () async => {}, '')
+                .strategy;
 
             buildResults = const Stream<BuildResults>.empty();
           }
@@ -286,7 +293,6 @@ class TestContext {
       // since headless Chrome does not support extensions.
       var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
           !enableDebugExtension;
-
       var capabilities = Capabilities.chrome
         ..addAll({
           Capabilities.chromeOptions: {

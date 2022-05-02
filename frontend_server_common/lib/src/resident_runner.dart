@@ -19,8 +19,10 @@ import 'devfs_content.dart';
 import 'frontend_server_client.dart';
 import 'utilities.dart';
 
-final Uri platformDill =
+final Uri platformDillUnsound =
     Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.dill'));
+final Uri platformDillSound =
+    Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline_sound.dill'));
 
 Logger _logger = Logger('ResidentWebRunner');
 
@@ -32,10 +34,12 @@ class ResidentWebRunner {
       this.fileSystemRoots,
       this.fileSystemScheme,
       this.outputPath,
+      this.soundNullSafety,
       bool verbose) {
     generator = ResidentCompiler(dartSdkPath,
         packageConfigPath: packageConfigPath,
-        platformDill: '$platformDill',
+        platformDill:
+            soundNullSafety ? '$platformDillSound' : '$platformDillUnsound',
         fileSystemRoots: fileSystemRoots,
         fileSystemScheme: fileSystemScheme,
         verbose: verbose);
@@ -48,6 +52,7 @@ class ResidentWebRunner {
   final String outputPath;
   final List<String> fileSystemRoots;
   final String fileSystemScheme;
+  final bool soundNullSafety;
 
   ResidentCompiler generator;
   ExpressionCompiler expressionCompiler;
@@ -68,6 +73,7 @@ class ResidentWebRunner {
       packageConfigPath: packageConfigPath,
       root: root,
       urlTunneller: urlTunneller,
+      soundNullSafety: soundNullSafety,
     );
     uri = await devFS.create();
 
