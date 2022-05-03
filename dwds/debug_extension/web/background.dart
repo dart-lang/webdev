@@ -295,6 +295,15 @@ int _removeDebugSessionForTab(int tabId) {
       (session) => session.appTabId == tabId || session.devtoolsTabId == tabId,
       orElse: () => null);
   if (session != null) {
+    // TODO(elliette): Figure out why closing the client isn't sufficient.
+    // Without sending this DebugExtension.detached event, a user can start a
+    // debug session, end a debug session, start a new debug session, and only
+    // then is the "done" event received, which unexpectedly shuts down their
+    // debug session. This is a workaround until I can resolve figure out why
+    // that happens.
+    final event =
+        _extensionEventFor('DebugExtension.detached', js_util.jsify({}));
+    session.socketClient.sink.add(jsonEncode(serializers.serialize(event)));
     session.socketClient.close();
     _debugSessions.remove(session);
 

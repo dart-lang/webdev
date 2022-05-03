@@ -85,7 +85,17 @@ class ExtensionDebugger implements RemoteDebugger {
           'method': json.decode(message.method),
           'params': json.decode(message.params)
         };
-        _notificationController.sink.add(WipEvent(map));
+        // TODO(elliette): Figure out why closing the client isn't sufficient.
+        // Without sending this DebugExtension.detached event, a user can start
+        // a debug session, end a debug session, start a new debug session, and
+        // only then is the "done" event received, which unexpectedly shuts down
+        // their debug session. This is a workaround until I can resolve figure
+        // out why that happens.
+        if (map['method'] == 'DebugExtension.detached') {
+          close();
+        } else {
+          _notificationController.sink.add(WipEvent(map));
+        }
       } else if (message is BatchedEvents) {
         for (var event in message.events) {
           var map = {
