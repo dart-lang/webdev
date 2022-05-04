@@ -1,6 +1,7 @@
 ## 1.29
 
 - Notify the debugger and inspector panels when the debug session is disconnected.
+- Provide a detailed error message when the debugger fails to connect.
 - Fix compilation errors when the extension is built with DDC.
 
 ## 1.28

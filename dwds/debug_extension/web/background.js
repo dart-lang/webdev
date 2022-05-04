@@ -8591,7 +8591,7 @@ $S:26}
 A.kq.prototype={
 $0(){var s=0,r=A.aI(t.P),q,p=this,o
 var $async$$0=A.aJ(function(a,b){if(a===1)return A.aF(b,r)
-while(true)switch(s){case 0:if(self.chrome.runtime.lastError!=null){self.window.alert(J.lB(J.mx(self.chrome.runtime.lastError),"Cannot access")||J.lB(J.mx(self.chrome.runtime.lastError),"Cannot attach")?"No Dart application detected. Your development server should inject metadata to indicate support for Dart debugging. This may require setting a flag. Check the documentation for your development server.":"DevTools is already opened on a different window.")
+while(true)switch(s){case 0:if(self.chrome.runtime.lastError!=null){self.window.alert(J.lB(J.mx(self.chrome.runtime.lastError),"Cannot access")||J.lB(J.mx(self.chrome.runtime.lastError),"Cannot attach")?"No Dart application detected. Are you trying to debug an application that includes a Chrome hosted app (an application listed in chrome://apps)? If so, debugging is disabled. You can fix this by removing the application from chrome://apps. Please see https://bugs.chromium.org/p/chromium/issues/detail?id=885025#c11.":"DevTools is already opened on a different window.")
 s=1
 break}o=p.a
 $.mi.u(0,o)
