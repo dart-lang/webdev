@@ -296,6 +296,14 @@ int _removeDebugSessionForTab(int tabId) {
       (session) => session.appTabId == tabId || session.devtoolsTabId == tabId,
       orElse: () => null);
   if (session != null) {
+    // Note: package:sse will try to keep the connection alive, even after the
+    // client has been closed. Therefore the extension sends an event to notify
+    // DWDS that we should close the connection, instead of relying on the done
+    // event sent when the client is closed. See details:
+    // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
+    final event =
+        _extensionEventFor('DebugExtension.detached', js_util.jsify({}));
+    session.socketClient.sink.add(jsonEncode(serializers.serialize(event)));
     session.socketClient.close();
     _debugSessions.remove(session);
 

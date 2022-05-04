@@ -10,6 +10,7 @@
   - Remove clearing all scripts on page load for extension debugger.
 - Fix breakpoints not hitting after changing a base in index.html.
 - Find best locations for call frames, breakpoints, or expression evaluation.
+- Close the SSE connection when a DebugExtension.detached event is received.
 
 **Breaking changes:**
 - Add `basePath` parameter to `FrontendServerRequireStrategy`.
