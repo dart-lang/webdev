@@ -363,7 +363,7 @@ void _forwardMessageToExternalExtensions(
   }
 }
 
-void _notifyPanelScriptOfChanges(List<DevToolsPanel> panels) {
+void _notifyPanelScriptOfChanges(List panels) {
   final panelsList = List<DevToolsPanel>.from(panels);
   for (final panel in panelsList) {
     sendSimpleMessage(panel.panelId,
