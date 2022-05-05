@@ -332,7 +332,14 @@ class Debugger extends Domain {
     var column = location['columnNumber'] as int;
 
     var url = urlForScriptId(scriptId);
+    if (url == null) return null;
     return _locations.locationForJs(url, line, column);
+  }
+
+  /// Returns script ID for the paused event.
+  String _frameScriptId(DebuggerPausedEvent e) {
+    var frame = e.params['callFrames'][0];
+    return frame['location']['scriptId'] as String;
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
@@ -470,7 +477,7 @@ class Debugger extends Domain {
     var url = urlForScriptId(location.scriptId);
     if (url == null) {
       logger.severe('Failed to create dart frame for ${frame.functionName}: '
-          'cannot find location for script ${location.scriptId}');
+          'cannot find url for script ${location.scriptId}');
       return null;
     }
 
@@ -567,26 +574,32 @@ class Debugger extends Domain {
         exception: exception,
       );
     } else {
-      // If we don't have source location continue stepping.
-      if (_isStepping && (await _sourceLocation(e)) == null) {
-        var frame = e.params['callFrames'][0];
-        var scriptId = '${frame["location"]["scriptId"]}';
-
+      // Continue stepping until we hit a dart location,
+      // avoiding stepping through library loading code.
+      if (_isStepping) {
+        var scriptId = _frameScriptId(e);
         var url = urlForScriptId(scriptId);
+
         if (url == null) {
           logger.severe('Stepping failed: '
-              'cannot find location for script $scriptId');
+              'cannot find url for script $scriptId');
+          throw StateError('Stepping failed in script $scriptId');
         }
 
-        // TODO(grouma) - In the future we should send all previously computed
-        // skipLists.
-        await _remoteDebugger.stepInto(params: {
-          'skipList': await _skipLists.compute(
-            scriptId,
-            await _locations.locationsForUrl(url),
-          )
-        });
-        return;
+        if (url.contains(globalLoadStrategy.loadLibrariesModule)) {
+          await _remoteDebugger.stepOut();
+          return;
+        } else if ((await _sourceLocation(e)) == null) {
+          // TODO(grouma) - In the future we should send all previously computed
+          // skipLists.
+          await _remoteDebugger.stepInto(params: {
+            'skipList': await _skipLists.compute(
+              scriptId,
+              await _locations.locationsForUrl(url),
+            )
+          });
+          return;
+        }
       }
       event = Event(
           kind: EventKind.kPauseInterrupted,

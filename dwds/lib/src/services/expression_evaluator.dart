@@ -229,6 +229,8 @@ class ExpressionEvaluator {
     return ret;
   }
 
+  bool _isUndefined(RemoteObject value) => value.type == 'undefined';
+
   RemoteObject _formatCompilationError(String error) {
     // Frontend currently gives a text message including library name
     // and function name on compilation error. Strip this information
@@ -284,6 +286,7 @@ class ExpressionEvaluator {
       for (var p in variables) {
         var name = p.name;
         var value = p.value;
+        if (_isUndefined(value)) continue;
 
         if (scopeType == 'closure') {
           // Substitute potentially unavailable captures with their values from

@@ -64,6 +64,7 @@ class ExtensionDebugger implements RemoteDebugger {
       (WipEvent event) => ExceptionThrownEvent(event.json));
 
   final _scripts = <String, WipScript>{};
+  final _scriptIds = <String, String>{};
 
   ExtensionDebugger(this.sseConnection) {
     sseConnection.stream.listen((data) {
@@ -113,7 +114,13 @@ class ExtensionDebugger implements RemoteDebugger {
       close();
     }, onDone: close);
     onScriptParsed.listen((event) {
+      // Remove stale scripts from cache.
+      if (event.script.url.isNotEmpty &&
+          _scriptIds.containsKey(event.script.url)) {
+        _scripts.remove(_scriptIds[event.script.url]);
+      }
       _scripts[event.script.scriptId] = event.script;
+      _scriptIds[event.script.url] = event.script.scriptId;
     });
     // Listens for a page reload.
     onGlobalObjectCleared.listen((_) {

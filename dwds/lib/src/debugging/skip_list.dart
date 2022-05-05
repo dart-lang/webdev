@@ -26,11 +26,13 @@ class SkipLists {
   ) async {
     if (_idToList.containsKey(scriptId)) return _idToList[scriptId];
 
+    var sortedLocations = locations.toList()
+      ..sort((a, b) => a.jsLocation.compareTo(b.jsLocation));
+
     var ranges = <Map<String, dynamic>>[];
     var startLine = 0;
     var startColumn = 0;
-    for (var location in locations) {
-      // Account for 1 based.
+    for (var location in sortedLocations) {
       var endLine = location.jsLocation.line;
       var endColumn = location.jsLocation.column;
       // Stop before the known location.
@@ -40,8 +42,10 @@ class SkipLists {
         endColumn = maxValue;
       }
       if (endLine > startLine || endColumn > startColumn) {
-        ranges.add(
-            _rangeFor(scriptId, startLine, startColumn, endLine, endColumn));
+        if (endLine >= startLine) {
+          ranges.add(
+              _rangeFor(scriptId, startLine, startColumn, endLine, endColumn));
+        }
         startLine = location.jsLocation.line;
         startColumn = location.jsLocation.column + 1;
       }

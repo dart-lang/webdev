@@ -30,7 +30,7 @@ void main() async {
   Timer.periodic(const Duration(seconds: 1), (_) async {
     await asyncMethod();
     printLocal();
-    printFieldFromLibraryClass();
+    printFieldFromLibraryClass(); // Breakpoint: callPrintFieldFromLibraryClass
     printFieldFromLibraryPartClass();
     printFieldMain();
     printGlobal();
@@ -62,7 +62,7 @@ void printLocal() {
 }
 
 void printFieldFromLibraryClass() {
-  var instance = TestLibraryClass(1, 2);
+  var instance = TestLibraryClass(1, 2); // Breakpoint: createLibraryObject
   print('$instance'); // Breakpoint: printFieldFromLibraryClass
 }
 
@@ -118,7 +118,7 @@ void printNestedObjectsMultiLine() {
 }
 
 void printObjectMultiLine() {
-  print(// Breakpoint: printMultiLine
+  print( // Breakpoint: printMultiLine
     createObject() // Breakpoint: printObjectMultiLine
       ..initialize(),
   );

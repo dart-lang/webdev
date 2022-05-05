@@ -53,7 +53,8 @@ void main() {
       group('${soundNullSafety ? "sound" : "weak"} null safety |', () {
         setUpAll(() async {
           setCurrentLogWriter(debug: debug);
-          await context.setUp(enableExpressionEvaluation: true);
+          await context.setUp(
+              enableExpressionEvaluation: true, verboseCompiler: debug);
         });
 
         tearDownAll(() async {
@@ -66,6 +67,7 @@ void main() {
           Isolate isolate;
           ScriptList scripts;
           ScriptRef mainScript;
+          ScriptRef testLibraryScript;
           Stream<Event> stream;
 
           setUp(() async {
@@ -78,25 +80,32 @@ void main() {
             await service.streamListen('Debug');
             stream = service.onEvent('Debug');
 
+            var testPackage =
+                soundNullSafety ? '_test_package_sound' : '_test_package';
+
             mainScript = scripts.scripts
                 .firstWhere((each) => each.uri.contains('main.dart'));
+            testLibraryScript = scripts.scripts.firstWhere((each) =>
+                each.uri.contains('package:$testPackage/test_library.dart'));
           });
 
           tearDown(() async {
             await service.resume(isolate.id);
           });
 
-          Future<void> onBreakPoint(ScriptRef script, String breakPointId,
+          Future<void> onBreakPoint(BreakpointTestData breakpoint,
               Future<void> Function() body) async {
             Breakpoint bp;
             try {
-              var line = await context.findBreakpointLine(
-                  breakPointId, isolate.id, script);
+              var bpId = breakpoint.bpId;
+              var script = breakpoint.script;
+              var line =
+                  await context.findBreakpointLine(bpId, isolate.id, script);
               bp = await setup.service
                   .addBreakpointWithScriptUri(isolate.id, script.uri, line);
 
               expect(bp, isNotNull);
-              expect(bp.location, _matchBpLocation(mainScript, line, 0));
+              expect(bp.location, _matchBpLocation(script, line, 0));
 
               await stream.firstWhere(
                   (Event event) => event.kind == EventKind.kPauseBreakpoint);
@@ -110,11 +119,11 @@ void main() {
             }
           }
 
-          Future<void> testCallStack(
-              List<String> bpIds, List<String> functions) async {
+          Future<void> testCallStack(List<BreakpointTestData> breakpoints,
+              {int frameIndex = 1}) async {
             // Find lines the breakpoints are located on.
-            var lines = await Future.wait(bpIds.map((bpId) =>
-                context.findBreakpointLine(bpId, isolate.id, mainScript)));
+            var lines = await Future.wait(breakpoints.map((frame) => context
+                .findBreakpointLine(frame.bpId, isolate.id, frame.script)));
 
             // Get current stack.
             var stack = await service.getStack(isolate.id);
@@ -123,111 +132,169 @@ void main() {
             expect(stack.frames.length, greaterThanOrEqualTo(lines.length));
             var expected = [
               for (var i = 0; i < lines.length; i++)
-                _matchFrame(mainScript, functions[i], lines[i])
+                _matchFrame(
+                    breakpoints[i].script, breakpoints[i].function, lines[i])
             ];
             expect(stack.frames, containsAll(expected));
 
             // Verify that expression evaluation is not failing.
-            var instance = await service.evaluateInFrame(isolate.id, 1, 'main');
+            var instance =
+                await service.evaluateInFrame(isolate.id, frameIndex, 'true');
             expect(instance, isA<InstanceRef>());
           }
 
           test('breakpoint succeeds with correct callstack', () async {
-            // Breakpoint IDs.
-            var bpIds = [
-              'printEnclosingObject',
-              'printEnclosingFunctionMultiLine',
-              'callPrintEnclosingFunctionMultiLine',
-            ];
-            // Functions breakpoints are located in.
-            var functions = [
-              'printEnclosingObject',
-              'printNestedObjectsMultiLine',
-              '<closure>',
+            // Expected breakpoints on the stack
+            var breakpoints = [
+              BreakpointTestData(
+                'printEnclosingObject',
+                'printEnclosingObject',
+                mainScript,
+              ),
+              BreakpointTestData(
+                'printEnclosingFunctionMultiLine',
+                'printNestedObjectsMultiLine',
+                mainScript,
+              ),
+              BreakpointTestData(
+                'callPrintEnclosingFunctionMultiLine',
+                '<closure>',
+                mainScript,
+              ),
             ];
             await onBreakPoint(
-                mainScript, bpIds[0], () => testCallStack(bpIds, functions));
+                breakpoints[0], () => testCallStack(breakpoints));
+          });
+
+          test('expression evaluation succeeds on parent frame', () async {
+            // Expected breakpoints on the stack
+            var breakpoints = [
+              BreakpointTestData(
+                'testLibraryClassConstructor',
+                'new',
+                testLibraryScript,
+              ),
+              BreakpointTestData(
+                'createLibraryObject',
+                'printFieldFromLibraryClass',
+                mainScript,
+              ),
+              BreakpointTestData(
+                'callPrintFieldFromLibraryClass',
+                '<closure>',
+                mainScript,
+              ),
+            ];
+            await onBreakPoint(breakpoints[0],
+                () => testCallStack(breakpoints, frameIndex: 2));
           });
 
           test('breakpoint inside a line gives correct callstack', () async {
-            // Breakpoint IDs.
-            var bpIds = [
-              'newEnclosedClass',
-              'printNestedObjectMultiLine',
-              'callPrintEnclosingFunctionMultiLine',
-            ];
-            // Functions breakpoints are located in.
-            var functions = [
-              'new',
-              'printNestedObjectsMultiLine',
-              '<closure>',
+            // Expected breakpoints on the stack
+            var breakpoints = [
+              BreakpointTestData(
+                'newEnclosedClass',
+                'new',
+                mainScript,
+              ),
+              BreakpointTestData(
+                'printNestedObjectMultiLine',
+                'printNestedObjectsMultiLine',
+                mainScript,
+              ),
+              BreakpointTestData(
+                'callPrintEnclosingFunctionMultiLine',
+                '<closure>',
+                mainScript,
+              ),
             ];
             await onBreakPoint(
-                mainScript, bpIds[0], () => testCallStack(bpIds, functions));
+                breakpoints[0], () => testCallStack(breakpoints));
           });
 
           test('breakpoint gives correct callstack after step out', () async {
-            // Breakpoint IDs.
-            var bpIds = [
-              'printEnclosingObjectMultiLine',
-              'callPrintEnclosingFunctionMultiLine',
+            // Expected breakpoints on the stack
+            var breakpoints = [
+              BreakpointTestData(
+                'newEnclosedClass',
+                'new',
+                mainScript,
+              ),
+              BreakpointTestData(
+                'printEnclosingObjectMultiLine',
+                'printNestedObjectsMultiLine',
+                mainScript,
+              ),
+              BreakpointTestData(
+                'callPrintEnclosingFunctionMultiLine',
+                '<closure>',
+                mainScript,
+              ),
             ];
-            // Functions breakpoints are located in.
-            var functions = [
-              'printNestedObjectsMultiLine',
-              '<closure>',
-            ];
-            await onBreakPoint(mainScript, 'newEnclosedClass', () async {
+            await onBreakPoint(breakpoints[0], () async {
               await service.resume(isolate.id, step: 'Out');
               await stream.firstWhere(
                   (Event event) => event.kind == EventKind.kPauseInterrupted);
-              return testCallStack(bpIds, functions);
+              return testCallStack([breakpoints[1], breakpoints[2]]);
             });
           });
 
           test('breakpoint gives correct callstack after step in', () async {
-            // Breakpoint IDs.
-            var bpIds = [
-              'newEnclosedClass',
-              'printNestedObjectMultiLine',
-              'callPrintEnclosingFunctionMultiLine',
+            // Expected breakpoints on the stack
+            var breakpoints = [
+              BreakpointTestData(
+                'newEnclosedClass',
+                'new',
+                mainScript,
+              ),
+              BreakpointTestData(
+                'printNestedObjectMultiLine',
+                'printNestedObjectsMultiLine',
+                mainScript,
+              ),
+              BreakpointTestData(
+                'callPrintEnclosingFunctionMultiLine',
+                '<closure>',
+                mainScript,
+              ),
             ];
-            // Functions breakpoints are located in.
-            var functions = [
-              'new',
-              'printNestedObjectsMultiLine',
-              '<closure>',
-            ];
-            await onBreakPoint(mainScript, 'printNestedObjectMultiLine',
-                () async {
+            await onBreakPoint(breakpoints[1], () async {
               await service.resume(isolate.id, step: 'Into');
               await stream.firstWhere(
                   (Event event) => event.kind == EventKind.kPauseInterrupted);
-              return testCallStack(bpIds, functions);
+              return testCallStack(breakpoints);
             });
           });
 
           test('breakpoint gives correct callstack after step into chain calls',
               () async {
-            // Breakpoint IDs.
-            var bpIds = [
-              'createObjectWithMethod',
-              // This is currently incorrect, should be printObjectMultiLine.
-              // See issue: https://github.com/dart-lang/sdk/issues/48874
-              'printMultiLine',
-              'callPrintObjectMultiLine',
+            // Expected breakpoints on the stack
+            var breakpoints = [
+              BreakpointTestData(
+                'createObjectWithMethod',
+                'createObject',
+                mainScript,
+              ),
+              BreakpointTestData(
+                // This is currently incorrect, should be printObjectMultiLine.
+                // See issue: https://github.com/dart-lang/sdk/issues/48874
+                'printMultiLine',
+                'printObjectMultiLine',
+                mainScript,
+              ),
+              BreakpointTestData(
+                'callPrintObjectMultiLine',
+                '<closure>',
+                mainScript,
+              ),
             ];
-            // Functions breakpoints are located in.
-            var functions = [
-              'createObject',
-              'printObjectMultiLine',
-              '<closure>',
-            ];
-            await onBreakPoint(mainScript, 'printMultiLine', () async {
+            var bp = BreakpointTestData(
+                'printMultiLine', 'printObjectMultiLine', mainScript);
+            await onBreakPoint(bp, () async {
               await service.resume(isolate.id, step: 'Into');
               await stream.firstWhere(
                   (Event event) => event.kind == EventKind.kPauseInterrupted);
-              return testCallStack(bpIds, functions);
+              return testCallStack(breakpoints);
             });
           });
         });
@@ -250,3 +317,11 @@ Matcher _matchBpLocation(ScriptRef script, int line, int column) =>
 Matcher _matchFrameLocation(ScriptRef script, int line) => isA<SourceLocation>()
     .having((loc) => loc.script, 'script', equals(script))
     .having((loc) => loc.line, 'line', equals(line));
+
+class BreakpointTestData {
+  String bpId;
+  String function;
+  ScriptRef script;
+
+  BreakpointTestData(this.bpId, this.function, this.script);
+}

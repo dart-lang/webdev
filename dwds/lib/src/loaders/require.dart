@@ -170,6 +170,9 @@ class RequireStrategy extends LoadStrategy {
   String get moduleFormat => 'amd';
 
   @override
+  String get loadLibrariesModule => 'require.js';
+
+  @override
   String get loadLibrariesSnippet =>
       'let libs = $loadModuleSnippet("dart_sdk").dart.getLibraries();\n';
 

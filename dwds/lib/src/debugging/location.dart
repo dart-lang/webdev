@@ -69,6 +69,13 @@ class DartLocation {
     this.column,
   );
 
+  int compareTo(DartLocation other) => compareToLine(other.line, other.column);
+
+  int compareToLine(int otherLine, int otherColumn) {
+    var result = line.compareTo(otherLine);
+    return result == 0 ? column.compareTo(otherColumn) : result;
+  }
+
   @override
   String toString() => '[${uri.serverPath}:$line:$column]';
 
@@ -91,6 +98,13 @@ class JsLocation {
     this.line,
     this.column,
   );
+
+  int compareTo(JsLocation other) => compareToLine(other.line, other.column);
+
+  int compareToLine(int otherLine, int otherColumn) {
+    var result = line.compareTo(otherLine);
+    return result == 0 ? column.compareTo(otherColumn) : result;
+  }
 
   @override
   String toString() => '[$module:$line:$column]';
@@ -177,7 +191,7 @@ class Locations {
       if (location.dartLocation.line == line &&
           location.dartLocation.column >= column) {
         bestLocation ??= location;
-        if (location.dartLocation.column < bestLocation.dartLocation.column) {
+        if (location.dartLocation.compareTo(bestLocation.dartLocation) < 0) {
           bestLocation = location;
         }
       }
@@ -188,76 +202,23 @@ class Locations {
   /// Find closest existing JavaScript location for the line and column.
   ///
   /// Some JS locations are not stored in the source maps, so we find the
-  /// closest existing location, preferring the one coming after the given
-  /// column, if the current break is at an expression statement, or the
-  /// one coming before if the current break is at a function call.
+  /// closest existing location coming before the given column.
   ///
   /// This is a known problem that other code bases solve using by finding
   /// the closest location to the current one:
   ///
   /// https://github.com/microsoft/vscode-js-debug/blob/536f96bae61a3d87546b61bc7916097904c81429/src/common/sourceUtils.ts#L286
-  ///
-  /// Unfortunately, this approach fails for Flutter code too often, as it
-  /// frequently contains multi-line statements with nested objects.
-  ///
-  /// For example:
-  ///
-  ///   - `t33 = main.doSomething()` in top frame:
-  ///      Current column is at `t33`. Return existing location starting
-  ///      at `main`.
-  ///   - `main.doSomething()` in top frame:
-  ///      Current column is at `main`. Return existing location starting
-  ///      at `main`.
-  ///   - `main.doSomething()` in a frame down the stack:
-  ///      Current column is at `doSomething`. Source map does not have a
-  ///      location stored that starts at `doSomething()`. Return existing
-  ///      location starting at `main`.
   Location _bestJsLocation(Iterable<Location> locations, int line, int column) {
-    Location bestLocationBefore;
-    Location bestLocationAfter;
-
-    var locationsAfter = locations.where((location) =>
-        location.jsLocation.line == line &&
-        location.jsLocation.column >= column);
-    var locationsBefore = locations.where((location) =>
-        location.jsLocation.line == line &&
-        location.jsLocation.column < column);
-
-    for (var location in locationsAfter) {
-      bestLocationAfter ??= location;
-      if (location.jsLocation.column < bestLocationAfter.jsLocation.column) {
-        bestLocationAfter = location;
+    Location bestLocation;
+    for (var location in locations) {
+      if (location.jsLocation.compareToLine(line, column) <= 0) {
+        bestLocation ??= location;
+        if (location.jsLocation.compareTo(bestLocation.jsLocation) > 0) {
+          bestLocation = location;
+        }
       }
     }
-    for (var location in locationsBefore) {
-      bestLocationBefore ??= location;
-      if (location.jsLocation.column > bestLocationBefore.jsLocation.column) {
-        bestLocationBefore = location;
-      }
-    }
-    if (bestLocationAfter == null) return bestLocationBefore;
-    if (bestLocationBefore == null) return bestLocationAfter;
-
-    if (bestLocationAfter.jsLocation.line == line &&
-        bestLocationAfter.jsLocation.column == column) {
-      // Prefer exact match.
-      return bestLocationAfter;
-    }
-
-    // Return the closest location after the current if the current location
-    // is at the beginning of the line (i.e. on expression statement).
-    // Return the closest location before the current if the current location
-    // is in the middle of the line (i.e. on function call).
-    if (locationsBefore.length == 1 &&
-        locationsBefore.first.jsLocation.column == 0) {
-      // Best guess on whether the the current location is at the beginning of
-      // the line (i.e. expression statement):
-      // The only location on the left has column 0, so only spaces are on the
-      // left.
-      return bestLocationAfter;
-    }
-    // Current column is in the middle of the line (i.e .function call).
-    return bestLocationBefore;
+    return bestLocation;
   }
 
   /// Returns the tokenPosTable for the provided Dart script path as defined
