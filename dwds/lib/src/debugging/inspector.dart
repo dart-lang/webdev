@@ -428,12 +428,16 @@ function($argsString) {
   /// Return the VM SourceReport for the given parameters.
   ///
   /// Currently this implements the 'PossibleBreakpoints' report kind.
-  Future<SourceReport> getSourceReport(String isolateId, List<String> reports,
-      {String scriptId,
-      int tokenPos,
-      int endTokenPos,
-      bool forceCompile,
-      bool reportLines}) {
+  Future<SourceReport> getSourceReport(
+    String isolateId,
+    List<String> reports, {
+    String scriptId,
+    int tokenPos,
+    int endTokenPos,
+    bool forceCompile,
+    bool reportLines,
+    List<String> libraryFilters,
+  }) {
     checkIsolate('getSourceReport', isolateId);
 
     if (reports.contains(SourceReportKind.kCoverage)) {

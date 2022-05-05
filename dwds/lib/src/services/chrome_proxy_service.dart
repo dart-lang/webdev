@@ -562,20 +562,28 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<SourceReport> getSourceReport(String isolateId, List<String> reports,
-      {String scriptId,
-      int tokenPos,
-      int endTokenPos,
-      bool forceCompile,
-      bool reportLines}) async {
+  Future<SourceReport> getSourceReport(
+    String isolateId,
+    List<String> reports, {
+    String scriptId,
+    int tokenPos,
+    int endTokenPos,
+    bool forceCompile,
+    bool reportLines,
+    List<String> libraryFilters,
+  }) async {
     return await captureElapsedTime(() async {
       await isInitialized;
-      return await _inspector?.getSourceReport(isolateId, reports,
-          scriptId: scriptId,
-          tokenPos: tokenPos,
-          endTokenPos: endTokenPos,
-          forceCompile: forceCompile,
-          reportLines: reportLines);
+      return await _inspector?.getSourceReport(
+        isolateId,
+        reports,
+        scriptId: scriptId,
+        tokenPos: tokenPos,
+        endTokenPos: endTokenPos,
+        forceCompile: forceCompile,
+        reportLines: reportLines,
+        libraryFilters: libraryFilters,
+      );
     }, (result) => DwdsEvent.getSourceReport());
   }
 
