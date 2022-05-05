@@ -8,8 +8,6 @@ pub run build_runner build web -o build -r
 
 This will build to the `/web` directory.
 
-TODO(elliette): Building with DDC no longer works, figure out why. 
-See https://github.com/dart-lang/webdev/issues/1506
 - With DDC:
 
 ```

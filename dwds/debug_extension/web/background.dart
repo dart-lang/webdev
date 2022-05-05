@@ -48,7 +48,8 @@ final _tabsToAttach = <Tab>{};
 
 final _debugSessions = <DebugSession>[];
 
-final _devToolsPanelsNotifier = Notifier(<DevToolsPanel>[]);
+final _devToolsPanelsNotifier =
+    Notifier<List<DevToolsPanel>>(<DevToolsPanel>[]);
 
 // Keeps track of the most recent Dart tab that was opened. This is a heuristic
 // to let us guess which tab the user is trying to debug if they start debugging
@@ -178,9 +179,9 @@ void _startDebugging(DebuggerTrigger debuggerTrigger) {
   // Extracts the extension backend port from the injected JS.
   var attachDebuggerToTab = allowInterop(_attachDebuggerToTab);
 
-  queryTabs(getCurrentTabQuery, allowInterop((List<Tab> tabs) {
-    if (tabs != null && tabs.isNotEmpty) {
-      attachDebuggerToTab(tabs[0]);
+  queryTabs(getCurrentTabQuery, allowInterop((List tabs) {
+    if (tabs.isNotEmpty) {
+      attachDebuggerToTab(tabs.first as Tab);
     } else if (_mostRecentDartTab != null) {
       attachDebuggerToTab(_mostRecentDartTab);
     } else {
@@ -371,8 +372,9 @@ void _forwardMessageToExternalExtensions(
   }
 }
 
-void _notifyPanelScriptOfChanges(List<DevToolsPanel> panels) {
-  for (final panel in panels) {
+void _notifyPanelScriptOfChanges(List panels) {
+  final panelsList = List<DevToolsPanel>.from(panels);
+  for (final panel in panelsList) {
     sendSimpleMessage(panel.panelId,
         SimpleMessage(recipient: 'panel-script', body: panel.devToolsUri));
   }
@@ -532,7 +534,8 @@ Future<void> _startSseClient(
 
 void _updateOrCreateDevToolsPanel(
     String appId, void Function(DevToolsPanel panel) update) {
-  final devToolsPanels = _devToolsPanelsNotifier.value;
+  final devToolsPanels =
+      List<DevToolsPanel>.from(_devToolsPanelsNotifier.value);
   var panelAlreadyExists = false;
   for (final panel in devToolsPanels) {
     if (panel.appId == appId) {
@@ -551,19 +554,18 @@ void _updateOrCreateDevToolsPanel(
 void _updateIcon() {
   var query = QueryInfo(active: true, currentWindow: true);
   queryTabs(query, allowInterop((List tabs) {
-    var tabList = List<Tab>.from(tabs);
     // If tabList is empty, the user has likely navigated to a different window.
     // Therefore, do not update the icon:
-    if (tabList.isEmpty || tabList.first == null || tabList.first.id == null) {
-      return;
-    }
+    if (tabs.isEmpty) return;
+    final tab = tabs.first as Tab;
+    if (tab.id == null) return;
 
-    if (_tabIdToWarning.containsKey(tabList.first.id)) {
+    if (_tabIdToWarning.containsKey(tab.id)) {
       // Set the warning icon (red):
       setIcon(IconInfo(path: 'dart_warning.png'));
-    } else if (_debuggableTabs.contains(tabList.first.id)) {
+    } else if (_debuggableTabs.contains(tab.id)) {
       // Set the debuggable icon (blue):
-      _mostRecentDartTab = tabList.first;
+      _mostRecentDartTab = tab;
       setIcon(IconInfo(path: 'dart.png'));
     } else {
       // Set the default icon (grey):
@@ -595,7 +597,7 @@ class Notifier<T> {
   Notifier(T value) : _value = value;
 
   T _value;
-  final List<Listener> _listeners = <Listener>[];
+  final List<Listener<T>> _listeners = <Listener<T>>[];
 
   T get value => _value;
 
@@ -604,7 +606,7 @@ class Notifier<T> {
     notifyListeners();
   }
 
-  void addListener(Listener listener) {
+  void addListener(Listener<T> listener) {
     _listeners.add(listener);
   }
 

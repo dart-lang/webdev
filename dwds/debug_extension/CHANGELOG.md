@@ -3,6 +3,7 @@
 - Notify the debugger and inspector panels when the debug session is disconnected.
 - Provide a detailed error message when the debugger fails to connect.
 - Send an event to the server when the debugger is detached.
+- Fix compilation errors when the extension is built with DDC.
 
 ## 1.28
 
