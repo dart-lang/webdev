@@ -15,28 +15,28 @@ import 'package:test/test.dart';
 import 'debugger_test.dart';
 
 void main() {
+  const lines = 100;
+  const lineLength = 150;
+
   globalLoadStrategy = MockLoadStrategy();
+  var dartUri = DartUri('org-dartlang://web/main.dart');
+
   var assetReader = FakeAssetReader();
   var modules = MockModules();
-
   var locations = Locations(assetReader, modules, '');
 
   group('JS locations |', () {
     group('location |', () {
       test('is zero based', () async {
-        var loc = JsLocation.fromZeroBased('module', 0, 0);
-        expect(
-            loc,
-            isA<JsLocation>()
-                .having((l) => l.line, 'line', 0)
-                .having((l) => l.column, 'column', 0));
+        var loc = JsLocation.fromZeroBased(_module, 0, 0);
+        expect(loc, _matchJsLocation(0, 0));
       });
 
       test('can compare to other location', () async {
-        var loc00 = JsLocation.fromZeroBased('module', 0, 0);
-        var loc01 = JsLocation.fromZeroBased('module', 0, 1);
-        var loc10 = JsLocation.fromZeroBased('module', 1, 0);
-        var loc11 = JsLocation.fromZeroBased('module', 1, 1);
+        var loc00 = JsLocation.fromZeroBased(_module, 0, 0);
+        var loc01 = JsLocation.fromZeroBased(_module, 0, 1);
+        var loc10 = JsLocation.fromZeroBased(_module, 1, 0);
+        var loc11 = JsLocation.fromZeroBased(_module, 1, 1);
 
         expect(loc00.compareTo(loc01), isNegative);
         expect(loc00.compareTo(loc10), isNegative);
@@ -50,59 +50,74 @@ void main() {
 
     group('best location |', () {
       test('does not return location for setup code', () async {
-        var jsLocation = await locations.locationForJs('module', 0, 0);
-        expect(jsLocation, isNull);
+        var location = await locations.locationForJs(_module, 0, 0);
+        expect(location, isNull);
       });
 
       test('prefers precise match', () async {
-        var jsLocation = await locations.locationForJs('module', 37, 0);
-        expect(
-            jsLocation,
-            isA<Location>()
-                .having((l) => l.jsLocation.line, 'line', 37)
-                .having((l) => l.jsLocation.column, 'column', 0));
+        var location = await locations.locationForJs(_module, 37, 0);
+        expect(location, _matchLocationForJs(37, 0));
       });
 
-      test('matches to location after if stopped in the beginning of the line',
-          () async {
-        var jsLocation = await locations.locationForJs('module', 39, 4);
-        expect(
-            jsLocation,
-            isA<Location>()
-                .having((l) => l.jsLocation.line, 'line', 39)
-                .having((l) => l.jsLocation.column, 'column', 6));
+      test('finds a match in the beginning of the line', () async {
+        var location = await locations.locationForJs(_module, 39, 4);
+        expect(location, _matchLocationForJs(39, 0));
       });
 
-      test('matches to location before if stopped in the middle of the line',
+      test('finds a match in the middle of the line', () async {
+        var location = await locations.locationForJs(_module, 39, 10);
+        expect(location, _matchLocationForJs(39, 6));
+      });
+
+      test('finds a match on a previous line', () async {
+        var location = await locations.locationForJs(_module, 44, 0);
+        expect(location, _matchLocationForJs(43, 18));
+      });
+
+      test('finds a match on a previous line with a closer match after',
           () async {
-        var jsLocation = await locations.locationForJs('module', 39, 10);
-        expect(
-            jsLocation,
-            isA<Location>()
-                .having((l) => l.jsLocation.line, 'line', 39)
-                .having((l) => l.jsLocation.column, 'column', 6));
+        var location =
+            await locations.locationForJs(_module, 44, lineLength - 1);
+        expect(location, _matchLocationForJs(43, 18));
+      });
+
+      test('finds a match on the last line', () async {
+        var location =
+            await locations.locationForJs(_module, lines - 1, lineLength - 1);
+        expect(location, _matchLocationForJs(50, 2));
+      });
+
+      test('finds a match on invalid line', () async {
+        var location =
+            await locations.locationForJs(_module, lines, lineLength - 1);
+        expect(location, _matchLocationForJs(50, 2));
+      });
+
+      test('finds a match on invalid column on the same line', () async {
+        var location = await locations.locationForJs(_module, 50, lineLength);
+        expect(location, _matchLocationForJs(50, 2));
+      });
+
+      test('finds a match on invalid column on a previous line', () async {
+        var location =
+            await locations.locationForJs(_module, lines - 1, lineLength);
+        expect(location, _matchLocationForJs(50, 2));
       });
     });
   });
 
   group('Dart locations |', () {
-    var uri = DartUri('org-dartlang://web/main.dart');
-
     group('location |', () {
       test('is one based', () async {
-        var loc = DartLocation.fromZeroBased(uri, 0, 0);
-        expect(
-            loc,
-            isA<DartLocation>()
-                .having((l) => l.line, 'line', 1)
-                .having((l) => l.column, 'column', 1));
+        var loc = DartLocation.fromZeroBased(dartUri, 0, 0);
+        expect(loc, _matchDartLocation(1, 1));
       });
 
       test('can compare to other locations', () async {
-        var loc00 = DartLocation.fromZeroBased(uri, 0, 0);
-        var loc01 = DartLocation.fromZeroBased(uri, 0, 1);
-        var loc10 = DartLocation.fromZeroBased(uri, 1, 0);
-        var loc11 = DartLocation.fromZeroBased(uri, 1, 1);
+        var loc00 = DartLocation.fromZeroBased(dartUri, 0, 0);
+        var loc01 = DartLocation.fromZeroBased(dartUri, 0, 1);
+        var loc10 = DartLocation.fromZeroBased(dartUri, 1, 0);
+        var loc11 = DartLocation.fromZeroBased(dartUri, 1, 1);
 
         expect(loc00.compareTo(loc01), isNegative);
         expect(loc00.compareTo(loc10), isNegative);
@@ -117,22 +132,46 @@ void main() {
     group('best location |', () {
       test('does not return location for dart lines not mapped to JS',
           () async {
-        var jsLocation = await locations.locationForDart(uri, 0, 0);
-        expect(jsLocation, isNull);
+        var location = await locations.locationForDart(dartUri, 0, 0);
+        expect(location, isNull);
       });
 
       test('returns location after on the same line', () async {
-        var jsLocation = await locations.locationForDart(
-            DartUri('org-dartlang://web/main.dart'), 11, 0);
-        expect(
-            jsLocation,
-            isA<Location>()
-                .having((l) => l.dartLocation.line, 'line', 11)
-                .having((l) => l.dartLocation.column, 'column', 3));
+        var location = await locations.locationForDart(dartUri, 11, 0);
+        expect(location, _matchLocationForDart(11, 3));
+      });
+
+      test('return null on invalid line', () async {
+        var location = await locations.locationForDart(dartUri, lines, 0);
+        expect(location, isNull);
+      });
+
+      test('return null on invalid column', () async {
+        var location =
+            await locations.locationForDart(dartUri, lines - 1, lineLength);
+        expect(location, isNull);
       });
     });
   });
 }
+
+Matcher _matchLocationForDart(int line, int column) => isA<Location>().having(
+    (l) => l.dartLocation, 'dartLocation', _matchDartLocation(line, column));
+
+Matcher _matchLocationForJs(int line, int column) => isA<Location>()
+    .having((l) => l.jsLocation, 'jsLocation', _matchJsLocation(line, column));
+
+Matcher _matchDartLocation(int line, int column) => isA<DartLocation>()
+    .having((l) => l.line, 'line', line)
+    .having((l) => l.column, 'column', column);
+
+Matcher _matchJsLocation(int line, int column) => isA<JsLocation>()
+    .having((l) => l.line, 'line', line)
+    .having((l) => l.column, 'column', column);
+
+const _module = 'packages/module';
+const _serverPath = 'package/module.js';
+const _sourceMapPath = 'packages/module.js.map';
 
 class MockLoadStrategy implements LoadStrategy {
   @override
@@ -171,19 +210,19 @@ class MockLoadStrategy implements LoadStrategy {
   @override
   Future<String> moduleForServerPath(
           String entrypoint, String serverPath) async =>
-      'module';
+      _module;
 
   @override
   Future<String> serverPathForModule(String entrypoint, String module) async =>
-      'serverPath';
+      _serverPath;
 
   @override
   Future<String> sourceMapPathForModule(
           String entrypoint, String module) async =>
-      'sourceMapPath';
+      _sourceMapPath;
 
   @override
-  String serverPathForAppUri(String appUri) => 'serverPath';
+  String serverPathForAppUri(String appUri) => _serverPath;
 
   @override
   MetadataProvider metadataProviderFor(String entrypoint) => null;
@@ -206,7 +245,7 @@ class MockModules implements Modules {
   }
 
   @override
-  Future<String> moduleForSource(String serverPath) async => 'module';
+  Future<String> moduleForSource(String serverPath) async => _module;
 
   @override
   Future<Map<String, String>> modules() {

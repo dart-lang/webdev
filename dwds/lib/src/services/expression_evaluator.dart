@@ -304,6 +304,7 @@ class ExpressionEvaluator {
           // }
           // TODO(annagrin): decide if we would like not to support evaluation
           // of uncaptured variables
+
           var capturedValue = _valueToLiteral(value);
           jsScope[name] = capturedValue ?? name;
         } else {
