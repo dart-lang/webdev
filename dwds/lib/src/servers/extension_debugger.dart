@@ -86,7 +86,16 @@ class ExtensionDebugger implements RemoteDebugger {
           'method': json.decode(message.method),
           'params': json.decode(message.params)
         };
-        _notificationController.sink.add(WipEvent(map));
+        // Note: package:sse will try to keep the connection alive, even after
+        // the client has been closed. Therefore the extension sends an event to
+        // notify DWDS that we should close the connection, instead of relying
+        // on the done event sent when the client is closed. See details:
+        // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
+        if (map['method'] == 'DebugExtension.detached') {
+          close();
+        } else {
+          _notificationController.sink.add(WipEvent(map));
+        }
       } else if (message is BatchedEvents) {
         for (var event in message.events) {
           var map = {

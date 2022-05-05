@@ -10,6 +10,7 @@
   - Remove clearing all scripts on page load for extension debugger.
 - Fix breakpoints not hitting after changing a base in index.html.
 - Find best locations for call frames, breakpoints, or expression evaluation.
+- Close the SSE connection when a DebugExtension.detached event is received.
 - Fix issues discovered when using legacy module system, debug extension,
   and JIT modules:
   - Improve step-into times by not stepping into library loading code.
@@ -17,6 +18,8 @@
   - Fix memory leak in extension debugger by removing stale script IDs.
   - Allow mapping JS locations to Dart locations matching other JS lines,
     to match the behavior of Chrome DevTools.
+  - Fix expression evaluation failure if debugger is stopped in the middle
+    of a variable definition.
 
 **Breaking changes:**
 - Add `basePath` parameter to `FrontendServerRequireStrategy`.

@@ -23,9 +23,10 @@ import 'package:sse/client/sse_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 const _notADartAppAlert = 'No Dart application detected.'
-    ' Your development server should inject metadata to indicate support for'
-    ' Dart debugging. This may require setting a flag. Check the documentation'
-    ' for your development server.';
+    ' Are you trying to debug an application that includes a Chrome hosted app'
+    ' (an application listed in chrome://apps)? If so, debugging is disabled.'
+    ' You can fix this by removing the application from chrome://apps. Please'
+    ' see https://bugs.chromium.org/p/chromium/issues/detail?id=885025#c11.';
 
 // Extensions allowed for cross-extension communication.
 const _allowedExtensions = {
@@ -47,7 +48,8 @@ final _tabsToAttach = <Tab>{};
 
 final _debugSessions = <DebugSession>[];
 
-final _devToolsPanelsNotifier = Notifier(<DevToolsPanel>[]);
+final _devToolsPanelsNotifier =
+    Notifier<List<DevToolsPanel>>(<DevToolsPanel>[]);
 
 // Keeps track of the most recent Dart tab that was opened. This is a heuristic
 // to let us guess which tab the user is trying to debug if they start debugging
@@ -177,9 +179,9 @@ void _startDebugging(DebuggerTrigger debuggerTrigger) {
   // Extracts the extension backend port from the injected JS.
   var attachDebuggerToTab = allowInterop(_attachDebuggerToTab);
 
-  queryTabs(getCurrentTabQuery, allowInterop((List<Tab> tabs) {
-    if (tabs != null && tabs.isNotEmpty) {
-      attachDebuggerToTab(tabs[0]);
+  queryTabs(getCurrentTabQuery, allowInterop((List tabs) {
+    if (tabs.isNotEmpty) {
+      attachDebuggerToTab(tabs.first as Tab);
     } else if (_mostRecentDartTab != null) {
       attachDebuggerToTab(_mostRecentDartTab);
     } else {
@@ -294,6 +296,14 @@ int _removeDebugSessionForTab(int tabId) {
       (session) => session.appTabId == tabId || session.devtoolsTabId == tabId,
       orElse: () => null);
   if (session != null) {
+    // Note: package:sse will try to keep the connection alive, even after the
+    // client has been closed. Therefore the extension sends an event to notify
+    // DWDS that we should close the connection, instead of relying on the done
+    // event sent when the client is closed. See details:
+    // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
+    final event =
+        _extensionEventFor('DebugExtension.detached', js_util.jsify({}));
+    session.socketClient.sink.add(jsonEncode(serializers.serialize(event)));
     session.socketClient.close();
     _debugSessions.remove(session);
 
@@ -362,8 +372,9 @@ void _forwardMessageToExternalExtensions(
   }
 }
 
-void _notifyPanelScriptOfChanges(List<DevToolsPanel> panels) {
-  for (final panel in panels) {
+void _notifyPanelScriptOfChanges(List panels) {
+  final panelsList = List<DevToolsPanel>.from(panels);
+  for (final panel in panelsList) {
     sendSimpleMessage(panel.panelId,
         SimpleMessage(recipient: 'panel-script', body: panel.devToolsUri));
   }
@@ -523,7 +534,8 @@ Future<void> _startSseClient(
 
 void _updateOrCreateDevToolsPanel(
     String appId, void Function(DevToolsPanel panel) update) {
-  final devToolsPanels = _devToolsPanelsNotifier.value;
+  final devToolsPanels =
+      List<DevToolsPanel>.from(_devToolsPanelsNotifier.value);
   var panelAlreadyExists = false;
   for (final panel in devToolsPanels) {
     if (panel.appId == appId) {
@@ -542,19 +554,18 @@ void _updateOrCreateDevToolsPanel(
 void _updateIcon() {
   var query = QueryInfo(active: true, currentWindow: true);
   queryTabs(query, allowInterop((List tabs) {
-    var tabList = List<Tab>.from(tabs);
     // If tabList is empty, the user has likely navigated to a different window.
     // Therefore, do not update the icon:
-    if (tabList.isEmpty || tabList.first == null || tabList.first.id == null) {
-      return;
-    }
+    if (tabs.isEmpty) return;
+    final tab = tabs.first as Tab;
+    if (tab.id == null) return;
 
-    if (_tabIdToWarning.containsKey(tabList.first.id)) {
+    if (_tabIdToWarning.containsKey(tab.id)) {
       // Set the warning icon (red):
       setIcon(IconInfo(path: 'dart_warning.png'));
-    } else if (_debuggableTabs.contains(tabList.first.id)) {
+    } else if (_debuggableTabs.contains(tab.id)) {
       // Set the debuggable icon (blue):
-      _mostRecentDartTab = tabList.first;
+      _mostRecentDartTab = tab;
       setIcon(IconInfo(path: 'dart.png'));
     } else {
       // Set the default icon (grey):
@@ -586,7 +597,7 @@ class Notifier<T> {
   Notifier(T value) : _value = value;
 
   T _value;
-  final List<Listener> _listeners = <Listener>[];
+  final List<Listener<T>> _listeners = <Listener<T>>[];
 
   T get value => _value;
 
@@ -595,7 +606,7 @@ class Notifier<T> {
     notifyListeners();
   }
 
-  void addListener(Listener listener) {
+  void addListener(Listener<T> listener) {
     _listeners.add(listener);
   }
 
