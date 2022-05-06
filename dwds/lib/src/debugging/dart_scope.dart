@@ -11,7 +11,7 @@ import 'debugger.dart';
 
 // TODO(sdk/issues/44262) - use an alternative way to identify synthetic
 // variables.
-final ddcTemporaryVariableRegExp = RegExp(r'^(t[0-9]+\$?[0-9]*|__t\$\w*)$');
+final ddcTemporaryVariableRegExp = RegExp(r'^(t[0-9]+\$?[0-9]*|__t[\$\w*]+)$');
 
 /// Find the visible Dart properties from a JS Scope Chain, coming from the
 /// scopeChain attribute of a Chrome CallFrame corresponding to [frame].
