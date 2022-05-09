@@ -558,8 +558,10 @@ class Debugger extends Domain {
           if (isNativeJsObject(exception)) {
             if (obj.description != null) {
               // Create a string exception object.
-              exception = await inspector.instanceHelper
-                  .instanceRefFor(obj.description);
+              var description =
+                  await inspector.mapExceptionStackTrace(obj.description);
+              exception =
+                  await inspector.instanceHelper.instanceRefFor(description);
             } else {
               exception = null;
             }

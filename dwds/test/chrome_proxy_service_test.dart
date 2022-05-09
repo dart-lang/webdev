@@ -1129,6 +1129,8 @@ void main() {
         var event = await stream
             .firstWhere((event) => event.kind == EventKind.kPauseException);
         expect(event.exception, isNotNull);
+        // Check that the exception stack trace has been mapped to Dart source files.
+        expect(event.exception.valueAsString, contains('main.dart'));
 
         var stack = await service.getStack(isolateId);
         expect(stack, isNotNull);
@@ -1658,6 +1660,18 @@ void main() {
                 String.fromCharCodes(base64.decode(event.bytes))
                     .contains('Error'))));
         await tabConnection.runtime.evaluate('console.error("Error");');
+      });
+
+      test('exception stack trace mapper', () async {
+        expect(service.streamListen('Stderr'), completion(_isSuccess));
+        var stderrStream = service.onEvent('Stderr');
+        expect(
+            stderrStream,
+            emitsThrough(predicate((Event event) =>
+                event.kind == EventKind.kWriteEvent &&
+                String.fromCharCodes(base64.decode(event.bytes))
+                    .contains('main.dart'))));
+        await tabConnection.runtime.evaluate('throwUncaughtException();');
       });
 
       test('VM', () async {
