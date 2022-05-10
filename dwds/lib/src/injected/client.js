@@ -8609,7 +8609,7 @@
     },
     HtmlWebSocketChannel: function HtmlWebSocketChannel(t0, t1) {
       var _ = this;
-      _._webSocket = t0;
+      _.innerWebSocket = t0;
       _._localCloseReason = _._localCloseCode = null;
       _._html0$_controller = t1;
       _.__HtmlWebSocketChannel_sink = $;
@@ -8634,7 +8634,7 @@
       this._sink = t1;
     },
     WebSocketChannel: function WebSocketChannel(t0) {
-      this._channel$_webSocket = t0;
+      this._webSocket = t0;
     },
     WebSocketChannelException: function WebSocketChannelException(t0) {
       this.message = t0;
@@ -24195,9 +24195,9 @@
     }
   };
   A.HtmlWebSocketChannel.prototype = {
-    HtmlWebSocketChannel$1(_webSocket) {
+    HtmlWebSocketChannel$1(innerWebSocket) {
       var t2, t3, _this = this,
-        t1 = _this._webSocket;
+        t1 = _this.innerWebSocket;
       if (t1.readyState === 1)
         _this._listen$0();
       else {
@@ -24220,7 +24220,7 @@
       t1 = t1.__GuaranteeChannel__streamController;
       if (t1 === $)
         A.throwLateFieldNI("_streamController");
-      new A._ControllerStream(t1, A._instanceType(t1)._eval$1("_ControllerStream<1>")).listen$2$onDone(B.WebSocket_methods.get$send(this._webSocket), new A.HtmlWebSocketChannel__listen_closure(this));
+      new A._ControllerStream(t1, A._instanceType(t1)._eval$1("_ControllerStream<1>")).listen$2$onDone(B.WebSocket_methods.get$send(this.innerWebSocket), new A.HtmlWebSocketChannel__listen_closure(this));
     },
     $isWebSocketChannel: 1
   };
@@ -24287,7 +24287,7 @@
   };
   A.HtmlWebSocketChannel__listen_closure.prototype = {
     call$0() {
-      this.$this._webSocket.close();
+      this.$this.innerWebSocket.close();
     },
     $signature: 0
   };

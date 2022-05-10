@@ -867,6 +867,16 @@ void main() {
             service.getSourceReport(isolateId, ['Coverage']), throwsRPCError);
       });
 
+      test('Coverage report', () async {
+        var vm = await service.getVM();
+        var isolateId = vm.isolates.first.id;
+
+        await expectLater(
+            service.getSourceReport(isolateId, ['Coverage'],
+                libraryFilters: ['foo']),
+            throwsRPCError);
+      });
+
       test('report type not understood', () async {
         var vm = await service.getVM();
         var isolateId = vm.isolates.first.id;
