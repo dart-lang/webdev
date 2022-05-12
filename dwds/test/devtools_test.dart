@@ -48,7 +48,8 @@ void main() {
       await context.webDriver.driver.switchTo.window(windows.last);
       expect(await context.webDriver.title, contains('DevTools'));
       expect(await context.webDriver.currentUrl, contains('ide=Dwds'));
-    });
+      // TODO(elliette): Re-enable and fix flakes.
+    }, skip: true);
 
     test(
       'can not launch devtools for the same app in multiple tabs',

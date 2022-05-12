@@ -78,7 +78,8 @@ void main() async {
           expect(await context.webDriver.title, contains('DevTools'));
           expect(await context.webDriver.currentUrl,
               contains('ide=DebugExtension'));
-        });
+          // TODO(elliette): Re-enable and fix flakes.
+        }, skip: true);
 
         test('can close DevTools and relaunch', () async {
           for (var window in await context.webDriver.windows.toList()) {
