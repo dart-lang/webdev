@@ -1,4 +1,4 @@
-## 14.0.2-dev
+## 14.0.2
 - Update the min SDK constraint to 2.17.0.
 
 ## 14.0.1
