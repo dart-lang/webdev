@@ -18,7 +18,7 @@
       --debug --debug-extension \
       --user-data-dir=auto
   ```
-- Update DWDS min version constraint.
+- Update the min SDK constraint to 2.17.0.
 
 ## 2.7.8
 

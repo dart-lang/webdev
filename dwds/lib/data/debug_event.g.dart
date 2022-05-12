@@ -118,7 +118,7 @@ class _$DebugEvent extends DebugEvent {
   final int timestamp;
 
   factory _$DebugEvent([void Function(DebugEventBuilder) updates]) =>
-      (new DebugEventBuilder()..update(updates)).build();
+      (new DebugEventBuilder()..update(updates))._build();
 
   _$DebugEvent._({this.kind, this.eventData, this.timestamp}) : super._() {
     BuiltValueNullFieldError.checkNotNull(kind, 'DebugEvent', 'kind');
@@ -198,7 +198,9 @@ class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
   }
 
   @override
-  _$DebugEvent build() {
+  DebugEvent build() => _build();
+
+  _$DebugEvent _build() {
     final _$result = _$v ??
         new _$DebugEvent._(
             kind: BuiltValueNullFieldError.checkNotNull(
@@ -218,7 +220,7 @@ class _$BatchedDebugEvents extends BatchedDebugEvents {
 
   factory _$BatchedDebugEvents(
           [void Function(BatchedDebugEventsBuilder) updates]) =>
-      (new BatchedDebugEventsBuilder()..update(updates)).build();
+      (new BatchedDebugEventsBuilder()..update(updates))._build();
 
   _$BatchedDebugEvents._({this.events}) : super._() {
     BuiltValueNullFieldError.checkNotNull(
@@ -285,7 +287,9 @@ class BatchedDebugEventsBuilder
   }
 
   @override
-  _$BatchedDebugEvents build() {
+  BatchedDebugEvents build() => _build();
+
+  _$BatchedDebugEvents _build() {
     _$BatchedDebugEvents _$result;
     try {
       _$result = _$v ?? new _$BatchedDebugEvents._(events: events.build());
@@ -305,4 +309,4 @@ class BatchedDebugEventsBuilder
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,no_leading_underscores_for_local_identifiers,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
