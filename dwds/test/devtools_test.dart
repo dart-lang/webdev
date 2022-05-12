@@ -50,7 +50,8 @@ void main() {
       // https://github.com/flutter/devtools/issues/2045 is fixed.
       expect(await context.webDriver.pageSource, contains('Flutter'));
       expect(await context.webDriver.currentUrl, contains('ide=Dwds'));
-    });
+      // TODO(elliette): Re-enable and fix flakes.
+    }, skip: true);
 
     test(
       'can not launch devtools for the same app in multiple tabs',
