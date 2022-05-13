@@ -1,5 +1,4 @@
-## 2.7.9-dev
-
+## 2.7.9
 - Add an option to pass user data directory to chrome: `user-data-dir`.
   Auto detect user data directory based on the current OS if `auto` is
   given as a value. If `null` is given as a value (default), fall back
@@ -19,6 +18,7 @@
       --debug --debug-extension \
       --user-data-dir=auto
   ```
+- Update the min SDK constraint to 2.17.0.
 
 ## 2.7.8
 
