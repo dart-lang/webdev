@@ -46,11 +46,11 @@ void main() {
     Stream<Event> debugStream;
     IsolateRef isolate;
     Script mainScript;
-            
+
     setUpAll(() async {
       // redirect logs for testing
       output = StreamController<String>.broadcast()
-        ..stream.listen(debug? print: printOnFailure);
+        ..stream.listen(debug ? print : printOnFailure);
 
       void logWriter(Level level, String message,
               {String error, String loggerName, String stackTrace}) =>
@@ -64,25 +64,25 @@ void main() {
         wsUri = _getDebugServiceUri(message as String);
         return wsUri != null;
       }));
-      
+
       await context.setUp(verboseCompiler: debug);
       await findWsUri;
 
       await Chain.capture(() async {
         socket = await WebSocket.connect(wsUri);
         vmService = await _vmServiceConnectUri(socket);
-        }, onError: (e,s) {
-          print('AsyncError: $e:$s');
-        });
-      
+      }, onError: (e, s) {
+        print('AsyncError: $e:$s');
+      });
+
       await vmService.streamListen('Debug');
       debugStream = vmService.onEvent('Debug');
 
       var vm = await vmService.getVM();
       isolate = vm.isolates.first;
       var scripts = await vmService.getScripts(isolate.id);
-      var mainScriptRef = scripts.scripts
-          .firstWhere((each) => each.uri.contains('main.dart'));
+      var mainScriptRef =
+          scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
       mainScript =
           await vmService.getObject(isolate.id, mainScriptRef.id) as Script;
     });
@@ -115,7 +115,6 @@ void main() {
     }
 
     group('callStack |', () {
-
       test('callstack while paused', () async {
         await onBreakPoint('printLocal', mainScript, () async {
           var stack = await vmService.getStack(isolate.id, limit: 1);
@@ -127,7 +126,7 @@ void main() {
       test('callstack while paused in parallel', () async {
         await onBreakPoint('printLocal', mainScript, () async {
           var futures = [
-            vmService.getStack(isolate.id, limit: 1), 
+            vmService.getStack(isolate.id, limit: 1),
             vmService.getStack(isolate.id, limit: 1),
             vmService.getStack(isolate.id, limit: 1),
             vmService.getStack(isolate.id, limit: 1),
@@ -138,7 +137,8 @@ void main() {
       });
 
       test('callstack while running', () async {
-        await expectLater(vmService.getStack(isolate.id, limit: 1), throwsRPCError);
+        await expectLater(
+            vmService.getStack(isolate.id, limit: 1), throwsRPCError);
       });
 
       test('callstack on incorrect isolate', () async {
@@ -155,9 +155,13 @@ void main() {
         await Future.wait(futures.map((e) => expectLater(e, throwsRPCError)));
       });
 
-      test('callstack while running in parallel with a broken socket', () async {
+      test('callstack while running in parallel with a broken socket',
+          () async {
         var futures = [
-          () async { socket.addError('error', StackTrace.current); throw RPCError('', 0, ''); },
+          () async {
+            socket.addError('error', StackTrace.current);
+            throw RPCError('', 0, '');
+          },
           vmService.getStack(isolate.id, limit: 1),
           vmService.getStack(isolate.id, limit: 1),
           vmService.getStack(isolate.id, limit: 1),
