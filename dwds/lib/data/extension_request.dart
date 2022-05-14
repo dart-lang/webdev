@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -29,8 +27,7 @@ abstract class ExtensionRequest
   String get command;
 
   /// Contains JSON-encoded parameters.
-  @nullable
-  String get commandParams;
+  String? get commandParams;
 }
 
 /// A response to an [ExtensionRequest].
@@ -52,8 +49,7 @@ abstract class ExtensionResponse
   /// Contains a JSON-encoded payload.
   String get result;
 
-  @nullable
-  String get error;
+  String? get error;
 }
 
 /// An event for Dart Debug Extension.
