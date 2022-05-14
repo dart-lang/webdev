@@ -1,9 +1,5 @@
 targets:
   $default:
-    builders:
-      built_value_generator|built_value:
-        options:
-          header: '// ignore_for_file: unnecessary_lambdas'
       build_web_compilers|entrypoint:
         options:
           compiler: dart2js
