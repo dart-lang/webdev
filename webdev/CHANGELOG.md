@@ -1,3 +1,5 @@
+## 2.7.10-dev
+
 ## 2.7.9
 - Add an option to pass user data directory to chrome: `user-data-dir`.
   Auto detect user data directory based on the current OS if `auto` is
