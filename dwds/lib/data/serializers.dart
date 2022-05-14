@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: unnecessary_lambdas
-
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 
@@ -38,4 +36,3 @@ part 'serializers.g.dart';
   RunRequest,
 ])
 final Serializers serializers = _$serializers;
-
