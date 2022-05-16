@@ -1,9 +1,8 @@
+[![pub package](https://img.shields.io/pub/v/frontend_server_client.svg)](https://pub.dev/packages/frontend_server_client)
+[![package publisher](https://img.shields.io/pub/publisher/frontend_server_client.svg)](https://pub.dev/packages/frontend_server_client/publisher)
+
 This package provides a client interface around the frontend_server compiler
 which ships with the Dart SDK.
-
-## Usage
-
-TODO
 
 ## SDK Versioning Policy
 
