@@ -1,3 +1,6 @@
+## 14.0.3-dev
+- Update `package:vm_service` to 8.3.0.
+
 ## 14.0.2
 - Update the min SDK constraint to 2.17.0.
 
