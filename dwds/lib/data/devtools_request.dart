@@ -42,8 +42,8 @@ abstract class DevToolsRequest
 
   /// If this is a uri only request.
   ///
-  /// Only available on requests coming from dart debug extension
-  /// for DevTools to open in an embedded Chrome DevTools tab.
+  /// Only available on requests coming from dart debug extension.
+  /// If true, DevTools should open in an embedded Chrome DevTools tab.
   bool? get uriOnly;
 }
 
