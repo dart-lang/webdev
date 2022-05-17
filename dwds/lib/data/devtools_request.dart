@@ -25,12 +25,25 @@ abstract class DevToolsRequest
   String get instanceId;
 
   /// Identifies the context in which evaluations should occur.
+  ///
+  /// Defines execution context for the debug service that connects
+  /// to chrome via the extension debugger.
+  /// Can be `null` for local debug service, which gets the execution
+  /// context from the Chrome runtime.
   int? get contextId;
 
-  /// Belongs to the tab that requests the DevTools
+  /// Belongs to the tab that requests the DevTools.
+  ///
+  /// Defines the tab being debugged for the debug service that connects
+  /// to chrome via the extension debugger.
+  /// Can be `null` for local debug service, which finds the tab with the
+  /// correct `dartAppInstanceId` automatically.
   String? get tabUrl;
 
   /// If this is a uri only request.
+  ///
+  /// Only available on requests coming from dart debug extension
+  /// for DevTools to open in an embedded Chrome DevTools tab.
   bool? get uriOnly;
 }
 
