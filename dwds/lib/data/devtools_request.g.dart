@@ -166,7 +166,7 @@ class _$DevToolsRequest extends DevToolsRequest {
   final bool uriOnly;
 
   factory _$DevToolsRequest([void Function(DevToolsRequestBuilder) updates]) =>
-      (new DevToolsRequestBuilder()..update(updates)).build();
+      (new DevToolsRequestBuilder()..update(updates))._build();
 
   _$DevToolsRequest._(
       {this.appId, this.instanceId, this.contextId, this.tabUrl, this.uriOnly})
@@ -268,7 +268,9 @@ class DevToolsRequestBuilder
   }
 
   @override
-  _$DevToolsRequest build() {
+  DevToolsRequest build() => _build();
+
+  _$DevToolsRequest _build() {
     final _$result = _$v ??
         new _$DevToolsRequest._(
             appId: BuiltValueNullFieldError.checkNotNull(
@@ -293,7 +295,7 @@ class _$DevToolsResponse extends DevToolsResponse {
 
   factory _$DevToolsResponse(
           [void Function(DevToolsResponseBuilder) updates]) =>
-      (new DevToolsResponseBuilder()..update(updates)).build();
+      (new DevToolsResponseBuilder()..update(updates))._build();
 
   _$DevToolsResponse._({this.success, this.promptExtension, this.error})
       : super._() {
@@ -378,7 +380,9 @@ class DevToolsResponseBuilder
   }
 
   @override
-  _$DevToolsResponse build() {
+  DevToolsResponse build() => _build();
+
+  _$DevToolsResponse _build() {
     final _$result = _$v ??
         new _$DevToolsResponse._(
             success: BuiltValueNullFieldError.checkNotNull(
@@ -391,4 +395,4 @@ class DevToolsResponseBuilder
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,no_leading_underscores_for_local_identifiers,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new

@@ -244,7 +244,7 @@ class _$ExtensionRequest extends ExtensionRequest {
 
   factory _$ExtensionRequest(
           [void Function(ExtensionRequestBuilder) updates]) =>
-      (new ExtensionRequestBuilder()..update(updates)).build();
+      (new ExtensionRequestBuilder()..update(updates))._build();
 
   _$ExtensionRequest._({this.id, this.command, this.commandParams})
       : super._() {
@@ -328,7 +328,9 @@ class ExtensionRequestBuilder
   }
 
   @override
-  _$ExtensionRequest build() {
+  ExtensionRequest build() => _build();
+
+  _$ExtensionRequest _build() {
     final _$result = _$v ??
         new _$ExtensionRequest._(
             id: BuiltValueNullFieldError.checkNotNull(
@@ -353,7 +355,7 @@ class _$ExtensionResponse extends ExtensionResponse {
 
   factory _$ExtensionResponse(
           [void Function(ExtensionResponseBuilder) updates]) =>
-      (new ExtensionResponseBuilder()..update(updates)).build();
+      (new ExtensionResponseBuilder()..update(updates))._build();
 
   _$ExtensionResponse._({this.id, this.success, this.result, this.error})
       : super._() {
@@ -446,7 +448,9 @@ class ExtensionResponseBuilder
   }
 
   @override
-  _$ExtensionResponse build() {
+  ExtensionResponse build() => _build();
+
+  _$ExtensionResponse _build() {
     final _$result = _$v ??
         new _$ExtensionResponse._(
             id: BuiltValueNullFieldError.checkNotNull(
@@ -468,7 +472,7 @@ class _$ExtensionEvent extends ExtensionEvent {
   final String method;
 
   factory _$ExtensionEvent([void Function(ExtensionEventBuilder) updates]) =>
-      (new ExtensionEventBuilder()..update(updates)).build();
+      (new ExtensionEventBuilder()..update(updates))._build();
 
   _$ExtensionEvent._({this.params, this.method}) : super._() {
     BuiltValueNullFieldError.checkNotNull(params, 'ExtensionEvent', 'params');
@@ -541,7 +545,9 @@ class ExtensionEventBuilder
   }
 
   @override
-  _$ExtensionEvent build() {
+  ExtensionEvent build() => _build();
+
+  _$ExtensionEvent _build() {
     final _$result = _$v ??
         new _$ExtensionEvent._(
             params: BuiltValueNullFieldError.checkNotNull(
@@ -558,7 +564,7 @@ class _$BatchedEvents extends BatchedEvents {
   final BuiltList<ExtensionEvent> events;
 
   factory _$BatchedEvents([void Function(BatchedEventsBuilder) updates]) =>
-      (new BatchedEventsBuilder()..update(updates)).build();
+      (new BatchedEventsBuilder()..update(updates))._build();
 
   _$BatchedEvents._({this.events}) : super._() {
     BuiltValueNullFieldError.checkNotNull(events, 'BatchedEvents', 'events');
@@ -621,7 +627,9 @@ class BatchedEventsBuilder
   }
 
   @override
-  _$BatchedEvents build() {
+  BatchedEvents build() => _build();
+
+  _$BatchedEvents _build() {
     _$BatchedEvents _$result;
     try {
       _$result = _$v ?? new _$BatchedEvents._(events: events.build());
@@ -641,4 +649,4 @@ class BatchedEventsBuilder
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,no_leading_underscores_for_local_identifiers,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new

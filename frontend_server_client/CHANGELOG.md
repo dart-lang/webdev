@@ -1,3 +1,6 @@
+## 2.1.3
+- Update `package:vm_service` to version `^8.0.0`
+
 ## 2.1.2
 
 - Force kill the frontend server after one second when calling shutdown. It
