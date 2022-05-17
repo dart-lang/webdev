@@ -1,5 +1,5 @@
-## 2.1.3-dev
-
+## 2.1.3
+- Update `package:vm_service` to version `^8.0.0`
 
 ## 2.1.2
 
