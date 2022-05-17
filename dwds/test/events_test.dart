@@ -447,7 +447,7 @@ void main() {
             () => client.callServiceExtension('fullReload'));
       });
     });
-  });
+  }, timeout: Timeout.factor(2));
 }
 
 /// Matches event recursively.
