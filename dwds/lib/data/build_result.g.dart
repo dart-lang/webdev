@@ -1,5 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// @dart=2.9
 
 part of 'build_result.dart';
 
@@ -58,9 +57,9 @@ class _$BuildResultSerializer implements StructuredSerializer<BuildResult> {
   final String wireName = 'BuildResult';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, BuildResult object,
+  Iterable<Object?> serialize(Serializers serializers, BuildResult object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+    final result = <Object?>[
       'status',
       serializers.serialize(object.status,
           specifiedType: const FullType(BuildStatus)),
@@ -70,19 +69,19 @@ class _$BuildResultSerializer implements StructuredSerializer<BuildResult> {
   }
 
   @override
-  BuildResult deserialize(Serializers serializers, Iterable<Object> serialized,
+  BuildResult deserialize(Serializers serializers, Iterable<Object?> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new BuildResultBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'status':
           result.status = serializers.deserialize(value,
-              specifiedType: const FullType(BuildStatus)) as BuildStatus;
+              specifiedType: const FullType(BuildStatus))! as BuildStatus;
           break;
       }
     }
@@ -95,10 +94,10 @@ class _$BuildResult extends BuildResult {
   @override
   final BuildStatus status;
 
-  factory _$BuildResult([void Function(BuildResultBuilder) updates]) =>
+  factory _$BuildResult([void Function(BuildResultBuilder)? updates]) =>
       (new BuildResultBuilder()..update(updates))._build();
 
-  _$BuildResult._({this.status}) : super._() {
+  _$BuildResult._({required this.status}) : super._() {
     BuiltValueNullFieldError.checkNotNull(status, 'BuildResult', 'status');
   }
 
@@ -128,11 +127,11 @@ class _$BuildResult extends BuildResult {
 }
 
 class BuildResultBuilder implements Builder<BuildResult, BuildResultBuilder> {
-  _$BuildResult _$v;
+  _$BuildResult? _$v;
 
-  BuildStatus _status;
-  BuildStatus get status => _$this._status;
-  set status(BuildStatus status) => _$this._status = status;
+  BuildStatus? _status;
+  BuildStatus? get status => _$this._status;
+  set status(BuildStatus? status) => _$this._status = status;
 
   BuildResultBuilder();
 
@@ -152,7 +151,7 @@ class BuildResultBuilder implements Builder<BuildResult, BuildResultBuilder> {
   }
 
   @override
-  void update(void Function(BuildResultBuilder) updates) {
+  void update(void Function(BuildResultBuilder)? updates) {
     if (updates != null) updates(this);
   }
 

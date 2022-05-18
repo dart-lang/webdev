@@ -1,5 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// @dart=2.9
 
 part of 'run_request.dart';
 
@@ -16,20 +15,20 @@ class _$RunRequestSerializer implements StructuredSerializer<RunRequest> {
   final String wireName = 'RunRequest';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, RunRequest object,
+  Iterable<Object?> serialize(Serializers serializers, RunRequest object,
       {FullType specifiedType = FullType.unspecified}) {
-    return <Object>[];
+    return <Object?>[];
   }
 
   @override
-  RunRequest deserialize(Serializers serializers, Iterable<Object> serialized,
+  RunRequest deserialize(Serializers serializers, Iterable<Object?> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     return new RunRequestBuilder().build();
   }
 }
 
 class _$RunRequest extends RunRequest {
-  factory _$RunRequest([void Function(RunRequestBuilder) updates]) =>
+  factory _$RunRequest([void Function(RunRequestBuilder)? updates]) =>
       (new RunRequestBuilder()..update(updates))._build();
 
   _$RunRequest._() : super._();
@@ -59,7 +58,7 @@ class _$RunRequest extends RunRequest {
 }
 
 class RunRequestBuilder implements Builder<RunRequest, RunRequestBuilder> {
-  _$RunRequest _$v;
+  _$RunRequest? _$v;
 
   RunRequestBuilder();
 
@@ -70,7 +69,7 @@ class RunRequestBuilder implements Builder<RunRequest, RunRequestBuilder> {
   }
 
   @override
-  void update(void Function(RunRequestBuilder) updates) {
+  void update(void Function(RunRequestBuilder)? updates) {
     if (updates != null) updates(this);
   }
 

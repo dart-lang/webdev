@@ -1,5 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// @dart=2.9
 
 part of 'register_event.dart';
 
@@ -17,9 +16,9 @@ class _$RegisterEventSerializer implements StructuredSerializer<RegisterEvent> {
   final String wireName = 'RegisterEvent';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, RegisterEvent object,
+  Iterable<Object?> serialize(Serializers serializers, RegisterEvent object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+    final result = <Object?>[
       'eventData',
       serializers.serialize(object.eventData,
           specifiedType: const FullType(String)),
@@ -33,23 +32,23 @@ class _$RegisterEventSerializer implements StructuredSerializer<RegisterEvent> {
 
   @override
   RegisterEvent deserialize(
-      Serializers serializers, Iterable<Object> serialized,
+      Serializers serializers, Iterable<Object?> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new RegisterEventBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'eventData':
           result.eventData = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'timestamp':
           result.timestamp = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(int))! as int;
           break;
       }
     }
@@ -64,10 +63,11 @@ class _$RegisterEvent extends RegisterEvent {
   @override
   final int timestamp;
 
-  factory _$RegisterEvent([void Function(RegisterEventBuilder) updates]) =>
+  factory _$RegisterEvent([void Function(RegisterEventBuilder)? updates]) =>
       (new RegisterEventBuilder()..update(updates))._build();
 
-  _$RegisterEvent._({this.eventData, this.timestamp}) : super._() {
+  _$RegisterEvent._({required this.eventData, required this.timestamp})
+      : super._() {
     BuiltValueNullFieldError.checkNotNull(
         eventData, 'RegisterEvent', 'eventData');
     BuiltValueNullFieldError.checkNotNull(
@@ -105,15 +105,15 @@ class _$RegisterEvent extends RegisterEvent {
 
 class RegisterEventBuilder
     implements Builder<RegisterEvent, RegisterEventBuilder> {
-  _$RegisterEvent _$v;
+  _$RegisterEvent? _$v;
 
-  String _eventData;
-  String get eventData => _$this._eventData;
-  set eventData(String eventData) => _$this._eventData = eventData;
+  String? _eventData;
+  String? get eventData => _$this._eventData;
+  set eventData(String? eventData) => _$this._eventData = eventData;
 
-  int _timestamp;
-  int get timestamp => _$this._timestamp;
-  set timestamp(int timestamp) => _$this._timestamp = timestamp;
+  int? _timestamp;
+  int? get timestamp => _$this._timestamp;
+  set timestamp(int? timestamp) => _$this._timestamp = timestamp;
 
   RegisterEventBuilder();
 
@@ -134,7 +134,7 @@ class RegisterEventBuilder
   }
 
   @override
-  void update(void Function(RegisterEventBuilder) updates) {
+  void update(void Function(RegisterEventBuilder)? updates) {
     if (updates != null) updates(this);
   }
 

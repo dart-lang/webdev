@@ -1,5 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// @dart=2.9
 
 part of 'isolate_events.dart';
 
@@ -18,13 +17,13 @@ class _$IsolateExitSerializer implements StructuredSerializer<IsolateExit> {
   final String wireName = 'IsolateExit';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, IsolateExit object,
+  Iterable<Object?> serialize(Serializers serializers, IsolateExit object,
       {FullType specifiedType = FullType.unspecified}) {
-    return <Object>[];
+    return <Object?>[];
   }
 
   @override
-  IsolateExit deserialize(Serializers serializers, Iterable<Object> serialized,
+  IsolateExit deserialize(Serializers serializers, Iterable<Object?> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     return new IsolateExitBuilder().build();
   }
@@ -37,20 +36,21 @@ class _$IsolateStartSerializer implements StructuredSerializer<IsolateStart> {
   final String wireName = 'IsolateStart';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, IsolateStart object,
+  Iterable<Object?> serialize(Serializers serializers, IsolateStart object,
       {FullType specifiedType = FullType.unspecified}) {
-    return <Object>[];
+    return <Object?>[];
   }
 
   @override
-  IsolateStart deserialize(Serializers serializers, Iterable<Object> serialized,
+  IsolateStart deserialize(
+      Serializers serializers, Iterable<Object?> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     return new IsolateStartBuilder().build();
   }
 }
 
 class _$IsolateExit extends IsolateExit {
-  factory _$IsolateExit([void Function(IsolateExitBuilder) updates]) =>
+  factory _$IsolateExit([void Function(IsolateExitBuilder)? updates]) =>
       (new IsolateExitBuilder()..update(updates))._build();
 
   _$IsolateExit._() : super._();
@@ -80,7 +80,7 @@ class _$IsolateExit extends IsolateExit {
 }
 
 class IsolateExitBuilder implements Builder<IsolateExit, IsolateExitBuilder> {
-  _$IsolateExit _$v;
+  _$IsolateExit? _$v;
 
   IsolateExitBuilder();
 
@@ -91,7 +91,7 @@ class IsolateExitBuilder implements Builder<IsolateExit, IsolateExitBuilder> {
   }
 
   @override
-  void update(void Function(IsolateExitBuilder) updates) {
+  void update(void Function(IsolateExitBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
@@ -106,7 +106,7 @@ class IsolateExitBuilder implements Builder<IsolateExit, IsolateExitBuilder> {
 }
 
 class _$IsolateStart extends IsolateStart {
-  factory _$IsolateStart([void Function(IsolateStartBuilder) updates]) =>
+  factory _$IsolateStart([void Function(IsolateStartBuilder)? updates]) =>
       (new IsolateStartBuilder()..update(updates))._build();
 
   _$IsolateStart._() : super._();
@@ -137,7 +137,7 @@ class _$IsolateStart extends IsolateStart {
 
 class IsolateStartBuilder
     implements Builder<IsolateStart, IsolateStartBuilder> {
-  _$IsolateStart _$v;
+  _$IsolateStart? _$v;
 
   IsolateStartBuilder();
 
@@ -148,7 +148,7 @@ class IsolateStartBuilder
   }
 
   @override
-  void update(void Function(IsolateStartBuilder) updates) {
+  void update(void Function(IsolateStartBuilder)? updates) {
     if (updates != null) updates(this);
   }
 

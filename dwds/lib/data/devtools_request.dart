@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -27,16 +25,26 @@ abstract class DevToolsRequest
   String get instanceId;
 
   /// Identifies the context in which evaluations should occur.
-  @nullable
-  int get contextId;
+  ///
+  /// Defines execution context for the debug service that connects
+  /// to chrome via the extension debugger.
+  /// Can be `null` for local debug service, which gets the execution
+  /// context from the Chrome runtime.
+  int? get contextId;
 
-  /// Belongs to the tab that requests the DevTools
-  @nullable
-  String get tabUrl;
+  /// Belongs to the tab that requests the DevTools.
+  ///
+  /// Defines the tab being debugged for the debug service that connects
+  /// to chrome via the extension debugger.
+  /// Can be `null` for local debug service, which finds the tab with the
+  /// correct `dartAppInstanceId` automatically.
+  String? get tabUrl;
 
   /// If this is a uri only request.
-  @nullable
-  bool get uriOnly;
+  ///
+  /// Only available on requests coming from dart debug extension.
+  /// If true, DevTools should open in an embedded Chrome DevTools tab.
+  bool? get uriOnly;
 }
 
 /// A response to a [DevToolsRequest].
@@ -54,6 +62,5 @@ abstract class DevToolsResponse
 
   bool get promptExtension;
 
-  @nullable
-  String get error;
+  String? get error;
 }
