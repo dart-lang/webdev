@@ -842,15 +842,19 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           ..timestamp = e.timestamp.toInt());
       });
       if (includeExceptions) {
-        exceptionsSubscription = remoteDebugger.onExceptionThrown.listen((e) {
+        exceptionsSubscription =
+            remoteDebugger.onExceptionThrown.listen((e) async {
           var isolate = _inspector?.isolate;
           if (isolate == null) return;
+          var description = e.exceptionDetails.exception.description;
+          if (description != null) {
+            description = await _inspector.mapExceptionStackTrace(description);
+          }
           controller.add(Event(
               kind: EventKind.kWriteEvent,
               timestamp: DateTime.now().millisecondsSinceEpoch,
               isolate: _inspector.isolateRef)
-            ..bytes = base64.encode(
-                utf8.encode(e.exceptionDetails.exception.description ?? '')));
+            ..bytes = base64.encode(utf8.encode(description ?? '')));
         });
       }
     });
