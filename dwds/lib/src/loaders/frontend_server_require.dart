@@ -37,7 +37,8 @@ class FrontendServerRequireStrategyProvider {
   String _removeBasePath(String path) =>
       path.startsWith(_basePath) ? path.substring(_basePath.length) : null;
 
-  String _addBasePath(String serverPath) => p.join(_basePath, serverPath);
+  String _addBasePath(String serverPath) =>
+      '$_basePath/${relativizePath(serverPath)}';
 
   Future<Map<String, String>> _moduleProvider(
           MetadataProvider metadataProvider) async =>
@@ -55,14 +56,12 @@ class FrontendServerRequireStrategyProvider {
       _addBasePath((await metadataProvider.moduleToModulePath)[module] ?? '');
 
   Future<String> _sourceMapPathForModule(
-      MetadataProvider metadataProvider, String module) async {
-    var path = (await metadataProvider.moduleToSourceMap)[module] ?? '';
-    return _addBasePath(relativizePath(path));
-  }
+          MetadataProvider metadataProvider, String module) async =>
+      _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
   String _serverPathForAppUri(String appUri) {
     if (appUri.startsWith('org-dartlang-app:')) {
-      return _addBasePath(Uri.parse(appUri).path.substring(1));
+      return _addBasePath(Uri.parse(appUri).path);
     }
     return null;
   }
