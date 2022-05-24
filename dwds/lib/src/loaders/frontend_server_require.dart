@@ -38,7 +38,9 @@ class FrontendServerRequireStrategyProvider {
       path.startsWith(_basePath) ? path.substring(_basePath.length) : null;
 
   String _addBasePath(String serverPath) =>
-      '$_basePath/${relativizePath(serverPath)}';
+      _basePath == null || _basePath.isEmpty
+          ? relativizePath(serverPath)
+          : '$_basePath/${relativizePath(serverPath)}';
 
   Future<Map<String, String>> _moduleProvider(
           MetadataProvider metadataProvider) async =>
