@@ -3,7 +3,7 @@
 - With dart2js:
 
 ```
-pub run build_runner build web -o build -r
+dart run build_runner build web -o build -r
 ```
 
 This will build to the `/web` directory.
@@ -11,7 +11,7 @@ This will build to the `/web` directory.
 - With DDC:
 
 ```
-pub run build_runner build web -o build
+dart run build_runner build web -o build
 ```
 
 This will build to the `/build/web` directory. 

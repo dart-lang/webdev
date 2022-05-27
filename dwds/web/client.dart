@@ -21,12 +21,12 @@ import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/sockets.dart';
+import 'package:dwds/src/utilities/batched_stream.dart';
 import 'package:js/js.dart';
 import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'batched_stream.dart';
 import 'promise.dart';
 import 'reloader/legacy_restarter.dart';
 import 'reloader/manager.dart';
