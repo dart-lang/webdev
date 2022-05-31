@@ -164,9 +164,9 @@ abstract class _CompilationRequest {
 
   Completer<CompilerOutput> completer;
 
-  Future<CompilerOutput> _run(DefaultResidentCompiler compiler);
+  Future<CompilerOutput> _run(ResidentCompiler compiler);
 
-  Future<void> run(DefaultResidentCompiler compiler) async {
+  Future<void> run(ResidentCompiler compiler) async {
     completer.complete(await _run(compiler));
   }
 }
@@ -186,7 +186,7 @@ class _RecompileRequest extends _CompilationRequest {
   PackageConfig packageConfig;
 
   @override
-  Future<CompilerOutput> _run(DefaultResidentCompiler compiler) async =>
+  Future<CompilerOutput> _run(ResidentCompiler compiler) async =>
       compiler._recompile(this);
 }
 
@@ -209,7 +209,7 @@ class _CompileExpressionRequest extends _CompilationRequest {
   bool isStatic;
 
   @override
-  Future<CompilerOutput> _run(DefaultResidentCompiler compiler) async =>
+  Future<CompilerOutput> _run(ResidentCompiler compiler) async =>
       compiler._compileExpression(this);
 }
 
@@ -234,7 +234,7 @@ class _CompileExpressionToJsRequest extends _CompilationRequest {
   String expression;
 
   @override
-  Future<CompilerOutput> _run(DefaultResidentCompiler compiler) async =>
+  Future<CompilerOutput> _run(ResidentCompiler compiler) async =>
       compiler._compileExpressionToJs(this);
 }
 
@@ -242,7 +242,7 @@ class _RejectRequest extends _CompilationRequest {
   _RejectRequest(Completer<CompilerOutput> completer) : super(completer);
 
   @override
-  Future<CompilerOutput> _run(DefaultResidentCompiler compiler) async =>
+  Future<CompilerOutput> _run(ResidentCompiler compiler) async =>
       compiler._reject();
 }
 
@@ -251,70 +251,8 @@ class _RejectRequest extends _CompilationRequest {
 ///
 /// The wrapper is intended to stay resident in memory as user changes, reloads,
 /// restarts the Flutter app.
-abstract class ResidentCompiler {
-  factory ResidentCompiler(
-    String sdkRoot, {
-    String packageConfigPath,
-    List<String> fileSystemRoots,
-    String fileSystemScheme,
-    String platformDill,
-    bool verbose,
-    CompilerMessageConsumer compilerMessageConsumer,
-  }) = DefaultResidentCompiler;
-
-  /// If invoked for the first time, it compiles Dart script identified by
-  /// [mainUri], [invalidatedFiles] list is ignored.
-  /// On successive runs [invalidatedFiles] indicates which files need to be
-  /// recompiled. If [mainUri] is null, previously used [mainUri] entry
-  /// point that is used for recompilation.
-  /// Binary file name is returned if compilation was successful, otherwise
-  /// null is returned.
-  Future<CompilerOutput> recompile(Uri mainUri, List<Uri> invalidatedFiles,
-      {@required String outputPath, @required PackageConfig packageConfig});
-
-  Future<CompilerOutput> compileExpression(
-    String expression,
-    List<String> definitions,
-    List<String> typeDefinitions,
-    String libraryUri,
-    String klass,
-    bool isStatic,
-  );
-
-  Future<CompilerOutput> compileExpressionToJs(
-      String libraryUri,
-      int line,
-      int column,
-      Map<String, String> jsModules,
-      Map<String, String> jsFrameValues,
-      String moduleName,
-      String expression);
-
-  /// Should be invoked when results of compilation are accepted by the client.
-  ///
-  /// Either [accept] or [reject] should be called after every [recompile] call.
-  void accept();
-
-  /// Should be invoked when results of compilation are rejected by the client.
-  ///
-  /// Either [accept] or [reject] should be called after every [recompile] call.
-  Future<CompilerOutput> reject();
-
-  /// Should be invoked when frontend server compiler should forget what was
-  /// accepted previously so that next call to [recompile] produces complete
-  /// kernel file.
-  void reset();
-
-  /// stop the service normally
-  Future<dynamic> shutdown();
-
-  /// kill the service
-  Future<dynamic> kill();
-}
-
-@visibleForTesting
-class DefaultResidentCompiler implements ResidentCompiler {
-  DefaultResidentCompiler(
+class ResidentCompiler {
+  ResidentCompiler(
     String sdkRoot, {
     this.packageConfigPath,
     this.fileSystemRoots,
@@ -343,7 +281,13 @@ class DefaultResidentCompiler implements ResidentCompiler {
   final StreamController<_CompilationRequest> _controller =
       StreamController<_CompilationRequest>();
 
-  @override
+  /// If invoked for the first time, it compiles Dart script identified by
+  /// [mainUri], [invalidatedFiles] list is ignored.
+  /// On successive runs [invalidatedFiles] indicates which files need to be
+  /// recompiled. If [mainUri] is null, previously used [mainUri] entry
+  /// point that is used for recompilation.
+  /// Binary file name is returned if compilation was successful, otherwise
+  /// null is returned.
   Future<CompilerOutput> recompile(Uri mainUri, List<Uri> invalidatedFiles,
       {@required String outputPath,
       @required PackageConfig packageConfig}) async {
@@ -475,7 +419,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
     return _stdoutHandler.compilerOutput.future;
   }
 
-  @override
+  /// Compile dart expression to kernel.
   Future<CompilerOutput> compileExpression(
     String expression,
     List<String> definitions,
@@ -518,7 +462,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
     return _stdoutHandler.compilerOutput.future;
   }
 
-  @override
+  /// Compiles dart expression to JavaScript.
   Future<CompilerOutput> compileExpressionToJs(
       String libraryUri,
       int line,
@@ -567,7 +511,9 @@ class DefaultResidentCompiler implements ResidentCompiler {
     return _stdoutHandler.compilerOutput.future;
   }
 
-  @override
+  /// Should be invoked when results of compilation are accepted by the client.
+  ///
+  /// Either [accept] or [reject] should be called after every [recompile] call.
   void accept() {
     if (_compileRequestNeedsConfirmation) {
       _server.stdin.writeln('accept');
@@ -576,7 +522,9 @@ class DefaultResidentCompiler implements ResidentCompiler {
     _compileRequestNeedsConfirmation = false;
   }
 
-  @override
+  /// Should be invoked when results of compilation are rejected by the client.
+  ///
+  /// Either [accept] or [reject] should be called after every [recompile] call.
   Future<CompilerOutput> reject() {
     if (!_controller.hasListener) {
       _controller.stream.listen(_handleCompilationRequest);
@@ -598,7 +546,9 @@ class DefaultResidentCompiler implements ResidentCompiler {
     return _stdoutHandler.compilerOutput.future;
   }
 
-  @override
+  /// Should be invoked when frontend server compiler should forget what was
+  /// accepted previously so that next call to [recompile] produces complete
+  /// kernel file.
   void reset() {
     _server?.stdin?.writeln('reset');
     _logger.info('<- reset');
@@ -610,7 +560,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
     return _server.exitCode;
   }
 
-  @override
+  /// stop the service normally
   Future<dynamic> shutdown() async {
     // Server was never successfully created.
     if (_server == null) {
@@ -619,7 +569,7 @@ class DefaultResidentCompiler implements ResidentCompiler {
     return quit();
   }
 
-  @override
+  /// kill the service
   Future<dynamic> kill() async {
     if (_server == null) {
       return 0;
