@@ -1,7 +1,8 @@
 ## 14.0.3-dev
-- Make data types null safe
+- Make data types null safe.
 - Update `package:vm_service` to 8.3.0.
 - Convert JavaScript stack traces in uncaught exceptions to Dart stack traces.
+- Add the setIsolatePauseMode method to Chrome Proxy Service.
 
 ## 14.0.2
 - Update the min SDK constraint to 2.17.0.
