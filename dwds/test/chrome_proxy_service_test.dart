@@ -1121,7 +1121,7 @@ void main() {
         expect(stack.truncated, isFalse);
       });
 
-      test('break on exceptions', () async {
+      test('break on exceptions with legacy setExceptionPauseMode', () async {
         final oldPauseMode =
             (await service.getIsolate(isolateId)).exceptionPauseMode;
         await service.setExceptionPauseMode(isolateId, ExceptionPauseMode.kAll);
@@ -1134,6 +1134,24 @@ void main() {
         expect(stack, isNotNull);
 
         await service.setExceptionPauseMode(isolateId, oldPauseMode);
+        await service.resume(isolateId);
+      });
+
+      test('break on exceptions with setIsolatePauseMode', () async {
+        final oldPauseMode =
+            (await service.getIsolate(isolateId)).exceptionPauseMode;
+        await service.setIsolatePauseMode(isolateId,
+            exceptionPauseMode: ExceptionPauseMode.kAll);
+        // Wait for pausing to actually propagate.
+        var event = await stream
+            .firstWhere((event) => event.kind == EventKind.kPauseException);
+        expect(event.exception, isNotNull);
+
+        var stack = await service.getStack(isolateId);
+        expect(stack, isNotNull);
+
+        await service.setIsolatePauseMode(isolateId,
+            exceptionPauseMode: oldPauseMode);
         await service.resume(isolateId);
       });
 
