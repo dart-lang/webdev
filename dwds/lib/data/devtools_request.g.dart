@@ -1,5 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// @dart=2.9
 
 part of 'devtools_request.dart';
 
@@ -20,9 +19,9 @@ class _$DevToolsRequestSerializer
   final String wireName = 'DevToolsRequest';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, DevToolsRequest object,
+  Iterable<Object?> serialize(Serializers serializers, DevToolsRequest object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+    final result = <Object?>[
       'appId',
       serializers.serialize(object.appId,
           specifiedType: const FullType(String)),
@@ -30,7 +29,7 @@ class _$DevToolsRequestSerializer
       serializers.serialize(object.instanceId,
           specifiedType: const FullType(String)),
     ];
-    Object value;
+    Object? value;
     value = object.contextId;
     if (value != null) {
       result
@@ -56,35 +55,35 @@ class _$DevToolsRequestSerializer
 
   @override
   DevToolsRequest deserialize(
-      Serializers serializers, Iterable<Object> serialized,
+      Serializers serializers, Iterable<Object?> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new DevToolsRequestBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'appId':
           result.appId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'instanceId':
           result.instanceId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'contextId':
           result.contextId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(int)) as int?;
           break;
         case 'tabUrl':
           result.tabUrl = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String)) as String?;
           break;
         case 'uriOnly':
           result.uriOnly = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+              specifiedType: const FullType(bool)) as bool?;
           break;
       }
     }
@@ -101,9 +100,9 @@ class _$DevToolsResponseSerializer
   final String wireName = 'DevToolsResponse';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, DevToolsResponse object,
+  Iterable<Object?> serialize(Serializers serializers, DevToolsResponse object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+    final result = <Object?>[
       'success',
       serializers.serialize(object.success,
           specifiedType: const FullType(bool)),
@@ -111,7 +110,7 @@ class _$DevToolsResponseSerializer
       serializers.serialize(object.promptExtension,
           specifiedType: const FullType(bool)),
     ];
-    Object value;
+    Object? value;
     value = object.error;
     if (value != null) {
       result
@@ -124,27 +123,27 @@ class _$DevToolsResponseSerializer
 
   @override
   DevToolsResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
+      Serializers serializers, Iterable<Object?> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new DevToolsResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'success':
           result.success = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+              specifiedType: const FullType(bool))! as bool;
           break;
         case 'promptExtension':
           result.promptExtension = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+              specifiedType: const FullType(bool))! as bool;
           break;
         case 'error':
           result.error = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String)) as String?;
           break;
       }
     }
@@ -159,17 +158,21 @@ class _$DevToolsRequest extends DevToolsRequest {
   @override
   final String instanceId;
   @override
-  final int contextId;
+  final int? contextId;
   @override
-  final String tabUrl;
+  final String? tabUrl;
   @override
-  final bool uriOnly;
+  final bool? uriOnly;
 
-  factory _$DevToolsRequest([void Function(DevToolsRequestBuilder) updates]) =>
+  factory _$DevToolsRequest([void Function(DevToolsRequestBuilder)? updates]) =>
       (new DevToolsRequestBuilder()..update(updates))._build();
 
   _$DevToolsRequest._(
-      {this.appId, this.instanceId, this.contextId, this.tabUrl, this.uriOnly})
+      {required this.appId,
+      required this.instanceId,
+      this.contextId,
+      this.tabUrl,
+      this.uriOnly})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(appId, 'DevToolsRequest', 'appId');
     BuiltValueNullFieldError.checkNotNull(
@@ -219,27 +222,27 @@ class _$DevToolsRequest extends DevToolsRequest {
 
 class DevToolsRequestBuilder
     implements Builder<DevToolsRequest, DevToolsRequestBuilder> {
-  _$DevToolsRequest _$v;
+  _$DevToolsRequest? _$v;
 
-  String _appId;
-  String get appId => _$this._appId;
-  set appId(String appId) => _$this._appId = appId;
+  String? _appId;
+  String? get appId => _$this._appId;
+  set appId(String? appId) => _$this._appId = appId;
 
-  String _instanceId;
-  String get instanceId => _$this._instanceId;
-  set instanceId(String instanceId) => _$this._instanceId = instanceId;
+  String? _instanceId;
+  String? get instanceId => _$this._instanceId;
+  set instanceId(String? instanceId) => _$this._instanceId = instanceId;
 
-  int _contextId;
-  int get contextId => _$this._contextId;
-  set contextId(int contextId) => _$this._contextId = contextId;
+  int? _contextId;
+  int? get contextId => _$this._contextId;
+  set contextId(int? contextId) => _$this._contextId = contextId;
 
-  String _tabUrl;
-  String get tabUrl => _$this._tabUrl;
-  set tabUrl(String tabUrl) => _$this._tabUrl = tabUrl;
+  String? _tabUrl;
+  String? get tabUrl => _$this._tabUrl;
+  set tabUrl(String? tabUrl) => _$this._tabUrl = tabUrl;
 
-  bool _uriOnly;
-  bool get uriOnly => _$this._uriOnly;
-  set uriOnly(bool uriOnly) => _$this._uriOnly = uriOnly;
+  bool? _uriOnly;
+  bool? get uriOnly => _$this._uriOnly;
+  set uriOnly(bool? uriOnly) => _$this._uriOnly = uriOnly;
 
   DevToolsRequestBuilder();
 
@@ -263,7 +266,7 @@ class DevToolsRequestBuilder
   }
 
   @override
-  void update(void Function(DevToolsRequestBuilder) updates) {
+  void update(void Function(DevToolsRequestBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
@@ -291,13 +294,14 @@ class _$DevToolsResponse extends DevToolsResponse {
   @override
   final bool promptExtension;
   @override
-  final String error;
+  final String? error;
 
   factory _$DevToolsResponse(
-          [void Function(DevToolsResponseBuilder) updates]) =>
+          [void Function(DevToolsResponseBuilder)? updates]) =>
       (new DevToolsResponseBuilder()..update(updates))._build();
 
-  _$DevToolsResponse._({this.success, this.promptExtension, this.error})
+  _$DevToolsResponse._(
+      {required this.success, required this.promptExtension, this.error})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(
         success, 'DevToolsResponse', 'success');
@@ -340,20 +344,20 @@ class _$DevToolsResponse extends DevToolsResponse {
 
 class DevToolsResponseBuilder
     implements Builder<DevToolsResponse, DevToolsResponseBuilder> {
-  _$DevToolsResponse _$v;
+  _$DevToolsResponse? _$v;
 
-  bool _success;
-  bool get success => _$this._success;
-  set success(bool success) => _$this._success = success;
+  bool? _success;
+  bool? get success => _$this._success;
+  set success(bool? success) => _$this._success = success;
 
-  bool _promptExtension;
-  bool get promptExtension => _$this._promptExtension;
-  set promptExtension(bool promptExtension) =>
+  bool? _promptExtension;
+  bool? get promptExtension => _$this._promptExtension;
+  set promptExtension(bool? promptExtension) =>
       _$this._promptExtension = promptExtension;
 
-  String _error;
-  String get error => _$this._error;
-  set error(String error) => _$this._error = error;
+  String? _error;
+  String? get error => _$this._error;
+  set error(String? error) => _$this._error = error;
 
   DevToolsResponseBuilder();
 
@@ -375,7 +379,7 @@ class DevToolsResponseBuilder
   }
 
   @override
-  void update(void Function(DevToolsResponseBuilder) updates) {
+  void update(void Function(DevToolsResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 

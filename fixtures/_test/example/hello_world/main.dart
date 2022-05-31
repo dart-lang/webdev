@@ -55,6 +55,10 @@ void main() async {
     log(message, name: 'testLogCategory');
   };
 
+  context['throwUncaughtException'] = () {
+    scheduleMicrotask(() => throw Exception('UncaughtException'));
+  };
+
   Timer.periodic(const Duration(seconds: 1), (_) {
     printCount(); // Breakpoint: callPrintCount
   });

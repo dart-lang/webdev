@@ -1,5 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// @dart=2.9
 
 part of 'error_response.dart';
 
@@ -17,9 +16,9 @@ class _$ErrorResponseSerializer implements StructuredSerializer<ErrorResponse> {
   final String wireName = 'ErrorResponse';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, ErrorResponse object,
+  Iterable<Object?> serialize(Serializers serializers, ErrorResponse object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+    final result = <Object?>[
       'error',
       serializers.serialize(object.error,
           specifiedType: const FullType(String)),
@@ -33,23 +32,23 @@ class _$ErrorResponseSerializer implements StructuredSerializer<ErrorResponse> {
 
   @override
   ErrorResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
+      Serializers serializers, Iterable<Object?> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new ErrorResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'error':
           result.error = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'stackTrace':
           result.stackTrace = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String))! as String;
           break;
       }
     }
@@ -64,10 +63,11 @@ class _$ErrorResponse extends ErrorResponse {
   @override
   final String stackTrace;
 
-  factory _$ErrorResponse([void Function(ErrorResponseBuilder) updates]) =>
+  factory _$ErrorResponse([void Function(ErrorResponseBuilder)? updates]) =>
       (new ErrorResponseBuilder()..update(updates))._build();
 
-  _$ErrorResponse._({this.error, this.stackTrace}) : super._() {
+  _$ErrorResponse._({required this.error, required this.stackTrace})
+      : super._() {
     BuiltValueNullFieldError.checkNotNull(error, 'ErrorResponse', 'error');
     BuiltValueNullFieldError.checkNotNull(
         stackTrace, 'ErrorResponse', 'stackTrace');
@@ -104,15 +104,15 @@ class _$ErrorResponse extends ErrorResponse {
 
 class ErrorResponseBuilder
     implements Builder<ErrorResponse, ErrorResponseBuilder> {
-  _$ErrorResponse _$v;
+  _$ErrorResponse? _$v;
 
-  String _error;
-  String get error => _$this._error;
-  set error(String error) => _$this._error = error;
+  String? _error;
+  String? get error => _$this._error;
+  set error(String? error) => _$this._error = error;
 
-  String _stackTrace;
-  String get stackTrace => _$this._stackTrace;
-  set stackTrace(String stackTrace) => _$this._stackTrace = stackTrace;
+  String? _stackTrace;
+  String? get stackTrace => _$this._stackTrace;
+  set stackTrace(String? stackTrace) => _$this._stackTrace = stackTrace;
 
   ErrorResponseBuilder();
 
@@ -133,7 +133,7 @@ class ErrorResponseBuilder
   }
 
   @override
-  void update(void Function(ErrorResponseBuilder) updates) {
+  void update(void Function(ErrorResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 

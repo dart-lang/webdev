@@ -67,6 +67,12 @@ class AppInspector extends Domain {
   final String _root;
   final SdkConfiguration _sdkConfiguration;
 
+  /// JavaScript expression that evaluates to the Dart stack trace mapper.
+  static const stackTraceMapperExpression = '\$dartStackTraceUtility.mapper';
+
+  /// Regex used to extract the message from an exception description.
+  static final exceptionMessageRegex = RegExp(r'^.*$', multiLine: true);
+
   AppInspector._(
     this.appConnection,
     this.isolate,
@@ -223,7 +229,7 @@ class AppInspector extends Domain {
   /// [evalExpression] should be a JS function definition that can accept
   /// [arguments].
   Future<RemoteObject> _jsCallFunction(
-      String evalExpression, List<RemoteObject> arguments,
+      String evalExpression, List<Object> arguments,
       {bool returnByValue = false}) async {
     var jsArguments = arguments.map(callArgumentFor).toList();
     var result =
@@ -549,5 +555,24 @@ function($argsString) {
     });
     handleErrorIfPresent(extensionsResult, evalContents: expression);
     return List.from(extensionsResult.result['result']['value'] as List);
+  }
+
+  /// Convert a JS exception description into a description containing
+  /// a Dart stack trace.
+  Future<String> mapExceptionStackTrace(String description) async {
+    RemoteObject mapperResult;
+    try {
+      mapperResult = await _jsCallFunction(
+          stackTraceMapperExpression, <Object>[description]);
+    } catch (_) {
+      return description;
+    }
+    var mappedStack = mapperResult?.value?.toString();
+    if (mappedStack == null || mappedStack.isEmpty) {
+      return description;
+    }
+    var message = exceptionMessageRegex.firstMatch(description)?.group(0);
+    message = (message != null) ? '$message\n' : '';
+    return '$message$mappedStack';
   }
 }

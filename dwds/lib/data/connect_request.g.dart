@@ -1,5 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// @dart=2.9
 
 part of 'connect_request.dart';
 
@@ -18,9 +17,9 @@ class _$ConnectRequestSerializer
   final String wireName = 'ConnectRequest';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, ConnectRequest object,
+  Iterable<Object?> serialize(Serializers serializers, ConnectRequest object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+    final result = <Object?>[
       'appId',
       serializers.serialize(object.appId,
           specifiedType: const FullType(String)),
@@ -37,27 +36,27 @@ class _$ConnectRequestSerializer
 
   @override
   ConnectRequest deserialize(
-      Serializers serializers, Iterable<Object> serialized,
+      Serializers serializers, Iterable<Object?> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new ConnectRequestBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'appId':
           result.appId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'instanceId':
           result.instanceId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'entrypointPath':
           result.entrypointPath = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String))! as String;
           break;
       }
     }
@@ -74,10 +73,13 @@ class _$ConnectRequest extends ConnectRequest {
   @override
   final String entrypointPath;
 
-  factory _$ConnectRequest([void Function(ConnectRequestBuilder) updates]) =>
+  factory _$ConnectRequest([void Function(ConnectRequestBuilder)? updates]) =>
       (new ConnectRequestBuilder()..update(updates))._build();
 
-  _$ConnectRequest._({this.appId, this.instanceId, this.entrypointPath})
+  _$ConnectRequest._(
+      {required this.appId,
+      required this.instanceId,
+      required this.entrypointPath})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(appId, 'ConnectRequest', 'appId');
     BuiltValueNullFieldError.checkNotNull(
@@ -121,19 +123,19 @@ class _$ConnectRequest extends ConnectRequest {
 
 class ConnectRequestBuilder
     implements Builder<ConnectRequest, ConnectRequestBuilder> {
-  _$ConnectRequest _$v;
+  _$ConnectRequest? _$v;
 
-  String _appId;
-  String get appId => _$this._appId;
-  set appId(String appId) => _$this._appId = appId;
+  String? _appId;
+  String? get appId => _$this._appId;
+  set appId(String? appId) => _$this._appId = appId;
 
-  String _instanceId;
-  String get instanceId => _$this._instanceId;
-  set instanceId(String instanceId) => _$this._instanceId = instanceId;
+  String? _instanceId;
+  String? get instanceId => _$this._instanceId;
+  set instanceId(String? instanceId) => _$this._instanceId = instanceId;
 
-  String _entrypointPath;
-  String get entrypointPath => _$this._entrypointPath;
-  set entrypointPath(String entrypointPath) =>
+  String? _entrypointPath;
+  String? get entrypointPath => _$this._entrypointPath;
+  set entrypointPath(String? entrypointPath) =>
       _$this._entrypointPath = entrypointPath;
 
   ConnectRequestBuilder();
@@ -156,7 +158,7 @@ class ConnectRequestBuilder
   }
 
   @override
-  void update(void Function(ConnectRequestBuilder) updates) {
+  void update(void Function(ConnectRequestBuilder)? updates) {
     if (updates != null) updates(this);
   }
 

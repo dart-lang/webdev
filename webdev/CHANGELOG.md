@@ -1,4 +1,4 @@
-## 2.7.1-dev
+## 2.7.10-dev
 
 ## 2.7.9
 - Add an option to pass user data directory to chrome: `user-data-dir`.
