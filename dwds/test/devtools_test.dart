@@ -46,7 +46,9 @@ void main() {
     test('can launch devtools', () async {
       var windows = await context.webDriver.windows.toList();
       await context.webDriver.driver.switchTo.window(windows.last);
-      expect(await context.webDriver.title, contains('Dart DevTools'));
+      // TODO(grouma): switch back to `fixture.webdriver.title` when
+      // https://github.com/flutter/devtools/issues/2045 is fixed.
+      expect(await context.webDriver.pageSource, contains('Flutter'));
       expect(await context.webDriver.currentUrl, contains('ide=Dwds'));
       // TODO(elliette): Re-enable and fix flakes.
     }, skip: true);
@@ -88,7 +90,9 @@ void main() {
         windows = await context.webDriver.windows.toList();
         devToolsWindow = windows.firstWhere((window) => window != newAppWindow);
         await devToolsWindow.setAsActive();
-        expect(await context.webDriver.title, contains('Dart DevTools'));
+        // TODO(grouma): switch back to `fixture.webdriver.title` when
+        // https://github.com/flutter/devtools/issues/2045 is fixed.
+        expect(await context.webDriver.pageSource, contains('Flutter'));
       },
       // TODO(elliette): Enable this test once
       // https://github.com/dart-lang/webdev/issues/1504 is resolved.

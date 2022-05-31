@@ -62,11 +62,6 @@ Tab _mostRecentDartTab;
 DebuggerTrigger _debuggerTrigger;
 
 class DebugSession {
-  // How often to send batched events.
-  static const int _batchDelayMilliseconds = 1000;
-
-  final SocketClient _socketClient;
-
   // The tab ID that contains the running Dart application.
   final int appTabId;
 
@@ -75,6 +70,12 @@ class DebugSession {
 
   // The tab ID that contains the corresponding Dart DevTools.
   int devtoolsTabId;
+
+  // Socket client for communication with dwds extension backend.
+  final SocketClient _socketClient;
+
+  // How often to send batched events.
+  static const int _batchDelayMilliseconds = 1000;
 
   // Collect events into batches to be send periodically to the server.
   final _batchController =
