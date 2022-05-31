@@ -13,9 +13,7 @@ import 'package:dwds/dwds.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
-import 'asset.dart';
 import 'devfs.dart';
-import 'devfs_content.dart';
 import 'frontend_server_client.dart';
 import 'utilities.dart';
 
@@ -56,15 +54,12 @@ class ResidentWebRunner {
 
   ResidentCompiler generator;
   ExpressionCompiler expressionCompiler;
-  AssetBundle assetBundle;
   WebDevFS devFS;
   Uri uri;
   Iterable<String> modules;
 
   Future<int> run(String hostname, int port, String root) async {
     hostname ??= 'localhost';
-
-    assetBundle = AssetBundleFactory.defaultInstance.createBundle();
 
     devFS = WebDevFS(
       fileSystem: fileSystem,
@@ -90,14 +85,8 @@ class ResidentWebRunner {
   }
 
   Future<UpdateFSReport> _updateDevFS() async {
-    var result = await assetBundle.build();
-    if (result != 0) {
-      return UpdateFSReport(success: false);
-    }
-
     var report = await devFS.update(
         mainPath: mainPath,
-        bundle: assetBundle,
         dillOutputPath: outputPath,
         generator: generator,
         invalidatedFiles: []);

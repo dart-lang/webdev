@@ -262,11 +262,6 @@ abstract class ResidentCompiler {
     CompilerMessageConsumer compilerMessageConsumer,
   }) = DefaultResidentCompiler;
 
-  // TODO(jonahwilliams): find a better way to configure additional file system
-  // roots from the runner.
-  // See: https://github.com/flutter/flutter/issues/50494
-  void addFileSystemRoot(String root);
-
   /// If invoked for the first time, it compiles Dart script identified by
   /// [mainUri], [invalidatedFiles] list is ignored.
   /// On successive runs [invalidatedFiles] indicates which files need to be
@@ -337,11 +332,6 @@ class DefaultResidentCompiler implements ResidentCompiler {
   final String fileSystemScheme;
   final String platformDill;
   final bool verbose;
-
-  @override
-  void addFileSystemRoot(String root) {
-    fileSystemRoots.add(root);
-  }
 
   /// The path to the root of the Dart SDK used to compile.
   final String sdkRoot;

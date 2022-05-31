@@ -20,6 +20,5 @@ final String _sdkDir = (() {
 })();
 
 final String dartSdkPath = _sdkDir;
-final String dartPath = p.join(_sdkDir, 'bin', 'dart');
 
 const fs.FileSystem fileSystem = LocalFileSystem();
