@@ -10,21 +10,16 @@ import 'dart:io';
 
 import 'package:dwds/dwds.dart';
 import 'package:file/file.dart';
-import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
-import 'asset.dart';
 import 'asset_server.dart';
 import 'bootstrap.dart';
-import 'devfs_content.dart';
 import 'frontend_server_client.dart';
 import 'utilities.dart';
 
 final String dartWebSdkPath = p.join(dartSdkPath, 'lib', 'dev_compiler');
-
-Logger _logger = Logger('WebDevFs');
 
 class WebDevFS {
   WebDevFS({
@@ -71,7 +66,6 @@ class WebDevFS {
 
   Future<UpdateFSReport> update({
     String mainPath,
-    AssetBundle bundle,
     String dillOutputPath,
     @required ResidentCompiler generator,
     List<Uri> invalidatedFiles,
@@ -101,17 +95,8 @@ class WebDevFS {
         soundNullSafety ? dartSdkSourcemapSound : dartSdkSourcemap;
     assetServer.writeFile('/dart_sdk.js', sdk.readAsStringSync());
     assetServer.writeFile('/dart_sdk.js.map', sdkSourceMap.readAsStringSync());
-    // TODO(jonahwilliams): refactor the asset code in this and the regular devfs to
-    // be shared.
-    if (bundle != null) {
-      await writeBundle(
-        fileSystem.directory(p.joinAll(['build', 'assets'])),
-        bundle.entries,
-      );
-    }
 
     generator.reset();
-
     var compilerOutput = await generator.recompile(
         Uri.parse('org-dartlang-app:///$mainPath'), invalidatedFiles,
         outputPath: p.join(dillOutputPath, 'app.dill'),
@@ -191,6 +176,30 @@ class WebDevFS {
       ));
 }
 
+class UpdateFSReport {
+  final bool _success;
+  final int _invalidatedSourcesCount;
+  final int _syncedBytes;
+
+  UpdateFSReport({
+    bool success = false,
+    int invalidatedSourcesCount = 0,
+    int syncedBytes = 0,
+  })  : _success = success,
+        _invalidatedSourcesCount = invalidatedSourcesCount,
+        _syncedBytes = syncedBytes;
+
+  bool get success => _success;
+  int get invalidatedSourcesCount => _invalidatedSourcesCount;
+  int get syncedBytes => _syncedBytes;
+
+  /// JavaScript modules produced by the incremental compiler in `dartdevc`
+  /// mode.
+  ///
+  /// Only used for JavaScript compilation.
+  List<String> invalidatedModules;
+}
+
 String _filePathToUriFragment(String path) {
   if (Platform.isWindows) {
     var startWithSlash = path.startsWith('/');
@@ -202,27 +211,4 @@ String _filePathToUriFragment(String path) {
     return '/$partial';
   }
   return path;
-}
-
-Future<void> writeBundle(
-    Directory bundleDir, Map<String, DevFSContent> assetEntries) async {
-  if (bundleDir.existsSync()) {
-    try {
-      bundleDir.deleteSync(recursive: true);
-    } on FileSystemException catch (e, s) {
-      _logger.warning(
-          'Failed to clean up asset directory ${bundleDir.path}.\n'
-          'To clean build artifacts, use the command "flutter clean".',
-          e,
-          s);
-    }
-  }
-  bundleDir.createSync(recursive: true);
-
-  await Future.wait<void>(assetEntries.entries
-      .map<Future<void>>((MapEntry<String, DevFSContent> entry) async {
-    var file = fileSystem.file(fileSystem.path.join(bundleDir.path, entry.key));
-    file.parent.createSync(recursive: true);
-    await file.writeAsBytes(await entry.value.contentsAsBytes());
-  }));
 }
