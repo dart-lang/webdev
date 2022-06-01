@@ -2,6 +2,7 @@
 - Make data types null safe.
 - Update `package:vm_service` to 8.3.0.
 - Convert JavaScript stack traces in uncaught exceptions to Dart stack traces.
+- Fix failure to set breakpoints on windows with a base change in index.html.
 - Add the setIsolatePauseMode method to Chrome Proxy Service.
 
 ## 14.0.2
