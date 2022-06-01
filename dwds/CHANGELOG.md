@@ -5,6 +5,7 @@
 - Fix failure to set breakpoints on windows with a base change in index.html.
 - Batch extension `Debugger.scriptParsed` events and send batches every 1000ms
   to the server.
+- Move `batched_stream.dart` into shared utilities.
   
 ## 14.0.2
 - Update the min SDK constraint to 2.17.0.
