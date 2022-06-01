@@ -4,6 +4,9 @@
 - Convert JavaScript stack traces in uncaught exceptions to Dart stack traces.
 - Fix failure to set breakpoints on windows with a base change in index.html.
 - Add the setIsolatePauseMode method to Chrome Proxy Service.
+- Batch extension `Debugger.scriptParsed` events and send batches every 1000ms
+  to the server.
+- Move `batched_stream.dart` into shared utilities.
 
 ## 14.0.2
 - Update the min SDK constraint to 2.17.0.

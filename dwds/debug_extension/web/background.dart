@@ -16,6 +16,7 @@ import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/sockets.dart';
+import 'package:dwds/src/utilities/batched_stream.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
 import 'package:pub_semver/pub_semver.dart';
@@ -61,8 +62,6 @@ Tab _mostRecentDartTab;
 DebuggerTrigger _debuggerTrigger;
 
 class DebugSession {
-  final SocketClient socketClient;
-
   // The tab ID that contains the running Dart application.
   final int appTabId;
 
@@ -72,7 +71,38 @@ class DebugSession {
   // The tab ID that contains the corresponding Dart DevTools.
   int devtoolsTabId;
 
-  DebugSession(this.socketClient, this.appTabId, this.appId);
+  // Socket client for communication with dwds extension backend.
+  final SocketClient _socketClient;
+
+  // How often to send batched events.
+  static const int _batchDelayMilliseconds = 1000;
+
+  // Collect events into batches to be send periodically to the server.
+  final _batchController =
+      BatchedStreamController<ExtensionEvent>(delay: _batchDelayMilliseconds);
+  StreamSubscription<List<ExtensionEvent>> _batchSubscription;
+
+  DebugSession(this._socketClient, this.appTabId, this.appId) {
+    // Collect extension events and send them periodically to the server.
+    _batchSubscription = _batchController.stream.listen((events) {
+      _socketClient.sink.add(jsonEncode(serializers.serialize(BatchedEvents(
+          (b) => b.events = ListBuilder<ExtensionEvent>(events)))));
+    });
+  }
+
+  void sendEvent(ExtensionEvent event) {
+    _socketClient.sink.add(jsonEncode(serializers.serialize(event)));
+  }
+
+  void sendBatchedEvent(ExtensionEvent event) {
+    _batchController.sink.add(event);
+  }
+
+  void close() {
+    _socketClient.close();
+    _batchSubscription.cancel();
+    _batchController.close();
+  }
 }
 
 class DevToolsPanel {
@@ -101,7 +131,7 @@ void main() {
   onMessageAddListener(allowInterop(_handleMessageFromContentScripts));
 
   // Attaches a debug session to the app when the extension receives a
-  // Runtime.executionContextCreated event from DWDS:
+  // Runtime.executionContextCreated event from Chrome:
   addDebuggerListener(allowInterop(_maybeAttachDebugSession));
 
   // When a Dart application tab is closed, detach the corresponding debug
@@ -264,7 +294,7 @@ void _maybeAttachDebugSession(
   Object params,
 ) async {
   // Return early if it's not a Runtime.executionContextCreated event (sent from
-  // DWDS):
+  // Chrome):
   if (method != 'Runtime.executionContextCreated') return;
 
   var context = json.decode(stringify(params))['context'];
@@ -303,8 +333,8 @@ int _removeDebugSessionForTab(int tabId) {
     // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
     final event =
         _extensionEventFor('DebugExtension.detached', js_util.jsify({}));
-    session.socketClient.sink.add(jsonEncode(serializers.serialize(event)));
-    session.socketClient.close();
+    session.sendEvent(event);
+    session.close();
     _debugSessions.remove(session);
 
     // Notify the Dart DevTools panel that the session has been detached by
@@ -590,7 +620,11 @@ void _filterAndForwardToBackend(Debuggee source, String method, Object params) {
 
   var event = _extensionEventFor(method, params);
 
-  debugSession.socketClient.sink.add(jsonEncode(serializers.serialize(event)));
+  if (method == 'Debugger.scriptParsed') {
+    debugSession.sendBatchedEvent(event);
+  } else {
+    debugSession.sendEvent(event);
+  }
 }
 
 class Notifier<T> {
