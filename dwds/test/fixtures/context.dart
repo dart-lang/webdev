@@ -133,6 +133,7 @@ class TestContext {
     bool enableExpressionEvaluation,
     bool verboseCompiler,
     SdkConfigurationProvider sdkConfigurationProvider,
+    String basePath,
   }) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
@@ -146,6 +147,7 @@ class TestContext {
     verboseCompiler ??= false;
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
     soundNullSafety ??= false;
+    basePath ??= '';
 
     try {
       configureLogWriter();
@@ -276,7 +278,7 @@ class TestContext {
             assetHandler = webRunner.devFS.assetServer.handleRequest;
 
             requireStrategy = FrontendServerRequireStrategyProvider(
-                    reloadConfiguration, assetReader, () async => {}, '')
+                    reloadConfiguration, assetReader, () async => {}, basePath)
                 .strategy;
 
             buildResults = const Stream<BuildResults>.empty();

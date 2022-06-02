@@ -123,9 +123,11 @@ class _$DebugEvent extends DebugEvent {
   _$DebugEvent._(
       {required this.kind, required this.eventData, required this.timestamp})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(kind, 'DebugEvent', 'kind');
-    BuiltValueNullFieldError.checkNotNull(eventData, 'DebugEvent', 'eventData');
-    BuiltValueNullFieldError.checkNotNull(timestamp, 'DebugEvent', 'timestamp');
+    BuiltValueNullFieldError.checkNotNull(kind, r'DebugEvent', 'kind');
+    BuiltValueNullFieldError.checkNotNull(
+        eventData, r'DebugEvent', 'eventData');
+    BuiltValueNullFieldError.checkNotNull(
+        timestamp, r'DebugEvent', 'timestamp');
   }
 
   @override
@@ -152,7 +154,7 @@ class _$DebugEvent extends DebugEvent {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('DebugEvent')
+    return (newBuiltValueToStringHelper(r'DebugEvent')
           ..add('kind', kind)
           ..add('eventData', eventData)
           ..add('timestamp', timestamp))
@@ -206,11 +208,11 @@ class DebugEventBuilder implements Builder<DebugEvent, DebugEventBuilder> {
     final _$result = _$v ??
         new _$DebugEvent._(
             kind: BuiltValueNullFieldError.checkNotNull(
-                kind, 'DebugEvent', 'kind'),
+                kind, r'DebugEvent', 'kind'),
             eventData: BuiltValueNullFieldError.checkNotNull(
-                eventData, 'DebugEvent', 'eventData'),
+                eventData, r'DebugEvent', 'eventData'),
             timestamp: BuiltValueNullFieldError.checkNotNull(
-                timestamp, 'DebugEvent', 'timestamp'));
+                timestamp, r'DebugEvent', 'timestamp'));
     replace(_$result);
     return _$result;
   }
@@ -226,7 +228,7 @@ class _$BatchedDebugEvents extends BatchedDebugEvents {
 
   _$BatchedDebugEvents._({required this.events}) : super._() {
     BuiltValueNullFieldError.checkNotNull(
-        events, 'BatchedDebugEvents', 'events');
+        events, r'BatchedDebugEvents', 'events');
   }
 
   @override
@@ -251,7 +253,7 @@ class _$BatchedDebugEvents extends BatchedDebugEvents {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('BatchedDebugEvents')
+    return (newBuiltValueToStringHelper(r'BatchedDebugEvents')
           ..add('events', events))
         .toString();
   }
@@ -302,7 +304,7 @@ class BatchedDebugEventsBuilder
         events.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
-            'BatchedDebugEvents', _$failedField, e.toString());
+            r'BatchedDebugEvents', _$failedField, e.toString());
       }
       rethrow;
     }
@@ -311,4 +313,4 @@ class BatchedDebugEventsBuilder
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,no_leading_underscores_for_local_identifiers,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,no_leading_underscores_for_local_identifiers,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new,unnecessary_lambdas

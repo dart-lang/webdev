@@ -1,3 +1,8 @@
+
+## 1.30
+- Batch extension `Debugger.scriptParsed` events and send batches every 1000ms
+  to the server.
+  
 ## 1.29
 
 - Notify the debugger and inspector panels when the debug session is disconnected.

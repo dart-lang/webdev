@@ -11,6 +11,7 @@
 @OnPlatform({
   'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
 })
+import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
@@ -20,7 +21,7 @@ import 'fixtures/context.dart';
 import 'fixtures/utilities.dart';
 
 // Instructions for running:
-// * From the /dwds/debug_extension, build the extension: pub run build_runner build web -o build -r
+// * From the /dwds/debug_extension, build the extension: dart run build_runner build web -o build -r
 // * From the /dwds, run: dart test test/debug_extension_test.dart
 // * See note for Googlers below as well
 // [For Googlers]
@@ -31,11 +32,6 @@ import 'fixtures/utilities.dart';
 // See go/extension-identification.
 
 final context = TestContext();
-
-// TODO(elliette): Instead of setting a time to load, check for element on page.
-// See: https://github.com/dart-lang/webdev/issues/1512
-// Time for Dart DevTools to load, in seconds.
-final devToolsLoadTime = const Duration(seconds: 4);
 
 void main() async {
   Future<void> waitForDartDevToolsWithRetry({
@@ -65,7 +61,7 @@ void main() async {
             'expression': 'fakeClick()',
           });
           // Wait for DevTools to actually open.
-          await Future.delayed(devToolsLoadTime);
+          await waitForDartDevToolsWithRetry();
         });
 
         tearDown(() async {
@@ -75,13 +71,10 @@ void main() async {
         test('can launch DevTools', () async {
           var windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
-          // TODO(grouma): switch back to `fixture.webdriver.title` when
-          // https://github.com/flutter/devtools/issues/2045 is fixed.
-          expect(await context.webDriver.pageSource, contains('Flutter'));
+          expect(await context.webDriver.title, contains('Dart DevTools'));
           expect(await context.webDriver.currentUrl,
               contains('ide=DebugExtension'));
-          // TODO(elliette): Re-enable and fix flakes.
-        }, skip: true);
+        });
 
         test('can close DevTools and relaunch', () async {
           for (var window in await context.webDriver.windows.toList()) {
@@ -98,6 +91,22 @@ void main() async {
           });
           await waitForDartDevToolsWithRetry();
           expect(await context.webDriver.title, 'Dart DevTools');
+        });
+
+        test('sends script parsed events', () async {
+          // Check if the extension debugger receives Debugger.ScriptParsed
+          // events for some important scripts.
+          var service = fetchChromeProxyService(context.debugConnection);
+          var scripts = service.remoteDebugger.scripts;
+          expect(
+              scripts.values.map((s) => s.url),
+              containsAllInOrder([
+                contains('stack_trace_mapper.dart.js'),
+                contains('hello_world/main.unsound.ddc.js'),
+                contains('packages/path/path.unsound.ddc.js'),
+                contains('dev_compiler/dart_sdk.js'),
+                contains('dwds/src/injected/client.js'),
+              ]));
         });
       });
 
@@ -146,7 +155,7 @@ void main() async {
             'expression': 'fakeClick()',
           });
           // Wait for DevTools to actually open.
-          await Future.delayed(devToolsLoadTime);
+          await waitForDartDevToolsWithRetry();
         });
 
         tearDown(() async {
@@ -174,6 +183,22 @@ void main() async {
           });
           await waitForDartDevToolsWithRetry();
           expect(await context.webDriver.title, 'Dart DevTools');
+        });
+
+        test('sends script parsed events', () async {
+          // Check if the extension debugger receives Debugger.ScriptParsed
+          // events for some important scripts.
+          var service = fetchChromeProxyService(context.debugConnection);
+          var scripts = service.remoteDebugger.scripts;
+          expect(
+              scripts.values.map((s) => s.url),
+              containsAllInOrder([
+                contains('stack_trace_mapper.dart.js'),
+                contains('hello_world/main.unsound.ddc.js'),
+                contains('packages/path/path.unsound.ddc.js'),
+                contains('dev_compiler/dart_sdk.js'),
+                contains('dwds/src/injected/client.js'),
+              ]));
         });
       });
     });
