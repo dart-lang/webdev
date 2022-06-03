@@ -613,7 +613,8 @@ class TestExpressionCompiler implements ExpressionCompiler {
       true;
 
   @override
-  Future<void> initialize({String moduleFormat, bool soundNullSafety}) async {}
+  Future<void> initialize(
+      {String moduleFormat, bool soundNullSafety = false}) async {}
 }
 
 /// Convert a file URI into a multi-root scheme URI if provided, otherwise
