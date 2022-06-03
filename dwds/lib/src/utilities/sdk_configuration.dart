@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:file/file.dart';
@@ -11,7 +9,7 @@ import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
 
 class InvalidSdkConfigurationException implements Exception {
-  final String message;
+  final String? message;
 
   InvalidSdkConfigurationException([this.message]);
 
@@ -38,11 +36,11 @@ abstract class SdkConfigurationProvider {
 /// Call [validate] method to make sure the files in the configuration
 /// layout exist before reading the files.
 class SdkConfiguration {
-  String sdkDirectory;
-  String unsoundSdkSummaryPath;
-  String soundSdkSummaryPath;
-  String librariesPath;
-  String compilerWorkerPath;
+  String? sdkDirectory;
+  String? unsoundSdkSummaryPath;
+  String? soundSdkSummaryPath;
+  String? librariesPath;
+  String? compilerWorkerPath;
 
   SdkConfiguration({
     this.sdkDirectory,
@@ -52,21 +50,21 @@ class SdkConfiguration {
     this.compilerWorkerPath,
   });
 
-  static Uri _toUri(String path) => path == null ? null : p.toUri(path);
-  static Uri _toAbsoluteUri(String path) =>
+  static Uri? _toUri(String? path) => path == null ? null : p.toUri(path);
+  static Uri? _toAbsoluteUri(String? path) =>
       path == null ? null : p.toUri(p.absolute(path));
 
-  Uri get sdkDirectoryUri => _toUri(sdkDirectory);
-  Uri get soundSdkSummaryUri => _toUri(soundSdkSummaryPath);
-  Uri get unsoundSdkSummaryUri => _toUri(unsoundSdkSummaryPath);
-  Uri get librariesUri => _toUri(librariesPath);
+  Uri? get sdkDirectoryUri => _toUri(sdkDirectory);
+  Uri? get soundSdkSummaryUri => _toUri(soundSdkSummaryPath);
+  Uri? get unsoundSdkSummaryUri => _toUri(unsoundSdkSummaryPath);
+  Uri? get librariesUri => _toUri(librariesPath);
 
   /// Note: has to be ///file: Uri to run in an isolate.
-  Uri get compilerWorkerUri => _toAbsoluteUri(compilerWorkerPath);
+  Uri? get compilerWorkerUri => _toAbsoluteUri(compilerWorkerPath);
 
   /// Throws [InvalidSdkConfigurationException] if configuration does not
   /// exist on disk.
-  void validate({FileSystem fileSystem}) {
+  void validate({FileSystem? fileSystem}) {
     fileSystem ??= const LocalFileSystem();
 
     validateSdkDir(fileSystem: fileSystem);
@@ -77,7 +75,7 @@ class SdkConfiguration {
 
   /// Throws [InvalidSdkConfigurationException] if SDK root does not
   /// exist on the disk.
-  void validateSdkDir({FileSystem fileSystem}) {
+  void validateSdkDir({FileSystem? fileSystem}) {
     fileSystem ??= const LocalFileSystem();
     if (sdkDirectory == null ||
         !fileSystem.directory(sdkDirectory).existsSync()) {
@@ -86,7 +84,7 @@ class SdkConfiguration {
     }
   }
 
-  void validateSummaries({FileSystem fileSystem}) {
+  void validateSummaries({FileSystem? fileSystem}) {
     fileSystem ??= const LocalFileSystem();
 
     if (unsoundSdkSummaryPath == null ||
@@ -102,7 +100,7 @@ class SdkConfiguration {
     }
   }
 
-  void validateLibrariesSpec({FileSystem fileSystem}) {
+  void validateLibrariesSpec({FileSystem? fileSystem}) {
     fileSystem ??= const LocalFileSystem();
 
     if (librariesPath == null || !fileSystem.file(librariesPath).existsSync()) {
@@ -111,7 +109,7 @@ class SdkConfiguration {
     }
   }
 
-  void validateCompilerWorker({FileSystem fileSystem}) {
+  void validateCompilerWorker({FileSystem? fileSystem}) {
     fileSystem ??= const LocalFileSystem();
 
     if (compilerWorkerPath == null ||
@@ -124,9 +122,9 @@ class SdkConfiguration {
 
 /// Implementation for the default SDK configuration layout.
 class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
-  SdkConfiguration _configuration;
-
   DefaultSdkConfigurationProvider();
+
+  SdkConfiguration? _configuration;
 
   /// Create and validate configuration matching the default SDK layout.
   @override
@@ -146,6 +144,6 @@ class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
             p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
       );
     }
-    return _configuration;
+    return _configuration!;
   }
 }

@@ -261,7 +261,8 @@ class ExpressionCompilerService implements ExpressionCompiler {
           line, column, jsModules, jsFrameValues, moduleName, expression);
 
   @override
-  Future<void> initialize({String moduleFormat, bool soundNullSafety}) async {
+  Future<void> initialize(
+      {String moduleFormat, bool soundNullSafety = false}) async {
     if (_compiler.isCompleted) return;
     soundNullSafety ??= false;
 

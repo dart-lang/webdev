@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:async/async.dart';
@@ -22,13 +20,13 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
   final _logger = Logger('RemoteDebuggerExecutionContext');
 
   // Contexts that may contain a Dart application.
-  StreamQueue<int> _contexts;
+  late StreamQueue<int?> _contexts;
 
-  int _id;
+  int? _id;
 
   @override
   Future<int> get id async {
-    if (_id != null) return _id;
+    if (_id != null) return _id!;
     _logger.fine('Looking for Dart execution context...');
     while (await _contexts.hasNext
         .timeout(const Duration(milliseconds: 50), onTimeout: () => false)) {
@@ -40,7 +38,7 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
           'expression': r'window["$dartAppInstanceId"];',
           'contextId': context,
         });
-        if (result.result['result']['value'] != null) {
+        if (result.result?['result']?['value'] != null) {
           _logger.fine('Found valid execution context: $context');
           _id = context;
           break;
@@ -54,18 +52,18 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
     if (_id == null) {
       throw StateError('No context with the running Dart application.');
     }
-    return _id;
+    return _id!;
   }
 
   RemoteDebuggerExecutionContext(this._id, this._remoteDebugger) {
-    var contextController = StreamController<int>();
+    var contextController = StreamController<int?>();
     _remoteDebugger
         .eventStream('Runtime.executionContextsCleared', (e) => e)
         .listen((_) => _id = null);
-    _remoteDebugger
-        .eventStream('Runtime.executionContextCreated',
-            (e) => int.parse(e.params['context']['id'].toString()))
-        .listen(contextController.add);
+    _remoteDebugger.eventStream('Runtime.executionContextCreated', (e) {
+      var id = e.params?['context']?['id']?.toString();
+      return id == null ? null : int.parse(id);
+    }).listen(contextController.add);
     _contexts = StreamQueue(contextController.stream);
   }
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-// @dart = 2.9
-
 /// A library for WebKit mirror objects and support code. These probably should
 /// get migrated into webkit_inspection_protocol over time.
 
@@ -11,26 +9,26 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Represents a property of an object.
 class Property {
-  final Map<String, dynamic> _map;
+  final Map<String, dynamic>? _map;
 
-  RemoteObject _remoteObjectValue;
+  RemoteObject? _remoteObjectValue;
 
   Property(this._map);
 
-  Map<String, dynamic> get map => _map;
+  Map<String, dynamic>? get map => _map;
 
   /// The remote object value in unwrapped form.
   ///
   /// Useful for getting access to properties of particular types of
   /// RemoteObject.
-  Object get rawValue => _map == null ? null : _map['value'];
+  Object? get rawValue => _map == null ? null : _map!['value'];
 
   /// Remote object value in case of primitive values or JSON values (if it was
   /// requested). (optional)
-  RemoteObject get value {
-    if (_remoteObjectValue != null) return _remoteObjectValue;
+  RemoteObject? get value {
+    if (_remoteObjectValue != null) return _remoteObjectValue!;
     if (rawValue == null) return null;
-    var val = _map['value'];
+    var val = _map!['value'];
     if (val is RemoteObject) {
       _remoteObjectValue = val;
     } else {
@@ -56,7 +54,7 @@ class Property {
   /// The raw name of the property in JS.
   ///
   /// Will be of the form 'Symbol(_actualName)' for private fields.
-  String get rawName => _map['name'] as String;
+  String get rawName => _map!['name'] as String;
 
   @override
   String toString() => '$name $value';

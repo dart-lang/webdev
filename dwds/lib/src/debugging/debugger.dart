@@ -16,6 +16,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
 
 import '../loaders/strategy.dart';
 import '../services/chrome_proxy_service.dart';
+import '../services/chrome_debug_exception.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';

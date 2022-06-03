@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'package:async/async.dart';
 
@@ -14,10 +12,10 @@ class BatchedStreamController<T> {
 
   final int _batchDelayMilliseconds;
 
-  StreamController<T> _inputController;
-  StreamQueue<T> _inputQueue;
+  late StreamController<T> _inputController;
+  late StreamQueue<T> _inputQueue;
 
-  StreamController<List<T>> _outputController;
+  late StreamController<List<T>> _outputController;
   final Completer<bool> _completer = Completer<bool>();
 
   /// Create batched stream controller.
@@ -30,7 +28,6 @@ class BatchedStreamController<T> {
     _inputController = StreamController<T>();
     _inputQueue = StreamQueue<T>(_inputController.stream);
     _outputController = StreamController<List<T>>();
-
     unawaited(_batchAndSendEvents());
   }
 

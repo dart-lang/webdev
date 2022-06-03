@@ -11,7 +11,7 @@ import '../../debugging/classes.dart';
 import '../../debugging/inspector.dart';
 import '../../debugging/remote_debugger.dart';
 import '../../loaders/strategy.dart';
-import '../../services/chrome_proxy_service.dart';
+import '../../services/chrome_debug_exception.dart';
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {

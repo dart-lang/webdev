@@ -16,7 +16,7 @@ import '../../data/serializers.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
 import '../handlers/socket_connections.dart';
-import '../services/chrome_proxy_service.dart';
+import '../services/chrome_debug_exception.dart';
 
 /// A remote debugger backed by the Dart Debug Extension with an SSE connection.
 class ExtensionDebugger implements RemoteDebugger {
