@@ -264,7 +264,6 @@ class ExpressionCompilerService implements ExpressionCompiler {
   Future<void> initialize(
       {String moduleFormat, bool soundNullSafety = false}) async {
     if (_compiler.isCompleted) return;
-    soundNullSafety ??= false;
 
     var compiler = await _Compiler.start(
       _address,
