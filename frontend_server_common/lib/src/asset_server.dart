@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
-
 // Note: this is a copy from flutter tools, updated to work with dwds tests
 
 import 'dart:async';
@@ -11,7 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dwds/dwds.dart';
+import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
@@ -36,6 +34,23 @@ class TestAssetServer implements AssetReader {
   // makes no claims as to the structure of the data.
   static const String _defaultMimeType = 'application/octet-stream';
   final FileSystem _fileSystem;
+  final String _root;
+  final HttpServer _httpServer;
+  final Map<String, Uint8List> _files = {};
+  final Map<String, Uint8List> _sourcemaps = {};
+  final Map<String, Uint8List> _metadata = {};
+  String? _mergedMetadata;
+  final PackageConfig _packageConfig;
+  final InternetAddress internetAddress;
+
+  bool hasFile(String path) => _files.containsKey(path);
+  Uint8List getFile(String path) => _files[path]!;
+
+  bool hasSourceMap(String path) => _sourcemaps.containsKey(path);
+  Uint8List getSourceMap(String path) => _sourcemaps[path]!;
+
+  bool hasMetadata(String path) => _metadata.containsKey(path);
+  Uint8List getMetadata(String path) => _metadata[path]!;
 
   /// Start the web asset server on a [hostname] and [port].
   ///
@@ -55,19 +70,6 @@ class TestAssetServer implements AssetReader {
         TestAssetServer(root, httpServer, packageConfig, address, fileSystem);
     return server;
   }
-
-  final String _root;
-  final HttpServer _httpServer;
-  final Map<String, Uint8List> _files = <String, Uint8List>{};
-  final Map<String, Uint8List> _sourcemaps = <String, Uint8List>{};
-  final Map<String, Uint8List> _metadata = <String, Uint8List>{};
-  String _mergedMetadata;
-  final PackageConfig _packageConfig;
-  final InternetAddress internetAddress;
-
-  Uint8List getFile(String path) => _files[path];
-
-  Uint8List getSourceMap(String path) => _sourcemaps[path];
 
   // handle requests for JavaScript source, dart sources maps, or asset files.
   Future<shelf.Response> handleRequest(shelf.Request request) async {
@@ -94,16 +96,16 @@ class TestAssetServer implements AssetReader {
 
     // If this is a JavaScript file, it must be in the in-memory cache.
     // Attempt to look up the file by URI.
-    if (_files.containsKey(requestPath)) {
-      final List<int> bytes = getFile(requestPath);
+    if (hasFile(requestPath)) {
+      final bytes = getFile(requestPath);
       headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
       headers[HttpHeaders.contentTypeHeader] = 'application/javascript';
       return shelf.Response.ok(bytes, headers: headers);
     }
     // If this is a sourcemap file, then it might be in the in-memory cache.
     // Attempt to lookup the file by URI.
-    if (_sourcemaps.containsKey(requestPath)) {
-      final List<int> bytes = getSourceMap(requestPath);
+    if (hasSourceMap(requestPath)) {
+      final bytes = getSourceMap(requestPath);
       headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
       headers[HttpHeaders.contentTypeHeader] = 'application/json';
       return shelf.Response.ok(bytes, headers: headers);
@@ -118,7 +120,7 @@ class TestAssetServer implements AssetReader {
     // Attempt to determine the file's mime type. if this is not provided some
     // browsers will refuse to render images/show video et cetera. If the tool
     // cannot determine a mime type, fall back to application/octet-stream.
-    String mimeType;
+    String? mimeType;
     if (length >= 12) {
       mimeType = mime.lookupMimeType(
         file.path,
@@ -154,10 +156,6 @@ class TestAssetServer implements AssetReader {
     var manifest =
         castStringKeyedMap(json.decode(manifestFile.readAsStringSync()));
     for (var filePath in manifest.keys) {
-      if (filePath == null) {
-        _logger.severe('Invalid manfiest file: $filePath');
-        continue;
-      }
       var offsets = castStringKeyedMap(manifest[filePath]);
       var codeOffsets = (offsets['code'] as List<dynamic>).cast<int>();
       var sourcemapOffsets =
@@ -253,7 +251,7 @@ class TestAssetServer implements AssetReader {
   }
 
   @override
-  Future<String> dartSourceContents(String serverPath) {
+  Future<String?> dartSourceContents(String serverPath) async {
     var result = _resolveDartFile(serverPath);
     if (result.existsSync()) {
       return result.readAsString();
@@ -262,22 +260,22 @@ class TestAssetServer implements AssetReader {
   }
 
   @override
-  Future<String> sourceMapContents(String serverPath) async {
+  Future<String?> sourceMapContents(String serverPath) async {
     var path = '/$serverPath';
-    if (_sourcemaps.containsKey(path)) {
-      return utf8.decode(_sourcemaps[path]);
+    if (hasSourceMap(path)) {
+      return utf8.decode(getSourceMap(path));
     }
     return null;
   }
 
   @override
-  Future<String> metadataContents(String serverPath) async {
+  Future<String?> metadataContents(String serverPath) async {
     if (serverPath.endsWith('.ddc_merged_metadata')) {
       return _mergedMetadata;
     }
     var path = '/$serverPath';
-    if (_metadata.containsKey(path)) {
-      return utf8.decode(_metadata[path]);
+    if (hasMetadata(path)) {
+      return utf8.decode(getMetadata(path));
     }
     return null;
   }
@@ -287,5 +285,5 @@ class TestAssetServer implements AssetReader {
 /// the same structure (`Map<String, dynamic>`) with the correct runtime types.
 Map<String, dynamic> castStringKeyedMap(dynamic untyped) {
   var map = untyped as Map<dynamic, dynamic>;
-  return map?.cast<String, dynamic>();
+  return map.cast<String, dynamic>();
 }

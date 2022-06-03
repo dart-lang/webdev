@@ -2,15 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
-
 // Note: this is a copy from flutter tools, updated to work with dwds tests
 
 import 'dart:io';
 
-import 'package:dwds/dwds.dart';
+import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
-import 'package:meta/meta.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
@@ -23,26 +20,26 @@ final String dartWebSdkPath = p.join(dartSdkPath, 'lib', 'dev_compiler');
 
 class WebDevFS {
   WebDevFS({
-    this.fileSystem,
-    this.hostname,
-    this.port,
-    this.packageConfigPath,
-    this.root,
-    this.urlTunneller,
-    this.soundNullSafety,
+    required this.fileSystem,
+    required this.hostname,
+    required this.port,
+    required this.packageConfigPath,
+    required this.root,
+    required this.urlTunneller,
+    required this.soundNullSafety,
   });
 
   final FileSystem fileSystem;
-  TestAssetServer assetServer;
+  late TestAssetServer assetServer;
   final String hostname;
   final int port;
   final String packageConfigPath;
   final String root;
   final UrlEncoder urlTunneller;
   final bool soundNullSafety;
-  Directory _savedCurrentDirectory;
-  List<Uri> sources;
-  PackageConfig _packageConfig;
+  late Directory _savedCurrentDirectory;
+  List<Uri>? sources;
+  late PackageConfig _packageConfig;
 
   Future<Uri> create() async {
     _savedCurrentDirectory = fileSystem.currentDirectory;
@@ -61,16 +58,15 @@ class WebDevFS {
 
   Future<void> dispose() {
     fileSystem.currentDirectory = _savedCurrentDirectory;
-    return assetServer?.close();
+    return assetServer.close();
   }
 
   Future<UpdateFSReport> update({
-    String mainPath,
-    String dillOutputPath,
-    @required ResidentCompiler generator,
-    List<Uri> invalidatedFiles,
+    required String mainPath,
+    required String dillOutputPath,
+    required ResidentCompiler generator,
+    required List<Uri> invalidatedFiles,
   }) async {
-    assert(generator != null);
     var outputDirectoryPath = fileSystem.file(mainPath).parent.path;
     var entryPoint = mainPath;
 
@@ -197,7 +193,7 @@ class UpdateFSReport {
   /// mode.
   ///
   /// Only used for JavaScript compilation.
-  List<String> invalidatedModules;
+  List<String>? invalidatedModules;
 }
 
 String _filePathToUriFragment(String path) {
