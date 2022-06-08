@@ -108,15 +108,15 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   String bootstrapJs() => throw UnimplementedError();
 
   /// Updates [_assets] for [result].
-  void _updateAssets(CompileResult? result) {
-    if (result == null) {
+  void _updateAssets(CompileResult result) {
+    if (result.dillOutput == null) {
       return;
     }
     final manifest =
-        jsonDecode(File(result.jsManifestOutput).readAsStringSync())
+        jsonDecode(File(result.jsManifestOutput!).readAsStringSync())
             as Map<String, dynamic>;
-    final sourceBytes = File(result.jsSourcesOutput).readAsBytesSync();
-    final sourceMapBytes = File(result.jsSourceMapsOutput).readAsBytesSync();
+    final sourceBytes = File(result.jsSourcesOutput!).readAsBytesSync();
+    final sourceMapBytes = File(result.jsSourceMapsOutput!).readAsBytesSync();
 
     for (var entry in manifest.entries) {
       var metadata = entry.value as Map<String, dynamic>;
@@ -130,7 +130,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   }
 
   @override
-  Future<CompileResult?> compile([List<Uri>? invalidatedUris]) async {
+  Future<CompileResult> compile([List<Uri>? invalidatedUris]) async {
     return _lastResult = await _frontendServerClient.compile(invalidatedUris);
   }
 
@@ -168,7 +168,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   @override
   void accept() {
     _frontendServerClient.accept();
-    _updateAssets(_lastResult);
+    if (_lastResult != null) _updateAssets(_lastResult!);
     _lastResult = null;
   }
 
