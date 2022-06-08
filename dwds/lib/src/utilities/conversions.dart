@@ -93,7 +93,10 @@ String dartIdFor(Object? argument) {
     return '$_prefixForStringIds$argument';
   }
   if (argument is RemoteObject) {
-    return argument.objectId ?? null.toString();
+    if (argument.objectId == null) {
+      throw ArgumentError.value(argument, 'objectId', 'No objectId found');
+    }
+    return argument.objectId!;
   }
   if (argument is Map<String, dynamic>) {
     var id = argument['objectId'] as String?;

@@ -36,6 +36,9 @@ abstract class SdkConfigurationProvider {
 /// Call [validate] method to make sure the files in the configuration
 /// layout exist before reading the files.
 class SdkConfiguration {
+  // TODO(annagrin): update the tests to take those parameters
+  // and make all of the paths required (except for the compilerWorkerPath
+  // that is not used in Flutter).
   String? sdkDirectory;
   String? unsoundSdkSummaryPath;
   String? soundSdkSummaryPath;

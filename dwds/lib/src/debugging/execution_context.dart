@@ -22,7 +22,7 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
   /// Contexts that may contain a Dart application.
   /// Context can be null if an error has occured and we cannot detect
   /// and parse the context ID.
-  late StreamQueue<int?> _contexts;
+  late StreamQueue<int> _contexts;
 
   int? _id;
 
@@ -58,7 +58,7 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
   }
 
   RemoteDebuggerExecutionContext(this._id, this._remoteDebugger) {
-    var contextController = StreamController<int?>();
+    var contextController = StreamController<int>();
     _remoteDebugger
         .eventStream('Runtime.executionContextsCleared', (e) => e)
         .listen((_) => _id = null);
@@ -68,8 +68,16 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
       // to indicate an error context - those will be skipped when trying to find
       // the dart context, with a warning.
       var id = e.params?['context']?['id']?.toString();
-      return id == null ? null : int.parse(id);
-    }).listen(contextController.add);
+      var parsedId = id == null ? null : int.parse(id);
+      if (id == null) {
+        _logger.warning('Cannot find execution context id: $e');
+      } else if (parsedId == null) {
+        _logger.warning('Cannot parse execution context id: $id');
+      }
+      return parsedId;
+    }).listen((e) {
+      if (e != null) contextController.add(e);
+    });
     _contexts = StreamQueue(contextController.stream);
   }
 }

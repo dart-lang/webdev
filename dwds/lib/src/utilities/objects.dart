@@ -27,6 +27,7 @@ class Property {
   /// requested). (optional)
   RemoteObject? get value {
     if (_remoteObjectValue != null) return _remoteObjectValue!;
+    if (_map == null) return null;
     if (rawValue == null) return null;
     var val = _map!['value'];
     if (val is RemoteObject) {
@@ -38,11 +39,13 @@ class Property {
   }
 
   /// The name of the property
-  String get name {
+  String? get name {
+    if (_map == null) return null;
+    if (rawName == null) return null;
     const prefix = 'Symbol(';
-    var nonSymbol = (rawName.startsWith(prefix))
-        ? rawName.substring(prefix.length, rawName.length - 1)
-        : rawName;
+    var nonSymbol = (rawName!.startsWith(prefix))
+        ? rawName!.substring(prefix.length, rawName!.length - 1)
+        : rawName!;
     // Adjust names for late fields:
     // '_#MyTestClass#myselfField' -> 'myselfField'
     // TODO(annagrin): Use debug symbols to map from dart to JS symbols.
@@ -54,7 +57,10 @@ class Property {
   /// The raw name of the property in JS.
   ///
   /// Will be of the form 'Symbol(_actualName)' for private fields.
-  String get rawName => _map!['name'] as String;
+  String? get rawName {
+    if (_map == null) return null;
+    return _map!['name'] as String;
+  }
 
   @override
   String toString() => '$name $value';
