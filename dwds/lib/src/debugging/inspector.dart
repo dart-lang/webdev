@@ -172,8 +172,16 @@ class AppInspector extends Domain {
     await appInspector._initialize();
     return appInspector;
   }
-
-  Future<int> get contextId => _executionContext.id;
+  
+  /// Returns the ID for the execution context or null if not found.
+  Future<int> get contextId async {
+    try {
+      return await _executionContext.id;
+    } catch (e, s) {
+      _logger.severe('Missing execution context ID: ', e, s);
+      return null;
+    }
+  }
 
   /// Get the value of the field named [fieldName] from [receiver].
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
@@ -547,14 +555,23 @@ function($argsString) {
   Future<List<String>> _getExtensionRpcs() async {
     var expression =
         "${globalLoadStrategy.loadModuleSnippet}('dart_sdk').developer._extensions.keys.toList();";
-    var extensionsResult =
-        await remoteDebugger.sendCommand('Runtime.evaluate', params: {
+    final extensionRpcs = <String>[];
+    final params = {
       'expression': expression,
       'returnByValue': true,
       'contextId': await contextId,
-    });
-    handleErrorIfPresent(extensionsResult, evalContents: expression);
-    return List.from(extensionsResult.result['result']['value'] as List);
+    };
+    try {
+      var extensionsResult =
+          await remoteDebugger.sendCommand('Runtime.evaluate', params: params);
+      handleErrorIfPresent(extensionsResult, evalContents: expression);
+      extensionRpcs.addAll(
+          List.from(extensionsResult.result['result']['value'] as List));
+    } catch (e, s) {
+      _logger.severe(
+          'Error calling Runtime.evaluate with params $params', e, s);
+    }
+    return extensionRpcs;
   }
 
   /// Convert a JS exception description into a description containing
