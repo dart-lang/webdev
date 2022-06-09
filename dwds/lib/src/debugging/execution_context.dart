@@ -31,7 +31,7 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
     if (_id != null) return _id;
     _logger.fine('Looking for Dart execution context...');
     while (await _contexts.hasNext
-        .timeout(const Duration(milliseconds: 50), onTimeout: () => false)) {
+        .timeout(const Duration(milliseconds: 100), onTimeout: () => false)) {
       var context = await _contexts.next;
       _logger.fine('Checking context id: $context');
       try {
