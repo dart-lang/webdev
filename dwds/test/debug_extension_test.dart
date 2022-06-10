@@ -241,7 +241,8 @@ void main() async {
       final result = await http.get(Uri.parse(
           'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension'));
       expect(result.body.contains('dartExtensionUri'), isTrue);
-      final extensionUri = Uri.parse(uriPattern.firstMatch(result.body).group(1));
+      final extensionUri =
+          Uri.parse(uriPattern.firstMatch(result.body).group(1));
       expect(
           extensionUri.host,
           anyOf(

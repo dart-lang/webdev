@@ -180,7 +180,8 @@ class ClassHelper extends Domain {
 
     final classDescriptor = result.value as Map<String, dynamic>;
     final methodRefs = <FuncRef>[];
-    final methodDescriptors = classDescriptor['methods'] as Map<String, dynamic>;
+    final methodDescriptors =
+        classDescriptor['methods'] as Map<String, dynamic>;
     final staticMethodDescriptors =
         classDescriptor['staticMethods'] as Map<String, dynamic>;
     methodDescriptors.addAll(staticMethodDescriptors);

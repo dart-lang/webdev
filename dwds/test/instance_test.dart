@@ -187,7 +187,8 @@ void main() {
     });
 
     test('for a map', () async {
-      final remote = await inspector.jsEvaluate(libraryVariableExpression('map'));
+      final remote =
+          await inspector.jsEvaluate(libraryVariableExpression('map'));
       final instance = await instanceHelper.instanceFor(remote);
       expect(instance.kind, InstanceKind.kMap);
       final classRef = instance.classRef;

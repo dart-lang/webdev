@@ -377,8 +377,8 @@ function($argsString) {
       if (scriptRef != null) {
         return await _getScript(isolateId, scriptRef);
       }
-      final instance = await instanceHelper.instanceFor(remoteObjectFor(objectId),
-          offset: offset, count: count);
+      final instance = await instanceHelper
+          .instanceFor(remoteObjectFor(objectId), offset: offset, count: count);
       if (instance != null) {
         return instance;
       }
@@ -519,7 +519,8 @@ function($argsString) {
           .scripts;
       // For all the non-dart: libraries, find their parts and create scriptRefs
       // for them.
-      final userLibraries = libraryUris.where((uri) => !uri.startsWith('dart:'));
+      final userLibraries =
+          libraryUris.where((uri) => !uri.startsWith('dart:'));
       for (var uri in userLibraries) {
         final parts = scripts[uri];
         final scriptRefs = [

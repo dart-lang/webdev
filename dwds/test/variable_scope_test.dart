@@ -64,7 +64,8 @@ void main() {
       final lineNumber =
           await context.findBreakpointLine(breakpointId, isolateId, scriptRef);
 
-      final bp = await service.addBreakpoint(isolateId, scriptRef.id, lineNumber);
+      final bp =
+          await service.addBreakpoint(isolateId, scriptRef.id, lineNumber);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -184,7 +185,8 @@ void main() {
       stack = await breakAt('nestedFunction', mainScript);
       final inspector = service.appInspectorProvider();
       final debugger = inspector.debugger;
-      final parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
+      final parameter =
+          await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
       expect(parameter.value, matches(RegExp(r'\d+ world')));
       final ticks = await debugger.evaluateJsOnCallFrameIndex(1, 'ticks');
       // We don't know how many ticks there were before we stopped, but it should

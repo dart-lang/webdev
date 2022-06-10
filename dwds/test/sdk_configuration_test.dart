@@ -58,7 +58,8 @@ void main() {
 
       final summariesDir = p.join(sdkDirectory, 'summaries');
       final unsoundSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
-      final soundSdkSummaryPath = p.join(summariesDir, 'ddc_outline_sound.dill');
+      final soundSdkSummaryPath =
+          p.join(summariesDir, 'ddc_outline_sound.dill');
 
       Directory(summariesDir).createSync(recursive: true);
       File(defaultSdkConfiguration.unsoundSdkSummaryPath)
@@ -98,7 +99,8 @@ void main() {
       final librariesPath = p.join(librariesDir, 'libraries.json');
       final summariesDir = p.join(sdkDir, 'fakesummaries');
       final unsoundSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
-      final soundSdkSummaryPath = p.join(summariesDir, 'ddc_outline_sound.dill');
+      final soundSdkSummaryPath =
+          p.join(summariesDir, 'ddc_outline_sound.dill');
       final workerDir = p.join(sdkDir, 'fakesnapshots');
       final compilerWorkerPath = p.join(workerDir, 'dartdevc.dart.snapshot');
 

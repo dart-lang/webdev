@@ -60,7 +60,8 @@ void main() {
     });
 
     test('restore after refresh', () async {
-      final firstBp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
+      final firstBp =
+          await service.addBreakpoint(isolate.id, mainScript.id, 23);
       expect(firstBp, isNotNull);
       expect(firstBp.id, isNotNull);
 
@@ -83,7 +84,8 @@ void main() {
     }, timeout: const Timeout.factor(2));
 
     test('restore after hot restart', () async {
-      final firstBp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
+      final firstBp =
+          await service.addBreakpoint(isolate.id, mainScript.id, 23);
       expect(firstBp, isNotNull);
       expect(firstBp.id, isNotNull);
 

@@ -98,7 +98,8 @@ class FrameComputer {
               callFrame.scriptId, callFrame.lineNumber,
               columnNumber: callFrame.columnNumber);
 
-          final url = callFrame.url ?? debugger.urlForScriptId(location.scriptId);
+          final url =
+              callFrame.url ?? debugger.urlForScriptId(location.scriptId);
           if (url == null) {
             _logger.severe(
                 'Failed to create dart frame for ${callFrame.functionName}: '

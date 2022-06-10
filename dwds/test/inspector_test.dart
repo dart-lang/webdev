@@ -55,8 +55,8 @@ void main() {
     test('for class with generic', () async {
       final isolateId = inspector.isolate.id;
       final remoteObject = await libraryPublicFinal();
-      final instance = await inspector.getObject(isolateId, remoteObject.objectId)
-          as Instance;
+      final instance = await inspector.getObject(
+          isolateId, remoteObject.objectId) as Instance;
       final classRef = instance.classRef;
       final clazz = await inspector.getObject(isolateId, classRef.id) as Class;
       expect(clazz.name, 'MyTestClass<dynamic>');

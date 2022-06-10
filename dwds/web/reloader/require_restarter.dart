@@ -192,8 +192,10 @@ class RequireRestarter implements Restarter {
         if (parentIds == null || parentIds.isEmpty) {
           // The bootstrap module is not reloaded but we need to update the
           // $dartRunMain reference to the newly loaded child module.
-          final childModule = callMethod(getProperty(require('dart_sdk'), 'dart'),
-              'getModuleLibraries', [previousModuleId]);
+          final childModule = callMethod(
+              getProperty(require('dart_sdk'), 'dart'),
+              'getModuleLibraries',
+              [previousModuleId]);
           dartRunMain = allowInterop(() {
             callMethod(_jsObjectValues(childModule).first, 'main', []);
           });
