@@ -17,7 +17,7 @@ class InvalidSdkConfigurationException implements Exception {
 
   @override
   String toString() {
-    var message = this.message;
+    final message = this.message;
     if (message == null) return 'Invalid SDK configuration';
     return 'Invalid SDK configuration: $message';
   }

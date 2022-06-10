@@ -59,14 +59,14 @@ class DwdsInjector {
   Middleware get middleware => (innerHandler) {
         return (Request request) async {
           if (request.url.path.endsWith('$_clientScript.js')) {
-            var uri = await Isolate.resolvePackageUri(
+            final uri = await Isolate.resolvePackageUri(
                 Uri.parse('package:$_clientScript.js'));
-            var result = await File(uri.toFilePath()).readAsString();
+            final result = await File(uri.toFilePath()).readAsString();
             return Response.ok(result, headers: {
               HttpHeaders.contentTypeHeader: 'application/javascript'
             });
           } else if (request.url.path.endsWith(bootstrapJsExtension)) {
-            var ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
+            final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
             if (ifNoneMatch != null) {
               // Disable caching of the inner hander by manually modifying the
               // if-none-match header before forwarding the request.
@@ -74,33 +74,33 @@ class DwdsInjector {
                 HttpHeaders.ifNoneMatchHeader: '$ifNoneMatch\$injected',
               });
             }
-            var response = await innerHandler(request);
+            final response = await innerHandler(request);
             if (response.statusCode == HttpStatus.notFound) return response;
             var body = await response.readAsString();
             var etag = response.headers[HttpHeaders.etagHeader];
-            var newHeaders = Map.of(response.headers);
+            final newHeaders = Map.of(response.headers);
             if (body.startsWith(entrypointExtensionMarker)) {
               // The requestedUri contains the hostname and port which guarantees
               // uniqueness.
-              var requestedUri = request.requestedUri;
-              var appId = base64
+              final requestedUri = request.requestedUri;
+              final appId = base64
                   .encode(md5.convert(utf8.encode('$requestedUri')).bytes);
               var scheme = request.requestedUri.scheme;
               if (!_useSseForInjectedClient) {
                 // Switch http->ws and https->wss.
                 scheme = scheme.replaceFirst('http', 'ws');
               }
-              var requestedUriBase = '$scheme'
+              final requestedUriBase = '$scheme'
                   '://${request.requestedUri.authority}';
               var devHandlerPath = '\$dwdsSseHandler';
-              var subPath = request.url.pathSegments.toList()..removeLast();
+              final subPath = request.url.pathSegments.toList()..removeLast();
               if (subPath.isNotEmpty) {
                 devHandlerPath = '${subPath.join('/')}/$devHandlerPath';
               }
               _logger.info('Received request for entrypoint at $requestedUri');
               devHandlerPath = '$requestedUriBase/$devHandlerPath';
               _devHandlerPaths.add(devHandlerPath);
-              var entrypoint = request.url.path;
+              final entrypoint = request.url.path;
               _loadStrategy.trackEntrypoint(entrypoint);
               body = _injectClientAndHoistMain(
                 body,
@@ -123,7 +123,7 @@ class DwdsInjector {
             }
             return response.change(body: body, headers: newHeaders);
           } else {
-            var loadResponse = await _loadStrategy.handler(request);
+            final loadResponse = await _loadStrategy.handler(request);
             if (loadResponse != null) return loadResponse;
             return innerHandler(request);
           }
@@ -143,18 +143,18 @@ String _injectClientAndHoistMain(
   bool enableDevtoolsLaunch,
   bool emitDebugEvents,
 ) {
-  var bodyLines = body.split('\n');
-  var extensionIndex =
+  final bodyLines = body.split('\n');
+  final extensionIndex =
       bodyLines.indexWhere((line) => line.contains(mainExtensionMarker));
   var result = bodyLines.sublist(0, extensionIndex).join('\n');
   // The line after the marker calls `main`. We prevent `main` from
   // being called and make it runnable through a global variable.
-  var mainFunction =
+  final mainFunction =
       bodyLines[extensionIndex + 1].replaceAll('main();', 'main').trim();
   // We inject the client in the entry point module as the client expects the
   // application to be in a ready state, that is the main function is hoisted
   // and the Dart SDK is loaded.
-  var injectedClientSnippet = _injectedClientSnippet(
+  final injectedClientSnippet = _injectedClientSnippet(
     appId,
     devHandlerPath,
     entrypointPath,

@@ -100,7 +100,7 @@ void main() async {
     pausedController = StreamController<DebuggerPausedEvent>();
     webkitDebugger.onPaused = pausedController.stream;
     globalLoadStrategy = TestStrategy();
-    var root = 'fakeRoot';
+    final root = 'fakeRoot';
     locations = Locations(FakeAssetReader(), FakeModules(), root);
     skipLists = SkipLists();
     debugger = await Debugger.create(
@@ -117,17 +117,17 @@ void main() async {
   /// Test that we get expected variable values from a hard-coded
   /// stack frame.
   test('frames 1', () async {
-    var stackComputer = FrameComputer(debugger, frames1);
-    var frames = await stackComputer.calculateFrames();
+    final stackComputer = FrameComputer(debugger, frames1);
+    final frames = await stackComputer.calculateFrames();
     expect(frames, isNotNull);
 
-    var firstFrame = frames[0];
-    var frame1Variables = firstFrame.vars.map((each) => each.name).toList();
+    final firstFrame = frames[0];
+    final frame1Variables = firstFrame.vars.map((each) => each.name).toList();
     expect(frame1Variables, ['a', 'b']);
   });
 
   test('creates async frames', () async {
-    var stackComputer = FrameComputer(
+    final stackComputer = FrameComputer(
       debugger,
       [sampleSyncFrame],
       asyncStackTrace: StackTrace({
@@ -138,7 +138,7 @@ void main() async {
       }),
     );
 
-    var frames = await stackComputer.calculateFrames();
+    final frames = await stackComputer.calculateFrames();
     expect(frames, hasLength(5));
 
     expect(frames[0].kind, FrameKind.kRegular);
@@ -149,7 +149,7 @@ void main() async {
   });
 
   test('elides multiple async frames', () async {
-    var stackComputer = FrameComputer(
+    final stackComputer = FrameComputer(
       debugger,
       [sampleSyncFrame],
       asyncStackTrace: StackTrace({
@@ -166,7 +166,7 @@ void main() async {
       }),
     );
 
-    var frames = await stackComputer.calculateFrames();
+    final frames = await stackComputer.calculateFrames();
     expect(frames, hasLength(5));
 
     expect(frames[0].kind, FrameKind.kRegular);

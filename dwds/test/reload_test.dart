@@ -19,7 +19,7 @@ final context = TestContext(
 
 void main() {
   // set to true for debug logging.
-  var debug = false;
+  final debug = false;
   group('Injected client with live reload', () {
     group('and with debugging', () {
       setUp(() async {
@@ -36,7 +36,7 @@ void main() {
       test('can live reload changes ', () async {
         await context.changeInput();
 
-        var source = await context.webDriver.pageSource;
+        final source = await context.webDriver.pageSource;
 
         // A full reload should clear the state.
         expect(source.contains('Hello World!'), isFalse);
@@ -60,7 +60,7 @@ void main() {
       test('can live reload changes ', () async {
         await context.changeInput();
 
-        var source = await context.webDriver.pageSource;
+        final source = await context.webDriver.pageSource;
 
         // A full reload should clear the state.
         expect(source.contains('Hello World!'), isFalse);
@@ -85,7 +85,7 @@ void main() {
       test('can live reload changes ', () async {
         await context.changeInput();
 
-        var source = await context.webDriver.pageSource;
+        final source = await context.webDriver.pageSource;
 
         // A full reload should clear the state.
         expect(source.contains('Hello World!'), isFalse);
@@ -105,11 +105,11 @@ void main() {
     });
 
     test('destroys and recreates the isolate during a hot restart', () async {
-      var client = context.debugConnection.vmService;
+      final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
       await context.changeInput();
 
-      var eventsDone = expectLater(
+      final eventsDone = expectLater(
           client.onIsolateEvent,
           emitsThrough(emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
@@ -124,11 +124,11 @@ void main() {
     });
 
     test('destroys and recreates the isolate during a page refresh', () async {
-      var client = context.debugConnection.vmService;
+      final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
       await context.changeInput();
 
-      var eventsDone = expectLater(
+      final eventsDone = expectLater(
           client.onIsolateEvent,
           emitsThrough(emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
@@ -142,11 +142,11 @@ void main() {
     });
 
     test('can hot restart via the service extension', () async {
-      var client = context.debugConnection.vmService;
+      final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
       await context.changeInput();
 
-      var eventsDone = expectLater(
+      final eventsDone = expectLater(
           client.onIsolateEvent,
           emitsThrough(emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
@@ -159,20 +159,20 @@ void main() {
 
       await eventsDone;
 
-      var source = await context.webDriver.pageSource;
+      final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
       expect(source, contains('Hello World!'));
       expect(source, contains('Gary is awesome!'));
     });
 
     test('can send events before and after hot restart', () async {
-      var client = context.debugConnection.vmService;
+      final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
 
       // The event just before hot restart might never be received,
       // but the injected client continues to work and send events
       // after hot restart.
-      var eventsDone = expectLater(
+      final eventsDone = expectLater(
           client.onIsolateEvent,
           emitsThrough(
             _hasKind(EventKind.kServiceExtensionAdded)
@@ -206,17 +206,17 @@ void main() {
 
       await eventsDone;
 
-      var source = await context.webDriver.pageSource;
+      final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
       expect(source, contains('Hello World!'));
     });
 
     test('can refresh the page via the fullReload service extension', () async {
-      var client = context.debugConnection.vmService;
+      final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
       await context.changeInput();
 
-      var eventsDone = expectLater(
+      final eventsDone = expectLater(
           client.onIsolateEvent,
           emitsThrough(emitsInOrder([
             _hasKind(EventKind.kIsolateExit),
@@ -228,22 +228,22 @@ void main() {
 
       await eventsDone;
 
-      var source = await context.webDriver.pageSource;
+      final source = await context.webDriver.pageSource;
       // Should see only the new text
       expect(source, isNot(contains('Hello World!')));
       expect(source, contains('Gary is awesome!'));
     });
 
     test('can hot restart while paused', () async {
-      var client = context.debugConnection.vmService;
+      final client = context.debugConnection.vmService;
       var vm = await client.getVM();
       var isolateId = vm.isolates.first.id;
       await client.streamListen('Debug');
-      var stream = client.onEvent('Debug');
-      var scriptList = await client.getScripts(isolateId);
-      var main = scriptList.scripts
+      final stream = client.onEvent('Debug');
+      final scriptList = await client.getScripts(isolateId);
+      final main = scriptList.scripts
           .firstWhere((script) => script.uri.contains('main.dart'));
-      var bpLine =
+      final bpLine =
           await context.findBreakpointLine('printCount', isolateId, main);
       await client.addBreakpoint(isolateId, main.id, bpLine);
       await stream
@@ -251,7 +251,7 @@ void main() {
 
       await context.changeInput();
       await client.callServiceExtension('hotRestart');
-      var source = await context.webDriver.pageSource;
+      final source = await context.webDriver.pageSource;
 
       // Main is re-invoked which shouldn't clear the state.
       expect(source.contains('Hello World!'), isTrue);
@@ -259,11 +259,11 @@ void main() {
 
       vm = await client.getVM();
       isolateId = vm.isolates.first.id;
-      var isolate = await client.getIsolate(isolateId);
+      final isolate = await client.getIsolate(isolateId);
 
       // Previous breakpoint should still exist.
       expect(isolate.breakpoints.isNotEmpty, isTrue);
-      var bp = isolate.breakpoints.first;
+      final bp = isolate.breakpoints.first;
 
       // Should pause eventually.
       await stream
@@ -274,15 +274,15 @@ void main() {
     });
 
     test('can evaluate expressions after hot restart ', () async {
-      var client = context.debugConnection.vmService;
+      final client = context.debugConnection.vmService;
       var vm = await client.getVM();
       var isolateId = vm.isolates.first.id;
       await client.streamListen('Debug');
-      var stream = client.onEvent('Debug');
-      var scriptList = await client.getScripts(isolateId);
-      var main = scriptList.scripts
+      final stream = client.onEvent('Debug');
+      final scriptList = await client.getScripts(isolateId);
+      final main = scriptList.scripts
           .firstWhere((script) => script.uri.contains('main.dart'));
-      var bpLine =
+      final bpLine =
           await context.findBreakpointLine('printCount', isolateId, main);
       await client.addBreakpoint(isolateId, main.id, bpLine);
       await stream
@@ -292,12 +292,12 @@ void main() {
 
       vm = await client.getVM();
       isolateId = vm.isolates.first.id;
-      var isolate = await client.getIsolate(isolateId);
-      var library = isolate.rootLib.uri;
-      var bp = isolate.breakpoints.first;
+      final isolate = await client.getIsolate(isolateId);
+      final library = isolate.rootLib.uri;
+      final bp = isolate.breakpoints.first;
 
       // Should pause eventually.
-      var event = await stream
+      final event = await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
       // Expression evaluation while paused on a breakpoint should work.
@@ -336,7 +336,7 @@ void main() {
       test('can hot restart changes ', () async {
         await context.changeInput();
 
-        var source = await context.webDriver.pageSource;
+        final source = await context.webDriver.pageSource;
 
         // Main is re-invoked which shouldn't clear the state.
         expect(source.contains('Hello World!'), isTrue);
@@ -347,10 +347,10 @@ void main() {
       });
 
       test('fires isolate create/destroy events during hot restart', () async {
-        var client = context.debugConnection.vmService;
+        final client = context.debugConnection.vmService;
         await client.streamListen('Isolate');
 
-        var eventsDone = expectLater(
+        final eventsDone = expectLater(
             client.onIsolateEvent,
             emitsThrough(emitsInOrder([
               _hasKind(EventKind.kIsolateExit),
@@ -380,7 +380,7 @@ void main() {
       test('can hot restart changes ', () async {
         await context.changeInput();
 
-        var source = await context.webDriver.pageSource;
+        final source = await context.webDriver.pageSource;
 
         // Main is re-invoked which shouldn't clear the state.
         expect(source.contains('Hello World!'), isTrue);

@@ -21,7 +21,7 @@ Future<List<Property>> visibleProperties({
   Debugger debugger,
   WipCallFrame frame,
 }) async {
-  var allProperties = <Property>[];
+  final allProperties = <Property>[];
 
   if (frame.thisObject != null && frame.thisObject.type != 'undefined') {
     allProperties.add(
@@ -71,7 +71,7 @@ Future<List<Property>> visibleProperties({
 /// Filters the provided frame scopes to those that are pertinent for Dart
 /// debugging.
 List<WipScope> filterScopes(WipCallFrame frame) {
-  var scopes = frame.getScopeChain().toList();
+  final scopes = frame.getScopeChain().toList();
   // Remove outer scopes up to and including the Dart SDK.
   while (
       scopes.isNotEmpty && !(scopes.last.name?.startsWith('load__') ?? false)) {

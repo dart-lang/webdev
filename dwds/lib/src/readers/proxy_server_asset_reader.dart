@@ -28,8 +28,8 @@ class ProxyServerAssetReader implements AssetReader {
     host ??= 'localhost';
     root ??= '';
     isHttps ??= false;
-    var scheme = isHttps ? 'https://' : 'http://';
-    var inner = HttpClient()
+    final scheme = isHttps ? 'https://' : 'http://';
+    final inner = HttpClient()
       ..maxConnectionsPerHost = 200
       ..idleTimeout = const Duration(seconds: 30)
       ..connectionTimeout = const Duration(seconds: 30);
@@ -52,7 +52,7 @@ class ProxyServerAssetReader implements AssetReader {
   Future<String> _readResource(String path) async {
     // Handlers expect a fully formed HTML URI. The actual hostname and port
     // does not matter.
-    var response =
+    final response =
         await _handler(Request('GET', Uri.parse('http://foo:0000/$path')));
 
     if (response.statusCode != HttpStatus.ok) {

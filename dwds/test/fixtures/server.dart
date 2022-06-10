@@ -83,8 +83,8 @@ class TestServer {
 
     pipeline = pipeline.addMiddleware(_interceptFavicon);
 
-    var filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
-      var result =
+    final filteredBuildResults = buildResults.asyncMap<BuildResult>((results) {
+      final result =
           results.results.firstWhere((result) => result.target == target);
       switch (result.status) {
         case daemon.BuildStatus.started:
@@ -97,7 +97,7 @@ class TestServer {
       throw StateError('Unexpected Daemon build result: $result');
     });
 
-    var dwds = await Dwds.start(
+    final dwds = await Dwds.start(
         assetReader: assetReader,
         buildResults: filteredBuildResults,
         chromeConnection: chromeConnection,
@@ -113,7 +113,7 @@ class TestServer {
         expressionCompiler: expressionCompiler,
         devtoolsLauncher: serveDevTools
             ? (hostname) async {
-                var server = await DevToolsServer().serveDevTools(
+                final server = await DevToolsServer().serveDevTools(
                   hostname: hostname,
                   enableStdinCommands: false,
                   customDevToolsPath: devToolsPath,
@@ -122,7 +122,7 @@ class TestServer {
               }
             : null);
 
-    var server = await startHttpServer('localhost', port: port);
+    final server = await startHttpServer('localhost', port: port);
     var cascade = Cascade();
 
     cascade = cascade.add(dwds.handler).add(assetHandler);
@@ -153,18 +153,18 @@ class TestServer {
   /// [Middleware] that logs all requests, inspired by [logRequests].
   static Handler _logRequests(Handler innerHandler) {
     return (Request request) async {
-      var watch = Stopwatch()..start();
+      final watch = Stopwatch()..start();
       try {
-        var response = await innerHandler(request);
-        var logFn =
+        final response = await innerHandler(request);
+        final logFn =
             response.statusCode >= 500 ? _logger.warning : _logger.finest;
-        var msg = _requestLabel(response.statusCode, request.requestedUri,
+        final msg = _requestLabel(response.statusCode, request.requestedUri,
             request.method, watch.elapsed);
         logFn(msg);
         return response;
       } catch (error, stackTrace) {
         if (error is HijackException) rethrow;
-        var msg = _requestLabel(
+        final msg = _requestLabel(
             500, request.requestedUri, request.method, watch.elapsed);
         _logger.severe(msg, error, stackTrace);
         rethrow;

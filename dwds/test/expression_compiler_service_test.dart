@@ -56,7 +56,7 @@ void main() async {
 
       // start asset server
       server = await startHttpServer('localhost');
-      var port = server.port;
+      final port = server.port;
 
       // start expression compilation service
       Response assetHandler(request) =>
@@ -147,7 +147,7 @@ void main() async {
       expect(output.stream,
           emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')));
 
-      var result = await service
+      final result = await service
           .updateDependencies({'try': ModuleInfo('try.full.dill', 'try.dill')});
       expect(result, true, reason: 'failed to update dependencies');
 

@@ -93,9 +93,9 @@ class TestContext {
       String entry,
       this.path = 'hello_world/index.html',
       this.pathToServe = 'example'}) {
-    var relativeDirectory = p.join('..', 'fixtures', '_test');
+    final relativeDirectory = p.join('..', 'fixtures', '_test');
 
-    var relativeEntry = p.join(
+    final relativeEntry = p.join(
         '..', 'fixtures', '_test', 'example', 'append_body', 'main.dart');
 
     workingDirectory = p.normalize(p
@@ -105,7 +105,7 @@ class TestContext {
     _packagesFilePath =
         p.join(workingDirectory, '.dart_tool/package_config.json');
 
-    var entryFilePath = p.normalize(
+    final entryFilePath = p.normalize(
         p.absolute(entry ?? p.relative(relativeEntry, from: p.current)));
 
     _logger.info('Serving: $pathToServe/$path');
@@ -157,11 +157,11 @@ class TestContext {
         ..idleTimeout = const Duration(seconds: 30)
         ..connectionTimeout = const Duration(seconds: 30));
 
-      var systemTempDir = Directory.systemTemp;
+      final systemTempDir = Directory.systemTemp;
       _outputDir = systemTempDir.createTempSync('foo bar');
 
-      var chromeDriverPort = await findUnusedPort();
-      var chromeDriverUrlBase = 'wd/hub';
+      final chromeDriverPort = await findUnusedPort();
+      final chromeDriverUrlBase = 'wd/hub';
       try {
         chromeDriver = await Process.start('chromedriver$_exeExt',
             ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase']);
@@ -201,7 +201,7 @@ class TestContext {
       switch (compilationMode) {
         case CompilationMode.buildDaemon:
           {
-            var options = [
+            final options = [
               if (enableExpressionEvaluation) ...[
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
@@ -210,8 +210,8 @@ class TestContext {
             ];
             daemonClient =
                 await connectClient(workingDirectory, options, (log) {
-              var record = log.toLogRecord();
-              var name =
+              final record = log.toLogRecord();
+              final name =
                   record.loggerName == '' ? '' : '${record.loggerName}: ';
               _logger.log(record.level, '$name${record.message}', record.error,
                   record.stackTrace);
@@ -225,7 +225,7 @@ class TestContext {
                     .any((result) => result.status == BuildStatus.succeeded))
                 .timeout(const Duration(seconds: 60));
 
-            var assetServerPort = daemonPort(workingDirectory);
+            final assetServerPort = daemonPort(workingDirectory);
             assetHandler = proxyHandler(
                 'http://localhost:$assetServerPort/$pathToServe/',
                 client: client);
@@ -254,8 +254,8 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
-            var projectDirectory = p.dirname(p.dirname(_packagesFilePath));
-            var entryPath =
+            final projectDirectory = p.dirname(p.dirname(_packagesFilePath));
+            final entryPath =
                 _entryFile.path.substring(projectDirectory.length + 1);
             webRunner = ResidentWebRunner(
                 '${Uri.file(entryPath)}',
@@ -267,7 +267,7 @@ class TestContext {
                 soundNullSafety,
                 verboseCompiler);
 
-            var assetServerPort = await findUnusedPort();
+            final assetServerPort = await findUnusedPort();
             await webRunner.run(hostname, assetServerPort, pathToServe);
 
             if (enableExpressionEvaluation) {
@@ -288,14 +288,14 @@ class TestContext {
           throw Exception('Unsupported compilation mode: $compilationMode');
       }
 
-      var debugPort = await findUnusedPort();
+      final debugPort = await findUnusedPort();
       // If the environment variable DWDS_DEBUG_CHROME is set to the string true
       // then Chrome will be launched with a UI rather than headless.
       // If the extension is enabled, then Chrome will be launched with a UI
       // since headless Chrome does not support extensions.
-      var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
+      final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
           !enableDebugExtension;
-      var capabilities = Capabilities.chrome
+      final capabilities = Capabilities.chrome
         ..addAll({
           Capabilities.chromeOptions: {
             'args': [
@@ -310,7 +310,7 @@ class TestContext {
           desired: capabilities,
           uri: Uri.parse(
               'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
-      var connection = ChromeConnection('localhost', debugPort);
+      final connection = ChromeConnection('localhost', debugPort);
 
       testServer = await TestServer.start(
         hostname,
@@ -335,13 +335,13 @@ class TestContext {
 
       appUrl = 'http://localhost:$port/$path';
       await webDriver.get(appUrl);
-      var tab = await connection.getTab((t) => t.url == appUrl);
+      final tab = await connection.getTab((t) => t.url == appUrl);
       tabConnection = await tab.connect();
       await tabConnection.runtime.enable();
       await tabConnection.debugger.enable();
 
       if (enableDebugExtension) {
-        var extensionTab = await _fetchDartDebugExtensionTab(connection);
+        final extensionTab = await _fetchDartDebugExtensionTab(connection);
         extensionConnection = await extensionTab.connect();
         await extensionConnection.runtime.enable();
       }
@@ -395,7 +395,7 @@ class TestContext {
 
     // Allow change to propagate to the browser.
     // Windows, or at least Travis on Windows, seems to need more time.
-    var delay = Platform.isWindows
+    final delay = Platform.isWindows
         ? const Duration(seconds: 5)
         : const Duration(seconds: 2);
     await Future.delayed(delay);
@@ -403,12 +403,12 @@ class TestContext {
 
   Future<ChromeTab> _fetchDartDebugExtensionTab(
       ChromeConnection connection) async {
-    var extensionTabs = (await connection.getTabs()).where((tab) {
+    final extensionTabs = (await connection.getTabs()).where((tab) {
       return tab.isChromeExtension;
     });
     for (var tab in extensionTabs) {
-      var tabConnection = await tab.connect();
-      var response =
+      final tabConnection = await tab.connect();
+      final response =
           await tabConnection.runtime.evaluate('window.isDartDebugExtension');
       if (response.value == true) {
         return tab;
@@ -425,10 +425,10 @@ class TestContext {
   /// Throws if it can't find the matching line.
   Future<int> findBreakpointLine(
       String breakpointId, String isolateId, ScriptRef scriptRef) async {
-    var script = await debugConnection.vmService
+    final script = await debugConnection.vmService
         .getObject(isolateId, scriptRef.id) as Script;
-    var lines = LineSplitter.split(script.source).toList();
-    var lineNumber =
+    final lines = LineSplitter.split(script.source).toList();
+    final lineNumber =
         lines.indexWhere((l) => l.endsWith('// Breakpoint: $breakpointId'));
     if (lineNumber == -1) {
       throw StateError('Unable to find breakpoint in ${scriptRef.uri} with id '

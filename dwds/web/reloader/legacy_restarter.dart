@@ -13,7 +13,7 @@ import 'restarter.dart';
 class LegacyRestarter implements Restarter {
   @override
   Future<bool> restart({String runId}) async {
-    var dartLibrary = context['dart_library'] as JsObject;
+    final dartLibrary = context['dart_library'] as JsObject;
     if (runId == null) {
       dartLibrary.callMethod('reload');
     } else {
@@ -21,10 +21,10 @@ class LegacyRestarter implements Restarter {
         JsObject.jsify({'runId': runId})
       ]);
     }
-    var reloadCompleter = Completer<bool>();
+    final reloadCompleter = Completer<bool>();
     StreamSubscription sub;
     sub = window.onMessage.listen((event) {
-      var message = event.data;
+      final message = event.data;
       if (message is Map &&
           message['type'] == 'DDC_STATE_CHANGE' &&
           message['state'] == 'restart_end') {

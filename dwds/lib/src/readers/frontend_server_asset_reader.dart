@@ -52,17 +52,17 @@ class FrontendServerAssetReader implements AssetReader {
   @override
   Future<String> dartSourceContents(String serverPath) async {
     if (!serverPath.endsWith('.dart')) return null;
-    var packageConfig = await _packageConfig;
+    final packageConfig = await _packageConfig;
 
     Uri fileUri;
     if (serverPath.startsWith('packages/')) {
-      var packagePath = serverPath.replaceFirst('packages/', 'package:');
+      final packagePath = serverPath.replaceFirst('packages/', 'package:');
       fileUri = packageConfig.resolve(Uri.parse(packagePath));
     } else {
       fileUri = p.toUri(p.join(_packageRoot, serverPath));
     }
 
-    var source = File(fileUri.toFilePath());
+    final source = File(fileUri.toFilePath());
     if (!await source.exists()) return null;
     return await source.readAsString();
   }
@@ -91,11 +91,11 @@ class FrontendServerAssetReader implements AssetReader {
     if (!(await map.exists() && await json.exists())) {
       throw StateError('$map and $json do not exist.');
     }
-    var sourceContents = await map.readAsBytes();
-    var sourceInfo =
+    final sourceContents = await map.readAsBytes();
+    final sourceInfo =
         jsonDecode(await json.readAsString()) as Map<String, dynamic>;
     for (var key in sourceInfo.keys) {
-      var info = sourceInfo[key];
+      final info = sourceInfo[key];
       _mapContents[key] = utf8.decode(sourceContents
           .getRange(
             info['sourcemap'][0] as int,

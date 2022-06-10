@@ -49,7 +49,7 @@ class FrontendServerRequireStrategyProvider {
 
   Future<String> _moduleForServerPath(
       MetadataProvider metadataProvider, String serverPath) async {
-    var modulePathToModule = await metadataProvider.modulePathToModule;
+    final modulePathToModule = await metadataProvider.modulePathToModule;
     return modulePathToModule[_removeBasePath(serverPath)];
   }
 
@@ -70,10 +70,10 @@ class FrontendServerRequireStrategyProvider {
 
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
       MetadataProvider metadataProvider) async {
-    var modules = await metadataProvider.moduleToModulePath;
-    var result = <String, ModuleInfo>{};
+    final modules = await metadataProvider.moduleToModulePath;
+    final result = <String, ModuleInfo>{};
     for (var module in modules.keys) {
-      var modulePath = modules[module];
+      final modulePath = modules[module];
       result[module] = ModuleInfo(
           // TODO: Save locations of full kernel files in ddc metadata.
           // Issue: https://github.com/dart-lang/sdk/issues/43684

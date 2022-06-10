@@ -20,7 +20,7 @@ class DwdsStats {
   /// Records and returns weither the debugger is ready.
   bool _isFirstDebuggerReady = true;
   bool get isFirstDebuggerReady {
-    var wasReady = _isFirstDebuggerReady;
+    final wasReady = _isFirstDebuggerReady;
     _isFirstDebuggerReady = false;
     return wasReady;
   }
@@ -141,7 +141,7 @@ Stream<DwdsEvent> get eventStream => _eventController.stream;
 /// available.
 Future<T> captureElapsedTime<T>(
     Future<T> Function() function, DwdsEvent Function(T result) event) async {
-  var stopwatch = Stopwatch()..start();
+  final stopwatch = Stopwatch()..start();
   T result;
   try {
     return result = await function();
