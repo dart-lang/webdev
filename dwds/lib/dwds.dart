@@ -89,7 +89,7 @@ class Dwds {
 
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
     if (!_enableDebugging) throw StateError('Debugging is not enabled.');
-    var appDebugServices = await _devHandler.loadAppServices(appConnection);
+    final appDebugServices = await _devHandler.loadAppServices(appConnection);
     await appDebugServices.chromeProxyService.isInitialized;
     return DebugConnection(appDebugServices);
   }
@@ -155,15 +155,15 @@ class Dwds {
       if (urlEncoder != null) extensionUri = urlEncoder(await extensionUri);
     }
 
-    var serveDevTools = devtoolsLauncher != null;
+    final serveDevTools = devtoolsLauncher != null;
     if (serveDevTools) {
       devTools = await devtoolsLauncher(hostname);
-      var uri =
+      final uri =
           Uri(scheme: 'http', host: devTools.hostname, port: devTools.port);
       _logger.info('Serving DevTools at $uri\n');
     }
 
-    var injected = DwdsInjector(
+    final injected = DwdsInjector(
       loadStrategy,
       useSseForInjectedClient: useSseForInjectedClient,
       extensionUri: extensionUri,
@@ -171,7 +171,7 @@ class Dwds {
       emitDebugEvents: emitDebugEvents,
     );
 
-    var devHandler = DevHandler(
+    final devHandler = DevHandler(
       chromeConnection,
       buildResults,
       devTools,

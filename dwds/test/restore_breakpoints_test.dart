@@ -60,11 +60,11 @@ void main() {
     });
 
     test('restore after refresh', () async {
-      var firstBp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
+      final firstBp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
       expect(firstBp, isNotNull);
       expect(firstBp.id, isNotNull);
 
-      var eventsDone = expectLater(
+      final eventsDone = expectLater(
           isolateEventStream,
           emitsThrough(emitsInOrder([
             predicate((Event event) => event.kind == EventKind.kIsolateExit),
@@ -83,11 +83,11 @@ void main() {
     }, timeout: const Timeout.factor(2));
 
     test('restore after hot restart', () async {
-      var firstBp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
+      final firstBp = await service.addBreakpoint(isolate.id, mainScript.id, 23);
       expect(firstBp, isNotNull);
       expect(firstBp.id, isNotNull);
 
-      var eventsDone = expectLater(
+      final eventsDone = expectLater(
           isolateEventStream,
           emits(emitsInOrder([
             predicate((Event event) => event.kind == EventKind.kIsolateExit),

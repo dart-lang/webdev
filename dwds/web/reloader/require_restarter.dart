@@ -101,7 +101,7 @@ class RequireRestarter implements Restarter {
 
   @override
   Future<bool> restart({String runId}) async {
-    var developer = getProperty(require('dart_sdk'), 'developer');
+    final developer = getProperty(require('dart_sdk'), 'developer');
     if (callMethod(getProperty(developer, '_extensions'), 'containsKey',
         ['ext.flutter.disassemble']) as bool) {
       await toFuture(callMethod(
@@ -109,8 +109,8 @@ class RequireRestarter implements Restarter {
           as Promise<void>);
     }
 
-    var newDigests = await _getDigests();
-    var modulesToLoad = <String>[];
+    final newDigests = await _getDigests();
+    final modulesToLoad = <String>[];
     for (var moduleId in newDigests.keys) {
       if (!_lastKnownDigests.containsKey(moduleId)) {
         print('Error during script reloading, refreshing the page. \n'
@@ -135,7 +135,7 @@ class RequireRestarter implements Restarter {
   List<String> _allModules() => keys(requireLoader.moduleParentsGraph);
 
   Future<Map<String, String>> _getDigests() async {
-    var request = await HttpRequest.request(requireLoader.digestsPath,
+    final request = await HttpRequest.request(requireLoader.digestsPath,
         responseType: 'json', method: 'GET');
     return (request.response as Map).cast<String, String>();
   }
@@ -154,7 +154,7 @@ class RequireRestarter implements Restarter {
     final order2 = _moduleOrdering[module2];
 
     if (order1 == null || order2 == null) {
-      var missing = order1 == null ? module1 : module2;
+      final missing = order1 == null ? module1 : module2;
       throw HotReloadFailedException(
           'Unable to fetch ordering info for module: $missing');
     }
@@ -185,14 +185,14 @@ class RequireRestarter implements Restarter {
       _dirtyModules.addAll(modules);
       String previousModuleId;
       while (_dirtyModules.isNotEmpty) {
-        var moduleId = _dirtyModules.first;
+        final moduleId = _dirtyModules.first;
         _dirtyModules.remove(moduleId);
-        var parentIds = _moduleParents(moduleId);
+        final parentIds = _moduleParents(moduleId);
         // Check if this is the root / bootstrap module.
         if (parentIds == null || parentIds.isEmpty) {
           // The bootstrap module is not reloaded but we need to update the
           // $dartRunMain reference to the newly loaded child module.
-          var childModule = callMethod(getProperty(require('dart_sdk'), 'dart'),
+          final childModule = callMethod(getProperty(require('dart_sdk'), 'dart'),
               'getModuleLibraries', [previousModuleId]);
           dartRunMain = allowInterop(() {
             callMethod(_jsObjectValues(childModule).first, 'main', []);
@@ -216,8 +216,8 @@ class RequireRestarter implements Restarter {
   }
 
   Future<void> _reloadModule(String moduleId) {
-    var completer = Completer();
-    var stackTrace = StackTrace.current;
+    final completer = Completer();
+    final stackTrace = StackTrace.current;
     requireLoader.forceLoadModule(moduleId, allowInterop(() {
       completer.complete();
     }),
@@ -231,8 +231,8 @@ class RequireRestarter implements Restarter {
   }
 
   void _updateGraph() {
-    var allModules = _allModules();
-    var stronglyConnectedComponents =
+    final allModules = _allModules();
+    final stronglyConnectedComponents =
         graphs.stronglyConnectedComponents(allModules, _moduleParents);
     _moduleOrdering.clear();
     for (var i = 0; i < stronglyConnectedComponents.length; i++) {
@@ -243,7 +243,7 @@ class RequireRestarter implements Restarter {
   }
 
   static Future<RequireRestarter> create() async {
-    var reloader = RequireRestarter._();
+    final reloader = RequireRestarter._();
     await reloader._initialize();
     return reloader;
   }

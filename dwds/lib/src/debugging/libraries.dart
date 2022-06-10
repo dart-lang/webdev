@@ -30,7 +30,7 @@ class LibraryHelper extends Domain {
     if (_rootLib != null) return _rootLib;
     // TODO: read entrypoint from app metadata.
     // Issue: https://github.com/dart-lang/webdev/issues/1290
-    var libraries = await libraryRefs;
+    final libraries = await libraryRefs;
     _rootLib = libraries.firstWhere((lib) => lib.name.contains('org-dartlang'),
         orElse: () => null);
     _rootLib = _rootLib ??
@@ -45,7 +45,7 @@ class LibraryHelper extends Domain {
   /// Note this can return a cached result.
   Future<List<LibraryRef>> get libraryRefs async {
     if (_libraryRefsById.isNotEmpty) return _libraryRefsById.values.toList();
-    var libraries = await globalLoadStrategy
+    final libraries = await globalLoadStrategy
         .metadataProviderFor(inspector.appConnection.request.entrypointPath)
         .libraries;
     for (var library in libraries) {
@@ -56,7 +56,7 @@ class LibraryHelper extends Domain {
   }
 
   Future<Library> libraryFor(LibraryRef libraryRef) async {
-    var library = _librariesById[libraryRef.id];
+    final library = _librariesById[libraryRef.id];
     if (library != null) return library;
     return _librariesById[libraryRef.id] = await _constructLibrary(libraryRef);
   }
@@ -68,7 +68,7 @@ class LibraryHelper extends Domain {
 
   Future<Library> _constructLibrary(LibraryRef libraryRef) async {
     // Fetch information about all the classes in this library.
-    var expression = '''
+    final expression = '''
     (function() {
       ${globalLoadStrategy.loadLibrarySnippet(libraryRef.uri)}
       var result = {};
@@ -87,7 +87,7 @@ class LibraryHelper extends Domain {
       return result;
     })()
     ''';
-    var result =
+    final result =
         await inspector.remoteDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
       'returnByValue': true,
@@ -102,11 +102,11 @@ class LibraryHelper extends Domain {
       _logger.warning('Library ${libraryRef.uri} is not loaded. '
           'This can happen for unreferenced libraries.');
     } else {
-      var classDescriptors =
+      final classDescriptors =
           (result.result['result']['value']['classes'] as List)
               .cast<Map<String, Object>>();
       classRefs = classDescriptors.map<ClassRef>((classDescriptor) {
-        var classMetaData = ClassMetaData(
+        final classMetaData = ClassMetaData(
             jsName: classDescriptor['name'],
             libraryId: libraryRef.id,
             dartName: classDescriptor['dartName']);

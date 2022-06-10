@@ -29,7 +29,7 @@ Map<String, Object> callArgumentFor(Object argument) {
 
 /// True if [remote] represents a primitive
 bool _isPrimitive(RemoteObject remote) {
-  var id = remote.objectId;
+  final id = remote.objectId;
   return id == null || isStringId(id) || id.startsWith('objects/');
 }
 
@@ -51,7 +51,7 @@ List<RemoteObject> remoteObjectsFor(Iterable<String> dartIds) {
 /// InstanceRef identifier in the protocol. Libraries aren't first class, and
 /// must be handled separately.
 RemoteObject remoteObjectFor(String dartId) {
-  var data = <String, Object>{};
+  final data = <String, Object>{};
   data['objectId'] = dartId;
   if (isStringId(dartId)) {
     data['type'] = 'string';
@@ -98,7 +98,7 @@ String dartIdFor(Object argument) {
     return argument.objectId;
   }
   if (argument is Map<String, dynamic>) {
-    var id = argument['objectId'] as String;
+    final id = argument['objectId'] as String;
     if (id == null) {
       throw ArgumentError.value(argument, 'objectId', 'No objectId found');
     }

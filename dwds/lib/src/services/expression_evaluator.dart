@@ -87,21 +87,21 @@ class ExpressionEvaluator {
       return _createError(ErrorKind.invalidInput, expression);
     }
 
-    var module = await _modules.moduleForlibrary(libraryUri);
+    final module = await _modules.moduleForlibrary(libraryUri);
 
     if (scope != null && scope.isNotEmpty) {
-      var params = scope.keys.join(', ');
+      final params = scope.keys.join(', ');
       expression = '($params) => $expression';
     }
     _logger.finest('Evaluating "$expression" at $module');
 
     // Compile expression using an expression compiler, such as
     // frontend server or expression compiler worker.
-    var compilationResult = await _compiler.compileExpressionToJs(
+    final compilationResult = await _compiler.compileExpressionToJs(
         isolateId, libraryUri.toString(), 0, 0, {}, {}, module, expression);
 
-    var isError = compilationResult.isError;
-    var jsResult = compilationResult.result;
+    final isError = compilationResult.isError;
+    final jsResult = compilationResult.result;
     if (isError) {
       return _formatCompilationError(jsResult);
     }
@@ -112,9 +112,9 @@ class ExpressionEvaluator {
       // Strip try/catch.
       // TODO: remove adding try/catch block in expression compiler.
       // https://github.com/dart-lang/webdev/issues/1341
-      var lines = jsResult.split('\n');
-      var inner = lines.getRange(2, lines.length - 3).join('\n');
-      var function = 'function(t) {'
+      final lines = jsResult.split('\n');
+      final inner = lines.getRange(2, lines.length - 3).join('\n');
+      final function = 'function(t) {'
           '  return $inner(t);'
           '}';
       result = await _inspector.callFunction(function, scope.values);
@@ -152,7 +152,7 @@ class ExpressionEvaluator {
     }
 
     // Get JS scope and current JS location.
-    var jsFrame = _inspector.debugger.jsFrameForIndex(frameIndex);
+    final jsFrame = _inspector.debugger.jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
       return _createError(
           ErrorKind.internal,
@@ -160,15 +160,15 @@ class ExpressionEvaluator {
           'is not supported. No frame with index $frameIndex.');
     }
 
-    var functionName = jsFrame.functionName;
-    var jsLine = jsFrame.location.lineNumber;
-    var jsScriptId = jsFrame.location.scriptId;
-    var jsColumn = jsFrame.location.columnNumber;
-    var jsScope = await _collectLocalJsScope(jsFrame);
+    final functionName = jsFrame.functionName;
+    final jsLine = jsFrame.location.lineNumber;
+    final jsScriptId = jsFrame.location.scriptId;
+    final jsColumn = jsFrame.location.columnNumber;
+    final jsScope = await _collectLocalJsScope(jsFrame);
 
     // Find corresponding dart location and scope.
-    var url = _urlForScriptId(jsScriptId);
-    var locationMap = await _locations.locationForJs(url, jsLine, jsColumn);
+    final url = _urlForScriptId(jsScriptId);
+    final locationMap = await _locations.locationForJs(url, jsLine, jsColumn);
     if (locationMap == null) {
       return _createError(
           ErrorKind.internal,
@@ -179,11 +179,11 @@ class ExpressionEvaluator {
           'column: $jsColumn');
     }
 
-    var dartLocation = locationMap.dartLocation;
-    var libraryUri =
+    final dartLocation = locationMap.dartLocation;
+    final libraryUri =
         await _modules.libraryForSource(dartLocation.uri.serverPath);
 
-    var currentModule =
+    final currentModule =
         await _modules.moduleForSource(dartLocation.uri.serverPath);
 
     _logger.finest('Evaluating "$expression" at $currentModule, '
@@ -191,7 +191,7 @@ class ExpressionEvaluator {
 
     // Compile expression using an expression compiler, such as
     // frontend server or expression compiler worker.
-    var compilationResult = await _compiler.compileExpressionToJs(
+    final compilationResult = await _compiler.compileExpressionToJs(
         isolateId,
         libraryUri.toString(),
         dartLocation.line,
@@ -201,8 +201,8 @@ class ExpressionEvaluator {
         currentModule,
         expression);
 
-    var isError = compilationResult.isError;
-    var jsResult = compilationResult.result;
+    final isError = compilationResult.isError;
+    final jsResult = compilationResult.result;
     if (isError) {
       return _formatCompilationError(jsResult);
     }
@@ -221,7 +221,7 @@ class ExpressionEvaluator {
       return null;
     }
 
-    var ret = value.value.toString();
+    final ret = value.value.toString();
     if (value.type == 'string') {
       return '\'$ret\'';
     }
@@ -264,7 +264,7 @@ class ExpressionEvaluator {
         return _createError(ErrorKind.type, error);
       } else if (error.startsWith('NetworkError: ')) {
         var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
-        var module = modulePath != null
+        final module = modulePath != null
             ? await globalLoadStrategy.moduleForServerPath(
                 _entrypoint, modulePath)
             : 'unknown';
@@ -279,13 +279,13 @@ class ExpressionEvaluator {
   }
 
   Future<Map<String, String>> _collectLocalJsScope(WipCallFrame frame) async {
-    var jsScope = <String, String>{};
+    final jsScope = <String, String>{};
 
     void collectVariables(
         String scopeType, Iterable<chrome.Property> variables) {
       for (var p in variables) {
-        var name = p.name;
-        var value = p.value;
+        final name = p.name;
+        final value = p.value;
         if (_isUndefined(value)) continue;
 
         if (scopeType == 'closure') {
@@ -305,7 +305,7 @@ class ExpressionEvaluator {
           // TODO(annagrin): decide if we would like not to support evaluation
           // of uncaptured variables
 
-          var capturedValue = _valueToLiteral(value);
+          final capturedValue = _valueToLiteral(value);
           jsScope[name] = capturedValue ?? name;
         } else {
           jsScope[name] = name;
@@ -314,9 +314,9 @@ class ExpressionEvaluator {
     }
 
     // skip library and main scope
-    var scopeChain = filterScopes(frame).reversed;
+    final scopeChain = filterScopes(frame).reversed;
     for (var scope in scopeChain) {
-      var scopeProperties =
+      final scopeProperties =
           await _inspector.debugger.getProperties(scope.object.objectId);
 
       collectVariables(scope.scope, scopeProperties);

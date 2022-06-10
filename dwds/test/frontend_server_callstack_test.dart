@@ -44,11 +44,11 @@ class TestSetup {
 void main() {
   group('shared context |', () {
     // Enable verbose logging for debugging.
-    var debug = false;
+    final debug = false;
 
     for (var soundNullSafety in [false, true]) {
-      var setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
-      var context = setup.context;
+      final setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
+      final context = setup.context;
 
       group('${soundNullSafety ? "sound" : "weak"} null safety |', () {
         setUpAll(() async {
@@ -83,7 +83,7 @@ void main() {
             await service.streamListen('Debug');
             stream = service.onEvent('Debug');
 
-            var testPackage =
+            final testPackage =
                 soundNullSafety ? '_test_package_sound' : '_test_package';
 
             mainScript = scripts.scripts
@@ -100,9 +100,9 @@ void main() {
               Future<void> Function() body) async {
             Breakpoint bp;
             try {
-              var bpId = breakpoint.bpId;
-              var script = breakpoint.script;
-              var line =
+              final bpId = breakpoint.bpId;
+              final script = breakpoint.script;
+              final line =
                   await context.findBreakpointLine(bpId, isolate.id, script);
               bp = await setup.service
                   .addBreakpointWithScriptUri(isolate.id, script.uri, line);
@@ -125,15 +125,15 @@ void main() {
           Future<void> testCallStack(List<BreakpointTestData> breakpoints,
               {int frameIndex = 1}) async {
             // Find lines the breakpoints are located on.
-            var lines = await Future.wait(breakpoints.map((frame) => context
+            final lines = await Future.wait(breakpoints.map((frame) => context
                 .findBreakpointLine(frame.bpId, isolate.id, frame.script)));
 
             // Get current stack.
-            var stack = await service.getStack(isolate.id);
+            final stack = await service.getStack(isolate.id);
 
             // Verify the stack is correct.
             expect(stack.frames.length, greaterThanOrEqualTo(lines.length));
-            var expected = [
+            final expected = [
               for (var i = 0; i < lines.length; i++)
                 _matchFrame(
                     breakpoints[i].script, breakpoints[i].function, lines[i])
@@ -141,14 +141,14 @@ void main() {
             expect(stack.frames, containsAll(expected));
 
             // Verify that expression evaluation is not failing.
-            var instance =
+            final instance =
                 await service.evaluateInFrame(isolate.id, frameIndex, 'true');
             expect(instance, isA<InstanceRef>());
           }
 
           test('breakpoint succeeds with correct callstack', () async {
             // Expected breakpoints on the stack
-            var breakpoints = [
+            final breakpoints = [
               BreakpointTestData(
                 'printEnclosingObject',
                 'printEnclosingObject',
@@ -171,7 +171,7 @@ void main() {
 
           test('expression evaluation succeeds on parent frame', () async {
             // Expected breakpoints on the stack
-            var breakpoints = [
+            final breakpoints = [
               BreakpointTestData(
                 'testLibraryClassConstructor',
                 'new',
@@ -194,7 +194,7 @@ void main() {
 
           test('breakpoint inside a line gives correct callstack', () async {
             // Expected breakpoints on the stack
-            var breakpoints = [
+            final breakpoints = [
               BreakpointTestData(
                 'newEnclosedClass',
                 'new',
@@ -217,7 +217,7 @@ void main() {
 
           test('breakpoint gives correct callstack after step out', () async {
             // Expected breakpoints on the stack
-            var breakpoints = [
+            final breakpoints = [
               BreakpointTestData(
                 'newEnclosedClass',
                 'new',
@@ -244,7 +244,7 @@ void main() {
 
           test('breakpoint gives correct callstack after step in', () async {
             // Expected breakpoints on the stack
-            var breakpoints = [
+            final breakpoints = [
               BreakpointTestData(
                 'newEnclosedClass',
                 'new',
@@ -272,7 +272,7 @@ void main() {
           test('breakpoint gives correct callstack after step into chain calls',
               () async {
             // Expected breakpoints on the stack
-            var breakpoints = [
+            final breakpoints = [
               BreakpointTestData(
                 'createObjectWithMethod',
                 'createObject',
@@ -291,7 +291,7 @@ void main() {
                 mainScript,
               ),
             ];
-            var bp = BreakpointTestData(
+            final bp = BreakpointTestData(
                 'printMultiLine', 'printObjectMultiLine', mainScript);
             await onBreakPoint(bp, () async {
               await service.resume(isolate.id, step: 'Into');

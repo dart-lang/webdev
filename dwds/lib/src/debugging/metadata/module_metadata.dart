@@ -41,14 +41,14 @@ class ModuleMetadataVersion {
   /// any file created with a later writer, as long as the major version does
   /// not change.
   bool isCompatibleWith(String version) {
-    var parts = version.split('.');
+    final parts = version.split('.');
     if (parts.length != 3) {
       throw FormatException('Version: $version'
           'does not follow simple semantic versioning format');
     }
-    var major = int.parse(parts[0]);
-    var minor = int.parse(parts[1]);
-    var patch = int.parse(parts[2]);
+    final major = int.parse(parts[0]);
+    final minor = int.parse(parts[1]);
+    final patch = int.parse(parts[2]);
     return major == majorVersion &&
         minor >= minorVersion &&
         patch >= patchVersion;

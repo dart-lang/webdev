@@ -30,7 +30,7 @@ class Property {
   RemoteObject get value {
     if (_remoteObjectValue != null) return _remoteObjectValue;
     if (rawValue == null) return null;
-    var val = _map['value'];
+    final val = _map['value'];
     if (val is RemoteObject) {
       _remoteObjectValue = val;
     } else {

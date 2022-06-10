@@ -61,21 +61,21 @@ void main() {
 
     /// Support function for pausing and returning the stack at a line.
     Future<Stack> breakAt(String breakpointId, ScriptRef scriptRef) async {
-      var lineNumber =
+      final lineNumber =
           await context.findBreakpointLine(breakpointId, isolateId, scriptRef);
 
-      var bp = await service.addBreakpoint(isolateId, scriptRef.id, lineNumber);
+      final bp = await service.addBreakpoint(isolateId, scriptRef.id, lineNumber);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
       // Remove breakpoint so it doesn't impact other tests.
       await service.removeBreakpoint(isolateId, bp.id);
-      var stack = await service.getStack(isolateId);
+      final stack = await service.getStack(isolateId);
       return stack;
     }
 
     Future<Instance> getInstance(InstanceRef ref) async {
-      var result = await service.getObject(isolateId, ref.id);
+      final result = await service.getObject(isolateId, ref.id);
       expect(result, isA<Instance>());
       return result as Instance;
     }
@@ -94,7 +94,7 @@ void main() {
 
     Future<void> expectDartVariables(Map<String, InstanceRef> variables) async {
       for (var name in variables.keys) {
-        var instance = await getInstance(variables[name]);
+        final instance = await getInstance(variables[name]);
         expectDartObject(name, instance);
       }
     }
@@ -122,19 +122,19 @@ void main() {
 
     test('variables in static function', () async {
       stack = await breakAt('staticFunction', mainScript);
-      var variables = getFrameVariables(stack.frames.first);
+      final variables = getFrameVariables(stack.frames.first);
       await expectDartVariables(variables);
 
-      var variableNames = variables.keys.toList()..sort();
+      final variableNames = variables.keys.toList()..sort();
       expect(variableNames, containsAll(['formal']));
     });
 
     test('variables in function', () async {
       stack = await breakAt('nestedFunction', mainScript);
-      var variables = getFrameVariables(stack.frames.first);
+      final variables = getFrameVariables(stack.frames.first);
       await expectDartVariables(variables);
 
-      var variableNames = variables.keys.toList()..sort();
+      final variableNames = variables.keys.toList()..sort();
       expect(
           variableNames,
           containsAll([
@@ -151,29 +151,29 @@ void main() {
 
     test('variables in closure nested in method', () async {
       stack = await breakAt('nestedClosure', mainScript);
-      var variables = getFrameVariables(stack.frames.first);
+      final variables = getFrameVariables(stack.frames.first);
       await expectDartVariables(variables);
 
-      var variableNames = variables.keys.toList()..sort();
+      final variableNames = variables.keys.toList()..sort();
       expect(variableNames,
           ['closureLocalInsideMethod', 'local', 'parameter', 'this']);
     });
 
     test('variables in method', () async {
       stack = await breakAt('printMethod', mainScript);
-      var variables = getFrameVariables(stack.frames.first);
+      final variables = getFrameVariables(stack.frames.first);
       await expectDartVariables(variables);
 
-      var variableNames = variables.keys.toList()..sort();
+      final variableNames = variables.keys.toList()..sort();
       expect(variableNames, ['this']);
     });
 
     test('variables in extension method', () async {
       stack = await breakAt('extension', mainScript);
-      var variables = getFrameVariables(stack.frames.first);
+      final variables = getFrameVariables(stack.frames.first);
       await expectDartVariables(variables);
 
-      var variableNames = variables.keys.toList()..sort();
+      final variableNames = variables.keys.toList()..sort();
       // Note: '$this' should change to 'this', and 'return' should
       // disappear after debug symbols are available.
       // https://github.com/dart-lang/webdev/issues/1371
@@ -182,11 +182,11 @@ void main() {
 
     test('evaluateJsOnCallFrame', () async {
       stack = await breakAt('nestedFunction', mainScript);
-      var inspector = service.appInspectorProvider();
-      var debugger = inspector.debugger;
-      var parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
+      final inspector = service.appInspectorProvider();
+      final debugger = inspector.debugger;
+      final parameter = await debugger.evaluateJsOnCallFrameIndex(0, 'parameter');
       expect(parameter.value, matches(RegExp(r'\d+ world')));
-      var ticks = await debugger.evaluateJsOnCallFrameIndex(1, 'ticks');
+      final ticks = await debugger.evaluateJsOnCallFrameIndex(1, 'ticks');
       // We don't know how many ticks there were before we stopped, but it should
       // be a positive number.
       expect(ticks.value, isPositive);

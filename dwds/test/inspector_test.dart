@@ -27,7 +27,7 @@ void main() {
 
   setUpAll(() async {
     await context.setUp();
-    var service = fetchChromeProxyService(context.debugConnection);
+    final service = fetchChromeProxyService(context.debugConnection);
     inspector = service.appInspectorProvider();
     debugger = inspector.debugger;
   });
@@ -46,43 +46,43 @@ void main() {
       inspector.jsEvaluate(libraryVariableExpression('libraryPublicFinal'));
 
   test('send toString', () async {
-    var remoteObject = await libraryPublicFinal();
-    var toString = await inspector.invokeMethod(remoteObject, 'toString', []);
+    final remoteObject = await libraryPublicFinal();
+    final toString = await inspector.invokeMethod(remoteObject, 'toString', []);
     expect(toString.value, 'A test class with message world');
   });
 
   group('getObject', () {
     test('for class with generic', () async {
-      var isolateId = inspector.isolate.id;
-      var remoteObject = await libraryPublicFinal();
-      var instance = await inspector.getObject(isolateId, remoteObject.objectId)
+      final isolateId = inspector.isolate.id;
+      final remoteObject = await libraryPublicFinal();
+      final instance = await inspector.getObject(isolateId, remoteObject.objectId)
           as Instance;
-      var classRef = instance.classRef;
-      var clazz = await inspector.getObject(isolateId, classRef.id) as Class;
+      final classRef = instance.classRef;
+      final clazz = await inspector.getObject(isolateId, classRef.id) as Class;
       expect(clazz.name, 'MyTestClass<dynamic>');
     });
   });
 
   group('loadField', () {
     test('for string', () async {
-      var remoteObject = await libraryPublicFinal();
-      var message = await inspector.loadField(remoteObject, 'message');
+      final remoteObject = await libraryPublicFinal();
+      final message = await inspector.loadField(remoteObject, 'message');
       expect(message.value, 'world');
     });
 
     test('for num', () async {
-      var remoteObject = await libraryPublicFinal();
-      var count = await inspector.loadField(remoteObject, 'count');
+      final remoteObject = await libraryPublicFinal();
+      final count = await inspector.loadField(remoteObject, 'count');
       expect(count.value, 0);
     });
   });
 
   test('properties', () async {
-    var remoteObject = await libraryPublicFinal();
-    var properties = await debugger.getProperties(remoteObject.objectId);
-    var names =
+    final remoteObject = await libraryPublicFinal();
+    final properties = await debugger.getProperties(remoteObject.objectId);
+    final names =
         properties.map((p) => p.name).where((x) => x != '__proto__').toList();
-    var expected = [
+    final expected = [
       '_privateField',
       'abstractField',
       'closure',
@@ -112,7 +112,7 @@ void main() {
     });
 
     test('invoke top-level private', () async {
-      var remote = await inspector.invoke(isolateId, bootstrapLibrary.id,
+      final remote = await inspector.invoke(isolateId, bootstrapLibrary.id,
           '_libraryPrivateFunction', [dartIdFor(2), dartIdFor(3)]);
       expect(
           remote,
@@ -121,7 +121,7 @@ void main() {
     });
 
     test('invoke instance private', () async {
-      var remote = await inspector.invoke(isolateId, instance.objectId,
+      final remote = await inspector.invoke(isolateId, instance.objectId,
           'privateMethod', [dartIdFor('some string')]);
       expect(
           remote,
@@ -130,7 +130,7 @@ void main() {
     });
 
     test('invoke instance method with object parameter', () async {
-      var remote = await inspector
+      final remote = await inspector
           .invoke(isolateId, instance.objectId, 'equals', [instance.objectId]);
       expect(
           remote,
@@ -139,9 +139,9 @@ void main() {
     });
 
     test('invoke instance method with object parameter 2', () async {
-      var libraryPrivateList = await inspector.evaluate(
+      final libraryPrivateList = await inspector.evaluate(
           isolateId, bootstrapLibrary.id, '_libraryPrivate');
-      var remote = await inspector.invoke(isolateId, instance.objectId,
+      final remote = await inspector.invoke(isolateId, instance.objectId,
           'equals', [libraryPrivateList.objectId]);
       expect(
           remote,
@@ -150,7 +150,7 @@ void main() {
     });
 
     test('invoke closure stored in an instance field', () async {
-      var remote =
+      final remote =
           await inspector.invoke(isolateId, instance.objectId, 'closure', []);
       expect(
           remote,
@@ -159,8 +159,8 @@ void main() {
     });
 
     test('invoke a torn-off method', () async {
-      var toString = await inspector.loadField(instance, 'tornOff');
-      var result =
+      final toString = await inspector.loadField(instance, 'tornOff');
+      final result =
           await inspector.invoke(isolateId, toString.objectId, 'call', []);
       expect(
           result,

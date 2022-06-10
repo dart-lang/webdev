@@ -49,7 +49,7 @@ class BatchedStreamController<T> {
   /// Send events to the output in a batch every [_batchDelayMilliseconds].
   Future<void> _batchAndSendEvents() async {
     const duration = Duration(milliseconds: _checkDelayMilliseconds);
-    var buffer = <T>[];
+    final buffer = <T>[];
 
     // Batch events every `_batchDelayMilliseconds`.
     //
@@ -64,7 +64,7 @@ class BatchedStreamController<T> {
         buffer.add(await _inputQueue.next);
       }
 
-      var now = DateTime.now().millisecondsSinceEpoch;
+      final now = DateTime.now().millisecondsSinceEpoch;
       if (now > lastSendTime + _batchDelayMilliseconds) {
         lastSendTime = now;
         if (buffer.isNotEmpty) {

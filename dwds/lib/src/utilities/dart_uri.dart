@@ -36,7 +36,7 @@ class DartUri {
   /// packages/path/src/path.dart. The optional [serverUri] is the full URI of the
   /// JS script. The dirname of that path should give us the missing prefix.
   factory DartUri(String uri, [String serverUri]) {
-    var serverPath = globalLoadStrategy.serverPathForAppUri(uri);
+    final serverPath = globalLoadStrategy.serverPathForAppUri(uri);
     if (serverPath != null) {
       return DartUri._(serverPath);
     }
@@ -66,10 +66,10 @@ class DartUri {
 
   /// Construct from a package: URI
   factory DartUri._fromPackageUri(String uri, {String serverUri}) {
-    var basePath = basePathForServerUri(serverUri);
-    var packagePath = 'packages/${uri.substring("package:".length)}';
+    final basePath = basePathForServerUri(serverUri);
+    final packagePath = 'packages/${uri.substring("package:".length)}';
     if (serverUri != null) {
-      var relativePath = p.url.join(basePath, packagePath);
+      final relativePath = p.url.join(basePath, packagePath);
       return DartUri._fromRelativePath(relativePath);
     }
     return DartUri._(packagePath);
@@ -77,7 +77,7 @@ class DartUri {
 
   /// Construct from a file: URI
   factory DartUri._fromFileUri(String uri, {String serverUri}) {
-    var libraryName = _resolvedUriToUri[uri];
+    final libraryName = _resolvedUriToUri[uri];
     if (libraryName != null) return DartUri(libraryName, serverUri);
     // This is not one of our recorded libraries.
     throw ArgumentError.value(uri, 'uri', 'Unknown library');
@@ -89,7 +89,7 @@ class DartUri {
     uri = uri[0] == '/' ? uri.substring(1) : uri;
 
     if (serverUri != null) {
-      var basePath = basePathForServerUri(serverUri);
+      final basePath = basePathForServerUri(serverUri);
       return DartUri._fromRelativePath(p.url.join(basePath, uri));
     }
     return DartUri._(uri);
@@ -163,7 +163,7 @@ class DartUri {
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize(SdkConfiguration sdkConfiguration) async {
     _sdkConfiguration = sdkConfiguration;
-    var packagesUri =
+    final packagesUri =
         p.toUri(p.join(currentDirectory, '.dart_tool/package_config.json'));
 
     clear();
@@ -201,7 +201,7 @@ class DartUri {
   /// Record the library represented by package: or org-dartlang-app: uris
   /// indexed by absolute file: URI.
   static void _recordAbsoluteUri(String libraryUri) {
-    var uri = Uri.parse(libraryUri);
+    final uri = Uri.parse(libraryUri);
     if (uri.scheme.isEmpty && !uri.path.endsWith('.dart')) {
       // ignore non-dart files
       return;

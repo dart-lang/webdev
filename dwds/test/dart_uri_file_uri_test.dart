@@ -41,21 +41,21 @@ void main() {
   });
 
   test('file path to org-dartlang-app', () {
-    var webMain = Uri.file(p.join(testPackageDir, 'web', 'main.dart'));
-    var uri = DartUri('$webMain');
+    final webMain = Uri.file(p.join(testPackageDir, 'web', 'main.dart'));
+    final uri = DartUri('$webMain');
     expect(uri.serverPath, 'main.dart');
   });
 
   test('file path to this package', () {
-    var testPackageLib =
+    final testPackageLib =
         Uri.file(p.join(testPackageDir, 'lib', 'test_library.dart'));
-    var uri = DartUri('$testPackageLib');
+    final uri = DartUri('$testPackageLib');
     expect(uri.serverPath, 'packages/_test_package/test_library.dart');
   });
 
   test('file path to another package', () {
-    var testLib = Uri.file(p.join(testDir, 'lib', 'library.dart'));
-    var dartUri = DartUri('$testLib');
+    final testLib = Uri.file(p.join(testDir, 'lib', 'library.dart'));
+    final dartUri = DartUri('$testLib');
     expect(dartUri.serverPath, 'packages/_test/library.dart');
   });
 }

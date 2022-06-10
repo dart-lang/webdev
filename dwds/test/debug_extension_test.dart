@@ -39,7 +39,7 @@ void main() async {
     Duration retryWait = const Duration(seconds: 1),
   }) async {
     if (retryCount == 0) return;
-    var windows = await context.webDriver.windows.toList();
+    final windows = await context.webDriver.windows.toList();
     await context.webDriver.driver.switchTo.window(windows.last);
     final title = await context.webDriver.title;
     if (title == 'Dart DevTools') return;
@@ -69,7 +69,7 @@ void main() async {
         });
 
         test('can launch DevTools', () async {
-          var windows = await context.webDriver.windows.toList();
+          final windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
           expect(await context.webDriver.title, contains('Dart DevTools'));
           expect(await context.webDriver.currentUrl,
@@ -96,8 +96,8 @@ void main() async {
         test('sends script parsed events', () async {
           // Check if the extension debugger receives Debugger.ScriptParsed
           // events for some important scripts.
-          var service = fetchChromeProxyService(context.debugConnection);
-          var scripts = service.remoteDebugger.scripts;
+          final service = fetchChromeProxyService(context.debugConnection);
+          final scripts = service.remoteDebugger.scripts;
           expect(
               scripts.values.map((s) => s.url),
               containsAllInOrder([
@@ -114,7 +114,7 @@ void main() async {
         setUp(() async {
           await context.setUp(
               enableDebugExtension: true, serveDevTools: true, useSse: useSse);
-          var htmlTag =
+          final htmlTag =
               await context.webDriver.findElement(const By.tagName('html'));
 
           await context.webDriver.execute(
@@ -131,7 +131,7 @@ void main() async {
             'expression': 'fakeClick()',
           });
           // Wait for the alert to open.
-          var alert =
+          final alert =
               await retryFn<Alert>(() => context.webDriver.switchTo.alert);
           expect(alert, isNotNull);
         });
@@ -144,7 +144,7 @@ void main() async {
         setUp(() async {
           await context.setUp(
               enableDebugExtension: true, serveDevTools: true, useSse: false);
-          var htmlTag =
+          final htmlTag =
               await context.webDriver.findElement(const By.tagName('html'));
 
           await context.webDriver.execute(
@@ -163,7 +163,7 @@ void main() async {
         });
 
         test('can launch DevTools', () async {
-          var windows = await context.webDriver.windows.toList();
+          final windows = await context.webDriver.windows.toList();
           await context.webDriver.driver.switchTo.window(windows.last);
           expect(await context.webDriver.title, 'Dart DevTools');
         });
@@ -188,8 +188,8 @@ void main() async {
         test('sends script parsed events', () async {
           // Check if the extension debugger receives Debugger.ScriptParsed
           // events for some important scripts.
-          var service = fetchChromeProxyService(context.debugConnection);
-          var scripts = service.remoteDebugger.scripts;
+          final service = fetchChromeProxyService(context.debugConnection);
+          final scripts = service.remoteDebugger.scripts;
           expect(
               scripts.values.map((s) => s.url),
               containsAllInOrder([
@@ -218,7 +218,7 @@ void main() async {
     });
 
     test('uses the encoded URI', () async {
-      var result = await http.get(Uri.parse(
+      final result = await http.get(Uri.parse(
           'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension'));
       expect(result.body.contains('dartExtensionUri'), isTrue);
       expect(result.body.contains('http://some-encoded-url:8081/'), isTrue);
@@ -238,10 +238,10 @@ void main() async {
     });
 
     test('generates an extensionUri with a valid valid hostname', () async {
-      var result = await http.get(Uri.parse(
+      final result = await http.get(Uri.parse(
           'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension'));
       expect(result.body.contains('dartExtensionUri'), isTrue);
-      var extensionUri = Uri.parse(uriPattern.firstMatch(result.body).group(1));
+      final extensionUri = Uri.parse(uriPattern.firstMatch(result.body).group(1));
       expect(
           extensionUri.host,
           anyOf(

@@ -57,7 +57,7 @@ class FakeAssetReader implements AssetReader {
 
 void main() {
   test('can parse metadata with empty sources', () async {
-    var provider = MetadataProvider(
+    final provider = MetadataProvider(
       'foo.bootstrap.js',
       FakeAssetReader(_emptySourceMetadata),
     );
@@ -67,7 +67,7 @@ void main() {
   });
 
   test('can parse metadata with no null safety information', () async {
-    var provider = MetadataProvider(
+    final provider = MetadataProvider(
       'foo.bootstrap.js',
       FakeAssetReader(_noNullSafetyMetadata),
     );
@@ -77,7 +77,7 @@ void main() {
   });
 
   test('throws on metadata with absolute import uris', () async {
-    var provider = MetadataProvider(
+    final provider = MetadataProvider(
       'foo.bootstrap.js',
       FakeAssetReader(_fileUriMetadata),
     );
@@ -101,18 +101,18 @@ void main() {
       ]
     };
 
-    var metadata = ModuleMetadata.fromJson(json);
+    final metadata = ModuleMetadata.fromJson(json);
     expect(metadata.version, '1.0.0');
     expect(metadata.name, 'web/main');
     expect(metadata.closureName, 'load__web__main');
     expect(metadata.sourceMapUri, 'foo/web/main.ddc.js.map');
     expect(metadata.moduleUri, 'foo/web/main.ddc.js');
-    var libraries = metadata.libraries;
+    final libraries = metadata.libraries;
     expect(libraries.length, 1);
     for (var lib in libraries.values) {
       expect(lib.name, 'main');
       expect(lib.importUri, 'org-dartlang-app:///web/main.dart');
-      var parts = lib.partUris;
+      final parts = lib.partUris;
       expect(parts.length, 1);
       expect(parts[0], 'org-dartlang-app:///web/main.dart');
     }

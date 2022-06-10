@@ -66,7 +66,7 @@ class FrameComputer {
       if (limit != null && _computedFrames.length == limit) return;
 
       final callFrame = _callFrames[_frameIndex];
-      var dartFrame =
+      final dartFrame =
           await debugger.calculateDartFrameFor(callFrame, _frameIndex++);
       if (dartFrame != null) {
         _computedFrames.add(dartFrame);
@@ -93,26 +93,26 @@ class FrameComputer {
       } else {
         // Process a single async frame.
         if (_asyncFramesToProcess.isNotEmpty) {
-          var callFrame = _asyncFramesToProcess.removeAt(0);
-          var location = WipLocation.fromValues(
+          final callFrame = _asyncFramesToProcess.removeAt(0);
+          final location = WipLocation.fromValues(
               callFrame.scriptId, callFrame.lineNumber,
               columnNumber: callFrame.columnNumber);
 
-          var url = callFrame.url ?? debugger.urlForScriptId(location.scriptId);
+          final url = callFrame.url ?? debugger.urlForScriptId(location.scriptId);
           if (url == null) {
             _logger.severe(
                 'Failed to create dart frame for ${callFrame.functionName}: '
                 'cannot find location for script ${callFrame.scriptId}');
           }
 
-          var tempWipFrame = WipCallFrame({
+          final tempWipFrame = WipCallFrame({
             'url': callFrame.url,
             'functionName': callFrame.functionName,
             'location': location.json,
             'scopeChain': [],
           });
 
-          var frame = await debugger.calculateDartFrameFor(
+          final frame = await debugger.calculateDartFrameFor(
             tempWipFrame,
             _frameIndex++,
             populateVariables: false,

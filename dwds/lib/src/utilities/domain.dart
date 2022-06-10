@@ -45,7 +45,7 @@ abstract class Domain {
 
   @alwaysThrows
   void throwSentinel(String method, String kind, String message) {
-    var data = <String, String>{'kind': kind, 'valueAsString': message};
+    final data = <String, String>{'kind': kind, 'valueAsString': message};
     throw SentinelException.parse(method, data);
   }
 }
