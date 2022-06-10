@@ -37,8 +37,8 @@ class ExtensionBackend {
   Future<void> _closed;
 
   ExtensionBackend._(
-      SocketHandler _socketHandler, this.hostname, this.port, this._server)
-      : connections = _socketHandler.connections;
+      SocketHandler socketHandler, this.hostname, this.port, this._server)
+      : connections = socketHandler.connections;
 
   // Starts the backend on an open port.
   static Future<ExtensionBackend> start(
