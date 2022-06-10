@@ -172,7 +172,7 @@ class AppInspector extends Domain {
     await appInspector._initialize();
     return appInspector;
   }
-  
+
   /// Returns the ID for the execution context or null if not found.
   Future<int> get contextId async {
     try {
