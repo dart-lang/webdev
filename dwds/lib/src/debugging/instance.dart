@@ -30,7 +30,7 @@ class InstanceHelper extends Domain {
   /// Creates an [InstanceRef] for a primitive [RemoteObject].
   static InstanceRef _primitiveInstanceRef(
       String kind, RemoteObject remoteObject) {
-    var classRef = classRefFor('dart:core', kind);
+    final classRef = classRefFor('dart:core', kind);
     return InstanceRef(
         identityHashCode: dartIdFor(remoteObject?.value).hashCode,
         kind: kind,
@@ -54,13 +54,13 @@ class InstanceHelper extends Domain {
       RemoteObject remoteObject, int offset, int count) {
     // TODO(#777) Consider a way of not passing the whole string around (in the
     // ID) in order to find a substring.
-    var fullString = stringFromDartId(remoteObject.objectId);
+    final fullString = stringFromDartId(remoteObject.objectId);
     var preview = fullString;
     var truncated = false;
     if (offset != null || count != null) {
       truncated = true;
-      var start = offset ?? 0;
-      var end = count == null ? null : min(start + count, fullString.length);
+      final start = offset ?? 0;
+      final end = count == null ? null : min(start + count, fullString.length);
       preview = fullString.substring(start, end);
     }
     return Instance(
@@ -76,7 +76,7 @@ class InstanceHelper extends Domain {
   }
 
   Future<Instance> _closureInstanceFor(RemoteObject remoteObject) async {
-    var result = Instance(
+    final result = Instance(
         kind: InstanceKind.kClosure,
         id: remoteObject.objectId,
         identityHashCode: remoteObject.objectId.hashCode,
@@ -91,7 +91,7 @@ class InstanceHelper extends Domain {
   /// [count] allow retrieving a sub-range of properties.
   Future<Instance> instanceFor(RemoteObject remoteObject,
       {int offset, int count}) async {
-    var primitive = _primitiveInstanceOrNull(remoteObject, offset, count);
+    final primitive = _primitiveInstanceOrNull(remoteObject, offset, count);
     if (primitive != null) {
       return primitive;
     }
@@ -102,14 +102,14 @@ class InstanceHelper extends Domain {
       return _stringInstanceFor(remoteObject, offset, count);
     }
 
-    var metaData = await ClassMetaData.metaDataFor(
+    final metaData = await ClassMetaData.metaDataFor(
         inspector.remoteDebugger, remoteObject, inspector);
-    var classRef = metaData.classRef;
+    final classRef = metaData.classRef;
     if (metaData.jsName == 'Function') {
       return _closureInstanceFor(remoteObject);
     }
 
-    var properties = await inspector.debugger.getProperties(
+    final properties = await inspector.debugger.getProperties(
         remoteObject.objectId,
         offset: offset,
         count: count,
@@ -145,7 +145,7 @@ class InstanceHelper extends Domain {
 
   /// Create a bound field for [property] in an instance of [classRef].
   Future<BoundField> _fieldFor(Property property, ClassRef classRef) async {
-    var instance = await _instanceRefForRemote(property.value);
+    final instance = await _instanceRefForRemote(property.value);
     return BoundField(
         decl: FieldRef(
           // TODO(grouma) - Convert JS name to Dart.
@@ -169,14 +169,14 @@ class InstanceHelper extends Domain {
   /// properties [properties].
   Future<Instance> _plainInstanceFor(ClassRef classRef,
       RemoteObject remoteObject, List<Property> properties) async {
-    var dartProperties = await _dartFieldsFor(properties, remoteObject);
+    final dartProperties = await _dartFieldsFor(properties, remoteObject);
     var boundFields = await Future.wait(
         dartProperties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)));
     boundFields = boundFields
         .where((bv) => bv != null && !isNativeJsObject(bv.value as InstanceRef))
         .toList()
       ..sort((a, b) => a.decl.name.compareTo(b.decl.name));
-    var result = Instance(
+    final result = Instance(
         kind: InstanceKind.kPlainInstance,
         id: remoteObject.objectId,
         identityHashCode: remoteObject.objectId.hashCode,
@@ -191,7 +191,7 @@ class InstanceHelper extends Domain {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
-    var expression = '''
+    final expression = '''
       function() {
         var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         var entries = sdkUtils.dloadRepl(this, "entries");
@@ -208,13 +208,13 @@ class InstanceHelper extends Domain {
         };
       }
     ''';
-    var keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
-    var keys = await inspector.loadField(keysAndValues, 'keys');
-    var values = await inspector.loadField(keysAndValues, 'values');
-    var keysInstance = await instanceFor(keys, offset: offset, count: count);
-    var valuesInstance =
+    final keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
+    final keys = await inspector.loadField(keysAndValues, 'keys');
+    final values = await inspector.loadField(keysAndValues, 'values');
+    final keysInstance = await instanceFor(keys, offset: offset, count: count);
+    final valuesInstance =
         await instanceFor(values, offset: offset, count: count);
-    var associations = <MapAssociation>[];
+    final associations = <MapAssociation>[];
     Map.fromIterables(keysInstance.elements, valuesInstance.elements)
         .forEach((key, value) {
       associations.add(MapAssociation(key: key, value: value));
@@ -226,8 +226,8 @@ class InstanceHelper extends Domain {
   Future<Instance> _mapInstanceFor(ClassRef classRef, RemoteObject remoteObject,
       List<Property> _, int offset, int count) async {
     // Maps are complicated, do an eval to get keys and values.
-    var associations = await _mapAssociations(remoteObject, offset, count);
-    var length = (offset == null && count == null)
+    final associations = await _mapAssociations(remoteObject, offset, count);
+    final length = (offset == null && count == null)
         ? associations.length
         : (await instanceRefFor(remoteObject)).length;
     return Instance(
@@ -249,13 +249,13 @@ class InstanceHelper extends Domain {
       List<Property> properties,
       int offset,
       int count) async {
-    var numberOfProperties = _lengthOf(properties);
-    var length = (offset == null && count == null)
+    final numberOfProperties = _lengthOf(properties);
+    final length = (offset == null && count == null)
         ? numberOfProperties
         : (await instanceRefFor(remoteObject)).length;
-    var indexed =
+    final indexed =
         properties.sublist(0, min(count ?? length, numberOfProperties));
-    var fields = await Future.wait(indexed
+    final fields = await Future.wait(indexed
         .map((property) async => await _instanceRefForRemote(property.value)));
     return Instance(
         identityHashCode: remoteObject.objectId.hashCode,
@@ -274,7 +274,7 @@ class InstanceHelper extends Domain {
   /// attribute. Even if a plain instance happens to have a length field, we
   /// don't use it to determine the properties to display.
   int _lengthOf(List<Property> properties) {
-    var lengthProperty = properties.firstWhere((p) => p.name == 'length');
+    final lengthProperty = properties.firstWhere((p) => p.name == 'length');
     return lengthProperty.value.value as int;
   }
 
@@ -315,10 +315,10 @@ class InstanceHelper extends Domain {
         .concat(symbolNames).join(',');
     }
     ''';
-    var allNames = (await inspector
+    final allNames = (await inspector
             .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
         .value as String;
-    var names = allNames.split(',');
+    final names = allNames.split(',');
     // TODO(#761): Better support for large collections.
     return allJsProperties
         .where((property) => names.contains(property.name))
@@ -329,7 +329,7 @@ class InstanceHelper extends Domain {
   /// be something returned by value from Chrome, e.g. number, boolean, or
   /// String.
   Future<InstanceRef> instanceRefFor(Object value) {
-    var remote = value is RemoteObject
+    final remote = value is RemoteObject
         ? value
         : RemoteObject({'value': value, 'type': _chromeType(value)});
     return _instanceRefForRemote(remote);
@@ -354,7 +354,7 @@ class InstanceHelper extends Domain {
 
     switch (remoteObject.type) {
       case 'string':
-        var stringValue = remoteObject.value as String;
+        final stringValue = remoteObject.value as String;
         // TODO: Support truncation for long strings.
         // TODO(#777): dartIdFor() will return an ID containing the entire
         // string, even if we're truncating the string value here.
@@ -375,7 +375,7 @@ class InstanceHelper extends Domain {
         if (remoteObject.objectId == null) {
           return _primitiveInstanceRef(InstanceKind.kNull, remoteObject);
         }
-        var metaData = await ClassMetaData.metaDataFor(
+        final metaData = await ClassMetaData.metaDataFor(
             inspector.remoteDebugger, remoteObject, inspector);
         if (metaData == null) return null;
         if (metaData.isSystemList) {
@@ -400,7 +400,7 @@ class InstanceHelper extends Domain {
             identityHashCode: remoteObject.objectId.hashCode,
             classRef: metaData.classRef);
       case 'function':
-        var functionMetaData = await FunctionMetaData.metaDataFor(
+        final functionMetaData = await FunctionMetaData.metaDataFor(
             inspector.remoteDebugger, remoteObject);
         return InstanceRef(
             kind: InstanceKind.kClosure,

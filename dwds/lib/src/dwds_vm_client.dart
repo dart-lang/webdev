@@ -44,11 +44,11 @@ class DwdsVmClient {
   static Future<DwdsVmClient> create(
       DebugService debugService, DwdsStats dwdsStats) async {
     // Set up hot restart as an extension.
-    var requestController = StreamController<Map<String, Object>>();
-    var responseController = StreamController<Map<String, Object>>();
+    final requestController = StreamController<Map<String, Object>>();
+    final responseController = StreamController<Map<String, Object>>();
     VmServerConnection(requestController.stream, responseController.sink,
         debugService.serviceExtensionRegistry, debugService.chromeProxyService);
-    var client =
+    final client =
         VmService(responseController.stream.map(jsonEncode), (request) {
       if (requestController.isClosed) {
         _logger.warning(
@@ -58,7 +58,7 @@ class DwdsVmClient {
       }
       requestController.sink.add(jsonDecode(request) as Map<String, dynamic>);
     });
-    var chromeProxyService =
+    final chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
 
     // Register '_flutter.listViews' method on the chrome proxy service vm.
@@ -98,7 +98,7 @@ class DwdsVmClient {
 
     client.registerServiceCallback('ext.dwds.screenshot', (_) async {
       await chromeProxyService.remoteDebugger.enablePage();
-      var response = await chromeProxyService.remoteDebugger
+      final response = await chromeProxyService.remoteDebugger
           .sendCommand('Page.captureScreenshot');
       return {'result': response.result};
     });
@@ -145,25 +145,25 @@ class DwdsVmClient {
 
 void _processSendEvent(Map<String, dynamic> event,
     ChromeProxyService chromeProxyService, DwdsStats dwdsStats) {
-  var type = event['type'] as String;
-  var payload = event['payload'] as Map<String, dynamic>;
+  final type = event['type'] as String;
+  final payload = event['payload'] as Map<String, dynamic>;
   switch (type) {
     case 'DevtoolsEvent':
       {
         _logger.finest('Received DevTools event: $event');
-        var action = payload == null ? null : payload['action'] as String;
-        var screen = payload == null ? null : payload['screen'] as String;
+        final action = payload == null ? null : payload['action'] as String;
+        final screen = payload == null ? null : payload['screen'] as String;
         if (action == 'pageReady') {
           if (dwdsStats.isFirstDebuggerReady) {
             if (dwdsStats.devToolsStart != null) {
-              var time = DateTime.now()
+              final time = DateTime.now()
                   .difference(dwdsStats.devToolsStart)
                   .inMilliseconds;
               emitEvent(DwdsEvent.devToolsLoad(time, screen));
               _logger.fine('DevTools load time: $time ms');
             }
             if (dwdsStats.debuggerStart != null) {
-              var time = DateTime.now()
+              final time = DateTime.now()
                   .difference(dwdsStats.debuggerStart)
                   .inMilliseconds;
               emitEvent(DwdsEvent.debuggerReady(time, screen));
@@ -204,10 +204,10 @@ Future<Map<String, dynamic>> _hotRestart(
   }
   // Start listening for isolate create events before issuing a hot
   // restart. Only return success after the isolate has fully started.
-  var stream = chromeProxyService.onEvent('Isolate');
+  final stream = chromeProxyService.onEvent('Isolate');
   try {
     // Generate run id to hot restart all apps loaded into the tab.
-    var runId = const Uuid().v4().toString();
+    final runId = const Uuid().v4().toString();
     _logger.info('Issuing \$dartHotRestartDwds request');
     await chromeProxyService.remoteDebugger
         .sendCommand('Runtime.evaluate', params: {
@@ -217,7 +217,7 @@ Future<Map<String, dynamic>> _hotRestart(
     });
     _logger.info('\$dartHotRestartDwds request complete.');
   } on WipError catch (exception) {
-    var code = exception.error['code'];
+    final code = exception.error['code'];
     // This corresponds to `Execution context was destroyed` which can
     // occur during a hot restart that must fall back to a full reload.
     if (code != RPCError.kServerError) {
@@ -251,9 +251,9 @@ Future<Map<String, dynamic>> _fullReload(
 Future<void> _disableBreakpointsAndResume(
     VmService client, ChromeProxyService chromeProxyService) async {
   _logger.info('Attempting to disable breakpoints and resume the isolate');
-  var vm = await client.getVM();
+  final vm = await client.getVM();
   if (vm.isolates.isEmpty) throw StateError('No active isolate to resume.');
-  var isolateRef = vm.isolates.first;
+  final isolateRef = vm.isolates.first;
 
   await chromeProxyService.disableBreakpoints();
   try {

@@ -20,12 +20,12 @@ void main() {
   });
 
   test('_flutter.listViews', () async {
-    var serviceMethod = '_flutter.listViews';
-    var service = context.debugConnection.vmService;
-    var vm = await service.getVM();
-    var isolates = vm.isolates;
+    final serviceMethod = '_flutter.listViews';
+    final service = context.debugConnection.vmService;
+    final vm = await service.getVM();
+    final isolates = vm.isolates;
 
-    var expected = <String, Object>{
+    final expected = <String, Object>{
       'views': <Object>[
         for (var isolate in isolates)
           <String, Object>{
@@ -35,7 +35,7 @@ void main() {
       ],
     };
 
-    var result = await service.callServiceExtension(serviceMethod, args: {});
+    final result = await service.callServiceExtension(serviceMethod, args: {});
 
     expect(result.json, expected);
   });

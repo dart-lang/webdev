@@ -19,14 +19,14 @@ var _throwsDoesNotExistException = throwsA(
 void main() {
   group('Basic configuration', () {
     test('Can validate default configuration layout', () async {
-      var defaultConfiguration =
+      final defaultConfiguration =
           await DefaultSdkConfigurationProvider().configuration;
       defaultConfiguration.validateSdkDir();
       defaultConfiguration.validate();
     });
 
     test('Cannot validate an empty configuration layout', () async {
-      var emptyConfiguration = SdkConfiguration();
+      final emptyConfiguration = SdkConfiguration();
       expect(() => emptyConfiguration.validateSdkDir(),
           _throwsDoesNotExistException);
       expect(() => emptyConfiguration.validate(), _throwsDoesNotExistException);
@@ -37,7 +37,7 @@ void main() {
     Directory outputDir;
 
     setUp(() async {
-      var systemTempDir = Directory.systemTemp;
+      final systemTempDir = Directory.systemTemp;
       outputDir = systemTempDir.createTempSync('foo bar');
     });
 
@@ -46,19 +46,20 @@ void main() {
     });
 
     test('Can validate existing configuration layout', () async {
-      var defaultSdkConfiguration =
+      final defaultSdkConfiguration =
           await DefaultSdkConfigurationProvider().configuration;
 
-      var sdkDirectory = outputDir.path;
-      var librariesDir = p.join(sdkDirectory, 'specs');
-      var librariesPath = p.join(librariesDir, 'libraries.json');
+      final sdkDirectory = outputDir.path;
+      final librariesDir = p.join(sdkDirectory, 'specs');
+      final librariesPath = p.join(librariesDir, 'libraries.json');
 
       Directory(librariesDir).createSync(recursive: true);
       File(defaultSdkConfiguration.librariesPath).copySync(librariesPath);
 
-      var summariesDir = p.join(sdkDirectory, 'summaries');
-      var unsoundSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
-      var soundSdkSummaryPath = p.join(summariesDir, 'ddc_outline_sound.dill');
+      final summariesDir = p.join(sdkDirectory, 'summaries');
+      final unsoundSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
+      final soundSdkSummaryPath =
+          p.join(summariesDir, 'ddc_outline_sound.dill');
 
       Directory(summariesDir).createSync(recursive: true);
       File(defaultSdkConfiguration.unsoundSdkSummaryPath)
@@ -66,14 +67,14 @@ void main() {
       File(defaultSdkConfiguration.soundSdkSummaryPath)
           .copySync(soundSdkSummaryPath);
 
-      var workerDir = p.join(sdkDirectory, 'snapshots');
-      var compilerWorkerPath = p.join(workerDir, 'dartdevc.dart.snapshot');
+      final workerDir = p.join(sdkDirectory, 'snapshots');
+      final compilerWorkerPath = p.join(workerDir, 'dartdevc.dart.snapshot');
 
       Directory(workerDir).createSync(recursive: true);
       File(defaultSdkConfiguration.compilerWorkerPath)
           .copySync(compilerWorkerPath);
 
-      var sdkConfiguration = SdkConfiguration(
+      final sdkConfiguration = SdkConfiguration(
         sdkDirectory: sdkDirectory,
         soundSdkSummaryPath: soundSdkSummaryPath,
         unsoundSdkSummaryPath: unsoundSdkSummaryPath,
@@ -93,16 +94,17 @@ void main() {
     });
 
     test('Cannot validate non-existing configuration layout', () async {
-      var sdkDir = outputDir.path;
-      var librariesDir = p.join(sdkDir, 'fakespecs');
-      var librariesPath = p.join(librariesDir, 'libraries.json');
-      var summariesDir = p.join(sdkDir, 'fakesummaries');
-      var unsoundSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
-      var soundSdkSummaryPath = p.join(summariesDir, 'ddc_outline_sound.dill');
-      var workerDir = p.join(sdkDir, 'fakesnapshots');
-      var compilerWorkerPath = p.join(workerDir, 'dartdevc.dart.snapshot');
+      final sdkDir = outputDir.path;
+      final librariesDir = p.join(sdkDir, 'fakespecs');
+      final librariesPath = p.join(librariesDir, 'libraries.json');
+      final summariesDir = p.join(sdkDir, 'fakesummaries');
+      final unsoundSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
+      final soundSdkSummaryPath =
+          p.join(summariesDir, 'ddc_outline_sound.dill');
+      final workerDir = p.join(sdkDir, 'fakesnapshots');
+      final compilerWorkerPath = p.join(workerDir, 'dartdevc.dart.snapshot');
 
-      var sdkConfiguration = SdkConfiguration(
+      final sdkConfiguration = SdkConfiguration(
         sdkDirectory: sdkDir,
         soundSdkSummaryPath: soundSdkSummaryPath,
         unsoundSdkSummaryPath: unsoundSdkSummaryPath,
@@ -118,12 +120,12 @@ void main() {
   group('SDK configuration', () {
     MemoryFileSystem fs;
 
-    var root = '/root';
-    var sdkDirectory = root;
-    var soundSdkSummaryPath = _dartSoundSdkSummaryPath(sdkDirectory);
-    var unsoundSdkSummaryPath = _dartUnsoundSdkSummaryPath(sdkDirectory);
-    var librariesPath = _librariesPath(sdkDirectory);
-    var compilerWorkerPath = _compilerWorkerPath(root);
+    final root = '/root';
+    final sdkDirectory = root;
+    final soundSdkSummaryPath = _dartSoundSdkSummaryPath(sdkDirectory);
+    final unsoundSdkSummaryPath = _dartUnsoundSdkSummaryPath(sdkDirectory);
+    final librariesPath = _librariesPath(sdkDirectory);
+    final compilerWorkerPath = _compilerWorkerPath(root);
 
     setUp(() async {
       fs = MemoryFileSystem();
@@ -135,7 +137,7 @@ void main() {
     });
 
     test('Can create and validate default SDK configuration', () async {
-      var configuration = SdkConfiguration(
+      final configuration = SdkConfiguration(
         sdkDirectory: sdkDirectory,
         soundSdkSummaryPath: soundSdkSummaryPath,
         unsoundSdkSummaryPath: unsoundSdkSummaryPath,

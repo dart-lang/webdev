@@ -187,9 +187,9 @@ class MetadataProvider {
       // Assume that <name>.bootstrap.js has <name>.ddc_merged_metadata
       if (entrypoint.endsWith('.bootstrap.js')) {
         _logger.info('Loading debug metadata...');
-        var serverPath =
+        final serverPath =
             entrypoint.replaceAll('.bootstrap.js', '.ddc_merged_metadata');
-        var merged = await _assetReader.metadataContents(serverPath);
+        final merged = await _assetReader.metadataContents(serverPath);
         if (merged != null) {
           _addSdkMetadata();
           for (var contents in merged.split('\n')) {
@@ -197,8 +197,8 @@ class MetadataProvider {
               if (contents == null ||
                   contents.isEmpty ||
                   contents.startsWith('// intentionally empty:')) continue;
-              var moduleJson = json.decode(contents);
-              var metadata =
+              final moduleJson = json.decode(contents);
+              final metadata =
                   ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
               _addMetadata(metadata);
               hasUnsoundNullSafety &= !metadata.soundNullSafety;
@@ -236,7 +236,7 @@ class MetadataProvider {
       _scriptToModule[library.importUri] = metadata.name;
       for (var path in library.partUris) {
         // Parts in metadata are relative to the library Uri directory.
-        var partPath = p.url.join(p.dirname(library.importUri), path);
+        final partPath = p.url.join(p.dirname(library.importUri), path);
         _scripts[library.importUri].add(partPath);
         _scriptToModule[partPath] = metadata.name;
       }
@@ -244,7 +244,7 @@ class MetadataProvider {
   }
 
   void _addSdkMetadata() {
-    var moduleName = 'dart_sdk';
+    final moduleName = 'dart_sdk';
 
     for (var lib in sdkLibraries) {
       _libraries.add(lib);

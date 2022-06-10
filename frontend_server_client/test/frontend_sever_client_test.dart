@@ -28,11 +28,10 @@ dependencies:
   path: ^1.0.0
 
 environment:
-  sdk: '>=2.12.0-0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
       '''),
       d.dir('bin', [
         d.file('main.dart', '''
-// @dart = 2.8
 import 'package:path/path.dart' as p;
 
 void main() async {
@@ -64,9 +63,6 @@ String get message => p.join('hello', 'world');
     client = await FrontendServerClient.start(
         entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
     var result = await client.compile();
-    if (result == null) {
-      fail('Expected compilation to be non-null');
-    }
     client.accept();
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
@@ -77,12 +73,13 @@ String get message => p.join('hello', 'world');
           packageConfig.resolve(Uri.parse('package:path/path.dart')),
         ]));
     expect(result.removedSources, isEmpty);
-    expect(File(result.dillOutput).existsSync(), true);
+    expect(result.dillOutput, isNotNull);
+    expect(File(result.dillOutput!).existsSync(), true);
     var process = await Process.start(Platform.resolvedExecutable, [
       '--observe',
       '--no-pause-isolates-on-exit',
       '--pause-isolates-on-start',
-      result.dillOutput
+      result.dillOutput!
     ]);
     addTearDown(process.kill);
     var stdoutLines = StreamQueue(
@@ -102,9 +99,6 @@ String get message => p.join('hello', 'world');
     await appFile.writeAsString(newContent);
 
     result = await client.compile([File(entrypoint).uri]);
-    if (result == null) {
-      fail('Expected compilation to be non-null');
-    }
 
     client.accept();
     expect(result.newSources, isEmpty);
@@ -130,9 +124,6 @@ String get message => p.join('hello', 'world');
     client = await FrontendServerClient.start(
         entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill);
     var result = await client.compile();
-    if (result == null) {
-      fail('Expected compilation to be non-null');
-    }
 
     client.accept();
     expect(result.errorCount, 2);
@@ -145,13 +136,14 @@ String get message => p.join('hello', 'world');
           packageConfig.resolve(Uri.parse('package:path/path.dart')),
         ]));
     expect(result.removedSources, isEmpty);
-    expect(File(result.dillOutput).existsSync(), true);
+    expect(result.dillOutput, isNotNull);
+    expect(File(result.dillOutput!).existsSync(), true);
 
     var process = await Process.start(Platform.resolvedExecutable, [
       '--observe',
       '--no-pause-isolates-on-exit',
       '--pause-isolates-on-start',
-      result.dillOutput
+      result.dillOutput!
     ]);
     addTearDown(process.kill);
     var stdoutLines = StreamQueue(
@@ -170,15 +162,13 @@ String get message => p.join('hello', 'world');
     await entrypointFile
         .writeAsString(originalContent.replaceFirst('hello', 'goodbye'));
     result = await client.compile([entrypointFile.uri]);
-    if (result == null) {
-      fail('Expected compilation to be non-null');
-    }
     client.accept();
     expect(result.errorCount, 0);
     expect(result.compilerOutputLines, isEmpty);
     expect(result.newSources, isEmpty);
     expect(result.removedSources, isEmpty);
-    expect(File(result.dillOutput).existsSync(), true);
+    expect(result.dillOutput, isNotNull);
+    expect(File(result.dillOutput!).existsSync(), true);
 
     await vmService.reloadSources(isolate.id!, rootLibUri: result.dillOutput);
 
@@ -190,11 +180,12 @@ String get message => p.join('hello', 'world');
     var entrypoint =
         p.toUri(p.join(packageRoot, 'bin', 'main.dart')).toString();
     var dartDevcClient = client = await DartDevcFrontendServerClient.start(
-        entrypoint, p.join(packageRoot, 'out.dill'));
+        entrypoint, p.join(packageRoot, 'out.dill'),
+        platformKernel: p
+            .toUri(
+                p.join(sdkDir, 'lib', '_internal', 'ddc_platform_sound.dill'))
+            .toString());
     var result = await client.compile();
-    if (result == null) {
-      fail('Expected compilation to be non-null');
-    }
     client.accept();
 
     expect(result.compilerOutputLines, isEmpty);
@@ -207,9 +198,10 @@ String get message => p.join('hello', 'world');
         ]));
     expect(result.removedSources, isEmpty);
 
-    expect(File(result.jsManifestOutput).existsSync(), true);
-    expect(File(result.jsSourcesOutput).existsSync(), true);
-    expect(File(result.jsSourceMapsOutput).existsSync(), true);
+    expect(result.dillOutput, isNotNull);
+    expect(File(result.jsManifestOutput!).existsSync(), true);
+    expect(File(result.jsSourcesOutput!).existsSync(), true);
+    expect(File(result.jsSourceMapsOutput!).existsSync(), true);
 
     var entrypointUri = Uri.parse(entrypoint);
     expect(
@@ -222,9 +214,6 @@ String get message => p.join('hello', 'world');
     await appFile.writeAsString(newContent);
 
     result = await client.compile([entrypointUri]);
-    if (result == null) {
-      fail('Expected compilation to be non-null');
-    }
     client.accept();
     expect(result.newSources, isEmpty);
     expect(result.removedSources, isEmpty);
@@ -257,9 +246,6 @@ void main() {
         entrypoint, p.join(packageRoot, 'out.dill'), vmPlatformDill,
         enabledExperiments: ['non-nullable']);
     var result = await client.compile();
-    if (result == null) {
-      fail('Expected compilation to be non-null');
-    }
     client.accept();
     expect(result.errorCount, 1);
     expect(result.compilerOutputLines, contains(contains('int x;')));
@@ -280,9 +266,6 @@ void main() {
     client = await FrontendServerClient.start(entrypoint,
         p.join(packageRoot, 'out with spaces.dill'), vmPlatformDill);
     var result = await client.compile();
-    if (result == null) {
-      fail('Expected compilation to be non-null');
-    }
     client.accept();
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
@@ -292,9 +275,10 @@ void main() {
           File(entrypoint).uri,
         ]));
     expect(result.removedSources, isEmpty);
-    expect(File(result.dillOutput).existsSync(), true);
+    expect(result.dillOutput, isNotNull);
+    expect(File(result.dillOutput!).existsSync(), true);
     var processResult =
-        await Process.run(Platform.resolvedExecutable, [result.dillOutput]);
+        await Process.run(Platform.resolvedExecutable, [result.dillOutput!]);
 
     expect(processResult.stdout, startsWith('hello world'));
     expect(processResult.exitCode, 0);
@@ -304,16 +288,13 @@ void main() {
     var newContent = originalContent.replaceFirst('hello', 'goodbye');
     await appFile.writeAsString(newContent);
     result = await client.compile([appFile.uri]);
-    if (result == null) {
-      fail('Expected compilation to be non-null');
-    }
     expect(result.compilerOutputLines, isEmpty);
     expect(result.errorCount, 0);
     expect(result.newSources, isEmpty);
     expect(result.removedSources, isEmpty);
 
     processResult =
-        await Process.run(Platform.resolvedExecutable, [result.dillOutput]);
+        await Process.run(Platform.resolvedExecutable, [result.dillOutput!]);
     expect(processResult.stdout, startsWith('goodbye world'));
     expect(processResult.exitCode, 0);
   });

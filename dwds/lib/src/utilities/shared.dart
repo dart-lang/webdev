@@ -60,7 +60,7 @@ Future<int> findUnusedPort() async {
 /// Starts by trying to bind to [port] if specified.
 Future<HttpServer> startHttpServer(String hostname, {int port}) async {
   HttpServer httpServer;
-  var retries = 5;
+  final retries = 5;
   var i = 0;
   port = port ?? await findUnusedPort();
   while (i < retries) {

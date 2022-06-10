@@ -1,4 +1,11 @@
+## 3.0.0-dev
+
+- Update the `compile` api to return a non-null `CompileResult`, and instead
+  make the `dillOutput` field nullable. This allows you to still get compiler
+  output if no dill file was produced.
+
 ## 2.1.3
+
 - Update `package:vm_service` to version `^8.0.0`
 
 ## 2.1.2

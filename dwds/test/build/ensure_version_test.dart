@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('dwds lib/src/version.dart matches the pubspec version', () {
-    var pubspec = Pubspec.parse(File('pubspec.yaml').readAsStringSync());
+    final pubspec = Pubspec.parse(File('pubspec.yaml').readAsStringSync());
     expect(Version.parse(packageVersion), pubspec.version,
         reason: 'Please run `pub run build_runner build '
             '--build-filter=lib/src/version.dart` to update the version.');

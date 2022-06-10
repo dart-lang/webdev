@@ -26,10 +26,10 @@ class SkipLists {
   ) async {
     if (_idToList.containsKey(scriptId)) return _idToList[scriptId];
 
-    var sortedLocations = locations.toList()
+    final sortedLocations = locations.toList()
       ..sort((a, b) => a.jsLocation.compareTo(b.jsLocation));
 
-    var ranges = <Map<String, dynamic>>[];
+    final ranges = <Map<String, dynamic>>[];
     var startLine = 0;
     var startColumn = 0;
     for (var location in sortedLocations) {
