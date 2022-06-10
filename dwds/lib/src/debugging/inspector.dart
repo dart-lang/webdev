@@ -563,7 +563,7 @@ function($argsString) {
       'contextId': await contextId,
     };
     try {
-      var extensionsResult =
+      final extensionsResult =
           await remoteDebugger.sendCommand('Runtime.evaluate', params: params);
       handleErrorIfPresent(extensionsResult, evalContents: expression);
       extensionRpcs.addAll(
