@@ -289,7 +289,7 @@ class ResidentCompiler {
   /// Binary file name is returned if compilation was successful, otherwise
   /// null is returned.
   Future<CompilerOutput> recompile(Uri mainUri, List<Uri> invalidatedFiles,
-      {@required String outputPath,
+      {@required @required @required @required @required String outputPath,
       @required PackageConfig packageConfig}) async {
     assert(outputPath != null);
     if (!_controller.hasListener) {

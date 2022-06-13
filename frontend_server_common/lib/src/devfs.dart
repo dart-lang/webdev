@@ -67,7 +67,7 @@ class WebDevFS {
   Future<UpdateFSReport> update({
     String mainPath,
     String dillOutputPath,
-    @required ResidentCompiler generator,
+    @required @required @required @required @required ResidentCompiler generator,
     List<Uri> invalidatedFiles,
   }) async {
     assert(generator != null);
