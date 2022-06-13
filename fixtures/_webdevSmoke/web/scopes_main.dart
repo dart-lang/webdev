@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+
 
 /// An example with more complicated scope
 import 'dart:async';
@@ -11,7 +11,7 @@ import 'dart:collection';
 final libraryPublicFinal = MyTestClass();
 
 final _libraryPrivateFinal = 1;
-Object libraryNull;
+Object? libraryNull;
 var libraryPublic = <String>['library', 'public', 'variable'];
 var notAList = NotReallyAList();
 
@@ -30,7 +30,7 @@ void main() async {
   var local = 'local in main';
   var intLocalInMain = 42;
   var testClass = MyTestClass();
-  Object localThatsNull;
+  Object? localThatsNull;
   identityMap['a'] = 1;
   identityMap['b'] = 2;
   map['a'] = [1, 2, 3];
@@ -79,7 +79,7 @@ String libraryFunction(String arg) {
 class MyTestClass<T> {
   final String message;
 
-  String notFinal;
+  String? notFinal;
 
   MyTestClass({this.message = 'world'}) {
     myselfField = this;
@@ -102,7 +102,7 @@ class MyTestClass<T> {
   //ignore: avoid_returning_this
   MyTestClass get myselfGetter => this;
 
-  MyTestClass myselfField;
+  MyTestClass? myselfField;
 
   var count = 0;
 
@@ -127,10 +127,10 @@ class MyTestClass<T> {
 
   Function closure = someFunction;
 
-  String Function() tornOff;
+  String Function()? tornOff;
 }
 
-Function someFunction() => null;
+Function? someFunction() => null;
 
 // ignore: unused_element
 int _libraryPrivateFunction(int a, int b) => a + b;
