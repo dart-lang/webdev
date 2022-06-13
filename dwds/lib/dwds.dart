@@ -40,12 +40,12 @@ export 'src/loaders/frontend_server_require.dart'
 export 'src/loaders/legacy.dart' show LegacyStrategy;
 export 'src/loaders/require.dart' show RequireStrategy;
 export 'src/loaders/strategy.dart' show LoadStrategy, ReloadConfiguration;
-export 'src/readers/asset_reader.dart' show AssetReader;
+export 'src/readers/asset_reader.dart' show AssetReader, UrlEncoder;
 export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/servers/devtools.dart';
-export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
+export 'src/services/chrome_debug_exception.dart' show ChromeDebugException;
 export 'src/services/expression_compiler.dart'
     show ExpressionCompilationResult, ExpressionCompiler, ModuleInfo;
 export 'src/services/expression_compiler_service.dart'
@@ -54,7 +54,6 @@ export 'src/utilities/sdk_configuration.dart'
     show SdkConfiguration, SdkConfigurationProvider;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
-typedef UrlEncoder = Future<String> Function(String url);
 
 /// The Dart Web Debug Service.
 class Dwds {

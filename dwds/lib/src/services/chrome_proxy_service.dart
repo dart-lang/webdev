@@ -1097,37 +1097,3 @@ const _stderrTypes = ['error'];
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stdout` logs.
 const _stdoutTypes = ['log', 'info', 'warning'];
-
-class ChromeDebugException extends ExceptionDetails implements Exception {
-  /// Optional, additional information about the exception.
-  final Object additionalDetails;
-
-  /// Optional, the exact contents of the eval that was attempted.
-  final String evalContents;
-
-  ChromeDebugException(Map<String, dynamic> exceptionDetails,
-      {this.additionalDetails, this.evalContents})
-      : super(exceptionDetails);
-
-  @override
-  String toString() {
-    final description = StringBuffer()
-      ..writeln('Unexpected error from chrome devtools:');
-    if (text != null) {
-      description.writeln('text: $text');
-    }
-    if (exception != null) {
-      description.writeln('exception:');
-      description.writeln('  description: ${exception.description}');
-      description.writeln('  type: ${exception.type}');
-      description.writeln('  value: ${exception.value}');
-    }
-    if (evalContents != null) {
-      description.writeln('attempted JS eval: `$evalContents`');
-    }
-    if (additionalDetails != null) {
-      description.writeln('additional details:\n  $additionalDetails');
-    }
-    return description.toString();
-  }
-}

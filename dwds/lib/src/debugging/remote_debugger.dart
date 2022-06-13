@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 class TargetCrashedEvent extends WipEvent {
@@ -31,7 +29,7 @@ abstract class RemoteDebugger {
   Stream<void> get onClose;
 
   Future<WipResponse> sendCommand(String command,
-      {Map<String, dynamic> params});
+      {Map<String, dynamic>? params});
 
   Future<void> disable();
 
@@ -47,18 +45,18 @@ abstract class RemoteDebugger {
 
   Future<WipResponse> removeBreakpoint(String breakpointId);
 
-  Future<WipResponse> stepInto({Map<String, dynamic> params});
+  Future<WipResponse> stepInto({Map<String, dynamic>? params});
 
   Future<WipResponse> stepOut();
 
-  Future<WipResponse> stepOver({Map<String, dynamic> params});
+  Future<WipResponse> stepOver({Map<String, dynamic>? params});
 
   Future<WipResponse> enablePage();
 
   Future<WipResponse> pageReload();
 
   Future<RemoteObject> evaluate(String expression,
-      {bool returnByValue, int contextId});
+      {bool? returnByValue, int? contextId});
 
   Future<RemoteObject> evaluateOnCallFrame(
       String callFrameId, String expression);
