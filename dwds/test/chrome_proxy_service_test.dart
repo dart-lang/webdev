@@ -124,9 +124,9 @@ void main() {
 
       test('addBreakpointWithScriptUri absolute file URI', () async {
         final current = context.workingDirectory;
-        final _test = path.join(path.dirname(current), '_test');
+        final test = path.join(path.dirname(current), '_test');
         final scriptPath = Uri.parse(mainScript.uri).path.substring(1);
-        final fullPath = path.join(_test, scriptPath);
+        final fullPath = path.join(test, scriptPath);
         final fileUri = Uri.file(fullPath);
         final line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id, mainScript);

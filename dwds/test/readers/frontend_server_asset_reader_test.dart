@@ -21,7 +21,7 @@ void main() {
   File jsonOriginal;
   File mapOriginal;
 
-  Future<void> _createTempFixtures() async {
+  Future<void> createTempFixtures() async {
     final fixtures = p.join('test', 'fixtures');
     tempFixtures = await Directory.systemTemp.createTemp('dwds_test_fixtures');
     await tempFixtures.create();
@@ -37,7 +37,7 @@ void main() {
   });
 
   setUp(() async {
-    await _createTempFixtures();
+    await createTempFixtures();
     assetReader = FrontendServerAssetReader(
       p.join(tempFixtures.path, 'main.dart.dill'),
       packagesDir,

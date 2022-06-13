@@ -613,12 +613,12 @@ extension<T> on Stream<T> {
         : StreamController<T>(sync: true);
 
     StreamSubscription<T> subscription;
-    Timer _gapTimer;
+    Timer gapTimer;
     controller.onListen = () {
       subscription = listen((e) {
         controller.add(e);
-        _gapTimer?.cancel();
-        _gapTimer = Timer(gap, () {
+        gapTimer?.cancel();
+        gapTimer = Timer(gap, () {
           subscription.cancel();
           controller.close();
         });
