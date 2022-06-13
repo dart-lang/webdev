@@ -120,7 +120,7 @@ class SdkConfiguration {
 class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
   DefaultSdkConfigurationProvider();
 
-  late SdkConfiguration _configuration = _create();
+  late final SdkConfiguration _configuration = _create();
 
   /// Create and validate configuration matching the default SDK layout.
   @override
