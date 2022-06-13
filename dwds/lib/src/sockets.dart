@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:sse/client/sse_client.dart';
@@ -37,8 +35,7 @@ class WebSocketClient extends SocketClient {
   @override
   StreamSink<dynamic> get sink => _channel.sink;
   @override
-  Stream<String> get stream =>
-      _channel.stream.map((dynamic o) => o?.toString());
+  Stream<String> get stream => _channel.stream.map((dynamic o) => o.toString());
 
   @override
   void close() => _channel.sink.close();

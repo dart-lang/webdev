@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:vm_service/vm_service.dart';
 
 class DwdsStats {
   /// The time when the user starts the debugger.
-  DateTime _debuggerStart;
+  late DateTime _debuggerStart;
   DateTime get debuggerStart => _debuggerStart;
 
   /// The time when dwds launches DevTools.
-  DateTime _devToolsStart;
+  late DateTime _devToolsStart;
   DateTime get devToolsStart => _devToolsStart;
 
   /// Records and returns weither the debugger is ready.
@@ -25,7 +23,8 @@ class DwdsStats {
     return wasReady;
   }
 
-  void updateLoadTime({DateTime debuggerStart, DateTime devToolsStart}) {
+  void updateLoadTime(
+      {required DateTime debuggerStart, required DateTime devToolsStart}) {
     _debuggerStart = debuggerStart;
     _devToolsStart = devToolsStart;
   }
@@ -66,14 +65,14 @@ class DwdsEvent {
 
   DwdsEvent.devtoolsLaunch() : this(DwdsEventKind.devtoolsLaunch, {});
 
-  DwdsEvent.evaluate(String expression, Response result)
+  DwdsEvent.evaluate(String expression, Response? result)
       : this(DwdsEventKind.evaluate, {
           'expression': expression,
           'success': result != null && result is InstanceRef,
           if (result != null && result is ErrorRef) 'error': result,
         });
 
-  DwdsEvent.evaluateInFrame(String expression, Response result)
+  DwdsEvent.evaluateInFrame(String expression, Response? result)
       : this(DwdsEventKind.evaluateInFrame, {
           'expression': expression,
           'success': result != null && result is InstanceRef,
@@ -140,13 +139,13 @@ Stream<DwdsEvent> get eventStream => _eventController.stream;
 /// and appends time and exception details to it if
 /// available.
 Future<T> captureElapsedTime<T>(
-    Future<T> Function() function, DwdsEvent Function(T result) event) async {
+    Future<T> Function() function, DwdsEvent Function(T? result) event) async {
   final stopwatch = Stopwatch()..start();
-  T result;
+  T? result;
   try {
     return result = await function();
   } catch (e) {
-    emitEvent(event(result)
+    emitEvent(event(null)
       ..addException(e)
       ..addElapsedTime(stopwatch.elapsedMilliseconds));
     rethrow;

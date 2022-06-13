@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -15,7 +13,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     as wip;
 
-import '../../dwds.dart' show ChromeDebugException;
+import 'package:dwds/src/services/chrome_debug_exception.dart';
 
 VMRef toVMRef(VM vm) => VMRef(name: vm.name);
 
@@ -28,11 +26,12 @@ String createId() {
 /// Returns `true` if [hostname] is bound to an IPv6 address.
 Future<bool> useIPv6ForHost(String hostname) async {
   final addresses = await InternetAddress.lookup(hostname);
+  if (addresses.isEmpty) return false;
   final address = addresses.firstWhere(
     (a) => a.type == InternetAddressType.IPv6,
-    orElse: () => null,
+    orElse: () => addresses.first,
   );
-  return address != null;
+  return address.type == InternetAddressType.IPv6;
 }
 
 /// Returns a port that is probably, but not definitely, not in use.
@@ -58,23 +57,23 @@ Future<int> findUnusedPort() async {
 /// Retries a few times to recover from errors due to
 /// another thread or process opening the same port.
 /// Starts by trying to bind to [port] if specified.
-Future<HttpServer> startHttpServer(String hostname, {int port}) async {
-  HttpServer httpServer;
+Future<HttpServer> startHttpServer(String hostname, {int? port}) async {
+  HttpServer? httpServer;
   final retries = 5;
   var i = 0;
-  port = port ?? await findUnusedPort();
+  var foundPort = port ?? await findUnusedPort();
   while (i < retries) {
     i++;
     try {
-      httpServer = await HttpMultiServer.bind(hostname, port);
+      httpServer = await HttpMultiServer.bind(hostname, foundPort);
     } on SocketException {
       if (i == retries) rethrow;
     }
-    if (httpServer != null || i == retries) return httpServer;
-    port = await findUnusedPort();
+    if (httpServer != null || i == retries) return httpServer!;
+    foundPort = await findUnusedPort();
     await Future<void>.delayed(const Duration(milliseconds: 100));
   }
-  return httpServer;
+  return httpServer!;
 }
 
 /// Handles [requests] using [handler].
@@ -90,12 +89,12 @@ void serveHttpRequests(Stream<HttpRequest> requests, Handler handler,
 
 /// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
 /// result.
-void handleErrorIfPresent(wip.WipResponse response,
-    {String evalContents, Object additionalDetails}) {
-  if (response == null) return;
-  if (response.result.containsKey('exceptionDetails')) {
+void handleErrorIfPresent(wip.WipResponse? response,
+    {String? evalContents, Object? additionalDetails}) {
+  if (response == null || response.result == null) return;
+  if (response.result!.containsKey('exceptionDetails')) {
     throw ChromeDebugException(
-        response.result['exceptionDetails'] as Map<String, dynamic>,
+        response.result!['exceptionDetails'] as Map<String, dynamic>,
         evalContents: evalContents,
         additionalDetails: additionalDetails);
   }
