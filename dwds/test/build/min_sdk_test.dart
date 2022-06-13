@@ -14,12 +14,12 @@ import 'package:test/test.dart';
 
 void main() {
   test('dwds pubspec has the stable as min SDK constraint', () {
-    var pubspec = Pubspec.parse(File('pubspec.yaml').readAsStringSync());
+    final pubspec = Pubspec.parse(File('pubspec.yaml').readAsStringSync());
     var sdkVersion = Version.parse(Platform.version.split(' ')[0]);
     sdkVersion = Version(sdkVersion.major, sdkVersion.minor, 0);
 
-    var sdkConstraint = VersionConstraint.compatibleWith(sdkVersion);
-    var pubspecSdkConstraint = pubspec.environment['sdk'];
+    final sdkConstraint = VersionConstraint.compatibleWith(sdkVersion);
+    final pubspecSdkConstraint = pubspec.environment['sdk'];
     expect(sdkConstraint.allowsAll(pubspecSdkConstraint), true,
         reason:
             'Min sdk constraint is outdated. Please update SDK constraint in '

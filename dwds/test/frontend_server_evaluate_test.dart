@@ -13,7 +13,7 @@ import 'evaluate_common.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
-  var debug = false;
+  final debug = false;
 
   for (var soundNullSafety in [false, true]) {
     group('${soundNullSafety ? "sound" : "weak"} null safety |', () {

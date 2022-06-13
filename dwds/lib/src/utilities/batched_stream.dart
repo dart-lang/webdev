@@ -12,10 +12,10 @@ class BatchedStreamController<T> {
 
   final int _batchDelayMilliseconds;
 
-  late StreamController<T> _inputController;
+  final StreamController<T> _inputController;
   late StreamQueue<T> _inputQueue;
 
-  late StreamController<List<T>> _outputController;
+  final StreamController<List<T>> _outputController;
   final Completer<bool> _completer = Completer<bool>();
 
   /// Create batched stream controller.
@@ -24,10 +24,10 @@ class BatchedStreamController<T> {
   /// output [stream] every [delay] milliseconds. Keeps the original order.
   BatchedStreamController({
     int delay = _defaultBatchDelayMilliseconds,
-  }) : _batchDelayMilliseconds = delay {
-    _inputController = StreamController<T>();
+  })  : _batchDelayMilliseconds = delay,
+        _inputController = StreamController<T>(),
+        _outputController = StreamController<List<T>>() {
     _inputQueue = StreamQueue<T>(_inputController.stream);
-    _outputController = StreamController<List<T>>();
     unawaited(_batchAndSendEvents());
   }
 
@@ -46,7 +46,7 @@ class BatchedStreamController<T> {
   /// Send events to the output in a batch every [_batchDelayMilliseconds].
   Future<void> _batchAndSendEvents() async {
     const duration = Duration(milliseconds: _checkDelayMilliseconds);
-    var buffer = <T>[];
+    final buffer = <T>[];
 
     // Batch events every `_batchDelayMilliseconds`.
     //
@@ -61,7 +61,7 @@ class BatchedStreamController<T> {
         buffer.add(await _inputQueue.next);
       }
 
-      var now = DateTime.now().millisecondsSinceEpoch;
+      final now = DateTime.now().millisecondsSinceEpoch;
       if (now > lastSendTime + _batchDelayMilliseconds) {
         lastSendTime = now;
         if (buffer.isNotEmpty) {

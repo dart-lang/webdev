@@ -88,7 +88,7 @@ class Debugger extends Domain {
 
   Future<Success> pause() async {
     _isStepping = false;
-    var result = await _remoteDebugger.pause();
+    final result = await _remoteDebugger.pause();
     handleErrorIfPresent(result);
     return Success();
   }
@@ -160,7 +160,7 @@ class Debugger extends Domain {
           'Cannot compute stack when application is not paused');
     }
 
-    var frames = await stackComputer.calculateFrames(limit: limit);
+    final frames = await stackComputer.calculateFrames(limit: limit);
     return Stack(
         frames: frames,
         messages: [],
@@ -175,7 +175,7 @@ class Debugger extends Domain {
     SkipLists skipLists,
     String root,
   ) async {
-    var debugger = Debugger._(
+    final debugger = Debugger._(
       remoteDebugger,
       streamNotify,
       appInspectorProvider,
@@ -237,8 +237,8 @@ class Debugger extends Domain {
   }
 
   Future<ScriptRef> _updatedScriptRefFor(Breakpoint breakpoint) async {
-    var oldRef = (breakpoint.location as SourceLocation).script;
-    var dartUri = DartUri(oldRef.uri, _root);
+    final oldRef = (breakpoint.location as SourceLocation).script;
+    final dartUri = DartUri(oldRef.uri, _root);
     return await inspector.scriptRefFor(dartUri.serverPath);
   }
 
@@ -249,12 +249,12 @@ class Debugger extends Domain {
     // Previous breakpoints were never removed from Chrome since we use
     // `setBreakpointByUrl`. We simply need to update the references.
     for (var breakpoint in previousBreakpoints) {
-      var scriptRef = await _updatedScriptRefFor(breakpoint);
-      var updatedLocation = await _locations.locationForDart(
+      final scriptRef = await _updatedScriptRefFor(breakpoint);
+      final updatedLocation = await _locations.locationForDart(
           DartUri(scriptRef.uri, _root),
           _lineNumberFor(breakpoint),
           _columnNumberFor(breakpoint));
-      var updatedBreakpoint = _breakpoints._dartBreakpoint(
+      final updatedBreakpoint = _breakpoints._dartBreakpoint(
           scriptRef, updatedLocation, breakpoint.id);
       _breakpoints._note(
           bp: updatedBreakpoint,
@@ -293,7 +293,7 @@ class Debugger extends Domain {
     final jsId = _breakpoints.jsId(breakpointId);
     await _removeBreakpoint(jsId);
 
-    var bp = await _breakpoints.remove(jsId: jsId, dartId: breakpointId);
+    final bp = await _breakpoints.remove(jsId: jsId, dartId: breakpointId);
     if (bp != null) {
       _streamNotify(
         'Debug',
@@ -310,7 +310,7 @@ class Debugger extends Domain {
   /// Call the Chrome protocol removeBreakpoint.
   Future<void> _removeBreakpoint(String breakpointId) async {
     try {
-      var response = await _remoteDebugger.removeBreakpoint(breakpointId);
+      final response = await _remoteDebugger.removeBreakpoint(breakpointId);
       handleErrorIfPresent(response);
     } on WipError catch (e) {
       throw RPCError('removeBreakpoint', 102, '$e');
@@ -326,28 +326,28 @@ class Debugger extends Domain {
   /// If we do not have [Location] data for the embedded JS location, null is
   /// returned.
   Future<Location> _sourceLocation(DebuggerPausedEvent e) {
-    var frame = e.params['callFrames'][0];
-    var location = frame['location'];
-    var scriptId = location['scriptId'] as String;
-    var line = location['lineNumber'] as int;
-    var column = location['columnNumber'] as int;
+    final frame = e.params['callFrames'][0];
+    final location = frame['location'];
+    final scriptId = location['scriptId'] as String;
+    final line = location['lineNumber'] as int;
+    final column = location['columnNumber'] as int;
 
-    var url = urlForScriptId(scriptId);
+    final url = urlForScriptId(scriptId);
     if (url == null) return null;
     return _locations.locationForJs(url, line, column);
   }
 
   /// Returns script ID for the paused event.
   String _frameScriptId(DebuggerPausedEvent e) {
-    var frame = e.params['callFrames'][0];
+    final frame = e.params['callFrames'][0];
     return frame['location']['scriptId'] as String;
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
   Future<List<BoundVariable>> variablesFor(WipCallFrame frame) async {
     // TODO(alanknight): Can these be moved to dart_scope.dart?
-    var properties = await visibleProperties(debugger: this, frame: frame);
-    var boundVariables = await Future.wait(
+    final properties = await visibleProperties(debugger: this, frame: frame);
+    final boundVariables = await Future.wait(
       properties.map((property) async => await _boundVariable(property)),
     );
 
@@ -361,7 +361,7 @@ class Debugger extends Domain {
   Future<BoundVariable> _boundVariable(Property property) async {
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
-    var instanceRef =
+    final instanceRef =
         await inspector.instanceHelper.instanceRefFor(property.value);
     // Skip null instance refs, which we get for weird objects, e.g.
     // properties that are getter/setter pairs.
@@ -391,15 +391,15 @@ class Debugger extends Domain {
     assert(length != null);
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
-    var receiver = remoteObjectFor(id);
-    var end = count == null ? null : math.min(offset + count, length);
-    var actualCount = count ?? length - offset;
-    var args =
+    final receiver = remoteObjectFor(id);
+    final end = count == null ? null : math.min(offset + count, length);
+    final actualCount = count ?? length - offset;
+    final args =
         [offset, actualCount, end].map(dartIdFor).map(remoteObjectFor).toList();
     // If this is a List, just call sublist. If it's a Map, get the entries, but
     // avoid doing a toList on a large map using skip/take to get the section we
     // want. To make those alternatives easier in JS, pass both count and end.
-    var expression = '''
+    final expression = '''
         function (offset, count, end) {
           const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
           if (sdk.core.Map.is(this)) {
@@ -450,16 +450,16 @@ class Debugger extends Domain {
       {int offset, int count, int length}) async {
     var rangeId = objectId;
     if (length != null && (offset != null || count != null)) {
-      var range = await _subrange(objectId, offset ?? 0, count, length);
+      final range = await _subrange(objectId, offset ?? 0, count, length);
       rangeId = range.objectId;
     }
-    var response =
+    final response =
         await _remoteDebugger.sendCommand('Runtime.getProperties', params: {
       'objectId': rangeId,
       'ownProperties': true,
     });
-    var jsProperties = response.result['result'];
-    var properties = (jsProperties as List)
+    final jsProperties = response.result['result'];
+    final properties = (jsProperties as List)
         .map<Property>((each) => Property(each as Map<String, dynamic>))
         .toList();
     return properties;
@@ -471,32 +471,32 @@ class Debugger extends Domain {
     int frameIndex, {
     bool populateVariables = true,
   }) async {
-    var location = frame.location;
-    var line = location.lineNumber;
-    var column = location.columnNumber;
+    final location = frame.location;
+    final line = location.lineNumber;
+    final column = location.columnNumber;
 
-    var url = urlForScriptId(location.scriptId);
+    final url = urlForScriptId(location.scriptId);
     if (url == null) {
       logger.severe('Failed to create dart frame for ${frame.functionName}: '
           'cannot find url for script ${location.scriptId}');
       return null;
     }
 
-    var bestLocation = await _locations.locationForJs(url, line, column);
+    final bestLocation = await _locations.locationForJs(url, line, column);
     if (bestLocation == null) return null;
 
-    var script =
+    final script =
         await inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
     // We think we found a location, but for some reason we can't find the
     // script. Just drop the frame.
     // TODO(#700): Understand when this can happen and have a better fix.
     if (script == null) return null;
 
-    var functionName =
+    final functionName =
         _prettifyMember((frame.functionName ?? '').split('.').last);
-    var codeRefName = functionName.isEmpty ? '<closure>' : functionName;
+    final codeRefName = functionName.isEmpty ? '<closure>' : functionName;
 
-    var dartFrame = Frame(
+    final dartFrame = Frame(
       index: frameIndex,
       code: CodeRef(
         name: codeRefName,
@@ -523,20 +523,20 @@ class Debugger extends Domain {
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
     if (inspector == null) return;
 
-    var isolate = inspector.isolate;
+    final isolate = inspector.isolate;
     if (isolate == null) return;
 
     Event event;
-    var timestamp = DateTime.now().millisecondsSinceEpoch;
-    var jsBreakpointIds = e.hitBreakpoints ?? [];
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final jsBreakpointIds = e.hitBreakpoints ?? [];
     if (jsBreakpointIds.isNotEmpty) {
-      var breakpointIds = jsBreakpointIds
+      final breakpointIds = jsBreakpointIds
           .map((id) => _breakpoints._dartIdByJsId[id])
           // In case the breakpoint was set in Chrome DevTools outside of
           // package:dwds.
           .where((entry) => entry != null)
           .toSet();
-      var pauseBreakpoints = isolate.breakpoints
+      final pauseBreakpoints = isolate.breakpoints
           .where((bp) => breakpointIds.contains(bp.id))
           .toList();
       event = Event(
@@ -548,10 +548,10 @@ class Debugger extends Domain {
       InstanceRef exception;
 
       if (e.data is Map<String, dynamic>) {
-        var map = e.data as Map<String, dynamic>;
+        final map = e.data as Map<String, dynamic>;
         if (map['type'] == 'object') {
           // The className here is generally 'DartError'.
-          var obj = RemoteObject(map);
+          final obj = RemoteObject(map);
           exception = await inspector.instanceHelper.instanceRefFor(obj);
 
           // TODO: The exception object generally doesn't get converted to a
@@ -559,7 +559,7 @@ class Debugger extends Domain {
           if (isNativeJsObject(exception)) {
             if (obj.description != null) {
               // Create a string exception object.
-              var description =
+              final description =
                   await inspector.mapExceptionStackTrace(obj.description);
               exception =
                   await inspector.instanceHelper.instanceRefFor(description);
@@ -580,8 +580,8 @@ class Debugger extends Domain {
       // Continue stepping until we hit a dart location,
       // avoiding stepping through library loading code.
       if (_isStepping) {
-        var scriptId = _frameScriptId(e);
-        var url = urlForScriptId(scriptId);
+        final scriptId = _frameScriptId(e);
+        final url = urlForScriptId(scriptId);
 
         if (url == null) {
           logger.severe('Stepping failed: '
@@ -618,7 +618,7 @@ class Debugger extends Domain {
     );
 
     try {
-      var frames = await stackComputer.calculateFrames(limit: 1);
+      final frames = await stackComputer.calculateFrames(limit: 1);
       event.topFrame = frames.isNotEmpty ? frames.first : null;
     } catch (e, s) {
       // TODO: Return information about the error to the user.
@@ -637,11 +637,11 @@ class Debugger extends Domain {
   Future<void> _resumeHandler(DebuggerResumedEvent _) async {
     // We can receive a resume event in the middle of a reload which will result
     // in a null isolate.
-    var isolate = inspector?.isolate;
+    final isolate = inspector?.isolate;
     if (isolate == null) return;
 
     stackComputer = null;
-    var event = Event(
+    final event = Event(
         kind: EventKind.kResume,
         timestamp: DateTime.now().millisecondsSinceEpoch,
         isolate: inspector.isolateRef);
@@ -658,11 +658,11 @@ class Debugger extends Domain {
   Future<void> _crashHandler(TargetCrashedEvent _) async {
     // We can receive a resume event in the middle of a reload which will result
     // in a null isolate.
-    var isolate = inspector?.isolate;
+    final isolate = inspector?.isolate;
     if (isolate == null) return;
 
     stackComputer = null;
-    var event = Event(
+    final event = Event(
         kind: EventKind.kIsolateExit,
         timestamp: DateTime.now().millisecondsSinceEpoch,
         isolate: inspector.isolateRef);
@@ -727,7 +727,7 @@ class Debugger extends Domain {
 bool isNativeJsObject(InstanceRef instanceRef) {
   // New type representation of JS objects reifies them to a type suffixed with
   // JavaScriptObject.
-  var className = instanceRef?.classRef?.name;
+  final className = instanceRef?.classRef?.name;
   return (className != null &&
           className.endsWith('JavaScriptObject') &&
           instanceRef?.classRef?.library?.uri == 'dart:_interceptors') ||
@@ -773,9 +773,9 @@ class _Breakpoints extends Domain {
 
   Future<Breakpoint> _createBreakpoint(
       String id, String scriptId, int line, int column) async {
-    var dartScript = inspector.scriptWithId(scriptId);
-    var dartUri = DartUri(dartScript.uri, root);
-    var location = await locations.locationForDart(dartUri, line, column);
+    final dartScript = inspector.scriptWithId(scriptId);
+    final dartUri = DartUri(dartScript.uri, root);
+    final location = await locations.locationForDart(dartUri, line, column);
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) {
       _logger.fine('Failed to set breakpoint $id '
@@ -789,8 +789,8 @@ class _Breakpoints extends Domain {
     }
 
     try {
-      var dartBreakpoint = _dartBreakpoint(dartScript, location, id);
-      var jsBreakpointId = await _setJsBreakpoint(location);
+      final dartBreakpoint = _dartBreakpoint(dartScript, location, id);
+      final jsBreakpointId = await _setJsBreakpoint(location);
 
       _note(jsId: jsBreakpointId, bp: dartBreakpoint);
       return dartBreakpoint;
@@ -810,7 +810,7 @@ class _Breakpoints extends Domain {
   /// Create a Dart breakpoint at [location] in [dartScript] with [id].
   Breakpoint _dartBreakpoint(
       ScriptRef dartScript, Location location, String id) {
-    var breakpoint = Breakpoint(
+    final breakpoint = Breakpoint(
       id: id,
       breakpointNumber: int.parse(createId()),
       resolved: true,
@@ -828,11 +828,11 @@ class _Breakpoints extends Domain {
   /// Calls the Chrome protocol setBreakpoint and returns the remote ID.
   Future<String> _setJsBreakpoint(Location location) async {
     // The module can be loaded from a nested path and contain an ETAG suffix.
-    var urlRegex = '.*${location.jsLocation.module}.*';
+    final urlRegex = '.*${location.jsLocation.module}.*';
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
     // simultaneously by serializing the requests.
     return _pool.withResource(() async {
-      var response = await remoteDebugger
+      final response = await remoteDebugger
           .sendCommand('Debugger.setBreakpointByUrl', params: {
         'urlRegex': urlRegex,
         'lineNumber': location.jsLocation.line,
@@ -847,7 +847,7 @@ class _Breakpoints extends Domain {
   void _note({@required Breakpoint bp, @required String jsId}) {
     _dartIdByJsId[jsId] = bp.id;
     _jsIdByDartId[bp.id] = jsId;
-    var isolate = inspector.isolate;
+    final isolate = inspector.isolate;
     isolate?.breakpoints?.add(bp);
   }
 
@@ -855,7 +855,7 @@ class _Breakpoints extends Domain {
     @required String jsId,
     @required String dartId,
   }) async {
-    var isolate = inspector.isolate;
+    final isolate = inspector.isolate;
     _dartIdByJsId.remove(jsId);
     _jsIdByDartId.remove(dartId);
     isolate?.breakpoints?.removeWhere((b) => b.id == dartId);
@@ -888,9 +888,9 @@ String _prettifyMember(String member) {
 /// Reformats a JS member name as an extension method invocation.
 String _prettifyExtension(String member) {
   var isSetter = false;
-  var pipeIndex = member.indexOf('|');
-  var spaceIndex = member.indexOf(' ');
-  var poundIndex = member.indexOf(escapedPound);
+  final pipeIndex = member.indexOf('|');
+  final spaceIndex = member.indexOf(' ');
+  final poundIndex = member.indexOf(escapedPound);
   if (spaceIndex >= 0) {
     // Here member is a static field or static getter/setter.
     isSetter = member.substring(0, spaceIndex) == 'set';
@@ -900,7 +900,7 @@ String _prettifyExtension(String member) {
     isSetter = member.substring(pipeIndex + 1, poundIndex) == 'set';
     member = member.replaceRange(pipeIndex + 1, poundIndex + 3, '');
   } else {
-    var body = member.substring(pipeIndex + 1, member.length);
+    final body = member.substring(pipeIndex + 1, member.length);
     if (body.startsWith('unary') || body.startsWith('\$')) {
       // Here member's an operator, so it's safe to unescape everything lazily.
       member = _unescape(member);

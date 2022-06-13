@@ -16,15 +16,15 @@ void main() {
     test('from a map', () {
       // Verify that we behave the same whether created from a Map
       // or from a RemoteObject.
-      var property = Property({'name': 'prop', 'value': exampleMap});
+      final property = Property({'name': 'prop', 'value': exampleMap});
       expect(property.rawValue, exampleMap);
       expect(property.value.objectId, '1234');
       expect(property.value.value, 'abcd');
       expect(property.name, 'prop');
     });
     test('from a RemoteObject', () {
-      var remoteObject = RemoteObject({'objectId': '1234', 'value': 'abcd'});
-      var property = Property({'name': 'prop', 'value': remoteObject});
+      final remoteObject = RemoteObject({'objectId': '1234', 'value': 'abcd'});
+      final property = Property({'name': 'prop', 'value': remoteObject});
       expect(property.rawValue, remoteObject);
       expect(property.value.objectId, '1234');
       expect(property.value.value, 'abcd');
@@ -32,7 +32,7 @@ void main() {
     });
 
     test('stripping the "Symbol(" from a private field', () {
-      var property =
+      final property =
           Property({'name': 'Symbol(_privateThing)', 'value': exampleMap});
       expect(property.name, '_privateThing');
     });

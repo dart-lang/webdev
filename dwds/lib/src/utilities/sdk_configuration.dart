@@ -15,7 +15,7 @@ class InvalidSdkConfigurationException implements Exception {
 
   @override
   String toString() {
-    var message = this.message;
+    final message = this.message;
     if (message == null) return 'Invalid SDK configuration';
     return 'Invalid SDK configuration: $message';
   }
@@ -36,6 +36,9 @@ abstract class SdkConfigurationProvider {
 /// Call [validate] method to make sure the files in the configuration
 /// layout exist before reading the files.
 class SdkConfiguration {
+  // TODO(annagrin): update the tests to take those parameters
+  // and make all of the paths required (except for the compilerWorkerPath
+  // that is not used in Flutter).
   String? sdkDirectory;
   String? unsoundSdkSummaryPath;
   String? soundSdkSummaryPath;
@@ -64,9 +67,7 @@ class SdkConfiguration {
 
   /// Throws [InvalidSdkConfigurationException] if configuration does not
   /// exist on disk.
-  void validate({FileSystem? fileSystem}) {
-    fileSystem ??= const LocalFileSystem();
-
+  void validate({FileSystem fileSystem = const LocalFileSystem()}) {
     validateSdkDir(fileSystem: fileSystem);
     validateSummaries(fileSystem: fileSystem);
     validateLibrariesSpec(fileSystem: fileSystem);
@@ -75,8 +76,7 @@ class SdkConfiguration {
 
   /// Throws [InvalidSdkConfigurationException] if SDK root does not
   /// exist on the disk.
-  void validateSdkDir({FileSystem? fileSystem}) {
-    fileSystem ??= const LocalFileSystem();
+  void validateSdkDir({FileSystem fileSystem = const LocalFileSystem()}) {
     if (sdkDirectory == null ||
         !fileSystem.directory(sdkDirectory).existsSync()) {
       throw InvalidSdkConfigurationException(
@@ -84,9 +84,7 @@ class SdkConfiguration {
     }
   }
 
-  void validateSummaries({FileSystem? fileSystem}) {
-    fileSystem ??= const LocalFileSystem();
-
+  void validateSummaries({FileSystem fileSystem = const LocalFileSystem()}) {
     if (unsoundSdkSummaryPath == null ||
         !fileSystem.file(unsoundSdkSummaryPath).existsSync()) {
       throw InvalidSdkConfigurationException(
@@ -100,18 +98,16 @@ class SdkConfiguration {
     }
   }
 
-  void validateLibrariesSpec({FileSystem? fileSystem}) {
-    fileSystem ??= const LocalFileSystem();
-
+  void validateLibrariesSpec(
+      {FileSystem fileSystem = const LocalFileSystem()}) {
     if (librariesPath == null || !fileSystem.file(librariesPath).existsSync()) {
       throw InvalidSdkConfigurationException(
           'Libraries spec $librariesPath does not exist');
     }
   }
 
-  void validateCompilerWorker({FileSystem? fileSystem}) {
-    fileSystem ??= const LocalFileSystem();
-
+  void validateCompilerWorker(
+      {FileSystem fileSystem = const LocalFileSystem()}) {
     if (compilerWorkerPath == null ||
         !fileSystem.file(compilerWorkerPath).existsSync()) {
       throw InvalidSdkConfigurationException(
@@ -124,26 +120,24 @@ class SdkConfiguration {
 class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
   DefaultSdkConfigurationProvider();
 
-  SdkConfiguration? _configuration;
+  // ignore: prefer_final_fields
+  late SdkConfiguration _configuration = _create();
 
   /// Create and validate configuration matching the default SDK layout.
   @override
-  Future<SdkConfiguration> get configuration async {
-    if (_configuration == null) {
-      final binDir = p.dirname(Platform.resolvedExecutable);
-      final sdkDir = p.dirname(binDir);
+  Future<SdkConfiguration> get configuration async => _configuration;
 
-      _configuration = SdkConfiguration(
-        sdkDirectory: sdkDir,
-        unsoundSdkSummaryPath:
-            p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill'),
-        soundSdkSummaryPath:
-            p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill'),
-        librariesPath: p.join(sdkDir, 'lib', 'libraries.json'),
-        compilerWorkerPath:
-            p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
-      );
-    }
-    return _configuration!;
+  SdkConfiguration _create() {
+    final binDir = p.dirname(Platform.resolvedExecutable);
+    final sdkDir = p.dirname(binDir);
+
+    return SdkConfiguration(
+      sdkDirectory: sdkDir,
+      unsoundSdkSummaryPath: p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill'),
+      soundSdkSummaryPath:
+          p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill'),
+      librariesPath: p.join(sdkDir, 'lib', 'libraries.json'),
+      compilerWorkerPath: p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
+    );
   }
 }

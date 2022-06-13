@@ -32,7 +32,7 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   // Change to true to see verbose output from the tests.
-  var debug = false;
+  final debug = false;
   group('shared context', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
@@ -63,14 +63,14 @@ void main() {
 
       test('addBreakpoint', () async {
         // TODO: Much more testing.
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id, mainScript);
-        var firstBp =
+        final firstBp =
             await service.addBreakpoint(isolate.id, mainScript.id, line);
         expect(firstBp, isNotNull);
         expect(firstBp.id, isNotNull);
 
-        var secondBp =
+        final secondBp =
             await service.addBreakpoint(isolate.id, mainScript.id, line);
         expect(secondBp, isNotNull);
         expect(secondBp.id, isNotNull);
@@ -83,10 +83,10 @@ void main() {
 
       test('addBreakpoint succeeds when sending the same breakpoint twice',
           () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id, mainScript);
-        var firstBp = service.addBreakpoint(isolate.id, mainScript.id, line);
-        var secondBp = service.addBreakpoint(isolate.id, mainScript.id, line);
+        final firstBp = service.addBreakpoint(isolate.id, mainScript.id, line);
+        final secondBp = service.addBreakpoint(isolate.id, mainScript.id, line);
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, (await firstBp).id);
@@ -99,9 +99,9 @@ void main() {
       });
 
       test('addBreakpoint on a part file', () async {
-        var partScript = scripts.scripts
+        final partScript = scripts.scripts
             .firstWhere((script) => script.uri.contains('part.dart'));
-        var bp = await service.addBreakpoint(isolate.id, partScript.id, 10);
+        final bp = await service.addBreakpoint(isolate.id, partScript.id, 10);
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
         expect(bp.id, isNotNull);
@@ -113,9 +113,9 @@ void main() {
       });
 
       test('addBreakpointWithScriptUri', () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
+        final bp = await service.addBreakpointWithScriptUri(
             isolate.id, mainScript.uri, line);
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
@@ -123,14 +123,14 @@ void main() {
       });
 
       test('addBreakpointWithScriptUri absolute file URI', () async {
-        var current = context.workingDirectory;
-        var _test = path.join(path.dirname(current), '_test');
-        var scriptPath = Uri.parse(mainScript.uri).path.substring(1);
-        var fullPath = path.join(_test, scriptPath);
-        var fileUri = Uri.file(fullPath);
-        var line = await context.findBreakpointLine(
+        final current = context.workingDirectory;
+        final test = path.join(path.dirname(current), '_test');
+        final scriptPath = Uri.parse(mainScript.uri).path.substring(1);
+        final fullPath = path.join(test, scriptPath);
+        final fileUri = Uri.file(fullPath);
+        final line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
+        final bp = await service.addBreakpointWithScriptUri(
             isolate.id, '$fileUri', line);
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id, bp.id);
@@ -150,9 +150,9 @@ void main() {
       });
 
       test('add and remove breakpoint', () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id, mainScript);
-        var bp = await service.addBreakpoint(isolate.id, mainScript.id, line);
+        final bp = await service.addBreakpoint(isolate.id, mainScript.id, line);
         expect(isolate.breakpoints, [bp]);
         await service.removeBreakpoint(isolate.id, bp.id);
         expect(isolate.breakpoints, isEmpty);
@@ -165,13 +165,13 @@ void main() {
       });
 
       test('success', () async {
-        var serviceMethod = 'ext.test.callServiceExtension';
+        final serviceMethod = 'ext.test.callServiceExtension';
         await tabConnection.runtime
             .evaluate('registerExtension("$serviceMethod");');
 
         // The non-string keys/values get auto json-encoded to match the vm
         // behavior.
-        var args = {
+        final args = {
           'bool': true,
           'list': [1, '2', 3],
           'map': {'foo': 'bar'},
@@ -181,7 +181,7 @@ void main() {
           false: true,
         };
 
-        var result =
+        final result =
             await service.callServiceExtension(serviceMethod, args: args);
         expect(
             result.json,
@@ -192,11 +192,11 @@ void main() {
       });
 
       test('failure', () async {
-        var serviceMethod = 'ext.test.callServiceExtensionWithError';
+        final serviceMethod = 'ext.test.callServiceExtensionWithError';
         await tabConnection.runtime
             .evaluate('registerExtensionWithError("$serviceMethod");');
 
-        var errorDetails = {'intentional': 'error'};
+        final errorDetails = {'intentional': 'error'};
         expect(
             service.callServiceExtension(serviceMethod, args: {
               'code': '-32001',
@@ -238,10 +238,10 @@ void main() {
     });
 
     test('getMemoryUsage', () async {
-      var vm = await service.getVM();
-      var isolate = await service.getIsolate(vm.isolates.first.id);
+      final vm = await service.getVM();
+      final isolate = await service.getIsolate(vm.isolates.first.id);
 
-      var memoryUsage = await service.getMemoryUsage(isolate.id);
+      final memoryUsage = await service.getMemoryUsage(isolate.id);
 
       expect(memoryUsage.heapUsage, isNotNull);
       expect(memoryUsage.heapUsage, greaterThan(0));
@@ -255,7 +255,7 @@ void main() {
 
       setUpAll(() async {
         setCurrentLogWriter(debug: debug);
-        var vm = await service.getVM();
+        final vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
         bootstrap = isolate.rootLib;
       });
@@ -306,7 +306,7 @@ void main() {
         });
 
         test('can return objects with ids', () async {
-          var object = await service.evaluate(
+          final object = await service.evaluate(
               isolate.id, bootstrap.id, 'createObject("cool")');
           expect(
               object,
@@ -328,8 +328,8 @@ void main() {
           }
 
           test('single scope object', () async {
-            var instance = await createRemoteObject('A');
-            var result = await service.evaluate(
+            final instance = await createRemoteObject('A');
+            final result = await service.evaluate(
                 isolate.id, bootstrap.id, 'messageFor(arg1)',
                 scope: {'arg1': instance.id});
             expect(
@@ -341,9 +341,9 @@ void main() {
           });
 
           test('multiple scope objects', () async {
-            var instance1 = await createRemoteObject('A');
-            var instance2 = await createRemoteObject('B');
-            var result = await service.evaluate(
+            final instance1 = await createRemoteObject('A');
+            final instance2 = await createRemoteObject('B');
+            final result = await service.evaluate(
                 isolate.id, bootstrap.id, 'messagesCombined(arg1, arg2)',
                 scope: {'arg1': instance1.id, 'arg2': instance2.id});
             expect(
@@ -384,10 +384,10 @@ void main() {
       });
 
       test('works for existing isolates', () async {
-        var vm = await service.getVM();
-        var result = await service.getIsolate(vm.isolates.first.id);
+        final vm = await service.getVM();
+        final result = await service.getIsolate(vm.isolates.first.id);
         expect(result, const TypeMatcher<Isolate>());
-        var isolate = result;
+        final isolate = result;
         expect(isolate.name, contains('main'));
         // TODO: library names change with kernel dart-lang/sdk#36736
         expect(isolate.rootLib.uri, endsWith('.dart'));
@@ -415,7 +415,7 @@ void main() {
 
       setUpAll(() async {
         setCurrentLogWriter(debug: debug);
-        var vm = await service.getVM();
+        final vm = await service.getVM();
         isolate = await service.getIsolate(vm.isolates.first.id);
         bootstrap = isolate.rootLib;
         rootLibrary =
@@ -431,12 +431,12 @@ void main() {
         // TODO: library names change with kernel dart-lang/sdk#36736
         expect(rootLibrary.uri, endsWith('main.dart'));
         expect(rootLibrary.classes, hasLength(1));
-        var testClass = rootLibrary.classes.first;
+        final testClass = rootLibrary.classes.first;
         expect(testClass.name, 'MyTestClass');
       });
 
       test('Library only contains included scripts', () async {
-        var library =
+        final library =
             await service.getObject(isolate.id, rootLibrary.id) as Library;
         expect(library.scripts, hasLength(2));
         expect(
@@ -450,20 +450,20 @@ void main() {
       });
 
       test('Can get the same library in parallel', () async {
-        var futures = [
+        final futures = [
           service.getObject(isolate.id, rootLibrary.id),
           service.getObject(isolate.id, rootLibrary.id),
         ];
-        var results = await Future.wait(futures);
-        var library1 = results[0] as Library;
-        var library2 = results[1] as Library;
+        final results = await Future.wait(futures);
+        final library1 = results[0] as Library;
+        final library2 = results[1] as Library;
         expect(library1, equals(library2));
       });
 
       test(
         'Classes',
         () async {
-          var testClass = await service.getObject(
+          final testClass = await service.getObject(
               isolate.id, rootLibrary.classes.first.id) as Class;
           expect(
               testClass.functions,
@@ -511,21 +511,21 @@ void main() {
       );
 
       test('Runtime classes', () async {
-        var testClass = await service.getObject(
+        final testClass = await service.getObject(
             isolate.id, 'classes|dart:_runtime|_Type') as Class;
         expect(testClass.name, '_Type');
       });
 
       test('String', () async {
-        var worldRef = await service.evaluate(
+        final worldRef = await service.evaluate(
             isolate.id, bootstrap.id, "helloString('world')") as InstanceRef;
-        var world =
+        final world =
             await service.getObject(isolate.id, worldRef.id) as Instance;
         expect(world.valueAsString, 'world');
       });
 
       test('Large strings not truncated', () async {
-        var largeString = await service.evaluate(
+        final largeString = await service.evaluate(
                 isolate.id, bootstrap.id, "helloString('${'abcde' * 250}')")
             as InstanceRef;
         expect(largeString.valueAsStringIsTruncated, isNot(isTrue));
@@ -535,7 +535,7 @@ void main() {
 
       /// Helper to create a list of 1001 elements, doing a direct JS eval.
       Future<RemoteObject> createList() {
-        var expr = '''
+        final expr = '''
           (function () {
             const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
             const list = sdk.dart.dsend(sdk.core.List,"filled", [1001, 5]);
@@ -547,7 +547,7 @@ void main() {
 
       /// Helper to create a LinkedHashMap with 1001 entries, doing a direct JS eval.
       Future<RemoteObject> createMap() {
-        var expr = '''
+        final expr = '''
           (function () {
             const sdk = ${globalLoadStrategy.loadModuleSnippet}("dart_sdk");
             const iterable = sdk.dart.dsend(sdk.core.Iterable, "generate", [1001]);
@@ -562,68 +562,68 @@ void main() {
       }
 
       test('Lists', () async {
-        var list = await createList();
-        var inst =
+        final list = await createList();
+        final inst =
             await service.getObject(isolate.id, list.objectId) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
-        var fifth = inst.elements[4] as InstanceRef;
+        final fifth = inst.elements[4] as InstanceRef;
         expect(fifth.valueAsString, '100');
-        var sixth = inst.elements[5] as InstanceRef;
+        final sixth = inst.elements[5] as InstanceRef;
         expect(sixth.valueAsString, '5');
       });
 
       test('Maps', () async {
-        var map = await createMap();
-        var inst =
+        final map = await createMap();
+        final inst =
             await service.getObject(isolate.id, map.objectId) as Instance;
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
-        var fifth = inst.associations[4];
+        final fifth = inst.associations[4];
         expect(fifth.key.valueAsString, '4');
         expect(fifth.value.valueAsString, '996');
-        var sixth = inst.associations[5];
+        final sixth = inst.associations[5];
         expect(sixth.key.valueAsString, '5');
         expect(sixth.value.valueAsString, '995');
       });
 
       test('bool', () async {
-        var ref = await service.evaluate(
+        final ref = await service.evaluate(
             isolate.id, bootstrap.id, 'helloBool(true)') as InstanceRef;
-        var obj = await service.getObject(isolate.id, ref.id) as Instance;
+        final obj = await service.getObject(isolate.id, ref.id) as Instance;
         expect(obj.kind, InstanceKind.kBool);
         expect(obj.classRef.name, 'Bool');
         expect(obj.valueAsString, 'true');
       });
 
       test('num', () async {
-        var ref = await service.evaluate(
+        final ref = await service.evaluate(
             isolate.id, bootstrap.id, 'helloNum(42)') as InstanceRef;
-        var obj = await service.getObject(isolate.id, ref.id) as Instance;
+        final obj = await service.getObject(isolate.id, ref.id) as Instance;
         expect(obj.kind, InstanceKind.kDouble);
         expect(obj.classRef.name, 'Double');
         expect(obj.valueAsString, '42');
       });
 
       test('null', () async {
-        var ref = await service.evaluate(
+        final ref = await service.evaluate(
             isolate.id, bootstrap.id, 'helloNum(null)') as InstanceRef;
-        var obj = await service.getObject(isolate.id, ref.id) as Instance;
+        final obj = await service.getObject(isolate.id, ref.id) as Instance;
         expect(obj.kind, InstanceKind.kNull);
         expect(obj.classRef.name, 'Null');
         expect(obj.valueAsString, 'null');
       });
 
       test('Scripts', () async {
-        var scripts = await service.getScripts(isolate.id);
+        final scripts = await service.getScripts(isolate.id);
         assert(scripts.scripts.isNotEmpty);
         for (var scriptRef in scripts.scripts) {
-          var script =
+          final script =
               await service.getObject(isolate.id, scriptRef.id) as Script;
-          var serverPath = DartUri(script.uri, 'hello_world/').serverPath;
-          var result = await http
+          final serverPath = DartUri(script.uri, 'hello_world/').serverPath;
+          final result = await http
               .get(Uri.parse('http://localhost:${context.port}/$serverPath'));
           expect(script.source, result.body);
           expect(scriptRef.uri, endsWith('.dart'));
@@ -633,8 +633,8 @@ void main() {
 
       group('getObject called with offset/count parameters', () {
         test('Lists with offset/count are truncated', () async {
-          var list = await createList();
-          var inst = await service.getObject(
+          final list = await createList();
+          final inst = await service.getObject(
             isolate.id,
             list.objectId,
             count: 7,
@@ -643,16 +643,16 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 4);
           expect(inst.count, 7);
-          var fifth = inst.elements[0] as InstanceRef;
+          final fifth = inst.elements[0] as InstanceRef;
           expect(fifth.valueAsString, '100');
-          var sixth = inst.elements[1] as InstanceRef;
+          final sixth = inst.elements[1] as InstanceRef;
           expect(sixth.valueAsString, '5');
         });
 
         test('Lists are truncated to the end if offset/count runs off the end',
             () async {
-          var list = await createList();
-          var inst = await service.getObject(
+          final list = await createList();
+          final inst = await service.getObject(
             isolate.id,
             list.objectId,
             count: 5,
@@ -661,13 +661,13 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, 1);
-          var only = inst.elements[0] as InstanceRef;
+          final only = inst.elements[0] as InstanceRef;
           expect(only.valueAsString, '5');
         });
 
         test('Maps with offset/count are truncated', () async {
-          var map = await createMap();
-          var inst = await service.getObject(
+          final map = await createMap();
+          final inst = await service.getObject(
             isolate.id,
             map.objectId,
             count: 7,
@@ -676,18 +676,18 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 4);
           expect(inst.count, 7);
-          var fifth = inst.associations[0];
+          final fifth = inst.associations[0];
           expect(fifth.key.valueAsString, '4');
           expect(fifth.value.valueAsString, '996');
-          var sixth = inst.associations[1];
+          final sixth = inst.associations[1];
           expect(sixth.key.valueAsString, '5');
           expect(sixth.value.valueAsString, '995');
         });
 
         test('Maps are truncated to the end if offset/count runs off the end',
             () async {
-          var map = await createMap();
-          var inst = await service.getObject(
+          final map = await createMap();
+          final inst = await service.getObject(
             isolate.id,
             map.objectId,
             count: 5,
@@ -696,15 +696,15 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, 1);
-          var only = inst.associations[0];
+          final only = inst.associations[0];
           expect(only.key.valueAsString, '1000');
           expect(only.value.valueAsString, '0');
         });
 
         test('Strings with offset/count are truncated', () async {
-          var worldRef = await service.evaluate(
+          final worldRef = await service.evaluate(
               isolate.id, bootstrap.id, "helloString('world')") as InstanceRef;
-          var world = await service.getObject(
+          final world = await service.getObject(
             isolate.id,
             worldRef.id,
             count: 2,
@@ -719,9 +719,9 @@ void main() {
         test(
             'Strings are truncated to the end if offset/count runs off the end',
             () async {
-          var worldRef = await service.evaluate(
+          final worldRef = await service.evaluate(
               isolate.id, bootstrap.id, "helloString('world')") as InstanceRef;
-          var world = await service.getObject(
+          final world = await service.getObject(
             isolate.id,
             worldRef.id,
             count: 5,
@@ -736,7 +736,7 @@ void main() {
         test(
           'offset/count parameters are ignored for Classes',
           () async {
-            var testClass = await service.getObject(
+            final testClass = await service.getObject(
               isolate.id,
               rootLibrary.classes.first.id,
               offset: 100,
@@ -789,9 +789,9 @@ void main() {
         );
 
         test('offset/count parameters are ignored for bools', () async {
-          var ref = await service.evaluate(
+          final ref = await service.evaluate(
               isolate.id, bootstrap.id, 'helloBool(true)') as InstanceRef;
-          var obj = await service.getObject(
+          final obj = await service.getObject(
             isolate.id,
             ref.id,
             offset: 100,
@@ -803,9 +803,9 @@ void main() {
         });
 
         test('offset/count parameters are ignored for nums', () async {
-          var ref = await service.evaluate(
+          final ref = await service.evaluate(
               isolate.id, bootstrap.id, 'helloNum(42)') as InstanceRef;
-          var obj = await service.getObject(
+          final obj = await service.getObject(
             isolate.id,
             ref.id,
             offset: 100,
@@ -817,9 +817,9 @@ void main() {
         });
 
         test('offset/count parameters are ignored for null', () async {
-          var ref = await service.evaluate(
+          final ref = await service.evaluate(
               isolate.id, bootstrap.id, 'helloNum(null)') as InstanceRef;
-          var obj = await service.getObject(
+          final obj = await service.getObject(
             isolate.id,
             ref.id,
             offset: 100,
@@ -833,13 +833,13 @@ void main() {
     });
 
     test('getScripts', () async {
-      var vm = await service.getVM();
-      var isolateId = vm.isolates.first.id;
-      var scripts = await service.getScripts(isolateId);
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
+      final scripts = await service.getScripts(isolateId);
       expect(scripts, isNotNull);
       expect(scripts.scripts, isNotEmpty);
 
-      var scriptUris = scripts.scripts.map((s) => s.uri);
+      final scriptUris = scripts.scripts.map((s) => s.uri);
 
       // Contains main script only once.
       expect(scriptUris.where((uri) => uri.contains('hello_world/main.dart')),
@@ -860,16 +860,16 @@ void main() {
       });
 
       test('Coverage report', () async {
-        var vm = await service.getVM();
-        var isolateId = vm.isolates.first.id;
+        final vm = await service.getVM();
+        final isolateId = vm.isolates.first.id;
 
         await expectLater(
             service.getSourceReport(isolateId, ['Coverage']), throwsRPCError);
       });
 
       test('Coverage report', () async {
-        var vm = await service.getVM();
-        var isolateId = vm.isolates.first.id;
+        final vm = await service.getVM();
+        final isolateId = vm.isolates.first.id;
 
         await expectLater(
             service.getSourceReport(isolateId, ['Coverage'],
@@ -878,18 +878,18 @@ void main() {
       });
 
       test('report type not understood', () async {
-        var vm = await service.getVM();
-        var isolateId = vm.isolates.first.id;
+        final vm = await service.getVM();
+        final isolateId = vm.isolates.first.id;
 
         await expectLater(
             service.getSourceReport(isolateId, ['FooBar']), throwsRPCError);
       });
 
       test('PossibleBreakpoints report', () async {
-        var vm = await service.getVM();
-        var isolateId = vm.isolates.first.id;
-        var scripts = await service.getScripts(isolateId);
-        var mainScript = scripts.scripts
+        final vm = await service.getVM();
+        final isolateId = vm.isolates.first.id;
+        final scripts = await service.getScripts(isolateId);
+        final mainScript = scripts.scripts
             .firstWhere((script) => script.uri.contains('main.dart'));
 
         final sourceReport = await service.getSourceReport(
@@ -914,7 +914,7 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
-        var vm = await service.getVM();
+        final vm = await service.getVM();
         isolateId = vm.isolates.first.id;
         scripts = await service.getScripts(isolateId);
         await service.streamListen('Debug');
@@ -924,12 +924,12 @@ void main() {
       });
 
       test('at breakpoints sets pauseBreakPoints', () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'callPrintCount', isolateId, mainScript);
-        var bp = await service.addBreakpoint(isolateId, mainScript.id, line);
-        var event = await stream
+        final bp = await service.addBreakpoint(isolateId, mainScript.id, line);
+        final event = await stream
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
-        var pauseBreakpoints = event.pauseBreakpoints;
+        final pauseBreakpoints = event.pauseBreakpoints;
         expect(pauseBreakpoints, hasLength(1));
         expect(pauseBreakpoints.first.id, bp.id);
         await service.removeBreakpoint(isolateId, bp.id);
@@ -949,16 +949,16 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
-        var vm = await service.getVM();
+        final vm = await service.getVM();
         isolateId = vm.isolates.first.id;
         scripts = await service.getScripts(isolateId);
         await service.streamListen('Debug');
         stream = service.onEvent('Debug');
         mainScript = scripts.scripts
             .firstWhere((script) => script.uri.contains('main.dart'));
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'callPrintCount', isolateId, mainScript);
-        var bp = await service.addBreakpoint(isolateId, mainScript.id, line);
+        final bp = await service.addBreakpoint(isolateId, mainScript.id, line);
         // Wait for breakpoint to trigger.
         await stream
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -975,9 +975,9 @@ void main() {
         // Wait for the step to actually occur.
         await stream
             .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
-        var stack = await service.getStack(isolateId);
+        final stack = await service.getStack(isolateId);
         expect(stack, isNotNull);
-        var first = stack.frames.first;
+        final first = stack.frames.first;
         expect(first.kind, 'Regular');
         expect(first.code.kind, 'Dart');
         expect(first.code.name, 'printCount');
@@ -988,9 +988,9 @@ void main() {
         // Wait for the step to actually occur.
         await stream
             .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
-        var stack = await service.getStack(isolateId);
+        final stack = await service.getStack(isolateId);
         expect(stack, isNotNull);
-        var first = stack.frames.first;
+        final first = stack.frames.first;
         expect(first.kind, 'Regular');
         expect(first.code.kind, 'Dart');
         expect(first.code.name, '<closure>');
@@ -1001,9 +1001,9 @@ void main() {
         // Wait for the step to actually occur.
         await stream
             .firstWhere((event) => event.kind == EventKind.kPauseInterrupted);
-        var stack = await service.getStack(isolateId);
+        final stack = await service.getStack(isolateId);
         expect(stack, isNotNull);
-        var first = stack.frames.first;
+        final first = stack.frames.first;
         expect(first.kind, 'Regular');
         expect(first.code.kind, 'Dart');
         expect(first.code.name, '<closure>');
@@ -1018,7 +1018,7 @@ void main() {
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
-        var vm = await service.getVM();
+        final vm = await service.getVM();
         isolateId = vm.isolates.first.id;
         scripts = await service.getScripts(isolateId);
         await service.streamListen('Debug');
@@ -1033,7 +1033,7 @@ void main() {
 
       /// Support function for pausing and returning the stack at a line.
       Future<Stack> breakAt(String breakpointId, {int limit}) async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             breakpointId, isolateId, mainScript);
         Breakpoint bp;
         try {
@@ -1052,46 +1052,46 @@ void main() {
       }
 
       test('returns stack when broken', () async {
-        var stack = await breakAt('inPrintCount');
+        final stack = await breakAt('inPrintCount');
         expect(stack, isNotNull);
         expect(stack.frames, hasLength(2));
-        var first = stack.frames.first;
+        final first = stack.frames.first;
         expect(first.kind, 'Regular');
         expect(first.code.kind, 'Dart');
         expect(first.code.name, 'printCount');
       });
 
       test('stack has a variable', () async {
-        var stack = await breakAt('callPrintCount');
+        final stack = await breakAt('callPrintCount');
         expect(stack, isNotNull);
         expect(stack.frames, hasLength(1));
-        var first = stack.frames.first;
+        final first = stack.frames.first;
         expect(first.kind, 'Regular');
         expect(first.code.kind, 'Dart');
         expect(first.code.name, '<closure>');
         // TODO: Make this more precise once this case doesn't
         // also include all the libraries.
         expect(first.vars, hasLength(greaterThanOrEqualTo(1)));
-        var underscore = first.vars.firstWhere((v) => v.name == '_');
+        final underscore = first.vars.firstWhere((v) => v.name == '_');
         expect(underscore, isNotNull);
       });
 
       test('collects async frames', () async {
-        var stack = await breakAt('asyncCall');
+        final stack = await breakAt('asyncCall');
         expect(stack, isNotNull);
         expect(stack.frames, hasLength(greaterThan(1)));
 
-        var first = stack.frames.first;
+        final first = stack.frames.first;
         expect(first.kind, 'Regular');
         expect(first.code.kind, 'Dart');
 
         // We should have an async marker.
-        var suspensionFrames = stack.frames
+        final suspensionFrames = stack.frames
             .where((frame) => frame.kind == FrameKind.kAsyncSuspensionMarker);
         expect(suspensionFrames, isNotEmpty);
 
         // We should have async frames.
-        var asyncFrames =
+        final asyncFrames =
             stack.frames.where((frame) => frame.kind == FrameKind.kAsyncCausal);
         expect(asyncFrames, isNotEmpty);
       });
@@ -1126,13 +1126,13 @@ void main() {
             (await service.getIsolate(isolateId)).exceptionPauseMode;
         await service.setExceptionPauseMode(isolateId, ExceptionPauseMode.kAll);
         // Wait for pausing to actually propagate.
-        var event = await stream
+        final event = await stream
             .firstWhere((event) => event.kind == EventKind.kPauseException);
         expect(event.exception, isNotNull);
         // Check that the exception stack trace has been mapped to Dart source files.
         expect(event.exception.valueAsString, contains('main.dart'));
 
-        var stack = await service.getStack(isolateId);
+        final stack = await service.getStack(isolateId);
         expect(stack, isNotNull);
 
         await service.setExceptionPauseMode(isolateId, oldPauseMode);
@@ -1145,11 +1145,11 @@ void main() {
         await service.setIsolatePauseMode(isolateId,
             exceptionPauseMode: ExceptionPauseMode.kAll);
         // Wait for pausing to actually propagate.
-        var event = await stream
+        final event = await stream
             .firstWhere((event) => event.kind == EventKind.kPauseException);
         expect(event.exception, isNotNull);
 
-        var stack = await service.getStack(isolateId);
+        final stack = await service.getStack(isolateId);
         expect(stack, isNotNull);
 
         await service.setIsolatePauseMode(isolateId,
@@ -1169,18 +1169,18 @@ void main() {
     });
 
     test('getVM', () async {
-      var vm = await service.getVM();
+      final vm = await service.getVM();
       expect(vm.name, isNotNull);
       expect(vm.version, Platform.version);
       expect(vm.isolates, hasLength(1));
-      var isolate = vm.isolates.first;
+      final isolate = vm.isolates.first;
       expect(isolate.id, isNotNull);
       expect(isolate.name, isNotNull);
       expect(isolate.number, isNotNull);
     });
 
     test('getVersion', () async {
-      var version = await service.getVersion();
+      final version = await service.getVersion();
       expect(version, isNotNull);
       expect(version.major, greaterThan(0));
     });
@@ -1208,7 +1208,7 @@ void main() {
       });
 
       test('toString()', () async {
-        var remote =
+        final remote =
             await service.invoke(isolate.id, testInstance.id, 'toString', []);
         expect(
             remote,
@@ -1219,7 +1219,7 @@ void main() {
       });
 
       test('hello()', () async {
-        var remote =
+        final remote =
             await service.invoke(isolate.id, testInstance.id, 'hello', []);
         expect(
             remote,
@@ -1228,7 +1228,7 @@ void main() {
       });
 
       test('helloString', () async {
-        var remote = await service.invoke(isolate.id, bootstrap.id,
+        final remote = await service.invoke(isolate.id, bootstrap.id,
             'helloString', ['#StringInstanceRef#abc']);
         expect(
             remote,
@@ -1241,7 +1241,7 @@ void main() {
       });
 
       test('null argument', () async {
-        var remote = await service
+        final remote = await service
             .invoke(isolate.id, bootstrap.id, 'helloString', ['objects/null']);
         expect(
             remote,
@@ -1254,7 +1254,7 @@ void main() {
       });
 
       test('helloBool', () async {
-        var remote = await service.invoke(
+        final remote = await service.invoke(
             isolate.id, bootstrap.id, 'helloBool', ['objects/bool-true']);
         expect(
             remote,
@@ -1267,7 +1267,7 @@ void main() {
       });
 
       test('helloNum', () async {
-        var remote = await service
+        final remote = await service
             .invoke(isolate.id, bootstrap.id, 'helloNum', ['objects/int-123']);
         expect(
             remote,
@@ -1280,7 +1280,7 @@ void main() {
       });
 
       test('two object arguments', () async {
-        var remote = await service.invoke(isolate.id, bootstrap.id,
+        final remote = await service.invoke(isolate.id, bootstrap.id,
             'messagesCombined', [testInstance.id, testInstance.id]);
         expect(
             remote,
@@ -1305,15 +1305,15 @@ void main() {
 
     test('pause / resume', () async {
       await service.streamListen('Debug');
-      var stream = service.onEvent('Debug');
-      var vm = await service.getVM();
-      var isolateId = vm.isolates.first.id;
-      var pauseCompleter = Completer();
-      var pauseSub = tabConnection.debugger.onPaused.listen((_) {
+      final stream = service.onEvent('Debug');
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
+      final pauseCompleter = Completer();
+      final pauseSub = tabConnection.debugger.onPaused.listen((_) {
         pauseCompleter.complete();
       });
-      var resumeCompleter = Completer();
-      var resumeSub = tabConnection.debugger.onResumed.listen((_) {
+      final resumeCompleter = Completer();
+      final resumeSub = tabConnection.debugger.onResumed.listen((_) {
         resumeCompleter.complete();
       });
       expect(await service.pause(isolateId), const TypeMatcher<Success>());
@@ -1343,12 +1343,12 @@ void main() {
 
     test('lookupResolvedPackageUris converts package and org-dartlang-app uris',
         () async {
-      var vm = await service.getVM();
-      var isolateId = vm.isolates.first.id;
-      var scriptList = await service.getScripts(isolateId);
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
+      final scriptList = await service.getScripts(isolateId);
 
-      var uris = scriptList.scripts.map((e) => e.uri).toList();
-      var resolvedUris =
+      final uris = scriptList.scripts.map((e) => e.uri).toList();
+      final resolvedUris =
           await service.lookupResolvedPackageUris(isolateId, uris);
 
       expect(
@@ -1362,10 +1362,10 @@ void main() {
 
     test('lookupResolvedPackageUris does not translate non-existent paths',
         () async {
-      var vm = await service.getVM();
-      var isolateId = vm.isolates.first.id;
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
 
-      var resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
+      final resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
         'package:does/not/exist.dart',
         'dart:does_not_exist',
         'file:///does_not_exist.dart',
@@ -1374,10 +1374,10 @@ void main() {
     });
 
     test('lookupResolvedPackageUris translates dart uris', () async {
-      var vm = await service.getVM();
-      var isolateId = vm.isolates.first.id;
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
 
-      var resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
+      final resolvedUris = await service.lookupResolvedPackageUris(isolateId, [
         'dart:html',
         'dart:async',
       ]);
@@ -1390,15 +1390,15 @@ void main() {
 
     test('lookupPackageUris finds package and org-dartlang-app paths',
         () async {
-      var vm = await service.getVM();
-      var isolateId = vm.isolates.first.id;
-      var scriptList = await service.getScripts(isolateId);
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
+      final scriptList = await service.getScripts(isolateId);
 
-      var uris = scriptList.scripts.map((e) => e.uri).toList();
-      var resolvedUris =
+      final uris = scriptList.scripts.map((e) => e.uri).toList();
+      final resolvedUris =
           await service.lookupResolvedPackageUris(isolateId, uris);
 
-      var packageUris =
+      final packageUris =
           await service.lookupPackageUris(isolateId, resolvedUris.uris);
       expect(
           packageUris.uris,
@@ -1410,10 +1410,10 @@ void main() {
     });
 
     test('lookupPackageUris does not translate non-existent paths', () async {
-      var vm = await service.getVM();
-      var isolateId = vm.isolates.first.id;
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
 
-      var resolvedUris = await service.lookupPackageUris(isolateId, [
+      final resolvedUris = await service.lookupPackageUris(isolateId, [
         'org-dartlang-sdk:///sdk/does/not/exist.dart',
         'does_not_exist.dart',
         'file:///does_not_exist.dart',
@@ -1422,10 +1422,10 @@ void main() {
     });
 
     test('lookupPackageUris translates dart uris', () async {
-      var vm = await service.getVM();
-      var isolateId = vm.isolates.first.id;
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
 
-      var resolvedUris = await service.lookupPackageUris(isolateId, [
+      final resolvedUris = await service.lookupPackageUris(isolateId, [
         'org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart',
         'org-dartlang-sdk:///sdk/lib/async/async.dart',
       ]);
@@ -1446,8 +1446,8 @@ void main() {
     });
 
     test('setExceptionPauseMode', () async {
-      var vm = await service.getVM();
-      var isolateId = vm.isolates.first.id;
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
       expect(await service.setExceptionPauseMode(isolateId, 'all'), _isSuccess);
       expect(await service.setExceptionPauseMode(isolateId, 'unhandled'),
           _isSuccess);
@@ -1468,16 +1468,16 @@ void main() {
     });
 
     test('setName', () async {
-      var vm = await service.getVM();
-      var isolateId = vm.isolates.first.id;
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
       expect(service.setName(isolateId, 'test'), completion(_isSuccess));
-      var isolate = await service.getIsolate(isolateId);
+      final isolate = await service.getIsolate(isolateId);
       expect(isolate.name, 'test');
     });
 
     test('setVMName', () async {
       expect(service.setVMName('foo'), completion(_isSuccess));
-      var vm = await service.getVM();
+      final vm = await service.getVM();
       expect(vm.name, 'foo');
     });
 
@@ -1498,7 +1498,7 @@ void main() {
 
         test('basic Pause/Resume', () async {
           expect(service.streamListen('Debug'), completion(_isSuccess));
-          var stream = service.onEvent('Debug');
+          final stream = service.onEvent('Debug');
           unawaited(tabConnection.debugger.pause());
           await expectLater(
               stream,
@@ -1538,7 +1538,7 @@ void main() {
         });
 
         test('Custom debug event', () async {
-          var eventKind = 'my.custom.event';
+          final eventKind = 'my.custom.event';
           expect(
               eventStream,
               emitsThrough(predicate((Event event) =>
@@ -1549,10 +1549,10 @@ void main() {
         });
 
         test('Batched debug events from injected client', () async {
-          var eventKind = EventKind.kExtension;
-          var extensionKind = 'MyEvent';
-          var eventData = 'eventData';
-          var delay = const Duration(milliseconds: 2000);
+          final eventKind = EventKind.kExtension;
+          final extensionKind = 'MyEvent';
+          final eventData = 'eventData';
+          final delay = const Duration(milliseconds: 2000);
 
           TypeMatcher<Event> eventMatcher(
                   String data) =>
@@ -1566,9 +1566,9 @@ void main() {
           String emitDebugEvent(String data) =>
               "\$emitDebugEvent('$extensionKind', '{ \"$eventData\": \"$data\" }');";
 
-          var size = 2;
-          var batch1 = List.generate(size, (int i) => 'data$i');
-          var batch2 = List.generate(size, (int i) => 'data${size + i}');
+          final size = 2;
+          final batch1 = List.generate(size, (int i) => 'data$i');
+          final batch2 = List.generate(size, (int i) => 'data${size + i}');
 
           expect(
               eventStream,
@@ -1600,7 +1600,7 @@ void main() {
         });
 
         test('ServiceExtensionAdded', () async {
-          var extensionMethod = 'ext.foo.bar';
+          final extensionMethod = 'ext.foo.bar';
           expect(
               isolateEventStream,
               emitsThrough(predicate((Event event) =>
@@ -1611,9 +1611,9 @@ void main() {
         });
 
         test('lifecycle events', () async {
-          var vm = await service.getVM();
-          var initialIsolateId = vm.isolates.first.id;
-          var eventsDone = expectLater(
+          final vm = await service.getVM();
+          final initialIsolateId = vm.isolates.first.id;
+          final eventsDone = expectLater(
               isolateEventStream,
               emitsThrough(emitsInOrder([
                 predicate((Event event) =>
@@ -1634,8 +1634,8 @@ void main() {
         });
 
         test('RegisterExtension events from injected client', () async {
-          var eventKind = EventKind.kServiceExtensionAdded;
-          var extensions = List.generate(10, (index) => 'extension$index');
+          final eventKind = EventKind.kServiceExtensionAdded;
+          final extensions = List.generate(10, (index) => 'extension$index');
 
           TypeMatcher<Event> eventMatcher(String extension) =>
               const TypeMatcher<Event>()
@@ -1670,7 +1670,7 @@ void main() {
 
       test('Stderr', () async {
         expect(service.streamListen('Stderr'), completion(_isSuccess));
-        var stderrStream = service.onEvent('Stderr');
+        final stderrStream = service.onEvent('Stderr');
         expect(
             stderrStream,
             emitsThrough(predicate((Event event) =>
@@ -1682,7 +1682,7 @@ void main() {
 
       test('exception stack trace mapper', () async {
         expect(service.streamListen('Stderr'), completion(_isSuccess));
-        var stderrStream = service.onEvent('Stderr');
+        final stderrStream = service.onEvent('Stderr');
         expect(
             stderrStream,
             emitsThrough(predicate((Event event) =>
@@ -1693,9 +1693,9 @@ void main() {
       });
 
       test('VM', () async {
-        var status = await service.streamListen('VM');
+        final status = await service.streamListen('VM');
         expect(status, _isSuccess);
-        var stream = service.onEvent('VM');
+        final stream = service.onEvent('VM');
         expect(
             stream,
             emitsThrough(predicate((Event e) =>
@@ -1707,15 +1707,15 @@ void main() {
     test('Logging', () async {
       expect(
           service.streamListen(EventStreams.kLogging), completion(_isSuccess));
-      var stream = service.onEvent(EventStreams.kLogging);
-      var message = 'myMessage';
+      final stream = service.onEvent(EventStreams.kLogging);
+      final message = 'myMessage';
 
       unawaited(tabConnection.runtime.evaluate("sendLog('$message');"));
 
-      var event = await stream.first;
+      final event = await stream.first;
       expect(event.kind, EventKind.kLogging);
 
-      var logRecord = event.logRecord;
+      final logRecord = event.logRecord;
       expect(logRecord.message.valueAsString, message);
       expect(logRecord.loggerName.valueAsString, 'testLogCategory');
     });

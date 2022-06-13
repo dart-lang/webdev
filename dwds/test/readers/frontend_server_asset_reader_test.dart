@@ -21,8 +21,8 @@ void main() {
   File jsonOriginal;
   File mapOriginal;
 
-  Future<void> _createTempFixtures() async {
-    var fixtures = p.join('test', 'fixtures');
+  Future<void> createTempFixtures() async {
+    final fixtures = p.join('test', 'fixtures');
     tempFixtures = await Directory.systemTemp.createTemp('dwds_test_fixtures');
     await tempFixtures.create();
     jsonOriginal = await File(p.join(fixtures, 'main.dart.dill.json'))
@@ -37,7 +37,7 @@ void main() {
   });
 
   setUp(() async {
-    await _createTempFixtures();
+    await createTempFixtures();
     assetReader = FrontendServerAssetReader(
       p.join(tempFixtures.path, 'main.dart.dill'),
       packagesDir,
@@ -52,25 +52,25 @@ void main() {
   group('FrontendServerAssetReader', () {
     group('sources', () {
       test('as packages path can be read', () async {
-        var result =
+        final result =
             await assetReader.dartSourceContents('packages/path/path.dart');
         expect(result, isNotNull);
       });
 
       test('as relative path can be read', () async {
-        var result = await assetReader.dartSourceContents('lib/library.dart');
+        final result = await assetReader.dartSourceContents('lib/library.dart');
         expect(result, isNotNull);
       });
 
       test('are null if the path does not exist', () async {
-        var result = await assetReader.dartSourceContents('foo/blah.dart');
+        final result = await assetReader.dartSourceContents('foo/blah.dart');
         expect(result, isNull);
       });
     });
 
     group('source maps', () {
       test('can be read', () async {
-        var result =
+        final result =
             await assetReader.sourceMapContents('web/main.dart.lib.js.map');
         expect(result, isNotNull);
       });
@@ -79,19 +79,19 @@ void main() {
         // Remove the underlying fixtures.
         await tempFixtures.delete(recursive: true);
 
-        var cachedResult =
+        final cachedResult =
             await assetReader.sourceMapContents('web/main.dart.lib.js.map');
         expect(cachedResult, isNotNull);
       });
 
       test('are null if the path does not exist', () async {
-        var result =
+        final result =
             await assetReader.sourceMapContents('web/foo.dart.lib.js.map');
         expect(result, isNull);
       });
 
       test('are updated with new incremental results', () async {
-        var missingResult =
+        final missingResult =
             await assetReader.sourceMapContents('web/foo.dart.lib.js.map');
         expect(missingResult, isNull);
 
@@ -105,7 +105,7 @@ void main() {
 
         await assetReader.updateCaches();
 
-        var newResult =
+        final newResult =
             await assetReader.sourceMapContents('web/foo.dart.lib.js.map');
         expect(newResult, isNotNull);
       });

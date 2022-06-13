@@ -46,7 +46,7 @@ Promise<T> toPromise<T>(Future<T> future) {
 ///
 /// This also propagates [Promise] rejection through to the returned [Future].
 Future<T> toFuture<T>(Promise<T> promise) {
-  var completer = Completer<T>();
+  final completer = Completer<T>();
   promise.then(
     allowInterop(completer.complete),
     allowInterop(completer.completeError),

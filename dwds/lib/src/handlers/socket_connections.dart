@@ -58,7 +58,7 @@ class SseSocketHandler extends SocketHandler {
 
   SseSocketHandler(this._sseHandler) {
     unawaited(() async {
-      var injectedConnections = _sseHandler.connections;
+      final injectedConnections = _sseHandler.connections;
       while (await injectedConnections.hasNext) {
         _connectionsStream
             .add(SseSocketConnection(await injectedConnections.next));

@@ -103,7 +103,7 @@ class FrontendServerClient {
   /// [invalidatedUris] must not be null for all but the very first compile.
   ///
   /// The frontend server _does not_ do any of its own invalidation.
-  Future<CompileResult?> compile([List<Uri>? invalidatedUris]) async {
+  Future<CompileResult> compile([List<Uri>? invalidatedUris]) async {
     String action;
     switch (_state) {
       case _ClientState.waitingForFirstCompile:
@@ -188,10 +188,6 @@ class FrontendServerClient {
           case _CompileState.done:
             throw StateError('Unreachable');
         }
-      }
-
-      if (outputDillPath == null) {
-        return null;
       }
 
       return CompileResult._(
@@ -339,9 +335,9 @@ class CompileResult {
       required this.newSources,
       required this.removedSources});
 
-  /// The produced dill output file, this will either be a full dill file or an
-  /// incremental dill file.
-  final String dillOutput;
+  /// The produced dill output file, this will either be a full dill file, an
+  /// incremental dill file, or `null` if no file was produced.
+  final String? dillOutput;
 
   /// All output from the compiler, typically this would contain errors or
   /// warnings.
@@ -354,16 +350,19 @@ class CompileResult {
   /// A single file containing all source maps for all JS outputs.
   ///
   /// Read [jsManifestOutput] for file offsets for each sourcemap.
-  String get jsSourceMapsOutput => '$dillOutput.map';
+  String? get jsSourceMapsOutput =>
+      dillOutput == null ? null : '$dillOutput.map';
 
   /// A single file containing all JS outputs.
   ///
   /// Read [jsManifestOutput] for file offsets for each source.
-  String get jsSourcesOutput => '$dillOutput.sources';
+  String? get jsSourcesOutput =>
+      dillOutput == null ? null : '$dillOutput.sources';
 
   /// A JSON manifest containing offsets for the sources and source maps in
   /// the [jsSourcesOutput] and [jsSourceMapsOutput] files.
-  String get jsManifestOutput => '$dillOutput.json';
+  String? get jsManifestOutput =>
+      dillOutput == null ? null : '$dillOutput.json';
 
   /// All the transitive source dependencies that were added as a part of this
   /// compile.

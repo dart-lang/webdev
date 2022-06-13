@@ -19,24 +19,24 @@ void main() {
 
   group('ProxyServerAssetReader', () {
     test('returns null if the dart path does not exist', () async {
-      var result = await assetReader.dartSourceContents('some/path/foo.dart');
+      final result = await assetReader.dartSourceContents('some/path/foo.dart');
       expect(result, isNull);
     });
 
     test('can read dart sources', () async {
-      var result =
+      final result =
           await assetReader.dartSourceContents('hello_world/main.dart');
       expect(result, isNotNull);
     });
 
     test('can read source maps', () async {
-      var result = await assetReader
+      final result = await assetReader
           .dartSourceContents('hello_world/main.unsound.ddc.js.map');
       expect(result, isNotNull);
     });
 
     test('returns null if the source map path does not exist', () async {
-      var result = await assetReader
+      final result = await assetReader
           .dartSourceContents('hello_world/foo.unsound.ddc.js.map');
       expect(result, isNull);
     });

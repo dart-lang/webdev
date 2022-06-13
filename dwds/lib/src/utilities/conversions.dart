@@ -15,7 +15,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// consistently where the callArgument format doesn't, at least if we're
 /// using the `arguments` pseudo-variable in JS instead of passing directly
 /// as real arguments.
-Map<String, Object> callArgumentFor(Object argument) {
+Map<String, Object?> callArgumentFor(Object argument) {
   if (argument is RemoteObject) {
     return _isPrimitive(argument)
         ? _callArgumentForPrimitive(argument.value)
@@ -27,7 +27,7 @@ Map<String, Object> callArgumentFor(Object argument) {
 
 /// True if [remote] represents a primitive
 bool _isPrimitive(RemoteObject remote) {
-  var id = remote.objectId;
+  final id = remote.objectId;
   return id == null || isStringId(id) || id.startsWith('objects/');
 }
 
@@ -49,7 +49,7 @@ List<RemoteObject> remoteObjectsFor(Iterable<String> dartIds) {
 /// InstanceRef identifier in the protocol. Libraries aren't first class, and
 /// must be handled separately.
 RemoteObject remoteObjectFor(String dartId) {
-  var data = <String, Object>{};
+  final data = <String, Object?>{};
   data['objectId'] = dartId;
   if (isStringId(dartId)) {
     data['type'] = 'string';
@@ -92,10 +92,13 @@ String dartIdFor(Object? argument) {
     return '$_prefixForStringIds$argument';
   }
   if (argument is RemoteObject) {
-    return argument.objectId ?? null.toString();
+    if (argument.objectId == null) {
+      throw ArgumentError.value(argument, 'objectId', 'No objectId found');
+    }
+    return argument.objectId!;
   }
   if (argument is Map<String, dynamic>) {
-    var id = argument['objectId'] as String?;
+    final id = argument['objectId'] as String?;
     if (id == null) {
       throw ArgumentError.value(argument, 'objectId', 'No objectId found');
     }
@@ -133,19 +136,13 @@ bool isDoubleId(String dartId) => dartId.startsWith(_prefixForDoubleIds);
 bool isLibraryId(String dartId) => _uriPrefixes.any(dartId.startsWith);
 
 /// A Map representing a RemoteObject for a primitive object.
-Map<String, Object> _callArgumentForPrimitive(Object? primitive) {
-  return {
-    'type': _jsTypeOf(primitive),
-    if (primitive != null) 'value': primitive,
-  };
+Map<String, Object?> _callArgumentForPrimitive(Object? primitive) {
+  return {'type': _jsTypeOf(primitive), 'value': primitive};
 }
 
 /// A Map representing a RemoteObject from an actual RemoteObject.
-Map<String, Object> _callArgumentForRemote(RemoteObject remote) {
-  return {
-    'type': 'object',
-    if (remote.objectId != null) 'objectId': remote.objectId!,
-  };
+Map<String, Object?> _callArgumentForRemote(RemoteObject remote) {
+  return {'type': 'object', 'objectId': remote.objectId};
 }
 
 /// The JS type name to use in a RemoteObject reference to [object].

@@ -18,7 +18,7 @@ class FunctionMetaData {
   /// Returns the [FunctionMetaData] for the Chrome [remoteObject].
   static Future<FunctionMetaData> metaDataFor(
       RemoteDebugger remoteDebugger, RemoteObject remoteObject) async {
-    var evalExpression = '''
+    final evalExpression = '''
       function(remoteObject) {
         var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         var name = remoteObject.name;
@@ -29,10 +29,10 @@ class FunctionMetaData {
         return name;
       }
     ''';
-    var arguments = [
+    final arguments = [
       {'objectId': remoteObject.objectId}
     ];
-    var response =
+    final response =
         await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': arguments,
