@@ -56,15 +56,16 @@ RemoteObject remoteObjectFor(String dartId) {
     data['value'] = _stringFromDartId(dartId);
   } else if (isDoubleId(dartId)) {
     data['type'] = 'number';
-    data['value'] = _doubleFromDartId(dartId)!;
+    data['value'] = _doubleFromDartId(dartId);
   } else if (isIntId(dartId)) {
     data['type'] = 'number';
-    data['value'] = _intFromDartId(dartId)!;
+    data['value'] = _intFromDartId(dartId);
   } else if (isBoolId(dartId)) {
     data['type'] = 'boolean';
     data['value'] = _boolFromDartId(dartId);
   } else if (dartId == _nullId) {
     data['type'] = 'undefined';
+    data['value'] = null;
   } else {
     data['type'] = 'object';
   }
