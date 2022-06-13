@@ -34,8 +34,8 @@ void main() {
         ..idleTimeout = const Duration(seconds: 30)
         ..connectionTimeout = const Duration(seconds: 30));
 
-      var assetServerPort = daemonPort(context.workingDirectory);
-      var pathToServe = context.pathToServe;
+      final assetServerPort = daemonPort(context.workingDirectory);
+      final pathToServe = context.pathToServe;
 
       assetHandler = proxyHandler(
           'http://localhost:$assetServerPort/$pathToServe/',
@@ -50,29 +50,29 @@ void main() {
     setUp(setCurrentLogWriter);
 
     Future<void> readAsString(String path) async {
-      var request = Request('GET', Uri.parse('http://foo:0000/$path'));
-      var response = await assetHandler(request);
-      var result = await response.readAsString();
+      final request = Request('GET', Uri.parse('http://foo:0000/$path'));
+      final response = await assetHandler(request);
+      final result = await response.readAsString();
       expect(result, isNotNull,
           reason: 'Failed to read $path: ${response.statusCode}');
     }
 
     Future<void> readAsBytes(String path) async {
-      var request = Request('GET', Uri.parse('http://foo:0000/$path'));
-      var response = await assetHandler(request);
-      var result = await response.read().toList();
+      final request = Request('GET', Uri.parse('http://foo:0000/$path'));
+      final response = await assetHandler(request);
+      final result = await response.read().toList();
       expect(result, isNotNull,
           reason: 'Failed to read $path: ${response.statusCode}');
     }
 
     test('can read dill files', () async {
-      var path = 'hello_world/main.unsound.ddc.full.dill';
+      final path = 'hello_world/main.unsound.ddc.full.dill';
       await readAsBytes(path);
     });
 
     test('can read large number of resources simultaneously', () async {
       final n = 1000;
-      var futures = [
+      final futures = [
         for (var i = 0; i < n; i++)
           readAsString('hello_world/main.unsound.ddc.js.map'),
         for (var i = 0; i < n; i++)

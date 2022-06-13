@@ -6,3 +6,7 @@ analyzer:
       # Ignore generated files
     - "lib/data/*"
 
+linter:
+  rules:
+    - prefer_final_locals
+

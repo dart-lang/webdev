@@ -108,10 +108,10 @@ class _Compiler {
       checked: false,
     );
 
-    var responseQueue = StreamQueue(receivePort);
-    var sendPort = await responseQueue.next as SendPort;
+    final responseQueue = StreamQueue(receivePort);
+    final sendPort = await responseQueue.next as SendPort;
 
-    var service = _Compiler._(isolate, responseQueue, receivePort, sendPort);
+    final service = _Compiler._(isolate, responseQueue, receivePort, sendPort);
 
     return service;
   }
@@ -120,13 +120,13 @@ class _Compiler {
     if (_worker == null) {
       throw StateError('Expression compilation service has stopped');
     }
-    var updateCompleter = Completer();
+    final updateCompleter = Completer();
     _dependencyUpdate = updateCompleter.future;
 
     _logger.info('Updating dependencies...');
     _logger.finest('Dependencies: $modules');
 
-    var response = await _send({
+    final response = await _send({
       'command': 'UpdateDeps',
       'inputs': [
         for (var moduleName in modules.keys)
@@ -138,12 +138,12 @@ class _Compiler {
           },
       ]
     });
-    var result = response == null ? false : response['succeeded'] as bool;
+    final result = response == null ? false : response['succeeded'] as bool;
     if (result) {
       _logger.info('Updated dependencies.');
     } else {
-      var e = response['exception'];
-      var s = response['stackTrace'];
+      final e = response['exception'];
+      final s = response['stackTrace'];
       _logger.severe('Failed to update dependencies: $e:$s');
     }
     updateCompleter.complete();
@@ -169,7 +169,7 @@ class _Compiler {
 
     _logger.finest('Compiling "$expression" at $libraryUri:$line');
 
-    var response = await _send({
+    final response = await _send({
       'command': 'CompileExpression',
       'expression': expression,
       'line': line,
@@ -184,13 +184,13 @@ class _Compiler {
     var result = '<unknown error>';
 
     if (response != null) {
-      var errors = response['errors'] as List<String>;
-      var e = response['exception'];
-      var s = response['stackTrace'];
-      var error = (errors != null && errors.isNotEmpty)
+      final errors = response['errors'] as List<String>;
+      final e = response['exception'];
+      final s = response['stackTrace'];
+      final error = (errors != null && errors.isNotEmpty)
           ? errors.first
           : (e != null ? '$e:$s' : '<unknown error>');
-      var procedure = response['compiledProcedure'] as String;
+      final procedure = response['compiledProcedure'] as String;
       succeeded = response['succeeded'] as bool;
       result = succeeded ? procedure : error;
     }
@@ -265,7 +265,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       {String moduleFormat, bool soundNullSafety = false}) async {
     if (_compiler.isCompleted) return;
 
-    var compiler = await _Compiler.start(
+    final compiler = await _Compiler.start(
       _address,
       await _port,
       moduleFormat,
@@ -295,9 +295,9 @@ class ExpressionCompilerService implements ExpressionCompiler {
   /// Translates given resource uri to a server path and redirects
   /// the request to the asset handler.
   FutureOr<Response> handler(Request request) async {
-    var uri = request.requestedUri.queryParameters['uri'];
+    final uri = request.requestedUri.queryParameters['uri'];
     try {
-      var query = request.requestedUri.path;
+      final query = request.requestedUri.path;
       _logger.finest('request: ${request.method} ${request.requestedUri}');
 
       if (query != '/getResource' || uri == null) {

@@ -17,7 +17,7 @@ void main() {
     });
 
     test('do not include known ranges', () async {
-      var skipList = await skipLists.compute('123', {
+      final skipList = await skipLists.compute('123', {
         Location.from(
             'foo', TargetLineEntry(1, []), TargetEntry(2, 0, 0, 0), null),
         Location.from(
@@ -30,7 +30,7 @@ void main() {
     });
 
     test('do not include start of the file', () async {
-      var skipList = await skipLists.compute('123', {
+      final skipList = await skipLists.compute('123', {
         Location.from(
             'foo', TargetLineEntry(0, []), TargetEntry(0, 0, 0, 0), null),
         Location.from(
@@ -42,7 +42,7 @@ void main() {
     });
 
     test('does not depend on order of locations', () async {
-      var skipList = await skipLists.compute('123', {
+      final skipList = await skipLists.compute('123', {
         Location.from(
             'foo', TargetLineEntry(10, []), TargetEntry(20, 0, 0, 0), null),
         Location.from(
@@ -54,15 +54,15 @@ void main() {
     });
 
     test('contains the provided id', () async {
-      var id = '123';
-      var skipList = await skipLists.compute(id, {});
+      final id = '123';
+      final skipList = await skipLists.compute(id, {});
       for (var range in skipList) {
         expect(range['scriptId'], id);
       }
     });
 
     test('ignores the whole file if provided no locations', () async {
-      var skipList = await skipLists.compute('123', {});
+      final skipList = await skipLists.compute('123', {});
       expect(skipList.length, 1);
       _validateRange(skipList.first, 0, 0, maxValue, maxValue);
     });
@@ -71,10 +71,10 @@ void main() {
 
 void _validateRange(Map<String, dynamic> range, int startLine, int startColumn,
     int endLine, int endColumn) {
-  var start = range['start'];
+  final start = range['start'];
   expect(start['lineNumber'], startLine);
   expect(start['columnNumber'], startColumn);
-  var end = range['end'];
+  final end = range['end'];
   expect(end['lineNumber'], endLine);
   expect(end['columnNumber'], endColumn);
 }

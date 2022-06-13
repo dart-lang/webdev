@@ -38,12 +38,12 @@ void Function(WebSocketChannel, String) _createNewConnectionHandler(
   void Function(Map<String, dynamic>) onResponse,
 }) {
   return (webSocket, protocol) {
-    var responseController = StreamController<Map<String, Object>>();
+    final responseController = StreamController<Map<String, Object>>();
     webSocket.sink.addStream(responseController.stream.map((response) {
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
     }));
-    var inputStream = webSocket.stream.map((value) {
+    final inputStream = webSocket.stream.map((value) {
       if (value is List<int>) {
         value = utf8.decode(value as List<int>);
       } else if (value is! String) {
@@ -51,7 +51,7 @@ void Function(WebSocketChannel, String) _createNewConnectionHandler(
             'Got value with unexpected type ${value.runtimeType} from web '
             'socket, expected a List<int> or String.');
       }
-      var request = jsonDecode(value as String) as Map<String, Object>;
+      final request = jsonDecode(value as String) as Map<String, Object>;
       if (onRequest != null) onRequest(request);
       return request;
     });
@@ -78,9 +78,9 @@ Future<void> _handleSseConnections(
   void Function(Map<String, dynamic>) onResponse,
 }) async {
   while (await handler.connections.hasNext) {
-    var connection = await handler.connections.next;
-    var responseController = StreamController<Map<String, Object>>();
-    var sub = responseController.stream.map((response) {
+    final connection = await handler.connections.next;
+    final responseController = StreamController<Map<String, Object>>();
+    final sub = responseController.stream.map((response) {
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
     }).listen(connection.sink.add);
@@ -88,13 +88,13 @@ Future<void> _handleSseConnections(
       connection.sink.close();
       sub.cancel();
     }));
-    var inputStream = connection.stream.map((value) {
-      var request = jsonDecode(value) as Map<String, Object>;
+    final inputStream = connection.stream.map((value) {
+      final request = jsonDecode(value) as Map<String, Object>;
       if (onRequest != null) onRequest(request);
       return request;
     });
     ++_clientsConnected;
-    var vmServerConnection = VmServerConnection(inputStream,
+    final vmServerConnection = VmServerConnection(inputStream,
         responseController.sink, serviceExtensionRegistry, chromeProxyService);
     unawaited(vmServerConnection.done.whenComplete(() {
       --_clientsConnected;
@@ -219,7 +219,7 @@ class DebugService {
     SdkConfigurationProvider sdkConfigurationProvider,
   }) async {
     useSse ??= false;
-    var chromeProxyService = await ChromeProxyService.create(
+    final chromeProxyService = await ChromeProxyService.create(
       remoteDebugger,
       tabUrl,
       assetReader,
@@ -229,19 +229,19 @@ class DebugService {
       expressionCompiler,
       sdkConfigurationProvider,
     );
-    var authToken = _makeAuthToken();
-    var serviceExtensionRegistry = ServiceExtensionRegistry();
+    final authToken = _makeAuthToken();
+    final serviceExtensionRegistry = ServiceExtensionRegistry();
     Handler handler;
     // DDS will always connect to DWDS via web sockets.
     if (useSse && !spawnDds) {
-      var sseHandler = SseHandler(Uri.parse('/$authToken/\$debugHandler'),
+      final sseHandler = SseHandler(Uri.parse('/$authToken/\$debugHandler'),
           keepAlive: const Duration(seconds: 5));
       handler = sseHandler.handler;
       unawaited(_handleSseConnections(
           sseHandler, chromeProxyService, serviceExtensionRegistry,
           onRequest: onRequest, onResponse: onResponse));
     } else {
-      var innerHandler = webSocketHandler(_createNewConnectionHandler(
+      final innerHandler = webSocketHandler(_createNewConnectionHandler(
           chromeProxyService, serviceExtensionRegistry,
           onRequest: onRequest, onResponse: onResponse));
       handler = (shelf.Request request) {
@@ -258,7 +258,7 @@ class DebugService {
         return innerHandler(request);
       };
     }
-    var server = await startHttpServer(hostname, port: 44456);
+    final server = await startHttpServer(hostname, port: 44456);
     serveHttpRequests(server, handler, (e, s) {
       _logger.warning('Error serving requests', e);
       emitEvent(DwdsEvent.httpRequestException('DebugService', '$e:$s'));

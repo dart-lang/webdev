@@ -32,7 +32,7 @@ String _findNonce() {
 /// We do this so that we don't see user exceptions bubble up in our own error
 /// handling zone.
 void runMain() {
-  var scriptElement = _createScript()..innerHtml = r'window.$dartRunMain();';
+  final scriptElement = _createScript()..innerHtml = r'window.$dartRunMain();';
   document.body.append(scriptElement);
   Future.microtask(scriptElement.remove);
 }

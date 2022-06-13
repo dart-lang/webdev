@@ -68,9 +68,9 @@ class ExtensionDebugger implements RemoteDebugger {
 
   ExtensionDebugger(this.sseConnection) {
     sseConnection.stream.listen((data) {
-      var message = serializers.deserialize(jsonDecode(data));
+      final message = serializers.deserialize(jsonDecode(data));
       if (message is ExtensionResponse) {
-        var encodedResult = {
+        final encodedResult = {
           'result': json.decode(message.result),
           'id': message.id
         };
@@ -82,7 +82,7 @@ class ExtensionDebugger implements RemoteDebugger {
         // package:webkit_inspection_protocol.
         completer.complete(WipResponse(encodedResult));
       } else if (message is ExtensionEvent) {
-        var map = {
+        final map = {
           'method': json.decode(message.method),
           'params': json.decode(message.params)
         };
@@ -98,7 +98,7 @@ class ExtensionDebugger implements RemoteDebugger {
         }
       } else if (message is BatchedEvents) {
         for (var event in message.events) {
-          var map = {
+          final map = {
             'method': json.decode(event.method),
             'params': json.decode(event.params)
           };
@@ -140,8 +140,8 @@ class ExtensionDebugger implements RemoteDebugger {
   @override
   Future<WipResponse> sendCommand(String command,
       {Map<String, dynamic> params}) {
-    var completer = Completer<WipResponse>();
-    var id = newId();
+    final completer = Completer<WipResponse>();
+    final id = newId();
     _completers[id] = completer;
     sseConnection.sink
         .add(jsonEncode(serializers.serialize(ExtensionRequest((b) => b

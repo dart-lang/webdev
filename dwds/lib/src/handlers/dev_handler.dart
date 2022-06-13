@@ -102,7 +102,7 @@ class DevHandler {
   }
 
   Handler get handler => (request) async {
-        var path = request.requestedUri.path;
+        final path = request.requestedUri.path;
         if (_sseHandlers.containsKey(path)) {
           return _sseHandlers[path].handler(request);
         }
@@ -135,7 +135,7 @@ class DevHandler {
     ChromeTab appTab;
     ExecutionContext executionContext;
     WipConnection tabConnection;
-    var appInstanceId = appConnection.request.instanceId;
+    final appInstanceId = appConnection.request.instanceId;
     for (var tab in await chromeConnection.getTabs()) {
       if (tab.isChromeExtension || tab.isBackgroundPage) continue;
 
@@ -151,7 +151,7 @@ class DevHandler {
           _log('  wip', '<== $message');
         });
       }
-      var contextIds = tabConnection.runtime.onExecutionContextCreated
+      final contextIds = tabConnection.runtime.onExecutionContextCreated
           .map((context) => context.id)
           // There is no way to calculate the number of existing execution
           // contexts so keep receiving them until there is a 50ms gap after
@@ -162,11 +162,11 @@ class DevHandler {
       unawaited(Future.microtask(() => tabConnection.runtime.enable()));
 
       await for (var contextId in contextIds) {
-        var result = await tabConnection.sendCommand('Runtime.evaluate', {
+        final result = await tabConnection.sendCommand('Runtime.evaluate', {
           'expression': r'window["$dartAppInstanceId"];',
           'contextId': contextId,
         });
-        var evaluatedAppId = result.result['result']['value'];
+        final evaluatedAppId = result.result['result']['value'];
         if (evaluatedAppId == appInstanceId) {
           appTab = tab;
           executionContext = RemoteDebuggerExecutionContext(
@@ -183,7 +183,7 @@ class DevHandler {
           '$appInstanceId');
     }
 
-    var webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
+    final webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
 
     return DebugService.start(
       // We assume the user will connect to the debug service on the same
@@ -228,11 +228,11 @@ class DevHandler {
   }
 
   Future<AppDebugServices> loadAppServices(AppConnection appConnection) async {
-    var appId = appConnection.request.appId;
+    final appId = appConnection.request.appId;
     if (_servicesByAppId[appId] == null) {
-      var debugService = await _startLocalDebugService(
+      final debugService = await _startLocalDebugService(
           await _chromeConnection(), appConnection);
-      var appServices = await _createAppDebugServices(
+      final appServices = await _createAppDebugServices(
           appConnection.request.appId, debugService);
       unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
           .whenComplete(() async {
@@ -251,7 +251,7 @@ class DevHandler {
     AppConnection appConnection;
     injectedConnection.stream.listen((data) async {
       try {
-        var message = serializers.deserialize(jsonDecode(data));
+        final message = serializers.deserialize(jsonDecode(data));
         if (message is ConnectRequest) {
           if (appConnection != null) {
             throw StateError('Duplicate connection request from the same app. '
@@ -304,7 +304,7 @@ class DevHandler {
       _injectedConnections.remove(injectedConnection);
       if (appConnection != null) {
         _appConnectionByAppId.remove(appConnection.request.appId);
-        var services = _servicesByAppId[appConnection.request.appId];
+        final services = _servicesByAppId[appConnection.request.appId];
         if (services != null) {
           if (services.connectedInstanceId == null ||
               services.connectedInstanceId ==
@@ -329,12 +329,12 @@ class DevHandler {
                 'Otherwise check the docs for the tool you are using.'))));
       return;
     }
-    var debuggerStart = DateTime.now();
+    final debuggerStart = DateTime.now();
     AppDebugServices appServices;
     try {
       appServices = await loadAppServices(appConnection);
     } catch (_) {
-      var error = 'Unable to connect debug services to your '
+      final error = 'Unable to connect debug services to your '
           'application. Most likely this means you are trying to '
           'load in a different Chrome window than was launched by '
           'your development tool.';
@@ -389,16 +389,16 @@ class DevHandler {
       ConnectRequest message, SocketConnection sseConnection) async {
     // After a page refresh, reconnect to the same app services if they
     // were previously launched and create the new isolate.
-    var services = _servicesByAppId[message.appId];
-    var existingAppConection = _appConnectionByAppId[message.appId];
-    var connection = AppConnection(message, sseConnection);
+    final services = _servicesByAppId[message.appId];
+    final existingAppConection = _appConnectionByAppId[message.appId];
+    final connection = AppConnection(message, sseConnection);
 
     // We can take over a connection if there is no connectedInstanceId (this
     // means the client completely disconnected), or if the existing
     // AppConnection is in the KeepAlive state (this means it disconnected but
     // is still waiting for a possible reconnect - this happens during a page
     // reload).
-    var canReuseConnection = services != null &&
+    final canReuseConnection = services != null &&
         (services.connectedInstanceId == null ||
             existingAppConection?.isInKeepAlivePeriod == true);
 
@@ -432,9 +432,9 @@ class DevHandler {
 
   void _listen() async {
     _subs.add(_injected.devHandlerPaths.listen((devHandlerPath) async {
-      var uri = Uri.parse(devHandlerPath);
+      final uri = Uri.parse(devHandlerPath);
       if (!_sseHandlers.containsKey(uri.path)) {
-        var handler = _useSseForInjectedClient
+        final handler = _useSseForInjectedClient
             ? SseSocketHandler(
                 // We provide an essentially indefinite keep alive duration because
                 // the underlying connection could be lost while the application
@@ -443,7 +443,7 @@ class DevHandler {
                 SseHandler(uri, keepAlive: const Duration(days: 3000)))
             : WebSocketSocketHandler();
         _sseHandlers[uri.path] = handler;
-        var injectedConnections = handler.connections;
+        final injectedConnections = handler.connections;
         while (await injectedConnections.hasNext) {
           _handleConnection(await injectedConnections.next);
         }
@@ -453,14 +453,14 @@ class DevHandler {
 
   Future<AppDebugServices> _createAppDebugServices(
       String appId, DebugService debugService) async {
-    var dwdsStats = DwdsStats();
-    var webdevClient = await DwdsVmClient.create(debugService, dwdsStats);
+    final dwdsStats = DwdsStats();
+    final webdevClient = await DwdsVmClient.create(debugService, dwdsStats);
     if (_spawnDds) {
       await debugService.startDartDevelopmentService();
     }
-    var appDebugService =
+    final appDebugService =
         AppDebugServices(debugService, webdevClient, dwdsStats);
-    var encodedUri = await debugService.encodedUri;
+    final encodedUri = await debugService.encodedUri;
     _logger.info('Debug service listening on $encodedUri\n');
     await appDebugService.chromeProxyService.remoteDebugger
         .sendCommand('Runtime.evaluate', params: {
@@ -479,11 +479,11 @@ class DevHandler {
 
   /// Starts a [DebugService] for Dart Debug Extension.
   void _startExtensionDebugService() async {
-    var extensionDebugger = await _extensionBackend.extensionDebugger;
+    final extensionDebugger = await _extensionBackend.extensionDebugger;
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
     extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
-      var connection = _appConnectionByAppId[devToolsRequest.appId];
+      final connection = _appConnectionByAppId[devToolsRequest.appId];
       if (connection == null) {
         // TODO(grouma) - Ideally we surface this warning to the extension so
         // that it can be displayed to the user through an alert.
@@ -491,10 +491,10 @@ class DevHandler {
             'Not connected to an app with id: ${devToolsRequest.appId}');
         return;
       }
-      var debuggerStart = DateTime.now();
-      var appId = devToolsRequest.appId;
+      final debuggerStart = DateTime.now();
+      final appId = devToolsRequest.appId;
       if (_servicesByAppId[appId] == null) {
-        var debugService = await DebugService.start(
+        final debugService = await DebugService.start(
           _hostname,
           extensionDebugger,
           extensionDebugger.executionContext,
@@ -513,11 +513,11 @@ class DevHandler {
           spawnDds: _spawnDds,
           sdkConfigurationProvider: _sdkConfigurationProvider,
         );
-        var appServices = await _createAppDebugServices(
+        final appServices = await _createAppDebugServices(
           devToolsRequest.appId,
           debugService,
         );
-        var encodedUri = await debugService.encodedUri;
+        final encodedUri = await debugService.encodedUri;
         extensionDebugger.sendEvent('dwds.encodedUri', encodedUri);
         unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
             .whenComplete(() async {

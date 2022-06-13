@@ -30,12 +30,17 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
   Future<int> get id async {
     if (_id != null) return _id!;
     _logger.fine('Looking for Dart execution context...');
+    const timeoutInMs = 100;
     while (await _contexts.hasNext
-        .timeout(const Duration(milliseconds: 50), onTimeout: () => false)) {
-      var context = await _contexts.next;
+        .timeout(const Duration(milliseconds: timeoutInMs), onTimeout: () {
+      _logger.warning(
+          'Timed out finding an execution context after $timeoutInMs ms.');
+      return false;
+    })) {
+      final context = await _contexts.next;
       _logger.fine('Checking context id: $context');
       try {
-        var result =
+        final result =
             await _remoteDebugger.sendCommand('Runtime.evaluate', params: {
           'expression': r'window["$dartAppInstanceId"];',
           'contextId': context,
@@ -58,7 +63,7 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
   }
 
   RemoteDebuggerExecutionContext(this._id, this._remoteDebugger) {
-    var contextController = StreamController<int>();
+    final contextController = StreamController<int>();
     _remoteDebugger
         .eventStream('Runtime.executionContextsCleared', (e) => e)
         .listen((_) => _id = null);
@@ -67,8 +72,8 @@ class RemoteDebuggerExecutionContext extends ExecutionContext {
       // If we cannot detect or parse the context ID, add `null` to the stream
       // to indicate an error context - those will be skipped when trying to find
       // the dart context, with a warning.
-      var id = e.params?['context']?['id']?.toString();
-      var parsedId = id == null ? null : int.parse(id);
+      final id = e.params?['context']?['id']?.toString();
+      final parsedId = id == null ? null : int.parse(id);
       if (id == null) {
         _logger.warning('Cannot find execution context id: $e');
       } else if (parsedId == null) {

@@ -17,7 +17,7 @@ class ChromeDebugException extends ExceptionDetails implements Exception {
 
   @override
   String toString() {
-    var description = StringBuffer()
+    final description = StringBuffer()
       ..writeln('Unexpected error from chrome devtools:');
     description.writeln('text: $text');
     if (exception != null) {

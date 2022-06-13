@@ -18,11 +18,11 @@ void main() {
       const size = 100;
       const delay = Duration(milliseconds: 1000);
 
-      var batchOne = List<int>.generate(size, (index) => index);
-      var batchTwo = List<int>.generate(size, (index) => size + index);
+      final batchOne = List<int>.generate(size, (index) => index);
+      final batchTwo = List<int>.generate(size, (index) => size + index);
 
       // Setup controller.
-      var controller = BatchedStreamController<int>(delay: 500);
+      final controller = BatchedStreamController<int>(delay: 500);
 
       // Verify the output.
       expect(
@@ -33,8 +33,8 @@ void main() {
           ]));
 
       // Add input.
-      var inputController = StreamController<int>();
-      var inputAdded = controller.sink.addStream(inputController.stream);
+      final inputController = StreamController<int>();
+      final inputAdded = controller.sink.addStream(inputController.stream);
 
       batchOne.forEach(inputController.sink.add);
       await Future.delayed(delay);
@@ -50,16 +50,16 @@ void main() {
       const delay = Duration(milliseconds: 200);
 
       // Setup controller.
-      var controller = BatchedStreamController<int>(delay: 500);
+      final controller = BatchedStreamController<int>(delay: 500);
 
       // Setup output listener.
-      var output = controller.stream.toList();
+      final output = controller.stream.toList();
 
       // Add input.
-      var inputController = StreamController<int>();
-      var inputAdded = controller.sink.addStream(inputController.stream);
+      final inputController = StreamController<int>();
+      final inputAdded = controller.sink.addStream(inputController.stream);
 
-      var input = List<int>.generate(size, (index) => index);
+      final input = List<int>.generate(size, (index) => index);
       for (var e in input) {
         inputController.sink.add(e);
         await Future.delayed(delay);
@@ -70,10 +70,10 @@ void main() {
       await controller.close();
 
       // Verify the output.
-      var result = await output;
+      final result = await output;
       expect(result.length, greaterThan(1));
 
-      var flattened = <int>[];
+      final flattened = <int>[];
       result.forEach(flattened.addAll);
       expect(flattened, input);
     });

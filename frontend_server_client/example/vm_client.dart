@@ -31,7 +31,7 @@ void main(List<String> args) async {
   Process appProcess;
   final vmServiceCompleter = Completer<VmService>();
   appProcess = await Process.start(Platform.resolvedExecutable,
-      ['--observe', '--no-pause-isolates-on-exit', result!.dillOutput]);
+      ['--observe', '--no-pause-isolates-on-exit', result.dillOutput!]);
   appProcess.stdout
       .transform(utf8.decoder)
       .transform(const LineSplitter())
@@ -65,7 +65,7 @@ void main(List<String> args) async {
   _print('reloading $app');
   var vm = await vmService.getVM();
   await vmService.reloadSources(vm.isolates!.first.id!,
-      rootLibUri: result!.dillOutput);
+      rootLibUri: result.dillOutput!);
 
   _print('restoring $app to original contents');
   await appFile.writeAsString(originalContent);

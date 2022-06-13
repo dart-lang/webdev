@@ -38,16 +38,16 @@ class BuildRunnerRequireStrategyProvider {
 
   Future<Map<String, String>> _digestsProvider(
       MetadataProvider metadataProvider) async {
-    var modules = await metadataProvider.modulePathToModule;
+    final modules = await metadataProvider.modulePathToModule;
 
-    var digestsPath = metadataProvider.entrypoint
+    final digestsPath = metadataProvider.entrypoint
         .replaceAll('.dart.bootstrap.js', '.digests');
-    var response = await _assetHandler(
+    final response = await _assetHandler(
         Request('GET', Uri.parse('http://foo:0000/$digestsPath')));
     if (response.statusCode != HttpStatus.ok) {
       throw StateError('Could not read digests at path: $digestsPath');
     }
-    var body = await response.readAsString();
+    final body = await response.readAsString();
     return {
       for (var entry in (json.decode(body) as Map<String, dynamic>).entries)
         modules[entry.key]: entry.value as String,
@@ -66,14 +66,14 @@ class BuildRunnerRequireStrategyProvider {
 
   Future<String> _serverPathForModule(
       MetadataProvider metadataProvider, String module) async {
-    var result = stripTopLevelDirectory(
+    final result = stripTopLevelDirectory(
         (await metadataProvider.moduleToModulePath)[module] ?? '');
     return result;
   }
 
   Future<String> _sourceMapPathForModule(
       MetadataProvider metadataProvider, String module) async {
-    var path = (await metadataProvider.moduleToSourceMap)[module] ?? '';
+    final path = (await metadataProvider.moduleToSourceMap)[module] ?? '';
     return stripTopLevelDirectory(path);
   }
 
@@ -87,10 +87,10 @@ class BuildRunnerRequireStrategyProvider {
 
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
       MetadataProvider metadataProvider) async {
-    var modules = await metadataProvider.modules;
-    var result = <String, ModuleInfo>{};
+    final modules = await metadataProvider.modules;
+    final result = <String, ModuleInfo>{};
     for (var module in modules) {
-      var serverPath = await _serverPathForModule(metadataProvider, module);
+      final serverPath = await _serverPathForModule(metadataProvider, module);
       result[module] = ModuleInfo(
           // TODO: Save locations of full kernel files in ddc metadata.
           // Issue: https://github.com/dart-lang/sdk/issues/43684

@@ -60,9 +60,9 @@ void main() {
       });
 
       test('set breakpoint', () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
+        final bp = await service.addBreakpointWithScriptUri(
             isolate.id, mainScript.uri, line);
 
         await stream.firstWhere(
@@ -75,9 +75,9 @@ void main() {
       });
 
       test('set breakpoint again', () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
+        final bp = await service.addBreakpointWithScriptUri(
             isolate.id, mainScript.uri, line);
 
         await stream.firstWhere(
@@ -90,11 +90,11 @@ void main() {
       });
 
       test('set existing breakpoint succeeds', () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
-        var bp1 = await service.addBreakpointWithScriptUri(
+        final bp1 = await service.addBreakpointWithScriptUri(
             isolate.id, mainScript.uri, line);
-        var bp2 = await service.addBreakpointWithScriptUri(
+        final bp2 = await service.addBreakpointWithScriptUri(
             isolate.id, mainScript.uri, line);
 
         expect(bp1, equals(bp2));
@@ -115,14 +115,14 @@ void main() {
 
       test('set breakpoints at the same line simultaneously succeeds',
           () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
-        var futures = [
+        final futures = [
           service.addBreakpointWithScriptUri(isolate.id, mainScript.uri, line),
           service.addBreakpointWithScriptUri(isolate.id, mainScript.uri, line),
         ];
 
-        var breakpoints = await Future.wait(futures);
+        final breakpoints = await Future.wait(futures);
         expect(breakpoints[0], equals(breakpoints[1]));
         expect(breakpoints[0], isNotNull);
 
@@ -140,9 +140,9 @@ void main() {
       });
 
       test('remove non-existing breakpoint fails', () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
+        final bp = await service.addBreakpointWithScriptUri(
             isolate.id, mainScript.uri, line);
 
         await stream.firstWhere(

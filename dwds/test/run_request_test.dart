@@ -30,11 +30,11 @@ void main() {
     });
 
     test('can resume while paused at the start', () async {
-      var vm = await service.getVM();
-      var isolate = await service.getIsolate(vm.isolates.first.id);
+      final vm = await service.getVM();
+      final isolate = await service.getIsolate(vm.isolates.first.id);
       expect(isolate.pauseEvent.kind, EventKind.kPauseStart);
-      var stream = service.onEvent('Debug');
-      var resumeCompleter = Completer();
+      final stream = service.onEvent('Debug');
+      final resumeCompleter = Completer();
       // The underlying stream is a broadcast stream so we need to add a
       // listener before calling resume so that we don't miss events.
       unawaited(stream
@@ -48,10 +48,10 @@ void main() {
     });
 
     test('correctly sets the isolate pauseEvent', () async {
-      var vm = await service.getVM();
-      var isolate = await service.getIsolate(vm.isolates.first.id);
+      final vm = await service.getVM();
+      final isolate = await service.getIsolate(vm.isolates.first.id);
       expect(isolate.pauseEvent.kind, EventKind.kPauseStart);
-      var stream = service.onEvent('Debug');
+      final stream = service.onEvent('Debug');
       context.appConnection.runMain();
       await stream.firstWhere((event) => event.kind == EventKind.kResume);
       expect(isolate.pauseEvent.kind, EventKind.kResume);
@@ -69,8 +69,8 @@ void main() {
     test('correctly sets the isolate pauseEvent if already running', () async {
       context.appConnection.runMain();
       await context.startDebugging();
-      var vm = await service.getVM();
-      var isolate = await service.getIsolate(vm.isolates.first.id);
+      final vm = await service.getVM();
+      final isolate = await service.getIsolate(vm.isolates.first.id);
       expect(isolate.pauseEvent.kind, EventKind.kResume);
     });
   });

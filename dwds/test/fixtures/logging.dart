@@ -70,9 +70,9 @@ LogWriter _logWriter = createLogWriter();
 
 LogWriter createLogWriter({bool debug = false}) =>
     (level, message, {String error, String loggerName, String stackTrace}) {
-      var printFn = debug ? print : printOnFailure;
-      var errorMessage = error == null ? '' : ':\n$error';
-      var stackMessage = stackTrace == null ? '' : ':\n$stackTrace';
+      final printFn = debug ? print : printOnFailure;
+      final errorMessage = error == null ? '' : ':\n$error';
+      final stackMessage = stackTrace == null ? '' : ':\n$stackTrace';
       printFn('[$level] $loggerName: $message'
           '$errorMessage'
           '$stackMessage');
