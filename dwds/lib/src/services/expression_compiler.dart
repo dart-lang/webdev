@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Result of compilation of dart expression to JavaScript
 class ExpressionCompilationResult {
   final bool isError;
@@ -69,7 +67,10 @@ abstract class ExpressionCompiler {
   /// Initializes the compiler with null safety mode and module format.
   ///
   /// May be called multiple times and always before [updateDependencies].
-  Future<void> initialize({String moduleFormat, bool soundNullSafety});
+  Future<void> initialize({
+    required String moduleFormat,
+    bool soundNullSafety = false,
+  });
 }
 
 class ModuleInfo {

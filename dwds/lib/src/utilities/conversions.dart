@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Functions for converting between the different object references we use.
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -17,7 +15,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// consistently where the callArgument format doesn't, at least if we're
 /// using the `arguments` pseudo-variable in JS instead of passing directly
 /// as real arguments.
-Map<String, Object> callArgumentFor(Object argument) {
+Map<String, Object?> callArgumentFor(Object argument) {
   if (argument is RemoteObject) {
     return _isPrimitive(argument)
         ? _callArgumentForPrimitive(argument.value)
@@ -51,7 +49,7 @@ List<RemoteObject> remoteObjectsFor(Iterable<String> dartIds) {
 /// InstanceRef identifier in the protocol. Libraries aren't first class, and
 /// must be handled separately.
 RemoteObject remoteObjectFor(String dartId) {
-  final data = <String, Object>{};
+  final data = <String, Object?>{};
   data['objectId'] = dartId;
   if (isStringId(dartId)) {
     data['type'] = 'string';
@@ -78,7 +76,7 @@ RemoteObject remoteObjectFor(String dartId) {
 ///
 /// This will work for simple values, RemoteObject, and Maps representations of
 /// RemoteObjects.
-String dartIdFor(Object argument) {
+String dartIdFor(Object? argument) {
   if (argument == null) {
     return _nullId;
   }
@@ -95,10 +93,13 @@ String dartIdFor(Object argument) {
     return '$_prefixForStringIds$argument';
   }
   if (argument is RemoteObject) {
-    return argument.objectId;
+    if (argument.objectId == null) {
+      throw ArgumentError.value(argument, 'objectId', 'No objectId found');
+    }
+    return argument.objectId!;
   }
   if (argument is Map<String, dynamic>) {
-    final id = argument['objectId'] as String;
+    final id = argument['objectId'] as String?;
     if (id == null) {
       throw ArgumentError.value(argument, 'objectId', 'No objectId found');
     }
@@ -136,17 +137,17 @@ bool isDoubleId(String dartId) => dartId.startsWith(_prefixForDoubleIds);
 bool isLibraryId(String dartId) => _uriPrefixes.any(dartId.startsWith);
 
 /// A Map representing a RemoteObject for a primitive object.
-Map<String, Object> _callArgumentForPrimitive(Object primitive) {
+Map<String, Object?> _callArgumentForPrimitive(Object? primitive) {
   return {'type': _jsTypeOf(primitive), 'value': primitive};
 }
 
 /// A Map representing a RemoteObject from an actual RemoteObject.
-Map<String, Object> _callArgumentForRemote(RemoteObject remote) {
+Map<String, Object?> _callArgumentForRemote(RemoteObject remote) {
   return {'type': 'object', 'objectId': remote.objectId};
 }
 
 /// The JS type name to use in a RemoteObject reference to [object].
-String _jsTypeOf(Object object) {
+String _jsTypeOf(Object? object) {
   if (object == null) return 'undefined';
   if (object is String) return 'string';
   if (object is num) return 'num';
@@ -162,11 +163,11 @@ String _stringFromDartId(String dartIdForString) =>
     dartIdForString.substring(_prefixForStringIds.length);
 
 /// Convert [dartIdForInt] to its corresponding int.
-int _intFromDartId(String dartIdForInt) =>
+int? _intFromDartId(String dartIdForInt) =>
     int.tryParse(dartIdForInt.substring(_prefixForIntIds.length));
 
 /// Convert [dartIdForDouble] to its corresponding double.
-double _doubleFromDartId(String dartIdForDouble) =>
+double? _doubleFromDartId(String dartIdForDouble) =>
     double.tryParse(dartIdForDouble.substring(_prefixForDoubleIds.length));
 
 /// Convert [dartIdForBool] to its corresponding boolean.
