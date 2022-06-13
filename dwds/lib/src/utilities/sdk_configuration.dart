@@ -120,6 +120,7 @@ class SdkConfiguration {
 class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
   DefaultSdkConfigurationProvider();
 
+  // ignore: prefer_final_fields
   late SdkConfiguration _configuration = _create();
 
   /// Create and validate configuration matching the default SDK layout.
