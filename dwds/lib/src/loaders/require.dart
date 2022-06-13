@@ -9,7 +9,10 @@ import 'dart:convert';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
-import '../../dwds.dart';
+import '../debugging/metadata/provider.dart';
+import '../loaders/strategy.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
 
 /// Find the path we are serving from the url.
 ///

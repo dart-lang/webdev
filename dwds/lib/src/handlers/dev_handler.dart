@@ -21,15 +21,23 @@ import '../../data/error_response.dart';
 import '../../data/isolate_events.dart';
 import '../../data/register_event.dart';
 import '../../data/serializers.dart';
-import '../../dwds.dart';
+
+import '../connections/app_connection.dart';
+import '../connections/debug_connection.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
 import '../debugging/webkit_debugger.dart';
 import '../dwds_vm_client.dart';
 import '../events.dart';
+import '../handlers/socket_connections.dart';
+import '../loaders/strategy.dart';
+import '../readers/asset_reader.dart';
+import '../servers/devtools.dart';
 import '../servers/extension_backend.dart';
 import '../services/app_debug_services.dart';
 import '../services/debug_service.dart';
+import '../services/expression_compiler.dart';
+import '../utilities/sdk_configuration.dart';
 import 'injector.dart';
 
 /// When enabled, this logs VM service protocol and Chrome debug protocol
