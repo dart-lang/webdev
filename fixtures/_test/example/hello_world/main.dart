@@ -39,7 +39,7 @@ void main() async {
   context['registerExtension'] = (String method) {
     registerExtension(method,
         (String method, Map<String, String> parameters) async {
-      return ServiceExtensionResponse.result(jsonEncode(parameters ?? {}));
+      return ServiceExtensionResponse.result(jsonEncode(parameters));
     });
   };
 
@@ -47,7 +47,7 @@ void main() async {
     registerExtension(method,
         (String method, Map<String, String> parameters) async {
       return ServiceExtensionResponse.error(
-          int.parse(parameters['code']), parameters['details']);
+          int.parse(parameters['code']!), parameters['details']!);
     });
   };
 
@@ -73,7 +73,7 @@ void main() async {
 
   // Register one up front before the proxy connects, the isolate should still
   // recognize this as an available extension.
-  registerExtension('ext.hello_world.existing', (_, __) => null);
+  registerExtension('ext.hello_world.existing', (_, __) async => ServiceExtensionResponse.result('dummy'));
 
   window.console.debug('Page Ready');
 }
@@ -119,7 +119,7 @@ String messagesCombined(MyTestClass a, MyTestClass b) => a.message + b.message;
 class MyTestClass {
   final String message;
 
-  String notFinal;
+  String? notFinal;
 
   static final String staticMessage = 'static';
 

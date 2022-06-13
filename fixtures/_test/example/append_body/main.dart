@@ -13,12 +13,12 @@ void main() {
     print('Count is: ${++count}'); // Breakpoint: printCount
   });
 
-  document.body.appendText('Hello World!');
+  document.body!.appendText('Hello World!');
 
   registerExtension('ext.flutter.disassemble', (_, __) async {
-    document.body.appendText('start disassemble ');
+    document.body!.appendText('start disassemble ');
     await Future.delayed(const Duration(seconds: 1));
-    document.body.appendText('end disassemble ');
+    document.body!.appendText('end disassemble ');
     return ServiceExtensionResponse.result('{}');
   });
 }
