@@ -53,7 +53,7 @@ class RequireLoader {
   external String get digestsPath;
 
   @JS()
-  external JsMap<String, List<String>?> get moduleParentsGraph;
+  external JsMap<String, List<String>> get moduleParentsGraph;
 
   @JS()
   external void forceLoadModule(String moduleId, void Function() callback,
@@ -144,7 +144,7 @@ class RequireRestarter implements Restarter {
   }
 
   List<String> _moduleParents(String module) =>
-      requireLoader.moduleParentsGraph.get(module)?.cast() ?? [];
+      requireLoader.moduleParentsGraph.get(module).cast();
 
   int _moduleTopologicalCompare(String module1, String module2) {
     var topological = 0;
