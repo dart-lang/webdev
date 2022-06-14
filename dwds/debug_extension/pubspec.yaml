@@ -10,11 +10,11 @@ environment:
 
 dependencies:
   async: ^2.3.0
+  collection: ^1.15.0
   js: ^0.6.1+1
   pub_semver: ^2.0.0
   sse: ^4.1.0
   web_socket_channel: ^2.0.0
-  collection: ^1.15.0
 
 dev_dependencies:
   build: ^2.0.0
