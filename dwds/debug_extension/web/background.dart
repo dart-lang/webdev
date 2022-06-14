@@ -10,6 +10,11 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:built_collection/built_collection.dart';
+// TODO(elliette): The format_and_analyze Github actions complains about this
+// import because it is looking for it in DWDS' pubspec, not in the extension's
+// pubspec. We should fix the Github action and / or unnest the extension from
+// the DWDS directory.
+// ignore: depend_on_referenced_packages
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
