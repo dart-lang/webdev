@@ -6,7 +6,10 @@
 
 import 'package:shelf/shelf.dart';
 
-import '../../dwds.dart';
+import '../debugging/metadata/provider.dart';
+import '../loaders/strategy.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
 
 /// A load strategy for the legacy module system.
 class LegacyStrategy extends LoadStrategy {
