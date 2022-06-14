@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'daemon.dart';
@@ -26,7 +24,7 @@ abstract class Domain {
 
   void handleCommand(String command, dynamic id, Map<String, dynamic> args) {
     Future<dynamic>.sync(() {
-      if (_handlers.containsKey(command)) return _handlers[command](args);
+      if (_handlers.containsKey(command)) return _handlers[command]!(args);
       throw ArgumentError('command not understood: $name.$command');
     }).then<dynamic>((dynamic result) {
       if (result == null) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -16,7 +14,7 @@ import 'configuration.dart';
 final lineLength = stdout.hasTerminal ? stdout.terminalColumns : 80;
 
 void addSharedArgs(ArgParser argParser,
-    {String outputDefault, bool releaseDefault}) {
+    {String? outputDefault, bool? releaseDefault}) {
   outputDefault ??= outputNone;
   releaseDefault ??= true;
   argParser
@@ -127,9 +125,8 @@ final _defaultWebDirs = const ['web'];
 ///
 /// Throws an [InvalidConfiguration] exception if it can't find at
 /// least one directory.
-Map<String, int> parseDirectoryArgs(List<String> args, {int basePort}) {
+Map<String, int> parseDirectoryArgs(List<String> args, {int basePort = 8080}) {
   var result = <String, int>{};
-  basePort ??= 8080;
   if (args.isEmpty) {
     for (var dir in _defaultWebDirs) {
       if (Directory(dir).existsSync()) {

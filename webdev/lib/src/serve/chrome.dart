@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -48,9 +46,9 @@ class Chrome {
   /// user profile, or starts a new session without sign in,
   /// if not specified.
   static Future<Chrome> start(List<String> urls,
-      {int port, String userDataDir}) async {
+      {required int port, String? userDataDir}) async {
     var signIn = false;
-    String dir;
+    String? dir;
     // Re-using the directory causes flakiness on Windows, so on that platform
     // pass null to have it create a directory.
     // Issue: https://github.com/dart-lang/webdev/issues/1545
@@ -129,14 +127,14 @@ class ChromeError extends Error {
   }
 }
 
-String autoDetectChromeUserDataDirectory() {
+String? autoDetectChromeUserDataDirectory() {
   Directory directory;
   if (Platform.isMacOS) {
-    var home = Platform.environment['HOME'];
+    var home = Platform.environment['HOME']!;
     directory = Directory(
         path.join(home, 'Library', 'Application Support', 'Google', 'Chrome'));
   } else if (Platform.isLinux) {
-    var home = Platform.environment['HOME'];
+    var home = Platform.environment['HOME']!;
     directory = Directory(path.join(home, '.config', 'google-chrome'));
   } else {
     _logger.warning('Auto detecting chrome user data directory option is not '

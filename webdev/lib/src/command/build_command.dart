@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io' show Directory;
 
@@ -13,6 +11,7 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
 import 'package:build_daemon/data/server_log.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:logging/logging.dart' as logging;
 
 import '../daemon_client.dart';
@@ -38,7 +37,7 @@ class BuildCommand extends Command<int> {
   @override
   Future<int> run() async {
     var unsupported =
-        argResults.rest.where((arg) => !arg.startsWith('-')).toList();
+        argResults!.rest.where((arg) => !arg.startsWith('-')).toList();
     if (unsupported.isNotEmpty) {
       throw UsageException(
           'Arguments were provided that are not supported: '
@@ -46,7 +45,7 @@ class BuildCommand extends Command<int> {
           argParser.usage);
     }
     var extraArgs =
-        argResults.rest.where((arg) => arg.startsWith('-')).toList();
+        argResults!.rest.where((arg) => arg.startsWith('-')).toList();
 
     var configuration = Configuration.fromArgs(argResults);
     configureLogWriter(configuration.verbose);
@@ -66,12 +65,12 @@ class BuildCommand extends Command<int> {
               stackTrace: serverLog.stackTrace);
         },
       );
-      OutputLocation outputLocation;
+      OutputLocation? outputLocation;
       if (configuration.outputPath != null) {
         outputLocation = OutputLocation((b) => b
           ..output = configuration.outputPath
           ..useSymlinks = false
-          ..hoist = configuration.outputInput.isNotEmpty);
+          ..hoist = configuration.outputInput!.isNotEmpty);
       }
       client.registerBuildTarget(DefaultBuildTarget((b) => b
         ..target = configuration.outputInput
@@ -80,9 +79,8 @@ class BuildCommand extends Command<int> {
       var exitCode = 0;
       var gotBuildStart = false;
       await for (final result in client.buildResults) {
-        var targetResult = result.results.firstWhere(
-            (buildResult) => buildResult.target == configuration.outputInput,
-            orElse: () => null);
+        var targetResult = result.results.firstWhereOrNull(
+            (buildResult) => buildResult.target == configuration.outputInput);
         if (targetResult == null) continue;
         // We ignore any builds that happen before we get a `started` event,
         // because those could be stale (from some other client).
@@ -98,7 +96,7 @@ class BuildCommand extends Command<int> {
         }
 
         if (targetResult.error?.isNotEmpty == true) {
-          logWriter(logging.Level.SEVERE, targetResult.error);
+          logWriter(logging.Level.SEVERE, targetResult.error!);
         }
         break;
       }
