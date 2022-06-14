@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Module metadata format version
 ///
 /// Module reader always creates the current version but is able to read
@@ -62,25 +60,25 @@ class ModuleMetadataVersion {
 /// See: https://goto.google.com/dart-web-debugger-metadata
 class LibraryMetadata {
   /// Library name as defined in pubspec.yaml
-  final String name;
+  late final String name;
 
   /// Library importUri
   ///
   /// Example package:path/path.dart
-  final String importUri;
+  late final String importUri;
 
   /// All file uris from the library
   ///
   /// Can be relative paths to the directory of the fileUri
-  final List<String> partUris;
+  late final List<String> partUris;
 
   LibraryMetadata(this.name, this.importUri, this.partUris);
 
-  LibraryMetadata.fromJson(Map<String, dynamic> json)
-      : name = json['name'] as String,
-        importUri = json['importUri'] as String,
-        partUris =
-            List.castFrom<dynamic, String>(json['partUris'] as List<dynamic>);
+  LibraryMetadata.fromJson(Map<String, dynamic> json) {
+    name = _readRequiredField(json, 'name');
+    importUri = _readRequiredField(json, 'importUri');
+    partUris = _readOptionalList(json, 'partUris') ?? [];
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -98,35 +96,35 @@ class LibraryMetadata {
 /// See: https://goto.google.com/dart-web-debugger-metadata
 class ModuleMetadata {
   /// Metadata format version
-  String version;
+  late final String version;
 
   /// Module name
   ///
   /// Used as a name of the js module created by the compiler and
   /// as key to store and load modules in the debugger and the browser
-  final String name;
+  late final String name;
 
   /// Name of the function enclosing the module
   ///
   /// Used by debugger to determine the top dart scope
-  final String closureName;
+  late final String closureName;
 
   /// Source map uri
-  final String sourceMapUri;
+  late final String sourceMapUri;
 
   /// Module uri
-  final String moduleUri;
+  late final String moduleUri;
 
   /// True if the module corresponding to this metadata was compiled with sound
   /// null safety enabled.
-  final bool soundNullSafety;
+  late final bool soundNullSafety;
 
   final Map<String, LibraryMetadata> libraries = {};
 
   ModuleMetadata(this.name, this.closureName, this.sourceMapUri, this.moduleUri,
       this.soundNullSafety,
-      {this.version}) {
-    version ??= ModuleMetadataVersion.current.version;
+      {String? ver}) {
+    version = ver ?? ModuleMetadataVersion.current.version;
   }
 
   /// Add [library] to metadata
@@ -144,13 +142,13 @@ class ModuleMetadata {
     }
   }
 
-  ModuleMetadata.fromJson(Map<String, dynamic> json)
-      : version = json['version'] as String,
-        name = json['name'] as String,
-        closureName = json['closureName'] as String,
-        sourceMapUri = json['sourceMapUri'] as String,
-        moduleUri = json['moduleUri'] as String,
-        soundNullSafety = (json['soundNullSafety'] as bool) ?? false {
+  ModuleMetadata.fromJson(Map<String, dynamic> json) {
+    version = _readRequiredField(json, 'version');
+    name = _readRequiredField(json, 'name');
+    closureName = _readRequiredField(json, 'closureName');
+    sourceMapUri = _readRequiredField(json, 'sourceMapUri');
+    moduleUri = _readRequiredField(json, 'moduleUri');
+    soundNullSafety = _readOptionalField(json, 'soundNullSafety') ?? false;
     if (!ModuleMetadataVersion.current.isCompatibleWith(version) &&
         !ModuleMetadataVersion.previous.isCompatibleWith(version)) {
       throw Exception('Unsupported metadata version $version. '
@@ -159,7 +157,7 @@ class ModuleMetadata {
           '\n    ${ModuleMetadataVersion.previous.version}');
     }
 
-    for (var l in json['libraries'] as List<dynamic>) {
+    for (var l in _readRequiredList(json, 'libraries')) {
       addLibrary(LibraryMetadata.fromJson(l as Map<String, dynamic>));
     }
   }
@@ -176,3 +174,18 @@ class ModuleMetadata {
     };
   }
 }
+
+// TODO: format errors!
+T _readRequiredField<T>(Map<String, dynamic> json, String field) =>
+    json[field]! as T;
+
+T? _readOptionalField<T>(Map<String, dynamic> json, String field) =>
+    json[field] as T?;
+
+List<T> _readRequiredList<T>(Map<String, dynamic> json, String field) =>
+    List.castFrom<dynamic, T>(json[field] as List<dynamic>);
+
+List<T>? _readOptionalList<T>(Map<String, dynamic> json, String field) =>
+    json.containsKey(field)
+        ? List.castFrom<dynamic, T>(json[field] as List<dynamic>)
+        : null;

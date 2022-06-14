@@ -71,6 +71,7 @@ void testAll({
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
+        compilationMode: compilationMode,
         enableExpressionEvaluation: true,
         verboseCompiler: debug,
         basePath: basePath,

@@ -277,6 +277,7 @@ class TestContext {
             assetReader = webRunner.devFS.assetServer;
             assetHandler = webRunner.devFS.assetServer.handleRequest;
 
+            _logger.warning('BasePath: $basePath');
             requireStrategy = FrontendServerRequireStrategyProvider(
                     reloadConfiguration, assetReader, () async => {}, basePath)
                 .strategy;

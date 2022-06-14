@@ -2,8 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
-
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 import '../debugging/metadata/provider.dart';
@@ -14,36 +13,38 @@ import 'require.dart';
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
 class FrontendServerRequireStrategyProvider {
+  final _logger = Logger('FrontendServerRequireStrategyProvider');
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
   final Future<Map<String, String>> Function() _digestsProvider;
   final String _basePath;
 
-  RequireStrategy _requireStrategy;
+  late final RequireStrategy _requireStrategy = RequireStrategy(
+    _configuration,
+    _moduleProvider,
+    (_) => _digestsProvider(),
+    _moduleForServerPath,
+    _serverPathForModule,
+    _sourceMapPathForModule,
+    _serverPathForAppUri,
+    _moduleInfoForProvider,
+    _assetReader,
+  );
 
   FrontendServerRequireStrategyProvider(this._configuration, this._assetReader,
       this._digestsProvider, String basePath)
-      : _basePath = basePathForServerUri(basePath);
+      : _basePath = basePathForServerUri(basePath) {
+    _logger.info('Base path: $_basePath');
+  }
 
-  RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
-        _configuration,
-        _moduleProvider,
-        (_) => _digestsProvider(),
-        _moduleForServerPath,
-        _serverPathForModule,
-        _sourceMapPathForModule,
-        _serverPathForAppUri,
-        _moduleInfoForProvider,
-        _assetReader,
-      );
+  RequireStrategy get strategy => _requireStrategy;
 
-  String _removeBasePath(String path) =>
+  String? _removeBasePath(String path) =>
       path.startsWith(_basePath) ? path.substring(_basePath.length) : null;
 
-  String _addBasePath(String serverPath) =>
-      _basePath == null || _basePath.isEmpty
-          ? relativizePath(serverPath)
-          : '$_basePath/${relativizePath(serverPath)}';
+  String _addBasePath(String serverPath) => _basePath.isEmpty
+      ? relativizePath(serverPath)
+      : '$_basePath/${relativizePath(serverPath)}';
 
   Future<Map<String, String>> _moduleProvider(
           MetadataProvider metadataProvider) async =>
@@ -53,7 +54,14 @@ class FrontendServerRequireStrategyProvider {
   Future<String> _moduleForServerPath(
       MetadataProvider metadataProvider, String serverPath) async {
     final modulePathToModule = await metadataProvider.modulePathToModule;
-    return modulePathToModule[_removeBasePath(serverPath)];
+    final relativeServerPath = _removeBasePath(serverPath);
+    if (relativeServerPath == null ||
+        !modulePathToModule.containsKey(relativeServerPath)) {
+      _logger.warning(
+          'No module found for server path: $serverPath. Server path is not under $_basePath.');
+      return '';
+    }
+    return modulePathToModule[relativeServerPath]!;
   }
 
   Future<String> _serverPathForModule(
@@ -64,7 +72,7 @@ class FrontendServerRequireStrategyProvider {
           MetadataProvider metadataProvider, String module) async =>
       _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
-  String _serverPathForAppUri(String appUri) {
+  String? _serverPathForAppUri(String appUri) {
     if (appUri.startsWith('org-dartlang-app:')) {
       return _addBasePath(Uri.parse(appUri).path);
     }
@@ -76,7 +84,7 @@ class FrontendServerRequireStrategyProvider {
     final modules = await metadataProvider.moduleToModulePath;
     final result = <String, ModuleInfo>{};
     for (var module in modules.keys) {
-      final modulePath = modules[module];
+      final modulePath = modules[module]!;
       result[module] = ModuleInfo(
           // TODO: Save locations of full kernel files in ddc metadata.
           // Issue: https://github.com/dart-lang/sdk/issues/43684

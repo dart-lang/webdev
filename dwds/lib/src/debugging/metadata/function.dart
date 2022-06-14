@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-// @dart = 2.9
-
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../loaders/strategy.dart';
@@ -43,8 +41,9 @@ class FunctionMetaData {
       response,
       evalContents: evalExpression,
     );
-    var name = response.result['result']['value'] as String;
-    if (name.isEmpty) name = 'Closure';
+    final name = response.result?['result']?['value'] as String?;
+    if (name == null) return FunctionMetaData('<unknown>');
+    if (name.isEmpty) return FunctionMetaData('Closure');
     return FunctionMetaData(name);
   }
 }

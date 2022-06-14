@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -194,8 +192,7 @@ class MetadataProvider {
           _addSdkMetadata();
           for (var contents in merged.split('\n')) {
             try {
-              if (contents == null ||
-                  contents.isEmpty ||
+              if (contents.isEmpty ||
                   contents.startsWith('// intentionally empty:')) continue;
               final moduleJson = json.decode(contents);
               final metadata =
@@ -237,7 +234,7 @@ class MetadataProvider {
       for (var path in library.partUris) {
         // Parts in metadata are relative to the library Uri directory.
         final partPath = p.url.join(p.dirname(library.importUri), path);
-        _scripts[library.importUri].add(partPath);
+        _scripts[library.importUri]!.add(partPath);
         _scriptToModule[partPath] = metadata.name;
       }
     }
