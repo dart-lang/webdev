@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+// ignore: import_of_legacy_library_into_null_safe
 import '../command/configuration.dart';
 import 'utils.dart';
 

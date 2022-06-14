@@ -9,6 +9,7 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
 import '../pubspec.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'configuration.dart';
 
 final lineLength = stdout.hasTerminal ? stdout.terminalColumns : 80;

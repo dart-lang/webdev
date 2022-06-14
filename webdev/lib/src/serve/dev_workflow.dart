@@ -12,11 +12,13 @@ import 'package:build_daemon/data/server_log.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 
+// ignore: import_of_legacy_library_into_null_safe
 import '../command/configuration.dart';
 import '../daemon_client.dart';
 import '../logging.dart';
 import 'chrome.dart';
 import 'server_manager.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'webdev_server.dart';
 
 Future<BuildDaemonClient> _startBuildDaemon(

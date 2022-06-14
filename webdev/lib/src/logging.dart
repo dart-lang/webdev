@@ -63,7 +63,7 @@ String formatLog(Level level, String message,
     buffer.writeln(stackTrace);
   }
 
-  String formattedLevel = '[$level]';
+  var formattedLevel = '[$level]';
   if (withColors) {
     AnsiCode color;
     if (level < Level.WARNING) {

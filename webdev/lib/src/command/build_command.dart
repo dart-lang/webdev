@@ -16,6 +16,7 @@ import 'package:logging/logging.dart' as logging;
 
 import '../daemon_client.dart';
 import '../logging.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'configuration.dart';
 import 'shared.dart';
 

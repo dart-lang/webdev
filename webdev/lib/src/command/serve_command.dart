@@ -9,6 +9,7 @@ import 'package:args/command_runner.dart';
 
 import '../logging.dart';
 import '../serve/dev_workflow.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'configuration.dart';
 import 'shared.dart';
 

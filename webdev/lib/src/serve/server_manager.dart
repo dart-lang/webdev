@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:build_daemon/data/build_status.dart';
 
+// ignore: import_of_legacy_library_into_null_safe
 import 'webdev_server.dart';
 
 /// Manages a set of [WebDevServer]s.

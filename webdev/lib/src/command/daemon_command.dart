@@ -11,12 +11,14 @@ import 'package:args/command_runner.dart';
 import 'package:async/async.dart';
 import 'package:logging/logging.dart';
 
+// ignore: import_of_legacy_library_into_null_safe
 import '../daemon/app_domain.dart';
 import '../daemon/daemon.dart';
 import '../daemon/daemon_domain.dart';
 import '../logging.dart';
 import '../serve/dev_workflow.dart';
 import '../serve/utils.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'configuration.dart';
 import 'shared.dart';
 
