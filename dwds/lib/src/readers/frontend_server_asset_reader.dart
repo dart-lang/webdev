@@ -10,8 +10,7 @@ import 'dart:io';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
-import '../../dwds.dart';
-import 'asset_reader.dart';
+import '../readers/asset_reader.dart';
 
 /// A reader for Dart sources and related source maps provided by the Frontend
 /// Server.

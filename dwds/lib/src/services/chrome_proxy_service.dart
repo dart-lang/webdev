@@ -15,7 +15,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../data/debug_event.dart';
 import '../../data/register_event.dart';
-import '../../dwds.dart';
+import '../connections/app_connection.dart';
 import '../debugging/debugger.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/inspector.dart';
@@ -26,7 +26,11 @@ import '../debugging/remote_debugger.dart';
 import '../debugging/skip_list.dart';
 import '../events.dart';
 import '../loaders/strategy.dart';
+import '../readers/asset_reader.dart';
+import '../services/chrome_debug_exception.dart';
+import '../services/expression_compiler.dart';
 import '../utilities/dart_uri.dart';
+import '../utilities/sdk_configuration.dart';
 import '../utilities/shared.dart';
 import 'expression_evaluator.dart';
 

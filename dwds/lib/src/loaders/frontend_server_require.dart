@@ -6,7 +6,10 @@
 
 import 'package:path/path.dart' as p;
 
-import '../../dwds.dart';
+import '../debugging/metadata/provider.dart';
+import '../loaders/strategy.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
 import 'require.dart';
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.

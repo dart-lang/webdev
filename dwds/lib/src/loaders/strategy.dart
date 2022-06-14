@@ -6,7 +6,9 @@
 
 import 'package:shelf/shelf.dart';
 
-import '../../dwds.dart';
+import '../debugging/metadata/provider.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
 
 LoadStrategy _globalLoadStrategy;
 

@@ -7,7 +7,7 @@
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../dwds.dart' show ChromeDebugException;
+import '../../src/services/chrome_debug_exception.dart';
 import '../loaders/strategy.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
