@@ -9,6 +9,7 @@ import 'dart:isolate';
 import 'package:args/command_runner.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:webdev/src/command/configuration.dart';
 import 'package:webdev/src/webdev_command_runner.dart';
 
