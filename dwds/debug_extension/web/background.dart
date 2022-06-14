@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @JS()
 library background;
 
@@ -482,8 +481,7 @@ Future<void> _startSseClient(
       final response = await HttpRequest.request(authUrl,
           method: 'GET', withCredentials: true);
       final responseText = response.responseText ?? '';
-      if (!responseText
-          .contains('Dart Debug Authentication Success!')) {
+      if (!responseText.contains('Dart Debug Authentication Success!')) {
         throw Exception('Not authenticated.');
       }
     } catch (_) {
