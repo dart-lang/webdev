@@ -14,7 +14,7 @@ dependencies:
   built_collection: ^5.1.1
   built_value: ^8.3.0
   crypto: ^3.0.2
-  dds: ^2.2.0
+  dds: ^2.2.2
   file: ^6.1.2
   http: ^0.13.4
   http_multi_server: ^3.2.0
@@ -33,7 +33,7 @@ dependencies:
   stack_trace: ^1.10.0
   sse: ^4.1.0
   uuid: ^3.0.6
-  vm_service: ^8.3.0
+  vm_service: ^9.0.0
   web_socket_channel: ^2.2.0
   webkit_inspection_protocol: ^1.0.1
 
