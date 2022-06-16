@@ -4,6 +4,7 @@
 
 // @dart = 2.9
 
+@TestOn('vm')
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -19,7 +20,6 @@ import 'fixtures/logging.dart';
 
 Logger _logger = Logger('ExpressionCompilerServiceTest');
 
-@TestOn('vm')
 void main() async {
   group('expression compiler service with fake asset server', () {
     ExpressionCompilerService service;
