@@ -42,6 +42,10 @@ final Matcher throwsSentinelException = throwsA(isSentinelException);
 
 enum CompilationMode { buildDaemon, frontendServer }
 
+enum IndexBaseMode { noBase, base }
+
+enum NullSafety { weak, sound }
+
 class TestContext {
   String appUrl;
   WipConnection tabConnection;
@@ -76,7 +80,7 @@ class TestContext {
   /// TODO(annagrin): Currently setting sound null safety for frontend
   /// server tests fails due to missing sound SDK JavaScript and maps.
   /// Issue: https://github.com/dart-lang/webdev/issues/1591
-  bool soundNullSafety;
+  NullSafety nullSafety;
   final _logger = logging.Logger('Context');
 
   /// Top level directory in which we run the test server..
@@ -129,11 +133,10 @@ class TestContext {
     UrlEncoder urlEncoder,
     bool restoreBreakpoints,
     CompilationMode compilationMode,
-    bool soundNullSafety,
+    NullSafety nullSafety,
     bool enableExpressionEvaluation,
     bool verboseCompiler,
     SdkConfigurationProvider sdkConfigurationProvider,
-    String basePath,
   }) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
@@ -146,8 +149,7 @@ class TestContext {
     spawnDds ??= true;
     verboseCompiler ??= false;
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
-    soundNullSafety ??= false;
-    basePath ??= '';
+    nullSafety ??= NullSafety.weak;
 
     try {
       configureLogWriter();
@@ -196,6 +198,7 @@ class TestContext {
       Handler assetHandler;
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
+      String basePath = '';
 
       port = await findUnusedPort();
       switch (compilationMode) {
@@ -254,26 +257,30 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
+            _logger.warning('Index: $path');
             final projectDirectory = p.dirname(p.dirname(_packagesFilePath));
             final entryPath =
                 _entryFile.path.substring(projectDirectory.length + 1);
             webRunner = ResidentWebRunner(
-                '${Uri.file(entryPath)}',
-                urlEncoder,
-                _packagesFilePath,
-                [projectDirectory],
-                'org-dartlang-app',
-                _outputDir.path,
-                soundNullSafety,
-                verboseCompiler);
+              '${Uri.file(entryPath)}',
+              urlEncoder,
+              _packagesFilePath,
+              [projectDirectory],
+              'org-dartlang-app',
+              _outputDir.path,
+              nullSafety == NullSafety.sound,
+              verboseCompiler,
+            );
 
             final assetServerPort = await findUnusedPort();
-            await webRunner.run(hostname, assetServerPort, pathToServe);
+            await webRunner.run(
+                hostname, assetServerPort, p.join(pathToServe, path));
 
             if (enableExpressionEvaluation) {
               expressionCompiler = webRunner.expressionCompiler;
             }
 
+            basePath = webRunner.devFS.assetServer.basePath;
             assetReader = webRunner.devFS.assetServer;
             assetHandler = webRunner.devFS.assetServer.handleRequest;
 
@@ -333,7 +340,10 @@ class TestContext {
         ddcService,
       );
 
-      appUrl = 'http://localhost:$port/$path';
+      appUrl = basePath.isEmpty
+          ? 'http://localhost:$port/$path'
+          : 'http://localhost:$port/$basePath/$path';
+
       await webDriver.get(appUrl);
       final tab = await connection.getTab((t) => t.url == appUrl);
       tabConnection = await tab.connect();

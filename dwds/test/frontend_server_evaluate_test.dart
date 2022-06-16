@@ -15,19 +15,20 @@ void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  for (var soundNullSafety in [false, true]) {
-    group('${soundNullSafety ? "sound" : "weak"} null safety |', () {
-      for (var basePath in ['', 'abc']) {
-        group('with base "$basePath" |', () {
+  for (var nullSafety in NullSafety.values) {
+    group('${nullSafety.name} null safety |', () {
+      for (var indexBaseMode in IndexBaseMode.values) {
+        group('with ${indexBaseMode.name} |', () {
           testAll(
             compilationMode: CompilationMode.frontendServer,
-            soundNullSafety: soundNullSafety,
-            basePath: basePath,
+            indexBaseMode: indexBaseMode,
+            nullSafety: nullSafety,
             debug: debug,
           );
         },
-            skip:
-                soundNullSafety // https://github.com/dart-lang/webdev/issues/1591
+            skip: nullSafety ==
+                NullSafety
+                    .sound // https://github.com/dart-lang/webdev/issues/1591
             );
       }
     });

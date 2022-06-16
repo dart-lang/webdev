@@ -22,9 +22,9 @@ final Uri platformDillUnsound =
 final Uri platformDillSound =
     Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline_sound.dill'));
 
-Logger _logger = Logger('ResidentWebRunner');
-
 class ResidentWebRunner {
+  final _logger = Logger('ResidentWebRunner');
+
   ResidentWebRunner(
       this.mainPath,
       this.urlTunneller,
@@ -58,7 +58,7 @@ class ResidentWebRunner {
   Uri uri;
   Iterable<String> modules;
 
-  Future<int> run(String hostname, int port, String root) async {
+  Future<int> run(String hostname, int port, String index) async {
     hostname ??= 'localhost';
 
     devFS = WebDevFS(
@@ -66,7 +66,7 @@ class ResidentWebRunner {
       hostname: hostname,
       port: port,
       packageConfigPath: packageConfigPath,
-      root: root,
+      index: index,
       urlTunneller: urlTunneller,
       soundNullSafety: soundNullSafety,
     );

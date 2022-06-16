@@ -46,16 +46,17 @@ void main() {
     // Enable verbose logging for debugging.
     final debug = false;
 
-    for (var soundNullSafety in [false, true]) {
+    for (var nullSafety in NullSafety.values) {
+      final soundNullSafety = nullSafety == NullSafety.sound;
       final setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
       final context = setup.context;
 
-      group('${soundNullSafety ? "sound" : "weak"} null safety |', () {
+      group('${nullSafety.name} null safety |', () {
         setUpAll(() async {
           setCurrentLogWriter(debug: debug);
           await context.setUp(
               compilationMode: CompilationMode.frontendServer,
-              soundNullSafety: soundNullSafety,
+              nullSafety: nullSafety,
               enableExpressionEvaluation: true,
               verboseCompiler: debug);
         });

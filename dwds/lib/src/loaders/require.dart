@@ -17,16 +17,13 @@ import '../services/expression_compiler.dart';
 /// Find the path we are serving from the url.
 ///
 /// Example:
-///   https://localhost/base/index.html => /base
-///   https://localhost/base => /base
+///   https://localhost/bases/index.html => base
+///   https://localhost/base => base
 String basePathForServerUri(String url) {
   if (url == null) return null;
   final uri = Uri.parse(url);
   var base = uri.path.endsWith('.html') ? p.dirname(uri.path) : uri.path;
-  if (base.isNotEmpty) {
-    base = base.startsWith('/') ? base : '/$base';
-  }
-  return base;
+  return base = base.startsWith('/') ? base.substring(1) : base;
 }
 
 String relativizePath(String path) =>

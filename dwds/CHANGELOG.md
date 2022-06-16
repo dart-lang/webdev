@@ -1,5 +1,6 @@
 ## 14.0.4-dev
 - Port some `dwds` files to null safety.
+- Fix failing `frontend_server_evaluate` tests.
 
 ## 14.0.3
 - Make data types null safe.
