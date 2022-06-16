@@ -33,8 +33,7 @@ void main() {
     });
 
     test('parses package : paths with root', () {
-      final uri = DartUri(
-          'package:path/path.dart', 'foo/bar/blah');
+      final uri = DartUri('package:path/path.dart', 'foo/bar/blah');
       expect(uri.serverPath, 'foo/bar/blah/packages/path/path.dart');
     });
 
