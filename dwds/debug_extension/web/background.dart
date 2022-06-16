@@ -512,7 +512,7 @@ Future<void> _startSseClient(
   client.stream.listen((data) {
     final message = serializers.deserialize(jsonDecode(data));
     if (message is ExtensionRequest) {
-      final messageParams = message.commandParams ?? '';
+      final messageParams = message.commandParams ?? '{}';
       final params =
           BuiltMap<String, Object>(json.decode(messageParams)).toMap();
       sendCommand(Debuggee(tabId: currentTab.id), message.command,
@@ -796,7 +796,8 @@ class NavigationInfo {
 class SimpleMessage {
   external String get recipient;
   external String get body;
-  external factory SimpleMessage({String? recipient, String? body});
+  external factory SimpleMessage(
+      {required String recipient, required String body});
 }
 
 @JS()
@@ -809,7 +810,8 @@ class Request {
   external dynamic get options;
   external String get warning;
   external String get message;
-  external factory Request({int? tabId, String? name, dynamic options});
+  external factory Request(
+      {required int tabId, required String name, required dynamic options});
 }
 
 @JS()
@@ -868,13 +870,6 @@ class InjectedParams {
   external int get contextId;
   external factory InjectedParams(
       {String? expression, bool? returnByValue, int? contextId});
-}
-
-@JS()
-@anonymous
-class ScriptIdParam {
-  external String get scriptId;
-  external factory ScriptIdParam({String? scriptId});
 }
 
 @JS()

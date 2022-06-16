@@ -2,6 +2,7 @@
 ## 1.30
 - Batch extension `Debugger.scriptParsed` events and send batches every 1000ms
   to the server.
+- Enable null-safety.
   
 ## 1.29
 
