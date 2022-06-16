@@ -17,7 +17,7 @@ import '../services/expression_compiler.dart';
 /// Find the path we are serving from the url.
 ///
 /// Example:
-///   https://localhost/bases/index.html => base
+///   https://localhost/base/index.html => base
 ///   https://localhost/base => base
 String basePathForServerUri(String url) {
   if (url == null) return null;
