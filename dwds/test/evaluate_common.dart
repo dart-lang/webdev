@@ -18,36 +18,51 @@ import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
 
 class TestSetup {
-  static final contextUnsound = TestContext(
+  static TestContext contextUnsound(String index) => TestContext(
       directory: p.join('..', 'fixtures', '_testPackage'),
       entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
-      path: 'index.html',
+      path: index,
       pathToServe: 'web');
 
-  static final contextSound = TestContext(
+  static TestContext contextSound(String index) => TestContext(
       directory: p.join('..', 'fixtures', '_testPackageSound'),
       entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
-      path: 'index.html',
+      path: index,
       pathToServe: 'web');
 
   TestContext context;
 
-  TestSetup.sound() : context = contextSound;
+  TestSetup.sound(IndexBaseMode baseMode)
+      : context = contextSound(_index(baseMode));
 
-  TestSetup.unsound() : context = contextUnsound;
+  TestSetup.unsound(IndexBaseMode baseMode)
+      : context = contextUnsound(_index(baseMode));
+
+  factory TestSetup.create(NullSafety nullSafety, IndexBaseMode baseMode) =>
+      nullSafety == NullSafety.sound
+          ? TestSetup.sound(baseMode)
+          : TestSetup.unsound(baseMode);
 
   ChromeProxyService get service =>
       fetchChromeProxyService(context.debugConnection);
   WipConnection get tabConnection => context.tabConnection;
+
+  static String _index(IndexBaseMode baseMode) =>
+      baseMode == IndexBaseMode.base ? 'base_index.html' : 'index.html';
 }
 
 void testAll({
   CompilationMode compilationMode = CompilationMode.buildDaemon,
-  bool soundNullSafety = false,
-  String basePath = '',
+  IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
+  NullSafety nullSafety,
   bool debug = false,
 }) {
-  final setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
+  if (compilationMode == CompilationMode.buildDaemon &&
+      indexBaseMode == IndexBaseMode.base) {
+    throw StateError(
+        'build daemon scenario does not support non-empty base in index file');
+  }
+  final setup = TestSetup.create(nullSafety, indexBaseMode);
   final context = setup.context;
 
   Future<void> onBreakPoint(String isolate, ScriptRef script,
@@ -71,9 +86,10 @@ void testAll({
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
+        compilationMode: compilationMode,
+        nullSafety: nullSafety,
         enableExpressionEvaluation: true,
         verboseCompiler: debug,
-        basePath: basePath,
       );
     });
 
@@ -102,6 +118,7 @@ void testAll({
         await setup.service.streamListen('Debug');
         stream = setup.service.onEvent('Debug');
 
+        final soundNullSafety = nullSafety == NullSafety.sound;
         final testPackage =
             soundNullSafety ? '_test_package_sound' : '_test_package';
         final test = soundNullSafety ? '_test_sound' : '_test';
@@ -568,9 +585,10 @@ void testAll({
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
+        compilationMode: compilationMode,
+        nullSafety: nullSafety,
         enableExpressionEvaluation: false,
         verboseCompiler: debug,
-        basePath: basePath,
       );
     });
 
