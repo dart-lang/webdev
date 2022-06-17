@@ -31,7 +31,7 @@ class TestAssetServer implements AssetReader {
   final FileSystem _fileSystem;
   final HttpServer _httpServer;
   final Map<String, Uint8List> _files = {};
-  final Map<String, Uint8List> _sourcemaps = {};
+  final Map<String, Uint8List> _sourceMaps = {};
   final Map<String, Uint8List> _metadata = {};
   String? _mergedMetadata;
   final PackageConfig _packageConfig;
@@ -48,8 +48,8 @@ class TestAssetServer implements AssetReader {
   bool hasFile(String path) => _files.containsKey(path);
   Uint8List getFile(String path) => _files[path]!;
 
-  bool hasSourceMap(String path) => _sourcemaps.containsKey(path);
-  Uint8List getSourceMap(String path) => _sourcemaps[path]!;
+  bool hasSourceMap(String path) => _sourceMaps.containsKey(path);
+  Uint8List getSourceMap(String path) => _sourceMaps[path]!;
 
   bool hasMetadata(String path) => _metadata.containsKey(path);
   Uint8List getMetadata(String path) => _metadata[path]!;
@@ -196,7 +196,7 @@ class TestAssetServer implements AssetReader {
         sourcemapStart,
         sourcemapEnd - sourcemapStart,
       );
-      _sourcemaps['$filePath.map'] = sourcemapView;
+      _sourceMaps['$filePath.map'] = sourcemapView;
 
       var metadataStart = metadataOffsets[0];
       var metadataEnd = metadataOffsets[1];

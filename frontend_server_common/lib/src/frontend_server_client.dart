@@ -313,9 +313,10 @@ class ResidentCompiler {
     if (_server == null) {
       return _compile(mainUri, request.outputPath);
     }
+    var server = _server!;
 
     var inputKey = Uuid().generateV4();
-    _server!.stdin.writeln('recompile $mainUri$inputKey');
+    server.stdin.writeln('recompile $mainUri$inputKey');
     _logger.info('<- recompile $mainUri$inputKey');
     for (var fileUri in request.invalidatedFiles) {
       String message;
@@ -325,10 +326,10 @@ class ResidentCompiler {
         message = request.packageConfig.toPackageUri(fileUri)?.toString() ??
             _toMultiRootPath(fileUri, fileSystemScheme, fileSystemRoots);
       }
-      _server!.stdin.writeln(message);
+      server.stdin.writeln(message);
       _logger.info(message);
     }
-    _server!.stdin.writeln(inputKey);
+    server.stdin.writeln(inputKey);
     _logger.info('<- $inputKey');
 
     return _stdoutHandler.compilerOutput.future;
@@ -388,7 +389,9 @@ class ResidentCompiler {
     final workingDirectory = projectDirectory.toFilePath();
     _server = await Process.start(Platform.resolvedExecutable, args,
         workingDirectory: workingDirectory);
-    _server!.stdout
+
+    var server = _server!;
+    server.stdout
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
         .listen(_stdoutHandler.handler, onDone: () {
@@ -400,18 +403,18 @@ class ResidentCompiler {
       }
     });
 
-    _server!.stderr
+    server.stderr
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
         .listen(_logger.info);
 
-    unawaited(_server!.exitCode.then((int code) {
+    unawaited(server.exitCode.then((int code) {
       if (code != 0) {
         throw Exception('the Dart compiler exited unexpectedly.');
       }
     }));
 
-    _server!.stdin.writeln('compile $scriptUri');
+    server.stdin.writeln('compile $scriptUri');
     _logger.info('<- compile $scriptUri');
 
     return _stdoutHandler.compilerOutput.future;
@@ -579,9 +582,10 @@ class ResidentCompiler {
       return 0;
     }
 
-    _logger.info('killing pid ${_server!.pid}');
-    _server!.kill();
-    return _server!.exitCode;
+    var server = _server!;
+    _logger.info('killing pid ${server.pid}');
+    server.kill();
+    return server.exitCode;
   }
 }
 
