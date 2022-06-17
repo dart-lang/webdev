@@ -63,7 +63,8 @@ class TestContext {
   int port;
   Directory _outputDir;
   File _entryFile;
-  String _packagesFilePath;
+  Uri _packageConfigFile;
+  Uri _projectDirectory;
   String _entryContents;
 
   /// Null safety mode for the frontend server.
@@ -106,14 +107,18 @@ class TestContext {
         .absolute(directory ?? p.relative(relativeDirectory, from: p.current)));
 
     DartUri.currentDirectory = workingDirectory;
-    _packagesFilePath =
-        p.join(workingDirectory, '.dart_tool/package_config.json');
+
+    // package_config.json is located in <project directory>/.dart_tool/package_config
+    _projectDirectory = p.toUri(workingDirectory);
+    _packageConfigFile =
+        p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
 
     final entryFilePath = p.normalize(
         p.absolute(entry ?? p.relative(relativeEntry, from: p.current)));
 
     _logger.info('Serving: $pathToServe/$path');
-    _logger.info('Packages: $_packagesFilePath');
+    _logger.info('Project: $_projectDirectory');
+    _logger.info('Packages: $_packageConfigFile');
     _logger.info('Entry: $entryFilePath');
 
     _entryFile = File(entryFilePath);
@@ -258,14 +263,16 @@ class TestContext {
         case CompilationMode.frontendServer:
           {
             _logger.warning('Index: $path');
-            final projectDirectory = p.dirname(p.dirname(_packagesFilePath));
-            final entryPath =
-                _entryFile.path.substring(projectDirectory.length + 1);
+
+            final entry = p.toUri(_entryFile.path
+                .substring(_projectDirectory.toFilePath().length + 1));
+
             webRunner = ResidentWebRunner(
-              '${Uri.file(entryPath)}',
+              entry,
               urlEncoder,
-              _packagesFilePath,
-              [projectDirectory],
+              _projectDirectory,
+              _packageConfigFile,
+              [_projectDirectory],
               'org-dartlang-app',
               _outputDir.path,
               nullSafety == NullSafety.sound,
