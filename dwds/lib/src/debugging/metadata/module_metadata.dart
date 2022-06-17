@@ -74,10 +74,10 @@ class LibraryMetadata {
 
   LibraryMetadata(this.name, this.importUri, this.partUris);
 
-  LibraryMetadata.fromJson(Map<String, dynamic> json) :
-    name = _readRequiredField(json, 'name'),
-    importUri = _readRequiredField(json, 'importUri'),
-    partUris = _readOptionalList(json, 'partUris') ?? [];
+  LibraryMetadata.fromJson(Map<String, dynamic> json)
+      : name = _readRequiredField(json, 'name'),
+        importUri = _readRequiredField(json, 'importUri'),
+        partUris = _readOptionalList(json, 'partUris') ?? [];
 
   Map<String, dynamic> toJson() {
     return {
@@ -141,13 +141,13 @@ class ModuleMetadata {
     }
   }
 
-  ModuleMetadata.fromJson(Map<String, dynamic> json):
-    version = _readRequiredField(json, 'version'),
-    name = _readRequiredField(json, 'name'),
-    closureName = _readRequiredField(json, 'closureName'),
-    sourceMapUri = _readRequiredField(json, 'sourceMapUri'),
-    moduleUri = _readRequiredField(json, 'moduleUri'),
-    soundNullSafety = _readOptionalField(json, 'soundNullSafety') ?? false {
+  ModuleMetadata.fromJson(Map<String, dynamic> json)
+      : version = _readRequiredField(json, 'version'),
+        name = _readRequiredField(json, 'name'),
+        closureName = _readRequiredField(json, 'closureName'),
+        sourceMapUri = _readRequiredField(json, 'sourceMapUri'),
+        moduleUri = _readRequiredField(json, 'moduleUri'),
+        soundNullSafety = _readOptionalField(json, 'soundNullSafety') ?? false {
     if (!ModuleMetadataVersion.current.isCompatibleWith(version) &&
         !ModuleMetadataVersion.previous.isCompatibleWith(version)) {
       throw Exception('Unsupported metadata version $version. '
