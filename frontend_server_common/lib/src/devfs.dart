@@ -23,36 +23,35 @@ class WebDevFS {
     required this.fileSystem,
     required this.hostname,
     required this.port,
-    required this.packageConfigPath,
-    required this.root,
+    required this.projectDirectory,
+    required this.packageConfigFile,
+    required this.index,
     required this.urlTunneller,
     required this.soundNullSafety,
   });
 
   final FileSystem fileSystem;
-  late TestAssetServer assetServer;
+  late final TestAssetServer assetServer;
   final String hostname;
   final int port;
-  final String packageConfigPath;
-  final String root;
+  final Uri projectDirectory;
+  final Uri packageConfigFile;
+  final String index;
   final UrlEncoder urlTunneller;
   final bool soundNullSafety;
-  late Directory _savedCurrentDirectory;
-  List<Uri>? sources;
-  late PackageConfig _packageConfig;
+  late final Directory _savedCurrentDirectory;
+  late final PackageConfig _packageConfig;
 
   Future<Uri> create() async {
     _savedCurrentDirectory = fileSystem.currentDirectory;
-    // package_config.json is located in <project directory>/.dart_tool/package_config
-    var projectDirectory = p.dirname(p.dirname(packageConfigPath));
 
-    fileSystem.currentDirectory = projectDirectory;
+    fileSystem.currentDirectory = projectDirectory.toFilePath();
 
-    _packageConfig = await loadPackageConfigUri(Uri.file(packageConfigPath),
+    _packageConfig = await loadPackageConfigUri(packageConfigFile,
         loader: (Uri uri) => fileSystem.file(uri).readAsBytes());
 
     assetServer = await TestAssetServer.start(
-        fileSystem, root, hostname, port, urlTunneller, _packageConfig);
+        fileSystem, index, hostname, port, urlTunneller, _packageConfig);
     return Uri.parse('http://$hostname:$port');
   }
 
@@ -62,13 +61,14 @@ class WebDevFS {
   }
 
   Future<UpdateFSReport> update({
-    required String mainPath,
+    required Uri mainUri,
     required String dillOutputPath,
     required ResidentCompiler generator,
     required List<Uri> invalidatedFiles,
   }) async {
-    var outputDirectoryPath = fileSystem.file(mainPath).parent.path;
-    var entryPoint = mainPath;
+    final mainPath = mainUri.toFilePath();
+    final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
+    final entryPoint = mainUri.toString();
 
     assetServer.writeFile(
       '/main.dart.js',
@@ -94,15 +94,15 @@ class WebDevFS {
 
     generator.reset();
     var compilerOutput = await generator.recompile(
-        Uri.parse('org-dartlang-app:///$mainPath'), invalidatedFiles,
-        outputPath: p.join(dillOutputPath, 'app.dill'),
-        packageConfig: _packageConfig);
+      Uri.parse('org-dartlang-app:///$mainUri'),
+      invalidatedFiles,
+      outputPath: p.join(dillOutputPath, 'app.dill'),
+      packageConfig: _packageConfig,
+    );
     if (compilerOutput == null || compilerOutput.errorCount > 0) {
       return UpdateFSReport(success: false);
     }
 
-    // list of sources that needs to be monitored are in [compilerOutput.sources]
-    sources = compilerOutput.sources;
     File codeFile;
     File manifestFile;
     File sourcemapFile;

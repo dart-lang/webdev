@@ -6,7 +6,10 @@
 
 import 'package:path/path.dart' as p;
 
-import '../../dwds.dart';
+import '../debugging/metadata/provider.dart';
+import '../loaders/strategy.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
 import 'require.dart';
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
@@ -19,8 +22,7 @@ class FrontendServerRequireStrategyProvider {
   RequireStrategy _requireStrategy;
 
   FrontendServerRequireStrategyProvider(this._configuration, this._assetReader,
-      this._digestsProvider, String basePath)
-      : _basePath = basePathForServerUri(basePath);
+      this._digestsProvider, this._basePath);
 
   RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
         _configuration,
@@ -34,8 +36,12 @@ class FrontendServerRequireStrategyProvider {
         _assetReader,
       );
 
-  String _removeBasePath(String path) =>
-      path.startsWith(_basePath) ? path.substring(_basePath.length) : null;
+  String _removeBasePath(String path) {
+    if (_basePath.isEmpty) return path;
+    // If path is a server path it might start with a '/'.
+    final base = path.startsWith('/') ? '/$_basePath' : _basePath;
+    return path.startsWith(base) ? path.substring(base.length) : path;
+  }
 
   String _addBasePath(String serverPath) =>
       _basePath == null || _basePath.isEmpty

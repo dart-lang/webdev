@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @JS()
 library hot_reload_client;
 
@@ -38,7 +36,7 @@ const _batchDelayMilliseconds = 1000;
 
 // GENERATE:
 // pub run build_runner build web
-Future<void> main() {
+Future<void>? main() {
   return runZonedGuarded(() async {
     // Set the unique id for this instance of the app.
     // Test apps may already have this set.
@@ -221,13 +219,13 @@ String _fixProtocol(String url) {
 external String get dartAppId;
 
 @JS(r'$dartAppInstanceId')
-external String get dartAppInstanceId;
+external String? get dartAppInstanceId;
 
 @JS(r'$dwdsDevHandlerPath')
 external String get dwdsDevHandlerPath;
 
 @JS(r'$dartAppInstanceId')
-external set dartAppInstanceId(String id);
+external set dartAppInstanceId(String? id);
 
 @JS(r'$dartModuleStrategy')
 external String get dartModuleStrategy;

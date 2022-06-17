@@ -19,11 +19,15 @@ import 'package:sse/server/sse_handler.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import '../../dwds.dart';
+import '../connections/app_connection.dart';
+import '../loaders/strategy.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
 import '../events.dart';
 import '../utilities/shared.dart';
+import '../utilities/sdk_configuration.dart';
 import 'chrome_proxy_service.dart';
 
 bool _acceptNewConnections = true;
@@ -206,7 +210,7 @@ class DebugService {
     String hostname,
     RemoteDebugger remoteDebugger,
     ExecutionContext executionContext,
-    String tabUrl,
+    String root,
     AssetReader assetReader,
     LoadStrategy loadStrategy,
     AppConnection appConnection,
@@ -221,7 +225,7 @@ class DebugService {
     useSse ??= false;
     final chromeProxyService = await ChromeProxyService.create(
       remoteDebugger,
-      tabUrl,
+      root,
       assetReader,
       loadStrategy,
       appConnection,

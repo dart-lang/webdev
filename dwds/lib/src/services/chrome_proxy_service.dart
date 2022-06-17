@@ -15,7 +15,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../data/debug_event.dart';
 import '../../data/register_event.dart';
-import '../../dwds.dart';
+import '../connections/app_connection.dart';
 import '../debugging/debugger.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/inspector.dart';
@@ -26,7 +26,11 @@ import '../debugging/remote_debugger.dart';
 import '../debugging/skip_list.dart';
 import '../events.dart';
 import '../loaders/strategy.dart';
+import '../readers/asset_reader.dart';
+import '../services/chrome_debug_exception.dart';
+import '../services/expression_compiler.dart';
 import '../utilities/dart_uri.dart';
+import '../utilities/sdk_configuration.dart';
 import '../utilities/shared.dart';
 import 'expression_evaluator.dart';
 
@@ -58,8 +62,8 @@ class ChromeProxyService implements VmServiceInterface {
   Completer<void> _compilerCompleter = Completer<void>();
   Future<void> get isCompilerInitialized => _compilerCompleter.future;
 
-  /// The root URI at which we're serving.
-  final String uri;
+  /// The root at which we're serving.
+  final String root;
 
   final RemoteDebugger remoteDebugger;
   final ExecutionContext executionContext;
@@ -100,7 +104,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   ChromeProxyService._(
     this._vm,
-    this.uri,
+    this.root,
     this._assetReader,
     this.remoteDebugger,
     this._modules,
@@ -116,14 +120,14 @@ class ChromeProxyService implements VmServiceInterface {
       appInspectorProvider,
       _locations,
       _skipLists,
-      uri,
+      root,
     );
     _debuggerCompleter.complete(debugger);
   }
 
   static Future<ChromeProxyService> create(
     RemoteDebugger remoteDebugger,
-    String tabUrl,
+    String root,
     AssetReader assetReader,
     LoadStrategy loadStrategy,
     AppConnection appConnection,
@@ -146,12 +150,12 @@ class ChromeProxyService implements VmServiceInterface {
       pid: -1,
     );
 
-    final modules = Modules(tabUrl);
-    final locations = Locations(assetReader, modules, tabUrl);
+    final modules = Modules(root);
+    final locations = Locations(assetReader, modules, root);
     final skipLists = SkipLists();
     final service = ChromeProxyService._(
       vm,
-      tabUrl,
+      root,
       assetReader,
       remoteDebugger,
       modules,
@@ -225,7 +229,7 @@ class ChromeProxyService implements VmServiceInterface {
       remoteDebugger,
       _assetReader,
       _locations,
-      uri,
+      root,
       debugger,
       executionContext,
       sdkConfiguration,
@@ -348,7 +352,7 @@ class ChromeProxyService implements VmServiceInterface {
           'The VM is unable to add a breakpoint '
               'at the specified line or function');
     }
-    final dartUri = DartUri(scriptUri, uri);
+    final dartUri = DartUri(scriptUri, root);
     final ref = await _inspector.scriptRefFor(dartUri.serverPath);
     return (await _debugger)
         .addBreakpoint(isolateId, ref.id, line, column: column);

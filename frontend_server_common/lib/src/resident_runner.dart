@@ -21,33 +21,38 @@ final Uri platformDillUnsound =
 final Uri platformDillSound =
     Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline_sound.dill'));
 
-Logger _logger = Logger('ResidentWebRunner');
-
 class ResidentWebRunner {
+  final _logger = Logger('ResidentWebRunner');
+
   ResidentWebRunner(
-      this.mainPath,
+      this.mainUri,
       this.urlTunneller,
-      this.packageConfigPath,
+      this.projectDirectory,
+      this.packageConfigFile,
       this.fileSystemRoots,
       this.fileSystemScheme,
       this.outputPath,
       this.soundNullSafety,
       bool verbose) {
-    generator = ResidentCompiler(dartSdkPath,
-        packageConfigPath: packageConfigPath,
-        platformDill:
-            soundNullSafety ? '$platformDillSound' : '$platformDillUnsound',
-        fileSystemRoots: fileSystemRoots,
-        fileSystemScheme: fileSystemScheme,
-        verbose: verbose);
+    generator = ResidentCompiler(
+      dartSdkPath,
+      projectDirectory: projectDirectory,
+      packageConfigFile: packageConfigFile,
+      platformDill:
+          soundNullSafety ? '$platformDillSound' : '$platformDillUnsound',
+      fileSystemRoots: fileSystemRoots,
+      fileSystemScheme: fileSystemScheme,
+      verbose: verbose,
+    );
     expressionCompiler = TestExpressionCompiler(generator);
   }
 
   final UrlEncoder urlTunneller;
-  final String mainPath;
-  final String packageConfigPath;
+  final Uri mainUri;
+  final Uri projectDirectory;
+  final Uri packageConfigFile;
   final String outputPath;
-  final List<String> fileSystemRoots;
+  final List<Uri> fileSystemRoots;
   final String fileSystemScheme;
   final bool soundNullSafety;
 
@@ -57,15 +62,14 @@ class ResidentWebRunner {
   late Uri uri;
   late Iterable<String> modules;
 
-  Future<int> run(String? hostname, int port, String root) async {
-    hostname ??= 'localhost';
-
+  Future<int> run(String? hostname, int port, String index) async {
     devFS = WebDevFS(
       fileSystem: fileSystem,
-      hostname: hostname,
+      hostname: hostname ?? 'localhost',
       port: port,
-      packageConfigPath: packageConfigPath,
-      root: root,
+      projectDirectory: projectDirectory,
+      packageConfigFile: packageConfigFile,
+      index: index,
       urlTunneller: urlTunneller,
       soundNullSafety: soundNullSafety,
     );
@@ -85,7 +89,7 @@ class ResidentWebRunner {
 
   Future<UpdateFSReport> _updateDevFS() async {
     var report = await devFS.update(
-        mainPath: mainPath,
+        mainUri: mainUri,
         dillOutputPath: outputPath,
         generator: generator,
         invalidatedFiles: []);

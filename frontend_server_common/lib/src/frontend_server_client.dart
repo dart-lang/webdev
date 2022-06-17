@@ -250,19 +250,19 @@ class _RejectRequest extends _CompilationRequest {
 /// restarts the Flutter app.
 class ResidentCompiler {
   ResidentCompiler(
-    String sdkRoot, {
-    required this.packageConfigPath,
+    this.sdkRoot, {
+    required this.projectDirectory,
+    required this.packageConfigFile,
     required this.fileSystemRoots,
     required this.fileSystemScheme,
     required this.platformDill,
     this.verbose = false,
     CompilerMessageConsumer compilerMessageConsumer = defaultConsumer,
-  })  : _stdoutHandler = StdoutHandler(consumer: compilerMessageConsumer),
-        // This is a URI, not a file path, so the forward slash is correct even on Windows.
-        sdkRoot = sdkRoot.endsWith('/') ? sdkRoot : '$sdkRoot/';
+  }) : _stdoutHandler = StdoutHandler(consumer: compilerMessageConsumer);
 
-  final String packageConfigPath;
-  final List<String> fileSystemRoots;
+  final Uri projectDirectory;
+  final Uri packageConfigFile;
+  final List<Uri> fileSystemRoots;
   final String fileSystemScheme;
   final String platformDill;
   final bool verbose;
@@ -303,9 +303,10 @@ class ResidentCompiler {
   Future<CompilerOutput?> _recompile(_RecompileRequest request) async {
     _stdoutHandler.reset();
 
-    final mainUri =
-        request.packageConfig.toPackageUri(request.mainUri)?.toString() ??
-            toMultiRootPath(request.mainUri, fileSystemScheme, fileSystemRoots);
+    final mainUri = request.packageConfig
+            .toPackageUri(request.mainUri)
+            ?.toString() ??
+        _toMultiRootPath(request.mainUri, fileSystemScheme, fileSystemRoots);
 
     _compileRequestNeedsConfirmation = true;
 
@@ -322,7 +323,7 @@ class ResidentCompiler {
         message = fileUri.toString();
       } else {
         message = request.packageConfig.toPackageUri(fileUri)?.toString() ??
-            toMultiRootPath(fileUri, fileSystemScheme, fileSystemRoots);
+            _toMultiRootPath(fileUri, fileSystemScheme, fileSystemRoots);
       }
       _server!.stdin.writeln(message);
       _logger.info(message);
@@ -364,11 +365,11 @@ class ResidentCompiler {
       outputFilePath,
       ...<String>[
         '--packages',
-        packageConfigPath,
+        '$packageConfigFile',
       ],
-      for (final String root in fileSystemRoots) ...<String>[
+      for (final root in fileSystemRoots) ...<String>[
         '--filesystem-root',
-        root,
+        '$root',
       ],
       ...<String>[
         '--filesystem-scheme',
@@ -384,9 +385,9 @@ class ResidentCompiler {
     ];
 
     _logger.info(args.join(' '));
-    var projectDirectory = p.dirname(p.dirname(packageConfigPath));
+    final workingDirectory = projectDirectory.toFilePath();
     _server = await Process.start(Platform.resolvedExecutable, args,
-        workingDirectory: projectDirectory);
+        workingDirectory: workingDirectory);
     _server!.stdout
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
@@ -622,15 +623,16 @@ class TestExpressionCompiler implements ExpressionCompiler {
 
 /// Convert a file URI into a multi-root scheme URI if provided, otherwise
 /// return unmodified.
-String toMultiRootPath(
-    Uri fileUri, String? scheme, List<String> fileSystemRoots) {
+String _toMultiRootPath(
+    Uri fileUri, String? scheme, List<Uri> fileSystemRoots) {
   if (scheme == null || fileSystemRoots.isEmpty || fileUri.scheme != 'file') {
     return fileUri.toString();
   }
   final filePath = fileUri.toFilePath(windows: Platform.isWindows);
   for (final fileSystemRoot in fileSystemRoots) {
-    if (filePath.startsWith(fileSystemRoot)) {
-      return '$scheme://${filePath.substring(fileSystemRoot.length)}';
+    final rootPath = fileSystemRoot.toFilePath(windows: Platform.isWindows);
+    if (filePath.startsWith(rootPath)) {
+      return '$scheme://${filePath.substring(rootPath.length)}';
     }
   }
   return fileUri.toString();

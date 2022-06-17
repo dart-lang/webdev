@@ -4,6 +4,7 @@
 
 // @dart = 2.9
 
+@TestOn('vm')
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -17,11 +18,9 @@ import 'package:test/test.dart';
 
 import 'fixtures/logging.dart';
 
-Logger _logger = Logger('ExpressionCompilerServiceTest');
-
-@TestOn('vm')
 void main() async {
   group('expression compiler service with fake asset server', () {
+    final logger = Logger('ExpressionCompilerServiceTest');
     ExpressionCompilerService service;
     HttpServer server;
     StreamController<String> output;
@@ -70,7 +69,7 @@ void main() async {
       serveHttpRequests(
           server, Cascade().add(service.handler).add(assetHandler).handler,
           (e, s) {
-        _logger.warning('Error serving requests', e, s);
+        logger.warning('Error serving requests', e, s);
       });
 
       // generate full dill

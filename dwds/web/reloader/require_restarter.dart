@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @JS()
 library require_reloading_manager;
 
@@ -23,7 +21,8 @@ import 'restarter.dart';
 /// The last known digests of all the modules in the application.
 ///
 /// This is updated in place during calls to hotRestart.
-Map<String, String> _lastKnownDigests;
+/// TODO(annagrin): can this be a private field in RequireRestarter?
+late Map<String, String> _lastKnownDigests;
 
 @JS(r'$requireLoader')
 external RequireLoader get requireLoader;
@@ -90,8 +89,8 @@ abstract class JsMap<K, V> {
 /// Handles hot restart reloading for use with the require module system.
 class RequireRestarter implements Restarter {
   final _moduleOrdering = HashMap<String, int>();
-  SplayTreeSet<String> _dirtyModules;
-  var _running = Completer<bool>()..complete();
+  late SplayTreeSet<String> _dirtyModules;
+  var _running = Completer<bool>()..complete(true);
 
   var count = 0;
 
@@ -100,7 +99,7 @@ class RequireRestarter implements Restarter {
   }
 
   @override
-  Future<bool> restart({String runId}) async {
+  Future<bool> restart({String? runId}) async {
     final developer = getProperty(require('dart_sdk'), 'developer');
     if (callMethod(getProperty(developer, '_extensions'), 'containsKey',
         ['ext.flutter.disassemble']) as bool) {
@@ -117,7 +116,7 @@ class RequireRestarter implements Restarter {
             'Unable to find an existing digest for module: $moduleId.');
         _reloadPage();
       } else if (_lastKnownDigests[moduleId] != newDigests[moduleId]) {
-        _lastKnownDigests[moduleId] = newDigests[moduleId];
+        _lastKnownDigests[moduleId] = newDigests[moduleId]!;
         modulesToLoad.add(moduleId);
       }
     }
@@ -145,7 +144,7 @@ class RequireRestarter implements Restarter {
   }
 
   List<String> _moduleParents(String module) =>
-      requireLoader.moduleParentsGraph.get(module)?.cast() ?? [];
+      requireLoader.moduleParentsGraph.get(module).cast();
 
   int _moduleTopologicalCompare(String module1, String module2) {
     var topological = 0;
@@ -159,8 +158,8 @@ class RequireRestarter implements Restarter {
           'Unable to fetch ordering info for module: $missing');
     }
 
-    topological =
-        Comparable.compare(_moduleOrdering[module2], _moduleOrdering[module1]);
+    topological = Comparable.compare(
+        _moduleOrdering[module2]!, _moduleOrdering[module1]!);
 
     if (topological == 0) {
       // If modules are in cycle (same strongly connected component) compare
@@ -183,13 +182,13 @@ class RequireRestarter implements Restarter {
     var reloadedModules = 0;
     try {
       _dirtyModules.addAll(modules);
-      String previousModuleId;
+      String? previousModuleId;
       while (_dirtyModules.isNotEmpty) {
         final moduleId = _dirtyModules.first;
         _dirtyModules.remove(moduleId);
         final parentIds = _moduleParents(moduleId);
         // Check if this is the root / bootstrap module.
-        if (parentIds == null || parentIds.isEmpty) {
+        if (parentIds.isEmpty) {
           // The bootstrap module is not reloaded but we need to update the
           // $dartRunMain reference to the newly loaded child module.
           final childModule = callMethod(
