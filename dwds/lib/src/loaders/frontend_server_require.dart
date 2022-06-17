@@ -32,15 +32,16 @@ class FrontendServerRequireStrategyProvider {
   );
 
   FrontendServerRequireStrategyProvider(this._configuration, this._assetReader,
-      this._digestsProvider, String basePath)
-      : _basePath = basePathForServerUri(basePath) {
-    _logger.info('Base path: $_basePath');
-  }
+      this._digestsProvider, this._basePath);
 
   RequireStrategy get strategy => _requireStrategy;
 
-  String? _removeBasePath(String path) =>
-      path.startsWith(_basePath) ? path.substring(_basePath.length) : null;
+  String _removeBasePath(String path) {
+    if (_basePath.isEmpty) return path;
+    // If path is a server path it might start with a '/'.
+    final base = path.startsWith('/') ? '/$_basePath' : _basePath;
+    return path.startsWith(base) ? path.substring(base.length) : path;
+  }
 
   String _addBasePath(String serverPath) => _basePath.isEmpty
       ? relativizePath(serverPath)

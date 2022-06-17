@@ -5,6 +5,7 @@
 // @dart = 2.9
 
 import 'package:async/async.dart';
+import 'package:dwds/src/loaders/require.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
 import 'package:source_maps/source_maps.dart';
@@ -272,7 +273,7 @@ class Locations {
           await globalLoadStrategy.sourceMapPathForModule(_entrypoint, module);
       final sourceMapContents =
           await _assetReader.sourceMapContents(sourceMapPath);
-      final scriptLocation = p.url.dirname('/$modulePath');
+      final scriptLocation = p.url.dirname('/${relativizePath(modulePath)}');
       if (sourceMapContents == null) return result;
       // This happens to be a [SingleMapping] today in DDC.
       final mapping = parse(sourceMapContents);

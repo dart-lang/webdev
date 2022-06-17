@@ -210,7 +210,7 @@ class DebugService {
     String hostname,
     RemoteDebugger remoteDebugger,
     ExecutionContext executionContext,
-    String tabUrl,
+    String root,
     AssetReader assetReader,
     LoadStrategy loadStrategy,
     AppConnection appConnection,
@@ -225,7 +225,7 @@ class DebugService {
     useSse ??= false;
     final chromeProxyService = await ChromeProxyService.create(
       remoteDebugger,
-      tabUrl,
+      root,
       assetReader,
       loadStrategy,
       appConnection,
