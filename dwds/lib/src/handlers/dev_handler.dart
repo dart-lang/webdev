@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/loaders/require.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -201,7 +202,7 @@ class DevHandler {
       'localhost',
       webkitDebugger,
       executionContext,
-      appTab.url,
+      basePathForServerUri(appTab.url),
       _assetReader,
       _loadStrategy,
       appConnection,
