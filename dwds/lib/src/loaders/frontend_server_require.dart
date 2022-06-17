@@ -56,10 +56,8 @@ class FrontendServerRequireStrategyProvider {
       MetadataProvider metadataProvider, String serverPath) async {
     final modulePathToModule = await metadataProvider.modulePathToModule;
     final relativeServerPath = _removeBasePath(serverPath);
-    if (relativeServerPath == null ||
-        !modulePathToModule.containsKey(relativeServerPath)) {
-      _logger.warning(
-          'No module found for server path: $serverPath. Server path is not under $_basePath.');
+    if (!modulePathToModule.containsKey(relativeServerPath)) {
+      _logger.warning('No module found for server path: $serverPath.');
       return '';
     }
     return modulePathToModule[relativeServerPath]!;

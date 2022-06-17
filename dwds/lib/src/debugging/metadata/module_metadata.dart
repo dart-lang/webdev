@@ -175,17 +175,22 @@ class ModuleMetadata {
   }
 }
 
-// TODO: format errors!
-T _readRequiredField<T>(Map<String, dynamic> json, String field) =>
-    json[field]! as T;
+T _readRequiredField<T>(Map<String, dynamic> json, String field) {
+  if (!json.containsKey(field)) {
+    throw FormatException('Required field $field is not set in $json');
+  }
+  return json[field]! as T;
+}
 
 T? _readOptionalField<T>(Map<String, dynamic> json, String field) =>
     json[field] as T?;
 
-List<T> _readRequiredList<T>(Map<String, dynamic> json, String field) =>
-    List.castFrom<dynamic, T>(json[field] as List<dynamic>);
+List<T> _readRequiredList<T>(Map<String, dynamic> json, String field) {
+  final list = _readRequiredField<List<dynamic>>(json, field);
+  return List.castFrom<dynamic, T>(list);
+}
 
-List<T>? _readOptionalList<T>(Map<String, dynamic> json, String field) =>
-    json.containsKey(field)
-        ? List.castFrom<dynamic, T>(json[field] as List<dynamic>)
-        : null;
+List<T>? _readOptionalList<T>(Map<String, dynamic> json, String field) {
+  final list = _readOptionalField<List<dynamic>>(json, field);
+  return list == null ? null : List.castFrom<dynamic, T>(list);
+}
