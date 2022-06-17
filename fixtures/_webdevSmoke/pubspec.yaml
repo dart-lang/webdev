@@ -1,5 +1,10 @@
 name: _webdev_smoke
-description: A test fixture for webdev testing.
+description:
+  A test fixture for webdev testing.
+  This code is for testing that debugger works with weak null safety so we
+  should not migrate it to null safety. Once Dart 3.0 is released, we should
+  delete this directory.
+
 
 # The versions in this pubspec should match the requirements
 # defined by webdev. That is the SDK constraint should be the
