@@ -123,7 +123,7 @@ class DwdsInjector {
             return response.change(body: body, headers: newHeaders);
           } else {
             final loadResponse = await _loadStrategy.handler(request);
-            if (loadResponse != null && loadResponse.statusCode != 404) {
+            if (loadResponse.statusCode != HttpStatus.notFound) {
               return loadResponse;
             }
             return innerHandler(request);

@@ -60,25 +60,24 @@ class ModuleMetadataVersion {
 /// See: https://goto.google.com/dart-web-debugger-metadata
 class LibraryMetadata {
   /// Library name as defined in pubspec.yaml
-  late final String name;
+  final String name;
 
   /// Library importUri
   ///
   /// Example package:path/path.dart
-  late final String importUri;
+  final String importUri;
 
   /// All file uris from the library
   ///
   /// Can be relative paths to the directory of the fileUri
-  late final List<String> partUris;
+  final List<String> partUris;
 
   LibraryMetadata(this.name, this.importUri, this.partUris);
 
-  LibraryMetadata.fromJson(Map<String, dynamic> json) {
-    name = _readRequiredField(json, 'name');
-    importUri = _readRequiredField(json, 'importUri');
+  LibraryMetadata.fromJson(Map<String, dynamic> json) :
+    name = _readRequiredField(json, 'name'),
+    importUri = _readRequiredField(json, 'importUri'),
     partUris = _readOptionalList(json, 'partUris') ?? [];
-  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -102,22 +101,22 @@ class ModuleMetadata {
   ///
   /// Used as a name of the js module created by the compiler and
   /// as key to store and load modules in the debugger and the browser
-  late final String name;
+  final String name;
 
   /// Name of the function enclosing the module
   ///
   /// Used by debugger to determine the top dart scope
-  late final String closureName;
+  final String closureName;
 
   /// Source map uri
-  late final String sourceMapUri;
+  final String sourceMapUri;
 
   /// Module uri
-  late final String moduleUri;
+  final String moduleUri;
 
   /// True if the module corresponding to this metadata was compiled with sound
   /// null safety enabled.
-  late final bool soundNullSafety;
+  final bool soundNullSafety;
 
   final Map<String, LibraryMetadata> libraries = {};
 
@@ -142,13 +141,13 @@ class ModuleMetadata {
     }
   }
 
-  ModuleMetadata.fromJson(Map<String, dynamic> json) {
-    version = _readRequiredField(json, 'version');
-    name = _readRequiredField(json, 'name');
-    closureName = _readRequiredField(json, 'closureName');
-    sourceMapUri = _readRequiredField(json, 'sourceMapUri');
-    moduleUri = _readRequiredField(json, 'moduleUri');
-    soundNullSafety = _readOptionalField(json, 'soundNullSafety') ?? false;
+  ModuleMetadata.fromJson(Map<String, dynamic> json):
+    version = _readRequiredField(json, 'version'),
+    name = _readRequiredField(json, 'name'),
+    closureName = _readRequiredField(json, 'closureName'),
+    sourceMapUri = _readRequiredField(json, 'sourceMapUri'),
+    moduleUri = _readRequiredField(json, 'moduleUri'),
+    soundNullSafety = _readOptionalField(json, 'soundNullSafety') ?? false {
     if (!ModuleMetadataVersion.current.isCompatibleWith(version) &&
         !ModuleMetadataVersion.previous.isCompatibleWith(version)) {
       throw Exception('Unsupported metadata version $version. '
