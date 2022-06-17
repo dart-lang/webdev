@@ -758,7 +758,7 @@ class RemoveInfo {
 @anonymous
 class IconInfo {
   external String get path;
-  external factory IconInfo({String? path});
+  external factory IconInfo({String path});
 }
 
 @JS()
@@ -768,7 +768,7 @@ class Debuggee {
   external String get extensionId;
   external String get targetId;
   external factory Debuggee(
-      {int? tabId, String? extensionId, String? targetId});
+      {int tabId, String? extensionId, String? targetId});
 }
 
 @JS()
@@ -817,7 +817,7 @@ class Request {
 @JS()
 @anonymous
 class DebugEvent {
-  external factory DebugEvent({String? method, dynamic params});
+  external factory DebugEvent({String method, dynamic params});
 }
 
 @JS()
