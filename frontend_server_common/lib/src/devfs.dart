@@ -73,7 +73,7 @@ class WebDevFS {
     assert(generator != null);
     final mainPath = mainUri.toFilePath();
     final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
-    final entryPoint = mainPath;
+    final entryPoint = mainUri.toString();
 
     assetServer.writeFile(
       '/main.dart.js',

@@ -6,6 +6,8 @@
 
 @TestOn('vm')
 
+import 'dart:io';
+
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
@@ -18,18 +20,24 @@ void main() async {
   for (var nullSafety in NullSafety.values) {
     group('${nullSafety.name} null safety |', () {
       for (var indexBaseMode in IndexBaseMode.values) {
-        group('with ${indexBaseMode.name} |', () {
-          testAll(
-            compilationMode: CompilationMode.frontendServer,
-            indexBaseMode: indexBaseMode,
-            nullSafety: nullSafety,
-            debug: debug,
-          );
-        },
-            skip: nullSafety ==
-                NullSafety
-                    .sound // https://github.com/dart-lang/webdev/issues/1591
+        group(
+          'with ${indexBaseMode.name} |',
+          () {
+            testAll(
+              compilationMode: CompilationMode.frontendServer,
+              indexBaseMode: indexBaseMode,
+              nullSafety: nullSafety,
+              debug: debug,
             );
+          },
+          skip: (nullSafety ==
+                  NullSafety
+                      .sound) // https://github.com/dart-lang/webdev/issues/1591
+              ||
+              (indexBaseMode == IndexBaseMode.base &&
+                  Platform
+                      .isWindows), // https://github.com/dart-lang/sdk/issues/49277
+        );
       }
     });
   }
