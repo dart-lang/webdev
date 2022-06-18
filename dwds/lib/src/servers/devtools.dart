@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 typedef DevtoolsLauncher = Future<DevTools> Function(String hostname);
@@ -17,7 +15,7 @@ class DevTools {
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
-  Future<void> _closed;
+  Future<void>? _closed;
 
   DevTools(this.hostname, this.port, this._server);
 
