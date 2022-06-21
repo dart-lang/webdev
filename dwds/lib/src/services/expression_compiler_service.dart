@@ -14,7 +14,7 @@ import '../utilities/sdk_configuration.dart';
 import 'expression_compiler.dart';
 
 class _Compiler {
-  static final _logger = Logger('_Compiler');
+  static final _logger = Logger('ExpressionCompilerService');
   final StreamQueue<dynamic> _responseQueue;
   final ReceivePort _receivePort;
   final SendPort _sendPort;
