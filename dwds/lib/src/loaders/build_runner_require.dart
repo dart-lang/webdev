@@ -81,8 +81,7 @@ class BuildRunnerRequireStrategyProvider {
         return e.value;
       }
     }
-    _logger.warning('No module for server path $serverPath');
-    return '';
+    throw StateError('No module found for server path $serverPath');
   }
 
   Future<String> _serverPathForModule(

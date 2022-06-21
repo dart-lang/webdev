@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 import '../debugging/metadata/provider.dart';
@@ -13,7 +12,6 @@ import 'require.dart';
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
 class FrontendServerRequireStrategyProvider {
-  final _logger = Logger('FrontendServerRequireStrategyProvider');
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
   final Future<Map<String, String>> Function() _digestsProvider;
@@ -57,8 +55,7 @@ class FrontendServerRequireStrategyProvider {
     final modulePathToModule = await metadataProvider.modulePathToModule;
     final relativeServerPath = _removeBasePath(serverPath);
     if (!modulePathToModule.containsKey(relativeServerPath)) {
-      _logger.warning('No module found for server path: $serverPath.');
-      return '';
+      throw StateError('No module found for server path $serverPath');
     }
     return modulePathToModule[relativeServerPath]!;
   }
