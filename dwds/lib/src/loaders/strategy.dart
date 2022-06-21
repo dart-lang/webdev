@@ -85,7 +85,7 @@ abstract class LoadStrategy {
   ///
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
-  Future<String> moduleForServerPath(String entrypoint, String serverPath);
+  Future<String?> moduleForServerPath(String entrypoint, String serverPath);
 
   /// Returns the server path for the provided module.
   ///

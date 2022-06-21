@@ -72,7 +72,7 @@ class BuildRunnerRequireStrategyProvider {
       (await metadataProvider.moduleToModulePath).map((key, value) =>
           MapEntry(key, stripTopLevelDirectory(removeJsExtension(value))));
 
-  Future<String> _moduleForServerPath(
+  Future<String?> _moduleForServerPath(
       MetadataProvider metadataProvider, String serverPath) async {
     final modulePathToModule = await metadataProvider.modulePathToModule;
     final relativePath = relativizePath(serverPath);
@@ -81,7 +81,7 @@ class BuildRunnerRequireStrategyProvider {
         return e.value;
       }
     }
-    throw StateError('No module found for server path $serverPath');
+    return null;
   }
 
   Future<String> _serverPathForModule(

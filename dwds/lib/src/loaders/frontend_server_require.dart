@@ -50,14 +50,11 @@ class FrontendServerRequireStrategyProvider {
       (await metadataProvider.moduleToModulePath).map((key, value) =>
           MapEntry(key, relativizePath(removeJsExtension(value))));
 
-  Future<String> _moduleForServerPath(
+  Future<String?> _moduleForServerPath(
       MetadataProvider metadataProvider, String serverPath) async {
     final modulePathToModule = await metadataProvider.modulePathToModule;
     final relativeServerPath = _removeBasePath(serverPath);
-    if (!modulePathToModule.containsKey(relativeServerPath)) {
-      throw StateError('No module found for server path $serverPath');
-    }
-    return modulePathToModule[relativeServerPath]!;
+    return modulePathToModule[relativeServerPath];
   }
 
   Future<String> _serverPathForModule(
