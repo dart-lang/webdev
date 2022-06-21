@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:async/async.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:path/path.dart' as p;
@@ -46,7 +44,7 @@ class Location {
     // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
     return Location._(
       JsLocation.fromZeroBased(module, jsLine, jsColumn),
-      DartLocation.fromZeroBased(dartUri, dartLine, dartColumn),
+      DartLocation.fromZeroBased(dartUri, dartLine ?? -1, dartColumn ?? -1),
     );
   }
 
@@ -134,7 +132,7 @@ class Locations {
   final Modules _modules;
   final String _root;
 
-  String _entrypoint;
+  late final String _entrypoint;
 
   Locations(this._assetReader, this._modules, this._root);
 
@@ -151,6 +149,7 @@ class Locations {
   /// Returns all [Location] data for a provided Dart source.
   Future<Set<Location>> locationsForDart(String serverPath) async {
     final module = await _modules.moduleForSource(serverPath);
+    if (module == null) return {};
     await _locationsForModule(module);
     return _sourceToLocation[serverPath] ?? {};
   }
@@ -161,13 +160,13 @@ class Locations {
         _entrypoint, Uri.parse(url).path);
     final cache = _moduleToLocations[module];
     if (cache != null) return cache;
-    return await _locationsForModule(module) ?? {};
+    return await _locationsForModule(module);
   }
 
   /// Find the [Location] for the given Dart source position.
   ///
   /// The [line] number is 1-based.
-  Future<Location> locationForDart(DartUri uri, int line, int column) async {
+  Future<Location?> locationForDart(DartUri uri, int line, int column) async {
     final locations = await locationsForDart(uri.serverPath);
     return _bestDartLocation(locations, line, column);
   }
@@ -175,7 +174,7 @@ class Locations {
   /// Find the [Location] for the given JS source position.
   ///
   /// The [line] number is 0-based.
-  Future<Location> locationForJs(String url, int line, int column) async {
+  Future<Location?> locationForJs(String url, int line, int column) async {
     final locations = await locationsForUrl(url);
     return _bestJsLocation(locations, line, column);
   }
@@ -185,9 +184,9 @@ class Locations {
   /// Dart columns for breakpoints are either exact or start at the
   /// beginning of the line - return the first existing location
   /// that comes after the given column.
-  Location _bestDartLocation(
+  Location? _bestDartLocation(
       Iterable<Location> locations, int line, int column) {
-    Location bestLocation;
+    Location? bestLocation;
     for (var location in locations) {
       if (location.dartLocation.line == line &&
           location.dartLocation.column >= column) {
@@ -209,8 +208,8 @@ class Locations {
   /// the closest location to the current one:
   ///
   /// https://github.com/microsoft/vscode-js-debug/blob/536f96bae61a3d87546b61bc7916097904c81429/src/common/sourceUtils.ts#L286
-  Location _bestJsLocation(Iterable<Location> locations, int line, int column) {
-    Location bestLocation;
+  Location? _bestJsLocation(Iterable<Location> locations, int line, int column) {
+    Location? bestLocation;
     for (var location in locations) {
       if (location.jsLocation.compareToLine(line, column) <= 0) {
         bestLocation ??= location;
@@ -239,13 +238,16 @@ class Locations {
           .add(location);
     }
     for (var lineNumber in lineNumberToLocation.keys) {
+      if (lineNumberToLocation.containsKey(lineNumber)) {
+        final locations = lineNumberToLocation[lineNumber]!;
       tokenPosTable.add([
         lineNumber,
-        for (var location in lineNumberToLocation[lineNumber]) ...[
+        for (var location in locations) ...[
           location.tokenPos,
           location.dartLocation.column
         ]
       ]);
+      }
     }
     _sourceToTokenPosTable[serverPath] = tokenPosTable;
     return tokenPosTable;
@@ -259,11 +261,10 @@ class Locations {
   Future<Set<Location>> _locationsForModule(String module) async {
     _locationMemoizer.putIfAbsent(module, () => AsyncMemoizer());
 
-    return await _locationMemoizer[module].runOnce(() async {
-      if (module == null) return {};
-      if (_moduleToLocations[module] != null) return _moduleToLocations[module];
+    return await _locationMemoizer[module]!.runOnce(() async {
+      if (_moduleToLocations[module] != null) return _moduleToLocations[module]!;
       final result = <Location>{};
-      if (module?.isEmpty ?? true) return _moduleToLocations[module] = result;
+      if (module.isEmpty) return _moduleToLocations[module] = result;
       if (module.endsWith('dart_sdk') || module.endsWith('dart_library')) {
         return result;
       }

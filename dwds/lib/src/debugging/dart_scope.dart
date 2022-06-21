@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../utilities/objects.dart';
@@ -18,12 +16,12 @@ final ddcTemporaryVariableRegExp = RegExp(r'^(t[0-9]+\$?[0-9]*|__t[\$\w*]+)$');
 ///
 /// See chromedevtools.github.io/devtools-protocol/tot/Debugger#type-CallFrame.
 Future<List<Property>> visibleProperties({
-  Debugger debugger,
-  WipCallFrame frame,
+  required Debugger debugger,
+  required WipCallFrame frame,
 }) async {
   final allProperties = <Property>[];
 
-  if (frame.thisObject != null && frame.thisObject.type != 'undefined') {
+  if (frame.thisObject.type != 'undefined') {
     allProperties.add(
       Property({
         'name': 'this',
@@ -39,11 +37,13 @@ Future<List<Property>> visibleProperties({
   // Iterate to least specific scope last to help preserve order in the local
   // variables view when stepping.
   for (var scope in filterScopes(frame).reversed) {
-    final properties = await debugger.getProperties(scope.object.objectId);
-    allProperties.addAll(properties);
+    if (scope.object.objectId != null) {
+      final properties = await debugger.getProperties(scope.object.objectId!);
+      allProperties.addAll(properties);
+    }
   }
 
-  if (frame.returnValue != null && frame.returnValue.type != 'undefined') {
+  if (frame.returnValue != null && frame.returnValue!.type != 'undefined') {
     allProperties.add(
       Property({
         'name': 'return',
@@ -54,14 +54,17 @@ Future<List<Property>> visibleProperties({
 
   allProperties.removeWhere((property) {
     final value = property.value;
+    if (value == null) return false;
 
     // TODO(#786) Handle these correctly rather than just suppressing them.
     // We should never see a raw JS class. The only case where this happens is a
     // Dart generic function, where the type arguments get passed in as
     // parameters. Hide those.
+    final description = value.description??'';
+    final propertyName = property.name??'';
     return (value.type == 'function' &&
-            value.description.startsWith('class ')) ||
-        (ddcTemporaryVariableRegExp.hasMatch(property.name)) ||
+            description.startsWith('class ')) ||
+        (ddcTemporaryVariableRegExp.hasMatch(propertyName)) ||
         (value.type == 'object' && value.description == 'dart.LegacyType.new');
   });
 

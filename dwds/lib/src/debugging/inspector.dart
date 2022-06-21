@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-// @dart = 2.9
-
 import 'package:async/async.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';

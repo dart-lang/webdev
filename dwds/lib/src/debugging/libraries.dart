@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-// @dart = 2.9
-
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -22,19 +20,19 @@ class LibraryHelper extends Domain {
   /// Map of libraryRef ID to [LibraryRef].
   final _libraryRefsById = <String, LibraryRef>{};
 
-  LibraryRef _rootLib;
+  LibraryRef? _rootLib;
 
   LibraryHelper(AppInspector Function() provider) : super(provider);
 
-  Future<LibraryRef> get rootLib async {
+  Future<LibraryRef?> get rootLib async {
     if (_rootLib != null) return _rootLib;
     // TODO: read entrypoint from app metadata.
     // Issue: https://github.com/dart-lang/webdev/issues/1290
     final libraries = await libraryRefs;
-    _rootLib = libraries.firstWhere((lib) => lib.name.contains('org-dartlang'),
+    _rootLib = libraries.cast().firstWhere((lib) => lib.name?.contains('org-dartlang') ?? false,
         orElse: () => null);
     _rootLib = _rootLib ??
-        libraries.firstWhere((lib) => lib.name.contains('main'),
+        libraries.cast().firstWhere((lib) => lib.name?.contains('main') ?? false,
             orElse: () => null);
     _rootLib = _rootLib ?? (libraries.isNotEmpty ? libraries.last : null);
     return _rootLib;
@@ -55,22 +53,28 @@ class LibraryHelper extends Domain {
     return _libraryRefsById.values.toList();
   }
 
-  Future<Library> libraryFor(LibraryRef libraryRef) async {
-    final library = _librariesById[libraryRef.id];
+  Future<Library?> libraryFor(LibraryRef libraryRef) async {
+    if (libraryRef.id == null) return null;
+    var library = _librariesById[libraryRef.id];
     if (library != null) return library;
-    return _librariesById[libraryRef.id] = await _constructLibrary(libraryRef);
+    library = await _constructLibrary(libraryRef);
+    if (library != null) {
+      return _librariesById[libraryRef.id!] = library;
+    }
+    return null;
   }
 
-  Future<LibraryRef> libraryRefFor(String objectId) async {
+  Future<LibraryRef?> libraryRefFor(String objectId) async {
     if (_libraryRefsById.isEmpty) await libraryRefs;
     return _libraryRefsById[objectId];
   }
 
-  Future<Library> _constructLibrary(LibraryRef libraryRef) async {
-    // Fetch information about all the classes in this library.
+  Future<Library?> _constructLibrary(LibraryRef libraryRef) async {
+    if (libraryRef.uri == null) return null;
+     // Fetch information about all the classes in this library.
     final expression = '''
     (function() {
-      ${globalLoadStrategy.loadLibrarySnippet(libraryRef.uri)}
+      ${globalLoadStrategy.loadLibrarySnippet(libraryRef.uri!)}
       var result = {};
       var classes = Object.values(Object.getOwnPropertyDescriptors(library))
         .filter((p) => 'value' in p)
@@ -93,8 +97,9 @@ class LibraryHelper extends Domain {
       'returnByValue': true,
       'contextId': await inspector.contextId,
     });
-    List<ClassRef> classRefs;
-    if (result.result.containsKey('exceptionDetails')) {
+    if (result.result == null) return null;
+    List<ClassRef>? classRefs;
+    if (result.result!.containsKey('exceptionDetails')) {
       // Unreferenced libraries are not loaded at runtime,
       // return empty library object for consistency among
       // VM Service implementations.
@@ -103,25 +108,27 @@ class LibraryHelper extends Domain {
           'This can happen for unreferenced libraries.');
     } else {
       final classDescriptors =
-          (result.result['result']['value']['classes'] as List)
+          (result.result!['result']['value']['classes'] as List)
               .cast<Map<String, Object>>();
+      if (libraryRef.id == null) return null;
       classRefs = classDescriptors.map<ClassRef>((classDescriptor) {
         final classMetaData = ClassMetaData(
             jsName: classDescriptor['name'],
-            libraryId: libraryRef.id,
+            libraryId: libraryRef.id!,
             dartName: classDescriptor['dartName']);
         return classMetaData.classRef;
       }).toList();
     }
+    if (libraryRef.id == null) return null;
     return Library(
         name: libraryRef.name,
         uri: libraryRef.uri,
         debuggable: true,
         dependencies: [],
-        scripts: await inspector.scriptRefsForLibrary(libraryRef.id),
+        scripts: await inspector.scriptRefsForLibrary(libraryRef.id!),
         variables: [],
         functions: [],
         classes: classRefs,
-        id: libraryRef.id);
+        id: libraryRef.id!);
   }
 }
