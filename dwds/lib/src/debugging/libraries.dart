@@ -6,8 +6,8 @@ import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../loaders/strategy.dart';
+import '../utilities/conversions.dart';
 import '../utilities/domain.dart';
-import 'inspector.dart';
 import 'metadata/class.dart';
 
 /// Keeps track of Dart libraries available in the running application.
@@ -22,17 +22,19 @@ class LibraryHelper extends Domain {
 
   LibraryRef? _rootLib;
 
-  LibraryHelper(AppInspector Function() provider) : super(provider);
+  LibraryHelper(AppInspectorProvider provider) : super(provider);
 
   Future<LibraryRef?> get rootLib async {
     if (_rootLib != null) return _rootLib;
     // TODO: read entrypoint from app metadata.
     // Issue: https://github.com/dart-lang/webdev/issues/1290
     final libraries = await libraryRefs;
-    _rootLib = libraries.cast().firstWhere((lib) => lib.name?.contains('org-dartlang') ?? false,
+    _rootLib = libraries.cast().firstWhere(
+        (lib) => lib.name?.contains('org-dartlang') ?? false,
         orElse: () => null);
     _rootLib = _rootLib ??
-        libraries.cast().firstWhere((lib) => lib.name?.contains('main') ?? false,
+        libraries.cast().firstWhere(
+            (lib) => lib.name?.contains('main') ?? false,
             orElse: () => null);
     _rootLib = _rootLib ?? (libraries.isNotEmpty ? libraries.last : null);
     return _rootLib;
@@ -71,7 +73,7 @@ class LibraryHelper extends Domain {
 
   Future<Library?> _constructLibrary(LibraryRef libraryRef) async {
     if (libraryRef.uri == null) return null;
-     // Fetch information about all the classes in this library.
+    // Fetch information about all the classes in this library.
     final expression = '''
     (function() {
       ${globalLoadStrategy.loadLibrarySnippet(libraryRef.uri!)}
@@ -111,13 +113,13 @@ class LibraryHelper extends Domain {
           (result.result!['result']['value']['classes'] as List)
               .cast<Map<String, Object>>();
       if (libraryRef.id == null) return null;
-      classRefs = classDescriptors.map<ClassRef>((classDescriptor) {
+      classRefs = classDescriptors.map<ClassRef?>((classDescriptor) {
         final classMetaData = ClassMetaData(
             jsName: classDescriptor['name'],
             libraryId: libraryRef.id!,
             dartName: classDescriptor['dartName']);
         return classMetaData.classRef;
-      }).toList();
+      }).toNonNullList();
     }
     if (libraryRef.id == null) return null;
     return Library(

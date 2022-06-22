@@ -144,7 +144,7 @@ class RequireRestarter implements Restarter {
   }
 
   List<String> _moduleParents(String module) =>
-      requireLoader.moduleParentsGraph.get(module).cast();
+      requireLoader.moduleParentsGraph.get(module);
 
   int _moduleTopologicalCompare(String module1, String module2) {
     var topological = 0;

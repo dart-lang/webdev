@@ -113,8 +113,8 @@ String dartIdFor(Object? argument) {
 /// If the ID is not for a String, throws ArgumentError. If you don't know what
 /// the ID represents, use a more general API like [remoteObjectFor] and if it
 /// is a primitive, you can get the value from the resulting [RemoteObject].
-String stringFromDartId(String dartId) {
-  if (!isStringId(dartId)) {
+String stringFromDartId(String? dartId) {
+  if (dartId == null || !isStringId(dartId)) {
     throw ArgumentError.value(
         dartId, 'dart object ID', 'Expected a valid ID for a String');
   }
@@ -122,7 +122,8 @@ String stringFromDartId(String dartId) {
 }
 
 /// Is [dartId] an Id for a String.
-bool isStringId(String dartId) => dartId.startsWith(_prefixForStringIds);
+bool isStringId(String? dartId) =>
+    dartId?.startsWith(_prefixForStringIds) ?? false;
 
 /// Is [dartId] an Id for a boolean.
 bool isBoolId(String dartId) => dartId.startsWith(_prefixForBoolIds);
@@ -173,6 +174,12 @@ double? _doubleFromDartId(String dartIdForDouble) =>
 /// Convert [dartIdForBool] to its corresponding boolean.
 bool _boolFromDartId(String dartIdForBool) =>
     dartIdForBool.substring(_prefixForBoolIds.length) == 'true';
+
+extension ConvertIterable<T> on Iterable<T?> {
+  List<T> toNonNullList() {
+    return whereType<T>().toList();
+  }
+}
 
 /// Chrome doesn't give us an objectId for a String. So we use the string
 /// as its own ID, with a prefix.

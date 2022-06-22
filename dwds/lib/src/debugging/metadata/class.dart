@@ -33,11 +33,11 @@ class ClassMetaData {
   final String? dartName;
 
   /// The library identifier, which is the URI of the library.
-  final String libraryId;
+  final String? libraryId;
 
   factory ClassMetaData(
-      {Object? jsName, required Object libraryId, Object? dartName, Object? length}) {
-    return ClassMetaData._(jsName as String?, libraryId as String,
+      {Object? jsName, Object? libraryId, Object? dartName, Object? length}) {
+    return ClassMetaData._(jsName as String?, libraryId as String?,
         dartName as String?, int.tryParse('$length'));
   }
 
@@ -70,7 +70,7 @@ class ClassMetaData {
       final result = await inspector.jsCallFunctionOn(
           remoteObject, evalExpression, [remoteObject],
           returnByValue: true);
-      final metadata = result.value as Map;
+      final metadata = result?.value as Map;
       return ClassMetaData(
         jsName: metadata['name'],
         libraryId: metadata['libraryId'],
@@ -83,7 +83,8 @@ class ClassMetaData {
   }
 
   /// Return a [ClassRef] appropriate to this metadata.
-  ClassRef get classRef => classRefFor(libraryId, dartName);
+  ClassRef? get classRef =>
+      libraryId == null ? null : classRefFor(libraryId!, dartName);
 
   /// True if this class refers to system maps, which are treated specially.
   ///

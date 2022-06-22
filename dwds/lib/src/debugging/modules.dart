@@ -77,12 +77,12 @@ class Modules {
           : DartUri(library, _root).serverPath;
 
       if (scriptToModule.containsKey(library)) {
-        final module =  scriptToModule[library]!;
+        final module = scriptToModule[library]!;
 
         _sourceToModule[libraryServerPath] = module;
         _libraryToModule[library] = module;
         _sourceToLibrary[libraryServerPath] = Uri.parse(library);
-      
+
         for (var script in scripts) {
           final scriptServerPath = script.startsWith('dart:')
               ? script

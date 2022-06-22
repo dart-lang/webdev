@@ -7,7 +7,7 @@ import 'package:vm_service/vm_service.dart';
 
 import '../debugging/inspector.dart';
 
-typedef AppInspectorProvider = AppInspector Function();
+typedef AppInspectorProvider = AppInspector? Function();
 
 /// A common superclass to allow implementations of different parts of the
 /// protocol to get access to the inspector and utility functions.
@@ -22,15 +22,15 @@ abstract class Domain {
   /// [_appInspectorProvider] as it's not used by the AppInspector.
   Domain.forInspector() : _appInspectorProvider = null;
 
-  AppInspector get inspector => _appInspectorProvider!();
+  AppInspector get inspector => _appInspectorProvider!()!;
 
   /// Validate that isolateId matches the current isolate we're connected to and
   /// return that isolate.
   ///
   /// This is useful to call at the beginning of API methods that are passed an
   /// isolate id.
-  Isolate checkIsolate(String methodName, String isolateId) {
-    if (isolateId != inspector.isolate?.id) {
+  Isolate? checkIsolate(String methodName, String isolateId) {
+    if (isolateId != inspector.isolate.id) {
       throwSentinel(methodName, SentinelKind.kCollected,
           'Unrecognized isolateId: $isolateId');
     }

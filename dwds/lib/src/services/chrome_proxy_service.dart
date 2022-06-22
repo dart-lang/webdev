@@ -34,15 +34,6 @@ import '../utilities/sdk_configuration.dart';
 import '../utilities/shared.dart';
 import 'expression_evaluator.dart';
 
-/// Adds [event] to the stream with [streamId] if there is anybody listening
-/// on that stream.
-typedef StreamNotify = void Function(String streamId, Event event);
-
-/// Returns the [AppInspector] for the current tab.
-///
-/// This may be null during a hot restart or page refresh.
-typedef AppInspectorProvider = AppInspector Function();
-
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
   /// Cache of all existing StreamControllers.

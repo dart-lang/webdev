@@ -14,20 +14,19 @@ import '../utilities/objects.dart';
 import '../utilities/shared.dart';
 import 'classes.dart';
 import 'debugger.dart';
-import 'inspector.dart';
 import 'metadata/class.dart';
 import 'metadata/function.dart';
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
-  InstanceHelper(AppInspector Function() provider) : super(provider);
+  InstanceHelper(AppInspectorProvider provider) : super(provider);
 
   static final InstanceRef kNullInstanceRef =
       _primitiveInstanceRef(InstanceKind.kNull, null);
 
   /// Creates an [InstanceRef] for a primitive [RemoteObject].
   static InstanceRef _primitiveInstanceRef(
-      String kind, RemoteObject remoteObject) {
+      String kind, RemoteObject? remoteObject) {
     final classRef = classRefFor('dart:core', kind);
     return InstanceRef(
         identityHashCode: dartIdFor(remoteObject?.value).hashCode,
@@ -38,18 +37,18 @@ class InstanceHelper extends Domain {
   }
 
   /// Creates an [Instance] for a primitive [RemoteObject].
-  Instance _primitiveInstance(String kind, RemoteObject remote) {
-    if (remote?.objectId == null) return null;
+  Instance? _primitiveInstance(String kind, RemoteObject remote) {
+    if (remote.objectId == null) return null;
     return Instance(
         identityHashCode: remote.objectId.hashCode,
-        id: remote.objectId,
+        id: remote.objectId!,
         kind: kind,
         classRef: classRefFor('dart:core', kind))
       ..valueAsString = '${remote.value}';
   }
 
   Instance _stringInstanceFor(
-      RemoteObject remoteObject, int offset, int count) {
+      RemoteObject remoteObject, int? offset, int? count) {
     // TODO(#777) Consider a way of not passing the whole string around (in the
     // ID) in order to find a substring.
     final fullString = stringFromDartId(remoteObject.objectId);
@@ -73,10 +72,11 @@ class InstanceHelper extends Domain {
       ..offset = (truncated ? offset : null);
   }
 
-  Future<Instance> _closureInstanceFor(RemoteObject remoteObject) async {
+  Future<Instance?> _closureInstanceFor(RemoteObject remoteObject) async {
+    if (remoteObject.objectId == null) return null;
     final result = Instance(
         kind: InstanceKind.kClosure,
-        id: remoteObject.objectId,
+        id: remoteObject.objectId!,
         identityHashCode: remoteObject.objectId.hashCode,
         classRef: classRefForClosure);
     return result;
@@ -87,8 +87,9 @@ class InstanceHelper extends Domain {
   /// Does a remote eval to get instance information. Returns null if there
   /// isn't a corresponding instance. For enumerable objects, [offset] and
   /// [count] allow retrieving a sub-range of properties.
-  Future<Instance> instanceFor(RemoteObject remoteObject,
-      {int offset, int count}) async {
+  Future<Instance?> instanceFor(RemoteObject? remoteObject,
+      {int? offset, int? count}) async {
+    if (remoteObject == null) return null;
     final primitive = _primitiveInstanceOrNull(remoteObject, offset, count);
     if (primitive != null) {
       return primitive;
@@ -102,20 +103,20 @@ class InstanceHelper extends Domain {
 
     final metaData = await ClassMetaData.metaDataFor(
         inspector.remoteDebugger, remoteObject, inspector);
-    final classRef = metaData.classRef;
-    if (metaData.jsName == 'Function') {
+    final classRef = metaData?.classRef;
+    if (metaData?.jsName == 'Function') {
       return _closureInstanceFor(remoteObject);
     }
 
     final properties = await inspector.debugger.getProperties(
-        remoteObject.objectId,
+        remoteObject.objectId!,
         offset: offset,
         count: count,
-        length: metaData.length);
-    if (metaData.isSystemList) {
+        length: metaData?.length);
+    if (metaData?.isSystemList ?? false) {
       return await _listInstanceFor(
           classRef, remoteObject, properties, offset, count);
-    } else if (metaData.isSystemMap) {
+    } else if (metaData?.isSystemMap ?? false) {
       return await _mapInstanceFor(
           classRef, remoteObject, properties, offset, count);
     } else {
@@ -125,9 +126,9 @@ class InstanceHelper extends Domain {
 
   /// If [remoteObject] represents a primitive, return an [Instance] for it,
   /// otherwise return null.
-  Instance _primitiveInstanceOrNull(
-      RemoteObject remoteObject, int offset, int count) {
-    switch (remoteObject?.type ?? 'undefined') {
+  Instance? _primitiveInstanceOrNull(
+      RemoteObject remoteObject, int? offset, int? count) {
+    switch (remoteObject.type) {
       case 'string':
         return _stringInstanceFor(remoteObject, offset, count);
       case 'number':
@@ -142,7 +143,7 @@ class InstanceHelper extends Domain {
   }
 
   /// Create a bound field for [property] in an instance of [classRef].
-  Future<BoundField> _fieldFor(Property property, ClassRef classRef) async {
+  Future<BoundField> _fieldFor(Property property, ClassRef? classRef) async {
     final instance = await _instanceRefForRemote(property.value);
     return BoundField(
         decl: FieldRef(
@@ -150,7 +151,7 @@ class InstanceHelper extends Domain {
           name: property.name,
           declaredType: InstanceRef(
               kind: InstanceKind.kType,
-              classRef: instance.classRef,
+              classRef: instance?.classRef,
               identityHashCode: createId().hashCode,
               id: createId()),
           owner: classRef,
@@ -163,20 +164,31 @@ class InstanceHelper extends Domain {
         value: instance);
   }
 
+  int _compareBoundFields(BoundField one, BoundField other) {
+    final oneName = one.decl?.name;
+    final otherName = other.decl?.name;
+    if (oneName == null) return -1;
+    if (otherName == null) return 1;
+    return oneName.compareTo(otherName);
+  }
+
   /// Create a plain instance of [classRef] from [remoteObject] and the JS
   /// properties [properties].
-  Future<Instance> _plainInstanceFor(ClassRef classRef,
+  Future<Instance?> _plainInstanceFor(ClassRef? classRef,
       RemoteObject remoteObject, List<Property> properties) async {
+    if (remoteObject.objectId == null) return null;
+
     final dartProperties = await _dartFieldsFor(properties, remoteObject);
     var boundFields = await Future.wait(
         dartProperties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)));
     boundFields = boundFields
-        .where((bv) => bv != null && !isNativeJsObject(bv.value as InstanceRef))
+        .where((bv) => !isNativeJsObject(bv.value as InstanceRef))
         .toList()
-      ..sort((a, b) => a.decl.name.compareTo(b.decl.name));
+      ..sort((a, b) => _compareBoundFields(a, b));
+
     final result = Instance(
         kind: InstanceKind.kPlainInstance,
-        id: remoteObject.objectId,
+        id: remoteObject.objectId!,
         identityHashCode: remoteObject.objectId.hashCode,
         classRef: classRef)
       ..fields = boundFields;
@@ -185,7 +197,7 @@ class InstanceHelper extends Domain {
 
   /// The associations for a Dart Map or IdentityMap.
   Future<List<MapAssociation>> _mapAssociations(
-      RemoteObject map, int offset, int count) async {
+      RemoteObject map, int? offset, int? count) async {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
@@ -213,7 +225,8 @@ class InstanceHelper extends Domain {
     final valuesInstance =
         await instanceFor(values, offset: offset, count: count);
     final associations = <MapAssociation>[];
-    Map.fromIterables(keysInstance.elements, valuesInstance.elements)
+    Map.fromIterables(
+            keysInstance?.elements ?? [], valuesInstance?.elements ?? [])
         .forEach((key, value) {
       associations.add(MapAssociation(key: key, value: value));
     });
@@ -221,17 +234,23 @@ class InstanceHelper extends Domain {
   }
 
   /// Create a Map instance with class [classRef] from [remoteObject].
-  Future<Instance> _mapInstanceFor(ClassRef classRef, RemoteObject remoteObject,
-      List<Property> _, int offset, int count) async {
+  Future<Instance?> _mapInstanceFor(
+      ClassRef? classRef,
+      RemoteObject remoteObject,
+      List<Property> _,
+      int? offset,
+      int? count) async {
+    if (remoteObject.objectId == null) return null;
+
     // Maps are complicated, do an eval to get keys and values.
     final associations = await _mapAssociations(remoteObject, offset, count);
     final length = (offset == null && count == null)
         ? associations.length
-        : (await instanceRefFor(remoteObject)).length;
+        : (await instanceRefFor(remoteObject))?.length;
     return Instance(
         identityHashCode: remoteObject.objectId.hashCode,
         kind: InstanceKind.kMap,
-        id: remoteObject.objectId,
+        id: remoteObject.objectId!,
         classRef: classRef)
       ..length = length
       ..offset = offset
@@ -241,24 +260,26 @@ class InstanceHelper extends Domain {
 
   /// Create a List instance of [classRef] from [remoteObject] with the JS
   /// properties [properties].
-  Future<Instance> _listInstanceFor(
-      ClassRef classRef,
+  Future<Instance?> _listInstanceFor(
+      ClassRef? classRef,
       RemoteObject remoteObject,
       List<Property> properties,
-      int offset,
-      int count) async {
-    final numberOfProperties = _lengthOf(properties);
+      int? offset,
+      int? count) async {
+    if (remoteObject.objectId == null) return null;
+
+    final numberOfProperties = _lengthOf(properties) ?? 1;
     final length = (offset == null && count == null)
         ? numberOfProperties
-        : (await instanceRefFor(remoteObject)).length;
-    final indexed =
-        properties.sublist(0, min(count ?? length, numberOfProperties));
+        : (await instanceRefFor(remoteObject))?.length;
+    final indexed = properties.sublist(
+        0, min(count ?? length ?? numberOfProperties, numberOfProperties));
     final fields = await Future.wait(indexed
         .map((property) async => await _instanceRefForRemote(property.value)));
     return Instance(
         identityHashCode: remoteObject.objectId.hashCode,
         kind: InstanceKind.kList,
-        id: remoteObject.objectId,
+        id: remoteObject.objectId!,
         classRef: classRef)
       ..length = length
       ..elements = fields
@@ -271,9 +292,9 @@ class InstanceHelper extends Domain {
   /// This is only applicable to Lists or Maps, where we expect a length
   /// attribute. Even if a plain instance happens to have a length field, we
   /// don't use it to determine the properties to display.
-  int _lengthOf(List<Property> properties) {
+  int? _lengthOf(List<Property> properties) {
     final lengthProperty = properties.firstWhere((p) => p.name == 'length');
-    return lengthProperty.value.value as int;
+    return lengthProperty.value?.value as int?;
   }
 
   /// Filter [allJsProperties] and return a list containing only those
@@ -314,8 +335,9 @@ class InstanceHelper extends Domain {
     }
     ''';
     final allNames = (await inspector
-            .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
-        .value as String;
+                .jsCallFunctionOn(remoteObject, fieldNameExpression, []))
+            ?.value as String? ??
+        '';
     final names = allNames.split(',');
     // TODO(#761): Better support for large collections.
     return allJsProperties
@@ -326,7 +348,7 @@ class InstanceHelper extends Domain {
   /// Create an InstanceRef for an object, which may be a RemoteObject, or may
   /// be something returned by value from Chrome, e.g. number, boolean, or
   /// String.
-  Future<InstanceRef> instanceRefFor(Object value) {
+  Future<InstanceRef?> instanceRefFor(Object? value) {
     final remote = value is RemoteObject
         ? value
         : RemoteObject({'value': value, 'type': _chromeType(value)});
@@ -334,7 +356,7 @@ class InstanceHelper extends Domain {
   }
 
   /// The Chrome type for a value.
-  String _chromeType(Object value) {
+  String? _chromeType(Object? value) {
     if (value == null) return null;
     if (value is String) return 'string';
     if (value is num) return 'number';
@@ -344,7 +366,7 @@ class InstanceHelper extends Domain {
   }
 
   /// Create an [InstanceRef] for the given Chrome [remoteObject].
-  Future<InstanceRef> _instanceRefForRemote(RemoteObject remoteObject) async {
+  Future<InstanceRef?> _instanceRefForRemote(RemoteObject? remoteObject) async {
     // If we have a null result, treat it as a reference to null.
     if (remoteObject == null) {
       return kNullInstanceRef;
@@ -379,7 +401,7 @@ class InstanceHelper extends Domain {
         if (metaData.isSystemList) {
           return InstanceRef(
               kind: InstanceKind.kList,
-              id: remoteObject.objectId,
+              id: remoteObject.objectId!,
               identityHashCode: remoteObject.objectId.hashCode,
               classRef: metaData.classRef)
             ..length = metaData.length;
@@ -387,14 +409,14 @@ class InstanceHelper extends Domain {
         if (metaData.isSystemMap) {
           return InstanceRef(
               kind: InstanceKind.kMap,
-              id: remoteObject.objectId,
+              id: remoteObject.objectId!,
               identityHashCode: remoteObject.objectId.hashCode,
               classRef: metaData.classRef)
             ..length = metaData.length;
         }
         return InstanceRef(
             kind: InstanceKind.kPlainInstance,
-            id: remoteObject.objectId,
+            id: remoteObject.objectId!,
             identityHashCode: remoteObject.objectId.hashCode,
             classRef: metaData.classRef);
       case 'function':
@@ -402,7 +424,7 @@ class InstanceHelper extends Domain {
             inspector.remoteDebugger, remoteObject);
         return InstanceRef(
             kind: InstanceKind.kClosure,
-            id: remoteObject.objectId,
+            id: remoteObject.objectId!,
             identityHashCode: remoteObject.objectId.hashCode,
             classRef: classRefForClosure)
           // TODO(grouma) - fill this in properly.

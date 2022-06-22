@@ -94,15 +94,17 @@ class AppInspector extends Domain {
   Future<void> _initialize() async {
     final libraries = await libraryHelper.libraryRefs;
     isolate.rootLib = await libraryHelper.rootLib;
-    isolate.libraries.addAll(libraries);
+    isolate.libraries?.addAll(libraries);
 
     final scripts = await scriptRefs;
+    final libraryUris = libraries.map((lib) => lib.uri).toNonNullList();
+    final scriptUris = scripts.map((lib) => lib.uri).toNonNullList();
 
     await DartUri.initialize(_sdkConfiguration);
-    await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
-    await DartUri.recordAbsoluteUris(scripts.map((script) => script.uri));
+    await DartUri.recordAbsoluteUris(libraryUris);
+    await DartUri.recordAbsoluteUris(scriptUris);
 
-    isolate.extensionRPCs.addAll(await _getExtensionRpcs());
+    isolate.extensionRPCs!.addAll(await _getExtensionRpcs());
   }
 
   static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef(
@@ -148,8 +150,9 @@ class AppInspector extends Domain {
         isSystemIsolate: false,
         isolateFlags: [])
       ..extensionRPCs = [];
-    AppInspector appInspector;
-    AppInspector provider() => appInspector;
+
+    AppInspector? appInspector;
+    AppInspector? provider() => appInspector;
     final libraryHelper = LibraryHelper(provider);
     final classHelper = ClassHelper(provider);
     final instanceHelper = InstanceHelper(provider);
@@ -172,7 +175,7 @@ class AppInspector extends Domain {
   }
 
   /// Returns the ID for the execution context or null if not found.
-  Future<int> get contextId async {
+  Future<int?> get contextId async {
     try {
       return await _executionContext.id;
     } catch (e, s) {
@@ -182,7 +185,9 @@ class AppInspector extends Domain {
   }
 
   /// Get the value of the field named [fieldName] from [receiver].
-  Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
+  Future<RemoteObject?> loadField(
+      RemoteObject? receiver, String fieldName) async {
+    if (receiver == null) return null;
     final load = '''
         function() {
           return ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.dloadRepl(this, "$fieldName");
@@ -193,7 +198,7 @@ class AppInspector extends Domain {
 
   /// Call a method by name on [receiver], with arguments [positionalArgs] and
   /// [namedArgs].
-  Future<RemoteObject> invokeMethod(RemoteObject receiver, String methodName,
+  Future<RemoteObject?> invokeMethod(RemoteObject receiver, String methodName,
       [List<RemoteObject> positionalArgs = const [],
       Map namedArgs = const {}]) async {
     // TODO(alanknight): Support named arguments.
@@ -215,9 +220,10 @@ class AppInspector extends Domain {
   ///
   /// [evalExpression] should be a JS function definition that can accept
   /// [arguments].
-  Future<RemoteObject> jsCallFunctionOn(RemoteObject receiver,
+  Future<RemoteObject?> jsCallFunctionOn(RemoteObject? receiver,
       String evalExpression, List<RemoteObject> arguments,
       {bool returnByValue = false}) async {
+    if (receiver == null) return null;
     final jsArguments = arguments.map(callArgumentFor).toList();
     final result =
         await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
@@ -227,14 +233,16 @@ class AppInspector extends Domain {
       'returnByValue': returnByValue,
     });
     handleErrorIfPresent(result, evalContents: evalExpression);
-    return RemoteObject(result.result['result'] as Map<String, Object>);
+    return result.result?['result'] != null
+        ? RemoteObject(result.result!['result'] as Map<String, Object>)
+        : null;
   }
 
   /// Calls Chrome's Runtime.callFunctionOn method with a global function.
   ///
   /// [evalExpression] should be a JS function definition that can accept
   /// [arguments].
-  Future<RemoteObject> _jsCallFunction(
+  Future<RemoteObject?> _jsCallFunction(
       String evalExpression, List<Object> arguments,
       {bool returnByValue = false}) async {
     final jsArguments = arguments.map(callArgumentFor).toList();
@@ -246,12 +254,14 @@ class AppInspector extends Domain {
       'returnByValue': returnByValue,
     });
     handleErrorIfPresent(result, evalContents: evalExpression);
-    return RemoteObject(result.result['result'] as Map<String, Object>);
+    return result.result?['result'] is Map<String, Object>
+        ? RemoteObject(result.result!['result'])
+        : null;
   }
 
-  Future<RemoteObject> evaluate(
+  Future<RemoteObject?> evaluate(
       String isolateId, String targetId, String expression,
-      {Map<String, String> scope}) async {
+      {Map<String, String>? scope}) async {
     scope ??= {};
     final library = await getLibrary(isolateId, targetId);
     if (library == null) {
@@ -272,7 +282,7 @@ class AppInspector extends Domain {
   /// invoking a top-level function. The [arguments] are always strings that are
   /// Dart object Ids (which can also be Chrome RemoteObject objectIds that are
   /// for non-Dart JS objects.)
-  Future<RemoteObject> invoke(String isolateId, String targetId,
+  Future<RemoteObject?> invoke(String isolateId, String targetId,
       String selector, List<dynamic> arguments) async {
     checkIsolate('invoke', isolateId);
     final remoteArguments =
@@ -288,7 +298,7 @@ class AppInspector extends Domain {
   }
 
   /// Invoke the function named [selector] from [library] with [arguments].
-  Future<RemoteObject> _invokeLibraryFunction(
+  Future<RemoteObject?> _invokeLibraryFunction(
       Library library, String selector, List<RemoteObject> arguments) {
     return _evaluateInLibrary(
         library,
@@ -300,8 +310,9 @@ class AppInspector extends Domain {
   /// [libraryUri].
   ///
   /// That is, we will just do 'library.$expression'
-  Future<RemoteObject> evaluateJsExpressionOnLibrary(
-      String expression, String libraryUri) {
+  Future<RemoteObject?> evaluateJsExpressionOnLibrary(
+      String expression, String? libraryUri) async {
+    if (libraryUri == null) return null;
     final evalExpression = '''
 (function() {
   ${globalLoadStrategy.loadLibrarySnippet(libraryUri)};
@@ -312,7 +323,7 @@ class AppInspector extends Domain {
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
-  Future<RemoteObject> jsEvaluate(String expression) async {
+  Future<RemoteObject?> jsEvaluate(String expression) async {
     // TODO(alanknight): Support a version with arguments if needed.
     WipResponse result;
     result = await remoteDebugger.sendCommand('Runtime.evaluate', params: {
@@ -322,16 +333,19 @@ class AppInspector extends Domain {
     handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
       'Dart expression': expression,
     });
-    return RemoteObject(result.result['result'] as Map<String, dynamic>);
+    return result.result?['result'] is Map<String, Object>
+        ? RemoteObject(result.result!['result'])
+        : null;
   }
 
   /// Evaluate the JS function with source [jsFunction] in the context of
   /// [library] with [arguments].
-  Future<RemoteObject> _evaluateInLibrary(
+  Future<RemoteObject?> _evaluateInLibrary(
       Library library, String jsFunction, List<RemoteObject> arguments) async {
+    if (library.uri == null) return null;
     final findLibrary = '''
 (function() {
-  ${globalLoadStrategy.loadLibrarySnippet(library.uri)};
+  ${globalLoadStrategy.loadLibrarySnippet(library.uri!)};
   return library;
 })();
 ''';
@@ -341,13 +355,14 @@ class AppInspector extends Domain {
 
   /// Evaluate [expression] from [library] with [scope] as
   /// arguments.
-  Future<RemoteObject> evaluateInLibrary(
+  Future<RemoteObject?> evaluateInLibrary(
       Library library, Map<String, String> scope, String expression) async {
+    if (library.uri == null) return null;
     final argsString = scope.keys.join(', ');
     final arguments = scope.values.map(remoteObjectFor).toList();
     final evalExpression = '''
 function($argsString) {
-  ${globalLoadStrategy.loadLibrarySnippet(library.uri)};
+  ${globalLoadStrategy.loadLibrarySnippet(library.uri!)};
   return library.$expression;
 }
     ''';
@@ -355,21 +370,21 @@ function($argsString) {
   }
 
   /// Call [function] with objects referred by [argumentIds] as arguments.
-  Future<RemoteObject> callFunction(
+  Future<RemoteObject?> callFunction(
       String function, Iterable<String> argumentIds) async {
     final arguments = argumentIds.map(remoteObjectFor).toList();
     return _jsCallFunction(function, arguments);
   }
 
-  Future<Library> getLibrary(String isolateId, String objectId) async {
+  Future<Library?> getLibrary(String isolateId, String objectId) async {
     if (isolateId != isolate.id) return null;
     final libraryRef = await libraryHelper.libraryRefFor(objectId);
     if (libraryRef == null) return null;
     return libraryHelper.libraryFor(libraryRef);
   }
 
-  Future<Obj> getObject(String isolateId, String objectId,
-      {int offset, int count}) async {
+  Future<Obj?> getObject(String isolateId, String objectId,
+      {int? offset, int? count}) async {
     try {
       final library = await getLibrary(isolateId, objectId);
       if (library != null) {
@@ -396,9 +411,12 @@ function($argsString) {
         'are supported for getObject');
   }
 
-  Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
-    final libraryId = _scriptIdToLibraryId[scriptRef.id];
-    final serverPath = DartUri(scriptRef.uri, _root).serverPath;
+  Future<Script?> _getScript(String isolateId, ScriptRef scriptRef) async {
+    if (scriptRef.uri == null) return null;
+    if (scriptRef.id == null) return null;
+    if (!_scriptIdToLibraryId.containsKey(scriptRef.id)) return null;
+    final libraryId = _scriptIdToLibraryId[scriptRef.id]!;
+    final serverPath = DartUri(scriptRef.uri!, _root).serverPath;
     final source = await _assetReader.dartSourceContents(serverPath);
     if (source == null) {
       throw RPCError('getObject', RPCError.kInvalidParams,
@@ -407,17 +425,18 @@ function($argsString) {
     return Script(
         uri: scriptRef.uri,
         library: await libraryHelper.libraryRefFor(libraryId),
-        id: scriptRef.id)
+        id: scriptRef.id!)
       ..tokenPosTable = await _locations.tokenPosTableFor(serverPath)
       ..source = source;
   }
 
-  Future<MemoryUsage> getMemoryUsage(String isolateId) async {
+  Future<MemoryUsage?> getMemoryUsage(String isolateId) async {
     checkIsolate('getMemoryUsage', isolateId);
 
     final response = await remoteDebugger.sendCommand('Runtime.getHeapUsage');
+    if (response.result == null) return null;
 
-    final jsUsage = HeapUsage(response.result);
+    final jsUsage = HeapUsage(response.result!);
     return MemoryUsage.parse({
       'heapUsage': jsUsage.usedSize,
       'heapCapacity': jsUsage.totalSize,
@@ -426,13 +445,13 @@ function($argsString) {
   }
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
-  Future<ScriptRef> scriptRefFor(String uri) async {
+  Future<ScriptRef?> scriptRefFor(String uri) async {
     await _populateScriptCaches();
     return _serverPathToScriptRef[uri];
   }
 
   /// Returns the [ScriptRef]s in the library with [libraryId].
-  Future<List<ScriptRef>> scriptRefsForLibrary(String libraryId) async {
+  Future<List<ScriptRef>?> scriptRefsForLibrary(String libraryId) async {
     await _populateScriptCaches();
     return _libraryIdToScriptRefs[libraryId];
   }
@@ -443,12 +462,12 @@ function($argsString) {
   Future<SourceReport> getSourceReport(
     String isolateId,
     List<String> reports, {
-    String scriptId,
-    int tokenPos,
-    int endTokenPos,
-    bool forceCompile,
-    bool reportLines,
-    List<String> libraryFilters,
+    String? scriptId,
+    int? tokenPos,
+    int? endTokenPos,
+    bool? forceCompile,
+    bool? reportLines,
+    List<String>? libraryFilters,
   }) {
     checkIsolate('getSourceReport', isolateId);
 
@@ -471,15 +490,14 @@ function($argsString) {
   }
 
   Future<SourceReport> _getPossibleBreakpoints(
-      String isolateId, String vmScriptId) async {
+      String isolateId, String? vmScriptId) async {
     // TODO(devoncarew): Consider adding some caching for this method.
 
-    final scriptRef = scriptWithId(vmScriptId);
-    if (scriptRef == null) {
+    final scriptRef = vmScriptId == null ? null : scriptWithId(vmScriptId);
+    if (scriptRef?.uri == null) {
       throwInvalidParam('getSourceReport', 'scriptId not found: $vmScriptId');
     }
-
-    final dartUri = DartUri(scriptRef.uri, _root);
+    final dartUri = DartUri(scriptRef!.uri!, _root);
     final mappedLocations =
         await _locations.locationsForDart(dartUri.serverPath);
     // Unlike the Dart VM, the token positions match exactly to the possible
@@ -519,7 +537,9 @@ function($argsString) {
   /// Returns the list of scripts refs cached.
   Future<List<ScriptRef>> _populateScriptCaches() async {
     return _scriptCacheMemoizer.runOnce(() async {
-      final libraryUris = [for (var library in isolate.libraries) library.uri];
+      final libraryUris = [
+        for (var library in isolate.libraries ?? []) library.uri
+      ];
       final scripts = await globalLoadStrategy
           .metadataProviderFor(appConnection.request.entrypointPath)
           .scripts;
@@ -531,16 +551,26 @@ function($argsString) {
         final parts = scripts[uri];
         final scriptRefs = [
           ScriptRef(uri: uri, id: createId()),
-          for (var part in parts) ScriptRef(uri: part, id: createId())
+          for (var part in parts ?? []) ScriptRef(uri: part, id: createId())
         ];
         final libraryRef = await libraryHelper.libraryRefFor(uri);
-        _libraryIdToScriptRefs.putIfAbsent(libraryRef.id, () => <ScriptRef>[]);
-        for (var scriptRef in scriptRefs) {
-          _scriptRefsById[scriptRef.id] = scriptRef;
-          _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
-          _serverPathToScriptRef[DartUri(scriptRef.uri, _root).serverPath] =
-              scriptRef;
-          _libraryIdToScriptRefs[libraryRef.id].add(scriptRef);
+
+        if (libraryRef?.id != null) {
+          final libraryId = libraryRef!.id!;
+          _libraryIdToScriptRefs.putIfAbsent(libraryId, () => <ScriptRef>[]);
+
+          for (var scriptRef in scriptRefs) {
+            if (scriptRef.id != null && scriptRef.uri != null) {
+              final scriptId = scriptRef.id!;
+              final scriptUri = scriptRef.uri!;
+
+              _scriptRefsById[scriptId] = scriptRef;
+              _scriptIdToLibraryId[scriptId] = libraryId;
+              _serverPathToScriptRef[DartUri(scriptUri, _root).serverPath] =
+                  scriptRef;
+              _libraryIdToScriptRefs[libraryId]!.add(scriptRef);
+            }
+          }
         }
       }
       return _scriptRefsById.values.toList();
@@ -548,7 +578,7 @@ function($argsString) {
   }
 
   /// Look up the script by id in an isolate.
-  ScriptRef scriptWithId(String scriptId) => _scriptRefsById[scriptId];
+  ScriptRef? scriptWithId(String scriptId) => _scriptRefsById[scriptId];
 
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
@@ -564,8 +594,10 @@ function($argsString) {
       final extensionsResult =
           await remoteDebugger.sendCommand('Runtime.evaluate', params: params);
       handleErrorIfPresent(extensionsResult, evalContents: expression);
-      extensionRpcs.addAll(
-          List.from(extensionsResult.result['result']['value'] as List));
+      if (extensionsResult.result?['result']['value'] is List) {
+        extensionRpcs
+            .addAll(List.from(extensionsResult.result!['result']['value']));
+      }
     } catch (e, s) {
       _logger.severe(
           'Error calling Runtime.evaluate with params $params', e, s);
@@ -575,8 +607,8 @@ function($argsString) {
 
   /// Convert a JS exception description into a description containing
   /// a Dart stack trace.
-  Future<String> mapExceptionStackTrace(String description) async {
-    RemoteObject mapperResult;
+  Future<String?> mapExceptionStackTrace(String description) async {
+    RemoteObject? mapperResult;
     try {
       mapperResult = await _jsCallFunction(
           stackTraceMapperExpression, <Object>[description]);

@@ -60,10 +60,9 @@ Future<List<Property>> visibleProperties({
     // We should never see a raw JS class. The only case where this happens is a
     // Dart generic function, where the type arguments get passed in as
     // parameters. Hide those.
-    final description = value.description??'';
-    final propertyName = property.name??'';
-    return (value.type == 'function' &&
-            description.startsWith('class ')) ||
+    final description = value.description ?? '';
+    final propertyName = property.name ?? '';
+    return (value.type == 'function' && description.startsWith('class ')) ||
         (ddcTemporaryVariableRegExp.hasMatch(propertyName)) ||
         (value.type == 'object' && value.description == 'dart.LegacyType.new');
   });

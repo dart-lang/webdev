@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -11,8 +10,6 @@ import 'debugger.dart';
 
 class FrameComputer {
   final Debugger debugger;
-
-  final _logger = Logger('FrameComputer');
 
   // To ensure that the frames are computed only once, we use a pool to guard
   // the work. Frames are computed sequentially.
@@ -23,7 +20,7 @@ class FrameComputer {
 
   var _frameIndex = 0;
 
-  final StackTrace? _asyncStackTrace;
+  StackTrace? _asyncStackTrace;
   List<CallFrame>? _asyncFramesToProcess;
 
   FrameComputer(this.debugger, this._callFrames, {StackTrace? asyncStackTrace})
@@ -96,14 +93,6 @@ class FrameComputer {
               callFrame.scriptId, callFrame.lineNumber,
               columnNumber: callFrame.columnNumber);
 
-          final url =
-              callFrame.url ?? debugger.urlForScriptId(location.scriptId);
-          if (url == null) {
-            _logger.severe(
-                'Failed to create dart frame for ${callFrame.functionName}: '
-                'cannot find location for script ${callFrame.scriptId}');
-          }
-
           final tempWipFrame = WipCallFrame({
             'url': callFrame.url,
             'functionName': callFrame.functionName,
@@ -125,8 +114,8 @@ class FrameComputer {
 
       // Async frames are no longer on the stack - we don't have local variable
       // information for them.
-      if (_asyncFramesToProcess.isEmpty) {
-        _asyncStackTrace = _asyncStackTrace.parent;
+      if (_asyncFramesToProcess?.isEmpty ?? true) {
+        _asyncStackTrace = _asyncStackTrace?.parent;
         _asyncFramesToProcess = null;
       }
     }

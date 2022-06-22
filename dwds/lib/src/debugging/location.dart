@@ -174,7 +174,7 @@ class Locations {
   /// Find the [Location] for the given JS source position.
   ///
   /// The [line] number is 0-based.
-  Future<Location?> locationForJs(String url, int line, int column) async {
+  Future<Location?> locationForJs(String url, int line, int? column) async {
     final locations = await locationsForUrl(url);
     return _bestJsLocation(locations, line, column);
   }
@@ -208,10 +208,11 @@ class Locations {
   /// the closest location to the current one:
   ///
   /// https://github.com/microsoft/vscode-js-debug/blob/536f96bae61a3d87546b61bc7916097904c81429/src/common/sourceUtils.ts#L286
-  Location? _bestJsLocation(Iterable<Location> locations, int line, int column) {
+  Location? _bestJsLocation(
+      Iterable<Location> locations, int line, int? column) {
     Location? bestLocation;
     for (var location in locations) {
-      if (location.jsLocation.compareToLine(line, column) <= 0) {
+      if (location.jsLocation.compareToLine(line, column ?? 0) <= 0) {
         bestLocation ??= location;
         if (location.jsLocation.compareTo(bestLocation.jsLocation) > 0) {
           bestLocation = location;
@@ -240,13 +241,13 @@ class Locations {
     for (var lineNumber in lineNumberToLocation.keys) {
       if (lineNumberToLocation.containsKey(lineNumber)) {
         final locations = lineNumberToLocation[lineNumber]!;
-      tokenPosTable.add([
-        lineNumber,
-        for (var location in locations) ...[
-          location.tokenPos,
-          location.dartLocation.column
-        ]
-      ]);
+        tokenPosTable.add([
+          lineNumber,
+          for (var location in locations) ...[
+            location.tokenPos,
+            location.dartLocation.column
+          ]
+        ]);
       }
     }
     _sourceToTokenPosTable[serverPath] = tokenPosTable;
@@ -262,7 +263,9 @@ class Locations {
     _locationMemoizer.putIfAbsent(module, () => AsyncMemoizer());
 
     return await _locationMemoizer[module]!.runOnce(() async {
-      if (_moduleToLocations[module] != null) return _moduleToLocations[module]!;
+      if (_moduleToLocations[module] != null) {
+        return _moduleToLocations[module]!;
+      }
       final result = <Location>{};
       if (module.isEmpty) return _moduleToLocations[module] = result;
       if (module.endsWith('dart_sdk') || module.endsWith('dart_library')) {

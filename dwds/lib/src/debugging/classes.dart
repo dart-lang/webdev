@@ -9,7 +9,6 @@ import '../../src/services/chrome_debug_exception.dart';
 import '../loaders/strategy.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
-import 'inspector.dart';
 import 'metadata/class.dart';
 
 /// A hard-coded ClassRef for the Closure class.
@@ -26,7 +25,7 @@ class ClassHelper extends Domain {
   /// Map of class ID to [Class].
   final _classes = <String, Class>{};
 
-  ClassHelper(AppInspector Function() provider) : super(provider) {
+  ClassHelper(AppInspectorProvider provider) : super(provider) {
     final staticClasses = [
       classRefForClosure,
       classRefForString,
@@ -34,17 +33,17 @@ class ClassHelper extends Domain {
     ];
     for (var classRef in staticClasses) {
       if (classRef.id != null) {
-      _classes[classRef.id!] = Class(
-          name: classRef.name,
-          isAbstract: false,
-          isConst: false,
-          library: null,
-          interfaces: [],
-          fields: [],
-          functions: [],
-          subclasses: [],
-          id: classRef.id!,
-          traceAllocations: false);
+        _classes[classRef.id!] = Class(
+            name: classRef.name,
+            isAbstract: false,
+            isConst: false,
+            library: null,
+            interfaces: [],
+            fields: [],
+            functions: [],
+            subclasses: [],
+            id: classRef.id!,
+            traceAllocations: false);
       }
     }
   }
@@ -77,7 +76,11 @@ class ClassHelper extends Domain {
   /// [ClassRef].
   Future<Class?> _constructClass(
       LibraryRef libraryRef, ClassRef classRef) async {
-    if (classRef.id == null || classRef.name == null || libraryRef.uri == null) return null;
+    if (classRef.id == null ||
+        classRef.name == null ||
+        libraryRef.uri == null) {
+      return null;
+    }
 
     final rawName = classRef.name!.split('<').first;
     final expression = '''
