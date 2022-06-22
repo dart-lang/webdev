@@ -33,7 +33,7 @@ class TestAssetServer implements AssetReader {
   final Map<String, Uint8List> _files = {};
   final Map<String, Uint8List> _sourceMaps = {};
   final Map<String, Uint8List> _metadata = {};
-  String? _mergedMetadata;
+  late String _mergedMetadata;
   final PackageConfig _packageConfig;
   final InternetAddress internetAddress;
 
@@ -329,5 +329,6 @@ String _parseBasePathFromIndexHtml(String index) {
   }
   final contents = file.readAsStringSync();
   final matches = RegExp(r'<base href="/([^>]*)/">').allMatches(contents);
-  return (matches.isEmpty ? null : matches.first.group(1)) ?? '';
+  if (matches.isEmpty) return '';
+  return matches.first.group(1) ?? '';
 }
