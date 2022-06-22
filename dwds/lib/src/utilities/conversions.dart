@@ -114,11 +114,11 @@ String dartIdFor(Object? argument) {
 /// the ID represents, use a more general API like [remoteObjectFor] and if it
 /// is a primitive, you can get the value from the resulting [RemoteObject].
 String stringFromDartId(String? dartId) {
-  if (dartId == null || !isStringId(dartId)) {
+  if (!isStringId(dartId)) {
     throw ArgumentError.value(
         dartId, 'dart object ID', 'Expected a valid ID for a String');
   }
-  return _stringFromDartId(dartId);
+  return _stringFromDartId(dartId!);
 }
 
 /// Is [dartId] an Id for a String.
