@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
@@ -18,26 +17,28 @@ import 'require.dart';
 
 /// Provides a [RequireStrategy] suitable for use with `package:build_runner`.
 class BuildRunnerRequireStrategyProvider {
+  final _logger = Logger('BuildRunnerRequireStrategyProvider');
+
   final Handler _assetHandler;
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
 
-  RequireStrategy _requireStrategy;
+  late final RequireStrategy _requireStrategy = RequireStrategy(
+    _configuration,
+    _moduleProvider,
+    _digestsProvider,
+    _moduleForServerPath,
+    _serverPathForModule,
+    _sourceMapPathForModule,
+    _serverPathForAppUri,
+    _moduleInfoForProvider,
+    _assetReader,
+  );
 
   BuildRunnerRequireStrategyProvider(
       this._assetHandler, this._configuration, this._assetReader);
 
-  RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
-        _configuration,
-        _moduleProvider,
-        _digestsProvider,
-        _moduleForServerPath,
-        _serverPathForModule,
-        _sourceMapPathForModule,
-        _serverPathForAppUri,
-        _moduleInfoForProvider,
-        _assetReader,
-      );
+  RequireStrategy get strategy => _requireStrategy;
 
   Future<Map<String, String>> _digestsProvider(
       MetadataProvider metadataProvider) async {
@@ -51,9 +52,18 @@ class BuildRunnerRequireStrategyProvider {
       throw StateError('Could not read digests at path: $digestsPath');
     }
     final body = await response.readAsString();
+    final digests = json.decode(body) as Map<String, dynamic>;
+
+    for (final key in digests.keys) {
+      if (!modules.containsKey(key)) {
+        _logger.warning('Digest key $key is not a module name.');
+      }
+    }
+
     return {
-      for (var entry in (json.decode(body) as Map<String, dynamic>).entries)
-        modules[entry.key]: entry.value as String,
+      for (var entry in digests.entries)
+        if (modules.containsKey(entry.key))
+          modules[entry.key]!: entry.value as String,
     };
   }
 
@@ -62,10 +72,17 @@ class BuildRunnerRequireStrategyProvider {
       (await metadataProvider.moduleToModulePath).map((key, value) =>
           MapEntry(key, stripTopLevelDirectory(removeJsExtension(value))));
 
-  Future<String> _moduleForServerPath(
-          MetadataProvider metadataProvider, String serverPath) async =>
-      (await metadataProvider.modulePathToModule).map((key, value) => MapEntry(
-          stripTopLevelDirectory(key), value))[relativizePath(serverPath)];
+  Future<String?> _moduleForServerPath(
+      MetadataProvider metadataProvider, String serverPath) async {
+    final modulePathToModule = await metadataProvider.modulePathToModule;
+    final relativePath = relativizePath(serverPath);
+    for (var e in modulePathToModule.entries) {
+      if (stripTopLevelDirectory(e.key) == relativePath) {
+        return e.value;
+      }
+    }
+    return null;
+  }
 
   Future<String> _serverPathForModule(
       MetadataProvider metadataProvider, String module) async {
@@ -80,7 +97,7 @@ class BuildRunnerRequireStrategyProvider {
     return stripTopLevelDirectory(path);
   }
 
-  String _serverPathForAppUri(String appUri) {
+  String? _serverPathForAppUri(String appUri) {
     if (appUri.startsWith('org-dartlang-app:')) {
       // We skip the root from which we are serving.
       return Uri.parse(appUri).pathSegments.skip(1).join('/');

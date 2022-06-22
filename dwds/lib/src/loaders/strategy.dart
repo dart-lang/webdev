@@ -2,24 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:shelf/shelf.dart';
 
 import '../debugging/metadata/provider.dart';
 import '../readers/asset_reader.dart';
 import '../services/expression_compiler.dart';
 
-LoadStrategy _globalLoadStrategy;
+late LoadStrategy _globalLoadStrategy;
 
 set globalLoadStrategy(LoadStrategy strategy) => _globalLoadStrategy = strategy;
 
-LoadStrategy get globalLoadStrategy {
-  if (_globalLoadStrategy == null) {
-    throw StateError('Global load strategy not set');
-  }
-  return _globalLoadStrategy;
-}
+LoadStrategy get globalLoadStrategy => _globalLoadStrategy;
 
 abstract class LoadStrategy {
   final AssetReader _assetReader;
@@ -92,7 +85,7 @@ abstract class LoadStrategy {
   ///
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
-  Future<String> moduleForServerPath(String entrypoint, String serverPath);
+  Future<String?> moduleForServerPath(String entrypoint, String serverPath);
 
   /// Returns the server path for the provided module.
   ///
@@ -126,12 +119,17 @@ abstract class LoadStrategy {
   ///
   /// Will return `null` if the provided uri is not
   /// an app URI.
-  String serverPathForAppUri(String appUri);
+  String? serverPathForAppUri(String appUri);
 
   /// Returns the [MetadataProvider] for the application located at the provided
   /// [entrypoint].
-  MetadataProvider metadataProviderFor(String entrypoint) =>
-      _providers[entrypoint];
+  MetadataProvider metadataProviderFor(String entrypoint) {
+    if (_providers.containsKey(entrypoint)) {
+      return _providers[entrypoint]!;
+    } else {
+      throw StateError('No metadata provider for $entrypoint');
+    }
+  }
 
   /// Initializes a [MetadataProvider] for the application located at the
   /// provided [entrypoint].
