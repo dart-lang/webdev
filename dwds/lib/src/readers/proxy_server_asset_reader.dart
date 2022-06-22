@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -20,14 +18,11 @@ import 'asset_reader.dart';
 class ProxyServerAssetReader implements AssetReader {
   final _logger = Logger('ProxyServerAssetReader');
 
-  Handler _handler;
-  http.Client _client;
+  late final Handler _handler;
+  late final http.Client _client;
 
   ProxyServerAssetReader(int assetServerPort,
-      {String root, String host, bool isHttps}) {
-    host ??= 'localhost';
-    root ??= '';
-    isHttps ??= false;
+      {String root = '', String host = 'localhost', bool isHttps = false}) {
     final scheme = isHttps ? 'https://' : 'http://';
     final inner = HttpClient()
       ..maxConnectionsPerHost = 200
@@ -37,19 +32,19 @@ class ProxyServerAssetReader implements AssetReader {
         ? IOClient(inner..badCertificateCallback = (cert, host, port) => true)
         : IOClient(inner);
     var url = '$scheme$host:$assetServerPort/';
-    if (root?.isNotEmpty ?? false) url += '$root/';
+    if (root.isNotEmpty) url += '$root/';
     _handler = proxyHandler(url, client: _client);
   }
 
   @override
-  Future<String> dartSourceContents(String serverPath) =>
+  Future<String?> dartSourceContents(String serverPath) =>
       _readResource(serverPath);
 
   @override
-  Future<String> sourceMapContents(String serverPath) =>
+  Future<String?> sourceMapContents(String serverPath) =>
       _readResource(serverPath);
 
-  Future<String> _readResource(String path) async {
+  Future<String?> _readResource(String path) async {
     // Handlers expect a fully formed HTML URI. The actual hostname and port
     // does not matter.
     final response =
@@ -71,7 +66,7 @@ class ProxyServerAssetReader implements AssetReader {
   }
 
   @override
-  Future<String> metadataContents(String serverPath) =>
+  Future<String?> metadataContents(String serverPath) =>
       _readResource(serverPath);
 
   @override

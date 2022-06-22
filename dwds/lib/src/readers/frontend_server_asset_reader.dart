@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
@@ -15,6 +14,7 @@ import '../readers/asset_reader.dart';
 /// A reader for Dart sources and related source maps provided by the Frontend
 /// Server.
 class FrontendServerAssetReader implements AssetReader {
+  final _logger = Logger('FrontendServerAssetReader');
   final File _mapOriginal;
   final File _mapIncremental;
   final File _jsonOriginal;
@@ -49,29 +49,38 @@ class FrontendServerAssetReader implements AssetReader {
             .absolute(p.join(_packageRoot, '.dart_tool/package_config.json'))));
 
   @override
-  Future<String> dartSourceContents(String serverPath) async {
-    if (!serverPath.endsWith('.dart')) return null;
-    final packageConfig = await _packageConfig;
+  Future<String?> dartSourceContents(String serverPath) async {
+    if (serverPath.endsWith('.dart')) {
+      final packageConfig = await _packageConfig;
 
-    Uri fileUri;
-    if (serverPath.startsWith('packages/')) {
-      final packagePath = serverPath.replaceFirst('packages/', 'package:');
-      fileUri = packageConfig.resolve(Uri.parse(packagePath));
-    } else {
-      fileUri = p.toUri(p.join(_packageRoot, serverPath));
+      Uri? fileUri;
+      if (serverPath.startsWith('packages/')) {
+        final packagePath = serverPath.replaceFirst('packages/', 'package:');
+        fileUri = packageConfig.resolve(Uri.parse(packagePath));
+      } else {
+        fileUri = p.toUri(p.join(_packageRoot, serverPath));
+      }
+      if (fileUri != null) {
+        final source = File(fileUri.toFilePath());
+        if (source.existsSync()) return source.readAsString();
+      }
     }
-
-    final source = File(fileUri.toFilePath());
-    if (!await source.exists()) return null;
-    return await source.readAsString();
+    _logger.severe('Cannot find source contents for $serverPath');
+    return null;
   }
 
   @override
-  Future<String> sourceMapContents(String serverPath) async {
-    if (!serverPath.endsWith('lib.js.map')) return null;
-    if (!serverPath.startsWith('/')) serverPath = '/$serverPath';
-    // Strip the .map, sources are looked up by their js path.
-    return _mapContents[p.withoutExtension(serverPath)];
+  Future<String?> sourceMapContents(String serverPath) async {
+    if (serverPath.endsWith('lib.js.map')) {
+      if (!serverPath.startsWith('/')) serverPath = '/$serverPath';
+      // Strip the .map, sources are looked up by their js path.
+      serverPath = p.withoutExtension(serverPath);
+      if (_mapContents.containsKey(serverPath)) {
+        return _mapContents[serverPath];
+      }
+    }
+    _logger.severe('Cannot find source map contents for $serverPath');
+    return null;
   }
 
   /// Updates the internal caches by reading the Frontend Server output files.

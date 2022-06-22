@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
@@ -32,12 +30,12 @@ class ExtensionDebugger implements RemoteDebugger {
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
-  Future<void> _closed;
+  Future<void>? _closed;
 
-  String instanceId;
-  ExecutionContext _executionContext;
+  String? instanceId;
+  ExecutionContext? _executionContext;
 
-  ExecutionContext get executionContext => _executionContext;
+  ExecutionContext? get executionContext => _executionContext;
 
   final _devToolsRequestController = StreamController<DevToolsRequest>();
 
@@ -139,7 +137,7 @@ class ExtensionDebugger implements RemoteDebugger {
   /// over the SSE connection.
   @override
   Future<WipResponse> sendCommand(String command,
-      {Map<String, dynamic> params}) {
+      {Map<String, dynamic>? params}) {
     final completer = Completer<WipResponse>();
     final id = newId();
     _completers[id] = completer;
@@ -174,7 +172,7 @@ class ExtensionDebugger implements RemoteDebugger {
   Future<String> getScriptSource(String scriptId) async =>
       (await sendCommand('Debugger.getScriptSource',
               params: {'scriptId': scriptId}))
-          .result['scriptSource'] as String;
+          .result!['scriptSource'] as String;
 
   @override
   Future<WipResponse> pause() => sendCommand('Debugger.pause');
@@ -194,14 +192,14 @@ class ExtensionDebugger implements RemoteDebugger {
   }
 
   @override
-  Future<WipResponse> stepInto({Map<String, dynamic> params}) =>
+  Future<WipResponse> stepInto({Map<String, dynamic>? params}) =>
       sendCommand('Debugger.stepInto', params: params);
 
   @override
   Future<WipResponse> stepOut() => sendCommand('Debugger.stepOut');
 
   @override
-  Future<WipResponse> stepOver({Map<String, dynamic> params}) =>
+  Future<WipResponse> stepOver({Map<String, dynamic>? params}) =>
       sendCommand('Debugger.stepOver', params: params);
 
   @override
@@ -212,7 +210,7 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   Future<RemoteObject> evaluate(String expression,
-      {bool returnByValue, int contextId}) async {
+      {bool? returnByValue, int? contextId}) async {
     final params = <String, dynamic>{
       'expression': expression,
     };
@@ -223,12 +221,8 @@ class ExtensionDebugger implements RemoteDebugger {
       params['contextId'] = contextId;
     }
     final response = await sendCommand('Runtime.evaluate', params: params);
-    if (response.result.containsKey('exceptionDetails')) {
-      throw ChromeDebugException(
-          response.result['exceptionDetails'] as Map<String, dynamic>);
-    } else {
-      return RemoteObject(response.result['result'] as Map<String, dynamic>);
-    }
+    final result = _validateResult(response.result);
+    return RemoteObject(result['result'] as Map<String, dynamic>);
   }
 
   @override
@@ -240,12 +234,8 @@ class ExtensionDebugger implements RemoteDebugger {
     };
     final response =
         await sendCommand('Debugger.evaluateOnCallFrame', params: params);
-    if (response.result.containsKey('exceptionDetails')) {
-      throw ChromeDebugException(
-          response.result['exceptionDetails'] as Map<String, dynamic>);
-    } else {
-      return RemoteObject(response.result['result'] as Map<String, dynamic>);
-    }
+    final result = _validateResult(response.result);
+    return RemoteObject(result['result'] as Map<String, dynamic>);
   }
 
   @override
@@ -256,14 +246,10 @@ class ExtensionDebugger implements RemoteDebugger {
     };
     final response =
         await sendCommand('Debugger.getPossibleBreakpoints', params: params);
-    if (response.result.containsKey('exceptionDetails')) {
-      throw ChromeDebugException(
-          response.result['exceptionDetails'] as Map<String, dynamic>);
-    } else {
-      final locations = response.result['locations'] as List;
-      return List.from(locations
-          .map((map) => WipBreakLocation(map as Map<String, dynamic>)));
-    }
+    final result = _validateResult(response.result);
+    final locations = result['locations'] as List;
+    return List.from(
+        locations.map((map) => WipBreakLocation(map as Map<String, dynamic>)));
   }
 
   @override
@@ -314,5 +300,16 @@ class ExtensionDebugger implements RemoteDebugger {
       default:
         throw ArgumentError('unknown state: $state');
     }
+  }
+
+  Map<String, dynamic> _validateResult(Map<String, dynamic>? result) {
+    if (result == null) {
+      throw ChromeDebugException({'result': null});
+    }
+    if (result.containsKey('exceptionDetails')) {
+      throw ChromeDebugException(
+          result['exceptionDetails'] as Map<String, dynamic>);
+    }
+    return result;
   }
 }

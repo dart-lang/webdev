@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -32,7 +30,7 @@ const _clientScript = 'dwds/src/injected/client';
 /// information.
 class DwdsInjector {
   final LoadStrategy _loadStrategy;
-  final Future<String> _extensionUri;
+  final Future<String>? _extensionUri;
   final _devHandlerPaths = StreamController<String>();
   final _logger = Logger('DwdsInjector');
   final bool _enableDevtoolsLaunch;
@@ -41,14 +39,14 @@ class DwdsInjector {
 
   DwdsInjector(
     this._loadStrategy, {
-    Future<String> extensionUri,
-    bool enableDevtoolsLaunch,
-    bool useSseForInjectedClient,
-    bool emitDebugEvents,
+    Future<String>? extensionUri,
+    bool enableDevtoolsLaunch = false,
+    bool useSseForInjectedClient = true,
+    bool emitDebugEvents = true,
   })  : _extensionUri = extensionUri,
         _enableDevtoolsLaunch = enableDevtoolsLaunch,
-        _useSseForInjectedClient = useSseForInjectedClient ?? true,
-        _emitDebugEvents = emitDebugEvents ?? true;
+        _useSseForInjectedClient = useSseForInjectedClient,
+        _emitDebugEvents = emitDebugEvents;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -60,6 +58,9 @@ class DwdsInjector {
           if (request.url.path.endsWith('$_clientScript.js')) {
             final uri = await Isolate.resolvePackageUri(
                 Uri.parse('package:$_clientScript.js'));
+            if (uri == null) {
+              throw StateError('Cannot resolve "package:$_clientScript.js"');
+            }
             final result = await File(uri.toFilePath()).readAsString();
             return Response.ok(result, headers: {
               HttpHeaders.contentTypeHeader: 'application/javascript'
@@ -123,8 +124,7 @@ class DwdsInjector {
             return response.change(body: body, headers: newHeaders);
           } else {
             final loadResponse = await _loadStrategy.handler(request);
-            if (loadResponse != null &&
-                loadResponse.statusCode != HttpStatus.notFound) {
+            if (loadResponse.statusCode != HttpStatus.notFound) {
               return loadResponse;
             }
             return innerHandler(request);
@@ -140,7 +140,7 @@ String _injectClientAndHoistMain(
   String appId,
   String devHandlerPath,
   String entrypointPath,
-  String extensionUri,
+  String? extensionUri,
   LoadStrategy loadStrategy,
   bool enableDevtoolsLaunch,
   bool emitDebugEvents,
@@ -194,7 +194,7 @@ String _injectedClientSnippet(
   String appId,
   String devHandlerPath,
   String entrypointPath,
-  String extensionUri,
+  String? extensionUri,
   LoadStrategy loadStrategy,
   bool enableDevtoolsLaunch,
   bool emitDebugEvents,
