@@ -132,7 +132,7 @@ class Locations {
   final Modules _modules;
   final String _root;
 
-  late final String _entrypoint;
+  late String _entrypoint;
 
   Locations(this._assetReader, this._modules, this._root);
 

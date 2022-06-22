@@ -22,7 +22,7 @@ class Modules {
 
   final Map<String, String> _libraryToModule = {};
 
-  late final String _entrypoint;
+  late String _entrypoint;
 
   Modules(this._root);
 
