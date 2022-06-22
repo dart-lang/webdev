@@ -158,6 +158,7 @@ class Locations {
   Future<Set<Location>> locationsForUrl(String url) async {
     final module = await globalLoadStrategy.moduleForServerPath(
         _entrypoint, Uri.parse(url).path);
+    if (module == null) return {};
     final cache = _moduleToLocations[module];
     if (cache != null) return cache;
     return await _locationsForModule(module);
