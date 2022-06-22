@@ -102,6 +102,7 @@ void main() async {
     globalLoadStrategy = TestStrategy();
     final root = 'fakeRoot';
     locations = Locations(FakeAssetReader(), FakeModules(), root);
+    locations.initialize('fakeEntypoint');
     skipLists = SkipLists();
     debugger = await Debugger.create(
       webkitDebugger,
