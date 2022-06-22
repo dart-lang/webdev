@@ -553,6 +553,9 @@ class ResidentCompiler {
   /// accepted previously so that next call to [recompile] produces complete
   /// kernel file.
   void reset() {
+    // TODO(annagrin): make sure this works when we support hot restart in
+    // tests using frontend server - for example, throw an error if the 
+    // server is not available.
     _server?.stdin.writeln('reset');
     _logger.info('<- reset');
   }
