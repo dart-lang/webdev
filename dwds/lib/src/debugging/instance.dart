@@ -167,8 +167,11 @@ class InstanceHelper extends Domain {
   int _compareBoundFields(BoundField one, BoundField other) {
     final oneName = one.decl?.name;
     final otherName = other.decl?.name;
+
+    if (oneName == otherName) return 0;
     if (oneName == null) return -1;
     if (otherName == null) return 1;
+
     return oneName.compareTo(otherName);
   }
 
