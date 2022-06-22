@@ -1,6 +1,8 @@
 ## 14.0.4-dev
 - Port some `dwds` files to null safety.
 - Fix failing `frontend_server_evaluate` tests.
+- Remove no longer used handler from `ExpressionCompilerService`.
+- Do not add captured values to scope during expression evaluation.
 
 ## 14.0.3
 - Make data types null safe.

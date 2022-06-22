@@ -244,7 +244,6 @@ class TestContext {
               ddcService = ExpressionCompilerService(
                 'localhost',
                 port,
-                assetHandler,
                 verbose: verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
               );

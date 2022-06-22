@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -76,18 +74,17 @@ class ExpressionEvaluator {
     String isolateId,
     String libraryUri,
     String expression,
-    Map<String, String> scope,
+    Map<String, String>? scope,
   ) async {
-    if (_compiler == null) {
-      return _createError(ErrorKind.internal,
-          'ExpressionEvaluator needs an ExpressionCompiler');
-    }
-
-    if (expression == null || expression.isEmpty) {
+    if (expression.isEmpty) {
       return _createError(ErrorKind.invalidInput, expression);
     }
 
     final module = await _modules.moduleForlibrary(libraryUri);
+    if (module == null) {
+      return _createError(
+          ErrorKind.internal, 'Module is not found for library $libraryUri');
+    }
 
     if (scope != null && scope.isNotEmpty) {
       final params = scope.keys.join(', ');
@@ -107,7 +104,7 @@ class ExpressionEvaluator {
     }
 
     // Send JS expression to chrome to evaluate.
-    RemoteObject result;
+    RemoteObject? result;
     if (scope != null && scope.isNotEmpty) {
       // Strip try/catch.
       // TODO: remove adding try/catch block in expression compiler.
@@ -142,12 +139,7 @@ class ExpressionEvaluator {
   /// [expression] dart expression to evaluate.
   Future<RemoteObject> evaluateExpressionInFrame(String isolateId,
       int frameIndex, String expression, Map<String, String> scope) async {
-    if (_compiler == null) {
-      return _createError(ErrorKind.internal,
-          'ExpressionEvaluator needs an ExpressionCompiler');
-    }
-
-    if (expression == null || expression.isEmpty) {
+    if (expression.isEmpty) {
       return _createError(ErrorKind.invalidInput, expression);
     }
 
@@ -168,25 +160,37 @@ class ExpressionEvaluator {
 
     // Find corresponding dart location and scope.
     final url = _urlForScriptId(jsScriptId);
-    final locationMap = await _locations.locationForJs(url, jsLine, jsColumn);
-    if (locationMap == null) {
+    final location = url == null
+        ? null
+        : await _locations.locationForJs(url, jsLine, jsColumn);
+
+    if (location == null) {
       return _createError(
           ErrorKind.internal,
           'Cannot find Dart location for JS location: '
           'url: $url, '
+          'JS script: $jsScriptId, '
           'function: $functionName, '
           'line: $jsLine, '
           'column: $jsColumn');
     }
 
-    final dartLocation = locationMap.dartLocation;
-    final libraryUri =
-        await _modules.libraryForSource(dartLocation.uri.serverPath);
+    final dartLocation = location.dartLocation;
+    final source = dartLocation.uri.serverPath;
+    final libraryUri = await _modules.libraryForSource(source);
+    final module = await _modules.moduleForSource(source);
 
-    final currentModule =
-        await _modules.moduleForSource(dartLocation.uri.serverPath);
+    if (libraryUri == null) {
+      return _createError(
+          ErrorKind.internal, 'Library is not found for source $source');
+    }
 
-    _logger.finest('Evaluating "$expression" at $currentModule, '
+    if (module == null) {
+      return _createError(ErrorKind.internal,
+          'Module is not found for library $libraryUri and source $source');
+    }
+
+    _logger.finest('Evaluating "$expression" at $module, '
         '$libraryUri:${dartLocation.line}:${dartLocation.column}');
 
     // Compile expression using an expression compiler, such as
@@ -198,7 +202,7 @@ class ExpressionEvaluator {
         dartLocation.column,
         {},
         jsScope,
-        currentModule,
+        module,
         expression);
 
     final isError = compilationResult.isError;
@@ -216,20 +220,8 @@ class ExpressionEvaluator {
     return result;
   }
 
-  String _valueToLiteral(RemoteObject value) {
-    if (value.value == null) {
-      return null;
-    }
-
-    final ret = value.value.toString();
-    if (value.type == 'string') {
-      return '\'$ret\'';
-    }
-
-    return ret;
-  }
-
-  bool _isUndefined(RemoteObject value) => value.type == 'undefined';
+  bool _isUndefined(RemoteObject? value) =>
+      value == null || value.type == 'undefined';
 
   RemoteObject _formatCompilationError(String error) {
     // Frontend currently gives a text message including library name
@@ -253,7 +245,11 @@ class ExpressionEvaluator {
     return _createError(ErrorKind.compilation, error);
   }
 
-  Future<RemoteObject> _formatEvaluationError(RemoteObject result) async {
+  Future<RemoteObject> _formatEvaluationError(RemoteObject? result) async {
+    if (result == null) {
+      return _createError(ErrorKind.internal,
+          'Received null result from expression evaluation');
+    }
     if (result.type == 'string') {
       var error = '${result.value}';
       if (error.startsWith('ReferenceError: ')) {
@@ -286,28 +282,7 @@ class ExpressionEvaluator {
       for (var p in variables) {
         final name = p.name;
         final value = p.value;
-        if (_isUndefined(value)) continue;
-
-        if (scopeType == 'closure') {
-          // Substitute potentially unavailable captures with their values from
-          // the stack.
-          //
-          // Note: this makes some uncaptured values available for evaluation,
-          // which might not be formally correct but convenient, for evample:
-          //
-          // int x = 0;
-          // var f = (int y) {
-          //   // 'x' is not captured so it not available at runtime but is
-          //   // captured on stack, so the code below will make it available
-          //   // for evaluation
-          //   print(y);
-          // }
-          // TODO(annagrin): decide if we would like not to support evaluation
-          // of uncaptured variables
-
-          final capturedValue = _valueToLiteral(value);
-          jsScope[name] = capturedValue ?? name;
-        } else {
+        if (name != null && !_isUndefined(value)) {
           jsScope[name] = name;
         }
       }
@@ -316,16 +291,18 @@ class ExpressionEvaluator {
     // skip library and main scope
     final scopeChain = filterScopes(frame).reversed;
     for (var scope in scopeChain) {
-      final scopeProperties =
-          await _inspector.debugger.getProperties(scope.object.objectId);
-
-      collectVariables(scope.scope, scopeProperties);
+      final objectId = scope.object.objectId;
+      if (objectId != null) {
+        final scopeProperties =
+            await _inspector.debugger.getProperties(objectId);
+        collectVariables(scope.scope, scopeProperties);
+      }
     }
 
     return jsScope;
   }
 
   /// Returns Chrome script uri for Chrome script ID.
-  String _urlForScriptId(String scriptId) =>
+  String? _urlForScriptId(String scriptId) =>
       _inspector.remoteDebugger.scripts[scriptId]?.url;
 }
