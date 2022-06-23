@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:async/async.dart';
+import 'package:logging/logging.dart';
 
 import '../loaders/strategy.dart';
 import '../utilities/dart_uri.dart';
 
 /// Tracks modules for the compiled application.
 class Modules {
+  final _logger = Logger('Modules');
   final String _root;
 
   // The Dart server path to containing module.
@@ -22,9 +22,9 @@ class Modules {
 
   final Map<String, String> _libraryToModule = {};
 
-  String _entrypoint;
+  late String _entrypoint;
 
-  Modules(String root) : _root = root == '' ? '/' : root;
+  Modules(this._root);
 
   /// Initializes the mapping from source to module.
   ///
@@ -41,18 +41,18 @@ class Modules {
   }
 
   /// Returns the containing module for the provided Dart server path.
-  Future<String> moduleForSource(String serverPath) async {
+  Future<String?> moduleForSource(String serverPath) async {
     await _moduleMemoizer.runOnce(_initializeMapping);
     return _sourceToModule[serverPath];
   }
 
   /// Returns the containing library importUri for the provided Dart server path.
-  Future<Uri> libraryForSource(String serverPath) async {
+  Future<Uri?> libraryForSource(String serverPath) async {
     await _moduleMemoizer.runOnce(_initializeMapping);
     return _sourceToLibrary[serverPath];
   }
 
-  Future<String> moduleForlibrary(String libraryUri) async {
+  Future<String?> moduleForlibrary(String libraryUri) async {
     await _moduleMemoizer.runOnce(_initializeMapping);
     return _libraryToModule[libraryUri];
   }
@@ -71,21 +71,27 @@ class Modules {
     final scriptToModule = await provider.scriptToModule;
 
     for (var library in libraryToScripts.keys) {
+      final scripts = libraryToScripts[library]!;
       final libraryServerPath = library.startsWith('dart:')
           ? library
           : DartUri(library, _root).serverPath;
 
-      _sourceToModule[libraryServerPath] = scriptToModule[library];
-      _sourceToLibrary[libraryServerPath] = Uri.parse(library);
-      _libraryToModule[library] = scriptToModule[library];
+      if (scriptToModule.containsKey(library)) {
+        final module = scriptToModule[library]!;
+        _sourceToModule[libraryServerPath] = module;
+        _sourceToLibrary[libraryServerPath] = Uri.parse(library);
+        _libraryToModule[library] = module;
 
-      for (var script in libraryToScripts[library]) {
-        final scriptServerPath = script.startsWith('dart:')
-            ? script
-            : DartUri(script, _root).serverPath;
+        for (var script in scripts) {
+          final scriptServerPath = script.startsWith('dart:')
+              ? script
+              : DartUri(script, _root).serverPath;
 
-        _sourceToModule[scriptServerPath] = scriptToModule[library];
-        _sourceToLibrary[scriptServerPath] = Uri.parse(library);
+          _sourceToModule[scriptServerPath] = module;
+          _sourceToLibrary[scriptServerPath] = Uri.parse(library);
+        }
+      } else {
+        _logger.warning('No module found for library $library');
       }
     }
   }
