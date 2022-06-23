@@ -13,20 +13,15 @@ import 'evaluate_common.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
-  var debug = false;
+  final debug = false;
 
-  for (var soundNullSafety in [false, true]) {
-    group('${soundNullSafety ? "sound" : "weak"} null safety |', () {
-      for (var basePath in ['', 'abc']) {
-        group('with base "$basePath" |', () {
-          testAll(
-            compilationMode: CompilationMode.buildDaemon,
-            soundNullSafety: soundNullSafety,
-            basePath: basePath,
-            debug: debug,
-          );
-        });
-      }
+  for (var nullSafety in NullSafety.values) {
+    group('${nullSafety.name} null safety |', () {
+      testAll(
+        compilationMode: CompilationMode.buildDaemon,
+        nullSafety: nullSafety,
+        debug: debug,
+      );
     });
   }
 }

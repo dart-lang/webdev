@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @JS()
 library webdev.web.promise;
 
@@ -46,10 +44,10 @@ Promise<T> toPromise<T>(Future<T> future) {
 ///
 /// This also propagates [Promise] rejection through to the returned [Future].
 Future<T> toFuture<T>(Promise<T> promise) {
-  var completer = Completer<T>();
+  final completer = Completer<T>();
   promise.then(
     allowInterop(completer.complete),
-    allowInterop(completer.completeError),
+    allowInterop((e) => completer.completeError(e)),
   );
   return completer.future;
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
@@ -28,9 +26,9 @@ class ReloadingManager {
   /// - called hotRestart with the same runId
   ///
   /// The apps are restarted at the same time on the first call.
-  Future<bool> hotRestart({String runId}) async {
+  Future<bool> hotRestart({String? runId}) async {
     _beforeRestart();
-    var result = await _restarter.restart(runId: runId);
+    final result = await _restarter.restart(runId: runId);
     _afterRestart(result);
     return result;
   }

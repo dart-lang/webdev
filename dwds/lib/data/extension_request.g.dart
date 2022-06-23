@@ -248,9 +248,9 @@ class _$ExtensionRequest extends ExtensionRequest {
   _$ExtensionRequest._(
       {required this.id, required this.command, this.commandParams})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, 'ExtensionRequest', 'id');
+    BuiltValueNullFieldError.checkNotNull(id, r'ExtensionRequest', 'id');
     BuiltValueNullFieldError.checkNotNull(
-        command, 'ExtensionRequest', 'command');
+        command, r'ExtensionRequest', 'command');
   }
 
   @override
@@ -278,7 +278,7 @@ class _$ExtensionRequest extends ExtensionRequest {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExtensionRequest')
+    return (newBuiltValueToStringHelper(r'ExtensionRequest')
           ..add('id', id)
           ..add('command', command)
           ..add('commandParams', commandParams))
@@ -334,9 +334,9 @@ class ExtensionRequestBuilder
     final _$result = _$v ??
         new _$ExtensionRequest._(
             id: BuiltValueNullFieldError.checkNotNull(
-                id, 'ExtensionRequest', 'id'),
+                id, r'ExtensionRequest', 'id'),
             command: BuiltValueNullFieldError.checkNotNull(
-                command, 'ExtensionRequest', 'command'),
+                command, r'ExtensionRequest', 'command'),
             commandParams: commandParams);
     replace(_$result);
     return _$result;
@@ -363,11 +363,11 @@ class _$ExtensionResponse extends ExtensionResponse {
       required this.result,
       this.error})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, 'ExtensionResponse', 'id');
+    BuiltValueNullFieldError.checkNotNull(id, r'ExtensionResponse', 'id');
     BuiltValueNullFieldError.checkNotNull(
-        success, 'ExtensionResponse', 'success');
+        success, r'ExtensionResponse', 'success');
     BuiltValueNullFieldError.checkNotNull(
-        result, 'ExtensionResponse', 'result');
+        result, r'ExtensionResponse', 'result');
   }
 
   @override
@@ -397,7 +397,7 @@ class _$ExtensionResponse extends ExtensionResponse {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExtensionResponse')
+    return (newBuiltValueToStringHelper(r'ExtensionResponse')
           ..add('id', id)
           ..add('success', success)
           ..add('result', result)
@@ -458,11 +458,11 @@ class ExtensionResponseBuilder
     final _$result = _$v ??
         new _$ExtensionResponse._(
             id: BuiltValueNullFieldError.checkNotNull(
-                id, 'ExtensionResponse', 'id'),
+                id, r'ExtensionResponse', 'id'),
             success: BuiltValueNullFieldError.checkNotNull(
-                success, 'ExtensionResponse', 'success'),
+                success, r'ExtensionResponse', 'success'),
             result: BuiltValueNullFieldError.checkNotNull(
-                result, 'ExtensionResponse', 'result'),
+                result, r'ExtensionResponse', 'result'),
             error: error);
     replace(_$result);
     return _$result;
@@ -479,8 +479,8 @@ class _$ExtensionEvent extends ExtensionEvent {
       (new ExtensionEventBuilder()..update(updates))._build();
 
   _$ExtensionEvent._({required this.params, required this.method}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(params, 'ExtensionEvent', 'params');
-    BuiltValueNullFieldError.checkNotNull(method, 'ExtensionEvent', 'method');
+    BuiltValueNullFieldError.checkNotNull(params, r'ExtensionEvent', 'params');
+    BuiltValueNullFieldError.checkNotNull(method, r'ExtensionEvent', 'method');
   }
 
   @override
@@ -506,7 +506,7 @@ class _$ExtensionEvent extends ExtensionEvent {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExtensionEvent')
+    return (newBuiltValueToStringHelper(r'ExtensionEvent')
           ..add('params', params)
           ..add('method', method))
         .toString();
@@ -555,9 +555,9 @@ class ExtensionEventBuilder
     final _$result = _$v ??
         new _$ExtensionEvent._(
             params: BuiltValueNullFieldError.checkNotNull(
-                params, 'ExtensionEvent', 'params'),
+                params, r'ExtensionEvent', 'params'),
             method: BuiltValueNullFieldError.checkNotNull(
-                method, 'ExtensionEvent', 'method'));
+                method, r'ExtensionEvent', 'method'));
     replace(_$result);
     return _$result;
   }
@@ -571,7 +571,7 @@ class _$BatchedEvents extends BatchedEvents {
       (new BatchedEventsBuilder()..update(updates))._build();
 
   _$BatchedEvents._({required this.events}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(events, 'BatchedEvents', 'events');
+    BuiltValueNullFieldError.checkNotNull(events, r'BatchedEvents', 'events');
   }
 
   @override
@@ -594,7 +594,8 @@ class _$BatchedEvents extends BatchedEvents {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('BatchedEvents')..add('events', events))
+    return (newBuiltValueToStringHelper(r'BatchedEvents')
+          ..add('events', events))
         .toString();
   }
 }
@@ -644,7 +645,7 @@ class BatchedEventsBuilder
         events.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
-            'BatchedEvents', _$failedField, e.toString());
+            r'BatchedEvents', _$failedField, e.toString());
       }
       rethrow;
     }
@@ -653,4 +654,4 @@ class BatchedEventsBuilder
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,no_leading_underscores_for_local_identifiers,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,no_leading_underscores_for_local_identifiers,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new,unnecessary_lambdas

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:isolate';
 
@@ -15,18 +13,15 @@ import '../utilities/dart_uri.dart';
 import '../utilities/sdk_configuration.dart';
 import 'expression_compiler.dart';
 
-final _logger = Logger('ExpressionCompilerService');
-
 class _Compiler {
-  final Isolate _worker;
-  final StreamQueue<Object> _responseQueue;
+  static final _logger = Logger('ExpressionCompilerService');
+  final StreamQueue<dynamic> _responseQueue;
   final ReceivePort _receivePort;
   final SendPort _sendPort;
 
-  Future<void> _dependencyUpdate;
+  Future<void>? _dependencyUpdate;
 
   _Compiler._(
-    this._worker,
     this._responseQueue,
     this._receivePort,
     this._sendPort,
@@ -71,11 +66,11 @@ class _Compiler {
   ) async {
     sdkConfiguration.validate();
 
-    final librariesUri = sdkConfiguration.librariesUri;
-    final workerUri = sdkConfiguration.compilerWorkerUri;
+    final librariesUri = sdkConfiguration.librariesUri!;
+    final workerUri = sdkConfiguration.compilerWorkerUri!;
     final sdkSummaryUri = soundNullSafety
-        ? sdkConfiguration.soundSdkSummaryUri
-        : sdkConfiguration.unsoundSdkSummaryUri;
+        ? sdkConfiguration.soundSdkSummaryUri!
+        : sdkConfiguration.unsoundSdkSummaryUri!;
 
     final args = [
       '--experimental-expression-compiler',
@@ -97,53 +92,49 @@ class _Compiler {
     _logger.finest('$workerUri ${args.join(' ')}');
 
     final receivePort = ReceivePort();
-    final isolate = await Isolate.spawnUri(
+    await Isolate.spawnUri(
       workerUri,
       args,
       receivePort.sendPort,
       // Note(annagrin): ddc snapshot is generated with no asserts, so we have
       // to run it unchecked in case the calling isolate is checked, as it
       // happens, for example, when debugging webdev in VSCode or running tests
-      // using 'pub run'
+      // using 'dart run'
       checked: false,
     );
 
-    var responseQueue = StreamQueue(receivePort);
-    var sendPort = await responseQueue.next as SendPort;
+    final responseQueue = StreamQueue(receivePort);
+    final sendPort = await responseQueue.next as SendPort;
 
-    var service = _Compiler._(isolate, responseQueue, receivePort, sendPort);
+    final service = _Compiler._(responseQueue, receivePort, sendPort);
 
     return service;
   }
 
   Future<bool> updateDependencies(Map<String, ModuleInfo> modules) async {
-    if (_worker == null) {
-      throw StateError('Expression compilation service has stopped');
-    }
-    var updateCompleter = Completer();
+    final updateCompleter = Completer();
     _dependencyUpdate = updateCompleter.future;
 
     _logger.info('Updating dependencies...');
     _logger.finest('Dependencies: $modules');
 
-    var response = await _send({
+    final response = await _send({
       'command': 'UpdateDeps',
       'inputs': [
         for (var moduleName in modules.keys)
           {
-            'path': modules[moduleName].fullDillPath,
-            if (modules[moduleName].summaryPath != null)
-              'summaryPath': modules[moduleName].summaryPath,
+            'path': modules[moduleName]!.fullDillPath,
+            'summaryPath': modules[moduleName]!.summaryPath,
             'moduleName': moduleName
           },
       ]
     });
-    var result = response == null ? false : response['succeeded'] as bool;
+    final result = (response['succeeded'] as bool?) ?? false;
     if (result) {
       _logger.info('Updated dependencies.');
     } else {
-      var e = response['exception'];
-      var s = response['stackTrace'];
+      final e = response['exception'];
+      final s = response['stackTrace'];
       _logger.severe('Failed to update dependencies: $e:$s');
     }
     updateCompleter.complete();
@@ -160,16 +151,18 @@ class _Compiler {
     String moduleName,
     String expression,
   ) async {
-    if (_worker == null) {
-      throw StateError('Expression compilation service has stopped');
+    _logger.finest('Waiting for dependencies to update');
+    if (_dependencyUpdate == null) {
+      _logger
+          .warning('Dependencies are not updated before compiling expressions');
+      return ExpressionCompilationResult('<compiler is not ready>', true);
     }
 
-    _logger.finest('Waiting for dependencies to update');
     await _dependencyUpdate;
 
     _logger.finest('Compiling "$expression" at $libraryUri:$line');
 
-    var response = await _send({
+    final response = await _send({
       'command': 'CompileExpression',
       'expression': expression,
       'line': line,
@@ -180,20 +173,16 @@ class _Compiler {
       'moduleName': moduleName,
     });
 
-    var succeeded = false;
-    var result = '<unknown error>';
+    final errors = response['errors'] as List<String>?;
+    final e = response['exception'];
+    final s = response['stackTrace'];
+    final error = (errors != null && errors.isNotEmpty)
+        ? errors.first
+        : (e != null ? '$e:$s' : '<unknown error>');
+    final procedure = response['compiledProcedure'] as String;
+    final succeeded = (response['succeeded'] as bool?) ?? false;
+    final result = succeeded ? procedure : error;
 
-    if (response != null) {
-      var errors = response['errors'] as List<String>;
-      var e = response['exception'];
-      var s = response['stackTrace'];
-      var error = (errors != null && errors.isNotEmpty)
-          ? errors.first
-          : (e != null ? '$e:$s' : '<unknown error>');
-      var procedure = response['compiledProcedure'] as String;
-      succeeded = response['succeeded'] as bool;
-      result = succeeded ? procedure : error;
-    }
     if (succeeded) {
       _logger.finest('Compiled "$expression" to: $result');
     } else {
@@ -229,6 +218,7 @@ class _Compiler {
 ///
 /// Users need to stop the service by calling [stop].
 class ExpressionCompilerService implements ExpressionCompiler {
+  final _logger = Logger('ExpressionCompilerService');
   final _compiler = Completer<_Compiler>();
   final String _address;
   final FutureOr<int> _port;
@@ -237,13 +227,10 @@ class ExpressionCompilerService implements ExpressionCompiler {
 
   final SdkConfigurationProvider _sdkConfigurationProvider;
 
-  ExpressionCompilerService(
-    this._address,
-    this._port,
-    this._assetHandler, {
-    bool verbose = false,
-    SdkConfigurationProvider sdkConfigurationProvider,
-  })  : _verbose = verbose,
+  ExpressionCompilerService(this._address, this._port, this._assetHandler,
+      {bool verbose = false,
+      SdkConfigurationProvider? sdkConfigurationProvider})
+      : _verbose = verbose,
         _sdkConfigurationProvider =
             sdkConfigurationProvider ?? DefaultSdkConfigurationProvider();
 
@@ -261,11 +248,11 @@ class ExpressionCompilerService implements ExpressionCompiler {
           line, column, jsModules, jsFrameValues, moduleName, expression);
 
   @override
-  Future<void> initialize({String moduleFormat, bool soundNullSafety}) async {
+  Future<void> initialize(
+      {required String moduleFormat, bool soundNullSafety = false}) async {
     if (_compiler.isCompleted) return;
-    soundNullSafety ??= false;
 
-    var compiler = await _Compiler.start(
+    final compiler = await _Compiler.start(
       _address,
       await _port,
       moduleFormat,
@@ -295,9 +282,9 @@ class ExpressionCompilerService implements ExpressionCompiler {
   /// Translates given resource uri to a server path and redirects
   /// the request to the asset handler.
   FutureOr<Response> handler(Request request) async {
-    var uri = request.requestedUri.queryParameters['uri'];
+    final uri = request.requestedUri.queryParameters['uri'];
     try {
-      var query = request.requestedUri.path;
+      final query = request.requestedUri.path;
       _logger.finest('request: ${request.method} ${request.requestedUri}');
 
       if (query != '/getResource' || uri == null) {

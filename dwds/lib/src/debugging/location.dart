@@ -5,6 +5,7 @@
 // @dart = 2.9
 
 import 'package:async/async.dart';
+import 'package:dwds/src/loaders/require.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
 import 'package:source_maps/source_maps.dart';
@@ -36,10 +37,10 @@ class Location {
     TargetEntry entry,
     DartUri dartUri,
   ) {
-    var dartLine = entry.sourceLine;
-    var dartColumn = entry.sourceColumn;
-    var jsLine = lineEntry.line;
-    var jsColumn = entry.column;
+    final dartLine = entry.sourceLine;
+    final dartColumn = entry.sourceColumn;
+    final jsLine = lineEntry.line;
+    final jsColumn = entry.column;
 
     // lineEntry data is 0 based according to:
     // https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k
@@ -72,7 +73,7 @@ class DartLocation {
   int compareTo(DartLocation other) => compareToLine(other.line, other.column);
 
   int compareToLine(int otherLine, int otherColumn) {
-    var result = line.compareTo(otherLine);
+    final result = line.compareTo(otherLine);
     return result == 0 ? column.compareTo(otherColumn) : result;
   }
 
@@ -102,7 +103,7 @@ class JsLocation {
   int compareTo(JsLocation other) => compareToLine(other.line, other.column);
 
   int compareToLine(int otherLine, int otherColumn) {
-    var result = line.compareTo(otherLine);
+    final result = line.compareTo(otherLine);
     return result == 0 ? column.compareTo(otherColumn) : result;
   }
 
@@ -149,16 +150,16 @@ class Locations {
 
   /// Returns all [Location] data for a provided Dart source.
   Future<Set<Location>> locationsForDart(String serverPath) async {
-    var module = await _modules.moduleForSource(serverPath);
+    final module = await _modules.moduleForSource(serverPath);
     await _locationsForModule(module);
     return _sourceToLocation[serverPath] ?? {};
   }
 
   /// Returns all [Location] data for a provided JS server path.
   Future<Set<Location>> locationsForUrl(String url) async {
-    var module = await globalLoadStrategy.moduleForServerPath(
+    final module = await globalLoadStrategy.moduleForServerPath(
         _entrypoint, Uri.parse(url).path);
-    var cache = _moduleToLocations[module];
+    final cache = _moduleToLocations[module];
     if (cache != null) return cache;
     return await _locationsForModule(module) ?? {};
   }
@@ -167,7 +168,7 @@ class Locations {
   ///
   /// The [line] number is 1-based.
   Future<Location> locationForDart(DartUri uri, int line, int column) async {
-    var locations = await locationsForDart(uri.serverPath);
+    final locations = await locationsForDart(uri.serverPath);
     return _bestDartLocation(locations, line, column);
   }
 
@@ -175,7 +176,7 @@ class Locations {
   ///
   /// The [line] number is 0-based.
   Future<Location> locationForJs(String url, int line, int column) async {
-    var locations = await locationsForUrl(url);
+    final locations = await locationsForUrl(url);
     return _bestJsLocation(locations, line, column);
   }
 
@@ -230,8 +231,8 @@ class Locations {
     // Construct the tokenPosTable which is of the form:
     // [lineNumber, (tokenId, columnNumber)*]
     tokenPosTable = <List<int>>[];
-    var locations = await locationsForDart(serverPath);
-    var lineNumberToLocation = <int, Set<Location>>{};
+    final locations = await locationsForDart(serverPath);
+    final lineNumberToLocation = <int, Set<Location>>{};
     for (var location in locations) {
       lineNumberToLocation
           .putIfAbsent(location.dartLocation.line, () => <Location>{})
@@ -261,35 +262,35 @@ class Locations {
     return await _locationMemoizer[module].runOnce(() async {
       if (module == null) return {};
       if (_moduleToLocations[module] != null) return _moduleToLocations[module];
-      var result = <Location>{};
+      final result = <Location>{};
       if (module?.isEmpty ?? true) return _moduleToLocations[module] = result;
       if (module.endsWith('dart_sdk') || module.endsWith('dart_library')) {
         return result;
       }
-      var modulePath =
+      final modulePath =
           await globalLoadStrategy.serverPathForModule(_entrypoint, module);
-      var sourceMapPath =
+      final sourceMapPath =
           await globalLoadStrategy.sourceMapPathForModule(_entrypoint, module);
-      var sourceMapContents =
+      final sourceMapContents =
           await _assetReader.sourceMapContents(sourceMapPath);
-      var scriptLocation = p.url.dirname('/$modulePath');
+      final scriptLocation = p.url.dirname('/${relativizePath(modulePath)}');
       if (sourceMapContents == null) return result;
       // This happens to be a [SingleMapping] today in DDC.
-      var mapping = parse(sourceMapContents);
+      final mapping = parse(sourceMapContents);
       if (mapping is SingleMapping) {
         // Create TokenPos for each entry in the source map.
         for (var lineEntry in mapping.lines) {
           for (var entry in lineEntry.entries) {
-            var index = entry.sourceUrlId;
+            final index = entry.sourceUrlId;
             if (index == null) continue;
             // Source map URLS are relative to the script. They may have platform separators
             // or they may use URL semantics. To be sure, we split and re-join them.
             // This works on Windows because path treats both / and \ as separators.
             // It will fail if the path has both separators in it.
-            var relativeSegments = p.split(mapping.urls[index]);
-            var path = p.url.normalize(
+            final relativeSegments = p.split(mapping.urls[index]);
+            final path = p.url.normalize(
                 p.url.joinAll([scriptLocation, ...relativeSegments]));
-            var dartUri = DartUri(path, _root);
+            final dartUri = DartUri(path, _root);
             result.add(Location.from(
               modulePath,
               lineEntry,

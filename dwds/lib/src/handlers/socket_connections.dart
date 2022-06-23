@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:async/async.dart';
@@ -56,11 +54,11 @@ class SseSocketHandler extends SocketHandler {
   final SseHandler _sseHandler;
   final StreamController<SseSocketConnection> _connectionsStream =
       StreamController<SseSocketConnection>();
-  StreamQueue<SseSocketConnection> _connectionsStreamQueue;
+  StreamQueue<SseSocketConnection>? _connectionsStreamQueue;
 
   SseSocketHandler(this._sseHandler) {
     unawaited(() async {
-      var injectedConnections = _sseHandler.connections;
+      final injectedConnections = _sseHandler.connections;
       while (await injectedConnections.hasNext) {
         _connectionsStream
             .add(SseSocketConnection(await injectedConnections.next));
@@ -90,8 +88,7 @@ class WebSocketConnection extends SocketConnection {
   StreamSink<dynamic> get sink => _channel.sink;
 
   @override
-  Stream<String> get stream =>
-      _channel.stream.map((dynamic o) => o?.toString());
+  Stream<String> get stream => _channel.stream.map((dynamic o) => o.toString());
 
   @override
   void shutdown() => _channel.sink.close();
@@ -100,10 +97,10 @@ class WebSocketConnection extends SocketConnection {
 /// An implemenation of [SocketHandler] that accepts WebSocket connections and
 /// wraps them in a [WebSocketConnection].
 class WebSocketSocketHandler extends SocketHandler {
-  Handler _handler;
+  late Handler _handler;
   final StreamController<WebSocketConnection> _connectionsStream =
       StreamController<WebSocketConnection>();
-  StreamQueue<WebSocketConnection> _connectionsStreamQueue;
+  StreamQueue<WebSocketConnection>? _connectionsStreamQueue;
 
   WebSocketSocketHandler() {
     _handler = webSocketHandler((WebSocketChannel channel) =>

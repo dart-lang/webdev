@@ -2,28 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
-import '../../dwds.dart';
+import '../debugging/metadata/provider.dart';
+import '../loaders/strategy.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
 
 /// Find the path we are serving from the url.
 ///
 /// Example:
-///   https://localhost/base/index.html => /base
-///   https://localhost/base => /base
+///   https://localhost/base/index.html => base
+///   https://localhost/base => base
 String basePathForServerUri(String url) {
-  if (url == null) return null;
-  var uri = Uri.parse(url);
+  final uri = Uri.parse(url);
   var base = uri.path.endsWith('.html') ? p.dirname(uri.path) : uri.path;
-  if (base.isNotEmpty) {
-    base = base.startsWith('/') ? base : '/$base';
-  }
-  return base;
+  return base = base.startsWith('/') ? base.substring(1) : base;
 }
 
 String relativizePath(String path) =>
@@ -99,7 +96,7 @@ class RequireStrategy extends LoadStrategy {
   ///
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
-  final Future<String> Function(MetadataProvider provider, String sourcePath)
+  final Future<String?> Function(MetadataProvider provider, String sourcePath)
       _moduleForServerPath;
 
   /// Returns the server path for the provided module.
@@ -128,7 +125,7 @@ class RequireStrategy extends LoadStrategy {
   ///
   /// Will return `null` if the provided uri is not
   /// an app URI.
-  final String Function(String appUri) _serverPathForAppUri;
+  final String? Function(String appUri) _serverPathForAppUri;
 
   /// Returns a map from module id to module info.
   ///
@@ -154,13 +151,14 @@ class RequireStrategy extends LoadStrategy {
   @override
   Handler get handler => (request) async {
         if (request.url.path.endsWith(_requireDigestsPath)) {
-          var metadataProvider =
-              metadataProviderFor(request.url.queryParameters['entrypoint']);
-          if (metadataProvider == null) return null;
-          var digests = await _digestsProvider(metadataProvider);
+          final entrypoint = request.url.queryParameters['entrypoint'];
+          if (entrypoint == null) return Response.notFound('${request.url}');
+          final metadataProvider =
+              metadataProviderFor(request.url.queryParameters['entrypoint']!);
+          final digests = await _digestsProvider(metadataProvider);
           return Response.ok(json.encode(digests));
         }
-        return null;
+        return Response.notFound('${request.url}');
       };
 
   @override
@@ -235,9 +233,9 @@ requirejs.onResourceLoad = function (context, map, depArray) {
       'window.\$requireLoader.forceLoadModule("$clientScript");\n';
 
   Future<String> _requireLoaderSetup(String entrypoint) async {
-    var metadataProvider = metadataProviderFor(entrypoint);
-    var modulePaths = await _moduleProvider(metadataProvider);
-    var moduleNames =
+    final metadataProvider = metadataProviderFor(entrypoint);
+    final modulePaths = await _moduleProvider(metadataProvider);
+    final moduleNames =
         modulePaths.map((key, value) => MapEntry<String, String>(value, key));
     return '''
 $_baseUrlScript
@@ -275,25 +273,25 @@ if(!window.\$requireLoader) {
   }
 
   @override
-  Future<String> moduleForServerPath(String entrypoint, String serverPath) {
-    var metadataProvider = metadataProviderFor(entrypoint);
+  Future<String?> moduleForServerPath(String entrypoint, String serverPath) {
+    final metadataProvider = metadataProviderFor(entrypoint);
     return _moduleForServerPath(metadataProvider, serverPath);
   }
 
   @override
   Future<String> serverPathForModule(String entrypoint, String module) {
-    var metadataProvider = metadataProviderFor(entrypoint);
+    final metadataProvider = metadataProviderFor(entrypoint);
     return _serverPathForModule(metadataProvider, module);
   }
 
   @override
   Future<String> sourceMapPathForModule(String entrypoint, String module) {
-    var metadataProvider = metadataProviderFor(entrypoint);
+    final metadataProvider = metadataProviderFor(entrypoint);
     return _sourceMapPathForModule(metadataProvider, module);
   }
 
   @override
-  String serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);
+  String? serverPathForAppUri(String appUri) => _serverPathForAppUri(appUri);
 
   @override
   Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>

@@ -267,7 +267,7 @@ class FakeStrategy implements LoadStrategy {
   shelf.Handler get handler =>
       (request) => (request.url.path == 'someDummyPath')
           ? shelf.Response.ok('some dummy response')
-          : null;
+          : shelf.Response.notFound('someDummyPath');
 
   @override
   String get id => 'dummy-id';

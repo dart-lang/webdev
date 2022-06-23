@@ -29,14 +29,14 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   // Enable verbose logging for debugging.
-  var debug = false;
+  final debug = false;
 
   // Change to 'true' to print expression compiler messages to console.
   //
   // Note: expression compiler runs in an isolate, so its output is not
   // currently redirected to a logger. As a result, it will be printed
   // regardless of the logger settings.
-  var verboseCompiler = false;
+  final verboseCompiler = false;
 
   group('shared context', () {
     setUpAll(() async {
@@ -76,9 +76,9 @@ void main() {
       });
 
       test('set breakpoint', () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
+        final bp = await service.addBreakpointWithScriptUri(
             isolate.id, mainScript.uri, line);
 
         await stream.firstWhere(
@@ -91,9 +91,9 @@ void main() {
       });
 
       test('set breakpoint again', () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printLocal', isolate.id, mainScript);
-        var bp = await service.addBreakpointWithScriptUri(
+        final bp = await service.addBreakpointWithScriptUri(
             isolate.id, mainScript.uri, line);
 
         await stream.firstWhere(
@@ -106,10 +106,10 @@ void main() {
       });
 
       test('set breakpoint inside a JavaScript line succeeds', () async {
-        var line = await context.findBreakpointLine(
+        final line = await context.findBreakpointLine(
             'printNestedObjectMultiLine', isolate.id, mainScript);
-        var column = 0;
-        var bp = await service.addBreakpointWithScriptUri(
+        final column = 0;
+        final bp = await service.addBreakpointWithScriptUri(
             isolate.id, mainScript.uri, line,
             column: column);
 

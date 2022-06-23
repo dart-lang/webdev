@@ -33,58 +33,58 @@ void main() async {
 
   group('can receive', () {
     test('an ExtensionResponse', () async {
-      var extensionResponse = ExtensionResponse((b) => b
+      final extensionResponse = ExtensionResponse((b) => b
         ..result = jsonEncode({
           'result': {'value': 3.14}
         })
         ..id = 0
         ..success = true);
-      var resultCompleter = Completer();
+      final resultCompleter = Completer();
       unawaited(extensionDebugger.sendCommand('Runtime.evaluate',
           params: {'expression': '\$pi'}).then((response) {
         resultCompleter.complete(response);
       }));
       connection.controllerIncoming.sink
           .add(jsonEncode(serializers.serialize(extensionResponse)));
-      var response = await resultCompleter.future;
+      final response = await resultCompleter.future;
       expect(response.result['result']['value'], 3.14);
     });
 
     test('an ExtensionEvent', () async {
-      var extensionEvent = ExtensionEvent((b) => b
+      final extensionEvent = ExtensionEvent((b) => b
         ..method = jsonEncode('Debugger.paused')
         ..params = jsonEncode(frames1Json[0]));
       connection.controllerIncoming.sink
           .add(jsonEncode(serializers.serialize(extensionEvent)));
-      var wipEvent = await extensionDebugger.onNotification.first;
+      final wipEvent = await extensionDebugger.onNotification.first;
       expect(wipEvent.method, 'Debugger.paused');
       expect(wipEvent.params, frames1Json[0]);
     });
 
     test('a BatchedEvents', () async {
-      var event1 = ExtensionEvent((b) => b
+      final event1 = ExtensionEvent((b) => b
         ..method = jsonEncode('Debugger.scriptParsed')
         ..params = jsonEncode(scriptParsedParams));
-      var event2 = ExtensionEvent((b) => b
+      final event2 = ExtensionEvent((b) => b
         ..method = jsonEncode('Debugger.scriptParsed')
         ..params = jsonEncode(scriptParsedParams));
-      var batch =
+      final batch =
           BatchedEvents((b) => b.events = ListBuilder([event1, event2]));
       connection.controllerIncoming.sink
           .add(jsonEncode(serializers.serialize(batch)));
-      var wipEvent = await extensionDebugger.onNotification.first;
+      final wipEvent = await extensionDebugger.onNotification.first;
       expect(wipEvent.method, 'Debugger.scriptParsed');
       expect(wipEvent.params, scriptParsedParams);
     });
 
     test('a DevToolsRequest', () async {
-      var devToolsRequest = DevToolsRequest((b) => b
+      final devToolsRequest = DevToolsRequest((b) => b
         ..tabUrl = 'pi/calculus'
         ..appId = '3.14'
         ..instanceId = '6.28');
       connection.controllerIncoming.sink
           .add(jsonEncode(serializers.serialize(devToolsRequest)));
-      var request = await extensionDebugger.devToolsRequestStream.first;
+      final request = await extensionDebugger.devToolsRequestStream.first;
       expect(request.tabUrl, 'pi/calculus');
       expect(request.appId, '3.14');
       expect(request.instanceId, '6.28');
@@ -93,27 +93,27 @@ void main() async {
 
   group('can send', () {
     test('a request with empty params', () async {
-      var extensionRequest = ExtensionRequest((b) => b
+      final extensionRequest = ExtensionRequest((b) => b
         ..id = 0
         ..command = 'Debugger.pause'
         ..commandParams = jsonEncode({}));
       unawaited(extensionDebugger.pause());
-      var request = serializers.deserialize(
+      final request = serializers.deserialize(
           jsonDecode(await connection.controllerOutgoing.stream.first));
       expect(request, extensionRequest);
     });
 
     test('a request with some params', () async {
-      var params = {
+      final params = {
         'location': {'scriptId': '555', 'lineNumber': 28}
       };
-      var extensionRequest = ExtensionRequest((b) => b
+      final extensionRequest = ExtensionRequest((b) => b
         ..id = 0
         ..command = 'Debugger.setBreakpoint'
         ..commandParams = jsonEncode(params));
       unawaited(extensionDebugger.sendCommand('Debugger.setBreakpoint',
           params: params));
-      var request = serializers.deserialize(
+      final request = serializers.deserialize(
           jsonDecode(await connection.controllerOutgoing.stream.first));
       expect(request, extensionRequest);
     });

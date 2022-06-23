@@ -37,25 +37,26 @@ void main() {
     });
 
     test('can add and remove after a refresh', () async {
-      var stream = service.onEvent('Isolate');
+      final stream = service.onEvent('Isolate');
       // Wait for the page to be fully loaded before refreshing.
       await Future.delayed(const Duration(seconds: 1));
       // Now wait for the shutdown event.
-      var exitEvent =
+      final exitEvent =
           stream.firstWhere((e) => e.kind != EventKind.kIsolateExit);
       await context.webDriver.refresh();
       await exitEvent;
       // Wait for the refresh to propagate through.
-      var isolateStart =
+      final isolateStart =
           await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
-      var isolateId = isolateStart.isolate.id;
-      var refreshedScriptList = await service.getScripts(isolateId);
-      var refreshedMain = refreshedScriptList.scripts
+      final isolateId = isolateStart.isolate.id;
+      final refreshedScriptList = await service.getScripts(isolateId);
+      final refreshedMain = refreshedScriptList.scripts
           .lastWhere((each) => each.uri.contains('main.dart'));
-      var bpLine = await context.findBreakpointLine(
+      final bpLine = await context.findBreakpointLine(
           'printHelloWorld', isolateId, refreshedMain);
-      var bp = await service.addBreakpoint(isolateId, refreshedMain.id, bpLine);
-      var isolate = await service.getIsolate(vm.isolates.first.id);
+      final bp =
+          await service.addBreakpoint(isolateId, refreshedMain.id, bpLine);
+      final isolate = await service.getIsolate(vm.isolates.first.id);
       expect(isolate.breakpoints, [bp]);
       expect(bp.id, isNotNull);
       await service.removeBreakpoint(isolateId, bp.id);

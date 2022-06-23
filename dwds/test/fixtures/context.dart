@@ -42,6 +42,10 @@ final Matcher throwsSentinelException = throwsA(isSentinelException);
 
 enum CompilationMode { buildDaemon, frontendServer }
 
+enum IndexBaseMode { noBase, base }
+
+enum NullSafety { weak, sound }
+
 class TestContext {
   String appUrl;
   WipConnection tabConnection;
@@ -59,7 +63,8 @@ class TestContext {
   int port;
   Directory _outputDir;
   File _entryFile;
-  String _packagesFilePath;
+  Uri _packageConfigFile;
+  Uri _projectDirectory;
   String _entryContents;
 
   /// Null safety mode for the frontend server.
@@ -76,7 +81,7 @@ class TestContext {
   /// TODO(annagrin): Currently setting sound null safety for frontend
   /// server tests fails due to missing sound SDK JavaScript and maps.
   /// Issue: https://github.com/dart-lang/webdev/issues/1591
-  bool soundNullSafety;
+  NullSafety nullSafety;
   final _logger = logging.Logger('Context');
 
   /// Top level directory in which we run the test server..
@@ -93,23 +98,27 @@ class TestContext {
       String entry,
       this.path = 'hello_world/index.html',
       this.pathToServe = 'example'}) {
-    var relativeDirectory = p.join('..', 'fixtures', '_test');
+    final relativeDirectory = p.join('..', 'fixtures', '_test');
 
-    var relativeEntry = p.join(
+    final relativeEntry = p.join(
         '..', 'fixtures', '_test', 'example', 'append_body', 'main.dart');
 
     workingDirectory = p.normalize(p
         .absolute(directory ?? p.relative(relativeDirectory, from: p.current)));
 
     DartUri.currentDirectory = workingDirectory;
-    _packagesFilePath =
-        p.join(workingDirectory, '.dart_tool/package_config.json');
 
-    var entryFilePath = p.normalize(
+    // package_config.json is located in <project directory>/.dart_tool/package_config
+    _projectDirectory = p.toUri(workingDirectory);
+    _packageConfigFile =
+        p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
+
+    final entryFilePath = p.normalize(
         p.absolute(entry ?? p.relative(relativeEntry, from: p.current)));
 
     _logger.info('Serving: $pathToServe/$path');
-    _logger.info('Packages: $_packagesFilePath');
+    _logger.info('Project: $_projectDirectory');
+    _logger.info('Packages: $_packageConfigFile');
     _logger.info('Entry: $entryFilePath');
 
     _entryFile = File(entryFilePath);
@@ -129,11 +138,10 @@ class TestContext {
     UrlEncoder urlEncoder,
     bool restoreBreakpoints,
     CompilationMode compilationMode,
-    bool soundNullSafety,
+    NullSafety nullSafety,
     bool enableExpressionEvaluation,
     bool verboseCompiler,
     SdkConfigurationProvider sdkConfigurationProvider,
-    String basePath,
   }) async {
     reloadConfiguration ??= ReloadConfiguration.none;
     serveDevTools ??= false;
@@ -146,8 +154,7 @@ class TestContext {
     spawnDds ??= true;
     verboseCompiler ??= false;
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
-    soundNullSafety ??= false;
-    basePath ??= '';
+    nullSafety ??= NullSafety.weak;
 
     try {
       configureLogWriter();
@@ -157,11 +164,11 @@ class TestContext {
         ..idleTimeout = const Duration(seconds: 30)
         ..connectionTimeout = const Duration(seconds: 30));
 
-      var systemTempDir = Directory.systemTemp;
+      final systemTempDir = Directory.systemTemp;
       _outputDir = systemTempDir.createTempSync('foo bar');
 
-      var chromeDriverPort = await findUnusedPort();
-      var chromeDriverUrlBase = 'wd/hub';
+      final chromeDriverPort = await findUnusedPort();
+      final chromeDriverUrlBase = 'wd/hub';
       try {
         chromeDriver = await Process.start('chromedriver$_exeExt',
             ['--port=$chromeDriverPort', '--url-base=$chromeDriverUrlBase']);
@@ -196,12 +203,13 @@ class TestContext {
       Handler assetHandler;
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
+      String basePath = '';
 
       port = await findUnusedPort();
       switch (compilationMode) {
         case CompilationMode.buildDaemon:
           {
-            var options = [
+            final options = [
               if (enableExpressionEvaluation) ...[
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
@@ -210,8 +218,8 @@ class TestContext {
             ];
             daemonClient =
                 await connectClient(workingDirectory, options, (log) {
-              var record = log.toLogRecord();
-              var name =
+              final record = log.toLogRecord();
+              final name =
                   record.loggerName == '' ? '' : '${record.loggerName}: ';
               _logger.log(record.level, '$name${record.message}', record.error,
                   record.stackTrace);
@@ -225,7 +233,7 @@ class TestContext {
                     .any((result) => result.status == BuildStatus.succeeded))
                 .timeout(const Duration(seconds: 60));
 
-            var assetServerPort = daemonPort(workingDirectory);
+            final assetServerPort = daemonPort(workingDirectory);
             assetHandler = proxyHandler(
                 'http://localhost:$assetServerPort/$pathToServe/',
                 client: client);
@@ -254,26 +262,32 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
-            var projectDirectory = p.dirname(p.dirname(_packagesFilePath));
-            var entryPath =
-                _entryFile.path.substring(projectDirectory.length + 1);
-            webRunner = ResidentWebRunner(
-                '${Uri.file(entryPath)}',
-                urlEncoder,
-                _packagesFilePath,
-                [projectDirectory],
-                'org-dartlang-app',
-                _outputDir.path,
-                soundNullSafety,
-                verboseCompiler);
+            _logger.warning('Index: $path');
 
-            var assetServerPort = await findUnusedPort();
-            await webRunner.run(hostname, assetServerPort, pathToServe);
+            final entry = p.toUri(_entryFile.path
+                .substring(_projectDirectory.toFilePath().length + 1));
+
+            webRunner = ResidentWebRunner(
+              entry,
+              urlEncoder,
+              _projectDirectory,
+              _packageConfigFile,
+              [_projectDirectory],
+              'org-dartlang-app',
+              _outputDir.path,
+              nullSafety == NullSafety.sound,
+              verboseCompiler,
+            );
+
+            final assetServerPort = await findUnusedPort();
+            await webRunner.run(
+                hostname, assetServerPort, p.join(pathToServe, path));
 
             if (enableExpressionEvaluation) {
               expressionCompiler = webRunner.expressionCompiler;
             }
 
+            basePath = webRunner.devFS.assetServer.basePath;
             assetReader = webRunner.devFS.assetServer;
             assetHandler = webRunner.devFS.assetServer.handleRequest;
 
@@ -288,14 +302,14 @@ class TestContext {
           throw Exception('Unsupported compilation mode: $compilationMode');
       }
 
-      var debugPort = await findUnusedPort();
+      final debugPort = await findUnusedPort();
       // If the environment variable DWDS_DEBUG_CHROME is set to the string true
       // then Chrome will be launched with a UI rather than headless.
       // If the extension is enabled, then Chrome will be launched with a UI
       // since headless Chrome does not support extensions.
-      var headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
+      final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
           !enableDebugExtension;
-      var capabilities = Capabilities.chrome
+      final capabilities = Capabilities.chrome
         ..addAll({
           Capabilities.chromeOptions: {
             'args': [
@@ -310,7 +324,7 @@ class TestContext {
           desired: capabilities,
           uri: Uri.parse(
               'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
-      var connection = ChromeConnection('localhost', debugPort);
+      final connection = ChromeConnection('localhost', debugPort);
 
       testServer = await TestServer.start(
         hostname,
@@ -333,15 +347,18 @@ class TestContext {
         ddcService,
       );
 
-      appUrl = 'http://localhost:$port/$path';
+      appUrl = basePath.isEmpty
+          ? 'http://localhost:$port/$path'
+          : 'http://localhost:$port/$basePath/$path';
+
       await webDriver.get(appUrl);
-      var tab = await connection.getTab((t) => t.url == appUrl);
+      final tab = await connection.getTab((t) => t.url == appUrl);
       tabConnection = await tab.connect();
       await tabConnection.runtime.enable();
       await tabConnection.debugger.enable();
 
       if (enableDebugExtension) {
-        var extensionTab = await _fetchDartDebugExtensionTab(connection);
+        final extensionTab = await _fetchDartDebugExtensionTab(connection);
         extensionConnection = await extensionTab.connect();
         await extensionConnection.runtime.enable();
       }
@@ -395,7 +412,7 @@ class TestContext {
 
     // Allow change to propagate to the browser.
     // Windows, or at least Travis on Windows, seems to need more time.
-    var delay = Platform.isWindows
+    final delay = Platform.isWindows
         ? const Duration(seconds: 5)
         : const Duration(seconds: 2);
     await Future.delayed(delay);
@@ -403,12 +420,12 @@ class TestContext {
 
   Future<ChromeTab> _fetchDartDebugExtensionTab(
       ChromeConnection connection) async {
-    var extensionTabs = (await connection.getTabs()).where((tab) {
+    final extensionTabs = (await connection.getTabs()).where((tab) {
       return tab.isChromeExtension;
     });
     for (var tab in extensionTabs) {
-      var tabConnection = await tab.connect();
-      var response =
+      final tabConnection = await tab.connect();
+      final response =
           await tabConnection.runtime.evaluate('window.isDartDebugExtension');
       if (response.value == true) {
         return tab;
@@ -425,10 +442,10 @@ class TestContext {
   /// Throws if it can't find the matching line.
   Future<int> findBreakpointLine(
       String breakpointId, String isolateId, ScriptRef scriptRef) async {
-    var script = await debugConnection.vmService
+    final script = await debugConnection.vmService
         .getObject(isolateId, scriptRef.id) as Script;
-    var lines = LineSplitter.split(script.source).toList();
-    var lineNumber =
+    final lines = LineSplitter.split(script.source).toList();
+    final lineNumber =
         lines.indexWhere((l) => l.endsWith('// Breakpoint: $breakpointId'));
     if (lineNumber == -1) {
       throw StateError('Unable to find breakpoint in ${scriptRef.uri} with id '

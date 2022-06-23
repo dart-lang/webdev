@@ -19,24 +19,24 @@ void main() {
   const lineLength = 150;
 
   globalLoadStrategy = MockLoadStrategy();
-  var dartUri = DartUri('org-dartlang://web/main.dart');
+  final dartUri = DartUri('org-dartlang://web/main.dart');
 
-  var assetReader = FakeAssetReader();
-  var modules = MockModules();
-  var locations = Locations(assetReader, modules, '');
+  final assetReader = FakeAssetReader();
+  final modules = MockModules();
+  final locations = Locations(assetReader, modules, '');
 
   group('JS locations |', () {
     group('location |', () {
       test('is zero based', () async {
-        var loc = JsLocation.fromZeroBased(_module, 0, 0);
+        final loc = JsLocation.fromZeroBased(_module, 0, 0);
         expect(loc, _matchJsLocation(0, 0));
       });
 
       test('can compare to other location', () async {
-        var loc00 = JsLocation.fromZeroBased(_module, 0, 0);
-        var loc01 = JsLocation.fromZeroBased(_module, 0, 1);
-        var loc10 = JsLocation.fromZeroBased(_module, 1, 0);
-        var loc11 = JsLocation.fromZeroBased(_module, 1, 1);
+        final loc00 = JsLocation.fromZeroBased(_module, 0, 0);
+        final loc01 = JsLocation.fromZeroBased(_module, 0, 1);
+        final loc10 = JsLocation.fromZeroBased(_module, 1, 0);
+        final loc11 = JsLocation.fromZeroBased(_module, 1, 1);
 
         expect(loc00.compareTo(loc01), isNegative);
         expect(loc00.compareTo(loc10), isNegative);
@@ -50,56 +50,56 @@ void main() {
 
     group('best location |', () {
       test('does not return location for setup code', () async {
-        var location = await locations.locationForJs(_module, 0, 0);
+        final location = await locations.locationForJs(_module, 0, 0);
         expect(location, isNull);
       });
 
       test('prefers precise match', () async {
-        var location = await locations.locationForJs(_module, 37, 0);
+        final location = await locations.locationForJs(_module, 37, 0);
         expect(location, _matchLocationForJs(37, 0));
       });
 
       test('finds a match in the beginning of the line', () async {
-        var location = await locations.locationForJs(_module, 39, 4);
+        final location = await locations.locationForJs(_module, 39, 4);
         expect(location, _matchLocationForJs(39, 0));
       });
 
       test('finds a match in the middle of the line', () async {
-        var location = await locations.locationForJs(_module, 39, 10);
+        final location = await locations.locationForJs(_module, 39, 10);
         expect(location, _matchLocationForJs(39, 6));
       });
 
       test('finds a match on a previous line', () async {
-        var location = await locations.locationForJs(_module, 44, 0);
+        final location = await locations.locationForJs(_module, 44, 0);
         expect(location, _matchLocationForJs(43, 18));
       });
 
       test('finds a match on a previous line with a closer match after',
           () async {
-        var location =
+        final location =
             await locations.locationForJs(_module, 44, lineLength - 1);
         expect(location, _matchLocationForJs(43, 18));
       });
 
       test('finds a match on the last line', () async {
-        var location =
+        final location =
             await locations.locationForJs(_module, lines - 1, lineLength - 1);
         expect(location, _matchLocationForJs(50, 2));
       });
 
       test('finds a match on invalid line', () async {
-        var location =
+        final location =
             await locations.locationForJs(_module, lines, lineLength - 1);
         expect(location, _matchLocationForJs(50, 2));
       });
 
       test('finds a match on invalid column on the same line', () async {
-        var location = await locations.locationForJs(_module, 50, lineLength);
+        final location = await locations.locationForJs(_module, 50, lineLength);
         expect(location, _matchLocationForJs(50, 2));
       });
 
       test('finds a match on invalid column on a previous line', () async {
-        var location =
+        final location =
             await locations.locationForJs(_module, lines - 1, lineLength);
         expect(location, _matchLocationForJs(50, 2));
       });
@@ -109,15 +109,15 @@ void main() {
   group('Dart locations |', () {
     group('location |', () {
       test('is one based', () async {
-        var loc = DartLocation.fromZeroBased(dartUri, 0, 0);
+        final loc = DartLocation.fromZeroBased(dartUri, 0, 0);
         expect(loc, _matchDartLocation(1, 1));
       });
 
       test('can compare to other locations', () async {
-        var loc00 = DartLocation.fromZeroBased(dartUri, 0, 0);
-        var loc01 = DartLocation.fromZeroBased(dartUri, 0, 1);
-        var loc10 = DartLocation.fromZeroBased(dartUri, 1, 0);
-        var loc11 = DartLocation.fromZeroBased(dartUri, 1, 1);
+        final loc00 = DartLocation.fromZeroBased(dartUri, 0, 0);
+        final loc01 = DartLocation.fromZeroBased(dartUri, 0, 1);
+        final loc10 = DartLocation.fromZeroBased(dartUri, 1, 0);
+        final loc11 = DartLocation.fromZeroBased(dartUri, 1, 1);
 
         expect(loc00.compareTo(loc01), isNegative);
         expect(loc00.compareTo(loc10), isNegative);
@@ -132,22 +132,22 @@ void main() {
     group('best location |', () {
       test('does not return location for dart lines not mapped to JS',
           () async {
-        var location = await locations.locationForDart(dartUri, 0, 0);
+        final location = await locations.locationForDart(dartUri, 0, 0);
         expect(location, isNull);
       });
 
       test('returns location after on the same line', () async {
-        var location = await locations.locationForDart(dartUri, 11, 0);
+        final location = await locations.locationForDart(dartUri, 11, 0);
         expect(location, _matchLocationForDart(11, 3));
       });
 
       test('return null on invalid line', () async {
-        var location = await locations.locationForDart(dartUri, lines, 0);
+        final location = await locations.locationForDart(dartUri, lines, 0);
         expect(location, isNull);
       });
 
       test('return null on invalid column', () async {
-        var location =
+        final location =
             await locations.locationForDart(dartUri, lines - 1, lineLength);
         expect(location, isNull);
       });

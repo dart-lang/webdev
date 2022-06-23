@@ -174,9 +174,9 @@ class _$DevToolsRequest extends DevToolsRequest {
       this.tabUrl,
       this.uriOnly})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(appId, 'DevToolsRequest', 'appId');
+    BuiltValueNullFieldError.checkNotNull(appId, r'DevToolsRequest', 'appId');
     BuiltValueNullFieldError.checkNotNull(
-        instanceId, 'DevToolsRequest', 'instanceId');
+        instanceId, r'DevToolsRequest', 'instanceId');
   }
 
   @override
@@ -210,7 +210,7 @@ class _$DevToolsRequest extends DevToolsRequest {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('DevToolsRequest')
+    return (newBuiltValueToStringHelper(r'DevToolsRequest')
           ..add('appId', appId)
           ..add('instanceId', instanceId)
           ..add('contextId', contextId)
@@ -277,9 +277,9 @@ class DevToolsRequestBuilder
     final _$result = _$v ??
         new _$DevToolsRequest._(
             appId: BuiltValueNullFieldError.checkNotNull(
-                appId, 'DevToolsRequest', 'appId'),
+                appId, r'DevToolsRequest', 'appId'),
             instanceId: BuiltValueNullFieldError.checkNotNull(
-                instanceId, 'DevToolsRequest', 'instanceId'),
+                instanceId, r'DevToolsRequest', 'instanceId'),
             contextId: contextId,
             tabUrl: tabUrl,
             uriOnly: uriOnly);
@@ -304,9 +304,9 @@ class _$DevToolsResponse extends DevToolsResponse {
       {required this.success, required this.promptExtension, this.error})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(
-        success, 'DevToolsResponse', 'success');
+        success, r'DevToolsResponse', 'success');
     BuiltValueNullFieldError.checkNotNull(
-        promptExtension, 'DevToolsResponse', 'promptExtension');
+        promptExtension, r'DevToolsResponse', 'promptExtension');
   }
 
   @override
@@ -334,7 +334,7 @@ class _$DevToolsResponse extends DevToolsResponse {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('DevToolsResponse')
+    return (newBuiltValueToStringHelper(r'DevToolsResponse')
           ..add('success', success)
           ..add('promptExtension', promptExtension)
           ..add('error', error))
@@ -390,13 +390,13 @@ class DevToolsResponseBuilder
     final _$result = _$v ??
         new _$DevToolsResponse._(
             success: BuiltValueNullFieldError.checkNotNull(
-                success, 'DevToolsResponse', 'success'),
+                success, r'DevToolsResponse', 'success'),
             promptExtension: BuiltValueNullFieldError.checkNotNull(
-                promptExtension, 'DevToolsResponse', 'promptExtension'),
+                promptExtension, r'DevToolsResponse', 'promptExtension'),
             error: error);
     replace(_$result);
     return _$result;
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,no_leading_underscores_for_local_identifiers,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,no_leading_underscores_for_local_identifiers,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new,unnecessary_lambdas

@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:path/path.dart' as p;
 
-import '../../dwds.dart';
+import '../debugging/metadata/provider.dart';
+import '../loaders/strategy.dart';
+import '../readers/asset_reader.dart';
+import '../services/expression_compiler.dart';
 import 'require.dart';
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
@@ -16,41 +17,44 @@ class FrontendServerRequireStrategyProvider {
   final Future<Map<String, String>> Function() _digestsProvider;
   final String _basePath;
 
-  RequireStrategy _requireStrategy;
+  late final RequireStrategy _requireStrategy = RequireStrategy(
+    _configuration,
+    _moduleProvider,
+    (_) => _digestsProvider(),
+    _moduleForServerPath,
+    _serverPathForModule,
+    _sourceMapPathForModule,
+    _serverPathForAppUri,
+    _moduleInfoForProvider,
+    _assetReader,
+  );
 
   FrontendServerRequireStrategyProvider(this._configuration, this._assetReader,
-      this._digestsProvider, String basePath)
-      : _basePath = basePathForServerUri(basePath);
+      this._digestsProvider, this._basePath);
 
-  RequireStrategy get strategy => _requireStrategy ??= RequireStrategy(
-        _configuration,
-        _moduleProvider,
-        (_) => _digestsProvider(),
-        _moduleForServerPath,
-        _serverPathForModule,
-        _sourceMapPathForModule,
-        _serverPathForAppUri,
-        _moduleInfoForProvider,
-        _assetReader,
-      );
+  RequireStrategy get strategy => _requireStrategy;
 
-  String _removeBasePath(String path) =>
-      path.startsWith(_basePath) ? path.substring(_basePath.length) : null;
+  String _removeBasePath(String path) {
+    if (_basePath.isEmpty) return path;
+    // If path is a server path it might start with a '/'.
+    final base = path.startsWith('/') ? '/$_basePath' : _basePath;
+    return path.startsWith(base) ? path.substring(base.length) : path;
+  }
 
-  String _addBasePath(String serverPath) =>
-      _basePath == null || _basePath.isEmpty
-          ? relativizePath(serverPath)
-          : '$_basePath/${relativizePath(serverPath)}';
+  String _addBasePath(String serverPath) => _basePath.isEmpty
+      ? relativizePath(serverPath)
+      : '$_basePath/${relativizePath(serverPath)}';
 
   Future<Map<String, String>> _moduleProvider(
           MetadataProvider metadataProvider) async =>
       (await metadataProvider.moduleToModulePath).map((key, value) =>
           MapEntry(key, relativizePath(removeJsExtension(value))));
 
-  Future<String> _moduleForServerPath(
+  Future<String?> _moduleForServerPath(
       MetadataProvider metadataProvider, String serverPath) async {
-    var modulePathToModule = await metadataProvider.modulePathToModule;
-    return modulePathToModule[_removeBasePath(serverPath)];
+    final modulePathToModule = await metadataProvider.modulePathToModule;
+    final relativeServerPath = _removeBasePath(serverPath);
+    return modulePathToModule[relativeServerPath];
   }
 
   Future<String> _serverPathForModule(
@@ -61,7 +65,7 @@ class FrontendServerRequireStrategyProvider {
           MetadataProvider metadataProvider, String module) async =>
       _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
-  String _serverPathForAppUri(String appUri) {
+  String? _serverPathForAppUri(String appUri) {
     if (appUri.startsWith('org-dartlang-app:')) {
       return _addBasePath(Uri.parse(appUri).path);
     }
@@ -70,10 +74,10 @@ class FrontendServerRequireStrategyProvider {
 
   Future<Map<String, ModuleInfo>> _moduleInfoForProvider(
       MetadataProvider metadataProvider) async {
-    var modules = await metadataProvider.moduleToModulePath;
-    var result = <String, ModuleInfo>{};
+    final modules = await metadataProvider.moduleToModulePath;
+    final result = <String, ModuleInfo>{};
     for (var module in modules.keys) {
-      var modulePath = modules[module];
+      final modulePath = modules[module]!;
       result[module] = ModuleInfo(
           // TODO: Save locations of full kernel files in ddc metadata.
           // Issue: https://github.com/dart-lang/sdk/issues/43684

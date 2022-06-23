@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -20,13 +18,12 @@ import 'extension_debugger.dart';
 const authenticationResponse = 'Dart Debug Authentication Success!\n\n'
     'You can close this tab and launch the Dart Debug Extension again.';
 
-Logger _logger = Logger('ExtensionBackend');
-
 /// A backend for the Dart Debug Extension.
 ///
 /// Sets up an SSE handler to communicate with the extension background.
 /// Uses that SSE channel to create an [ExtensionDebugger].
 class ExtensionBackend {
+  static final _logger = Logger('ExtensionBackend');
   final String hostname;
   final int port;
   final HttpServer _server;
@@ -34,32 +31,33 @@ class ExtensionBackend {
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
-  Future<void> _closed;
+  Future<void>? _closed;
 
   ExtensionBackend._(
-      SocketHandler _socketHandler, this.hostname, this.port, this._server)
-      : connections = _socketHandler.connections;
+      SocketHandler socketHandler, this.hostname, this.port, this._server)
+      : connections = socketHandler.connections;
 
   // Starts the backend on an open port.
   static Future<ExtensionBackend> start(
-      SocketHandler _socketHandler, String hostname) async {
+      SocketHandler socketHandler, String hostname) async {
     var cascade = Cascade();
     cascade = cascade.add((request) {
       if (request.url.path == authenticationPath) {
         return Response.ok(authenticationResponse, headers: {
-          'Access-Control-Allow-Origin': request.headers['origin'],
+          if (request.headers.containsKey('origin'))
+            'Access-Control-Allow-Origin': request.headers['origin']!,
           'Access-Control-Allow-Credentials': 'true'
         });
       }
       return Response.notFound('');
-    }).add(_socketHandler.handler);
-    var server = await startHttpServer(hostname);
+    }).add(socketHandler.handler);
+    final server = await startHttpServer(hostname);
     serveHttpRequests(server, cascade.handler, (e, s) {
       _logger.warning('Error serving requests', e);
       emitEvent(DwdsEvent.httpRequestException('ExtensionBackend', '$e:$s'));
     });
     return ExtensionBackend._(
-        _socketHandler, server.address.host, server.port, server);
+        socketHandler, server.address.host, server.port, server);
   }
 
   Future<void> close() => _closed ??= _server.close();

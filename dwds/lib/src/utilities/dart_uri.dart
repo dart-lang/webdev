@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
-import '../loaders/require.dart';
 import '../loaders/strategy.dart';
 import 'sdk_configuration.dart';
 
@@ -30,26 +27,22 @@ class DartUri {
   ///    path is a web server path and so relative to the directory being
   ///    served, not to the package.
   ///
-  /// The optional [serverUri] is a temporary workaround for a bug with construction.
-  /// Older SDKs (before D24) gave us a path that didn't include the full path,
-  /// e.g. main.dart rather than hello_world/main.dart and src/path.dart rather than
-  /// packages/path/src/path.dart. The optional [serverUri] is the full URI of the
-  /// JS script. The dirname of that path should give us the missing prefix.
-  factory DartUri(String uri, [String serverUri]) {
-    var serverPath = globalLoadStrategy.serverPathForAppUri(uri);
+  /// The optional [root] is the directory the app is served from.
+  factory DartUri(String uri, [String? root]) {
+    final serverPath = globalLoadStrategy.serverPathForAppUri(uri);
     if (serverPath != null) {
       return DartUri._(serverPath);
     }
     // TODO(annagrin): Support creating DartUris from `dart:` uris.
     // Issue: https://github.com/dart-lang/webdev/issues/1584
     if (uri.startsWith('package:')) {
-      return DartUri._fromPackageUri(uri, serverUri: serverUri);
+      return DartUri._fromPackageUri(uri, root: root);
     }
     if (uri.startsWith('file:')) {
-      return DartUri._fromFileUri(uri, serverUri: serverUri);
+      return DartUri._fromFileUri(uri, root: root);
     }
     if (uri.startsWith('/packages/')) {
-      return DartUri._fromRelativePath(uri, serverUri: serverUri);
+      return DartUri._fromRelativePath(uri, root: root);
     }
     if (uri.startsWith('/')) {
       return DartUri._fromRelativePath(uri);
@@ -65,32 +58,30 @@ class DartUri {
   String toString() => 'DartUri: $serverPath';
 
   /// Construct from a package: URI
-  factory DartUri._fromPackageUri(String uri, {String serverUri}) {
-    var basePath = basePathForServerUri(serverUri);
-    var packagePath = 'packages/${uri.substring("package:".length)}';
-    if (serverUri != null) {
-      var relativePath = p.url.join(basePath, packagePath);
+  factory DartUri._fromPackageUri(String uri, {String? root}) {
+    final packagePath = 'packages/${uri.substring("package:".length)}';
+    if (root != null) {
+      final relativePath = p.url.join(root, packagePath);
       return DartUri._fromRelativePath(relativePath);
     }
     return DartUri._(packagePath);
   }
 
   /// Construct from a file: URI
-  factory DartUri._fromFileUri(String uri, {String serverUri}) {
-    var libraryName = _resolvedUriToUri[uri];
-    if (libraryName != null) return DartUri(libraryName, serverUri);
+  factory DartUri._fromFileUri(String uri, {String? root}) {
+    final libraryName = _resolvedUriToUri[uri];
+    if (libraryName != null) return DartUri(libraryName, root);
     // This is not one of our recorded libraries.
     throw ArgumentError.value(uri, 'uri', 'Unknown library');
   }
 
   /// Construct from a path, relative to the directory being served.
-  factory DartUri._fromRelativePath(String uri, {String serverUri}) {
+  factory DartUri._fromRelativePath(String uri, {String? root}) {
     uri = uri[0] == '.' ? uri.substring(1) : uri;
     uri = uri[0] == '/' ? uri.substring(1) : uri;
 
-    if (serverUri != null) {
-      var basePath = basePathForServerUri(serverUri);
-      return DartUri._fromRelativePath(p.url.join(basePath, uri));
+    if (root != null) {
+      return DartUri._fromRelativePath(p.url.join(root, uri));
     }
     return DartUri._(uri);
   }
@@ -105,16 +96,7 @@ class DartUri {
   static final _logger = Logger('DartUri');
 
   /// The way we resolve file: URLs into package: URLs
-  static PackageConfig _packageConfig;
-
-  /// SDK installation directory.
-  ///
-  /// Directory where the SDK client code built with is installed,
-  ///
-  /// For example: `/Users/me/.dart-sdks/2.15.0`
-  ///
-  /// Used to resolve SDK urls according to vm_service protocol.
-  static SdkConfiguration _sdkConfiguration;
+  static PackageConfig? _packageConfig;
 
   /// All of the known absolute library paths, indexed by their library URL.
   ///
@@ -145,10 +127,10 @@ class DartUri {
   static final Map<String, String> _resolvedUriToUri = {};
 
   /// Returns package, app, or dart uri for a resolved path.
-  static String toPackageUri(String uri) => _resolvedUriToUri[uri];
+  static String? toPackageUri(String uri) => _resolvedUriToUri[uri];
 
   /// Returns resolved path for a package, app, or dart uri.
-  static String toResolvedUri(String uri) => _uriToResolvedUri[uri];
+  static String? toResolvedUri(String uri) => _uriToResolvedUri[uri];
 
   /// The directory in which we're running.
   ///
@@ -162,15 +144,14 @@ class DartUri {
 
   /// Record library and script uris to enable resolving library and script paths.
   static Future<void> initialize(SdkConfiguration sdkConfiguration) async {
-    _sdkConfiguration = sdkConfiguration;
-    var packagesUri =
+    final packagesUri =
         p.toUri(p.join(currentDirectory, '.dart_tool/package_config.json'));
 
     clear();
 
-    // Allow for tests can supplying empty configurations.
-    if (_sdkConfiguration.sdkDirectory != null) {
-      _sdkConfiguration.validateSdkDir();
+    // Allow for tests to supply empty configurations.
+    if (sdkConfiguration.sdkDirectory != null) {
+      sdkConfiguration.validateSdkDir();
     }
 
     await _loadPackageConfig(packagesUri);
@@ -201,13 +182,13 @@ class DartUri {
   /// Record the library represented by package: or org-dartlang-app: uris
   /// indexed by absolute file: URI.
   static void _recordAbsoluteUri(String libraryUri) {
-    var uri = Uri.parse(libraryUri);
+    final uri = Uri.parse(libraryUri);
     if (uri.scheme.isEmpty && !uri.path.endsWith('.dart')) {
       // ignore non-dart files
       return;
     }
 
-    String libraryPath;
+    String? libraryPath;
     switch (uri.scheme) {
       case 'dart':
         // TODO(annagrin): Support resolving `dart:` uris.
@@ -221,7 +202,7 @@ class DartUri {
         libraryPath = p.url.join(currentDirectoryUri, uri.path.substring(1));
         break;
       case 'package':
-        libraryPath = _packageConfig?.resolve(uri).toString();
+        libraryPath = _packageConfig?.resolve(uri)?.toString();
         break;
       default:
         throw ArgumentError.value(libraryUri, 'URI scheme not allowed');

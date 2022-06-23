@@ -15,7 +15,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../data/debug_event.dart';
 import '../../data/register_event.dart';
-import '../../dwds.dart';
+import '../connections/app_connection.dart';
 import '../debugging/debugger.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/inspector.dart';
@@ -26,7 +26,11 @@ import '../debugging/remote_debugger.dart';
 import '../debugging/skip_list.dart';
 import '../events.dart';
 import '../loaders/strategy.dart';
+import '../readers/asset_reader.dart';
+import '../services/chrome_debug_exception.dart';
+import '../services/expression_compiler.dart';
 import '../utilities/dart_uri.dart';
+import '../utilities/sdk_configuration.dart';
 import '../utilities/shared.dart';
 import 'expression_evaluator.dart';
 
@@ -58,8 +62,8 @@ class ChromeProxyService implements VmServiceInterface {
   Completer<void> _compilerCompleter = Completer<void>();
   Future<void> get isCompilerInitialized => _compilerCompleter.future;
 
-  /// The root URI at which we're serving.
-  final String uri;
+  /// The root at which we're serving.
+  final String root;
 
   final RemoteDebugger remoteDebugger;
   final ExecutionContext executionContext;
@@ -100,7 +104,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   ChromeProxyService._(
     this._vm,
-    this.uri,
+    this.root,
     this._assetReader,
     this.remoteDebugger,
     this._modules,
@@ -110,20 +114,20 @@ class ChromeProxyService implements VmServiceInterface {
     this._compiler,
     this._sdkConfigurationProvider,
   ) {
-    var debugger = Debugger.create(
+    final debugger = Debugger.create(
       remoteDebugger,
       _streamNotify,
       appInspectorProvider,
       _locations,
       _skipLists,
-      uri,
+      root,
     );
     _debuggerCompleter.complete(debugger);
   }
 
   static Future<ChromeProxyService> create(
     RemoteDebugger remoteDebugger,
-    String tabUrl,
+    String root,
     AssetReader assetReader,
     LoadStrategy loadStrategy,
     AppConnection appConnection,
@@ -146,12 +150,12 @@ class ChromeProxyService implements VmServiceInterface {
       pid: -1,
     );
 
-    var modules = Modules(tabUrl);
-    var locations = Locations(assetReader, modules, tabUrl);
-    var skipLists = SkipLists();
-    var service = ChromeProxyService._(
+    final modules = Modules(root);
+    final locations = Locations(assetReader, modules, root);
+    final skipLists = SkipLists();
+    final service = ChromeProxyService._(
       vm,
-      tabUrl,
+      root,
       assetReader,
       remoteDebugger,
       modules,
@@ -176,9 +180,9 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<void> _updateCompilerDependencies(String entrypoint) async {
-    var metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
-    var moduleFormat = globalLoadStrategy.moduleFormat;
-    var soundNullSafety = await metadataProvider.soundNullSafety;
+    final metadataProvider = globalLoadStrategy.metadataProviderFor(entrypoint);
+    final moduleFormat = globalLoadStrategy.moduleFormat;
+    final soundNullSafety = await metadataProvider.soundNullSafety;
 
     _logger.info('Initializing expression compiler for $entrypoint '
         'with sound null safety: $soundNullSafety');
@@ -186,10 +190,10 @@ class ChromeProxyService implements VmServiceInterface {
     if (_compiler != null) {
       await _compiler?.initialize(
           moduleFormat: moduleFormat, soundNullSafety: soundNullSafety);
-      var dependencies =
+      final dependencies =
           await globalLoadStrategy.moduleInfoForEntrypoint(entrypoint);
       await captureElapsedTime(() async {
-        var result = await _compiler.updateDependencies(dependencies);
+        final result = await _compiler.updateDependencies(dependencies);
         // Expression evaluation is ready after dependencies are updated.
         if (!_compilerCompleter.isCompleted) _compilerCompleter.complete();
         return result;
@@ -214,10 +218,10 @@ class ChromeProxyService implements VmServiceInterface {
     // in first `Uri.base` call in the expression compiler service isolate,
     // the expression compiler service will fail to start.
     // Issue: https://github.com/dart-lang/webdev/issues/1282
-    var debugger = await _debugger;
-    var entrypoint = appConnection.request.entrypointPath;
+    final debugger = await _debugger;
+    final entrypoint = appConnection.request.entrypointPath;
     await _initializeEntrypoint(entrypoint);
-    var sdkConfiguration = await _sdkConfigurationProvider.configuration;
+    final sdkConfiguration = await _sdkConfigurationProvider.configuration;
 
     debugger.notifyPausedAtStart();
     _inspector = await AppInspector.initialize(
@@ -225,7 +229,7 @@ class ChromeProxyService implements VmServiceInterface {
       remoteDebugger,
       _assetReader,
       _locations,
-      uri,
+      root,
       debugger,
       executionContext,
       sdkConfiguration,
@@ -249,8 +253,8 @@ class ChromeProxyService implements VmServiceInterface {
       await debugger.resumeFromStart();
     }));
 
-    var isolateRef = _inspector.isolateRef;
-    var timestamp = DateTime.now().millisecondsSinceEpoch;
+    final isolateRef = _inspector.isolateRef;
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
 
     // Listen for `registerExtension` and `postEvent` calls.
     _setUpChromeConsoleListeners(isolateRef);
@@ -291,7 +295,7 @@ class ChromeProxyService implements VmServiceInterface {
   ///
   /// Clears out the [_inspector] and all related cached information.
   void destroyIsolate() {
-    var isolate = _inspector?.isolate;
+    final isolate = _inspector?.isolate;
     if (isolate == null) return;
     _initializedCompleter = Completer<void>();
     _compilerCompleter = Completer<void>();
@@ -311,7 +315,7 @@ class ChromeProxyService implements VmServiceInterface {
 
   Future<void> disableBreakpoints() async {
     _disabledBreakpoints.clear();
-    var isolate = _inspector?.isolate;
+    final isolate = _inspector?.isolate;
     if (isolate == null) return;
     _disabledBreakpoints.addAll(isolate.breakpoints);
     for (var breakpoint in isolate.breakpoints.toList()) {
@@ -348,8 +352,8 @@ class ChromeProxyService implements VmServiceInterface {
           'The VM is unable to add a breakpoint '
               'at the specified line or function');
     }
-    var dartUri = DartUri(scriptUri, uri);
-    var ref = await _inspector.scriptRefFor(dartUri.serverPath);
+    final dartUri = DartUri(scriptUri, root);
+    final ref = await _inspector.scriptRefFor(dartUri.serverPath);
     return (await _debugger)
         .addBreakpoint(isolateId, ref.id, line, column: column);
   }
@@ -361,20 +365,20 @@ class ChromeProxyService implements VmServiceInterface {
     // Validate the isolate id is correct, _getIsolate throws if not.
     if (isolateId != null) _getIsolate(isolateId);
     args ??= <String, String>{};
-    var stringArgs = args.map((k, v) => MapEntry(
+    final stringArgs = args.map((k, v) => MapEntry(
         k is String ? k : jsonEncode(k), v is String ? v : jsonEncode(v)));
-    var expression = '''
+    final expression = '''
 ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
-    var response =
+    final response =
         await remoteDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
       'awaitPromise': true,
       'contextId': await executionContext.id,
     });
     handleErrorIfPresent(response, evalContents: expression);
-    var decodedResponse =
+    final decodedResponse =
         jsonDecode(response.result['result']['value'] as String)
             as Map<String, dynamic>;
     if (decodedResponse.containsKey('code') &&
@@ -394,7 +398,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   void _validateIsolateId(String isolateId) {
-    var isolate = _inspector?.isolate;
+    final isolate = _inspector?.isolate;
     if (isolate?.id != isolateId) {
       throw RPCError('evaluateInFrame', RPCError.kInvalidParams,
           'Unrecognized isolate id: $isolateId. Supported isolate: ${isolate?.id}');
@@ -404,7 +408,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Response> _getEvaluationResult(
       Future<RemoteObject> Function() evaluation, String expression) async {
     try {
-      var result = await evaluation();
+      final result = await evaluation();
       // Handle compilation errors, internal errors,
       // and reference errors from JavaScript evaluation in chrome.
       if (result.type.contains('Error')) {
@@ -452,14 +456,14 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         await isCompilerInitialized;
         _validateIsolateId(isolateId);
 
-        var library = await _inspector?.getLibrary(isolateId, targetId);
+        final library = await _inspector?.getLibrary(isolateId, targetId);
         return await _getEvaluationResult(
             () => _expressionEvaluator.evaluateExpression(
                 isolateId, library.uri, expression, scope),
             expression);
       }
       // fall back to javascript evaluation
-      var remote = await _inspector?.evaluate(isolateId, targetId, expression,
+      final remote = await _inspector?.evaluate(isolateId, targetId, expression,
           scope: scope);
       return await _inspector?.instanceHelper?.instanceRefFor(remote);
     }, (result) => DwdsEvent.evaluate(expression, result));
@@ -524,7 +528,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   /// Sync version of [getIsolate] for internal use, also has stronger typing
   /// than the public one which has to be dynamic.
   Isolate _getIsolate(String isolateId) {
-    var isolate = _inspector?.isolate;
+    final isolate = _inspector?.isolate;
     if (isolate?.id == isolateId) return isolate;
     // TODO: Throw an RPC error here.
     throw ArgumentError.value(isolateId, 'isolateId',
@@ -618,7 +622,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Version> getVersion() async {
-    var version = semver.Version.parse(vmServiceVersion);
+    final version = semver.Version.parse(vmServiceVersion);
     return Version(major: version.major, minor: version.minor);
   }
 
@@ -628,9 +632,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       {bool disableBreakpoints}) async {
     await isInitialized;
     // TODO(798) - respect disableBreakpoints.
-    var remote =
+    final remote =
         await _inspector?.invoke(isolateId, targetId, selector, argumentIds);
-    var result = _inspector?.instanceHelper?.instanceRefFor(remote);
+    final result = _inspector?.instanceHelper?.instanceRefFor(remote);
     if (result == null) {
       throw ChromeDebugException(
           {'text': 'null result from invoke of $selector'});
@@ -771,7 +775,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Success> setName(String isolateId, String name) async {
     await isInitialized;
-    var isolate = _getIsolate(isolateId);
+    final isolate = _getIsolate(isolateId);
     isolate.name = name;
     return Success();
   }
@@ -838,12 +842,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       exceptionsSubscription?.cancel();
     }, onListen: () {
       chromeConsoleSubscription = remoteDebugger.onConsoleAPICalled.listen((e) {
-        var isolate = _inspector?.isolate;
+        final isolate = _inspector?.isolate;
         if (isolate == null) return;
         if (!filter(e)) return;
-        var args = e.params['args'] as List;
-        var item = args[0] as Map;
-        var value = '${item["value"]}\n';
+        final args = e.params['args'] as List;
+        final item = args[0] as Map;
+        final value = '${item["value"]}\n';
         controller.add(Event(
             kind: EventKind.kWriteEvent,
             timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -854,7 +858,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       if (includeExceptions) {
         exceptionsSubscription =
             remoteDebugger.onExceptionThrown.listen((e) async {
-          var isolate = _inspector?.isolate;
+          final isolate = _inspector?.isolate;
           if (isolate == null) return;
           var description = e.exceptionDetails.exception.description;
           if (description != null) {
@@ -884,7 +888,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<void> parseDebugEvent(DebugEvent debugEvent) async {
     if (terminatingIsolates) return;
 
-    var isolateRef = _inspector?.isolateRef;
+    final isolateRef = _inspector?.isolateRef;
     if (isolateRef == null) return;
 
     _streamNotify(
@@ -903,12 +907,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<void> parseRegisterEvent(RegisterEvent registerEvent) async {
     if (terminatingIsolates) return;
 
-    var isolate = _inspector?.isolate;
+    final isolate = _inspector?.isolate;
     if (isolate == null) return;
-    var service = registerEvent.eventData;
+    final service = registerEvent.eventData;
     isolate.extensionRPCs.add(service);
 
-    var isolateRef = _inspector?.isolateRef;
+    final isolateRef = _inspector?.isolateRef;
     if (isolateRef == null) return;
     _streamNotify(
         EventStreams.kIsolate,
@@ -926,11 +930,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       if (terminatingIsolates) return;
       if (event.type != 'debug') return;
 
-      var isolate = _inspector?.isolate;
+      final isolate = _inspector?.isolate;
       if (isolate == null) return;
       if (isolateRef.id != isolate.id) return;
 
-      var firstArgValue = event.args[0].value as String;
+      final firstArgValue = event.args[0].value as String;
       // TODO(nshahan) - Migrate 'inspect' and 'log' events to the injected
       // client communication approach as well?
       switch (firstArgValue) {
@@ -938,7 +942,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           // All inspected objects should be real objects.
           if (event.args[1].type != 'object') break;
 
-          var inspectee =
+          final inspectee =
               await _inspector.instanceHelper.instanceRefFor(event.args[1]);
           _streamNotify(
               EventStreams.kDebug,
@@ -959,21 +963,21 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   void _streamNotify(String streamId, Event event) {
-    var controller = _streamControllers[streamId];
+    final controller = _streamControllers[streamId];
     if (controller == null) return;
     controller.add(event);
   }
 
   void _handleDeveloperLog(IsolateRef isolateRef, ConsoleAPIEvent event) async {
-    var logObject = event.params['args'][1] as Map;
-    var logParams = <String, RemoteObject>{};
+    final logObject = event.params['args'][1] as Map;
+    final logParams = <String, RemoteObject>{};
     for (dynamic obj in logObject['preview']['properties']) {
       if (obj['name'] != null && obj is Map<String, dynamic>) {
         logParams[obj['name'] as String] = RemoteObject(obj);
       }
     }
 
-    var logRecord = LogRecord(
+    final logRecord = LogRecord(
       message: await _instanceRef(logParams['message']),
       loggerName: await _instanceRef(logParams['name']),
       level: logParams['level'] != null
@@ -1033,7 +1037,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<ProtocolList> getSupportedProtocols() async {
-    var version = semver.Version.parse(vmServiceVersion);
+    final version = semver.Version.parse(vmServiceVersion);
     return ProtocolList(protocols: [
       Protocol(
         protocolName: 'VM Service',
@@ -1099,37 +1103,3 @@ const _stderrTypes = ['error'];
 
 /// The `type`s of [ConsoleAPIEvent]s that are treated as `stdout` logs.
 const _stdoutTypes = ['log', 'info', 'warning'];
-
-class ChromeDebugException extends ExceptionDetails implements Exception {
-  /// Optional, additional information about the exception.
-  final Object additionalDetails;
-
-  /// Optional, the exact contents of the eval that was attempted.
-  final String evalContents;
-
-  ChromeDebugException(Map<String, dynamic> exceptionDetails,
-      {this.additionalDetails, this.evalContents})
-      : super(exceptionDetails);
-
-  @override
-  String toString() {
-    var description = StringBuffer()
-      ..writeln('Unexpected error from chrome devtools:');
-    if (text != null) {
-      description.writeln('text: $text');
-    }
-    if (exception != null) {
-      description.writeln('exception:');
-      description.writeln('  description: ${exception.description}');
-      description.writeln('  type: ${exception.type}');
-      description.writeln('  value: ${exception.value}');
-    }
-    if (evalContents != null) {
-      description.writeln('attempted JS eval: `$evalContents`');
-    }
-    if (additionalDetails != null) {
-      description.writeln('additional details:\n  $additionalDetails');
-    }
-    return description.toString();
-  }
-}

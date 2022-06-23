@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @JS()
 library require_reloading_manager;
 
@@ -23,7 +21,8 @@ import 'restarter.dart';
 /// The last known digests of all the modules in the application.
 ///
 /// This is updated in place during calls to hotRestart.
-Map<String, String> _lastKnownDigests;
+/// TODO(annagrin): can this be a private field in RequireRestarter?
+late Map<String, String> _lastKnownDigests;
 
 @JS(r'$requireLoader')
 external RequireLoader get requireLoader;
@@ -90,8 +89,8 @@ abstract class JsMap<K, V> {
 /// Handles hot restart reloading for use with the require module system.
 class RequireRestarter implements Restarter {
   final _moduleOrdering = HashMap<String, int>();
-  SplayTreeSet<String> _dirtyModules;
-  var _running = Completer<bool>()..complete();
+  late SplayTreeSet<String> _dirtyModules;
+  var _running = Completer<bool>()..complete(true);
 
   var count = 0;
 
@@ -100,8 +99,8 @@ class RequireRestarter implements Restarter {
   }
 
   @override
-  Future<bool> restart({String runId}) async {
-    var developer = getProperty(require('dart_sdk'), 'developer');
+  Future<bool> restart({String? runId}) async {
+    final developer = getProperty(require('dart_sdk'), 'developer');
     if (callMethod(getProperty(developer, '_extensions'), 'containsKey',
         ['ext.flutter.disassemble']) as bool) {
       await toFuture(callMethod(
@@ -109,15 +108,15 @@ class RequireRestarter implements Restarter {
           as Promise<void>);
     }
 
-    var newDigests = await _getDigests();
-    var modulesToLoad = <String>[];
+    final newDigests = await _getDigests();
+    final modulesToLoad = <String>[];
     for (var moduleId in newDigests.keys) {
       if (!_lastKnownDigests.containsKey(moduleId)) {
         print('Error during script reloading, refreshing the page. \n'
             'Unable to find an existing digest for module: $moduleId.');
         _reloadPage();
       } else if (_lastKnownDigests[moduleId] != newDigests[moduleId]) {
-        _lastKnownDigests[moduleId] = newDigests[moduleId];
+        _lastKnownDigests[moduleId] = newDigests[moduleId]!;
         modulesToLoad.add(moduleId);
       }
     }
@@ -135,7 +134,7 @@ class RequireRestarter implements Restarter {
   List<String> _allModules() => keys(requireLoader.moduleParentsGraph);
 
   Future<Map<String, String>> _getDigests() async {
-    var request = await HttpRequest.request(requireLoader.digestsPath,
+    final request = await HttpRequest.request(requireLoader.digestsPath,
         responseType: 'json', method: 'GET');
     return (request.response as Map).cast<String, String>();
   }
@@ -145,7 +144,7 @@ class RequireRestarter implements Restarter {
   }
 
   List<String> _moduleParents(String module) =>
-      requireLoader.moduleParentsGraph.get(module)?.cast() ?? [];
+      requireLoader.moduleParentsGraph.get(module).cast();
 
   int _moduleTopologicalCompare(String module1, String module2) {
     var topological = 0;
@@ -154,13 +153,13 @@ class RequireRestarter implements Restarter {
     final order2 = _moduleOrdering[module2];
 
     if (order1 == null || order2 == null) {
-      var missing = order1 == null ? module1 : module2;
+      final missing = order1 == null ? module1 : module2;
       throw HotReloadFailedException(
           'Unable to fetch ordering info for module: $missing');
     }
 
-    topological =
-        Comparable.compare(_moduleOrdering[module2], _moduleOrdering[module1]);
+    topological = Comparable.compare(
+        _moduleOrdering[module2]!, _moduleOrdering[module1]!);
 
     if (topological == 0) {
       // If modules are in cycle (same strongly connected component) compare
@@ -183,17 +182,19 @@ class RequireRestarter implements Restarter {
     var reloadedModules = 0;
     try {
       _dirtyModules.addAll(modules);
-      String previousModuleId;
+      String? previousModuleId;
       while (_dirtyModules.isNotEmpty) {
-        var moduleId = _dirtyModules.first;
+        final moduleId = _dirtyModules.first;
         _dirtyModules.remove(moduleId);
-        var parentIds = _moduleParents(moduleId);
+        final parentIds = _moduleParents(moduleId);
         // Check if this is the root / bootstrap module.
-        if (parentIds == null || parentIds.isEmpty) {
+        if (parentIds.isEmpty) {
           // The bootstrap module is not reloaded but we need to update the
           // $dartRunMain reference to the newly loaded child module.
-          var childModule = callMethod(getProperty(require('dart_sdk'), 'dart'),
-              'getModuleLibraries', [previousModuleId]);
+          final childModule = callMethod(
+              getProperty(require('dart_sdk'), 'dart'),
+              'getModuleLibraries',
+              [previousModuleId]);
           dartRunMain = allowInterop(() {
             callMethod(_jsObjectValues(childModule).first, 'main', []);
           });
@@ -216,8 +217,8 @@ class RequireRestarter implements Restarter {
   }
 
   Future<void> _reloadModule(String moduleId) {
-    var completer = Completer();
-    var stackTrace = StackTrace.current;
+    final completer = Completer();
+    final stackTrace = StackTrace.current;
     requireLoader.forceLoadModule(moduleId, allowInterop(() {
       completer.complete();
     }),
@@ -231,8 +232,8 @@ class RequireRestarter implements Restarter {
   }
 
   void _updateGraph() {
-    var allModules = _allModules();
-    var stronglyConnectedComponents =
+    final allModules = _allModules();
+    final stronglyConnectedComponents =
         graphs.stronglyConnectedComponents(allModules, _moduleParents);
     _moduleOrdering.clear();
     for (var i = 0; i < stronglyConnectedComponents.length; i++) {
@@ -243,7 +244,7 @@ class RequireRestarter implements Restarter {
   }
 
   static Future<RequireRestarter> create() async {
-    var reloader = RequireRestarter._();
+    final reloader = RequireRestarter._();
     await reloader._initialize();
     return reloader;
   }

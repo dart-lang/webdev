@@ -207,7 +207,7 @@ void _startDebugging(DebuggerTrigger debuggerTrigger) {
 
   // Sends commands to debugger attached to the current tab.
   // Extracts the extension backend port from the injected JS.
-  var attachDebuggerToTab = allowInterop(_attachDebuggerToTab);
+  final attachDebuggerToTab = allowInterop(_attachDebuggerToTab);
 
   queryTabs(getCurrentTabQuery, allowInterop((List tabs) {
     if (tabs.isNotEmpty) {
@@ -297,8 +297,8 @@ void _maybeAttachDebugSession(
   // Chrome):
   if (method != 'Runtime.executionContextCreated') return;
 
-  var context = json.decode(stringify(params))['context'];
-  var tab = _tabsToAttach.firstWhere((tab) => tab.id == source.tabId,
+  final context = json.decode(stringify(params))['context'];
+  final tab = _tabsToAttach.firstWhere((tab) => tab.id == source.tabId,
       orElse: () => null);
   if (tab != null) {
     final launchInChromeDevTools =
@@ -322,7 +322,7 @@ void _removeAndDetachDebugSessionForTab(int tabId, _) {
 // Tries to remove the debug session for the specified tab. If no session is
 // found, returns -1. Otherwise returns the tab ID.
 int _removeDebugSessionForTab(int tabId) {
-  var session = _debugSessions.firstWhere(
+  final session = _debugSessions.firstWhere(
       (session) => session.appTabId == tabId || session.devtoolsTabId == tabId,
       orElse: () => null);
   if (session != null) {
@@ -362,7 +362,7 @@ void _handleMessageFromExternalExtensions(
   if (_allowedExtensions.contains(sender.id)) {
     if (request.name == 'chrome.debugger.sendCommand') {
       try {
-        var options = request.options as SendCommandOptions;
+        final options = request.options as SendCommandOptions;
 
         void sendResponseOrError([e]) {
           // No arguments indicate that an error occurred.
@@ -427,7 +427,7 @@ void sendMessageToExtensions(Request request) {
 /// context.
 Future<bool> _tryAttach(
     int contextId, Tab tab, bool launchInChromeDevTools) async {
-  var successCompleter = Completer<bool>();
+  final successCompleter = Completer<bool>();
   sendCommand(
       Debuggee(tabId: tab.id),
       'Runtime.evaluate',
@@ -476,9 +476,9 @@ Future<void> _startSseClient(
     var authUri = uri.replace(path: authenticationPath);
     if (authUri.scheme == 'ws') authUri = authUri.replace(scheme: 'http');
     if (authUri.scheme == 'wss') authUri = authUri.replace(scheme: 'https');
-    var authUrl = authUri.toString();
+    final authUrl = authUri.toString();
     try {
-      var response = await HttpRequest.request(authUrl,
+      final response = await HttpRequest.request(authUrl,
           method: 'GET', withCredentials: true);
       if (!response.responseText
           .contains('Dart Debug Authentication Success!')) {
@@ -499,15 +499,15 @@ Future<void> _startSseClient(
   // Specifies whether the debugger is attached.
   //
   // A debugger is detached if it is closed by user or the target is closed.
-  var client = uri.isScheme('ws') || uri.isScheme('wss')
+  final client = uri.isScheme('ws') || uri.isScheme('wss')
       ? WebSocketClient(WebSocketChannel.connect(uri))
       : SseSocketClient(SseClient(uri.toString()));
   _debugSessions.add(DebugSession(client, currentTab.id, appId));
   print('Connected to DWDS version $dwdsVersion with appId=$appId');
   client.stream.listen((data) {
-    var message = serializers.deserialize(jsonDecode(data));
+    final message = serializers.deserialize(jsonDecode(data));
     if (message is ExtensionRequest) {
-      var params =
+      final params =
           BuiltMap<String, Object>(json.decode(message.commandParams)).toMap();
       sendCommand(Debuggee(tabId: currentTab.id), message.command,
           js_util.jsify(params), allowInterop(([e]) {
@@ -582,7 +582,7 @@ void _updateOrCreateDevToolsPanel(
 }
 
 void _updateIcon() {
-  var query = QueryInfo(active: true, currentWindow: true);
+  final query = QueryInfo(active: true, currentWindow: true);
   queryTabs(query, allowInterop((List tabs) {
     // If tabList is empty, the user has likely navigated to a different window.
     // Therefore, do not update the icon:
@@ -612,13 +612,13 @@ ExtensionEvent _extensionEventFor(String method, Object params) =>
 
 /// Forward debugger events to the backend if applicable.
 void _filterAndForwardToBackend(Debuggee source, String method, Object params) {
-  var debugSession = _debugSessions.firstWhere(
+  final debugSession = _debugSessions.firstWhere(
       (session) => session.appTabId == source.tabId,
       orElse: () => null);
 
   if (debugSession == null) return;
 
-  var event = _extensionEventFor(method, params);
+  final event = _extensionEventFor(method, params);
 
   if (method == 'Debugger.scriptParsed') {
     debugSession.sendBatchedEvent(event);

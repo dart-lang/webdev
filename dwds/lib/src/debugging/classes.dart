@@ -7,7 +7,7 @@
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../dwds.dart' show ChromeDebugException;
+import '../../src/services/chrome_debug_exception.dart';
 import '../loaders/strategy.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
@@ -35,7 +35,7 @@ class ClassHelper extends Domain {
   final _classes = <String, Class>{};
 
   ClassHelper(AppInspector Function() provider) : super(provider) {
-    var staticClasses = [
+    final staticClasses = [
       classRefForClosure,
       classRefForString,
       classRefForUnknown
@@ -62,16 +62,16 @@ class ClassHelper extends Domain {
     if (!objectId.startsWith('classes|')) return null;
     var clazz = _classes[objectId];
     if (clazz != null) return clazz;
-    var splitId = objectId.split('|');
-    var libraryId = splitId[1];
+    final splitId = objectId.split('|');
+    final libraryId = splitId[1];
     if (libraryId == 'null') {
       throw UnsupportedError('unknown library: $libraryId');
     }
-    var libraryRef = await inspector.libraryHelper.libraryRefFor(libraryId);
+    final libraryRef = await inspector.libraryHelper.libraryRefFor(libraryId);
     if (libraryRef == null) {
       throw Exception('Could not find library: $libraryId');
     }
-    var classRef = classRefFor(libraryId, splitId.last);
+    final classRef = classRefFor(libraryId, splitId.last);
     clazz = await _constructClass(libraryRef, classRef);
     if (clazz == null) {
       throw Exception('Could not contruct class: $classRef');
@@ -83,8 +83,8 @@ class ClassHelper extends Domain {
   /// [ClassRef].
   Future<Class> _constructClass(
       LibraryRef libraryRef, ClassRef classRef) async {
-    var rawName = classRef.name.split('<').first;
-    var expression = '''
+    final rawName = classRef.name.split('<').first;
+    final expression = '''
     (function() {
       ${globalLoadStrategy.loadLibrarySnippet(libraryRef.uri)}
       var result = {};
@@ -178,14 +178,15 @@ class ClassHelper extends Domain {
       throw ChromeDebugException(e.json, evalContents: expression);
     }
 
-    var classDescriptor = result.value as Map<String, dynamic>;
-    var methodRefs = <FuncRef>[];
-    var methodDescriptors = classDescriptor['methods'] as Map<String, dynamic>;
-    var staticMethodDescriptors =
+    final classDescriptor = result.value as Map<String, dynamic>;
+    final methodRefs = <FuncRef>[];
+    final methodDescriptors =
+        classDescriptor['methods'] as Map<String, dynamic>;
+    final staticMethodDescriptors =
         classDescriptor['staticMethods'] as Map<String, dynamic>;
     methodDescriptors.addAll(staticMethodDescriptors);
     methodDescriptors.forEach((name, descriptor) {
-      var methodId = 'methods|${classRef.id}|$name';
+      final methodId = 'methods|${classRef.id}|$name';
       methodRefs.add(FuncRef(
           id: methodId,
           name: name,
@@ -196,10 +197,10 @@ class ClassHelper extends Domain {
           // https://github.com/dart-lang/sdk/issues/46723
           implicit: false));
     });
-    var fieldRefs = <FieldRef>[];
-    var fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
+    final fieldRefs = <FieldRef>[];
+    final fieldDescriptors = classDescriptor['fields'] as Map<String, dynamic>;
     fieldDescriptors.forEach((name, descriptor) async {
-      var classMetaData = ClassMetaData(
+      final classMetaData = ClassMetaData(
           jsName: descriptor['classRefName'],
           libraryId: descriptor['classRefLibraryId'],
           dartName: descriptor['classRefDartName']);
@@ -219,7 +220,7 @@ class ClassHelper extends Domain {
           id: createId()));
     });
 
-    var staticFieldDescriptors =
+    final staticFieldDescriptors =
         classDescriptor['staticFields'] as Map<String, dynamic>;
     staticFieldDescriptors.forEach((name, descriptor) async {
       fieldRefs.add(

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-// @dart = 2.9
-
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../../loaders/strategy.dart';
@@ -18,7 +16,7 @@ class FunctionMetaData {
   /// Returns the [FunctionMetaData] for the Chrome [remoteObject].
   static Future<FunctionMetaData> metaDataFor(
       RemoteDebugger remoteDebugger, RemoteObject remoteObject) async {
-    var evalExpression = '''
+    final evalExpression = '''
       function(remoteObject) {
         var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         var name = remoteObject.name;
@@ -29,10 +27,10 @@ class FunctionMetaData {
         return name;
       }
     ''';
-    var arguments = [
+    final arguments = [
       {'objectId': remoteObject.objectId}
     ];
-    var response =
+    final response =
         await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': arguments,
@@ -43,8 +41,9 @@ class FunctionMetaData {
       response,
       evalContents: evalExpression,
     );
-    var name = response.result['result']['value'] as String;
-    if (name.isEmpty) name = 'Closure';
+    final name = response.result?['result']?['value'] as String?;
+    if (name == null) return FunctionMetaData('<unknown>');
+    if (name.isEmpty) return FunctionMetaData('Closure');
     return FunctionMetaData(name);
   }
 }

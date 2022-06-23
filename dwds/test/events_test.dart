@@ -64,11 +64,11 @@ void main() {
 
       // Send a request.
       final client = HttpClient();
-      var request =
+      final request =
           await client.getUrl(Uri.parse('http://localhost:${server.port}/foo'));
 
       // Ignore the response.
-      var response = await request.close();
+      final response = await request.close();
       await response.drain();
 
       // Wait for expected events.
@@ -383,7 +383,7 @@ void main() {
       });
 
       test('emits HOT_RESTART event', () async {
-        var client = context.debugConnection.vmService;
+        final client = context.debugConnection.vmService;
 
         await expectEventDuring(
             matchesEvent(DwdsEventKind.hotRestart, {
@@ -438,7 +438,7 @@ void main() {
       });
 
       test('emits FULL_RELOAD event', () async {
-        var client = context.debugConnection.vmService;
+        final client = context.debugConnection.vmService;
 
         await expectEventDuring(
             matchesEvent(DwdsEventKind.fullReload, {

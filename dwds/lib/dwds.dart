@@ -40,12 +40,12 @@ export 'src/loaders/frontend_server_require.dart'
 export 'src/loaders/legacy.dart' show LegacyStrategy;
 export 'src/loaders/require.dart' show RequireStrategy;
 export 'src/loaders/strategy.dart' show LoadStrategy, ReloadConfiguration;
-export 'src/readers/asset_reader.dart' show AssetReader;
+export 'src/readers/asset_reader.dart' show AssetReader, UrlEncoder;
 export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;
 export 'src/servers/devtools.dart';
-export 'src/services/chrome_proxy_service.dart' show ChromeDebugException;
+export 'src/services/chrome_debug_exception.dart' show ChromeDebugException;
 export 'src/services/expression_compiler.dart'
     show ExpressionCompilationResult, ExpressionCompiler, ModuleInfo;
 export 'src/services/expression_compiler_service.dart'
@@ -54,7 +54,6 @@ export 'src/utilities/sdk_configuration.dart'
     show SdkConfiguration, SdkConfigurationProvider;
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
-typedef UrlEncoder = Future<String> Function(String url);
 
 /// The Dart Web Debug Service.
 class Dwds {
@@ -89,7 +88,7 @@ class Dwds {
 
   Future<DebugConnection> debugConnection(AppConnection appConnection) async {
     if (!_enableDebugging) throw StateError('Debugging is not enabled.');
-    var appDebugServices = await _devHandler.loadAppServices(appConnection);
+    final appDebugServices = await _devHandler.loadAppServices(appConnection);
     await appDebugServices.chromeProxyService.isInitialized;
     return DebugConnection(appDebugServices);
   }
@@ -155,15 +154,15 @@ class Dwds {
       if (urlEncoder != null) extensionUri = urlEncoder(await extensionUri);
     }
 
-    var serveDevTools = devtoolsLauncher != null;
+    final serveDevTools = devtoolsLauncher != null;
     if (serveDevTools) {
       devTools = await devtoolsLauncher(hostname);
-      var uri =
+      final uri =
           Uri(scheme: 'http', host: devTools.hostname, port: devTools.port);
       _logger.info('Serving DevTools at $uri\n');
     }
 
-    var injected = DwdsInjector(
+    final injected = DwdsInjector(
       loadStrategy,
       useSseForInjectedClient: useSseForInjectedClient,
       extensionUri: extensionUri,
@@ -171,7 +170,7 @@ class Dwds {
       emitDebugEvents: emitDebugEvents,
     );
 
-    var devHandler = DevHandler(
+    final devHandler = DevHandler(
       chromeConnection,
       buildResults,
       devTools,

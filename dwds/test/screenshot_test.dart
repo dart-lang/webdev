@@ -20,7 +20,7 @@ void main() {
   });
 
   test('can take screenshots', () async {
-    var response = await context.debugConnection.vmService
+    final response = await context.debugConnection.vmService
         .callServiceExtension('ext.dwds.screenshot');
     expect(response.json['data'], isNotNull);
   });

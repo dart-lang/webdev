@@ -22,7 +22,7 @@ Future<BuildDaemonClient> connectClient(String workingDirectory,
 final String _sdkDir = (() {
   // The Dart executable is in "/path/to/sdk/bin/dart", so two levels up is
   // "/path/to/sdk".
-  var aboveExecutable = p.dirname(p.dirname(Platform.resolvedExecutable));
+  final aboveExecutable = p.dirname(p.dirname(Platform.resolvedExecutable));
   assert(FileSystemEntity.isFileSync(p.join(aboveExecutable, 'version')));
   return aboveExecutable;
 })();
@@ -33,7 +33,7 @@ final String devToolsPath = p.join(_sdkDir, 'bin', 'resources', 'devtools');
 
 /// Returns the port of the daemon asset server.
 int daemonPort(String workingDirectory) {
-  var portFile = File(_assetServerPortFilePath(workingDirectory));
+  final portFile = File(_assetServerPortFilePath(workingDirectory));
   if (!portFile.existsSync()) {
     throw Exception('Unable to read daemon asset port file.');
   }

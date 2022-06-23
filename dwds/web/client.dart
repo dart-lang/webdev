@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @JS()
 library hot_reload_client;
 
@@ -38,15 +36,15 @@ const _batchDelayMilliseconds = 1000;
 
 // GENERATE:
 // pub run build_runner build web
-Future<void> main() {
+Future<void>? main() {
   return runZonedGuarded(() async {
     // Set the unique id for this instance of the app.
     // Test apps may already have this set.
     dartAppInstanceId ??= const Uuid().v1();
 
-    var fixedPath = _fixProtocol(dwdsDevHandlerPath);
-    var fixedUri = Uri.parse(fixedPath);
-    var client = fixedUri.isScheme('ws') || fixedUri.isScheme('wss')
+    final fixedPath = _fixProtocol(dwdsDevHandlerPath);
+    final fixedUri = Uri.parse(fixedPath);
+    final client = fixedUri.isScheme('ws') || fixedUri.isScheme('wss')
         ? WebSocketClient(WebSocketChannel.connect(fixedUri))
         : SseSocketClient(SseClient(fixedPath));
 
@@ -59,13 +57,13 @@ Future<void> main() {
       throw StateError('Unknown module strategy: $dartModuleStrategy');
     }
 
-    var manager = ReloadingManager(client, restarter);
+    final manager = ReloadingManager(client, restarter);
 
     hotRestartJs = allowInterop((String runId) {
       return toPromise(manager.hotRestart(runId: runId));
     });
 
-    var debugEventController =
+    final debugEventController =
         BatchedStreamController<DebugEvent>(delay: _batchDelayMilliseconds);
     debugEventController.stream.listen((events) {
       if (dartEmitDebugEvents) {
@@ -109,7 +107,7 @@ Future<void> main() {
     });
 
     client.stream.listen((serialized) async {
-      var event = serializers.deserialize(jsonDecode(serialized));
+      final event = serializers.deserialize(jsonDecode(serialized));
       if (event is BuildResult) {
         if (reloadConfiguration == 'ReloadConfiguration.liveReload') {
           manager.reloadPage();
@@ -120,7 +118,7 @@ Future<void> main() {
         }
       } else if (event is DevToolsResponse) {
         if (!event.success) {
-          var alert = 'DevTools failed to open with:\n${event.error}';
+          final alert = 'DevTools failed to open with:\n${event.error}';
           if (event.promptExtension && window.confirm(alert)) {
             // ignore: unsafe_html
             window.open('https://goo.gle/dart-debug-extension', '_blank');
@@ -221,13 +219,13 @@ String _fixProtocol(String url) {
 external String get dartAppId;
 
 @JS(r'$dartAppInstanceId')
-external String get dartAppInstanceId;
+external String? get dartAppInstanceId;
 
 @JS(r'$dwdsDevHandlerPath')
 external String get dwdsDevHandlerPath;
 
 @JS(r'$dartAppInstanceId')
-external set dartAppInstanceId(String id);
+external set dartAppInstanceId(String? id);
 
 @JS(r'$dartModuleStrategy')
 external String get dartModuleStrategy;

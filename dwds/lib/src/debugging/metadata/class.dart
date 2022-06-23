@@ -11,7 +11,7 @@ import '../../debugging/classes.dart';
 import '../../debugging/inspector.dart';
 import '../../debugging/remote_debugger.dart';
 import '../../loaders/strategy.dart';
-import '../../services/chrome_proxy_service.dart';
+import '../../services/chrome_debug_exception.dart';
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
@@ -51,7 +51,7 @@ class ClassMetaData {
   static Future<ClassMetaData> metaDataFor(RemoteDebugger remoteDebugger,
       RemoteObject remoteObject, AppInspector inspector) async {
     try {
-      var evalExpression = '''
+      final evalExpression = '''
       function(arg) {
         const sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         const classObject = sdkUtils.getReifiedType(arg);
@@ -64,10 +64,10 @@ class ClassMetaData {
         return result;
       }
     ''';
-      var result = await inspector.jsCallFunctionOn(
+      final result = await inspector.jsCallFunctionOn(
           remoteObject, evalExpression, [remoteObject],
           returnByValue: true);
-      var metadata = result.value as Map;
+      final metadata = result.value as Map;
       return ClassMetaData(
         jsName: metadata['name'],
         libraryId: metadata['libraryId'],

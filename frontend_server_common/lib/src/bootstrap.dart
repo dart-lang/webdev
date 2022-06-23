@@ -2,11 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
-
 // Note: this is a copy from flutter tools, updated to work with dwds tests
-
-import 'package:meta/meta.dart';
 
 /// The JavaScript bootstrap script to support in-browser hot restart.
 ///
@@ -18,9 +14,9 @@ import 'package:meta/meta.dart';
 /// and is responsible for bootstrapping the RequireJS modules and attaching
 /// the hot reload hooks.
 String generateBootstrapScript({
-  @required String requireUrl,
-  @required String mapperUrl,
-  @required String entrypoint,
+  required String requireUrl,
+  required String mapperUrl,
+  required String entrypoint,
 }) {
   return '''
 "use strict";
@@ -53,7 +49,7 @@ document.head.appendChild(requireEl);
 /// the file `foo/bar/baz.dart` will generate a property named approximately
 /// `foo__bar__baz`. Rather than attempt to guess, we assume the first property of
 /// this object is the module.
-String generateMainModule({@required String entrypoint}) {
+String generateMainModule({required String entrypoint}) {
   return '''/* ENTRYPOINT_EXTENTION_MARKER */
 
 // Create the main module loaded below.
