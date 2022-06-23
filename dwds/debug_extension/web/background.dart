@@ -767,8 +767,7 @@ class Debuggee {
   external int get tabId;
   external String get extensionId;
   external String get targetId;
-  external factory Debuggee(
-      {int tabId, String? extensionId, String? targetId});
+  external factory Debuggee({int tabId, String? extensionId, String? targetId});
 }
 
 @JS()
