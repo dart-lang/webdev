@@ -2,14 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
-
 // Note: this is a copy from flutter tools, updated to work with dwds tests,
 // and some functionality remioved (does not support hot reload yet)
 
 import 'dart:async';
 
-import 'package:dwds/dwds.dart';
+import 'package:dwds/asset_reader.dart';
+import 'package:dwds/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
@@ -57,18 +56,16 @@ class ResidentWebRunner {
   final String fileSystemScheme;
   final bool soundNullSafety;
 
-  ResidentCompiler generator;
-  ExpressionCompiler expressionCompiler;
-  WebDevFS devFS;
-  Uri uri;
-  Iterable<String> modules;
+  late ResidentCompiler generator;
+  late ExpressionCompiler expressionCompiler;
+  late WebDevFS devFS;
+  late Uri uri;
+  late Iterable<String> modules;
 
-  Future<int> run(String hostname, int port, String index) async {
-    hostname ??= 'localhost';
-
+  Future<int> run(String? hostname, int port, String index) async {
     devFS = WebDevFS(
       fileSystem: fileSystem,
-      hostname: hostname,
+      hostname: hostname ?? 'localhost',
       port: port,
       projectDirectory: projectDirectory,
       packageConfigFile: packageConfigFile,
@@ -84,7 +81,7 @@ class ResidentWebRunner {
       return 1;
     }
 
-    modules = report.invalidatedModules;
+    modules = report.invalidatedModules!;
 
     generator.accept();
     return 0;

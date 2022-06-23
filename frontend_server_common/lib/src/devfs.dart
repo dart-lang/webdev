@@ -2,15 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
-
 // Note: this is a copy from flutter tools, updated to work with dwds tests
 
 import 'dart:io';
 
-import 'package:dwds/dwds.dart';
+import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
-import 'package:meta/meta.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
@@ -23,18 +20,18 @@ final String dartWebSdkPath = p.join(dartSdkPath, 'lib', 'dev_compiler');
 
 class WebDevFS {
   WebDevFS({
-    this.fileSystem,
-    this.hostname,
-    this.port,
-    this.projectDirectory,
-    this.packageConfigFile,
-    this.index,
-    this.urlTunneller,
-    this.soundNullSafety,
+    required this.fileSystem,
+    required this.hostname,
+    required this.port,
+    required this.projectDirectory,
+    required this.packageConfigFile,
+    required this.index,
+    required this.urlTunneller,
+    required this.soundNullSafety,
   });
 
   final FileSystem fileSystem;
-  TestAssetServer assetServer;
+  late final TestAssetServer assetServer;
   final String hostname;
   final int port;
   final Uri projectDirectory;
@@ -42,9 +39,8 @@ class WebDevFS {
   final String index;
   final UrlEncoder urlTunneller;
   final bool soundNullSafety;
-  Directory _savedCurrentDirectory;
-  List<Uri> sources;
-  PackageConfig _packageConfig;
+  late final Directory _savedCurrentDirectory;
+  late final PackageConfig _packageConfig;
 
   Future<Uri> create() async {
     _savedCurrentDirectory = fileSystem.currentDirectory;
@@ -61,16 +57,15 @@ class WebDevFS {
 
   Future<void> dispose() {
     fileSystem.currentDirectory = _savedCurrentDirectory;
-    return assetServer?.close();
+    return assetServer.close();
   }
 
   Future<UpdateFSReport> update({
-    Uri mainUri,
-    String dillOutputPath,
-    @required ResidentCompiler generator,
-    List<Uri> invalidatedFiles,
+    required Uri mainUri,
+    required String dillOutputPath,
+    required ResidentCompiler generator,
+    required List<Uri> invalidatedFiles,
   }) async {
-    assert(generator != null);
     final mainPath = mainUri.toFilePath();
     final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
     final entryPoint = mainUri.toString();
@@ -108,8 +103,6 @@ class WebDevFS {
       return UpdateFSReport(success: false);
     }
 
-    // list of sources that needs to be monitored are in [compilerOutput.sources]
-    sources = compilerOutput.sources;
     File codeFile;
     File manifestFile;
     File sourcemapFile;
@@ -200,7 +193,7 @@ class UpdateFSReport {
   /// mode.
   ///
   /// Only used for JavaScript compilation.
-  List<String> invalidatedModules;
+  List<String>? invalidatedModules;
 }
 
 String _filePathToUriFragment(String path) {

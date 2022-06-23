@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
-
 // Note: this is a copy from flutter tools, updated to work with dwds tests
 
 import 'dart:async';
@@ -11,7 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dwds/dwds.dart';
+import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
@@ -32,10 +30,10 @@ class TestAssetServer implements AssetReader {
   static const String _defaultMimeType = 'application/octet-stream';
   final FileSystem _fileSystem;
   final HttpServer _httpServer;
-  final Map<String, Uint8List> _files = <String, Uint8List>{};
-  final Map<String, Uint8List> _sourcemaps = <String, Uint8List>{};
-  final Map<String, Uint8List> _metadata = <String, Uint8List>{};
-  String _mergedMetadata;
+  final Map<String, Uint8List> _files = {};
+  final Map<String, Uint8List> _sourceMaps = {};
+  final Map<String, Uint8List> _metadata = {};
+  late String _mergedMetadata;
   final PackageConfig _packageConfig;
   final InternetAddress internetAddress;
 
@@ -46,6 +44,15 @@ class TestAssetServer implements AssetReader {
     this.internetAddress,
     this._fileSystem,
   ) : basePath = _parseBasePathFromIndexHtml(index);
+
+  bool hasFile(String path) => _files.containsKey(path);
+  Uint8List getFile(String path) => _files[path]!;
+
+  bool hasSourceMap(String path) => _sourceMaps.containsKey(path);
+  Uint8List getSourceMap(String path) => _sourceMaps[path]!;
+
+  bool hasMetadata(String path) => _metadata.containsKey(path);
+  Uint8List getMetadata(String path) => _metadata[path]!;
 
   /// Start the web asset server on a [hostname] and [port].
   ///
@@ -65,10 +72,6 @@ class TestAssetServer implements AssetReader {
         TestAssetServer(index, httpServer, packageConfig, address, fileSystem);
     return server;
   }
-
-  Uint8List getFile(String path) => _files[path];
-
-  Uint8List getSourceMap(String path) => _sourcemaps[path];
 
   // handle requests for JavaScript source, dart sources maps, or asset files.
   Future<shelf.Response> handleRequest(shelf.Request request) async {
@@ -94,13 +97,10 @@ class TestAssetServer implements AssetReader {
       requestPath = _stripBasePath(requestPath, basePath) ?? requestPath;
 
       requestPath = requestPath.startsWith('/') ? requestPath : '/$requestPath';
-      if (requestPath == null) {
-        return shelf.Response.notFound('');
-      }
 
       // If this is a JavaScript file, it must be in the in-memory cache.
       // Attempt to look up the file by URI.
-      if (_files.containsKey(requestPath)) {
+      if (hasFile(requestPath)) {
         final List<int> bytes = getFile(requestPath);
         headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
         headers[HttpHeaders.contentTypeHeader] = 'application/javascript';
@@ -108,7 +108,7 @@ class TestAssetServer implements AssetReader {
       }
       // If this is a sourcemap file, then it might be in the in-memory cache.
       // Attempt to lookup the file by URI.
-      if (_sourcemaps.containsKey(requestPath)) {
+      if (hasSourceMap(requestPath)) {
         final List<int> bytes = getSourceMap(requestPath);
         headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
         headers[HttpHeaders.contentTypeHeader] = 'application/json';
@@ -124,7 +124,7 @@ class TestAssetServer implements AssetReader {
     // Attempt to determine the file's mime type. if this is not provided some
     // browsers will refuse to render images/show video et cetera. If the tool
     // cannot determine a mime type, fall back to application/octet-stream.
-    String mimeType;
+    String? mimeType;
     if (length >= 12) {
       mimeType = mime.lookupMimeType(
         file.path,
@@ -160,10 +160,6 @@ class TestAssetServer implements AssetReader {
     var manifest =
         _castStringKeyedMap(json.decode(manifestFile.readAsStringSync()));
     for (var filePath in manifest.keys) {
-      if (filePath == null) {
-        _logger.severe('Invalid manfiest file: $filePath');
-        continue;
-      }
       var offsets = _castStringKeyedMap(manifest[filePath]);
       var codeOffsets = (offsets['code'] as List<dynamic>).cast<int>();
       var sourcemapOffsets =
@@ -200,7 +196,7 @@ class TestAssetServer implements AssetReader {
         sourcemapStart,
         sourcemapEnd - sourcemapStart,
       );
-      _sourcemaps['$filePath.map'] = sourcemapView;
+      _sourceMaps['$filePath.map'] = sourcemapView;
 
       var metadataStart = metadataOffsets[0];
       var metadataEnd = metadataOffsets[1];
@@ -259,36 +255,42 @@ class TestAssetServer implements AssetReader {
   }
 
   @override
-  Future<String> dartSourceContents(String serverPath) {
-    serverPath = _stripBasePath(serverPath, basePath);
-    var result = _resolveDartFile(serverPath);
-    if (result.existsSync()) {
-      return result.readAsString();
+  Future<String?> dartSourceContents(String serverPath) async {
+    final stripped = _stripBasePath(serverPath, basePath);
+    if (stripped != null) {
+      var result = _resolveDartFile(stripped);
+      if (result.existsSync()) {
+        return result.readAsString();
+      }
     }
     _logger.severe('Source not found: $serverPath');
     return null;
   }
 
   @override
-  Future<String> sourceMapContents(String serverPath) async {
-    serverPath = _stripBasePath(serverPath, basePath);
-    var path = '/$serverPath';
-    if (_sourcemaps.containsKey(path)) {
-      return utf8.decode(_sourcemaps[path]);
+  Future<String?> sourceMapContents(String serverPath) async {
+    final stripped = _stripBasePath(serverPath, basePath);
+    if (stripped != null) {
+      var path = '/$stripped';
+      if (hasSourceMap(path)) {
+        return utf8.decode(getSourceMap(path));
+      }
     }
     _logger.severe('Source map not found: $serverPath');
     return null;
   }
 
   @override
-  Future<String> metadataContents(String serverPath) async {
-    serverPath = _stripBasePath(serverPath, basePath);
-    if (serverPath.endsWith('.ddc_merged_metadata')) {
-      return _mergedMetadata;
-    }
-    var path = '/$serverPath';
-    if (_metadata.containsKey(path)) {
-      return utf8.decode(_metadata[path]);
+  Future<String?> metadataContents(String serverPath) async {
+    final stripped = _stripBasePath(serverPath, basePath);
+    if (stripped != null) {
+      if (stripped.endsWith('.ddc_merged_metadata')) {
+        return _mergedMetadata;
+      }
+      var path = '/$stripped';
+      if (hasMetadata(path)) {
+        return utf8.decode(getMetadata(path));
+      }
     }
     _logger.severe('Metadata not found: $serverPath');
     return null;
@@ -299,7 +301,7 @@ class TestAssetServer implements AssetReader {
 /// the same structure (`Map<String, dynamic>`) with the correct runtime types.
 Map<String, dynamic> _castStringKeyedMap(dynamic untyped) {
   var map = untyped as Map<dynamic, dynamic>;
-  return map?.cast<String, dynamic>();
+  return map.cast<String, dynamic>();
 }
 
 String _stripLeadingSlashes(String path) {
@@ -309,7 +311,7 @@ String _stripLeadingSlashes(String path) {
   return path;
 }
 
-String _stripBasePath(String path, String basePath) {
+String? _stripBasePath(String path, String basePath) {
   path = _stripLeadingSlashes(path);
   if (path.startsWith(basePath)) {
     path = path.substring(basePath.length);
@@ -327,5 +329,6 @@ String _parseBasePathFromIndexHtml(String index) {
   }
   final contents = file.readAsStringSync();
   final matches = RegExp(r'<base href="/([^>]*)/">').allMatches(contents);
-  return matches.isEmpty ? '' : matches.first.group(1);
+  if (matches.isEmpty) return '';
+  return matches.first.group(1) ?? '';
 }
