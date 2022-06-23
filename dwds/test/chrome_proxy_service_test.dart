@@ -1410,15 +1410,15 @@ void main() {
     });
 
     test('lookupPackageUris ignores local parameter', () async {
-      var vm = await service.getVM();
-      var isolateId = vm.isolates.first.id;
-      var scriptList = await service.getScripts(isolateId);
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
+      final scriptList = await service.getScripts(isolateId);
 
-      var uris = scriptList.scripts.map((e) => e.uri).toList();
-      var resolvedUrisWithLocal =
+      final uris = scriptList.scripts.map((e) => e.uri).toList();
+      final resolvedUrisWithLocal =
           await service.lookupResolvedPackageUris(isolateId, uris, local: true);
 
-      var packageUrisWithLocal = await service.lookupPackageUris(
+      final packageUrisWithLocal = await service.lookupPackageUris(
           isolateId, resolvedUrisWithLocal.uris);
       expect(
           packageUrisWithLocal.uris,
@@ -1428,10 +1428,10 @@ void main() {
             'package:path/src/path_set.dart',
           ]));
 
-      var resolvedUrisWithoutLocal =
+      final resolvedUrisWithoutLocal =
           await service.lookupResolvedPackageUris(isolateId, uris, local: true);
 
-      var packageUrisWithoutLocal = await service.lookupPackageUris(
+      final packageUrisWithoutLocal = await service.lookupPackageUris(
           isolateId, resolvedUrisWithoutLocal.uris);
       expect(
           packageUrisWithoutLocal.uris,
