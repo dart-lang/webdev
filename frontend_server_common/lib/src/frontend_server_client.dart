@@ -46,13 +46,14 @@ class StdoutHandler {
     reset();
   }
 
-  bool compilerMessageReceived = false;
   final CompilerMessageConsumer consumer;
-  String? boundaryKey;
-  StdoutState state = StdoutState.collectDiagnostic;
   late Completer<CompilerOutput?> compilerOutput;
-  final List<Uri> sources = <Uri>[];
 
+  final List<Uri> _sources = <Uri>[];
+
+  bool _compilerMessageReceived = false;
+  String? _boundaryKey;
+  StdoutState _state = StdoutState.collectDiagnostic;
   late bool _suppressCompilerMessages;
   late bool _expectSources;
   bool _badState = false;
@@ -69,14 +70,14 @@ class StdoutHandler {
       return;
     }
     var kResultPrefix = 'result ';
-    if (boundaryKey == null && message.startsWith(kResultPrefix)) {
-      boundaryKey = message.substring(kResultPrefix.length);
+    if (_boundaryKey == null && message.startsWith(kResultPrefix)) {
+      _boundaryKey = message.substring(kResultPrefix.length);
       return;
     }
     // Invalid state, see commented issue below for more information.
     // NB: both the completeError and _badState flags are required to avoid
     // filling the console with exceptions.
-    if (boundaryKey == null) {
+    if (_boundaryKey == null) {
       // Throwing a synchronous exception via throwToolExit will fail to cancel
       // the stream. Instead use completeError so that the error is returned
       // from the awaited future that the compiler consumers are expecting.
@@ -87,11 +88,11 @@ class StdoutHandler {
           'frontend server client (in dwds tests).'
           '\n\n'
           'Additional debugging information:\n'
-          '  StdoutState: $state\n'
-          '  compilerMessageReceived: $compilerMessageReceived\n'
+          '  StdoutState: $_state\n'
+          '  compilerMessageReceived: $_compilerMessageReceived\n'
           '  message: $message\n'
           '  _expectSources: $_expectSources\n'
-          '  sources: $sources\n');
+          '  sources: $_sources\n');
       // There are several event turns before the tool actually exits from a
       // tool exception. Normally, the stream should be cancelled to prevent
       // more events from entering the bad state, but because the error
@@ -101,40 +102,41 @@ class StdoutHandler {
       _badState = true;
       return;
     }
-    if (message.startsWith(boundaryKey!)) {
+    final boundaryKey = _boundaryKey!;
+    if (message.startsWith(boundaryKey)) {
       if (_expectSources) {
-        if (state == StdoutState.collectDiagnostic) {
-          state = StdoutState.collectDependencies;
+        if (_state == StdoutState.collectDiagnostic) {
+          _state = StdoutState.collectDependencies;
           return;
         }
       }
-      if (message.length <= boundaryKey!.length) {
+      if (message.length <= boundaryKey.length) {
         compilerOutput.complete(null);
         return;
       }
       var spaceDelimiter = message.lastIndexOf(' ');
       compilerOutput.complete(CompilerOutput(
-          message.substring(boundaryKey!.length + 1, spaceDelimiter),
+          message.substring(boundaryKey.length + 1, spaceDelimiter),
           int.parse(message.substring(spaceDelimiter + 1).trim()),
-          sources));
+          _sources));
       return;
     }
-    if (state == StdoutState.collectDiagnostic) {
+    if (_state == StdoutState.collectDiagnostic) {
       if (!_suppressCompilerMessages) {
-        if (compilerMessageReceived == false) {
+        if (_compilerMessageReceived == false) {
           consumer('\nCompiler message:');
-          compilerMessageReceived = true;
+          _compilerMessageReceived = true;
         }
         consumer(message);
       }
     } else {
-      assert(state == StdoutState.collectDependencies);
+      assert(_state == StdoutState.collectDependencies);
       switch (message[0]) {
         case '+':
-          sources.add(Uri.parse(message.substring(1)));
+          _sources.add(Uri.parse(message.substring(1)));
           break;
         case '-':
-          sources.remove(Uri.parse(message.substring(1)));
+          _sources.remove(Uri.parse(message.substring(1)));
           break;
         default:
           _logger.warning('Unexpected prefix for $message uri - ignoring');
@@ -146,12 +148,12 @@ class StdoutHandler {
   // with its own boundary key and new completer.
   void reset(
       {bool suppressCompilerMessages = false, bool expectSources = true}) {
-    boundaryKey = null;
-    compilerMessageReceived = false;
+    _boundaryKey = null;
+    _compilerMessageReceived = false;
     compilerOutput = Completer<CompilerOutput?>();
     _suppressCompilerMessages = suppressCompilerMessages;
     _expectSources = expectSources;
-    state = StdoutState.collectDiagnostic;
+    _state = StdoutState.collectDiagnostic;
   }
 }
 
