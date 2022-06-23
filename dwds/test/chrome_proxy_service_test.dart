@@ -1409,6 +1409,39 @@ void main() {
           ]));
     });
 
+    test('lookupPackageUris ignores local parameter', () async {
+      final vm = await service.getVM();
+      final isolateId = vm.isolates.first.id;
+      final scriptList = await service.getScripts(isolateId);
+
+      final uris = scriptList.scripts.map((e) => e.uri).toList();
+      final resolvedUrisWithLocal =
+          await service.lookupResolvedPackageUris(isolateId, uris, local: true);
+
+      final packageUrisWithLocal = await service.lookupPackageUris(
+          isolateId, resolvedUrisWithLocal.uris);
+      expect(
+          packageUrisWithLocal.uris,
+          containsAll([
+            'org-dartlang-app:///example/hello_world/main.dart',
+            'package:path/path.dart',
+            'package:path/src/path_set.dart',
+          ]));
+
+      final resolvedUrisWithoutLocal =
+          await service.lookupResolvedPackageUris(isolateId, uris, local: true);
+
+      final packageUrisWithoutLocal = await service.lookupPackageUris(
+          isolateId, resolvedUrisWithoutLocal.uris);
+      expect(
+          packageUrisWithoutLocal.uris,
+          containsAll([
+            'org-dartlang-app:///example/hello_world/main.dart',
+            'package:path/path.dart',
+            'package:path/src/path_set.dart',
+          ]));
+    });
+
     test('lookupPackageUris does not translate non-existent paths', () async {
       final vm = await service.getVM();
       final isolateId = vm.isolates.first.id;
