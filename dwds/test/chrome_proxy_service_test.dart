@@ -542,7 +542,7 @@ void main() {
             list[4] = 100;
             return list;
       })()''';
-        return service.appInspectorProvider().jsEvaluate(expr);
+        return service.inspector.jsEvaluate(expr);
       }
 
       /// Helper to create a LinkedHashMap with 1001 entries, doing a direct JS eval.
@@ -558,7 +558,7 @@ void main() {
             const linkedMap = sdk.dart.dsend(sdk.collection.LinkedHashMap, "from", [map]);
             return linkedMap;
       })()''';
-        return service.appInspectorProvider().jsEvaluate(expr);
+        return service.inspector.jsEvaluate(expr);
       }
 
       test('Lists', () async {

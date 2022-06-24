@@ -42,8 +42,8 @@ Isolate get simpleIsolate => Isolate(
       isolateFlags: [],
     );
 
-class FakeInspector extends Domain implements AppInspector {
-  FakeInspector({this.fakeIsolate}) : super.forInspector();
+class FakeInspector implements AppInspector {
+  FakeInspector({this.fakeIsolate});
 
   Isolate fakeIsolate;
 
@@ -53,18 +53,15 @@ class FakeInspector extends Domain implements AppInspector {
   }
 
   @override
-  Future<RemoteObject> evaluate(
-          String isolateId, String targetId, String expression,
-          {Map<String, String> scope}) =>
-      null;
+  Future<InstanceRef> instanceRefFor(Object value) => null;
 
   @override
-  Future<Obj> getObject(String isolateId, String objectId,
+  Future<Obj> getObject(String objectId,
           {int offset, int count}) =>
       null;
 
   @override
-  Future<ScriptList> getScripts(String isolateId) => null;
+  Future<ScriptList> getScripts() => null;
 
   @override
   Future<ScriptRef> scriptRefFor(String uri) =>
@@ -74,16 +71,10 @@ class FakeInspector extends Domain implements AppInspector {
   ScriptRef scriptWithId(String scriptId) => null;
 
   @override
-  Isolate checkIsolate(String methodName, String isolateId) => fakeIsolate;
-
-  @override
   Isolate get isolate => fakeIsolate;
 
   @override
   IsolateRef get isolateRef => null;
-
-  @override
-  InstanceHelper get instanceHelper => InstanceHelper(null);
 }
 
 class FakeSseConnection implements SseSocketConnection {

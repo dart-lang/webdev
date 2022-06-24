@@ -9,7 +9,6 @@ import 'package:vm_service/vm_service.dart';
 
 import '../loaders/strategy.dart';
 import '../utilities/domain.dart';
-import 'inspector.dart';
 import 'metadata/class.dart';
 
 /// Keeps track of Dart libraries available in the running application.
@@ -24,7 +23,9 @@ class LibraryHelper extends Domain {
 
   LibraryRef _rootLib;
 
-  LibraryHelper(AppInspector Function() provider) : super(provider);
+  LibraryHelper(AppInspectorInterface appInspector) {
+    inspector = appInspector;
+  }
 
   Future<LibraryRef> get rootLib async {
     if (_rootLib != null) return _rootLib;

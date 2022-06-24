@@ -15,7 +15,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
 import '../loaders/strategy.dart';
-import '../services/chrome_proxy_service.dart';
 import '../services/chrome_debug_exception.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
@@ -27,6 +26,10 @@ import 'frame_computer.dart';
 import 'location.dart';
 import 'remote_debugger.dart';
 import 'skip_list.dart';
+
+/// Adds [event] to the stream with [streamId] if there is anybody listening
+/// on that stream.
+typedef StreamNotify = void Function(String streamId, Event event);
 
 /// Converts from ExceptionPauseMode strings to [PauseState] enums.
 ///
@@ -51,16 +54,13 @@ class Debugger extends Domain {
   Debugger._(
     this._remoteDebugger,
     this._streamNotify,
-    AppInspectorProvider provider,
     this._locations,
     this._skipLists,
     this._root,
-  )   : _breakpoints = _Breakpoints(
+  )  : _breakpoints = _Breakpoints(
             locations: _locations,
-            provider: provider,
             remoteDebugger: _remoteDebugger,
-            root: _root),
-        super(provider);
+            root: _root);
 
   /// The breakpoints we have set so far, indexable by either
   /// Dart or JS ID.
@@ -86,6 +86,11 @@ class Debugger extends Domain {
 
   bool _isStepping = false;
 
+  void updateInspector(AppInspectorInterface appInspector) {
+    inspector = appInspector;
+    _breakpoints.inspector = appInspector;
+  }
+
   Future<Success> pause() async {
     _isStepping = false;
     final result = await _remoteDebugger.pause();
@@ -93,8 +98,7 @@ class Debugger extends Domain {
     return Success();
   }
 
-  Future<Success> setExceptionPauseMode(String isolateId, String mode) async {
-    checkIsolate('setExceptionPauseMode', isolateId);
+  Future<Success> setExceptionPauseMode(String mode) async {
     mode = mode?.toLowerCase();
     if (!_pauseModePauseStates.containsKey(mode)) {
       throwInvalidParam('setExceptionPauseMode', 'Unsupported mode: $mode');
@@ -117,9 +121,7 @@ class Debugger extends Domain {
   ///
   /// Note that stepping will automatically continue until Chrome is paused at
   /// a location for which we have source information.
-  Future<Success> resume(String isolateId,
-      {String step, int frameIndex}) async {
-    checkIsolate('resume', isolateId);
+  Future<Success> resume({String step, int frameIndex}) async {
     if (frameIndex != null) {
       throw ArgumentError('FrameIndex is currently unsupported.');
     }
@@ -152,9 +154,7 @@ class Debugger extends Domain {
   /// Returns null if the debugger is not paused.
   ///
   /// The returned stack will contain up to [limit] frames if provided.
-  Future<Stack> getStack(String isolateId, {int limit}) async {
-    checkIsolate('getStack', isolateId);
-
+  Future<Stack> getStack({int limit}) async {
     if (stackComputer == null) {
       throw RPCError('getStack', RPCError.kInternalError,
           'Cannot compute stack when application is not paused');
@@ -170,7 +170,6 @@ class Debugger extends Domain {
   static Future<Debugger> create(
     RemoteDebugger remoteDebugger,
     StreamNotify streamNotify,
-    AppInspectorProvider appInspectorProvider,
     Locations locations,
     SkipLists skipLists,
     String root,
@@ -178,7 +177,6 @@ class Debugger extends Domain {
     final debugger = Debugger._(
       remoteDebugger,
       streamNotify,
-      appInspectorProvider,
       locations,
       skipLists,
       root,
@@ -224,13 +222,11 @@ class Debugger extends Domain {
   ///
   /// Note that line and column are Dart source locations and are one-based.
   Future<Breakpoint> addBreakpoint(
-    String isolateId,
     String scriptId,
     int line, {
     int column,
   }) async {
     column ??= 0;
-    checkIsolate('addBreakpoint', isolateId);
     final breakpoint = await _breakpoints.add(scriptId, line, column);
     _notifyBreakpoint(breakpoint);
     return breakpoint;
@@ -265,7 +261,6 @@ class Debugger extends Domain {
     // them back.
     for (var breakpoint in disabledBreakpoints) {
       await addBreakpoint(
-          inspector.isolate.id,
           (await _updatedScriptRefFor(breakpoint)).id,
           _lineNumberFor(breakpoint),
           column: _columnNumberFor(breakpoint));
@@ -283,9 +278,7 @@ class Debugger extends Domain {
   }
 
   /// Remove a Dart breakpoint.
-  Future<Success> removeBreakpoint(
-      String isolateId, String breakpointId) async {
-    checkIsolate('removeBreakpoint', isolateId);
+  Future<Success> removeBreakpoint(String breakpointId) async {
     if (!_breakpoints._bpByDartId.containsKey(breakpointId)) {
       throwInvalidParam(
           'removeBreakpoint', 'invalid breakpoint id $breakpointId');
@@ -362,7 +355,7 @@ class Debugger extends Domain {
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
     final instanceRef =
-        await inspector.instanceHelper.instanceRefFor(property.value);
+        await inspector.instanceRefFor(property.value);
     // Skip null instance refs, which we get for weird objects, e.g.
     // properties that are getter/setter pairs.
     // TODO(alanknight): Handle these properly.
@@ -552,7 +545,7 @@ class Debugger extends Domain {
         if (map['type'] == 'object') {
           // The className here is generally 'DartError'.
           final obj = RemoteObject(map);
-          exception = await inspector.instanceHelper.instanceRefFor(obj);
+          exception = await inspector.instanceRefFor(obj);
 
           // TODO: The exception object generally doesn't get converted to a
           // Dart object (and instead has a classRef name of 'NativeJavaScriptObject').
@@ -562,7 +555,7 @@ class Debugger extends Domain {
               final description =
                   await inspector.mapExceptionStackTrace(obj.description);
               exception =
-                  await inspector.instanceHelper.instanceRefFor(description);
+                  await inspector.instanceRefFor(description);
             } else {
               exception = null;
             }
@@ -766,10 +759,9 @@ class _Breakpoints extends Domain {
 
   _Breakpoints({
     @required this.locations,
-    @required AppInspectorProvider provider,
     @required this.remoteDebugger,
     @required this.root,
-  }) : super(provider);
+  });
 
   Future<Breakpoint> _createBreakpoint(
       String id, String scriptId, int line, int column) async {

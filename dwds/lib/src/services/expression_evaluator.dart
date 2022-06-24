@@ -8,6 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../debugging/dart_scope.dart';
+import '../debugging/debugger.dart';
 import '../debugging/inspector.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
@@ -37,6 +38,7 @@ class ErrorKind {
 class ExpressionEvaluator {
   final String _entrypoint;
   final AppInspector _inspector;
+  final Debugger _debugger;
   final Locations _locations;
   final Modules _modules;
   final ExpressionCompiler _compiler;
@@ -53,7 +55,7 @@ class ExpressionEvaluator {
   static final _loadModuleErrorRegex =
       RegExp(r".*Failed to load '.*\.com/(.*\.js).*");
 
-  ExpressionEvaluator(this._entrypoint, this._inspector, this._locations,
+  ExpressionEvaluator(this._entrypoint, this._inspector, this._debugger, this._locations,
       this._modules, this._compiler);
 
   RemoteObject _createError(ErrorKind severity, String message) {
@@ -120,7 +122,7 @@ class ExpressionEvaluator {
       result = await _inspector.callFunction(function, scope.values);
       result = await _formatEvaluationError(result);
     } else {
-      result = await _inspector.debugger.evaluate(jsResult);
+      result = await _debugger.evaluate(jsResult);
       result = await _formatEvaluationError(result);
     }
 
@@ -152,7 +154,7 @@ class ExpressionEvaluator {
     }
 
     // Get JS scope and current JS location.
-    final jsFrame = _inspector.debugger.jsFrameForIndex(frameIndex);
+    final jsFrame = _debugger.jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
       return _createError(
           ErrorKind.internal,
@@ -208,7 +210,7 @@ class ExpressionEvaluator {
     }
 
     // Send JS expression to chrome to evaluate.
-    var result = await _inspector.debugger
+    var result = await _debugger
         .evaluateJsOnCallFrameIndex(frameIndex, jsResult);
     result = await _formatEvaluationError(result);
 
@@ -317,7 +319,7 @@ class ExpressionEvaluator {
     final scopeChain = filterScopes(frame).reversed;
     for (var scope in scopeChain) {
       final scopeProperties =
-          await _inspector.debugger.getProperties(scope.object.objectId);
+          await _debugger.getProperties(scope.object.objectId);
 
       collectVariables(scope.scope, scopeProperties);
     }

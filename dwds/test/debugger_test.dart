@@ -107,12 +107,12 @@ void main() async {
     debugger = await Debugger.create(
       webkitDebugger,
       null,
-      () => inspector,
       locations,
       skipLists,
       root,
     );
     inspector = FakeInspector();
+    debugger.updateInspector(inspector);
   });
 
   /// Test that we get expected variable values from a hard-coded
