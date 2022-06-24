@@ -1,6 +1,14 @@
-## 14.0.4-dev
+## 15.0.0-dev
 - Port some `dwds` files to null safety.
 - Fix failing `frontend_server_evaluate` tests.
+- Add `AppInspectorInterface` to break circualr dependencies between files.
+
+**Breaking changes**
+
+- Remove `assetHandler` parameter from `ExpressionCompilerService`.
+- `ExpressionCompilerService` no longer provides a handler to service requests.
+  - Note that the only user, expression compiler worker in dart SDK already
+    communicates to the asset server directly.
 
 ## 14.0.3
 - Make data types null safe.

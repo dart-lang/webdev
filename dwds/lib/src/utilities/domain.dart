@@ -11,11 +11,15 @@ import '../connections/app_connection.dart';
 import '../debugging/remote_debugger.dart';
 
 abstract class AppInspectorInterface {
+  /// Connection to the app running in the browser.
   AppConnection get appConnection;
+
+  /// Remove debugger that supports debugging JS app in the browser.
+  RemoteDebugger get remoteDebugger;
+
+  /// Current running isolate.
   Isolate get isolate;
   IsolateRef get isolateRef;
-
-  RemoteDebugger get remoteDebugger;
 
   /// Returns the ID for the execution context or null if not found.
   Future<int> get contextId;
@@ -69,9 +73,10 @@ abstract class AppInspectorInterface {
   Future<RemoteObject> invoke(
       String targetId, String selector, List<dynamic> arguments);
 
-  /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
+  /// Evaluate [expression] by calling Chrome's `Runtime.evaluate`.
   Future<RemoteObject> jsEvaluate(String expression);
 
+  /// Lookup an `object` from some isolate by its [objectId].
   Future<Obj> getObject(String objectId, {int offset, int count});
 
   /// All the scripts in the isolate.
@@ -90,6 +95,7 @@ abstract class AppInspectorInterface {
     List<String> libraryFilters,
   });
 
+  /// Lookup current isolate's memory usage statistics.
   Future<MemoryUsage> getMemoryUsage();
 }
 
