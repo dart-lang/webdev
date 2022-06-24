@@ -36,7 +36,10 @@ void main() {
   group('shared context', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
-      await context.setUp(verboseCompiler: false);
+      await context.setUp(
+        enableExpressionEvaluation: true,
+        verboseCompiler: false,
+      );
     });
 
     tearDownAll(() async {
@@ -359,7 +362,7 @@ void main() {
 
     test('evaluateInFrame', () async {
       await expectLater(
-          service.evaluateInFrame(null, null, null), throwsRPCError);
+          service.evaluateInFrame(null, null, null), throwsSentinelException);
     });
 
     test('getAllocationProfile', () async {
@@ -403,7 +406,7 @@ void main() {
       });
 
       test('throws for invalid ids', () async {
-        expect(service.getIsolate('bad'), throwsArgumentError);
+        expect(service.getIsolate('bad'), throwsSentinelException);
       });
     });
 

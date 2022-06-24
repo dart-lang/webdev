@@ -121,6 +121,7 @@ void main() async {
     final stackComputer = FrameComputer(debugger, frames1);
     final frames = await stackComputer.calculateFrames();
     expect(frames, isNotNull);
+    expect(frames, isNotEmpty);
 
     final firstFrame = frames[0];
     final frame1Variables = firstFrame.vars.map((each) => each.name).toList();
@@ -182,6 +183,7 @@ void main() async {
       // We need to provide an Isolate so that the code doesn't bail out on a null
       // check before it has a chance to throw.
       inspector = FakeInspector(fakeIsolate: simpleIsolate);
+      debugger.updateInspector(inspector);
     });
 
     test('errors in the zone are caught and logged', () async {

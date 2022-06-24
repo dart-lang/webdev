@@ -7,9 +7,7 @@ import 'dart:isolate';
 
 import 'package:async/async.dart';
 import 'package:logging/logging.dart';
-import 'package:shelf/shelf.dart';
 
-import '../utilities/dart_uri.dart';
 import '../utilities/sdk_configuration.dart';
 import 'expression_compiler.dart';
 
@@ -209,8 +207,8 @@ class _Compiler {
 /// ports. It also handles full dill file read requests from the isolate
 /// and redirects them to the asset server.
 ///
-/// Uses [_address] and [_port] to communicate and [_assetHandler] to
-/// redirect asset requests to the asset server.
+/// Uses [_address] and [_port] to communicate and to redirect asset
+/// requests to the asset server.
 ///
 /// Configuration created by [_sdkConfigurationProvider] describes the
 /// locations of SDK files used in expression compilation (summaries,
@@ -218,16 +216,14 @@ class _Compiler {
 ///
 /// Users need to stop the service by calling [stop].
 class ExpressionCompilerService implements ExpressionCompiler {
-  final _logger = Logger('ExpressionCompilerService');
   final _compiler = Completer<_Compiler>();
   final String _address;
   final FutureOr<int> _port;
-  final Handler _assetHandler;
   final bool _verbose;
 
   final SdkConfigurationProvider _sdkConfigurationProvider;
 
-  ExpressionCompilerService(this._address, this._port, this._assetHandler,
+  ExpressionCompilerService(this._address, this._port,
       {bool verbose = false,
       SdkConfigurationProvider? sdkConfigurationProvider})
       : _verbose = verbose,
@@ -270,57 +266,5 @@ class ExpressionCompilerService implements ExpressionCompiler {
 
   Future<void> stop() async {
     if (_compiler.isCompleted) return (await _compiler.future).stop();
-  }
-
-  /// Handles resource requests from expression compiler worker.
-  ///
-  /// Handles REST get requests of the form:
-  /// http://host:port/getResource?uri=<resource uri>
-  ///
-  /// Where the resource uri can be a package Uri for a dart file
-  /// or a server path for a full dill file.
-  /// Translates given resource uri to a server path and redirects
-  /// the request to the asset handler.
-  FutureOr<Response> handler(Request request) async {
-    final uri = request.requestedUri.queryParameters['uri'];
-    try {
-      final query = request.requestedUri.path;
-      _logger.finest('request: ${request.method} ${request.requestedUri}');
-
-      if (query != '/getResource' || uri == null) {
-        return Response.notFound(uri);
-      }
-
-      if (!uri.endsWith('.dart') && !uri.endsWith('.dill')) {
-        return Response.notFound(uri);
-      }
-
-      var serverPath = uri;
-      if (uri.endsWith('.dart')) {
-        serverPath = DartUri(uri).serverPath;
-      }
-
-      _logger.finest('serverpath for $uri: $serverPath');
-
-      request = Request(
-        request.method,
-        Uri(
-          scheme: request.requestedUri.scheme,
-          host: request.requestedUri.host,
-          port: request.requestedUri.port,
-          path: serverPath,
-        ),
-        protocolVersion: request.protocolVersion,
-        context: request.context,
-        headers: request.headers,
-        handlerPath: request.handlerPath,
-        encoding: request.encoding,
-      );
-
-      return await _assetHandler(request);
-    } catch (e, s) {
-      _logger.severe('Error loading $uri', e, s);
-      rethrow;
-    }
   }
 }

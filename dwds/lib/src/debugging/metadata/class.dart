@@ -12,7 +12,6 @@ import '../../debugging/remote_debugger.dart';
 import '../../loaders/strategy.dart';
 import '../../services/chrome_debug_exception.dart';
 
-
 /// A hard-coded ClassRef for the Closure class.
 final classRefForClosure = classRefFor('dart:core', 'Closure');
 

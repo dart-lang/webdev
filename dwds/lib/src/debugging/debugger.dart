@@ -57,7 +57,7 @@ class Debugger extends Domain {
     this._locations,
     this._skipLists,
     this._root,
-  )  : _breakpoints = _Breakpoints(
+  ) : _breakpoints = _Breakpoints(
             locations: _locations,
             remoteDebugger: _remoteDebugger,
             root: _root);
@@ -260,8 +260,7 @@ class Debugger extends Domain {
     // Disabled breakpoints were actually removed from Chrome so simply add
     // them back.
     for (var breakpoint in disabledBreakpoints) {
-      await addBreakpoint(
-          (await _updatedScriptRefFor(breakpoint)).id,
+      await addBreakpoint((await _updatedScriptRefFor(breakpoint)).id,
           _lineNumberFor(breakpoint),
           column: _columnNumberFor(breakpoint));
     }
@@ -354,8 +353,7 @@ class Debugger extends Domain {
   Future<BoundVariable> _boundVariable(Property property) async {
     // We return one level of properties from this object. Sub-properties are
     // another round trip.
-    final instanceRef =
-        await inspector.instanceRefFor(property.value);
+    final instanceRef = await inspector.instanceRefFor(property.value);
     // Skip null instance refs, which we get for weird objects, e.g.
     // properties that are getter/setter pairs.
     // TODO(alanknight): Handle these properly.
@@ -554,8 +552,7 @@ class Debugger extends Domain {
               // Create a string exception object.
               final description =
                   await inspector.mapExceptionStackTrace(obj.description);
-              exception =
-                  await inspector.instanceRefFor(description);
+              exception = await inspector.instanceRefFor(description);
             } else {
               exception = null;
             }
@@ -662,21 +659,6 @@ class Debugger extends Domain {
     isolate.pauseEvent = event;
     _streamNotify('Isolate', event);
     logger.severe('Target crashed!');
-  }
-
-  /// Evaluate [expression] by calling Chrome's Runtime.evaluate
-  Future<RemoteObject> evaluate(String expression) async {
-    try {
-      return await _remoteDebugger.evaluate(expression);
-    } on ExceptionDetails catch (e) {
-      throw ChromeDebugException(
-        e.json,
-        evalContents: expression,
-        additionalDetails: {
-          'Dart expression': expression,
-        },
-      );
-    }
   }
 
   WipCallFrame jsFrameForIndex(int frameIndex) {

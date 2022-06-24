@@ -10,7 +10,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import '../connections/app_connection.dart';
 import '../debugging/remote_debugger.dart';
 
-
 abstract class AppInspectorInterface {
   AppConnection get appConnection;
   Isolate get isolate;
@@ -57,7 +56,8 @@ abstract class AppInspectorInterface {
   Future<String> mapExceptionStackTrace(String description);
 
   /// Call [function] with objects referred by [argumentIds] as arguments.
-  Future<RemoteObject> callFunction(String function, Iterable<String> argumentIds);
+  Future<RemoteObject> callFunction(
+      String function, Iterable<String> argumentIds);
 
   /// Invoke the function named [selector] on the object identified by
   /// [targetId].
@@ -66,7 +66,8 @@ abstract class AppInspectorInterface {
   /// invoking a top-level function. The [arguments] are always strings that are
   /// Dart object Ids (which can also be Chrome RemoteObject objectIds that are
   /// for non-Dart JS objects.)
-  Future<RemoteObject> invoke(String targetId, String selector, List<dynamic> arguments);
+  Future<RemoteObject> invoke(
+      String targetId, String selector, List<dynamic> arguments);
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
   Future<RemoteObject> jsEvaluate(String expression);

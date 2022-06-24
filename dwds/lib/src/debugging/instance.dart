@@ -23,7 +23,7 @@ class InstanceHelper extends Domain {
   InstanceHelper(AppInspectorInterface appInspector, this.debugger) {
     inspector = appInspector;
   }
-  
+
   final Debugger debugger;
   static final InstanceRef kNullInstanceRef =
       _primitiveInstanceRef(InstanceKind.kNull, null);
@@ -110,11 +110,8 @@ class InstanceHelper extends Domain {
       return _closureInstanceFor(remoteObject);
     }
 
-    final properties = await debugger.getProperties(
-        remoteObject.objectId,
-        offset: offset,
-        count: count,
-        length: metaData.length);
+    final properties = await debugger.getProperties(remoteObject.objectId,
+        offset: offset, count: count, length: metaData.length);
     if (metaData.isSystemList) {
       return await _listInstanceFor(
           classRef, remoteObject, properties, offset, count);

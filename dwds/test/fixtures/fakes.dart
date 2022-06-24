@@ -7,14 +7,15 @@
 import 'dart:async';
 
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/debugging/classes.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
+import 'package:dwds/src/debugging/libraries.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/utilities/domain.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
 
@@ -47,18 +48,24 @@ class FakeInspector implements AppInspector {
 
   Isolate fakeIsolate;
 
+  final _instanceHelper = InstanceHelper(null, null);
+
   @override
   Object noSuchMethod(Invocation invocation) {
     throw UnsupportedError('This is a fake');
   }
 
   @override
-  Future<InstanceRef> instanceRefFor(Object value) => null;
+  Future<void> initialize(LibraryHelper libraryHelper, ClassHelper classHelper,
+          InstanceHelper instanceHelper) =>
+      null;
 
   @override
-  Future<Obj> getObject(String objectId,
-          {int offset, int count}) =>
-      null;
+  Future<InstanceRef> instanceRefFor(Object value) =>
+      _instanceHelper.instanceRefFor(value);
+
+  @override
+  Future<Obj> getObject(String objectId, {int offset, int count}) => null;
 
   @override
   Future<ScriptList> getScripts() => null;

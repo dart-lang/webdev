@@ -13,7 +13,6 @@ import '../utilities/domain.dart';
 import '../utilities/shared.dart';
 import 'metadata/class.dart';
 
-
 /// Keeps track of Dart classes available in the running application.
 class ClassHelper extends Domain {
   /// Map of class ID to [Class].

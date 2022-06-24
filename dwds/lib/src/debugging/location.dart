@@ -152,10 +152,10 @@ class Locations {
   /// Returns all [Location] data for a provided Dart source.
   Future<Set<Location>> locationsForDart(String serverPath) async {
     final module = await _modules.moduleForSource(serverPath);
-    if (module == null) {
-      _logger.warning('No module for server path $serverPath');
-    } else {
+    if (module != null) {
       await _locationsForModule(module);
+    } else {
+      _logger.warning('No module for server path $serverPath');
     }
     return _sourceToLocation[serverPath] ?? {};
   }
@@ -164,11 +164,9 @@ class Locations {
   Future<Set<Location>> locationsForUrl(String url) async {
     final module = await globalLoadStrategy.moduleForServerPath(
         _entrypoint, Uri.parse(url).path);
-    final cache = _moduleToLocations[module];
-    if (cache != null) return cache;
-    if (module == null) {
-      _logger.warning('No module for $url');
-    } else {
+    if (module != null) {
+      final cache = _moduleToLocations[module];
+      if (cache != null) return cache;
       await _locationsForModule(module);
     }
     return _moduleToLocations[module] ?? {};
@@ -250,10 +248,10 @@ class Locations {
           .add(location);
     }
     for (var lineNumber in lineNumberToLocation.keys) {
-      final location = lineNumberToLocation[lineNumber]!;
+      final locations = lineNumberToLocation[lineNumber]!;
       tokenPosTable.add([
         lineNumber,
-        for (var location in location) ...[
+        for (var location in locations) ...[
           location.tokenPos,
           location.dartLocation.column
         ]
@@ -269,9 +267,10 @@ class Locations {
   ///
   /// This will populate the [_sourceToLocation] and [_moduleToLocations] maps.
   Future<Set<Location>> _locationsForModule(String module) async {
-    _locationMemoizer.putIfAbsent(module, () => AsyncMemoizer());
+    final memoizer =
+        _locationMemoizer.putIfAbsent(module, () => AsyncMemoizer());
 
-    return await _locationMemoizer[module]!.runOnce(() async {
+    return await memoizer.runOnce(() async {
       if (_moduleToLocations.containsKey(module)) {
         return _moduleToLocations[module]!;
       }
