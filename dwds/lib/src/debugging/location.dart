@@ -250,10 +250,10 @@ class Locations {
           .add(location);
     }
     for (var lineNumber in lineNumberToLocation.keys) {
-      final location = lineNumberToLocation[lineNumber]!;
+      final locations = lineNumberToLocation[lineNumber]!;
       tokenPosTable.add([
         lineNumber,
-        for (var location in location) ...[
+        for (var location in locations) ...[
           location.tokenPos,
           location.dartLocation.column
         ]
@@ -269,9 +269,10 @@ class Locations {
   ///
   /// This will populate the [_sourceToLocation] and [_moduleToLocations] maps.
   Future<Set<Location>> _locationsForModule(String module) async {
-    _locationMemoizer.putIfAbsent(module, () => AsyncMemoizer());
+    final memoizer =
+        _locationMemoizer.putIfAbsent(module, () => AsyncMemoizer());
 
-    return await _locationMemoizer[module]!.runOnce(() async {
+    return await memoizer.runOnce(() async {
       if (_moduleToLocations.containsKey(module)) {
         return _moduleToLocations[module]!;
       }
