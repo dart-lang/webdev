@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @JS()
 library background;
 
@@ -12,6 +10,12 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:built_collection/built_collection.dart';
+// TODO(elliette): The format_and_analyze Github actions complains about this
+// import because it is looking for it in DWDS' pubspec, not in the extension's
+// pubspec. We should fix the Github action and / or unnest the extension from
+// the DWDS directory.
+// ignore: depend_on_referenced_packages
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/serializers.dart';
@@ -55,11 +59,11 @@ final _devToolsPanelsNotifier =
 // Keeps track of the most recent Dart tab that was opened. This is a heuristic
 // to let us guess which tab the user is trying to debug if they start debugging
 // from the Chrome DevTools Dart panel (which doesn't have a tab ID).
-Tab _mostRecentDartTab;
+Tab? _mostRecentDartTab;
 
 // Keeps track of how debugging was triggered. This lets us know if we should
 // open Dart DevTools in a new window/tab or embed it in Chrome DevTools.
-DebuggerTrigger _debuggerTrigger;
+DebuggerTrigger? _debuggerTrigger;
 
 class DebugSession {
   // The tab ID that contains the running Dart application.
@@ -69,7 +73,7 @@ class DebugSession {
   final String appId;
 
   // The tab ID that contains the corresponding Dart DevTools.
-  int devtoolsTabId;
+  int? devtoolsTabId;
 
   // Socket client for communication with dwds extension backend.
   final SocketClient _socketClient;
@@ -80,7 +84,7 @@ class DebugSession {
   // Collect events into batches to be send periodically to the server.
   final _batchController =
       BatchedStreamController<ExtensionEvent>(delay: _batchDelayMilliseconds);
-  StreamSubscription<List<ExtensionEvent>> _batchSubscription;
+  late final StreamSubscription<List<ExtensionEvent>> _batchSubscription;
 
   DebugSession(this._socketClient, this.appTabId, this.appId) {
     // Collect extension events and send them periodically to the server.
@@ -107,10 +111,10 @@ class DebugSession {
 
 class DevToolsPanel {
   // The Dart app ID.
-  final String appId;
+  final String? appId;
 
   // The Chrome DevTools panel ID.
-  String panelId;
+  String? panelId;
 
   // The URI for the embedded Dart DevTools, or an empty string if the debugger
   // is disconnected.
@@ -213,7 +217,7 @@ void _startDebugging(DebuggerTrigger debuggerTrigger) {
     if (tabs.isNotEmpty) {
       attachDebuggerToTab(tabs.first as Tab);
     } else if (_mostRecentDartTab != null) {
-      attachDebuggerToTab(_mostRecentDartTab);
+      attachDebuggerToTab(_mostRecentDartTab!);
     } else {
       alert('''
           Could not find a Dart app to start debugging. 
@@ -235,8 +239,8 @@ void _attachDebuggerToTab(Tab currentTab) async {
   attach(Debuggee(tabId: currentTab.id), '1.3', allowInterop(() async {
     if (lastError != null) {
       String alertMessage;
-      if (lastError.message.contains('Cannot access') ||
-          lastError.message.contains('Cannot attach')) {
+      if (lastError!.message.contains('Cannot access') ||
+          lastError!.message.contains('Cannot attach')) {
         alertMessage = _notADartAppAlert;
       } else {
         alertMessage = 'DevTools is already opened on a different window.';
@@ -298,12 +302,12 @@ void _maybeAttachDebugSession(
   if (method != 'Runtime.executionContextCreated') return;
 
   final context = json.decode(stringify(params))['context'];
-  final tab = _tabsToAttach.firstWhere((tab) => tab.id == source.tabId,
-      orElse: () => null);
-  if (tab != null) {
+  final tab = _tabsToAttach.firstWhereOrNull((tab) => tab.id == source.tabId);
+  final contextId = context['id'] as int?;
+  if (tab != null && contextId != null) {
     final launchInChromeDevTools =
         _debuggerTrigger == DebuggerTrigger.dartPanel;
-    if (await _tryAttach(context['id'] as int, tab, launchInChromeDevTools)) {
+    if (await _tryAttach(contextId, tab, launchInChromeDevTools)) {
       _tabsToAttach.remove(tab);
     }
   }
@@ -322,9 +326,8 @@ void _removeAndDetachDebugSessionForTab(int tabId, _) {
 // Tries to remove the debug session for the specified tab. If no session is
 // found, returns -1. Otherwise returns the tab ID.
 int _removeDebugSessionForTab(int tabId) {
-  final session = _debugSessions.firstWhere(
-      (session) => session.appTabId == tabId || session.devtoolsTabId == tabId,
-      orElse: () => null);
+  final session = _debugSessions.firstWhereOrNull(
+      (session) => session.appTabId == tabId || session.devtoolsTabId == tabId);
   if (session != null) {
     // Note: package:sse will try to keep the connection alive, even after the
     // client has been closed. Therefore the extension sends an event to notify
@@ -435,23 +438,25 @@ Future<bool> _tryAttach(
           expression:
               '[\$dartExtensionUri, \$dartAppId, \$dartAppInstanceId, window.\$dwdsVersion]',
           returnByValue: true,
-          contextId: contextId), allowInterop((e) {
-    String extensionUri, appId, instanceId, dwdsVersion;
-    if (e.result.value == null) {
+          contextId: contextId), allowInterop((evalResponse) {
+    final value = evalResponse.result.value;
+    final extensionUri = value?[0] as String?;
+    final appId = value?[1] as String?;
+    final instanceId = value?[2] as String?;
+    final dwdsVersion = value?[3] as String?;
+    if (extensionUri == null || appId == null || instanceId == null) {
+      consoleWarn(
+          'Unable to debug app. Missing Dart debugging global variables');
       successCompleter.complete(false);
       return;
     }
-    extensionUri = e.result.value[0] as String;
-    appId = e.result.value[1] as String;
-    instanceId = e.result.value[2] as String;
-    dwdsVersion = e.result.value[3] as String;
     _startSseClient(
       Uri.parse(extensionUri),
       appId,
       instanceId,
       contextId,
       tab,
-      dwdsVersion,
+      dwdsVersion ?? '0.0.0',
       launchInChromeDevTools,
     );
     successCompleter.complete(true);
@@ -472,7 +477,7 @@ Future<void> _startSseClient(
   String dwdsVersion,
   bool launchInChromeDevTools,
 ) async {
-  if (Version.parse(dwdsVersion ?? '0.0.0') >= Version.parse('9.1.0')) {
+  if (Version.parse(dwdsVersion) >= Version.parse('9.1.0')) {
     var authUri = uri.replace(path: authenticationPath);
     if (authUri.scheme == 'ws') authUri = authUri.replace(scheme: 'http');
     if (authUri.scheme == 'wss') authUri = authUri.replace(scheme: 'https');
@@ -480,8 +485,8 @@ Future<void> _startSseClient(
     try {
       final response = await HttpRequest.request(authUrl,
           method: 'GET', withCredentials: true);
-      if (!response.responseText
-          .contains('Dart Debug Authentication Success!')) {
+      final responseText = response.responseText ?? '';
+      if (!responseText.contains('Dart Debug Authentication Success!')) {
         throw Exception('Not authenticated.');
       }
     } catch (_) {
@@ -507,8 +512,9 @@ Future<void> _startSseClient(
   client.stream.listen((data) {
     final message = serializers.deserialize(jsonDecode(data));
     if (message is ExtensionRequest) {
+      final messageParams = message.commandParams ?? '{}';
       final params =
-          BuiltMap<String, Object>(json.decode(message.commandParams)).toMap();
+          BuiltMap<String, Object>(json.decode(messageParams)).toMap();
       sendCommand(Debuggee(tabId: currentTab.id), message.command,
           js_util.jsify(params), allowInterop(([e]) {
         // No arguments indicate that an error occurred.
@@ -588,7 +594,6 @@ void _updateIcon() {
     // Therefore, do not update the icon:
     if (tabs.isEmpty) return;
     final tab = tabs.first as Tab;
-    if (tab.id == null) return;
 
     if (_tabIdToWarning.containsKey(tab.id)) {
       // Set the warning icon (red):
@@ -605,16 +610,15 @@ void _updateIcon() {
 }
 
 /// Construct an [ExtensionEvent] from [method] and [params].
-ExtensionEvent _extensionEventFor(String method, Object params) =>
+ExtensionEvent _extensionEventFor(String method, Object? params) =>
     ExtensionEvent((b) => b
       ..params = jsonEncode(json.decode(stringify(params)))
       ..method = jsonEncode(method));
 
 /// Forward debugger events to the backend if applicable.
 void _filterAndForwardToBackend(Debuggee source, String method, Object params) {
-  final debugSession = _debugSessions.firstWhere(
-      (session) => session.appTabId == source.tabId,
-      orElse: () => null);
+  final debugSession = _debugSessions
+      .firstWhereOrNull((session) => session.appTabId == source.tabId);
 
   if (debugSession == null) return;
 
@@ -662,7 +666,7 @@ external void browserActionOnClickedAddListener(Function callback);
 
 @JS('chrome.debugger.sendCommand')
 external void sendCommand(
-    Debuggee target, String method, Object commandParams, Function callback);
+    Debuggee target, String method, Object? commandParams, Function callback);
 
 @JS('chrome.debugger.attach')
 external void attach(
@@ -684,7 +688,7 @@ external List<Tab> queryTabs(QueryInfo queryInfo, Function callback);
 external String stringify(o);
 
 @JS('window.alert')
-external void alert([String message]);
+external void alert([String? message]);
 
 @JS('chrome.tabs.onCreated.addListener')
 external void tabsOnCreatedAddListener(Function callback);
@@ -715,16 +719,20 @@ external void sendMessage(
     String id, Object message, Object options, Function callback);
 
 @JS('chrome.runtime.sendMessage')
-external void sendSimpleMessage(String id, SimpleMessage message);
+external void sendSimpleMessage(String? id, SimpleMessage message);
+
+@JS('console.warn')
+external void consoleWarn(String header,
+    [String? style1, String? style2, String? style3]);
 
 // For debugging purposes:
 @JS('console.log')
 external void consoleLog(String header,
-    [String style1, String style2, String style3]);
+    [String? style1, String? style2, String? style3]);
 
 // Note: Not checking the lastError when one occurs throws a runtime exception.
 @JS('chrome.runtime.lastError')
-external ChromeError get lastError;
+external ChromeError? get lastError;
 
 @JS()
 class ChromeError {
@@ -736,7 +744,7 @@ class ChromeError {
 class QueryInfo {
   external bool get active;
   external bool get currentWindow;
-  external factory QueryInfo({bool active, bool currentWindow});
+  external factory QueryInfo({bool? active, bool? currentWindow});
 }
 
 @JS()
@@ -759,7 +767,7 @@ class Debuggee {
   external int get tabId;
   external String get extensionId;
   external String get targetId;
-  external factory Debuggee({int tabId, String extensionId, String targetId});
+  external factory Debuggee({int tabId, String? extensionId, String? targetId});
 }
 
 @JS()
@@ -787,7 +795,8 @@ class NavigationInfo {
 class SimpleMessage {
   external String get recipient;
   external String get body;
-  external factory SimpleMessage({String recipient, String body});
+  external factory SimpleMessage(
+      {required String recipient, required String body});
 }
 
 @JS()
@@ -800,7 +809,8 @@ class Request {
   external dynamic get options;
   external String get warning;
   external String get message;
-  external factory Request({int tabId, String name, dynamic options});
+  external factory Request(
+      {required int tabId, required String name, required dynamic options});
 }
 
 @JS()
@@ -858,14 +868,7 @@ class InjectedParams {
   external bool get returnByValue;
   external int get contextId;
   external factory InjectedParams(
-      {String expression, bool returnByValue, int contextId});
-}
-
-@JS()
-@anonymous
-class ScriptIdParam {
-  external String get scriptId;
-  external factory ScriptIdParam({String scriptId});
+      {String? expression, bool? returnByValue, int? contextId});
 }
 
 @JS()

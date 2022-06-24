@@ -673,9 +673,11 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     return (await debugger).pause();
   }
 
+  // Note: Ignore the optional local parameter, it is there to keep the method
+  // signature consistent with the VM service interface.
   @override
-  Future<UriList> lookupResolvedPackageUris(
-      String isolateId, List<String> uris) async {
+  Future<UriList> lookupResolvedPackageUris(String isolateId, List<String> uris,
+      {bool local}) async {
     await isInitialized;
     await _checkIsolate('lookupResolvedPackageUris', isolateId);
     return UriList(uris: uris.map(DartUri.toResolvedUri).toList());
