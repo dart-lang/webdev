@@ -113,9 +113,7 @@ class ExpressionEvaluator {
     var jsCode = _maybeStripTryCatch(jsResult);
 
     // Send JS expression to chrome to evaluate.
-    jsCode = _createJsCall(jsCode, scope.keys);
-    jsCode = _createJsTryCatchWithReturn(jsCode);
-    jsCode = _createJsLambda(jsCode, scope.keys);
+    jsCode = _createJsLambdaWithTryCatch(jsCode, scope.keys);
     var result = await _inspector.callFunction(jsCode, scope.values);
     result = await _formatEvaluationError(result);
 
@@ -202,9 +200,16 @@ class ExpressionEvaluator {
       return _formatCompilationError(jsResult);
     }
 
+    // Strip try/catch incorrectly added by the expression compiler.
+    // TODO: remove adding try/catch block in expression compiler.
+    // https://github.com/dart-lang/webdev/issues/1341
+    var jsCode = _maybeStripTryCatch(jsResult);
+
     // Send JS expression to chrome to evaluate.
-    var result =
-        await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsResult);
+    jsCode = _createTryCatch(jsCode);
+
+    // Send JS expression to chrome to evaluate.
+    var result = await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsCode);
     result = await _formatEvaluationError(result);
 
     _logger.finest('Evaluated "$expression" to "$result"');
@@ -295,21 +300,25 @@ class ExpressionEvaluator {
     return jsCode;
   }
 
-  String _createJsCall(String jsCode, Iterable<String> params) =>
-      '$jsCode(${params.join(', ')})';
+  String _createJsLambdaWithTryCatch(
+      String expression, Iterable<String> params) {
+    final args = params.join(', ');
+    return '  '
+        '  function($args) {\n'
+        '    try {\n'
+        '      return $expression($args);\n'
+        '    } catch (error) {\n'
+        '      return error.name + ": " + error.message;\n'
+        '    }\n'
+        '} ';
+  }
 
-  String _createJsTryCatchWithReturn(String expression) => '    \n'
-      '    try {\n'
-      '      return $expression;\n'
-      '    } catch (error) {\n'
-      '      return error.name + ": " + error.message;\n'
-      '    }\n';
-
-  String _createJsLambda(String expression, Iterable<String> params) =>
-      '  function(${params.join(', ')}) {\n'
-      '    $expression\n'
-      '  }\n'
-      ' ';
+  String _createTryCatch(String expression) => '  '
+      '  try {\n'
+      '    $expression;\n'
+      '  } catch (error) {\n'
+      '    error.name + ": " + error.message;\n'
+      '  }\n';
 
   String _createDartLambda(String expression, Iterable<String> params) =>
       '(${params.join(', ')}) => $expression';
