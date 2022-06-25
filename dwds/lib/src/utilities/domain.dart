@@ -107,26 +107,8 @@ abstract class Domain {
   Domain();
 
   AppInspectorInterface inspector;
-
-  /// Validate that isolateId matches the current isolate we're connected to and
-  /// return that isolate.
-  ///
-  /// This is useful to call at the beginning of API methods that are passed an
-  /// isolate id.
-  Isolate checkIsolate(String methodName, String isolateId) {
-    if (isolateId != inspector.isolate?.id) {
-      throwSentinel(methodName, SentinelKind.kCollected,
-          'Unrecognized isolateId: $isolateId');
-    }
-    return inspector.isolate;
-  }
 }
 
 void throwInvalidParam(String method, String message) {
   throw RPCError(method, RPCError.kInvalidParams, message);
-}
-
-void throwSentinel(String method, String kind, String message) {
-  final data = <String, String>{'kind': kind, 'valueAsString': message};
-  throw SentinelException.parse(method, data);
 }
