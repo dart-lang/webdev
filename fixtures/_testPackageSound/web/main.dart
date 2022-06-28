@@ -118,7 +118,8 @@ void printNestedObjectsMultiLine() {
 }
 
 void printObjectMultiLine() {
-  print( // Breakpoint: printMultiLine
+  print(
+    // Breakpoint: printMultiLine
     createObject() // Breakpoint: printObjectMultiLine
       ..initialize(),
   );

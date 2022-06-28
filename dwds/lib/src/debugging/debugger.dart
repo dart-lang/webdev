@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
@@ -82,7 +79,7 @@ class Debugger extends Domain {
   /// The most important thing here is that frames are identified by
   /// frameIndex in the Dart API, but by frame Id in Chrome, so we need
   /// to keep the JS frames and their Ids around.
-  FrameComputer stackComputer;
+  FrameComputer? stackComputer;
 
   bool _isStepping = false;
 
@@ -99,11 +96,11 @@ class Debugger extends Domain {
   }
 
   Future<Success> setExceptionPauseMode(String mode) async {
-    mode = mode?.toLowerCase();
+    mode = mode.toLowerCase();
     if (!_pauseModePauseStates.containsKey(mode)) {
       throwInvalidParam('setExceptionPauseMode', 'Unsupported mode: $mode');
     }
-    _pauseState = _pauseModePauseStates[mode];
+    _pauseState = _pauseModePauseStates[mode]!;
     await _remoteDebugger.setPauseOnExceptions(_pauseState);
     return Success();
   }
@@ -121,11 +118,11 @@ class Debugger extends Domain {
   ///
   /// Note that stepping will automatically continue until Chrome is paused at
   /// a location for which we have source information.
-  Future<Success> resume({String step, int frameIndex}) async {
+  Future<Success> resume({String? step, int? frameIndex}) async {
     if (frameIndex != null) {
       throw ArgumentError('FrameIndex is currently unsupported.');
     }
-    WipResponse result;
+    WipResponse? result;
     if (step != null) {
       _isStepping = true;
       switch (step) {
@@ -154,13 +151,13 @@ class Debugger extends Domain {
   /// Returns null if the debugger is not paused.
   ///
   /// The returned stack will contain up to [limit] frames if provided.
-  Future<Stack> getStack({int limit}) async {
+  Future<Stack> getStack({int? limit}) async {
     if (stackComputer == null) {
       throw RPCError('getStack', RPCError.kInternalError,
           'Cannot compute stack when application is not paused');
     }
 
-    final frames = await stackComputer.calculateFrames(limit: limit);
+    final frames = await stackComputer!.calculateFrames(limit: limit);
     return Stack(
         frames: frames,
         messages: [],
@@ -190,19 +187,19 @@ class Debugger extends Domain {
     // miss events.
     // Allow a null debugger/connection for unit tests.
     runZonedGuarded(() {
-      _remoteDebugger?.onPaused?.listen(_pauseHandler);
-      _remoteDebugger?.onResumed?.listen(_resumeHandler);
-      _remoteDebugger?.onTargetCrashed?.listen(_crashHandler);
+      _remoteDebugger.onPaused.listen(_pauseHandler);
+      _remoteDebugger.onResumed.listen(_resumeHandler);
+      _remoteDebugger.onTargetCrashed.listen(_crashHandler);
     }, (e, StackTrace s) {
       logger.warning('Error handling Chrome event', e, s);
     });
 
-    handleErrorIfPresent(await _remoteDebugger?.enablePage());
-    handleErrorIfPresent(await _remoteDebugger?.enable() as WipResponse);
+    handleErrorIfPresent(await _remoteDebugger.enablePage());
+    handleErrorIfPresent(await _remoteDebugger.enable() as WipResponse);
 
     // Enable collecting information about async frames when paused.
     handleErrorIfPresent(await _remoteDebugger
-        ?.sendCommand('Debugger.setAsyncCallStackDepth', params: {
+        .sendCommand('Debugger.setAsyncCallStackDepth', params: {
       'maxDepth': 128,
     }));
   }
@@ -224,7 +221,7 @@ class Debugger extends Domain {
   Future<Breakpoint> addBreakpoint(
     String scriptId,
     int line, {
-    int column,
+    int? column,
   }) async {
     column ??= 0;
     final breakpoint = await _breakpoints.add(scriptId, line, column);
@@ -232,9 +229,10 @@ class Debugger extends Domain {
     return breakpoint;
   }
 
-  Future<ScriptRef> _updatedScriptRefFor(Breakpoint breakpoint) async {
+  Future<ScriptRef?> _updatedScriptRefFor(Breakpoint breakpoint) async {
     final oldRef = (breakpoint.location as SourceLocation).script;
-    final dartUri = DartUri(oldRef.uri, _root);
+    if (oldRef == null || oldRef.uri == null) return null;
+    final dartUri = DartUri(oldRef.uri!, _root);
     return await inspector.scriptRefFor(dartUri.serverPath);
   }
 
@@ -245,24 +243,40 @@ class Debugger extends Domain {
     // Previous breakpoints were never removed from Chrome since we use
     // `setBreakpointByUrl`. We simply need to update the references.
     for (var breakpoint in previousBreakpoints) {
+      final dartBpId = breakpoint.id!;
       final scriptRef = await _updatedScriptRefFor(breakpoint);
-      final updatedLocation = await _locations.locationForDart(
-          DartUri(scriptRef.uri, _root),
-          _lineNumberFor(breakpoint),
-          _columnNumberFor(breakpoint));
-      final updatedBreakpoint = _breakpoints._dartBreakpoint(
-          scriptRef, updatedLocation, breakpoint.id);
-      _breakpoints._note(
-          bp: updatedBreakpoint,
-          jsId: _breakpoints._jsIdByDartId[updatedBreakpoint.id]);
-      _notifyBreakpoint(updatedBreakpoint);
+      if (scriptRef != null && scriptRef.uri != null) {
+        final jsBpId = _breakpoints.jsIdFor(dartBpId)!;
+        final updatedLocation = await _locations.locationForDart(
+            DartUri(scriptRef.uri!, _root),
+            _lineNumberFor(breakpoint),
+            _columnNumberFor(breakpoint));
+        if (updatedLocation != null) {
+          final updatedBreakpoint = _breakpoints._dartBreakpoint(
+              scriptRef, updatedLocation, dartBpId);
+          _breakpoints._note(bp: updatedBreakpoint, jsId: jsBpId);
+          _notifyBreakpoint(updatedBreakpoint);
+        } else {
+          logger.warning('Cannot update breakpoint $dartBpId:'
+              ' cannot update location.');
+        }
+      } else {
+        logger.warning('Cannot update breakpoint $dartBpId:'
+            ' cannot find script ref.');
+      }
     }
+
     // Disabled breakpoints were actually removed from Chrome so simply add
     // them back.
     for (var breakpoint in disabledBreakpoints) {
-      await addBreakpoint((await _updatedScriptRefFor(breakpoint)).id,
-          _lineNumberFor(breakpoint),
-          column: _columnNumberFor(breakpoint));
+      final scriptRef = await _updatedScriptRefFor(breakpoint);
+      if (scriptRef != null && scriptRef.id != null) {
+        await addBreakpoint(scriptRef.id!, _lineNumberFor(breakpoint),
+            column: _columnNumberFor(breakpoint));
+      } else {
+        logger.warning('Cannot update disabled breakpoint ${breakpoint.id}:'
+            ' cannot find script ref.');
+      }
     }
   }
 
@@ -278,11 +292,15 @@ class Debugger extends Domain {
 
   /// Remove a Dart breakpoint.
   Future<Success> removeBreakpoint(String breakpointId) async {
-    if (!_breakpoints._bpByDartId.containsKey(breakpointId)) {
+    if (_breakpoints.breakpointFor(breakpointId) == null) {
       throwInvalidParam(
           'removeBreakpoint', 'invalid breakpoint id $breakpointId');
     }
-    final jsId = _breakpoints.jsId(breakpointId);
+    final jsId = _breakpoints.jsIdFor(breakpointId);
+    if (jsId == null) {
+      throw RPCError('removeBreakpoint', RPCError.kInternalError,
+          'invalid JS breakpoint id $jsId');
+    }
     await _removeBreakpoint(jsId);
 
     final bp = await _breakpoints.remove(jsId: jsId, dartId: breakpointId);
@@ -310,19 +328,19 @@ class Debugger extends Domain {
   }
 
   /// Returns Chrome script uri for Chrome script ID.
-  String urlForScriptId(String scriptId) =>
+  String? urlForScriptId(String scriptId) =>
       _remoteDebugger.scripts[scriptId]?.url;
 
   /// Returns source [Location] for the paused event.
   ///
   /// If we do not have [Location] data for the embedded JS location, null is
   /// returned.
-  Future<Location> _sourceLocation(DebuggerPausedEvent e) {
-    final frame = e.params['callFrames'][0];
-    final location = frame['location'];
-    final scriptId = location['scriptId'] as String;
-    final line = location['lineNumber'] as int;
-    final column = location['columnNumber'] as int;
+  Future<Location?> _sourceLocation(DebuggerPausedEvent e) async {
+    final frame = e.params?['callFrames']?[0];
+    final location = frame?['location'];
+    final scriptId = location?['scriptId'] as String;
+    final line = location?['lineNumber'] as int;
+    final column = location?['columnNumber'] as int;
 
     final url = urlForScriptId(scriptId);
     if (url == null) return null;
@@ -330,9 +348,9 @@ class Debugger extends Domain {
   }
 
   /// Returns script ID for the paused event.
-  String _frameScriptId(DebuggerPausedEvent e) {
-    final frame = e.params['callFrames'][0];
-    return frame['location']['scriptId'] as String;
+  String? _frameScriptId(DebuggerPausedEvent e) {
+    final frame = e.params?['callFrames']?[0];
+    return frame?['location']?['scriptId'] as String?;
   }
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
@@ -347,26 +365,33 @@ class Debugger extends Domain {
     // JavaScript objects
     return boundVariables
         .where((bv) => bv != null && !isNativeJsObject(bv.value as InstanceRef))
-        .toList();
+        .toList()
+        .cast();
   }
 
-  Future<BoundVariable> _boundVariable(Property property) async {
-    // We return one level of properties from this object. Sub-properties are
-    // another round trip.
-    final instanceRef = await inspector.instanceRefFor(property.value);
-    // Skip null instance refs, which we get for weird objects, e.g.
-    // properties that are getter/setter pairs.
-    // TODO(alanknight): Handle these properly.
-    if (instanceRef == null) return null;
+  Future<BoundVariable?> _boundVariable(Property property) async {
+    // TODO(annagrin): value might be null in the future for variables
+    // optimized by V8. Convey this information to the user.
+    if (property.value != null) {
+      final value = property.value!;
+      // We return one level of properties from this object. Sub-properties are
+      // another round trip.
+      final instanceRef = await inspector.instanceRefFor(value);
+      // Skip null instance refs, which we get for weird objects, e.g.
+      // properties that are getter/setter pairs.
+      // TODO(alanknight): Handle these properly.
+      if (instanceRef == null) return null;
 
-    return BoundVariable(
-      name: property.name,
-      value: instanceRef,
-      // TODO(grouma) - Provide actual token positions.
-      declarationTokenPos: -1,
-      scopeStartTokenPos: -1,
-      scopeEndTokenPos: -1,
-    );
+      return BoundVariable(
+        name: property.name,
+        value: instanceRef,
+        // TODO(grouma) - Provide actual token positions.
+        declarationTokenPos: -1,
+        scopeStartTokenPos: -1,
+        scopeEndTokenPos: -1,
+      );
+    }
+    return null;
   }
 
   /// Find a sub-range of the entries for a Map/List when offset and/or count
@@ -377,9 +402,7 @@ class Debugger extends Domain {
   /// [length]. If it is, then [length] should be the number of entries in the
   /// List/Map and [offset] and [count] should indicate the desired range.
   Future<RemoteObject> _subrange(
-      String id, int offset, int count, int length) async {
-    assert(offset != null);
-    assert(length != null);
+      String id, int offset, int? count, int length) async {
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
     final receiver = remoteObjectFor(id);
@@ -438,26 +461,28 @@ class Debugger extends Domain {
   /// List or Map, [offset] and/or [count] can be provided to indicate a desired
   /// range of entries. They will be ignored if there is no [length].
   Future<List<Property>> getProperties(String objectId,
-      {int offset, int count, int length}) async {
-    var rangeId = objectId;
+      {int? offset, int? count, int? length}) async {
+    String rangeId = objectId;
     if (length != null && (offset != null || count != null)) {
-      final range = await _subrange(objectId, offset ?? 0, count, length);
-      rangeId = range.objectId;
+      final range = await _subrange(objectId, offset ?? 0, count ?? 0, length);
+      rangeId = range.objectId ?? rangeId;
     }
-    final response =
-        await _remoteDebugger.sendCommand('Runtime.getProperties', params: {
-      'objectId': rangeId,
-      'ownProperties': true,
-    });
-    final jsProperties = response.result['result'];
-    final properties = (jsProperties as List)
+    final jsProperties = await sendCommandAndvalidateResult<List>(
+      _remoteDebugger,
+      method: 'Runtime.getProperties',
+      resultField: 'result',
+      params: {
+        'objectId': rangeId,
+        'ownProperties': true,
+      },
+    );
+    return jsProperties
         .map<Property>((each) => Property(each as Map<String, dynamic>))
         .toList();
-    return properties;
   }
 
   /// Returns a Dart [Frame] for a JS [frame].
-  Future<Frame> calculateDartFrameFor(
+  Future<Frame?> calculateDartFrameFor(
     WipCallFrame frame,
     int frameIndex, {
     bool populateVariables = true,
@@ -473,18 +498,17 @@ class Debugger extends Domain {
       return null;
     }
 
-    final bestLocation = await _locations.locationForJs(url, line, column);
+    final bestLocation = await _locations.locationForJs(url, line, column ?? 0);
     if (bestLocation == null) return null;
 
     final script =
-        await inspector?.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
+        await inspector.scriptRefFor(bestLocation.dartLocation.uri.serverPath);
     // We think we found a location, but for some reason we can't find the
     // script. Just drop the frame.
     // TODO(#700): Understand when this can happen and have a better fix.
     if (script == null) return null;
 
-    final functionName =
-        _prettifyMember((frame.functionName ?? '').split('.').last);
+    final functionName = _prettifyMember((frame.functionName).split('.').last);
     final codeRefName = functionName.isEmpty ? '<closure>' : functionName;
 
     final dartFrame = Frame(
@@ -512,10 +536,7 @@ class Debugger extends Domain {
 
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
-    if (inspector == null) return;
-
     final isolate = inspector.isolate;
-    if (isolate == null) return;
 
     Event event;
     final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -528,7 +549,7 @@ class Debugger extends Domain {
           .where((entry) => entry != null)
           .toSet();
       final pauseBreakpoints = isolate.breakpoints
-          .where((bp) => breakpointIds.contains(bp.id))
+          ?.where((bp) => breakpointIds.contains(bp.id))
           .toList();
       event = Event(
           kind: EventKind.kPauseBreakpoint,
@@ -536,7 +557,7 @@ class Debugger extends Domain {
           isolate: inspector.isolateRef)
         ..pauseBreakpoints = pauseBreakpoints;
     } else if (e.reason == 'exception' || e.reason == 'assert') {
-      InstanceRef exception;
+      InstanceRef? exception;
 
       if (e.data is Map<String, dynamic>) {
         final map = e.data as Map<String, dynamic>;
@@ -544,14 +565,11 @@ class Debugger extends Domain {
           // The className here is generally 'DartError'.
           final obj = RemoteObject(map);
           exception = await inspector.instanceRefFor(obj);
-
-          // TODO: The exception object generally doesn't get converted to a
-          // Dart object (and instead has a classRef name of 'NativeJavaScriptObject').
-          if (isNativeJsObject(exception)) {
+          if (exception != null && isNativeJsObject(exception)) {
             if (obj.description != null) {
               // Create a string exception object.
               final description =
-                  await inspector.mapExceptionStackTrace(obj.description);
+                  await inspector.mapExceptionStackTrace(obj.description!);
               exception = await inspector.instanceRefFor(description);
             } else {
               exception = null;
@@ -571,8 +589,7 @@ class Debugger extends Domain {
       // avoiding stepping through library loading code.
       if (_isStepping) {
         final scriptId = _frameScriptId(e);
-        final url = urlForScriptId(scriptId);
-
+        final url = scriptId == null ? null : urlForScriptId(scriptId);
         if (url == null) {
           logger.severe('Stepping failed: '
               'cannot find url for script $scriptId');
@@ -587,7 +604,7 @@ class Debugger extends Domain {
           // skipLists.
           await _remoteDebugger.stepInto(params: {
             'skipList': await _skipLists.compute(
-              scriptId,
+              scriptId!,
               await _locations.locationsForUrl(url),
             )
           });
@@ -608,7 +625,7 @@ class Debugger extends Domain {
     );
 
     try {
-      final frames = await stackComputer.calculateFrames(limit: 1);
+      final frames = await stackComputer!.calculateFrames(limit: 1);
       event.topFrame = frames.isNotEmpty ? frames.first : null;
     } catch (e, s) {
       // TODO: Return information about the error to the user.
@@ -624,11 +641,10 @@ class Debugger extends Domain {
   }
 
   /// Handles resume events coming from the Chrome connection.
-  Future<void> _resumeHandler(DebuggerResumedEvent _) async {
+  Future<void> _resumeHandler(DebuggerResumedEvent? _) async {
     // We can receive a resume event in the middle of a reload which will result
     // in a null isolate.
-    final isolate = inspector?.isolate;
-    if (isolate == null) return;
+    final isolate = inspector.isolate;
 
     stackComputer = null;
     final event = Event(
@@ -648,8 +664,7 @@ class Debugger extends Domain {
   Future<void> _crashHandler(TargetCrashedEvent _) async {
     // We can receive a resume event in the middle of a reload which will result
     // in a null isolate.
-    final isolate = inspector?.isolate;
-    if (isolate == null) return;
+    final isolate = inspector.isolate;
 
     stackComputer = null;
     final event = Event(
@@ -661,12 +676,12 @@ class Debugger extends Domain {
     logger.severe('Target crashed!');
   }
 
-  WipCallFrame jsFrameForIndex(int frameIndex) {
+  WipCallFrame? jsFrameForIndex(int frameIndex) {
     if (stackComputer == null) {
       throw RPCError('evaluateInFrame', 106,
           'Cannot evaluate on a call frame when the program is not paused');
     }
-    return stackComputer.jsFrameForIndex(frameIndex);
+    return stackComputer?.jsFrameForIndex(frameIndex);
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on
@@ -676,8 +691,12 @@ class Debugger extends Domain {
   /// [StateError].
   Future<RemoteObject> evaluateJsOnCallFrameIndex(
       int frameIndex, String expression) {
-    return evaluateJsOnCallFrame(
-        jsFrameForIndex(frameIndex).callFrameId, expression);
+    final index = jsFrameForIndex(frameIndex)?.callFrameId;
+    if (index == null) {
+      // This might happen on async frames.
+      throw StateError('No frame for frame index: $index');
+    }
+    return evaluateJsOnCallFrame(index, expression);
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on
@@ -699,24 +718,39 @@ class Debugger extends Domain {
   }
 }
 
+Future<T> sendCommandAndvalidateResult<T>(
+  RemoteDebugger remoteDebugger, {
+  required String method,
+  required String resultField,
+  Map<String, dynamic>? params,
+}) async {
+  final response = await remoteDebugger.sendCommand(method, params: params);
+  final result = response.result?[resultField];
+  if (result == null) {
+    throw RPCError(method, RPCError.kInternalError,
+        '$resultField not found in result from sendCommand', params);
+  }
+  return result;
+}
+
 bool isNativeJsObject(InstanceRef instanceRef) {
   // New type representation of JS objects reifies them to a type suffixed with
   // JavaScriptObject.
-  final className = instanceRef?.classRef?.name;
+  final className = instanceRef.classRef?.name;
   return (className != null &&
           className.endsWith('JavaScriptObject') &&
-          instanceRef?.classRef?.library?.uri == 'dart:_interceptors') ||
+          instanceRef.classRef?.library?.uri == 'dart:_interceptors') ||
       // Old type representation still needed to support older SDK versions.
       className == 'NativeJavaScriptObject';
 }
 
 /// Returns the Dart line number for the provided breakpoint.
 int _lineNumberFor(Breakpoint breakpoint) =>
-    int.parse(breakpoint.id.split('#').last.split(':').first);
+    int.parse(breakpoint.id!.split('#').last.split(':').first);
 
 /// Returns the Dart column number for the provided breakpoint.
 int _columnNumberFor(Breakpoint breakpoint) =>
-    int.parse(breakpoint.id.split('#').last.split(':').last);
+    int.parse(breakpoint.id!.split('#').last.split(':').last);
 
 /// Returns the breakpoint ID for the provided Dart script ID and Dart line
 /// number.
@@ -740,20 +774,23 @@ class _Breakpoints extends Domain {
   final String root;
 
   _Breakpoints({
-    @required this.locations,
-    @required this.remoteDebugger,
-    @required this.root,
+    required this.locations,
+    required this.remoteDebugger,
+    required this.root,
   });
 
   Future<Breakpoint> _createBreakpoint(
       String id, String scriptId, int line, int column) async {
     final dartScript = inspector.scriptWithId(scriptId);
-    final dartUri = DartUri(dartScript.uri, root);
-    final location = await locations.locationForDart(dartUri, line, column);
+    Location? location;
+    if (dartScript != null && dartScript.uri != null) {
+      final dartUri = DartUri(dartScript.uri!, root);
+      location = await locations.locationForDart(dartUri, line, column);
+    }
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
     if (location == null) {
       _logger.fine('Failed to set breakpoint $id '
-          '(${dartUri.serverPath}:$line:$column): '
+          '($scriptId:$line:$column): '
           'cannot find Dart location.');
       throw RPCError(
           'addBreakpoint',
@@ -763,9 +800,18 @@ class _Breakpoints extends Domain {
     }
 
     try {
-      final dartBreakpoint = _dartBreakpoint(dartScript, location, id);
+      final dartBreakpoint = _dartBreakpoint(dartScript!, location, id);
       final jsBreakpointId = await _setJsBreakpoint(location);
-
+      if (jsBreakpointId == null) {
+        _logger.fine('Failed to set breakpoint $id '
+            '($scriptId:$line:$column): '
+            'cannot set JS breakpoint.');
+        throw RPCError(
+            'addBreakpoint',
+            102,
+            'The VM is unable to add a breakpoint '
+                'at the specified line or function');
+      }
       _note(jsId: jsBreakpointId, bp: dartBreakpoint);
       return dartBreakpoint;
     } on WipError catch (wipError) {
@@ -800,43 +846,50 @@ class _Breakpoints extends Domain {
   }
 
   /// Calls the Chrome protocol setBreakpoint and returns the remote ID.
-  Future<String> _setJsBreakpoint(Location location) async {
+  Future<String?> _setJsBreakpoint(Location location) async {
     // The module can be loaded from a nested path and contain an ETAG suffix.
     final urlRegex = '.*${location.jsLocation.module}.*';
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
     // simultaneously by serializing the requests.
     return _pool.withResource(() async {
-      final response = await remoteDebugger
-          .sendCommand('Debugger.setBreakpointByUrl', params: {
-        'urlRegex': urlRegex,
-        'lineNumber': location.jsLocation.line,
-        'columnNumber': location.jsLocation.column,
-      });
-      return response.result['breakpointId'] as String;
+      final breakPointId = await sendCommandAndvalidateResult<String>(
+          remoteDebugger,
+          method: 'Debugger.setBreakpointByUrl',
+          resultField: 'breakpointId',
+          params: {
+            'urlRegex': urlRegex,
+            'lineNumber': location.jsLocation.line,
+            'columnNumber': location.jsLocation.column,
+          });
+      return breakPointId;
     });
   }
 
   /// Records the internal Dart <=> JS breakpoint id mapping and adds the
   /// breakpoint to the current isolates list of breakpoints.
-  void _note({@required Breakpoint bp, @required String jsId}) {
-    _dartIdByJsId[jsId] = bp.id;
-    _jsIdByDartId[bp.id] = jsId;
-    final isolate = inspector.isolate;
-    isolate?.breakpoints?.add(bp);
+  void _note({required Breakpoint bp, required String jsId}) {
+    if (bp.id != null) {
+      final bpId = bp.id!;
+      _dartIdByJsId[jsId] = bpId;
+      _jsIdByDartId[bpId] = jsId;
+      final isolate = inspector.isolate;
+      isolate.breakpoints?.add(bp);
+    }
   }
 
-  Future<Breakpoint> remove({
-    @required String jsId,
-    @required String dartId,
+  Future<Breakpoint?> remove({
+    required String jsId,
+    required String dartId,
   }) async {
     final isolate = inspector.isolate;
     _dartIdByJsId.remove(jsId);
     _jsIdByDartId.remove(dartId);
-    isolate?.breakpoints?.removeWhere((b) => b.id == dartId);
+    isolate.breakpoints?.removeWhere((b) => b.id == dartId);
     return await _bpByDartId.remove(dartId);
   }
 
-  String jsId(String dartId) => _jsIdByDartId[dartId];
+  Future<Breakpoint>? breakpointFor(String dartId) => _bpByDartId[dartId];
+  String? jsIdFor(String dartId) => _jsIdByDartId[dartId];
 }
 
 final escapedPipe = '\$124';

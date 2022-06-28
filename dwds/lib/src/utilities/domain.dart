@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-// @dart = 2.9
-
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -33,16 +31,16 @@ abstract class AppInspectorInterface {
       {bool returnByValue = false});
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
-  Future<ScriptRef> scriptRefFor(String uri);
+  Future<ScriptRef>? scriptRefFor(String uri);
 
   /// Look up the script by id in an isolate.
-  ScriptRef scriptWithId(String scriptId);
+  ScriptRef? scriptWithId(String scriptId);
 
   /// Returns the [LibraryRef] for the provided Dart [objectId].
-  Future<LibraryRef> libraryRefFor(String objectId);
+  Future<LibraryRef?> libraryRefFor(String objectId);
 
   /// Returns the [Library] for the provided Dart [objectId].
-  Future<Library> getLibrary(String objectId);
+  Future<Library?> getLibrary(String objectId);
 
   /// Returns the [ScriptRef]s in the library with [libraryId].
   Future<List<ScriptRef>> scriptRefsForLibrary(String libraryId);
@@ -50,10 +48,10 @@ abstract class AppInspectorInterface {
   /// Create an InstanceRef for an object, which may be a RemoteObject, or may
   /// be something returned by value from Chrome, e.g. number, boolean, or
   /// String.
-  Future<InstanceRef> instanceRefFor(Object value);
+  Future<InstanceRef?> instanceRefFor(Object value);
 
   /// Get the value of the field named [fieldName] from [receiver].
-  Future<RemoteObject> loadField(RemoteObject receiver, String fieldName);
+  Future<RemoteObject?> loadField(RemoteObject receiver, String fieldName);
 
   /// Convert a JS exception description into a description containing
   /// a Dart stack trace.
@@ -106,7 +104,7 @@ abstract class AppInspectorInterface {
 abstract class Domain {
   Domain();
 
-  AppInspectorInterface inspector;
+  late AppInspectorInterface inspector;
 }
 
 void throwInvalidParam(String method, String message) {

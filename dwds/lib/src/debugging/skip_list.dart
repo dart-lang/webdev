@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'location.dart';
 
 const maxValue = 2147483647;
@@ -24,7 +22,7 @@ class SkipLists {
     String scriptId,
     Set<Location> locations,
   ) async {
-    if (_idToList.containsKey(scriptId)) return _idToList[scriptId];
+    if (_idToList.containsKey(scriptId)) return _idToList[scriptId]!;
 
     final sortedLocations = locations.toList()
       ..sort((a, b) => a.jsLocation.compareTo(b.jsLocation));
