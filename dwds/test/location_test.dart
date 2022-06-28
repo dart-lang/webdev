@@ -24,6 +24,7 @@ void main() {
   final assetReader = FakeAssetReader();
   final modules = MockModules();
   final locations = Locations(assetReader, modules, '');
+  locations.initialize('fake_entrypoint');
 
   group('JS locations |', () {
     group('location |', () {
