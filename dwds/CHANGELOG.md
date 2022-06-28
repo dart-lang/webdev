@@ -1,6 +1,8 @@
-## 14.0.4-dev
+## 14.0.4
 - Port some `dwds` files to null safety.
 - Fix failing `frontend_server_evaluate` tests.
+- Prevent `flutter_tools` crash when the Dart execution context cannot be found.
+- Update method signature of `lookupResolvedPackageUris`.
 
 ## 14.0.3
 - Make data types null safe.
