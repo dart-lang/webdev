@@ -72,7 +72,7 @@ class LegacyStrategy extends LoadStrategy {
   ) : super(assetReader);
 
   @override
-  Handler get handler => (request) => Response.notFound(request.url);
+  Handler get handler => (request) => Response.notFound(request.url.toString());
 
   @override
   String get id => 'legacy';
