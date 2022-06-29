@@ -25219,8 +25219,11 @@
       return A._asyncStartSync($async$_initialize$0, $async$completer);
     },
     _moduleParents$1(module) {
+      var t1;
       A._asString(module);
-      return J.cast$1$0$ax(J.$get$1$x(J.get$moduleParentsGraph$x(self.$requireLoader), module), type$.String);
+      t1 = J.$get$1$x(J.get$moduleParentsGraph$x(self.$requireLoader), module);
+      t1 = t1 == null ? null : J.cast$1$0$ax(t1, type$.String);
+      return t1 == null ? A._setArrayType([], type$.JSArray_String) : t1;
     },
     _moduleTopologicalCompare$2(module1, module2) {
       var t1, order1, order2, t2, topological;
@@ -25245,7 +25248,7 @@
     _reload$body$RequireRestarter(modules) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.bool),
-        $async$returnValue, $async$handler = 2, $async$currentError, $async$self = this, reloadedModules, previousModuleId, moduleId, parentIds, childModule, e, t2, t3, t4, t5, exception, t1, $async$exception;
+        $async$returnValue, $async$handler = 2, $async$currentError, $async$self = this, reloadedModules, previousModuleId, moduleId, parentIds, childModule, e, t2, t3, t4, exception, t1, $async$exception;
       var $async$_reload$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1) {
           $async$currentError = $async$result;
@@ -25277,39 +25280,38 @@
               t1 === $ && A.throwLateFieldNI("_dirtyModules");
               t1.addAll$1(0, modules);
               previousModuleId = null;
-              t1 = $async$self.get$_moduleTopologicalCompare(), t2 = type$.String, t3 = type$.Object, t4 = type$.dynamic_Function;
+              t1 = $async$self.get$_moduleTopologicalCompare(), t2 = type$.Object, t3 = type$.dynamic_Function;
             case 10:
               // for condition
-              if (!(t5 = $async$self.__RequireRestarter__dirtyModules_A, t5._root != null)) {
+              if (!(t4 = $async$self.__RequireRestarter__dirtyModules_A, t4._root != null)) {
                 // goto after for
                 $async$goto = 11;
                 break;
               }
-              if (t5._count === 0)
+              if (t4._count === 0)
                 A.throwExpression(A.IterableElementError_noElement());
-              moduleId = t5.get$_collection$_first().key;
+              moduleId = t4.get$_collection$_first().key;
               $async$self.__RequireRestarter__dirtyModules_A.remove$1(0, moduleId);
-              t5 = A._asString(moduleId);
-              parentIds = J.cast$1$0$ax(J.$get$1$x(J.get$moduleParentsGraph$x(self.$requireLoader), t5), t2);
+              parentIds = $async$self._moduleParents$1(moduleId);
               $async$goto = J.get$isEmpty$asx(parentIds) ? 12 : 14;
               break;
             case 12:
               // then
-              childModule = t3._as(self.$loadModuleConfig.call$1("dart_sdk").dart).getModuleLibraries(previousModuleId);
-              self.$dartRunMain = A.allowInterop(new A.RequireRestarter__reload_closure(childModule), t4);
+              childModule = t2._as(self.$loadModuleConfig.call$1("dart_sdk").dart).getModuleLibraries(previousModuleId);
+              self.$dartRunMain = A.allowInterop(new A.RequireRestarter__reload_closure(childModule), t3);
               // goto join
               $async$goto = 13;
               break;
             case 14:
               // else
-              t5 = reloadedModules;
-              if (typeof t5 !== "number") {
-                $async$returnValue = t5.$add();
+              t4 = reloadedModules;
+              if (typeof t4 !== "number") {
+                $async$returnValue = t4.$add();
                 // goto return
                 $async$goto = 1;
                 break;
               }
-              reloadedModules = t5 + 1;
+              reloadedModules = t4 + 1;
               $async$goto = 15;
               return A._asyncAwait($async$self._reloadModule$1(moduleId), $async$_reload$1);
             case 15:
@@ -25412,7 +25414,7 @@
   };
   A.RequireRestarter__reloadModule_closure0.prototype = {
     call$1(e) {
-      return this.completer.completeError$2(new A.HotReloadFailedException(J.get$message$x(type$.JsError._as(e))), this.stackTrace);
+      this.completer.completeError$2(new A.HotReloadFailedException(J.get$message$x(type$.JsError._as(e))), this.stackTrace);
     },
     $signature: 80
   };
