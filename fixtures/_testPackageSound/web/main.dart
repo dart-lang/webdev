@@ -118,8 +118,8 @@ void printNestedObjectsMultiLine() {
 }
 
 void printObjectMultiLine() {
-  print(
-    // Breakpoint: printMultiLine
+  // Note: formatting the line below breaks stack tests.
+  print( // Breakpoint: printMultiLine
     createObject() // Breakpoint: printObjectMultiLine
       ..initialize(),
   );

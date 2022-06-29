@@ -338,12 +338,16 @@ class Debugger extends Domain {
   Future<Location?> _sourceLocation(DebuggerPausedEvent e) async {
     final frame = e.params?['callFrames']?[0];
     final location = frame?['location'];
-    final scriptId = location?['scriptId'] as String;
-    final line = location?['lineNumber'] as int;
-    final column = location?['columnNumber'] as int;
+    if (location == null) return null;
 
+    final scriptId = location['scriptId'] as String?;
+    final line = location['lineNumber'] as int?;
+    if (scriptId == null || line == null) return null;
+
+    final column = location['columnNumber'] as int?;
     final url = urlForScriptId(scriptId);
     if (url == null) return null;
+
     return _locations.locationForJs(url, line, column);
   }
 
@@ -371,7 +375,7 @@ class Debugger extends Domain {
 
   Future<BoundVariable?> _boundVariable(Property property) async {
     // TODO(annagrin): value might be null in the future for variables
-    // optimized by V8. Convey this information to the user.
+    // optimized by V8. Return appopriate sentinel values for them.
     if (property.value != null) {
       final value = property.value!;
       // We return one level of properties from this object. Sub-properties are

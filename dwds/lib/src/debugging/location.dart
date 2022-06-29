@@ -183,7 +183,7 @@ class Locations {
   /// Find the [Location] for the given JS source position.
   ///
   /// The [line] number is 0-based.
-  Future<Location?> locationForJs(String url, int line, int column) async {
+  Future<Location?> locationForJs(String url, int line, int? column) async {
     final locations = await locationsForUrl(url);
     return _bestJsLocation(locations, line, column);
   }
@@ -218,7 +218,8 @@ class Locations {
   ///
   /// https://github.com/microsoft/vscode-js-debug/blob/536f96bae61a3d87546b61bc7916097904c81429/src/common/sourceUtils.ts#L286
   Location? _bestJsLocation(
-      Iterable<Location> locations, int line, int column) {
+      Iterable<Location> locations, int line, int? column) {
+    column ??= 0;
     Location? bestLocation;
     for (var location in locations) {
       if (location.jsLocation.compareToLine(line, column) <= 0) {
