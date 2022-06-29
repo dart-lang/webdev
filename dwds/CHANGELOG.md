@@ -1,8 +1,9 @@
 ## 15.0.0-dev
 - Port some `dwds` files to null safety.
 - Fix failing `frontend_server_evaluate` tests.
-- Add `AppInspectorInterface` to break circualr dependencies between files.
-- Fix a hang on hot reload errors from the injected cliend, report errors.
+- Add `AppInspectorInterface` to break circular dependencies between files.
+- Fix a hang and report errors on hot reload exceptions from the injected
+  client.
 
 **Breaking changes**
 
