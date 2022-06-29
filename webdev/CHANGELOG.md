@@ -1,4 +1,5 @@
-## 2.7.10-dev
+## 2.7.10
+- Pin DWDS version to avoid dependency conflicts with `package:vm_service`.
 
 ## 2.7.9
 - Add an option to pass user data directory to chrome: `user-data-dir`.
