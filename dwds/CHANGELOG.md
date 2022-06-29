@@ -2,6 +2,7 @@
 - Port some `dwds` files to null safety.
 - Fix failing `frontend_server_evaluate` tests.
 - Add `AppInspectorInterface` to break circualr dependencies between files.
+- Fix a hang on hot reload errors from the injected cliend, report errors.
 
 **Breaking changes**
 
