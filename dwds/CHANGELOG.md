@@ -1,7 +1,4 @@
-## 15.0.0-dev
-- Port some `dwds` files to null safety.
-- Fix failing `frontend_server_evaluate` tests.
-- Add `AppInspectorInterface` to break circular dependencies between files.
+## 16.0.0-dev
 - Fix a hang and report errors on hot reload exceptions from the injected
   client.
 
@@ -11,6 +8,12 @@
 - `ExpressionCompilerService` no longer provides a handler to service requests.
   - Note that the only user, expression compiler worker in dart SDK already
     communicates to the asset server directly.
+
+## 15.0.0
+- Port some `dwds` files to null safety.
+- Fix failing `frontend_server_evaluate` tests.
+- Prevent `flutter_tools` crash when the Dart execution context cannot be found.
+- Update method signature of `lookupResolvedPackageUris`.
 
 ## 14.0.3
 - Make data types null safe.
