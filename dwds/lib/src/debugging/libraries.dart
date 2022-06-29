@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-// @dart = 2.9
-
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../loaders/strategy.dart';
 import '../utilities/domain.dart';
+import '../services/chrome_debug_exception.dart';
 import 'metadata/class.dart';
 
 /// Keeps track of Dart libraries available in the running application.
@@ -21,24 +22,23 @@ class LibraryHelper extends Domain {
   /// Map of libraryRef ID to [LibraryRef].
   final _libraryRefsById = <String, LibraryRef>{};
 
-  LibraryRef _rootLib;
+  LibraryRef? _rootLib;
 
   LibraryHelper(AppInspectorInterface appInspector) {
     inspector = appInspector;
   }
 
   Future<LibraryRef> get rootLib async {
-    if (_rootLib != null) return _rootLib;
+    if (_rootLib != null) return _rootLib!;
     // TODO: read entrypoint from app metadata.
     // Issue: https://github.com/dart-lang/webdev/issues/1290
     final libraries = await libraryRefs;
-    _rootLib = libraries.firstWhere((lib) => lib.name.contains('org-dartlang'),
-        orElse: () => null);
+    _rootLib = libraries
+        .firstWhereOrNull((lib) => lib.name?.contains('org-dartlang') ?? false);
     _rootLib = _rootLib ??
-        libraries.firstWhere((lib) => lib.name.contains('main'),
-            orElse: () => null);
+        libraries.firstWhere((lib) => lib.name?.contains('main') ?? false);
     _rootLib = _rootLib ?? (libraries.isNotEmpty ? libraries.last : null);
-    return _rootLib;
+    return _rootLib!;
   }
 
   /// Returns all libraryRefs in the app.
@@ -56,22 +56,29 @@ class LibraryHelper extends Domain {
     return _libraryRefsById.values.toList();
   }
 
-  Future<Library> libraryFor(LibraryRef libraryRef) async {
-    final library = _librariesById[libraryRef.id];
-    if (library != null) return library;
-    return _librariesById[libraryRef.id] = await _constructLibrary(libraryRef);
+  Future<Library?> libraryFor(LibraryRef libraryRef) async {
+    final libraryId = libraryRef.id;
+    if (libraryId == null) return null;
+    final library =
+        _librariesById[libraryId] ?? await _constructLibrary(libraryRef);
+    if (library == null) return null;
+    return _librariesById[libraryId] = library;
   }
 
-  Future<LibraryRef> libraryRefFor(String objectId) async {
+  Future<LibraryRef?> libraryRefFor(String objectId) async {
     if (_libraryRefsById.isEmpty) await libraryRefs;
     return _libraryRefsById[objectId];
   }
 
-  Future<Library> _constructLibrary(LibraryRef libraryRef) async {
+  Future<Library?> _constructLibrary(LibraryRef libraryRef) async {
+    final libraryId = libraryRef.id;
+    final libraryUri = libraryRef.uri;
+    if (libraryId == null || libraryUri == null) return null;
+
     // Fetch information about all the classes in this library.
     final expression = '''
     (function() {
-      ${globalLoadStrategy.loadLibrarySnippet(libraryRef.uri)}
+      ${globalLoadStrategy.loadLibrarySnippet(libraryUri)}
       var result = {};
       var classes = Object.values(Object.getOwnPropertyDescriptors(library))
         .filter((p) => 'value' in p)
@@ -88,41 +95,41 @@ class LibraryHelper extends Domain {
       return result;
     })()
     ''';
-    final result =
-        await inspector.remoteDebugger.sendCommand('Runtime.evaluate', params: {
-      'expression': expression,
-      'returnByValue': true,
-      'contextId': await inspector.contextId,
-    });
-    List<ClassRef> classRefs;
-    if (result.result.containsKey('exceptionDetails')) {
+    RemoteObject? result;
+    try {
+      result = await inspector.jsEvaluate(expression, returnByValue: true);
+    } on ChromeDebugException catch (_) {
       // Unreferenced libraries are not loaded at runtime,
       // return empty library object for consistency among
       // VM Service implementations.
       // TODO: Collect library and class information from debug symbols.
       _logger.warning('Library ${libraryRef.uri} is not loaded. '
           'This can happen for unreferenced libraries.');
-    } else {
+    }
+    List<ClassRef>? classRefs;
+    if (result != null) {
       final classDescriptors =
-          (result.result['result']['value']['classes'] as List)
-              .cast<Map<String, Object>>();
-      classRefs = classDescriptors.map<ClassRef>((classDescriptor) {
+          ((result.value as Map<String, dynamic>)['classes'] as List?)
+              ?.cast<Map<String, Object>>();
+      classRefs = classDescriptors?.map<ClassRef>((classDescriptor) {
         final classMetaData = ClassMetaData(
-            jsName: classDescriptor['name'],
-            libraryId: libraryRef.id,
-            dartName: classDescriptor['dartName']);
+          jsName: classDescriptor['name'],
+          libraryId: libraryRef.id,
+          dartName: classDescriptor['dartName'],
+        );
         return classMetaData.classRef;
       }).toList();
     }
     return Library(
-        name: libraryRef.name,
-        uri: libraryRef.uri,
-        debuggable: true,
-        dependencies: [],
-        scripts: await inspector.scriptRefsForLibrary(libraryRef.id),
-        variables: [],
-        functions: [],
-        classes: classRefs,
-        id: libraryRef.id);
+      name: libraryRef.name,
+      uri: libraryRef.uri,
+      debuggable: true,
+      dependencies: [],
+      scripts: await inspector.scriptRefsForLibrary(libraryId),
+      variables: [],
+      functions: [],
+      classes: classRefs,
+      id: libraryId,
+    );
   }
 }

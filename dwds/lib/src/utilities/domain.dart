@@ -72,7 +72,8 @@ abstract class AppInspectorInterface {
       String targetId, String selector, List<dynamic> arguments);
 
   /// Evaluate [expression] by calling Chrome's `Runtime.evaluate`.
-  Future<RemoteObject> jsEvaluate(String expression);
+  Future<RemoteObject> jsEvaluate(String expression,
+      {bool returnByValue = false});
 
   /// Lookup an `object` from some isolate by its [objectId].
   Future<Obj> getObject(String objectId, {int offset, int count});
