@@ -4,12 +4,12 @@
 
 // @dart = 2.9
 
+import 'package:dwds/src/utilities/domain.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../debugging/dart_scope.dart';
 import '../debugging/debugger.dart';
-import '../debugging/inspector.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
 import '../loaders/strategy.dart';
@@ -37,7 +37,7 @@ class ErrorKind {
 /// ExpressionCompilerInterface to compile dart expressions to JavaScript.
 class ExpressionEvaluator {
   final String _entrypoint;
-  final AppInspector _inspector;
+  final AppInspectorInterface _inspector;
   final Debugger _debugger;
   final Locations _locations;
   final Modules _modules;
