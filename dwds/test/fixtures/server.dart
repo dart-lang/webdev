@@ -127,10 +127,6 @@ class TestServer {
 
     cascade = cascade.add(dwds.handler).add(assetHandler);
 
-    if (ddcService != null) {
-      cascade = cascade.add(ddcService.handler);
-    }
-
     serveHttpRequests(
         server,
         pipeline
