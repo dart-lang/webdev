@@ -13,7 +13,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'events.dart';
-import 'services/chrome_proxy_service.dart' show ChromeProxyService;
+import 'services/chrome_proxy_service.dart';
 import 'services/chrome_debug_exception.dart';
 import 'services/debug_service.dart';
 
@@ -211,6 +211,7 @@ Future<Map<String, dynamic>> _hotRestart(
     _logger.info('Issuing \$dartHotRestartDwds request');
     await chromeProxyService.inspector
         .jsEvaluate('\$dartHotRestartDwds(\'$runId\');', awaitPromise: true);
+    _logger.info('\$dartHotRestartDwds request complete.');
   } on WipError catch (exception) {
     final code = exception.error['code'];
     // This corresponds to `Execution context was destroyed` which can

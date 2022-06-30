@@ -143,9 +143,8 @@ class RequireRestarter implements Restarter {
     _lastKnownDigests = await _getDigests();
   }
 
-  List<String> _moduleParents(String module) {
-    return requireLoader.moduleParentsGraph.get(module)?.cast<String>() ?? [];
-  }
+  List<String> _moduleParents(String module) =>
+      requireLoader.moduleParentsGraph.get(module)?.cast() ?? [];
 
   int _moduleTopologicalCompare(String module1, String module2) {
     var topological = 0;
