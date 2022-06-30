@@ -462,10 +462,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
                 isolateId, library.uri, expression, scope),
             expression);
       }
-      // fall back to javascript evaluation
-      final remote = await _inspector?.evaluate(isolateId, targetId, expression,
-          scope: scope);
-      return await _inspector?.instanceHelper?.instanceRefFor(remote);
+      throw RPCError('evaluateInFrame', RPCError.kInvalidRequest,
+          'Expression evaluation is not supported for this configuration.');
     }, (result) => DwdsEvent.evaluate(expression, result));
   }
 

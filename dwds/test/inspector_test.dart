@@ -45,6 +45,9 @@ void main() {
   Future<RemoteObject> libraryPublicFinal() =>
       inspector.jsEvaluate(libraryVariableExpression('libraryPublicFinal'));
 
+  Future<RemoteObject> libraryPrivate() =>
+      inspector.jsEvaluate(libraryVariableExpression('_libraryPrivate'));
+
   test('send toString', () async {
     final remoteObject = await libraryPublicFinal();
     final toString = await inspector.invokeMethod(remoteObject, 'toString', []);
@@ -107,8 +110,7 @@ void main() {
     setUp(() async {
       isolateId = inspector.isolate.id;
       bootstrapLibrary = inspector.isolate.rootLib;
-      instance = await inspector.evaluate(
-          isolateId, bootstrapLibrary.id, 'libraryPublicFinal');
+      instance = await libraryPublicFinal();
     });
 
     test('invoke top-level private', () async {
@@ -139,8 +141,7 @@ void main() {
     });
 
     test('invoke instance method with object parameter 2', () async {
-      final libraryPrivateList = await inspector.evaluate(
-          isolateId, bootstrapLibrary.id, '_libraryPrivate');
+      final libraryPrivateList = await libraryPrivate();
       final remote = await inspector.invoke(isolateId, instance.objectId,
           'equals', [libraryPrivateList.objectId]);
       expect(

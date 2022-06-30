@@ -78,6 +78,7 @@ class ExpressionEvaluator {
     String expression,
     Map<String, String> scope,
   ) async {
+    scope ??= {};
     if (_compiler == null) {
       return _createError(ErrorKind.internal,
           'ExpressionEvaluator needs an ExpressionCompiler');
@@ -89,10 +90,8 @@ class ExpressionEvaluator {
 
     final module = await _modules.moduleForlibrary(libraryUri);
 
-    if (scope != null && scope.isNotEmpty) {
-      final params = scope.keys.join(', ');
-      expression = '($params) => $expression';
-    }
+    // Wrap the expression in a lambda so we can call it as a function.
+    expression = _createDartLambda(expression, scope.keys);
     _logger.finest('Evaluating "$expression" at $module');
 
     // Compile expression using an expression compiler, such as
@@ -106,23 +105,15 @@ class ExpressionEvaluator {
       return _formatCompilationError(jsResult);
     }
 
+    // Strip try/catch incorrectly added by the expression compiler.
+    // TODO: remove adding try/catch block in expression compiler.
+    // https://github.com/dart-lang/webdev/issues/1341
+    var jsCode = _maybeStripTryCatch(jsResult);
+
     // Send JS expression to chrome to evaluate.
-    RemoteObject result;
-    if (scope != null && scope.isNotEmpty) {
-      // Strip try/catch.
-      // TODO: remove adding try/catch block in expression compiler.
-      // https://github.com/dart-lang/webdev/issues/1341
-      final lines = jsResult.split('\n');
-      final inner = lines.getRange(2, lines.length - 3).join('\n');
-      final function = 'function(t) {'
-          '  return $inner(t);'
-          '}';
-      result = await _inspector.callFunction(function, scope.values);
-      result = await _formatEvaluationError(result);
-    } else {
-      result = await _inspector.debugger.evaluate(jsResult);
-      result = await _formatEvaluationError(result);
-    }
+    jsCode = _createJsLambdaWithTryCatch(jsCode, scope.keys);
+    var result = await _inspector.callFunction(jsCode, scope.values);
+    result = await _formatEvaluationError(result);
 
     _logger.finest('Evaluated "$expression" to "$result"');
     return result;
@@ -207,29 +198,22 @@ class ExpressionEvaluator {
       return _formatCompilationError(jsResult);
     }
 
+    // Strip try/catch incorrectly added by the expression compiler.
+    // TODO: remove adding try/catch block in expression compiler.
+    // https://github.com/dart-lang/webdev/issues/1341
+    var jsCode = _maybeStripTryCatch(jsResult);
+
+    // Send JS expression to chrome to evaluate.
+    jsCode = _createTryCatch(jsCode);
+
     // Send JS expression to chrome to evaluate.
     var result = await _inspector.debugger
-        .evaluateJsOnCallFrameIndex(frameIndex, jsResult);
+        .evaluateJsOnCallFrameIndex(frameIndex, jsCode);
     result = await _formatEvaluationError(result);
 
     _logger.finest('Evaluated "$expression" to "$result"');
     return result;
   }
-
-  String _valueToLiteral(RemoteObject value) {
-    if (value.value == null) {
-      return null;
-    }
-
-    final ret = value.value.toString();
-    if (value.type == 'string') {
-      return '\'$ret\'';
-    }
-
-    return ret;
-  }
-
-  bool _isUndefined(RemoteObject value) => value.type == 'undefined';
 
   RemoteObject _formatCompilationError(String error) {
     // Frontend currently gives a text message including library name
@@ -286,28 +270,7 @@ class ExpressionEvaluator {
       for (var p in variables) {
         final name = p.name;
         final value = p.value;
-        if (_isUndefined(value)) continue;
-
-        if (scopeType == 'closure') {
-          // Substitute potentially unavailable captures with their values from
-          // the stack.
-          //
-          // Note: this makes some uncaptured values available for evaluation,
-          // which might not be formally correct but convenient, for evample:
-          //
-          // int x = 0;
-          // var f = (int y) {
-          //   // 'x' is not captured so it not available at runtime but is
-          //   // captured on stack, so the code below will make it available
-          //   // for evaluation
-          //   print(y);
-          // }
-          // TODO(annagrin): decide if we would like not to support evaluation
-          // of uncaptured variables
-
-          final capturedValue = _valueToLiteral(value);
-          jsScope[name] = capturedValue ?? name;
-        } else {
+        if (!_isUndefined(value)) {
           jsScope[name] = name;
         }
       }
@@ -324,6 +287,40 @@ class ExpressionEvaluator {
 
     return jsScope;
   }
+
+  bool _isUndefined(RemoteObject value) =>
+      value == null || value.type == 'undefined';
+
+  String _maybeStripTryCatch(String jsCode) {
+    final lines = jsCode.split('\n');
+    if (lines.length > 1 && lines[0].isEmpty && lines[1].contains('try {')) {
+      return lines.getRange(2, lines.length - 3).join('\n');
+    }
+    return jsCode;
+  }
+
+  String _createJsLambdaWithTryCatch(
+      String expression, Iterable<String> params) {
+    final args = params.join(', ');
+    return '  '
+        '  function($args) {\n'
+        '    try {\n'
+        '      return $expression($args);\n'
+        '    } catch (error) {\n'
+        '      return error.name + ": " + error.message;\n'
+        '    }\n'
+        '} ';
+  }
+
+  String _createTryCatch(String expression) => '  '
+      '  try {\n'
+      '    $expression;\n'
+      '  } catch (error) {\n'
+      '    error.name + ": " + error.message;\n'
+      '  }\n';
+
+  String _createDartLambda(String expression, Iterable<String> params) =>
+      '(${params.join(', ')}) => $expression';
 
   /// Returns Chrome script uri for Chrome script ID.
   String _urlForScriptId(String scriptId) =>
