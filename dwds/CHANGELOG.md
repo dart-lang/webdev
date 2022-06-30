@@ -1,3 +1,6 @@
+## 15.0.1-dev
+- Remove no longer used `ExpressionCompilerService.handler`.
+
 ## 15.0.0
 - Port some `dwds` files to null safety.
 - Fix failing `frontend_server_evaluate` tests.
