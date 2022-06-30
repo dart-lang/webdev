@@ -495,5 +495,5 @@ void main() {
         });
       });
     }
-  });
+  }, skip: 'dart-lang/sdk#49373');
 }
