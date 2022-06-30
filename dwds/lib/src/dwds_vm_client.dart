@@ -13,7 +13,8 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'events.dart';
-import 'services/chrome_proxy_service.dart' show ChromeProxyService;
+import 'services/chrome_proxy_service.dart';
+import 'services/chrome_debug_exception.dart';
 import 'services/debug_service.dart';
 
 final _logger = Logger('DwdsVmClient');
@@ -187,10 +188,9 @@ Future<Map<String, dynamic>> _hotRestart(
 
   chromeProxyService.terminatingIsolates = true;
   await _disableBreakpointsAndResume(client, chromeProxyService);
-  int context;
   try {
     _logger.info('Attempting to get execution context ID.');
-    context = await chromeProxyService.executionContext.id;
+    await chromeProxyService.executionContext.id;
     _logger.info('Got execution context ID.');
   } on StateError catch (e) {
     // We couldn't find the execution context. `hotRestart` may have been
@@ -209,12 +209,9 @@ Future<Map<String, dynamic>> _hotRestart(
     // Generate run id to hot restart all apps loaded into the tab.
     final runId = const Uuid().v4().toString();
     _logger.info('Issuing \$dartHotRestartDwds request');
-    await chromeProxyService.remoteDebugger
-        .sendCommand('Runtime.evaluate', params: {
-      'expression': '\$dartHotRestartDwds(\'$runId\');',
-      'awaitPromise': true,
-      'contextId': context,
-    });
+    await chromeProxyService
+        .appInspectorProvider()
+        .jsEvaluate('\$dartHotRestartDwds(\'$runId\');', awaitPromise: true);
     _logger.info('\$dartHotRestartDwds request complete.');
   } on WipError catch (exception) {
     final code = exception.error['code'];
@@ -229,6 +226,14 @@ Future<Map<String, dynamic>> _hotRestart(
         }
       };
     }
+  } on ChromeDebugException catch (exception) {
+    // Exceptions thrown by the injected client during hot restart.
+    return {
+      'error': {
+        'code': RPCError.kInternalError,
+        'message': '$exception',
+      }
+    };
   }
 
   _logger.info('Waiting for Isolate Start event.');

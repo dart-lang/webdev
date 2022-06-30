@@ -1,3 +1,7 @@
+## 15.0.1-dev
+- Fix a hang and report errors on hot reload exceptions from the injected
+  client.
+
 ## 15.0.0
 - Port some `dwds` files to null safety.
 - Fix failing `frontend_server_evaluate` tests.
