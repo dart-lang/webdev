@@ -166,9 +166,7 @@ class Locations {
         _entrypoint, Uri.parse(url).path);
     final cache = _moduleToLocations[module];
     if (cache != null) return cache;
-    if (module == null) {
-      _logger.warning('No module for $url');
-    } else {
+    if (module != null) {
       await _locationsForModule(module);
     }
     return _moduleToLocations[module] ?? {};

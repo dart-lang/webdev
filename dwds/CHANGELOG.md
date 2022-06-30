@@ -1,3 +1,19 @@
+## 15.0.2-dev
+- Remove `AppInspector.evaluate` code that has been replaced by expression
+  evaluation using a compiler in all scenarios.
+- Fix a bug where evaluation would fail with more than one parameter in
+  the scope.
+- Remove showing uncaptured values from the stack during evaluation.
+
+## 15.0.1-dev
+- Fix a hang and report errors on hot reload exceptions from the injected
+  client.
+- Remove `AppInspector.evaluate` code that has been replaced by expression
+  evaluation using a compiler in all scenarios.
+- Fix a bug where evaluation would fail with more than one parameter in
+  the scope.
+- Remove showing uncaptured values from the stack during evaluation.
+
 ## 15.0.0
 - Port some `dwds` files to null safety.
 - Fix failing `frontend_server_evaluate` tests.

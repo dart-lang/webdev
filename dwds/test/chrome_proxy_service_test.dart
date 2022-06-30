@@ -36,7 +36,10 @@ void main() {
   group('shared context', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
-      await context.setUp(verboseCompiler: false);
+      await context.setUp(
+        enableExpressionEvaluation: true,
+        verboseCompiler: false,
+      );
     });
 
     tearDownAll(() async {
