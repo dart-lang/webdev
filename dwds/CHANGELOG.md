@@ -1,5 +1,10 @@
-## 15.0.1-dev
+## 16.0.0-dev
+- Fix a hang and report errors on hot reload exceptions from the injected
+  client.
+
+**Breaking changes**
 - Remove no longer used `ExpressionCompilerService.handler`.
+- Remove `assetHandler` parameter from `ExpressionCompilerService` constructor.
 
 ## 15.0.0
 - Port some `dwds` files to null safety.

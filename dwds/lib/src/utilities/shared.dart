@@ -93,9 +93,12 @@ void handleErrorIfPresent(wip.WipResponse? response,
     {String? evalContents, Object? additionalDetails}) {
   if (response == null || response.result == null) return;
   if (response.result!.containsKey('exceptionDetails')) {
-    throw ChromeDebugException(
-        response.result!['exceptionDetails'] as Map<String, dynamic>,
+    final exceptionDetails =
+        response.result!['exceptionDetails']! as Map<String, dynamic>;
+    final stackTrace = wip.StackTrace(exceptionDetails['stackTrace']);
+    throw ChromeDebugException(exceptionDetails,
         evalContents: evalContents,
-        additionalDetails: additionalDetails);
+        additionalDetails: additionalDetails,
+        stackTrace: stackTrace);
   }
 }
