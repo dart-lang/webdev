@@ -80,7 +80,7 @@ abstract class JsError {
 @JS('Map')
 abstract class JsMap<K, V> {
   @JS()
-  external V get(K key);
+  external V? get(K key);
 
   @JS()
   external Object keys();
@@ -144,7 +144,7 @@ class RequireRestarter implements Restarter {
   }
 
   List<String> _moduleParents(String module) =>
-      requireLoader.moduleParentsGraph.get(module).cast();
+      requireLoader.moduleParentsGraph.get(module)?.cast() ?? [];
 
   int _moduleTopologicalCompare(String module1, String module2) {
     var topological = 0;

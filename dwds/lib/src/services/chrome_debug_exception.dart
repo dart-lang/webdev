@@ -11,8 +11,12 @@ class ChromeDebugException extends ExceptionDetails implements Exception {
   /// Optional, the exact contents of the eval that was attempted.
   final String? evalContents;
 
+  /// Optional, the stack where exception happened.
+  @override
+  final StackTrace? stackTrace;
+
   ChromeDebugException(Map<String, dynamic> exceptionDetails,
-      {this.additionalDetails, this.evalContents})
+      {this.additionalDetails, this.evalContents, this.stackTrace})
       : super(exceptionDetails);
 
   @override
@@ -22,6 +26,7 @@ class ChromeDebugException extends ExceptionDetails implements Exception {
     description.writeln('text: $text');
     if (exception != null) {
       description.writeln('exception:');
+      description.writeln('  preview: ${exception?.json['preview']}');
       description.writeln('  description: ${exception?.description}');
       description.writeln('  type: ${exception?.type}');
       description.writeln('  value: ${exception?.value}');
@@ -31,6 +36,16 @@ class ChromeDebugException extends ExceptionDetails implements Exception {
     }
     if (additionalDetails != null) {
       description.writeln('additional details:\n  $additionalDetails');
+    }
+    if (stackTrace != null) {
+      var trace = stackTrace;
+      description.writeln('stack trace:');
+      while (trace != null) {
+        for (final frame in trace.printFrames()) {
+          description.writeln(frame);
+        }
+        trace = trace.parent;
+      }
     }
     return description.toString();
   }

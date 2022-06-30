@@ -1,4 +1,6 @@
 ## 16.0.0-dev
+- Fix a hang and report errors on hot reload exceptions from the injected
+  client.
 - Remove `AppInspector.evaluate` code that has been replaced by expression
   evaluation using a compiler in all scenarios.
 - Fix a bug where evaluation would fail with more than one parameter in
