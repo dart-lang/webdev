@@ -26,7 +26,7 @@ class ChromeDebugException extends ExceptionDetails implements Exception {
     description.writeln('text: $text');
     if (exception != null) {
       description.writeln('exception:');
-      description.writeln(' preview: ${exception?.json['preview']}');
+      description.writeln('  preview: ${exception?.json['preview']}');
       description.writeln('  description: ${exception?.description}');
       description.writeln('  type: ${exception?.type}');
       description.writeln('  value: ${exception?.value}');
