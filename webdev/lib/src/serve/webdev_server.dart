@@ -131,7 +131,6 @@ class WebDevServer {
         ddcService = ExpressionCompilerService(
           options.configuration.hostname,
           options.port,
-          assetHandler,
           verbose: options.configuration.verbose,
         );
       }
@@ -161,9 +160,6 @@ class WebDevServer {
       pipeline = pipeline.addMiddleware(dwds.middleware);
       cascade = cascade.add(dwds.handler);
       cascade = cascade.add(assetHandler);
-      if (ddcService != null) {
-        cascade = cascade.add(ddcService.handler);
-      }
     } else {
       cascade = cascade.add(assetHandler);
     }

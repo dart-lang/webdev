@@ -1,3 +1,6 @@
+## 2.7.11-dev
+- Remove no longer used `ExpressionCompilerService.handler`.
+
 ## 2.7.10
 - Pin DWDS version to avoid dependency conflicts with `package:vm_service`.
 

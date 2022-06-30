@@ -60,15 +60,12 @@ void main() async {
       // start expression compilation service
       Response assetHandler(request) =>
           Response(200, body: File.fromUri(kernel).readAsBytesSync());
-      service = ExpressionCompilerService('localhost', port, assetHandler,
-          verbose: false);
+      service = ExpressionCompilerService('localhost', port, verbose: false);
 
       await service.initialize(moduleFormat: 'amd');
 
       // setup asset server
-      serveHttpRequests(
-          server, Cascade().add(service.handler).add(assetHandler).handler,
-          (e, s) {
+      serveHttpRequests(server, assetHandler, (e, s) {
         logger.warning('Error serving requests', e, s);
       });
 
