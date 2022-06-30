@@ -1,13 +1,16 @@
 ## 16.0.0-dev
 - Fix a hang and report errors on hot reload exceptions from the injected
   client.
+- Remove `AppInspector.evaluate` code that has been replaced by expression
+  evaluation using a compiler in all scenarios.
+- Fix a bug where evaluation would fail with more than one parameter in
+  the scope.
+- Remove showing uncaptured values from the stack during evaluation.
+- Refactor code to break most circular dependencies between files.
 
 **Breaking changes**
-
-- Remove `assetHandler` parameter from `ExpressionCompilerService`.
-- `ExpressionCompilerService` no longer provides a handler to service requests.
-  - Note that the only user, expression compiler worker in dart SDK already
-    communicates to the asset server directly.
+- Remove no longer used `ExpressionCompilerService.handler`.
+- Remove `assetHandler` parameter from `ExpressionCompilerService` constructor.
 
 ## 15.0.0
 - Port some `dwds` files to null safety.
