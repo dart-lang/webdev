@@ -507,7 +507,7 @@ class DevHandler {
           _hostname,
           extensionDebugger,
           extensionDebugger.executionContext,
-          devToolsRequest.tabUrl,
+          basePathForServerUri(devToolsRequest.tabUrl),
           _assetReader,
           _loadStrategy,
           connection,
