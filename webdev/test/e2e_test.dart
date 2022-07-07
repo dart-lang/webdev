@@ -482,16 +482,10 @@ void main() {
 
               await vmService.streamListen('Debug');
 
-              // Evaluate falls back to js evaluation
-              var result = await vmService.evaluate(
-                  isolate.id, library.id, 'main.toString()');
-
               expect(
-                  result,
-                  const TypeMatcher<InstanceRef>().having(
-                      (instance) => instance.valueAsString,
-                      'valueAsString',
-                      contains('Hello World!!')));
+                  () => vmService.evaluate(
+                      isolate.id, library.id, 'main.toString()'),
+                  throwsRPCError);
             } finally {
               await vmService?.dispose();
               await exitWebdev(process);
@@ -501,5 +495,5 @@ void main() {
         });
       });
     }
-  });
+  }, skip: 'dart-lang/sdk#49373');
 }

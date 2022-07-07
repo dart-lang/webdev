@@ -251,22 +251,6 @@ class AppInspector extends Domain {
     return RemoteObject(result.result['result'] as Map<String, Object>);
   }
 
-  Future<RemoteObject> evaluate(
-      String isolateId, String targetId, String expression,
-      {Map<String, String> scope}) async {
-    scope ??= {};
-    final library = await getLibrary(isolateId, targetId);
-    if (library == null) {
-      throw UnsupportedError(
-          'Evaluate is only supported when `targetId` is a library.');
-    }
-    if (scope.isNotEmpty) {
-      return evaluateInLibrary(library, scope, expression);
-    } else {
-      return evaluateJsExpressionOnLibrary(expression, library.uri);
-    }
-  }
-
   /// Invoke the function named [selector] on the object identified by
   /// [targetId].
   ///
@@ -298,21 +282,6 @@ class AppInspector extends Domain {
         arguments);
   }
 
-  /// Evaluate [expression] as a member/message of the library identified by
-  /// [libraryUri].
-  ///
-  /// That is, we will just do 'library.$expression'
-  Future<RemoteObject> evaluateJsExpressionOnLibrary(
-      String expression, String libraryUri) {
-    final evalExpression = '''
-(function() {
-  ${globalLoadStrategy.loadLibrarySnippet(libraryUri)};
-  return library.$expression;
-})();
-''';
-    return jsEvaluate(evalExpression);
-  }
-
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
   Future<RemoteObject> jsEvaluate(String expression,
       {bool awaitPromise = false}) async {
@@ -341,21 +310,6 @@ class AppInspector extends Domain {
 ''';
     final remoteLibrary = await jsEvaluate(findLibrary);
     return jsCallFunctionOn(remoteLibrary, jsFunction, arguments);
-  }
-
-  /// Evaluate [expression] from [library] with [scope] as
-  /// arguments.
-  Future<RemoteObject> evaluateInLibrary(
-      Library library, Map<String, String> scope, String expression) async {
-    final argsString = scope.keys.join(', ');
-    final arguments = scope.values.map(remoteObjectFor).toList();
-    final evalExpression = '''
-function($argsString) {
-  ${globalLoadStrategy.loadLibrarySnippet(library.uri)};
-  return library.$expression;
-}
-    ''';
-    return _evaluateInLibrary(library, evalExpression, arguments);
   }
 
   /// Call [function] with objects referred by [argumentIds] as arguments.
