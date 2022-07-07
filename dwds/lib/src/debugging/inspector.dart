@@ -49,21 +49,21 @@ class AppInspector implements AppInspectorInterface {
   /// Map of [Library] id to included [ScriptRef]s.
   final _libraryIdToScriptRefs = <String, List<ScriptRef>>{};
 
-  final RemoteDebugger _remoteDebugger;
   @override
   RemoteDebugger get remoteDebugger => _remoteDebugger;
+  final RemoteDebugger _remoteDebugger;
 
-  final Isolate _isolate;
   @override
   Isolate get isolate => _isolate;
+  final Isolate _isolate;
 
-  final IsolateRef _isolateRef;
   @override
   IsolateRef get isolateRef => _isolateRef;
+  final IsolateRef _isolateRef;
 
-  final AppConnection _appConnection;
   @override
   AppConnection get appConnection => _appConnection;
+  final AppConnection _appConnection;
 
   final ExecutionContext _executionContext;
 

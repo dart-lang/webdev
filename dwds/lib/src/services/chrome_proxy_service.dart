@@ -46,12 +46,12 @@ class ChromeProxyService implements VmServiceInterface {
   final VM _vm;
 
   /// Signals when isolate is intialized.
-  Completer<void> _initializedCompleter = Completer<void>();
   Future<void> get isInitialized => _initializedCompleter.future;
+  Completer<void> _initializedCompleter = Completer<void>();
 
   /// Signals when expression compiler is ready to evaluate.
-  Completer<void> _compilerCompleter = Completer<void>();
   Future<void> get isCompilerInitialized => _compilerCompleter.future;
+  Completer<void> _compilerCompleter = Completer<void>();
 
   /// The root at which we're serving.
   final String root;
@@ -68,11 +68,11 @@ class ChromeProxyService implements VmServiceInterface {
   final Modules _modules;
 
   /// Provides debugger-related functionality.
-  final _debuggerCompleter = Completer<Debugger>();
   Future<Debugger> get debuggerFuture => _debuggerCompleter.future;
+  final _debuggerCompleter = Completer<Debugger>();
 
-  AppInspector _inspector;
   AppInspector get inspector => _inspector;
+  AppInspector _inspector;
 
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 
