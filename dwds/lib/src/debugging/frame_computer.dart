@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -13,8 +10,6 @@ import 'debugger.dart';
 
 class FrameComputer {
   final Debugger debugger;
-
-  final _logger = Logger('FrameComputer');
 
   // To ensure that the frames are computed only once, we use a pool to guard
   // the work. Frames are computed sequentially.
@@ -25,14 +20,14 @@ class FrameComputer {
 
   var _frameIndex = 0;
 
-  StackTrace _asyncStackTrace;
-  List<CallFrame> _asyncFramesToProcess;
+  StackTrace? _asyncStackTrace;
+  List<CallFrame>? _asyncFramesToProcess;
 
-  FrameComputer(this.debugger, this._callFrames, {StackTrace asyncStackTrace})
+  FrameComputer(this.debugger, this._callFrames, {StackTrace? asyncStackTrace})
       : _asyncStackTrace = asyncStackTrace;
 
   /// Given a frame index, return the corresponding JS frame.
-  WipCallFrame jsFrameForIndex(int frameIndex) {
+  WipCallFrame? jsFrameForIndex(int frameIndex) {
     // Clients can send us indices greater than the number of JS frames as async
     // frames don't have corresponding WipCallFrames.
     return frameIndex < _callFrames.length ? _callFrames[frameIndex] : null;
@@ -40,7 +35,7 @@ class FrameComputer {
 
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
   /// [Frame]s.
-  Future<List<Frame>> calculateFrames({int limit}) async {
+  Future<List<Frame>> calculateFrames({int? limit}) async {
     return _pool.withResource(() async {
       if (limit != null && _computedFrames.length >= limit) {
         return _computedFrames.take(limit).toList();
@@ -61,7 +56,7 @@ class FrameComputer {
     });
   }
 
-  Future<void> _collectSyncFrames({int limit}) async {
+  Future<void> _collectSyncFrames({int? limit}) async {
     while (_frameIndex < _callFrames.length) {
       if (limit != null && _computedFrames.length == limit) return;
 
@@ -74,10 +69,11 @@ class FrameComputer {
     }
   }
 
-  Future<void> _collectAsyncFrames({int limit}) async {
+  Future<void> _collectAsyncFrames({int? limit}) async {
     if (_asyncStackTrace == null) return;
 
     while (_asyncStackTrace != null) {
+      final asyncStackTrace = _asyncStackTrace!;
       if (limit != null && _computedFrames.length == limit) {
         return;
       }
@@ -89,22 +85,15 @@ class FrameComputer {
           _computedFrames.add(Frame(
               index: _frameIndex++, kind: FrameKind.kAsyncSuspensionMarker));
         }
-        _asyncFramesToProcess = _asyncStackTrace.callFrames;
+        _asyncFramesToProcess = asyncStackTrace.callFrames;
       } else {
+        final asyncFramesToProcess = _asyncFramesToProcess!;
         // Process a single async frame.
-        if (_asyncFramesToProcess.isNotEmpty) {
-          final callFrame = _asyncFramesToProcess.removeAt(0);
+        if (asyncFramesToProcess.isNotEmpty) {
+          final callFrame = asyncFramesToProcess.removeAt(0);
           final location = WipLocation.fromValues(
               callFrame.scriptId, callFrame.lineNumber,
               columnNumber: callFrame.columnNumber);
-
-          final url =
-              callFrame.url ?? debugger.urlForScriptId(location.scriptId);
-          if (url == null) {
-            _logger.severe(
-                'Failed to create dart frame for ${callFrame.functionName}: '
-                'cannot find location for script ${callFrame.scriptId}');
-          }
 
           final tempWipFrame = WipCallFrame({
             'url': callFrame.url,
@@ -127,8 +116,8 @@ class FrameComputer {
 
       // Async frames are no longer on the stack - we don't have local variable
       // information for them.
-      if (_asyncFramesToProcess.isEmpty) {
-        _asyncStackTrace = _asyncStackTrace.parent;
+      if (_asyncFramesToProcess!.isEmpty) {
+        _asyncStackTrace = asyncStackTrace.parent;
         _asyncFramesToProcess = null;
       }
     }

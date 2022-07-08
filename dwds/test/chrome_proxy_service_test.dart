@@ -1160,7 +1160,7 @@ void main() {
         await service.resume(isolateId);
       });
 
-      test('returns non-empty stack when paused', () async {
+      test('returns non-null stack when paused', () async {
         await service.pause(isolateId);
         // Wait for pausing to actually propagate.
         await stream

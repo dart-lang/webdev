@@ -109,6 +109,7 @@ void printNestedObjectsMultiLine() {
 }
 
 void printObjectMultiLine() {
+  // Note: formatting the line below breaks callstack tests.
   print( // Breakpoint: printMultiLine
     createObject() // Breakpoint: printObjectMultiLine
       ..initialize(),
