@@ -4,11 +4,12 @@
 
 // @dart = 2.9
 
+import 'package:dwds/src/utilities/domain.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../debugging/dart_scope.dart';
-import '../debugging/inspector.dart';
+import '../debugging/debugger.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
 import '../loaders/strategy.dart';
@@ -36,7 +37,8 @@ class ErrorKind {
 /// ExpressionCompilerInterface to compile dart expressions to JavaScript.
 class ExpressionEvaluator {
   final String _entrypoint;
-  final AppInspector _inspector;
+  final AppInspectorInterface _inspector;
+  final Debugger _debugger;
   final Locations _locations;
   final Modules _modules;
   final ExpressionCompiler _compiler;
@@ -53,8 +55,8 @@ class ExpressionEvaluator {
   static final _loadModuleErrorRegex =
       RegExp(r".*Failed to load '.*\.com/(.*\.js).*");
 
-  ExpressionEvaluator(this._entrypoint, this._inspector, this._locations,
-      this._modules, this._compiler);
+  ExpressionEvaluator(this._entrypoint, this._inspector, this._debugger,
+      this._locations, this._modules, this._compiler);
 
   RemoteObject _createError(ErrorKind severity, String message) {
     return RemoteObject(
@@ -141,7 +143,7 @@ class ExpressionEvaluator {
     }
 
     // Get JS scope and current JS location.
-    final jsFrame = _inspector.debugger.jsFrameForIndex(frameIndex);
+    final jsFrame = _debugger.jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
       return _createError(
           ErrorKind.internal,
@@ -203,8 +205,7 @@ class ExpressionEvaluator {
     jsCode = _createTryCatch(jsCode);
 
     // Send JS expression to chrome to evaluate.
-    var result = await _inspector.debugger
-        .evaluateJsOnCallFrameIndex(frameIndex, jsCode);
+    var result = await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsCode);
     result = await _formatEvaluationError(result);
 
     _logger.finest('Evaluated "$expression" to "$result"');
@@ -276,7 +277,7 @@ class ExpressionEvaluator {
     final scopeChain = filterScopes(frame).reversed;
     for (var scope in scopeChain) {
       final scopeProperties =
-          await _inspector.debugger.getProperties(scope.object.objectId);
+          await _debugger.getProperties(scope.object.objectId);
 
       collectVariables(scope.scope, scopeProperties);
     }

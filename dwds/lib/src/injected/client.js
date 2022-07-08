@@ -25417,7 +25417,7 @@
   };
   A.RequireRestarter__reloadModule_closure0.prototype = {
     call$1(e) {
-      return this.completer.completeError$2(new A.HotReloadFailedException(J.get$message$x(type$.JsError._as(e))), this.stackTrace);
+      this.completer.completeError$2(new A.HotReloadFailedException(J.get$message$x(type$.JsError._as(e))), this.stackTrace);
     },
     $signature: 80
   };

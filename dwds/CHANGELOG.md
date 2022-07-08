@@ -6,6 +6,7 @@
 - Fix a bug where evaluation would fail with more than one parameter in
   the scope.
 - Remove showing uncaptured values from the stack during evaluation.
+- Refactor code to break most circular dependencies between files.
 
 **Breaking changes**
 - Remove no longer used `ExpressionCompilerService.handler`.

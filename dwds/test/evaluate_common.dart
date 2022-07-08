@@ -509,7 +509,7 @@ void testAll({
           await expectLater(
               setup.service
                   .evaluateInFrame('bad', event.topFrame.index, 'local'),
-              throwsRPCError);
+              throwsSentinelException);
         });
       });
     });

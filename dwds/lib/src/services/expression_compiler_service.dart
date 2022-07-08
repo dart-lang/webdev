@@ -207,8 +207,8 @@ class _Compiler {
 /// ports. It also handles full dill file read requests from the isolate
 /// and redirects them to the asset server.
 ///
-/// Uses [_address] and [_port] to communicate and [_assetHandler] to
-/// redirect asset requests to the asset server.
+/// Uses [_address] and [_port] to communicate and to redirect asset
+/// requests to the asset server.
 ///
 /// Configuration created by [_sdkConfigurationProvider] describes the
 /// locations of SDK files used in expression compilation (summaries,

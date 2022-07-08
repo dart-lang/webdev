@@ -7,11 +7,25 @@
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
-import '../../debugging/classes.dart';
 import '../../debugging/inspector.dart';
 import '../../debugging/remote_debugger.dart';
 import '../../loaders/strategy.dart';
 import '../../services/chrome_debug_exception.dart';
+
+/// A hard-coded ClassRef for the Closure class.
+final classRefForClosure = classRefFor('dart:core', 'Closure');
+
+/// A hard-coded ClassRef for the String class.
+final classRefForString = classRefFor('dart:core', InstanceKind.kString);
+
+/// A hard-coded ClassRef for a (non-existent) class called Unknown.
+final classRefForUnknown = classRefFor('dart:core', 'Unknown');
+
+/// Returns a [ClassRef] for the provided library ID and class name.
+ClassRef classRefFor(String libraryId, String name) => ClassRef(
+    id: 'classes|$libraryId|$name',
+    name: name,
+    library: LibraryRef(id: libraryId, name: libraryId, uri: libraryId));
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {

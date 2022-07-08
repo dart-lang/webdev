@@ -7,14 +7,15 @@
 import 'dart:async';
 
 import 'package:dwds/dwds.dart';
+import 'package:dwds/src/debugging/classes.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
+import 'package:dwds/src/debugging/libraries.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/utilities/domain.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
 
@@ -42,10 +43,12 @@ Isolate get simpleIsolate => Isolate(
       isolateFlags: [],
     );
 
-class FakeInspector extends Domain implements AppInspector {
-  FakeInspector({this.fakeIsolate}) : super.forInspector();
+class FakeInspector implements AppInspector {
+  FakeInspector({this.fakeIsolate});
 
   Isolate fakeIsolate;
+
+  final _instanceHelper = InstanceHelper(null, null);
 
   @override
   Object noSuchMethod(Invocation invocation) {
@@ -53,12 +56,19 @@ class FakeInspector extends Domain implements AppInspector {
   }
 
   @override
-  Future<Obj> getObject(String isolateId, String objectId,
-          {int offset, int count}) =>
+  Future<void> initialize(LibraryHelper libraryHelper, ClassHelper classHelper,
+          InstanceHelper instanceHelper) =>
       null;
 
   @override
-  Future<ScriptList> getScripts(String isolateId) => null;
+  Future<InstanceRef> instanceRefFor(Object value) =>
+      _instanceHelper.instanceRefFor(value);
+
+  @override
+  Future<Obj> getObject(String objectId, {int offset, int count}) => null;
+
+  @override
+  Future<ScriptList> getScripts() => null;
 
   @override
   Future<ScriptRef> scriptRefFor(String uri) =>
@@ -68,16 +78,10 @@ class FakeInspector extends Domain implements AppInspector {
   ScriptRef scriptWithId(String scriptId) => null;
 
   @override
-  Isolate checkIsolate(String methodName, String isolateId) => fakeIsolate;
-
-  @override
   Isolate get isolate => fakeIsolate;
 
   @override
   IsolateRef get isolateRef => null;
-
-  @override
-  InstanceHelper get instanceHelper => InstanceHelper(null);
 }
 
 class FakeSseConnection implements SseSocketConnection {

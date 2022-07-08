@@ -362,7 +362,7 @@ void main() {
 
     test('evaluateInFrame', () async {
       await expectLater(
-          service.evaluateInFrame(null, null, null), throwsRPCError);
+          service.evaluateInFrame(null, null, null), throwsSentinelException);
     });
 
     test('getAllocationProfile', () async {
@@ -406,7 +406,7 @@ void main() {
       });
 
       test('throws for invalid ids', () async {
-        expect(service.getIsolate('bad'), throwsArgumentError);
+        expect(service.getIsolate('bad'), throwsSentinelException);
       });
     });
 
@@ -545,7 +545,7 @@ void main() {
             list[4] = 100;
             return list;
       })()''';
-        return service.appInspectorProvider().jsEvaluate(expr);
+        return service.inspector.jsEvaluate(expr);
       }
 
       /// Helper to create a LinkedHashMap with 1001 entries, doing a direct JS eval.
@@ -561,7 +561,7 @@ void main() {
             const linkedMap = sdk.dart.dsend(sdk.collection.LinkedHashMap, "from", [map]);
             return linkedMap;
       })()''';
-        return service.appInspectorProvider().jsEvaluate(expr);
+        return service.inspector.jsEvaluate(expr);
       }
 
       test('Lists', () async {

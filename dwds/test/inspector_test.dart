@@ -28,8 +28,8 @@ void main() {
   setUpAll(() async {
     await context.setUp();
     final service = fetchChromeProxyService(context.debugConnection);
-    inspector = service.appInspectorProvider();
-    debugger = inspector.debugger;
+    inspector = service.inspector;
+    debugger = await service.debuggerFuture;
   });
 
   tearDownAll(() async {
@@ -50,18 +50,18 @@ void main() {
 
   test('send toString', () async {
     final remoteObject = await libraryPublicFinal();
-    final toString = await inspector.invokeMethod(remoteObject, 'toString', []);
+    final toString =
+        await inspector.invoke(remoteObject.objectId, 'toString', []);
     expect(toString.value, 'A test class with message world');
   });
 
   group('getObject', () {
     test('for class with generic', () async {
-      final isolateId = inspector.isolate.id;
       final remoteObject = await libraryPublicFinal();
-      final instance = await inspector.getObject(
-          isolateId, remoteObject.objectId) as Instance;
+      final instance =
+          await inspector.getObject(remoteObject.objectId) as Instance;
       final classRef = instance.classRef;
-      final clazz = await inspector.getObject(isolateId, classRef.id) as Class;
+      final clazz = await inspector.getObject(classRef.id) as Class;
       expect(clazz.name, 'MyTestClass<dynamic>');
     });
   });
@@ -103,18 +103,16 @@ void main() {
     // We test these here because the test fixture has more complicated members
     // to exercise.
 
-    String isolateId;
     LibraryRef bootstrapLibrary;
     RemoteObject instance;
 
     setUp(() async {
-      isolateId = inspector.isolate.id;
       bootstrapLibrary = inspector.isolate.rootLib;
       instance = await libraryPublicFinal();
     });
 
     test('invoke top-level private', () async {
-      final remote = await inspector.invoke(isolateId, bootstrapLibrary.id,
+      final remote = await inspector.invoke(bootstrapLibrary.id,
           '_libraryPrivateFunction', [dartIdFor(2), dartIdFor(3)]);
       expect(
           remote,
@@ -123,8 +121,8 @@ void main() {
     });
 
     test('invoke instance private', () async {
-      final remote = await inspector.invoke(isolateId, instance.objectId,
-          'privateMethod', [dartIdFor('some string')]);
+      final remote = await inspector.invoke(
+          instance.objectId, 'privateMethod', [dartIdFor('some string')]);
       expect(
           remote,
           const TypeMatcher<RemoteObject>().having((instance) => instance.value,
@@ -133,7 +131,7 @@ void main() {
 
     test('invoke instance method with object parameter', () async {
       final remote = await inspector
-          .invoke(isolateId, instance.objectId, 'equals', [instance.objectId]);
+          .invoke(instance.objectId, 'equals', [instance.objectId]);
       expect(
           remote,
           const TypeMatcher<RemoteObject>()
@@ -142,8 +140,8 @@ void main() {
 
     test('invoke instance method with object parameter 2', () async {
       final libraryPrivateList = await libraryPrivate();
-      final remote = await inspector.invoke(isolateId, instance.objectId,
-          'equals', [libraryPrivateList.objectId]);
+      final remote = await inspector
+          .invoke(instance.objectId, 'equals', [libraryPrivateList.objectId]);
       expect(
           remote,
           const TypeMatcher<RemoteObject>()
@@ -151,8 +149,7 @@ void main() {
     });
 
     test('invoke closure stored in an instance field', () async {
-      final remote =
-          await inspector.invoke(isolateId, instance.objectId, 'closure', []);
+      final remote = await inspector.invoke(instance.objectId, 'closure', []);
       expect(
           remote,
           const TypeMatcher<RemoteObject>()
@@ -161,8 +158,7 @@ void main() {
 
     test('invoke a torn-off method', () async {
       final toString = await inspector.loadField(instance, 'tornOff');
-      final result =
-          await inspector.invoke(isolateId, toString.objectId, 'call', []);
+      final result = await inspector.invoke(toString.objectId, 'call', []);
       expect(
           result,
           const TypeMatcher<RemoteObject>().having((instance) => instance.value,

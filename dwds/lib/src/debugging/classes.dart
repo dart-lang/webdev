@@ -11,30 +11,15 @@ import '../../src/services/chrome_debug_exception.dart';
 import '../loaders/strategy.dart';
 import '../utilities/domain.dart';
 import '../utilities/shared.dart';
-import 'inspector.dart';
 import 'metadata/class.dart';
-
-/// A hard-coded ClassRef for the Closure class.
-final classRefForClosure = classRefFor('dart:core', 'Closure');
-
-/// A hard-coded ClassRef for the String class.
-final classRefForString = classRefFor('dart:core', InstanceKind.kString);
-
-/// A hard-coded ClassRef for a (non-existent) class called Unknown.
-final classRefForUnknown = classRefFor('dart:core', 'Unknown');
-
-/// Returns a [ClassRef] for the provided library ID and class name.
-ClassRef classRefFor(String libraryId, String name) => ClassRef(
-    id: 'classes|$libraryId|$name',
-    name: name,
-    library: LibraryRef(id: libraryId, name: libraryId, uri: libraryId));
 
 /// Keeps track of Dart classes available in the running application.
 class ClassHelper extends Domain {
   /// Map of class ID to [Class].
   final _classes = <String, Class>{};
 
-  ClassHelper(AppInspector Function() provider) : super(provider) {
+  ClassHelper(AppInspectorInterface appInspector) {
+    inspector = appInspector;
     final staticClasses = [
       classRefForClosure,
       classRefForString,
@@ -67,7 +52,7 @@ class ClassHelper extends Domain {
     if (libraryId == 'null') {
       throw UnsupportedError('unknown library: $libraryId');
     }
-    final libraryRef = await inspector.libraryHelper.libraryRefFor(libraryId);
+    final libraryRef = await inspector.libraryRefFor(libraryId);
     if (libraryRef == null) {
       throw Exception('Could not find library: $libraryId');
     }

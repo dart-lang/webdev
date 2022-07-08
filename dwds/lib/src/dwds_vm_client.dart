@@ -209,8 +209,7 @@ Future<Map<String, dynamic>> _hotRestart(
     // Generate run id to hot restart all apps loaded into the tab.
     final runId = const Uuid().v4().toString();
     _logger.info('Issuing \$dartHotRestartDwds request');
-    await chromeProxyService
-        .appInspectorProvider()
+    await chromeProxyService.inspector
         .jsEvaluate('\$dartHotRestartDwds(\'$runId\');', awaitPromise: true);
     _logger.info('\$dartHotRestartDwds request complete.');
   } on WipError catch (exception) {
@@ -235,7 +234,6 @@ Future<Map<String, dynamic>> _hotRestart(
       }
     };
   }
-
   _logger.info('Waiting for Isolate Start event.');
   await stream.firstWhere((event) => event.kind == EventKind.kIsolateStart);
   chromeProxyService.terminatingIsolates = false;

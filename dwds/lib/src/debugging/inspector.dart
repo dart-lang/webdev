@@ -10,8 +10,6 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import '../connections/app_connection.dart';
-import '../debugging/location.dart';
-import '../debugging/remote_debugger.dart';
 import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../utilities/conversions.dart';
@@ -24,13 +22,15 @@ import 'debugger.dart';
 import 'execution_context.dart';
 import 'instance.dart';
 import 'libraries.dart';
+import 'location.dart';
+import 'remote_debugger.dart';
 
 /// An inspector for a running Dart application contained in the
 /// [WipConnection].
 ///
 /// Provides information about currently loaded scripts and objects and support
 /// for eval.
-class AppInspector extends Domain {
+class AppInspector implements AppInspectorInterface {
   final _scriptCacheMemoizer = AsyncMemoizer<List<ScriptRef>>();
 
   Future<List<ScriptRef>> get scriptRefs => _populateScriptCaches();
@@ -49,16 +49,27 @@ class AppInspector extends Domain {
   /// Map of [Library] id to included [ScriptRef]s.
   final _libraryIdToScriptRefs = <String, List<ScriptRef>>{};
 
-  final RemoteDebugger remoteDebugger;
-  final Debugger debugger;
-  final Isolate isolate;
-  final IsolateRef isolateRef;
-  final AppConnection appConnection;
+  @override
+  RemoteDebugger get remoteDebugger => _remoteDebugger;
+  final RemoteDebugger _remoteDebugger;
+
+  @override
+  Isolate get isolate => _isolate;
+  final Isolate _isolate;
+
+  @override
+  IsolateRef get isolateRef => _isolateRef;
+  final IsolateRef _isolateRef;
+
+  @override
+  AppConnection get appConnection => _appConnection;
+  final AppConnection _appConnection;
+
   final ExecutionContext _executionContext;
 
-  final LibraryHelper libraryHelper;
-  final ClassHelper classHelper;
-  final InstanceHelper instanceHelper;
+  LibraryHelper _libraryHelper;
+  ClassHelper _classHelper;
+  InstanceHelper _instanceHelper;
 
   final AssetReader _assetReader;
   final Locations _locations;
@@ -74,28 +85,27 @@ class AppInspector extends Domain {
   static final exceptionMessageRegex = RegExp(r'^.*$', multiLine: true);
 
   AppInspector._(
-    this.appConnection,
-    this.isolate,
-    this.remoteDebugger,
-    this.debugger,
-    this.libraryHelper,
-    this.classHelper,
-    this.instanceHelper,
+    this._appConnection,
+    this._isolate,
+    this._remoteDebugger,
     this._assetReader,
     this._locations,
     this._root,
     this._executionContext,
     this._sdkConfiguration,
-  )   : isolateRef = _toIsolateRef(isolate),
-        super.forInspector();
+  ) : _isolateRef = _toIsolateRef(_isolate);
 
-  /// We are the inspector, so this getter is trivial.
-  @override
-  AppInspector get inspector => this;
+  Future<void> initialize(
+    LibraryHelper libraryHelper,
+    ClassHelper classHelper,
+    InstanceHelper instanceHelper,
+  ) async {
+    _libraryHelper = libraryHelper;
+    _classHelper = classHelper;
+    _instanceHelper = instanceHelper;
 
-  Future<void> _initialize() async {
-    final libraries = await libraryHelper.libraryRefs;
-    isolate.rootLib = await libraryHelper.rootLib;
+    final libraries = await _libraryHelper.libraryRefs;
+    isolate.rootLib = await _libraryHelper.rootLib;
     isolate.libraries.addAll(libraries);
 
     final scripts = await scriptRefs;
@@ -114,7 +124,7 @@ class AppInspector extends Domain {
         isSystemIsolate: isolate.isSystemIsolate,
       );
 
-  static Future<AppInspector> initialize(
+  static Future<AppInspector> create(
     AppConnection appConnection,
     RemoteDebugger remoteDebugger,
     AssetReader assetReader,
@@ -150,30 +160,33 @@ class AppInspector extends Domain {
         isSystemIsolate: false,
         isolateFlags: [])
       ..extensionRPCs = [];
-    AppInspector appInspector;
-    AppInspector provider() => appInspector;
-    final libraryHelper = LibraryHelper(provider);
-    final classHelper = ClassHelper(provider);
-    final instanceHelper = InstanceHelper(provider);
-    appInspector = AppInspector._(
+    final inspector = AppInspector._(
       appConnection,
       isolate,
       remoteDebugger,
-      debugger,
-      libraryHelper,
-      classHelper,
-      instanceHelper,
       assetReader,
       locations,
       root,
       executionContext,
       sdkConfiguration,
     );
-    await appInspector._initialize();
-    return appInspector;
+
+    debugger.updateInspector(inspector);
+
+    final libraryHelper = LibraryHelper(inspector);
+    final classHelper = ClassHelper(inspector);
+    final instanceHelper = InstanceHelper(inspector, debugger);
+
+    await inspector.initialize(
+      libraryHelper,
+      classHelper,
+      instanceHelper,
+    );
+    return inspector;
   }
 
   /// Returns the ID for the execution context or null if not found.
+  @override
   Future<int> get contextId async {
     try {
       return await _executionContext.id;
@@ -184,6 +197,7 @@ class AppInspector extends Domain {
   }
 
   /// Get the value of the field named [fieldName] from [receiver].
+  @override
   Future<RemoteObject> loadField(RemoteObject receiver, String fieldName) {
     final load = '''
         function() {
@@ -195,7 +209,7 @@ class AppInspector extends Domain {
 
   /// Call a method by name on [receiver], with arguments [positionalArgs] and
   /// [namedArgs].
-  Future<RemoteObject> invokeMethod(RemoteObject receiver, String methodName,
+  Future<RemoteObject> _invokeMethod(RemoteObject receiver, String methodName,
       [List<RemoteObject> positionalArgs = const [],
       Map namedArgs = const {}]) async {
     // TODO(alanknight): Support named arguments.
@@ -217,6 +231,7 @@ class AppInspector extends Domain {
   ///
   /// [evalExpression] should be a JS function definition that can accept
   /// [arguments].
+  @override
   Future<RemoteObject> jsCallFunctionOn(RemoteObject receiver,
       String evalExpression, List<RemoteObject> arguments,
       {bool returnByValue = false}) async {
@@ -258,18 +273,19 @@ class AppInspector extends Domain {
   /// invoking a top-level function. The [arguments] are always strings that are
   /// Dart object Ids (which can also be Chrome RemoteObject objectIds that are
   /// for non-Dart JS objects.)
-  Future<RemoteObject> invoke(String isolateId, String targetId,
-      String selector, List<dynamic> arguments) async {
-    checkIsolate('invoke', isolateId);
+  @override
+  Future<RemoteObject> invoke(
+      String targetId, String selector, List<dynamic> arguments) async {
     final remoteArguments =
         arguments.cast<String>().map(remoteObjectFor).toList();
     // We special case the Dart library, where invokeMethod won't work because
     // it's not really a Dart object.
     if (isLibraryId(targetId)) {
-      final library = await getObject(isolateId, targetId) as Library;
+      final library = await getObject(targetId) as Library;
       return await _invokeLibraryFunction(library, selector, remoteArguments);
     } else {
-      return invokeMethod(remoteObjectFor(targetId), selector, remoteArguments);
+      return _invokeMethod(
+          remoteObjectFor(targetId), selector, remoteArguments);
     }
   }
 
@@ -283,6 +299,7 @@ class AppInspector extends Domain {
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
+  @override
   Future<RemoteObject> jsEvaluate(String expression,
       {bool awaitPromise = false}) async {
     // TODO(alanknight): Support a version with arguments if needed.
@@ -313,35 +330,47 @@ class AppInspector extends Domain {
   }
 
   /// Call [function] with objects referred by [argumentIds] as arguments.
+  @override
   Future<RemoteObject> callFunction(
       String function, Iterable<String> argumentIds) async {
     final arguments = argumentIds.map(remoteObjectFor).toList();
     return _jsCallFunction(function, arguments);
   }
 
-  Future<Library> getLibrary(String isolateId, String objectId) async {
-    if (isolateId != isolate.id) return null;
-    final libraryRef = await libraryHelper.libraryRefFor(objectId);
+  @override
+  Future<InstanceRef> instanceRefFor(Object value) =>
+      _instanceHelper.instanceRefFor(value);
+
+  Future<Instance> instanceFor(Object value) =>
+      _instanceHelper.instanceFor(value);
+
+  @override
+  Future<LibraryRef> libraryRefFor(String objectId) =>
+      _libraryHelper.libraryRefFor(objectId);
+
+  @override
+  Future<Library> getLibrary(String objectId) async {
+    final libraryRef = await libraryRefFor(objectId);
     if (libraryRef == null) return null;
-    return libraryHelper.libraryFor(libraryRef);
+    return _libraryHelper.libraryFor(libraryRef);
   }
 
-  Future<Obj> getObject(String isolateId, String objectId,
-      {int offset, int count}) async {
+  @override
+  Future<Obj> getObject(String objectId, {int offset, int count}) async {
     try {
-      final library = await getLibrary(isolateId, objectId);
+      final library = await getLibrary(objectId);
       if (library != null) {
         return library;
       }
-      final clazz = await classHelper.forObjectId(objectId);
+      final clazz = await _classHelper.forObjectId(objectId);
       if (clazz != null) {
         return clazz;
       }
       final scriptRef = _scriptRefsById[objectId];
       if (scriptRef != null) {
-        return await _getScript(isolateId, scriptRef);
+        return await _getScript(scriptRef);
       }
-      final instance = await instanceHelper
+      final instance = await _instanceHelper
           .instanceFor(remoteObjectFor(objectId), offset: offset, count: count);
       if (instance != null) {
         return instance;
@@ -354,7 +383,7 @@ class AppInspector extends Domain {
         'are supported for getObject');
   }
 
-  Future<Script> _getScript(String isolateId, ScriptRef scriptRef) async {
+  Future<Script> _getScript(ScriptRef scriptRef) async {
     final libraryId = _scriptIdToLibraryId[scriptRef.id];
     final serverPath = DartUri(scriptRef.uri, _root).serverPath;
     final source = await _assetReader.dartSourceContents(serverPath);
@@ -364,15 +393,14 @@ class AppInspector extends Domain {
     }
     return Script(
         uri: scriptRef.uri,
-        library: await libraryHelper.libraryRefFor(libraryId),
+        library: await libraryRefFor(libraryId),
         id: scriptRef.id)
       ..tokenPosTable = await _locations.tokenPosTableFor(serverPath)
       ..source = source;
   }
 
-  Future<MemoryUsage> getMemoryUsage(String isolateId) async {
-    checkIsolate('getMemoryUsage', isolateId);
-
+  @override
+  Future<MemoryUsage> getMemoryUsage() async {
     final response = await remoteDebugger.sendCommand('Runtime.getHeapUsage');
 
     final jsUsage = HeapUsage(response.result);
@@ -384,12 +412,14 @@ class AppInspector extends Domain {
   }
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
+  @override
   Future<ScriptRef> scriptRefFor(String uri) async {
     await _populateScriptCaches();
     return _serverPathToScriptRef[uri];
   }
 
   /// Returns the [ScriptRef]s in the library with [libraryId].
+  @override
   Future<List<ScriptRef>> scriptRefsForLibrary(String libraryId) async {
     await _populateScriptCaches();
     return _libraryIdToScriptRefs[libraryId];
@@ -398,8 +428,8 @@ class AppInspector extends Domain {
   /// Return the VM SourceReport for the given parameters.
   ///
   /// Currently this implements the 'PossibleBreakpoints' report kind.
+  @override
   Future<SourceReport> getSourceReport(
-    String isolateId,
     List<String> reports, {
     String scriptId,
     int tokenPos,
@@ -408,8 +438,6 @@ class AppInspector extends Domain {
     bool reportLines,
     List<String> libraryFilters,
   }) {
-    checkIsolate('getSourceReport', isolateId);
-
     if (reports.contains(SourceReportKind.kCoverage)) {
       throwInvalidParam('getSourceReport',
           'Source report kind ${SourceReportKind.kCoverage} not supported');
@@ -425,16 +453,15 @@ class AppInspector extends Domain {
       throwInvalidParam('getSourceReport', 'Unsupported source report kind.');
     }
 
-    return _getPossibleBreakpoints(isolateId, scriptId);
+    return _getPossibleBreakpoints(scriptId);
   }
 
-  Future<SourceReport> _getPossibleBreakpoints(
-      String isolateId, String vmScriptId) async {
+  Future<SourceReport> _getPossibleBreakpoints(String scriptId) async {
     // TODO(devoncarew): Consider adding some caching for this method.
 
-    final scriptRef = scriptWithId(vmScriptId);
+    final scriptRef = scriptWithId(scriptId);
     if (scriptRef == null) {
-      throwInvalidParam('getSourceReport', 'scriptId not found: $vmScriptId');
+      throwInvalidParam('getSourceReport', 'scriptId not found: $scriptId');
     }
 
     final dartUri = DartUri(scriptRef.uri, _root);
@@ -461,8 +488,8 @@ class AppInspector extends Domain {
   }
 
   /// All the scripts in the isolate.
-  Future<ScriptList> getScripts(String isolateId) async {
-    checkIsolate('getScripts', isolateId);
+  @override
+  Future<ScriptList> getScripts() async {
     return ScriptList(scripts: await scriptRefs);
   }
 
@@ -491,7 +518,7 @@ class AppInspector extends Domain {
           ScriptRef(uri: uri, id: createId()),
           for (var part in parts) ScriptRef(uri: part, id: createId())
         ];
-        final libraryRef = await libraryHelper.libraryRefFor(uri);
+        final libraryRef = await _libraryHelper.libraryRefFor(uri);
         _libraryIdToScriptRefs.putIfAbsent(libraryRef.id, () => <ScriptRef>[]);
         for (var scriptRef in scriptRefs) {
           _scriptRefsById[scriptRef.id] = scriptRef;
@@ -506,6 +533,7 @@ class AppInspector extends Domain {
   }
 
   /// Look up the script by id in an isolate.
+  @override
   ScriptRef scriptWithId(String scriptId) => _scriptRefsById[scriptId];
 
   /// Runs an eval on the page to compute all existing registered extensions.
@@ -533,6 +561,7 @@ class AppInspector extends Domain {
 
   /// Convert a JS exception description into a description containing
   /// a Dart stack trace.
+  @override
   Future<String> mapExceptionStackTrace(String description) async {
     RemoteObject mapperResult;
     try {

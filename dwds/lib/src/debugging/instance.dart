@@ -14,16 +14,17 @@ import '../utilities/conversions.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
 import '../utilities/shared.dart';
-import 'classes.dart';
 import 'debugger.dart';
-import 'inspector.dart';
 import 'metadata/class.dart';
 import 'metadata/function.dart';
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
-  InstanceHelper(AppInspector Function() provider) : super(provider);
+  InstanceHelper(AppInspectorInterface appInspector, this.debugger) {
+    inspector = appInspector;
+  }
 
+  final Debugger debugger;
   static final InstanceRef kNullInstanceRef =
       _primitiveInstanceRef(InstanceKind.kNull, null);
 
@@ -109,11 +110,8 @@ class InstanceHelper extends Domain {
       return _closureInstanceFor(remoteObject);
     }
 
-    final properties = await inspector.debugger.getProperties(
-        remoteObject.objectId,
-        offset: offset,
-        count: count,
-        length: metaData.length);
+    final properties = await debugger.getProperties(remoteObject.objectId,
+        offset: offset, count: count, length: metaData.length);
     if (metaData.isSystemList) {
       return await _listInstanceFor(
           classRef, remoteObject, properties, offset, count);
