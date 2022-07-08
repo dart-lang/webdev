@@ -34,6 +34,9 @@ const _notADartAppAlert = 'No Dart application detected.'
     ' see https://bugs.chromium.org/p/chromium/issues/detail?id=885025#c11.';
 
 // Extensions allowed for cross-extension communication.
+//
+// This is only used to forward outgoing messages, as incoming messages are
+// restricted by `externally_connectable` in the extension manijest.json.
 const _allowedExtensions = {
   'nbkbficgbembimioedhceniahniffgpl', // AngularDart DevTools
 };
@@ -362,36 +365,34 @@ void _maybeSaveDevToolsTabId(Tab tab) async {
 
 void _handleMessageFromExternalExtensions(
     Request request, Sender sender, Function sendResponse) async {
-  if (_allowedExtensions.contains(sender.id)) {
-    if (request.name == 'chrome.debugger.sendCommand') {
-      try {
-        final options = request.options as SendCommandOptions;
+  if (request.name == 'chrome.debugger.sendCommand') {
+    try {
+      final options = request.options as SendCommandOptions;
 
-        void sendResponseOrError([e]) {
-          // No arguments indicate that an error occurred.
-          if (e == null) {
-            sendResponse(ErrorResponse()..error = stringify(lastError));
-          } else {
-            sendResponse(e);
-          }
+      void sendResponseOrError([e]) {
+        // No arguments indicate that an error occurred.
+        if (e == null) {
+          sendResponse(ErrorResponse()..error = stringify(lastError));
+        } else {
+          sendResponse(e);
         }
-
-        sendCommand(Debuggee(tabId: request.tabId), options.method,
-            options.commandParams, allowInterop(sendResponseOrError));
-      } catch (e) {
-        sendResponse(ErrorResponse()..error = '$e');
       }
-    } else if (request.name == 'dwds.encodedUri') {
-      sendResponse(_tabIdToEncodedUri[request.tabId] ?? '');
-    } else if (request.name == 'dwds.startDebugging') {
-      _startDebugging(DebuggerTrigger.dwds);
-      // TODO(grouma) - Actually determine if debugging initiated
-      // successfully.
-      sendResponse(true);
-    } else {
-      sendResponse(
-          ErrorResponse()..error = 'Unknown request name: ${request.name}');
+
+      sendCommand(Debuggee(tabId: request.tabId), options.method,
+          options.commandParams, allowInterop(sendResponseOrError));
+    } catch (e) {
+      sendResponse(ErrorResponse()..error = '$e');
     }
+  } else if (request.name == 'dwds.encodedUri') {
+    sendResponse(_tabIdToEncodedUri[request.tabId] ?? '');
+  } else if (request.name == 'dwds.startDebugging') {
+    _startDebugging(DebuggerTrigger.dwds);
+    // TODO(grouma) - Actually determine if debugging initiated
+    // successfully.
+    sendResponse(true);
+  } else {
+    sendResponse(
+        ErrorResponse()..error = 'Unknown request name: ${request.name}');
   }
 }
 
