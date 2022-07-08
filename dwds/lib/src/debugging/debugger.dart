@@ -97,10 +97,12 @@ class Debugger extends Domain {
 
   Future<Success> setExceptionPauseMode(String mode) async {
     mode = mode.toLowerCase();
-    if (!_pauseModePauseStates.containsKey(mode)) {
+    final state = _pauseModePauseStates[mode];
+    if (state == null) {
       throwInvalidParam('setExceptionPauseMode', 'Unsupported mode: $mode');
+    } else {
+      _pauseState = state;
     }
-    _pauseState = _pauseModePauseStates[mode]!;
     await _remoteDebugger.setPauseOnExceptions(_pauseState);
     return Success();
   }
@@ -231,8 +233,9 @@ class Debugger extends Domain {
 
   Future<ScriptRef?> _updatedScriptRefFor(Breakpoint breakpoint) async {
     final oldRef = (breakpoint.location as SourceLocation).script;
-    if (oldRef == null || oldRef.uri == null) return null;
-    final dartUri = DartUri(oldRef.uri!, _root);
+    final uri = oldRef?.uri;
+    if (uri == null) return null;
+    final dartUri = DartUri(uri, _root);
     return await inspector.scriptRefFor(dartUri.serverPath);
   }
 
@@ -245,10 +248,11 @@ class Debugger extends Domain {
     for (var breakpoint in previousBreakpoints) {
       final dartBpId = breakpoint.id!;
       final scriptRef = await _updatedScriptRefFor(breakpoint);
-      if (scriptRef != null && scriptRef.uri != null) {
+      final scriptUri = scriptRef?.uri;
+      if (scriptRef != null && scriptUri != null) {
         final jsBpId = _breakpoints.jsIdFor(dartBpId)!;
         final updatedLocation = await _locations.locationForDart(
-            DartUri(scriptRef.uri!, _root),
+            DartUri(scriptUri, _root),
             _lineNumberFor(breakpoint),
             _columnNumberFor(breakpoint));
         if (updatedLocation != null) {
@@ -270,8 +274,9 @@ class Debugger extends Domain {
     // them back.
     for (var breakpoint in disabledBreakpoints) {
       final scriptRef = await _updatedScriptRefFor(breakpoint);
-      if (scriptRef != null && scriptRef.id != null) {
-        await addBreakpoint(scriptRef.id!, _lineNumberFor(breakpoint),
+      final scriptId = scriptRef?.id;
+      if (scriptId != null) {
+        await addBreakpoint(scriptId, _lineNumberFor(breakpoint),
             column: _columnNumberFor(breakpoint));
       } else {
         logger.warning('Cannot update disabled breakpoint ${breakpoint.id}:'
@@ -593,7 +598,12 @@ class Debugger extends Domain {
       // avoiding stepping through library loading code.
       if (_isStepping) {
         final scriptId = _frameScriptId(e);
-        final url = scriptId == null ? null : urlForScriptId(scriptId);
+        if (scriptId == null) {
+          logger.severe('Stepping failed: '
+              'cannot find script id for event $e');
+          throw StateError('Stepping failed on event $e');
+        }
+        final url = urlForScriptId(scriptId);
         if (url == null) {
           logger.severe('Stepping failed: '
               'cannot find url for script $scriptId');
@@ -608,7 +618,7 @@ class Debugger extends Domain {
           // skipLists.
           await _remoteDebugger.stepInto(params: {
             'skipList': await _skipLists.compute(
-              scriptId!,
+              scriptId,
               await _locations.locationsForUrl(url),
             )
           });
@@ -786,9 +796,10 @@ class _Breakpoints extends Domain {
   Future<Breakpoint> _createBreakpoint(
       String id, String scriptId, int line, int column) async {
     final dartScript = inspector.scriptWithId(scriptId);
+    final dartScriptUri = dartScript?.uri;
     Location? location;
-    if (dartScript != null && dartScript.uri != null) {
-      final dartUri = DartUri(dartScript.uri!, root);
+    if (dartScriptUri != null) {
+      final dartUri = DartUri(dartScriptUri, root);
       location = await locations.locationForDart(dartUri, line, column);
     }
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
@@ -872,8 +883,8 @@ class _Breakpoints extends Domain {
   /// Records the internal Dart <=> JS breakpoint id mapping and adds the
   /// breakpoint to the current isolates list of breakpoints.
   void _note({required Breakpoint bp, required String jsId}) {
-    if (bp.id != null) {
-      final bpId = bp.id!;
+    final bpId = bp.id;
+    if (bpId != null) {
       _dartIdByJsId[jsId] = bpId;
       _jsIdByDartId[bpId] = jsId;
       final isolate = inspector.isolate;
