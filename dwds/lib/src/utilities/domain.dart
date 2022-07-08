@@ -31,7 +31,7 @@ abstract class AppInspectorInterface {
       {bool returnByValue = false});
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
-  Future<ScriptRef>? scriptRefFor(String uri);
+  Future<ScriptRef?> scriptRefFor(String uri);
 
   /// Look up the script by id in an isolate.
   ScriptRef? scriptWithId(String scriptId);

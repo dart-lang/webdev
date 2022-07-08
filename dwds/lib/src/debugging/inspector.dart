@@ -49,21 +49,21 @@ class AppInspector implements AppInspectorInterface {
   /// Map of [Library] id to included [ScriptRef]s.
   final _libraryIdToScriptRefs = <String, List<ScriptRef>>{};
 
-  final RemoteDebugger _remoteDebugger;
   @override
   RemoteDebugger get remoteDebugger => _remoteDebugger;
+  final RemoteDebugger _remoteDebugger;
 
-  final Isolate _isolate;
   @override
   Isolate get isolate => _isolate;
+  final Isolate _isolate;
 
-  final IsolateRef _isolateRef;
   @override
   IsolateRef get isolateRef => _isolateRef;
+  final IsolateRef _isolateRef;
 
-  final AppConnection _appConnection;
   @override
   AppConnection get appConnection => _appConnection;
+  final AppConnection _appConnection;
 
   final ExecutionContext _executionContext;
 
@@ -301,12 +301,13 @@ class AppInspector implements AppInspectorInterface {
   /// Evaluate [expression] by calling Chrome's Runtime.evaluate.
   @override
   Future<RemoteObject> jsEvaluate(String expression,
-      {bool returnByValue = false}) async {
+      {bool returnByValue = false, bool awaitPromise = false}) async {
     // TODO(alanknight): Support a version with arguments if needed.
     WipResponse result;
     result = await remoteDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
       'returnByValue': returnByValue,
+      'awaitPromise': awaitPromise,
       'contextId': await contextId,
     });
     handleErrorIfPresent(result, evalContents: expression, additionalDetails: {

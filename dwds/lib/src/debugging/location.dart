@@ -152,10 +152,10 @@ class Locations {
   /// Returns all [Location] data for a provided Dart source.
   Future<Set<Location>> locationsForDart(String serverPath) async {
     final module = await _modules.moduleForSource(serverPath);
-    if (module != null) {
-      await _locationsForModule(module);
-    } else {
+    if (module == null) {
       _logger.warning('No module for server path $serverPath');
+    } else {
+      await _locationsForModule(module);
     }
     return _sourceToLocation[serverPath] ?? {};
   }
@@ -164,9 +164,9 @@ class Locations {
   Future<Set<Location>> locationsForUrl(String url) async {
     final module = await globalLoadStrategy.moduleForServerPath(
         _entrypoint, Uri.parse(url).path);
+    final cache = _moduleToLocations[module];
+    if (cache != null) return cache;
     if (module != null) {
-      final cache = _moduleToLocations[module];
-      if (cache != null) return cache;
       await _locationsForModule(module);
     }
     return _moduleToLocations[module] ?? {};
