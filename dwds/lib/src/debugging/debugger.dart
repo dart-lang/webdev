@@ -685,7 +685,7 @@ class Debugger extends Domain {
       throw RPCError('evaluateInFrame', 106,
           'Cannot evaluate on a call frame when the program is not paused');
     }
-    return stackComputer?.jsFrameForIndex(frameIndex);
+    return stackComputer!.jsFrameForIndex(frameIndex);
   }
 
   /// Evaluate [expression] by calling Chrome's Runtime.evaluateOnCallFrame on

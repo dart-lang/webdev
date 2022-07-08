@@ -80,7 +80,7 @@ abstract class JsError {
 @JS('Map')
 abstract class JsMap<K, V> {
   @JS()
-  external V get(K key);
+  external V? get(K key);
 
   @JS()
   external Object keys();
@@ -144,7 +144,7 @@ class RequireRestarter implements Restarter {
   }
 
   List<String> _moduleParents(String module) =>
-      requireLoader.moduleParentsGraph.get(module).cast();
+      requireLoader.moduleParentsGraph.get(module)?.cast() ?? [];
 
   int _moduleTopologicalCompare(String module1, String module2) {
     var topological = 0;
@@ -219,11 +219,16 @@ class RequireRestarter implements Restarter {
   Future<void> _reloadModule(String moduleId) {
     final completer = Completer();
     final stackTrace = StackTrace.current;
-    requireLoader.forceLoadModule(moduleId, allowInterop(() {
-      completer.complete();
-    }),
-        allowInterop((e) => completer.completeError(
-            HotReloadFailedException(e.message), stackTrace)));
+    requireLoader.forceLoadModule(
+      moduleId,
+      allowInterop(() {
+        completer.complete();
+      }),
+      allowInterop((e) {
+        completer.completeError(
+            HotReloadFailedException(e.message), stackTrace);
+      }),
+    );
     return completer.future;
   }
 

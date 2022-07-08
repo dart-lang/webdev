@@ -46,21 +46,18 @@ class ChromeProxyService implements VmServiceInterface {
   final VM _vm;
 
   /// Signals when isolate is intialized.
-  Completer<void> _initializedCompleter = Completer<void>();
   Future<void> get isInitialized => _initializedCompleter.future;
+  Completer<void> _initializedCompleter = Completer<void>();
 
   /// Signals when expression compiler is ready to evaluate.
-  Completer<void> _compilerCompleter = Completer<void>();
   Future<void> get isCompilerInitialized => _compilerCompleter.future;
+  Completer<void> _compilerCompleter = Completer<void>();
 
   /// The root at which we're serving.
   final String root;
 
   final RemoteDebugger remoteDebugger;
   final ExecutionContext executionContext;
-
-  /// Provides debugger-related functionality.
-  Future<Debugger> get debugger => _debuggerCompleter.future;
 
   final AssetReader _assetReader;
 
@@ -70,10 +67,12 @@ class ChromeProxyService implements VmServiceInterface {
 
   final Modules _modules;
 
+  /// Provides debugger-related functionality.
+  Future<Debugger> get debuggerFuture => _debuggerCompleter.future;
   final _debuggerCompleter = Completer<Debugger>();
 
-  AppInspector _inspector;
   AppInspector get inspector => _inspector;
+  AppInspector _inspector;
 
   StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
 
@@ -108,7 +107,7 @@ class ChromeProxyService implements VmServiceInterface {
       _skipLists,
       root,
     );
-    _debuggerCompleter.complete(debugger);
+    debugger.then((value) => _debuggerCompleter.complete(value));
   }
 
   static Future<ChromeProxyService> create(
@@ -204,40 +203,41 @@ class ChromeProxyService implements VmServiceInterface {
     // in first `Uri.base` call in the expression compiler service isolate,
     // the expression compiler service will fail to start.
     // Issue: https://github.com/dart-lang/webdev/issues/1282
-    final currentDebugger = await debugger;
+    final debugger = await debuggerFuture;
     final entrypoint = appConnection.request.entrypointPath;
     await _initializeEntrypoint(entrypoint);
     final sdkConfiguration = await _sdkConfigurationProvider.configuration;
 
-    currentDebugger.notifyPausedAtStart();
+    debugger.notifyPausedAtStart();
     _inspector = await AppInspector.create(
       appConnection,
       remoteDebugger,
       _assetReader,
       _locations,
       root,
-      currentDebugger,
+      debugger,
       executionContext,
       sdkConfiguration,
     );
+    debugger.updateInspector(_inspector);
 
     _expressionEvaluator = _compiler == null
         ? null
         : ExpressionEvaluator(
             entrypoint,
             _inspector,
-            currentDebugger,
+            debugger,
             _locations,
             _modules,
             _compiler,
           );
 
-    await currentDebugger.reestablishBreakpoints(
+    await debugger.reestablishBreakpoints(
         _previousBreakpoints, _disabledBreakpoints);
     _disabledBreakpoints.clear();
 
     unawaited(appConnection.onStart.then((_) async {
-      await currentDebugger.resumeFromStart();
+      await debugger.resumeFromStart();
     }));
 
     final isolateRef = _inspector.isolateRef;
@@ -306,7 +306,7 @@ class ChromeProxyService implements VmServiceInterface {
     if (isolate == null) return;
     _disabledBreakpoints.addAll(isolate.breakpoints);
     for (var breakpoint in isolate.breakpoints.toList()) {
-      await (await debugger).removeBreakpoint(breakpoint.id);
+      await (await debuggerFuture).removeBreakpoint(breakpoint.id);
     }
   }
 
@@ -315,7 +315,7 @@ class ChromeProxyService implements VmServiceInterface {
       {int column}) async {
     await isInitialized;
     _checkIsolate('addBreakpoint', isolateId);
-    return (await debugger).addBreakpoint(scriptId, line, column: column);
+    return (await debuggerFuture).addBreakpoint(scriptId, line, column: column);
   }
 
   @override
@@ -342,7 +342,7 @@ class ChromeProxyService implements VmServiceInterface {
     }
     final dartUri = DartUri(scriptUri, root);
     final ref = await _inspector.scriptRefFor(dartUri.serverPath);
-    return (await debugger).addBreakpoint(ref.id, line, column: column);
+    return (await debuggerFuture).addBreakpoint(ref.id, line, column: column);
   }
 
   @override
@@ -580,7 +580,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Stack> getStack(String isolateId, {int limit}) async {
     await isInitialized;
     _checkIsolate('getStack', isolateId);
-    return (await debugger).getStack(limit: limit);
+    return (await debuggerFuture).getStack(limit: limit);
   }
 
   @override
@@ -671,7 +671,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Success> pause(String isolateId) async {
     await isInitialized;
     _checkIsolate('pause', isolateId);
-    return (await debugger).pause();
+    return (await debuggerFuture).pause();
   }
 
   // Note: Ignore the optional local parameter, it is there to keep the method
@@ -713,7 +713,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     _checkIsolate('removeBreakpoint', isolateId);
     _disabledBreakpoints
         .removeWhere((breakpoint) => breakpoint.id == breakpointId);
-    return (await debugger).removeBreakpoint(breakpointId);
+    return (await debuggerFuture).removeBreakpoint(breakpointId);
   }
 
   @override
@@ -724,7 +724,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       return captureElapsedTime(() async {
         await isInitialized;
         _checkIsolate('resume', isolateId);
-        return await (await debugger)
+        return await (await debuggerFuture)
             .resume(step: step, frameIndex: frameIndex);
       }, (result) => DwdsEvent.resume(step));
     } else {
@@ -745,7 +745,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Success> setExceptionPauseMode(String isolateId, String mode) async {
     await isInitialized;
     _checkIsolate('setExceptionPauseMode', isolateId);
-    return (await debugger).setExceptionPauseMode(mode);
+    return (await debuggerFuture).setExceptionPauseMode(mode);
   }
 
   @override
