@@ -8,8 +8,13 @@ import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dds/devtools_server.dart';
+import 'package:dwds/asset_reader.dart';
+import 'package:dwds/dart_web_debug_service.dart';
 import 'package:dwds/data/build_result.dart';
-import 'package:dwds/dwds.dart';
+import 'package:dwds/expression_compiler.dart';
+import 'package:dwds/src/loaders/require.dart';
+import 'package:dwds/src/servers/devtools.dart';
+import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
