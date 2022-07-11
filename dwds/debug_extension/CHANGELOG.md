@@ -1,7 +1,6 @@
 ## 1.31
 - Replace manual extension allowlist by configuring `externally_connectable` in
-  the `manifest.json`. See
-  https://developer.chrome.com/docs/extensions/mv3/manifest/externally_connectable/
+  the `manifest.json`. See https://developer.chrome.com/docs/extensions/mv3/manifest/externally_connectable/
   for details.
 
 ## 1.30
