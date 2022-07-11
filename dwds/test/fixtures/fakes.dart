@@ -6,7 +6,6 @@
 
 import 'dart:async';
 
-import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/classes.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';

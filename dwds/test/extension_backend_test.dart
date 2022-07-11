@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:async/src/stream_queue.dart';
 import 'package:dwds/data/extension_request.dart';
-import 'package:dwds/dwds.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/src/request.dart';

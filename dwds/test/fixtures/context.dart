@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
-import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/sdk_configuration.dart';

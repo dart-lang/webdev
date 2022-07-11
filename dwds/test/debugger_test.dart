@@ -7,7 +7,6 @@
 @TestOn('vm')
 import 'dart:async';
 
-import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/frame_computer.dart';
 import 'package:dwds/src/debugging/inspector.dart';

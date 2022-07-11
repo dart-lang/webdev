@@ -4,7 +4,6 @@
 
 // @dart = 2.9
 
-import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/loaders/strategy.dart';

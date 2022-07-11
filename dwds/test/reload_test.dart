@@ -6,7 +6,6 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 5))
-import 'package:dwds/dwds.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 

@@ -4,7 +4,6 @@
 
 // @dart = 2.9
 
-import 'package:dwds/dwds.dart';
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:test/test.dart';
 

@@ -7,7 +7,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dwds/dwds.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
