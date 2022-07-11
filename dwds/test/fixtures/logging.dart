@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+
 
 import 'dart:async';
 
@@ -10,9 +10,9 @@ import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 typedef LogWriter = void Function(Level level, String message,
-    {String error, String loggerName, String stackTrace});
+    {String? error, String? loggerName, String? stackTrace});
 
-StreamSubscription<LogRecord> _loggerSub;
+StreamSubscription<LogRecord>? _loggerSub;
 
 /// Redirect the logs for the current zone to emit on failure.
 ///
@@ -49,7 +49,7 @@ void setCurrentLogWriter({bool debug = false}) =>
 ///
 /// Tests and groups of tests can use this to configure individual
 /// log writers on setup.
-void configureLogWriter({LogWriter customLogWriter}) {
+void configureLogWriter({LogWriter? customLogWriter}) {
   _logWriter = customLogWriter ?? _logWriter;
   Logger.root.level = Level.ALL;
   _loggerSub?.cancel();
@@ -69,7 +69,7 @@ void stopLogWriter() {
 LogWriter _logWriter = createLogWriter();
 
 LogWriter createLogWriter({bool debug = false}) =>
-    (level, message, {String error, String loggerName, String stackTrace}) {
+    (level, message, {String? error, String? loggerName, String? stackTrace}) {
       final printFn = debug ? print : printOnFailure;
       final errorMessage = error == null ? '' : ':\n$error';
       final stackMessage = stackTrace == null ? '' : ':\n$stackTrace';
