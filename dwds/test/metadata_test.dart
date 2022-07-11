@@ -4,7 +4,9 @@
 
 // @dart = 2.9
 
+import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:test/test.dart';
 
 const _emptySourceMetadata =

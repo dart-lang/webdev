@@ -7,6 +7,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

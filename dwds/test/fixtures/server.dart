@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dds/devtools_server.dart';
 import 'package:dwds/data/build_result.dart';
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';

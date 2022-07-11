@@ -4,6 +4,7 @@
 
 // @dart = 2.9
 
+import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:test/test.dart';
 
 import '../fixtures/context.dart';
