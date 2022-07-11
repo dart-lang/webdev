@@ -1,3 +1,7 @@
+## 1.31
+- Replace manual extension allowlist by configuring `externally_connectable` in
+  the `manifest.json`. See https://developer.chrome.com/docs/extensions/mv3/manifest/externally_connectable/
+  for details.
 
 ## 1.30
 - Batch extension `Debugger.scriptParsed` events and send batches every 1000ms
