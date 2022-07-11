@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-// @dart = 2.9
-
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -26,7 +24,9 @@ class ClassHelper extends Domain {
       classRefForUnknown
     ];
     for (var classRef in staticClasses) {
-      _classes[classRef.id] = Class(
+      final classId = classRef.id;
+      if (classId != null) {
+        _classes[classId] = Class(
           name: classRef.name,
           isAbstract: false,
           isConst: false,
@@ -35,15 +35,17 @@ class ClassHelper extends Domain {
           fields: [],
           functions: [],
           subclasses: [],
-          id: classRef.id,
-          traceAllocations: false);
+          id: classId,
+          traceAllocations: false,
+        );
+      }
     }
   }
 
   /// Returns the [Class] that corresponds to the provided [objectId].
   ///
   /// If a corresponding class does not exist it will return null.
-  Future<Class> forObjectId(String objectId) async {
+  Future<Class?> forObjectId(String objectId) async {
     if (!objectId.startsWith('classes|')) return null;
     var clazz = _classes[objectId];
     if (clazz != null) return clazz;
@@ -66,12 +68,18 @@ class ClassHelper extends Domain {
 
   /// Constructs a [Class] instance for the provided [LibraryRef] and
   /// [ClassRef].
-  Future<Class> _constructClass(
+  Future<Class?> _constructClass(
       LibraryRef libraryRef, ClassRef classRef) async {
-    final rawName = classRef.name.split('<').first;
+    final libraryUri = libraryRef.uri;
+    final className = classRef.name;
+    final classId = classRef.id;
+
+    if (libraryUri == null || classId == null || className == null) return null;
+
+    final rawName = className.split('<').first;
     final expression = '''
     (function() {
-      ${globalLoadStrategy.loadLibrarySnippet(libraryRef.uri)}
+      ${globalLoadStrategy.loadLibrarySnippet(libraryUri)}
       var result = {};
       var clazz = library["$rawName"];
       var descriptor = {
@@ -171,7 +179,7 @@ class ClassHelper extends Domain {
         classDescriptor['staticMethods'] as Map<String, dynamic>;
     methodDescriptors.addAll(staticMethodDescriptors);
     methodDescriptors.forEach((name, descriptor) {
-      final methodId = 'methods|${classRef.id}|$name';
+      final methodId = 'methods|$classId|$name';
       methodRefs.add(FuncRef(
           id: methodId,
           name: name,
@@ -237,7 +245,7 @@ class ClassHelper extends Domain {
         fields: fieldRefs,
         functions: methodRefs,
         subclasses: [],
-        id: classRef.id,
+        id: classId,
         traceAllocations: false);
   }
 }
