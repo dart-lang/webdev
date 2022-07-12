@@ -9,7 +9,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/dwds.dart';
+import 'package:dwds/expression_compiler.dart';
+import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
