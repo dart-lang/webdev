@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @TestOn('vm')
 import 'dart:async';
 import 'dart:convert';
@@ -22,18 +20,15 @@ import 'fixtures/logging.dart';
 void main() async {
   group('expression compiler service with fake asset server', () {
     final logger = Logger('ExpressionCompilerServiceTest');
-    ExpressionCompilerService service;
-    HttpServer server;
-    StreamController<String> output;
-    Directory outputDir;
+    late ExpressionCompilerService service;
+    late HttpServer server;
+    late StreamController<String> output;
+    late Directory outputDir;
 
     Future<void> stop() async {
-      await service?.stop();
-      await server?.close();
-      await output?.close();
-      service = null;
-      server = null;
-      output = null;
+      await service.stop();
+      await server.close();
+      await output.close();
     }
 
     setUp(() async {
@@ -126,7 +121,7 @@ void main() async {
     test('works with no errors', () async {
       expect(output.stream, neverEmits(contains('[SEVERE]')));
       expect(
-          output.stream,
+          output!.stream,
           emitsThrough(contains(
               '[INFO] ExpressionCompilerService: Updating dependencies...')));
       expect(

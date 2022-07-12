@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @TestOn('vm')
 import 'dart:io';
 
@@ -34,7 +32,7 @@ void main() {
   });
 
   group('Non-standard configuration', () {
-    Directory outputDir;
+    late Directory outputDir;
 
     setUp(() async {
       final systemTempDir = Directory.systemTemp;
@@ -54,7 +52,7 @@ void main() {
       final librariesPath = p.join(librariesDir, 'libraries.json');
 
       Directory(librariesDir).createSync(recursive: true);
-      File(defaultSdkConfiguration.librariesPath).copySync(librariesPath);
+      File(defaultSdkConfiguration.librariesPath!).copySync(librariesPath);
 
       final summariesDir = p.join(sdkDirectory, 'summaries');
       final unsoundSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
@@ -62,16 +60,16 @@ void main() {
           p.join(summariesDir, 'ddc_outline_sound.dill');
 
       Directory(summariesDir).createSync(recursive: true);
-      File(defaultSdkConfiguration.unsoundSdkSummaryPath)
+      File(defaultSdkConfiguration.unsoundSdkSummaryPath!)
           .copySync(unsoundSdkSummaryPath);
-      File(defaultSdkConfiguration.soundSdkSummaryPath)
+      File(defaultSdkConfiguration.soundSdkSummaryPath!)
           .copySync(soundSdkSummaryPath);
 
       final workerDir = p.join(sdkDirectory, 'snapshots');
       final compilerWorkerPath = p.join(workerDir, 'dartdevc.dart.snapshot');
 
       Directory(workerDir).createSync(recursive: true);
-      File(defaultSdkConfiguration.compilerWorkerPath)
+      File(defaultSdkConfiguration.compilerWorkerPath!)
           .copySync(compilerWorkerPath);
 
       final sdkConfiguration = SdkConfiguration(
@@ -118,7 +116,7 @@ void main() {
   });
 
   group('SDK configuration', () {
-    MemoryFileSystem fs;
+    late MemoryFileSystem fs;
 
     final root = '/root';
     final sdkDirectory = root;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @TestOn('vm')
 @Skip('Intended to run in analyze stage on stable SDK only, see mono_pkg.yaml')
 import 'dart:io';
@@ -19,8 +17,9 @@ void main() {
     sdkVersion = Version(sdkVersion.major, sdkVersion.minor, 0);
 
     final sdkConstraint = VersionConstraint.compatibleWith(sdkVersion);
-    final pubspecSdkConstraint = pubspec.environment['sdk'];
-    expect(sdkConstraint.allowsAll(pubspecSdkConstraint), true,
+    final pubspecSdkConstraint = pubspec.environment?['sdk'];
+    expect(pubspecSdkConstraint, isNotNull);
+    expect(sdkConstraint.allowsAll(pubspecSdkConstraint!), true,
         reason:
             'Min sdk constraint is outdated. Please update SDK constraint in '
             'pubspec to allow latest stable and backwards compatible versions.'
