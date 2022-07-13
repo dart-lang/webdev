@@ -12,7 +12,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
 import '../loaders/strategy.dart';
-import '../services/chrome_debug_exception.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
@@ -722,12 +721,9 @@ class Debugger extends Domain {
     try {
       return await _remoteDebugger.evaluateOnCallFrame(callFrameId, expression);
     } on ExceptionDetails catch (e) {
-      throw ChromeDebugException(
+      throwChromeDebugException(
         e.json,
         evalContents: expression,
-        additionalDetails: {
-          'Dart expression': expression,
-        },
       );
     }
   }

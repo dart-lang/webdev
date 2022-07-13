@@ -5,6 +5,7 @@
 // @dart = 2.9
 
 @TestOn('vm')
+import 'package:dwds/dwds.dart';
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
@@ -47,6 +48,43 @@ void main() {
 
   Future<RemoteObject> libraryPrivate() =>
       inspector.jsEvaluate(libraryVariableExpression('_libraryPrivate'));
+
+  group('jsEvaluate', () {
+    test('no error', () async {
+      await expectLater(inspector.jsEvaluate('42'),
+          completion(isA<RemoteObject>().having((e) => e.value, 'value', 42)));
+    });
+
+    test('syntax error', () async {
+      await expectLater(
+          () => inspector.jsEvaluate('<'),
+          throwsA(isA<ChromeDebugException>()
+              .having((e) => e.text, 'text', 'Uncaught')
+              .having((e) => e.exception.description, 'description',
+                  contains('SyntaxError'))
+              .having((e) => e.stackTrace, 'stackTrace', isNull)
+              .having((e) => e.evalContents, 'evalContents', '<')));
+    });
+
+    test('evaluation error', () async {
+      await expectLater(
+          () => inspector.jsEvaluate('''
+        (function() {
+          let foo = (function() {
+            console.log(boo);
+          });
+          foo();
+        })();
+        '''),
+          throwsA(isA<ChromeDebugException>()
+              .having((e) => e.text, 'text', 'Uncaught')
+              .having((e) => e.exception.description, 'description',
+                  contains('ReferenceError'))
+              .having((e) => e.stackTrace.printFrames()[0], 'stackTrace',
+                  contains('foo()'))
+              .having((e) => e.evalContents, 'evalContents', contains('foo'))));
+    });
+  });
 
   test('send toString', () async {
     final remoteObject = await libraryPublicFinal();

@@ -275,6 +275,9 @@ class InstanceHelper extends Domain {
       int? count) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
+
+    /// TODO(annagrin): split into cases to make the logic clear.
+    /// TODO(annagrin): make sure we use offset correctly.
     final numberOfProperties = _lengthOf(properties) ?? 0;
     final length = (offset == null && count == null)
         ? numberOfProperties

@@ -20,7 +20,7 @@ abstract class AppInspectorInterface {
   IsolateRef get isolateRef;
 
   /// Returns the ID for the execution context or null if not found.
-  Future<int> get contextId;
+  Future<int?> get contextId;
 
   /// Calls Chrome's Runtime.callFunctionOn method.
   ///
@@ -34,7 +34,7 @@ abstract class AppInspectorInterface {
   Future<ScriptRef?> scriptRefFor(String uri);
 
   /// Look up the script by id in an isolate.
-  ScriptRef? scriptWithId(String scriptId);
+  ScriptRef? scriptWithId(String? scriptId);
 
   /// Returns the [LibraryRef] for the provided Dart [objectId].
   Future<LibraryRef?> libraryRefFor(String objectId);
@@ -76,7 +76,7 @@ abstract class AppInspectorInterface {
       {bool returnByValue = false, bool awaitPromise = false});
 
   /// Lookup an `object` from some isolate by its [objectId].
-  Future<Obj> getObject(String objectId, {int offset, int count});
+  Future<Obj?> getObject(String objectId, {int offset, int count});
 
   /// All the scripts in the isolate.
   Future<ScriptList> getScripts();
@@ -95,7 +95,7 @@ abstract class AppInspectorInterface {
   });
 
   /// Lookup current isolate's memory usage statistics.
-  Future<MemoryUsage> getMemoryUsage();
+  Future<MemoryUsage?> getMemoryUsage();
 }
 
 /// A common superclass to allow implementations of different parts of the
@@ -108,6 +108,6 @@ abstract class Domain {
   late AppInspectorInterface inspector;
 }
 
-void throwInvalidParam(String method, String message) {
+Never throwInvalidParam(String method, String message) {
   throw RPCError(method, RPCError.kInvalidParams, message);
 }

@@ -89,16 +89,44 @@ void serveHttpRequests(Stream<HttpRequest> requests, Handler handler,
 
 /// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
 /// result.
-void handleErrorIfPresent(wip.WipResponse? response,
-    {String? evalContents, Object? additionalDetails}) {
-  if (response == null || response.result == null) return;
-  if (response.result!.containsKey('exceptionDetails')) {
-    final exceptionDetails =
-        response.result!['exceptionDetails']! as Map<String, dynamic>;
-    final stackTrace = wip.StackTrace(exceptionDetails['stackTrace']);
-    throw ChromeDebugException(exceptionDetails,
-        evalContents: evalContents,
-        additionalDetails: additionalDetails,
-        stackTrace: stackTrace);
+void handleErrorIfPresent(wip.WipResponse? response, {String? evalContents}) {
+  final result = response?.result;
+  if (result == null) return;
+  final exceptionDetails = result['exceptionDetails'] as Map<String, dynamic>?;
+  if (exceptionDetails != null) {
+    throwChromeDebugException(
+      exceptionDetails,
+      evalContents: evalContents,
+    );
   }
+}
+
+/// Returns result contained in the response.
+/// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
+/// result or the result is null.
+Map<String, dynamic> getResultOrHandleError(wip.WipResponse? response,
+    {String? evalContents}) {
+  final result = response?.result;
+  final ret = result?['result'];
+  final exceptionDetails = result?['exceptionDetails'] as Map<String, dynamic>?;
+  if (result == null || ret == null || exceptionDetails != null) {
+    throwChromeDebugException(
+      exceptionDetails,
+      evalContents: evalContents,
+    );
+  }
+  return ret;
+}
+
+Never throwChromeDebugException(Map<String, dynamic>? exceptionDetails,
+    {String? evalContents, Object? additionalDetails}) {
+  final stackTraceDetails = exceptionDetails?['stackTrace'];
+  final stackTrace =
+      stackTraceDetails == null ? null : wip.StackTrace(stackTraceDetails);
+  throw ChromeDebugException(
+    exceptionDetails ?? {'text': 'null result from Chrome Devtools'},
+    evalContents: evalContents,
+    additionalDetails: additionalDetails,
+    stackTrace: stackTrace,
+  );
 }

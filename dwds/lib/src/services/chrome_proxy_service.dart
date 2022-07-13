@@ -364,10 +364,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       'awaitPromise': true,
       'contextId': await executionContext.id,
     });
+    final result = await _inspector.jsEvaluate(expression, awaitPromise: true);
     handleErrorIfPresent(response, evalContents: expression);
     final decodedResponse =
-        jsonDecode(response.result['result']['value'] as String)
-            as Map<String, dynamic>;
+        jsonDecode(result.value as String) as Map<String, dynamic>;
     if (decodedResponse.containsKey('code') &&
         decodedResponse.containsKey('message') &&
         decodedResponse.containsKey('data')) {
