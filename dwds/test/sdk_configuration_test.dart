@@ -40,7 +40,7 @@ void main() {
     });
 
     tearDown(() async {
-      await outputDir?.delete(recursive: true);
+      await outputDir.delete(recursive: true);
     });
 
     test('Can validate existing configuration layout', () async {

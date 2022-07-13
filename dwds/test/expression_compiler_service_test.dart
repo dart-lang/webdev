@@ -121,7 +121,7 @@ void main() async {
     test('works with no errors', () async {
       expect(output.stream, neverEmits(contains('[SEVERE]')));
       expect(
-          output!.stream,
+          output.stream,
           emitsThrough(contains(
               '[INFO] ExpressionCompilerService: Updating dependencies...')));
       expect(
