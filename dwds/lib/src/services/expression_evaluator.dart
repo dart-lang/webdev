@@ -178,8 +178,12 @@ class ExpressionEvaluator {
     final dartLocation = locationMap.dartLocation;
     final dartSourcePath = dartLocation.uri.serverPath;
     final libraryUri = await _modules.libraryForSource(dartSourcePath);
+    if (libraryUri == null) {
+      return _createError(
+          ErrorKind.internal, 'no libraryUri for $dartSourcePath');
+    }
 
-    final module = await _modules.moduleForlibrary(dartSourcePath);
+    final module = await _modules.moduleForlibrary(libraryUri.toString());
     if (module == null) {
       return _createError(
           ErrorKind.internal, 'no module for $libraryUri ($dartSourcePath)');
