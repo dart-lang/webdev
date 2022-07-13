@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
 
 void main() {
-  late SkipLists skipLists;
+  SkipLists skipLists;
   group('SkipLists', () {
     setUp(() {
       skipLists = SkipLists();
