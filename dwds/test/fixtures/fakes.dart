@@ -84,7 +84,8 @@ class FakeInspector implements AppInspector {
   ScriptRef scriptWithId(String scriptId) => null;
 
   @override
-  String urlForScriptId(String scriptId) => remoteDebugger.scripts[scriptId].url;
+  String urlForScriptId(String scriptId) =>
+      remoteDebugger.scripts[scriptId].url;
 
   @override
   Isolate get isolate => fakeIsolate;
