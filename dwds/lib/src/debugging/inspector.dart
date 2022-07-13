@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
 import 'package:async/async.dart';
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -109,9 +110,10 @@ class AppInspector implements AppInspectorInterface {
     final scripts = await scriptRefs;
 
     await DartUri.initialize(_sdkConfiguration);
-    await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri).cast());
     await DartUri.recordAbsoluteUris(
-        scripts.map((script) => script.uri).cast());
+        libraries.map((lib) => lib.uri).whereNotNull());
+    await DartUri.recordAbsoluteUris(
+        scripts.map((script) => script.uri).whereNotNull());
 
     isolate.extensionRPCs?.addAll(await _getExtensionRpcs());
   }
