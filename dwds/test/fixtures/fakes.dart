@@ -51,9 +51,6 @@ class FakeInspector implements AppInspector {
 
   Isolate fakeIsolate;
 
-  @override
-  RemoteDebugger remoteDebugger;
-
   final _instanceHelper = InstanceHelper(null, null);
 
   @override
