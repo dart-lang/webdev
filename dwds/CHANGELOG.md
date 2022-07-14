@@ -7,6 +7,7 @@
   the scope.
 - Remove showing uncaptured values from the stack during evaluation.
 - Refactor code to break most circular dependencies between files.
+- Migrate `package:dwds` to null safety.
 
 **Breaking changes**
 - Remove no longer used `ExpressionCompilerService.handler`.

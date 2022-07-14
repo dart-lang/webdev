@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -55,7 +53,7 @@ class DevHandler {
   final _subs = <StreamSubscription>[];
   final _sseHandlers = <String, SocketHandler>{};
   final _injectedConnections = <SocketConnection>{};
-  final DevTools _devTools;
+  final DevTools? _devTools;
   final AssetReader _assetReader;
   final LoadStrategy _loadStrategy;
   final String _hostname;
@@ -64,23 +62,23 @@ class DevHandler {
   final _appConnectionByAppId = <String, AppConnection>{};
   final Stream<BuildResult> buildResults;
   final Future<ChromeConnection> Function() _chromeConnection;
-  final ExtensionBackend _extensionBackend;
+  final ExtensionBackend? _extensionBackend;
   final StreamController<DebugConnection> extensionDebugConnections =
       StreamController<DebugConnection>();
-  final UrlEncoder _urlEncoder;
+  final UrlEncoder? _urlEncoder;
   final bool _useSseForDebugProxy;
   final bool _useSseForInjectedClient;
   final bool _serveDevTools;
   final bool _spawnDds;
   final bool _launchDevToolsInNewWindow;
-  final ExpressionCompiler _expressionCompiler;
+  final ExpressionCompiler? _expressionCompiler;
   final DwdsInjector _injected;
   final SdkConfigurationProvider _sdkConfigurationProvider;
 
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
-  Future<void> _closed;
+  Future<void>? _closed;
 
   Stream<AppConnection> get connectedApps => _connectedApps.stream;
 
@@ -112,8 +110,9 @@ class DevHandler {
 
   Handler get handler => (request) async {
         final path = request.requestedUri.path;
-        if (_sseHandlers.containsKey(path)) {
-          return _sseHandlers[path].handler(request);
+        final sseHandler = _sseHandlers[path];
+        if (sseHandler != null) {
+          return sseHandler.handler(request);
         }
         return Response.notFound('');
       };
@@ -141,26 +140,26 @@ class DevHandler {
   /// Starts a [DebugService] for local debugging.
   Future<DebugService> _startLocalDebugService(
       ChromeConnection chromeConnection, AppConnection appConnection) async {
-    ChromeTab appTab;
-    ExecutionContext executionContext;
-    WipConnection tabConnection;
+    ChromeTab? appTab;
+    ExecutionContext? executionContext;
+    WipConnection? tabConnection;
     final appInstanceId = appConnection.request.instanceId;
     for (var tab in await chromeConnection.getTabs()) {
       if (tab.isChromeExtension || tab.isBackgroundPage) continue;
 
-      tabConnection = await tab.connect();
+      final connection = tabConnection = await tab.connect();
       if (_enableLogging) {
-        tabConnection.onSend.listen((message) {
+        connection.onSend.listen((message) {
           _log('  wip', '==> $message');
         });
-        tabConnection.onReceive.listen((message) {
+        connection.onReceive.listen((message) {
           _log('  wip', '<== $message');
         });
-        tabConnection.onNotification.listen((message) {
+        connection.onNotification.listen((message) {
           _log('  wip', '<== $message');
         });
       }
-      final contextIds = tabConnection.runtime.onExecutionContextCreated
+      final contextIds = connection.runtime.onExecutionContextCreated
           .map((context) => context.id)
           // There is no way to calculate the number of existing execution
           // contexts so keep receiving them until there is a 50ms gap after
@@ -168,25 +167,25 @@ class DevHandler {
           .takeUntilGap(const Duration(milliseconds: 50));
       // We enqueue this work as we need to begin listening (`.hasNext`)
       // before events are received.
-      unawaited(Future.microtask(() => tabConnection.runtime.enable()));
+      unawaited(Future.microtask(() => connection.runtime.enable()));
 
       await for (var contextId in contextIds) {
-        final result = await tabConnection.sendCommand('Runtime.evaluate', {
+        final result = await connection.sendCommand('Runtime.evaluate', {
           'expression': r'window["$dartAppInstanceId"];',
           'contextId': contextId,
         });
-        final evaluatedAppId = result.result['result']['value'];
+        final evaluatedAppId = result.result?['result']?['value'];
         if (evaluatedAppId == appInstanceId) {
           appTab = tab;
           executionContext = RemoteDebuggerExecutionContext(
-              contextId, WebkitDebugger(WipDebugger(tabConnection)));
+              contextId, WebkitDebugger(WipDebugger(connection)));
           break;
         }
       }
       if (appTab != null) break;
-      unawaited(tabConnection.close());
+      unawaited(connection.close());
     }
-    if (appTab == null) {
+    if (appTab == null || tabConnection == null || executionContext == null) {
       throw AppConnectionException(
           'Could not connect to application with appInstanceId: '
           '$appInstanceId');
@@ -238,10 +237,11 @@ class DevHandler {
 
   Future<AppDebugServices> loadAppServices(AppConnection appConnection) async {
     final appId = appConnection.request.appId;
+    late final AppDebugServices appServices;
     if (_servicesByAppId[appId] == null) {
       final debugService = await _startLocalDebugService(
           await _chromeConnection(), appConnection);
-      final appServices = await _createAppDebugServices(
+      appServices = await _createAppDebugServices(
           appConnection.request.appId, debugService);
       unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
           .whenComplete(() async {
@@ -252,12 +252,12 @@ class DevHandler {
       }));
       _servicesByAppId[appId] = appServices;
     }
-    return _servicesByAppId[appId];
+    return appServices;
   }
 
   void _handleConnection(SocketConnection injectedConnection) {
     _injectedConnections.add(injectedConnection);
-    AppConnection appConnection;
+    AppConnection? appConnection;
     injectedConnection.stream.listen((data) async {
       try {
         final message = serializers.deserialize(jsonDecode(data));
@@ -270,27 +270,28 @@ class DevHandler {
           appConnection =
               await _handleConnectRequest(message, injectedConnection);
         } else {
-          if (appConnection == null) {
+          final connection = appConnection;
+          if (connection == null) {
             throw StateError('Not connected to an application.');
           }
           if (message is DevToolsRequest) {
-            await _handleDebugRequest(appConnection, injectedConnection);
+            await _handleDebugRequest(connection, injectedConnection);
           } else if (message is IsolateExit) {
-            await _handleIsolateExit(appConnection);
+            await _handleIsolateExit(connection);
           } else if (message is IsolateStart) {
-            await _handleIsolateStart(appConnection, injectedConnection);
+            await _handleIsolateStart(connection, injectedConnection);
           } else if (message is BatchedDebugEvents) {
-            await _servicesByAppId[appConnection.request.appId]
+            await _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
-                ?.parseBatchedDebugEvents(message);
+                .parseBatchedDebugEvents(message);
           } else if (message is DebugEvent) {
-            await _servicesByAppId[appConnection.request.appId]
+            await _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
-                ?.parseDebugEvent(message);
+                .parseDebugEvent(message);
           } else if (message is RegisterEvent) {
-            await _servicesByAppId[appConnection.request.appId]
+            await _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
-                ?.parseRegisterEvent(message);
+                .parseRegisterEvent(message);
           }
         }
       } catch (e, s) {
@@ -311,15 +312,15 @@ class DevHandler {
 
     unawaited(injectedConnection.sink.done.then((_) async {
       _injectedConnections.remove(injectedConnection);
-      if (appConnection != null) {
-        _appConnectionByAppId.remove(appConnection.request.appId);
-        final services = _servicesByAppId[appConnection.request.appId];
+      final connection = appConnection;
+      if (connection != null) {
+        _appConnectionByAppId.remove(connection.request.appId);
+        final services = _servicesByAppId[connection.request.appId];
         if (services != null) {
           if (services.connectedInstanceId == null ||
-              services.connectedInstanceId ==
-                  appConnection.request.instanceId) {
+              services.connectedInstanceId == connection.request.instanceId) {
             services.connectedInstanceId = null;
-            services.chromeProxyService?.destroyIsolate();
+            services.chromeProxyService.destroyIsolate();
           }
         }
       }
@@ -415,7 +416,7 @@ class DevHandler {
       // Disconnect any old connection (eg. those in the keep-alive waiting
       // state when reloading the page).
       existingAppConection?.shutDown();
-      services.chromeProxyService?.destroyIsolate();
+      services.chromeProxyService.destroyIsolate();
 
       // Reconnect to existing service.
       services.connectedInstanceId = message.instanceId;
@@ -429,14 +430,14 @@ class DevHandler {
   Future<void> _handleIsolateExit(AppConnection appConnection) async {
     _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
-        ?.destroyIsolate();
+        .destroyIsolate();
   }
 
   Future<void> _handleIsolateStart(
       AppConnection appConnection, SocketConnection sseConnection) async {
     await _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
-        ?.createIsolate(appConnection);
+        .createIsolate(appConnection);
   }
 
   void _listen() async {
@@ -481,33 +482,46 @@ class DevHandler {
   }
 
   void _listenForDebugExtension() async {
-    while (await _extensionBackend.connections.hasNext) {
+    while (await _extensionBackend!.connections.hasNext) {
       _startExtensionDebugService();
     }
   }
 
   /// Starts a [DebugService] for Dart Debug Extension.
   void _startExtensionDebugService() async {
-    final extensionDebugger = await _extensionBackend.extensionDebugger;
+    final extensionDebugger = await _extensionBackend!.extensionDebugger;
     // Waits for a `DevToolsRequest` to be sent from the extension background
     // when the extension is clicked.
     extensionDebugger.devToolsRequestStream.listen((devToolsRequest) async {
-      final connection = _appConnectionByAppId[devToolsRequest.appId];
-      if (connection == null) {
-        // TODO(grouma) - Ideally we surface this warning to the extension so
-        // that it can be displayed to the user through an alert.
-        _logger.warning(
-            'Not connected to an app with id: ${devToolsRequest.appId}');
+      // TODO(grouma) - Ideally we surface those warnings to the extension so
+      // that it can be displayed to the user through an alert.
+      final tabUrl = devToolsRequest.tabUrl;
+      final appId = devToolsRequest.appId;
+      if (tabUrl == null) {
+        _logger.warning('Failed to start extension debug service. '
+            'Missing tab url in DevTools request for app with id: $appId');
         return;
       }
+      final connection = _appConnectionByAppId[appId];
+      if (connection == null) {
+        _logger.warning('Failed to start extension debug service. '
+            'Not connected to an app with id: $appId');
+        return;
+      }
+      final executionContext = extensionDebugger.executionContext;
+      if (executionContext == null) {
+        _logger.warning('Failed to start extension debug service. '
+            'No execution context for app with id: $appId');
+        return;
+      }
+
       final debuggerStart = DateTime.now();
-      final appId = devToolsRequest.appId;
       if (_servicesByAppId[appId] == null) {
         final debugService = await DebugService.start(
           _hostname,
           extensionDebugger,
-          extensionDebugger.executionContext,
-          basePathForServerUri(devToolsRequest.tabUrl),
+          executionContext,
+          basePathForServerUri(tabUrl),
           _assetReader,
           _loadStrategy,
           connection,
@@ -539,7 +553,7 @@ class DevHandler {
         extensionDebugConnections.add(DebugConnection(appServices));
         _servicesByAppId[appId] = appServices;
       }
-      final appServices = _servicesByAppId[appId];
+      final appServices = _servicesByAppId[appId]!;
       final encodedUri = await appServices.debugService.encodedUri;
 
       appServices.dwdsStats.updateLoadTime(
@@ -548,7 +562,7 @@ class DevHandler {
       if (_serveDevTools) {
         // If we only want the URI, this means we are embedding Dart DevTools in
         // Chrome DevTools. Therefore return early.
-        if (devToolsRequest.uriOnly != null && devToolsRequest.uriOnly) {
+        if (devToolsRequest.uriOnly ?? false) {
           final devToolsUri = _constructDevToolsUri(
             encodedUri,
             ideQueryParam: 'ChromeDevTools',
@@ -565,11 +579,13 @@ class DevHandler {
     });
   }
 
-  void _ensureServeDevtools() {
+  DevTools _ensureDevTools() {
+    _validateDevToolsOptions();
     if (!_serveDevTools) {
       _logger.severe('Expected _serveDevTools');
       throw StateError('Expected _serveDevTools');
     }
+    return _devTools!;
   }
 
   void _validateDevToolsOptions() {
@@ -581,7 +597,7 @@ class DevHandler {
 
   Future<void> _launchDevTools(
       RemoteDebugger remoteDebugger, String devToolsUri) async {
-    _ensureServeDevtools();
+    _ensureDevTools();
     // TODO(grouma) - We may want to log the debugServiceUri if we don't launch
     // DevTools so that users can manually connect.
     emitEvent(DwdsEvent.devtoolsLaunch());
@@ -595,11 +611,11 @@ class DevHandler {
     String debugServiceUri, {
     String ideQueryParam = '',
   }) {
-    _ensureServeDevtools();
+    final devTools = _ensureDevTools();
     return Uri(
         scheme: 'http',
-        host: _devTools.hostname,
-        port: _devTools.port,
+        host: devTools.hostname,
+        port: devTools.port,
         queryParameters: {
           'uri': debugServiceUri,
           if (ideQueryParam.isNotEmpty) 'ide': ideQueryParam,
@@ -621,8 +637,8 @@ extension<T> on Stream<T> {
         ? StreamController<T>.broadcast(sync: true)
         : StreamController<T>(sync: true);
 
-    StreamSubscription<T> subscription;
-    Timer gapTimer;
+    late StreamSubscription<T> subscription;
+    Timer? gapTimer;
     controller.onListen = () {
       subscription = listen((e) {
         controller.add(e);

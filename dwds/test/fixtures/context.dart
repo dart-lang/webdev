@@ -135,35 +135,24 @@ class TestContext {
   }
 
   Future<void> setUp({
-    ReloadConfiguration reloadConfiguration,
-    bool serveDevTools,
-    bool enableDebugExtension,
-    bool autoRun,
-    bool enableDebugging,
-    bool useSse,
-    bool spawnDds,
-    String hostname,
-    bool waitToDebug,
+    ReloadConfiguration reloadConfiguration = ReloadConfiguration.none,
+    bool serveDevTools = false,
+    bool enableDebugExtension = false,
+    bool autoRun = true,
+    bool enableDebugging = true,
+    bool useSse = true,
+    bool spawnDds = true,
+    String hostname = 'localhost',
+    bool waitToDebug = false,
     UrlEncoder urlEncoder,
     bool restoreBreakpoints,
-    CompilationMode compilationMode,
-    NullSafety nullSafety,
-    bool enableExpressionEvaluation,
-    bool verboseCompiler,
+    CompilationMode compilationMode = CompilationMode.buildDaemon,
+    NullSafety nullSafety = NullSafety.weak,
+    bool enableExpressionEvaluation = false,
+    bool verboseCompiler = false,
     SdkConfigurationProvider sdkConfigurationProvider,
   }) async {
-    reloadConfiguration ??= ReloadConfiguration.none;
-    serveDevTools ??= false;
-    enableDebugExtension ??= false;
-    autoRun ??= true;
-    enableDebugging ??= true;
-    waitToDebug ??= false;
-    compilationMode ??= CompilationMode.buildDaemon;
-    enableExpressionEvaluation ??= false;
-    spawnDds ??= true;
-    verboseCompiler ??= false;
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
-    nullSafety ??= NullSafety.weak;
 
     try {
       configureLogWriter();
