@@ -98,7 +98,7 @@ abstract class AppInspectorInterface {
   });
 
   /// Lookup current isolate's memory usage statistics.
-  Future<MemoryUsage?> getMemoryUsage();
+  Future<MemoryUsage> getMemoryUsage();
 }
 
 /// A common superclass to allow implementations of different parts of the

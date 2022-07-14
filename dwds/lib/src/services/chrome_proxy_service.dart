@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -27,7 +25,6 @@ import '../debugging/skip_list.dart';
 import '../events.dart';
 import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
-import '../services/chrome_debug_exception.dart';
 import '../services/expression_compiler.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/sdk_configuration.dart';
@@ -71,18 +68,32 @@ class ChromeProxyService implements VmServiceInterface {
   Future<Debugger> get debuggerFuture => _debuggerCompleter.future;
   final _debuggerCompleter = Completer<Debugger>();
 
-  AppInspector get inspector => _inspector;
-  AppInspector _inspector;
+  /// Provides variable inspection functionality.
+  AppInspector get inspector {
+    if (_inspector == null) {
+      throw StateError('No running isolate (inspector is not set).');
+    }
+    return _inspector!;
+  }
 
-  StreamSubscription<ConsoleAPIEvent> _consoleSubscription;
+  AppInspector? _inspector;
+
+  /// Determines if there an isolate running currently.
+  ///
+  /// [_inspector] is `null` iff the isolate is not running,
+  /// for example, before the first isolate starts or during
+  /// a hot restart.
+  bool get _isIsolateRunning => _inspector != null;
+
+  StreamSubscription<ConsoleAPIEvent>? _consoleSubscription;
 
   final _disabledBreakpoints = <Breakpoint>{};
   final _previousBreakpoints = <Breakpoint>{};
 
   final _logger = Logger('ChromeProxyService');
 
-  final ExpressionCompiler _compiler;
-  ExpressionEvaluator _expressionEvaluator;
+  final ExpressionCompiler? _compiler;
+  ExpressionEvaluator? _expressionEvaluator;
 
   final SdkConfigurationProvider _sdkConfigurationProvider;
 
@@ -172,13 +183,14 @@ class ChromeProxyService implements VmServiceInterface {
     _logger.info('Initializing expression compiler for $entrypoint '
         'with sound null safety: $soundNullSafety');
 
-    if (_compiler != null) {
-      await _compiler?.initialize(
+    final compiler = _compiler;
+    if (compiler != null) {
+      await compiler.initialize(
           moduleFormat: moduleFormat, soundNullSafety: soundNullSafety);
       final dependencies =
           await globalLoadStrategy.moduleInfoForEntrypoint(entrypoint);
       await captureElapsedTime(() async {
-        final result = await _compiler.updateDependencies(dependencies);
+        final result = await compiler.updateDependencies(dependencies);
         // Expression evaluation is ready after dependencies are updated.
         if (!_compilerCompleter.isCompleted) _compilerCompleter.complete();
         return result;
@@ -192,7 +204,8 @@ class ChromeProxyService implements VmServiceInterface {
   /// with [destroyIsolate] and recreated with this method there is a hot
   /// restart or full page refresh.
   Future<void> createIsolate(AppConnection appConnection) async {
-    if (_inspector?.isolate != null) {
+    // Inspector is null if the previous isolate is destroyed.
+    if (_isIsolateRunning) {
       throw UnsupportedError(
           'Cannot create multiple isolates for the same app');
     }
@@ -219,17 +232,18 @@ class ChromeProxyService implements VmServiceInterface {
       executionContext,
       sdkConfiguration,
     );
-    debugger.updateInspector(_inspector);
+    debugger.updateInspector(inspector);
 
-    _expressionEvaluator = _compiler == null
+    final compiler = _compiler;
+    _expressionEvaluator = compiler == null
         ? null
         : ExpressionEvaluator(
             entrypoint,
-            _inspector,
+            inspector,
             debugger,
             _locations,
             _modules,
-            _compiler,
+            compiler,
           );
 
     await debugger.reestablishBreakpoints(
@@ -240,13 +254,13 @@ class ChromeProxyService implements VmServiceInterface {
       await debugger.resumeFromStart();
     }));
 
-    final isolateRef = _inspector.isolateRef;
+    final isolateRef = inspector.isolateRef;
     final timestamp = DateTime.now().millisecondsSinceEpoch;
 
     // Listen for `registerExtension` and `postEvent` calls.
     _setUpChromeConsoleListeners(isolateRef);
 
-    _vm.isolates.add(isolateRef);
+    _vm.isolates?.add(isolateRef);
 
     _streamNotify(
         'Isolate',
@@ -264,7 +278,7 @@ class ChromeProxyService implements VmServiceInterface {
     // TODO: We shouldn't need to fire these events since they exist on the
     // isolate, but devtools doesn't recognize extensions after a page refresh
     // otherwise.
-    for (var extensionRpc in _inspector.isolate.extensionRPCs) {
+    for (var extensionRpc in inspector.isolate.extensionRPCs ?? []) {
       _streamNotify(
           'Isolate',
           Event(
@@ -282,8 +296,10 @@ class ChromeProxyService implements VmServiceInterface {
   ///
   /// Clears out the [_inspector] and all related cached information.
   void destroyIsolate() {
-    final isolate = _inspector?.isolate;
-    if (isolate == null) return;
+    if (!_isIsolateRunning) return;
+    final isolate = inspector.isolate;
+    final isolateRef = inspector.isolateRef;
+
     _initializedCompleter = Completer<void>();
     _compilerCompleter = Completer<void>();
     _streamNotify(
@@ -291,28 +307,29 @@ class ChromeProxyService implements VmServiceInterface {
         Event(
             kind: EventKind.kIsolateExit,
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            isolate: _inspector.isolateRef));
-    _vm.isolates.removeWhere((ref) => ref.id == isolate.id);
+            isolate: isolateRef));
+    _vm.isolates?.removeWhere((ref) => ref.id == isolate.id);
     _inspector = null;
     _previousBreakpoints.clear();
-    _previousBreakpoints.addAll(isolate.breakpoints);
+    _previousBreakpoints.addAll(isolate.breakpoints ?? []);
     _consoleSubscription?.cancel();
     _consoleSubscription = null;
   }
 
   Future<void> disableBreakpoints() async {
     _disabledBreakpoints.clear();
-    final isolate = _inspector?.isolate;
-    if (isolate == null) return;
-    _disabledBreakpoints.addAll(isolate.breakpoints);
-    for (var breakpoint in isolate.breakpoints.toList()) {
+    if (!_isIsolateRunning) return;
+    final isolate = inspector.isolate;
+
+    _disabledBreakpoints.addAll(isolate.breakpoints ?? []);
+    for (var breakpoint in isolate.breakpoints?.toList() ?? []) {
       await (await debuggerFuture).removeBreakpoint(breakpoint.id);
     }
   }
 
   @override
   Future<Breakpoint> addBreakpoint(String isolateId, String scriptId, int line,
-      {int column}) async {
+      {int? column}) async {
     await isInitialized;
     _checkIsolate('addBreakpoint', isolateId);
     return (await debuggerFuture).addBreakpoint(scriptId, line, column: column);
@@ -326,30 +343,38 @@ class ChromeProxyService implements VmServiceInterface {
   @override
   Future<Breakpoint> addBreakpointWithScriptUri(
       String isolateId, String scriptUri, int line,
-      {int column}) async {
+      {int? column}) async {
     await isInitialized;
     _checkIsolate('addBreakpointWithScriptUri', isolateId);
     if (Uri.parse(scriptUri).scheme == 'dart') {
-      _logger.finest('Cannot set breakpoint at $scriptUri:$line:$column: '
-          'breakpoints in dart SDK locations are not supported yet.');
       // TODO(annagrin): Support setting breakpoints in dart SDK locations.
       // Issue: https://github.com/dart-lang/webdev/issues/1584
       throw RPCError(
           'addBreakpoint',
           102,
           'The VM is unable to add a breakpoint '
-              'at the specified line or function');
+              'at the specified line or function: $scriptUri:$line:$column: '
+              'breakpoints in dart SDK locations are not supported yet.');
     }
     final dartUri = DartUri(scriptUri, root);
-    final ref = await _inspector.scriptRefFor(dartUri.serverPath);
-    return (await debuggerFuture).addBreakpoint(ref.id, line, column: column);
+    final scriptRef = await inspector.scriptRefFor(dartUri.serverPath);
+    final scriptId = scriptRef?.id;
+    if (scriptId == null) {
+      throw RPCError(
+          'addBreakpoint',
+          102,
+          'The VM is unable to add a breakpoint '
+              'at the specified line or function: $scriptUri:$line:$column: '
+              'cannot find script ID for ${dartUri.serverPath}');
+    }
+    return (await debuggerFuture).addBreakpoint(scriptId, line, column: column);
   }
 
   @override
   Future<Response> callServiceExtension(String method,
-      {String isolateId, Map args}) async {
+      {String? isolateId, Map? args}) async {
     await isInitialized;
-    isolateId ??= _inspector.isolate.id;
+    isolateId ??= _inspector?.isolate.id;
     _checkIsolate('callServiceExtension', isolateId);
     args ??= <String, String>{};
     final stringArgs = args.map((k, v) => MapEntry(
@@ -358,14 +383,7 @@ class ChromeProxyService implements VmServiceInterface {
 ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     "$method", JSON.stringify(${jsonEncode(stringArgs)}));
 ''';
-    final response =
-        await remoteDebugger.sendCommand('Runtime.evaluate', params: {
-      'expression': expression,
-      'awaitPromise': true,
-      'contextId': await executionContext.id,
-    });
-    final result = await _inspector.jsEvaluate(expression, awaitPromise: true);
-    handleErrorIfPresent(response, evalContents: expression);
+    final result = await inspector.jsEvaluate(expression, awaitPromise: true);
     final decodedResponse =
         jsonDecode(result.value as String) as Map<String, dynamic>;
     if (decodedResponse.containsKey('code') &&
@@ -405,7 +423,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           id: createId(),
         );
       }
-      return _inspector?.instanceRefFor(result);
+      return (await _instanceRef(result));
     } on RPCError catch (_) {
       rethrow;
     } catch (e, s) {
@@ -425,20 +443,21 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     String isolateId,
     String targetId,
     String expression, {
-    Map<String, String> scope,
-    bool disableBreakpoints,
+    Map<String, String>? scope,
+    bool? disableBreakpoints,
   }) async {
     // TODO(798) - respect disableBreakpoints.
     return captureElapsedTime(() async {
       await isInitialized;
-      if (_expressionEvaluator != null) {
+      final evaluator = _expressionEvaluator;
+      if (evaluator != null) {
         await isCompilerInitialized;
         _checkIsolate('evaluate', isolateId);
 
-        final library = await _inspector?.getLibrary(targetId);
+        final library = await inspector.getLibrary(targetId);
         return await _getEvaluationResult(
-            () => _expressionEvaluator.evaluateExpression(
-                isolateId, library.uri, expression, scope),
+            () => evaluator.evaluateExpression(
+                isolateId, library?.uri, expression, scope),
             expression);
       }
       throw RPCError('evaluateInFrame', RPCError.kInvalidRequest,
@@ -449,17 +468,18 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Response> evaluateInFrame(
       String isolateId, int frameIndex, String expression,
-      {Map<String, String> scope, bool disableBreakpoints}) async {
+      {Map<String, String>? scope, bool? disableBreakpoints}) async {
     // TODO(798) - respect disableBreakpoints.
 
     return captureElapsedTime(() async {
       await isInitialized;
-      if (_expressionEvaluator != null) {
+      final evaluator = _expressionEvaluator;
+      if (evaluator != null) {
         await isCompilerInitialized;
         _checkIsolate('evaluateInFrame', isolateId);
 
         return await _getEvaluationResult(
-            () => _expressionEvaluator.evaluateExpressionInFrame(
+            () => evaluator.evaluateExpressionInFrame(
                 isolateId, frameIndex, expression, scope),
             expression);
       }
@@ -470,7 +490,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<AllocationProfile> getAllocationProfile(String isolateId,
-      {bool gc, bool reset}) {
+      {bool? gc, bool? reset}) {
     return _rpcNotSupportedFuture('getAllocationProfile');
   }
 
@@ -492,22 +512,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     return _rpcNotSupportedFuture('getInstances');
   }
 
-  /// Sync version of [getIsolate] for internal use, also has stronger typing
-  /// than the public one which has to be dynamic.
-  Isolate _getIsolate(String isolateId) {
-    final isolate = _inspector?.isolate;
-    if (isolate?.id == isolateId) return isolate;
-    // TODO: Throw an RPC error here.
-    throw ArgumentError.value(isolateId, 'isolateId',
-        'Unrecognized isolate id. (Supported isolate: ${isolate?.id})');
-  }
-
   @override
   Future<Isolate> getIsolate(String isolateId) async {
     return captureElapsedTime(() async {
       await isInitialized;
       _checkIsolate('getIsolate', isolateId);
-      return _getIsolate(isolateId);
+      return inspector.isolate;
     }, (result) => DwdsEvent.getIsolate());
   }
 
@@ -515,15 +525,21 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<MemoryUsage> getMemoryUsage(String isolateId) async {
     await isInitialized;
     _checkIsolate('getMemoryUsage', isolateId);
-    return _inspector.getMemoryUsage();
+    return inspector.getMemoryUsage();
   }
 
   @override
   Future<Obj> getObject(String isolateId, String objectId,
-      {int offset, int count}) async {
+      {int? offset, int? count}) async {
     await isInitialized;
     _checkIsolate('getObject', isolateId);
-    return _inspector?.getObject(objectId, offset: offset, count: count);
+    final result =
+        await inspector.getObject(objectId, offset: offset, count: count);
+    if (result == null) {
+      throw RPCError('getObject', RPCError.kInternalError,
+          'failed to find object for $objectId: null result');
+    }
+    return result;
   }
 
   @override
@@ -531,7 +547,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     return await captureElapsedTime(() async {
       await isInitialized;
       _checkIsolate('getScripts', isolateId);
-      return _inspector?.getScripts();
+      return inspector.getScripts();
     }, (result) => DwdsEvent.getScripts());
   }
 
@@ -539,17 +555,17 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<SourceReport> getSourceReport(
     String isolateId,
     List<String> reports, {
-    String scriptId,
-    int tokenPos,
-    int endTokenPos,
-    bool forceCompile,
-    bool reportLines,
-    List<String> libraryFilters,
+    String? scriptId,
+    int? tokenPos,
+    int? endTokenPos,
+    bool? forceCompile,
+    bool? reportLines,
+    List<String>? libraryFilters,
   }) async {
     return await captureElapsedTime(() async {
       await isInitialized;
       _checkIsolate('getSourceReport', isolateId);
-      return await _inspector?.getSourceReport(
+      return await inspector.getSourceReport(
         reports,
         scriptId: scriptId,
         tokenPos: tokenPos,
@@ -567,7 +583,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   ///
   /// The returned stack will contain up to [limit] frames if provided.
   @override
-  Future<Stack> getStack(String isolateId, {int limit}) async {
+  Future<Stack> getStack(String isolateId, {int? limit}) async {
     await isInitialized;
     _checkIsolate('getStack', isolateId);
     return (await debuggerFuture).getStack(limit: limit);
@@ -582,7 +598,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   @override
-  Future<Timeline> getVMTimeline({int timeOriginMicros, int timeExtentMicros}) {
+  Future<Timeline> getVMTimeline(
+      {int? timeOriginMicros, int? timeExtentMicros}) {
     return _rpcNotSupportedFuture('getVMTimeline');
   }
 
@@ -600,17 +617,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Response> invoke(
       String isolateId, String targetId, String selector, List argumentIds,
-      {bool disableBreakpoints}) async {
+      {bool? disableBreakpoints}) async {
     await isInitialized;
     _checkIsolate('invoke', isolateId);
     // TODO(798) - respect disableBreakpoints.
-    final remote = await _inspector?.invoke(targetId, selector, argumentIds);
-    final result = _inspector?.instanceRefFor(remote);
-    if (result == null) {
-      throw ChromeDebugException(
-          {'text': 'null result from invoke of $selector'});
-    }
-    return result;
+    final remote = await inspector.invoke(targetId, selector, argumentIds);
+    return _instanceRef(remote);
   }
 
   @override
@@ -668,7 +680,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   // signature consistent with the VM service interface.
   @override
   Future<UriList> lookupResolvedPackageUris(String isolateId, List<String> uris,
-      {bool local}) async {
+      {bool? local}) async {
     await isInitialized;
     _checkIsolate('lookupResolvedPackageUris', isolateId);
     return UriList(uris: uris.map(DartUri.toResolvedUri).toList());
@@ -688,7 +700,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<ReloadReport> reloadSources(String isolateId,
-      {bool force, bool pause, String rootLibUri, String packagesUri}) {
+      {bool? force, bool? pause, String? rootLibUri, String? packagesUri}) {
     return Future.error(RPCError(
       'reloadSources',
       RPCError.kMethodNotFound,
@@ -708,9 +720,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> resume(String isolateId,
-      {String step, int frameIndex}) async {
-    if (_inspector == null) throw StateError('No running isolate.');
-    if (_inspector.appConnection.isStarted) {
+      {String? step, int? frameIndex}) async {
+    if (inspector.appConnection.isStarted) {
       return captureElapsedTime(() async {
         await isInitialized;
         _checkIsolate('resume', isolateId);
@@ -718,17 +729,18 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
             .resume(step: step, frameIndex: frameIndex);
       }, (result) => DwdsEvent.resume(step));
     } else {
-      _inspector.appConnection.runMain();
+      inspector.appConnection.runMain();
       return Success();
     }
   }
 
   @override
   Future<Success> setIsolatePauseMode(String isolateId,
-      {String exceptionPauseMode, bool shouldPauseOnExit}) async {
+      {String? exceptionPauseMode, bool? shouldPauseOnExit}) async {
     // TODO(elliette): Is there a way to respect the shouldPauseOnExit parameter
     // in Chrome?
-    return setExceptionPauseMode(isolateId, exceptionPauseMode);
+    return setExceptionPauseMode(
+        isolateId, exceptionPauseMode ?? ExceptionPauseMode.kNone);
   }
 
   @override
@@ -753,8 +765,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Success> setName(String isolateId, String name) async {
     await isInitialized;
     _checkIsolate('setName', isolateId);
-    final isolate = _getIsolate(isolateId);
-    isolate.name = name;
+    inspector.isolate.name = name;
     return Success();
   }
 
@@ -808,9 +819,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   StreamController<Event> _chromeConsoleStreamController(
       bool Function(ConsoleAPIEvent) filter,
       {bool includeExceptions = false}) {
-    StreamController<Event> controller;
-    StreamSubscription chromeConsoleSubscription;
-    StreamSubscription exceptionsSubscription;
+    late StreamController<Event> controller;
+    StreamSubscription? chromeConsoleSubscription;
+    StreamSubscription? exceptionsSubscription;
 
     // This is an edge case for this lint apparently
     //
@@ -820,32 +831,32 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       exceptionsSubscription?.cancel();
     }, onListen: () {
       chromeConsoleSubscription = remoteDebugger.onConsoleAPICalled.listen((e) {
-        final isolate = _inspector?.isolate;
-        if (isolate == null) return;
+        if (!_isIsolateRunning) return;
+        final isolateRef = inspector.isolateRef;
         if (!filter(e)) return;
-        final args = e.params['args'] as List;
-        final item = args[0] as Map;
-        final value = '${item["value"]}\n';
+        final args = e.params?['args'] as List?;
+        final item = args?[0] as Map?;
+        final value = '${item?["value"]}\n';
         controller.add(Event(
             kind: EventKind.kWriteEvent,
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            isolate: _inspector.isolateRef)
+            isolate: isolateRef)
           ..bytes = base64.encode(utf8.encode(value))
           ..timestamp = e.timestamp.toInt());
       });
       if (includeExceptions) {
         exceptionsSubscription =
             remoteDebugger.onExceptionThrown.listen((e) async {
-          final isolate = _inspector?.isolate;
-          if (isolate == null) return;
-          var description = e.exceptionDetails.exception.description;
+          if (!_isIsolateRunning) return;
+          final isolateRef = inspector.isolateRef;
+          var description = e.exceptionDetails.exception?.description;
           if (description != null) {
-            description = await _inspector.mapExceptionStackTrace(description);
+            description = await inspector.mapExceptionStackTrace(description);
           }
           controller.add(Event(
               kind: EventKind.kWriteEvent,
               timestamp: DateTime.now().millisecondsSinceEpoch,
-              isolate: _inspector.isolateRef)
+              isolate: isolateRef)
             ..bytes = base64.encode(utf8.encode(description ?? '')));
         });
       }
@@ -865,9 +876,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   /// protocol [Event].
   Future<void> parseDebugEvent(DebugEvent debugEvent) async {
     if (terminatingIsolates) return;
-
-    final isolateRef = _inspector?.isolateRef;
-    if (isolateRef == null) return;
+    if (!_isIsolateRunning) return;
+    final isolateRef = inspector.isolateRef;
 
     _streamNotify(
         EventStreams.kExtension,
@@ -884,14 +894,13 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   /// protocol [Event].
   Future<void> parseRegisterEvent(RegisterEvent registerEvent) async {
     if (terminatingIsolates) return;
+    if (!_isIsolateRunning) return;
 
-    final isolate = _inspector?.isolate;
-    if (isolate == null) return;
+    final isolate = inspector.isolate;
+    final isolateRef = inspector.isolateRef;
     final service = registerEvent.eventData;
-    isolate.extensionRPCs.add(service);
+    isolate.extensionRPCs?.add(service);
 
-    final isolateRef = _inspector?.isolateRef;
-    if (isolateRef == null) return;
     _streamNotify(
         EventStreams.kIsolate,
         Event(
@@ -907,9 +916,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         remoteDebugger.onConsoleAPICalled.listen((event) async {
       if (terminatingIsolates) return;
       if (event.type != 'debug') return;
+      if (!_isIsolateRunning) return;
 
-      final isolate = _inspector?.isolate;
-      if (isolate == null) return;
+      final isolate = inspector.isolate;
       if (isolateRef.id != isolate.id) return;
 
       final firstArgValue = event.args[0].value as String;
@@ -920,7 +929,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
           // All inspected objects should be real objects.
           if (event.args[1].type != 'object') break;
 
-          final inspectee = await _inspector.instanceRefFor(event.args[1]);
+          final inspectee = await _instanceRef(event.args[1]);
           _streamNotify(
               EventStreams.kDebug,
               Event(
@@ -946,9 +955,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   }
 
   void _handleDeveloperLog(IsolateRef isolateRef, ConsoleAPIEvent event) async {
-    final logObject = event.params['args'][1] as Map;
+    final logObject = event.params?['args'][1] as Map?;
     final logParams = <String, RemoteObject>{};
-    for (dynamic obj in logObject['preview']['properties']) {
+    for (dynamic obj in logObject?['preview']?['properties'] ?? {}) {
       if (obj['name'] != null && obj is Map<String, dynamic>) {
         logParams[obj['name'] as String] = RemoteObject(obj);
       }
@@ -958,12 +967,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       message: await _instanceRef(logParams['message']),
       loggerName: await _instanceRef(logParams['name']),
       level: logParams['level'] != null
-          ? int.tryParse(logParams['level'].value.toString())
+          ? int.tryParse(logParams['level']!.value.toString())
           : 0,
       error: await _instanceRef(logParams['error']),
       time: event.timestamp.toInt(),
       sequenceNumber: logParams['sequenceNumber'] != null
-          ? int.tryParse(logParams['sequenceNumber'].value.toString())
+          ? int.tryParse(logParams['sequenceNumber']!.value.toString())
           : 0,
       stackTrace: await _instanceRef(logParams['stackTrace']),
       zone: await _instanceRef(logParams['zone']),
@@ -1024,12 +1033,9 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     ]);
   }
 
-  Future<InstanceRef> _instanceRef(RemoteObject obj) async {
-    if (obj == null) {
-      return InstanceHelper.kNullInstanceRef;
-    } else {
-      return _inspector.instanceRefFor(obj);
-    }
+  Future<InstanceRef> _instanceRef(RemoteObject? obj) async {
+    final instance = obj == null ? null : await inspector.instanceRefFor(obj);
+    return instance ?? InstanceHelper.kNullInstanceRef;
   }
 
   static RPCError _rpcNotSupported(String method) {
@@ -1050,7 +1056,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<CpuSamples> getAllocationTraces(String isolateId,
-          {int timeOriginMicros, int timeExtentMicros, String classId}) =>
+          {int? timeOriginMicros, int? timeExtentMicros, String? classId}) =>
       throw UnimplementedError();
 
   @override
@@ -1079,19 +1085,19 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   ///
   /// This is useful to call at the beginning of API methods that are passed an
   /// isolate id.
-  Isolate _checkIsolate(String methodName, String isolateId) {
-    if (inspector == null) {
-      throw StateError('No inspector set in Domain');
+  Isolate _checkIsolate(String methodName, String? isolateId) {
+    final currentIsolateId = inspector.isolate.id;
+    if (currentIsolateId == null) {
+      throw StateError('No running isolate ID');
     }
-    final isolate = _inspector.isolate;
-    if (isolateId != isolate.id) {
+    if (isolateId != currentIsolateId) {
       _throwSentinel(methodName, SentinelKind.kCollected,
           'Unrecognized isolateId: $isolateId');
     }
-    return isolate;
+    return inspector.isolate;
   }
 
-  static void _throwSentinel(String method, String kind, String message) {
+  static Never _throwSentinel(String method, String kind, String message) {
     final data = <String, String>{'kind': kind, 'valueAsString': message};
     throw SentinelException.parse(method, data);
   }

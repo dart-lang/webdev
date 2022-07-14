@@ -396,8 +396,8 @@ class AppInspector implements AppInspectorInterface {
     final serverPath = DartUri(scriptUri, _root).serverPath;
     final source = await _assetReader.dartSourceContents(serverPath);
     if (source == null) {
-      throw RPCError('getObject', RPCError.kInvalidParams,
-          'Failed to load script at path: $serverPath');
+      throwInvalidParam('getObject',
+          'No source for script $scriptId (server path: $serverPath)');
     }
     return Script(
         uri: scriptRef.uri,
@@ -408,16 +408,24 @@ class AppInspector implements AppInspectorInterface {
   }
 
   @override
-  Future<MemoryUsage?> getMemoryUsage() async {
+  Future<MemoryUsage> getMemoryUsage() async {
     final response = await remoteDebugger.sendCommand('Runtime.getHeapUsage');
     final result = response.result;
-    if (result == null) return null;
+    if (result == null) {
+      throw RPCError('getMemoryUsage', RPCError.kInternalError,
+          'Null result from chrome Devtools.');
+    }
     final jsUsage = HeapUsage(result);
-    return MemoryUsage.parse({
+    final usage = MemoryUsage.parse({
       'heapUsage': jsUsage.usedSize,
       'heapCapacity': jsUsage.totalSize,
       'externalUsage': 0,
     });
+    if (usage == null) {
+      throw RPCError('getMemoryUsage', RPCError.kInternalError,
+          'Failed to parse memory usage result.');
+    }
+    return usage;
   }
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
