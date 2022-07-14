@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
-// @dart = 2.9
-
 import 'package:async/async.dart';
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -67,9 +66,9 @@ class AppInspector implements AppInspectorInterface {
 
   final ExecutionContext _executionContext;
 
-  LibraryHelper _libraryHelper;
-  ClassHelper _classHelper;
-  InstanceHelper _instanceHelper;
+  late final LibraryHelper _libraryHelper;
+  late final ClassHelper _classHelper;
+  late final InstanceHelper _instanceHelper;
 
   final AssetReader _assetReader;
   final Locations _locations;
@@ -106,15 +105,17 @@ class AppInspector implements AppInspectorInterface {
 
     final libraries = await _libraryHelper.libraryRefs;
     isolate.rootLib = await _libraryHelper.rootLib;
-    isolate.libraries.addAll(libraries);
+    isolate.libraries?.addAll(libraries);
 
     final scripts = await scriptRefs;
 
     await DartUri.initialize(_sdkConfiguration);
-    await DartUri.recordAbsoluteUris(libraries.map((lib) => lib.uri));
-    await DartUri.recordAbsoluteUris(scripts.map((script) => script.uri));
+    await DartUri.recordAbsoluteUris(
+        libraries.map((lib) => lib.uri).whereNotNull());
+    await DartUri.recordAbsoluteUris(
+        scripts.map((script) => script.uri).whereNotNull());
 
-    isolate.extensionRPCs.addAll(await _getExtensionRpcs());
+    isolate.extensionRPCs?.addAll(await _getExtensionRpcs());
   }
 
   static IsolateRef _toIsolateRef(Isolate isolate) => IsolateRef(
@@ -187,7 +188,7 @@ class AppInspector implements AppInspectorInterface {
 
   /// Returns the ID for the execution context or null if not found.
   @override
-  Future<int> get contextId async {
+  Future<int?> get contextId async {
     try {
       return await _executionContext.id;
     } catch (e, s) {
@@ -236,15 +237,16 @@ class AppInspector implements AppInspectorInterface {
       String evalExpression, List<RemoteObject> arguments,
       {bool returnByValue = false}) async {
     final jsArguments = arguments.map(callArgumentFor).toList();
-    final result =
+    final response =
         await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': jsArguments,
       'objectId': receiver.objectId,
       'returnByValue': returnByValue,
     });
-    handleErrorIfPresent(result, evalContents: evalExpression);
-    return RemoteObject(result.result['result'] as Map<String, Object>);
+    final result =
+        getResultOrHandleError(response, evalContents: evalExpression);
+    return RemoteObject(result);
   }
 
   /// Calls Chrome's Runtime.callFunctionOn method with a global function.
@@ -255,15 +257,16 @@ class AppInspector implements AppInspectorInterface {
       String evalExpression, List<Object> arguments,
       {bool returnByValue = false}) async {
     final jsArguments = arguments.map(callArgumentFor).toList();
-    final result =
+    final response =
         await remoteDebugger.sendCommand('Runtime.callFunctionOn', params: {
       'functionDeclaration': evalExpression,
       'arguments': jsArguments,
       'executionContextId': await contextId,
       'returnByValue': returnByValue,
     });
-    handleErrorIfPresent(result, evalContents: evalExpression);
-    return RemoteObject(result.result['result'] as Map<String, Object>);
+    final result =
+        getResultOrHandleError(response, evalContents: evalExpression);
+    return RemoteObject(result);
   }
 
   /// Invoke the function named [selector] on the object identified by
@@ -303,26 +306,28 @@ class AppInspector implements AppInspectorInterface {
   Future<RemoteObject> jsEvaluate(String expression,
       {bool returnByValue = false, bool awaitPromise = false}) async {
     // TODO(alanknight): Support a version with arguments if needed.
-    WipResponse result;
-    result = await remoteDebugger.sendCommand('Runtime.evaluate', params: {
+    final response =
+        await remoteDebugger.sendCommand('Runtime.evaluate', params: {
       'expression': expression,
       'returnByValue': returnByValue,
       'awaitPromise': awaitPromise,
       'contextId': await contextId,
     });
-    handleErrorIfPresent(result, evalContents: expression, additionalDetails: {
-      'Dart expression': expression,
-    });
-    return RemoteObject(result.result['result'] as Map<String, dynamic>);
+    final result = getResultOrHandleError(response, evalContents: expression);
+    return RemoteObject(result);
   }
 
   /// Evaluate the JS function with source [jsFunction] in the context of
   /// [library] with [arguments].
   Future<RemoteObject> _evaluateInLibrary(
       Library library, String jsFunction, List<RemoteObject> arguments) async {
+    final libraryUri = library.uri;
+    if (libraryUri == null) {
+      throwInvalidParam('invoke', 'library uri is null');
+    }
     final findLibrary = '''
 (function() {
-  ${globalLoadStrategy.loadLibrarySnippet(library.uri)};
+  ${globalLoadStrategy.loadLibrarySnippet(libraryUri)};
   return library;
 })();
 ''';
@@ -339,25 +344,25 @@ class AppInspector implements AppInspectorInterface {
   }
 
   @override
-  Future<InstanceRef> instanceRefFor(Object value) =>
+  Future<InstanceRef?> instanceRefFor(Object value) =>
       _instanceHelper.instanceRefFor(value);
 
-  Future<Instance> instanceFor(Object value) =>
+  Future<Instance?> instanceFor(RemoteObject value) =>
       _instanceHelper.instanceFor(value);
 
   @override
-  Future<LibraryRef> libraryRefFor(String objectId) =>
+  Future<LibraryRef?> libraryRefFor(String objectId) =>
       _libraryHelper.libraryRefFor(objectId);
 
   @override
-  Future<Library> getLibrary(String objectId) async {
+  Future<Library?> getLibrary(String objectId) async {
     final libraryRef = await libraryRefFor(objectId);
     if (libraryRef == null) return null;
     return _libraryHelper.libraryFor(libraryRef);
   }
 
   @override
-  Future<Obj> getObject(String objectId, {int offset, int count}) async {
+  Future<Obj?> getObject(String objectId, {int? offset, int? count}) async {
     try {
       final library = await getLibrary(objectId);
       if (library != null) {
@@ -384,9 +389,13 @@ class AppInspector implements AppInspectorInterface {
         'are supported for getObject');
   }
 
-  Future<Script> _getScript(ScriptRef scriptRef) async {
+  Future<Script?> _getScript(ScriptRef scriptRef) async {
     final libraryId = _scriptIdToLibraryId[scriptRef.id];
-    final serverPath = DartUri(scriptRef.uri, _root).serverPath;
+    final scriptUri = scriptRef.uri;
+    final scriptId = scriptRef.id;
+    if (libraryId == null || scriptUri == null || scriptId == null) return null;
+
+    final serverPath = DartUri(scriptUri, _root).serverPath;
     final source = await _assetReader.dartSourceContents(serverPath);
     if (source == null) {
       throw RPCError('getObject', RPCError.kInvalidParams,
@@ -395,16 +404,17 @@ class AppInspector implements AppInspectorInterface {
     return Script(
         uri: scriptRef.uri,
         library: await libraryRefFor(libraryId),
-        id: scriptRef.id)
+        id: scriptId)
       ..tokenPosTable = await _locations.tokenPosTableFor(serverPath)
       ..source = source;
   }
 
   @override
-  Future<MemoryUsage> getMemoryUsage() async {
+  Future<MemoryUsage?> getMemoryUsage() async {
     final response = await remoteDebugger.sendCommand('Runtime.getHeapUsage');
-
-    final jsUsage = HeapUsage(response.result);
+    final result = response.result;
+    if (result == null) return null;
+    final jsUsage = HeapUsage(result);
     return MemoryUsage.parse({
       'heapUsage': jsUsage.usedSize,
       'heapCapacity': jsUsage.totalSize,
@@ -414,7 +424,7 @@ class AppInspector implements AppInspectorInterface {
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].
   @override
-  Future<ScriptRef> scriptRefFor(String uri) async {
+  Future<ScriptRef?> scriptRefFor(String uri) async {
     await _populateScriptCaches();
     return _serverPathToScriptRef[uri];
   }
@@ -423,7 +433,7 @@ class AppInspector implements AppInspectorInterface {
   @override
   Future<List<ScriptRef>> scriptRefsForLibrary(String libraryId) async {
     await _populateScriptCaches();
-    return _libraryIdToScriptRefs[libraryId];
+    return _libraryIdToScriptRefs[libraryId] ?? [];
   }
 
   /// Return the VM SourceReport for the given parameters.
@@ -432,12 +442,12 @@ class AppInspector implements AppInspectorInterface {
   @override
   Future<SourceReport> getSourceReport(
     List<String> reports, {
-    String scriptId,
-    int tokenPos,
-    int endTokenPos,
-    bool forceCompile,
-    bool reportLines,
-    List<String> libraryFilters,
+    String? scriptId,
+    int? tokenPos,
+    int? endTokenPos,
+    bool? forceCompile,
+    bool? reportLines,
+    List<String>? libraryFilters,
   }) {
     if (reports.contains(SourceReportKind.kCoverage)) {
       throwInvalidParam('getSourceReport',
@@ -457,15 +467,19 @@ class AppInspector implements AppInspectorInterface {
     return _getPossibleBreakpoints(scriptId);
   }
 
-  Future<SourceReport> _getPossibleBreakpoints(String scriptId) async {
+  Future<SourceReport> _getPossibleBreakpoints(String? scriptId) async {
     // TODO(devoncarew): Consider adding some caching for this method.
 
     final scriptRef = scriptWithId(scriptId);
     if (scriptRef == null) {
-      throwInvalidParam('getSourceReport', 'scriptId not found: $scriptId');
+      throwInvalidParam('getSourceReport', 'scriptRef not found for $scriptId');
+    }
+    final scriptUri = scriptRef.uri;
+    if (scriptUri == null) {
+      throwInvalidParam('getSourceReport', 'scriptUri not found for $scriptId');
     }
 
-    final dartUri = DartUri(scriptRef.uri, _root);
+    final dartUri = DartUri(scriptUri, _root);
     final mappedLocations =
         await _locations.locationsForDart(dartUri.serverPath);
     // Unlike the Dart VM, the token positions match exactly to the possible
@@ -505,7 +519,9 @@ class AppInspector implements AppInspectorInterface {
   /// Returns the list of scripts refs cached.
   Future<List<ScriptRef>> _populateScriptCaches() async {
     return _scriptCacheMemoizer.runOnce(() async {
-      final libraryUris = [for (var library in isolate.libraries) library.uri];
+      final libraryUris = [
+        for (var library in isolate.libraries ?? []) library.uri
+      ];
       final scripts = await globalLoadStrategy
           .metadataProviderFor(appConnection.request.entrypointPath)
           .scripts;
@@ -517,16 +533,24 @@ class AppInspector implements AppInspectorInterface {
         final parts = scripts[uri];
         final scriptRefs = [
           ScriptRef(uri: uri, id: createId()),
-          for (var part in parts) ScriptRef(uri: part, id: createId())
+          for (var part in parts ?? []) ScriptRef(uri: part, id: createId())
         ];
         final libraryRef = await _libraryHelper.libraryRefFor(uri);
-        _libraryIdToScriptRefs.putIfAbsent(libraryRef.id, () => <ScriptRef>[]);
-        for (var scriptRef in scriptRefs) {
-          _scriptRefsById[scriptRef.id] = scriptRef;
-          _scriptIdToLibraryId[scriptRef.id] = libraryRef.id;
-          _serverPathToScriptRef[DartUri(scriptRef.uri, _root).serverPath] =
-              scriptRef;
-          _libraryIdToScriptRefs[libraryRef.id].add(scriptRef);
+        final libraryId = libraryRef?.id;
+        if (libraryId != null) {
+          final libraryIdToScriptRefs = _libraryIdToScriptRefs.putIfAbsent(
+              libraryId, () => <ScriptRef>[]);
+          for (var scriptRef in scriptRefs) {
+            final scriptId = scriptRef.id;
+            final scriptUri = scriptRef.uri;
+            if (scriptId != null && scriptUri != null) {
+              _scriptRefsById[scriptId] = scriptRef;
+              _scriptIdToLibraryId[scriptId] = libraryId;
+              _serverPathToScriptRef[DartUri(scriptUri, _root).serverPath] =
+                  scriptRef;
+              libraryIdToScriptRefs.add(scriptRef);
+            }
+          }
         }
       }
       return _scriptRefsById.values.toList();
@@ -535,7 +559,8 @@ class AppInspector implements AppInspectorInterface {
 
   /// Look up the script by id in an isolate.
   @override
-  ScriptRef scriptWithId(String scriptId) => _scriptRefsById[scriptId];
+  ScriptRef? scriptWithId(String? scriptId) =>
+      scriptId == null ? null : _scriptRefsById[scriptId];
 
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
@@ -548,11 +573,10 @@ class AppInspector implements AppInspectorInterface {
       'contextId': await contextId,
     };
     try {
-      final extensionsResult =
+      final response =
           await remoteDebugger.sendCommand('Runtime.evaluate', params: params);
-      handleErrorIfPresent(extensionsResult, evalContents: expression);
-      extensionRpcs.addAll(
-          List.from(extensionsResult.result['result']['value'] as List));
+      final result = getResultOrHandleError(response, evalContents: expression);
+      extensionRpcs.addAll(List.from(result['value'] as List? ?? []));
     } catch (e, s) {
       _logger.severe(
           'Error calling Runtime.evaluate with params $params', e, s);
@@ -571,7 +595,7 @@ class AppInspector implements AppInspectorInterface {
     } catch (_) {
       return description;
     }
-    final mappedStack = mapperResult?.value?.toString();
+    final mappedStack = mapperResult.value?.toString();
     if (mappedStack == null || mappedStack.isEmpty) {
       return description;
     }
