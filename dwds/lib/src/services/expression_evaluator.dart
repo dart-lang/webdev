@@ -159,7 +159,7 @@ class ExpressionEvaluator {
     final jsScope = await _collectLocalJsScope(jsFrame);
 
     // Find corresponding dart location and scope.
-    final url = _inspector.urlForScriptId(jsScriptId);
+    final url = _debugger.urlForScriptId(jsScriptId);
     if (url == null) {
       return _createError(
           ErrorKind.internal, 'Cannot find url for JS script: $jsScriptId');

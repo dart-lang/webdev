@@ -562,11 +562,6 @@ class AppInspector implements AppInspectorInterface {
   ScriptRef? scriptWithId(String? scriptId) =>
       scriptId == null ? null : _scriptRefsById[scriptId];
 
-  /// Returns Chrome script uri for Chrome script ID.
-  @override
-  String? urlForScriptId(String scriptId) =>
-      remoteDebugger.scripts[scriptId]?.url;
-
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
     final expression =

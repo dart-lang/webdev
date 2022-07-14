@@ -36,9 +36,6 @@ abstract class AppInspectorInterface {
   /// Look up the script by id in an isolate.
   ScriptRef? scriptWithId(String? scriptId);
 
-  /// Returns Chrome script uri for Chrome script ID.
-  String? urlForScriptId(String scriptId);
-
   /// Returns the [LibraryRef] for the provided Dart [objectId].
   Future<LibraryRef?> libraryRefFor(String objectId);
 

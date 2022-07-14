@@ -331,6 +331,10 @@ class Debugger extends Domain {
     }
   }
 
+  /// Returns Chrome script uri for Chrome script ID.
+  String? urlForScriptId(String scriptId) =>
+      _remoteDebugger.scripts[scriptId]?.url;
+
   /// Returns source [Location] for the paused event.
   ///
   /// If we do not have [Location] data for the embedded JS location, null is
@@ -345,7 +349,7 @@ class Debugger extends Domain {
     if (scriptId == null || line == null) return null;
 
     final column = location['columnNumber'] as int?;
-    final url = inspector.urlForScriptId(scriptId);
+    final url = urlForScriptId(scriptId);
     if (url == null) return null;
 
     return _locations.locationForJs(url, line, column);
@@ -495,7 +499,7 @@ class Debugger extends Domain {
     final line = location.lineNumber;
     final column = location.columnNumber;
 
-    final url = inspector.urlForScriptId(location.scriptId);
+    final url = urlForScriptId(location.scriptId);
     if (url == null) {
       logger.severe('Failed to create dart frame for ${frame.functionName}: '
           'cannot find url for script ${location.scriptId}');
@@ -598,7 +602,7 @@ class Debugger extends Domain {
               'cannot find script id for event $e');
           throw StateError('Stepping failed on event $e');
         }
-        final url = inspector.urlForScriptId(scriptId);
+        final url = urlForScriptId(scriptId);
         if (url == null) {
           logger.severe('Stepping failed: '
               'cannot find url for script $scriptId');

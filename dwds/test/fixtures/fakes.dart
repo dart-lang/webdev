@@ -47,7 +47,7 @@ Isolate get simpleIsolate => Isolate(
     );
 
 class FakeInspector implements AppInspector {
-  FakeInspector(this.remoteDebugger, {this.fakeIsolate});
+  FakeInspector({this.fakeIsolate});
 
   Isolate fakeIsolate;
 
@@ -82,10 +82,6 @@ class FakeInspector implements AppInspector {
 
   @override
   ScriptRef scriptWithId(String scriptId) => null;
-
-  @override
-  String urlForScriptId(String scriptId) =>
-      remoteDebugger.scripts[scriptId].url;
 
   @override
   Isolate get isolate => fakeIsolate;
