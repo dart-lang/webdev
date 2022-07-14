@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import '../dwds_vm_client.dart';
@@ -23,12 +21,12 @@ class AppDebugServices {
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
-  Future<void> _closed;
+  Future<void>? _closed;
 
   /// The instance ID for the currently connected application, if there is one.
   ///
   /// We only allow a given app to be debugged in a single tab at a time.
-  String connectedInstanceId;
+  String? connectedInstanceId;
 
   AppDebugServices(this.debugService, this.dwdsVmClient, this.dwdsStats);
 

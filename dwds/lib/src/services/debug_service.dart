@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -38,8 +36,8 @@ Logger _logger = Logger('DebugService');
 void Function(WebSocketChannel, String) _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
   ServiceExtensionRegistry serviceExtensionRegistry, {
-  void Function(Map<String, dynamic>) onRequest,
-  void Function(Map<String, dynamic>) onResponse,
+  void Function(Map<String, dynamic>)? onRequest,
+  void Function(Map<String, dynamic>)? onResponse,
 }) {
   return (webSocket, protocol) {
     final responseController = StreamController<Map<String, Object>>();
@@ -49,7 +47,7 @@ void Function(WebSocketChannel, String) _createNewConnectionHandler(
     }));
     final inputStream = webSocket.stream.map((value) {
       if (value is List<int>) {
-        value = utf8.decode(value as List<int>);
+        value = utf8.decode(value);
       } else if (value is! String) {
         throw StateError(
             'Got value with unexpected type ${value.runtimeType} from web '
@@ -78,8 +76,8 @@ Future<void> _handleSseConnections(
   SseHandler handler,
   ChromeProxyService chromeProxyService,
   ServiceExtensionRegistry serviceExtensionRegistry, {
-  void Function(Map<String, dynamic>) onRequest,
-  void Function(Map<String, dynamic>) onResponse,
+  void Function(Map<String, dynamic>)? onRequest,
+  void Function(Map<String, dynamic>)? onResponse,
 }) async {
   while (await handler.connections.hasNext) {
     final connection = await handler.connections.next;
@@ -116,7 +114,7 @@ Future<void> _handleSseConnections(
 ///
 /// Creates a [ChromeProxyService] from an existing Chrome instance.
 class DebugService {
-  static String _ddsUri;
+  static late String _ddsUri;
 
   final VmServiceInterface chromeProxyService;
   final String hostname;
@@ -126,13 +124,13 @@ class DebugService {
   final HttpServer _server;
   final bool _useSse;
   final bool _spawnDds;
-  final UrlEncoder _urlEncoder;
-  DartDevelopmentService _dds;
+  final UrlEncoder? _urlEncoder;
+  DartDevelopmentService? _dds;
 
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
-  Future<void> _closed;
+  Future<void>? _closed;
 
   DebugService._(
       this.chromeProxyService,
@@ -147,7 +145,7 @@ class DebugService {
 
   Future<void> close() => _closed ??= Future.wait([
         _server.close(),
-        if (_dds != null) _dds.shutdown(),
+        if (_dds != null) _dds!.shutdown(),
       ]);
 
   Future<void> startDartDevelopmentService() async {
@@ -170,8 +168,9 @@ class DebugService {
   }
 
   String get uri {
-    if (_spawnDds && _dds != null) {
-      return (_useSse ? _dds.sseUri : _dds.wsUri).toString();
+    final dds = _dds;
+    if (_spawnDds && dds != null) {
+      return (_useSse ? dds.sseUri : dds.wsUri).toString();
     }
     return (_useSse
             ? Uri(
@@ -189,12 +188,12 @@ class DebugService {
         .toString();
   }
 
-  String _encodedUri;
+  String? _encodedUri;
   Future<String> get encodedUri async {
-    if (_encodedUri != null) return _encodedUri;
-    var encodedUri = uri;
-    if (_urlEncoder != null) encodedUri = await _urlEncoder(encodedUri);
-    return _encodedUri = encodedUri;
+    if (_encodedUri != null) return _encodedUri!;
+    var encoded = uri;
+    if (_urlEncoder != null) encoded = await _urlEncoder!(encoded);
+    return _encodedUri = encoded;
   }
 
   static bool yieldControlToDDS(String uri) {
@@ -214,15 +213,14 @@ class DebugService {
     AssetReader assetReader,
     LoadStrategy loadStrategy,
     AppConnection appConnection,
-    UrlEncoder urlEncoder, {
-    void Function(Map<String, dynamic>) onRequest,
-    void Function(Map<String, dynamic>) onResponse,
+    UrlEncoder? urlEncoder, {
+    void Function(Map<String, dynamic>)? onRequest,
+    void Function(Map<String, dynamic>)? onResponse,
     bool spawnDds = true,
-    bool useSse,
-    ExpressionCompiler expressionCompiler,
-    SdkConfigurationProvider sdkConfigurationProvider,
+    bool useSse = false,
+    ExpressionCompiler? expressionCompiler,
+    required SdkConfigurationProvider sdkConfigurationProvider,
   }) async {
-    useSse ??= false;
     final chromeProxyService = await ChromeProxyService.create(
       remoteDebugger,
       root,
