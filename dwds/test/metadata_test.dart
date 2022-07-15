@@ -41,7 +41,7 @@ void main() {
   test('can parse metadata with empty sources', () async {
     final provider = MetadataProvider(
       'foo.bootstrap.js',
-      FakeAssetReader(_emptySourceMetadata),
+      FakeAssetReader(metadata: _emptySourceMetadata),
     );
     expect(await provider.libraries,
         contains('org-dartlang-app:///web/main.dart'));
@@ -51,7 +51,7 @@ void main() {
   test('can parse metadata with no null safety information', () async {
     final provider = MetadataProvider(
       'foo.bootstrap.js',
-      FakeAssetReader(_noNullSafetyMetadata),
+      FakeAssetReader(metadata: _noNullSafetyMetadata),
     );
     expect(await provider.libraries,
         contains('org-dartlang-app:///web/main.dart'));
@@ -61,7 +61,7 @@ void main() {
   test('throws on metadata with absolute import uris', () async {
     final provider = MetadataProvider(
       'foo.bootstrap.js',
-      FakeAssetReader(_fileUriMetadata),
+      FakeAssetReader(metadata: _fileUriMetadata),
     );
     await expectLater(provider.libraries,
         throwsA(const TypeMatcher<AbsoluteImportUriException>()));

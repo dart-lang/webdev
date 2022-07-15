@@ -22,6 +22,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
 import 'fixtures/context.dart';
 import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
+import 'fixtures/migrated_fakes.dart';
 
 final context = TestContext();
 AppInspector inspector;
@@ -41,27 +42,13 @@ class TestStrategy extends FakeStrategy {
       'foo/ddc';
 }
 
-class FakeAssetReader implements AssetReader {
-  @override
-  Future<String> dartSourceContents(String serverPath) =>
-      throw UnimplementedError();
-
-  @override
-  Future<String> metadataContents(String serverPath) =>
-      throw UnimplementedError();
-
-  @override
-  Future<String> sourceMapContents(String serverPath) async =>
-      '{"version":3,"sourceRoot":"","sources":["main.dart"],"names":[],'
-      '"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAUwB,IAAtB,WAAM;AAKJ,'
-      'IAHF,4BAAkB,aAAa,SAAC,GAAG;AACb,MAApB,WAAM;AACN,YAAgC,+CAAO,AAAK,oBAAO,'
-      'yCAAC,WAAW;IAChE;AAC0D,IAA3D,AAAS,AAAK,0DAAO;AAAe,kBAAO;;;AAEvC,gBAAQ;'
-      'AAGV,IAFI,kCAAqC,QAAC;AACX,MAA/B,WAAM,AAAwB,0BAAP,QAAF,AAAE,KAAK,GAAP;'
-      ';EAEzB","file":"main.ddc.js"}';
-
-  @override
-  Future<void> close() async {}
-}
+final sourceMapContents =
+    '{"version":3,"sourceRoot":"","sources":["main.dart"],"names":[],'
+    '"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAUwB,IAAtB,WAAM;AAKJ,'
+    'IAHF,4BAAkB,aAAa,SAAC,GAAG;AACb,MAApB,WAAM;AACN,YAAgC,+CAAO,AAAK,oBAAO,'
+    'yCAAC,WAAW;IAChE;AAC0D,IAA3D,AAAS,AAAK,0DAAO;AAAe,kBAAO;;;AAEvC,gBAAQ;'
+    'AAGV,IAFI,kCAAqC,QAAC;AACX,MAA/B,WAAM,AAAwB,0BAAP,QAAF,AAAE,KAAK,GAAP;'
+    ';EAEzB","file":"main.ddc.js"}';
 
 final sampleSyncFrame = WipCallFrame({
   'callFrameId': '{"ordinal":0,"injectedScriptId":2}',
@@ -101,7 +88,8 @@ void main() async {
     webkitDebugger.onPaused = pausedController.stream;
     globalLoadStrategy = TestStrategy();
     final root = 'fakeRoot';
-    locations = Locations(FakeAssetReader(), FakeModules(), root);
+    locations = Locations(
+        FakeAssetReader(sourceMap: sourceMapContents), FakeModules(), root);
     locations.initialize('fake_entrypoint');
     skipLists = SkipLists();
     debugger = await Debugger.create(

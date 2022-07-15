@@ -61,7 +61,7 @@ class FakeStrategy implements LoadStrategy {
 
   @override
   MetadataProvider metadataProviderFor(String entrypoint) =>
-      MetadataProvider(entrypoint, FakeAssetReader(fakeMetadata));
+      MetadataProvider(entrypoint, FakeAssetReader());
 
   @override
   void trackEntrypoint(String entrypoint) {}
@@ -72,29 +72,37 @@ class FakeStrategy implements LoadStrategy {
 }
 
 class FakeAssetReader implements AssetReader {
-  final String _metadata;
-  FakeAssetReader(this._metadata);
-  @override
-  Future<String> dartSourceContents(String serverPath) =>
-      throw UnimplementedError();
+  final String? _metadata;
+  final String? _dartSource;
+  final String? _sourceMap;
+  FakeAssetReader({
+    metadata,
+    dartSource,
+    sourceMap,
+  })  : _metadata = metadata,
+        _dartSource = dartSource,
+        _sourceMap = sourceMap;
 
   @override
-  Future<String> metadataContents(String serverPath) async => _metadata;
+  Future<String> dartSourceContents(String serverPath) {
+    return _throwUnimplementedOrReturnContents(_dartSource);
+  }
 
   @override
-  Future<String> sourceMapContents(String serverPath) =>
-      throw UnimplementedError();
+  Future<String> metadataContents(String serverPath) {
+    return _throwUnimplementedOrReturnContents(_metadata);
+  }
+
+  @override
+  Future<String> sourceMapContents(String serverPath) {
+    return _throwUnimplementedOrReturnContents(_sourceMap);
+  }
 
   @override
   Future<void> close() async {}
-}
 
-const fakeMetadata =
-    '{"version":"1.0.0","name":"web/main","closureName":"load__web__main",'
-    '"sourceMapUri":"foo/web/main.ddc.js.map",'
-    '"moduleUri":"foo/web/main.ddc.js",'
-    '"soundNullSafety":true,'
-    '"libraries":[{"name":"main",'
-    '"importUri":"org-dartlang-app:///web/main.dart",'
-    '"fileUri":"org-dartlang-app:///web/main.dart","partUris":[]}]}\n'
-    '// intentionally empty: package blah has no dart sources';
+  Future<String> _throwUnimplementedOrReturnContents(String? contents) {
+    if (contents == null) throw UnimplementedError();
+    return Future.value(contents);
+  }
+}
