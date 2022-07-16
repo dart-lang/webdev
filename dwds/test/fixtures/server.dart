@@ -79,7 +79,6 @@ class TestServer {
     bool enableDebugging,
     bool useSse,
     UrlEncoder urlEncoder,
-    bool restoreBreakpoints,
     ExpressionCompiler expressionCompiler,
     bool spawnDds,
     ExpressionCompilerService ddcService,
