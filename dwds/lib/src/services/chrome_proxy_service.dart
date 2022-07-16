@@ -533,13 +533,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       {int? offset, int? count}) async {
     await isInitialized;
     _checkIsolate('getObject', isolateId);
-    final result =
-        await inspector.getObject(objectId, offset: offset, count: count);
-    if (result == null) {
-      throw RPCError('getObject', RPCError.kInternalError,
-          'failed to find object for $objectId: null result');
-    }
-    return result;
+    return inspector.getObject(objectId, offset: offset, count: count);
   }
 
   @override

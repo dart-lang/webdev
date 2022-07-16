@@ -362,7 +362,7 @@ class AppInspector implements AppInspectorInterface {
   }
 
   @override
-  Future<Obj?> getObject(String objectId, {int? offset, int? count}) async {
+  Future<Obj> getObject(String objectId, {int? offset, int? count}) async {
     try {
       final library = await getLibrary(objectId);
       if (library != null) {
@@ -374,7 +374,7 @@ class AppInspector implements AppInspectorInterface {
       }
       final scriptRef = _scriptRefsById[objectId];
       if (scriptRef != null) {
-        return await _getScript(scriptRef);
+        return _getScript(scriptRef);
       }
       final instance = await _instanceHelper
           .instanceFor(remoteObjectFor(objectId), offset: offset, count: count);
@@ -389,17 +389,24 @@ class AppInspector implements AppInspectorInterface {
         'are supported for getObject');
   }
 
-  Future<Script?> _getScript(ScriptRef scriptRef) async {
-    final libraryId = _scriptIdToLibraryId[scriptRef.id];
-    final scriptUri = scriptRef.uri;
+  Future<Script> _getScript(ScriptRef scriptRef) async {
     final scriptId = scriptRef.id;
-    if (libraryId == null || scriptUri == null || scriptId == null) return null;
-
+    if (scriptId == null) {
+      throwInvalidParam('getObject', 'No script id for script ref $scriptRef');
+    }
+    final scriptUri = scriptRef.uri;
+    if (scriptUri == null) {
+      throwInvalidParam('getObject', 'No script uri for script ref $scriptRef');
+    }
+    final libraryId = _scriptIdToLibraryId[scriptId];
+    if (libraryId == null) {
+      throwInvalidParam('getObject', 'No library for script $scriptRef');
+    }
     final serverPath = DartUri(scriptUri, _root).serverPath;
     final source = await _assetReader.dartSourceContents(serverPath);
     if (source == null) {
       throwInvalidParam('getObject',
-          'No source for script $scriptId (server path: $serverPath)');
+          'No source for script $scriptRef (server path: $serverPath)');
     }
     return Script(
         uri: scriptRef.uri,
