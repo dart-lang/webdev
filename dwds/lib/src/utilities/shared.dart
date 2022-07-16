@@ -107,15 +107,15 @@ void handleErrorIfPresent(wip.WipResponse? response, {String? evalContents}) {
 Map<String, dynamic> getResultOrHandleError(wip.WipResponse? response,
     {String? evalContents}) {
   final result = response?.result;
-  final ret = result?['result'];
-  final exceptionDetails = result?['exceptionDetails'] as Map<String, dynamic>?;
-  if (result == null || ret == null || exceptionDetails != null) {
+  final resultValue = result?['result'];
+  final exceptionDetails = result?['exceptionDetails'];
+  if (resultValue == null || exceptionDetails != null) {
     throwChromeDebugException(
       exceptionDetails,
       evalContents: evalContents,
     );
   }
-  return ret;
+  return resultValue;
 }
 
 Never throwChromeDebugException(Map<String, dynamic>? exceptionDetails,
