@@ -13,8 +13,8 @@ import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'fixtures/fakes.dart';
 import 'fixtures/logging.dart';
+import 'fixtures/migrated_fakes.dart';
 
 class TestStrategy extends FakeStrategy {
   @override

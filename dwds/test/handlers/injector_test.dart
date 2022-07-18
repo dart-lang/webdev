@@ -13,7 +13,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 
-import '../fixtures/fakes.dart';
+import '../fixtures/migrated_fakes.dart';
 
 void main() {
   HttpServer server;
