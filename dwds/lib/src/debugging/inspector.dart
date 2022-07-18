@@ -391,22 +391,20 @@ class AppInspector implements AppInspectorInterface {
 
   Future<Script> _getScript(ScriptRef scriptRef) async {
     final scriptId = scriptRef.id;
-    if (scriptId == null) {
-      throwInvalidParam('getObject', 'No script id for script ref $scriptRef');
-    }
     final scriptUri = scriptRef.uri;
-    if (scriptUri == null) {
-      throwInvalidParam('getObject', 'No script uri for script ref $scriptRef');
-    }
-    final libraryId = _scriptIdToLibraryId[scriptId];
-    if (libraryId == null) {
-      throwInvalidParam('getObject', 'No library for script $scriptRef');
+    if (scriptId == null || scriptUri == null) {
+      throwInvalidParam('getObject', 'No script info for script $scriptRef');
     }
     final serverPath = DartUri(scriptUri, _root).serverPath;
     final source = await _assetReader.dartSourceContents(serverPath);
     if (source == null) {
       throwInvalidParam('getObject',
-          'No source for script $scriptRef (server path: $serverPath)');
+          'No source for $scriptRef  with serverPath: $serverPath');
+    }
+    final libraryId = _scriptIdToLibraryId[scriptId];
+    if (libraryId == null) {
+      throwInvalidParam('getObject',
+          'No library for script $scriptRef with libraryId: $libraryId');
     }
     return Script(
         uri: scriptRef.uri,
