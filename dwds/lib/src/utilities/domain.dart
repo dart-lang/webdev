@@ -76,7 +76,7 @@ abstract class AppInspectorInterface {
       {bool returnByValue = false, bool awaitPromise = false});
 
   /// Lookup an `object` from some isolate by its [objectId].
-  Future<Obj?> getObject(String objectId, {int offset, int count});
+  Future<Obj> getObject(String objectId, {int offset, int count});
 
   /// All the scripts in the isolate.
   Future<ScriptList> getScripts();
