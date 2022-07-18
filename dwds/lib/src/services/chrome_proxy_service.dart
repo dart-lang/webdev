@@ -458,16 +458,6 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         await isCompilerInitialized;
         _checkIsolate('evaluateInFrame', isolateId);
 
-        if (scope != null) {
-          // TODO(annagrin): Implement scope support.
-          // Issue: https://github.com/dart-lang/webdev/issues/1344
-          throw RPCError(
-              'evaluateInFrame',
-              RPCError.kInvalidRequest,
-              'Expression evaluation with scope is not supported '
-                  'for this configuration.');
-        }
-
         return await _getEvaluationResult(
             () => _expressionEvaluator.evaluateExpressionInFrame(
                 isolateId, frameIndex, expression, scope),

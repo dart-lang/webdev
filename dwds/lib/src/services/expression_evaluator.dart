@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -78,19 +76,18 @@ class ExpressionEvaluator {
     String isolateId,
     String libraryUri,
     String expression,
-    Map<String, String> scope,
+    Map<String, String>? scope,
   ) async {
     scope ??= {};
-    if (_compiler == null) {
-      return _createError(ErrorKind.internal,
-          'ExpressionEvaluator needs an ExpressionCompiler');
-    }
 
-    if (expression == null || expression.isEmpty) {
+    if (expression.isEmpty) {
       return _createError(ErrorKind.invalidInput, expression);
     }
 
     final module = await _modules.moduleForlibrary(libraryUri);
+    if (module == null) {
+      return _createError(ErrorKind.internal, 'no module for $libraryUri');
+    }
 
     // Wrap the expression in a lambda so we can call it as a function.
     expression = _createDartLambda(expression, scope.keys);
@@ -132,13 +129,17 @@ class ExpressionEvaluator {
   /// [frameIndex] JavaScript frame to evaluate the expression in.
   /// [expression] dart expression to evaluate.
   Future<RemoteObject> evaluateExpressionInFrame(String isolateId,
-      int frameIndex, String expression, Map<String, String> scope) async {
-    if (_compiler == null) {
-      return _createError(ErrorKind.internal,
-          'ExpressionEvaluator needs an ExpressionCompiler');
+      int frameIndex, String expression, Map<String, String>? scope) async {
+    if (scope != null) {
+      // TODO(annagrin): Implement scope support.
+      // Issue: https://github.com/dart-lang/webdev/issues/1344
+      return _createError(
+          ErrorKind.internal,
+          'Using scope for expression evaluation in frame '
+          'is not supported.');
     }
 
-    if (expression == null || expression.isEmpty) {
+    if (expression.isEmpty) {
       return _createError(ErrorKind.invalidInput, expression);
     }
 
@@ -158,7 +159,11 @@ class ExpressionEvaluator {
     final jsScope = await _collectLocalJsScope(jsFrame);
 
     // Find corresponding dart location and scope.
-    final url = _urlForScriptId(jsScriptId);
+    final url = _debugger.urlForScriptId(jsScriptId);
+    if (url == null) {
+      return _createError(
+          ErrorKind.internal, 'Cannot find url for JS script: $jsScriptId');
+    }
     final locationMap = await _locations.locationForJs(url, jsLine, jsColumn);
     if (locationMap == null) {
       return _createError(
@@ -171,13 +176,20 @@ class ExpressionEvaluator {
     }
 
     final dartLocation = locationMap.dartLocation;
-    final libraryUri =
-        await _modules.libraryForSource(dartLocation.uri.serverPath);
+    final dartSourcePath = dartLocation.uri.serverPath;
+    final libraryUri = await _modules.libraryForSource(dartSourcePath);
+    if (libraryUri == null) {
+      return _createError(
+          ErrorKind.internal, 'no libraryUri for $dartSourcePath');
+    }
 
-    final currentModule =
-        await _modules.moduleForSource(dartLocation.uri.serverPath);
+    final module = await _modules.moduleForlibrary(libraryUri.toString());
+    if (module == null) {
+      return _createError(
+          ErrorKind.internal, 'no module for $libraryUri ($dartSourcePath)');
+    }
 
-    _logger.finest('Evaluating "$expression" at $currentModule, '
+    _logger.finest('Evaluating "$expression" at $module, '
         '$libraryUri:${dartLocation.line}:${dartLocation.column}');
 
     // Compile expression using an expression compiler, such as
@@ -189,7 +201,7 @@ class ExpressionEvaluator {
         dartLocation.column,
         {},
         jsScope,
-        currentModule,
+        module,
         expression);
 
     final isError = compilationResult.isError;
@@ -267,7 +279,9 @@ class ExpressionEvaluator {
       for (var p in variables) {
         final name = p.name;
         final value = p.value;
-        if (!_isUndefined(value)) {
+        // TODO: null values represent variables optimized by v8.
+        // Show that to the user.
+        if (name != null && value != null && !_isUndefined(value)) {
           jsScope[name] = name;
         }
       }
@@ -276,17 +290,17 @@ class ExpressionEvaluator {
     // skip library and main scope
     final scopeChain = filterScopes(frame).reversed;
     for (var scope in scopeChain) {
-      final scopeProperties =
-          await _debugger.getProperties(scope.object.objectId);
-
-      collectVariables(scope.scope, scopeProperties);
+      final objectId = scope.object.objectId;
+      if (objectId != null) {
+        final scopeProperties = await _debugger.getProperties(objectId);
+        collectVariables(scope.scope, scopeProperties);
+      }
     }
 
     return jsScope;
   }
 
-  bool _isUndefined(RemoteObject value) =>
-      value == null || value.type == 'undefined';
+  bool _isUndefined(RemoteObject value) => value.type == 'undefined';
 
   /// Strip try/catch incorrectly added by the expression compiler.
   /// TODO: remove adding try/catch block in expression compiler.
@@ -346,8 +360,4 @@ class ExpressionEvaluator {
 
   String _createDartLambda(String expression, Iterable<String> params) =>
       '(${params.join(', ')}) => $expression';
-
-  /// Returns Chrome script uri for Chrome script ID.
-  String _urlForScriptId(String scriptId) =>
-      _inspector.remoteDebugger.scripts[scriptId]?.url;
 }
