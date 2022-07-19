@@ -6,20 +6,17 @@
 
 import 'dart:async';
 
-import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/debugging/classes.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/libraries.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
-import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
 
 /// A library of fake/stub implementations of our classes and their supporting
@@ -258,63 +255,4 @@ class FakeExecutionContext extends ExecutionContext {
   }
 
   FakeExecutionContext();
-}
-
-class FakeStrategy implements LoadStrategy {
-  @override
-  Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
-
-  @override
-  shelf.Handler get handler =>
-      (request) => (request.url.path == 'someDummyPath')
-          ? shelf.Response.ok('some dummy response')
-          : shelf.Response.notFound('someDummyPath');
-
-  @override
-  String get id => 'dummy-id';
-
-  @override
-  String get moduleFormat => 'dummy-format';
-
-  @override
-  String get loadLibrariesModule => '';
-
-  @override
-  String get loadLibrariesSnippet => '';
-
-  @override
-  String loadLibrarySnippet(String libraryUri) => '';
-
-  @override
-  String get loadModuleSnippet => '';
-
-  @override
-  ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
-
-  @override
-  String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
-
-  @override
-  Future<String> moduleForServerPath(String entrypoint, String serverPath) =>
-      null;
-
-  @override
-  Future<String> serverPathForModule(String entrypoint, String module) => null;
-
-  @override
-  Future<String> sourceMapPathForModule(String entrypoint, String module) =>
-      null;
-
-  @override
-  String serverPathForAppUri(String appUri) => null;
-
-  @override
-  MetadataProvider metadataProviderFor(String entrypoint) => null;
-
-  @override
-  void trackEntrypoint(String entrypoint) {}
-
-  @override
-  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
-      throw UnimplementedError();
 }

@@ -145,15 +145,20 @@ void testAll({
               isolate.id, event.topFrame.index, 'MainClass(0)');
 
           final param = object as InstanceRef;
+          final result = await setup.service.evaluateInFrame(
+            isolate.id,
+            event.topFrame.index,
+            't.toString()',
+            scope: {'t': param.id},
+          );
 
-          await expectLater(
-              () => setup.service.evaluateInFrame(
-                    isolate.id,
-                    event.topFrame.index,
-                    't.toString()',
-                    scope: {'t': param.id},
-                  ),
-              throwsRPCError);
+          expect(
+              result,
+              isA<ErrorRef>().having(
+                  (instance) => instance.message,
+                  'message',
+                  contains('Using scope for expression evaluation '
+                      'in frame is not supported')));
         });
       });
 
