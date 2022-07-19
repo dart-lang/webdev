@@ -362,7 +362,7 @@ class AppInspector implements AppInspectorInterface {
   }
 
   @override
-  Future<Obj?> getObject(String objectId, {int? offset, int? count}) async {
+  Future<Obj> getObject(String objectId, {int? offset, int? count}) async {
     try {
       final library = await getLibrary(objectId);
       if (library != null) {
@@ -389,17 +389,22 @@ class AppInspector implements AppInspectorInterface {
         'are supported for getObject');
   }
 
-  Future<Script?> _getScript(ScriptRef scriptRef) async {
-    final libraryId = _scriptIdToLibraryId[scriptRef.id];
-    final scriptUri = scriptRef.uri;
+  Future<Script> _getScript(ScriptRef scriptRef) async {
     final scriptId = scriptRef.id;
-    if (libraryId == null || scriptUri == null || scriptId == null) return null;
-
+    final scriptUri = scriptRef.uri;
+    if (scriptId == null || scriptUri == null) {
+      throwInvalidParam('getObject', 'No script info for script $scriptRef');
+    }
     final serverPath = DartUri(scriptUri, _root).serverPath;
     final source = await _assetReader.dartSourceContents(serverPath);
     if (source == null) {
-      throw RPCError('getObject', RPCError.kInvalidParams,
-          'Failed to load script at path: $serverPath');
+      throwInvalidParam('getObject',
+          'No source for $scriptRef  with serverPath: $serverPath');
+    }
+    final libraryId = _scriptIdToLibraryId[scriptId];
+    if (libraryId == null) {
+      throwInvalidParam('getObject',
+          'No library for script $scriptRef with libraryId: $libraryId');
     }
     return Script(
         uri: scriptRef.uri,
@@ -410,16 +415,24 @@ class AppInspector implements AppInspectorInterface {
   }
 
   @override
-  Future<MemoryUsage?> getMemoryUsage() async {
+  Future<MemoryUsage> getMemoryUsage() async {
     final response = await remoteDebugger.sendCommand('Runtime.getHeapUsage');
     final result = response.result;
-    if (result == null) return null;
+    if (result == null) {
+      throw RPCError('getMemoryUsage', RPCError.kInternalError,
+          'Null result from chrome Devtools.');
+    }
     final jsUsage = HeapUsage(result);
-    return MemoryUsage.parse({
+    final usage = MemoryUsage.parse({
       'heapUsage': jsUsage.usedSize,
       'heapCapacity': jsUsage.totalSize,
       'externalUsage': 0,
     });
+    if (usage == null) {
+      throw RPCError('getMemoryUsage', RPCError.kInternalError,
+          'Failed to parse memory usage result.');
+    }
+    return usage;
   }
 
   /// Returns the [ScriptRef] for the provided Dart server path [uri].

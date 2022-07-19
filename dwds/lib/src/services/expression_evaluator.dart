@@ -74,7 +74,7 @@ class ExpressionEvaluator {
   /// [expression] dart expression to evaluate.
   Future<RemoteObject> evaluateExpression(
     String isolateId,
-    String libraryUri,
+    String? libraryUri,
     String expression,
     Map<String, String>? scope,
   ) async {
@@ -82,6 +82,10 @@ class ExpressionEvaluator {
 
     if (expression.isEmpty) {
       return _createError(ErrorKind.invalidInput, expression);
+    }
+
+    if (libraryUri == null) {
+      return _createError(ErrorKind.invalidInput, 'no library uri');
     }
 
     final module = await _modules.moduleForlibrary(libraryUri);
