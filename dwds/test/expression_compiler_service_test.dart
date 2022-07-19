@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @TestOn('vm')
 import 'dart:async';
 import 'dart:convert';
@@ -19,21 +17,27 @@ import 'package:test/test.dart';
 
 import 'fixtures/logging.dart';
 
+ExpressionCompilerService get service => _service!;
+late ExpressionCompilerService? _service;
+
+HttpServer get server => _server!;
+late HttpServer? _server;
+
+StreamController<String> get output => _output!;
+late StreamController<String>? _output;
+
 void main() async {
   group('expression compiler service with fake asset server', () {
     final logger = Logger('ExpressionCompilerServiceTest');
-    ExpressionCompilerService service;
-    HttpServer server;
-    StreamController<String> output;
-    Directory outputDir;
+    late Directory outputDir;
 
     Future<void> stop() async {
-      await service?.stop();
-      await server?.close();
-      await output?.close();
-      service = null;
-      server = null;
-      output = null;
+      await _service?.stop();
+      await _server?.close();
+      await _output?.close();
+      _service = null;
+      _server = null;
+      _output = null;
     }
 
     setUp(() async {
@@ -47,7 +51,7 @@ void main() async {
       final dartdevc = p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
 
       // redirect logs for testing
-      output = StreamController<String>.broadcast();
+      _output = StreamController<String>.broadcast();
       output.stream.listen(printOnFailure);
 
       configureLogWriter(
@@ -55,13 +59,13 @@ void main() async {
               output.add('[$level] $loggerName: $message'));
 
       // start asset server
-      server = await startHttpServer('localhost');
+      _server = await startHttpServer('localhost');
       final port = server.port;
 
       // start expression compilation service
       Response assetHandler(request) =>
           Response(200, body: File.fromUri(kernel).readAsBytesSync());
-      service = ExpressionCompilerService('localhost', port, verbose: false);
+      _service = ExpressionCompilerService('localhost', port, verbose: false);
 
       await service.initialize(moduleFormat: 'amd');
 
