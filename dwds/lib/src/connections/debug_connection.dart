@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:vm_service/vm_service.dart';
@@ -22,7 +20,7 @@ class DebugConnection {
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
-  Future<void> _closed;
+  Future<void>? _closed;
 
   DebugConnection(this._appDebugServices) {
     _appDebugServices.chromeProxyService.remoteDebugger.onClose.first.then((_) {

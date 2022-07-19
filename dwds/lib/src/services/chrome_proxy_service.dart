@@ -128,7 +128,7 @@ class ChromeProxyService implements VmServiceInterface {
     LoadStrategy loadStrategy,
     AppConnection appConnection,
     ExecutionContext executionContext,
-    ExpressionCompiler expressionCompiler,
+    ExpressionCompiler? expressionCompiler,
     SdkConfigurationProvider sdkConfigurationProvider,
   ) async {
     final vm = VM(

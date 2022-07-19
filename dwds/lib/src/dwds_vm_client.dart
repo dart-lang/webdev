@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -32,7 +30,7 @@ class DwdsVmClient {
   /// Null until [close] is called.
   ///
   /// All subsequent calls to [close] will return this future.
-  Future<void> _closed;
+  Future<void>? _closed;
 
   DwdsVmClient(this.client, this._requestController, this._responseController);
 
@@ -57,7 +55,7 @@ class DwdsVmClient {
             '$request');
         return;
       }
-      requestController.sink.add(jsonDecode(request) as Map<String, dynamic>);
+      requestController.sink.add(jsonDecode(request) as Map<String, Object>);
     });
     final chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
@@ -73,7 +71,7 @@ class DwdsVmClient {
       return <String, dynamic>{
         'result': <String, Object>{
           'views': <Object>[
-            for (var isolate in isolates)
+            for (var isolate in isolates ?? [])
               <String, Object>{
                 'id': isolate.id,
                 'isolate': isolate.toJson(),
@@ -119,7 +117,7 @@ class DwdsVmClient {
     await client.registerService('ext.dwds.emitEvent', 'DWDS');
 
     client.registerServiceCallback('_yieldControlToDDS', (request) async {
-      final ddsUri = request['uri'] as String;
+      final ddsUri = request['uri'] as String?;
       if (ddsUri == null) {
         return RPCError(
           request['method'] as String,
@@ -146,30 +144,26 @@ class DwdsVmClient {
 
 void _processSendEvent(Map<String, dynamic> event,
     ChromeProxyService chromeProxyService, DwdsStats dwdsStats) {
-  final type = event['type'] as String;
-  final payload = event['payload'] as Map<String, dynamic>;
+  final type = event['type'] as String?;
+  final payload = event['payload'] as Map<String, dynamic>?;
   switch (type) {
     case 'DevtoolsEvent':
       {
         _logger.finest('Received DevTools event: $event');
-        final action = payload == null ? null : payload['action'] as String;
-        final screen = payload == null ? null : payload['screen'] as String;
-        if (action == 'pageReady') {
+        final action = payload?['action'] as String?;
+        final screen = payload?['screen'] as String?;
+        if (screen != null && action == 'pageReady') {
           if (dwdsStats.isFirstDebuggerReady) {
-            if (dwdsStats.devToolsStart != null) {
-              final time = DateTime.now()
-                  .difference(dwdsStats.devToolsStart)
-                  .inMilliseconds;
-              emitEvent(DwdsEvent.devToolsLoad(time, screen));
-              _logger.fine('DevTools load time: $time ms');
-            }
-            if (dwdsStats.debuggerStart != null) {
-              final time = DateTime.now()
-                  .difference(dwdsStats.debuggerStart)
-                  .inMilliseconds;
-              emitEvent(DwdsEvent.debuggerReady(time, screen));
-              _logger.fine('Debugger ready time: $time ms');
-            }
+            final debuggerReadyTime = DateTime.now()
+                .difference(dwdsStats.devToolsStart)
+                .inMilliseconds;
+            emitEvent(DwdsEvent.devToolsLoad(debuggerReadyTime, screen));
+            _logger.fine('DevTools load time: $debuggerReadyTime ms');
+            final debuggerStartTime = DateTime.now()
+                .difference(dwdsStats.debuggerStart)
+                .inMilliseconds;
+            emitEvent(DwdsEvent.debuggerReady(debuggerStartTime, screen));
+            _logger.fine('Debugger ready time: $debuggerStartTime ms');
           } else {
             _logger
                 .finest('Debugger and DevTools startup times alredy recorded.'
@@ -213,14 +207,15 @@ Future<Map<String, dynamic>> _hotRestart(
         .jsEvaluate('\$dartHotRestartDwds(\'$runId\');', awaitPromise: true);
     _logger.info('\$dartHotRestartDwds request complete.');
   } on WipError catch (exception) {
-    final code = exception.error['code'];
+    final code = exception.error?['code'];
+    final message = exception.error?['message'];
     // This corresponds to `Execution context was destroyed` which can
     // occur during a hot restart that must fall back to a full reload.
     if (code != RPCError.kServerError) {
       return {
         'error': {
-          'code': exception.error['code'],
-          'message': exception.error['message'],
+          'code': code,
+          'message': message,
           'data': exception,
         }
       };
@@ -255,9 +250,14 @@ Future<void> _disableBreakpointsAndResume(
     VmService client, ChromeProxyService chromeProxyService) async {
   _logger.info('Attempting to disable breakpoints and resume the isolate');
   final vm = await client.getVM();
-  if (vm.isolates.isEmpty) throw StateError('No active isolate to resume.');
-  final isolateRef = vm.isolates.first;
-
+  final isolates = vm.isolates;
+  if (isolates == null || isolates.isEmpty) {
+    throw StateError('No active isolate to resume.');
+  }
+  final isolateId = isolates.first.id;
+  if (isolateId == null) {
+    throw StateError('No active isolate to resume.');
+  }
   await chromeProxyService.disableBreakpoints();
   try {
     // Any checks for paused status result in race conditions or hangs
@@ -274,7 +274,7 @@ Future<void> _disableBreakpointsAndResume(
     // ignore failures indicating that the app is already running:
     //
     // WipError -32000 Can only perform operation while paused.
-    await client.resume(isolateRef.id);
+    await client.resume(isolateId);
   } on RPCError catch (e, s) {
     if (!e.message.contains('Can only perform operation while paused')) {
       _logger.severe('Hot restart failed to resume exiting isolate', e, s);
