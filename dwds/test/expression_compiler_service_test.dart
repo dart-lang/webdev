@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 @TestOn('vm')
 import 'dart:async';
 import 'dart:convert';
@@ -18,19 +20,12 @@ import 'package:test/test.dart';
 import 'fixtures/logging.dart';
 
 void main() async {
-
-  T ensureVarNonNull<T>({required T? varValue, required String varName}) {
-    if (varValue == null) {
-      throw TestFailure('Expected $varName to be defined, but it is null');
-    }
-    return varValue;
-  }
   group('expression compiler service with fake asset server', () {
     final logger = Logger('ExpressionCompilerServiceTest');
-    late ExpressionCompilerService? service;
-    late HttpServer? server;
-    late StreamController<String>? output;
-    late Directory outputDir;
+    ExpressionCompilerService service;
+    HttpServer server;
+    StreamController<String> output;
+    Directory outputDir;
 
     Future<void> stop() async {
       await service?.stop();
@@ -53,24 +48,20 @@ void main() async {
 
       // redirect logs for testing
       output = StreamController<String>.broadcast();
-      output = ensureVarNonNull(varValue: output, varName: 'output');
-
-
       output.stream.listen(printOnFailure);
 
       configureLogWriter(
           customLogWriter: (level, message, {error, loggerName, stackTrace}) =>
-              output?.add('[$level] $loggerName: $message'));
+              output.add('[$level] $loggerName: $message'));
 
       // start asset server
       server = await startHttpServer('localhost');
-      final port = server?.port;
+      final port = server.port;
 
       // start expression compilation service
       Response assetHandler(request) =>
           Response(200, body: File.fromUri(kernel).readAsBytesSync());
-      service =
-          ExpressionCompilerService('localhost', port ?? 8000, verbose: false);
+      service = ExpressionCompilerService('localhost', port, verbose: false);
 
       await service.initialize(moduleFormat: 'amd');
 
