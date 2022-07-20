@@ -114,7 +114,7 @@ Future<void> _handleSseConnections(
 ///
 /// Creates a [ChromeProxyService] from an existing Chrome instance.
 class DebugService {
-  static late String _ddsUri;
+  static String? _ddsUri;
 
   final VmServiceInterface chromeProxyService;
   final String hostname;

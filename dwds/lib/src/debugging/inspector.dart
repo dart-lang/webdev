@@ -403,8 +403,7 @@ class AppInspector implements AppInspectorInterface {
     }
     final libraryId = _scriptIdToLibraryId[scriptId];
     if (libraryId == null) {
-      throwInvalidParam('getObject',
-          'No library for script $scriptRef with libraryId: $libraryId');
+      throwInvalidParam('getObject', 'No library for script $scriptRef');
     }
     return Script(
         uri: scriptRef.uri,

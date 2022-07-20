@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @TestOn('vm')
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:test/test.dart';
@@ -18,16 +16,18 @@ void main() {
       // or from a RemoteObject.
       final property = Property({'name': 'prop', 'value': exampleMap});
       expect(property.rawValue, exampleMap);
-      expect(property.value.objectId, '1234');
-      expect(property.value.value, 'abcd');
+      final value = property.value!;
+      expect(value.objectId, '1234');
+      expect(value.value, 'abcd');
       expect(property.name, 'prop');
     });
     test('from a RemoteObject', () {
       final remoteObject = RemoteObject({'objectId': '1234', 'value': 'abcd'});
       final property = Property({'name': 'prop', 'value': remoteObject});
       expect(property.rawValue, remoteObject);
-      expect(property.value.objectId, '1234');
-      expect(property.value.value, 'abcd');
+      final value = property.value!;
+      expect(value.objectId, '1234');
+      expect(value.value, 'abcd');
       expect(property.name, 'prop');
     });
 
