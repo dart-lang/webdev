@@ -1,6 +1,6 @@
 name: extension
 publish_to: none
-version: 1.31.0
+version: 1.30.0
 homepage: https://github.com/dart-lang/webdev
 description: >-
   A chrome extension for Dart debugging.
