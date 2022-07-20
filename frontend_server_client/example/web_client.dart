@@ -19,10 +19,30 @@ void main(List<String> args) async {
     throw ArgumentError('No command line args are supported');
   }
 
+  _print('compiling the dart sdk');
+  var sdkCompileResult = await Process.run(Platform.resolvedExecutable, [
+    p.join(sdkDir, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
+    '--multi-root-scheme=org-dartlang-sdk',
+    '--modules=amd',
+    '--module-name=dart_sdk',
+    '--sound-null-safety',
+    '-o',
+    dartSdkJs,
+    p.url.join(sdkDir, sdkKernelPath),
+  ]);
+  if (sdkCompileResult.exitCode != 0) {
+    _print('Failed to compile the dart sdk to JS:\n'
+        '${sdkCompileResult.stdout}\n'
+        '${sdkCompileResult.stderr}');
+    exit(sdkCompileResult.exitCode);
+  }
+
+  _print('starting frontend server');
   var client = await DartDevcFrontendServerClient.start(
       'org-dartlang-root:///$app', outputDill,
       fileSystemRoots: [p.current],
       fileSystemScheme: 'org-dartlang-root',
+      platformKernel: p.toUri(sdkKernelPath).toString(),
       verbose: true);
 
   _print('compiling $app');
@@ -34,9 +54,7 @@ void main(List<String> args) async {
   var cascade = Cascade()
       .add(_clientHandler(client))
       .add(createStaticHandler(p.current))
-      .add(createFileHandler(
-          p.join(sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'dart_sdk.js'),
-          url: 'example/app/dart_sdk.js'))
+      .add(createFileHandler(dartSdkJs, url: 'example/app/dart_sdk.js'))
       .add(createFileHandler(
           p.join(sdkDir, 'lib', 'dev_compiler', 'web',
               'dart_stack_trace_mapper.js'),
@@ -100,7 +118,18 @@ void main(List<String> args) async {
 
 Handler _clientHandler(DartDevcFrontendServerClient client) {
   return (Request request) {
-    var assetBytes = client.assetBytes(request.requestedUri.path);
+    var path = request.url.path;
+    var packagesIndex = path.indexOf('/packages/');
+    if (packagesIndex > 0) {
+      path = request.url.path.substring(packagesIndex);
+    } else {
+      path = request.url.path;
+    }
+    if (!path.startsWith('/')) path = '/$path';
+    if (path.endsWith('.dart.js') && path != '/example/app/main.dart.js') {
+      path = path.replaceFirst('.dart.js', '.dart.lib.js', path.length - 8);
+    }
+    var assetBytes = client.assetBytes(path);
     if (assetBytes == null) return Response.notFound('path not found');
     return Response.ok(assetBytes,
         headers: {HttpHeaders.contentTypeHeader: 'application/javascript'});
@@ -115,6 +144,9 @@ void _prompt() => stdout.write(
     'Enter a new message to print and recompile, or type `quit` to exit:');
 
 final app = 'example/app/main.dart';
+final dartSdkJs = p.join('.dart_tool', 'out', 'dart_sdk.js');
 final outputDill = p.join('.dart_tool', 'out', 'example_app.dill');
 final sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
+final sdkKernelPath =
+    p.join(sdkDir, 'lib', '_internal', 'ddc_platform_sound.dill');
 final watch = Stopwatch();
