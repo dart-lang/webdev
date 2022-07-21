@@ -20,7 +20,7 @@ void main(List<String> args) async {
   var client = await FrontendServerClient.start('org-dartlang-root:///$app',
       outputDill, p.join(sdkDir, 'lib', '_internal', 'vm_platform_strong.dill'),
       target: 'vm',
-      fileSystemRoots: [p.current],
+      fileSystemRoots: [p.url.current],
       fileSystemScheme: 'org-dartlang-root',
       verbose: true);
   _print('compiling $app');
@@ -30,8 +30,10 @@ void main(List<String> args) async {
 
   Process appProcess;
   final vmServiceCompleter = Completer<VmService>();
-  appProcess = await Process.start(Platform.resolvedExecutable,
-      ['--observe', '--no-pause-isolates-on-exit', result.dillOutput!]);
+  appProcess = await Process.start(Platform.resolvedExecutable, [
+    '--enable-vm-service',
+    result.dillOutput!
+  ]);
   final sawHelloWorld = Completer();
   appProcess.stdout
       .transform(utf8.decoder)
