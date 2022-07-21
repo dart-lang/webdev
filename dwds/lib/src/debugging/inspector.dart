@@ -374,7 +374,7 @@ class AppInspector implements AppInspectorInterface {
       }
       final scriptRef = _scriptRefsById[objectId];
       if (scriptRef != null) {
-        return await _getScript(scriptRef);
+        return _getScript(scriptRef);
       }
       final instance = await _instanceHelper
           .instanceFor(remoteObjectFor(objectId), offset: offset, count: count);

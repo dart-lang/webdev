@@ -24,9 +24,7 @@ WipConnection get tabConnection => context.tabConnection;
 void main() {
   setUpAll(() async {
     setCurrentLogWriter();
-    await context.setUp(
-      restoreBreakpoints: true,
-    );
+    await context.setUp();
   });
 
   tearDownAll(() async {

@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -33,7 +30,7 @@ class Dwds {
   static final _logger = Logger('DWDS');
   final Middleware middleware;
   final Handler handler;
-  final DevTools _devTools;
+  final DevTools? _devTools;
   final DevHandler _devHandler;
   final AssetReader _assetReader;
   final bool _enableDebugging;
@@ -67,53 +64,42 @@ class Dwds {
   }
 
   static Future<Dwds> start({
-    @required AssetReader assetReader,
-    @required Stream<BuildResult> buildResults,
-    @required ConnectionProvider chromeConnection,
-    @required LoadStrategy loadStrategy,
-    @required bool enableDebugging,
+    required AssetReader assetReader,
+    required Stream<BuildResult> buildResults,
+    required ConnectionProvider chromeConnection,
+    required LoadStrategy loadStrategy,
+    required bool enableDebugging,
     // TODO(annagrin): make expressionCompiler argument required
     // [issue 881](https://github.com/dart-lang/webdev/issues/881)
-    ExpressionCompiler expressionCompiler,
-    bool enableDebugExtension,
-    String hostname,
-    bool useSseForDebugProxy,
-    bool useSseForDebugBackend,
-    bool useSseForInjectedClient,
-    UrlEncoder urlEncoder,
-    bool spawnDds,
+    ExpressionCompiler? expressionCompiler,
+    bool enableDebugExtension = false,
+    String hostname = 'localhost',
+    bool useSseForDebugProxy = true,
+    bool useSseForDebugBackend = true,
+    bool useSseForInjectedClient = true,
+    UrlEncoder? urlEncoder,
+    bool spawnDds = true,
     // TODO(elliette): DevTools is inconsistently capitalized throughout this
-    // file. Change all occurances of devtools/Devtools to devTools/DevTools.
-    bool enableDevtoolsLaunch,
-    DevtoolsLauncher devtoolsLauncher,
-    bool launchDevToolsInNewWindow,
-    SdkConfigurationProvider sdkConfigurationProvider,
-    bool emitDebugEvents,
+    // file. Change all occurrences of devtools/Devtools to devTools/DevTools.
+    bool enableDevtoolsLaunch = true,
+    DevtoolsLauncher? devtoolsLauncher,
+    bool launchDevToolsInNewWindow = true,
+    SdkConfigurationProvider? sdkConfigurationProvider,
+    bool emitDebugEvents = true,
   }) async {
-    hostname ??= 'localhost';
-    enableDebugging ??= true;
-    enableDebugExtension ??= false;
-    useSseForDebugProxy ??= true;
-    useSseForDebugBackend ??= true;
-    useSseForInjectedClient ??= true;
-    enableDevtoolsLaunch ??= true;
-    launchDevToolsInNewWindow ??= true;
-    spawnDds ??= true;
     globalLoadStrategy = loadStrategy;
-    emitDebugEvents ??= true;
-
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
-    DevTools devTools;
-    Future<String> extensionUri;
-    ExtensionBackend extensionBackend;
+    DevTools? devTools;
+    Future<String>? extensionUri;
+    ExtensionBackend? extensionBackend;
     if (enableDebugExtension) {
       final handler = useSseForDebugBackend
           ? SseSocketHandler(SseHandler(Uri.parse('/\$debug'),
               // Proxy servers may actively kill long standing connections.
               // Allow for clients to reconnect in a short window. Making the
               // window too long may cause issues if the user closes a debug
-              // session and initites a new one during the keepAlive window.
+              // session and initiates a new one during the keepAlive window.
               keepAlive: const Duration(seconds: 5)))
           : WebSocketSocketHandler();
 
@@ -154,7 +140,6 @@ class Dwds {
       urlEncoder,
       useSseForDebugProxy,
       useSseForInjectedClient,
-      serveDevTools,
       expressionCompiler,
       injected,
       spawnDds,
