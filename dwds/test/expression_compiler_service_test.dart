@@ -55,8 +55,11 @@ void main() async {
       output.stream.listen(printOnFailure);
 
       configureLogWriter(
-          customLogWriter: (level, message, {error, loggerName, stackTrace}) =>
-              output.add('[$level] $loggerName: $message'));
+          customLogWriter: (level, message, {error, loggerName, stackTrace}) {
+        final e = error == null ? '' : ': $error';
+        final s = stackTrace == null ? '' : ':\n$stackTrace';
+        output.add('[$level] $loggerName: $message$e$s');
+      });
 
       // start asset server
       _server = await startHttpServer('localhost');
@@ -147,7 +150,6 @@ void main() async {
               '[FINEST] ExpressionCompilerService: Compiled "true" to:')));
       expect(output.stream,
           emitsThrough(contains('[INFO] ExpressionCompilerService: Stopped.')));
-
       final result = await service
           .updateDependencies({'try': ModuleInfo('try.full.dill', 'try.dill')});
       expect(result, true, reason: 'failed to update dependencies');
