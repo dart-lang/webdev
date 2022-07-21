@@ -30,10 +30,8 @@ void main(List<String> args) async {
 
   Process appProcess;
   final vmServiceCompleter = Completer<VmService>();
-  appProcess = await Process.start(Platform.resolvedExecutable, [
-    '--enable-vm-service',
-    result.dillOutput!
-  ]);
+  appProcess = await Process.start(
+      Platform.resolvedExecutable, ['--enable-vm-service', result.dillOutput!]);
   final sawHelloWorld = Completer();
   appProcess.stdout
       .transform(utf8.decoder)
