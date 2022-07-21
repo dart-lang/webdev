@@ -80,7 +80,7 @@ class Dwds {
     UrlEncoder? urlEncoder,
     bool spawnDds = true,
     // TODO(elliette): DevTools is inconsistently capitalized throughout this
-    // file. Change all occurences of devtools/Devtools to devTools/DevTools.
+    // file. Change all occurrences of devtools/Devtools to devTools/DevTools.
     bool enableDevtoolsLaunch = true,
     DevtoolsLauncher? devtoolsLauncher,
     bool launchDevToolsInNewWindow = true,
