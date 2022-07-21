@@ -265,14 +265,14 @@ jobs:
       - job_004
       - job_005
   job_007:
-    name: "unit_test; linux; Dart dev; PKG: frontend_server_client; `dart test`"
+    name: "unit_test; linux; Dart dev; PKG: frontend_server_client; `dart test -j 1`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:frontend_server_client;commands:test_2"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:frontend_server_client;commands:test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:frontend_server_client
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -288,10 +288,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: frontend_server_client
         run: dart pub upgrade
-      - name: frontend_server_client; dart test
+      - name: "frontend_server_client; dart test -j 1"
         if: "always() && steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_client
-        run: dart test
+        run: dart test -j 1
     needs:
       - job_001
       - job_002
@@ -375,14 +375,14 @@ jobs:
       - job_004
       - job_005
   job_010:
-    name: "unit_test; linux; Dart stable; PKG: frontend_server_client; `dart test`"
+    name: "unit_test; linux; Dart stable; PKG: frontend_server_client; `dart test -j 1`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client;commands:test_2"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client;commands:test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
@@ -398,10 +398,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: frontend_server_client
         run: dart pub upgrade
-      - name: frontend_server_client; dart test
+      - name: "frontend_server_client; dart test -j 1"
         if: "always() && steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_client
-        run: dart test
+        run: dart test -j 1
     needs:
       - job_001
       - job_002
@@ -471,7 +471,7 @@ jobs:
       - job_004
       - job_005
   job_013:
-    name: "unit_test; windows; Dart dev; PKG: frontend_server_client; `dart test`"
+    name: "unit_test; windows; Dart dev; PKG: frontend_server_client; `dart test -j 1`"
     runs-on: windows-latest
     steps:
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
@@ -484,10 +484,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: frontend_server_client
         run: dart pub upgrade
-      - name: frontend_server_client; dart test
+      - name: "frontend_server_client; dart test -j 1"
         if: "always() && steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_client
-        run: dart test
+        run: dart test -j 1
     needs:
       - job_001
       - job_002
@@ -543,7 +543,7 @@ jobs:
       - job_004
       - job_005
   job_016:
-    name: "unit_test; windows; Dart stable; PKG: frontend_server_client; `dart test`"
+    name: "unit_test; windows; Dart stable; PKG: frontend_server_client; `dart test -j 1`"
     runs-on: windows-latest
     steps:
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
@@ -556,10 +556,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: frontend_server_client
         run: dart pub upgrade
-      - name: frontend_server_client; dart test
+      - name: "frontend_server_client; dart test -j 1"
         if: "always() && steps.frontend_server_client_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_client
-        run: dart test
+        run: dart test -j 1
     needs:
       - job_001
       - job_002
