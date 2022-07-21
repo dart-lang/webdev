@@ -120,7 +120,10 @@ class TestServer {
                   enableStdinCommands: false,
                   customDevToolsPath: devToolsPath,
                 );
-                return DevTools(server!.address.host, server.port, server);
+                if (server == null) {
+                  throw StateError('DevTools server could not be started.');
+                }
+                return DevTools(server.address.host, server.port, server);
               }
             : null);
 
