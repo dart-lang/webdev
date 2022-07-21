@@ -30,7 +30,7 @@ class _Compiler {
   Future<Map<String, Object>> _send(Map<String, Object> request) async {
     _sendPort.send(request);
     return await _responseQueue.hasNext
-        ? await _responseQueue.next as Map<String, Object>
+        ? Map<String, Object>.from(await _responseQueue.next)
         : {
             'succeeded': false,
             'errors': ['compilation service response stream closed'],
