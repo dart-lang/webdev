@@ -32,12 +32,17 @@ void main(List<String> args) async {
   final vmServiceCompleter = Completer<VmService>();
   appProcess = await Process.start(Platform.resolvedExecutable,
       ['--observe', '--no-pause-isolates-on-exit', result.dillOutput!]);
+  final sawHelloWorld = Completer();
   appProcess.stdout
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen((line) {
     stdout.writeln('APP -> $line');
-    if (line.startsWith('Observatory listening on')) {
+    if (line == 'hello/world') {
+      sawHelloWorld.complete();
+    }
+    if (line.startsWith(
+        'The Dart DevTools debugger and profiler is available at:')) {
       var observatoryUri =
           '${line.split(' ').last.replaceFirst('http', 'ws')}ws';
       vmServiceCompleter.complete(vmServiceConnectUri(observatoryUri));
@@ -51,6 +56,7 @@ void main(List<String> args) async {
   });
 
   final vmService = await vmServiceCompleter.future;
+  await sawHelloWorld.future;
 
   _print('editing $app');
   var appFile = File(app);
