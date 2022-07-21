@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// TODO: The examples don't work on windows
+@TestOn('!windows')
 import 'dart:io';
 
 import 'package:test/test.dart';
