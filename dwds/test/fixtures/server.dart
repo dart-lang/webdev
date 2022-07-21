@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
 
 import 'dart:io';
 
@@ -66,7 +65,7 @@ class TestServer {
 
   static Future<TestServer> start(
     String hostname,
-    int port,
+    int? port,
     Handler assetHandler,
     AssetReader assetReader,
     RequireStrategy strategy,
@@ -78,10 +77,10 @@ class TestServer {
     bool autoRun,
     bool enableDebugging,
     bool useSse,
-    UrlEncoder urlEncoder,
-    ExpressionCompiler expressionCompiler,
+    UrlEncoder? urlEncoder,
+    ExpressionCompiler? expressionCompiler,
     bool spawnDds,
-    ExpressionCompilerService ddcService,
+    ExpressionCompilerService? ddcService,
   ) async {
     var pipeline = const Pipeline();
 
@@ -122,7 +121,7 @@ class TestServer {
                   enableStdinCommands: false,
                   customDevToolsPath: devToolsPath,
                 );
-                return DevTools(server.address.host, server.port, server);
+                return DevTools(server!.address.host, server.port, server);
               }
             : null);
 
