@@ -1,4 +1,4 @@
-# Created with package:mono_repo v6.2.2
+# Created with package:mono_repo v6.3.0
 name: Dart CI
 on:
   push:
@@ -14,6 +14,7 @@ defaults:
 env:
   PUB_ENVIRONMENT: bot.github
   DISPLAY: ":99"
+permissions: read-all
 
 jobs:
   job_001:
@@ -21,20 +22,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - name: mono_repo self validate
-        run: dart pub global activate mono_repo 6.2.2
+        run: dart pub global activate mono_repo 6.3.0
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
@@ -42,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:format-analyze_0-test_0"
@@ -51,11 +52,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -78,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-fixtures/_webdevSmoke-frontend_server_client-frontend_server_common;commands:format-analyze_0"
@@ -87,11 +88,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: example_pub_upgrade
         name: example; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -149,7 +150,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:format-analyze_0-test_4"
@@ -158,11 +159,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -185,7 +186,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds-webdev;commands:analyze_1-test_1"
@@ -194,11 +195,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -230,7 +231,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_2"
@@ -239,11 +240,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -268,7 +269,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:frontend_server_client;commands:test_2"
@@ -277,11 +278,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -302,7 +303,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:command-test_3"
@@ -311,11 +312,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -340,7 +341,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds;commands:command-test_2"
@@ -349,11 +350,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -378,7 +379,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client;commands:test_2"
@@ -387,11 +388,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -412,7 +413,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:command-test_3"
@@ -421,11 +422,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -449,11 +450,11 @@ jobs:
     name: "unit_test; windows; Dart dev; PKG: dwds; `dart test`"
     runs-on: windows-latest
     steps:
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -473,11 +474,11 @@ jobs:
     name: "unit_test; windows; Dart dev; PKG: frontend_server_client; `dart test`"
     runs-on: windows-latest
     steps:
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -497,11 +498,11 @@ jobs:
     name: "unit_test; windows; Dart dev; PKG: webdev; `dart test -j 1`"
     runs-on: windows-latest
     steps:
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: dev
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -521,11 +522,11 @@ jobs:
     name: "unit_test; windows; Dart stable; PKG: dwds; `dart test`"
     runs-on: windows-latest
     steps:
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -545,11 +546,11 @@ jobs:
     name: "unit_test; windows; Dart stable; PKG: frontend_server_client; `dart test`"
     runs-on: windows-latest
     steps:
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -569,11 +570,11 @@ jobs:
     name: "unit_test; windows; Dart stable; PKG: webdev; `dart test -j 1`"
     runs-on: windows-latest
     steps:
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -594,7 +595,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:command-test_3"
@@ -603,11 +604,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -645,7 +646,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:command-test_3"
@@ -654,11 +655,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -696,7 +697,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:analyze_1"
@@ -705,11 +706,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -743,7 +744,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:analyze_1"
@@ -752,11 +753,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -789,11 +790,11 @@ jobs:
     name: "beta_cron; windows; Dart beta; PKG: dwds; `dart test -j 1`"
     runs-on: windows-latest
     steps:
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -826,11 +827,11 @@ jobs:
     name: "beta_cron; windows; Dart beta; PKG: webdev; `dart test -j 1`"
     runs-on: windows-latest
     steps:
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: beta
       - id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
