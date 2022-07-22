@@ -25,64 +25,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'debugger_data.dart';
 
-/// Constructs a trivial Isolate we can use when we need to provide one but
-/// don't want go through initialization.
-Isolate get simpleIsolate => Isolate(
-      id: '1',
-      number: '1',
-      name: 'fake',
-      libraries: [],
-      exceptionPauseMode: 'abc',
-      breakpoints: [],
-      pauseOnExit: false,
-      pauseEvent: null,
-      startTime: 0,
-      livePorts: 0,
-      runnable: false,
-      isSystemIsolate: false,
-      isolateFlags: [],
-    );
-
-class FakeInspector implements AppInspector {
-  FakeInspector({this.fakeIsolate});
-
-  Isolate fakeIsolate;
-
-  final _instanceHelper = InstanceHelper(null, null);
-
-  @override
-  Object noSuchMethod(Invocation invocation) {
-    throw UnsupportedError('This is a fake');
-  }
-
-  @override
-  Future<void> initialize(LibraryHelper libraryHelper, ClassHelper classHelper,
-          InstanceHelper instanceHelper) =>
-      null;
-
-  @override
-  Future<InstanceRef> instanceRefFor(Object value) =>
-      _instanceHelper.instanceRefFor(value);
-
-  @override
-  Future<Obj> getObject(String objectId, {int offset, int count}) => null;
-
-  @override
-  Future<ScriptList> getScripts() => null;
-
-  @override
-  Future<ScriptRef> scriptRefFor(String uri) =>
-      Future.value(ScriptRef(id: 'fake', uri: 'fake://uri'));
-
-  @override
-  ScriptRef scriptWithId(String scriptId) => null;
-
-  @override
-  Isolate get isolate => fakeIsolate;
-
-  @override
-  IsolateRef get isolateRef => null;
-}
 
 class FakeSseConnection implements SseSocketConnection {
   /// A [StreamController] for incoming messages on SSE connection.

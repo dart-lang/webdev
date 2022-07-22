@@ -9,6 +9,12 @@ import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:dwds/asset_reader.dart';
+import 'package:dwds/src/debugging/classes.dart';
+import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/instance.dart';
+import 'package:dwds/src/debugging/libraries.dart';
+import 'package:vm_service/vm_service.dart';
+
 
 class FakeStrategy implements LoadStrategy {
   @override
@@ -105,4 +111,68 @@ class FakeAssetReader implements AssetReader {
     if (contents == null) throw UnimplementedError();
     return Future.value(contents);
   }
+}
+
+/// Constructs a trivial Isolate we can use when we need to provide one but
+/// don't want go through initialization.
+Isolate get simpleIsolate => Isolate(
+      id: '1',
+      number: '1',
+      name: 'fake',
+      libraries: [],
+      exceptionPauseMode: 'abc',
+      breakpoints: [],
+      pauseOnExit: false,
+      pauseEvent: null,
+      startTime: 0,
+      livePorts: 0,
+      runnable: false,
+      isSystemIsolate: false,
+      isolateFlags: [],
+    );
+
+class FakeInspector implements AppInspector {
+  FakeInspector({required this.fakeIsolate});
+
+  Isolate fakeIsolate;
+
+
+  @override
+  Object noSuchMethod(Invocation invocation) {
+    throw UnsupportedError('This is a fake');
+  }
+
+  @override
+  Future<void> initialize(LibraryHelper libraryHelper, ClassHelper classHelper,
+          InstanceHelper instanceHelper) =>
+      Future.value(null);
+
+  @override
+  Future<InstanceRef?> instanceRefFor(Object value) =>
+      Future.value(InstanceHelper.kNullInstanceRef);
+
+  @override
+  Future<Obj> getObject(String objectId, {int? offset, int? count}) =>
+      Future.value(Obj.parse({}));
+
+  @override
+  Future<ScriptList> getScripts() => Future.value(ScriptList(scripts: []));
+
+  @override
+  Future<ScriptRef> scriptRefFor(String uri) =>
+      Future.value(ScriptRef(id: 'fake', uri: 'fake://uri'));
+
+  @override
+  ScriptRef? scriptWithId(String? scriptId) => null;
+
+  @override
+  Isolate get isolate => fakeIsolate;
+
+  @override
+  IsolateRef get isolateRef => IsolateRef(
+        id: fakeIsolate.id,
+        number: fakeIsolate.number,
+        name: fakeIsolate.name,
+        isSystemIsolate: fakeIsolate.isSystemIsolate,
+      );
 }
