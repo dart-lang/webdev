@@ -84,7 +84,7 @@ void main(List<String> args) async {
       return 1;
     });
   } finally {
-    Directory(p.join('dart_tool', 'out')).deleteSync(recursive: true);
+    Directory(p.join('.dart_tool', 'out')).deleteSync(recursive: true);
   }
 }
 

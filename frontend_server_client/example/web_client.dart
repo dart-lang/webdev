@@ -118,7 +118,7 @@ void main(List<String> args) async {
     _print('exiting');
     await client.shutdown();
   } finally {
-    Directory(p.join('dart_tool', 'out')).deleteSync(recursive: true);
+    Directory(p.join('.dart_tool', 'out')).deleteSync(recursive: true);
   }
 }
 
