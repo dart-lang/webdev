@@ -22,5 +22,5 @@ void main() {
     await expectLater(
         process.stdout, emitsThrough(contains('APP -> goodbye/world')));
     expect(await process.exitCode, 0);
-  }, skip: 'Failing on github actions');
+  });
 }
