@@ -42,7 +42,7 @@ class ChromeProxyService implements VmServiceInterface {
   /// are dynamic and roughly map to chrome tabs.
   final VM _vm;
 
-  /// Signals when isolate is intialized.
+  /// Signals when isolate is initialized.
   Future<void> get isInitialized => _initializedCompleter.future;
   Completer<void> _initializedCompleter = Completer<void>();
 
@@ -165,12 +165,12 @@ class ChromeProxyService implements VmServiceInterface {
     return service;
   }
 
-  /// Initializes metdata in [Locations], [Modules], and [ExpressionCompiler].
+  /// Initializes metadata in [Locations], [Modules], and [ExpressionCompiler].
   Future<void> _initializeEntrypoint(String entrypoint) async {
     _locations.initialize(entrypoint);
     _modules.initialize(entrypoint);
     _skipLists.initialize();
-    // We do not need to wait for compiler dependencies to be udpated as the
+    // We do not need to wait for compiler dependencies to be updated as the
     // [ExpressionEvaluator] is robust to evaluation requests during updates.
     unawaited(_updateCompilerDependencies(entrypoint));
   }
@@ -211,7 +211,7 @@ class ChromeProxyService implements VmServiceInterface {
     }
     // Waiting for the debugger to be ready before initializing the entrypoint.
     //
-    // Note: moving `await debugger` after the `_initalizeEntryPoint` call
+    // Note: moving `await debugger` after the `_initializeEntryPoint` call
     // causes `getcwd` system calls to fail. Since that system call is used
     // in first `Uri.base` call in the expression compiler service isolate,
     // the expression compiler service will fail to start.
@@ -533,13 +533,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       {int? offset, int? count}) async {
     await isInitialized;
     _checkIsolate('getObject', isolateId);
-    final result =
-        await inspector.getObject(objectId, offset: offset, count: count);
-    if (result == null) {
-      throw RPCError('getObject', RPCError.kInternalError,
-          'failed to find object for $objectId: null result');
-    }
-    return result;
+    return inspector.getObject(objectId, offset: offset, count: count);
   }
 
   @override

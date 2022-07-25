@@ -36,9 +36,6 @@ abstract class AppInspectorInterface {
   /// Look up the script by id in an isolate.
   ScriptRef? scriptWithId(String? scriptId);
 
-  /// Returns Chrome script uri for Chrome script ID.
-  String? urlForScriptId(String scriptId);
-
   /// Returns the [LibraryRef] for the provided Dart [objectId].
   Future<LibraryRef?> libraryRefFor(String objectId);
 
@@ -79,7 +76,7 @@ abstract class AppInspectorInterface {
       {bool returnByValue = false, bool awaitPromise = false});
 
   /// Lookup an `object` from some isolate by its [objectId].
-  Future<Obj?> getObject(String objectId, {int offset, int count});
+  Future<Obj> getObject(String objectId, {int offset, int count});
 
   /// All the scripts in the isolate.
   Future<ScriptList> getScripts();
@@ -98,7 +95,7 @@ abstract class AppInspectorInterface {
   });
 
   /// Lookup current isolate's memory usage statistics.
-  Future<MemoryUsage> getMemoryUsage();
+  Future<MemoryUsage?> getMemoryUsage();
 }
 
 /// A common superclass to allow implementations of different parts of the

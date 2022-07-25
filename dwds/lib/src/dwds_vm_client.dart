@@ -154,19 +154,19 @@ void _processSendEvent(Map<String, dynamic> event,
         final screen = payload?['screen'] as String?;
         if (screen != null && action == 'pageReady') {
           if (dwdsStats.isFirstDebuggerReady) {
-            var time = DateTime.now()
+            final debuggerReadyTime = DateTime.now()
                 .difference(dwdsStats.devToolsStart)
                 .inMilliseconds;
-            emitEvent(DwdsEvent.devToolsLoad(time, screen));
-            _logger.fine('DevTools load time: $time ms');
-            time = DateTime.now()
+            emitEvent(DwdsEvent.devToolsLoad(debuggerReadyTime, screen));
+            _logger.fine('DevTools load time: $debuggerReadyTime ms');
+            final debuggerStartTime = DateTime.now()
                 .difference(dwdsStats.debuggerStart)
                 .inMilliseconds;
-            emitEvent(DwdsEvent.debuggerReady(time, screen));
-            _logger.fine('Debugger ready time: $time ms');
+            emitEvent(DwdsEvent.debuggerReady(debuggerStartTime, screen));
+            _logger.fine('Debugger ready time: $debuggerStartTime ms');
           } else {
             _logger
-                .finest('Debugger and DevTools startup times alredy recorded.'
+                .finest('Debugger and DevTools startup times already recorded.'
                     ' Ignoring $event.');
           }
         } else {
@@ -264,7 +264,7 @@ Future<void> _disableBreakpointsAndResume(
     // at this point:
     //
     // - `getIsolate()` and check for status:
-    //    the app migth still pause on existing breakpoint.
+    //    the app might still pause on existing breakpoint.
     //
     // - `pause()` and wait for `Debug.paused` event:
     //   chrome does not send the `Debug.Paused `notification

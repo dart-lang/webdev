@@ -332,6 +332,10 @@ class Debugger extends Domain {
     }
   }
 
+  /// Returns Chrome script uri for Chrome script ID.
+  String? urlForScriptId(String scriptId) =>
+      _remoteDebugger.scripts[scriptId]?.url;
+
   /// Returns source [Location] for the paused event.
   ///
   /// If we do not have [Location] data for the embedded JS location, null is
@@ -346,7 +350,7 @@ class Debugger extends Domain {
     if (scriptId == null || line == null) return null;
 
     final column = location['columnNumber'] as int?;
-    final url = inspector.urlForScriptId(scriptId);
+    final url = urlForScriptId(scriptId);
     if (url == null) return null;
 
     return _locations.locationForJs(url, line, column);
@@ -376,7 +380,7 @@ class Debugger extends Domain {
 
   Future<BoundVariable?> _boundVariable(Property property) async {
     // TODO(annagrin): value might be null in the future for variables
-    // optimized by V8. Return appopriate sentinel values for them.
+    // optimized by V8. Return appropriate sentinel values for them.
     if (property.value != null) {
       final value = property.value!;
       // We return one level of properties from this object. Sub-properties are
@@ -472,7 +476,7 @@ class Debugger extends Domain {
       final range = await _subrange(objectId, offset ?? 0, count ?? 0, length);
       rangeId = range.objectId ?? rangeId;
     }
-    final jsProperties = await sendCommandAndvalidateResult<List>(
+    final jsProperties = await sendCommandAndValidateResult<List>(
       _remoteDebugger,
       method: 'Runtime.getProperties',
       resultField: 'result',
@@ -496,7 +500,7 @@ class Debugger extends Domain {
     final line = location.lineNumber;
     final column = location.columnNumber;
 
-    final url = inspector.urlForScriptId(location.scriptId);
+    final url = urlForScriptId(location.scriptId);
     if (url == null) {
       logger.severe('Failed to create dart frame for ${frame.functionName}: '
           'cannot find url for script ${location.scriptId}');
@@ -599,7 +603,7 @@ class Debugger extends Domain {
               'cannot find script id for event $e');
           throw StateError('Stepping failed on event $e');
         }
-        final url = inspector.urlForScriptId(scriptId);
+        final url = urlForScriptId(scriptId);
         if (url == null) {
           logger.severe('Stepping failed: '
               'cannot find url for script $scriptId');
@@ -726,7 +730,7 @@ class Debugger extends Domain {
   }
 }
 
-Future<T> sendCommandAndvalidateResult<T>(
+Future<T> sendCommandAndValidateResult<T>(
   RemoteDebugger remoteDebugger, {
   required String method,
   required String resultField,
@@ -861,7 +865,7 @@ class _Breakpoints extends Domain {
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
     // simultaneously by serializing the requests.
     return _pool.withResource(() async {
-      final breakPointId = await sendCommandAndvalidateResult<String>(
+      final breakPointId = await sendCommandAndValidateResult<String>(
           remoteDebugger,
           method: 'Debugger.setBreakpointByUrl',
           resultField: 'breakpointId',
@@ -932,7 +936,7 @@ String _prettifyExtension(String member) {
     isSetter = member.substring(0, spaceIndex) == 'set';
     member = member.substring(spaceIndex + 1, member.length);
   } else if (poundIndex >= 0) {
-    // Here member is a tearoff or local property getter/setter.
+    // Here member is a tear-off or local property getter/setter.
     isSetter = member.substring(pipeIndex + 1, poundIndex) == 'set';
     member = member.replaceRange(pipeIndex + 1, poundIndex + 3, '');
   } else {
@@ -946,7 +950,7 @@ String _prettifyExtension(String member) {
   return isSetter ? '$member=' : member;
 }
 
-/// Unescapes a DDC-escaped JS identifier name.
+/// Un-escapes a DDC-escaped JS identifier name.
 ///
 /// Identifier names that contain illegal JS characters are escaped by DDC to a
 /// decimal representation of the symbol's UTF-16 value.

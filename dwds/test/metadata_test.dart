@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-import 'package:dwds/asset_reader.dart';
 import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:test/test.dart';
+
+import 'fixtures/migrated_fakes.dart';
 
 const _emptySourceMetadata =
     '{"version":"1.0.0","name":"web/main","closureName":"load__web__main",'
@@ -38,29 +37,11 @@ const _fileUriMetadata =
     '"fileUri":"org-dartlang-app:///web/main.dart","partUris":[]}]}\n'
     '// intentionally empty: package blah has no dart sources';
 
-class FakeAssetReader implements AssetReader {
-  final String _metadata;
-  FakeAssetReader(this._metadata);
-  @override
-  Future<String> dartSourceContents(String serverPath) =>
-      throw UnimplementedError();
-
-  @override
-  Future<String> metadataContents(String serverPath) async => _metadata;
-
-  @override
-  Future<String> sourceMapContents(String serverPath) =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> close() async {}
-}
-
 void main() {
   test('can parse metadata with empty sources', () async {
     final provider = MetadataProvider(
       'foo.bootstrap.js',
-      FakeAssetReader(_emptySourceMetadata),
+      FakeAssetReader(metadata: _emptySourceMetadata),
     );
     expect(await provider.libraries,
         contains('org-dartlang-app:///web/main.dart'));
@@ -70,7 +51,7 @@ void main() {
   test('can parse metadata with no null safety information', () async {
     final provider = MetadataProvider(
       'foo.bootstrap.js',
-      FakeAssetReader(_noNullSafetyMetadata),
+      FakeAssetReader(metadata: _noNullSafetyMetadata),
     );
     expect(await provider.libraries,
         contains('org-dartlang-app:///web/main.dart'));
@@ -80,7 +61,7 @@ void main() {
   test('throws on metadata with absolute import uris', () async {
     final provider = MetadataProvider(
       'foo.bootstrap.js',
-      FakeAssetReader(_fileUriMetadata),
+      FakeAssetReader(metadata: _fileUriMetadata),
     );
     await expectLater(provider.libraries,
         throwsA(const TypeMatcher<AbsoluteImportUriException>()));

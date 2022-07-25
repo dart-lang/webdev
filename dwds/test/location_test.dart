@@ -13,7 +13,15 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-import 'debugger_test.dart';
+import 'fixtures/migrated_fakes.dart';
+
+final sourceMapContents =
+    '{"version":3,"sourceRoot":"","sources":["main.dart"],"names":[],'
+    '"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAUwB,IAAtB,WAAM;AAKJ,'
+    'IAHF,4BAAkB,aAAa,SAAC,GAAG;AACb,MAApB,WAAM;AACN,YAAgC,+CAAO,AAAK,oBAAO,'
+    'yCAAC,WAAW;IAChE;AAC0D,IAA3D,AAAS,AAAK,0DAAO;AAAe,kBAAO;;;AAEvC,gBAAQ;'
+    'AAGV,IAFI,kCAAqC,QAAC;AACX,MAA/B,WAAM,AAAwB,0BAAP,QAAF,AAAE,KAAK,GAAP;'
+    ';EAEzB","file":"main.ddc.js"}';
 
 void main() {
   const lines = 100;
@@ -22,7 +30,7 @@ void main() {
   globalLoadStrategy = MockLoadStrategy();
   final dartUri = DartUri('org-dartlang://web/main.dart');
 
-  final assetReader = FakeAssetReader();
+  final assetReader = FakeAssetReader(sourceMap: sourceMapContents);
   final modules = MockModules();
   final locations = Locations(assetReader, modules, '');
   locations.initialize('fake_entrypoint');
@@ -255,7 +263,7 @@ class MockModules implements Modules {
   }
 
   @override
-  Future<String> moduleForlibrary(String libraryUri) {
+  Future<String> moduleForLibrary(String libraryUri) {
     throw UnimplementedError();
   }
 }

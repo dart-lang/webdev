@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -16,10 +14,10 @@ import '../fixtures/utilities.dart';
 final packagesDir = p.relative('../fixtures/_test', from: p.current);
 
 void main() {
-  FrontendServerAssetReader assetReader;
-  Directory tempFixtures;
-  File jsonOriginal;
-  File mapOriginal;
+  late FrontendServerAssetReader assetReader;
+  late Directory tempFixtures;
+  late File jsonOriginal;
+  late File mapOriginal;
 
   Future<void> createTempFixtures() async {
     final fixtures = p.join('test', 'fixtures');

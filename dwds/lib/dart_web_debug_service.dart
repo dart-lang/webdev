@@ -80,7 +80,7 @@ class Dwds {
     UrlEncoder? urlEncoder,
     bool spawnDds = true,
     // TODO(elliette): DevTools is inconsistently capitalized throughout this
-    // file. Change all occurances of devtools/Devtools to devTools/DevTools.
+    // file. Change all occurrences of devtools/Devtools to devTools/DevTools.
     bool enableDevtoolsLaunch = true,
     DevtoolsLauncher? devtoolsLauncher,
     bool launchDevToolsInNewWindow = true,
@@ -99,7 +99,7 @@ class Dwds {
               // Proxy servers may actively kill long standing connections.
               // Allow for clients to reconnect in a short window. Making the
               // window too long may cause issues if the user closes a debug
-              // session and initites a new one during the keepAlive window.
+              // session and initiates a new one during the keepAlive window.
               keepAlive: const Duration(seconds: 5)))
           : WebSocketSocketHandler();
 
@@ -140,7 +140,6 @@ class Dwds {
       urlEncoder,
       useSseForDebugProxy,
       useSseForInjectedClient,
-      serveDevTools,
       expressionCompiler,
       injected,
       spawnDds,

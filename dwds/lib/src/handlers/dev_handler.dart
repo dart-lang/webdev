@@ -68,7 +68,6 @@ class DevHandler {
   final UrlEncoder? _urlEncoder;
   final bool _useSseForDebugProxy;
   final bool _useSseForInjectedClient;
-  final bool _serveDevTools;
   final bool _spawnDds;
   final bool _launchDevToolsInNewWindow;
   final ExpressionCompiler? _expressionCompiler;
@@ -93,14 +92,12 @@ class DevHandler {
     this._urlEncoder,
     this._useSseForDebugProxy,
     this._useSseForInjectedClient,
-    this._serveDevTools,
     this._expressionCompiler,
     this._injected,
     this._spawnDds,
     this._launchDevToolsInNewWindow,
     this._sdkConfigurationProvider,
   ) {
-    _validateDevToolsOptions();
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
     if (_extensionBackend != null) {
@@ -237,15 +234,15 @@ class DevHandler {
 
   Future<AppDebugServices> loadAppServices(AppConnection appConnection) async {
     final appId = appConnection.request.appId;
-    late final AppDebugServices appServices;
-    if (_servicesByAppId[appId] == null) {
+    var appServices = _servicesByAppId[appId];
+    if (appServices == null) {
       final debugService = await _startLocalDebugService(
           await _chromeConnection(), appConnection);
       appServices = await _createAppDebugServices(
           appConnection.request.appId, debugService);
       unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
           .whenComplete(() async {
-        await appServices.close();
+        await appServices?.close();
         _servicesByAppId.remove(appConnection.request.appId);
         _logger.info('Stopped debug service on '
             'ws://${debugService.hostname}:${debugService.port}\n');
@@ -387,7 +384,7 @@ class DevHandler {
       debuggerStart: debuggerStart,
       devToolsStart: DateTime.now(),
     );
-    if (_serveDevTools) {
+    if (_devTools != null) {
       await _launchDevTools(
           appServices.chromeProxyService.remoteDebugger,
           _constructDevToolsUri(appServices.debugService.uri,
@@ -400,7 +397,7 @@ class DevHandler {
     // After a page refresh, reconnect to the same app services if they
     // were previously launched and create the new isolate.
     final services = _servicesByAppId[message.appId];
-    final existingAppConection = _appConnectionByAppId[message.appId];
+    final existingConnection = _appConnectionByAppId[message.appId];
     final connection = AppConnection(message, sseConnection);
 
     // We can take over a connection if there is no connectedInstanceId (this
@@ -410,12 +407,12 @@ class DevHandler {
     // reload).
     final canReuseConnection = services != null &&
         (services.connectedInstanceId == null ||
-            existingAppConection?.isInKeepAlivePeriod == true);
+            existingConnection?.isInKeepAlivePeriod == true);
 
     if (canReuseConnection) {
       // Disconnect any old connection (eg. those in the keep-alive waiting
       // state when reloading the page).
-      existingAppConection?.shutDown();
+      existingConnection?.shutDown();
       services.chromeProxyService.destroyIsolate();
 
       // Reconnect to existing service.
@@ -516,7 +513,8 @@ class DevHandler {
       }
 
       final debuggerStart = DateTime.now();
-      if (_servicesByAppId[appId] == null) {
+      var appServices = _servicesByAppId[appId];
+      if (appServices == null) {
         final debugService = await DebugService.start(
           _hostname,
           extensionDebugger,
@@ -536,7 +534,7 @@ class DevHandler {
           spawnDds: _spawnDds,
           sdkConfigurationProvider: _sdkConfigurationProvider,
         );
-        final appServices = await _createAppDebugServices(
+        appServices = await _createAppDebugServices(
           devToolsRequest.appId,
           debugService,
         );
@@ -544,22 +542,21 @@ class DevHandler {
         extensionDebugger.sendEvent('dwds.encodedUri', encodedUri);
         unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
             .whenComplete(() async {
-          appServices.chromeProxyService.destroyIsolate();
-          await appServices.close();
+          appServices?.chromeProxyService.destroyIsolate();
+          await appServices?.close();
           _servicesByAppId.remove(devToolsRequest.appId);
           _logger.info('Stopped debug service on '
-              '${await appServices.debugService.encodedUri}\n');
+              '${await appServices?.debugService.encodedUri}\n');
         }));
         extensionDebugConnections.add(DebugConnection(appServices));
         _servicesByAppId[appId] = appServices;
       }
-      final appServices = _servicesByAppId[appId]!;
       final encodedUri = await appServices.debugService.encodedUri;
 
       appServices.dwdsStats.updateLoadTime(
           debuggerStart: debuggerStart, devToolsStart: DateTime.now());
 
-      if (_serveDevTools) {
+      if (_devTools != null) {
         // If we only want the URI, this means we are embedding Dart DevTools in
         // Chrome DevTools. Therefore return early.
         if (devToolsRequest.uriOnly ?? false) {
@@ -580,23 +577,17 @@ class DevHandler {
   }
 
   DevTools _ensureDevTools() {
-    _validateDevToolsOptions();
-    if (!_serveDevTools) {
-      _logger.severe('Expected _serveDevTools');
-      throw StateError('Expected _serveDevTools');
+    final devTools = _devTools;
+    if (devTools == null) {
+      throw StateError('DevHandler: DevTools is not available');
     }
-    return _devTools!;
-  }
-
-  void _validateDevToolsOptions() {
-    if (_serveDevTools && _devTools == null) {
-      _logger.severe('DevHandler: invalid DevTools options');
-      throw StateError('DevHandler: invalid DevTools options');
-    }
+    return devTools;
   }
 
   Future<void> _launchDevTools(
       RemoteDebugger remoteDebugger, String devToolsUri) async {
+    // TODO(annagrin): move checking whether devtools should be started
+    // and the creation of the uri logic here so it is easier to follow.
     _ensureDevTools();
     // TODO(grouma) - We may want to log the debugServiceUri if we don't launch
     // DevTools so that users can manually connect.
