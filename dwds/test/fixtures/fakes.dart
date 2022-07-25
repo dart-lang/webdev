@@ -20,6 +20,7 @@ import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
+
 /// A library of fake/stub implementations of our classes and their supporting
 /// classes (e.g. WipConnection) for unit testing.
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -48,7 +49,6 @@ class FakeInspector implements AppInspector {
   FakeInspector({required this.fakeIsolate});
 
   Isolate fakeIsolate;
-
 
   @override
   Object noSuchMethod(Invocation invocation) {

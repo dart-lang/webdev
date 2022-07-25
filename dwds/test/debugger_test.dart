@@ -21,7 +21,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
 import 'fixtures/context.dart';
 import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
-import 'fixtures/fakes.dart';
 
 final context = TestContext();
 AppInspector inspector;
@@ -98,7 +97,7 @@ void main() async {
       skipLists,
       root,
     );
-    inspector = FakeInspector();
+    inspector = FakeInspector(fakeIsolate: simpleIsolate);
     debugger.updateInspector(inspector);
   });
 
