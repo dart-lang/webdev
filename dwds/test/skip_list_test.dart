@@ -9,7 +9,7 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:source_maps/parser.dart';
 import 'package:test/test.dart';
 
-import 'fixtures/migrated_fakes.dart';
+import 'fixtures/fakes.dart';
 
 class TestStrategy extends FakeStrategy {
   @override

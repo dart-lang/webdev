@@ -13,7 +13,7 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-import 'fixtures/migrated_fakes.dart';
+import 'fixtures/fakes.dart';
 
 final sourceMapContents =
     '{"version":3,"sourceRoot":"","sources":["main.dart"],"names":[],'

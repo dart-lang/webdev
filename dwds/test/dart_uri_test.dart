@@ -14,7 +14,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'fixtures/logging.dart';
-import 'fixtures/migrated_fakes.dart';
+import 'fixtures/fakes.dart';
 
 class TestStrategy extends FakeStrategy {
   @override
