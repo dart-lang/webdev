@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:build_daemon/data/build_status.dart' as daemon;
@@ -66,7 +64,7 @@ class TestServer {
 
   static Future<TestServer> start(
     String hostname,
-    int port,
+    int? port,
     Handler assetHandler,
     AssetReader assetReader,
     RequireStrategy strategy,
@@ -78,10 +76,10 @@ class TestServer {
     bool autoRun,
     bool enableDebugging,
     bool useSse,
-    UrlEncoder urlEncoder,
-    ExpressionCompiler expressionCompiler,
+    UrlEncoder? urlEncoder,
+    ExpressionCompiler? expressionCompiler,
     bool spawnDds,
-    ExpressionCompilerService ddcService,
+    ExpressionCompilerService? ddcService,
   ) async {
     var pipeline = const Pipeline();
 
@@ -122,6 +120,9 @@ class TestServer {
                   enableStdinCommands: false,
                   customDevToolsPath: devToolsPath,
                 );
+                if (server == null) {
+                  throw StateError('DevTools server could not be started.');
+                }
                 return DevTools(server.address.host, server.port, server);
               }
             : null);

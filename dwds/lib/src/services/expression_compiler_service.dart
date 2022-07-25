@@ -27,14 +27,22 @@ class _Compiler {
 
   /// Sends [request] on [_sendPort] and returns the next event from the
   /// response stream.
-  Future<Map<String, Object>> _send(Map<String, Object> request) async {
+  Future<Map<String, dynamic>> _send(Map<String, Object> request) async {
     _sendPort.send(request);
-    return await _responseQueue.hasNext
-        ? Map<String, Object>.from(await _responseQueue.next)
-        : {
-            'succeeded': false,
-            'errors': ['compilation service response stream closed'],
-          };
+    if (!await _responseQueue.hasNext) {
+      return {
+        'succeeded': false,
+        'errors': ['compilation worker response stream closed'],
+      };
+    }
+    final response = await _responseQueue.next;
+    if (response is! Map<String, dynamic>) {
+      return {
+        'succeeded': false,
+        'errors': ['compilation worker returned invalid response: $response'],
+      };
+    }
+    return response;
   }
 
   /// Starts expression compilation service.
@@ -46,11 +54,11 @@ class _Compiler {
   /// expression compilation (summaries, libraries spec, compiler worker
   /// snapshot).
   ///
-  /// [soundNullSafety] indiciates if the compioler should support sound null
-  /// safety.
+  /// [soundNullSafety] indicates if the compiler should support sound
+  /// null safety.
   ///
   /// Performs handshake with the isolate running expression compiler
-  /// worker to estabish communication via send/receive ports, returns
+  /// worker to establish communication via send/receive ports, returns
   /// the service after the communication is established.
   ///
   /// Users need to stop the service by calling [stop].
@@ -131,9 +139,12 @@ class _Compiler {
     if (result) {
       _logger.info('Updated dependencies.');
     } else {
-      final e = response['exception'];
-      final s = response['stackTrace'];
-      _logger.severe('Failed to update dependencies: $e:$s');
+      final errors = response['errors'];
+      final exception = response['exception'];
+      final s = response['stackTrace'] as String?;
+      final stackTrace = s == null ? null : StackTrace.fromString(s);
+      _logger.severe(
+          'Failed to update dependencies: $errors', exception, stackTrace);
     }
     updateCompleter.complete();
     return result;

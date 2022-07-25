@@ -13,11 +13,14 @@ class ChromeDebugException extends ExceptionDetails implements Exception {
 
   /// Optional, the stack where exception happened.
   @override
-  final StackTrace? stackTrace;
+  late final StackTrace? stackTrace;
 
   ChromeDebugException(Map<String, dynamic> exceptionDetails,
-      {this.additionalDetails, this.evalContents, this.stackTrace})
-      : super(exceptionDetails);
+      {this.additionalDetails, this.evalContents})
+      : super(exceptionDetails) {
+    final json = exceptionDetails['stackTrace'];
+    stackTrace = json == null ? null : StackTrace(json);
+  }
 
   @override
   String toString() {

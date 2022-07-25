@@ -166,7 +166,7 @@ void _processSendEvent(Map<String, dynamic> event,
             _logger.fine('Debugger ready time: $debuggerStartTime ms');
           } else {
             _logger
-                .finest('Debugger and DevTools startup times alredy recorded.'
+                .finest('Debugger and DevTools startup times already recorded.'
                     ' Ignoring $event.');
           }
         } else {
@@ -264,7 +264,7 @@ Future<void> _disableBreakpointsAndResume(
     // at this point:
     //
     // - `getIsolate()` and check for status:
-    //    the app migth still pause on existing breakpoint.
+    //    the app might still pause on existing breakpoint.
     //
     // - `pause()` and wait for `Debug.paused` event:
     //   chrome does not send the `Debug.Paused `notification

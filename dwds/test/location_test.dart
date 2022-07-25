@@ -263,7 +263,7 @@ class MockModules implements Modules {
   }
 
   @override
-  Future<String> moduleForlibrary(String libraryUri) {
+  Future<String> moduleForLibrary(String libraryUri) {
     throw UnimplementedError();
   }
 }
