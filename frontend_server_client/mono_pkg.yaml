@@ -6,7 +6,7 @@ stages:
       - analyze: --fatal-infos .
       sdk: dev
   - unit_test:
-    - test:
+    - test: -j 1
       sdk:
         - stable
         - dev
