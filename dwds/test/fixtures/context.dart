@@ -61,7 +61,7 @@ class TestContext {
   late WipConnection? _tabConnection;
 
   TestServer get testServer => _testServer!;
-  late TestServer? _testServer;
+  TestServer? _testServer;
 
   BuildDaemonClient get daemonClient => _daemonClient!;
   late BuildDaemonClient? _daemonClient;
