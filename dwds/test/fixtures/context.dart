@@ -67,9 +67,8 @@ class TestContext {
   late BuildDaemonClient? _daemonClient;
 
   ResidentWebRunner get webRunner => _webRunner!;
-  late ResidentWebRunner? _webRunner;
+  ResidentWebRunner? _webRunner;
 
-// here
   WebDriver get webDriver => _webDriver!;
   late WebDriver? _webDriver;
 
@@ -83,7 +82,7 @@ class TestContext {
   late Client? _client;
 
   ExpressionCompilerService get ddcService => _ddcService!;
-  late ExpressionCompilerService? _ddcService;
+  ExpressionCompilerService? _ddcService;
 
   int get port => _port!;
   late int? _port;
@@ -99,21 +98,6 @@ class TestContext {
   late Uri _projectDirectory;
   late String _entryContents;
 
-  /// Null safety mode for the frontend server.
-  ///
-  /// Note: flutter's frontend server is always launched with
-  /// the null safety setting inferred from project configurations
-  /// or the source code. We skip this inference and just set it
-  /// here to the desired value manually.
-  ///
-  /// Note: build_runner-based setups ignore this setting and read
-  /// this value from the ddc debug metadata and pass it to the
-  /// expression compiler worker initialiation API.
-  ///
-  /// TODO(annagrin): Currently setting sound null safety for frontend
-  /// server tests fails due to missing sound SDK JavaScript and maps.
-  /// Issue: https://github.com/dart-lang/webdev/issues/1591
-  NullSafety? nullSafety;
   final _logger = logging.Logger('Context');
 
   /// Top level directory in which we run the test server..
@@ -169,7 +153,7 @@ class TestContext {
     bool waitToDebug = false,
     UrlEncoder? urlEncoder,
     CompilationMode compilationMode = CompilationMode.buildDaemon,
-    NullSafety? nullSafety = NullSafety.weak,
+    NullSafety nullSafety = NullSafety.weak,
     bool enableExpressionEvaluation = false,
     bool verboseCompiler = false,
     SdkConfigurationProvider? sdkConfigurationProvider,
