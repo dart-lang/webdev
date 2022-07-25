@@ -85,7 +85,7 @@ class TestContext {
   ///
   /// Note: build_runner-based setups ignore this setting and read
   /// this value from the ddc debug metadata and pass it to the
-  /// expression compiler worker initialiation API.
+  /// expression compiler worker initialization API.
   ///
   /// TODO(annagrin): Currently setting sound null safety for frontend
   /// server tests fails due to missing sound SDK JavaScript and maps.

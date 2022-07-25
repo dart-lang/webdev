@@ -52,7 +52,7 @@ class Modules {
     return _sourceToLibrary[serverPath];
   }
 
-  Future<String?> moduleForlibrary(String libraryUri) async {
+  Future<String?> moduleForLibrary(String libraryUri) async {
     await _moduleMemoizer.runOnce(_initializeMapping);
     return _libraryToModule[libraryUri];
   }

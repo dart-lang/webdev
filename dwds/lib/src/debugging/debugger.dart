@@ -12,6 +12,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
 import '../loaders/strategy.dart';
+import '../services/chrome_debug_exception.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
@@ -379,7 +380,7 @@ class Debugger extends Domain {
 
   Future<BoundVariable?> _boundVariable(Property property) async {
     // TODO(annagrin): value might be null in the future for variables
-    // optimized by V8. Return appopriate sentinel values for them.
+    // optimized by V8. Return appropriate sentinel values for them.
     if (property.value != null) {
       final value = property.value!;
       // We return one level of properties from this object. Sub-properties are
@@ -721,7 +722,7 @@ class Debugger extends Domain {
     try {
       return await _remoteDebugger.evaluateOnCallFrame(callFrameId, expression);
     } on ExceptionDetails catch (e) {
-      throwChromeDebugException(
+      throw ChromeDebugException(
         e.json,
         evalContents: expression,
       );
@@ -935,7 +936,7 @@ String _prettifyExtension(String member) {
     isSetter = member.substring(0, spaceIndex) == 'set';
     member = member.substring(spaceIndex + 1, member.length);
   } else if (poundIndex >= 0) {
-    // Here member is a tearoff or local property getter/setter.
+    // Here member is a tear-off or local property getter/setter.
     isSetter = member.substring(pipeIndex + 1, poundIndex) == 'set';
     member = member.replaceRange(pipeIndex + 1, poundIndex + 3, '');
   } else {
@@ -949,7 +950,7 @@ String _prettifyExtension(String member) {
   return isSetter ? '$member=' : member;
 }
 
-/// Unescapes a DDC-escaped JS identifier name.
+/// Un-escapes a DDC-escaped JS identifier name.
 ///
 /// Identifier names that contain illegal JS characters are escaped by DDC to a
 /// decimal representation of the symbol's UTF-16 value.

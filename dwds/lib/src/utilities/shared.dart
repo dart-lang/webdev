@@ -92,10 +92,9 @@ void serveHttpRequests(Stream<HttpRequest> requests, Handler handler,
 void handleErrorIfPresent(wip.WipResponse? response, {String? evalContents}) {
   final result = response?.result;
   if (result == null) return;
-  final exceptionDetails = result['exceptionDetails'] as Map<String, dynamic>?;
-  if (exceptionDetails != null) {
-    throwChromeDebugException(
-      exceptionDetails,
+  if (result.containsKey('exceptionDetails')) {
+    throw ChromeDebugException(
+      result['exceptionDetails'] as Map<String, dynamic>,
       evalContents: evalContents,
     );
   }
@@ -106,27 +105,13 @@ void handleErrorIfPresent(wip.WipResponse? response, {String? evalContents}) {
 /// result or the result is null.
 Map<String, dynamic> getResultOrHandleError(wip.WipResponse? response,
     {String? evalContents}) {
-  final result = response?.result;
-  final resultValue = result?['result'];
-  final exceptionDetails = result?['exceptionDetails'];
-  if (resultValue == null || exceptionDetails != null) {
-    throwChromeDebugException(
-      exceptionDetails,
+  handleErrorIfPresent(response, evalContents: evalContents);
+  final result = response?.result?['result'];
+  if (result == null) {
+    throw ChromeDebugException(
+      {'text': 'null result from Chrome Devtools'},
       evalContents: evalContents,
     );
   }
-  return resultValue;
-}
-
-Never throwChromeDebugException(Map<String, dynamic>? exceptionDetails,
-    {String? evalContents, Object? additionalDetails}) {
-  final stackTraceDetails = exceptionDetails?['stackTrace'];
-  final stackTrace =
-      stackTraceDetails == null ? null : wip.StackTrace(stackTraceDetails);
-  throw ChromeDebugException(
-    exceptionDetails ?? {'text': 'null result from Chrome Devtools'},
-    evalContents: evalContents,
-    additionalDetails: additionalDetails,
-    stackTrace: stackTrace,
-  );
+  return result;
 }

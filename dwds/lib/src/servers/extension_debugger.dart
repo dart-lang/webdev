@@ -304,7 +304,7 @@ class ExtensionDebugger implements RemoteDebugger {
 
   Map<String, dynamic> _validateResult(Map<String, dynamic>? result) {
     if (result == null) {
-      throw ChromeDebugException({'result': null});
+      throw ChromeDebugException({'text': 'null result from Chrome Devtools'});
     }
     if (result.containsKey('exceptionDetails')) {
       throw ChromeDebugException(
