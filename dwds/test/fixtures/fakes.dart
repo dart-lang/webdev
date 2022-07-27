@@ -2,21 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
+import 'package:dwds/asset_reader.dart';
+import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/debugging/classes.dart';
 import 'package:dwds/src/debugging/execution_context.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/instance.dart';
 import 'package:dwds/src/debugging/libraries.dart';
+import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
 import 'package:dwds/src/debugging/webkit_debugger.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:vm_service/vm_service.dart';
 
 /// A library of fake/stub implementations of our classes and their supporting
@@ -44,11 +46,9 @@ Isolate get simpleIsolate => Isolate(
     );
 
 class FakeInspector implements AppInspector {
-  FakeInspector({this.fakeIsolate});
+  FakeInspector({required this.fakeIsolate});
 
   Isolate fakeIsolate;
-
-  final _instanceHelper = InstanceHelper(null, null);
 
   @override
   Object noSuchMethod(Invocation invocation) {
@@ -57,31 +57,37 @@ class FakeInspector implements AppInspector {
 
   @override
   Future<void> initialize(LibraryHelper libraryHelper, ClassHelper classHelper,
-          InstanceHelper instanceHelper) =>
-      null;
+          InstanceHelper instanceHelper) async =>
+      {};
 
   @override
-  Future<InstanceRef> instanceRefFor(Object value) =>
-      _instanceHelper.instanceRefFor(value);
+  Future<InstanceRef?> instanceRefFor(Object value) async =>
+      InstanceHelper.kNullInstanceRef;
 
   @override
-  Future<Obj> getObject(String objectId, {int offset, int count}) => null;
+  Future<Obj> getObject(String objectId, {int? offset, int? count}) async =>
+      Obj.parse({})!;
 
   @override
-  Future<ScriptList> getScripts() => null;
+  Future<ScriptList> getScripts() async => ScriptList(scripts: []);
 
   @override
-  Future<ScriptRef> scriptRefFor(String uri) =>
-      Future.value(ScriptRef(id: 'fake', uri: 'fake://uri'));
+  Future<ScriptRef> scriptRefFor(String uri) async =>
+      ScriptRef(id: 'fake', uri: 'fake://uri');
 
   @override
-  ScriptRef scriptWithId(String scriptId) => null;
+  ScriptRef? scriptWithId(String? scriptId) => null;
 
   @override
   Isolate get isolate => fakeIsolate;
 
   @override
-  IsolateRef get isolateRef => null;
+  IsolateRef get isolateRef => IsolateRef(
+        id: fakeIsolate.id,
+        number: fakeIsolate.number,
+        name: fakeIsolate.name,
+        isSystemIsolate: fakeIsolate.isSystemIsolate,
+      );
 }
 
 class FakeSseConnection implements SseSocketConnection {
@@ -130,105 +136,108 @@ class FakeModules implements Modules {
 }
 
 class FakeWebkitDebugger implements WebkitDebugger {
-  final Map<String, WipScript> _scripts;
+  final Map<String, WipScript>? _scripts;
   @override
-  Future disable() => null;
+  Future disable() async => null;
 
   @override
-  Future enable() => null;
+  Future enable() async => null;
 
-  FakeWebkitDebugger({Map<String, WipScript> scripts}) : _scripts = scripts {
+  FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
     globalLoadStrategy = RequireStrategy(
-        ReloadConfiguration.none,
-        (_) async => {},
-        (_) async => {},
-        (_, __) async => null,
-        (_, __) async => null,
-        (_, __) async => null,
-        null,
-        (_) async => null,
-        null);
+      ReloadConfiguration.none,
+      (_) async => {},
+      (_) async => {},
+      (_, __) async => null,
+      (MetadataProvider _, String __) async => '',
+      (MetadataProvider _, String __) async => '',
+      (String _) => '',
+      (MetadataProvider _) async => <String, ModuleInfo>{},
+      FakeAssetReader(),
+    );
   }
 
   @override
   Stream<T> eventStream<T>(String method, WipEventTransformer<T> transformer) =>
-      null;
+      Stream.empty();
 
   @override
-  Future<String> getScriptSource(String scriptId) => null;
+  Future<String> getScriptSource(String scriptId) async => '';
 
-  Stream<WipDomain> get onClosed => null;
-
-  @override
-  Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => null;
+  Stream<WipDomain>? get onClosed => null;
 
   @override
-  Stream<DebuggerPausedEvent> onPaused;
+  Stream<GlobalObjectClearedEvent> get onGlobalObjectCleared => Stream.empty();
 
   @override
-  Stream<DebuggerResumedEvent> get onResumed => null;
+  late Stream<DebuggerPausedEvent> onPaused;
 
   @override
-  Stream<ScriptParsedEvent> get onScriptParsed => null;
+  Stream<DebuggerResumedEvent> get onResumed => Stream.empty();
 
   @override
-  Stream<TargetCrashedEvent> get onTargetCrashed => null;
+  Stream<ScriptParsedEvent> get onScriptParsed => Stream.empty();
 
   @override
-  Future<WipResponse> pause() => null;
+  Stream<TargetCrashedEvent> get onTargetCrashed => Stream.empty();
 
   @override
-  Future<WipResponse> resume() => null;
+  Future<WipResponse> pause() async => WipResponse({});
 
   @override
-  Map<String, WipScript> get scripts => _scripts;
+  Future<WipResponse> resume() async => WipResponse({});
+
+  @override
+  Map<String, WipScript> get scripts => _scripts!;
 
   List<WipResponse> results = variables1;
   int resultsReturned = 0;
 
   @override
-  Future<WipResponse> sendCommand(
-    String method, {
-    Map<String, dynamic> params,
-  }) async {
+  Future<WipResponse> sendCommand(String command,
+      {Map<String, dynamic>? params}) async {
     // Force the results that we expect for looking up the variables.
-    if (method == 'Runtime.getProperties') {
+    if (command == 'Runtime.getProperties') {
       return results[resultsReturned++];
     }
-    return null;
+    return WipResponse({});
   }
 
   @override
-  Future<WipResponse> setPauseOnExceptions(PauseState state) => null;
+  Future<WipResponse> setPauseOnExceptions(PauseState state) async =>
+      WipResponse({});
 
   @override
-  Future<WipResponse> removeBreakpoint(String breakpointId) => null;
+  Future<WipResponse> removeBreakpoint(String breakpointId) async =>
+      WipResponse({});
 
   @override
-  Future<WipResponse> stepInto({Map<String, dynamic> params}) => null;
+  Future<WipResponse> stepInto({Map<String, dynamic>? params}) async =>
+      WipResponse({});
 
   @override
-  Future<WipResponse> stepOut() => null;
+  Future<WipResponse> stepOut() async => WipResponse({});
 
   @override
-  Future<WipResponse> stepOver({Map<String, dynamic> params}) => null;
+  Future<WipResponse> stepOver({Map<String, dynamic>? params}) async =>
+      WipResponse({});
 
   @override
-  Stream<ConsoleAPIEvent> get onConsoleAPICalled => null;
+  Stream<ConsoleAPIEvent> get onConsoleAPICalled => Stream.empty();
 
   @override
-  Stream<ExceptionThrownEvent> get onExceptionThrown => null;
+  Stream<ExceptionThrownEvent> get onExceptionThrown => Stream.empty();
 
   @override
   void close() {}
 
   @override
-  Stream<WipConnection> get onClose => null;
+  Stream<WipConnection> get onClose => Stream.empty();
 
   @override
   Future<RemoteObject> evaluate(String expression,
-          {bool returnByValue, int contextId}) =>
-      null;
+          {bool? returnByValue, int? contextId}) async =>
+      RemoteObject({});
 
   @override
   Future<RemoteObject> evaluateOnCallFrame(
@@ -237,14 +246,15 @@ class FakeWebkitDebugger implements WebkitDebugger {
   }
 
   @override
-  Future<List<WipBreakLocation>> getPossibleBreakpoints(WipLocation start) =>
-      null;
+  Future<List<WipBreakLocation>> getPossibleBreakpoints(
+          WipLocation start) async =>
+      [];
 
   @override
-  Future<WipResponse> enablePage() => null;
+  Future<WipResponse> enablePage() async => WipResponse({});
 
   @override
-  Future<WipResponse> pageReload() => null;
+  Future<WipResponse> pageReload() async => WipResponse({});
 }
 
 /// Fake execution context that is needed for id only
@@ -255,4 +265,103 @@ class FakeExecutionContext extends ExecutionContext {
   }
 
   FakeExecutionContext();
+}
+
+class FakeStrategy implements LoadStrategy {
+  @override
+  Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
+
+  @override
+  shelf.Handler get handler =>
+      (request) => (request.url.path == 'someDummyPath')
+          ? shelf.Response.ok('some dummy response')
+          : shelf.Response.notFound('someDummyPath');
+
+  @override
+  String get id => 'dummy-id';
+
+  @override
+  String get moduleFormat => 'dummy-format';
+
+  @override
+  String get loadLibrariesModule => '';
+
+  @override
+  String get loadLibrariesSnippet => '';
+
+  @override
+  String loadLibrarySnippet(String libraryUri) => '';
+
+  @override
+  String get loadModuleSnippet => '';
+
+  @override
+  ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
+
+  @override
+  String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
+
+  @override
+  Future<String> moduleForServerPath(
+          String entrypoint, String serverPath) async =>
+      '';
+
+  @override
+  Future<String> serverPathForModule(String entrypoint, String module) async =>
+      '';
+
+  @override
+  Future<String> sourceMapPathForModule(
+          String entrypoint, String module) async =>
+      '';
+
+  @override
+  String serverPathForAppUri(String appUri) => '';
+
+  @override
+  MetadataProvider metadataProviderFor(String entrypoint) =>
+      MetadataProvider(entrypoint, FakeAssetReader());
+
+  @override
+  void trackEntrypoint(String entrypoint) {}
+
+  @override
+  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
+      throw UnimplementedError();
+}
+
+class FakeAssetReader implements AssetReader {
+  final String? _metadata;
+  final String? _dartSource;
+  final String? _sourceMap;
+  FakeAssetReader({
+    metadata,
+    dartSource,
+    sourceMap,
+  })  : _metadata = metadata,
+        _dartSource = dartSource,
+        _sourceMap = sourceMap;
+
+  @override
+  Future<String> dartSourceContents(String serverPath) {
+    return _throwUnimplementedOrReturnContents(_dartSource);
+  }
+
+  @override
+  Future<String> metadataContents(String serverPath) {
+    return _throwUnimplementedOrReturnContents(_metadata);
+  }
+
+  @override
+  Future<String> sourceMapContents(String serverPath) {
+    return _throwUnimplementedOrReturnContents(_sourceMap);
+  }
+
+  @override
+  Future<void> close() async {}
+
+  Future<String> _throwUnimplementedOrReturnContents(String? contents) async {
+    if (contents == null) throw UnimplementedError();
+    return contents;
+  }
 }
