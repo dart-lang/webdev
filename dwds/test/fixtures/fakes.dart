@@ -57,14 +57,16 @@ class FakeInspector implements AppInspector {
 
   @override
   Future<void> initialize(LibraryHelper libraryHelper, ClassHelper classHelper,
-          InstanceHelper instanceHelper) async => {};
+          InstanceHelper instanceHelper) async =>
+      {};
 
   @override
   Future<InstanceRef?> instanceRefFor(Object value) async =>
       InstanceHelper.kNullInstanceRef;
 
   @override
-  Future<Obj> getObject(String objectId, {int? offset, int? count}) async => Obj.parse({})!;
+  Future<Obj> getObject(String objectId, {int? offset, int? count}) async =>
+      Obj.parse({})!;
 
   @override
   Future<ScriptList> getScripts() async => ScriptList(scripts: []);
