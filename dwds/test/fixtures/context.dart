@@ -63,14 +63,13 @@ class TestContext {
   TestServer get testServer => _testServer!;
   TestServer? _testServer;
 
-  BuildDaemonClient get daemonClient => _daemonClient!;
-  late BuildDaemonClient? _daemonClient;
+  BuildDaemonClient? _daemonClient;
 
   ResidentWebRunner get webRunner => _webRunner!;
   ResidentWebRunner? _webRunner;
 
   WebDriver get webDriver => _webDriver!;
-  late WebDriver? _webDriver;
+  WebDriver? _webDriver;
 
   Process get chromeDriver => _chromeDriver!;
   late Process? _chromeDriver;
@@ -158,6 +157,7 @@ class TestContext {
     SdkConfigurationProvider? sdkConfigurationProvider,
   }) async {
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
+    urlEncoder = urlEncoder ?? (url) async => url;
 
     try {
       configureLogWriter();
@@ -227,6 +227,7 @@ class TestContext {
               _logger.log(record.level, '$name${record.message}', record.error,
                   record.stackTrace);
             });
+            final daemonClient = _daemonClient!;
             daemonClient.registerBuildTarget(
                 DefaultBuildTarget((b) => b..target = pathToServe));
             daemonClient.startBuild();
@@ -268,11 +269,6 @@ class TestContext {
 
             final entry = p.toUri(_entryFile.path
                 .substring(_projectDirectory.toFilePath().length + 1));
-
-            if (urlEncoder == null) {
-              throw StateError(
-                  'Context must have a UrlEncoder in order to run the web runner.');
-            }
 
             _webRunner = ResidentWebRunner(
               entry,
@@ -357,7 +353,7 @@ class TestContext {
           ? 'http://localhost:$port/$path'
           : 'http://localhost:$port/$basePath/$path';
 
-      await webDriver.get(appUrl);
+      await _webDriver?.get(appUrl);
       final tab = await (connection.getTab((t) => t.url == appUrl)
           as FutureOr<ChromeTab>);
       _tabConnection = await tab.connect();
@@ -414,7 +410,7 @@ class TestContext {
         _entryContents.replaceAll('Hello World!', 'Gary is awesome!'));
 
     // Wait for the build.
-    await daemonClient.buildResults.firstWhere((results) => results.results
+    await _daemonClient?.buildResults.firstWhere((results) => results.results
         .any((result) => result.status == BuildStatus.succeeded));
 
     // Allow change to propagate to the browser.
