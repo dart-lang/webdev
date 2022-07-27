@@ -57,23 +57,21 @@ class FakeInspector implements AppInspector {
 
   @override
   Future<void> initialize(LibraryHelper libraryHelper, ClassHelper classHelper,
-          InstanceHelper instanceHelper) =>
-      Future.value(null);
+          InstanceHelper instanceHelper) async => {};
 
   @override
-  Future<InstanceRef?> instanceRefFor(Object value) =>
-      Future.value(InstanceHelper.kNullInstanceRef);
+  Future<InstanceRef?> instanceRefFor(Object value) async =>
+      InstanceHelper.kNullInstanceRef;
 
   @override
-  Future<Obj> getObject(String objectId, {int? offset, int? count}) =>
-      Future.value(Obj.parse({}));
+  Future<Obj> getObject(String objectId, {int? offset, int? count}) async => Obj.parse({})!;
 
   @override
-  Future<ScriptList> getScripts() => Future.value(ScriptList(scripts: []));
+  Future<ScriptList> getScripts() async => ScriptList(scripts: []);
 
   @override
-  Future<ScriptRef> scriptRefFor(String uri) =>
-      Future.value(ScriptRef(id: 'fake', uri: 'fake://uri'));
+  Future<ScriptRef> scriptRefFor(String uri) async =>
+      ScriptRef(id: 'fake', uri: 'fake://uri');
 
   @override
   ScriptRef? scriptWithId(String? scriptId) => null;
@@ -138,10 +136,10 @@ class FakeModules implements Modules {
 class FakeWebkitDebugger implements WebkitDebugger {
   final Map<String, WipScript>? _scripts;
   @override
-  Future disable() => Future.value(null);
+  Future disable() async => null;
 
   @override
-  Future enable() => Future.value(null);
+  Future enable() async => null;
 
   FakeWebkitDebugger({Map<String, WipScript>? scripts}) : _scripts = scripts {
     globalLoadStrategy = RequireStrategy(
@@ -149,10 +147,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
       (_) async => {},
       (_) async => {},
       (_, __) async => null,
-      (MetadataProvider _, String __) async => Future.value(''),
-      (MetadataProvider _, String __) async => Future.value(''),
+      (MetadataProvider _, String __) async => '',
+      (MetadataProvider _, String __) async => '',
       (String _) => '',
-      (MetadataProvider _) async => Future.value(<String, ModuleInfo>{}),
+      (MetadataProvider _) async => <String, ModuleInfo>{},
       FakeAssetReader(),
     );
   }
@@ -162,7 +160,7 @@ class FakeWebkitDebugger implements WebkitDebugger {
       Stream.empty();
 
   @override
-  Future<String> getScriptSource(String scriptId) => Future.value('');
+  Future<String> getScriptSource(String scriptId) async => '';
 
   Stream<WipDomain>? get onClosed => null;
 
@@ -182,10 +180,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<TargetCrashedEvent> get onTargetCrashed => Stream.empty();
 
   @override
-  Future<WipResponse> pause() => Future.value(WipResponse({}));
+  Future<WipResponse> pause() async => WipResponse({});
 
   @override
-  Future<WipResponse> resume() => Future.value(WipResponse({}));
+  Future<WipResponse> resume() async => WipResponse({});
 
   @override
   Map<String, WipScript> get scripts => _scripts!;
@@ -198,29 +196,29 @@ class FakeWebkitDebugger implements WebkitDebugger {
       {Map<String, dynamic>? params}) async {
     // Force the results that we expect for looking up the variables.
     if (command == 'Runtime.getProperties') {
-      return Future.value(results[resultsReturned++]);
+      return results[resultsReturned++];
     }
-    return Future.value(WipResponse({}));
+    return WipResponse({});
   }
 
   @override
-  Future<WipResponse> setPauseOnExceptions(PauseState state) =>
-      Future.value(WipResponse({}));
+  Future<WipResponse> setPauseOnExceptions(PauseState state) async =>
+      WipResponse({});
 
   @override
-  Future<WipResponse> removeBreakpoint(String breakpointId) =>
-      Future.value(WipResponse({}));
+  Future<WipResponse> removeBreakpoint(String breakpointId) async =>
+      WipResponse({});
 
   @override
-  Future<WipResponse> stepInto({Map<String, dynamic>? params}) =>
-      Future.value(WipResponse({}));
+  Future<WipResponse> stepInto({Map<String, dynamic>? params}) async =>
+      WipResponse({});
 
   @override
-  Future<WipResponse> stepOut() => Future.value(WipResponse({}));
+  Future<WipResponse> stepOut() async => WipResponse({});
 
   @override
-  Future<WipResponse> stepOver({Map<String, dynamic>? params}) =>
-      Future.value(WipResponse({}));
+  Future<WipResponse> stepOver({Map<String, dynamic>? params}) async =>
+      WipResponse({});
 
   @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled => Stream.empty();
@@ -236,8 +234,8 @@ class FakeWebkitDebugger implements WebkitDebugger {
 
   @override
   Future<RemoteObject> evaluate(String expression,
-          {bool? returnByValue, int? contextId}) =>
-      Future.value(RemoteObject({}));
+          {bool? returnByValue, int? contextId}) async =>
+      RemoteObject({});
 
   @override
   Future<RemoteObject> evaluateOnCallFrame(
@@ -246,14 +244,15 @@ class FakeWebkitDebugger implements WebkitDebugger {
   }
 
   @override
-  Future<List<WipBreakLocation>> getPossibleBreakpoints(WipLocation start) =>
-      Future.value([]);
+  Future<List<WipBreakLocation>> getPossibleBreakpoints(
+          WipLocation start) async =>
+      [];
 
   @override
-  Future<WipResponse> enablePage() => Future.value(WipResponse({}));
+  Future<WipResponse> enablePage() async => WipResponse({});
 
   @override
-  Future<WipResponse> pageReload() => Future.value(WipResponse({}));
+  Future<WipResponse> pageReload() async => WipResponse({});
 }
 
 /// Fake execution context that is needed for id only
@@ -301,16 +300,18 @@ class FakeStrategy implements LoadStrategy {
   String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
 
   @override
-  Future<String> moduleForServerPath(String entrypoint, String serverPath) =>
-      Future.value('');
+  Future<String> moduleForServerPath(
+          String entrypoint, String serverPath) async =>
+      '';
 
   @override
-  Future<String> serverPathForModule(String entrypoint, String module) =>
-      Future.value('');
+  Future<String> serverPathForModule(String entrypoint, String module) async =>
+      '';
 
   @override
-  Future<String> sourceMapPathForModule(String entrypoint, String module) =>
-      Future.value('');
+  Future<String> sourceMapPathForModule(
+          String entrypoint, String module) async =>
+      '';
 
   @override
   String serverPathForAppUri(String appUri) => '';
@@ -357,8 +358,8 @@ class FakeAssetReader implements AssetReader {
   @override
   Future<void> close() async {}
 
-  Future<String> _throwUnimplementedOrReturnContents(String? contents) {
+  Future<String> _throwUnimplementedOrReturnContents(String? contents) async {
     if (contents == null) throw UnimplementedError();
-    return Future.value(contents);
+    return contents;
   }
 }
