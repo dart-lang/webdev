@@ -81,8 +81,7 @@ class TestContext {
   Client get client => _client!;
   late Client? _client;
 
-  ExpressionCompilerService get ddcService => _ddcService!;
-  ExpressionCompilerService? _ddcService;
+  ExpressionCompilerService? ddcService;
 
   int get port => _port!;
   late int? _port;
@@ -245,7 +244,7 @@ class TestContext {
                 ProxyServerAssetReader(assetServerPort, root: pathToServe);
 
             if (enableExpressionEvaluation) {
-              _ddcService = ExpressionCompilerService(
+              ddcService = ExpressionCompilerService(
                 'localhost',
                 port,
                 verbose: verboseCompiler,
@@ -392,7 +391,7 @@ class TestContext {
     DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
     await _daemonClient?.close();
-    await _ddcService?.stop();
+    await ddcService?.stop();
     await _webRunner?.stop();
     await _testServer?.stop();
     _client?.close();
@@ -403,7 +402,7 @@ class TestContext {
     _webDriver = null;
     _chromeDriver = null;
     _daemonClient = null;
-    _ddcService = null;
+    ddcService = null;
     _webRunner = null;
     _testServer = null;
     _client = null;
