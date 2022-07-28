@@ -1,11 +1,11 @@
-## 16.0.0-dev
+## 16.0.0
 - Fix a hang and report errors on hot reload exceptions from the injected
   client.
 - Remove `AppInspector.evaluate` code that has been replaced by expression
   evaluation using a compiler in all scenarios.
 - Fix a bug where evaluation would fail with more than one parameter in
   the scope.
-- Remove showing uncaptured values from the stack during evaluation.
+- Remove showing un-captured values from the stack during evaluation.
 - Refactor code to break most circular dependencies between files.
 - Migrate `package:dwds` to null safety.
 
@@ -34,7 +34,7 @@
 - Update the min SDK constraint to 2.17.0.
 
 ## 14.0.1
-- Add `libraryFilters` optional parameter to the vm service implememtation
+- Add `libraryFilters` optional parameter to the vm service implementation
   of `getSourceReport`.
 - Update temp variable detection heuristics so internal JS type objects do
   not show in the debugger.
@@ -126,7 +126,7 @@
 
 ## 11.5.1
 
-- Update SDK contraint to `>=2.15.0 <3.0.0`.
+- Update SDK constraint to `>=2.15.0 <3.0.0`.
 
 ## 11.5.0
 
@@ -216,7 +216,7 @@
 
 ## 11.1.2
 - Return empty library from `ChromeProxyService.getObject` for
-  libraries present in medatata but not loaded at runtime.
+  libraries present in metadata but not loaded at runtime.
 - Log failures to load kernel during expression evaluation.
 - Show lowered final fields using their original dart names.
 - Limit simultaneous connections to asset server to prevent broken sockets.
@@ -373,7 +373,7 @@
 
 ## 7.0.2
 
-- Depend on the latest `pacakge:sse`.
+- Depend on the latest `package:sse`.
 - Add more verbose logging around `hotRestart`, `fullReload` and
   entrypoint injection.
 
@@ -409,7 +409,7 @@
 - Change `ExpressionCompiler` to require a new `updateDependencies` method.
 - Update a number of `LoadStrategy` APIs to remove heuristics and rely on
   the `MetadataProvider`.
-- No longer require a `LogWriter` and corresponding `verbose` arguement
+- No longer require a `LogWriter` and corresponding `verbose` argument
   but instead properly use `package:logger`.
 - `FrontendServerRequireStrategyProvider` now requires a `digestProvider`.
 
@@ -478,7 +478,7 @@
 - Implemented the 'PossibleBreakpoints' report kind for `getSourceReport()`.
 - Change the returned errors for the unimplemented `getClassList` and `reloadSources`
   methods to -32601 ('method does not exist / is not available').
-- Do not include native JavaScipt objects on stack returned from the debugger.
+- Do not include native JavaScript objects on stack returned from the debugger.
 
 ## 3.1.0
 
@@ -568,7 +568,7 @@
 - Expose `middleware` and `handler`.
 
 **Breaking Change:** The `AssetHandler` will not automatically be added the
-  DWDS handler cascade. You must now also add the `middelware` to your server's
+  DWDS handler cascade. You must now also add the `middleware` to your server's
   pipeline.
 
 ## 0.8.5
