@@ -6,7 +6,7 @@ import 'package:dwds/src/debugging/metadata/module_metadata.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:test/test.dart';
 
-import 'fixtures/migrated_fakes.dart';
+import 'fixtures/fakes.dart';
 
 const _emptySourceMetadata =
     '{"version":"1.0.0","name":"web/main","closureName":"load__web__main",'
