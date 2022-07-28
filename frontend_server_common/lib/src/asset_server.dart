@@ -63,7 +63,7 @@ class TestAssetServer implements AssetReader {
     String index,
     String hostname,
     int port,
-    UrlEncoder urlTunneller,
+    UrlEncoder? urlTunneler,
     PackageConfig packageConfig,
   ) async {
     var address = (await InternetAddress.lookup(hostname)).first;

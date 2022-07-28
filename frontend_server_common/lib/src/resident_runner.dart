@@ -26,7 +26,7 @@ class ResidentWebRunner {
 
   ResidentWebRunner(
       this.mainUri,
-      this.urlTunneller,
+      this.urlTunneler,
       this.projectDirectory,
       this.packageConfigFile,
       this.fileSystemRoots,
@@ -47,7 +47,7 @@ class ResidentWebRunner {
     expressionCompiler = TestExpressionCompiler(generator);
   }
 
-  final UrlEncoder urlTunneller;
+  final UrlEncoder? urlTunneler;
   final Uri mainUri;
   final Uri projectDirectory;
   final Uri packageConfigFile;
@@ -70,7 +70,7 @@ class ResidentWebRunner {
       projectDirectory: projectDirectory,
       packageConfigFile: packageConfigFile,
       index: index,
-      urlTunneller: urlTunneller,
+      urlTunneler: urlTunneler,
       soundNullSafety: soundNullSafety,
     );
     uri = await devFS.create();

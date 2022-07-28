@@ -26,8 +26,8 @@ class WebDevFS {
     required this.projectDirectory,
     required this.packageConfigFile,
     required this.index,
-    required this.urlTunneller,
     required this.soundNullSafety,
+    this.urlTunneler,
   });
 
   final FileSystem fileSystem;
@@ -37,7 +37,7 @@ class WebDevFS {
   final Uri projectDirectory;
   final Uri packageConfigFile;
   final String index;
-  final UrlEncoder urlTunneller;
+  final UrlEncoder? urlTunneler;
   final bool soundNullSafety;
   late final Directory _savedCurrentDirectory;
   late final PackageConfig _packageConfig;
@@ -51,7 +51,7 @@ class WebDevFS {
         loader: (Uri uri) => fileSystem.file(uri).readAsBytes());
 
     assetServer = await TestAssetServer.start(
-        fileSystem, index, hostname, port, urlTunneller, _packageConfig);
+        fileSystem, index, hostname, port, urlTunneler, _packageConfig);
     return Uri.parse('http://$hostname:$port');
   }
 
