@@ -157,7 +157,6 @@ class TestContext {
     SdkConfigurationProvider? sdkConfigurationProvider,
   }) async {
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
-    urlEncoder = urlEncoder ?? (url) async => url;
 
     try {
       configureLogWriter();
