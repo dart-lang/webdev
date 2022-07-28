@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
 
 import 'dart:io';
 
@@ -19,8 +18,8 @@ import '../fixtures/utilities.dart';
 void main() {
   group('Asset handler', () {
     final context = TestContext();
-    Handler assetHandler;
-    http.Client client;
+    late Handler assetHandler;
+    http.Client? client;
 
     setUpAll(() async {
       setCurrentLogWriter();
@@ -43,7 +42,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      client.close();
+      client?.close();
       await context.tearDown();
     });
 
