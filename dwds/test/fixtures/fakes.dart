@@ -316,7 +316,7 @@ class FakeStrategy implements LoadStrategy {
       '';
 
   @override
-  String serverPathForAppUri(String appUri) => '';
+  String? serverPathForAppUri(String appUri) => '';
 
   @override
   MetadataProvider metadataProviderFor(String entrypoint) =>

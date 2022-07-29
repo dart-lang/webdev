@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
@@ -189,9 +187,9 @@ class MockLoadStrategy implements LoadStrategy {
 
   @override
   shelf.Handler get handler =>
-      (request) => (request.url.path == 'someDummyPath')
+      (request) async => (request.url.path == 'someDummyPath')
           ? shelf.Response.ok('some dummy response')
-          : null;
+          : shelf.Response.notFound('not found');
 
   @override
   String get id => 'dummy-id';
@@ -235,7 +233,8 @@ class MockLoadStrategy implements LoadStrategy {
   String serverPathForAppUri(String appUri) => _serverPath;
 
   @override
-  MetadataProvider metadataProviderFor(String entrypoint) => null;
+  MetadataProvider metadataProviderFor(String entrypoint) =>
+      FakeStrategy().metadataProviderFor(entrypoint);
 
   @override
   void trackEntrypoint(String entrypoint) {}

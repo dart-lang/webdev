@@ -153,7 +153,6 @@ class ExtensionDebugger implements RemoteDebugger {
 
   @override
   void close() => _closed ??= () {
-        _closeController.add(WipEvent({}));
         return Future.wait([
           sseConnection.sink.close(),
           _notificationController.close(),

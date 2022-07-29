@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @TestOn('vm')
 import 'dart:io';
 
@@ -18,7 +16,7 @@ import 'fixtures/fakes.dart';
 
 class TestStrategy extends FakeStrategy {
   @override
-  String serverPathForAppUri(String appUri) {
+  String? serverPathForAppUri(String appUri) {
     if (appUri.startsWith('org-dartlang-app:')) return 'foo';
     return null;
   }
@@ -90,7 +88,7 @@ void main() {
     });
 
     group('initialized with other SDK directory', () {
-      Directory outputDir;
+      late Directory outputDir;
 
       setUpAll(() async {
         final systemTempDir = Directory.systemTemp;
@@ -117,7 +115,7 @@ void main() {
 
       tearDownAll(() async {
         DartUri.clear();
-        await outputDir?.delete(recursive: true);
+        await outputDir.delete(recursive: true);
       });
 
       test('can resolve uris', () {
@@ -133,11 +131,11 @@ void main() {
     });
 
     group('initialized with other SDK directory with no libraries spec', () {
-      Directory outputDir;
+      late Directory outputDir;
       final logs = <String>[];
 
       void logWriter(level, message,
-          {String error, String loggerName, String stackTrace}) {
+          {String? error, String? loggerName, String? stackTrace}) {
         final errorMessage = error == null ? '' : ':\n$error';
         final stackMessage = stackTrace == null ? '' : ':\n$stackTrace';
         logs.add('[$level] $loggerName: $message'
@@ -164,7 +162,7 @@ void main() {
 
       tearDownAll(() async {
         DartUri.clear();
-        await outputDir?.delete(recursive: true);
+        await outputDir.delete(recursive: true);
       });
 
       test('cannot resolve uris', () {

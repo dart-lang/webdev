@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -17,8 +15,8 @@ import 'package:test/test.dart';
 import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
 
-FakeSseConnection connection;
-ExtensionDebugger extensionDebugger;
+late FakeSseConnection connection;
+late ExtensionDebugger extensionDebugger;
 
 void main() async {
   setUp(() async {
