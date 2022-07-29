@@ -5,9 +5,11 @@
   evaluation using a compiler in all scenarios.
 - Fix a bug where evaluation would fail with more than one parameter in
   the scope.
-- Remove showing uncaptured values from the stack during evaluation.
+- Remove showing un-captured values from the stack during evaluation.
 - Refactor code to break most circular dependencies between files.
 - Migrate `package:dwds` to null safety.
+- Make `ChromeProxyService.getStack` wait for the debugger to perform initial
+  resume operation. This avoids race conditions on isolate start.
 
 **Breaking changes**
 - Remove no longer used `ExpressionCompilerService.handler`.
