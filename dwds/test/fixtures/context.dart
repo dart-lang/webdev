@@ -63,6 +63,7 @@ class TestContext {
   TestServer get testServer => _testServer!;
   TestServer? _testServer;
 
+  BuildDaemonClient get daemonClient => _daemonClient!;
   BuildDaemonClient? _daemonClient;
 
   ResidentWebRunner get webRunner => _webRunner!;
@@ -226,7 +227,6 @@ class TestContext {
               _logger.log(record.level, '$name${record.message}', record.error,
                   record.stackTrace);
             });
-            final daemonClient = _daemonClient!;
             daemonClient.registerBuildTarget(
                 DefaultBuildTarget((b) => b..target = pathToServe));
             daemonClient.startBuild();
