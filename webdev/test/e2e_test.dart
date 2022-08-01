@@ -277,7 +277,7 @@ void main() {
   });
 
   group('should work with ', () {
-    for (var soundNullSafety in [false, true]) {
+    for (var soundNullSafety in [/*false,*/ true]) {
       var nullSafetyOption = soundNullSafety ? 'sound' : 'unsound';
       group('--null-safety=$nullSafetyOption', () {
         group('and --enable-expression-evaluation:', () {
@@ -289,6 +289,7 @@ void main() {
               'web:$openPort',
               '--enable-expression-evaluation',
               '--verbose',
+              '--null-safety=unsound',
             ];
             var process = await runWebDev(args,
                 workingDirectory:
@@ -348,6 +349,7 @@ void main() {
               'web:$openPort',
               '--enable-expression-evaluation',
               '--verbose',
+              '--null-safety=unsound',
             ];
             var process = await runWebDev(args,
                 workingDirectory:
