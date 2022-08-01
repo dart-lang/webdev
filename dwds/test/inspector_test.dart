@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
 
 @TestOn('vm')
 import 'package:dwds/dwds.dart';
@@ -23,8 +22,8 @@ final context = TestContext(
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
-  AppInspector inspector;
-  Debugger debugger;
+  late AppInspector inspector;
+  late Debugger debugger;
 
   setUpAll(() async {
     await context.setUp();
@@ -60,7 +59,7 @@ void main() {
           () => inspector.jsEvaluate('<'),
           throwsA(isA<ChromeDebugException>()
               .having((e) => e.text, 'text', 'Uncaught')
-              .having((e) => e.exception.description, 'description',
+              .having((e) => e.exception?.description, 'description',
                   contains('SyntaxError'))
               .having((e) => e.stackTrace, 'stackTrace', isNull)
               .having((e) => e.evalContents, 'evalContents', '<')));
@@ -78,9 +77,9 @@ void main() {
         '''),
           throwsA(isA<ChromeDebugException>()
               .having((e) => e.text, 'text', 'Uncaught')
-              .having((e) => e.exception.description, 'description',
+              .having((e) => e.exception?.description, 'description',
                   contains('ReferenceError'))
-              .having((e) => e.stackTrace.printFrames()[0], 'stackTrace',
+              .having((e) => e.stackTrace?.printFrames()[0], 'stackTrace',
                   contains('foo()'))
               .having((e) => e.evalContents, 'evalContents', contains('foo'))));
     });
@@ -89,7 +88,7 @@ void main() {
   test('send toString', () async {
     final remoteObject = await libraryPublicFinal();
     final toString =
-        await inspector.invoke(remoteObject.objectId, 'toString', []);
+        await inspector.invoke(remoteObject.objectId!, 'toString', []);
     expect(toString.value, 'A test class with message world');
   });
 
@@ -97,9 +96,9 @@ void main() {
     test('for class with generic', () async {
       final remoteObject = await libraryPublicFinal();
       final instance =
-          await inspector.getObject(remoteObject.objectId) as Instance;
-      final classRef = instance.classRef;
-      final clazz = await inspector.getObject(classRef.id) as Class;
+          await inspector.getObject(remoteObject.objectId!) as Instance;
+      final classRef = instance.classRef!;
+      final clazz = await inspector.getObject(classRef.id!) as Class;
       expect(clazz.name, 'MyTestClass<dynamic>');
     });
   });
@@ -120,7 +119,7 @@ void main() {
 
   test('properties', () async {
     final remoteObject = await libraryPublicFinal();
-    final properties = await debugger.getProperties(remoteObject.objectId);
+    final properties = await debugger.getProperties(remoteObject.objectId!);
     final names =
         properties.map((p) => p.name).where((x) => x != '__proto__').toList();
     final expected = [
@@ -141,8 +140,8 @@ void main() {
     // We test these here because the test fixture has more complicated members
     // to exercise.
 
-    LibraryRef bootstrapLibrary;
-    RemoteObject instance;
+    LibraryRef? bootstrapLibrary;
+    late RemoteObject instance;
 
     setUp(() async {
       bootstrapLibrary = inspector.isolate.rootLib;
@@ -150,7 +149,7 @@ void main() {
     });
 
     test('invoke top-level private', () async {
-      final remote = await inspector.invoke(bootstrapLibrary.id,
+      final remote = await inspector.invoke(bootstrapLibrary!.id!,
           '_libraryPrivateFunction', [dartIdFor(2), dartIdFor(3)]);
       expect(
           remote,
@@ -160,7 +159,7 @@ void main() {
 
     test('invoke instance private', () async {
       final remote = await inspector.invoke(
-          instance.objectId, 'privateMethod', [dartIdFor('some string')]);
+          instance.objectId!, 'privateMethod', [dartIdFor('some string')]);
       expect(
           remote,
           const TypeMatcher<RemoteObject>().having((instance) => instance.value,
@@ -169,7 +168,7 @@ void main() {
 
     test('invoke instance method with object parameter', () async {
       final remote = await inspector
-          .invoke(instance.objectId, 'equals', [instance.objectId]);
+          .invoke(instance.objectId!, 'equals', [instance.objectId]);
       expect(
           remote,
           const TypeMatcher<RemoteObject>()
@@ -179,7 +178,7 @@ void main() {
     test('invoke instance method with object parameter 2', () async {
       final libraryPrivateList = await libraryPrivate();
       final remote = await inspector
-          .invoke(instance.objectId, 'equals', [libraryPrivateList.objectId]);
+          .invoke(instance.objectId!, 'equals', [libraryPrivateList.objectId]);
       expect(
           remote,
           const TypeMatcher<RemoteObject>()
@@ -187,7 +186,7 @@ void main() {
     });
 
     test('invoke closure stored in an instance field', () async {
-      final remote = await inspector.invoke(instance.objectId, 'closure', []);
+      final remote = await inspector.invoke(instance.objectId!, 'closure', []);
       expect(
           remote,
           const TypeMatcher<RemoteObject>()
@@ -196,7 +195,7 @@ void main() {
 
     test('invoke a torn-off method', () async {
       final toString = await inspector.loadField(instance, 'tornOff');
-      final result = await inspector.invoke(toString.objectId, 'call', []);
+      final result = await inspector.invoke(toString.objectId!, 'call', []);
       expect(
           result,
           const TypeMatcher<RemoteObject>().having((instance) => instance.value,

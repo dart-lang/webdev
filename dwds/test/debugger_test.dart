@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
 
 @TestOn('vm')
 import 'dart:async';
@@ -23,12 +22,12 @@ import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
 
 final context = TestContext();
-AppInspector inspector;
-Debugger debugger;
-FakeWebkitDebugger webkitDebugger;
-StreamController<DebuggerPausedEvent> pausedController;
-Locations locations;
-SkipLists skipLists;
+late AppInspector inspector;
+late Debugger debugger;
+late FakeWebkitDebugger webkitDebugger;
+late StreamController<DebuggerPausedEvent> pausedController;
+late Locations locations;
+late SkipLists skipLists;
 
 class TestStrategy extends FakeStrategy {
   @override
@@ -109,8 +108,8 @@ void main() async {
     expect(frames, isNotNull);
     expect(frames, isNotEmpty);
 
-    final firstFrame = frames[0];
-    final frame1Variables = firstFrame.vars.map((each) => each.name).toList();
+    final firstFrameVars = frames[0].vars!;
+    final frame1Variables = firstFrameVars.map((each) => each.name).toList();
     expect(frame1Variables, ['a', 'b']);
   });
 
@@ -185,7 +184,7 @@ void main() async {
       expect(
           Debugger.logger.onRecord,
           emitsThrough(predicate(
-              (log) => log.message == 'Error calculating Dart frames')));
+              (dynamic log) => log.message == 'Error calculating Dart frames')));
     });
   });
 }
