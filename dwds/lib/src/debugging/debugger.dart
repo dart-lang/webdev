@@ -150,7 +150,7 @@ class Debugger extends Domain {
 
   /// Returns the current Dart stack for the paused debugger.
   ///
-  /// Returns null if the debugger is not paused.
+  /// Throws RPCError if the debugger is not paused.
   ///
   /// The returned stack will contain up to [limit] frames if provided.
   Future<Stack> getStack({int? limit}) async {
