@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @TestOn('vm')
 import 'dart:async';
 import 'dart:convert';
@@ -87,8 +86,10 @@ void main() {
           () async {
         final line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id!, mainScript);
-        final firstBp = service.addBreakpoint(isolate.id!, mainScript.id!, line);
-        final secondBp = service.addBreakpoint(isolate.id!, mainScript.id!, line);
+        final firstBp =
+            service.addBreakpoint(isolate.id!, mainScript.id!, line);
+        final secondBp =
+            service.addBreakpoint(isolate.id!, mainScript.id!, line);
 
         // Remove breakpoint so it doesn't impact other tests.
         await service.removeBreakpoint(isolate.id!, (await firstBp).id!);
@@ -154,7 +155,8 @@ void main() {
       test('add and remove breakpoint', () async {
         final line = await context.findBreakpointLine(
             'printHelloWorld', isolate.id!, mainScript);
-        final bp = await service.addBreakpoint(isolate.id!, mainScript.id!, line);
+        final bp =
+            await service.addBreakpoint(isolate.id!, mainScript.id!, line);
         expect(isolate.breakpoints, [bp]);
         await service.removeBreakpoint(isolate.id!, bp.id!);
         expect(isolate.breakpoints, isEmpty);
@@ -470,7 +472,8 @@ void main() {
           expect(
               testClass.functions,
               unorderedEquals([
-                predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
+                predicate(
+                    (FuncRef f) => f.name == 'staticHello' && f.isStatic!),
                 predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
                 predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
                 predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
@@ -705,7 +708,8 @@ void main() {
 
         test('Strings with offset/count are truncated', () async {
           final worldRef = await service.evaluate(
-              isolate.id!, bootstrap!.id!, "helloString('world')") as InstanceRef;
+                  isolate.id!, bootstrap!.id!, "helloString('world')")
+              as InstanceRef;
           final world = await service.getObject(
             isolate.id!,
             worldRef.id!,
@@ -722,7 +726,8 @@ void main() {
             'Strings are truncated to the end if offset/count runs off the end',
             () async {
           final worldRef = await service.evaluate(
-              isolate.id!, bootstrap!.id!, "helloString('world')") as InstanceRef;
+                  isolate.id!, bootstrap!.id!, "helloString('world')")
+              as InstanceRef;
           final world = await service.getObject(
             isolate.id!,
             worldRef.id!,
@@ -750,11 +755,14 @@ void main() {
                   predicate(
                       (FuncRef f) => f.name == 'staticHello' && f.isStatic!),
                   predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
-                  predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
+                  predicate(
+                      (FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
                   predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
                   predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
-                  predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-                  predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
+                  predicate(
+                      (FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+                  predicate(
+                      (FuncRef f) => f.name == 'toString' && !f.isStatic!),
                   predicate(
                       (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!),
                   predicate(
@@ -928,7 +936,8 @@ void main() {
       test('at breakpoints sets pauseBreakPoints', () async {
         final line = await context.findBreakpointLine(
             'callPrintCount', isolateId!, mainScript);
-        final bp = await service.addBreakpoint(isolateId!, mainScript.id!, line);
+        final bp =
+            await service.addBreakpoint(isolateId!, mainScript.id!, line);
         final event = await stream
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
         final pauseBreakpoints = event.pauseBreakpoints!;
@@ -960,7 +969,8 @@ void main() {
             .firstWhere((script) => script.uri!.contains('main.dart'));
         final line = await context.findBreakpointLine(
             'callPrintCount', isolateId!, mainScript);
-        final bp = await service.addBreakpoint(isolateId!, mainScript.id!, line);
+        final bp =
+            await service.addBreakpoint(isolateId!, mainScript.id!, line);
         // Wait for breakpoint to trigger.
         await stream
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -1093,8 +1103,8 @@ void main() {
         expect(suspensionFrames, isNotEmpty);
 
         // We should have async frames.
-        final asyncFrames =
-            stack.frames!.where((frame) => frame.kind == FrameKind.kAsyncCausal);
+        final asyncFrames = stack.frames!
+            .where((frame) => frame.kind == FrameKind.kAsyncCausal);
         expect(asyncFrames, isNotEmpty);
       });
 
@@ -1126,7 +1136,8 @@ void main() {
       test('break on exceptions with legacy setExceptionPauseMode', () async {
         final oldPauseMode =
             (await service.getIsolate(isolateId!)).exceptionPauseMode!;
-        await service.setExceptionPauseMode(isolateId!, ExceptionPauseMode.kAll);
+        await service.setExceptionPauseMode(
+            isolateId!, ExceptionPauseMode.kAll);
         // Wait for pausing to actually propagate.
         final event = await stream
             .firstWhere((event) => event.kind == EventKind.kPauseException);
@@ -1243,8 +1254,8 @@ void main() {
       });
 
       test('null argument', () async {
-        final remote = await service
-            .invoke(isolate.id!, bootstrap!.id!, 'helloString', ['objects/null']);
+        final remote = await service.invoke(
+            isolate.id!, bootstrap!.id!, 'helloString', ['objects/null']);
         expect(
             remote,
             const TypeMatcher<InstanceRef>().having(
@@ -1269,8 +1280,8 @@ void main() {
       });
 
       test('helloNum', () async {
-        final remote = await service
-            .invoke(isolate.id!, bootstrap!.id!, 'helloNum', ['objects/int-123']);
+        final remote = await service.invoke(
+            isolate.id!, bootstrap!.id!, 'helloNum', ['objects/int-123']);
         expect(
             remote,
             const TypeMatcher<InstanceRef>().having(
@@ -1350,8 +1361,8 @@ void main() {
       final scriptList = await service.getScripts(isolateId);
 
       final uris = scriptList.scripts!.map((e) => e.uri).toList();
-      final resolvedUris =
-          await service.lookupResolvedPackageUris(isolateId, uris as List<String>);
+      final resolvedUris = await service.lookupResolvedPackageUris(
+          isolateId, uris as List<String>);
 
       expect(
           resolvedUris.uris,
@@ -1397,11 +1408,11 @@ void main() {
       final scriptList = await service.getScripts(isolateId);
 
       final uris = scriptList.scripts!.map((e) => e.uri).toList();
-      final resolvedUris =
-          await service.lookupResolvedPackageUris(isolateId, uris as List<String>);
+      final resolvedUris = await service.lookupResolvedPackageUris(
+          isolateId, uris as List<String>);
 
-      final packageUris =
-          await service.lookupPackageUris(isolateId, resolvedUris.uris as List<String>);
+      final packageUris = await service.lookupPackageUris(
+          isolateId, resolvedUris.uris as List<String>);
       expect(
           packageUris.uris,
           containsAll([
@@ -1417,8 +1428,9 @@ void main() {
       final scriptList = await service.getScripts(isolateId);
 
       final uris = scriptList.scripts!.map((e) => e.uri).toList();
-      final resolvedUrisWithLocal =
-          await service.lookupResolvedPackageUris(isolateId, uris as List<String>, local: true);
+      final resolvedUrisWithLocal = await service.lookupResolvedPackageUris(
+          isolateId, uris as List<String>,
+          local: true);
 
       final packageUrisWithLocal = await service.lookupPackageUris(
           isolateId, resolvedUrisWithLocal.uris as List<String>);
