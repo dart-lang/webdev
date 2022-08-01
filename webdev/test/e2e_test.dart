@@ -35,12 +35,12 @@ const _testItems = <String, bool>{
   'main.unsound.ddc.js': true,
 };
 
- void _logWriter(Level level, String message,
-      {String error, String loggerName, String stackTrace}) {
-    //if (level >= Level.INFO) {
-      print('[$level] $loggerName: $message');
-    //}
-  }
+void _logWriter(Level level, String message,
+    {String error, String loggerName, String stackTrace}) {
+  //if (level >= Level.INFO) {
+  print('[$level] $loggerName: $message');
+  //}
+}
 
 void main() {
   String exampleDirectory;
@@ -295,11 +295,11 @@ void main() {
     for (var soundNullSafety in [/*false,*/ true]) {
       var nullSafetyOption = soundNullSafety ? 'sound' : 'unsound';
       group('--null-safety=$nullSafetyOption', () {
-            setUp(() async {
+        setUp(() async {
           configureLogWriter(true, customLogWriter: _logWriter);
         });
         group('and --enable-expression-evaluation:', () {
-              setUp(() async {
+          setUp(() async {
             configureLogWriter(true, customLogWriter: _logWriter);
           });
           test('evaluateInFrame', () async {
@@ -316,7 +316,6 @@ void main() {
                 workingDirectory:
                     soundNullSafety ? soundExampleDirectory : exampleDirectory);
             VmService vmService;
-
 
             process.stdoutStream().listen(Logger.root.info);
             process.stderrStream().listen(Logger.root.warning);
