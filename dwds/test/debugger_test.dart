@@ -90,7 +90,7 @@ void main() async {
     skipLists = SkipLists();
     debugger = await Debugger.create(
       webkitDebugger,
-      null,
+      (_, __) {},
       locations,
       skipLists,
       root,
