@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @TestOn('vm')
 import 'dart:async';
 
@@ -183,8 +182,8 @@ void main() async {
       }));
       expect(
           Debugger.logger.onRecord,
-          emitsThrough(predicate(
-              (dynamic log) => log.message == 'Error calculating Dart frames')));
+          emitsThrough(predicate((dynamic log) =>
+              log.message == 'Error calculating Dart frames')));
     });
   });
 }
