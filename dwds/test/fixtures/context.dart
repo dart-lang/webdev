@@ -240,7 +240,7 @@ class TestContext {
             final assetServerPort = daemonPort(workingDirectory);
             assetHandler = proxyHandler(
                 'http://localhost:$assetServerPort/$pathToServe/',
-                client: client);
+                client: _client);
             assetReader =
                 ProxyServerAssetReader(assetServerPort, root: pathToServe);
 
