@@ -63,6 +63,7 @@ class TestContext {
   TestServer get testServer => _testServer!;
   TestServer? _testServer;
 
+  BuildDaemonClient get daemonClient => _daemonClient!;
   BuildDaemonClient? _daemonClient;
 
   ResidentWebRunner get webRunner => _webRunner!;
