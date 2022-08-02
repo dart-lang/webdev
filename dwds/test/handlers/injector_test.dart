@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:dwds/src/handlers/injector.dart';
@@ -16,13 +14,13 @@ import 'package:test/test.dart';
 import '../fixtures/fakes.dart';
 
 void main() {
-  HttpServer server;
+  late HttpServer server;
   const entryEtag = 'entry etag';
   const nonEntryEtag = 'some etag';
   final loadStrategy = FakeStrategy();
 
   group('InjectedHandlerWithoutExtension', () {
-    DwdsInjector injector;
+    late DwdsInjector injector;
     setUp(() async {
       injector = DwdsInjector(loadStrategy);
       final pipeline = const Pipeline().addMiddleware(injector.middleware);
@@ -117,13 +115,13 @@ void main() {
         () async {
       final originalResponse = await http.get(Uri.parse(
           'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'));
+
+      final etagHeader = originalResponse.headers[HttpHeaders.etagHeader];
+      expect(etagHeader, isNotNull);
       final cachedResponse = await http.get(
           Uri.parse(
               'http://localhost:${server.port}/entrypoint$bootstrapJsExtension'),
-          headers: {
-            HttpHeaders.ifNoneMatchHeader:
-                originalResponse.headers[HttpHeaders.etagHeader]
-          });
+          headers: {HttpHeaders.ifNoneMatchHeader: etagHeader!});
       expect(cachedResponse.statusCode, HttpStatus.notModified);
     });
 
@@ -209,7 +207,7 @@ void main() {
   });
 
   group('InjectedHandlerWithoutExtension using WebSockets', () {
-    DwdsInjector injector;
+    late DwdsInjector injector;
     setUp(() async {
       injector = DwdsInjector(loadStrategy, useSseForInjectedClient: false);
       final pipeline = const Pipeline().addMiddleware(injector.middleware);
