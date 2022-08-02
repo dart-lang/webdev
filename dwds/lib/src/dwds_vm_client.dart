@@ -55,7 +55,7 @@ class DwdsVmClient {
             '$request');
         return;
       }
-      requestController.sink.add(jsonDecode(request) as Map<String, Object>);
+      requestController.sink.add(Map<String, Object>.from(jsonDecode(request)));
     });
     final chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
