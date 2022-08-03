@@ -6,12 +6,14 @@ import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
 import '../fixtures/context.dart';
+import '../fixtures/logging.dart';
 
 void main() {
   group('Asset handler', () {
     final context = TestContext();
 
     setUp(() async {
+      setCurrentLogWriter();
       await context.setUp();
     });
 
