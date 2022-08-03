@@ -2,13 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import 'fixtures/fakes.dart';
@@ -181,40 +178,7 @@ const _module = 'packages/module';
 const _serverPath = 'package/module.js';
 const _sourceMapPath = 'packages/module.js.map';
 
-class MockLoadStrategy implements LoadStrategy {
-  @override
-  Future<String> bootstrapFor(String entrypoint) async => 'dummy_bootstrap';
-
-  @override
-  shelf.Handler get handler =>
-      (request) async => (request.url.path == 'someDummyPath')
-          ? shelf.Response.ok('some dummy response')
-          : shelf.Response.notFound('not found');
-
-  @override
-  String get id => 'dummy-id';
-
-  @override
-  String get moduleFormat => 'dummy-format';
-
-  @override
-  String get loadLibrariesModule => '';
-
-  @override
-  String get loadLibrariesSnippet => '';
-
-  @override
-  String loadLibrarySnippet(String libraryUri) => '';
-
-  @override
-  String get loadModuleSnippet => '';
-
-  @override
-  ReloadConfiguration get reloadConfiguration => ReloadConfiguration.none;
-
-  @override
-  String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
-
+class MockLoadStrategy extends FakeStrategy {
   @override
   Future<String> moduleForServerPath(
           String entrypoint, String serverPath) async =>
@@ -231,17 +195,6 @@ class MockLoadStrategy implements LoadStrategy {
 
   @override
   String serverPathForAppUri(String appUri) => _serverPath;
-
-  @override
-  MetadataProvider metadataProviderFor(String entrypoint) =>
-      FakeStrategy().metadataProviderFor(entrypoint);
-
-  @override
-  void trackEntrypoint(String entrypoint) {}
-
-  @override
-  Future<Map<String, ModuleInfo>> moduleInfoForEntrypoint(String entrypoint) =>
-      throw UnimplementedError();
 }
 
 class MockModules implements Modules {
