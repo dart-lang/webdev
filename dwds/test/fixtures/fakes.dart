@@ -302,7 +302,7 @@ class FakeStrategy implements LoadStrategy {
   String loadClientSnippet(String clientScript) => 'dummy-load-client-snippet';
 
   @override
-  Future<String> moduleForServerPath(
+  Future<String?> moduleForServerPath(
           String entrypoint, String serverPath) async =>
       '';
 

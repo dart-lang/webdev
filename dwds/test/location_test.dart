@@ -180,7 +180,7 @@ const _sourceMapPath = 'packages/module.js.map';
 
 class MockLoadStrategy extends FakeStrategy {
   @override
-  Future<String> moduleForServerPath(
+  Future<String?> moduleForServerPath(
           String entrypoint, String serverPath) async =>
       _module;
 
