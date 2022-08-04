@@ -360,6 +360,8 @@ class TestContext {
         _tabConnection = await tab.connect();
         await tabConnection.runtime.enable();
         await tabConnection.debugger.enable();
+      } else {
+        throw StateError('Unable to connect to tab.');
       }
 
       if (enableDebugExtension) {
