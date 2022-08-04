@@ -353,11 +353,12 @@ class TestContext {
           : 'http://localhost:$port/$basePath/$path';
 
       await _webDriver?.get(appUrl);
-      final tab = await (connection.getTab((t) => t.url == appUrl)
-          as FutureOr<ChromeTab>);
-      _tabConnection = await tab.connect();
-      await tabConnection.runtime.enable();
-      await tabConnection.debugger.enable();
+      final tab = await connection.getTab((t) => t.url == appUrl);
+      if (tab != null) {
+        _tabConnection = await tab.connect();
+        await tabConnection.runtime.enable();
+        await tabConnection.debugger.enable();
+      }
 
       if (enableDebugExtension) {
         final extensionTab = await _fetchDartDebugExtensionTab(connection);

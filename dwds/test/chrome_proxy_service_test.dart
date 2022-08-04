@@ -111,8 +111,7 @@ void main() {
       });
 
       test('addBreakpointAtEntry', () async {
-        await expectLater(
-            service.addBreakpointAtEntry(null, null), throwsRPCError);
+        await expectLater(service.addBreakpointAtEntry('', ''), throwsRPCError);
       });
 
       test('addBreakpointWithScriptUri', () async {
@@ -142,9 +141,9 @@ void main() {
 
       test('removeBreakpoint null arguments', () async {
         await expectLater(
-            service.removeBreakpoint(null, null), throwsSentinelException);
+            service.removeBreakpoint('', ''), throwsSentinelException);
         await expectLater(
-            service.removeBreakpoint(isolate.id!, null), throwsRPCError);
+            service.removeBreakpoint(isolate.id!, ''), throwsRPCError);
       });
 
       test("removeBreakpoint that doesn't exist fails", () async {
@@ -237,7 +236,8 @@ void main() {
       });
 
       test('setVMTimelineFlags', () async {
-        await expectLater(service.setVMTimelineFlags(null), throwsRPCError);
+        await expectLater(
+            service.setVMTimelineFlags(<String>[]), throwsRPCError);
       });
     });
 
@@ -363,15 +363,15 @@ void main() {
 
     test('evaluateInFrame', () async {
       await expectLater(
-          service.evaluateInFrame(null, null, null), throwsSentinelException);
+          service.evaluateInFrame('', 0, ''), throwsSentinelException);
     });
 
     test('getAllocationProfile', () async {
-      await expectLater(service.getAllocationProfile(null), throwsRPCError);
+      await expectLater(service.getAllocationProfile(''), throwsRPCError);
     });
 
     test('getClassList', () async {
-      await expectLater(service.getClassList(null), throwsRPCError);
+      await expectLater(service.getClassList(''), throwsRPCError);
     });
 
     test('getFlagList', () async {
@@ -379,7 +379,7 @@ void main() {
     });
 
     test('getInstances', () async {
-      await expectLater(service.getInstances(null, null, null), throwsRPCError);
+      await expectLater(service.getInstances('', '', 0), throwsRPCError);
     });
 
     group('getIsolate', () {
@@ -1309,11 +1309,11 @@ void main() {
     });
 
     test('kill', () async {
-      await expectLater(service.kill(null), throwsRPCError);
+      await expectLater(service.kill(''), throwsRPCError);
     });
 
     test('onEvent', () async {
-      expect(() => service.onEvent(null), throwsRPCError);
+      expect(() => service.onEvent(''), throwsRPCError);
     });
 
     test('pause / resume', () async {
@@ -1346,12 +1346,11 @@ void main() {
 
     test('getInboundReferences', () async {
       await expectLater(
-          service.getInboundReferences(null, null, null), throwsRPCError);
+          service.getInboundReferences('', '', 0), throwsRPCError);
     });
 
     test('getRetainingPath', () async {
-      await expectLater(
-          service.getRetainingPath(null, null, null), throwsRPCError);
+      await expectLater(service.getRetainingPath('', '', 0), throwsRPCError);
     });
 
     test('lookupResolvedPackageUris converts package and org-dartlang-app uris',
@@ -1485,11 +1484,11 @@ void main() {
 
     test('registerService', () async {
       await expectLater(
-          service.registerService('ext.foo.bar', null), throwsRPCError);
+          service.registerService('ext.foo.bar', ''), throwsRPCError);
     });
 
     test('reloadSources', () async {
-      await expectLater(service.reloadSources(null), throwsRPCError);
+      await expectLater(service.reloadSources(''), throwsRPCError);
     });
 
     test('setExceptionPauseMode', () async {
@@ -1506,12 +1505,12 @@ void main() {
     });
 
     test('setFlag', () async {
-      await expectLater(service.setFlag(null, null), throwsRPCError);
+      await expectLater(service.setFlag('', ''), throwsRPCError);
     });
 
     test('setLibraryDebuggable', () async {
       await expectLater(
-          service.setLibraryDebuggable(null, null, null), throwsRPCError);
+          service.setLibraryDebuggable('', '', false), throwsRPCError);
     });
 
     test('setName', () async {
@@ -1529,7 +1528,7 @@ void main() {
     });
 
     test('streamCancel', () async {
-      await expectLater(service.streamCancel(null), throwsRPCError);
+      await expectLater(service.streamCancel(''), throwsRPCError);
     });
 
     group('streamListen/onEvent', () {
