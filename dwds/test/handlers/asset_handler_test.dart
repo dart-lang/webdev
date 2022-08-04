@@ -12,14 +12,19 @@ void main() {
   group('Asset handler', () {
     final context = TestContext();
 
-    setUp(() async {
+    setUpAll(() async {
       setCurrentLogWriter();
-      await context.setUp();
+      await context.setUp(
+        enableExpressionEvaluation: true,
+        verboseCompiler: false,
+      );
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await context.tearDown();
     });
+
+    setUp(setCurrentLogWriter);
 
     Future<void> readAsString(String path) async {
       final request = Request('GET', Uri.parse('http://foo:0000/$path'));

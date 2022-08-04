@@ -81,7 +81,8 @@ class TestContext {
   Handler get assetHandler => _assetHandler!;
   late Handler? _assetHandler;
 
-  Client? client;
+  Client get client => _client!;
+  late Client? _client;
 
   ExpressionCompilerService? ddcService;
 
@@ -164,7 +165,7 @@ class TestContext {
     try {
       configureLogWriter();
 
-      client = IOClient(HttpClient()
+      _client = IOClient(HttpClient()
         ..maxConnectionsPerHost = 200
         ..idleTimeout = const Duration(seconds: 30)
         ..connectionTimeout = const Duration(seconds: 30));
@@ -391,7 +392,7 @@ class TestContext {
     await ddcService?.stop();
     await _webRunner?.stop();
     await _testServer?.stop();
-    client?.close();
+    _client?.close();
     await _outputDir?.delete(recursive: true);
     stopLogWriter();
 
@@ -402,7 +403,7 @@ class TestContext {
     ddcService = null;
     _webRunner = null;
     _testServer = null;
-    client = null;
+    _client = null;
     _outputDir = null;
   }
 

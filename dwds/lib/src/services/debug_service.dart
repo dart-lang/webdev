@@ -262,7 +262,7 @@ class DebugService {
     }
     final server = await startHttpServer(hostname, port: 44456);
     serveHttpRequests(server, handler, (e, s) {
-      _logger.warning('Error serving requests', e, s);
+      _logger.warning('Error serving requests', e);
       emitEvent(DwdsEvent.httpRequestException('DebugService', '$e:$s'));
     });
     return DebugService._(
