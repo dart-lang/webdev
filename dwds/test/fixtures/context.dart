@@ -78,6 +78,9 @@ class TestContext {
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
 
+  Handler get assetHandler => _assetHandler!;
+  late Handler? _assetHandler;
+
   Client get client => _client!;
   late Client? _client;
 
@@ -203,7 +206,6 @@ class TestContext {
 
       ExpressionCompiler? expressionCompiler;
       AssetReader assetReader;
-      Handler assetHandler;
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
       String basePath = '';
@@ -237,7 +239,7 @@ class TestContext {
                 .timeout(const Duration(seconds: 60));
 
             final assetServerPort = daemonPort(workingDirectory);
-            assetHandler = proxyHandler(
+            _assetHandler = proxyHandler(
                 'http://localhost:$assetServerPort/$pathToServe/',
                 client: client);
             assetReader =
@@ -291,7 +293,7 @@ class TestContext {
 
             basePath = webRunner.devFS.assetServer.basePath;
             assetReader = webRunner.devFS.assetServer;
-            assetHandler = webRunner.devFS.assetServer.handleRequest;
+            _assetHandler = webRunner.devFS.assetServer.handleRequest;
 
             requireStrategy = FrontendServerRequireStrategyProvider(
                     reloadConfiguration, assetReader, () async => {}, basePath)
@@ -353,11 +355,14 @@ class TestContext {
           : 'http://localhost:$port/$basePath/$path';
 
       await _webDriver?.get(appUrl);
-      final tab = await (connection.getTab((t) => t.url == appUrl)
-          as FutureOr<ChromeTab>);
-      _tabConnection = await tab.connect();
-      await tabConnection.runtime.enable();
-      await tabConnection.debugger.enable();
+      final tab = await connection.getTab((t) => t.url == appUrl);
+      if (tab != null) {
+        _tabConnection = await tab.connect();
+        await tabConnection.runtime.enable();
+        await tabConnection.debugger.enable();
+      } else {
+        throw StateError('Unable to connect to tab.');
+      }
 
       if (enableDebugExtension) {
         final extensionTab = await _fetchDartDebugExtensionTab(connection);
