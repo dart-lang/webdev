@@ -22,7 +22,7 @@ final _logger = Logger('DwdsVmClient');
 class DwdsVmClient {
   final VmService client;
   final StreamController<Map<String, Object>> _requestController;
-  final StreamController<Map<String, Object>> _responseController;
+  final StreamController<Map<String, Object?>> _responseController;
 
   static const int kFeatureDisabled = 100;
   static const String kFeatureDisabledMessage = 'Feature is disabled.';
@@ -44,7 +44,7 @@ class DwdsVmClient {
       DebugService debugService, DwdsStats dwdsStats) async {
     // Set up hot restart as an extension.
     final requestController = StreamController<Map<String, Object>>();
-    final responseController = StreamController<Map<String, Object>>();
+    final responseController = StreamController<Map<String, Object?>>();
     VmServerConnection(requestController.stream, responseController.sink,
         debugService.serviceExtensionRegistry, debugService.chromeProxyService);
     final client =
@@ -55,7 +55,7 @@ class DwdsVmClient {
             '$request');
         return;
       }
-      requestController.sink.add(jsonDecode(request) as Map<String, Object>);
+      requestController.sink.add(Map<String, Object>.from(jsonDecode(request)));
     });
     final chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
