@@ -33,14 +33,14 @@ int _clientsConnected = 0;
 
 Logger _logger = Logger('DebugService');
 
-void Function(WebSocketChannel, String) _createNewConnectionHandler(
+void Function(WebSocketChannel) _createNewConnectionHandler(
   ChromeProxyService chromeProxyService,
   ServiceExtensionRegistry serviceExtensionRegistry, {
-  void Function(Map<String, dynamic>)? onRequest,
-  void Function(Map<String, dynamic>)? onResponse,
+  void Function(Map<String, Object>)? onRequest,
+  void Function(Map<String, Object?>)? onResponse,
 }) {
-  return (webSocket, protocol) {
-    final responseController = StreamController<Map<String, Object>>();
+  return (webSocket) {
+    final responseController = StreamController<Map<String, Object?>>();
     webSocket.sink.addStream(responseController.stream.map((response) {
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
@@ -53,7 +53,7 @@ void Function(WebSocketChannel, String) _createNewConnectionHandler(
             'Got value with unexpected type ${value.runtimeType} from web '
             'socket, expected a List<int> or String.');
       }
-      final request = jsonDecode(value as String) as Map<String, Object>;
+      final request = Map<String, Object>.from(jsonDecode(value));
       if (onRequest != null) onRequest(request);
       return request;
     });
@@ -76,12 +76,12 @@ Future<void> _handleSseConnections(
   SseHandler handler,
   ChromeProxyService chromeProxyService,
   ServiceExtensionRegistry serviceExtensionRegistry, {
-  void Function(Map<String, dynamic>)? onRequest,
-  void Function(Map<String, dynamic>)? onResponse,
+  void Function(Map<String, Object>)? onRequest,
+  void Function(Map<String, Object?>)? onResponse,
 }) async {
   while (await handler.connections.hasNext) {
     final connection = await handler.connections.next;
-    final responseController = StreamController<Map<String, Object>>();
+    final responseController = StreamController<Map<String, Object?>>();
     final sub = responseController.stream.map((response) {
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
@@ -214,8 +214,8 @@ class DebugService {
     LoadStrategy loadStrategy,
     AppConnection appConnection,
     UrlEncoder? urlEncoder, {
-    void Function(Map<String, dynamic>)? onRequest,
-    void Function(Map<String, dynamic>)? onResponse,
+    void Function(Map<String, Object>)? onRequest,
+    void Function(Map<String, Object?>)? onResponse,
     bool spawnDds = true,
     bool useSse = false,
     ExpressionCompiler? expressionCompiler,
