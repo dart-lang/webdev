@@ -161,29 +161,4 @@ void main() async {
     expect(frames[3].kind, FrameKind.kAsyncSuspensionMarker);
     expect(frames[4].kind, FrameKind.kAsyncCausal);
   });
-
-  group('errors', () {
-    setUp(() {
-      // We need to provide an Isolate so that the code doesn't bail out on a null
-      // check before it has a chance to throw.
-      inspector = FakeInspector(fakeIsolate: simpleIsolate);
-      debugger.updateInspector(inspector);
-    });
-
-    test('errors in the zone are caught and logged', () async {
-      // Add a DebuggerPausedEvent with a null parameter to provoke an error.
-      pausedController.sink.add(DebuggerPausedEvent({
-        'params': {
-          'reason': 'other',
-          'callFrames': [
-            null,
-          ],
-        }
-      }));
-      expect(
-          Debugger.logger.onRecord,
-          emitsThrough(predicate((dynamic log) =>
-              log.message == 'Error calculating Dart frames')));
-    });
-  });
 }

@@ -182,10 +182,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
   Stream<TargetCrashedEvent> get onTargetCrashed => Stream.empty();
 
   @override
-  Future<WipResponse> pause() async => WipResponse({});
+  Future<WipResponse> pause() async => fakeWipResponse;
 
   @override
-  Future<WipResponse> resume() async => WipResponse({});
+  Future<WipResponse> resume() async => fakeWipResponse;
 
   @override
   Map<String, WipScript> get scripts => _scripts!;
@@ -200,27 +200,27 @@ class FakeWebkitDebugger implements WebkitDebugger {
     if (command == 'Runtime.getProperties') {
       return results[resultsReturned++];
     }
-    return WipResponse({});
+    return fakeWipResponse;
   }
 
   @override
   Future<WipResponse> setPauseOnExceptions(PauseState state) async =>
-      WipResponse({});
+      fakeWipResponse;
 
   @override
   Future<WipResponse> removeBreakpoint(String breakpointId) async =>
-      WipResponse({});
+      fakeWipResponse;
 
   @override
   Future<WipResponse> stepInto({Map<String, dynamic>? params}) async =>
-      WipResponse({});
+      fakeWipResponse;
 
   @override
-  Future<WipResponse> stepOut() async => WipResponse({});
+  Future<WipResponse> stepOut() async => fakeWipResponse;
 
   @override
   Future<WipResponse> stepOver({Map<String, dynamic>? params}) async =>
-      WipResponse({});
+      fakeWipResponse;
 
   @override
   Stream<ConsoleAPIEvent> get onConsoleAPICalled => Stream.empty();
@@ -251,10 +251,10 @@ class FakeWebkitDebugger implements WebkitDebugger {
       [];
 
   @override
-  Future<WipResponse> enablePage() async => WipResponse({});
+  Future<WipResponse> enablePage() async => fakeWipResponse;
 
   @override
-  Future<WipResponse> pageReload() async => WipResponse({});
+  Future<WipResponse> pageReload() async => fakeWipResponse;
 }
 
 /// Fake execution context that is needed for id only
@@ -365,3 +365,8 @@ class FakeAssetReader implements AssetReader {
     return contents;
   }
 }
+
+final fakeWipResponse = WipResponse({
+  'id': 1,
+  'result': {'fake': ''}
+});
