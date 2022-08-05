@@ -1359,9 +1359,9 @@ void main() {
       final isolateId = vm.isolates!.first.id!;
       final scriptList = await service.getScripts(isolateId);
 
-      final uris = scriptList.scripts!.map((e) => e.uri).toList();
-      final resolvedUris = await service.lookupResolvedPackageUris(
-          isolateId, uris as List<String>);
+      final uris = scriptList.scripts!.map((e) => e.uri!).toList();
+      final resolvedUris =
+          await service.lookupResolvedPackageUris(isolateId, uris);
 
       expect(
           resolvedUris.uris,
@@ -1406,12 +1406,12 @@ void main() {
       final isolateId = vm.isolates!.first.id!;
       final scriptList = await service.getScripts(isolateId);
 
-      final uris = scriptList.scripts!.map((e) => e.uri).toList();
-      final resolvedUris = await service.lookupResolvedPackageUris(
-          isolateId, uris as List<String>);
+      final uris = scriptList.scripts!.map((e) => e.uri!).toList();
+      final resolvedUris =
+          await service.lookupResolvedPackageUris(isolateId, uris);
 
       final packageUris = await service.lookupPackageUris(
-          isolateId, resolvedUris.uris as List<String>);
+          isolateId, List<String>.from(resolvedUris.uris!));
       expect(
           packageUris.uris,
           containsAll([
@@ -1426,13 +1426,12 @@ void main() {
       final isolateId = vm.isolates!.first.id!;
       final scriptList = await service.getScripts(isolateId);
 
-      final uris = scriptList.scripts!.map((e) => e.uri).toList();
-      final resolvedUrisWithLocal = await service.lookupResolvedPackageUris(
-          isolateId, uris as List<String>,
-          local: true);
+      final uris = scriptList.scripts!.map((e) => e.uri!).toList();
+      final resolvedUrisWithLocal =
+          await service.lookupResolvedPackageUris(isolateId, uris, local: true);
 
       final packageUrisWithLocal = await service.lookupPackageUris(
-          isolateId, resolvedUrisWithLocal.uris as List<String>);
+          isolateId, List<String>.from(resolvedUrisWithLocal.uris!));
       expect(
           packageUrisWithLocal.uris,
           containsAll([
@@ -1445,7 +1444,7 @@ void main() {
           await service.lookupResolvedPackageUris(isolateId, uris, local: true);
 
       final packageUrisWithoutLocal = await service.lookupPackageUris(
-          isolateId, resolvedUrisWithoutLocal.uris as List<String>);
+          isolateId, List<String>.from(resolvedUrisWithoutLocal.uris!));
       expect(
           packageUrisWithoutLocal.uris,
           containsAll([
