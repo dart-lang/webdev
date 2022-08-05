@@ -110,13 +110,14 @@ class LibraryHelper extends Domain {
     List<ClassRef>? classRefs;
     if (result != null) {
       final classDescriptors =
-          ((result.value as Map<String, dynamic>)['classes'] as List?)
-              ?.cast<Map<String, Object>>();
-      classRefs = classDescriptors?.map<ClassRef>((classDescriptor) {
+          (result.value as Map<String, dynamic>)['classes'] ?? [];
+      classRefs = List<Map<String, dynamic>>.from(classDescriptors)
+          .map<ClassRef>((classDescriptor) {
+        final descriptor = Map<String, Object>.from(classDescriptor);
         final classMetaData = ClassMetaData(
-          jsName: classDescriptor['name'],
+          jsName: descriptor['name'],
           libraryId: libraryRef.id,
-          dartName: classDescriptor['dartName'],
+          dartName: descriptor['dartName'],
         );
         return classMetaData.classRef;
       }).toList();
