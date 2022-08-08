@@ -67,6 +67,7 @@ void main() {
           late ChromeProxyService service;
           VM vm;
           late Isolate isolate;
+          late String isolateId;
           ScriptList scripts;
           late ScriptRef mainScript;
           late ScriptRef testLibraryScript;
@@ -77,7 +78,8 @@ void main() {
             service = setup.service;
             vm = await service.getVM();
             isolate = await service.getIsolate(vm.isolates!.first.id!);
-            scripts = await service.getScripts(isolate.id!);
+            isolateId = isolate.id!;
+            scripts = await service.getScripts(isolateId);
 
             await service.streamListen('Debug');
             stream = service.onEvent('Debug');
@@ -92,7 +94,7 @@ void main() {
           });
 
           tearDown(() async {
-            await service.resume(isolate.id!);
+            await service.resume(isolateId);
           });
 
           Future<void> onBreakPoint(BreakpointTestData breakpoint,
@@ -102,9 +104,9 @@ void main() {
               final bpId = breakpoint.bpId;
               final script = breakpoint.script;
               final line =
-                  await context.findBreakpointLine(bpId, isolate.id!, script);
+                  await context.findBreakpointLine(bpId, isolateId, script);
               bp = await setup.service
-                  .addBreakpointWithScriptUri(isolate.id!, script.uri!, line);
+                  .addBreakpointWithScriptUri(isolateId, script.uri!, line);
 
               expect(bp, isNotNull);
               expect(bp.location, _matchBpLocation(script, line, 0));
@@ -116,7 +118,7 @@ void main() {
             } finally {
               // Remove breakpoint so it doesn't impact other tests or retries.
               if (bp != null) {
-                await setup.service.removeBreakpoint(isolate.id!, bp.id!);
+                await setup.service.removeBreakpoint(isolateId, bp.id!);
               }
             }
           }
@@ -125,10 +127,10 @@ void main() {
               {int frameIndex = 1}) async {
             // Find lines the breakpoints are located on.
             final lines = await Future.wait(breakpoints.map((frame) => context
-                .findBreakpointLine(frame.bpId, isolate.id!, frame.script)));
+                .findBreakpointLine(frame.bpId, isolateId, frame.script)));
 
             // Get current stack.
-            final stack = await service.getStack(isolate.id!);
+            final stack = await service.getStack(isolateId);
 
             // Verify the stack is correct.
             expect(stack.frames!.length, greaterThanOrEqualTo(lines.length));
@@ -141,7 +143,7 @@ void main() {
 
             // Verify that expression evaluation is not failing.
             final instance =
-                await service.evaluateInFrame(isolate.id!, frameIndex, 'true');
+                await service.evaluateInFrame(isolateId, frameIndex, 'true');
             expect(instance, isA<InstanceRef>());
           }
 
@@ -234,7 +236,7 @@ void main() {
               ),
             ];
             await onBreakPoint(breakpoints[0], () async {
-              await service.resume(isolate.id!, step: 'Out');
+              await service.resume(isolateId, step: 'Out');
               await stream.firstWhere(
                   (Event event) => event.kind == EventKind.kPauseInterrupted);
               return testCallStack([breakpoints[1], breakpoints[2]]);
@@ -261,7 +263,7 @@ void main() {
               ),
             ];
             await onBreakPoint(breakpoints[1], () async {
-              await service.resume(isolate.id!, step: 'Into');
+              await service.resume(isolateId, step: 'Into');
               await stream.firstWhere(
                   (Event event) => event.kind == EventKind.kPauseInterrupted);
               return testCallStack(breakpoints);
@@ -293,7 +295,7 @@ void main() {
             final bp = BreakpointTestData(
                 'printMultiLine', 'printObjectMultiLine', mainScript);
             await onBreakPoint(bp, () async {
-              await service.resume(isolate.id!, step: 'Into');
+              await service.resume(isolateId, step: 'Into');
               await stream.firstWhere(
                   (Event event) => event.kind == EventKind.kPauseInterrupted);
               return testCallStack(breakpoints);

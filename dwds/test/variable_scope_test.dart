@@ -79,7 +79,7 @@ void main() {
       return result as Instance;
     }
 
-    void expectDartObject(String? variableName, Instance instance) {
+    void expectDartObject(String variableName, Instance instance) {
       expect(
           instance,
           isA<Instance>().having(
@@ -95,7 +95,7 @@ void main() {
         Map<String?, InstanceRef?> variables) async {
       for (var name in variables.keys) {
         final instance = await getInstance(variables[name]!);
-        expectDartObject(name, instance);
+        expectDartObject(name!, instance);
       }
     }
 
