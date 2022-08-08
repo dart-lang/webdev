@@ -81,7 +81,7 @@ void main() {
         final line = await context.findBreakpointLine(
             'printLocal', isolateId, mainScript);
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri!, line);
+            isolateId, mainScriptUri, line);
 
         await stream.firstWhere(
             (Event event) => event.kind == EventKind.kPauseBreakpoint);
@@ -96,7 +96,7 @@ void main() {
         final line = await context.findBreakpointLine(
             'printLocal', isolateId, mainScript);
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri!, line);
+            isolateId, mainScriptUri, line);
 
         await stream.firstWhere(
             (Event event) => event.kind == EventKind.kPauseBreakpoint);
@@ -112,7 +112,7 @@ void main() {
             'printNestedObjectMultiLine', isolateId, mainScript);
         final column = 0;
         final bp = await service.addBreakpointWithScriptUri(
-            isolateId, mainScriptUri!, line,
+            isolateId, mainScriptUri, line,
             column: column);
 
         await stream.firstWhere(
