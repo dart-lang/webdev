@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
@@ -20,8 +20,8 @@ final context = TestContext(
 WipConnection get tabConnection => context.tabConnection;
 
 void main() {
-  AppInspector inspector;
-  Debugger debugger;
+  late AppInspector inspector;
+  late Debugger debugger;
 
   setUpAll(() async {
     await context.setUp();
@@ -54,9 +54,9 @@ void main() {
       final remoteObject = await libraryPublicFinal();
       final nullVariable = await inspector.loadField(remoteObject, 'notFinal');
       final ref = await inspector.instanceRefFor(nullVariable);
-      expect(ref.valueAsString, 'null');
+      expect(ref!.valueAsString, 'null');
       expect(ref.kind, InstanceKind.kNull);
-      final classRef = ref.classRef;
+      final classRef = ref.classRef!;
       expect(classRef.name, 'Null');
       expect(classRef.id, 'classes|dart:core|Null');
     });
@@ -65,9 +65,9 @@ void main() {
       final remoteObject = await libraryPublicFinal();
       final count = await inspector.loadField(remoteObject, 'count');
       final ref = await inspector.instanceRefFor(count);
-      expect(ref.valueAsString, '0');
+      expect(ref!.valueAsString, '0');
       expect(ref.kind, InstanceKind.kDouble);
-      final classRef = ref.classRef;
+      final classRef = ref.classRef!;
       expect(classRef.name, 'Double');
       expect(classRef.id, 'classes|dart:core|Double');
     });
@@ -76,8 +76,8 @@ void main() {
       final remoteObject = await libraryPublicFinal();
       final count = await inspector.loadField(remoteObject, 'myselfField');
       final ref = await inspector.instanceRefFor(count);
-      expect(ref.kind, InstanceKind.kPlainInstance);
-      final classRef = ref.classRef;
+      expect(ref!.kind, InstanceKind.kPlainInstance);
+      final classRef = ref.classRef!;
       expect(classRef.name, 'MyTestClass<dynamic>');
       expect(
           classRef.id,
@@ -87,11 +87,11 @@ void main() {
 
     test('for closure', () async {
       final remoteObject = await libraryPublicFinal();
-      final properties = await debugger.getProperties(remoteObject.objectId);
+      final properties = await debugger.getProperties(remoteObject.objectId!);
       final closure =
           properties.firstWhere((property) => property.name == 'closure');
-      final instanceRef = await inspector.instanceRefFor(closure.value);
-      final functionName = instanceRef.closureFunction.name;
+      final instanceRef = await inspector.instanceRefFor(closure.value!);
+      final functionName = instanceRef!.closureFunction!.name;
       // Older SDKs do not contain function names
       if (functionName != 'Closure') {
         expect(functionName, 'someFunction');
@@ -102,27 +102,27 @@ void main() {
     test('for a list', () async {
       final remoteObject = await libraryPublic();
       final ref = await inspector.instanceRefFor(remoteObject);
-      expect(ref.length, greaterThan(0));
+      expect(ref!.length, greaterThan(0));
       expect(ref.kind, InstanceKind.kList);
-      expect(ref.classRef.name, 'List<String>');
+      expect(ref.classRef!.name, 'List<String>');
     });
 
     test('for map', () async {
       final remoteObject =
           await inspector.jsEvaluate(libraryVariableExpression('map'));
       final ref = await inspector.instanceRefFor(remoteObject);
-      expect(ref.length, 2);
+      expect(ref!.length, 2);
       expect(ref.kind, InstanceKind.kMap);
-      expect(ref.classRef.name, 'LinkedMap<Object, Object>');
+      expect(ref.classRef!.name, 'LinkedMap<Object, Object>');
     });
 
     test('for an IdentityMap', () async {
       final remoteObject =
           await inspector.jsEvaluate(libraryVariableExpression('identityMap'));
       final ref = await inspector.instanceRefFor(remoteObject);
-      expect(ref.length, 2);
+      expect(ref!.length, 2);
       expect(ref.kind, InstanceKind.kMap);
-      expect(ref.classRef.name, 'IdentityMap<String, int>');
+      expect(ref.classRef!.name, 'IdentityMap<String, int>');
     });
   });
 
@@ -130,12 +130,12 @@ void main() {
     test('for class object', () async {
       final remoteObject = await libraryPublicFinal();
       final instance = await inspector.instanceFor(remoteObject);
-      expect(instance.kind, InstanceKind.kPlainInstance);
-      final classRef = instance.classRef;
+      expect(instance!.kind, InstanceKind.kPlainInstance);
+      final classRef = instance.classRef!;
       expect(classRef, isNotNull);
       expect(classRef.name, 'MyTestClass<dynamic>');
       final fieldNames =
-          instance.fields.map((boundField) => boundField.decl.name).toList();
+          instance.fields!.map((boundField) => boundField.decl!.name).toList();
       expect(fieldNames, [
         '_privateField',
         'abstractField',
@@ -146,19 +146,19 @@ void main() {
         'notFinal',
         'tornOff',
       ]);
-      for (var field in instance.fields) {
-        expect(field.decl.declaredType, isNotNull);
+      for (var field in instance.fields!) {
+        expect(field.decl!.declaredType, isNotNull);
       }
     });
 
     test('for closure', () async {
       final remoteObject = await libraryPublicFinal();
-      final properties = await debugger.getProperties(remoteObject.objectId);
+      final properties = await debugger.getProperties(remoteObject.objectId!);
       final closure =
           properties.firstWhere((property) => property.name == 'closure');
-      final instance = await inspector.instanceFor(closure.value);
-      expect(instance.kind, InstanceKind.kClosure);
-      expect(instance.classRef.name, 'Closure');
+      final instance = await inspector.instanceFor(closure.value!);
+      expect(instance!.kind, InstanceKind.kClosure);
+      expect(instance.classRef!.name, 'Closure');
     });
 
     test('for a nested class', () async {
@@ -166,8 +166,8 @@ void main() {
       final fieldRemoteObject =
           await inspector.loadField(libraryRemoteObject, 'myselfField');
       final instance = await inspector.instanceFor(fieldRemoteObject);
-      expect(instance.kind, InstanceKind.kPlainInstance);
-      final classRef = instance.classRef;
+      expect(instance!.kind, InstanceKind.kPlainInstance);
+      final classRef = instance.classRef!;
       expect(classRef, isNotNull);
       expect(classRef.name, 'MyTestClass<dynamic>');
     });
@@ -175,11 +175,11 @@ void main() {
     test('for a list', () async {
       final remote = await libraryPublic();
       final instance = await inspector.instanceFor(remote);
-      expect(instance.kind, InstanceKind.kList);
-      final classRef = instance.classRef;
+      expect(instance!.kind, InstanceKind.kList);
+      final classRef = instance.classRef!;
       expect(classRef, isNotNull);
       expect(classRef.name, 'List<String>');
-      final first = instance.elements[0];
+      final first = instance.elements![0];
       expect(first.valueAsString, 'library');
     });
 
@@ -187,13 +187,13 @@ void main() {
       final remote =
           await inspector.jsEvaluate(libraryVariableExpression('map'));
       final instance = await inspector.instanceFor(remote);
-      expect(instance.kind, InstanceKind.kMap);
-      final classRef = instance.classRef;
+      expect(instance!.kind, InstanceKind.kMap);
+      final classRef = instance.classRef!;
       expect(classRef.name, 'LinkedMap<Object, Object>');
-      final first = instance.associations[0].value as InstanceRef;
+      final first = instance.associations![0].value as InstanceRef;
       expect(first.kind, InstanceKind.kList);
       expect(first.length, 3);
-      final second = instance.associations[1].value as InstanceRef;
+      final second = instance.associations![1].value as InstanceRef;
       expect(second.kind, InstanceKind.kString);
       expect(second.valueAsString, 'something');
     });
@@ -202,10 +202,10 @@ void main() {
       final remote =
           await inspector.jsEvaluate(libraryVariableExpression('identityMap'));
       final instance = await inspector.instanceFor(remote);
-      expect(instance.kind, InstanceKind.kMap);
-      final classRef = instance.classRef;
+      expect(instance!.kind, InstanceKind.kMap);
+      final classRef = instance.classRef!;
       expect(classRef.name, 'IdentityMap<String, int>');
-      final first = instance.associations[0].value;
+      final first = instance.associations![0].value;
       expect(first.valueAsString, '1');
     });
 
@@ -214,12 +214,12 @@ void main() {
       final remote =
           await inspector.jsEvaluate(libraryVariableExpression('notAList'));
       final instance = await inspector.instanceFor(remote);
-      expect(instance.kind, InstanceKind.kPlainInstance);
-      final classRef = instance.classRef;
+      expect(instance!.kind, InstanceKind.kPlainInstance);
+      final classRef = instance.classRef!;
       expect(classRef.name, 'NotReallyAList');
       expect(instance.elements, isNull);
-      final field = instance.fields.first;
-      expect(field.decl.name, '_internal');
+      final field = instance.fields!.first;
+      expect(field.decl!.name, '_internal');
     });
   });
 }
