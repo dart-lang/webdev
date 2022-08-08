@@ -11,8 +11,9 @@ import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
-import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service.dart' hide LogRecord;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     show CallFrame, DebuggerPausedEvent, StackTrace, WipCallFrame, WipScript;
 
@@ -160,5 +161,38 @@ void main() async {
     expect(frames[2].kind, FrameKind.kAsyncCausal);
     expect(frames[3].kind, FrameKind.kAsyncSuspensionMarker);
     expect(frames[4].kind, FrameKind.kAsyncCausal);
+  });
+
+  setUp(() {
+    // We need to provide an Isolate so that the code doesn't bail out on a null
+    // check before it has a chance to throw.
+    inspector = FakeInspector(fakeIsolate: simpleIsolate);
+    debugger.updateInspector(inspector);
+  });
+
+  group('errors', () {
+    setUp(() {
+      // We need to provide an Isolate so that the code doesn't bail out on a null
+      // check before it has a chance to throw.
+      inspector = FakeInspector(fakeIsolate: simpleIsolate);
+      debugger.updateInspector(inspector);
+    });
+
+    test('errors in the zone are caught and logged', () async {
+      // Add a DebuggerPausedEvent with a null parameter to provoke an error.
+      pausedController.sink.add(DebuggerPausedEvent({
+        'method': '',
+        'params': {
+          'reason': 'other',
+          'callFrames': [
+            {'callFrameId': '', 'functionName': ''},
+          ],
+        }
+      }));
+      expect(
+          Debugger.logger.onRecord,
+          emitsThrough(predicate((LogRecord log) =>
+              log.message == 'Error calculating Dart frames')));
+    });
   });
 }
