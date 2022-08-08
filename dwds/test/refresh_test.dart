@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+
 
 /// Tests that require a fresh context to run, and can interfere with other
 /// tests.
@@ -26,7 +26,7 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   group('fresh context', () {
-    VM vm;
+    late VM vm;
     setUpAll(() async {
       await context.setUp();
       vm = await service.getVM();
@@ -48,18 +48,18 @@ void main() {
       // Wait for the refresh to propagate through.
       final isolateStart =
           await stream.firstWhere((e) => e.kind != EventKind.kIsolateStart);
-      final isolateId = isolateStart.isolate.id;
+      final isolateId = isolateStart.isolate!.id!;
       final refreshedScriptList = await service.getScripts(isolateId);
-      final refreshedMain = refreshedScriptList.scripts
-          .lastWhere((each) => each.uri.contains('main.dart'));
+      final refreshedMain = refreshedScriptList.scripts!
+          .lastWhere((each) => each.uri!.contains('main.dart'));
       final bpLine = await context.findBreakpointLine(
           'printHelloWorld', isolateId, refreshedMain);
       final bp =
-          await service.addBreakpoint(isolateId, refreshedMain.id, bpLine);
-      final isolate = await service.getIsolate(vm.isolates.first.id);
+          await service.addBreakpoint(isolateId, refreshedMain.id!, bpLine);
+      final isolate = await service.getIsolate(vm.isolates!.first.id!);
       expect(isolate.breakpoints, [bp]);
       expect(bp.id, isNotNull);
-      await service.removeBreakpoint(isolateId, bp.id);
+      await service.removeBreakpoint(isolateId, bp.id!);
       expect(isolate.breakpoints, isEmpty);
     });
   });
