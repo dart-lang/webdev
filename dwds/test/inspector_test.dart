@@ -141,10 +141,12 @@ void main() {
 
     LibraryRef? bootstrapLibrary;
     late RemoteObject instance;
+    late String objectId;
 
     setUp(() async {
       bootstrapLibrary = inspector.isolate.rootLib;
       instance = await libraryPublicFinal();
+      objectId = instance.objectId!;
     });
 
     test('invoke top-level private', () async {
@@ -157,8 +159,8 @@ void main() {
     });
 
     test('invoke instance private', () async {
-      final remote = await inspector.invoke(
-          instance.objectId!, 'privateMethod', [dartIdFor('some string')]);
+      final remote = await inspector
+          .invoke(objectId, 'privateMethod', [dartIdFor('some string')]);
       expect(
           remote,
           const TypeMatcher<RemoteObject>().having((instance) => instance.value,
@@ -166,8 +168,7 @@ void main() {
     });
 
     test('invoke instance method with object parameter', () async {
-      final remote = await inspector
-          .invoke(instance.objectId!, 'equals', [instance.objectId]);
+      final remote = await inspector.invoke(objectId, 'equals', [objectId]);
       expect(
           remote,
           const TypeMatcher<RemoteObject>()
@@ -177,7 +178,7 @@ void main() {
     test('invoke instance method with object parameter 2', () async {
       final libraryPrivateList = await libraryPrivate();
       final remote = await inspector
-          .invoke(instance.objectId!, 'equals', [libraryPrivateList.objectId]);
+          .invoke(objectId, 'equals', [libraryPrivateList.objectId]);
       expect(
           remote,
           const TypeMatcher<RemoteObject>()
@@ -185,7 +186,7 @@ void main() {
     });
 
     test('invoke closure stored in an instance field', () async {
-      final remote = await inspector.invoke(instance.objectId!, 'closure', []);
+      final remote = await inspector.invoke(objectId, 'closure', []);
       expect(
           remote,
           const TypeMatcher<RemoteObject>()
