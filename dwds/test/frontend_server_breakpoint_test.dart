@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @TestOn('vm')
 import 'dart:async';
 
@@ -53,33 +51,33 @@ void main() {
 
     group('breakpoint', () {
       VM vm;
-      Isolate isolate;
+      late Isolate isolate;
       ScriptList scripts;
-      ScriptRef mainScript;
-      Stream<Event> stream;
+      late ScriptRef mainScript;
+      late Stream<Event> stream;
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
         vm = await service.getVM();
-        isolate = await service.getIsolate(vm.isolates.first.id);
-        scripts = await service.getScripts(isolate.id);
+        isolate = await service.getIsolate(vm.isolates!.first.id!);
+        scripts = await service.getScripts(isolate.id!);
 
         await service.streamListen('Debug');
         stream = service.onEvent('Debug');
 
-        mainScript = scripts.scripts
-            .firstWhere((each) => each.uri.contains('main.dart'));
+        mainScript = scripts.scripts!
+            .firstWhere((each) => each.uri!.contains('main.dart'));
       });
 
       tearDown(() async {
-        await service.resume(isolate.id);
+        await service.resume(isolate.id!);
       });
 
       test('set breakpoint', () async {
         final line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
+            'printLocal', isolate.id!, mainScript);
         final bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+            isolate.id!, mainScript.uri!, line);
 
         await stream.firstWhere(
             (Event event) => event.kind == EventKind.kPauseBreakpoint);
@@ -87,14 +85,14 @@ void main() {
         expect(bp, isNotNull);
 
         // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+        await service.removeBreakpoint(isolate.id!, bp.id!);
       });
 
       test('set breakpoint again', () async {
         final line = await context.findBreakpointLine(
-            'printLocal', isolate.id, mainScript);
+            'printLocal', isolate.id!, mainScript);
         final bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line);
+            isolate.id!, mainScript.uri!, line);
 
         await stream.firstWhere(
             (Event event) => event.kind == EventKind.kPauseBreakpoint);
@@ -102,15 +100,15 @@ void main() {
         expect(bp, isNotNull);
 
         // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+        await service.removeBreakpoint(isolate.id!, bp.id!);
       });
 
       test('set breakpoint inside a JavaScript line succeeds', () async {
         final line = await context.findBreakpointLine(
-            'printNestedObjectMultiLine', isolate.id, mainScript);
+            'printNestedObjectMultiLine', isolate.id!, mainScript);
         final column = 0;
         final bp = await service.addBreakpointWithScriptUri(
-            isolate.id, mainScript.uri, line,
+            isolate.id!, mainScript.uri!, line,
             column: column);
 
         await stream.firstWhere(
@@ -125,7 +123,7 @@ void main() {
                 .having((loc) => loc.column, 'column', greaterThan(column)));
 
         // Remove breakpoint so it doesn't impact other tests.
-        await service.removeBreakpoint(isolate.id, bp.id);
+        await service.removeBreakpoint(isolate.id!, bp.id!);
       });
     });
   });

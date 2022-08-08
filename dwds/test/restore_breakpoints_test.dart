@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @TestOn('vm')
 import 'dart:async';
 
@@ -33,33 +31,33 @@ void main() {
 
   group('breakpoints', () {
     VM vm;
-    Isolate isolate;
+    late Isolate isolate;
     ScriptList scripts;
-    ScriptRef mainScript;
-    Stream<Event> isolateEventStream;
+    late ScriptRef mainScript;
+    late Stream<Event> isolateEventStream;
 
     setUp(() async {
       setCurrentLogWriter();
       vm = await fetchChromeProxyService(context.debugConnection).getVM();
       isolate = await fetchChromeProxyService(context.debugConnection)
-          .getIsolate(vm.isolates.first.id);
+          .getIsolate(vm.isolates!.first.id!);
       scripts = await fetchChromeProxyService(context.debugConnection)
-          .getScripts(isolate.id);
-      mainScript =
-          scripts.scripts.firstWhere((each) => each.uri.contains('main.dart'));
+          .getScripts(isolate.id!);
+      mainScript = scripts.scripts!
+          .firstWhere((each) => each.uri!.contains('main.dart'));
       isolateEventStream = service.onEvent('Isolate');
     });
 
     tearDown(() async {
       // Remove breakpoints so they don't impact other tests.
-      for (var breakpoint in isolate.breakpoints.toList()) {
-        await service.removeBreakpoint(isolate.id, breakpoint.id);
+      for (var breakpoint in isolate.breakpoints!.toList()) {
+        await service.removeBreakpoint(isolate.id!, breakpoint.id!);
       }
     });
 
     test('restore after refresh', () async {
       final firstBp =
-          await service.addBreakpoint(isolate.id, mainScript.id, 23);
+          await service.addBreakpoint(isolate.id!, mainScript.id!, 23);
       expect(firstBp, isNotNull);
       expect(firstBp.id, isNotNull);
 
@@ -76,14 +74,14 @@ void main() {
       await eventsDone;
 
       vm = await service.getVM();
-      isolate = await service.getIsolate(vm.isolates.first.id);
+      isolate = await service.getIsolate(vm.isolates!.first.id!);
 
-      expect(isolate.breakpoints.length, equals(1));
+      expect(isolate.breakpoints!.length, equals(1));
     }, timeout: const Timeout.factor(2));
 
     test('restore after hot restart', () async {
       final firstBp =
-          await service.addBreakpoint(isolate.id, mainScript.id, 23);
+          await service.addBreakpoint(isolate.id!, mainScript.id!, 23);
       expect(firstBp, isNotNull);
       expect(firstBp.id, isNotNull);
 
@@ -101,9 +99,9 @@ void main() {
       await eventsDone;
 
       vm = await service.getVM();
-      isolate = await service.getIsolate(vm.isolates.first.id);
+      isolate = await service.getIsolate(vm.isolates!.first.id!);
 
-      expect(isolate.breakpoints.length, equals(1));
+      expect(isolate.breakpoints!.length, equals(1));
     }, timeout: const Timeout.factor(2));
   });
 }

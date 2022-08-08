@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @Timeout(Duration(minutes: 2))
 import 'dart:async';
 
@@ -31,8 +29,8 @@ void main() {
 
     test('can resume while paused at the start', () async {
       final vm = await service.getVM();
-      final isolate = await service.getIsolate(vm.isolates.first.id);
-      expect(isolate.pauseEvent.kind, EventKind.kPauseStart);
+      final isolate = await service.getIsolate(vm.isolates!.first.id!);
+      expect(isolate.pauseEvent!.kind, EventKind.kPauseStart);
       final stream = service.onEvent('Debug');
       final resumeCompleter = Completer();
       // The underlying stream is a broadcast stream so we need to add a
@@ -42,19 +40,19 @@ void main() {
           .then((_) {
         resumeCompleter.complete();
       }));
-      await service.resume(isolate.id);
+      await service.resume(isolate.id!);
       await resumeCompleter.future;
-      expect(isolate.pauseEvent.kind, EventKind.kResume);
+      expect(isolate.pauseEvent!.kind, EventKind.kResume);
     });
 
     test('correctly sets the isolate pauseEvent', () async {
       final vm = await service.getVM();
-      final isolate = await service.getIsolate(vm.isolates.first.id);
-      expect(isolate.pauseEvent.kind, EventKind.kPauseStart);
+      final isolate = await service.getIsolate(vm.isolates!.first.id!);
+      expect(isolate.pauseEvent!.kind, EventKind.kPauseStart);
       final stream = service.onEvent('Debug');
       context.appConnection.runMain();
       await stream.firstWhere((event) => event.kind == EventKind.kResume);
-      expect(isolate.pauseEvent.kind, EventKind.kResume);
+      expect(isolate.pauseEvent!.kind, EventKind.kResume);
     });
   });
 
@@ -70,8 +68,8 @@ void main() {
       context.appConnection.runMain();
       await context.startDebugging();
       final vm = await service.getVM();
-      final isolate = await service.getIsolate(vm.isolates.first.id);
-      expect(isolate.pauseEvent.kind, EventKind.kResume);
+      final isolate = await service.getIsolate(vm.isolates!.first.id!);
+      expect(isolate.pauseEvent!.kind, EventKind.kResume);
     });
   });
 }
