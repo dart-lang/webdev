@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-
 // When run locally this test may require a manifest key. This makes it easy to
 // just skip it.
 @Tags(['extension'])
