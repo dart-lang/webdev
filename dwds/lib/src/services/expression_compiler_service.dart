@@ -188,7 +188,7 @@ class _Compiler {
     final error = (errors != null && errors.isNotEmpty)
         ? errors.first
         : (e != null ? '$e:$s' : '<unknown error>');
-    final procedure = response['compiledProcedure'] as String;
+    final procedure = (response['compiledProcedure'] as String?) ?? '';
     final succeeded = (response['succeeded'] as bool?) ?? false;
     final result = succeeded ? procedure : error;
 
