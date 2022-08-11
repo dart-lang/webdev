@@ -1,26 +1,33 @@
 ## Building
 
-- With dart2js:
+> Note: First make the script executable: `chmod +x tool/build_extension.sh`
+
+### With DDC (for development):
 
 ```
-dart run build_runner build web -o build -r
+./tool/build_extension.sh
 ```
 
-This will build to the `/web` directory.
+* This will build to the `/build/web` directory. 
 
-- With DDC:
+### With dart2js (for release):
 
 ```
-dart run build_runner build web -o build
+./tool/build_extension.sh prod
 ```
 
-This will build to the `/build/web` directory. 
+* This will build to the `/build/web_prod` directory.
+
+> Note: Building the dart2js-compiled extension will also overwrite any previous builds of the DDC-compiled extension in the `build/web` directory. You will need to run the build step for DDC again to continue development work. 
+
 ## Local Development
 
-### Update `manifest.json`:
+### Create a `manifest.json`:
+
+Make a copy of `web/manifest_prod.json` and rename the copy to `web/manifest.json`. This new `manifest.json` is gitignored, and should never be committed. 
 
 * Change the `default_icon` in `manifest.json` to `dart_dev.png` (Note: this is not strictly necessary, but will help you to distinguish your local version of the extension from the published version)
-* [For Googlers] The developer key is needed for local development and testing. Add one of the whitelisted keys to `web/manifest.json`. IMPORTANT: DO NOT COMMIT THE KEY.
+* [For Googlers] A developer key is needed for local development and testing. Add one of the whitelisted keys to `web/manifest.json`. IMPORTANT: DO NOT COMMIT THE KEY.
 
 ```
 {
@@ -36,7 +43,7 @@ This will build to the `/build/web` directory.
 * Visit chrome://extensions
 * Toggle "Developer mode" on
 * Click the "Load unpacked" button
-* Select the extension directory: `/dwds/debug_extension/web`
+* Select the extension directory: `build/web`
 
 ### Debug your local extension
 * Click the Extensions puzzle piece, and pin the Dart Debug Extension with the dev icon (unpin the published version so you don't confuse them)
@@ -47,11 +54,11 @@ This will build to the `/build/web` directory.
 
 ## Release process
 
-1. Update the version in `web/manifest.json`, `pubspec.yaml`, and in the `CHANGELOG`. 
-2. Build dart2js: `pub run build_runner build web -o build -r`
-> *At this point, you should manually verify that everything is working by following the steps in [Local Development](#local-development).*
+1. Update the version in `web/manifest_prod.json`, `pubspec.yaml`, and in the `CHANGELOG`. 
+2. Follow the instructions above to build the dart2js-compiled release version of the extension.
+> *At this point, you should manually verify that everything is working by following the steps in [Local Development](#local-development), except load the extension from the `build/web_prod` directory. You will need to add a manifest developer key to the `manifest.json` in the `build/web_prod` directory.
 3. Open a PR to submit the version and build changes.
-4. Once submitted, pull the changes down to your local branch, and create a zip of the `debug_extension/web` directory (NOT `debug_extension/build/web`). 
+4. Once submitted, pull the changes down to your local branch, and create a zip of the `build/web_prod` directory (NOT `build/web`). 
 5. Rename the zip `version_XX.XX.XX.zip` (eg, `version_1.24.0.zip`) and add it to the go/dart-debug-extension-zips folder 
 > *You must be a Googler to do this. Ask for help if not.*
 6. Go to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
