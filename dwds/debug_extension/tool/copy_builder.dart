@@ -7,25 +7,55 @@ import 'package:build/build.dart';
 /// Factory for the build script.
 Builder copyBuilder(_) => _CopyBuilder();
 
-/// Copies the [_backgroundJsId] file to [_backgroundJsCopyId].
 class _CopyBuilder extends Builder {
   @override
   Map<String, List<String>> get buildExtensions => {
-        _backgroundJsId.path: [_backgroundJsCopyId.path]
+        "web/{{}}.dart.js": ["build/web_prod/{{}}.js"],
+        "web/{{}}.png": ["build/web_prod/{{}}.png"],
+        "web/{{}}.html": ["build/web_prod/{{}}.html"],
+        "web/{{}}.css": ["build/web_prod/{{}}.css"],
+        "web/manifest_prod.json": ["build/web_prod/manifest.json"],
+        "web/panel.js": ["build/web_prod/panel.js"],
+        "web/detector.js": ["build/web_prod/detector.js"],
+        "web/devtools.js": ["build/web_prod/devtools.js"],
       };
 
   @override
   void build(BuildStep buildStep) {
-    if (buildStep.inputId == _backgroundJsId) {
-      buildStep.writeAsString(
-          _backgroundJsCopyId, buildStep.readAsString(_backgroundJsId));
+    final inputAsset = buildStep.inputId;
+    final allowedOutputs = buildStep.allowedOutputs;
+
+    if (allowedOutputs.length == 0) {
+      print('Skipping ${inputAsset.path} which has no output options.');
       return;
+    } else if (allowedOutputs.length > 1) {
+      print('Skipping ${inputAsset.path} which has multiple output options.');
+      return;
+    }
+
+    final outputAsset = allowedOutputs.first;
+    if (outputAsset.path.endsWith('.png')) {
+      _copyBinaryFile(buildStep,
+          inputAsset: inputAsset, outputAsset: outputAsset);
     } else {
-      throw StateError(
-          'Unexpected input for `CopyBuilder` expected only $_backgroundJsId');
+      _copyTextFile(buildStep,
+          inputAsset: inputAsset, outputAsset: outputAsset);
     }
   }
-}
 
-final _backgroundJsId = AssetId('extension', 'web/background.dart.js');
-final _backgroundJsCopyId = AssetId('extension', 'web/background.js');
+  void _copyTextFile(
+    BuildStep buildStep, {
+    required AssetId inputAsset,
+    required AssetId outputAsset,
+  }) {
+    buildStep.writeAsString(outputAsset, buildStep.readAsString(inputAsset));
+  }
+
+  void _copyBinaryFile(
+    BuildStep buildStep, {
+    required AssetId inputAsset,
+    required AssetId outputAsset,
+  }) {
+    buildStep.writeAsBytes(outputAsset, buildStep.readAsBytes(inputAsset));
+  }
+}
