@@ -5,7 +5,8 @@
 - Package: https://pub.dev/packages/dwds
 - [Source code](dwds)
 
-A service that proxies between the Chrome debug protocol and the Dart VM service protocol.
+A service that proxies between the Chrome debug protocol and the Dart VM service
+protocol.
 
 ## webdev [![Pub Package](https://img.shields.io/pub/v/webdev.svg)](https://pub.dev/packages/webdev)
 

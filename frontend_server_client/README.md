@@ -6,13 +6,13 @@ which ships with the Dart SDK.
 
 ## SDK Versioning Policy
 
-This package keeps a relatively tight version constraint on the SDK to allow
-for breaking changes in the frontend_server binary itself.
+This package keeps a relatively tight version constraint on the SDK to allow for
+breaking changes in the frontend_server binary itself.
 
-Specifically, releases of this package will have an upper bound of less than
-the next _minor_ (middle) version number of the latest stable SDK. There are no
-requirements for the lower bound (other than the package must pass tests on
-that SDK).
+Specifically, releases of this package will have an upper bound of less than the
+next _minor_ (middle) version number of the latest stable SDK. There are no
+requirements for the lower bound (other than the package must pass tests on that
+SDK).
 
 The effect of this policy is that breaking changes will be allowed to the
 frontend_server binary, but only in _minor_ SDK version releases.
