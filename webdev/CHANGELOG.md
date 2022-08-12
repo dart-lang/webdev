@@ -1,29 +1,36 @@
 ## 2.7.11-dev
+
 - Remove no longer used `ExpressionCompilerService.handler`.
 
 ## 2.7.10
+
 - Pin DWDS version to avoid dependency conflicts with `package:vm_service`.
 
 ## 2.7.9
+
 - Add an option to pass user data directory to chrome: `user-data-dir`.
   Auto detect user data directory based on the current OS if `auto` is
   given as a value. If `null` is given as a value (default), fall back
   to the existing behavior (i.e. creating/reusing a temp directory).
- 
+
   Note: not supported for Windows yet due to flakiness it introduces.
-  
+
   Example using user-specified directory:
+
   ```
     webdev serve \
       --debug --debug-extension \
       --user-data-dir='/Users/<user>/Library/Application Support/Google/Chrome'
   ```
+
   Example using auto-detected directory:
+
   ```
     webdev serve \
       --debug --debug-extension \
       --user-data-dir=auto
   ```
+
 - Update the min SDK constraint to 2.17.0.
 
 ## 2.7.8
@@ -70,7 +77,6 @@
 - Depend on the latest `package:sse`.
 - Remove references to Flutter Web as webdev is no longer used with Flutter.
   Users should be using Flutter Tools shipped with the Flutter SDK.
-
 
 ## 2.7.0
 

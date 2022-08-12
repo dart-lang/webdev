@@ -1,4 +1,5 @@
 ## 16.0.0-dev
+
 - Fix a hang and report errors on hot reload exceptions from the injected
   client.
 - Remove `AppInspector.evaluate` code that has been replaced by expression
@@ -12,16 +13,19 @@
   resume operation. This avoids race conditions on isolate start.
 
 **Breaking changes**
+
 - Remove no longer used `ExpressionCompilerService.handler`.
 - Remove `assetHandler` parameter from `ExpressionCompilerService` constructor.
 
 ## 15.0.0
+
 - Port some `dwds` files to null safety.
 - Fix failing `frontend_server_evaluate` tests.
 - Prevent `flutter_tools` crash when the Dart execution context cannot be found.
 - Update method signature of `lookupResolvedPackageUris`.
 
 ## 14.0.3
+
 - Make data types null safe.
 - Update `package:vm_service` to 8.3.0.
 - Convert JavaScript stack traces in uncaught exceptions to Dart stack traces.
@@ -30,18 +34,21 @@
 - Batch extension `Debugger.scriptParsed` events and send batches every 1000ms
   to the server.
 - Move `batched_stream.dart` into shared utilities.
-- Update the method signature for `lookupResolvedPackageUris`. 
+- Update the method signature for `lookupResolvedPackageUris`.
 
 ## 14.0.2
+
 - Update the min SDK constraint to 2.17.0.
 
 ## 14.0.1
+
 - Add `libraryFilters` optional parameter to the vm service implememtation
   of `getSourceReport`.
 - Update temp variable detection heuristics so internal JS type objects do
   not show in the debugger.
 
 ## 14.0.0
+
 - Add column information to breakpoints to allow precise breakpoint placement.
 - Split SDK validation methods to allow validation of separate components.
 - Remove dependency on `package:_fe_analyzer_shared`.
@@ -65,13 +72,16 @@
     of a variable definition.
 
 **Breaking changes:**
+
 - Add `basePath` parameter to `FrontendServerRequireStrategy`.
 - Add `loadLibrariesModule` getter to `LoadStrategy` interface.
 
 ## 13.1.0
-- Update _fe_analyzer_shared to version ^38.0.0.
+
+- Update \_fe_analyzer_shared to version ^38.0.0.
 
 ## 13.0.0
+
 - Change wording of paused overlay from "Paused in Dart DevTools" to "Paused"
 - Allow sending back the Dart DevTools URL from DWDS instead of launching
   Dart DevTools, to support embedding Dart DevTools in Chrome DevTools.
@@ -92,12 +102,14 @@
 - Fix missing `CallFrame.url` after update to Chrome 100.
 
 **Breaking changes:**
+
 - `Dwds.start` and `ExpressionCompilerService` now take
   `sdkConfigurationProvider` argument instead of separate SDK-related file
   paths.
 
 ## 12.1.0
-- Update _fe_analyzer_shared to version ^34.0.0.
+
+- Update \_fe_analyzer_shared to version ^34.0.0.
 
 ## 12.0.0
 
@@ -112,7 +124,7 @@
 - Remove dead code for reading `'dart.developer.registerExtension'` and
   `'dart.developer.postEvent'` events from the chrome console. These messages
   haven't been written to the console since dwds v11.1.0 and Dart SDK v2.14.0.
-- Batch debug events sent from injected client to dwds to relieve network load. 
+- Batch debug events sent from injected client to dwds to relieve network load.
 - Update `_fe_analyzer_shared` version to `33.0.0`
 - Update the Dart minimum SDK to `>=2.16.0`.
 
@@ -133,6 +145,7 @@
 ## 11.5.0
 
 - Support hot restart in a multi-app scenario with legacy modules.
+
   - Rename `$dartHotRestart` in the injected client to `$dartHotRestartDwds`.
   - Make `$dartHotRestartDwds` take a `runId`.
   - No change in behavior for single applications.
@@ -144,8 +157,11 @@
   flutter tools and webdev.
 
 - Fix chrome detection in iPhone emulation mode in chrome or edge browsers.
+
 - Reliably find unused port for extension backend http service.
+
 - Ignore offset / count parameters in getObject if the object has no length.
+
 - Include static member information for classes.
 
 ## 11.4.0
@@ -217,6 +233,7 @@
 - Fix out of memory issue during sending debug event notifications.
 
 ## 11.1.2
+
 - Return empty library from `ChromeProxyService.getObject` for
   libraries present in medatata but not loaded at runtime.
 - Log failures to load kernel during expression evaluation.
@@ -248,7 +265,6 @@
   - Allow adding existing breakpoints.
   - Throw `RPCError` when removing non-existent breakpoints.
 
-
 ## 11.0.0
 
 - Do not send `kServiceExtensionAdded` events to subscribers
@@ -265,6 +281,7 @@
   This event is intended to be consumed by the Dart Debug Extension.
 
 **Breaking changes:**
+
 - `Dwds.start` no longer supports automatically injecting a devtools server. A `devtoolsLauncher`
   callback must be provided to support launching devtools.
 
@@ -280,6 +297,7 @@
 - Record `ErrorRef` returned by evaluation in analytics.
 
 **Breaking changes:**
+
 - Change `ExpressionCompiler.initialize` method to include module format.
 - Add `LoadStrategy.moduleFormat` to be used for communicating current
   module format to the expression compiler.
@@ -310,6 +328,7 @@
 - Opt all dart files out of null safety for min SDK constraint update.
 
 **Breaking changes:**
+
 - `LoadStrategy`s now require a `moduleInfoForEntrypoint`.
 
 ## 8.0.3
@@ -340,6 +359,7 @@
 - Depend on `package:vm_service` version `6.0.1-nullsafety.0`.
 
 **Breaking changes:**
+
 - Change `ExpressionCompiler.updateDependencies` method to include
   module summary paths
 
@@ -408,6 +428,7 @@
   absolute file paths are used in an import uri.
 
 **Breaking changes:**
+
 - Change `ExpressionCompiler` to require a new `updateDependencies` method.
 - Update a number of `LoadStrategy` APIs to remove heuristics and rely on
   the `MetadataProvider`.
@@ -429,6 +450,7 @@
 - Improve the heuristic which filters JS scopes for debugging needs.
 
 **Breaking Changes:**
+
 - Require access to the `.ddc_merged_metadata` file.
 - Remove deprecated parameter `restoreBreakpoints` as breakpoints are now
   set by regex URL and Chrome automatically reestablishes them.
@@ -453,7 +475,6 @@
 
 - Fix an issue where the injected client served under `https` assumed the
   corresponding SSE handler was also under `https`.
-
 
 ## 3.1.2
 
@@ -516,6 +537,7 @@
 - Depend on the latest `package:vm_service` version `4.0.0`.
 
 **Breaking Changes:**
+
 - Delegate to the `LoadStrategy` for module information:
   - moduleId -> serverPath
   - serverPath -> moduleId
@@ -531,8 +553,9 @@
 - Depend on the latest `package:vm_service` version `3.0.0+1`.
 
 **Breaking Changes:**
+
 - Now require a `LoadStrategy` to `Dwds.start`. This package defines two
-  compatible load strategies, `RequireStrategy` and `LegacyStrategy.
+  compatible load strategies, `RequireStrategy` and \`LegacyStrategy.
 - `Dwds.start` function signature has been changed to accept one more parameter
   of new interface type `ExpressionCompiler` to support expression
   evaluation
@@ -557,6 +580,7 @@
   instance could crash your development server.
 
 **Breaking Changes:**
+
 - No longer use the `BuildResult` abstraction from `package:build_daemon` but
   require a similar abstraction provided by this package.
 - `AssetHandler` has been renamed to `AssetReader` and no longer provides a
@@ -570,8 +594,8 @@
 - Expose `middleware` and `handler`.
 
 **Breaking Change:** The `AssetHandler` will not automatically be added the
-  DWDS handler cascade. You must now also add the `middelware` to your server's
-  pipeline.
+DWDS handler cascade. You must now also add the `middelware` to your server's
+pipeline.
 
 ## 0.8.5
 
@@ -603,7 +627,7 @@
 - Don't spawn DevTools if `serveDevTools` is false.
 - `UrlEncoder` will also encode the base URI used by the injected client /
   Dart Debug Extension.
-** Breaking Change ** `serveDevTools` is not automatically considered true if
+  \*\* Breaking Change \*\* `serveDevTools` is not automatically considered true if
   `enableDebugExtension`is true.
 
 ## 0.7.9

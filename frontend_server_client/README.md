@@ -27,7 +27,7 @@ By default when you do a pub get/upgrade, a constraint like `<2.9.0` will
 actually allow dev releases of `2.9.0` if the current SDK is a dev release. It
 emits a warning when it does this, but will happily alow it.
 
-* This means that we don't have to publish versions that explicitly allow dev
+- This means that we don't have to publish versions that explicitly allow dev
   releases. We will be notified of breakages by our bots if a dev release does
   break us, and can release a patch.
 
