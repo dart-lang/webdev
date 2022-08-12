@@ -25,7 +25,7 @@ class _CopyBuilder extends Builder {
     final inputAsset = buildStep.inputId;
     final allowedOutputs = buildStep.allowedOutputs;
 
-    if (allowedOutputs.length == 0) {
+    if (allowedOutputs.isEmpty) {
       print('Skipping ${inputAsset.path} which has no output options.');
       return;
     } else if (allowedOutputs.length > 1) {
