@@ -8,7 +8,8 @@ with the native Dart VM to also work with Dart Web applications compiled with
 `package:dwds` is integrated into `webdev serve` as well as `flutter run`.
 
 At a basic level, DWDS proxies between:
-* Developer tools that are written against the
+
+- Developer tools that are written against the
   [Dart VM Service Protocol](https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md)
-* Execution environments that expose the
+- Execution environments that expose the
   [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol)
