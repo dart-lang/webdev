@@ -17,7 +17,7 @@ export 'src/loaders/frontend_server_require.dart'
 export 'src/loaders/legacy.dart' show LegacyStrategy;
 export 'src/loaders/require.dart' show RequireStrategy;
 export 'src/loaders/strategy.dart' show LoadStrategy, ReloadConfiguration;
-export 'src/readers/asset_reader.dart' show AssetReader, UrlEncoder;
+export 'src/readers/asset_reader.dart' show AssetReader, UrlEncoder, PackageUriMapper;
 export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;
 export 'src/readers/proxy_server_asset_reader.dart' show ProxyServerAssetReader;

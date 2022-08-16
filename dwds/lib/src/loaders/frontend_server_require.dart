@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 import '../debugging/metadata/provider.dart';
@@ -12,8 +13,10 @@ import 'require.dart';
 
 /// Provides a [RequireStrategy] suitable for use with Frontend Server.
 class FrontendServerRequireStrategyProvider {
+  final _logger = Logger('FrontendServerRequireStrategyProvider');
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
+  final PackageUriMapper _packageUriMapper;
   final Future<Map<String, String>> Function() _digestsProvider;
   final String _basePath;
 
@@ -29,16 +32,19 @@ class FrontendServerRequireStrategyProvider {
     _assetReader,
   );
 
-  FrontendServerRequireStrategyProvider(this._configuration, this._assetReader,
-      this._digestsProvider, this._basePath);
+  FrontendServerRequireStrategyProvider(this._configuration, this._assetReader, this._packageUriMapper,
+      this._digestsProvider, this._basePath,);
 
   RequireStrategy get strategy => _requireStrategy;
 
   String _removeBasePath(String path) {
     if (_basePath.isEmpty) return path;
     // If path is a server path it might start with a '/'.
-    final base = path.startsWith('/') ? '/$_basePath' : _basePath;
-    return path.startsWith(base) ? path.substring(base.length) : path;
+    // final base = path.startsWith('/') ? '/$_basePath/' : _basePath;
+
+    final stripped = relativizePath(path);
+    return relativizePath(stripped.substring(_basePath.length));
+    //return path.startsWith(base) ? path.substring(base.length) : path;
   }
 
   String _addBasePath(String serverPath) => _basePath.isEmpty
@@ -54,6 +60,12 @@ class FrontendServerRequireStrategyProvider {
       MetadataProvider metadataProvider, String serverPath) async {
     final modulePathToModule = await metadataProvider.modulePathToModule;
     final relativeServerPath = _removeBasePath(serverPath);
+    modulePathToModule.forEach((key, value) {
+      if (key.contains(relativeServerPath) || serverPath.contains(key)) {
+      _logger.info('XXX inexact match: serverPath: $serverPath($relativeServerPath), key: $key');
+      }
+    });
+    _logger.info('XXX exact match: serverPath: $serverPath, mpd: ${modulePathToModule[relativeServerPath]}');
     return modulePathToModule[relativeServerPath];
   }
 
@@ -65,9 +77,16 @@ class FrontendServerRequireStrategyProvider {
           MetadataProvider metadataProvider, String module) async =>
       _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
-  String? _serverPathForAppUri(String appUri) {
-    if (appUri.startsWith('org-dartlang-app:')) {
-      return _addBasePath(Uri.parse(appUri).path);
+  String? _serverPathForAppUri(String appUrl) {
+    final appUri = Uri.parse(appUrl);
+    if (appUri.isScheme('org-dartlang-app')) {
+      return _addBasePath(appUri.path);
+    }
+    if (appUri.isScheme('package')) {
+      //final resolved = _assetReader.resolvePackageUrl(appUri);
+      final resolved = _packageUriMapper.packageUriToServerPath(appUri);
+      //_logger.info('XXX: server path for $appUrl: $resolved');
+      return resolved;
     }
     return null;
   }
@@ -87,3 +106,4 @@ class FrontendServerRequireStrategyProvider {
     return result;
   }
 }
+

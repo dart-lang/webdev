@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:async/async.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
@@ -200,8 +201,8 @@ class MetadataProvider {
               _addMetadata(metadata);
               hasUnsoundNullSafety &= !metadata.soundNullSafety;
               hasSoundNullSafety &= metadata.soundNullSafety;
-              _logger
-                  .fine('Loaded debug metadata for module: ${metadata.name}');
+              //_logger
+              //    .fine('Loaded debug metadata for module: ${metadata.name}');
             } catch (e) {
               _logger.warning('Failed to read metadata: $e');
               rethrow;
@@ -219,15 +220,25 @@ class MetadataProvider {
   }
 
   void _addMetadata(ModuleMetadata metadata) {
-    _moduleToSourceMap[metadata.name] = metadata.sourceMapUri;
-    _modulePathToModule[metadata.moduleUri] = metadata.name;
-    _moduleToModulePath[metadata.name] = metadata.moduleUri;
+    //final modulePath = DartUri(metadata.moduleUri).serverPath;
+    //final sourceMapPath = DartUri(metadata.sourceMapUri).serverPath;
+    final modulePath = stripLeadingSlashes(metadata.moduleUri);
+    final sourceMapPath = stripLeadingSlashes(metadata.sourceMapUri);
+
+    _logger.info('XXX Adding module: ${metadata.name} with url: ${metadata.moduleUri} and server path $modulePath');
+
+    _moduleToSourceMap[metadata.name] = sourceMapPath;
+    _modulePathToModule[modulePath] = metadata.name;
+    _moduleToModulePath[metadata.name] = modulePath;
 
     for (var library in metadata.libraries.values) {
       if (library.importUri.startsWith('file:/')) {
         throw AbsoluteImportUriException(library.importUri);
       }
       _libraries.add(library.importUri);
+      if (library.importUri.contains('sign_in_controller')) {
+        _logger.info('XXX loading library info for ${library.importUri}');
+      }
       _scripts[library.importUri] = [];
 
       _scriptToModule[library.importUri] = metadata.name;

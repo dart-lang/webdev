@@ -316,7 +316,7 @@ class FakeStrategy implements LoadStrategy {
       '';
 
   @override
-  String serverPathForAppUri(String appUri) => '';
+  String? serverPathForAppUri(String appUri) => '';
 
   @override
   MetadataProvider metadataProviderFor(String entrypoint) =>
@@ -356,6 +356,9 @@ class FakeAssetReader implements AssetReader {
   Future<String> sourceMapContents(String serverPath) {
     return _throwUnimplementedOrReturnContents(_sourceMap);
   }
+  
+  //@override
+  //String? resolvePackageUrl(Uri packageUri) => null;
 
   @override
   Future<void> close() async {}

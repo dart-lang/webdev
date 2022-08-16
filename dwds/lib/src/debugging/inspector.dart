@@ -571,9 +571,11 @@ class AppInspector implements AppInspectorInterface {
 
   /// Look up the script by id in an isolate.
   @override
-  ScriptRef? scriptWithId(String? scriptId) =>
-      scriptId == null ? null : _scriptRefsById[scriptId];
-
+  ScriptRef? scriptWithId(String? scriptId) {
+      final ret = scriptId == null ? null : _scriptRefsById[scriptId];
+      _logger.info('XXX scripts: ${_scriptRefsById.length}');
+      return ret;
+  }
   /// Runs an eval on the page to compute all existing registered extensions.
   Future<List<String>> _getExtensionRpcs() async {
     final expression =

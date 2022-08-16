@@ -23,10 +23,12 @@ import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:file/local.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
 import 'package:logging/logging.dart' as logging;
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
@@ -269,11 +271,14 @@ class TestContext {
             final entry = p.toUri(_entryFile.path
                 .substring(_projectDirectory.toFilePath().length + 1));
 
+            final fileSystem = LocalFileSystem();
+            final packageUriMapper = await PackageUriMapper.create(fileSystem, _packageConfigFile);
+
             _webRunner = ResidentWebRunner(
               entry,
               urlEncoder,
               _projectDirectory,
-              _packageConfigFile,
+              packageUriMapper,
               [_projectDirectory],
               'org-dartlang-app',
               outputDir.path,
@@ -282,7 +287,7 @@ class TestContext {
             );
 
             final assetServerPort = await findUnusedPort();
-            await webRunner.run(
+            await webRunner.run(fileSystem,
                 hostname, assetServerPort, p.join(pathToServe, path));
 
             if (enableExpressionEvaluation) {
@@ -294,7 +299,7 @@ class TestContext {
             assetHandler = webRunner.devFS.assetServer.handleRequest;
 
             requireStrategy = FrontendServerRequireStrategyProvider(
-                    reloadConfiguration, assetReader, () async => {}, basePath)
+                    reloadConfiguration, assetReader, packageUriMapper, () async => {}, basePath)
                 .strategy;
 
             buildResults = const Stream<BuildResults>.empty();

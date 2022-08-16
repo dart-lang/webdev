@@ -160,7 +160,7 @@ void testAll({
                   contains('Using scope for expression evaluation '
                       'in frame is not supported')));
         });
-      });
+      }/*, solo: true, retry: 0, timeout: Timeout.none*/);
 
       test('local', () async {
         await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
@@ -409,7 +409,7 @@ void testAll({
               isA<InstanceRef>().having(
                   (instance) => instance.valueAsString, 'valueAsString', '23'));
         });
-      });
+      }/*, solo: true, retry: 0, timeout: Timeout.none*/);
 
       test('evaluate expression in a class constructor in a library', () async {
         await onBreakPoint(

@@ -3,12 +3,13 @@
 // found in the LICENSE file.
 
 // Note: this is a copy from flutter tools, updated to work with dwds tests,
-// and some functionality remioved (does not support hot reload yet)
+// and some functionality removed (does not support hot reload yet)
 
 import 'dart:async';
 
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/expression_compiler.dart';
+import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
@@ -28,7 +29,7 @@ class ResidentWebRunner {
       this.mainUri,
       this.urlTunneler,
       this.projectDirectory,
-      this.packageConfigFile,
+      this.packageUriMapper,
       this.fileSystemRoots,
       this.fileSystemScheme,
       this.outputPath,
@@ -37,7 +38,7 @@ class ResidentWebRunner {
     generator = ResidentCompiler(
       dartSdkPath,
       projectDirectory: projectDirectory,
-      packageConfigFile: packageConfigFile,
+      packageConfigFile: packageUriMapper.packageConfigFile,
       platformDill:
           soundNullSafety ? '$platformDillSound' : '$platformDillUnsound',
       fileSystemRoots: fileSystemRoots,
@@ -50,7 +51,7 @@ class ResidentWebRunner {
   final UrlEncoder? urlTunneler;
   final Uri mainUri;
   final Uri projectDirectory;
-  final Uri packageConfigFile;
+  final PackageUriMapper packageUriMapper;
   final String outputPath;
   final List<Uri> fileSystemRoots;
   final String fileSystemScheme;
@@ -62,13 +63,13 @@ class ResidentWebRunner {
   late Uri uri;
   late Iterable<String> modules;
 
-  Future<int> run(String? hostname, int port, String index) async {
+  Future<int> run(FileSystem fileSystem, String? hostname, int port, String index) async {
     devFS = WebDevFS(
       fileSystem: fileSystem,
       hostname: hostname ?? 'localhost',
       port: port,
       projectDirectory: projectDirectory,
-      packageConfigFile: packageConfigFile,
+      packageUriMapper: packageUriMapper,
       index: index,
       urlTunneler: urlTunneler,
       soundNullSafety: soundNullSafety,

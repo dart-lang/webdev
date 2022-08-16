@@ -162,8 +162,18 @@ class Locations {
 
   /// Returns all [Location] data for a provided JS server path.
   Future<Set<Location>> locationsForUrl(String url) async {
+    //final uri = Uri.parse(url);
+    //final segments = uri.pathSegments.first == '/'? uri.pathSegments.skip(1): uri.pathSegments;
+    //final serverPath = p.joinAll(segments);
+    
+    final dartUri = DartUri(url, _root);
+    final serverPath = dartUri.serverPath;
+    _logger.info('XXX looking for locations for js $url(server path $serverPath)');
+    
     final module = await globalLoadStrategy.moduleForServerPath(
-        _entrypoint, Uri.parse(url).path);
+        _entrypoint, serverPath);
+
+    _logger.info('XXX module for url: $url($serverPath): $module');
     final cache = _moduleToLocations[module];
     if (cache != null) return cache;
     if (module != null) {
@@ -177,7 +187,10 @@ class Locations {
   /// The [line] number is 1-based.
   Future<Location?> locationForDart(DartUri uri, int line, int column) async {
     final locations = await locationsForDart(uri.serverPath);
-    return _bestDartLocation(locations, line, column);
+    _logger.fine('XXX locations for dart $uri:$line:$column: $locations');
+    final ret = _bestDartLocation(locations, line, column);
+    _logger.info('XXX Best location for dart ${uri.serverPath}:$line:$column: $ret');
+    return ret;
   }
 
   /// Find the [Location] for the given JS source position.
@@ -185,7 +198,10 @@ class Locations {
   /// The [line] number is 0-based.
   Future<Location?> locationForJs(String url, int line, int? column) async {
     final locations = await locationsForUrl(url);
-    return _bestJsLocation(locations, line, column);
+    _logger.fine('XXX locations for js $url:$line:$column: $locations');
+    final ret = _bestJsLocation(locations, line, column);
+    _logger.info('XXX Best location for js $url:$line:$column: $ret');
+    return ret;
   }
 
   /// Find closest existing Dart location for the line and column.
@@ -287,6 +303,11 @@ class Locations {
       final sourceMapContents =
           await _assetReader.sourceMapContents(sourceMapPath);
       final scriptLocation = p.url.dirname('/${relativizePath(modulePath)}');
+
+      _logger.info('XXX modulePath: $modulePath');
+      _logger.info('XXX sourceMapPath: $sourceMapPath');
+      _logger.info('XXX sourceMapContents: ${sourceMapContents != null}');
+
       if (sourceMapContents == null) return result;
       // This happens to be a [SingleMapping] today in DDC.
       final mapping = parse(sourceMapContents);
@@ -301,9 +322,26 @@ class Locations {
             // This works on Windows because path treats both / and \ as separators.
             // It will fail if the path has both separators in it.
             final relativeSegments = p.split(mapping.urls[index]);
+            
             final path = p.url.normalize(
                 p.url.joinAll([scriptLocation, ...relativeSegments]));
+
+            // detect reference to another package:
+            // scriptLocation: '/packages/home/pages'
+            // relativeSegments: '../../../account_presentation/lib/controller/sign_in_controller.dart
+            //if (scriptLocation.startsWith('/packages/') && !path.startsWith('/packages/')) {
+            //  path = "/packages${path.replaceAll('/lib/', '/')}";
+            //}
+
+            //if (scriptLocation.startsWith('/packages/') && relativeSegments.contains('lib') && relativeSegments.first == '..') {
+            //  relativeSegments = relativeSegments.skip(1).where((e) => e != 'lib').toList();
+            //}
             final dartUri = DartUri(path, _root);
+            _logger.info('XXX adding location for $path($dartUri)');
+            //if (path.contains('sign_in_controller')) {
+             // _logger.info('XXX script location: $scriptLocation, relative segments: $relativeSegments');
+            // _logger.info('XXX add location $modulePath:$lineEntry:$entry at $path($dartUri)');
+            //}
             result.add(Location.from(
               modulePath,
               lineEntry,
@@ -318,6 +356,9 @@ class Locations {
             .putIfAbsent(
                 location.dartLocation.uri.serverPath, () => <Location>{})
             .add(location);
+      }
+      if (module.contains('welcome_page.dart')) {
+        _logger.info('XXX locations for module $module computed: $result');
       }
       return _moduleToLocations[module] = result;
     });

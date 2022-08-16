@@ -31,6 +31,9 @@ class DartUri {
   factory DartUri(String uri, [String? root]) {
     final serverPath = globalLoadStrategy.serverPathForAppUri(uri);
     if (serverPath != null) {
+      if (serverPath.startsWith('packages/')) {
+        return DartUri._fromRelativePath(serverPath, root: root);
+      }
       return DartUri._(serverPath);
     }
     // TODO(annagrin): Support creating DartUris from `dart:` uris.
@@ -41,7 +44,7 @@ class DartUri {
     if (uri.startsWith('file:')) {
       return DartUri._fromFileUri(uri, root: root);
     }
-    if (uri.startsWith('/packages/')) {
+    if (uri.startsWith('packages/')) {
       return DartUri._fromRelativePath(uri, root: root);
     }
     if (uri.startsWith('/')) {

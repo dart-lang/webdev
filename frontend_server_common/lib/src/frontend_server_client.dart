@@ -613,7 +613,7 @@ class TestExpressionCompiler implements ExpressionCompiler {
 
     if (compilerOutput != null) {
       var content = utf8.decode(
-          fileSystem.file(compilerOutput.outputFilename).readAsBytesSync());
+          localFileSystem.file(compilerOutput.outputFilename).readAsBytesSync());
       return ExpressionCompilationResult(
           content, compilerOutput.errorCount > 0);
     }

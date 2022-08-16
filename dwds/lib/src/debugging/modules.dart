@@ -43,6 +43,13 @@ class Modules {
   /// Returns the containing module for the provided Dart server path.
   Future<String?> moduleForSource(String serverPath) async {
     await _moduleMemoizer.runOnce(_initializeMapping);
+    final module = _sourceToModule[serverPath];
+    
+    if (serverPath.contains('sign_in_controller') && module == null) {
+      _logger.info('Module for source: $serverPath: $module');
+      final line = _sourceToModule.entries.map((p) => '${p.key}: ${p.value}').join('\n\t,');
+      _logger.info('all modules: $line');
+    }
     return _sourceToModule[serverPath];
   }
 
@@ -78,6 +85,9 @@ class Modules {
 
       if (scriptToModule.containsKey(library)) {
         final module = scriptToModule[library]!;
+        if (libraryServerPath.contains('sign_in_controller')) {
+            _logger.info('XXX saving module $module for library $library($libraryServerPath)');
+          }
         _sourceToModule[libraryServerPath] = module;
         _sourceToLibrary[libraryServerPath] = Uri.parse(library);
         _libraryToModule[library] = module;
@@ -87,6 +97,9 @@ class Modules {
               ? script
               : DartUri(script, _root).serverPath;
 
+          if (scriptServerPath.contains('sign_in_controller')) {
+            _logger.info('XXX 2 saving module $module for source $scriptServerPath');
+          }
           _sourceToModule[scriptServerPath] = module;
           _sourceToLibrary[scriptServerPath] = Uri.parse(library);
         }

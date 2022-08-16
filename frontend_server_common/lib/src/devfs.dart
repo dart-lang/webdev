@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
-import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
 import 'asset_server.dart';
@@ -24,7 +23,7 @@ class WebDevFS {
     required this.hostname,
     required this.port,
     required this.projectDirectory,
-    required this.packageConfigFile,
+    required this.packageUriMapper,
     required this.index,
     required this.soundNullSafety,
     this.urlTunneler,
@@ -35,23 +34,19 @@ class WebDevFS {
   final String hostname;
   final int port;
   final Uri projectDirectory;
-  final Uri packageConfigFile;
+  final PackageUriMapper packageUriMapper;
   final String index;
   final UrlEncoder? urlTunneler;
   final bool soundNullSafety;
   late final Directory _savedCurrentDirectory;
-  late final PackageConfig _packageConfig;
 
   Future<Uri> create() async {
     _savedCurrentDirectory = fileSystem.currentDirectory;
 
     fileSystem.currentDirectory = projectDirectory.toFilePath();
 
-    _packageConfig = await loadPackageConfigUri(packageConfigFile,
-        loader: (Uri uri) => fileSystem.file(uri).readAsBytes());
-
     assetServer = await TestAssetServer.start(
-        fileSystem, index, hostname, port, urlTunneler, _packageConfig);
+        fileSystem, index, hostname, port, urlTunneler, packageUriMapper);
     return Uri.parse('http://$hostname:$port');
   }
 
@@ -70,34 +65,39 @@ class WebDevFS {
     final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
     final entryPoint = mainUri.toString();
 
+    assetServer.writeFile(entryPoint, fileSystem.file(mainPath).readAsStringSync());
+    assetServer.writeFile('require.js', requireJS.readAsStringSync());
     assetServer.writeFile(
-      '/main.dart.js',
+        'stack_trace_mapper.js', stackTraceMapper.readAsStringSync());
+    assetServer.writeFile(
+      'main.dart.js',
       generateBootstrapScript(
-        requireUrl: _filePathToUriFragment(requireJS.path),
-        mapperUrl: _filePathToUriFragment(stackTraceMapper.path),
+        requireUrl: 'require.js', //_filePathToUriFragment(requireJS.path),
+        mapperUrl: 'stack_trace_mapper.js', //_filePathToUriFragment(stackTraceMapper.path),
         entrypoint: entryPoint,
       ),
     );
     assetServer.writeFile(
-      '/main_module.bootstrap.js',
+      'main_module.bootstrap.js',
       generateMainModule(
         entrypoint: entryPoint,
       ),
     );
 
-    assetServer.writeFile('/main_module.digests', '{}');
+    assetServer.writeFile('main_module.digests', '{}');
+    
     var sdk = soundNullSafety ? dartSdkSound : dartSdk;
     var sdkSourceMap =
         soundNullSafety ? dartSdkSourcemapSound : dartSdkSourcemap;
-    assetServer.writeFile('/dart_sdk.js', sdk.readAsStringSync());
-    assetServer.writeFile('/dart_sdk.js.map', sdkSourceMap.readAsStringSync());
-
+    assetServer.writeFile('dart_sdk.js', sdk.readAsStringSync());
+    assetServer.writeFile('dart_sdk.js.map', sdkSourceMap.readAsStringSync());
+   
     generator.reset();
     var compilerOutput = await generator.recompile(
       Uri.parse('org-dartlang-app:///$mainUri'),
       invalidatedFiles,
       outputPath: p.join(dillOutputPath, 'app.dill'),
-      packageConfig: _packageConfig,
+      packageConfig: packageUriMapper.packageConfig,
     );
     if (compilerOutput == null || compilerOutput.errorCount > 0) {
       return UpdateFSReport(success: false);
@@ -170,6 +170,19 @@ class WebDevFS {
         'web',
         'dart_stack_trace_mapper.js',
       ));
+/*
+  String _filePathToUriFragment(String path, ) {
+    if (Platform.isWindows) {
+      var startWithSlash = path.startsWith('/');
+      var partial =
+          fileSystem.path.split(path).skip(startWithSlash ? 2 : 1).join('/');
+      if (partial.startsWith('/')) {
+        return partial;
+      }
+      return '/$partial';
+    }
+    return path;
+  }*/
 }
 
 class UpdateFSReport {
@@ -196,15 +209,3 @@ class UpdateFSReport {
   List<String>? invalidatedModules;
 }
 
-String _filePathToUriFragment(String path) {
-  if (Platform.isWindows) {
-    var startWithSlash = path.startsWith('/');
-    var partial =
-        fileSystem.path.split(path).skip(startWithSlash ? 2 : 1).join('/');
-    if (partial.startsWith('/')) {
-      return partial;
-    }
-    return '/$partial';
-  }
-  return path;
-}
