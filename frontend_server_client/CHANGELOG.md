@@ -1,4 +1,4 @@
-## 3.0.0-dev
+## 3.0.0
 
 - Update the `compile` api to return a non-null `CompileResult`, and instead
   make the `dillOutput` field nullable. This allows you to still get compiler
