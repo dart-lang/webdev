@@ -25,30 +25,13 @@ class _CopyBuilder extends Builder {
     final inputAsset = buildStep.inputId;
     final allowedOutputs = buildStep.allowedOutputs;
 
-    if (allowedOutputs.isEmpty) {
-      print('Skipping ${inputAsset.path} which has no output options.');
-      return;
-    } else if (allowedOutputs.length > 1) {
-      print('Skipping ${inputAsset.path} which has multiple output options.');
+    if (allowedOutputs.length != 1) {
       return;
     }
 
     final outputAsset = allowedOutputs.first;
-    if (outputAsset.path.endsWith('.png')) {
-      _copyBinaryFile(buildStep,
-          inputAsset: inputAsset, outputAsset: outputAsset);
-    } else {
-      _copyTextFile(buildStep,
-          inputAsset: inputAsset, outputAsset: outputAsset);
-    }
-  }
-
-  void _copyTextFile(
-    BuildStep buildStep, {
-    required AssetId inputAsset,
-    required AssetId outputAsset,
-  }) {
-    buildStep.writeAsString(outputAsset, buildStep.readAsString(inputAsset));
+    _copyBinaryFile(buildStep,
+        inputAsset: inputAsset, outputAsset: outputAsset);
   }
 
   void _copyBinaryFile(
