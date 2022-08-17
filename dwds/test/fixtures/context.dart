@@ -313,12 +313,21 @@ class TestContext {
       // since headless Chrome does not support extensions.
       final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
           !enableDebugExtension;
+
+      if (enableDebugExtension) {
+        print('=========================');
+        print('DIRECTORY IS: ${Directory.current.path}');
+        print('=========================');
+        await Process.run(
+            '${Directory.current.path}/debug_extension/tool/build_extension.sh', ['prod']);
+      }
       final capabilities = Capabilities.chrome
         ..addAll({
           Capabilities.chromeOptions: {
             'args': [
               'remote-debugging-port=$debugPort',
-              if (enableDebugExtension) '--load-extension=debug_extension/web',
+              if (enableDebugExtension)
+                '--load-extension=debug_extension/build/web_prod',
               if (headless) '--headless'
             ]
           }
