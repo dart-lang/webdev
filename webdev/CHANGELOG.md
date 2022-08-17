@@ -1,29 +1,36 @@
 ## 2.7.11-dev
+
 - Remove no longer used `ExpressionCompilerService.handler`.
 
 ## 2.7.10
+
 - Pin DWDS version to avoid dependency conflicts with `package:vm_service`.
 
 ## 2.7.9
-- Add an option to pass user data directory to chrome: `user-data-dir`.
-  Auto detect user data directory based on the current OS if `auto` is
-  given as a value. If `null` is given as a value (default), fall back
-  to the existing behavior (i.e. creating/reusing a temp directory).
- 
+
+- Add an option to pass user data directory to chrome: `user-data-dir`. Auto
+  detect user data directory based on the current OS if `auto` is given as a
+  value. If `null` is given as a value (default), fall back to the existing
+  behavior (i.e. creating/reusing a temp directory).
+
   Note: not supported for Windows yet due to flakiness it introduces.
-  
+
   Example using user-specified directory:
+
   ```
     webdev serve \
       --debug --debug-extension \
       --user-data-dir='/Users/<user>/Library/Application Support/Google/Chrome'
   ```
+
   Example using auto-detected directory:
+
   ```
     webdev serve \
       --debug --debug-extension \
       --user-data-dir=auto
   ```
+
 - Update the min SDK constraint to 2.17.0.
 
 ## 2.7.8
@@ -50,8 +57,7 @@
 
 ## 2.7.4
 
-- Allow the latest build_runner, build_web_compilers, and build_daemon
-  packages.
+- Allow the latest build_runner, build_web_compilers, and build_daemon packages.
 
 ## 2.7.3
 
@@ -71,7 +77,6 @@
 - Remove references to Flutter Web as webdev is no longer used with Flutter.
   Users should be using Flutter Tools shipped with the Flutter SDK.
 
-
 ## 2.7.0
 
 - Add support for the Dart Development Service (DDS).
@@ -79,8 +84,8 @@
 - Require at least `build_web_compilers` version `2.12.0`.
 - Depend on the latest `package:dwds`.
 - Fix issue where open http connections prevent the process for exiting.
-- Add expression evaluation feature under `--enable-expression-evaluation`
-  flag passed to `webdev` commands. The feature is disabled by default.
+- Add expression evaluation feature under `--enable-expression-evaluation` flag
+  passed to `webdev` commands. The feature is disabled by default.
 - Update min sdk constraint to `>=2.10.0`.
 
 ## 2.6.2
@@ -120,7 +125,7 @@
 - Require at least `build_web_compilers` version `2.6.1`.
   - Versions `<2.0.0` are not supported by any dart sdk `>=2.6.0`.
   - Versions `<2.6.1` have bugs that we want to avoid users running into.
-- Depend on `package:vm_service` version  `^2.0.0`.
+- Depend on `package:vm_service` version `^2.0.0`.
 - Depend on the latest `package:dwds`.
 
 ## 2.5.4
@@ -188,8 +193,8 @@
 - DevTools no longer launches in a new window. This prevents an issue where
   pausing your application also pauses DevTools.
 - Fix some edge cases for hot restart:
-  - All restarts will now fire isolate create/destroy events, regardless of
-    how they are triggered.
+  - All restarts will now fire isolate create/destroy events, regardless of how
+    they are triggered.
   - Fix a bug in the module invalidation/reload logic.
 
 ## 2.0.7
@@ -288,8 +293,8 @@
 
 ## 0.2.2
 
-- Add default value for `--output` to be `build:web` for the `build` command
-  and `NONE` for the `serve` command.
+- Add default value for `--output` to be `build:web` for the `build` command and
+  `NONE` for the `serve` command.
 - Update to use lower-case constants from Dart `^2.0.0-dev.54`.
 
 ## 0.2.1

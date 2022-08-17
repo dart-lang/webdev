@@ -6,13 +6,13 @@ which ships with the Dart SDK.
 
 ## SDK Versioning Policy
 
-This package keeps a relatively tight version constraint on the SDK to allow
-for breaking changes in the frontend_server binary itself.
+This package keeps a relatively tight version constraint on the SDK to allow for
+breaking changes in the frontend_server binary itself.
 
-Specifically, releases of this package will have an upper bound of less than
-the next _minor_ (middle) version number of the latest stable SDK. There are no
-requirements for the lower bound (other than the package must pass tests on
-that SDK).
+Specifically, releases of this package will have an upper bound of less than the
+next _minor_ (middle) version number of the latest stable SDK. There are no
+requirements for the lower bound (other than the package must pass tests on that
+SDK).
 
 The effect of this policy is that breaking changes will be allowed to the
 frontend_server binary, but only in _minor_ SDK version releases.
@@ -27,7 +27,7 @@ By default when you do a pub get/upgrade, a constraint like `<2.9.0` will
 actually allow dev releases of `2.9.0` if the current SDK is a dev release. It
 emits a warning when it does this, but will happily alow it.
 
-* This means that we don't have to publish versions that explicitly allow dev
+- This means that we don't have to publish versions that explicitly allow dev
   releases. We will be notified of breakages by our bots if a dev release does
   break us, and can release a patch.
 
