@@ -319,7 +319,8 @@ class TestContext {
         print('DIRECTORY IS: ${Directory.current.path}');
         print('=========================');
         await Process.run(
-            '${Directory.current.path}/debug_extension/tool/build_extension.sh', ['prod']);
+            '${Directory.current.path}/debug_extension/tool/build_extension.sh',
+            ['prod']);
       }
       final capabilities = Capabilities.chrome
         ..addAll({
