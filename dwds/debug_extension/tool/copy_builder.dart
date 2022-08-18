@@ -10,14 +10,14 @@ Builder copyBuilder(_) => _CopyBuilder();
 class _CopyBuilder extends Builder {
   @override
   Map<String, List<String>> get buildExtensions => {
-        "web/{{}}.dart.js": ["build/web_prod/{{}}.js"],
-        "web/{{}}.png": ["build/web_prod/{{}}.png"],
-        "web/{{}}.html": ["build/web_prod/{{}}.html"],
-        "web/{{}}.css": ["build/web_prod/{{}}.css"],
-        "web/manifest.json": ["build/web_prod/manifest.json"],
-        "web/panel.js": ["build/web_prod/panel.js"],
-        "web/detector.js": ["build/web_prod/detector.js"],
-        "web/devtools.js": ["build/web_prod/devtools.js"],
+        "web/{{}}.dart.js": ["prod_build/{{}}.js"],
+        "web/{{}}.png": ["prod_build/{{}}.png"],
+        "web/{{}}.html": ["prod_build/{{}}.html"],
+        "web/{{}}.css": ["prod_build/{{}}.css"],
+        "web/manifest.json": ["prod_build/manifest.json"],
+        "web/panel.js": ["prod_build/panel.js"],
+        "web/detector.js": ["prod_build/detector.js"],
+        "web/devtools.js": ["prod_build/devtools.js"],
       };
 
   @override

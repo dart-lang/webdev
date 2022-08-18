@@ -16,7 +16,7 @@
 ./tool/build_extension.sh prod
 ```
 
-- This will build to the `/build/web_prod` directory.
+- This will build to the `/prod_build` directory.
 
 > Note: Building the dart2js-compiled extension will also overwrite any previous
 > builds of the DDC-compiled extension in the `build/web` directory. You will
@@ -59,12 +59,12 @@
 
 > \*At this point, you should manually verify that everything is working by
 > following the steps in [Local Development](#local-development), except load
-> the extension from the `build/web_prod` directory. You will need to add an
-> extension key to the `manifest.json` file in `build/web_prod` to test locally.
+> the extension from the `prod_build` directory. You will need to add an
+> extension key to the `manifest.json` file in `prod_build` to test locally.
 
 3. Open a PR to submit the version change.
 1. Once submitted, pull the changes down to your local branch, and create a zip
-   of the `build/web_prod` directory (NOT `build/web`). **Remove the Googler
+   of the `prod_build` directory (NOT `build/web`). **Remove the Googler
    extension key that was added by the builder to the `manifest.json` file.**
 1. Rename the zip `version_XX.XX.XX.zip` (eg, `version_1.24.0.zip`) and add it
    to the go/dart-debug-extension-zips folder
