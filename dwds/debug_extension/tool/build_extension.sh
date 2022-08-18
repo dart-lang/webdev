@@ -20,6 +20,9 @@ case "$1" in
         shift;;
 esac
 
+# Clean existing build directory to avoid merge conflicts.
+dart run build_runner clean
+
 if [ $prod == true ]; then
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo "Building dart2js-compiled extension to build/web_prod directory."

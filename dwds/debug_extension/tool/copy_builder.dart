@@ -45,7 +45,8 @@ class _CopyBuilder extends Builder {
     required AssetId inputAsset,
     required AssetId outputAsset,
   }) {
-    return buildStep.writeAsBytes(outputAsset, buildStep.readAsBytes(inputAsset));
+    return buildStep.writeAsBytes(
+        outputAsset, buildStep.readAsBytes(inputAsset));
   }
 
   Future<void> _maybeAddExtensionKey(String manifestJsonPath) async {

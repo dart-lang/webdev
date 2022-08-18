@@ -24,26 +24,17 @@
 
 ## Local Development
 
-### Create a `manifest.json`:
+### \[For Googlers\] Create an `extension_key.txt` file:
 
-Make a copy of `web/manifest_prod.json` and rename the copy to
-`web/manifest.json`. This new `manifest.json` is gitignored, and should never be
-committed.
+- Create a `extension_key.txt` file at the root of `/debug_extension`. Paste in
+  the value of one of the whitelisted developer keys into this txt file.
+  IMPORTANT: DO NOT COMMIT THE KEY. It will be copied into the `manifest.json`
+  when you build the extension.
 
-- Change the `default_icon` in `manifest.json` to `dart_dev.png` (Note: this is
-  not strictly necessary, but will help you to distinguish your local version of
-  the extension from the published version)
-- \[For Googlers\] A developer key is needed for local development and testing.
-  Add one of the whitelisted keys to `web/manifest.json`. IMPORTANT: DO NOT
-  COMMIT THE KEY.
-
-```
-{
-    "name": "Dart Debug Extension",
-    "key": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    ...
-}
-```
+- \[Optional\] Change the `default_icon` in `manifest.json` to `dart_dev.png`
+  (Note: this is not strictly necessary, but will help you to distinguish your
+  local version of the extension from the published version). Make sure to
+  change it back before you go to submit your changes.
 
 ### Build and upload your local extension
 
@@ -73,13 +64,12 @@ committed.
 
 > \*At this point, you should manually verify that everything is working by
 > following the steps in [Local Development](#local-development), except load
-> the extension from the `build/web_prod` directory. You will need to add a
-> manifest developer key to the `manifest.json` in the `build/web_prod`
-> directory.
+> the extension from the `build/web_prod` directory.
 
 3. Open a PR to submit the version and build changes.
 1. Once submitted, pull the changes down to your local branch, and create a zip
-   of the `build/web_prod` directory (NOT `build/web`).
+   of the `build/web_prod` directory (NOT `build/web`). **Remove the Googler
+   extension key that was added by the builder to the `manifest.json` file.**
 1. Rename the zip `version_XX.XX.XX.zip` (eg, `version_1.24.0.zip`) and add it
    to the go/dart-debug-extension-zips folder
 
