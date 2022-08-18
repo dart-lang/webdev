@@ -8,7 +8,7 @@
 ./tool/build_extension.sh
 ```
 
-- This will build to the `/build/web` directory.
+- The DDC-compiled extension will be located in the `/dev_build/web` directory.
 
 ### With dart2js (for release):
 
@@ -16,11 +16,7 @@
 ./tool/build_extension.sh prod
 ```
 
-- This will build to the `/prod_build` directory.
-
-> Note: Building the dart2js-compiled extension will also overwrite any previous
-> builds of the DDC-compiled extension in the `build/web` directory. You will
-> need to run the build step for DDC again to continue development work.
+- The dart2js-compiled extension will be located in the `/prod_build` directory.
 
 ## Local Development
 
@@ -37,7 +33,7 @@
 - Visit chrome://extensions
 - Toggle "Developer mode" on
 - Click the "Load unpacked" button
-- Select the extension directory: `build/web`
+- Select the extension directory: `dev_build/web`
 
 ### Debug your local extension
 
@@ -64,7 +60,7 @@
 
 3. Open a PR to submit the version change.
 1. Once submitted, pull the changes down to your local branch, and create a zip
-   of the `prod_build` directory (NOT `build/web`). **Remove the Googler
+   of the `prod_build` directory (NOT `dev_build/web`). **Remove the Googler
    extension key that was added by the builder to the `manifest.json` file.**
 1. Rename the zip `version_XX.XX.XX.zip` (eg, `version_1.24.0.zip`) and add it
    to the go/dart-debug-extension-zips folder

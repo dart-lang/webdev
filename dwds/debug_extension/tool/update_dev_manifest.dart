@@ -6,7 +6,7 @@ import 'dart:io';
 
 /// Adds the extension key and updates the icon in the manifest.json.
 void main() async {
-  final manifestJson = File('build/web/manifest.json');
+  final manifestJson = File('dev_build/web/manifest.json');
   final extensionKey = File('extension_key.txt');
   final keyValue =
       await extensionKey.exists() ? await extensionKey.readAsString() : null;
