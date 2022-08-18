@@ -24,15 +24,15 @@ if [ $prod == true ]; then
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo "Building dart2js-compiled extension to /prod_build directory."
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    dart run build_runner build --delete-conflicting-outputs web --output build -r
+    dart run build_runner build web --delete-conflicting-outputs --output build --release
     exit 1
 fi
 
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "Building DDC-compiled extension to dev_build/web directory."
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-dart run build_runner build --delete-conflicting-outputs web --output dev_build
+dart run build_runner build web --delete-conflicting-outputs --output dev_build
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo "Updating the manifest.json file in dev_build/web directory."
+ "Updating the manifest.json file in dev_build/web directory."
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 dart tool/update_dev_manifest.dart
