@@ -22,7 +22,7 @@ builders:
         "web/{{}}.png": ["build/web_prod/{{}}.png"],
         "web/{{}}.html": ["build/web_prod/{{}}.html"],
         "web/{{}}.css": ["build/web_prod/{{}}.css"],
-        "web/manifest_prod.json": ["build/web_prod/manifest_prod.json"],
+        "web/manifest.json": ["build/web_prod/manifest.json"],
         "web/panel.js": ["build/web_prod/panel.js"],
         "web/detector.js": ["build/web_prod/detector.js"],
         "web/devtools.js": ["build/web_prod/devtools.js"],
