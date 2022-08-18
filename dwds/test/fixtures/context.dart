@@ -313,7 +313,6 @@ class TestContext {
       // since headless Chrome does not support extensions.
       final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
           !enableDebugExtension;
-
       if (enableDebugExtension) {
         await _buildDebugExtension();
       }
