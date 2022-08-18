@@ -55,7 +55,6 @@ class _CopyBuilder extends Builder {
     if (await extensionKey.exists()) {
       return _addExtensionKey(manifestJson, extensionKey);
     }
-    return null;
   }
 
   Future<void> _addExtensionKey(File manifestJson, File extensionKey) async {
