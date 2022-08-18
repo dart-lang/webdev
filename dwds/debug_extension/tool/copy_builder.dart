@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:build/build.dart';
 
 /// Factory for the build script.
@@ -34,10 +32,6 @@ class _CopyBuilder extends Builder {
     final outputAsset = allowedOutputs.first;
     await _copyBinaryFile(buildStep,
         inputAsset: inputAsset, outputAsset: outputAsset);
-
-    if (outputAsset.path.endsWith('manifest.json')) {
-      await _maybeAddExtensionKey(outputAsset.path);
-    }
   }
 
   Future<void> _copyBinaryFile(
@@ -47,35 +41,5 @@ class _CopyBuilder extends Builder {
   }) {
     return buildStep.writeAsBytes(
         outputAsset, buildStep.readAsBytes(inputAsset));
-  }
-
-  Future<void> _maybeAddExtensionKey(String manifestJsonPath) async {
-    final manifestJson = File(manifestJsonPath);
-    final extensionKey = File('extension_key.txt');
-    if (await extensionKey.exists()) {
-      return _addExtensionKey(manifestJson, extensionKey);
-    }
-  }
-
-  Future<void> _addExtensionKey(File manifestJson, File extensionKey) async {
-    final lines = manifestJson.readAsLinesSync();
-    final newLines = <String>[];
-
-    for (final line in lines) {
-      newLines.add(line);
-      if (line.trim().startsWith('"name":')) {
-        final keyValue = await extensionKey.readAsString();
-        newLines.add('    "key": "$keyValue",');
-      }
-    }
-
-    final content = newLines.joinWithNewLine();
-    return manifestJson.writeAsStringSync(content);
-  }
-}
-
-extension JoinExtension on List<String> {
-  String joinWithNewLine() {
-    return '${join('\n')}\n';
   }
 }

@@ -31,11 +31,6 @@
   IMPORTANT: DO NOT COMMIT THE KEY. It will be copied into the `manifest.json`
   when you build the extension.
 
-- \[Optional\] Change the `default_icon` in `manifest.json` to `dart_dev.png`
-  (Note: this is not strictly necessary, but will help you to distinguish your
-  local version of the extension from the published version). Make sure to
-  change it back before you go to submit your changes.
-
 ### Build and upload your local extension
 
 - Build the extension following the instructions above
@@ -57,16 +52,17 @@
 
 ## Release process
 
-1. Update the version in `web/manifest_prod.json`, `pubspec.yaml`, and in the
+1. Update the version in `web/manifest.json`, `pubspec.yaml`, and in the
    `CHANGELOG`.
 1. Follow the instructions above to build the dart2js-compiled release version
    of the extension.
 
 > \*At this point, you should manually verify that everything is working by
 > following the steps in [Local Development](#local-development), except load
-> the extension from the `build/web_prod` directory.
+> the extension from the `build/web_prod` directory. You will need to add an
+> extension key to the `manifest.json` file in `build/web_prod` to test locally.
 
-3. Open a PR to submit the version and build changes.
+3. Open a PR to submit the version change.
 1. Once submitted, pull the changes down to your local branch, and create a zip
    of the `build/web_prod` directory (NOT `build/web`). **Remove the Googler
    extension key that was added by the builder to the `manifest.json` file.**
