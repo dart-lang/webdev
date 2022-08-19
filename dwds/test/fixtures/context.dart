@@ -313,12 +313,16 @@ class TestContext {
       // since headless Chrome does not support extensions.
       final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
           !enableDebugExtension;
+      if (enableDebugExtension) {
+        await _buildDebugExtension();
+      }
       final capabilities = Capabilities.chrome
         ..addAll({
           Capabilities.chromeOptions: {
             'args': [
               'remote-debugging-port=$debugPort',
-              if (enableDebugExtension) '--load-extension=debug_extension/web',
+              if (enableDebugExtension)
+                '--load-extension=debug_extension/prod_build',
               if (headless) '--headless'
             ]
           }
@@ -423,6 +427,24 @@ class TestContext {
         ? const Duration(seconds: 5)
         : const Duration(seconds: 2);
     await Future.delayed(delay);
+  }
+
+  Future<void> _buildDebugExtension() async {
+    final currentDir = Directory.current.path;
+    if (!currentDir.endsWith('dwds')) {
+      throw StateError(
+          'Expected to be in /dwds directory, instead path was $currentDir.');
+    }
+    try {
+      Directory.current = '$currentDir/debug_extension';
+      final process = await Process.run(
+        'tool/build_extension.sh',
+        ['prod'],
+      );
+      print(process.stdout);
+    } finally {
+      Directory.current = currentDir;
+    }
   }
 
   Future<ChromeTab> _fetchDartDebugExtensionTab(
