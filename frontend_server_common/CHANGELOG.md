@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Doe not pass `-debugger-module-names` flag to the frontend server.
+
 ## 0.2.0
 
 - Migrate to null safety
