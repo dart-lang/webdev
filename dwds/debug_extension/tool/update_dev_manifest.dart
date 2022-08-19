@@ -17,18 +17,66 @@ Future<void> _updateManifest(File manifestJson, {String? extensionKey}) async {
   final lines = manifestJson.readAsLinesSync();
   final newLines = <String>[];
   for (final line in lines) {
-    final trimmedLine = line.trimLeft();
-    if (trimmedLine.startsWith('"name":') && extensionKey != null) {
-      newLines.add(line);
-      newLines.add('${line.leftPadding()}"key": "$extensionKey",');
-    } else if (trimmedLine.startsWith('"default_icon":')) {
-      newLines.add('${line.leftPadding()}"default_icon": "dart_dev.png"');
+    if (matchesKey(line: line, key: 'name')) {
+      newLines.add(
+        newLine(
+          oldLine: line,
+          newKey: 'name',
+          newValue: '[DEV] Dart Debug Extension',
+        ),
+      );
+      if (extensionKey != null) {
+        newLines.add(
+          newLine(
+            oldLine: line,
+            newKey: 'key',
+            newValue: extensionKey,
+          ),
+        );
+      }
+    } else if (matchesKey(line: line, key: 'default_icon')) {
+      newLines.add(
+        newLine(
+          oldLine: line,
+          newKey: 'default_icon',
+          newValue: 'dart_dev.png',
+        ),
+      );
+    } else if (matchesValue(line: line, value: 'background.js')) {
+      newLines.add(
+        newLine(
+          oldLine: line,
+          newKey: null,
+          newValue: 'background.dart.js',
+        ),
+      );
     } else {
       newLines.add(line);
     }
   }
   final content = newLines.joinWithNewLine();
   return manifestJson.writeAsStringSync(content);
+}
+
+bool matchesKey({required String line, required String key}) {
+  return line.trimLeft().startsWith('"$key":');
+}
+
+bool matchesValue({required String line, required String value}) {
+  return line.trimRight().endsWith('"$value"') ||
+      line.trimRight().endsWith('"$value",');
+}
+
+String newLine({
+  required String oldLine,
+  String? newKey,
+  String? newValue,
+}) {
+  final lineStart = oldLine.leftPadding();
+  final key = newKey != null ? '"$newKey": ' : '';
+  final value = newValue != null ? '"$newValue"' : '';
+  final lineEnd = oldLine.trim().endsWith(',') ? ',' : '';
+  return '$lineStart$key$value$lineEnd';
 }
 
 extension LeftPaddingExtension on String {
