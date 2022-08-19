@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @TestOn('vm')
 import 'dart:async';
 
@@ -13,8 +11,9 @@ import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
-import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service.dart' hide LogRecord;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     show CallFrame, DebuggerPausedEvent, StackTrace, WipCallFrame, WipScript;
 
@@ -23,12 +22,12 @@ import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
 
 final context = TestContext();
-AppInspector inspector;
-Debugger debugger;
-FakeWebkitDebugger webkitDebugger;
-StreamController<DebuggerPausedEvent> pausedController;
-Locations locations;
-SkipLists skipLists;
+late AppInspector inspector;
+late Debugger debugger;
+late FakeWebkitDebugger webkitDebugger;
+late StreamController<DebuggerPausedEvent> pausedController;
+late Locations locations;
+late SkipLists skipLists;
 
 class TestStrategy extends FakeStrategy {
   @override
@@ -92,7 +91,7 @@ void main() async {
     skipLists = SkipLists();
     debugger = await Debugger.create(
       webkitDebugger,
-      null,
+      (_, __) {},
       locations,
       skipLists,
       root,
@@ -109,8 +108,8 @@ void main() async {
     expect(frames, isNotNull);
     expect(frames, isNotEmpty);
 
-    final firstFrame = frames[0];
-    final frame1Variables = firstFrame.vars.map((each) => each.name).toList();
+    final firstFrameVars = frames[0].vars!;
+    final frame1Variables = firstFrameVars.map((each) => each.name).toList();
     expect(frame1Variables, ['a', 'b']);
   });
 
@@ -164,6 +163,13 @@ void main() async {
     expect(frames[4].kind, FrameKind.kAsyncCausal);
   });
 
+  setUp(() {
+    // We need to provide an Isolate so that the code doesn't bail out on a null
+    // check before it has a chance to throw.
+    inspector = FakeInspector(fakeIsolate: simpleIsolate);
+    debugger.updateInspector(inspector);
+  });
+
   group('errors', () {
     setUp(() {
       // We need to provide an Isolate so that the code doesn't bail out on a null
@@ -175,17 +181,18 @@ void main() async {
     test('errors in the zone are caught and logged', () async {
       // Add a DebuggerPausedEvent with a null parameter to provoke an error.
       pausedController.sink.add(DebuggerPausedEvent({
+        'method': '',
         'params': {
           'reason': 'other',
           'callFrames': [
-            null,
+            {'callFrameId': '', 'functionName': ''},
           ],
         }
       }));
       expect(
           Debugger.logger.onRecord,
-          emitsThrough(predicate(
-              (log) => log.message == 'Error calculating Dart frames')));
+          emitsThrough(predicate((LogRecord log) =>
+              log.message == 'Error calculating Dart frames')));
     });
   });
 }

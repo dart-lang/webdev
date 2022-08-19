@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @TestOn('vm')
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/dart_scope.dart';
@@ -50,10 +48,10 @@ void main() {
 
   group('variable scope', () {
     VM vm;
-    String isolateId;
-    Stream<Event> stream;
+    String? isolateId;
+    late Stream<Event> stream;
     ScriptList scripts;
-    ScriptRef mainScript;
+    late ScriptRef mainScript;
     Stack stack;
 
     // TODO: Be able to set breakpoints before start/reload so we can exercise
@@ -62,21 +60,21 @@ void main() {
     /// Support function for pausing and returning the stack at a line.
     Future<Stack> breakAt(String breakpointId, ScriptRef scriptRef) async {
       final lineNumber =
-          await context.findBreakpointLine(breakpointId, isolateId, scriptRef);
+          await context.findBreakpointLine(breakpointId, isolateId!, scriptRef);
 
       final bp =
-          await service.addBreakpoint(isolateId, scriptRef.id, lineNumber);
+          await service.addBreakpoint(isolateId!, scriptRef.id!, lineNumber);
       // Wait for breakpoint to trigger.
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
       // Remove breakpoint so it doesn't impact other tests.
-      await service.removeBreakpoint(isolateId, bp.id);
-      final stack = await service.getStack(isolateId);
+      await service.removeBreakpoint(isolateId!, bp.id!);
+      final stack = await service.getStack(isolateId!);
       return stack;
     }
 
     Future<Instance> getInstance(InstanceRef ref) async {
-      final result = await service.getObject(isolateId, ref.id);
+      final result = await service.getObject(isolateId!, ref.id!);
       expect(result, isA<Instance>());
       return result as Instance;
     }
@@ -85,7 +83,7 @@ void main() {
       expect(
           instance,
           isA<Instance>().having(
-              (instance) => instance.classRef.name,
+              (instance) => instance.classRef!.name,
               '$variableName: classRef.name',
               isNot(isIn([
                 'NativeJavaScriptObject',
@@ -93,37 +91,38 @@ void main() {
               ]))));
     }
 
-    Future<void> expectDartVariables(Map<String, InstanceRef> variables) async {
+    Future<void> expectDartVariables(
+        Map<String?, InstanceRef?> variables) async {
       for (var name in variables.keys) {
-        final instance = await getInstance(variables[name]);
-        expectDartObject(name, instance);
+        final instance = await getInstance(variables[name]!);
+        expectDartObject(name!, instance);
       }
     }
 
-    Map<String, InstanceRef> getFrameVariables(Frame frame) {
-      return <String, InstanceRef>{
-        for (var variable in frame.vars)
-          variable.name: variable.value as InstanceRef,
+    Map<String?, InstanceRef?> getFrameVariables(Frame frame) {
+      return <String?, InstanceRef?>{
+        for (var variable in frame.vars!)
+          variable.name: variable.value as InstanceRef?,
       };
     }
 
     setUp(() async {
       vm = await service.getVM();
-      isolateId = vm.isolates.first.id;
-      scripts = await service.getScripts(isolateId);
+      isolateId = vm.isolates!.first.id;
+      scripts = await service.getScripts(isolateId!);
       await service.streamListen('Debug');
       stream = service.onEvent('Debug');
-      mainScript = scripts.scripts
-          .firstWhere((each) => each.uri.contains('scopes_main.dart'));
+      mainScript = scripts.scripts!
+          .firstWhere((each) => each.uri!.contains('scopes_main.dart'));
     });
 
     tearDown(() async {
-      await service.resume(isolateId);
+      await service.resume(isolateId!);
     });
 
     test('variables in static function', () async {
       stack = await breakAt('staticFunction', mainScript);
-      final variables = getFrameVariables(stack.frames.first);
+      final variables = getFrameVariables(stack.frames!.first);
       await expectDartVariables(variables);
 
       final variableNames = variables.keys.toList()..sort();
@@ -132,7 +131,7 @@ void main() {
 
     test('variables in function', () async {
       stack = await breakAt('nestedFunction', mainScript);
-      final variables = getFrameVariables(stack.frames.first);
+      final variables = getFrameVariables(stack.frames!.first);
       await expectDartVariables(variables);
 
       final variableNames = variables.keys.toList()..sort();
@@ -152,7 +151,7 @@ void main() {
 
     test('variables in closure nested in method', () async {
       stack = await breakAt('nestedClosure', mainScript);
-      final variables = getFrameVariables(stack.frames.first);
+      final variables = getFrameVariables(stack.frames!.first);
       await expectDartVariables(variables);
 
       final variableNames = variables.keys.toList()..sort();
@@ -162,7 +161,7 @@ void main() {
 
     test('variables in method', () async {
       stack = await breakAt('printMethod', mainScript);
-      final variables = getFrameVariables(stack.frames.first);
+      final variables = getFrameVariables(stack.frames!.first);
       await expectDartVariables(variables);
 
       final variableNames = variables.keys.toList()..sort();
@@ -171,7 +170,7 @@ void main() {
 
     test('variables in extension method', () async {
       stack = await breakAt('extension', mainScript);
-      final variables = getFrameVariables(stack.frames.first);
+      final variables = getFrameVariables(stack.frames!.first);
       await expectDartVariables(variables);
 
       final variableNames = variables.keys.toList()..sort();

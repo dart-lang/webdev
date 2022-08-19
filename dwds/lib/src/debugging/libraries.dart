@@ -107,19 +107,19 @@ class LibraryHelper extends Domain {
       _logger.warning('Library ${libraryRef.uri} is not loaded. '
           'This can happen for unreferenced libraries.');
     }
-    List<ClassRef>? classRefs;
+    final classRefs = <ClassRef>[];
     if (result != null) {
+      final jsonValues = result.value as Map<String, dynamic>;
       final classDescriptors =
-          ((result.value as Map<String, dynamic>)['classes'] as List?)
-              ?.cast<Map<String, Object>>();
-      classRefs = classDescriptors?.map<ClassRef>((classDescriptor) {
+          List<Map<String, dynamic>>.from(jsonValues['classes'] ?? []);
+      for (final classDescriptor in classDescriptors) {
         final classMetaData = ClassMetaData(
-          jsName: classDescriptor['name'],
+          jsName: classDescriptor['name'] as Object?,
           libraryId: libraryRef.id,
-          dartName: classDescriptor['dartName'],
+          dartName: classDescriptor['dartName'] as Object?,
         );
-        return classMetaData.classRef;
-      }).toList();
+        classRefs.add(classMetaData.classRef);
+      }
     }
     return Library(
       name: libraryRef.name,

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
@@ -23,12 +21,12 @@ void main() {
     final serviceMethod = '_flutter.listViews';
     final service = context.debugConnection.vmService;
     final vm = await service.getVM();
-    final isolates = vm.isolates;
+    final isolates = vm.isolates!;
 
     final expected = <String, Object>{
       'views': <Object>[
         for (var isolate in isolates)
-          <String, Object>{
+          <String, Object?>{
             'id': isolate.id,
             'isolate': isolate.toJson(),
           }

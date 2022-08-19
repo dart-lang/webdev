@@ -197,7 +197,7 @@ class Debugger extends Domain {
     });
 
     handleErrorIfPresent(await _remoteDebugger.enablePage());
-    handleErrorIfPresent(await _remoteDebugger.enable() as WipResponse);
+    await _remoteDebugger.enable();
 
     // Enable collecting information about async frames when paused.
     handleErrorIfPresent(await _remoteDebugger

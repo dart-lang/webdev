@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // When run locally this test may require a manifest key. This makes it easy to
 // just skip it.
 @Tags(['extension'])
@@ -21,12 +19,11 @@ import 'fixtures/context.dart';
 import 'fixtures/utilities.dart';
 
 // Instructions for running:
-// * From the /dwds/debug_extension, build the extension: dart run build_runner build web -o build -r
 // * From the /dwds, run: dart test test/debug_extension_test.dart
 // * See note for Googlers below as well
 // [For Googlers]
 // A whitelisted developer key is needed to run these tests locally.
-// Add a developer key to dwds/debug_extension/web/manifest.json.
+// Add a developer key to dwds/debug_extension/build/web_prod/manifest.json.
 // Otherwise, you will get 'Error Loading Extension' alert.
 // Remove the key before pushing code to GitHub.
 // See go/extension-identification.
@@ -242,7 +239,7 @@ void main() async {
           'http://localhost:${context.port}/hello_world/main.dart$bootstrapJsExtension'));
       expect(result.body.contains('dartExtensionUri'), isTrue);
       final extensionUri =
-          Uri.parse(uriPattern.firstMatch(result.body).group(1));
+          Uri.parse(uriPattern.firstMatch(result.body)!.group(1)!);
       expect(
           extensionUri.host,
           anyOf(

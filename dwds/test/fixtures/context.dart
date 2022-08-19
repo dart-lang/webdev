@@ -80,6 +80,9 @@ class TestContext {
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
 
+  Handler get assetHandler => _assetHandler!;
+  late Handler? _assetHandler;
+
   Client get client => _client!;
   late Client? _client;
 
@@ -205,7 +208,6 @@ class TestContext {
 
       ExpressionCompiler? expressionCompiler;
       AssetReader assetReader;
-      Handler assetHandler;
       Stream<BuildResults> buildResults;
       RequireStrategy requireStrategy;
       String basePath = '';
@@ -239,7 +241,7 @@ class TestContext {
                 .timeout(const Duration(seconds: 60));
 
             final assetServerPort = daemonPort(workingDirectory);
-            assetHandler = proxyHandler(
+            _assetHandler = proxyHandler(
                 'http://localhost:$assetServerPort/$pathToServe/',
                 client: client);
             assetReader =
@@ -296,7 +298,7 @@ class TestContext {
 
             basePath = webRunner.devFS.assetServer.basePath;
             assetReader = webRunner.devFS.assetServer;
-            assetHandler = webRunner.devFS.assetServer.handleRequest;
+            _assetHandler = webRunner.devFS.assetServer.handleRequest;
 
             requireStrategy = FrontendServerRequireStrategyProvider(
                     reloadConfiguration, assetReader, packageUriMapper, () async => {}, basePath)
@@ -316,12 +318,16 @@ class TestContext {
       // since headless Chrome does not support extensions.
       final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
           !enableDebugExtension;
+      if (enableDebugExtension) {
+        await _buildDebugExtension();
+      }
       final capabilities = Capabilities.chrome
         ..addAll({
           Capabilities.chromeOptions: {
             'args': [
               'remote-debugging-port=$debugPort',
-              if (enableDebugExtension) '--load-extension=debug_extension/web',
+              if (enableDebugExtension)
+                '--load-extension=debug_extension/prod_build',
               if (headless) '--headless'
             ]
           }
@@ -358,11 +364,14 @@ class TestContext {
           : 'http://localhost:$port/$basePath/$path';
 
       await _webDriver?.get(appUrl);
-      final tab = await (connection.getTab((t) => t.url == appUrl)
-          as FutureOr<ChromeTab>);
-      _tabConnection = await tab.connect();
-      await tabConnection.runtime.enable();
-      await tabConnection.debugger.enable();
+      final tab = await connection.getTab((t) => t.url == appUrl);
+      if (tab != null) {
+        _tabConnection = await tab.connect();
+        await tabConnection.runtime.enable();
+        await tabConnection.debugger.enable();
+      } else {
+        throw StateError('Unable to connect to tab.');
+      }
 
       if (enableDebugExtension) {
         final extensionTab = await _fetchDartDebugExtensionTab(connection);
@@ -423,6 +432,24 @@ class TestContext {
         ? const Duration(seconds: 5)
         : const Duration(seconds: 2);
     await Future.delayed(delay);
+  }
+
+  Future<void> _buildDebugExtension() async {
+    final currentDir = Directory.current.path;
+    if (!currentDir.endsWith('dwds')) {
+      throw StateError(
+          'Expected to be in /dwds directory, instead path was $currentDir.');
+    }
+    try {
+      Directory.current = '$currentDir/debug_extension';
+      final process = await Process.run(
+        'tool/build_extension.sh',
+        ['prod'],
+      );
+      print(process.stdout);
+    } finally {
+      Directory.current = currentDir;
+    }
   }
 
   Future<ChromeTab> _fetchDartDebugExtensionTab(

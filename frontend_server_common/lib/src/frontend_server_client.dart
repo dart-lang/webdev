@@ -382,7 +382,6 @@ class ResidentCompiler {
         '--platform',
         platformDill,
       ],
-      '--debugger-module-names',
       '--experimental-emit-debug-metadata',
       if (verbose) '--verbose'
     ];

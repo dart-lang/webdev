@@ -1,14 +1,17 @@
 ## 1.30
+
 - Batch extension `Debugger.scriptParsed` events and send batches every 1000ms
   to the server.
 - Enable null-safety.
 - Replace manual extension allowlist by configuring `externally_connectable` in
-  the `manifest.json`. See https://developer.chrome.com/docs/extensions/mv3/manifest/externally_connectable/
+  the `manifest.json`. See
+  https://developer.chrome.com/docs/extensions/mv3/manifest/externally_connectable/
   for details.
-  
+
 ## 1.29
 
-- Notify the debugger and inspector panels when the debug session is disconnected.
+- Notify the debugger and inspector panels when the debug session is
+  disconnected.
 - Provide a detailed error message when the debugger fails to connect.
 - Send an event to the server when the debugger is detached.
 - Fix compilation errors when the extension is built with DDC.
@@ -19,11 +22,12 @@
 
 ## 1.27
 
-- Support embedded debugger and inspector in Chrome DevTools for Flutter Web apps. 
+- Support embedded debugger and inspector in Chrome DevTools for Flutter Web
+  apps.
 
 ## 1.26
 
-- Support embedded debugging experience in environments with no Dart app ID. 
+- Support embedded debugging experience in environments with no Dart app ID.
 
 ## 1.25
 
@@ -35,8 +39,8 @@
 
 ## 1.23
 
-- Depend on the latest `package:sse` to improve stability of the connection with many
-  concurrent requests. 
+- Depend on the latest `package:sse` to improve stability of the connection with
+  many concurrent requests.
 
 ## 1.22
 
@@ -49,7 +53,6 @@
 ## 1.20
 
 - Return response when `dwds.startDebugging` is called.
-
 
 ## 1.19
 
@@ -67,16 +70,14 @@
 
 - Depend on the latest `package:sse`.
 
-
 ## 1.15
 
-- No longer send script parsed events when skipLists are supported,
-  improving the IPL of Dart DevTools.
+- No longer send script parsed events when skipLists are supported, improving
+  the IPL of Dart DevTools.
 
 ## 1.14
 
 - Depend on the latest `package:sse`.
-
 
 ## 1.13
 

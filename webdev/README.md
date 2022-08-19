@@ -173,4 +173,3 @@ Run "webdev help" to see global options.
 
 [activating]: https://www.dartlang.org/tools/pub/cmd/pub-global#activating-a-package
 [pub global]: https://www.dartlang.org/tools/pub/cmd/pub-global
-[Dart build system]: https://github.com/dart-lang/build

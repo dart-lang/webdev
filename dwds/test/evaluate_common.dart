@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @TestOn('vm')
 import 'dart:async';
 
@@ -38,7 +36,7 @@ class TestSetup {
   TestSetup.unsound(IndexBaseMode baseMode)
       : context = contextUnsound(_index(baseMode));
 
-  factory TestSetup.create(NullSafety nullSafety, IndexBaseMode baseMode) =>
+  factory TestSetup.create(NullSafety? nullSafety, IndexBaseMode baseMode) =>
       nullSafety == NullSafety.sound
           ? TestSetup.sound(baseMode)
           : TestSetup.unsound(baseMode);
@@ -54,7 +52,7 @@ class TestSetup {
 void testAll({
   CompilationMode compilationMode = CompilationMode.buildDaemon,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
-  NullSafety nullSafety,
+  NullSafety nullSafety = NullSafety.sound,
   bool debug = false,
 }) {
   if (compilationMode == CompilationMode.buildDaemon &&
@@ -67,17 +65,17 @@ void testAll({
 
   Future<void> onBreakPoint(String isolate, ScriptRef script,
       String breakPointId, Future<void> Function() body) async {
-    Breakpoint bp;
+    Breakpoint? bp;
     try {
       final line =
           await context.findBreakpointLine(breakPointId, isolate, script);
       bp = await setup.service
-          .addBreakpointWithScriptUri(isolate, script.uri, line);
+          .addBreakpointWithScriptUri(isolate, script.uri!, line);
       await body();
     } finally {
       // Remove breakpoint so it doesn't impact other tests or retries.
       if (bp != null) {
-        await setup.service.removeBreakpoint(isolate, bp.id);
+        await setup.service.removeBreakpoint(isolate, bp.id!);
       }
     }
   }
@@ -101,19 +99,21 @@ void testAll({
 
     group('evaluateInFrame', () {
       VM vm;
-      Isolate isolate;
+      late Isolate isolate;
+      late String isolateId;
       ScriptList scripts;
-      ScriptRef mainScript;
-      ScriptRef libraryScript;
-      ScriptRef testLibraryScript;
-      ScriptRef testLibraryPartScript;
-      Stream<Event> stream;
+      late ScriptRef mainScript;
+      late ScriptRef libraryScript;
+      late ScriptRef testLibraryScript;
+      late ScriptRef testLibraryPartScript;
+      late Stream<Event> stream;
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
         vm = await setup.service.getVM();
-        isolate = await setup.service.getIsolate(vm.isolates.first.id);
-        scripts = await setup.service.getScripts(isolate.id);
+        isolate = await setup.service.getIsolate(vm.isolates!.first.id!);
+        isolateId = isolate.id!;
+        scripts = await setup.service.getScripts(isolateId);
 
         await setup.service.streamListen('Debug');
         stream = setup.service.onEvent('Debug');
@@ -122,34 +122,34 @@ void testAll({
         final testPackage =
             soundNullSafety ? '_test_package_sound' : '_test_package';
         final test = soundNullSafety ? '_test_sound' : '_test';
-        mainScript = scripts.scripts
-            .firstWhere((each) => each.uri.contains('main.dart'));
-        testLibraryScript = scripts.scripts.firstWhere((each) =>
-            each.uri.contains('package:$testPackage/test_library.dart'));
-        testLibraryPartScript = scripts.scripts.firstWhere((each) =>
-            each.uri.contains('package:$testPackage/src/test_part.dart'));
-        libraryScript = scripts.scripts.firstWhere(
-            (each) => each.uri.contains('package:$test/library.dart'));
+        mainScript = scripts.scripts!
+            .firstWhere((each) => each.uri!.contains('main.dart'));
+        testLibraryScript = scripts.scripts!.firstWhere((each) =>
+            each.uri!.contains('package:$testPackage/test_library.dart'));
+        testLibraryPartScript = scripts.scripts!.firstWhere((each) =>
+            each.uri!.contains('package:$testPackage/src/test_part.dart'));
+        libraryScript = scripts.scripts!.firstWhere(
+            (each) => each.uri!.contains('package:$test/library.dart'));
       });
 
       tearDown(() async {
-        await setup.service.resume(isolate.id);
+        await setup.service.resume(isolateId);
       });
 
       test('with scope override is not supported yet', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final object = await setup.service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'MainClass(0)');
+              isolateId, event.topFrame!.index!, 'MainClass(0)');
 
           final param = object as InstanceRef;
           final result = await setup.service.evaluateInFrame(
-            isolate.id,
-            event.topFrame.index,
+            isolateId,
+            event.topFrame!.index!,
             't.toString()',
-            scope: {'t': param.id},
+            scope: {'t': param.id!},
           );
 
           expect(
@@ -163,12 +163,12 @@ void testAll({
       }/*, solo: true, retry: 0, timeout: Timeout.none*/);
 
       test('local', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service
-              .evaluateInFrame(isolate.id, event.topFrame.index, 'local');
+              .evaluateInFrame(isolateId, event.topFrame!.index!, 'local');
 
           expect(
               result,
@@ -178,9 +178,9 @@ void testAll({
       });
 
       test('Type does not show native JavaScript object fields', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           Future<Instance> getInstance(InstanceRef ref) async {
-            final result = await setup.service.getObject(isolate.id, ref.id);
+            final result = await setup.service.getObject(isolateId, ref.id!);
             expect(result, isA<Instance>());
             return result as Instance;
           }
@@ -189,19 +189,19 @@ void testAll({
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service
-              .evaluateInFrame(isolate.id, event.topFrame.index, 'Type');
+              .evaluateInFrame(isolateId, event.topFrame!.index!, 'Type');
           expect(result, isA<InstanceRef>());
           final instanceRef = result as InstanceRef;
 
           // Type
           var instance = await getInstance(instanceRef);
-          for (var field in instance.fields) {
-            final name = field.decl.name;
+          for (var field in instance.fields!) {
+            final name = field.decl!.name;
 
             // Type.<name> (i.e. Type._type)
             instance = await getInstance(field.value as InstanceRef);
-            for (var field in instance.fields) {
-              final nestedName = field.decl.name;
+            for (var field in instance.fields!) {
+              final nestedName = field.decl!.name;
 
               // Type.<name>.<nestedName> (i.e Type._type._subtypeCache)
               instance = await getInstance(field.value as InstanceRef);
@@ -209,7 +209,7 @@ void testAll({
               expect(
                   instance,
                   isA<Instance>().having(
-                      (instance) => instance.classRef.name,
+                      (instance) => instance.classRef!.name,
                       'Type.$name.$nestedName: classRef.name',
                       isNot(isIn([
                         'NativeJavaScriptObject',
@@ -221,13 +221,13 @@ void testAll({
       });
 
       test('field', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printFieldFromLibraryClass',
+        await onBreakPoint(isolateId, mainScript, 'printFieldFromLibraryClass',
             () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'instance.field');
+              isolateId, event.topFrame!.index!, 'instance.field');
 
           expect(
               result,
@@ -237,13 +237,13 @@ void testAll({
       });
 
       test('private field from another library', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printFieldFromLibraryClass',
+        await onBreakPoint(isolateId, mainScript, 'printFieldFromLibraryClass',
             () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'instance._field');
+              isolateId, event.topFrame!.index!, 'instance._field');
 
           expect(
               result,
@@ -253,12 +253,12 @@ void testAll({
       });
 
       test('private field from current library', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printFieldMain', () async {
+        await onBreakPoint(isolateId, mainScript, 'printFieldMain', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'instance._field');
+              isolateId, event.topFrame!.index!, 'instance._field');
 
           expect(
               result,
@@ -268,19 +268,19 @@ void testAll({
       });
 
       test('access instance fields after evaluation', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printFieldFromLibraryClass',
+        await onBreakPoint(isolateId, mainScript, 'printFieldFromLibraryClass',
             () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final instanceRef = await setup.service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'instance') as InstanceRef;
+              isolateId, event.topFrame!.index!, 'instance') as InstanceRef;
 
           final instance = await setup.service
-              .getObject(isolate.id, instanceRef.id) as Instance;
+              .getObject(isolateId, instanceRef.id!) as Instance;
 
-          final field = instance.fields
-              .firstWhere((BoundField element) => element.decl.name == 'field');
+          final field = instance.fields!.firstWhere(
+              (BoundField element) => element.decl!.name == 'field');
 
           expect(
               field.value,
@@ -290,12 +290,12 @@ void testAll({
       });
 
       test('global', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printGlobal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printGlobal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'testLibraryValue');
+              isolateId, event.topFrame!.index!, 'testLibraryValue');
 
           expect(
               result,
@@ -305,12 +305,12 @@ void testAll({
       });
 
       test('call core function', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'print(local)');
+              isolateId, event.topFrame!.index!, 'print(local)');
 
           expect(
               result,
@@ -320,12 +320,12 @@ void testAll({
       });
 
       test('call library function with const param', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'testLibraryFunction(42)');
+              isolateId, event.topFrame!.index!, 'testLibraryFunction(42)');
 
           expect(
               result,
@@ -335,12 +335,12 @@ void testAll({
       });
 
       test('call library function with local param', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'testLibraryFunction(local)');
+              isolateId, event.topFrame!.index!, 'testLibraryFunction(local)');
 
           expect(
               result,
@@ -350,12 +350,12 @@ void testAll({
       });
 
       test('call library part function with const param', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'testLibraryPartFunction(42)');
+              isolateId, event.topFrame!.index!, 'testLibraryPartFunction(42)');
 
           expect(
               result,
@@ -365,12 +365,12 @@ void testAll({
       });
 
       test('call library part function with local param', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-          final result = await setup.service.evaluateInFrame(isolate.id,
-              event.topFrame.index, 'testLibraryPartFunction(local)');
+          final result = await setup.service.evaluateInFrame(isolateId,
+              event.topFrame!.index!, 'testLibraryPartFunction(local)');
 
           expect(
               result,
@@ -380,13 +380,13 @@ void testAll({
       });
 
       test('loop variable', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLoopVariable',
+        await onBreakPoint(isolateId, mainScript, 'printLoopVariable',
             () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service
-              .evaluateInFrame(isolate.id, event.topFrame.index, 'item');
+              .evaluateInFrame(isolateId, event.topFrame!.index!, 'item');
 
           expect(
               result,
@@ -396,13 +396,13 @@ void testAll({
       });
 
       test('evaluate expression in _test_package/test_library', () async {
-        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction',
+        await onBreakPoint(isolateId, testLibraryScript, 'testLibraryFunction',
             () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service
-              .evaluateInFrame(isolate.id, event.topFrame.index, 'formal');
+              .evaluateInFrame(isolateId, event.topFrame!.index!, 'formal');
 
           expect(
               result,
@@ -413,13 +413,13 @@ void testAll({
 
       test('evaluate expression in a class constructor in a library', () async {
         await onBreakPoint(
-            isolate.id, testLibraryScript, 'testLibraryClassConstructor',
+            isolateId, testLibraryScript, 'testLibraryClassConstructor',
             () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service
-              .evaluateInFrame(isolate.id, event.topFrame.index, 'this.field');
+              .evaluateInFrame(isolateId, event.topFrame!.index!, 'this.field');
 
           expect(
               result,
@@ -430,13 +430,14 @@ void testAll({
 
       test('evaluate expression in a class constructor in a library part',
           () async {
-        await onBreakPoint(isolate.id, testLibraryPartScript,
-            'testLibraryPartClassConstructor', () async {
+        await onBreakPoint(
+            isolateId, testLibraryPartScript, 'testLibraryPartClassConstructor',
+            () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service
-              .evaluateInFrame(isolate.id, event.topFrame.index, 'this.field');
+              .evaluateInFrame(isolateId, event.topFrame!.index!, 'this.field');
 
           expect(
               result,
@@ -446,13 +447,13 @@ void testAll({
       });
 
       test('evaluate expression in caller frame', () async {
-        await onBreakPoint(isolate.id, testLibraryScript, 'testLibraryFunction',
+        await onBreakPoint(isolateId, testLibraryScript, 'testLibraryFunction',
             () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service
-              .evaluateInFrame(isolate.id, event.topFrame.index + 1, 'local');
+              .evaluateInFrame(isolateId, event.topFrame!.index! + 1, 'local');
 
           expect(
               result,
@@ -462,12 +463,12 @@ void testAll({
       });
 
       test('evaluate expression in a library', () async {
-        await onBreakPoint(isolate.id, libraryScript, 'Concatenate', () async {
+        await onBreakPoint(isolateId, libraryScript, 'Concatenate', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final result = await setup.service
-              .evaluateInFrame(isolate.id, event.topFrame.index, 'a');
+              .evaluateInFrame(isolateId, event.topFrame!.index!, 'a');
 
           expect(
               result,
@@ -477,12 +478,12 @@ void testAll({
       });
 
       test('compilation error', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final error = await setup.service
-              .evaluateInFrame(isolate.id, event.topFrame.index, 'typo');
+              .evaluateInFrame(isolateId, event.topFrame!.index!, 'typo');
 
           expect(
               error,
@@ -492,12 +493,12 @@ void testAll({
       });
 
       test('module load error', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           final error = await setup.service.evaluateInFrame(
-              isolate.id, event.topFrame.index, 'd.deferredPrintLocal()');
+              isolateId, event.topFrame!.index!, 'd.deferredPrintLocal()');
 
           expect(
               error,
@@ -507,13 +508,13 @@ void testAll({
       }, skip: 'https://github.com/dart-lang/sdk/issues/48587');
 
       test('cannot evaluate in unsupported isolate', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           await expectLater(
               setup.service
-                  .evaluateInFrame('bad', event.topFrame.index, 'local'),
+                  .evaluateInFrame('bad', event.topFrame!.index!, 'local'),
               throwsSentinelException);
         });
       });
@@ -521,12 +522,14 @@ void testAll({
 
     group('evaluate', () {
       VM vm;
-      Isolate isolate;
+      late Isolate isolate;
+      late String isolateId;
 
       setUp(() async {
         setCurrentLogWriter(debug: debug);
         vm = await setup.service.getVM();
-        isolate = await setup.service.getIsolate(vm.isolates.first.id);
+        isolate = await setup.service.getIsolate(vm.isolates!.first.id!);
+        isolateId = isolate.id!;
 
         await setup.service.streamListen('Debug');
       });
@@ -534,14 +537,14 @@ void testAll({
       tearDown(() async {});
 
       test('with scope override', () async {
-        final library = isolate.rootLib;
+        final library = isolate.rootLib!;
         final object = await setup.service
-            .evaluate(isolate.id, library.id, 'MainClass(0)');
+            .evaluate(isolateId, library.id!, 'MainClass(0)');
 
         final param = object as InstanceRef;
         final result = await setup.service.evaluate(
-            isolate.id, library.id, 't.toString()',
-            scope: {'t': param.id});
+            isolateId, library.id!, 't.toString()',
+            scope: {'t': param.id!});
 
         expect(
             result,
@@ -550,9 +553,9 @@ void testAll({
       });
 
       test('uses symbol from the same library', () async {
-        final library = isolate.rootLib;
+        final library = isolate.rootLib!;
         final result = await setup.service
-            .evaluate(isolate.id, library.id, 'MainClass(0).toString()');
+            .evaluate(isolateId, library.id!, 'MainClass(0).toString()');
 
         expect(
             result,
@@ -561,9 +564,9 @@ void testAll({
       });
 
       test('uses symbol from another library', () async {
-        final library = isolate.rootLib;
+        final library = isolate.rootLib!;
         final result = await setup.service.evaluate(
-            isolate.id, library.id, 'TestLibraryClass(0,1).toString()');
+            isolateId, library.id!, 'TestLibraryClass(0,1).toString()');
 
         expect(
             result,
@@ -574,9 +577,9 @@ void testAll({
       });
 
       test('closure call', () async {
-        final library = isolate.rootLib;
+        final library = isolate.rootLib!;
         final result = await setup.service
-            .evaluate(isolate.id, library.id, '(() => 42)()');
+            .evaluate(isolateId, library.id!, '(() => 42)()');
 
         expect(
             result,
@@ -605,35 +608,37 @@ void testAll({
 
     group('evaluateInFrame', () {
       VM vm;
-      Isolate isolate;
+      late Isolate isolate;
+      late String isolateId;
       ScriptList scripts;
-      ScriptRef mainScript;
-      Stream<Event> stream;
+      late ScriptRef mainScript;
+      late Stream<Event> stream;
 
       setUp(() async {
         vm = await setup.service.getVM();
-        isolate = await setup.service.getIsolate(vm.isolates.first.id);
-        scripts = await setup.service.getScripts(isolate.id);
+        isolate = await setup.service.getIsolate(vm.isolates!.first.id!);
+        isolateId = isolate.id!;
+        scripts = await setup.service.getScripts(isolateId);
 
         await setup.service.streamListen('Debug');
         stream = setup.service.onEvent('Debug');
 
-        mainScript = scripts.scripts
-            .firstWhere((each) => each.uri.contains('main.dart'));
+        mainScript = scripts.scripts!
+            .firstWhere((each) => each.uri!.contains('main.dart'));
       });
 
       tearDown(() async {
-        await setup.service.resume(isolate.id);
+        await setup.service.resume(isolateId);
       });
 
       test('cannot evaluate expression', () async {
-        await onBreakPoint(isolate.id, mainScript, 'printLocal', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
           final event = await stream
               .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
           await expectLater(
               setup.service
-                  .evaluateInFrame(isolate.id, event.topFrame.index, 'local'),
+                  .evaluateInFrame(isolateId, event.topFrame!.index!, 'local'),
               throwsRPCError);
         });
       });

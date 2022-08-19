@@ -7,7 +7,7 @@ targets:
             - -O4 
             - --csp
         generate_for:
-          - web/background.dart
+          - web/**.dart
       extension|client_js_copy_builder:
         enabled: true
       
@@ -17,7 +17,15 @@ builders:
     builder_factories:
         - copyBuilder
     build_extensions:
-      web/background.dart.js:
-        - web/background.js
+      {
+        "web/{{}}.dart.js": ["prod_build/{{}}.js"],
+        "web/{{}}.png": ["prod_build/{{}}.png"],
+        "web/{{}}.html": ["prod_build/{{}}.html"],
+        "web/{{}}.css": ["prod_build/{{}}.css"],
+        "web/manifest.json": ["prod_build/manifest.json"],
+        "web/panel.js": ["prod_build/panel.js"],
+        "web/detector.js": ["prod_build/detector.js"],
+        "web/devtools.js": ["prod_build/devtools.js"],
+      }
     auto_apply: none
     build_to: source
