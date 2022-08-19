@@ -437,8 +437,10 @@ class TestContext {
     }
     try {
       Directory.current = '$currentDir/debug_extension';
-      final process = await Process.run('tool/build_extension.sh', ['prod'],
-          runInShell: true);
+      final process = await Process.run(
+        'tool/build_extension.sh',
+        ['prod'],
+      );
       print(process.stdout);
     } finally {
       Directory.current = currentDir;
