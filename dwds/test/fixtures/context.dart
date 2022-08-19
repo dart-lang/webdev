@@ -432,19 +432,14 @@ class TestContext {
   Future<void> _buildDebugExtension() async {
     final currentDir = Directory.current.path;
     if (!currentDir.endsWith('dwds')) {
-      _logger.warning('''
-        Expected to be in /dwds directory, instead path was $currentDir. 
-        Therefore not building Debug Extension.
-      ''');
-      return;
+      throw StateError(
+          'Expected to be in /dwds directory, instead path was $currentDir.');
     }
     try {
       Directory.current = '$currentDir/debug_extension';
       final process = await Process.run('tool/build_extension.sh', ['prod'],
           runInShell: true);
       print(process.stdout);
-    } catch (e) {
-      _logger.warning('Error building Debug Extension: $e');
     } finally {
       Directory.current = currentDir;
     }
