@@ -181,13 +181,8 @@ void main() {
   }));
 
   // Maybe update the extension icon during tab navigation:
-  chrome.webNavigation.onCommitted.addListener(
-      allowInterop((NavigationInfo navigationInfo) {
-    if (navigationInfo.transitionType != 'auto_subframe' &&
-        _debuggableTabs.remove(navigationInfo.tabId)) {
-      _updateIcon();
-    }
-  }), null);
+  chrome.webNavigation.onCommitted
+      .addListener(allowInterop(_updateIconOnNavigation));
 
   // Notify the panel script controlling the Dart DevTools panel in Chrome
   // DevTools of any relevant changes so that it can update accordingly:
@@ -265,10 +260,11 @@ void _attachDebuggerToTab(Tab currentTab) async {
   }));
 }
 
-void _handleMessageFromContentScripts(Map<String, dynamic>? request,
-    MessageSender sender, Function sendResponse) {
-  if (request == null) return;
-  switch (request['sender']) {
+void _handleMessageFromContentScripts(
+    dynamic jsRequest, MessageSender sender, Function sendResponse) {
+  if (jsRequest == null) return;
+  final request = jsRequest as Request;
+  switch (request.sender) {
     case 'detector-script':
       _maybeMarkTabAsDebuggable(request, sender, sendResponse);
       break;
@@ -278,12 +274,10 @@ void _handleMessageFromContentScripts(Map<String, dynamic>? request,
   }
 }
 
-void _handleMessageFromPanelScript(
-    Map<String, dynamic>? request, MessageSender sender) {
-  if (request == null) return;
-  switch (request['message']) {
+void _handleMessageFromPanelScript(Request request, MessageSender sender) {
+  switch (request.message) {
     case 'devtools-open':
-      _updateOrCreateDevToolsPanel(request['dartAppId'], (panel) {
+      _updateOrCreateDevToolsPanel(request.dartAppId, (panel) {
         panel.panelId = sender.id;
       });
       break;
@@ -293,11 +287,11 @@ void _handleMessageFromPanelScript(
   }
 }
 
-void _maybeMarkTabAsDebuggable(Map<String, dynamic> request,
-    MessageSender sender, Function sendResponse) async {
+void _maybeMarkTabAsDebuggable(
+    Request request, MessageSender sender, Function sendResponse) async {
   // Register any warnings for the tab:
-  if (request['warning'] != '') {
-    _tabIdToWarning[sender.tab!.id] = request['warning'];
+  if (request.warning != '') {
+    _tabIdToWarning[sender.tab!.id] = request.warning;
   }
   _debuggableTabs.add(sender.tab!.id);
   _updateIcon();
@@ -374,13 +368,13 @@ void _maybeSaveDevToolsTabId(Tab tab) async {
   if (_debugSessions.isNotEmpty) _debugSessions.last.devtoolsTabId ??= tab.id;
 }
 
-void _handleMessageFromExternalExtensions(Map<String, dynamic>? request,
-    MessageSender sender, Function sendResponse) async {
-  if (request == null) return;
-
-  if (request['name'] == 'chrome.debugger.sendCommand') {
+void _handleMessageFromExternalExtensions(
+    dynamic jsRequest, MessageSender sender, Function sendResponse) async {
+  if (jsRequest == null) return;
+  final request = jsRequest as Request;
+  if (request.name == 'chrome.debugger.sendCommand') {
     try {
-      final options = request['options'] as SendCommandOptions;
+      final options = request.options as SendCommandOptions;
 
       void sendResponseOrError([e]) {
         // No arguments indicate that an error occurred.
@@ -393,23 +387,23 @@ void _handleMessageFromExternalExtensions(Map<String, dynamic>? request,
       }
 
       chrome.debugger.sendCommand(
-          Debuggee(tabId: request['tabId']),
+          Debuggee(tabId: request.tabId),
           options.method,
           options.commandParams,
           allowInterop(sendResponseOrError));
     } catch (e) {
       sendResponse(ErrorResponse()..error = '$e');
     }
-  } else if (request['name'] == 'dwds.encodedUri') {
-    sendResponse(_tabIdToEncodedUri[request['tabId']] ?? '');
-  } else if (request['name'] == 'dwds.startDebugging') {
+  } else if (request.name == 'dwds.encodedUri') {
+    sendResponse(_tabIdToEncodedUri[request.tabId] ?? '');
+  } else if (request.name == 'dwds.startDebugging') {
     _startDebugging(DebuggerTrigger.dwds);
     // TODO(grouma) - Actually determine if debugging initiated
     // successfully.
     sendResponse(true);
   } else {
     sendResponse(
-        ErrorResponse()..error = 'Unknown request name: ${request['name']}');
+        ErrorResponse()..error = 'Unknown request name: ${request.name}');
   }
 }
 
@@ -632,6 +626,13 @@ void _updateIcon() {
   }));
 }
 
+void _updateIconOnNavigation(NavigationInfo navigationInfo) {
+  if (navigationInfo.transitionType != 'auto_subframe' &&
+      _debuggableTabs.remove(navigationInfo.tabId)) {
+    _updateIcon();
+  }
+}
+
 /// Construct an [ExtensionEvent] from [method] and [params].
 ExtensionEvent _extensionEventFor(String method, Object? params) =>
     ExtensionEvent((b) => b
@@ -737,6 +738,20 @@ class InjectedParams {
 class SendCommandOptions {
   external String get method;
   external Object get commandParams;
+}
+
+@JS()
+@anonymous
+class Request {
+  external String get dartAppId;
+  external String get sender;
+  external int get tabId;
+  external String get name;
+  external dynamic get options;
+  external String get warning;
+  external String get message;
+  external factory Request(
+      {required int tabId, required String name, required dynamic options});
 }
 
 /// For testing only.

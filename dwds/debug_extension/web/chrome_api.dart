@@ -60,12 +60,6 @@ class MessageSender {
 
 @JS()
 @anonymous
-class NavigationFilters {
-  external UrlFilter get url;
-}
-
-@JS()
-@anonymous
 class NavigationInfo {
   external String get transitionType;
   external int get tabId;
@@ -177,7 +171,7 @@ class _Runtime {
 @anonymous
 class _OnMessageHandler {
   external void addListener(
-      void Function(Map<String, dynamic>?, MessageSender, Function) callback);
+      void Function(dynamic, MessageSender, Function) callback);
 }
 
 @JS()
@@ -226,8 +220,7 @@ class _WebNavigation {
 @JS()
 @anonymous
 class _OnCommittedHandler {
-  external void addListener(void Function(NavigationInfo details) callback,
-      NavigationFilters? filters);
+  external void addListener(void Function(NavigationInfo details) callback);
 }
 
 @JS()
