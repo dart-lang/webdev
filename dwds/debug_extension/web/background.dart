@@ -152,7 +152,7 @@ void main() {
 
   // When a debug session is detached, remove the reference to it:
   chrome.debugger.onDetach
-      .addListener(allowInterop((Debuggee source, DetachReason reason) {
+      .addListener(allowInterop((Debuggee source, String reason) {
     _removeDebugSessionForTab(source.tabId);
   }));
 
@@ -303,11 +303,12 @@ void _maybeMarkTabAsDebuggable(
 void _maybeAttachDebugSession(
   Debuggee source,
   String method,
-  Map<String, dynamic>? params,
+  dynamic params,
 ) async {
   // Return early if it's not a Runtime.executionContextCreated event (sent from
   // Chrome):
   if (method != 'Runtime.executionContextCreated') return;
+  if (params == null) return;
 
   final context = json.decode(JSON.stringify(params))['context'];
   final tab = _tabsToAttach.firstWhereOrNull((tab) => tab.id == source.tabId);
@@ -408,7 +409,7 @@ void _handleMessageFromExternalExtensions(
 }
 
 void _forwardMessageToExternalExtensions(
-    Debuggee source, String method, Map<String, dynamic>? params) async {
+    Debuggee source, String method, dynamic params) async {
   if (_allowedEvents.contains(method)) {
     sendMessageToExtensions(ExternalExtensionRequest(
         name: 'chrome.debugger.event',
@@ -452,10 +453,10 @@ Future<bool> _tryAttach(
       'Runtime.evaluate',
       InjectedParams(
           expression:
-              '[\$dartExtensionUri, \$dartAppId, \$dartAppInstanceId, window.\$dwdsVersion]',
+              '[window.\$dartExtensionUri, window.\$dartAppId, window.\$dartAppInstanceId, window.\$dwdsVersion]',
           returnByValue: true,
-          contextId: contextId), allowInterop((evalResponse) {
-    final value = evalResponse.result.value;
+          contextId: contextId), allowInterop((dynamic evalResponse) {
+    final value = evalResponse?.result?.value;
     final extensionUri = value?[0] as String?;
     final appId = value?[1] as String?;
     final instanceId = value?[2] as String?;
@@ -634,14 +635,14 @@ void _updateIconOnNavigation(NavigationInfo navigationInfo) {
 }
 
 /// Construct an [ExtensionEvent] from [method] and [params].
-ExtensionEvent _extensionEventFor(String method, Object? params) =>
+ExtensionEvent _extensionEventFor(String method, dynamic params) =>
     ExtensionEvent((b) => b
       ..params = jsonEncode(json.decode(JSON.stringify(params)))
       ..method = jsonEncode(method));
 
 /// Forward debugger events to the backend if applicable.
 void _filterAndForwardToBackend(
-    Debuggee source, String method, Map<String, dynamic>? params) {
+    Debuggee source, String method, dynamic params) {
   final debugSession = _debugSessions
       .firstWhereOrNull((session) => session.appTabId == source.tabId);
 

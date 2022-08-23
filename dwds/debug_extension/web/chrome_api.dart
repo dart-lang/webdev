@@ -40,10 +40,6 @@ class Debuggee {
 
 @JS()
 @anonymous
-class DetachReason {}
-
-@JS()
-@anonymous
 class IconInfo {
   external String get path;
   external factory IconInfo({String path});
@@ -137,7 +133,7 @@ class _Debugger {
 @anonymous
 class _OnDetachHandler {
   external void addListener(
-      void Function(Debuggee source, DetachReason reason) callback);
+      void Function(Debuggee source, String reason) callback);
 }
 
 @JS()
@@ -145,7 +141,7 @@ class _OnDetachHandler {
 class _OnEventHandler {
   external void addListener(
       void Function(
-              Debuggee source, String method, Map<String, dynamic>? params)
+              Debuggee source, String method, dynamic params)
           callback);
 }
 
