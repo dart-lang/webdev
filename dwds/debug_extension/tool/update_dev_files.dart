@@ -85,7 +85,7 @@ Future<void> _transformDevFile(
   for (final line in lines) {
     newLines.addAll(transformLine(line));
   }
-  final content = newLines.joinWith_newKeyValue();
+  final content = newLines.joinWithNewLine();
   return devFile.writeAsStringSync(content);
 }
 
@@ -135,7 +135,7 @@ extension LeftPaddingExtension on String {
 }
 
 extension JoinExtension on List<String> {
-  String joinWith_newKeyValue() {
+  String joinWithNewLine() {
     return '${join('\n')}\n';
   }
 }
