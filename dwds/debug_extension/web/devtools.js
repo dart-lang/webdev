@@ -1,5 +1,9 @@
 (function loadDevToolsScript() {
   const DDR_DART_APP_ATTRIBUTE = 'data-ddr-dart-app';
+  // Note: Changes to the DEBUGGER_PANEL_NAME and INSPECTOR_PANEL_NAME
+  // must be reflected in `tool/update_dev_files.dart` as well.
+  const DEBUGGER_PANEL_NAME = 'Dart Debugger';
+  const INSPECTOR_PANEL_NAME = 'Flutter Inspector';
 
   let debuggerCreated = false;
   let inspectorCreated = false;
@@ -30,8 +34,8 @@
         if (!isDartApp) return;
 
         chrome.devtools.panels.create(
-          'Dart Debugger', '', 'debugger_panel.html'
-          );
+          DEBUGGER_PANEL_NAME, '', 'debugger_panel.html'
+        );
         debuggerCreated = true;
         createInspectorPanelIfFlutterApp();
       });
@@ -39,7 +43,7 @@
 
   function createInspectorPanelIfFlutterApp() {
     const checkFlutterAppInterval = setInterval(function () {
-      if (inspectorCreated|| checkFlutterCount++ > 10) {
+      if (inspectorCreated || checkFlutterCount++ > 10) {
         clearInterval(checkFlutterAppInterval);
         return;
       }
@@ -51,8 +55,8 @@
         function (isFlutterWeb) {
           if (isFlutterWeb) {
             chrome.devtools.panels.create(
-              'Flutter Inspector', '', 'inspector_panel.html'
-              );
+              INSPECTOR_PANEL_NAME, '', 'inspector_panel.html'
+            );
             inspectorCreated = true;
           }
         }
