@@ -140,9 +140,7 @@ class _OnDetachHandler {
 @anonymous
 class _OnEventHandler {
   external void addListener(
-      void Function(
-              Debuggee source, String method, dynamic params)
-          callback);
+      void Function(Debuggee source, String method, dynamic params) callback);
 }
 
 @JS()
