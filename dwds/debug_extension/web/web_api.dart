@@ -5,6 +5,7 @@
 import 'package:js/js.dart';
 
 @JS()
+// ignore: non_constant_identifier_names
 external Json get JSON;
 
 @JS()
