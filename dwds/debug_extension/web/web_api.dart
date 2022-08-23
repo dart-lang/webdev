@@ -5,11 +5,11 @@
 import 'package:js/js.dart';
 
 @JS()
-external _JSON get JSON;
+external Json get JSON;
 
 @JS()
 @anonymous
-class _JSON {
+class Json {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
   external String stringify(o);
 }

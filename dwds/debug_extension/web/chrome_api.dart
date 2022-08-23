@@ -5,11 +5,11 @@
 import 'package:js/js.dart';
 
 @JS()
-external _Chrome get chrome;
+external Chrome get chrome;
 
 @JS()
 @anonymous
-class _Chrome {
+class Chrome {
   external _BrowserAction get browserAction;
   external _Debugger get debugger;
   external _Runtime get runtime;
