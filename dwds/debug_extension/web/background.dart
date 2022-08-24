@@ -455,12 +455,13 @@ Future<bool> _tryAttach(
           expression:
               '[window.\$dartExtensionUri, window.\$dartAppId, window.\$dartAppInstanceId, window.\$dwdsVersion]',
           returnByValue: true,
-          contextId: contextId), allowInterop((dynamic evalResponse) {
-    final value = evalResponse?.result?.value;
-    final extensionUri = value?[0] as String?;
-    final appId = value?[1] as String?;
-    final instanceId = value?[2] as String?;
-    final dwdsVersion = value?[3] as String?;
+          contextId: contextId), allowInterop((dynamic response) {
+    final evalResponse = response as EvalResponse;
+    final value = evalResponse.result.value;
+    final extensionUri = value?[0];
+    final appId = value?[1];
+    final instanceId = value?[2];
+    final dwdsVersion = value?[3];
     if (extensionUri == null || appId == null || instanceId == null) {
       window.console
           .warn('Unable to debug app. Missing Dart debugging global variables');
@@ -753,6 +754,18 @@ class Request {
   external String get message;
   external factory Request(
       {required int tabId, required String name, required dynamic options});
+}
+
+@JS()
+@anonymous
+class EvalResponse {
+  external EvalResult get result;
+}
+
+@JS()
+@anonymous
+class EvalResult {
+  external List<String?>? get value;
 }
 
 /// For testing only.
