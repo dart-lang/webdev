@@ -4,7 +4,7 @@ targets:
       build_web_compilers|entrypoint:
         options:
           dart2js_args:
-            - -O4 
+            - -O4 # Note: Change to -01 for unminified JS. 
             - --csp
         generate_for:
           - web/**.dart
