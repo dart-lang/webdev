@@ -303,7 +303,7 @@ void _maybeMarkTabAsDebuggable(
 void _maybeAttachDebugSession(
   Debuggee source,
   String method,
-  dynamic params,
+  Object? params,
 ) async {
   // Return early if it's not a Runtime.executionContextCreated event (sent from
   // Chrome):
@@ -409,7 +409,7 @@ void _handleMessageFromExternalExtensions(
 }
 
 void _forwardMessageToExternalExtensions(
-    Debuggee source, String method, dynamic params) async {
+    Debuggee source, String method, Object? params) async {
   if (_allowedEvents.contains(method)) {
     sendMessageToExtensions(ExternalExtensionRequest(
         name: 'chrome.debugger.event',
@@ -710,7 +710,7 @@ class ExternalExtensionRequest {
 @JS()
 @anonymous
 class DebugEvent {
-  external factory DebugEvent({String method, dynamic params});
+  external factory DebugEvent({String method, Object? params});
 }
 
 @JS()
