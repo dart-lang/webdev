@@ -22,13 +22,6 @@ class Action {
 
 @JS()
 @anonymous
-class BrowserAction {
-  // https://developer.chrome.com/docs/extensions/reference/browserAction/#event-onClicked
-  external OnClickedHandler get onClicked;
-}
-
-@JS()
-@anonymous
 class OnClickedHandler {
   external void addListener(void Function(Tab tab) callback);
 }
