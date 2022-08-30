@@ -200,8 +200,8 @@ class MetadataProvider {
               _addMetadata(metadata);
               hasUnsoundNullSafety &= !metadata.soundNullSafety;
               hasSoundNullSafety &= metadata.soundNullSafety;
-              //_logger
-              //    .fine('Loaded debug metadata for module: ${metadata.name}');
+              _logger
+                  .fine('Loaded debug metadata for module: ${metadata.name}');
             } catch (e) {
               _logger.warning('Failed to read metadata: $e');
               rethrow;

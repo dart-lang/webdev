@@ -4,8 +4,6 @@
 
 // Note: this is a copy from flutter tools, updated to work with dwds tests
 
-import 'dart:io';
-
 import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
@@ -65,15 +63,16 @@ class WebDevFS {
     final outputDirectoryPath = fileSystem.file(mainPath).parent.path;
     final entryPoint = mainUri.toString();
 
-    assetServer.writeFile(entryPoint, fileSystem.file(mainPath).readAsStringSync());
+    assetServer.writeFile(
+        entryPoint, fileSystem.file(mainPath).readAsStringSync());
     assetServer.writeFile('require.js', requireJS.readAsStringSync());
     assetServer.writeFile(
         'stack_trace_mapper.js', stackTraceMapper.readAsStringSync());
     assetServer.writeFile(
       'main.dart.js',
       generateBootstrapScript(
-        requireUrl: 'require.js', //_filePathToUriFragment(requireJS.path),
-        mapperUrl: 'stack_trace_mapper.js', //_filePathToUriFragment(stackTraceMapper.path),
+        requireUrl: 'require.js',
+        mapperUrl: 'stack_trace_mapper.js',
         entrypoint: entryPoint,
       ),
     );
@@ -85,13 +84,13 @@ class WebDevFS {
     );
 
     assetServer.writeFile('main_module.digests', '{}');
-    
+
     var sdk = soundNullSafety ? dartSdkSound : dartSdk;
     var sdkSourceMap =
         soundNullSafety ? dartSdkSourcemapSound : dartSdkSourcemap;
     assetServer.writeFile('dart_sdk.js', sdk.readAsStringSync());
     assetServer.writeFile('dart_sdk.js.map', sdkSourceMap.readAsStringSync());
-   
+
     generator.reset();
     var compilerOutput = await generator.recompile(
       Uri.parse('org-dartlang-app:///$mainUri'),
@@ -170,19 +169,6 @@ class WebDevFS {
         'web',
         'dart_stack_trace_mapper.js',
       ));
-/*
-  String _filePathToUriFragment(String path, ) {
-    if (Platform.isWindows) {
-      var startWithSlash = path.startsWith('/');
-      var partial =
-          fileSystem.path.split(path).skip(startWithSlash ? 2 : 1).join('/');
-      if (partial.startsWith('/')) {
-        return partial;
-      }
-      return '/$partial';
-    }
-    return path;
-  }*/
 }
 
 class UpdateFSReport {
@@ -208,4 +194,3 @@ class UpdateFSReport {
   /// Only used for JavaScript compilation.
   List<String>? invalidatedModules;
 }
-

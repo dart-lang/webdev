@@ -68,8 +68,8 @@ class TestAssetServer implements AssetReader {
   ) async {
     var address = (await InternetAddress.lookup(hostname)).first;
     var httpServer = await HttpServer.bind(address, port);
-    var server =
-        TestAssetServer(index, httpServer, packageUriMapper, address, fileSystem);
+    var server = TestAssetServer(
+        index, httpServer, packageUriMapper, address, fileSystem);
     return server;
   }
 
@@ -98,41 +98,31 @@ class TestAssetServer implements AssetReader {
       return shelf.Response.notFound('');
     }
 
-    // NOTE: shelf removes leading `/` for some reason.
-    //var requestPath = request.url.path;
-    //requestPath = requestPath.startsWith('/') ? requestPath : '/$requestPath';
+    // If this is a JavaScript file, it must be in the in-memory cache.
+    // Attempt to look up the file by URI.
+    if (hasFile(requestPath)) {
+      final List<int> bytes = getFile(requestPath);
+      headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
+      headers[HttpHeaders.contentTypeHeader] = 'application/javascript';
+      return shelf.Response.ok(bytes, headers: headers);
+    }
+    // If this is a sourcemap file, then it might be in the in-memory cache.
+    // Attempt to lookup the file by URI.
+    if (hasSourceMap(requestPath)) {
+      final List<int> bytes = getSourceMap(requestPath);
+      headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
+      headers[HttpHeaders.contentTypeHeader] = 'application/json';
+      return shelf.Response.ok(bytes, headers: headers);
+    }
+    // If this is a metadata file, then it might be in the in-memory cache.
+    // Attempt to lookup the file by URI.
+    if (hasMetadata(requestPath)) {
+      final List<int> bytes = getMetadata(requestPath);
+      headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
+      headers[HttpHeaders.contentTypeHeader] = 'application/json';
+      return shelf.Response.ok(bytes, headers: headers);
+    }
 
-    //if (!request.url.path.endsWith('require.js') &&
-    //    !request.url.path.endsWith('dart_stack_trace_mapper.js')) {
-    //  requestPath = _stripBasePath(requestPath, basePath) ?? requestPath;
-
-    //  requestPath = requestPath.startsWith('/') ? requestPath : '/$requestPath';
-
-      // If this is a JavaScript file, it must be in the in-memory cache.
-      // Attempt to look up the file by URI.
-      if (hasFile(requestPath)) {
-        final List<int> bytes = getFile(requestPath);
-        headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
-        headers[HttpHeaders.contentTypeHeader] = 'application/javascript';
-        return shelf.Response.ok(bytes, headers: headers);
-      }
-      // If this is a sourcemap file, then it might be in the in-memory cache.
-      // Attempt to lookup the file by URI.
-      if (hasSourceMap(requestPath)) {
-        final List<int> bytes = getSourceMap(requestPath);
-        headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
-        headers[HttpHeaders.contentTypeHeader] = 'application/json';
-        return shelf.Response.ok(bytes, headers: headers);
-      }
-      // If this is a metadata file, then it might be in the in-memory cache.
-      // Attempt to lookup the file by URI.
-      if (hasMetadata(requestPath)) {
-        final List<int> bytes = getMetadata(requestPath);
-        headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
-        headers[HttpHeaders.contentTypeHeader] = 'application/json';
-        return shelf.Response.ok(bytes, headers: headers);
-      }
-    //}
     var file = _resolveDartFile(requestPath);
     if (!file.existsSync()) {
       return shelf.Response.notFound('');
@@ -201,7 +191,7 @@ class TestAssetServer implements AssetReader {
         codeStart,
         codeEnd - codeStart,
       );
-      
+
       final fileName =
           filePath.startsWith('/') ? filePath.substring(1) : filePath;
       _files[fileName] = byteView;
@@ -343,6 +333,3 @@ Map<String, dynamic> _castStringKeyedMap(dynamic untyped) {
   var map = untyped as Map<dynamic, dynamic>;
   return map.cast<String, dynamic>();
 }
-
-
-

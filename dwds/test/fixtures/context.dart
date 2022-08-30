@@ -33,20 +33,12 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'logging.dart';
 import 'server.dart';
 import 'utilities.dart';
-
-final _currentSdkVersion = semver.Version.parse(Platform.version.split(' ')[0]);
-final _useDebuggerModuleNamesSdkVersion =
-    semver.Version(2, 19, 0, pre: '149.0.dev');
-
-final isDebuggerModuleNamesFeatureSupported =
-    _currentSdkVersion.compareTo(_useDebuggerModuleNamesSdkVersion) > 0;
 
 final _exeExt = Platform.isWindows ? '.exe' : '';
 

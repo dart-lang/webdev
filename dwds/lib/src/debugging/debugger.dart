@@ -808,7 +808,8 @@ class _Breakpoints extends Domain {
           'addBreakpoint',
           102,
           'The VM is unable to add a breakpoint $id '
-              'at the specified line or function: ($scriptId:$line:$column): cannot find Dart location.');
+              'at the specified line or function: ($scriptId:$line:$column): '
+              ' cannot find Dart location.');
     }
 
     try {
@@ -822,7 +823,8 @@ class _Breakpoints extends Domain {
             'addBreakpoint',
             102,
             'The VM is unable to add a breakpoint $id '
-                'at the specified line or function: ($scriptId:$line:$column): cannot set JS breakpoint at $location');
+                'at the specified line or function: ($scriptId:$line:$column): '
+                'cannot set JS breakpoint at $location');
       }
       _note(jsId: jsBreakpointId, bp: dartBreakpoint);
       return dartBreakpoint;

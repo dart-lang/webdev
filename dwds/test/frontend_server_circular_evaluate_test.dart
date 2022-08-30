@@ -6,6 +6,7 @@
 
 import 'dart:io';
 
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
@@ -14,6 +15,11 @@ import 'evaluate_circular_common.dart';
 void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
+
+  // TODO(annagrin): Remove when 2.19.0-150.0.dev is in stable.
+  final debuggerModuleNamesSupported =
+      Version.parse(Platform.version.split(' ').first) >=
+          Version.parse('2.19.0-150.0.dev');
 
   group('Context with circular dependencies |', () {
     for (var nullSafety in NullSafety.values) {
@@ -36,7 +42,7 @@ void main() async {
                     // https://github.com/dart-lang/webdev/issues/1591);
                     nullSafety == NullSafety.sound ||
                     // Needs debugger module names change in the SDK to work.
-                    !isDebuggerModuleNamesFeatureSupported,
+                    !debuggerModuleNamesSupported,
           );
         }
       });

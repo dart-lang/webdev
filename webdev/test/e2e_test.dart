@@ -35,19 +35,14 @@ const _testItems = <String, bool>{
   'main.unsound.ddc.js': true,
 };
 
-void _logWriter(Level level, String message,
-    {String error, String loggerName, String stackTrace}) {
-  //if (level >= Level.INFO) {
-  print('[$level] $loggerName: $message');
-  //}
-}
-
 void main() {
+  // Change to true for debugging.
+  final debug = false;
+
   String exampleDirectory;
   String soundExampleDirectory;
   setUpAll(() async {
-    Logger.root.level = Level.ALL;
-    configureLogWriter(true, customLogWriter: _logWriter);
+    configureLogWriter(debug);
     exampleDirectory =
         p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSmoke'));
     soundExampleDirectory =
@@ -81,10 +76,10 @@ void main() {
     expect(smokeYaml['dev_dependencies']['build_runner'],
         equals(buildRunnerConstraint.toString()));
     expect(smokeYaml['dev_dependencies']['build_web_compilers'],
-        equals(buildWebCompilersContraint.toString()));
+        equals(buildWebCompilersConstraint.toString()));
   });
 
-  test('build should fail if targetting an existing directory', () async {
+  test('build should fail if targeting an existing directory', () async {
     await d.file('simple thing', 'throw-away').create();
 
     var args = ['build', '-o', 'web:${d.sandbox}'];
@@ -289,18 +284,18 @@ void main() {
 
   group('should work with ', () {
     setUp(() async {
-      configureLogWriter(true, customLogWriter: _logWriter);
+      configureLogWriter(debug);
     });
 
-    for (var soundNullSafety in [/*false,*/ true]) {
+    for (var soundNullSafety in [false, true]) {
       var nullSafetyOption = soundNullSafety ? 'sound' : 'unsound';
       group('--null-safety=$nullSafetyOption', () {
         setUp(() async {
-          configureLogWriter(true, customLogWriter: _logWriter);
+          configureLogWriter(debug);
         });
         group('and --enable-expression-evaluation:', () {
           setUp(() async {
-            configureLogWriter(true, customLogWriter: _logWriter);
+            configureLogWriter(debug);
           });
           test('evaluateInFrame', () async {
             var openPort = await findUnusedPort();
@@ -310,14 +305,13 @@ void main() {
               'web:$openPort',
               '--enable-expression-evaluation',
               '--verbose',
-              '--null-safety=unsound',
             ];
             var process = await runWebDev(args,
                 workingDirectory:
                     soundNullSafety ? soundExampleDirectory : exampleDirectory);
             VmService vmService;
 
-            process.stdoutStream().listen(Logger.root.info);
+            process.stdoutStream().listen(Logger.root.fine);
             process.stderrStream().listen(Logger.root.warning);
 
             try {
@@ -373,7 +367,6 @@ void main() {
               'web:$openPort',
               '--enable-expression-evaluation',
               '--verbose',
-              '--null-safety=unsound',
             ];
             var process = await runWebDev(args,
                 workingDirectory:
@@ -518,7 +511,7 @@ void main() {
               await process.shouldExit();
             }
           }, timeout: const Timeout.factor(2));
-        }, skip: true);
+        });
       });
     }
   });

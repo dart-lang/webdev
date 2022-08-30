@@ -384,8 +384,7 @@ class ResidentCompiler {
         '--platform',
         platformDill,
       ],
-      if (useDebuggerModuleNames)
-        '--debugger-module-names',
+      if (useDebuggerModuleNames) '--debugger-module-names',
       '--experimental-emit-debug-metadata',
       if (verbose) '--verbose'
     ];
@@ -615,8 +614,9 @@ class TestExpressionCompiler implements ExpressionCompiler {
         line, column, jsModules, jsFrameValues, moduleName, expression);
 
     if (compilerOutput != null) {
-      var content = utf8.decode(
-          localFileSystem.file(compilerOutput.outputFilename).readAsBytesSync());
+      var content = utf8.decode(localFileSystem
+          .file(compilerOutput.outputFilename)
+          .readAsBytesSync());
       return ExpressionCompilationResult(
           content, compilerOutput.errorCount > 0);
     }

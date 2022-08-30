@@ -5,6 +5,5 @@
 import 'package:_test_circular1_sound/library1.dart';
 
 void testCircularDependencies() {
-    print(concatenate('a', 'b')); // Breakpoint: testCircularDependencies
+  print(concatenate('a', 'b')); // Breakpoint: testCircularDependencies
 }
-

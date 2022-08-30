@@ -66,7 +66,8 @@ class ResidentWebRunner {
   late Uri uri;
   late Iterable<String> modules;
 
-  Future<int> run(FileSystem fileSystem, String? hostname, int port, String index) async {
+  Future<int> run(
+      FileSystem fileSystem, String? hostname, int port, String index) async {
     devFS = WebDevFS(
       fileSystem: fileSystem,
       hostname: hostname ?? 'localhost',

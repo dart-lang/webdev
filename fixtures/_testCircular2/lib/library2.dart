@@ -7,6 +7,5 @@
 import 'package:_test_circular1/library1.dart';
 
 void testCircularDependencies() {
-    print(concatenate('a', 'b')); // Breakpoint: testCircularDependencies
+  print(concatenate('a', 'b')); // Breakpoint: testCircularDependencies
 }
-
