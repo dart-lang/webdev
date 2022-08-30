@@ -11,6 +11,7 @@
 - Migrate `package:dwds` to null safety.
 - Make `ChromeProxyService.getStack` wait for the debugger to perform initial
   resume operation. This avoids race conditions on isolate start.
+- Update the min SDK constraint to 2.18.0.
 
 **Breaking changes**
 
@@ -42,7 +43,7 @@
 
 ## 14.0.1
 
-- Add `libraryFilters` optional parameter to the vm service implememtation of
+- Add `libraryFilters` optional parameter to the vm service implementation of
   `getSourceReport`.
 - Update temp variable detection heuristics so internal JS type objects do not
   show in the debugger.
