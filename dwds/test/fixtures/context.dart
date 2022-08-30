@@ -457,16 +457,12 @@ class TestContext {
       throw StateError(
           'Expected to be in /dwds directory, instead path was $currentDir.');
     }
-    try {
-      Directory.current = '$currentDir/debug_extension';
-      final process = await Process.run(
-        'tool/build_extension.sh',
-        ['prod'],
-      );
-      print(process.stdout);
-    } finally {
-      Directory.current = currentDir;
-    }
+    final process = await Process.run(
+      'tool/build_extension.sh',
+      ['prod'],
+      workingDirectory: '$currentDir/debug_extension',
+    );
+    print(process.stdout);
   }
 
   Future<ChromeTab> _fetchDartDebugExtensionTab(
