@@ -506,10 +506,8 @@ class Debugger extends Domain {
           'cannot find url for script ${location.scriptId}');
       return null;
     }
-    logger.info('XXX url for frame $frame: $url');
 
     final bestLocation = await _locations.locationForJs(url, line, column ?? 0);
-    logger.info('XXX bestLocation for frame $frame: $bestLocation');
     if (bestLocation == null) return null;
 
     final script =
@@ -548,7 +546,6 @@ class Debugger extends Domain {
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
     final isolate = inspector.isolate;
-    logger.info('XXX received debugger paused event: $e');
     Event event;
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final jsBreakpointIds = e.hitBreakpoints ?? [];
@@ -653,7 +650,6 @@ class Debugger extends Domain {
     // DevTools is showing an overlay. Both cannot be shown at the same time.
     // _showPausedOverlay();
     isolate.pauseEvent = event;
-    logger.info('XXX send pause notification: $event: ${event.topFrame}');
     _streamNotify('Debug', event);
   }
 
@@ -797,12 +793,10 @@ class _Breakpoints extends Domain {
   Future<Breakpoint> _createBreakpoint(
       String id, String scriptId, int line, int column) async {
     final dartScript = inspector.scriptWithId(scriptId);
-    _logger.info('XXX dart script for $id: $dartScript');
     final dartScriptUri = dartScript?.uri;
     Location? location;
     if (dartScriptUri != null) {
       final dartUri = DartUri(dartScriptUri, root);
-      _logger.info('XXX looking for dart location for ${dartScript?.uri}($dartUri):$line:$column');
       location = await locations.locationForDart(dartUri, line, column);
     }
     // TODO: Handle cases where a breakpoint can't be set exactly at that line.
@@ -828,7 +822,7 @@ class _Breakpoints extends Domain {
             'addBreakpoint',
             102,
             'The VM is unable to add a breakpoint $id '
-              'at the specified line or function: ($scriptId:$line:$column): cannot set JS breakpoint at $location');
+                'at the specified line or function: ($scriptId:$line:$column): cannot set JS breakpoint at $location');
       }
       _note(jsId: jsBreakpointId, bp: dartBreakpoint);
       return dartBreakpoint;

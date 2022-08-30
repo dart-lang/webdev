@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
@@ -29,60 +30,62 @@ abstract class AssetReader {
 class PackageUriMapper {
   final _logger = Logger('PackageUriMapper');
   final PackageConfig packageConfig;
+  final bool useDebuggerModuleNames;
 
-  static Future<PackageUriMapper> create(FileSystem fileSystem, Uri packageConfigFile) async {  
-    final packageConfig = await loadPackageConfig(fileSystem.file(packageConfigFile));
-    return PackageUriMapper(packageConfig);
+  static Future<PackageUriMapper> create(
+      FileSystem fileSystem, Uri packageConfigFile,
+      {bool useDebuggerModuleNames = false}) async {
+    final packageConfig =
+        await loadPackageConfig(fileSystem.file(packageConfigFile));
+    return PackageUriMapper(packageConfig,
+        useDebuggerModuleNames: useDebuggerModuleNames);
   }
 
-  PackageUriMapper(this.packageConfig);
+  PackageUriMapper(this.packageConfig, {this.useDebuggerModuleNames = false});
 
-  // TODO: use package directories instead of package names
-  // Note: needs to be the same as `urlForComponentUri` in javascript_bundle.dart in SDK
+  /// Compute server path for package uri.
+  ///
+  /// Note: needs to match `urlForComponentUri` in javascript_bundle.dart
+  /// in SDK code.
   String? packageUriToServerPath(Uri packageUri) {
     if (packageUri.isScheme('package')) {
+      if (!useDebuggerModuleNames) {
+        return ('/packages/${packageUri.path}');
+      }
       final Uri? resolvedUri = packageConfig.resolve(packageUri);
       final Package? package = packageConfig.packageOf(resolvedUri!);
       final Uri root = package!.root;
-      final String relativeUrl = resolvedUri.toString().replaceFirst('$root', '');
-      final relativeRoot = _getRelativeRoot(root);
-      _logger.info('XXX package: ${package.name} ($relativeRoot)}');
-      final String ret = 'packages/$relativeRoot/$relativeUrl';
+      final String relativeUrl =
+          resolvedUri.toString().replaceFirst('$root', '');
+      final String? relativeRoot = _getRelativeRoot(root);
+      final String ret = relativeRoot == null
+          ? 'packages/$relativeUrl'
+          : 'packages/$relativeRoot/$relativeUrl';
       return ret;
-    } 
+    }
     _logger.severe('Expected package uri, but found $packageUri');
     return null;
   }
 
-  // Needs to match the code above
+  /// Compute resolved file uri for a server path.
   Uri? serverPathToResolvedUri(String serverPath) {
     serverPath = stripLeadingSlashes(serverPath);
     final segments = serverPath.split('/');
     if (segments.first == 'packages') {
+      if (!useDebuggerModuleNames) {
+        return packageConfig
+            .resolve(Uri(scheme: 'package', pathSegments: segments.skip(1)));
+      }
       final String relativeRoot = segments.skip(1).first;
-      _logger.info('XXX package root:  $relativeRoot');
-
       final String relativeUrl = segments.skip(2).join('/');
-      _logger.info('XXX relativeUrl:  $relativeUrl');
-
-      final Package package = packageConfig.packages.firstWhere((Package p) => _getRelativeRoot(p.root) == relativeRoot);
-      _logger.info('XXX package:  ${package.name}($relativeRoot)');
-
+      final Package package = packageConfig.packages
+          .firstWhere((Package p) => _getRelativeRoot(p.root) == relativeRoot);
       final Uri resolvedUri = package.root.resolve(relativeUrl);
-      _logger.info('XXX Server path: $serverPath -> $resolvedUri');
 
       return resolvedUri;
     }
+    _logger.severe('Expected "packages/" path, but found $serverPath');
     return null;
-  } 
-
-  String? _getRelativeRoot(Uri root) {
-    final segments = root.pathSegments;
-    if (segments.isNotEmpty && segments.last.isEmpty) {
-      final subset = segments.getRange(0, segments.length-1);
-      return subset.isNotEmpty? subset.last: null;
-    }
-    return segments.isNotEmpty? segments.last: null;
   }
 }
 
@@ -92,3 +95,6 @@ String stripLeadingSlashes(String path) {
   }
   return path;
 }
+
+String? _getRelativeRoot(Uri root) =>
+    root.pathSegments.lastWhereOrNull((segment) => segment.isNotEmpty);

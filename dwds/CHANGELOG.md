@@ -11,11 +11,16 @@
 - Migrate `package:dwds` to null safety.
 - Make `ChromeProxyService.getStack` wait for the debugger to perform initial
   resume operation. This avoids race conditions on isolate start.
+- Make server paths match directory structure
+  - Allows correct relative source map paths resolution.
+  - Add `PackageUriMapper` class to allow mapping uris to server paths.
 
 **Breaking changes**
 
 - Remove no longer used `ExpressionCompilerService.handler`.
 - Remove `assetHandler` parameter from `ExpressionCompilerService` constructor.
+- Add `packageUriMapper` parameter to the constructor of
+  `FrontendServerRequireStrategyProvider`.
 
 ## 15.0.0
 

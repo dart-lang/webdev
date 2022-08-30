@@ -29,6 +29,7 @@ class ResidentWebRunner {
       this.mainUri,
       this.urlTunneler,
       this.projectDirectory,
+      this.packageConfigFile,
       this.packageUriMapper,
       this.fileSystemRoots,
       this.fileSystemScheme,
@@ -38,7 +39,8 @@ class ResidentWebRunner {
     generator = ResidentCompiler(
       dartSdkPath,
       projectDirectory: projectDirectory,
-      packageConfigFile: packageUriMapper.packageConfigFile,
+      packageConfigFile: packageConfigFile,
+      useDebuggerModuleNames: packageUriMapper.useDebuggerModuleNames,
       platformDill:
           soundNullSafety ? '$platformDillSound' : '$platformDillUnsound',
       fileSystemRoots: fileSystemRoots,
@@ -51,6 +53,7 @@ class ResidentWebRunner {
   final UrlEncoder? urlTunneler;
   final Uri mainUri;
   final Uri projectDirectory;
+  final Uri packageConfigFile;
   final PackageUriMapper packageUriMapper;
   final String outputPath;
   final List<Uri> fileSystemRoots;

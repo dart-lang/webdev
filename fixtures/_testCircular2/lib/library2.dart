@@ -4,11 +4,9 @@
 
 // @dart=2.9
 
-/// A library that we can import.
-library test_library;
+import 'package:_test_circular1/library1.dart';
 
-int aVariable = 3;
-
-String concatenate(String a, String b) {
-  return '$a$b'; // Breakpoint: Concatenate
+void testCircularDependencies() {
+    print(concatenate('a', 'b')); // Breakpoint: testCircularDependencies
 }
+

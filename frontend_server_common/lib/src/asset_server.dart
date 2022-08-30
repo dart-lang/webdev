@@ -13,7 +13,6 @@ import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
-//import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'utilities.dart';
@@ -248,13 +247,6 @@ class TestAssetServer implements AssetReader {
     // If this is a dart file, it must be on the local file system and is
     // likely coming from a source map request. The tool doesn't currently
     // consider the case of Dart files as assets.
-    /*var dartFile =
-        _fileSystem.file(_fileSystem.currentDirectory.uri.resolve(path));
-    if (dartFile.existsSync()) {
-      return dartFile;
-    }*/
-
-    //final relativePath = _stripLeadingSlashes(path);
     final dartFile =
         _fileSystem.file(_fileSystem.currentDirectory.uri.resolve(path));
     if (dartFile.existsSync()) {
@@ -266,11 +258,9 @@ class TestAssetServer implements AssetReader {
     // The file might have been a package file which is signaled by a
     // `/packages/<package>/<path>` request.
     if (segments.first == 'packages') {
-      //var packageFile = _fileSystem.file(_packageConfig
-      //    .resolve(Uri(scheme: 'package', pathSegments: segments.skip(1))));
-      var packageFile = _fileSystem.file(_packageUriMapper.serverPathToResolvedUri(path));
+      final resolved = _packageUriMapper.serverPathToResolvedUri(path);
+      final packageFile = _fileSystem.file(resolved);
       if (packageFile.existsSync()) {
-        _logger.info('XXX Found: $path -> $packageFile');
         return packageFile;
       }
       _logger.severe('Package file not found: $path ($packageFile)');
@@ -335,7 +325,7 @@ class TestAssetServer implements AssetReader {
   }
 
   String? _stripBasePath(String path, String basePath) {
-    path = _stripLeadingSlashes(path);
+    path = stripLeadingSlashes(path);
     if (path.startsWith(basePath)) {
       path = path.substring(basePath.length);
     } else {
@@ -343,7 +333,7 @@ class TestAssetServer implements AssetReader {
       _logger.severe('Path is not under $basePath: $path');
       return null;
     }
-    return _stripLeadingSlashes(path);
+    return stripLeadingSlashes(path);
   }
 }
 
@@ -354,11 +344,5 @@ Map<String, dynamic> _castStringKeyedMap(dynamic untyped) {
   return map.cast<String, dynamic>();
 }
 
-String _stripLeadingSlashes(String path) {
-  while (path.startsWith('/')) {
-    path = path.substring(1);
-  }
-  return path;
-}
 
 

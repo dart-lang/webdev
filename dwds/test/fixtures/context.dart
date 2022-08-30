@@ -28,18 +28,25 @@ import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
 import 'package:logging/logging.dart' as logging;
-import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'logging.dart';
 import 'server.dart';
 import 'utilities.dart';
+
+final _currentSdkVersion = semver.Version.parse(Platform.version.split(' ')[0]);
+final _useDebuggerModuleNamesSdkVersion =
+    semver.Version(2, 19, 0, pre: '149.0.dev');
+
+final isDebuggerModuleNamesFeatureSupported =
+    _currentSdkVersion.compareTo(_useDebuggerModuleNamesSdkVersion) > 0;
 
 final _exeExt = Platform.isWindows ? '.exe' : '';
 
@@ -161,6 +168,7 @@ class TestContext {
     bool enableExpressionEvaluation = false,
     bool verboseCompiler = false,
     SdkConfigurationProvider? sdkConfigurationProvider,
+    bool useDebuggerModuleNames = false,
   }) async {
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
@@ -274,12 +282,17 @@ class TestContext {
                 .substring(_projectDirectory.toFilePath().length + 1));
 
             final fileSystem = LocalFileSystem();
-            final packageUriMapper = await PackageUriMapper.create(fileSystem, _packageConfigFile);
+            final packageUriMapper = await PackageUriMapper.create(
+              fileSystem,
+              _packageConfigFile,
+              useDebuggerModuleNames: useDebuggerModuleNames,
+            );
 
             _webRunner = ResidentWebRunner(
               entry,
               urlEncoder,
               _projectDirectory,
+              _packageConfigFile,
               packageUriMapper,
               [_projectDirectory],
               'org-dartlang-app',
@@ -289,8 +302,8 @@ class TestContext {
             );
 
             final assetServerPort = await findUnusedPort();
-            await webRunner.run(fileSystem,
-                hostname, assetServerPort, p.join(pathToServe, path));
+            await webRunner.run(fileSystem, hostname, assetServerPort,
+                p.join(pathToServe, path));
 
             if (enableExpressionEvaluation) {
               expressionCompiler = webRunner.expressionCompiler;
@@ -301,7 +314,11 @@ class TestContext {
             _assetHandler = webRunner.devFS.assetServer.handleRequest;
 
             requireStrategy = FrontendServerRequireStrategyProvider(
-                    reloadConfiguration, assetReader, packageUriMapper, () async => {}, basePath)
+                    reloadConfiguration,
+                    assetReader,
+                    packageUriMapper,
+                    () async => {},
+                    basePath)
                 .strategy;
 
             buildResults = const Stream<BuildResults>.empty();

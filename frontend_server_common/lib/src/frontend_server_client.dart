@@ -255,6 +255,7 @@ class ResidentCompiler {
     this.sdkRoot, {
     required this.projectDirectory,
     required this.packageConfigFile,
+    required this.useDebuggerModuleNames,
     required this.fileSystemRoots,
     required this.fileSystemScheme,
     required this.platformDill,
@@ -264,6 +265,7 @@ class ResidentCompiler {
 
   final Uri projectDirectory;
   final Uri packageConfigFile;
+  final bool useDebuggerModuleNames;
   final List<Uri> fileSystemRoots;
   final String fileSystemScheme;
   final String platformDill;
@@ -382,6 +384,8 @@ class ResidentCompiler {
         '--platform',
         platformDill,
       ],
+      if (useDebuggerModuleNames)
+        '--debugger-module-names',
       '--experimental-emit-debug-metadata',
       if (verbose) '--verbose'
     ];

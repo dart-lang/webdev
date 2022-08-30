@@ -356,9 +356,6 @@ class FakeAssetReader implements AssetReader {
   Future<String> sourceMapContents(String serverPath) {
     return _throwUnimplementedOrReturnContents(_sourceMap);
   }
-  
-  //@override
-  //String? resolvePackageUrl(Uri packageUri) => null;
 
   @override
   Future<void> close() async {}

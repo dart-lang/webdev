@@ -373,9 +373,7 @@ class ChromeProxyService implements VmServiceInterface {
               'at the specified line or function: $scriptUri:$line:$column: '
               'cannot find script ID for ${dartUri.serverPath}');
     }
-    final bp = await (await debuggerFuture).addBreakpoint(scriptId, line, column: column);
-    _logger.info('XXX added breakpoint: $bp');
-    return bp;
+    return (await debuggerFuture).addBreakpoint(scriptId, line, column: column);
   }
 
   @override

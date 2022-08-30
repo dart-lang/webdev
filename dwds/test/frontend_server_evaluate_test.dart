@@ -15,27 +15,31 @@ void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  for (var nullSafety in NullSafety.values) {
-    group('${nullSafety.name} null safety |', () {
-      for (var indexBaseMode in IndexBaseMode.values) {
-        group(
-          'with ${indexBaseMode.name} |',
-          () {
-            testAll(
-              compilationMode: CompilationMode.frontendServer,
-              indexBaseMode: indexBaseMode,
-              nullSafety: nullSafety,
-              debug: debug,
-            );
-          },
-          skip: (nullSafety ==
-                  NullSafety
-                      .sound) // https://github.com/dart-lang/webdev/issues/1591
-              ||
-              (indexBaseMode == IndexBaseMode.base &&
-                  Platform
-                      .isWindows), // https://github.com/dart-lang/sdk/issues/49277
-        );
+  for (var useDebuggerModuleNames in [false, true]) {
+    group('Debugger module names: $useDebuggerModuleNames |', () {
+      for (var nullSafety in NullSafety.values) {
+        group('${nullSafety.name} null safety |', () {
+          for (var indexBaseMode in IndexBaseMode.values) {
+            group('with ${indexBaseMode.name} |', () {
+              testAll(
+                compilationMode: CompilationMode.frontendServer,
+                indexBaseMode: indexBaseMode,
+                nullSafety: nullSafety,
+                useDebuggerModuleNames: useDebuggerModuleNames,
+                debug: debug,
+              );
+            },
+                skip:
+                    // https://github.com/dart-lang/sdk/issues/49277
+                    (indexBaseMode == IndexBaseMode.base &&
+                            Platform.isWindows) ||
+                        // https://github.com/dart-lang/webdev/issues/1591
+                        (nullSafety == NullSafety.sound) ||
+                        // Needs debugger module names feature in SDK.
+                        (useDebuggerModuleNames &&
+                            !isDebuggerModuleNamesFeatureSupported));
+          }
+        });
       }
     });
   }
