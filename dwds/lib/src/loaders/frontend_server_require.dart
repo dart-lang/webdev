@@ -79,7 +79,7 @@ class FrontendServerRequireStrategyProvider {
     if (appUri.isScheme('package')) {
       final resolved = _packageUriMapper.packageUriToServerPath(appUri);
       if (resolved != null) {
-        return _addBasePath(resolved);
+        return resolved;
       }
     }
     return null;

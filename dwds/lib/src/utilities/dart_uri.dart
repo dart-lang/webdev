@@ -73,7 +73,7 @@ class DartUri {
       _logger.severe('Cannot find server path for $uri');
       serverPath = uri;
     }
-    return DartUri._fromRelativePath(serverPath);
+    return DartUri._fromRelativePath(serverPath, root: root);
   }
 
   /// Construct from a file: URI
