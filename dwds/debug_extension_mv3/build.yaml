@@ -8,7 +8,7 @@ targets:
             - --csp
         generate_for:
           - web/**.dart
-      extension|client_js_copy_builder:
+      mv3_extension|client_js_copy_builder:
         enabled: true
       
 builders:

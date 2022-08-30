@@ -12,7 +12,7 @@
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "Building dart2js-compiled extension to /compiled directory."
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-dart run build_runner build web --delete-conflicting-outputs --output build --release
+dart run build_runner build web --output build --release
 
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "Updating manifest.json in /compiled directory."

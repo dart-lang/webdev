@@ -12,7 +12,7 @@ import 'web_api.dart';
 
 void main() {
   console.log('Running Dart Debug Extension.');
-    // Detect clicks on the Dart Debug Extension icon.
+  // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop((_) {
     console.log('Detected click on the Dart Debug Extension icon.');
   }));
