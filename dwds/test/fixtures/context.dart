@@ -165,6 +165,7 @@ class TestContext {
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
     try {
+      DartUri.currentDirectory = workingDirectory;
       configureLogWriter();
 
       _client = IOClient(HttpClient()

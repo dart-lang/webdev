@@ -48,13 +48,22 @@ class PackageUriMapper {
   /// Note: needs to match `urlForComponentUri` in javascript_bundle.dart
   /// in SDK code.
   String? packageUriToServerPath(Uri packageUri) {
+    final defaultServerPath = '/packages/${packageUri.path}';
     if (packageUri.isScheme('package')) {
       if (!useDebuggerModuleNames) {
-        return ('/packages/${packageUri.path}');
+        return defaultServerPath;
       }
       final Uri? resolvedUri = packageConfig.resolve(packageUri);
-      final Package? package = packageConfig.packageOf(resolvedUri!);
-      final Uri root = package!.root;
+      if (resolvedUri == null) {
+        _logger.severe('Cannot resolve package uri $packageUri');
+        return defaultServerPath;
+      }
+      final Package? package = packageConfig.packageOf(resolvedUri);
+      if (package == null) {
+        _logger.severe('Cannot find package for package uri $packageUri');
+        return defaultServerPath;
+      }
+      final Uri root = package.root;
       final String relativeUrl =
           resolvedUri.toString().replaceFirst('$root', '');
       final String? relativeRoot = _getRelativeRoot(root);

@@ -30,30 +30,34 @@ String get testPackageDir => context.workingDirectory;
 // These tests are separated out because we need a running isolate in order to
 // look up packages.
 void main() {
-  setUpAll(() async {
-    await context.setUp();
-  });
+  for (final useDebuggerModuleNames in [false, true]) {
+    group('Debugger module names: $useDebuggerModuleNames', () {
+      setUpAll(() async {
+        await context.setUp(useDebuggerModuleNames: useDebuggerModuleNames);
+      });
 
-  tearDownAll(() async {
-    await context.tearDown();
-  });
+      tearDownAll(() async {
+        await context.tearDown();
+      });
 
-  test('file path to org-dartlang-app', () {
-    final webMain = Uri.file(p.join(testPackageDir, 'web', 'main.dart'));
-    final uri = DartUri('$webMain');
-    expect(uri.serverPath, 'main.dart');
-  });
+      test('file path to org-dartlang-app', () {
+        final webMain = Uri.file(p.join(testPackageDir, 'web', 'main.dart'));
+        final uri = DartUri('$webMain');
+        expect(uri.serverPath, 'main.dart');
+      });
 
-  test('file path to this package', () {
-    final testPackageLib =
-        Uri.file(p.join(testPackageDir, 'lib', 'test_library.dart'));
-    final uri = DartUri('$testPackageLib');
-    expect(uri.serverPath, 'packages/_test_package/test_library.dart');
-  });
+      test('file path to this package', () {
+        final testPackageLib =
+            Uri.file(p.join(testPackageDir, 'lib', 'test_library.dart'));
+        final uri = DartUri('$testPackageLib');
+        expect(uri.serverPath, 'packages/_test_package/test_library.dart');
+      });
 
-  test('file path to another package', () {
-    final testLib = Uri.file(p.join(testDir, 'lib', 'library.dart'));
-    final dartUri = DartUri('$testLib');
-    expect(dartUri.serverPath, 'packages/_test/library.dart');
-  });
+      test('file path to another package', () {
+        final testLib = Uri.file(p.join(testDir, 'lib', 'library.dart'));
+        final dartUri = DartUri('$testLib');
+        expect(dartUri.serverPath, 'packages/_test/library.dart');
+      });
+    });
+  }
 }
