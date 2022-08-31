@@ -12,3 +12,7 @@ import 'package:_test_circular2/library2.dart';
 String concatenate(String a, String b) {
   return '$a$b'; // Breakpoint: Concatenate
 }
+
+void printGlobal() {
+  print(globalValue);
+}
