@@ -5,9 +5,9 @@
 // @dart=2.9
 
 /// A library that we can import.
-library test_library;
+library _test_circular1;
 
-int aVariable = 3;
+import 'package:_test_circular2/library2.dart';
 
 String concatenate(String a, String b) {
   return '$a$b'; // Breakpoint: Concatenate

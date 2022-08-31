@@ -14,7 +14,7 @@ class TestLibraryClass {
   final int field;
   final int _field;
   TestLibraryClass(this.field, this._field) {
-    print('Contructor'); // Breakpoint: testLibraryClassConstructor
+    print('Constructor'); // Breakpoint: testLibraryClassConstructor
   }
 
   @override
