@@ -1,4 +1,4 @@
-## 16.0.0-dev
+## 16.0.0
 
 - Fix a hang and report errors on hot reload exceptions from the injected
   client.
