@@ -19,4 +19,4 @@ final String _sdkDir = (() {
 
 final String dartSdkPath = _sdkDir;
 
-const fs.FileSystem localFileSystem = LocalFileSystem();
+const fs.FileSystem fileSystem = LocalFileSystem();

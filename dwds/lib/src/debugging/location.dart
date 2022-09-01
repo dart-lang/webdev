@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
+import 'package:dwds/src/loaders/require.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/parser.dart';
@@ -161,13 +162,8 @@ class Locations {
 
   /// Returns all [Location] data for a provided JS server path.
   Future<Set<Location>> locationsForUrl(String url) async {
-    if (url.isEmpty) return {};
-
-    final dartUri = DartUri(url, _root);
-    final serverPath = dartUri.serverPath;
-    final module =
-        await globalLoadStrategy.moduleForServerPath(_entrypoint, serverPath);
-
+    final module = await globalLoadStrategy.moduleForServerPath(
+        _entrypoint, Uri.parse(url).path);
     final cache = _moduleToLocations[module];
     if (cache != null) return cache;
     if (module != null) {
@@ -290,9 +286,7 @@ class Locations {
           await globalLoadStrategy.sourceMapPathForModule(_entrypoint, module);
       final sourceMapContents =
           await _assetReader.sourceMapContents(sourceMapPath);
-      final scriptLocation =
-          p.url.dirname('/${stripLeadingSlashes(modulePath)}');
-
+      final scriptLocation = p.url.dirname('/${relativizePath(modulePath)}');
       if (sourceMapContents == null) return result;
       // This happens to be a [SingleMapping] today in DDC.
       final mapping = parse(sourceMapContents);
@@ -309,7 +303,6 @@ class Locations {
             final relativeSegments = p.split(mapping.urls[index]);
             final path = p.url.normalize(
                 p.url.joinAll([scriptLocation, ...relativeSegments]));
-
             final dartUri = DartUri(path, _root);
             result.add(Location.from(
               modulePath,

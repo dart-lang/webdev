@@ -12,78 +12,48 @@ import 'package:test/test.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext(
-    directory: p.join('..', 'fixtures', '_testPackage'),
-    entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
+    directory: '../fixtures/_testPackage',
     path: 'index.html',
     pathToServe: 'web');
 
-final dwdsDir = Directory.current.absolute.path;
+String get dwdsDir => Directory.current.absolute.path;
 
 /// The directory for the general _test package.
-final testDir = p.join(p.dirname(dwdsDir), 'fixtures', '_test');
+String get testDir => p.join(p.dirname(dwdsDir), 'fixtures', '_test');
 
 /// The directory for the _testPackage package (contained within dwds), which
 /// imports _test.
-final testPackageDir = context.workingDirectory;
+String get testPackageDir => context.workingDirectory;
 
 // This tests converting file Uris into our internal paths.
 //
 // These tests are separated out because we need a running isolate in order to
 // look up packages.
 void main() {
-  for (final compilationMode in CompilationMode.values) {
-    group('$compilationMode |', () {
-      for (final useDebuggerModuleNames in [false, true]) {
-        group('Debugger module names: $useDebuggerModuleNames |', () {
-          final appServerPath =
-              compilationMode == CompilationMode.frontendServer
-                  ? 'web/main.dart'
-                  : 'main.dart';
+  setUpAll(() async {
+    await context.setUp();
+  });
 
-          final serverPath =
-              compilationMode == CompilationMode.frontendServer &&
-                      useDebuggerModuleNames
-                  ? 'packages/_testPackage/lib/test_library.dart'
-                  : 'packages/_test_package/test_library.dart';
+  tearDownAll(() async {
+    await context.tearDown();
+  });
 
-          final anotherServerPath =
-              compilationMode == CompilationMode.frontendServer &&
-                      useDebuggerModuleNames
-                  ? 'packages/_test/lib/library.dart'
-                  : 'packages/_test/library.dart';
+  test('file path to org-dartlang-app', () {
+    final webMain = Uri.file(p.join(testPackageDir, 'web', 'main.dart'));
+    final uri = DartUri('$webMain');
+    expect(uri.serverPath, 'main.dart');
+  });
 
-          setUpAll(() async {
-            await context.setUp(
-              compilationMode: compilationMode,
-              useDebuggerModuleNames: useDebuggerModuleNames,
-            );
-          });
+  test('file path to this package', () {
+    final testPackageLib =
+        Uri.file(p.join(testPackageDir, 'lib', 'test_library.dart'));
+    final uri = DartUri('$testPackageLib');
+    expect(uri.serverPath, 'packages/_test_package/test_library.dart');
+  });
 
-          tearDownAll(() async {
-            await context.tearDown();
-          });
-
-          test('file path to org-dartlang-app', () {
-            final webMain =
-                Uri.file(p.join(testPackageDir, 'web', 'main.dart'));
-            final uri = DartUri('$webMain');
-            expect(uri.serverPath, appServerPath);
-          });
-
-          test('file path to this package', () {
-            final testPackageLib =
-                Uri.file(p.join(testPackageDir, 'lib', 'test_library.dart'));
-            final uri = DartUri('$testPackageLib');
-            expect(uri.serverPath, serverPath);
-          });
-
-          test('file path to another package', () {
-            final testLib = Uri.file(p.join(testDir, 'lib', 'library.dart'));
-            final dartUri = DartUri('$testLib');
-            expect(dartUri.serverPath, anotherServerPath);
-          });
-        });
-      }
-    });
-  }
+  test('file path to another package', () {
+    final testLib = Uri.file(p.join(testDir, 'lib', 'library.dart'));
+    final dartUri = DartUri('$testLib');
+    expect(dartUri.serverPath, 'packages/_test/library.dart');
+  });
 }

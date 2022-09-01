@@ -14,7 +14,6 @@ import 'require.dart';
 class FrontendServerRequireStrategyProvider {
   final ReloadConfiguration _configuration;
   final AssetReader _assetReader;
-  final PackageUriMapper _packageUriMapper;
   final Future<Map<String, String>> Function() _digestsProvider;
   final String _basePath;
 
@@ -30,31 +29,26 @@ class FrontendServerRequireStrategyProvider {
     _assetReader,
   );
 
-  FrontendServerRequireStrategyProvider(
-    this._configuration,
-    this._assetReader,
-    this._packageUriMapper,
-    this._digestsProvider,
-    this._basePath,
-  );
+  FrontendServerRequireStrategyProvider(this._configuration, this._assetReader,
+      this._digestsProvider, this._basePath);
 
   RequireStrategy get strategy => _requireStrategy;
 
   String _removeBasePath(String path) {
     if (_basePath.isEmpty) return path;
-
-    final stripped = stripLeadingSlashes(path);
-    return stripLeadingSlashes(stripped.substring(_basePath.length));
+    // If path is a server path it might start with a '/'.
+    final base = path.startsWith('/') ? '/$_basePath' : _basePath;
+    return path.startsWith(base) ? path.substring(base.length) : path;
   }
 
   String _addBasePath(String serverPath) => _basePath.isEmpty
-      ? stripLeadingSlashes(serverPath)
-      : '$_basePath/${stripLeadingSlashes(serverPath)}';
+      ? relativizePath(serverPath)
+      : '$_basePath/${relativizePath(serverPath)}';
 
   Future<Map<String, String>> _moduleProvider(
           MetadataProvider metadataProvider) async =>
       (await metadataProvider.moduleToModulePath).map((key, value) =>
-          MapEntry(key, stripLeadingSlashes(removeJsExtension(value))));
+          MapEntry(key, relativizePath(removeJsExtension(value))));
 
   Future<String?> _moduleForServerPath(
       MetadataProvider metadataProvider, String serverPath) async {
@@ -71,16 +65,9 @@ class FrontendServerRequireStrategyProvider {
           MetadataProvider metadataProvider, String module) async =>
       _addBasePath((await metadataProvider.moduleToSourceMap)[module] ?? '');
 
-  String? _serverPathForAppUri(String appUrl) {
-    final appUri = Uri.parse(appUrl);
-    if (appUri.isScheme('org-dartlang-app')) {
-      return _addBasePath(appUri.path);
-    }
-    if (appUri.isScheme('package')) {
-      final resolved = _packageUriMapper.packageUriToServerPath(appUri);
-      if (resolved != null) {
-        return resolved;
-      }
+  String? _serverPathForAppUri(String appUri) {
+    if (appUri.startsWith('org-dartlang-app:')) {
+      return _addBasePath(Uri.parse(appUri).path);
     }
     return null;
   }

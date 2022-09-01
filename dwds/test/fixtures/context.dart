@@ -23,7 +23,6 @@ import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:file/local.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
@@ -160,12 +159,10 @@ class TestContext {
     bool enableExpressionEvaluation = false,
     bool verboseCompiler = false,
     SdkConfigurationProvider? sdkConfigurationProvider,
-    bool useDebuggerModuleNames = false,
   }) async {
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
     try {
-      DartUri.currentDirectory = workingDirectory;
       configureLogWriter();
 
       _client = IOClient(HttpClient()
@@ -274,19 +271,11 @@ class TestContext {
             final entry = p.toUri(_entryFile.path
                 .substring(_projectDirectory.toFilePath().length + 1));
 
-            final fileSystem = LocalFileSystem();
-            final packageUriMapper = await PackageUriMapper.create(
-              fileSystem,
-              _packageConfigFile,
-              useDebuggerModuleNames: useDebuggerModuleNames,
-            );
-
             _webRunner = ResidentWebRunner(
               entry,
               urlEncoder,
               _projectDirectory,
               _packageConfigFile,
-              packageUriMapper,
               [_projectDirectory],
               'org-dartlang-app',
               outputDir.path,
@@ -295,8 +284,8 @@ class TestContext {
             );
 
             final assetServerPort = await findUnusedPort();
-            await webRunner.run(fileSystem, hostname, assetServerPort,
-                p.join(pathToServe, path));
+            await webRunner.run(
+                hostname, assetServerPort, p.join(pathToServe, path));
 
             if (enableExpressionEvaluation) {
               expressionCompiler = webRunner.expressionCompiler;
@@ -307,11 +296,7 @@ class TestContext {
             _assetHandler = webRunner.devFS.assetServer.handleRequest;
 
             requireStrategy = FrontendServerRequireStrategyProvider(
-                    reloadConfiguration,
-                    assetReader,
-                    packageUriMapper,
-                    () async => {},
-                    basePath)
+                    reloadConfiguration, assetReader, () async => {}, basePath)
                 .strategy;
 
             buildResults = const Stream<BuildResults>.empty();

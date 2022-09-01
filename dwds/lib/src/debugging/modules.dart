@@ -78,7 +78,6 @@ class Modules {
 
       if (scriptToModule.containsKey(library)) {
         final module = scriptToModule[library]!;
-
         _sourceToModule[libraryServerPath] = module;
         _sourceToLibrary[libraryServerPath] = Uri.parse(library);
         _libraryToModule[library] = module;

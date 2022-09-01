@@ -219,12 +219,9 @@ class MetadataProvider {
   }
 
   void _addMetadata(ModuleMetadata metadata) {
-    final modulePath = stripLeadingSlashes(metadata.moduleUri);
-    final sourceMapPath = stripLeadingSlashes(metadata.sourceMapUri);
-
-    _moduleToSourceMap[metadata.name] = sourceMapPath;
-    _modulePathToModule[modulePath] = metadata.name;
-    _moduleToModulePath[metadata.name] = modulePath;
+    _moduleToSourceMap[metadata.name] = metadata.sourceMapUri;
+    _modulePathToModule[metadata.moduleUri] = metadata.name;
+    _moduleToModulePath[metadata.name] = metadata.moduleUri;
 
     for (var library in metadata.libraries.values) {
       if (library.importUri.startsWith('file:/')) {

@@ -75,7 +75,7 @@ class BuildRunnerRequireStrategyProvider {
   Future<String?> _moduleForServerPath(
       MetadataProvider metadataProvider, String serverPath) async {
     final modulePathToModule = await metadataProvider.modulePathToModule;
-    final relativePath = stripLeadingSlashes(serverPath);
+    final relativePath = relativizePath(serverPath);
     for (var e in modulePathToModule.entries) {
       if (stripTopLevelDirectory(e.key) == relativePath) {
         return e.value;
@@ -97,14 +97,10 @@ class BuildRunnerRequireStrategyProvider {
     return stripTopLevelDirectory(path);
   }
 
-  String? _serverPathForAppUri(String appUrl) {
-    final appUri = Uri.parse(appUrl);
-    if (appUri.isScheme('org-dartlang-app')) {
+  String? _serverPathForAppUri(String appUri) {
+    if (appUri.startsWith('org-dartlang-app:')) {
       // We skip the root from which we are serving.
-      return appUri.pathSegments.skip(1).join('/');
-    }
-    if (appUri.isScheme('package')) {
-      return '/packages/${appUri.path}';
+      return Uri.parse(appUri).pathSegments.skip(1).join('/');
     }
     return null;
   }

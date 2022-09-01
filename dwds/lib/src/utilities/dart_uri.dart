@@ -29,18 +29,19 @@ class DartUri {
   ///
   /// The optional [root] is the directory the app is served from.
   factory DartUri(String uri, [String? root]) {
+    final serverPath = globalLoadStrategy.serverPathForAppUri(uri);
+    if (serverPath != null) {
+      return DartUri._(serverPath);
+    }
     // TODO(annagrin): Support creating DartUris from `dart:` uris.
     // Issue: https://github.com/dart-lang/webdev/issues/1584
-    if (uri.startsWith('org-dartlang-app:')) {
-      return DartUri._fromDartLangUri(uri);
-    }
     if (uri.startsWith('package:')) {
       return DartUri._fromPackageUri(uri, root: root);
     }
     if (uri.startsWith('file:')) {
       return DartUri._fromFileUri(uri, root: root);
     }
-    if (uri.startsWith('packages/') || uri.startsWith('/packages/')) {
+    if (uri.startsWith('/packages/')) {
       return DartUri._fromRelativePath(uri, root: root);
     }
     if (uri.startsWith('/')) {
@@ -50,30 +51,20 @@ class DartUri {
       return DartUri(Uri.parse(uri).path);
     }
 
-    throw FormatException('Unsupported URI form: $uri');
+    throw FormatException('Unsupported URI form', uri);
   }
 
   @override
   String toString() => 'DartUri: $serverPath';
 
   /// Construct from a package: URI
-  factory DartUri._fromDartLangUri(String uri) {
-    var serverPath = globalLoadStrategy.serverPathForAppUri(uri);
-    if (serverPath == null) {
-      _logger.severe('Cannot find server path for $uri');
-      serverPath = uri;
-    }
-    return DartUri._(serverPath);
-  }
-
-  /// Construct from a package: URI
   factory DartUri._fromPackageUri(String uri, {String? root}) {
-    var serverPath = globalLoadStrategy.serverPathForAppUri(uri);
-    if (serverPath == null) {
-      _logger.severe('Cannot find server path for $uri');
-      serverPath = uri;
+    final packagePath = 'packages/${uri.substring("package:".length)}';
+    if (root != null) {
+      final relativePath = p.url.join(root, packagePath);
+      return DartUri._fromRelativePath(relativePath);
     }
-    return DartUri._fromRelativePath(serverPath, root: root);
+    return DartUri._(packagePath);
   }
 
   /// Construct from a file: URI

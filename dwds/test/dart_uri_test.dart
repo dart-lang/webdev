@@ -16,14 +16,8 @@ import 'fixtures/fakes.dart';
 
 class TestStrategy extends FakeStrategy {
   @override
-  String? serverPathForAppUri(String appUrl) {
-    final appUri = Uri.parse(appUrl);
-    if (appUri.isScheme('org-dartlang-app')) {
-      return 'foo';
-    }
-    if (appUri.isScheme('package')) {
-      return '/packages/${appUri.path}';
-    }
+  String? serverPathForAppUri(String appUri) {
+    if (appUri.startsWith('org-dartlang-app:')) return 'foo';
     return null;
   }
 }

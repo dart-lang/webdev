@@ -8,7 +8,6 @@
 import 'dart:io';
 
 import 'package:io/io.dart';
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:test/test.dart';
@@ -16,7 +15,6 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
-import 'package:webdev/src/logging.dart';
 import 'package:webdev/src/pubspec.dart';
 import 'package:webdev/src/serve/utils.dart';
 import 'package:webdev/src/util.dart';
@@ -36,13 +34,9 @@ const _testItems = <String, bool>{
 };
 
 void main() {
-  // Change to true for debugging.
-  final debug = false;
-
   String exampleDirectory;
   String soundExampleDirectory;
   setUpAll(() async {
-    configureLogWriter(debug);
     exampleDirectory =
         p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSmoke'));
     soundExampleDirectory =
@@ -76,10 +70,10 @@ void main() {
     expect(smokeYaml['dev_dependencies']['build_runner'],
         equals(buildRunnerConstraint.toString()));
     expect(smokeYaml['dev_dependencies']['build_web_compilers'],
-        equals(buildWebCompilersConstraint.toString()));
+        equals(buildWebCompilersContraint.toString()));
   });
 
-  test('build should fail if targeting an existing directory', () async {
+  test('build should fail if targetting an existing directory', () async {
     await d.file('simple thing', 'throw-away').create();
 
     var args = ['build', '-o', 'web:${d.sandbox}'];
@@ -283,20 +277,10 @@ void main() {
   });
 
   group('should work with ', () {
-    setUp(() async {
-      configureLogWriter(debug);
-    });
-
     for (var soundNullSafety in [false, true]) {
       var nullSafetyOption = soundNullSafety ? 'sound' : 'unsound';
       group('--null-safety=$nullSafetyOption', () {
-        setUp(() async {
-          configureLogWriter(debug);
-        });
         group('and --enable-expression-evaluation:', () {
-          setUp(() async {
-            configureLogWriter(debug);
-          });
           test('evaluateInFrame', () async {
             var openPort = await findUnusedPort();
             // running daemon command that starts dwds without keyboard input
@@ -310,9 +294,6 @@ void main() {
                 workingDirectory:
                     soundNullSafety ? soundExampleDirectory : exampleDirectory);
             VmService vmService;
-
-            process.stdoutStream().listen(Logger.root.fine);
-            process.stderrStream().listen(Logger.root.warning);
 
             try {
               // Wait for debug service Uri

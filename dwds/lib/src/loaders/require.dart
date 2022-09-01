@@ -23,6 +23,9 @@ String basePathForServerUri(String url) {
   return base = base.startsWith('/') ? base.substring(1) : base;
 }
 
+String relativizePath(String path) =>
+    path.startsWith('/') ? path.substring(1) : path;
+
 String removeJsExtension(String path) =>
     path.endsWith('.js') ? p.withoutExtension(path) : path;
 

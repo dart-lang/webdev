@@ -546,6 +546,7 @@ class Debugger extends Domain {
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
     final isolate = inspector.isolate;
+
     Event event;
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final jsBreakpointIds = e.hitBreakpoints ?? [];
@@ -807,9 +808,8 @@ class _Breakpoints extends Domain {
       throw RPCError(
           'addBreakpoint',
           102,
-          'The VM is unable to add a breakpoint $id '
-              'at the specified line or function: ($scriptId:$line:$column): '
-              ' cannot find Dart location.');
+          'The VM is unable to add a breakpoint '
+              'at the specified line or function');
     }
 
     try {
@@ -822,9 +822,8 @@ class _Breakpoints extends Domain {
         throw RPCError(
             'addBreakpoint',
             102,
-            'The VM is unable to add a breakpoint $id '
-                'at the specified line or function: ($scriptId:$line:$column): '
-                'cannot set JS breakpoint at $location');
+            'The VM is unable to add a breakpoint '
+                'at the specified line or function');
       }
       _note(jsId: jsBreakpointId, bp: dartBreakpoint);
       return dartBreakpoint;
