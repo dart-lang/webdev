@@ -12,6 +12,7 @@ class _CopyBuilder extends Builder {
   Map<String, List<String>> get buildExtensions => {
         "web/{{}}.dart.js": ["compiled/{{}}.dart.js"],
         "web/{{}}.png": ["compiled/{{}}.png"],
+        "web/{{}}.html": ["compiled/{{}}.html"],
         "web/manifest.json": ["compiled/manifest.json"],
       };
 
