@@ -23,6 +23,7 @@ void _listenForMessagesFromIframe() {
 
 void _handleMessageFromIframe(Event event) {
   final messageEvent = jsEventToMessageEvent(event);
+  window.console.log('received message from iframe: ${messageEvent}');
   if (messageEvent == null) return;
 
   handleExpectedMessage<IframeReady>(
@@ -36,8 +37,8 @@ void _handleMessageFromIframe(Event event) {
 void _handleIframeReadyMessage(Message<IframeReady> message) {
     if (message.body.isReady == true) {
     final startDebuggingMessage = Message<DebuggingState>(
-      sender: Script.iframeInjector,
-      recipient: Script.iframe,
+      sender: Script.iframeInjector.toString(),
+      recipient: Script.iframe.toString(),
       body: DebuggingState(shouldDebug: true),
     );
     _sendMessageToIframe<DebuggingState>(startDebuggingMessage);

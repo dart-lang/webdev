@@ -8,26 +8,20 @@ library messaging;
 import 'dart:html';
 import 'package:js/js.dart';
 
-enum Script {
-  background,
-  iframe,
-  iframeInjector,
-}
+enum Script { background, iframe, iframeInjector }
 
-@JS()
-@anonymous
-class Message<T> {
-  external Script get sender;
-  external Script get recipient;
-  external T get body;
-  external String? get error;
-
-  external factory Message({
-    required Script sender,
-    required Script recipient,
-    required T body,
-    String? error = null,
-  });
+Message<T> buildMessage<T>({
+  required Script to,
+  required Script from,
+  required T body,
+  String? error,
+}) {
+  return Message<T>(
+    recipient: to.toString(),
+    sender: from.toString(),
+    body: body,
+    error: error,
+  );
 }
 
 void handleExpectedMessage<T>({
@@ -38,8 +32,8 @@ void handleExpectedMessage<T>({
 }) {
   try {
     final message = interceptedMessage as Message<T>;
-    if (message.sender != expectedSender &&
-        message.recipient != expectedRecipient) {
+    if (message.sender != expectedSender.toString() &&
+        message.recipient != expectedRecipient.toString()) {
       return;
     }
     messageHandler(message);
@@ -55,6 +49,22 @@ MessageEvent? jsEventToMessageEvent<T>(Event event) {
   } catch (_) {
     return null;
   }
+}
+
+@JS()
+@anonymous
+class Message<T> {
+  external String get sender;
+  external String get recipient;
+  external T get body;
+  external String? get error;
+
+  external factory Message({
+    required String sender,
+    required String recipient,
+    required T body,
+    String? error = null,
+  });
 }
 
 @JS()

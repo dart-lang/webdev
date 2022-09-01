@@ -20,9 +20,9 @@ void main() {
 // Send message to the injector script that the IFRAME has loaded.
 // This allows the injector script to send a message back, so
 // that the IFRAME has access to its tab ID.
-  final iframeReadyMessage = Message<IframeReady>(
-    sender: Script.iframe,
-    recipient: Script.iframeInjector,
+  final iframeReadyMessage = buildMessage<IframeReady>(
+    to: Script.iframeInjector,
+    from: Script.iframe,
     body: IframeReady(isReady: true),
   );
   _sendMessageToIframeInjector<IframeReady>(iframeReadyMessage);
