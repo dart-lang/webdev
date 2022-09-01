@@ -502,7 +502,7 @@ class Debugger extends Domain {
 
     final url = urlForScriptId(location.scriptId);
     if (url == null) {
-      logger.fine('Failed to create dart frame for ${frame.functionName}: '
+      logger.severe('Failed to create dart frame for ${frame.functionName}: '
           'cannot find url for script ${location.scriptId}');
       return null;
     }

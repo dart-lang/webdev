@@ -15,7 +15,6 @@
   - Allows correct relative source map paths resolution.
   - Add `PackageUriMapper` class to allow mapping uris to server paths.
 - Update the min SDK constraint to 2.18.0.
-- Make DartUri work for `google3:` uris.
 
 **Breaking changes**
 

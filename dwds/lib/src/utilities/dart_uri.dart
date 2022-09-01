@@ -31,7 +31,7 @@ class DartUri {
   factory DartUri(String uri, [String? root]) {
     // TODO(annagrin): Support creating DartUris from `dart:` uris.
     // Issue: https://github.com/dart-lang/webdev/issues/1584
-    if (uri.startsWith('org-dartlang-app:') || uri.startsWith('google3:')) {
+    if (uri.startsWith('org-dartlang-app:')) {
       return DartUri._fromDartLangUri(uri);
     }
     if (uri.startsWith('package:')) {
