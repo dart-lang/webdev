@@ -1,6 +1,6 @@
 name: webdev
 # Every time this changes you need to run `dart run build_runner build`.
-version: 2.7.11-dev
+version: 2.7.11
 # We should not depend on a dev SDK before publishing.
 # publish_to: none
 description: >-
@@ -19,7 +19,7 @@ dependencies:
   crypto: ^3.0.2
   dds: ^2.2.0
   # Pin DWDS to avoid dependency conflicts with vm_service:
-  dwds: 14.0.3
+  dwds: 16.0.0
   http: ^0.13.4
   http_multi_server: ^3.2.0
   io: ^1.0.3
@@ -49,9 +49,9 @@ dev_dependencies:
   webdriver: ^3.0.0
 
 # Comment out before releasing webdev.
-dependency_overrides:
-  dwds:
-    path: ../dwds
+# dependency_overrides:
+#   dwds:
+#     path: ../dwds
 
 executables:
   webdev:

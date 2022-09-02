@@ -1,7 +1,8 @@
-## 2.7.11-dev
+## 2.7.11
 
 - Remove no longer used `ExpressionCompilerService.handler`.
 - Update the min SDK constraint to 2.18.0.
+- Update DWDS to `16.0.0`.
 
 ## 2.7.10
 
