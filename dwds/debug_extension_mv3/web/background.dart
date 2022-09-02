@@ -15,16 +15,13 @@ import 'web_api.dart';
 void main() {
   // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop((_) {
-    console.log('Detected click on the Dart Debug Extension icon.');
     _executeInjectorScript();
   }));
 }
 
 void _executeInjectorScript() async {
   final tabId = await _getTabId();
-  console.log('TAB ID IS $tabId');
   if (tabId != null) {
-    print('executing the script');
     chrome.scripting.executeScript(
         InjectDetails(
             target: Target(tabId: tabId),

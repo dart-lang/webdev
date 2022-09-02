@@ -6,7 +6,9 @@
 library messaging;
 
 import 'dart:html';
+import 'dart:js';
 import 'package:js/js.dart';
+import 'web_api.dart';
 
 enum Script { background, iframe, iframeInjector }
 
@@ -28,16 +30,20 @@ void handleExpectedMessage<T>({
   required Object? interceptedMessage,
   required Script expectedSender,
   required Script expectedRecipient,
-  required void Function(Message<T> message) messageHandler,
+  required void Function(T message) messageHandler,
 }) {
   try {
-    final message = interceptedMessage as Message<T>;
-    if (message.sender != expectedSender.toString() &&
-        message.recipient != expectedRecipient.toString()) {
+    if (interceptedMessage == null) return;
+    final message = Map<String, dynamic>.from(interceptedMessage as Map<dynamic, dynamic>);
+    if (message['sender'] != expectedSender.toString() &&
+        message['recipient'] != expectedRecipient.toString()) {
+      window.console.log('returning, unexpected sender / recipient');
       return;
     }
-    messageHandler(message);
+    final messageBody = message['body'] as T;
+    messageHandler(messageBody);
   } catch (_) {
+    console.log('ERROR CONVERTING MESSAGe $_');
     return;
   }
 }
