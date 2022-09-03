@@ -13,6 +13,6 @@ class Console {
   external void log(String header,
       [String style1, String style2, String style3]);
 
-    external void warn(String header,
+  external void warn(String header,
       [String style1, String style2, String style3]);
 }

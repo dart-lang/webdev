@@ -10,7 +10,6 @@ import 'dart:html';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'web_api.dart';
 
 void main() {
   // Detect clicks on the Dart Debug Extension icon.
