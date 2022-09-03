@@ -16,17 +16,18 @@ import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
 
 class TestSetup {
-  static TestContext contextUnsound(String index) => TestContext(
-      directory: p.join('..', 'fixtures', '_testPackage'),
-      entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
-      path: index,
-      pathToServe: 'web');
+  static TestContext createContext(String index, String packageRoot) =>
+      TestContext(
+          directory: p.join('..', 'fixtures', packageRoot),
+          entry: p.join('..', 'fixtures', packageRoot, 'web', 'main.dart'),
+          path: index,
+          pathToServe: 'web');
 
-  static TestContext contextSound(String index) => TestContext(
-      directory: p.join('..', 'fixtures', '_testPackageSound'),
-      entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
-      path: index,
-      pathToServe: 'web');
+  static TestContext contextUnsound(String index) =>
+      createContext(index, '_testPackage');
+
+  static TestContext contextSound(String index) =>
+      createContext(index, '_testPackageSound');
 
   TestContext context;
 
@@ -53,6 +54,7 @@ void testAll({
   CompilationMode compilationMode = CompilationMode.buildDaemon,
   IndexBaseMode indexBaseMode = IndexBaseMode.noBase,
   NullSafety nullSafety = NullSafety.sound,
+  bool useDebuggerModuleNames = false,
   bool debug = false,
 }) {
   if (compilationMode == CompilationMode.buildDaemon &&
@@ -87,6 +89,7 @@ void testAll({
         compilationMode: compilationMode,
         nullSafety: nullSafety,
         enableExpressionEvaluation: true,
+        useDebuggerModuleNames: useDebuggerModuleNames,
         verboseCompiler: debug,
       );
     });

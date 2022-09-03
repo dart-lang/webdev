@@ -255,6 +255,7 @@ class ResidentCompiler {
     this.sdkRoot, {
     required this.projectDirectory,
     required this.packageConfigFile,
+    required this.useDebuggerModuleNames,
     required this.fileSystemRoots,
     required this.fileSystemScheme,
     required this.platformDill,
@@ -264,6 +265,7 @@ class ResidentCompiler {
 
   final Uri projectDirectory;
   final Uri packageConfigFile;
+  final bool useDebuggerModuleNames;
   final List<Uri> fileSystemRoots;
   final String fileSystemScheme;
   final String platformDill;
@@ -382,6 +384,7 @@ class ResidentCompiler {
         '--platform',
         platformDill,
       ],
+      if (useDebuggerModuleNames) '--debugger-module-names',
       '--experimental-emit-debug-metadata',
       if (verbose) '--verbose'
     ];
@@ -611,8 +614,9 @@ class TestExpressionCompiler implements ExpressionCompiler {
         line, column, jsModules, jsFrameValues, moduleName, expression);
 
     if (compilerOutput != null) {
-      var content = utf8.decode(
-          fileSystem.file(compilerOutput.outputFilename).readAsBytesSync());
+      var content = utf8.decode(localFileSystem
+          .file(compilerOutput.outputFilename)
+          .readAsBytesSync());
       return ExpressionCompilationResult(
           content, compilerOutput.errorCount > 0);
     }

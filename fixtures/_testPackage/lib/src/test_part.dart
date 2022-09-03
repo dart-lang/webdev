@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 part of '../test_library.dart';
 
 int testPartLibraryValue = 4;
@@ -15,7 +17,7 @@ class TestLibraryPartClass {
   final int _field;
 
   TestLibraryPartClass(this.field, this._field) {
-    print('Contructor'); // Breakpoint: testLibraryPartClassConstructor
+    print('Constructor'); // Breakpoint: testLibraryPartClassConstructor
   }
 
   @override

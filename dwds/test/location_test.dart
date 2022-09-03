@@ -23,7 +23,7 @@ void main() {
   const lineLength = 150;
 
   globalLoadStrategy = MockLoadStrategy();
-  final dartUri = DartUri('org-dartlang://web/main.dart');
+  final dartUri = DartUri('org-dartlang-app://web/main.dart');
 
   final assetReader = FakeAssetReader(sourceMap: sourceMapContents);
   final modules = MockModules();
@@ -175,7 +175,7 @@ Matcher _matchJsLocation(int line, int column) => isA<JsLocation>()
     .having((l) => l.column, 'column', column);
 
 const _module = 'packages/module';
-const _serverPath = 'package/module.js';
+const _serverPath = 'web/main.dart';
 const _sourceMapPath = 'packages/module.js.map';
 
 class MockLoadStrategy extends FakeStrategy {

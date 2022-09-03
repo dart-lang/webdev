@@ -13,14 +13,12 @@ import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
-import 'package:package_config/package_config.dart'; // ignore: deprecated_member_use
-import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'utilities.dart';
 
 class TestAssetServer implements AssetReader {
-  final String basePath;
+  late final String basePath;
   final String index;
 
   final _logger = Logger('TestAssetServer');
@@ -34,16 +32,18 @@ class TestAssetServer implements AssetReader {
   final Map<String, Uint8List> _sourceMaps = {};
   final Map<String, Uint8List> _metadata = {};
   late String _mergedMetadata;
-  final PackageConfig _packageConfig;
+  final PackageUriMapper _packageUriMapper;
   final InternetAddress internetAddress;
 
   TestAssetServer(
     this.index,
     this._httpServer,
-    this._packageConfig,
+    this._packageUriMapper,
     this.internetAddress,
     this._fileSystem,
-  ) : basePath = _parseBasePathFromIndexHtml(index);
+  ) {
+    basePath = _parseBasePathFromIndexHtml(index);
+  }
 
   bool hasFile(String path) => _files.containsKey(path);
   Uint8List getFile(String path) => _files[path]!;
@@ -64,17 +64,27 @@ class TestAssetServer implements AssetReader {
     String hostname,
     int port,
     UrlEncoder? urlTunneler,
-    PackageConfig packageConfig,
+    PackageUriMapper packageUriMapper,
   ) async {
     var address = (await InternetAddress.lookup(hostname)).first;
     var httpServer = await HttpServer.bind(address, port);
-    var server =
-        TestAssetServer(index, httpServer, packageConfig, address, fileSystem);
+    var server = TestAssetServer(
+        index, httpServer, packageUriMapper, address, fileSystem);
     return server;
   }
 
   // handle requests for JavaScript source, dart sources maps, or asset files.
   Future<shelf.Response> handleRequest(shelf.Request request) async {
+    if (request.method != 'GET') {
+      // Assets are served via GET only.
+      return shelf.Response.notFound('');
+    }
+
+    final requestPath = _stripBasePath(request.url.path, basePath);
+    if (requestPath == null) {
+      return shelf.Response.notFound('');
+    }
+
     var headers = <String, String>{};
 
     if (request.url.path.endsWith('index.html')) {
@@ -88,33 +98,31 @@ class TestAssetServer implements AssetReader {
       return shelf.Response.notFound('');
     }
 
-    // NOTE: shelf removes leading `/` for some reason.
-    var requestPath = request.url.path;
-    requestPath = requestPath.startsWith('/') ? requestPath : '/$requestPath';
-
-    if (!request.url.path.endsWith('/require.js') &&
-        !request.url.path.endsWith('/dart_stack_trace_mapper.js')) {
-      requestPath = _stripBasePath(requestPath, basePath) ?? requestPath;
-
-      requestPath = requestPath.startsWith('/') ? requestPath : '/$requestPath';
-
-      // If this is a JavaScript file, it must be in the in-memory cache.
-      // Attempt to look up the file by URI.
-      if (hasFile(requestPath)) {
-        final List<int> bytes = getFile(requestPath);
-        headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
-        headers[HttpHeaders.contentTypeHeader] = 'application/javascript';
-        return shelf.Response.ok(bytes, headers: headers);
-      }
-      // If this is a sourcemap file, then it might be in the in-memory cache.
-      // Attempt to lookup the file by URI.
-      if (hasSourceMap(requestPath)) {
-        final List<int> bytes = getSourceMap(requestPath);
-        headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
-        headers[HttpHeaders.contentTypeHeader] = 'application/json';
-        return shelf.Response.ok(bytes, headers: headers);
-      }
+    // If this is a JavaScript file, it must be in the in-memory cache.
+    // Attempt to look up the file by URI.
+    if (hasFile(requestPath)) {
+      final List<int> bytes = getFile(requestPath);
+      headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
+      headers[HttpHeaders.contentTypeHeader] = 'application/javascript';
+      return shelf.Response.ok(bytes, headers: headers);
     }
+    // If this is a sourcemap file, then it might be in the in-memory cache.
+    // Attempt to lookup the file by URI.
+    if (hasSourceMap(requestPath)) {
+      final List<int> bytes = getSourceMap(requestPath);
+      headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
+      headers[HttpHeaders.contentTypeHeader] = 'application/json';
+      return shelf.Response.ok(bytes, headers: headers);
+    }
+    // If this is a metadata file, then it might be in the in-memory cache.
+    // Attempt to lookup the file by URI.
+    if (hasMetadata(requestPath)) {
+      final List<int> bytes = getMetadata(requestPath);
+      headers[HttpHeaders.contentLengthHeader] = bytes.length.toString();
+      headers[HttpHeaders.contentTypeHeader] = 'application/json';
+      return shelf.Response.ok(bytes, headers: headers);
+    }
+
     var file = _resolveDartFile(requestPath);
     if (!file.existsSync()) {
       return shelf.Response.notFound('');
@@ -183,7 +191,10 @@ class TestAssetServer implements AssetReader {
         codeStart,
         codeEnd - codeStart,
       );
-      _files[filePath] = byteView;
+
+      final fileName =
+          filePath.startsWith('/') ? filePath.substring(1) : filePath;
+      _files[fileName] = byteView;
 
       var sourcemapStart = sourcemapOffsets[0];
       var sourcemapEnd = sourcemapOffsets[1];
@@ -196,7 +207,7 @@ class TestAssetServer implements AssetReader {
         sourcemapStart,
         sourcemapEnd - sourcemapStart,
       );
-      _sourceMaps['$filePath.map'] = sourcemapView;
+      _sourceMaps['$fileName.map'] = sourcemapView;
 
       var metadataStart = metadataOffsets[0];
       var metadataEnd = metadataOffsets[1];
@@ -209,9 +220,9 @@ class TestAssetServer implements AssetReader {
         metadataStart,
         metadataEnd - metadataStart,
       );
-      _metadata['$filePath.metadata'] = metadataView;
+      _metadata['$fileName.metadata'] = metadataView;
 
-      modules.add(filePath);
+      modules.add(fileName);
     }
 
     _mergedMetadata = _metadata.values
@@ -226,25 +237,23 @@ class TestAssetServer implements AssetReader {
     // If this is a dart file, it must be on the local file system and is
     // likely coming from a source map request. The tool doesn't currently
     // consider the case of Dart files as assets.
-    var dartFile =
+    final dartFile =
         _fileSystem.file(_fileSystem.currentDirectory.uri.resolve(path));
     if (dartFile.existsSync()) {
       return dartFile;
     }
 
-    var segments = p.split(path);
-    if (segments.first.isEmpty) {
-      segments.removeAt(0);
-    }
+    final segments = path.split('/');
 
     // The file might have been a package file which is signaled by a
     // `/packages/<package>/<path>` request.
     if (segments.first == 'packages') {
-      var packageFile = _fileSystem.file(_packageConfig
-          .resolve(Uri(scheme: 'package', pathSegments: segments.skip(1))));
+      final resolved = _packageUriMapper.serverPathToResolvedUri(path);
+      final packageFile = _fileSystem.file(resolved);
       if (packageFile.existsSync()) {
         return packageFile;
       }
+      _logger.severe('Package file not found: $path ($packageFile)');
     }
 
     // Otherwise it must be a Dart SDK source.
@@ -271,9 +280,8 @@ class TestAssetServer implements AssetReader {
   Future<String?> sourceMapContents(String serverPath) async {
     final stripped = _stripBasePath(serverPath, basePath);
     if (stripped != null) {
-      var path = '/$stripped';
-      if (hasSourceMap(path)) {
-        return utf8.decode(getSourceMap(path));
+      if (hasSourceMap(stripped)) {
+        return utf8.decode(getSourceMap(stripped));
       }
     }
     _logger.severe('Source map not found: $serverPath');
@@ -287,13 +295,35 @@ class TestAssetServer implements AssetReader {
       if (stripped.endsWith('.ddc_merged_metadata')) {
         return _mergedMetadata;
       }
-      var path = '/$stripped';
-      if (hasMetadata(path)) {
-        return utf8.decode(getMetadata(path));
+      if (hasMetadata(stripped)) {
+        return utf8.decode(getMetadata(stripped));
       }
     }
     _logger.severe('Metadata not found: $serverPath');
     return null;
+  }
+
+  String _parseBasePathFromIndexHtml(String index) {
+    final file = _fileSystem.file(index);
+    if (!file.existsSync()) {
+      throw StateError('Index file $index is not found');
+    }
+    final contents = file.readAsStringSync();
+    final matches = RegExp(r'<base href="/([^>]*)/">').allMatches(contents);
+    if (matches.isEmpty) return '';
+    return matches.first.group(1) ?? '';
+  }
+
+  String? _stripBasePath(String path, String basePath) {
+    path = stripLeadingSlashes(path);
+    if (path.startsWith(basePath)) {
+      path = path.substring(basePath.length);
+    } else {
+      // The given path isn't under base path, return null to indicate that.
+      _logger.severe('Path is not under $basePath: $path');
+      return null;
+    }
+    return stripLeadingSlashes(path);
   }
 }
 
@@ -302,33 +332,4 @@ class TestAssetServer implements AssetReader {
 Map<String, dynamic> _castStringKeyedMap(dynamic untyped) {
   var map = untyped as Map<dynamic, dynamic>;
   return map.cast<String, dynamic>();
-}
-
-String _stripLeadingSlashes(String path) {
-  while (path.startsWith('/')) {
-    path = path.substring(1);
-  }
-  return path;
-}
-
-String? _stripBasePath(String path, String basePath) {
-  path = _stripLeadingSlashes(path);
-  if (path.startsWith(basePath)) {
-    path = path.substring(basePath.length);
-  } else {
-    // The given path isn't under base path, return null to indicate that.
-    return null;
-  }
-  return _stripLeadingSlashes(path);
-}
-
-String _parseBasePathFromIndexHtml(String index) {
-  final file = fileSystem.file(index);
-  if (!file.existsSync()) {
-    throw StateError('Index file $index is not found');
-  }
-  final contents = file.readAsStringSync();
-  final matches = RegExp(r'<base href="/([^>]*)/">').allMatches(contents);
-  if (matches.isEmpty) return '';
-  return matches.first.group(1) ?? '';
 }

@@ -16,8 +16,17 @@ import 'fixtures/fakes.dart';
 
 class TestStrategy extends FakeStrategy {
   @override
-  String? serverPathForAppUri(String appUri) {
-    if (appUri.startsWith('org-dartlang-app:')) return 'foo';
+  String? serverPathForAppUri(String appUrl) {
+    final appUri = Uri.parse(appUrl);
+    if (appUri.isScheme('org-dartlang-app')) {
+      return appUri.path;
+    }
+    if (appUri.isScheme('package')) {
+      return 'packages/${appUri.path}';
+    }
+    if (appUri.isScheme('google3')) {
+      return appUri.path;
+    }
     return null;
   }
 }
@@ -36,8 +45,13 @@ void main() {
     });
 
     test('parses org-dartlang-app paths', () {
-      final uri = DartUri('org-dartlang-app:////blah/main.dart');
-      expect(uri.serverPath, 'foo');
+      final uri = DartUri('org-dartlang-app:///blah/main.dart');
+      expect(uri.serverPath, '/blah/main.dart');
+    });
+
+    test('parses google3 paths', () {
+      final uri = DartUri('google3:///blah/main.dart');
+      expect(uri.serverPath, '/blah/main.dart');
     });
 
     test('parses packages paths', () {
@@ -80,7 +94,7 @@ void main() {
         expect(resolved, 'org-dartlang-sdk:///sdk/lib/io/io.dart');
       }, skip: 'https://github.com/dart-lang/webdev/issues/1584');
 
-      test('can unresolve uris', () {
+      test('can un-resolve uris', () {
         final unresolved =
             DartUri.toPackageUri('org-dartlang-sdk:///sdk/lib/io/io.dart');
         expect(unresolved, 'dart:io');

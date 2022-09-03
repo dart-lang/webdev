@@ -1,6 +1,7 @@
 ## 2.7.11-dev
 
 - Remove no longer used `ExpressionCompilerService.handler`.
+- Update the min SDK constraint to 2.18.0.
 
 ## 2.7.10
 
@@ -43,7 +44,7 @@
 ## 2.7.7
 
 - Handle and log http request serving errors.
-- Update SDK contraint to `>=2.15.0 <3.0.0`.
+- Update SDK constraint to `>=2.15.0 <3.0.0`.
 
 ## 2.7.6
 

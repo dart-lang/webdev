@@ -502,7 +502,7 @@ class Debugger extends Domain {
 
     final url = urlForScriptId(location.scriptId);
     if (url == null) {
-      logger.severe('Failed to create dart frame for ${frame.functionName}: '
+      logger.fine('Failed to create dart frame for ${frame.functionName}: '
           'cannot find url for script ${location.scriptId}');
       return null;
     }
@@ -546,7 +546,6 @@ class Debugger extends Domain {
   /// Handles pause events coming from the Chrome connection.
   Future<void> _pauseHandler(DebuggerPausedEvent e) async {
     final isolate = inspector.isolate;
-
     Event event;
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final jsBreakpointIds = e.hitBreakpoints ?? [];
@@ -808,8 +807,9 @@ class _Breakpoints extends Domain {
       throw RPCError(
           'addBreakpoint',
           102,
-          'The VM is unable to add a breakpoint '
-              'at the specified line or function');
+          'The VM is unable to add a breakpoint $id '
+              'at the specified line or function: ($scriptId:$line:$column): '
+              ' cannot find Dart location.');
     }
 
     try {
@@ -822,8 +822,9 @@ class _Breakpoints extends Domain {
         throw RPCError(
             'addBreakpoint',
             102,
-            'The VM is unable to add a breakpoint '
-                'at the specified line or function');
+            'The VM is unable to add a breakpoint $id '
+                'at the specified line or function: ($scriptId:$line:$column): '
+                'cannot set JS breakpoint at $location');
       }
       _note(jsId: jsBreakpointId, bp: dartBreakpoint);
       return dartBreakpoint;
