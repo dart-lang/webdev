@@ -10,20 +10,15 @@ import 'messaging.dart';
 
 void main() {
   _registerListeners();
+
+  // Inject the IFRAME into the current tab.
   _injectIframe();
 }
 
 void _registerListeners() {
-  // Register a listener for window events:
   window.addEventListener(
     'message',
-    allowInterop((event) {
-      window.console.log('received event: ${event}');
-      final messageEvent = jsEventToMessageEvent(event);
-      window.console.log('received message from iframe: ${messageEvent}');
-      if (messageEvent == null) return;
-      _handleMessageFromIframe(messageEvent.data);
-    }),
+    allowInterop(_handleWindowMessageEvents),
   );
 }
 
@@ -34,31 +29,44 @@ void _injectIframe() {
   document.body?.append(iframe);
 }
 
-void _handleMessageFromIframe(Object? message) {
-  handleExpectedMessage<IframeReady>(
-    interceptedMessage: message,
+void _handleWindowMessageEvents(Event event) {
+  final messageData =
+      jsEventToMessageData(event, expectedOrigin: chrome.runtime.getURL(''));
+  if (messageData == null) return;
+
+  interceptMessage<IframeReady>(
+    message: messageData,
+    expectedType: MessageType.iframeReady,
     expectedSender: Script.iframe,
     expectedRecipient: Script.iframeInjector,
-    messageHandler: _handleIframeReadyMessage,
+    messageHandler: _iframeReadyMessageHandler,
   );
 }
 
-void _handleIframeReadyMessage(IframeReady message) {
-  if (message.isReady == true) {
-    window.console
-        .log('iframe says that is is ready, telling it to start debug');
-    _sendMessageToIframe<DebuggingState>(DebuggingState(shouldDebug: true));
-  }
+void _iframeReadyMessageHandler(IframeReady message) {
+  if (message.isReady != true) return;
+  // TODO(elliette): Inject a script to fetch debug info global variables.
+
+  // Send a message back to IFRAME so that it has access to the tab ID.
+  _sendMessageToIframe(
+      type: MessageType.debugState,
+      encodedBody: DebugState(shouldDebug: true).toJSON());
 }
 
-void _sendMessageToIframe<T>(T messageBody) {
+void _sendMessageToIframe({
+  required MessageType type,
+  required String encodedBody,
+}) {
+  final message = Message(
+    to: Script.iframe,
+    from: Script.iframeInjector,
+    type: type,
+    encodedBody: encodedBody,
+  );
   chrome.runtime.sendMessage(
-      null,
-      buildMessage<T>(
-        to: Script.iframe,
-        from: Script.iframeInjector,
-        body: messageBody,
-      ),
-      null,
-      null);
+    /*id*/ null,
+    message.toJSON(),
+    /*options*/ null,
+    /*callback*/ null,
+  );
 }

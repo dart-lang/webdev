@@ -5,88 +5,185 @@
 @JS()
 library messaging;
 
+import 'dart:convert';
 import 'dart:html';
-import 'dart:js';
+
 import 'package:js/js.dart';
+
 import 'web_api.dart';
 
-enum Script { background, iframe, iframeInjector }
+const debugTabChannelName = 'DEBUG_TAB_CHANNEL';
 
-Message<T> buildMessage<T>({
-  required Script to,
-  required Script from,
-  required T body,
-  String? error,
-}) {
-  return Message<T>(
-    recipient: to.toString(),
-    sender: from.toString(),
-    body: body,
-    error: error,
-  );
+enum Script {
+  background,
+  debugTab,
+  iframe,
+  iframeInjector;
+
+  factory Script.fromString(String value) {
+    return Script.values.byName(value);
+  }
 }
 
-void handleExpectedMessage<T>({
-  required Object? interceptedMessage,
+enum MessageType {
+  debugInfo,
+  debugState,
+  iframeReady;
+
+  factory MessageType.fromString(String value) {
+    return MessageType.values.byName(value);
+  }
+}
+
+class Message {
+  final Script to;
+  final Script from;
+  final MessageType type;
+  final String encodedBody;
+  final String? error;
+
+  Message({
+    required this.to,
+    required this.from,
+    required this.type,
+    required this.encodedBody,
+    this.error,
+  });
+
+  factory Message.fromJSON(String json) {
+    final decoded = jsonDecode(json) as Map<String, dynamic>;
+
+    return Message(
+      to: Script.fromString(decoded['to'] as String),
+      from: Script.fromString(decoded['from'] as String),
+      type: MessageType.fromString(decoded['type'] as String),
+      encodedBody: decoded['encodedBody'] as String,
+      error: decoded['error'] as String?,
+    );
+  }
+
+  String toJSON() {
+    return jsonEncode({
+      'type': type.name,
+      'to': to.name,
+      'from': from.name,
+      'encodedBody': encodedBody,
+      if (error != null) 'error': error,
+    });
+  }
+}
+
+void interceptMessage<T>({
+  required String? message,
+  required MessageType expectedType,
   required Script expectedSender,
   required Script expectedRecipient,
   required void Function(T message) messageHandler,
 }) {
   try {
-    if (interceptedMessage == null) return;
-    final message = Map<String, dynamic>.from(interceptedMessage as Map<dynamic, dynamic>);
-    if (message['sender'] != expectedSender.toString() &&
-        message['recipient'] != expectedRecipient.toString()) {
-      window.console.log('returning, unexpected sender / recipient');
+    if (message == null) return;
+    final decodedMessage = Message.fromJSON(message);
+    if (decodedMessage.type != expectedType ||
+        decodedMessage.to != expectedRecipient ||
+        decodedMessage.from != expectedSender) {
       return;
     }
-    final messageBody = message['body'] as T;
-    messageHandler(messageBody);
-  } catch (_) {
-    console.log('ERROR CONVERTING MESSAGe $_');
+    final messageType = decodedMessage.type;
+    final messageBody = decodedMessage.encodedBody;
+    switch (messageType) {
+      case MessageType.debugInfo:
+        messageHandler(DebugInfo.fromJSON(messageBody) as T);
+        break;
+      case MessageType.debugState:
+        messageHandler(DebugState.fromJSON(messageBody) as T);
+        break;
+      case MessageType.iframeReady:
+        messageHandler(IframeReady.fromJSON(messageBody) as T);
+        break;
+    }
+  } catch (error) {
+    console.warn('Error intercepting expected message: $error');
     return;
   }
 }
 
-MessageEvent? jsEventToMessageEvent<T>(Event event) {
+String? jsEventToMessageData(
+  Event event, {
+  required String expectedOrigin,
+}) {
   try {
     final messageEvent = event as MessageEvent;
-    return messageEvent;
-  } catch (_) {
+    final origin = messageEvent.origin;
+    if (origin.removeTrailingSlash() != expectedOrigin.removeTrailingSlash()) {
+      return null;
+    }
+    return messageEvent.data as String;
+  } catch (error) {
+    console.warn('Error converting event to message data: $error');
     return null;
   }
 }
 
-@JS()
-@anonymous
-class Message<T> {
-  external String get sender;
-  external String get recipient;
-  external T get body;
-  external String? get error;
-
-  external factory Message({
-    required String sender,
-    required String recipient,
-    required T body,
-    String? error = null,
-  });
-}
-
-@JS()
-@anonymous
 class IframeReady {
-  external bool get isReady;
-  external factory IframeReady({
-    required bool isReady,
-  });
+  final bool isReady;
+
+  IframeReady({required this.isReady});
+
+  factory IframeReady.fromJSON(String json) {
+    final decoded = jsonDecode(json) as Map<String, dynamic>;
+    final isReady = decoded['isReady'] as bool;
+    return IframeReady(isReady: isReady);
+  }
+
+  String toJSON() {
+    return jsonEncode({
+      'isReady': isReady,
+    });
+  }
 }
 
-@JS()
-@anonymous
-class DebuggingState {
-  external bool get shouldDebug;
-  external factory DebuggingState({
-    required bool shouldDebug,
-  });
+class DebugState {
+  final bool shouldDebug;
+
+  DebugState({required this.shouldDebug});
+
+  factory DebugState.fromJSON(String json) {
+    final decoded = jsonDecode(json) as Map<String, dynamic>;
+    final shouldDebug = decoded['shouldDebug'] as bool;
+    return DebugState(shouldDebug: shouldDebug);
+  }
+
+  String toJSON() {
+    return jsonEncode({
+      'shouldDebug': shouldDebug,
+    });
+  }
+}
+
+class DebugInfo {
+  final int tabId;
+
+  DebugInfo({required this.tabId});
+
+  factory DebugInfo.fromJSON(String json) {
+    final decoded = jsonDecode(json) as Map<String, dynamic>;
+    final tabId = decoded['tabId'] as int;
+    return DebugInfo(tabId: tabId);
+  }
+
+  String toJSON() {
+    return jsonEncode({
+      'tabId': tabId,
+    });
+  }
+}
+
+extension RemoveTrailingSlash on String {
+  String removeTrailingSlash() {
+    final trailingSlash = '/';
+    if (this.endsWith(trailingSlash)) {
+      return this.substring(0, length - 1);
+    }
+    return this;
+  }
 }
