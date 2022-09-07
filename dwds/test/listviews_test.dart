@@ -17,24 +17,30 @@ void main() {
     await context.tearDown();
   });
 
-  test('_flutter.listViews', () async {
-    final serviceMethod = '_flutter.listViews';
-    final service = context.debugConnection.vmService;
-    final vm = await service.getVM();
-    final isolates = vm.isolates!;
+  test(
+    '_flutter.listViews',
+    () async {
+      final serviceMethod = '_flutter.listViews';
+      final service = context.debugConnection.vmService;
+      final vm = await service.getVM();
+      final isolates = vm.isolates!;
 
-    final expected = <String, Object>{
-      'views': <Object>[
-        for (var isolate in isolates)
-          <String, Object?>{
-            'id': isolate.id,
-            'isolate': isolate.toJson(),
-          }
-      ],
-    };
+      final expected = <String, Object>{
+        'views': <Object>[
+          for (var isolate in isolates)
+            <String, Object?>{
+              'id': isolate.id,
+              'isolate': isolate.toJson(),
+            }
+        ],
+      };
 
-    final result = await service.callServiceExtension(serviceMethod, args: {});
+      final result =
+          await service.callServiceExtension(serviceMethod, args: {});
 
-    expect(result.json, expected);
-  });
+      expect(result.json, expected);
+    },
+    // TODO(https://github.com/dart-lang/webdev/issues/1741): Re-enable when resolved.
+    skip: true,
+  );
 }
