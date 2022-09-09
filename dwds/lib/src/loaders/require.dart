@@ -102,7 +102,7 @@ class RequireStrategy extends LoadStrategy {
   ///
   ///   web/main -> main.ddc.js
   ///
-  final Future<String> Function(MetadataProvider provider, String module)
+  final Future<String?> Function(MetadataProvider provider, String module)
       _serverPathForModule;
 
   /// Returns the source map path for the provided module.
@@ -111,7 +111,7 @@ class RequireStrategy extends LoadStrategy {
   ///
   ///   web/main -> main.ddc.js.map
   ///
-  final Future<String> Function(MetadataProvider provider, String module)
+  final Future<String?> Function(MetadataProvider provider, String module)
       _sourceMapPathForModule;
 
   /// Returns the server path for the app uri.
@@ -276,13 +276,13 @@ if(!window.\$requireLoader) {
   }
 
   @override
-  Future<String> serverPathForModule(String entrypoint, String module) {
+  Future<String?> serverPathForModule(String entrypoint, String module) {
     final metadataProvider = metadataProviderFor(entrypoint);
     return _serverPathForModule(metadataProvider, module);
   }
 
   @override
-  Future<String> sourceMapPathForModule(String entrypoint, String module) {
+  Future<String?> sourceMapPathForModule(String entrypoint, String module) {
     final metadataProvider = metadataProviderFor(entrypoint);
     return _sourceMapPathForModule(metadataProvider, module);
   }

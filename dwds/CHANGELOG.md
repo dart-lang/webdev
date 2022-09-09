@@ -1,3 +1,8 @@
+## 16.0.1-dev
+
+- Allow `LoadStrategy.serverPathForModule` and `LoadStrategy.sourceMapPathForModule`
+  to return `null` and add error handling.
+
 ## 16.0.0
 
 - Fix a hang and report errors on hot reload exceptions from the injected

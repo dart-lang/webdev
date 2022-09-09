@@ -93,7 +93,7 @@ abstract class LoadStrategy {
   ///
   ///   web/main -> main.ddc.js
   ///
-  Future<String> serverPathForModule(String entrypoint, String module);
+  Future<String?> serverPathForModule(String entrypoint, String module);
 
   /// Returns the source map path for the provided module.
   ///
@@ -101,7 +101,7 @@ abstract class LoadStrategy {
   ///
   ///   web/main -> main.ddc.js.map
   ///
-  Future<String> sourceMapPathForModule(String entrypoint, String module);
+  Future<String?> sourceMapPathForModule(String entrypoint, String module);
 
   /// Returns a map from module id to module info for the provided entrypoint.
   ///
