@@ -241,7 +241,7 @@ class ChromeProxyService implements VmServiceInterface {
     final compiler = _compiler;
     _expressionEvaluator = compiler == null
         ? null
-        : ExpressionEvaluator(
+        : BatchedExpressionEvaluator(
             entrypoint,
             inspector,
             debugger,
@@ -318,6 +318,7 @@ class ChromeProxyService implements VmServiceInterface {
     _inspector = null;
     _previousBreakpoints.clear();
     _previousBreakpoints.addAll(isolate.breakpoints ?? []);
+    _expressionEvaluator?.close();
     _consoleSubscription?.cancel();
     _consoleSubscription = null;
   }

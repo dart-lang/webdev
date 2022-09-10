@@ -539,6 +539,25 @@ void testAll({
 
       tearDown(() async {});
 
+      test('in parallel (in a batch)', () async {
+        final library = isolate.rootLib!;
+        final evaluation1 = setup.service
+            .evaluate(isolateId, library.id!, 'MainClass(0).toString()');
+        final evaluation2 = setup.service
+            .evaluate(isolateId, library.id!, 'MainClass(1).toString()');
+
+        final results = await Future.wait([evaluation1, evaluation2]);
+        expect(
+            results[0],
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', '0'));
+
+        expect(
+            results[1],
+            const TypeMatcher<InstanceRef>().having(
+                (instance) => instance.valueAsString, 'valueAsString', '1'));
+      });
+
       test('with scope override', () async {
         final library = isolate.rootLib!;
         final object = await setup.service
