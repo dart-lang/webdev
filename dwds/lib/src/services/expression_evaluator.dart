@@ -98,7 +98,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
           _logger.fine(' - scope: $scope != ${request.scope}');
         }
 
-        _evaluateBatch(currentRequests);
+        unawaited(_evaluateBatch(currentRequests));
         currentRequests = [];
         libraryUri = request.libraryUri;
         isolateId = request.isolateId;
@@ -106,15 +106,16 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       }
       currentRequests.add(request);
     }
-    _evaluateBatch(currentRequests);
+    unawaited(_evaluateBatch(currentRequests));
   }
 
-  void _evaluateBatch(List<EvaluateRequest> requests) async {
+  Future<void> _evaluateBatch(List<EvaluateRequest> requests) async {
     if (requests.isEmpty) return;
 
     final first = requests.first;
     if (requests.length == 1) {
-      super
+      if (first.completer.isCompleted) return;
+      return super
           .evaluateExpression(
               first.isolateId, first.libraryUri, first.expression, first.scope)
           .then(requests.first.completer.complete);
@@ -130,6 +131,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
 
     for (var i = 0; i < requests.length; i++) {
       final request = requests[i];
+      if (request.completer.isCompleted) continue;
       _logger.fine('Getting result out of a batch for ${request.expression}');
       _debugger
           .getProperties(list.objectId!,
