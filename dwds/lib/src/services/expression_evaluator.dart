@@ -59,7 +59,10 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
   }
 
   @override
-  void close() => _requestController.close();
+  void close() {
+    _logger.fine('Closed');
+    _requestController.close();
+  }
 
   @override
   Future<RemoteObject> evaluateExpression(

@@ -259,6 +259,8 @@ class ChromeProxyService implements VmServiceInterface {
       _startedCompleter.complete();
     }));
 
+    unawaited(appConnection.onDone.then((_) => destroyIsolate()));
+
     final isolateRef = inspector.isolateRef;
     final timestamp = DateTime.now().millisecondsSinceEpoch;
 
@@ -301,6 +303,7 @@ class ChromeProxyService implements VmServiceInterface {
   ///
   /// Clears out the [_inspector] and all related cached information.
   void destroyIsolate() {
+    _logger.fine('Destroying isolate');
     if (!_isIsolateRunning) return;
     final isolate = inspector.isolate;
     final isolateRef = inspector.isolateRef;
