@@ -4,7 +4,6 @@
 
 @Timeout(Duration(minutes: 5))
 @TestOn('vm')
-import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -161,7 +160,9 @@ void main() {
       expect(await alert.text, contains('--debug'));
       await alert.accept();
     });
-  }, tags: ['extension'], skip: Platform.isWindows);
+  },
+      tags: ['extension'],
+      skip: true); // https://github.com/dart-lang/webdev/issues/1750
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>

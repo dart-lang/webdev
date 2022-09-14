@@ -1041,7 +1041,7 @@ void main() {
 
       test('throws if not paused', () async {
         await expectLater(service.getStack(isolateId!), throwsRPCError);
-      });
+      }, skip: true); // Issue: https://github.com/dart-lang/webdev/issues/1749
 
       /// Support function for pausing and returning the stack at a line.
       Future<Stack> breakAt(String breakpointId, {int? limit}) async {
