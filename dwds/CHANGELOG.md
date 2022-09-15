@@ -1,7 +1,11 @@
 ## 16.0.1-dev
 
-- Allow `LoadStrategy.serverPathForModule` and `LoadStrategy.sourceMapPathForModule`
-  to return `null` and add error handling.
+- Allow the following API to return `null` and add error handling:
+  - `LoadStrategy.serverPathForModule`
+  - `LoadStrategy.sourceMapPathForModule`
+- Expression evaluation performance improvement:
+  - Batch `ChromeProxyService.evaluate()` requests that are close in time
+    and are executed in the same library and scope.
 
 ## 16.0.0
 

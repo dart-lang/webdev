@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -60,6 +62,8 @@ class ExpressionEvaluator {
     return RemoteObject(
         <String, String>{'type': '$severity', 'value': message});
   }
+
+  void close() {}
 
   /// Evaluate dart expression inside a given library.
   ///
