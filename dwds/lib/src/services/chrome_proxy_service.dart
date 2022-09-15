@@ -30,6 +30,7 @@ import '../utilities/dart_uri.dart';
 import '../utilities/sdk_configuration.dart';
 import '../utilities/shared.dart';
 import 'expression_evaluator.dart';
+import 'batched_expression_evaluator.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
