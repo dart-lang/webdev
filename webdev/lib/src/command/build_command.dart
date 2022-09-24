@@ -76,6 +76,13 @@ class BuildCommand extends Command<int> {
       client.registerBuildTarget(DefaultBuildTarget((b) => b
         ..target = configuration.outputInput
         ..outputLocation = outputLocation?.toBuilder()));
+
+      // If we're supposed to do a full build, add an empty target so that all
+      // assets are built.
+      if (configuration.fullBuild) {
+        client.registerBuildTarget(DefaultBuildTarget((b) => b..target = ''));
+      }
+
       client.startBuild();
       var exitCode = 0;
       var gotBuildStart = false;

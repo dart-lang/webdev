@@ -46,6 +46,11 @@ void addSharedArgs(ArgParser argParser,
         defaultsTo: releaseDefault,
         negatable: true,
         help: 'Build with release mode defaults for builders.')
+    ..addFlag(
+      fullBuildFlag,
+      help: 'Always build all files instead of just the directories served or '
+          'written.',
+    )
     ..addFlag(requireBuildWebCompilersFlag,
         defaultsTo: true,
         negatable: true,

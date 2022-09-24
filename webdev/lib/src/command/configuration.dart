@@ -29,6 +29,7 @@ const logRequestsFlag = 'log-requests';
 const outputFlag = 'output';
 const outputNone = 'NONE';
 const releaseFlag = 'release';
+const fullBuildFlag = 'full-build';
 const requireBuildWebCompilersFlag = 'build-web-compilers';
 const enableExpressionEvaluationFlag = 'enable-expression-evaluation';
 const verboseFlag = 'verbose';
@@ -99,6 +100,7 @@ class Configuration {
   final String outputInput;
   final String outputPath;
   final bool _release;
+  final bool _fullBuild;
   final ReloadConfiguration _reload;
   final bool _requireBuildWebCompilers;
   final bool _enableExpressionEvaluation;
@@ -124,6 +126,7 @@ class Configuration {
     this.outputPath,
     ReloadConfiguration reload,
     bool release,
+    bool fullBuild,
     bool requireBuildWebCompilers,
     bool enableExpressionEvaluation,
     bool verbose,
@@ -143,6 +146,7 @@ class Configuration {
         _logRequests = logRequests,
         _output = output,
         _release = release,
+        _fullBuild = fullBuild,
         _reload = reload,
         _requireBuildWebCompilers = requireBuildWebCompilers,
         _disableDds = disableDds,
@@ -214,6 +218,7 @@ class Configuration {
       logRequests: other._logRequests ?? _logRequests,
       output: other._output ?? _output,
       release: other._release ?? _release,
+      fullBuild: other._fullBuild ?? _fullBuild,
       reload: other._reload ?? _reload,
       requireBuildWebCompilers:
           other._requireBuildWebCompilers ?? _requireBuildWebCompilers,
@@ -256,6 +261,8 @@ class Configuration {
   String get output => _output ?? outputNone;
 
   bool get release => _release ?? false;
+
+  bool get fullBuild => _fullBuild ?? false;
 
   ReloadConfiguration get reload => _reload ?? ReloadConfiguration.none;
 
@@ -365,6 +372,10 @@ class Configuration {
         ? argResults[releaseFlag] as bool
         : defaultConfiguration.release;
 
+    var fullBuild = argResults.options.contains(fullBuildFlag)
+        ? argResults[fullBuildFlag] as bool
+        : defaultConfiguration.fullBuild;
+
     var requireBuildWebCompilers =
         argResults.options.contains(requireBuildWebCompilersFlag)
             ? argResults[requireBuildWebCompilersFlag] as bool
@@ -404,6 +415,7 @@ class Configuration {
       outputInput: outputInput,
       outputPath: outputPath,
       release: release,
+      fullBuild: fullBuild,
       reload: _parseReloadConfiguration(argResults),
       requireBuildWebCompilers: requireBuildWebCompilers,
       disableDds: disableDds,

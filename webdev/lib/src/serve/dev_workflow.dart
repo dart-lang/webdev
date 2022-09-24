@@ -140,11 +140,15 @@ void _registerBuildTargets(
   }
   // Empty string indicates we should build everything, register a corresponding
   // target.
-  if (configuration.outputInput == '' && configuration.outputPath != null) {
-    var outputLocation = OutputLocation((b) => b
-      ..output = configuration.outputPath
-      ..useSymlinks = true
-      ..hoist = false);
+  var buildAll = configuration.fullBuild ||
+      (configuration.outputInput == '' && configuration.outputPath != null);
+  if (buildAll) {
+    var outputLocation = configuration.outputPath != null
+        ? OutputLocation((b) => b
+          ..output = configuration.outputPath
+          ..useSymlinks = true
+          ..hoist = false)
+        : null;
     client.registerBuildTarget(DefaultBuildTarget((b) => b
       ..target = ''
       ..outputLocation = outputLocation?.toBuilder()));
