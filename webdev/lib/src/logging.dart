@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -11,12 +9,12 @@ import 'package:io/ansi.dart';
 import 'package:logging/logging.dart';
 
 typedef LogWriter = void Function(Level level, String message,
-    {String error, String loggerName, String stackTrace});
+    {String? error, String? loggerName, String? stackTrace});
 
 var _verbose = false;
-StreamSubscription<LogRecord> _subscription;
+StreamSubscription<LogRecord>? _subscription;
 
-void configureLogWriter(bool verbose, {LogWriter customLogWriter}) {
+void configureLogWriter(bool verbose, {LogWriter? customLogWriter}) {
   _verbose = verbose;
   _logWriter = customLogWriter ?? _logWriter;
   Logger.root.level = verbose ? Level.ALL : Level.INFO;
@@ -30,7 +28,7 @@ void configureLogWriter(bool verbose, {LogWriter customLogWriter}) {
 
 // ignore: prefer_function_declarations_over_variables
 LogWriter _logWriter =
-    (level, message, {String error, String loggerName, String stackTrace}) {
+    (level, message, {String? error, String? loggerName, String? stackTrace}) {
   // Erases the previous line
   if (!_verbose) stdout.write('\x1b[2K\r');
   var log = formatLog(level, message,
@@ -54,7 +52,7 @@ LogWriter get logWriter => _logWriter;
 
 /// Colors the message and writes it to stdout.
 String formatLog(Level level, String message,
-    {bool withColors, String error, String loggerName, String stackTrace}) {
+    {bool? withColors, String? error, String? loggerName, String? stackTrace}) {
   withColors ??= false;
   var buffer = StringBuffer(message);
   if (error != null) {
@@ -75,7 +73,7 @@ String formatLog(Level level, String message,
     } else {
       color = red;
     }
-    formattedLevel = color.wrap(formattedLevel);
+    formattedLevel = color.wrap(formattedLevel) ?? formattedLevel;
   }
 
   var loggerNameOutput =

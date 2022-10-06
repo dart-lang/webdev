@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart';
@@ -20,18 +17,18 @@ import 'version.dart';
 class PackageException implements Exception {
   final List<PackageExceptionDetails> details;
 
-  final String unsupportedArgument;
+  final String? unsupportedArgument;
 
   PackageException(this.details, {this.unsupportedArgument});
 }
 
 class PackageExceptionDetails {
   final String error;
-  final String description;
+  final String? description;
   final bool _missingDependency;
 
   const PackageExceptionDetails._(this.error,
-      {this.description, bool missingDependency})
+      {this.description, bool? missingDependency})
       : _missingDependency = missingDependency ?? false;
 
   static const noPubspecLock =
@@ -72,7 +69,7 @@ Future _runPubDeps() async {
 }
 
 class PubspecLock {
-  final YamlMap _packages;
+  final YamlMap? _packages;
 
   PubspecLock(this._packages);
 
@@ -82,28 +79,31 @@ class PubspecLock {
     var pubspecLock =
         loadYaml(await File('pubspec.lock').readAsString()) as YamlMap;
 
-    var packages = pubspecLock['packages'] as YamlMap;
+    var packages = pubspecLock['packages'] as YamlMap?;
     return PubspecLock(packages);
   }
 
   List<PackageExceptionDetails> checkPackage(
       String pkgName, VersionConstraint constraint,
-      {String forArgument, bool requireDirect}) {
+      {String? forArgument, bool? requireDirect}) {
     requireDirect ??= true;
     var issues = <PackageExceptionDetails>[];
     var missingDetails =
         PackageExceptionDetails.missingDep(pkgName, constraint);
 
-    var pkgDataMap = (_packages == null) ? null : _packages[pkgName] as YamlMap;
+    var pkgDataMap =
+        (_packages == null) ? null : _packages![pkgName] as YamlMap?;
     if (pkgDataMap == null) {
       issues.add(missingDetails);
     } else {
-      var dependency = pkgDataMap['dependency'] as String;
-      if (requireDirect && !dependency.startsWith('direct ')) {
+      var dependency = pkgDataMap['dependency'] as String?;
+      if (requireDirect &&
+          dependency != null &&
+          !dependency.startsWith('direct ')) {
         issues.add(missingDetails);
       }
 
-      var source = pkgDataMap['source'] as String;
+      var source = pkgDataMap['source'] as String?;
       if (source == 'hosted') {
         // NOTE: pkgDataMap['description'] should be:
         //           `{url: https://pub.dartlang.org, name: [pkgName]}`
@@ -168,7 +168,7 @@ final buildWebCompilersConstraint = VersionConstraint.parse('>=2.12.0 <4.0.0');
 // Note the minimum versions should never be dev versions as users will not
 // get them by default.
 Future<void> checkPubspecLock(PubspecLock pubspecLock,
-    {@required bool requireBuildWebCompilers}) async {
+    {required bool requireBuildWebCompilers}) async {
   var issues = <PackageExceptionDetails>[];
 
   var buildRunnerIssues =
@@ -191,7 +191,7 @@ Future<void> checkPubspecLock(PubspecLock pubspecLock,
 }
 
 class _PackageInfo {
-  final Version version;
+  final Version? version;
   final VersionConstraint buildDaemonConstraint;
   final bool isNewer;
   _PackageInfo(this.version, this.buildDaemonConstraint, this.isNewer);
@@ -212,6 +212,9 @@ Future<_PackageInfo> _latestPackageInfo() async {
     buildDaemonConstraint = buildDaemonDependency.version;
   }
   var currentVersion = Version.parse(packageVersion);
-  return _PackageInfo(pubspec.version, buildDaemonConstraint,
-      currentVersion.compareTo(pubspec.version) < 0);
+  var pubspecVersion = pubspec.version;
+  var isNewer = (pubspecVersion == null)
+      ? true
+      : currentVersion.compareTo(pubspecVersion) < 0;
+  return _PackageInfo(pubspec.version, buildDaemonConstraint, isNewer);
 }
