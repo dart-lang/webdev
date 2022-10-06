@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -47,9 +45,9 @@ class WebDevServer {
   final Stream<BuildResult> buildResults;
 
   /// Can be null if client.js injection is disabled.
-  final Dwds dwds;
+  final Dwds? dwds;
 
-  final ExpressionCompilerService ddcService;
+  final ExpressionCompilerService? ddcService;
 
   final String target;
 
@@ -64,7 +62,7 @@ class WebDevServer {
     this.ddcService,
   }) {
     if (autoRun) {
-      dwds?.connectedApps?.listen((connection) {
+      dwds?.connectedApps.listen((connection) {
         connection.runMain();
       });
     }
@@ -78,7 +76,7 @@ class WebDevServer {
     await dwds?.stop();
     await ddcService?.stop();
     await _server.close(force: true);
-    _client?.close();
+    _client.close();
   }
 
   static Future<WebDevServer> start(
@@ -115,8 +113,8 @@ class WebDevServer {
         'http://localhost:${options.daemonPort}/${options.target}/',
         client: client);
 
-    Dwds dwds;
-    ExpressionCompilerService ddcService;
+    Dwds? dwds;
+    ExpressionCompilerService? ddcService;
     if (options.configuration.enableInjectedClient) {
       var assetReader = ProxyServerAssetReader(
         options.daemonPort,
@@ -126,7 +124,6 @@ class WebDevServer {
       var loadStrategy = BuildRunnerRequireStrategyProvider(
               assetHandler, options.configuration.reload, assetReader)
           .strategy;
-
       if (options.configuration.enableExpressionEvaluation) {
         ddcService = ExpressionCompilerService(
           options.configuration.hostname,
@@ -154,7 +151,7 @@ class WebDevServer {
                     enableStdinCommands: false,
                     customDevToolsPath: devToolsPath,
                   );
-                  return DevTools(server.address.host, server.port, server);
+                  return DevTools(server!.address.host, server.port, server);
                 }
               : null);
       pipeline = pipeline.addMiddleware(dwds.middleware);
@@ -165,12 +162,12 @@ class WebDevServer {
     }
 
     var hostname = options.configuration.hostname;
-    var tlsCertChain = options.configuration.tlsCertChain;
-    var tlsCertKey = options.configuration.tlsCertKey;
+    var tlsCertChain = options.configuration.tlsCertChain ?? '';
+    var tlsCertKey = options.configuration.tlsCertKey ?? '';
 
     HttpServer server;
     var protocol =
-        (tlsCertChain != null && tlsCertKey != null) ? 'https' : 'http';
+        (tlsCertChain.isNotEmpty && tlsCertKey.isNotEmpty) ? 'https' : 'http';
     if (protocol == 'https') {
       var serverContext = SecurityContext()
         ..useCertificateChain(tlsCertChain)

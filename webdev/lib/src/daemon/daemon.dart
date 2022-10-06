@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -16,7 +14,7 @@ import 'utilites.dart';
 /// the result.
 class Daemon {
   Daemon(
-    Stream<Map<String, dynamic>> commandStream,
+    Stream<Map<String, dynamic>?> commandStream,
     this._sendCommand,
   ) {
     _commandSubscription = commandStream.listen(
@@ -27,7 +25,7 @@ class Daemon {
     );
   }
 
-  StreamSubscription<Map<String, dynamic>> _commandSubscription;
+  late StreamSubscription<Map<String, dynamic>?> _commandSubscription;
 
   final void Function(Map<String, dynamic>) _sendCommand;
 
@@ -43,7 +41,8 @@ class Daemon {
 
   Future<int> get onExit => _onExitCompleter.future;
 
-  void _handleRequest(Map<String, dynamic> request) {
+  void _handleRequest(Map<String, dynamic>? request) {
+    if (request == null) return;
     // {id, method, params}
 
     // [id] is an opaque type to us.
@@ -55,19 +54,20 @@ class Daemon {
     }
 
     try {
-      var method = request['method'] as String ?? '';
+      var method = request['method'] as String? ?? '';
       if (!method.contains('.')) {
         throw ArgumentError('method not understood: $method');
       }
 
       var domain = method.substring(0, method.indexOf('.'));
       var name = method.substring(method.indexOf('.') + 1);
-      if (_domainMap[domain] == null) {
+      var domainValue = _domainMap[domain];
+      if (domainValue == null) {
         throw ArgumentError('no domain for method: $method');
       }
 
-      _domainMap[domain].handleCommand(
-          name, id, request['params'] as Map<String, dynamic> ?? {});
+      domainValue.handleCommand(
+          name, id, request['params'] as Map<String, dynamic>? ?? {});
     } catch (error, trace) {
       send(<String, dynamic>{
         'id': id,
@@ -79,7 +79,7 @@ class Daemon {
 
   void send(Map<String, dynamic> map) => _sendCommand(map);
 
-  void shutdown({dynamic error}) {
+  void shutdown({Object? error}) {
     _commandSubscription.cancel();
     for (var domain in _domainMap.values) {
       domain.dispose();
