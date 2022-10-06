@@ -38,7 +38,6 @@ class BuildCommand extends Command<int> {
   Future<int> run() async {
     var extraArgs = argResults?.rest ?? [];
     var unsupported = extraArgs.where((arg) => !arg.startsWith('-')).toList();
-    ;
     if (unsupported.isNotEmpty) {
       throw UsageException(
           'Arguments were provided that are not supported: '
