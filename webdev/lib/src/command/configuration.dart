@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:args/args.dart';
 import 'package:dwds/dwds.dart';
 import 'package:logging/logging.dart';
@@ -40,13 +38,13 @@ const disableDdsFlag = 'disable-dds';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   var auto = argResults.options.contains(autoOption)
-      ? argResults[autoOption] as String
+      ? argResults[autoOption] as String?
       : null;
 
   void _handleDeprecatedFlag(String flag, String autoFallback) {
     if (argResults.options.contains(flag) &&
         argResults.wasParsed(flag) &&
-        argResults[flag] as bool == true) {
+        argResults[flag].toUpperCase() == 'TRUE') {
       logWriter(
           Level.WARNING,
           '--$flag is deprecated please use --auto=$autoFallback instead '
@@ -83,52 +81,52 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
 }
 
 class Configuration {
-  final bool _autoRun;
-  final int _chromeDebugPort;
-  final bool _debugExtension;
-  final bool _debug;
-  final bool _enableInjectedClient;
-  final String _hostname;
-  final String _tlsCertChain;
-  final String _tlsCertKey;
-  final List<String> _launchApps;
-  final bool _launchInChrome;
-  final String _userDataDir;
-  final bool _logRequests;
-  final String _output;
-  final String outputInput;
-  final String outputPath;
-  final bool _release;
-  final ReloadConfiguration _reload;
-  final bool _requireBuildWebCompilers;
-  final bool _enableExpressionEvaluation;
-  final bool _verbose;
-  final bool _disableDds;
-  final String _nullSafety;
+  final bool? _autoRun;
+  final int? _chromeDebugPort;
+  final bool? _debugExtension;
+  final bool? _debug;
+  final bool? _enableInjectedClient;
+  final String? _hostname;
+  final String? _tlsCertChain;
+  final String? _tlsCertKey;
+  final List<String>? _launchApps;
+  final bool? _launchInChrome;
+  final String? _userDataDir;
+  final bool? _logRequests;
+  final String? _output;
+  final String? outputInput;
+  final String? outputPath;
+  final bool? _release;
+  final ReloadConfiguration? _reload;
+  final bool? _requireBuildWebCompilers;
+  final bool? _enableExpressionEvaluation;
+  final bool? _verbose;
+  final bool? _disableDds;
+  final String? _nullSafety;
 
   Configuration({
-    bool autoRun,
-    int chromeDebugPort,
-    bool debugExtension,
-    bool debug,
-    bool enableInjectedClient,
-    String hostname,
-    String tlsCertChain,
-    String tlsCertKey,
-    List<String> launchApps,
-    bool launchInChrome,
-    String userDataDir,
-    bool logRequests,
-    String output,
+    bool? autoRun,
+    int? chromeDebugPort,
+    bool? debugExtension,
+    bool? debug,
+    bool? enableInjectedClient,
+    String? hostname,
+    String? tlsCertChain,
+    String? tlsCertKey,
+    List<String>? launchApps,
+    bool? launchInChrome,
+    String? userDataDir,
+    bool? logRequests,
+    String? output,
     this.outputInput,
     this.outputPath,
-    ReloadConfiguration reload,
-    bool release,
-    bool requireBuildWebCompilers,
-    bool enableExpressionEvaluation,
-    bool verbose,
-    bool disableDds,
-    String nullSafety,
+    ReloadConfiguration? reload,
+    bool? release,
+    bool? requireBuildWebCompilers,
+    bool? enableExpressionEvaluation,
+    bool? verbose,
+    bool? disableDds,
+    String? nullSafety,
   })  : _autoRun = autoRun,
         _chromeDebugPort = chromeDebugPort,
         _debugExtension = debugExtension,
@@ -155,7 +153,7 @@ class Configuration {
   void _validateConfiguration() {
     // Both null and an empty string are valid values for outputInput. For any
     // other value, we need to ensure it's a top-level dir.
-    if (outputInput?.isNotEmpty ?? false) ensureIsTopLevelDir(outputInput);
+    if (outputInput?.isNotEmpty ?? false) ensureIsTopLevelDir(outputInput!);
 
     if ((tlsCertKey != null && tlsCertChain == null) ||
         (tlsCertKey == null && tlsCertChain != null)) {
@@ -241,15 +239,15 @@ class Configuration {
 
   String get hostname => _hostname ?? 'localhost';
 
-  String get tlsCertChain => _tlsCertChain;
+  String? get tlsCertChain => _tlsCertChain;
 
-  String get tlsCertKey => _tlsCertKey;
+  String? get tlsCertKey => _tlsCertKey;
 
   List<String> get launchApps => _launchApps ?? [];
 
   bool get launchInChrome => _launchInChrome ?? false;
 
-  String get userDataDir => _userDataDir;
+  String? get userDataDir => _userDataDir;
 
   bool get logRequests => _logRequests ?? false;
 
@@ -270,17 +268,17 @@ class Configuration {
   /// 'sound', 'unsound', or 'auto'.
   /// 'auto' indicates that the default `package:build_web_compilers`
   /// behavior should be used.
-  String get nullSafety => _nullSafety;
+  String? get nullSafety => _nullSafety;
 
   /// Returns a new configuration with values updated from the parsed args.
-  static Configuration fromArgs(ArgResults argResults,
-      {Configuration defaultConfiguration}) {
+  static Configuration fromArgs(ArgResults? argResults,
+      {Configuration? defaultConfiguration}) {
     defaultConfiguration ??= Configuration();
     if (argResults == null) return defaultConfiguration;
 
     var enableInjectedClient =
         argResults.options.contains(enableInjectedClientFlag)
-            ? argResults[enableInjectedClientFlag] as bool
+            ? (argResults[enableInjectedClientFlag] as bool)
             : defaultConfiguration.enableInjectedClient;
 
     // Change the defaults when we have no injected client to disable all
@@ -297,56 +295,56 @@ class Configuration {
         : defaultConfiguration.chromeDebugPort;
 
     var debugExtension = argResults.options.contains(debugExtensionFlag)
-        ? argResults[debugExtensionFlag] as bool
+        ? argResults[debugExtensionFlag] as bool?
         : defaultConfiguration.debugExtension;
 
     var debug = argResults.options.contains(debugFlag)
-        ? argResults[debugFlag] as bool
+        ? argResults[debugFlag] as bool?
         : defaultConfiguration.debug;
 
     var hostname = argResults.options.contains(hostnameFlag)
-        ? argResults[hostnameFlag] as String
+        ? argResults[hostnameFlag] as String?
         : defaultConfiguration.hostname;
 
     var tlsCertChain = argResults.options.contains(tlsCertChainFlag)
-        ? argResults[tlsCertChainFlag] as String
+        ? argResults[tlsCertChainFlag] as String?
         : defaultConfiguration.tlsCertChain;
 
     var tlsCertKey = argResults.options.contains(tlsCertKeyFlag)
-        ? argResults[tlsCertKeyFlag] as String
+        ? argResults[tlsCertKeyFlag] as String?
         : defaultConfiguration.tlsCertKey;
 
     var launchApps = argResults.options.contains(launchAppOption) &&
             argResults.wasParsed(launchAppOption)
-        ? argResults[launchAppOption] as List<String>
+        ? argResults[launchAppOption] as List<String>?
         : defaultConfiguration.launchApps;
 
     var launchInChrome = argResults.options.contains(launchInChromeFlag) &&
             argResults.wasParsed(launchInChromeFlag)
-        ? argResults[launchInChromeFlag] as bool
+        ? argResults[launchInChromeFlag] as bool?
         // We want to default to launch chrome if the user provides just --debug
         // and not --chrome-debug-port.
-        : debug &&
+        : debug! &&
                 !(argResults.options.contains(launchInChromeFlag) &&
                     argResults.wasParsed(chromeDebugPortFlag))
             ? true
             : defaultConfiguration.launchInChrome;
 
     var userDataDir = argResults.options.contains(userDataDirFlag)
-        ? argResults[userDataDirFlag] as String
+        ? argResults[userDataDirFlag] as String?
         : defaultConfiguration.userDataDir;
 
     var logRequests = argResults.options.contains(logRequestsFlag)
-        ? argResults[logRequestsFlag] as bool
+        ? argResults[logRequestsFlag] as bool?
         : defaultConfiguration.logRequests;
 
     var output = argResults.options.contains(outputFlag)
-        ? argResults[outputFlag] as String
+        ? argResults[outputFlag] as String?
         : defaultConfiguration.output;
 
-    String outputPath;
+    String? outputPath;
     String outputInput;
-    if (output == 'NONE') {
+    if (output == 'NONE' || output == null) {
       // The empty string means build everything.
       outputInput = '';
     } else {
@@ -362,29 +360,29 @@ class Configuration {
     }
 
     var release = argResults.options.contains(releaseFlag)
-        ? argResults[releaseFlag] as bool
+        ? argResults[releaseFlag] as bool?
         : defaultConfiguration.release;
 
     var requireBuildWebCompilers =
         argResults.options.contains(requireBuildWebCompilersFlag)
-            ? argResults[requireBuildWebCompilersFlag] as bool
+            ? argResults[requireBuildWebCompilersFlag] as bool?
             : defaultConfiguration.requireBuildWebCompilers;
 
     var enableExpressionEvaluation =
         argResults.options.contains(enableExpressionEvaluationFlag)
-            ? argResults[enableExpressionEvaluationFlag] as bool
+            ? argResults[enableExpressionEvaluationFlag] as bool?
             : defaultConfiguration.enableExpressionEvaluation;
 
     var verbose = argResults.options.contains(verboseFlag)
-        ? argResults[verboseFlag] as bool
+        ? argResults[verboseFlag] as bool?
         : defaultConfiguration.verbose;
 
     var nullSafety = argResults.options.contains(nullSafetyFlag)
-        ? argResults[nullSafetyFlag] as String
+        ? argResults[nullSafetyFlag] as String?
         : defaultConfiguration.nullSafety;
 
     var disableDds = argResults.options.contains(disableDdsFlag)
-        ? argResults[disableDdsFlag] as bool
+        ? argResults[disableDdsFlag] as bool?
         : defaultConfiguration.disableDds;
 
     return Configuration(
