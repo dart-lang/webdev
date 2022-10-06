@@ -125,8 +125,8 @@ final _defaultWebDirs = const ['web'];
 ///
 /// Throws an [InvalidConfiguration] exception if it can't find at
 /// least one directory.
-Map<String, int?> parseDirectoryArgs(List<String> args, {int? basePort}) {
-  var result = <String, int?>{};
+Map<String, int> parseDirectoryArgs(List<String> args, {int? basePort}) {
+  var result = <String, int>{};
   var port = basePort ?? 8080;
   if (args.isEmpty) {
     for (var dir in _defaultWebDirs) {
