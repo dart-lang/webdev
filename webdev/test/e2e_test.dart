@@ -321,6 +321,7 @@ void main() {
                 wsUri = getDebugServiceUri(message as String);
                 return wsUri != null;
               }));
+              Logger.root.fine('vm service uri: $wsUri');
               expect(wsUri, isNotNull);
 
               vmService = await vmServiceConnectUri(wsUri);

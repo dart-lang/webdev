@@ -28,8 +28,8 @@ class PackageExceptionDetails {
   final bool _missingDependency;
 
   const PackageExceptionDetails._(this.error,
-      {this.description, bool? missingDependency})
-      : _missingDependency = missingDependency ?? false;
+      {this.description, bool missingDependency = false})
+      : _missingDependency = missingDependency;
 
   static const noPubspecLock =
       PackageExceptionDetails._('`pubspec.lock` does not exist.',
@@ -85,8 +85,7 @@ class PubspecLock {
 
   List<PackageExceptionDetails> checkPackage(
       String pkgName, VersionConstraint constraint,
-      {String? forArgument, bool? requireDirect}) {
-    requireDirect ??= true;
+      {String? forArgument, bool requireDirect = true}) {
     var issues = <PackageExceptionDetails>[];
     var missingDetails =
         PackageExceptionDetails.missingDep(pkgName, constraint);

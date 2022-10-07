@@ -1,3 +1,12 @@
+## 16.0.1-dev
+
+- Allow the following API to return `null` and add error handling:
+  - `LoadStrategy.serverPathForModule`
+  - `LoadStrategy.sourceMapPathForModule`
+- Expression evaluation performance improvement:
+  - Batch `ChromeProxyService.evaluate()` requests that are close in time
+    and are executed in the same library and scope.
+
 ## 16.0.0
 
 - Fix a hang and report errors on hot reload exceptions from the injected

@@ -84,17 +84,16 @@ class BuildRunnerRequireStrategyProvider {
     return null;
   }
 
-  Future<String> _serverPathForModule(
+  Future<String?> _serverPathForModule(
       MetadataProvider metadataProvider, String module) async {
-    final result = stripTopLevelDirectory(
-        (await metadataProvider.moduleToModulePath)[module] ?? '');
-    return result;
+    final modulePath = (await metadataProvider.moduleToModulePath)[module];
+    return modulePath == null ? null : stripTopLevelDirectory(modulePath);
   }
 
-  Future<String> _sourceMapPathForModule(
+  Future<String?> _sourceMapPathForModule(
       MetadataProvider metadataProvider, String module) async {
-    final path = (await metadataProvider.moduleToSourceMap)[module] ?? '';
-    return stripTopLevelDirectory(path);
+    final sourceMapPath = (await metadataProvider.moduleToSourceMap)[module];
+    return sourceMapPath == null ? null : stripTopLevelDirectory(sourceMapPath);
   }
 
   String? _serverPathForAppUri(String appUrl) {
@@ -115,13 +114,17 @@ class BuildRunnerRequireStrategyProvider {
     final result = <String, ModuleInfo>{};
     for (var module in modules) {
       final serverPath = await _serverPathForModule(metadataProvider, module);
-      result[module] = ModuleInfo(
-          // TODO: Save locations of full kernel files in ddc metadata.
-          // Issue: https://github.com/dart-lang/sdk/issues/43684
-          // TODO: Change these to URIs instead of paths when the SDK supports
-          // it.
-          p.setExtension(serverPath, '.full.dill'),
-          p.setExtension(serverPath, '.dill'));
+      if (serverPath == null) {
+        _logger.warning('No module info found for module $module');
+      } else {
+        result[module] = ModuleInfo(
+            // TODO: Save locations of full kernel files in ddc metadata.
+            // Issue: https://github.com/dart-lang/sdk/issues/43684
+            // TODO: Change these to URIs instead of paths when the SDK supports
+            // it.
+            p.setExtension(serverPath, '.full.dill'),
+            p.setExtension(serverPath, '.dill'));
+      }
     }
     return result;
   }

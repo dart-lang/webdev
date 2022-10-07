@@ -30,6 +30,7 @@ import '../utilities/dart_uri.dart';
 import '../utilities/sdk_configuration.dart';
 import '../utilities/shared.dart';
 import 'expression_evaluator.dart';
+import 'batched_expression_evaluator.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {
@@ -241,7 +242,7 @@ class ChromeProxyService implements VmServiceInterface {
     final compiler = _compiler;
     _expressionEvaluator = compiler == null
         ? null
-        : ExpressionEvaluator(
+        : BatchedExpressionEvaluator(
             entrypoint,
             inspector,
             debugger,
@@ -258,6 +259,8 @@ class ChromeProxyService implements VmServiceInterface {
       await debugger.resumeFromStart();
       _startedCompleter.complete();
     }));
+
+    unawaited(appConnection.onDone.then((_) => destroyIsolate()));
 
     final isolateRef = inspector.isolateRef;
     final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -301,6 +304,7 @@ class ChromeProxyService implements VmServiceInterface {
   ///
   /// Clears out the [_inspector] and all related cached information.
   void destroyIsolate() {
+    _logger.fine('Destroying isolate');
     if (!_isIsolateRunning) return;
     final isolate = inspector.isolate;
     final isolateRef = inspector.isolateRef;
@@ -318,6 +322,7 @@ class ChromeProxyService implements VmServiceInterface {
     _inspector = null;
     _previousBreakpoints.clear();
     _previousBreakpoints.addAll(isolate.breakpoints ?? []);
+    _expressionEvaluator?.close();
     _consoleSubscription?.cancel();
     _consoleSubscription = null;
   }
