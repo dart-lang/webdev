@@ -1,3 +1,6 @@
+## 2.7.12-dev.0
+- Migrate Webdev to null-safety.
+
 ## 2.7.11
 
 - Remove no longer used `ExpressionCompilerService.handler`.
