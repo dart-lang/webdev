@@ -14,7 +14,7 @@ import 'utilites.dart';
 /// the result.
 class Daemon {
   Daemon(
-    Stream<Map<String, dynamic>?> commandStream,
+    Stream<Map<String, dynamic>> commandStream,
     this._sendCommand,
   ) {
     _commandSubscription = commandStream.listen(
@@ -25,7 +25,7 @@ class Daemon {
     );
   }
 
-  late StreamSubscription<Map<String, dynamic>?> _commandSubscription;
+  late StreamSubscription<Map<String, dynamic>> _commandSubscription;
 
   final void Function(Map<String, dynamic>) _sendCommand;
 
@@ -41,8 +41,7 @@ class Daemon {
 
   Future<int> get onExit => _onExitCompleter.future;
 
-  void _handleRequest(Map<String, dynamic>? request) {
-    if (request == null) return;
+  void _handleRequest(Map<String, dynamic> request) {
     // {id, method, params}
 
     // [id] is an opaque type to us.
