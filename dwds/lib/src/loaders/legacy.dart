@@ -20,7 +20,7 @@ class LegacyStrategy extends LoadStrategy {
   ///
   /// /packages/path/path.ddc.js -> packages/path/path
   ///
-  final Future<String> Function(
+  final Future<String?> Function(
           MetadataProvider metadataProvider, String sourcePath)
       _moduleForServerPath;
 
@@ -39,7 +39,7 @@ class LegacyStrategy extends LoadStrategy {
   ///
   ///   web/main -> main.ddc.js
   ///
-  final Future<String> Function(
+  final Future<String?> Function(
       MetadataProvider metadataProvider, String module) _serverPathForModule;
 
   /// Returns the source map path for the provided module.
@@ -48,7 +48,7 @@ class LegacyStrategy extends LoadStrategy {
   ///
   ///   web/main -> main.ddc.js.map
   ///
-  final Future<String> Function(
+  final Future<String?> Function(
       MetadataProvider metadataProvider, String module) _sourceMapPathForModule;
 
   /// Returns the server path for the app uri.
@@ -101,7 +101,7 @@ class LegacyStrategy extends LoadStrategy {
       'window.\$dartLoader.forceLoadModule("$clientScript");\n';
 
   @override
-  Future<String> moduleForServerPath(
+  Future<String?> moduleForServerPath(
           String entrypoint, String serverPath) async =>
       _moduleForServerPath(metadataProviderFor(entrypoint), serverPath);
 
@@ -110,11 +110,11 @@ class LegacyStrategy extends LoadStrategy {
       _moduleInfoForProvider(metadataProviderFor(entrypoint));
 
   @override
-  Future<String> serverPathForModule(String entrypoint, String module) async =>
+  Future<String?> serverPathForModule(String entrypoint, String module) async =>
       _serverPathForModule(metadataProviderFor(entrypoint), module);
 
   @override
-  Future<String> sourceMapPathForModule(
+  Future<String?> sourceMapPathForModule(
           String entrypoint, String module) async =>
       _sourceMapPathForModule(metadataProviderFor(entrypoint), module);
 

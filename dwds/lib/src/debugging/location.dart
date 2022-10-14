@@ -286,8 +286,16 @@ class Locations {
       }
       final modulePath =
           await globalLoadStrategy.serverPathForModule(_entrypoint, module);
+      if (modulePath == null) {
+        _logger.warning('No module path for module: $module');
+        return result;
+      }
       final sourceMapPath =
           await globalLoadStrategy.sourceMapPathForModule(_entrypoint, module);
+      if (sourceMapPath == null) {
+        _logger.warning('No sourceMap path for module: $module');
+        return result;
+      }
       final sourceMapContents =
           await _assetReader.sourceMapContents(sourceMapPath);
       final scriptLocation =

@@ -15,14 +15,19 @@ class AppConnection {
   /// The initial connection request sent from the application in the browser.
   final ConnectRequest request;
   final _startedCompleter = Completer<void>();
+  final _doneCompleter = Completer<void>();
   final SocketConnection _connection;
 
-  AppConnection(this.request, this._connection);
+  AppConnection(this.request, this._connection) {
+    unawaited(_connection.sink.done.then((v) => _doneCompleter.complete()));
+  }
 
   bool get isInKeepAlivePeriod => _connection.isInKeepAlivePeriod;
   void shutDown() => _connection.shutdown();
   bool get isStarted => _startedCompleter.isCompleted;
   Future<void> get onStart => _startedCompleter.future;
+  bool get isDone => _doneCompleter.isCompleted;
+  Future<void> get onDone => _doneCompleter.future;
 
   void runMain() {
     if (_startedCompleter.isCompleted) {

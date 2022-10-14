@@ -44,7 +44,7 @@ ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   void _handleDeprecatedFlag(String flag, String autoFallback) {
     if (argResults.options.contains(flag) &&
         argResults.wasParsed(flag) &&
-        argResults[flag].toUpperCase() == 'TRUE') {
+        (argResults[flag] as bool? ?? false)) {
       logWriter(
           Level.WARNING,
           '--$flag is deprecated please use --auto=$autoFallback instead '
@@ -268,7 +268,7 @@ class Configuration {
   /// 'sound', 'unsound', or 'auto'.
   /// 'auto' indicates that the default `package:build_web_compilers`
   /// behavior should be used.
-  String? get nullSafety => _nullSafety;
+  String get nullSafety => _nullSafety ?? 'auto';
 
   /// Returns a new configuration with values updated from the parsed args.
   static Configuration fromArgs(ArgResults? argResults,
