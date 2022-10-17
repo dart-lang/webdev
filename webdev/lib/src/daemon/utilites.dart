@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 dynamic toJsonable(dynamic obj) {
   if (obj is String ||
       obj is int ||
@@ -14,7 +12,7 @@ dynamic toJsonable(dynamic obj) {
   return '$obj';
 }
 
-String getStringArg(Map<String, dynamic> args, String name,
+String? getStringArg(Map<String, dynamic> args, String name,
     {bool required = false}) {
   if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
@@ -23,24 +21,25 @@ String getStringArg(Map<String, dynamic> args, String name,
   if (val != null && val is! String) {
     throw ArgumentError('$name is not a String');
   }
-  return val as String;
+  return val as String?;
 }
 
-bool getBoolArg(Map<String, dynamic> args, String name,
+bool? getBoolArg(Map<String, dynamic> args, String name,
     {bool required = false}) {
   if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
   }
   var val = args[name];
   if (val != null && val is! bool) throw ArgumentError('$name is not a bool');
-  return val as bool;
+  return val as bool?;
 }
 
-int getIntArg(Map<String, dynamic> args, String name, {bool required = false}) {
+int? getIntArg(Map<String, dynamic> args, String name,
+    {bool required = false}) {
   if (required && !args.containsKey(name)) {
     throw ArgumentError('$name is required');
   }
   var val = args[name];
   if (val != null && val is! int) throw ArgumentError('$name is not an int');
-  return val as int;
+  return val as int?;
 }

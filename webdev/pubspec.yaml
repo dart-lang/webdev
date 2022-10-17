@@ -16,6 +16,7 @@ dependencies:
   async: ^2.9.0
   build_daemon: ^3.1.0
   browser_launcher: ^1.1.0
+  collection: ^1.15.0
   crypto: ^3.0.2
   dds: ^2.2.0
   # Pin DWDS to avoid dependency conflicts with vm_service:
