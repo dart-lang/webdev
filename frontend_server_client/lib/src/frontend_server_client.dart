@@ -57,6 +57,7 @@ class FrontendServerClient {
     String target = 'vm', // The kernel target type.
     bool verbose = false, // Verbose logs, including server/client messages
     bool printIncrementalDependencies = true,
+    List<String> additionalSources = const [],
   }) async {
     var feServer = await Process.start(Platform.resolvedExecutable, [
       if (debug) '--observe',
@@ -80,6 +81,10 @@ class FrontendServerClient {
       if (enabledExperiments != null)
         for (var experiment in enabledExperiments)
           '--enable-experiment=$experiment',
+      if (additionalSources.isNotEmpty) ...[
+        '--source',
+        ...additionalSources,
+      ],
     ]);
     var feServerStdoutLines = StreamQueue(feServer.stdout
         .transform(utf8.decoder)
