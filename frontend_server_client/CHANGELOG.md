@@ -1,3 +1,8 @@
+## 3.1.0
+
+- Add `additionalSources` parameter to `FrontendServerClient`, for passing
+  additional `--source`s to the kernel compiler.
+
 ## 3.0.0
 
 - Update the `compile` api to return a non-null `CompileResult`, and instead
