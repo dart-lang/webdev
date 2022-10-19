@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @Timeout(Duration(minutes: 5))
 import 'dart:io';
 
@@ -29,7 +27,7 @@ import 'test_utils.dart';
 /// Value: `null`  - exists in both modes
 ///        `true`  - DDC only
 ///        `false` - dart2js only
-const _testItems = <String, bool>{
+const _testItems = <String, bool?>{
   'main.dart.js': null,
   'main.dart.bootstrap.js': true,
   'main.unsound.ddc.js': true,
@@ -39,8 +37,8 @@ void main() {
   // Change to true for debugging.
   final debug = false;
 
-  String exampleDirectory;
-  String soundExampleDirectory;
+  late String exampleDirectory;
+  late String soundExampleDirectory;
   setUpAll(() async {
     configureLogWriter(debug);
     exampleDirectory =
@@ -309,14 +307,14 @@ void main() {
             var process = await runWebDev(args,
                 workingDirectory:
                     soundNullSafety ? soundExampleDirectory : exampleDirectory);
-            VmService vmService;
+            VmService? vmService;
 
             process.stdoutStream().listen(Logger.root.fine);
             process.stderrStream().listen(Logger.root.warning);
 
             try {
               // Wait for debug service Uri
-              String wsUri;
+              String? wsUri;
               await expectLater(process.stdout, emitsThrough((message) {
                 wsUri = getDebugServiceUri(message as String);
                 return wsUri != null;
@@ -324,29 +322,29 @@ void main() {
               Logger.root.fine('vm service uri: $wsUri');
               expect(wsUri, isNotNull);
 
-              vmService = await vmServiceConnectUri(wsUri);
+              vmService = await vmServiceConnectUri(wsUri!);
               var vm = await vmService.getVM();
-              var isolate = vm.isolates.first;
-              var scripts = await vmService.getScripts(isolate.id);
+              var isolate = vm.isolates!.first;
+              var scripts = await vmService.getScripts(isolate.id!);
 
               await vmService.streamListen('Debug');
               var stream = vmService.onEvent('Debug');
 
-              var mainScript = scripts.scripts
-                  .firstWhere((each) => each.uri.contains('main.dart'));
+              var mainScript = scripts.scripts!
+                  .firstWhere((each) => each.uri!.contains('main.dart'));
 
               var bpLine = await findBreakpointLine(
-                  vmService, 'printCounter', isolate.id, mainScript);
+                  vmService, 'printCounter', isolate.id!, mainScript);
 
               var bp = await vmService.addBreakpointWithScriptUri(
-                  isolate.id, mainScript.uri, bpLine);
+                  isolate.id!, mainScript.uri!, bpLine);
               expect(bp, isNotNull);
 
               await stream.firstWhere(
                   (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
               var result =
-                  await vmService.evaluateInFrame(isolate.id, 0, 'true');
+                  await vmService.evaluateInFrame(isolate.id!, 0, 'true');
               expect(
                   result,
                   const TypeMatcher<InstanceRef>().having(
@@ -372,25 +370,25 @@ void main() {
             var process = await runWebDev(args,
                 workingDirectory:
                     soundNullSafety ? soundExampleDirectory : exampleDirectory);
-            VmService vmService;
+            VmService? vmService;
 
             try {
               // Wait for debug service Uri
-              String wsUri;
+              String? wsUri;
               await expectLater(process.stdout, emitsThrough((message) {
                 wsUri = getDebugServiceUri(message as String);
                 return wsUri != null;
               }));
               expect(wsUri, isNotNull);
 
-              vmService = await vmServiceConnectUri(wsUri);
+              vmService = await vmServiceConnectUri(wsUri!);
               var vm = await vmService.getVM();
-              var isolate = await vmService.getIsolate(vm.isolates.first.id);
+              var isolate = await vmService.getIsolate(vm.isolates!.first.id!);
               var library = isolate.rootLib;
 
               await vmService.streamListen('Debug');
 
-              var result = await vmService.evaluate(isolate.id, library.id,
+              var result = await vmService.evaluate(isolate.id!, library!.id!,
                   '(document?.body?.children?.first as SpanElement)?.text');
 
               expect(
@@ -401,7 +399,7 @@ void main() {
                       'Hello World!!'));
 
               result = await vmService.evaluate(
-                  isolate.id, library.id, 'main.toString()');
+                  isolate.id!, library.id!, 'main.toString()');
 
               expect(
                   result,
@@ -429,41 +427,41 @@ void main() {
             var process = await runWebDev(args,
                 workingDirectory:
                     soundNullSafety ? soundExampleDirectory : exampleDirectory);
-            VmService vmService;
+            VmService? vmService;
 
             try {
               // Wait for debug service Uri
-              String wsUri;
+              String? wsUri;
               await expectLater(process.stdout, emitsThrough((message) {
                 wsUri = getDebugServiceUri(message as String);
                 return wsUri != null;
               }));
               expect(wsUri, isNotNull);
 
-              vmService = await vmServiceConnectUri(wsUri);
+              vmService = await vmServiceConnectUri(wsUri!);
               var vm = await vmService.getVM();
-              var isolate = vm.isolates.first;
-              var scripts = await vmService.getScripts(isolate.id);
+              var isolate = vm.isolates!.first;
+              var scripts = await vmService.getScripts(isolate.id!);
 
               await vmService.streamListen('Debug');
               var stream = vmService.onEvent('Debug');
 
-              var mainScript = scripts.scripts
-                  .firstWhere((each) => each.uri.contains('main.dart'));
+              var mainScript = scripts.scripts!
+                  .firstWhere((each) => each.uri!.contains('main.dart'));
 
               var bpLine = await findBreakpointLine(
-                  vmService, 'printCounter', isolate.id, mainScript);
+                  vmService, 'printCounter', isolate.id!, mainScript);
 
               var bp = await vmService.addBreakpointWithScriptUri(
-                  isolate.id, mainScript.uri, bpLine);
+                  isolate.id!, mainScript.uri!, bpLine);
               expect(bp, isNotNull);
 
               var event = await stream.firstWhere(
                   (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
               expect(
-                  () => vmService.evaluateInFrame(
-                      isolate.id, event.topFrame.index, 'true'),
+                  () => vmService!.evaluateInFrame(
+                      isolate.id!, event.topFrame!.index!, 'true'),
                   throwsRPCError);
             } finally {
               await vmService?.dispose();
@@ -484,27 +482,27 @@ void main() {
             var process = await runWebDev(args,
                 workingDirectory:
                     soundNullSafety ? soundExampleDirectory : exampleDirectory);
-            VmService vmService;
+            VmService? vmService;
 
             try {
               // Wait for debug service Uri
-              String wsUri;
+              String? wsUri;
               await expectLater(process.stdout, emitsThrough((message) {
                 wsUri = getDebugServiceUri(message as String);
                 return wsUri != null;
               }));
               expect(wsUri, isNotNull);
 
-              vmService = await vmServiceConnectUri(wsUri);
+              vmService = await vmServiceConnectUri(wsUri!);
               var vm = await vmService.getVM();
-              var isolate = await vmService.getIsolate(vm.isolates.first.id);
+              var isolate = await vmService.getIsolate(vm.isolates!.first.id!);
               var library = isolate.rootLib;
 
               await vmService.streamListen('Debug');
 
               expect(
-                  () => vmService.evaluate(
-                      isolate.id, library.id, 'main.toString()'),
+                  () => vmService!
+                      .evaluate(isolate.id!, library!.id!, 'main.toString()'),
                   throwsRPCError);
             } finally {
               await vmService?.dispose();

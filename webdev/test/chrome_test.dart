@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @Timeout(Duration(seconds: 60))
 import 'dart:async';
 import 'dart:io';
@@ -15,28 +13,28 @@ import 'package:webdev/src/serve/chrome.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 void main() {
-  Chrome chrome;
+  Chrome? chrome;
 
-  Future<void> launchChrome({int port, String userDataDir}) async {
+  Future<void> launchChrome({int? port, String? userDataDir}) async {
     chrome = await Chrome.start([_googleUrl],
         port: port ?? 0, userDataDir: userDataDir);
   }
 
   Future<void> openTab(String url) =>
-      chrome.chromeConnection.getUrl(_openTabUrl(url));
+      chrome!.chromeConnection.getUrl(_openTabUrl(url));
 
   Future<void> closeTab(ChromeTab tab) =>
-      chrome.chromeConnection.getUrl(_closeTabUrl(tab.id));
+      chrome!.chromeConnection.getUrl(_closeTabUrl(tab.id));
 
   Future<WipConnection> connectToTab(String url) async {
-    var tab = await chrome.chromeConnection.getTab((t) => t.url.contains(url));
+    var tab = await chrome!.chromeConnection.getTab((t) => t.url.contains(url));
     expect(tab, isNotNull);
-    return tab.connect();
+    return tab!.connect();
   }
 
   group('chrome with temp data dir', () {
     tearDown(() async {
-      var tabs = await chrome?.chromeConnection?.getTabs();
+      var tabs = await chrome?.chromeConnection.getTabs();
       if (tabs != null) {
         for (var tab in tabs) {
           await closeTab(tab);
@@ -53,7 +51,7 @@ void main() {
 
     test('has a working debugger', () async {
       await launchChrome();
-      var tabs = await chrome.chromeConnection.getTabs();
+      var tabs = await chrome!.chromeConnection.getTabs();
       expect(
           tabs,
           contains(const TypeMatcher<ChromeTab>()
@@ -62,7 +60,7 @@ void main() {
 
     test('uses open debug port if provided port is 0', () async {
       await launchChrome(port: 0);
-      expect(chrome.debugPort, isNot(equals(0)));
+      expect(chrome!.debugPort, isNot(equals(0)));
     });
 
     test('has correct profile path', () async {
@@ -84,16 +82,16 @@ void main() {
   });
 
   group('chrome with user data dir', () {
-    Directory dataDir;
-    StreamController<String> logController;
-    Stream<String> logStream;
+    late Directory dataDir;
+    late StreamController<String> logController;
+    late Stream<String> logStream;
 
     setUp(() {
       logController = StreamController<String>();
       logStream = logController.stream;
 
       void _logWriter(Level level, String message,
-          {String error, String loggerName, String stackTrace}) {
+          {String? error, String? loggerName, String? stackTrace}) {
         if (level >= Level.INFO) {
           logController.add('[$level] $loggerName: $message');
         }
@@ -104,7 +102,7 @@ void main() {
     });
 
     tearDown(() async {
-      var tabs = await chrome?.chromeConnection?.getTabs();
+      var tabs = await chrome?.chromeConnection.getTabs();
       if (tabs != null) {
         for (var tab in tabs) {
           await closeTab(tab);
@@ -121,7 +119,7 @@ void main() {
                 '.*chrome_user_data_copy')));
         await logController.close();
       }
-      dataDir?.deleteSync(recursive: true);
+      dataDir.deleteSync(recursive: true);
     });
 
     test('works with debug port', () async {
@@ -132,7 +130,7 @@ void main() {
     test('has a working debugger', () async {
       await launchChrome(userDataDir: dataDir.path);
 
-      var tabs = await chrome.chromeConnection.getTabs();
+      var tabs = await chrome!.chromeConnection.getTabs();
       expect(
           tabs,
           contains(const TypeMatcher<ChromeTab>()
@@ -160,7 +158,7 @@ void main() {
       var userDataDir = autoDetectChromeUserDataDirectory();
       expect(userDataDir, isNotNull);
 
-      expect(Directory(userDataDir).existsSync(), isTrue);
+      expect(Directory(userDataDir!).existsSync(), isTrue);
 
       await launchChrome(userDataDir: userDataDir);
       await openTab(_chromeVersionUrl);
@@ -188,14 +186,14 @@ String _openTabUrl(String url) => '/json/new?$url';
 String _closeTabUrl(String id) => '/json/close/$id';
 
 Future<String> _evaluateExpression(WipPage page, String expression) async {
-  var result = '';
+  String? result = '';
   while (result == null || result.isEmpty) {
     await Future.delayed(const Duration(milliseconds: 100));
     var wipResponse = await page.sendCommand(
       'Runtime.evaluate',
       params: {'expression': expression},
     );
-    result = wipResponse.json['result']['result']['value'] as String;
+    result = wipResponse.json['result']['result']['value'] as String?;
   }
   return result;
 }
