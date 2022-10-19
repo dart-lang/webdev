@@ -81,9 +81,9 @@ class FrontendServerClient {
       if (enabledExperiments != null)
         for (var experiment in enabledExperiments)
           '--enable-experiment=$experiment',
-      if (additionalSources.isNotEmpty) ...[
+      for (var source in additionalSources) ...[
         '--source',
-        ...additionalSources,
+        source,
       ],
     ]);
     var feServerStdoutLines = StreamQueue(feServer.stdout
