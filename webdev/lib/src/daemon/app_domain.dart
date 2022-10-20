@@ -138,8 +138,8 @@ class AppDomain extends Domain {
     var params = args['params'] != null
         ? (args['params'] as Map<String, dynamic>)
         : <String, dynamic>{};
-    var response =
-        await appState.vmService!.callServiceExtension(methodName, args: params);
+    var response = await appState.vmService!
+        .callServiceExtension(methodName, args: params);
     return response.json;
   }
 
