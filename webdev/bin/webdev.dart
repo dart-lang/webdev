@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
@@ -52,4 +50,4 @@ Future main(List<String> args) async {
   }
 }
 
-String get _boldApp => styleBold.wrap(appName);
+String get _boldApp => styleBold.wrap(appName)!;

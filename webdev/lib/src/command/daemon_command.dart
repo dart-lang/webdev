@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -69,8 +67,8 @@ class DaemonCommand extends Command<int> {
     // Validate the pubspec first to ensure we are in a Dart project.
     var pubspecLock = await readPubspecLock(configuration);
 
-    Daemon daemon;
-    DevWorkflow workflow;
+    Daemon? daemon;
+    DevWorkflow? workflow;
     var cancelCount = 0;
     var cancelSub = StreamGroup.merge([
       ProcessSignal.sigint.watch(),
@@ -101,14 +99,14 @@ class DaemonCommand extends Command<int> {
       daemon.registerDomain(daemonDomain);
       var buildOptions = buildRunnerArgs(pubspecLock, configuration);
       var directoryArgs =
-          argResults.rest.where((arg) => !arg.startsWith('-')).toList();
+          argResults!.rest.where((arg) => !arg.startsWith('-')).toList();
       var targetPorts =
           parseDirectoryArgs(directoryArgs, basePort: await findUnusedPort());
       validateLaunchApps(configuration.launchApps, targetPorts.keys);
 
       workflow =
           await DevWorkflow.start(configuration, buildOptions, targetPorts);
-      daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
+      daemon.registerDomain(AppDomain(daemon, workflow.serverManager!));
       await daemon.onExit;
       exitCode = 0;
       return 0;
