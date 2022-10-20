@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -50,7 +48,7 @@ Future<String> prepareWorkspace() async {
   return exampleDirectory;
 }
 
-String getDebugServiceUri(String line) {
+String? getDebugServiceUri(String line) {
   var regex = RegExp(r'Debug service listening on (?<wsUri>[^\s^\\]*)');
   var match = regex.firstMatch(line);
   if (match != null) {
@@ -62,8 +60,8 @@ String getDebugServiceUri(String line) {
 
 Future<int> findBreakpointLine(VmService vmService, String breakpointId,
     String isolateId, ScriptRef scriptRef) async {
-  var script = await vmService.getObject(isolateId, scriptRef.id) as Script;
-  var lines = LineSplitter.split(script.source).toList();
+  var script = await vmService.getObject(isolateId, scriptRef.id!) as Script;
+  var lines = LineSplitter.split(script.source!).toList();
   var lineNumber =
       lines.indexWhere((l) => l.endsWith('// Breakpoint: $breakpointId'));
   if (lineNumber == -1) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @Timeout(Duration(minutes: 2))
 import 'package:test/test.dart';
 
@@ -11,7 +9,7 @@ import '../test_utils.dart';
 import 'utils.dart';
 
 void main() {
-  String exampleDirectory;
+  late String exampleDirectory;
 
   setUpAll(() async {
     exampleDirectory = await prepareWorkspace();

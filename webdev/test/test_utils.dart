@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -14,7 +12,7 @@ import 'package:webdev/src/util.dart';
 
 final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
 
-Future<TestProcess> runWebDev(List<String> args, {String workingDirectory}) {
+Future<TestProcess> runWebDev(List<String> args, {String? workingDirectory}) {
   var fullArgs = [_webdevBin, ...args];
 
   return TestProcess.start(dartPath, fullArgs,

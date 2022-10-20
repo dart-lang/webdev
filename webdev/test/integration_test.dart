@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -156,7 +154,7 @@ name: sample
               var webCompilersVersion = _supportedWebCompilersVersion;
               var buildDaemonVersion = _supportedBuildDaemonVersion;
 
-              String supportedRange;
+              late String supportedRange;
               switch (entry.key) {
                 case 'build_runner':
                   buildRunnerVersion = version;
@@ -272,9 +270,9 @@ const _supportedWebCompilersVersion = '2.12.0';
 const _supportedBuildDaemonVersion = '2.0.0';
 
 String _pubspecLock(
-    {String runnerVersion = _supportedBuildRunnerVersion,
-    String webCompilersVersion = _supportedWebCompilersVersion,
-    String daemonVersion = _supportedBuildDaemonVersion,
+    {String? runnerVersion = _supportedBuildRunnerVersion,
+    String? webCompilersVersion = _supportedWebCompilersVersion,
+    String? daemonVersion = _supportedBuildDaemonVersion,
     List<String> extraPkgs = const []}) {
   var buffer = StringBuffer('''
 # Copy-pasted from a valid run

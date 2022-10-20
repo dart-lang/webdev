@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 @Retry(0)
 
 import 'dart:async';
@@ -14,8 +12,8 @@ import 'package:test/test.dart';
 import 'package:webdev/src/serve/utils.dart';
 
 void main() {
-  Directory from;
-  Directory to;
+  late Directory from;
+  late Directory to;
 
   setUp(() {
     from = Directory.systemTemp.createTempSync('from');
@@ -23,8 +21,8 @@ void main() {
   });
 
   tearDown(() {
-    from?.deleteSync(recursive: true);
-    to?.deleteSync(recursive: true);
+    from.deleteSync(recursive: true);
+    to.deleteSync(recursive: true);
   });
 
   test('updatePath does nothing for non-existing directories', () async {
