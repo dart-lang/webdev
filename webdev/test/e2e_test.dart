@@ -324,8 +324,8 @@ void main() {
 
               vmService = await vmServiceConnectUri(wsUri!);
               var vm = await vmService.getVM();
-              var isolate = vm.isolates!.first;
-              var scripts = await vmService.getScripts(isolate.id!);
+              var isolateId = vm.isolates!.first.id!;
+              var scripts = await vmService.getScripts(isolateId);
 
               await vmService.streamListen('Debug');
               var stream = vmService.onEvent('Debug');
@@ -334,17 +334,17 @@ void main() {
                   .firstWhere((each) => each.uri!.contains('main.dart'));
 
               var bpLine = await findBreakpointLine(
-                  vmService, 'printCounter', isolate.id!, mainScript);
+                  vmService, 'printCounter', isolateId, mainScript);
 
               var bp = await vmService.addBreakpointWithScriptUri(
-                  isolate.id!, mainScript.uri!, bpLine);
+                  isolateId, mainScript.uri!, bpLine);
               expect(bp, isNotNull);
 
               await stream.firstWhere(
                   (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
               var result =
-                  await vmService.evaluateInFrame(isolate.id!, 0, 'true');
+                  await vmService.evaluateInFrame(isolateId, 0, 'true');
               expect(
                   result,
                   const TypeMatcher<InstanceRef>().having(
@@ -383,12 +383,13 @@ void main() {
 
               vmService = await vmServiceConnectUri(wsUri!);
               var vm = await vmService.getVM();
-              var isolate = await vmService.getIsolate(vm.isolates!.first.id!);
-              var library = isolate.rootLib;
+              var isolateId = vm.isolates!.first.id!;
+              var isolate = await vmService.getIsolate(isolateId);
+              var libraryId = isolate.rootLib!.id!;
 
               await vmService.streamListen('Debug');
 
-              var result = await vmService.evaluate(isolate.id!, library!.id!,
+              var result = await vmService.evaluate(isolateId, libraryId,
                   '(document?.body?.children?.first as SpanElement)?.text');
 
               expect(
@@ -399,7 +400,7 @@ void main() {
                       'Hello World!!'));
 
               result = await vmService.evaluate(
-                  isolate.id!, library.id!, 'main.toString()');
+                  isolateId, libraryId, 'main.toString()');
 
               expect(
                   result,
@@ -440,8 +441,8 @@ void main() {
 
               vmService = await vmServiceConnectUri(wsUri!);
               var vm = await vmService.getVM();
-              var isolate = vm.isolates!.first;
-              var scripts = await vmService.getScripts(isolate.id!);
+              var isolateId = vm.isolates!.first.id!;
+              var scripts = await vmService.getScripts(isolateId);
 
               await vmService.streamListen('Debug');
               var stream = vmService.onEvent('Debug');
@@ -450,10 +451,10 @@ void main() {
                   .firstWhere((each) => each.uri!.contains('main.dart'));
 
               var bpLine = await findBreakpointLine(
-                  vmService, 'printCounter', isolate.id!, mainScript);
+                  vmService, 'printCounter', isolateId, mainScript);
 
               var bp = await vmService.addBreakpointWithScriptUri(
-                  isolate.id!, mainScript.uri!, bpLine);
+                  isolateId, mainScript.uri!, bpLine);
               expect(bp, isNotNull);
 
               var event = await stream.firstWhere(
@@ -461,7 +462,7 @@ void main() {
 
               expect(
                   () => vmService!.evaluateInFrame(
-                      isolate.id!, event.topFrame!.index!, 'true'),
+                      isolateId, event.topFrame!.index!, 'true'),
                   throwsRPCError);
             } finally {
               await vmService?.dispose();
@@ -495,14 +496,15 @@ void main() {
 
               vmService = await vmServiceConnectUri(wsUri!);
               var vm = await vmService.getVM();
-              var isolate = await vmService.getIsolate(vm.isolates!.first.id!);
-              var library = isolate.rootLib;
+              var isolateId = vm.isolates!.first.id!;
+              var isolate = await vmService.getIsolate(isolateId);
+              var libraryId = isolate.rootLib!.id!;
 
               await vmService.streamListen('Debug');
 
               expect(
                   () => vmService!
-                      .evaluate(isolate.id!, library!.id!, 'main.toString()'),
+                      .evaluate(isolateId, libraryId, 'main.toString()'),
                   throwsRPCError);
             } finally {
               await vmService?.dispose();
