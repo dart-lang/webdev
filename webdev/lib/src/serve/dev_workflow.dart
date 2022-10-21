@@ -158,7 +158,7 @@ class DevWorkflow {
   final BuildDaemonClient _client;
   final Chrome? _chrome;
 
-  final ServerManager? serverManager;
+  final ServerManager serverManager;
   StreamSubscription? _resultsSub;
 
   final _wrapWidth = stdout.hasTerminal ? stdout.terminalColumns - 8 : 72;
@@ -207,7 +207,7 @@ class DevWorkflow {
     await _resultsSub?.cancel();
     await _chrome?.close();
     await _client.close();
-    await serverManager?.stop();
+    await serverManager.stop();
     if (!_doneCompleter.isCompleted) _doneCompleter.complete();
   }
 }

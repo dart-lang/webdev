@@ -98,15 +98,16 @@ class DaemonCommand extends Command<int> {
       });
       daemon.registerDomain(daemonDomain);
       var buildOptions = buildRunnerArgs(pubspecLock, configuration);
+      var extraArgs = argResults?.rest ?? [];
       var directoryArgs =
-          argResults!.rest.where((arg) => !arg.startsWith('-')).toList();
+          extraArgs.where((arg) => !arg.startsWith('-')).toList();
       var targetPorts =
           parseDirectoryArgs(directoryArgs, basePort: await findUnusedPort());
       validateLaunchApps(configuration.launchApps, targetPorts.keys);
 
       workflow =
           await DevWorkflow.start(configuration, buildOptions, targetPorts);
-      daemon.registerDomain(AppDomain(daemon, workflow.serverManager!));
+      daemon.registerDomain(AppDomain(daemon, workflow.serverManager));
       await daemon.onExit;
       exitCode = 0;
       return 0;

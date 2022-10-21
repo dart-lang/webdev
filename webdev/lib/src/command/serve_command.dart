@@ -98,8 +98,8 @@ refresh: Performs a full page refresh.
     // This isn't documented. Should it be advertised?
     var buildOptions = buildRunnerArgs(pubspecLock, configuration)
       ..addAll(argResults!.rest.where((arg) => arg.startsWith('-')).toList());
-    var directoryArgs =
-        argResults!.rest.where((arg) => !arg.startsWith('-')).toList();
+    var extraArgs = argResults?.rest ?? [];
+    var directoryArgs = extraArgs.where((arg) => !arg.startsWith('-')).toList();
     var targetPorts = parseDirectoryArgs(directoryArgs);
     validateLaunchApps(configuration.launchApps, targetPorts.keys);
 

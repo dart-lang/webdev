@@ -191,7 +191,7 @@ class AppDomain extends Domain {
     }
     // Note that this triggers the daemon to shutdown as we listen for the
     // tabConnection to close to initiate a shutdown.
-    await appState._debugConnection?.close();
+    await appState._debugConnection.close();
     // Wait for the daemon to gracefully shutdown before sending success.
     await daemon.onExit;
     return true;
@@ -208,21 +208,21 @@ class AppDomain extends Domain {
 }
 
 class _AppState {
-  final DebugConnection? _debugConnection;
-  final StreamSubscription<BuildResult>? _resultSub;
-  final StreamSubscription<Event>? _stdOutSub;
+  final DebugConnection _debugConnection;
+  final StreamSubscription<BuildResult> _resultSub;
+  final StreamSubscription<Event> _stdOutSub;
 
   bool _isDisposed = false;
 
-  VmService? get vmService => _debugConnection?.vmService;
+  VmService? get vmService => _debugConnection.vmService;
 
   _AppState(this._debugConnection, this._resultSub, this._stdOutSub);
 
   void dispose() {
     if (_isDisposed) return;
     _isDisposed = true;
-    _stdOutSub?.cancel();
-    _resultSub?.cancel();
-    _debugConnection?.close();
+    _stdOutSub.cancel();
+    _resultSub.cancel();
+    _debugConnection.close();
   }
 }
