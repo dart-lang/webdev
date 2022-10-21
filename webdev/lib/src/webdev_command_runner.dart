@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:args/args.dart';
@@ -18,7 +16,7 @@ import 'version.dart';
 export 'pubspec.dart' show PackageException;
 export 'util.dart' show appName;
 
-Future<int> run(List<String> args) => _CommandRunner().run(args);
+Future<int> run(List<String> args) async => (await _CommandRunner().run(args))!;
 
 class _CommandRunner extends CommandRunner<int> {
   _CommandRunner() : super(appName, 'A tool to develop Dart web projects.') {

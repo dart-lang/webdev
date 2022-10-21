@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -21,7 +19,7 @@ import 'utilites.dart';
 /// A collection of method and events relevant to the running application.
 class AppDomain extends Domain {
   bool _isShutdown = false;
-  int _buildProgressEventId;
+  int? _buildProgressEventId;
   var _progressEventId = 0;
 
   final _appStates = <String, _AppState>{};
@@ -58,7 +56,7 @@ class AppDomain extends Domain {
   }
 
   void _handleAppConnections(WebDevServer server) async {
-    var dwds = server.dwds;
+    var dwds = server.dwds!;
     // The connection is established right before `main()` is called.
     await for (var appConnection in dwds.connectedApps) {
       var debugConnection = await dwds.debugConnection(appConnection);
@@ -94,7 +92,7 @@ class AppDomain extends Domain {
       var stdOutSub = vmService.onStdoutEvent.listen((log) {
         sendEvent('app.log', {
           'appId': appId,
-          'log': utf8.decode(base64.decode(log.bytes)),
+          'log': utf8.decode(base64.decode(log.bytes!)),
         });
       });
       sendEvent('app.debugPort', {
@@ -129,19 +127,19 @@ class AppDomain extends Domain {
     _initialize(serverManager);
   }
 
-  Future<Map<String, dynamic>> _callServiceExtension(
+  Future<Map<String, dynamic>?> _callServiceExtension(
       Map<String, dynamic> args) async {
     var appId = getStringArg(args, 'appId', required: true);
     var appState = _appStates[appId];
     if (appState == null) {
       throw ArgumentError.value(appId, 'appId', 'Not found');
     }
-    var methodName = getStringArg(args, 'methodName', required: true);
+    var methodName = getStringArg(args, 'methodName', required: true)!;
     var params = args['params'] != null
         ? (args['params'] as Map<String, dynamic>)
         : <String, dynamic>{};
-    var response =
-        await appState.vmService.callServiceExtension(methodName, args: params);
+    var response = await appState.vmService!
+        .callServiceExtension(methodName, args: params);
     return response.json;
   }
 
@@ -168,7 +166,7 @@ class AppDomain extends Domain {
       'message': 'Performing hot restart...',
       'progressId': 'hot.restart',
     });
-    var response = await appState.vmService.callServiceExtension('hotRestart');
+    var response = await appState.vmService!.callServiceExtension('hotRestart');
     sendEvent('app.progress', {
       'appId': appId,
       'id': '$_progressEventId',
@@ -193,7 +191,7 @@ class AppDomain extends Domain {
     }
     // Note that this triggers the daemon to shutdown as we listen for the
     // tabConnection to close to initiate a shutdown.
-    await appState._debugConnection?.close();
+    await appState._debugConnection.close();
     // Wait for the daemon to gracefully shutdown before sending success.
     await daemon.onExit;
     return true;
@@ -216,15 +214,15 @@ class _AppState {
 
   bool _isDisposed = false;
 
-  VmService get vmService => _debugConnection?.vmService;
+  VmService? get vmService => _debugConnection.vmService;
 
   _AppState(this._debugConnection, this._resultSub, this._stdOutSub);
 
   void dispose() {
     if (_isDisposed) return;
     _isDisposed = true;
-    _stdOutSub?.cancel();
-    _resultSub?.cancel();
-    _debugConnection?.close();
+    _stdOutSub.cancel();
+    _resultSub.cancel();
+    _debugConnection.close();
   }
 }
