@@ -8,6 +8,7 @@ import 'package:built_value/serializer.dart';
 import 'build_result.dart';
 import 'connect_request.dart';
 import 'debug_event.dart';
+import 'debug_info.dart';
 import 'devtools_request.dart';
 import 'error_response.dart';
 import 'extension_request.dart';

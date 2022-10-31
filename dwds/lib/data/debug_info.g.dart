@@ -47,10 +47,10 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
         ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
     }
-    value = object.appUri;
+    value = object.appUrl;
     if (value != null) {
       result
-        ..add('appUri')
+        ..add('appUrl')
         ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
     }
@@ -61,12 +61,19 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
         ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
     }
-    value = object.extensionUri;
+    value = object.extensionUrl;
     if (value != null) {
       result
-        ..add('extensionUri')
+        ..add('extensionUrl')
         ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
+    }
+    value = object.isInternalBuild;
+    if (value != null) {
+      result
+        ..add('isInternalBuild')
+        ..add(
+            serializers.serialize(value, specifiedType: const FullType(bool)));
     }
     return result;
   }
@@ -98,17 +105,21 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
           result.appOrigin = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
           break;
-        case 'appUri':
-          result.appUri = serializers.deserialize(value,
+        case 'appUrl':
+          result.appUrl = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
           break;
         case 'dwdsVersion':
           result.dwdsVersion = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
           break;
-        case 'extensionUri':
-          result.extensionUri = serializers.deserialize(value,
+        case 'extensionUrl':
+          result.extensionUrl = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
+          break;
+        case 'isInternalBuild':
+          result.isInternalBuild = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool?;
           break;
       }
     }
@@ -127,11 +138,13 @@ class _$DebugInfo extends DebugInfo {
   @override
   final String? appOrigin;
   @override
-  final String? appUri;
+  final String? appUrl;
   @override
   final String? dwdsVersion;
   @override
-  final String? extensionUri;
+  final String? extensionUrl;
+  @override
+  final bool? isInternalBuild;
 
   factory _$DebugInfo([void Function(DebugInfoBuilder)? updates]) =>
       (new DebugInfoBuilder()..update(updates))._build();
@@ -141,9 +154,10 @@ class _$DebugInfo extends DebugInfo {
       this.appId,
       this.appInstanceId,
       this.appOrigin,
-      this.appUri,
+      this.appUrl,
       this.dwdsVersion,
-      this.extensionUri})
+      this.extensionUrl,
+      this.isInternalBuild})
       : super._();
 
   @override
@@ -161,9 +175,10 @@ class _$DebugInfo extends DebugInfo {
         appId == other.appId &&
         appInstanceId == other.appInstanceId &&
         appOrigin == other.appOrigin &&
-        appUri == other.appUri &&
+        appUrl == other.appUrl &&
         dwdsVersion == other.dwdsVersion &&
-        extensionUri == other.extensionUri;
+        extensionUrl == other.extensionUrl &&
+        isInternalBuild == other.isInternalBuild;
   }
 
   @override
@@ -172,12 +187,16 @@ class _$DebugInfo extends DebugInfo {
         $jc(
             $jc(
                 $jc(
-                    $jc($jc($jc(0, appEntrypointPath.hashCode), appId.hashCode),
-                        appInstanceId.hashCode),
-                    appOrigin.hashCode),
-                appUri.hashCode),
-            dwdsVersion.hashCode),
-        extensionUri.hashCode));
+                    $jc(
+                        $jc(
+                            $jc($jc(0, appEntrypointPath.hashCode),
+                                appId.hashCode),
+                            appInstanceId.hashCode),
+                        appOrigin.hashCode),
+                    appUrl.hashCode),
+                dwdsVersion.hashCode),
+            extensionUrl.hashCode),
+        isInternalBuild.hashCode));
   }
 
   @override
@@ -187,9 +206,10 @@ class _$DebugInfo extends DebugInfo {
           ..add('appId', appId)
           ..add('appInstanceId', appInstanceId)
           ..add('appOrigin', appOrigin)
-          ..add('appUri', appUri)
+          ..add('appUrl', appUrl)
           ..add('dwdsVersion', dwdsVersion)
-          ..add('extensionUri', extensionUri))
+          ..add('extensionUrl', extensionUrl)
+          ..add('isInternalBuild', isInternalBuild))
         .toString();
   }
 }
@@ -215,17 +235,22 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
   String? get appOrigin => _$this._appOrigin;
   set appOrigin(String? appOrigin) => _$this._appOrigin = appOrigin;
 
-  String? _appUri;
-  String? get appUri => _$this._appUri;
-  set appUri(String? appUri) => _$this._appUri = appUri;
+  String? _appUrl;
+  String? get appUrl => _$this._appUrl;
+  set appUrl(String? appUrl) => _$this._appUrl = appUrl;
 
   String? _dwdsVersion;
   String? get dwdsVersion => _$this._dwdsVersion;
   set dwdsVersion(String? dwdsVersion) => _$this._dwdsVersion = dwdsVersion;
 
-  String? _extensionUri;
-  String? get extensionUri => _$this._extensionUri;
-  set extensionUri(String? extensionUri) => _$this._extensionUri = extensionUri;
+  String? _extensionUrl;
+  String? get extensionUrl => _$this._extensionUrl;
+  set extensionUrl(String? extensionUrl) => _$this._extensionUrl = extensionUrl;
+
+  bool? _isInternalBuild;
+  bool? get isInternalBuild => _$this._isInternalBuild;
+  set isInternalBuild(bool? isInternalBuild) =>
+      _$this._isInternalBuild = isInternalBuild;
 
   DebugInfoBuilder();
 
@@ -236,9 +261,10 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
       _appId = $v.appId;
       _appInstanceId = $v.appInstanceId;
       _appOrigin = $v.appOrigin;
-      _appUri = $v.appUri;
+      _appUrl = $v.appUrl;
       _dwdsVersion = $v.dwdsVersion;
-      _extensionUri = $v.extensionUri;
+      _extensionUrl = $v.extensionUrl;
+      _isInternalBuild = $v.isInternalBuild;
       _$v = null;
     }
     return this;
@@ -265,9 +291,10 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
             appId: appId,
             appInstanceId: appInstanceId,
             appOrigin: appOrigin,
-            appUri: appUri,
+            appUrl: appUrl,
             dwdsVersion: dwdsVersion,
-            extensionUri: extensionUri);
+            extensionUrl: extensionUrl,
+            isInternalBuild: isInternalBuild);
     replace(_$result);
     return _$result;
   }

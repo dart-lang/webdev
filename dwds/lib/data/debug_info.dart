@@ -22,4 +22,5 @@ abstract class DebugInfo implements Built<DebugInfo, DebugInfoBuilder> {
   String? get appUrl;
   String? get dwdsVersion;
   String? get extensionUrl;
+  bool? get isInternalBuild;
 }
