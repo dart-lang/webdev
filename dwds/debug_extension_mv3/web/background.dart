@@ -23,7 +23,7 @@ void _registerListeners() {
 
   // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop((_) async {
-    _keepDebugSessionAlive();
+    // _keepDebugSessionAlive();
     _createTab('https://www.wikipedia.org/', inNewWindow: true);
   }));
 }
