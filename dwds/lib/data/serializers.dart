@@ -24,6 +24,7 @@ part 'serializers.g.dart';
   BuildResult,
   ConnectRequest,
   DebugEvent,
+  DebugInfo,
   DevToolsRequest,
   DevToolsResponse,
   IsolateExit,

@@ -8,41 +8,63 @@ library background;
 import 'dart:html';
 
 import 'package:js/js.dart';
+import 'package:dwds/data/debug_info.dart';
 
 import 'chrome_api.dart';
+import 'messaging.dart';
+import 'web_api.dart';
 
 void main() {
+  _registerListeners();
+}
+
+void _registerListeners() {
+  chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
+
   // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop((_) async {
-    await _createDebugTab();
-    await _executeInjectorScript();
+    _keepDebugSessionAlive();
+    _createTab('https://www.wikipedia.org/', inNewWindow: true);
   }));
 }
 
-Future<Tab> _createDebugTab() async {
-  final url = chrome.runtime.getURL('debug_tab.html');
+void _handleRuntimeMessages(
+    dynamic jsRequest, MessageSender sender, Function sendResponse) async {
+  if (jsRequest is! String) return;
+
+  interceptMessage<DebugInfo>(
+      message: jsRequest,
+      expectedType: MessageType.debugInfo,
+      expectedSender: Script.detector,
+      expectedRecipient: Script.background,
+      messageHandler: (DebugInfo debugInfo) async {
+        final currentTab = await _getTab();
+        if (currentTab == null) return;
+
+        final currentUrl = currentTab.url;
+        final appUrl = debugInfo.appUrl;
+        console.log('APP URL: $appUrl');
+        console.log('CURRENT URL: $currentUrl');
+      });
+}
+
+Future<Tab> _createTab(String url, {bool inNewWindow = false}) async {
+  if (inNewWindow) {
+    final windowPromise = chrome.windows.create(
+      WindowInfo(focused: true, url: url, state: 'minimized'),
+    );
+    final windowObj = await promiseToFuture<WindowObj>(windowPromise);
+    return windowObj.tabs.first;
+  }
   final tabPromise = chrome.tabs.create(TabInfo(
-    active: false,
-    pinned: true,
+    active: true,
     url: url,
   ));
   return promiseToFuture<Tab>(tabPromise);
 }
 
-Future<void> _executeInjectorScript() async {
-  final tabId = await _getTabId();
-  if (tabId != null) {
-    chrome.scripting.executeScript(
-      InjectDetails(
-          target: Target(tabId: tabId), files: ['iframe_injector.dart.js']),
-      /*callback*/ null,
-    );
-  }
-}
-
-Future<int?> _getTabId() async {
+Future<Tab?> _getTab() async {
   final query = QueryInfo(active: true, currentWindow: true);
   final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
-  final tab = tabs.isNotEmpty ? tabs.first : null;
-  return tab?.id;
+  return tabs.isNotEmpty ? tabs.first : null;
 }
