@@ -82,7 +82,8 @@ void interceptMessage<T>({
         decodedMessage.from != expectedSender) {
       return;
     }
-    messageHandler(serializers.deserialize(decodedMessage.encodedBody) as T);
+    messageHandler(
+        serializers.deserialize(jsonDecode(decodedMessage.encodedBody)) as T);
   } catch (error) {
     console.warn(
         'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error');

@@ -12,7 +12,6 @@ import 'package:dwds/data/debug_info.dart';
 
 import 'chrome_api.dart';
 import 'messaging.dart';
-import 'web_api.dart';
 
 void main() {
   _registerListeners();
@@ -23,8 +22,8 @@ void _registerListeners() {
 
   // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop((_) async {
-    // _keepDebugSessionAlive();
-    _createTab('https://www.wikipedia.org/', inNewWindow: true);
+    // TODO(elliette): Start debug session instead.
+    _createTab('https://dart.dev/', inNewWindow: true);
   }));
 }
 
@@ -39,19 +38,18 @@ void _handleRuntimeMessages(
       expectedRecipient: Script.background,
       messageHandler: (DebugInfo debugInfo) async {
         final currentTab = await _getTab();
-        if (currentTab == null) return;
-
-        final currentUrl = currentTab.url;
-        final appUrl = debugInfo.appUrl;
-        console.log('APP URL: $appUrl');
-        console.log('CURRENT URL: $currentUrl');
+        final currentUrl = currentTab?.url ?? '';
+        final appUrl = debugInfo.appUrl ?? '';
+        if (currentUrl.isEmpty || appUrl.isEmpty || currentUrl != appUrl) return;
+        // Update the icon to show that a Dart app has been detected:
+        chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
       });
 }
 
 Future<Tab> _createTab(String url, {bool inNewWindow = false}) async {
   if (inNewWindow) {
     final windowPromise = chrome.windows.create(
-      WindowInfo(focused: true, url: url, state: 'minimized'),
+      WindowInfo(focused: true, url: url),
     );
     final windowObj = await promiseToFuture<WindowObj>(windowPromise);
     return windowObj.tabs.first;
