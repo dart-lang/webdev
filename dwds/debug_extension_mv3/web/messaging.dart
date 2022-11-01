@@ -33,14 +33,14 @@ class Message {
   final MessageType type;
   final Script to;
   final Script from;
-  final String encodedBody;
+  final String body;
   final String? error;
 
   Message({
     required this.type,
     required this.to,
     required this.from,
-    required this.encodedBody,
+    required this.body,
     this.error,
   });
 
@@ -51,7 +51,7 @@ class Message {
       type: MessageType.fromString(decoded['type'] as String),
       to: Script.fromString(decoded['to'] as String),
       from: Script.fromString(decoded['from'] as String),
-      encodedBody: decoded['encodedBody'] as String,
+      body: decoded['body'] as String,
       error: decoded['error'] as String?,
     );
   }
@@ -61,7 +61,7 @@ class Message {
       'type': type.name,
       'to': to.name,
       'from': from.name,
-      'encodedBody': encodedBody,
+      'body': body,
       if (error != null) 'error': error,
     });
   }
@@ -83,7 +83,7 @@ void interceptMessage<T>({
       return;
     }
     messageHandler(
-        serializers.deserialize(jsonDecode(decodedMessage.encodedBody)) as T);
+        serializers.deserialize(jsonDecode(decodedMessage.body)) as T);
   } catch (error) {
     console.warn(
         'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error');

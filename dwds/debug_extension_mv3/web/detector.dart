@@ -29,19 +29,19 @@ void _onDartAppReadyEvent(Event event) {
   }
   _sendMessageToBackgroundScript(
     type: MessageType.debugInfo,
-    encodedBody: debugInfo,
+    body: debugInfo,
   );
 }
 
 void _sendMessageToBackgroundScript({
   required MessageType type,
-  required String encodedBody,
+  required String body,
 }) {
   final message = Message(
     to: Script.background,
     from: Script.detector,
     type: type,
-    encodedBody: encodedBody,
+    body: body,
   );
   chrome.runtime.sendMessage(
     /*id*/ null,

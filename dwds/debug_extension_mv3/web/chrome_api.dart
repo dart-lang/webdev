@@ -13,7 +13,6 @@ class Chrome {
   external Action get action;
   external Runtime get runtime;
   external Tabs get tabs;
-  external Windows get windows;
 }
 
 /// chrome.action APIs
@@ -75,18 +74,6 @@ class MessageSender {
 @anonymous
 class Tabs {
   external Object query(QueryInfo queryInfo);
-
-
-  external Object create(TabInfo tabInfo);
-}
-
-@JS()
-@anonymous
-class TabInfo {
-  external bool? get active;
-  external bool? get pinned;
-  external String? get url;
-  external factory TabInfo({bool? active, bool? pinned, String? url});
 }
 
 @JS()
@@ -103,28 +90,4 @@ class QueryInfo {
 class Tab {
   external int get id;
   external String get url;
-}
-
-/// chrome.windows APIs
-/// https://developer.chrome.com/docs/extensions/reference/windows
-
-@JS()
-@anonymous
-class Windows {
-  external Object create(WindowInfo? createData);
-}
-
-@JS()
-@anonymous
-class WindowInfo {
-  external bool? get focused;
-  external String? get url;
-  external factory WindowInfo({bool? focused, String? url});
-}
-
-@JS()
-@anonymous
-class WindowObj {
-  external int get id;
-  external List<Tab> get tabs;
 }
