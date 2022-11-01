@@ -30,16 +30,16 @@ enum MessageType {
 }
 
 class Message {
-  final MessageType type;
   final Script to;
   final Script from;
+  final MessageType type;
   final String body;
   final String? error;
 
   Message({
-    required this.type,
     required this.to,
     required this.from,
+    required this.type,
     required this.body,
     this.error,
   });
@@ -48,9 +48,9 @@ class Message {
     final decoded = jsonDecode(json) as Map<String, dynamic>;
 
     return Message(
-      type: MessageType.fromString(decoded['type'] as String),
       to: Script.fromString(decoded['to'] as String),
       from: Script.fromString(decoded['from'] as String),
+      type: MessageType.fromString(decoded['type'] as String),
       body: decoded['body'] as String,
       error: decoded['error'] as String?,
     );
@@ -58,9 +58,9 @@ class Message {
 
   String toJSON() {
     return jsonEncode({
-      'type': type.name,
       'to': to.name,
       'from': from.name,
+      'type': type.name,
       'body': body,
       if (error != null) 'error': error,
     });
