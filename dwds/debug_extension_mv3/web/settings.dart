@@ -31,5 +31,8 @@ void _updateSettingsFromStorage(Event event) {
 }
 
 void _saveSettingsToStorage(Event event) {
+  final devToolsOpener = document.getElementById('devToolsOpener') as SelectElement;
+  final openInNewWindow = devToolsOpener.value == 'window';
+
 
 }
