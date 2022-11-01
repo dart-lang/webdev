@@ -50,9 +50,9 @@ dev_dependencies:
   webdriver: ^3.0.0
 
 # Comment out before releasing webdev.
-dependency_overrides:
-  dwds:
-    path: ../dwds
+# dependency_overrides:
+#   dwds:
+#     path: ../dwds
 
 executables:
   webdev:
