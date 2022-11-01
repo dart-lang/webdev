@@ -14,12 +14,12 @@ import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/debug_event.dart';
+import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
-import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/src/sockets.dart';
 // NOTE(annagrin): using 'package:dwds/src/utilities/batched_stream.dart'
 // makes dart2js skip creating background.js, so we use a copy instead.

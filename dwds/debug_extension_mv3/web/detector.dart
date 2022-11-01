@@ -6,8 +6,8 @@
 library detector;
 
 import 'dart:html';
-import 'package:js/js.dart';
 import 'dart:js_util';
+import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'messaging.dart';
