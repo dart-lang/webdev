@@ -5,6 +5,7 @@
 @JS()
 library settings;
 
+import 'dart:convert';
 import 'dart:html';
 import 'dart:js_util';
 import 'package:js/js.dart';
@@ -12,6 +13,9 @@ import 'package:js/js.dart';
 import 'chrome_api.dart';
 import 'messaging.dart';
 import 'web_api.dart';
+import 'storage.dart';
+import 'data_serializers.dart';
+import 'data_types.dart';
 
 void main() {
   _registerListeners();
@@ -26,13 +30,15 @@ void _registerListeners() {
   }
 }
 
-void _updateSettingsFromStorage(Event event) {
+void _updateSettingsFromStorage(Event _) {
+
 
 }
 
-void _saveSettingsToStorage(Event event) {
-  final devToolsOpener = document.getElementById('devToolsOpener') as SelectElement;
-  final openInNewWindow = devToolsOpener.value == 'window';
-
-
+void _saveSettingsToStorage(Event _) {
+  final devToolsOpenerSelect =
+      document.getElementById('devToolsOpener') as SelectElement;
+  final json = jsonEncode(serializers.serialize(DevToolsOpener(
+      (b) => b..newWindow = devToolsOpenerSelect.value == 'window')));
+  setStorageObject(type: StorageObject.devToolsOpener, json: json);
 }

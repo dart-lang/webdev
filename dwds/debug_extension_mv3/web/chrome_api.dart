@@ -12,6 +12,7 @@ external Chrome get chrome;
 class Chrome {
   external Action get action;
   external Runtime get runtime;
+  external Storage get storage;
   external Tabs get tabs;
 }
 
@@ -65,6 +66,23 @@ class MessageSender {
   external Tab? get tab;
   external String? get url;
   external factory MessageSender({String? id, String? url, Tab? tab});
+}
+
+/// chrome.tabs APIs
+/// https://developer.chrome.com/docs/extensions/reference/storage
+
+@JS()
+@anonymous
+class Storage {
+  external StorageArea get local;
+}
+
+@JS()
+@anonymous
+class StorageArea {
+  external Object get(List<String> keys, void Function(Object result) callback);
+
+  external Object set(Object items, void Function()? callback);
 }
 
 /// chrome.tabs APIs
