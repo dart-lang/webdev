@@ -162,15 +162,14 @@ String _injectClientAndHoistMain(
   // application to be in a ready state, that is the main function is hoisted
   // and the Dart SDK is loaded.
   final injectedClientSnippet = _injectedClientSnippet(
-    appId,
-    devHandlerPath,
-    entrypointPath,
-    extensionUri,
-    loadStrategy,
-    enableDevtoolsLaunch,
-    emitDebugEvents,
-    isInternalBuild
-  );
+      appId,
+      devHandlerPath,
+      entrypointPath,
+      extensionUri,
+      loadStrategy,
+      enableDevtoolsLaunch,
+      emitDebugEvents,
+      isInternalBuild);
   result += '''
   // Injected by dwds for debugging support.
   if(!window.\$dwdsInitialized) {
