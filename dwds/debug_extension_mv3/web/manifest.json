@@ -26,5 +26,16 @@
     ],
     "background": {
         "service_worker": "background.dart.js"
-    }
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "detector.dart.js"
+            ],
+            "run_at": "document_end"
+        }
+    ]
 }

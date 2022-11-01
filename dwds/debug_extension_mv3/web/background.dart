@@ -5,44 +5,30 @@
 @JS()
 library background;
 
-import 'dart:html';
-
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
+import 'messaging.dart';
 
 void main() {
-  // Detect clicks on the Dart Debug Extension icon.
-  chrome.action.onClicked.addListener(allowInterop((_) async {
-    await _createDebugTab();
-    await _executeInjectorScript();
-  }));
+  _registerListeners();
 }
 
-Future<Tab> _createDebugTab() async {
-  final url = chrome.runtime.getURL('debug_tab.html');
-  final tabPromise = chrome.tabs.create(TabInfo(
-    active: false,
-    pinned: true,
-    url: url,
-  ));
-  return promiseToFuture<Tab>(tabPromise);
+void _registerListeners() {
+  chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
 }
 
-Future<void> _executeInjectorScript() async {
-  final tabId = await _getTabId();
-  if (tabId != null) {
-    chrome.scripting.executeScript(
-      InjectDetails(
-          target: Target(tabId: tabId), files: ['iframe_injector.dart.js']),
-      /*callback*/ null,
-    );
-  }
-}
+void _handleRuntimeMessages(
+    dynamic jsRequest, MessageSender sender, Function sendResponse) async {
+  if (jsRequest is! String) return;
 
-Future<int?> _getTabId() async {
-  final query = QueryInfo(active: true, currentWindow: true);
-  final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
-  final tab = tabs.isNotEmpty ? tabs.first : null;
-  return tab?.id;
+  interceptMessage(
+      message: jsRequest,
+      expectedSender: Script.detector,
+      expectedRecipient: Script.background,
+      expectedType: MessageType.dartAppReady,
+      messageHandler: (_) {
+        // Update the icon to show that a Dart app has been detected:
+        chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
+      });
 }
