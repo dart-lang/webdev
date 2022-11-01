@@ -1,4 +1,4 @@
-## 16.0.1-dev
+## 16.0.1
 
 - Allow the following API to return `null` and add error handling:
   - `LoadStrategy.serverPathForModule`
