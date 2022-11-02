@@ -7,10 +7,13 @@ import 'package:built_value/serializer.dart';
 
 part 'data_types.g.dart';
 
-abstract class DevToolsOpener implements Built<DevToolsOpener, DevToolsOpenerBuilder> {
-  static Serializer<DevToolsOpener> get serializer => _$devToolsOpenerSerializer;
+abstract class DevToolsOpener
+    implements Built<DevToolsOpener, DevToolsOpenerBuilder> {
+  static Serializer<DevToolsOpener> get serializer =>
+      _$devToolsOpenerSerializer;
 
-  factory DevToolsOpener([Function(DevToolsOpenerBuilder) updates]) = _$DevToolsOpener;
+  factory DevToolsOpener([Function(DevToolsOpenerBuilder) updates]) =
+      _$DevToolsOpener;
 
   DevToolsOpener._();
 

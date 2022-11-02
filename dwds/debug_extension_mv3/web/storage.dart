@@ -6,11 +6,13 @@
 library storage;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:js_util';
 
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
+import 'data_serializers.dart';
 
 enum StorageObject {
   devToolsOpener;
@@ -23,12 +25,13 @@ enum StorageObject {
   }
 }
 
-Future<bool> setStorageObject({
+Future<bool> setStorageObject<T>({
   required StorageObject type,
-  required String json,
+  required T value,
   void Function()? callback,
 }) {
   final storageKey = type.keyName;
+  final json = jsonEncode(serializers.serialize(value));
   final storageObj = <String, String>{storageKey: json};
   final completer = new Completer<bool>();
   chrome.storage.local.set(jsify(storageObj), allowInterop(() {
@@ -40,14 +43,17 @@ Future<bool> setStorageObject({
   return completer.future;
 }
 
-Future<String?> fetchStorageObject({
-  required StorageObject type
-}) {
+Future<T?> fetchStorageObject<T>({required StorageObject type}) {
   final storageKey = type.keyName;
-  final completer = new Completer<String?>();
+  final completer = new Completer<T?>();
   chrome.storage.local.get([storageKey], allowInterop((Object storageObj) {
     final json = getProperty(storageObj, storageKey) as String?;
-    completer.complete(json);
+    if (json == null) {
+      completer.complete(null);
+    } else {
+      final value = serializers.deserialize(jsonDecode(json)) as T;
+      completer.complete(value);
+    }
   }));
   return completer.future;
 }

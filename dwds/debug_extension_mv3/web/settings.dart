@@ -5,17 +5,13 @@
 @JS()
 library settings;
 
-import 'dart:convert';
+import 'dart:async';
 import 'dart:html';
-import 'dart:js_util';
+
 import 'package:js/js.dart';
 
-import 'chrome_api.dart';
-import 'messaging.dart';
-import 'web_api.dart';
-import 'storage.dart';
-import 'data_serializers.dart';
 import 'data_types.dart';
+import 'storage.dart';
 
 void main() {
   _registerListeners();
@@ -23,22 +19,39 @@ void main() {
 
 void _registerListeners() {
   document.addEventListener('DOMContentLoaded', _updateSettingsFromStorage);
-
-  final saveButton = document.getElementById('save');
-  if (saveButton != null) {
-    saveButton.addEventListener('click', _saveSettingsToStorage);
-  }
+  final saveButton = document.getElementById('saveButton') as ButtonElement;
+  saveButton.addEventListener('click', _saveSettingsToStorage);
 }
 
-void _updateSettingsFromStorage(Event _) {
-
-
+void _updateSettingsFromStorage(Event _) async {
+  final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
+      type: StorageObject.devToolsOpener);
+  final openInNewWindow = devToolsOpener?.newWindow ?? false;
+  _getRadioButton('windowOpt').checked = openInNewWindow;
+  _getRadioButton('tabOpt').checked = !openInNewWindow;
 }
 
-void _saveSettingsToStorage(Event _) {
-  final devToolsOpenerSelect =
-      document.getElementById('devToolsOpener') as SelectElement;
-  final json = jsonEncode(serializers.serialize(DevToolsOpener(
-      (b) => b..newWindow = devToolsOpenerSelect.value == 'window')));
-  setStorageObject(type: StorageObject.devToolsOpener, json: json);
+void _saveSettingsToStorage(Event event) async {
+  event.preventDefault();
+  final form = document.querySelector("form") as FormElement;
+  final data = FormData(form);
+  final devToolsOpenerValue = data.get('devToolsOpener') as String;
+  await setStorageObject<DevToolsOpener>(
+      type: StorageObject.devToolsOpener,
+      value: DevToolsOpener(
+          (b) => b..newWindow = devToolsOpenerValue == 'window'));
+  _showSavedMsg();
+}
+
+void _showSavedMsg() async {
+  final msgContainer = document.getElementById('savedMsg');
+  if (msgContainer == null) return;
+  msgContainer.innerHtml = 'Saved!';
+  await Timer(Duration(seconds: 3), () {
+    msgContainer.innerHtml = '';
+  });
+}
+
+RadioButtonInputElement _getRadioButton(String id) {
+  return document.getElementById(id) as RadioButtonInputElement;
 }
