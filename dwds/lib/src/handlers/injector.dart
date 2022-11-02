@@ -36,6 +36,7 @@ class DwdsInjector {
   final bool _enableDevtoolsLaunch;
   final bool _useSseForInjectedClient;
   final bool _emitDebugEvents;
+  final bool _isInternalBuild;
 
   DwdsInjector(
     this._loadStrategy, {
@@ -43,10 +44,12 @@ class DwdsInjector {
     bool enableDevtoolsLaunch = false,
     bool useSseForInjectedClient = true,
     bool emitDebugEvents = true,
+    bool isInternalBuild = false,
   })  : _extensionUri = extensionUri,
         _enableDevtoolsLaunch = enableDevtoolsLaunch,
         _useSseForInjectedClient = useSseForInjectedClient,
-        _emitDebugEvents = emitDebugEvents;
+        _emitDebugEvents = emitDebugEvents,
+        _isInternalBuild = isInternalBuild;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -111,6 +114,7 @@ class DwdsInjector {
                 _loadStrategy,
                 _enableDevtoolsLaunch,
                 _emitDebugEvents,
+                _isInternalBuild,
               );
               body += await _loadStrategy.bootstrapFor(entrypoint);
               _logger.info('Injected debugging metadata for '
@@ -144,6 +148,7 @@ String _injectClientAndHoistMain(
   LoadStrategy loadStrategy,
   bool enableDevtoolsLaunch,
   bool emitDebugEvents,
+  bool isInternalBuild,
 ) {
   final bodyLines = body.split('\n');
   final extensionIndex =
@@ -157,14 +162,14 @@ String _injectClientAndHoistMain(
   // application to be in a ready state, that is the main function is hoisted
   // and the Dart SDK is loaded.
   final injectedClientSnippet = _injectedClientSnippet(
-    appId,
-    devHandlerPath,
-    entrypointPath,
-    extensionUri,
-    loadStrategy,
-    enableDevtoolsLaunch,
-    emitDebugEvents,
-  );
+      appId,
+      devHandlerPath,
+      entrypointPath,
+      extensionUri,
+      loadStrategy,
+      enableDevtoolsLaunch,
+      emitDebugEvents,
+      isInternalBuild);
   result += '''
   // Injected by dwds for debugging support.
   if(!window.\$dwdsInitialized) {
@@ -198,6 +203,7 @@ String _injectedClientSnippet(
   LoadStrategy loadStrategy,
   bool enableDevtoolsLaunch,
   bool emitDebugEvents,
+  bool isInternalBuild,
 ) {
   var injectedBody = 'window.\$dartAppId = "$appId";\n'
       'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
@@ -208,6 +214,7 @@ String _injectedClientSnippet(
       'window.\$dwdsEnableDevtoolsLaunch = $enableDevtoolsLaunch;\n'
       'window.\$dartEntrypointPath = "$entrypointPath";\n'
       'window.\$dartEmitDebugEvents = $emitDebugEvents;\n'
+      'window.\$isInternalBuild = $isInternalBuild;\n'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';

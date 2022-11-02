@@ -6,9 +6,10 @@
         "default_icon": "dart_dev.png"
     },
     "permissions": [
+        "debugger",
         "scripting",
-        "tabs",
-        "debugger"
+        "storage",
+        "tabs"
     ],
     "host_permissions": [
         "<all_urls>"
@@ -37,5 +38,6 @@
             ],
             "run_at": "document_end"
         }
-    ]
+    ],
+    "options_page": "settings.html"
 }

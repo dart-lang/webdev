@@ -86,6 +86,7 @@ class Dwds {
     bool launchDevToolsInNewWindow = true,
     SdkConfigurationProvider? sdkConfigurationProvider,
     bool emitDebugEvents = true,
+    bool isInternalBuild = false,
   }) async {
     globalLoadStrategy = loadStrategy;
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();

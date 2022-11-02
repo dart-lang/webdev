@@ -6,10 +6,12 @@
 library detector;
 
 import 'dart:html';
+import 'dart:js_util';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'messaging.dart';
+import 'web_api.dart';
 
 void main() {
   _registerListeners();
@@ -20,9 +22,14 @@ void _registerListeners() {
 }
 
 void _onDartAppReadyEvent(Event event) {
+  final debugInfo = getProperty(event, 'detail') as String?;
+  if (debugInfo == null) {
+    console.warn('Can\'t debug Dart app without debug info.');
+    return;
+  }
   _sendMessageToBackgroundScript(
-    type: MessageType.dartAppReady,
-    body: 'Dart app ready!',
+    type: MessageType.debugInfo,
+    body: debugInfo,
   );
 }
 

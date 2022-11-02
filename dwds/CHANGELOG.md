@@ -1,12 +1,20 @@
+## 16.0.2-dev
+
+- Include debug information in the event sent from the injected client to the
+  Dart Debug Extension notifying that the Dart app is ready.
+- Include an optional param to `Dwds.start` to indicate whether it is running
+  internally or externally.
+
 ## 16.0.1
 
 - Allow the following API to return `null` and add error handling:
   - `LoadStrategy.serverPathForModule`
   - `LoadStrategy.sourceMapPathForModule`
 - Expression evaluation performance improvement:
-  - Batch `ChromeProxyService.evaluate()` requests that are close in time
-    and are executed in the same library and scope.
-- Update `package:file` version to `6.13` or greater to handle https://github.com/dart-lang/sdk/issues/49647.
+  - Batch `ChromeProxyService.evaluate()` requests that are close in time and
+    are executed in the same library and scope.
+- Update `package:file` version to `6.13` or greater to handle
+  https://github.com/dart-lang/sdk/issues/49647.
 
 ## 16.0.0
 
