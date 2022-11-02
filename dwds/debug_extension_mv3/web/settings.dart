@@ -43,11 +43,11 @@ void _saveSettingsToStorage(Event event) async {
   _showSavedMsg();
 }
 
-void _showSavedMsg() async {
+void _showSavedMsg() {
   final msgContainer = document.getElementById('savedMsg');
   if (msgContainer == null) return;
   msgContainer.innerHtml = 'Saved!';
-  await Timer(Duration(seconds: 3), () {
+  Timer(Duration(seconds: 3), () {
     msgContainer.innerHtml = '';
   });
 }

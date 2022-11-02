@@ -33,7 +33,7 @@ Future<bool> setStorageObject<T>({
   final storageKey = type.keyName;
   final json = jsonEncode(serializers.serialize(value));
   final storageObj = <String, String>{storageKey: json};
-  final completer = new Completer<bool>();
+  final completer = Completer<bool>();
   chrome.storage.local.set(jsify(storageObj), allowInterop(() {
     if (callback != null) {
       callback();
@@ -45,7 +45,7 @@ Future<bool> setStorageObject<T>({
 
 Future<T?> fetchStorageObject<T>({required StorageObject type}) {
   final storageKey = type.keyName;
-  final completer = new Completer<T?>();
+  final completer = Completer<T?>();
   chrome.storage.local.get([storageKey], allowInterop((Object storageObj) {
     final json = getProperty(storageObj, storageKey) as String?;
     if (json == null) {
