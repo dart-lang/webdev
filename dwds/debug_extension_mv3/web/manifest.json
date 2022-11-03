@@ -20,8 +20,7 @@
                 "<all_urls>"
             ],
             "resources": [
-                "iframe.html",
-                "iframe_injector.dart.js"
+                "background.dart.bootstrap.js"
             ]
         }
     ],

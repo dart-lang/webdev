@@ -5,6 +5,7 @@
 @JS()
 library background;
 
+import 'dart:async';
 import 'dart:html';
 
 import 'package:dwds/data/debug_info.dart';
@@ -12,9 +13,14 @@ import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'data_types.dart';
+import 'lifeline_ports.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'web_api.dart';
+
+/// Switch to true for debug logging.
+bool enableDebugLogging = false;
+
 
 void main() {
   _registerListeners();
@@ -38,19 +44,37 @@ void _handleRuntimeMessages(
       expectedRecipient: Script.background,
       messageHandler: (DebugInfo debugInfo) async {
         final currentTab = await _getTab();
-        final currentUrl = currentTab?.url ?? '';
+        if (currentTab == null) return;
+        final currentUrl = currentTab.url;
         final appUrl = debugInfo.appUrl ?? '';
         if (currentUrl.isEmpty || appUrl.isEmpty || currentUrl != appUrl) {
           console.warn(
               'Dart app detected at $appUrl but current tab is $currentUrl.');
-          return;
+        } else {
+          // Update the icon to show that a Dart app has been detected:
+          chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
         }
-        // Update the icon to show that a Dart app has been detected:
-        chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
+        final tabId = currentTab.id;
+        setStorageObject<DebugInfo>(
+          type: StorageObject.debugInfo,
+          value: debugInfo,
+          tabId: currentTab.id,
+        );
       });
 }
 
-void _startDebugSession(Tab _) async {
+void _startDebugSession(Tab currentTab) async {
+  final debugInfo = await fetchStorageObject(
+    type: StorageObject.debugInfo,
+    tabId: currentTab.id,
+  );
+  if (debugInfo == null) {
+    console.warn('Current tab is not a debuggable Dart app');
+    return;
+  }
+
+  createLifelinePortForTab(currentTab.id);
+
   // TODO(elliette): Start a debug session instead.
   final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
       type: StorageObject.devToolsOpener);

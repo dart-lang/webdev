@@ -12,6 +12,7 @@ external Chrome get chrome;
 class Chrome {
   external Action get action;
   external Runtime get runtime;
+  external Scripting get scripting;
   external Storage get storage;
   external Tabs get tabs;
   external Windows get windows;
@@ -47,11 +48,39 @@ class IconInfo {
 @JS()
 @anonymous
 class Runtime {
+  external void connect(String? extensionId, ConnectInfo info);
+
   external void sendMessage(
       String? id, Object? message, Object? options, Function? callback);
 
+  external ConnectionHandler get onConnect;
+
   external OnMessageHandler get onMessage;
 }
+
+@JS()
+@anonymous
+class ConnectInfo {
+  external String? get name;
+  external factory ConnectInfo({String? name});
+}
+
+@JS()
+@anonymous
+class Port {
+  external String? get name;
+
+  external void disconnect();
+
+  external ConnectionHandler get onDisconnect;
+}
+
+@JS()
+@anonymous
+class ConnectionHandler {
+  external void addListener(void Function(Port) callback);
+}
+
 
 @JS()
 @anonymous
@@ -69,6 +98,37 @@ class MessageSender {
   external factory MessageSender({String? id, String? url, Tab? tab});
 }
 
+/// chrome.scripting APIs
+/// https://developer.chrome.com/docs/extensions/reference/scripting
+
+@JS()
+@anonymous
+class Scripting {
+  external executeScript(InjectDetails details, Function? callback);
+}
+
+@JS()
+@anonymous
+class InjectDetails<T, U>{
+  external Target get target;
+  external T? get func;
+  external List<U?>? get args;
+  external List<String>? get files;
+  external factory InjectDetails({
+    Target target,
+    T? func,
+    List<U>? args,
+    List<String>? files,
+  });
+}
+
+@JS()
+@anonymous
+class Target {
+  external int get tabId;
+  external factory Target({int tabId});
+}
+
 /// chrome.tabs APIs
 /// https://developer.chrome.com/docs/extensions/reference/storage
 
@@ -76,6 +136,8 @@ class MessageSender {
 @anonymous
 class Storage {
   external StorageArea get local;
+
+  external StorageArea get session;
 }
 
 @JS()
