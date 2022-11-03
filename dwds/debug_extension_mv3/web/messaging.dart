@@ -7,6 +7,7 @@ library messaging;
 
 import 'dart:convert';
 
+import 'package:dwds/data/serializers.dart';
 import 'package:js/js.dart';
 
 import 'web_api.dart';
@@ -21,7 +22,7 @@ enum Script {
 }
 
 enum MessageType {
-  dartAppReady;
+  debugInfo;
 
   factory MessageType.fromString(String value) {
     return MessageType.values.byName(value);
@@ -57,34 +58,34 @@ class Message {
 
   String toJSON() {
     return jsonEncode({
-      'type': type.name,
       'to': to.name,
       'from': from.name,
-      'encodedBody': body,
+      'type': type.name,
+      'body': body,
       if (error != null) 'error': error,
     });
   }
 }
 
-void interceptMessage({
+void interceptMessage<T>({
   required String? message,
   required MessageType expectedType,
   required Script expectedSender,
   required Script expectedRecipient,
-  required void Function(String message) messageHandler,
+  required void Function(T message) messageHandler,
 }) {
+  if (message == null) return;
   try {
-    if (message == null) return;
     final decodedMessage = Message.fromJSON(message);
     if (decodedMessage.type != expectedType ||
         decodedMessage.to != expectedRecipient ||
         decodedMessage.from != expectedSender) {
       return;
     }
-    messageHandler(decodedMessage.body);
+    messageHandler(
+        serializers.deserialize(jsonDecode(decodedMessage.body)) as T);
   } catch (error) {
     console.warn(
-        'Error intercepting $expectedType message from $expectedSender to $expectedRecipient: $error');
-    return;
+        'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error');
   }
 }

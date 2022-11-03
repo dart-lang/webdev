@@ -8,11 +8,13 @@ library hot_reload_client;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
+import 'dart:js';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/data/connect_request.dart';
 import 'package:dwds/data/debug_event.dart';
+import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
 import 'package:dwds/data/register_event.dart';
@@ -170,7 +172,17 @@ Future<void>? main() {
       // If not Chromium we just invoke main, devtools aren't supported.
       runMain();
     }
-    dispatchEvent(CustomEvent('dart-app-ready'));
+    final windowContext = JsObject.fromBrowserObject(window);
+    final debugInfoJson = jsonEncode(serializers.serialize(DebugInfo((b) => b
+      ..appEntrypointPath = dartEntrypointPath
+      ..appId = windowContext['\$dartExtensionUri']
+      ..appInstanceId = dartAppInstanceId
+      ..appOrigin = window.location.origin
+      ..appUrl = window.location.href
+      ..extensionUrl = windowContext['\$dartExtensionUri']
+      ..isInternalBuild = windowContext['\$isInternalDartBuild'])));
+
+    dispatchEvent(CustomEvent('dart-app-ready', detail: debugInfoJson));
   }, (error, stackTrace) {
     print('''
 Unhandled error detected in the injected client.js script.
@@ -261,5 +273,8 @@ external set emitDebugEvent(void Function(String, String) func);
 
 @JS(r'$emitRegisterEvent')
 external set emitRegisterEvent(void Function(String) func);
+
+@JS(r'$isInternalDartBuild')
+external bool get isInternalDartBuild;
 
 bool get _isChromium => window.navigator.vendor.contains('Google');

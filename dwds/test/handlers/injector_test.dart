@@ -199,6 +199,13 @@ void main() {
       expect(result.body, contains('\$emitRegisterEvent'));
     });
 
+    test('the injected client contains a global \$isInternalDartBuild',
+        () async {
+      final result = await http.get(Uri.parse(
+          'http://localhost:${server.port}/dwds/src/injected/client.js'));
+      expect(result.body, contains('\$isInternalDartBuild'));
+    });
+
     test('serves the injected client', () async {
       final result = await http.get(Uri.parse(
           'http://localhost:${server.port}/dwds/src/injected/client.js'));

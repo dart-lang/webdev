@@ -12,6 +12,7 @@ external Chrome get chrome;
 class Chrome {
   external Action get action;
   external Runtime get runtime;
+  external Tabs get tabs;
 }
 
 /// chrome.action APIs
@@ -64,6 +65,24 @@ class MessageSender {
   external Tab? get tab;
   external String? get url;
   external factory MessageSender({String? id, String? url, Tab? tab});
+}
+
+/// chrome.tabs APIs
+/// https://developer.chrome.com/docs/extensions/reference/tabs
+
+@JS()
+@anonymous
+class Tabs {
+  external Object query(QueryInfo queryInfo);
+}
+
+@JS()
+@anonymous
+class QueryInfo {
+  external bool get active;
+  external bool get currentWindow;
+  external String get url;
+  external factory QueryInfo({bool? active, bool? currentWindow, String? url});
 }
 
 @JS()
