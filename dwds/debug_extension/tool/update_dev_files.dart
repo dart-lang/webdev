@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 void main() async {
-  await Future.wait([_updateManifestJson(),  _updateDevtoolsJs()]);
+  await Future.wait([_updateManifestJson(), _updateDevtoolsJs()]);
 }
 
 /// Adds the Googler extension key, updates the extension icon, and prefixes the
