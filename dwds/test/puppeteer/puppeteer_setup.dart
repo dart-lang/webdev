@@ -55,7 +55,6 @@ void main(List<String> arguments) async {
   // Install the node_modules:
   print('Installing node_modules...');
   await Process.run('npm', ['install']);
-  print('Starting the puppeteer tests...');
   final compiledExtensionDir = absoluteWebdevPath(
       currentPath: currentDir.path,
       relativeWebdevPath: 'dwds/debug_extension_mv3/compiled');
