@@ -1,5 +1,3 @@
 build/
 compiled/
-pupeteer_tests/node_modules
-pupeteer_tests/package-lock.json
 extension_key.txt
