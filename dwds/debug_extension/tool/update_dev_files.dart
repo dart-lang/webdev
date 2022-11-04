@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 void main() async {
-  _updateManifestJson();
-  _updateDevtoolsJs();
+  await Future.wait([_updateManifestJson(), _updateDevtoolsJs()]);
 }
 
 /// Adds the Googler extension key, updates the extension icon, and prefixes the
@@ -17,7 +17,7 @@ Future<void> _updateManifestJson() async {
   final extensionKey = await extensionKeyTxt.exists()
       ? await extensionKeyTxt.readAsString()
       : null;
-  _transformDevFile(manifestJson, (line) {
+  return _transformDevFile(manifestJson, (line) {
     if (_matchesKey(line: line, key: 'name')) {
       return [
         _newKeyValue(
