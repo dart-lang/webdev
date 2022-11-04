@@ -20,6 +20,14 @@ void main() {
 
 void _registerListeners() {
   chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
+
+  // Detect clicks on the Dart Debug Extension icon.
+  chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
+}
+
+void _startDebugSession(Tab _) async {
+  // TODO(elliette): Start a debug session instead.
+  _createTab('https://dart.dev/');
 }
 
 void _handleRuntimeMessages(
@@ -43,6 +51,14 @@ void _handleRuntimeMessages(
         // Update the icon to show that a Dart app has been detected:
         chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
       });
+}
+
+Future<Tab> _createTab(String url) async {
+  final tabPromise = chrome.tabs.create(TabInfo(
+    active: true,
+    url: url,
+  ));
+  return promiseToFuture<Tab>(tabPromise);
 }
 
 Future<Tab?> _getTab() async {

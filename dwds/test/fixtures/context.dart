@@ -161,12 +161,15 @@ class TestContext {
     bool verboseCompiler = false,
     SdkConfigurationProvider? sdkConfigurationProvider,
     bool useDebuggerModuleNames = false,
+    bool launchChrome = true,
   }) async {
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
     try {
       DartUri.currentDirectory = workingDirectory;
-      configureLogWriter();
+      if (launchChrome) {
+        configureLogWriter();
+      }
 
       _client = IOClient(HttpClient()
         ..maxConnectionsPerHost = 200
@@ -322,31 +325,34 @@ class TestContext {
       }
 
       final debugPort = await findUnusedPort();
-      // If the environment variable DWDS_DEBUG_CHROME is set to the string true
-      // then Chrome will be launched with a UI rather than headless.
-      // If the extension is enabled, then Chrome will be launched with a UI
-      // since headless Chrome does not support extensions.
-      final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
-          !enableDebugExtension;
-      if (enableDebugExtension) {
-        await _buildDebugExtension();
+      if (launchChrome) {
+        // If the environment variable DWDS_DEBUG_CHROME is set to the string true
+        // then Chrome will be launched with a UI rather than headless.
+        // If the extension is enabled, then Chrome will be launched with a UI
+        // since headless Chrome does not support extensions.
+        final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
+            !enableDebugExtension;
+        if (enableDebugExtension) {
+          await _buildDebugExtension();
+        }
+        final capabilities = Capabilities.chrome
+          ..addAll({
+            Capabilities.chromeOptions: {
+              'args': [
+                'remote-debugging-port=$debugPort',
+                if (enableDebugExtension)
+                  '--load-extension=debug_extension/prod_build',
+                if (headless) '--headless'
+              ]
+            }
+          });
+
+        _webDriver = await createDriver(
+            spec: WebDriverSpec.JsonWire,
+            desired: capabilities,
+            uri: Uri.parse(
+                'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
       }
-      final capabilities = Capabilities.chrome
-        ..addAll({
-          Capabilities.chromeOptions: {
-            'args': [
-              'remote-debugging-port=$debugPort',
-              if (enableDebugExtension)
-                '--load-extension=debug_extension/prod_build',
-              if (headless) '--headless'
-            ]
-          }
-        });
-      _webDriver = await createDriver(
-          spec: WebDriverSpec.JsonWire,
-          desired: capabilities,
-          uri: Uri.parse(
-              'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
       final connection = ChromeConnection('localhost', debugPort);
 
       _testServer = await TestServer.start(
@@ -373,25 +379,27 @@ class TestContext {
           ? 'http://localhost:$port/$path'
           : 'http://localhost:$port/$basePath/$path';
 
-      await _webDriver?.get(appUrl);
-      final tab = await connection.getTab((t) => t.url == appUrl);
-      if (tab != null) {
-        _tabConnection = await tab.connect();
-        await tabConnection.runtime.enable();
-        await tabConnection.debugger.enable();
-      } else {
-        throw StateError('Unable to connect to tab.');
-      }
+      if (launchChrome) {
+        await _webDriver?.get(appUrl);
+        final tab = await connection.getTab((t) => t.url == appUrl);
+        if (tab != null) {
+          _tabConnection = await tab.connect();
+          await tabConnection.runtime.enable();
+          await tabConnection.debugger.enable();
+        } else {
+          throw StateError('Unable to connect to tab.');
+        }
 
-      if (enableDebugExtension) {
-        final extensionTab = await _fetchDartDebugExtensionTab(connection);
-        extensionConnection = await extensionTab.connect();
-        await extensionConnection.runtime.enable();
-      }
+        if (enableDebugExtension) {
+          final extensionTab = await _fetchDartDebugExtensionTab(connection);
+          extensionConnection = await extensionTab.connect();
+          await extensionConnection.runtime.enable();
+        }
 
-      appConnection = await testServer.dwds.connectedApps.first;
-      if (enableDebugging && !waitToDebug) {
-        await startDebugging();
+        appConnection = await testServer.dwds.connectedApps.first;
+        if (enableDebugging && !waitToDebug) {
+          await startDebugging();
+        }
       }
     } catch (e) {
       await tearDown();
