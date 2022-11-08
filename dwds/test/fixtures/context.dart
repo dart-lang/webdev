@@ -76,6 +76,9 @@ class TestContext {
   Process get chromeDriver => _chromeDriver!;
   late Process? _chromeDriver;
 
+  String get browserUrl => _browserUrl!;
+  late String? _browserUrl;
+
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
 
@@ -148,6 +151,7 @@ class TestContext {
     ReloadConfiguration reloadConfiguration = ReloadConfiguration.none,
     bool serveDevTools = false,
     bool enableDebugExtension = false,
+    bool enableMv3DebugExtension = false,
     bool autoRun = true,
     bool enableDebugging = true,
     bool useSse = true,
@@ -326,27 +330,35 @@ class TestContext {
       // then Chrome will be launched with a UI rather than headless.
       // If the extension is enabled, then Chrome will be launched with a UI
       // since headless Chrome does not support extensions.
+      final debugExtensionBuild =
+          enableDebugExtension || enableMv3DebugExtension;
       final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
-          !enableDebugExtension;
-      if (enableDebugExtension) {
-        await _buildDebugExtension();
+          !debugExtensionBuild;
+      String? extensionDir;
+      if (debugExtensionBuild) {
+        extensionDir = await _buildDebugExtension(enableMv3DebugExtension);
       }
       final capabilities = Capabilities.chrome
         ..addAll({
           Capabilities.chromeOptions: {
             'args': [
               'remote-debugging-port=$debugPort',
-              if (enableDebugExtension)
-                '--load-extension=debug_extension/prod_build',
+              if (extensionDir != null) ...[
+                '--load-extension=$extensionDir',
+                '--disable-extensions-except=$extensionDir'
+              ],
               if (headless) '--headless'
             ]
           }
         });
+      _browserUrl = 'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/';
       _webDriver = await createDriver(
-          spec: WebDriverSpec.JsonWire,
-          desired: capabilities,
-          uri: Uri.parse(
-              'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
+        spec: WebDriverSpec.JsonWire,
+        desired: capabilities,
+        uri: Uri.parse(
+          browserUrl,
+        ),
+      );
       final connection = ChromeConnection('localhost', debugPort);
 
       _testServer = await TestServer.start(
@@ -444,18 +456,23 @@ class TestContext {
     await Future.delayed(delay);
   }
 
-  Future<void> _buildDebugExtension() async {
+  Future<String> _buildDebugExtension(bool isMv3) async {
     final currentDir = Directory.current.path;
     if (!currentDir.endsWith('dwds')) {
       throw StateError(
           'Expected to be in /dwds directory, instead path was $currentDir.');
     }
+    final extensionDirName = isMv3 ? 'debug_extension_mv3' : 'debug_extension';
     final process = await Process.run(
       'tool/build_extension.sh',
-      ['prod'],
-      workingDirectory: '$currentDir/debug_extension',
+      [
+        if (!isMv3) 'prod',
+      ],
+      workingDirectory: '$currentDir/$extensionDirName',
     );
     print(process.stdout);
+    final buildDirName = isMv3 ? 'compiled' : 'prod_build';
+    return '$extensionDirName/$buildDirName';
   }
 
   Future<ChromeTab> _fetchDartDebugExtensionTab(
