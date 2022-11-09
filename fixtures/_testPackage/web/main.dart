@@ -42,6 +42,7 @@ void main() {
     printLoopVariable();
     printObjectMultiLine(); // Breakpoint: callPrintObjectMultiLine
     printNestedObjectsMultiLine(); // Breakpoint: callPrintEnclosingFunctionMultiLine
+    printStream(); // Breakpoint: callPrintStream
   });
 
   document.body.appendText(concatenate('Program', ' is running!'));
@@ -118,6 +119,14 @@ void printObjectMultiLine() {
 
 void printEnclosingObject(EnclosingClass o) {
   print(o); // Breakpoint: printEnclosingObject
+}
+
+void printStream() {
+  var controller = StreamController<int>();
+  var stream = controller.stream.asBroadcastStream();
+  var subscription = stream.listen(print);
+  controller.sink.add(0);
+  subscription.cancel(); // Breakpoint: printStream
 }
 
 ClassWithMethod createObject() {

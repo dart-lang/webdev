@@ -373,7 +373,7 @@ class Debugger extends Domain {
     // Filter out variables that do not come from dart code, such as native
     // JavaScript objects
     return boundVariables
-        .where((bv) => bv != null && !isNativeJsObject(bv.value as InstanceRef))
+        .where((bv) => isDisplayableObject(bv?.value))
         .toList()
         .cast();
   }
@@ -743,6 +743,9 @@ Future<T> sendCommandAndValidateResult<T>(
   }
   return result;
 }
+
+bool isDisplayableObject(Object? object) =>
+    object is Sentinel || object is InstanceRef && !isNativeJsObject(object);
 
 bool isNativeJsObject(InstanceRef instanceRef) {
   // New type representation of JS objects reifies them to a type suffixed with
