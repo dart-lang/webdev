@@ -20,6 +20,14 @@ void main() {
 
 void _registerListeners() {
   chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
+
+  // Detect clicks on the Dart Debug Extension icon.
+  chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
+}
+
+Future<void> _startDebugSession(Tab _) async {
+  // TODO(elliette): Start a debug session instead.
+  await _createTab('https://dart.dev/');
 }
 
 void _handleRuntimeMessages(
@@ -49,4 +57,12 @@ Future<Tab?> _getTab() async {
   final query = QueryInfo(active: true, currentWindow: true);
   final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
   return tabs.isNotEmpty ? tabs.first : null;
+}
+
+Future<Tab> _createTab(String url) async {
+  final tabPromise = chrome.tabs.create(TabInfo(
+    active: true,
+    url: url,
+  ));
+  return promiseToFuture<Tab>(tabPromise);
 }
