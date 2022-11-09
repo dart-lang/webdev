@@ -69,7 +69,7 @@ class MessageSender {
   external factory MessageSender({String? id, String? url, Tab? tab});
 }
 
-/// chrome.tabs APIs
+/// chrome.storage APIs
 /// https://developer.chrome.com/docs/extensions/reference/storage
 
 @JS()

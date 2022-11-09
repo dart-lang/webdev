@@ -27,6 +27,14 @@ void _registerListeners() {
   chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
 }
 
+Future<void> _startDebugSession(Tab _) async {
+  // TODO(elliette): Start a debug session instead.
+  final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
+      type: StorageObject.devToolsOpener);
+  await _createTab('https://dart.dev/',
+      inNewWindow: devToolsOpener?.newWindow ?? false);
+}
+
 void _handleRuntimeMessages(
     dynamic jsRequest, MessageSender sender, Function sendResponse) async {
   if (jsRequest is! String) return;
@@ -50,12 +58,10 @@ void _handleRuntimeMessages(
       });
 }
 
-void _startDebugSession(Tab _) async {
-  // TODO(elliette): Start a debug session instead.
-  final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
-      type: StorageObject.devToolsOpener);
-  _createTab('https://dart.dev/',
-      inNewWindow: devToolsOpener?.newWindow ?? false);
+Future<Tab?> _getTab() async {
+  final query = QueryInfo(active: true, currentWindow: true);
+  final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
+  return tabs.isNotEmpty ? tabs.first : null;
 }
 
 Future<Tab> _createTab(String url, {bool inNewWindow = false}) async {
@@ -71,10 +77,4 @@ Future<Tab> _createTab(String url, {bool inNewWindow = false}) async {
     url: url,
   ));
   return promiseToFuture<Tab>(tabPromise);
-}
-
-Future<Tab?> _getTab() async {
-  final query = QueryInfo(active: true, currentWindow: true);
-  final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
-  return tabs.isNotEmpty ? tabs.first : null;
 }

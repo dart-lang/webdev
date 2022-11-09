@@ -24,6 +24,7 @@ import 'package:dwds/src/sockets.dart';
 // NOTE(annagrin): using 'package:dwds/src/utilities/batched_stream.dart'
 // makes dart2js skip creating background.js, so we use a copy instead.
 // import 'package:dwds/src/utilities/batched_stream.dart';
+// Issue: https://github.com/dart-lang/sdk/issues/49973
 import 'package:dwds/src/web_utilities/batched_stream.dart';
 import 'package:js/js.dart';
 import 'package:sse/client/sse_client.dart';
