@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(elliette): Enable on Windows, see https://github.com/dart-lang/webdev/issues/1724.
+@OnPlatform({
+  'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
+})
 import 'dart:io';
 
 import 'package:puppeteer/puppeteer.dart';
@@ -20,7 +24,7 @@ void main() async {
       setUpAll(() async {
         // TODO(elliette): Only start a TestServer, that way we can get rid of
         // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
-        await context.setUp(launchChrome: false, useSse: true);
+        await context.setUp(launchChrome: false, useSse: useSse);
         final extensionPath = await _buildDebugExtension();
         browser = await puppeteer.launch(
           headless: false,

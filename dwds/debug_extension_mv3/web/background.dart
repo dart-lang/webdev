@@ -25,7 +25,7 @@ void _registerListeners() {
   chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
 }
 
-void _startDebugSession(Tab _) async {
+Future<void> _startDebugSession(Tab _) async {
   // TODO(elliette): Start a debug session instead.
   await _createTab('https://dart.dev/');
 }
