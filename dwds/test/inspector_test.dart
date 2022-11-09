@@ -84,6 +84,20 @@ void main() {
     });
   });
 
+  group('mapExceptionStackTrace', () {
+    test('with a stack trace', () async {
+      final result =
+          await inspector.mapExceptionStackTrace(jsExceptionWithStackTrace);
+      expect(result, equals(formattedWithStackTrace));
+    });
+
+    test('without a stack trace', () async {
+      final result =
+          await inspector.mapExceptionStackTrace(jsExceptionNoStackTrace);
+      expect(result, equals(formattedNoStackTrace));
+    });
+  });
+
   test('send toString', () async {
     final remoteObject = await libraryPublicFinal();
     final toString =
@@ -203,3 +217,29 @@ void main() {
     });
   });
 }
+
+final jsExceptionWithStackTrace = '''
+Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
+false
+"THIS IS THE ASSERT MESSAGE"
+    at Object.assertFailed (org-dartlang-app:///web/scopes_main.dart.js:5297:15)
+''';
+
+final formattedWithStackTrace = '''
+Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
+false
+"THIS IS THE ASSERT MESSAGE"
+org-dartlang-app:///web/scopes_main.dart.js 5297:15  assertFailed
+''';
+
+final jsExceptionNoStackTrace = '''
+Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
+false
+"THIS IS THE ASSERT MESSAGE"
+''';
+
+final formattedNoStackTrace = '''
+Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
+false
+"THIS IS THE ASSERT MESSAGE"
+''';
