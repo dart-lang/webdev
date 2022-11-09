@@ -6,10 +6,12 @@
 @OnPlatform({
   'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
 })
+import 'dart:async';
 import 'dart:io';
 
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
+import 'package:path/path.dart' as p;
 
 import '../fixtures/context.dart';
 
@@ -19,7 +21,7 @@ late Browser browser;
 final context = TestContext();
 
 void main() async {
-  for (var useSse in [true, false]) {
+  for (var useSse in [true]) {
     group(useSse ? 'SSE' : 'WebSockets', () {
       setUpAll(() async {
         // TODO(elliette): Only start a TestServer, that way we can get rid of
@@ -37,6 +39,7 @@ void main() async {
 
         serviceWorkerTarget = await browser
             .waitForTarget((target) => target.type == 'service_worker');
+        print('done with setup');
       });
 
       tearDownAll(() async {
@@ -44,18 +47,72 @@ void main() async {
       });
 
       test('Can use the MV3 Dart Debug Extension', () async {
+        print('starting test');
         final appTab = await browser.newPage();
-        await appTab.goto(context.appUrl,
-            wait: Until.all([Until.domContentLoaded]));
+        await appTab.goto(context.appUrl, wait: Until.domContentLoaded);
         await appTab.bringToFront();
+
+                print('APP BROWSER CONTEXT IS:');
+       //  print(appTab.target.browser.);
         final worker = (await serviceWorkerTarget.worker)!;
         await worker.evaluate(clickIconJs);
         // Verify that the extension opened the Dart docs:
-        final targetUrls = browser.targets.map((target) => target.url);
-        expect(targetUrls, contains('https://dart.dev/'));
+        final openedTabTarget = await browser.waitForTarget(
+            (target) => target.url.contains('https://dart.dev/'));
+
+        print('OPENED TAB CONTEXT IS:');
+        print(openedTabTarget.browserContext.id);
+        expect(openedTabTarget, isNotNull);
+        expect(openedTabTarget.isPage, isTrue);
+        final openedTab = await openedTabTarget.page;
+        await openedTab.close();
+
+        final extensionOrigin = getExtensionOrigin(browser);
+        final settingsTab = await browser.newPage();
+        await settingsTab.goto('$extensionOrigin/settings.html',
+            wait: Until.domContentLoaded);
+        await settingsTab.bringToFront();
+        expect(settingsTab.url, contains('settings.html'));
+        await Future.delayed(Duration(seconds: 2));
+        await settingsTab.tap('#windowOpt');
+        await Future.delayed(Duration(seconds: 2));
+        await settingsTab.tap('#saveButton');
+        await Future.delayed(Duration(seconds: 2));
+        await appTab.goto(context.appUrl, wait: Until.domContentLoaded);
+        await appTab.bringToFront();
+        await Future.delayed(Duration(seconds: 2));
+        await worker.evaluate(clickIconJs);
+        final openedWindowTarget = await browser.waitForTarget(
+            (target) => target.url.contains('https://dart.dev/'));
+
+        await Future.delayed(Duration(seconds: 2));
+        
+        expect(openedWindowTarget, isNotNull);
+        print('opened window is a:');
+        print(openedWindowTarget.type);
+        expect(openedWindowTarget.isPage, isTrue, reason: 'Not a page.');
+        print('OPEN WINDOW BROWSER CONTEXT IS:');
+        print(openedWindowTarget.browserContext.id);
+
+
+        // final openedWindow = await openedTabTarget.page;
+        // await openedWindow.close();
       });
     });
   }
+}
+
+Iterable<String> getUrlsInBrowser(Browser browser) {
+  return browser.targets.map((target) => target.url);
+}
+
+String getExtensionOrigin(Browser browser) {
+  final chromeExtension = 'chrome-extension:';
+  final extensionUrl = getUrlsInBrowser(browser)
+      .firstWhere((url) => url.contains(chromeExtension));
+  final urlSegments = p.split(extensionUrl);
+  final extensionId = urlSegments[urlSegments.indexOf(chromeExtension) + 1];
+  return '$chromeExtension//$extensionId';
 }
 
 Future<String> _buildDebugExtension() async {
