@@ -27,7 +27,7 @@ void _registerListeners() {
 
 void _startDebugSession(Tab _) async {
   // TODO(elliette): Start a debug session instead.
-  _createTab('https://dart.dev/');
+  await _createTab('https://dart.dev/');
 }
 
 void _handleRuntimeMessages(
