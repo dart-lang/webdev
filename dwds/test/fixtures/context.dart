@@ -324,31 +324,31 @@ class TestContext {
 
       final debugPort = await findUnusedPort();
       if (launchChrome) {
-      // If the environment variable DWDS_DEBUG_CHROME is set to the string true
-      // then Chrome will be launched with a UI rather than headless.
-      // If the extension is enabled, then Chrome will be launched with a UI
-      // since headless Chrome does not support extensions.
-      final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
-          !enableDebugExtension;
-      if (enableDebugExtension) {
-        await _buildDebugExtension();
-      }
-      final capabilities = Capabilities.chrome
-        ..addAll({
-          Capabilities.chromeOptions: {
-            'args': [
-              'remote-debugging-port=$debugPort',
-              if (enableDebugExtension)
-                '--load-extension=debug_extension/prod_build',
-              if (headless) '--headless'
-            ]
-          }
-        });
-      _webDriver = await createDriver(
-          spec: WebDriverSpec.JsonWire,
-          desired: capabilities,
-          uri: Uri.parse(
-              'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
+        // If the environment variable DWDS_DEBUG_CHROME is set to the string true
+        // then Chrome will be launched with a UI rather than headless.
+        // If the extension is enabled, then Chrome will be launched with a UI
+        // since headless Chrome does not support extensions.
+        final headless = Platform.environment['DWDS_DEBUG_CHROME'] != 'true' &&
+            !enableDebugExtension;
+        if (enableDebugExtension) {
+          await _buildDebugExtension();
+        }
+        final capabilities = Capabilities.chrome
+          ..addAll({
+            Capabilities.chromeOptions: {
+              'args': [
+                'remote-debugging-port=$debugPort',
+                if (enableDebugExtension)
+                  '--load-extension=debug_extension/prod_build',
+                if (headless) '--headless'
+              ]
+            }
+          });
+        _webDriver = await createDriver(
+            spec: WebDriverSpec.JsonWire,
+            desired: capabilities,
+            uri: Uri.parse(
+                'http://127.0.0.1:$chromeDriverPort/$chromeDriverUrlBase/'));
       }
       final connection = ChromeConnection('localhost', debugPort);
 
