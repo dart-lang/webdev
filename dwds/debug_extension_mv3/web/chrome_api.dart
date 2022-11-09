@@ -74,6 +74,17 @@ class MessageSender {
 @anonymous
 class Tabs {
   external Object query(QueryInfo queryInfo);
+
+  external Object create(TabInfo tabInfo);
+}
+
+@JS()
+@anonymous
+class TabInfo {
+  external bool? get active;
+  external bool? get pinned;
+  external String? get url;
+  external factory TabInfo({bool? active, bool? pinned, String? url});
 }
 
 @JS()
