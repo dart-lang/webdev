@@ -100,8 +100,6 @@ void main() {
     test('single-line exception with a stack trace', () async {
       final result = await inspector
           .mapExceptionStackTrace(jsSingleLineExceptionWithStackTrace);
-      print('RESULT IS');
-      print(result);
       expect(result, equals(formattedSingleLineExceptionWithStackTrace));
     });
   });
