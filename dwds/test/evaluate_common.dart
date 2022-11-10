@@ -82,7 +82,7 @@ void testAll({
     }
   }
 
-  group('shared context with evaluation', () {
+  group('shared context with evaluation |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
@@ -100,7 +100,7 @@ void testAll({
 
     setUp(() => setCurrentLogWriter(debug: debug));
 
-    group('evaluateInFrame', () {
+    group('evaluateInFrame |', () {
       VM vm;
       late Isolate isolate;
       late String isolateId;
@@ -137,6 +137,23 @@ void testAll({
 
       tearDown(() async {
         await setup.service.resume(isolateId);
+      });
+
+      test('does not crash if class metadata cannot be found', () async {
+        await onBreakPoint(isolateId, mainScript, 'printStream', () async {
+          final event = await stream
+              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+          final result = await setup.service
+              .evaluateInFrame(isolateId, event.topFrame!.index!, 'stream');
+          final instanceId = (result as InstanceRef).id!;
+          final instance = await setup.service.getObject(isolateId, instanceId);
+
+          expect(
+              instance,
+              isA<Instance>().having((instance) => instance.classRef!.name,
+                  'class name', '_AsBroadcastStream<int>'));
+        });
       });
 
       test('with scope override is not supported yet', () async {
@@ -523,7 +540,7 @@ void testAll({
       });
     });
 
-    group('evaluate', () {
+    group('evaluate |', () {
       VM vm;
       late Isolate isolate;
       late String isolateId;
@@ -611,7 +628,7 @@ void testAll({
     });
   }, timeout: const Timeout.factor(2));
 
-  group('shared context with no evaluation', () {
+  group('shared context with no evaluation |', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
       await context.setUp(
@@ -628,7 +645,7 @@ void testAll({
 
     setUp(() => setCurrentLogWriter(debug: debug));
 
-    group('evaluateInFrame', () {
+    group('evaluateInFrame |', () {
       VM vm;
       late Isolate isolate;
       late String isolateId;
