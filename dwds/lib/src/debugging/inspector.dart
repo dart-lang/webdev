@@ -83,6 +83,12 @@ class AppInspector implements AppInspectorInterface {
   /// Regex used to extract the message from an exception description.
   static final exceptionMessageRegex = RegExp(r'^.*$', multiLine: true);
 
+  /// Flutter widget inspector library.
+  static const _flutterWidgetInspectorLibraryUri =
+      'package:flutter/src/widgets/widget_inspector.dart';
+  LibraryRef? flutterWidgetInspectorLibrary;
+  late bool isFlutterApp;
+
   AppInspector._(
     this._appConnection,
     this._isolate,
@@ -114,6 +120,13 @@ class AppInspector implements AppInspectorInterface {
         libraries.map((lib) => lib.uri).whereNotNull());
     await DartUri.recordAbsoluteUris(
         scripts.map((script) => script.uri).whereNotNull());
+
+    flutterWidgetInspectorLibrary = libraries.firstWhereOrNull(
+        (lib) => lib.uri == _flutterWidgetInspectorLibraryUri);
+    isFlutterApp = flutterWidgetInspectorLibrary != null;
+
+    final appKind = isFlutterApp ? "Flutter" : "dart";
+    _logger.finest('Debugging $appKind app');
 
     isolate.extensionRPCs?.addAll(await _getExtensionRpcs());
   }

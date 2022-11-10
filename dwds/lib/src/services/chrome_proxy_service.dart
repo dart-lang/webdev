@@ -200,6 +200,20 @@ class ChromeProxyService implements VmServiceInterface {
         if (!_compilerCompleter.isCompleted) _compilerCompleter.complete();
         return result;
       }, (result) => DwdsEvent.compilerUpdateDependencies(entrypoint));
+
+      // Pre-warm the flutter framework module cache in the compiler.
+      //
+      // Flutter inspector relies on evaluations in widget_inspector
+      // library, which is a part of the flutter framework module, to
+      // produce widget trees, draw the layout explorer, show hover
+      // cards etc.
+      // Pre-warming the cache while DevTools is still loading helps
+      // Flutter Inspector start faster.
+      if (inspector.isFlutterApp) {
+        _logger.finest('Warming up expression compiler worker');
+        unawaited(evaluate(inspector.isolateRef.id!,
+            '${inspector.flutterWidgetInspectorLibrary!.uri}', 'true'));
+      }
     }
   }
 
