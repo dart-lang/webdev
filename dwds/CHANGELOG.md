@@ -4,6 +4,8 @@
   Dart Debug Extension notifying that the Dart app is ready.
 - Include an optional param to `Dwds.start` to indicate whether it is running
   internally or externally.
+- Fix null cast error on expression evaluations after dwds fails to find class
+  metadata.
 - Pre-warm expression compiler cache to speed up Flutter Inspector loading.
 
 ## 16.0.1

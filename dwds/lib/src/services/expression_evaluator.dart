@@ -226,7 +226,7 @@ class ExpressionEvaluator {
     var result = await _debugger.evaluateJsOnCallFrameIndex(frameIndex, jsCode);
     result = await _formatEvaluationError(result);
 
-    _logger.finest('Evaluated "$expression" to "$result"');
+    _logger.finest('Evaluated "$expression" to "${result.json}"');
     return result;
   }
 
