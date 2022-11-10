@@ -84,6 +84,26 @@ void main() {
     });
   });
 
+  group('mapExceptionStackTrace', () {
+    test('multi-line exception with a stack trace', () async {
+      final result = await inspector
+          .mapExceptionStackTrace(jsMultiLineExceptionWithStackTrace);
+      expect(result, equals(formattedMultiLineExceptionWithStackTrace));
+    });
+
+    test('multi-line exception without a stack trace', () async {
+      final result = await inspector
+          .mapExceptionStackTrace(jsMultiLineExceptionNoStackTrace);
+      expect(result, equals(formattedMultiLineExceptionNoStackTrace));
+    });
+
+    test('single-line exception with a stack trace', () async {
+      final result = await inspector
+          .mapExceptionStackTrace(jsSingleLineExceptionWithStackTrace);
+      expect(result, equals(formattedSingleLineExceptionWithStackTrace));
+    });
+  });
+
   test('send toString', () async {
     final remoteObject = await libraryPublicFinal();
     final toString =
@@ -203,3 +223,45 @@ void main() {
     });
   });
 }
+
+final jsMultiLineExceptionWithStackTrace = '''
+Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
+false
+"THIS IS THE ASSERT MESSAGE"
+    at Object.assertFailed (org-dartlang-app:///web/scopes_main.dart.js:5297:15)
+''';
+
+final formattedMultiLineExceptionWithStackTrace = '''
+Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
+false
+"THIS IS THE ASSERT MESSAGE"
+org-dartlang-app:///web/scopes_main.dart.js 5297:15  assertFailed
+''';
+
+final jsMultiLineExceptionNoStackTrace = '''
+Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
+false
+"THIS IS THE ASSERT MESSAGE"
+''';
+
+final formattedMultiLineExceptionNoStackTrace = '''
+Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
+false
+"THIS IS THE ASSERT MESSAGE"
+''';
+
+final jsSingleLineExceptionWithStackTrace = '''
+Error: Unexpected null value.
+    at Object.throw_ [as throw] (http://localhost:63236/dart_sdk.js:5379:11)
+    at Object.nullCheck (http://localhost:63236/dart_sdk.js:5696:30)
+    at main (http://localhost:63236/packages/tmpapp/main.dart.lib.js:374:10)
+    at http://localhost:63236/web_entrypoint.dart.lib.js:41:33
+''';
+
+final formattedSingleLineExceptionWithStackTrace = '''
+Error: Unexpected null value.
+http://localhost:63236/dart_sdk.js 5379:11                      throw_
+http://localhost:63236/dart_sdk.js 5696:30                      nullCheck
+http://localhost:63236/packages/tmpapp/main.dart.lib.js 374:10  main
+http://localhost:63236/web_entrypoint.dart.lib.js 41:33         <fn>
+''';
