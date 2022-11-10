@@ -36,6 +36,7 @@ void main() async {
           await context.setUp(launchChrome: false, useSse: useSse);
           browser = await puppeteer.launch(
             headless: false,
+            noSandboxFlag: true,
             timeout: Duration(seconds: 60),
             args: [
               '--load-extension=$extensionPath',
