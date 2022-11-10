@@ -14,13 +14,13 @@ void main() async {
 }
 
 void _connectToLifelinePort() {
-  _debugLog('Connecting to lifeline port...');
+  _debugLog('Connecting to lifeline port at ${_currentTime()}');
   chrome.runtime.connect(
     /*extensionId=*/ null,
     ConnectInfo(name: 'keepAlive'),
   );
   if (enableDebugLogging) {
-    _logTimeAliveToTabConsole();
+    // _logTimeAliveToTabConsole();
   }
 }
 
@@ -30,6 +30,11 @@ void _logTimeAliveToTabConsole() {
     timeElapsed += 30;
     _logTime(timeElapsed);
   });
+}
+
+String _currentTime() {
+  final date = DateTime.now();
+  return '${date.hour}:${date.minute}';
 }
 
 void _logTime(int time) {

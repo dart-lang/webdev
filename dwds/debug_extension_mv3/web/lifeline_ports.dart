@@ -15,19 +15,21 @@ import 'web_api.dart';
 bool enableDebugLogging = true;
 
 Port? lifelinePort;
-int? id;
+int? lifelineTab;
+final dartTabs = <int>[];
 
-/// Returns the tab ID if the port was sucessfully created, or null if not.
-int? createLifelinePortForTab(int tabId) {
-  chrome.runtime.onConnect.addListener(allowInterop(_keepLifelinePortAlive));
-
+void maybeCreateLifelinePort(int tabId) {
   if (lifelinePort != null) {
     _debugWarn('Port already exists.');
+    dartTabs.add(tabId);
+    _debugLog('Dart tabs are: $dartTabs');
     return null;
   }
 
+  chrome.runtime.onConnect.addListener(allowInterop(_keepLifelinePortAlive));
+
   _debugLog('Creating lifeline port.');
-  id = tabId;
+  lifelineTab = tabId;
   chrome.scripting.executeScript(
     InjectDetails(
       target: Target(tabId: tabId),
@@ -35,7 +37,23 @@ int? createLifelinePortForTab(int tabId) {
     ),
     /*callback*/ null,
   );
-  return tabId;
+}
+
+void maybeRemoveLifelinePort(int tabId) {
+  _debugLog('Maybe removing $tabId from $dartTabs...');
+  dartTabs.remove(tabId);
+  _debugLog('Dart tabs are now $dartTabs');
+  if (lifelineTab == tabId) {
+    if (dartTabs.isEmpty) {
+      lifelineTab = null;
+      _debugLog('No more Dart tabs, disconnecting');
+      _disconnectFromLifelinePort();
+    } else {
+      lifelineTab = dartTabs.last;
+      _debugLog('Reconnecting to a new Dart tab: $lifelineTab');
+      _reconnectToLifelinePort();
+    }
+  }
 }
 
 void _keepLifelinePortAlive(Port port) {
@@ -44,20 +62,36 @@ void _keepLifelinePortAlive(Port port) {
   lifelinePort = port;
   // Time from https://bugs.chromium.org/p/chromium/issues/detail?id=1146434#c6
   Timer(Duration(minutes: 5), () {
-    _reconnectToLifelinePort(port);
+    _debugLog('5 minutes have elapsed, therefore reconnecting.');
+    _reconnectToLifelinePort();
   });
-  port.onDisconnect.addListener(allowInterop(_reconnectToLifelinePort));
+  // port.onDisconnect
+  //     .addListener(allowInterop((_) => _reconnectToLifelinePort()));
 }
 
-void _reconnectToLifelinePort(Port port) {
+void _disconnectFromLifelinePort() {
+  _debugLog('Disconnecting...');
+  if (lifelinePort != null) {
+    lifelinePort!.disconnect();
+    lifelinePort = null;
+    _debugLog('Disconnection complete.');
+  }
+}
+
+void _reconnectToLifelinePort() {
   _debugLog('Reconnecting...');
   if (lifelinePort == null) {
-    _debugWarn('Could not find lifeline port.');
+    _debugWarn('Could not find a lifeline port.');
     return;
   }
-  lifelinePort = null;
-  port.disconnect();
-  createLifelinePortForTab(id!);
+  if (lifelineTab == null) {
+    _debugWarn('Could not find a lifeline tab.');
+    return;
+  }
+
+  _disconnectFromLifelinePort();
+  maybeCreateLifelinePort(lifelineTab!);
+  _debugLog('Reconnection complete.');
 }
 
 void _debugLog(String msg) {
