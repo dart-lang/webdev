@@ -30,6 +30,7 @@ void main() async {
         final extensionPath = await _buildDebugExtension();
         browser = await puppeteer.launch(
           headless: false,
+          timeout: Duration(seconds: 60),
           args: [
             '--load-extension=$extensionPath',
             '--disable-extensions-except=$extensionPath',
