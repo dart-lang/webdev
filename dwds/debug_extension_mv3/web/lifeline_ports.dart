@@ -17,12 +17,13 @@ bool enableDebugLogging = true;
 Port? lifelinePort;
 int? id;
 
-void createLifelinePortForTab(int tabId) async {
+/// Returns the tab ID if the port was sucessfully created, or null if not.
+int? createLifelinePortForTab(int tabId) {
   chrome.runtime.onConnect.addListener(allowInterop(_keepLifelinePortAlive));
 
   if (lifelinePort != null) {
     _debugWarn('Port already exists.');
-    return;
+    return null;
   }
 
   _debugLog('Creating lifeline port.');
@@ -34,6 +35,7 @@ void createLifelinePortForTab(int tabId) async {
     ),
     /*callback*/ null,
   );
+  return tabId;
 }
 
 void _keepLifelinePortAlive(Port port) {

@@ -21,6 +21,9 @@ import 'web_api.dart';
 /// Switch to true for debug logging.
 bool enableDebugLogging = false;
 
+final dartAppTabs = <Tab>[];
+int? currentLifelineTab;
+
 
 void main() {
   _registerListeners();
@@ -54,7 +57,6 @@ void _handleRuntimeMessages(
           // Update the icon to show that a Dart app has been detected:
           chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
         }
-        final tabId = currentTab.id;
         setStorageObject<DebugInfo>(
           type: StorageObject.debugInfo,
           value: debugInfo,
@@ -64,16 +66,20 @@ void _handleRuntimeMessages(
 }
 
 void _startDebugSession(Tab currentTab) async {
-  final debugInfo = await fetchStorageObject(
-    type: StorageObject.debugInfo,
-    tabId: currentTab.id,
-  );
-  if (debugInfo == null) {
-    console.warn('Current tab is not a debuggable Dart app');
-    return;
-  }
+  dartAppTabs.add(currentTab);
+  // final debugInfo = await fetchStorageObject(
+  //   type: StorageObject.debugInfo,
+  //   tabId: currentTab.id,
+  // );
+  // if (debugInfo == null) {
+  //   console.warn('Current tab is not a debuggable Dart app');
+  //   return;
+  // }
 
-  createLifelinePortForTab(currentTab.id);
+  final portTab = createLifelinePortForTab(currentTab.id);
+  if (portTab != null) {
+    currentLifelineTab = portTab;
+  }
 
   // TODO(elliette): Start a debug session instead.
   final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
