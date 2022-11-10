@@ -6,6 +6,7 @@
 @OnPlatform({
   'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
 })
+@Timeout(Duration(seconds: 60))
 import 'dart:async';
 import 'dart:io';
 
