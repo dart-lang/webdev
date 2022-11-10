@@ -85,16 +85,24 @@ void main() {
   });
 
   group('mapExceptionStackTrace', () {
-    test('with a stack trace', () async {
-      final result =
-          await inspector.mapExceptionStackTrace(jsExceptionWithStackTrace);
-      expect(result, equals(formattedWithStackTrace));
+    test('multi-line exception with a stack trace', () async {
+      final result = await inspector
+          .mapExceptionStackTrace(jsMultiLineExceptionWithStackTrace);
+      expect(result, equals(formattedMultiLineExceptionWithStackTrace));
     });
 
-    test('without a stack trace', () async {
-      final result =
-          await inspector.mapExceptionStackTrace(jsExceptionNoStackTrace);
-      expect(result, equals(formattedNoStackTrace));
+    test('multi-line exception without a stack trace', () async {
+      final result = await inspector
+          .mapExceptionStackTrace(jsMultiLineExceptionNoStackTrace);
+      expect(result, equals(formattedMultiLineExceptionNoStackTrace));
+    });
+
+    test('single-line exception with a stack trace', () async {
+      final result = await inspector
+          .mapExceptionStackTrace(jsSingleLineExceptionWithStackTrace);
+      print('RESULT IS');
+      print(result);
+      expect(result, equals(formattedSingleLineExceptionWithStackTrace));
     });
   });
 
@@ -218,28 +226,44 @@ void main() {
   });
 }
 
-final jsExceptionWithStackTrace = '''
+final jsMultiLineExceptionWithStackTrace = '''
 Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
 false
 "THIS IS THE ASSERT MESSAGE"
     at Object.assertFailed (org-dartlang-app:///web/scopes_main.dart.js:5297:15)
 ''';
 
-final formattedWithStackTrace = '''
+final formattedMultiLineExceptionWithStackTrace = '''
 Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
 false
 "THIS IS THE ASSERT MESSAGE"
 org-dartlang-app:///web/scopes_main.dart.js 5297:15  assertFailed
 ''';
 
-final jsExceptionNoStackTrace = '''
+final jsMultiLineExceptionNoStackTrace = '''
 Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
 false
 "THIS IS THE ASSERT MESSAGE"
 ''';
 
-final formattedNoStackTrace = '''
+final formattedMultiLineExceptionNoStackTrace = '''
 Error: Assertion failed: org-dartlang-app:///web/scopes_main.dart:4:11
 false
 "THIS IS THE ASSERT MESSAGE"
+''';
+
+final jsSingleLineExceptionWithStackTrace = '''
+Error: Unexpected null value.
+    at Object.throw_ [as throw] (http://localhost:63236/dart_sdk.js:5379:11)
+    at Object.nullCheck (http://localhost:63236/dart_sdk.js:5696:30)
+    at main (http://localhost:63236/packages/tmpapp/main.dart.lib.js:374:10)
+    at http://localhost:63236/web_entrypoint.dart.lib.js:41:33
+''';
+
+final formattedSingleLineExceptionWithStackTrace = '''
+Error: Unexpected null value.
+http://localhost:63236/dart_sdk.js 5379:11                      throw_
+http://localhost:63236/dart_sdk.js 5696:30                      nullCheck
+http://localhost:63236/packages/tmpapp/main.dart.lib.js 374:10  main
+http://localhost:63236/web_entrypoint.dart.lib.js 41:33         <fn>
 ''';
