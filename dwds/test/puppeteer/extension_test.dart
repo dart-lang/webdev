@@ -47,56 +47,53 @@ void main() async {
       });
 
       test('Can use the MV3 Dart Debug Extension', () async {
-        print('starting test');
-        final appTab = await browser.newPage();
-        await appTab.goto(context.appUrl, wait: Until.domContentLoaded);
-        await appTab.bringToFront();
-
-                print('APP BROWSER CONTEXT IS:');
-       //  print(appTab.target.browser.);
+        // Navigate to the Dart app:
+        await _navigateToPage(browser, url: context.appUrl, isNew: true);
         final worker = (await serviceWorkerTarget.worker)!;
+        final appTabWindowId = (await worker.evaluate(activeTabWindowIdJs)) as int?;
+        /* 
+        // Click on the Dart Debug Extension icon:
         await worker.evaluate(clickIconJs);
-        // Verify that the extension opened the Dart docs:
+        // Verify that the extension opened the Dart docs in the same window as the Dart app:
         final openedTabTarget = await browser.waitForTarget(
             (target) => target.url.contains('https://dart.dev/'));
-
-        print('OPENED TAB CONTEXT IS:');
-        print(openedTabTarget.browserContext.id);
-        expect(openedTabTarget, isNotNull);
-        expect(openedTabTarget.isPage, isTrue);
+        await _navigateToPage(browser, url: 'https://dart.dev/');
+        final activeTabUrl = (await worker.evaluate(activeTabUrlJs)) as String?;
+        expect(activeTabUrl, equals('https://dart.dev/'));
+        var activeTabWindowId = (await worker.evaluate(activeTabWindowIdJs)) as int?;
+        expect(activeTabWindowId, equals(appTabWindowId));
+        // Close the Dart docs tab:
         final openedTab = await openedTabTarget.page;
         await openedTab.close();
-
+        */
+        // Navigate to the extension settings page:
         final extensionOrigin = getExtensionOrigin(browser);
-        final settingsTab = await browser.newPage();
-        await settingsTab.goto('$extensionOrigin/settings.html',
-            wait: Until.domContentLoaded);
-        await settingsTab.bringToFront();
-        expect(settingsTab.url, contains('settings.html'));
-        await Future.delayed(Duration(seconds: 2));
+        final settingsTab = await _navigateToPage(browser, url: '$extensionOrigin/settings.html', isNew: true);
+        // Set the settings to open the Dart Docs in a new window:
         await settingsTab.tap('#windowOpt');
-        await Future.delayed(Duration(seconds: 2));
+        await Future.delayed(Duration(seconds: 3));
         await settingsTab.tap('#saveButton');
-        await Future.delayed(Duration(seconds: 2));
-        await appTab.goto(context.appUrl, wait: Until.domContentLoaded);
-        await appTab.bringToFront();
-        await Future.delayed(Duration(seconds: 2));
+        await Future.delayed(Duration(seconds: 3));
+        // Close the settings tab:
+        await settingsTab.close();
+        // Navigate to the Dart app:
+        await _navigateToPage(browser, url: context.appUrl);
+        // Click on the Dart Debug Extension icon:
         await worker.evaluate(clickIconJs);
+        // Verify that the extension opened the Dart docs in a different window as the Dart app:
         final openedWindowTarget = await browser.waitForTarget(
             (target) => target.url.contains('https://dart.dev/'));
+        await _navigateToPage(browser, url: 'https://dart.dev/');
+        // activeTabUrl = (await worker.evaluate(activeTabUrlJs)) as String?;
+        // expect(activeTabUrl, equals('https://dart.dev/'));
+        final activeTabWindowId = (await worker.evaluate(activeTabWindowIdJs)) as int?;
+        await Future.delayed(Duration(seconds: 3));
+        print('activeTAbWindowId $activeTabWindowId');
+        print('appTabWindowId $appTabWindowId');
+        expect(activeTabWindowId == appTabWindowId, isFalse);
 
-        await Future.delayed(Duration(seconds: 2));
-        
-        expect(openedWindowTarget, isNotNull);
-        print('opened window is a:');
-        print(openedWindowTarget.type);
-        expect(openedWindowTarget.isPage, isTrue, reason: 'Not a page.');
-        print('OPEN WINDOW BROWSER CONTEXT IS:');
-        print(openedWindowTarget.browserContext.id);
-
-
-        // final openedWindow = await openedTabTarget.page;
-        // await openedWindow.close();
+        final openedWindow = await openedWindowTarget.page;
+        await openedWindow.close();
       });
     });
   }
@@ -106,6 +103,11 @@ Iterable<String> getUrlsInBrowser(Browser browser) {
   return browser.targets.map((target) => target.url);
 }
 
+Future<Page> _getPageForUrl(Browser browser, {required String url}) {
+  final pageTarget = browser.targets.firstWhere((target) => target.url == url);
+  return pageTarget.page;
+}
+
 String getExtensionOrigin(Browser browser) {
   final chromeExtension = 'chrome-extension:';
   final extensionUrl = getUrlsInBrowser(browser)
@@ -113,6 +115,24 @@ String getExtensionOrigin(Browser browser) {
   final urlSegments = p.split(extensionUrl);
   final extensionId = urlSegments[urlSegments.indexOf(chromeExtension) + 1];
   return '$chromeExtension//$extensionId';
+}
+
+Future<Page> _navigateToPage(
+  Browser browser, {
+  required String url,
+  bool isNew = false,
+}) async {
+  final page = isNew
+      ? await browser.newPage()
+      : await _getPageForUrl(
+          browser,
+          url: url,
+        );
+  if (isNew) {
+    await page.goto(url, wait: Until.domContentLoaded);
+  }
+  await page.bringToFront();
+  return page;
 }
 
 Future<String> _buildDebugExtension() async {
@@ -136,5 +156,21 @@ final clickIconJs = '''
     const activeTabs = await chrome.tabs.query({ active: true });
     const tab = activeTabs[0];
     chrome.action.onClicked.dispatch(tab);
+  }
+''';
+
+final activeTabUrlJs = '''
+  async () => {
+    const activeTabs = await chrome.tabs.query({ active: true });
+    const tab = activeTabs[0];
+    return tab.url;
+  }
+''';
+
+final activeTabWindowIdJs = '''
+  async () => {
+    const activeTabs = await chrome.tabs.query({ active: true });
+    const tab = activeTabs[0];
+    return tab.windowId;
   }
 ''';
