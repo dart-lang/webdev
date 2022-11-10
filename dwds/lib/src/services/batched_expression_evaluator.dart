@@ -121,7 +121,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       final request = requests[i];
       if (request.completer.isCompleted) continue;
       _logger.fine('Getting result out of a batch for ${request.expression}');
-      _debugger
+      unawaited(_debugger
           .getProperties(list.objectId!,
               offset: i, count: 1, length: requests.length)
           .then((v) {
@@ -129,7 +129,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
         _logger.fine(
             'Got result out of a batch for ${request.expression}: $result');
         request.completer.complete(result);
-      });
+      }));
     }
   }
 }

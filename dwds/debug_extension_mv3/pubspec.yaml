@@ -20,4 +20,3 @@ dev_dependencies:
 dependency_overrides:
   dwds:
     path: ..
-
