@@ -44,10 +44,12 @@ void _saveSettingsToStorage(Event event) async {
 }
 
 void _showSavedMsg() {
-  final msgContainer = document.getElementById('savedMsg');
+  final msgContainer = document.getElementById('savedMsgEmpty');
   if (msgContainer == null) return;
+  msgContainer.id = 'savedMsg';
   msgContainer.innerHtml = 'Saved!';
   Timer(Duration(seconds: 3), () {
+    msgContainer.id = 'savedMsgEmpty';
     msgContainer.innerHtml = '';
   });
 }
