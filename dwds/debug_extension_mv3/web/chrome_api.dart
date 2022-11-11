@@ -129,6 +129,7 @@ class Target {
 }
 
 /// chrome.tabs APIs
+/// chrome.storage APIs
 /// https://developer.chrome.com/docs/extensions/reference/storage
 
 @JS()

@@ -32,7 +32,14 @@ void _registerListeners() {
 
   // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
+}
 
+Future<void> _startDebugSession(Tab _) async {
+  // TODO(elliette): Start a debug session instead.
+  final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
+      type: StorageObject.devToolsOpener);
+  await _createTab('https://dart.dev/',
+      inNewWindow: devToolsOpener?.newWindow ?? false);
 }
 
 void _handleRuntimeMessages(
@@ -46,8 +53,7 @@ void _handleRuntimeMessages(
       expectedRecipient: Script.background,
       messageHandler: (DebugInfo debugInfo) async {
         final currentTab = await _getTab();
-        if (currentTab == null) return;
-        final currentUrl = currentTab.url;
+        final currentUrl = currentTab?.url ?? '';
         final appUrl = debugInfo.appUrl ?? '';
         if (currentUrl.isEmpty || appUrl.isEmpty || currentUrl != appUrl) {
           console.warn(
@@ -82,6 +88,12 @@ void _startDebugSession(Tab currentTab) async {
       inNewWindow: devToolsOpener?.newWindow ?? false);
 }
 
+Future<Tab?> _getTab() async {
+  final query = QueryInfo(active: true, currentWindow: true);
+  final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
+  return tabs.isNotEmpty ? tabs.first : null;
+}
+
 Future<Tab> _createTab(String url, {bool inNewWindow = false}) async {
   if (inNewWindow) {
     final windowPromise = chrome.windows.create(
@@ -95,10 +107,4 @@ Future<Tab> _createTab(String url, {bool inNewWindow = false}) async {
     url: url,
   ));
   return promiseToFuture<Tab>(tabPromise);
-}
-
-Future<Tab?> _getTab() async {
-  final query = QueryInfo(active: true, currentWindow: true);
-  final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
-  return tabs.isNotEmpty ? tabs.first : null;
 }

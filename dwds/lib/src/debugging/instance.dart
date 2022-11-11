@@ -180,7 +180,7 @@ class InstanceHelper extends Domain {
     var boundFields = await Future.wait(
         dartProperties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)));
     boundFields = boundFields
-        .where((bv) => !isNativeJsObject(bv.value as InstanceRef))
+        .where((bv) => isDisplayableObject(bv.value))
         .toList()
       ..sort(_compareBoundFields);
     final result = Instance(

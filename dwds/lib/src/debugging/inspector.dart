@@ -83,6 +83,9 @@ class AppInspector implements AppInspectorInterface {
   /// Regex used to extract the message from an exception description.
   static final exceptionMessageRegex = RegExp(r'^.*$', multiLine: true);
 
+  /// Regex used to extract a stack trace line from the exception description.
+  static final stackTraceLineRegex = RegExp(r'^\s*at\s.*$', multiLine: true);
+
   AppInspector._(
     this._appConnection,
     this._isolate,
@@ -611,8 +614,17 @@ class AppInspector implements AppInspectorInterface {
     if (mappedStack == null || mappedStack.isEmpty) {
       return description;
     }
-    var message = exceptionMessageRegex.firstMatch(description)?.group(0);
-    message = (message != null) ? '$message\n' : '';
+    final message = _allLinesBeforeStackTrace(description);
     return '$message$mappedStack';
+  }
+
+  String _allLinesBeforeStackTrace(String description) {
+    var message = '';
+    for (final match in exceptionMessageRegex.allMatches(description)) {
+      final isStackTraceLine = stackTraceLineRegex.hasMatch(match[0] ?? '');
+      if (isStackTraceLine) break;
+      message += '${match[0]}\n';
+    }
+    return message;
   }
 }
