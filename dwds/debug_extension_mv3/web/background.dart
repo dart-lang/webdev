@@ -21,19 +21,18 @@ import 'web_api.dart';
 /// Switch to true for debug logging.
 bool enableDebugLogging = false;
 
-final dartAppTabs = <Tab>[];
-int? currentLifelineTab;
-
-
 void main() {
   _registerListeners();
 }
 
 void _registerListeners() {
   chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
+  chrome.tabs.onRemoved
+      .addListener(allowInterop((tabId, _) => maybeRemoveLifelinePort(tabId)));
 
   // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
+
 }
 
 void _handleRuntimeMessages(
@@ -66,7 +65,6 @@ void _handleRuntimeMessages(
 }
 
 void _startDebugSession(Tab currentTab) async {
-  dartAppTabs.add(currentTab);
   // final debugInfo = await fetchStorageObject(
   //   type: StorageObject.debugInfo,
   //   tabId: currentTab.id,
@@ -76,11 +74,7 @@ void _startDebugSession(Tab currentTab) async {
   //   return;
   // }
 
-  final portTab = createLifelinePortForTab(currentTab.id);
-  if (portTab != null) {
-    currentLifelineTab = portTab;
-  }
-
+  maybeCreateLifelinePort(currentTab.id);
   // TODO(elliette): Start a debug session instead.
   final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
       type: StorageObject.devToolsOpener);

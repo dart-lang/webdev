@@ -81,7 +81,6 @@ class ConnectionHandler {
   external void addListener(void Function(Port) callback);
 }
 
-
 @JS()
 @anonymous
 class OnMessageHandler {
@@ -109,7 +108,7 @@ class Scripting {
 
 @JS()
 @anonymous
-class InjectDetails<T, U>{
+class InjectDetails<T, U> {
   external Target get target;
   external T? get func;
   external List<U?>? get args;
@@ -157,6 +156,14 @@ class Tabs {
   external Object query(QueryInfo queryInfo);
 
   external Object create(TabInfo tabInfo);
+
+  external OnRemovedHandler get onRemoved;
+}
+
+@JS()
+@anonymous
+class OnRemovedHandler {
+  external void addListener(void Function(int tabId, dynamic info) callback);
 }
 
 @JS()

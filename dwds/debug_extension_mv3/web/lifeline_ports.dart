@@ -16,13 +16,13 @@ bool enableDebugLogging = true;
 
 Port? lifelinePort;
 int? lifelineTab;
-final dartTabs = <int>[];
+final dartTabs = Set<int>();
 
 void maybeCreateLifelinePort(int tabId) {
+  dartTabs.add(tabId);
+  _debugLog('Dart tabs are: $dartTabs');
   if (lifelinePort != null) {
     _debugWarn('Port already exists.');
-    dartTabs.add(tabId);
-    _debugLog('Dart tabs are: $dartTabs');
     return null;
   }
 
