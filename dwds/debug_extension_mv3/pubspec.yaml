@@ -14,11 +14,10 @@ dependencies:
 
 dev_dependencies:
   build: ^2.0.0
-  build_web_compilers: ^3.0.0
   build_runner: ^2.0.6
   built_value_generator: ^8.3.0
+  build_web_compilers: ^3.0.0
   dwds: ^16.0.0
-  intl: ^0.16.1
 
 dependency_overrides:
   dwds:

@@ -69,9 +69,7 @@ class ConnectInfo {
 @anonymous
 class Port {
   external String? get name;
-
   external void disconnect();
-
   external ConnectionHandler get onDisconnect;
 }
 

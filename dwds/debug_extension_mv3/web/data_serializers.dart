@@ -11,7 +11,6 @@ part 'data_serializers.g.dart';
 
 /// Serializers for all the data types used in the Dart Debug Extension.
 @SerializersFor([
-  DebugInfo,
   DevToolsOpener,
 ])
 final Serializers serializers = _$serializers;

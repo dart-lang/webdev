@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'chrome_api.dart';
 import 'web_api.dart';
 
+// Switch to true to enable debug logs.
+// TODO(elliette): Enable / disable with flag while building the extension.
 final enableDebugLogging = true;
 
 void main() async {
@@ -19,28 +19,11 @@ void _connectToLifelinePort() {
     /*extensionId=*/ null,
     ConnectInfo(name: 'keepAlive'),
   );
-  if (enableDebugLogging) {
-    // _logTimeAliveToTabConsole();
-  }
-}
-
-void _logTimeAliveToTabConsole() {
-  int timeElapsed = 0;
-  Timer.periodic(const Duration(seconds: 30), (timer) {
-    timeElapsed += 30;
-    _logTime(timeElapsed);
-  });
 }
 
 String _currentTime() {
   final date = DateTime.now();
-  return '${date.hour}:${date.minute}';
-}
-
-void _logTime(int time) {
-  final secs = time % 60;
-  final mins = (time / 60).floor();
-  _debugLog('Alive for $mins min $secs sec.');
+  return '${date.hour}:${date.minute}::${date.second}';
 }
 
 void _debugLog(String msg) {
@@ -48,4 +31,3 @@ void _debugLog(String msg) {
     console.log(msg);
   }
 }
-

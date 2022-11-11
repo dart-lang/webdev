@@ -34,8 +34,9 @@ void _registerListeners() {
   chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
 }
 
-Future<void> _startDebugSession(Tab _) async {
-  // TODO(elliette): Start a debug session instead.
+// TODO(elliette): Start a debug session instead.
+Future<void> _startDebugSession(Tab currentTab) async {
+  maybeCreateLifelinePort(currentTab.id);
   final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
       type: StorageObject.devToolsOpener);
   await _createTab('https://dart.dev/',
@@ -58,34 +59,11 @@ void _handleRuntimeMessages(
         if (currentUrl.isEmpty || appUrl.isEmpty || currentUrl != appUrl) {
           console.warn(
               'Dart app detected at $appUrl but current tab is $currentUrl.');
-        } else {
-          // Update the icon to show that a Dart app has been detected:
-          chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
+          return;
         }
-        setStorageObject<DebugInfo>(
-          type: StorageObject.debugInfo,
-          value: debugInfo,
-          tabId: currentTab.id,
-        );
+        // Update the icon to show that a Dart app has been detected:
+        chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
       });
-}
-
-void _startDebugSession(Tab currentTab) async {
-  // final debugInfo = await fetchStorageObject(
-  //   type: StorageObject.debugInfo,
-  //   tabId: currentTab.id,
-  // );
-  // if (debugInfo == null) {
-  //   console.warn('Current tab is not a debuggable Dart app');
-  //   return;
-  // }
-
-  maybeCreateLifelinePort(currentTab.id);
-  // TODO(elliette): Start a debug session instead.
-  final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
-      type: StorageObject.devToolsOpener);
-  _createTab('https://dart.dev/',
-      inNewWindow: devToolsOpener?.newWindow ?? false);
 }
 
 Future<Tab?> _getTab() async {
