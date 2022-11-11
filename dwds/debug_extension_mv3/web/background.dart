@@ -11,7 +11,9 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
+import 'data_types.dart';
 import 'messaging.dart';
+import 'storage.dart';
 import 'web_api.dart';
 
 void main() {
@@ -27,7 +29,10 @@ void _registerListeners() {
 
 Future<void> _startDebugSession(Tab _) async {
   // TODO(elliette): Start a debug session instead.
-  await _createTab('https://dart.dev/');
+  final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
+      type: StorageObject.devToolsOpener);
+  await _createTab('https://dart.dev/',
+      inNewWindow: devToolsOpener?.newWindow ?? false);
 }
 
 void _handleRuntimeMessages(
@@ -59,7 +64,14 @@ Future<Tab?> _getTab() async {
   return tabs.isNotEmpty ? tabs.first : null;
 }
 
-Future<Tab> _createTab(String url) async {
+Future<Tab> _createTab(String url, {bool inNewWindow = false}) async {
+  if (inNewWindow) {
+    final windowPromise = chrome.windows.create(
+      WindowInfo(focused: true, url: url),
+    );
+    final windowObj = await promiseToFuture<WindowObj>(windowPromise);
+    return windowObj.tabs.first;
+  }
   final tabPromise = chrome.tabs.create(TabInfo(
     active: true,
     url: url,
