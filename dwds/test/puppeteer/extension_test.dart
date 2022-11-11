@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(elliette): Enable on Windows, see https://github.com/dart-lang/webdev/issues/1724.
 @OnPlatform({
-  'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
+  // TODO(elliette): Enable on Windows.
+  'windows': Skip('https://github.com/dart-lang/webdev/issues/1724'),
+  // TODO(elliette): Enable on Linux.
+  'linux': Skip('https://github.com/dart-lang/webdev/issues/1787'),
 })
 @Timeout(Duration(seconds: 60))
 import 'dart:async';
@@ -36,7 +38,6 @@ void main() async {
           await context.setUp(launchChrome: false, useSse: useSse);
           browser = await puppeteer.launch(
             headless: false,
-            noSandboxFlag: true,
             timeout: Duration(seconds: 60),
             args: [
               '--load-extension=$extensionPath',
