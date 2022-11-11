@@ -18,9 +18,6 @@ import 'messaging.dart';
 import 'storage.dart';
 import 'web_api.dart';
 
-/// Switch to true for debug logging.
-bool enableDebugLogging = false;
-
 void main() {
   _registerListeners();
 }

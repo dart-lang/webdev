@@ -28,7 +28,6 @@ enum StorageObject {
 Future<bool> setStorageObject<T>({
   required StorageObject type,
   required T value,
-  int? tabId,
   void Function()? callback,
 }) {
   final storageKey = type.keyName;
@@ -44,7 +43,7 @@ Future<bool> setStorageObject<T>({
   return completer.future;
 }
 
-Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
+Future<T?> fetchStorageObject<T>({required StorageObject type}) {
   final storageKey = type.keyName;
   final completer = Completer<T?>();
   chrome.storage.local.get([storageKey], allowInterop((Object storageObj) {

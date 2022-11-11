@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:built_value/serializer.dart';
-import 'package:dwds/data/debug_info.dart';
 
 import 'data_types.dart';
 
