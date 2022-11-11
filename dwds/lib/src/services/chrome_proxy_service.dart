@@ -209,10 +209,12 @@ class ChromeProxyService implements VmServiceInterface {
       // cards etc.
       // Pre-warming the cache while DevTools is still loading helps
       // Flutter Inspector start faster.
-      if (inspector.flutterWidgetInspectorLibrary != null) {
-        _logger.finest('Warming up expression compiler worker');
-        unawaited(evaluate(inspector.isolateRef.id!,
-            '${inspector.flutterWidgetInspectorLibrary!.uri}', 'true'));
+      final libraryToCache = await inspector.flutterWidgetInspectorLibrary;
+      if (libraryToCache != null) {
+        _logger.finest(
+            'Caching ${libraryToCache.uri} in expression compiler worker');
+        unawaited(
+            evaluate(inspector.isolateRef.id!, libraryToCache.id!, 'true'));
       }
     }
   }

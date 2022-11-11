@@ -84,9 +84,8 @@ class AppInspector implements AppInspectorInterface {
   static final exceptionMessageRegex = RegExp(r'^.*$', multiLine: true);
 
   /// Flutter widget inspector library.
-  static const _flutterWidgetInspectorLibraryUri =
-      'package:flutter/src/widgets/widget_inspector.dart';
-  late LibraryRef? flutterWidgetInspectorLibrary;
+  Future<LibraryRef?> get flutterWidgetInspectorLibrary => _libraryHelper
+      .libraryRefFor('package:flutter/src/widgets/widget_inspector.dart');
 
   /// Regex used to extract a stack trace line from the exception description.
   static final stackTraceLineRegex = RegExp(r'^\s*at\s.*$', multiLine: true);
@@ -122,12 +121,6 @@ class AppInspector implements AppInspectorInterface {
         libraries.map((lib) => lib.uri).whereNotNull());
     await DartUri.recordAbsoluteUris(
         scripts.map((script) => script.uri).whereNotNull());
-
-    flutterWidgetInspectorLibrary = libraries.firstWhereOrNull(
-        (lib) => lib.uri == _flutterWidgetInspectorLibraryUri);
-
-    final appKind = flutterWidgetInspectorLibrary != null ? "Flutter" : "dart";
-    _logger.finest('Debugging $appKind app');
 
     isolate.extensionRPCs?.addAll(await _getExtensionRpcs());
   }
