@@ -52,7 +52,7 @@ void main() async {
       // Note: The following delay is required to reduce flakiness (it makes
       // sure the execution context is ready):
       await Future.delayed(Duration(seconds: 1));
-      // Initiate a listeners for the port connection event and the subsequent
+      // Initiate listeners for the port connection event and the subsequent
       // reconnection logs:
       final portConnectionPromise = worker.evaluate<bool>(_portConnectionJs);
       appTab.onConsole.listen((ConsoleMessage message) {
@@ -65,7 +65,7 @@ void main() async {
       // Click on the Dart Debug Extension icon to intiate a debug session:
       await worker.evaluate(clickIconJs);
       final connectedToPort = await portConnectionPromise;
-      // Verify tht we have connected to the port:
+      // Verify that we have connected to the port:
       expect(connectedToPort, isTrue);
       expect(connectionCount, equals(1));
       // Wait for a little over 5 minutes, and verify that we have reconnected
