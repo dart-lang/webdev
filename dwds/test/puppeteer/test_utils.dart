@@ -67,4 +67,3 @@ final clickIconJs = '''
     chrome.action.onClicked.dispatch(tab);
   }
 ''';
-

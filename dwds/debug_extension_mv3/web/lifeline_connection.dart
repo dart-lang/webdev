@@ -10,7 +10,8 @@ void main() async {
 }
 
 void _connectToLifelinePort() {
-  console.log('[Dart Debug Extension] Connecting to lifeline port at ${_currentTime()}.');
+  console.log(
+      '[Dart Debug Extension] Connecting to lifeline port at ${_currentTime()}.');
   chrome.runtime.connect(
     /*extensionId=*/ null,
     ConnectInfo(name: 'keepAlive'),
