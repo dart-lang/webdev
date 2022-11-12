@@ -6,7 +6,7 @@
 // session by using the workaround described in:
 // https://bugs.chromium.org/p/chromium/issues/detail?id=1152255#c21
 @JS()
-library lifelinePorts;
+library lifeline_ports;
 
 import 'dart:async';
 import 'package:js/js.dart';
@@ -20,7 +20,7 @@ final enableDebugLogging = true;
 
 Port? lifelinePort;
 int? lifelineTab;
-final dartTabs = Set<int>();
+final dartTabs = <int>{};
 
 void maybeCreateLifelinePort(int tabId) {
   // Keep track of current Dart tabs that are being debugged. This way if one of
@@ -31,7 +31,7 @@ void maybeCreateLifelinePort(int tabId) {
   // app is currently being debugged):
   if (lifelinePort != null) {
     _debugWarn('Port already exists.');
-    return null;
+    return;
   }
   // Start the keep-alive logic when the port connects:
   chrome.runtime.onConnect.addListener(allowInterop(_keepLifelinePortAlive));
