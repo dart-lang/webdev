@@ -2,30 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JS()
 @Timeout(Duration(minutes: 10))
-library lifeline_test;
-
+@Skip('https://github.com/dart-lang/webdev/issues/1788')
 import 'dart:async';
 
-import 'package:js/js.dart';
-import 'package:js/js_util.dart';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
-// import '../fixtures/context.dart';
+import '../fixtures/context.dart';
+import 'test_utils.dart';
 
-// final context = TestContext();
+final context = TestContext();
 
 void main() async {
   late Target serviceWorkerTarget;
   late Browser browser;
+  late String extensionPath;
+
+  int connectionCount = 0;
 
   group('MV3 Debug Extension Lifeline Connection', () {
     setUpAll(() async {
-      // Don't hard code the following:
-      final extensionPath = '/Users/elliottbrooks/dev/webdev/dwds/debug_extension_mv3/compiled';
-      // await context.setUp(launchChrome: false);
+      extensionPath = await buildDebugExtension();
+      await context.setUp(launchChrome: false);
       browser = await puppeteer.launch(
         headless: false,
         timeout: Duration(seconds: 60),
@@ -44,55 +43,38 @@ void main() async {
       await browser.close();
     });
 
-    test(
-        'connects to a lifeline port',
-        () async {
-      final appUrl = 'https://www.wikipedia.org/';
+    test('connects to a lifeline port', () async {
       // Navigate to the Dart app:
-      await _navigateToPage(browser, url: appUrl, isNew: true);
+      final appTab =
+          await navigateToPage(browser, url: context.appUrl, isNew: true);
       // Click on the Dart Debug Extension icon:
       final worker = (await serviceWorkerTarget.worker)!;
       // Note: The following delay is required to reduce flakiness (it makes
       // sure the execution context is ready):
       await Future.delayed(Duration(seconds: 1));
-      final portConnectionPromise = worker.evaluate(_portConnectionJs);
-      await worker.evaluate(_clickIconJs);
-      final connectedToPort = await promiseToFuture<bool>(portConnectionPromise);
+      // Initiate a listeners for the port connection event and the subsequent
+      // reconnection logs:
+      final portConnectionPromise = worker.evaluate<bool>(_portConnectionJs);
+      appTab.onConsole.listen((ConsoleMessage message) {
+        final messageText = message.text ?? '';
+        if (messageText
+            .contains('[Dart Debug Extension] Connecting to lifeline port')) {
+          connectionCount++;
+        }
+      });
+      // Click on the Dart Debug Extension icon to intiate a debug session:
+      await worker.evaluate(clickIconJs);
+      final connectedToPort = await portConnectionPromise;
+      // Verify tht we have connected to the port:
       expect(connectedToPort, isTrue);
+      expect(connectionCount, equals(1));
+      // Wait for a little over 5 minutes, and verify that we have reconnected
+      // to the port again:
+      await Future.delayed(Duration(minutes: 5) + Duration(seconds: 15));
+      expect(connectionCount, equals(2));
     });
   });
 }
-
-Future<Page> _getPageForUrl(Browser browser, {required String url}) {
-  final pageTarget = browser.targets.firstWhere((target) => target.url == url);
-  return pageTarget.page;
-}
-
-Future<Page> _navigateToPage(
-  Browser browser, {
-  required String url,
-  bool isNew = false,
-}) async {
-  final page = isNew
-      ? await browser.newPage()
-      : await _getPageForUrl(
-          browser,
-          url: url,
-        );
-  if (isNew) {
-    await page.goto(url, wait: Until.domContentLoaded);
-  }
-  await page.bringToFront();
-  return page;
-}
-
-final _clickIconJs = '''
-  async () => {
-    const activeTabs = await chrome.tabs.query({ active: true });
-    const tab = activeTabs[0];
-    chrome.action.onClicked.dispatch(tab);
-  }
-''';
 
 final _portConnectionJs = '''
   async () => {

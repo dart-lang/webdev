@@ -5,16 +5,12 @@
 import 'chrome_api.dart';
 import 'web_api.dart';
 
-// Switch to true to enable debug logs.
-// TODO(elliette): Enable / disable with flag while building the extension.
-final enableDebugLogging = true;
-
 void main() async {
   _connectToLifelinePort();
 }
 
 void _connectToLifelinePort() {
-  _debugLog('Connecting to lifeline port at ${_currentTime()}');
+  console.log('[Dart Debug Extension] Connecting to lifeline port at ${_currentTime()}.');
   chrome.runtime.connect(
     /*extensionId=*/ null,
     ConnectInfo(name: 'keepAlive'),
@@ -24,10 +20,4 @@ void _connectToLifelinePort() {
 String _currentTime() {
   final date = DateTime.now();
   return '${date.hour}:${date.minute}::${date.second}';
-}
-
-void _debugLog(String msg) {
-  if (enableDebugLogging) {
-    console.log(msg);
-  }
 }
