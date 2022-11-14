@@ -100,19 +100,57 @@ void main() {
     await process.shouldExit(isNot(0));
   });
 
-  test('build should allow passing extra arguments to build_runner', () async {
+  test('build should pass extra arguments to build_runner', () async {
     var args = [
       'build',
       '-o',
       'web:${d.sandbox}',
+      '-verbose',
       '--',
       '--delete-conflicting-outputs'
     ];
 
     var process = await runWebDev(args, workingDirectory: exampleDirectory);
 
-    await checkProcessStdout(process, ['Succeeded']);
+    await checkProcessStdout(
+        process, ['--delete-conflicting-outputs', 'Succeeded']);
     await process.shouldExit(0);
+  });
+
+  test('daemon should pass extra arguments to build_runner', () async {
+    var args = [
+      'daemon',
+      '-o',
+      'web:${d.sandbox}',
+      '-verbose',
+      '--',
+      '--delete-conflicting-outputs'
+    ];
+
+    var process = await runWebDev(args, workingDirectory: exampleDirectory);
+
+    await checkProcessStdout(
+        process, ['--delete-conflicting-outputs', 'Succeeded']);
+    process.signal(ProcessSignal.sigterm);
+    await process.shouldExit(0);
+  });
+
+  test('serve should pass extra arguments to build_runner', () async {
+    var args = [
+      'serve',
+      '-o',
+      'web:${d.sandbox}',
+      '-verbose',
+      '--',
+      '--delete-conflicting-outputs'
+    ];
+
+    var process = await runWebDev(args, workingDirectory: exampleDirectory);
+
+    await checkProcessStdout(
+        process, ['--delete-conflicting-outputs', 'Succeeded']);
+    await process.kill();
+    await process.shouldExit(-9);
   });
 
   group('should build with valid configuration', () {

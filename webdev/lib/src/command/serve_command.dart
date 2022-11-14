@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:logging/logging.dart' as logging;
 
 import '../logging.dart';
 import '../serve/dev_workflow.dart';
@@ -103,6 +104,8 @@ refresh: Performs a full page refresh.
     var targetPorts = parseDirectoryArgs(directoryArgs);
     validateLaunchApps(configuration.launchApps, targetPorts.keys);
 
+    logWriter(
+        logging.Level.FINE, 'Build daemon args: [${buildOptions.join(',')}]');
     var workflow =
         await DevWorkflow.start(configuration, buildOptions, targetPorts);
     await workflow.done;

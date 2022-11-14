@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:async/async.dart';
-import 'package:logging/logging.dart';
+import 'package:logging/logging.dart' as logging;
 
 import '../daemon/app_domain.dart';
 import '../daemon/daemon.dart';
@@ -84,7 +84,7 @@ class DaemonCommand extends Command<int> {
       var daemonDomain = DaemonDomain(daemon);
       configureLogWriter(configuration.verbose, customLogWriter:
           (level, message, {loggerName, error, stackTrace, verbose}) {
-        if (configuration.verbose || level >= Level.INFO) {
+        if (configuration.verbose || level >= logging.Level.INFO) {
           daemonDomain.sendEvent('daemon.log', {
             'log': formatLog(
               level,
@@ -108,6 +108,8 @@ class DaemonCommand extends Command<int> {
           parseDirectoryArgs(directoryArgs, basePort: await findUnusedPort());
       validateLaunchApps(configuration.launchApps, targetPorts.keys);
 
+      logWriter(
+          logging.Level.FINE, 'Build daemon args: [${buildOptions.join(',')}]');
       workflow =
           await DevWorkflow.start(configuration, buildOptions, targetPorts);
       daemon.registerDomain(AppDomain(daemon, workflow.serverManager));

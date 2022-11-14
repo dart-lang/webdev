@@ -54,6 +54,8 @@ class BuildCommand extends Command<int> {
 
     try {
       logWriter(logging.Level.INFO, 'Connecting to the build daemon...');
+      logWriter(
+          logging.Level.FINE, 'Build daemon args: [${arguments.join(',')}]');
       var client = await connectClient(
         Directory.current.path,
         arguments,

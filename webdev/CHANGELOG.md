@@ -1,5 +1,8 @@
 ## 2.7.13-dev
 
+- Pass all flags from daemon command to the build runner.
+  For example, `-- --enable-experiment=<experiment>`.
+
 ## 2.7.12
 
 - Migrate Webdev to null-safety.
