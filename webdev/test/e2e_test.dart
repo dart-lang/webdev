@@ -105,7 +105,7 @@ void main() {
       'build',
       '-o',
       'web:${d.sandbox}',
-      '-verbose',
+      '-v',
       '--',
       '--delete-conflicting-outputs'
     ];
@@ -122,7 +122,7 @@ void main() {
       'daemon',
       '-o',
       'web:${d.sandbox}',
-      '-verbose',
+      '-v',
       '--',
       '--delete-conflicting-outputs'
     ];
@@ -140,7 +140,7 @@ void main() {
       'serve',
       '-o',
       'web:${d.sandbox}',
-      '-verbose',
+      '-v',
       '--',
       '--delete-conflicting-outputs'
     ];
