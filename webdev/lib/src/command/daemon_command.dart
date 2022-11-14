@@ -97,8 +97,11 @@ class DaemonCommand extends Command<int> {
         }
       });
       daemon.registerDomain(daemonDomain);
-      var buildOptions = buildRunnerArgs(pubspecLock, configuration);
       var extraArgs = argResults?.rest ?? [];
+      // Forward remaining arguments as Build Options to the build runner.
+      // This isn't documented. Should it be advertised?
+      var buildOptions = buildRunnerArgs(pubspecLock, configuration)
+        ..addAll(extraArgs.where((arg) => arg.startsWith('-')).toList());
       var directoryArgs =
           extraArgs.where((arg) => !arg.startsWith('-')).toList();
       var targetPorts =
