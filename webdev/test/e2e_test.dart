@@ -133,7 +133,7 @@ void main() {
         process, ['--delete-conflicting-outputs', 'Succeeded']);
     process.signal(ProcessSignal.sigterm);
     await process.shouldExit(0);
-  });
+  }, skip: Platform.isWindows); // Windows does not support sigterm signal.
 
   test('serve should pass extra arguments to build_runner', () async {
     var args = [
@@ -150,7 +150,7 @@ void main() {
     await checkProcessStdout(
         process, ['--delete-conflicting-outputs', 'Succeeded']);
     await process.kill();
-    await process.shouldExit(-9);
+    await process.shouldExit(Platform.isWindows ? -1 : -9);
   });
 
   group('should build with valid configuration', () {
