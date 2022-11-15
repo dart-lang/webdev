@@ -1,5 +1,8 @@
 ## 2.7.13-dev
 
+- Add `--enable-experiment` flag to webdev commands and pass it
+  to the build runner and the expression compiler service.
+
 ## 2.7.12
 
 - Migrate Webdev to null-safety.

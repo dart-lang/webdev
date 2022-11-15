@@ -8,6 +8,7 @@
   metadata.
 - Include the entire exception description up to the stacktrace in
   `mapExceptionStackTrace`.
+- Allow enabling experiments in the expression compiler service.
 
 ## 16.0.1
 
