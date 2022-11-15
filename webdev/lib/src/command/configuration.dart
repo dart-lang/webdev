@@ -35,6 +35,7 @@ const nullSafetySound = 'sound';
 const nullSafetyUnsound = 'unsound';
 const nullSafetyAuto = 'auto';
 const disableDdsFlag = 'disable-dds';
+const enableExperimentOption = 'enable-experiment';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   var auto = argResults.options.contains(autoOption)
@@ -103,6 +104,7 @@ class Configuration {
   final bool? _verbose;
   final bool? _disableDds;
   final String? _nullSafety;
+  final List<String>? _experiments;
 
   Configuration({
     bool? autoRun,
@@ -127,6 +129,7 @@ class Configuration {
     bool? verbose,
     bool? disableDds,
     String? nullSafety,
+    List<String>? experiments,
   })  : _autoRun = autoRun,
         _chromeDebugPort = chromeDebugPort,
         _debugExtension = debugExtension,
@@ -146,7 +149,8 @@ class Configuration {
         _disableDds = disableDds,
         _enableExpressionEvaluation = enableExpressionEvaluation,
         _verbose = verbose,
-        _nullSafety = nullSafety {
+        _nullSafety = nullSafety,
+        _experiments = experiments {
     _validateConfiguration();
   }
 
@@ -219,7 +223,8 @@ class Configuration {
       enableExpressionEvaluation:
           other._enableExpressionEvaluation ?? _enableExpressionEvaluation,
       verbose: other._verbose ?? _verbose,
-      nullSafety: other._nullSafety ?? _nullSafety);
+      nullSafety: other._nullSafety ?? _nullSafety,
+      experiments: other._experiments ?? _experiments);
 
   factory Configuration.noInjectedClientDefaults() =>
       Configuration(autoRun: false, debug: false, debugExtension: false);
@@ -269,6 +274,8 @@ class Configuration {
   /// 'auto' indicates that the default `package:build_web_compilers`
   /// behavior should be used.
   String get nullSafety => _nullSafety ?? 'auto';
+
+  List<String> get experiments => _experiments ?? [];
 
   /// Returns a new configuration with values updated from the parsed args.
   static Configuration fromArgs(ArgResults? argResults,
@@ -385,6 +392,11 @@ class Configuration {
         ? argResults[disableDdsFlag] as bool?
         : defaultConfiguration.disableDds;
 
+    var experiments = argResults.options.contains(enableExperimentOption) &&
+            argResults.wasParsed(enableExperimentOption)
+        ? argResults[enableExperimentOption] as List<String>?
+        : defaultConfiguration.experiments;
+
     return Configuration(
       autoRun: defaultConfiguration.autoRun,
       chromeDebugPort: chromeDebugPort,
@@ -408,6 +420,7 @@ class Configuration {
       enableExpressionEvaluation: enableExpressionEvaluation,
       verbose: verbose,
       nullSafety: nullSafety,
+      experiments: experiments,
     );
   }
 }

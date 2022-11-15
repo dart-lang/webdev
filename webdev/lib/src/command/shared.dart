@@ -58,6 +58,11 @@ void addSharedArgs(ArgParser argParser,
         defaultsTo: true,
         negatable: true,
         help: 'Enable expression evaluation features in the debugger.')
+    ..addMultiOption(enableExperimentOption,
+        abbr: 'x',
+        defaultsTo: null,
+        hide: true,
+        help: 'Enable experiment features in the debugger.')
     ..addFlag(verboseFlag,
         abbr: 'v',
         defaultsTo: false,
@@ -89,6 +94,10 @@ List<String> buildRunnerArgs(
       ..add('--define')
       ..add('build_web_compilers:entrypoint=sound_null_safety='
           '${configuration.nullSafety == nullSafetySound}');
+  }
+
+  for (var experiment in configuration.experiments) {
+    arguments.add('--enable-experiment=$experiment');
   }
 
   return arguments;
