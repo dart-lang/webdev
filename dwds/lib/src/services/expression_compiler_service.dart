@@ -68,6 +68,7 @@ class _Compiler {
     String moduleFormat,
     bool soundNullSafety,
     SdkConfiguration sdkConfiguration,
+    List<String> experiments,
     bool verbose,
   ) async {
     sdkConfiguration.validate();
@@ -92,6 +93,7 @@ class _Compiler {
       moduleFormat,
       if (verbose) '--verbose',
       soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
+      for (var experiment in experiments) '--enable-experiment=$experiment',
     ];
 
     _logger.info('Starting...');
@@ -230,14 +232,18 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final _compiler = Completer<_Compiler>();
   final String _address;
   final FutureOr<int> _port;
+  final List<String> experiments;
   final bool _verbose;
 
   final SdkConfigurationProvider _sdkConfigurationProvider;
 
-  ExpressionCompilerService(this._address, this._port,
-      {bool verbose = false,
-      SdkConfigurationProvider? sdkConfigurationProvider})
-      : _verbose = verbose,
+  ExpressionCompilerService(
+    this._address,
+    this._port, {
+    bool verbose = false,
+    SdkConfigurationProvider? sdkConfigurationProvider,
+    this.experiments = const [],
+  })  : _verbose = verbose,
         _sdkConfigurationProvider =
             sdkConfigurationProvider ?? DefaultSdkConfigurationProvider();
 
@@ -265,6 +271,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       moduleFormat,
       soundNullSafety,
       await _sdkConfigurationProvider.configuration,
+      experiments,
       _verbose,
     );
 

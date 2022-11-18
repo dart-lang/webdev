@@ -129,6 +129,7 @@ class WebDevServer {
           options.configuration.hostname,
           options.port,
           verbose: options.configuration.verbose,
+          experiments: options.configuration.experiments,
         );
       }
       var shouldServeDevTools =
