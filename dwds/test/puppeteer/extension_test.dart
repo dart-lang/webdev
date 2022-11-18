@@ -10,7 +10,10 @@
 })
 @Timeout(Duration(seconds: 60))
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:dwds/data/debug_info.dart';
+import 'package:dwds/data/serializers.dart';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
@@ -18,6 +21,10 @@ import '../fixtures/context.dart';
 import 'test_utils.dart';
 
 final context = TestContext();
+
+// Note: The following delay is required to reduce flakiness. It makes
+// sure the service worker execution context is ready.
+const executionContextDelay = 1;
 
 void main() async {
   late Target serviceWorkerTarget;
@@ -53,6 +60,31 @@ void main() async {
           await browser.close();
         });
 
+        test('the debug info for a Dart app is saved in the extension storage',
+            () async {
+          final appUrl = context.appUrl;
+          // Navigate to the Dart app:
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
+          final worker = (await serviceWorkerTarget.worker)!;
+          await Future.delayed(Duration(seconds: executionContextDelay));
+          // Verify that we have debug info for the Dart app:
+          final tabIdForAppJs = _tabIdForTabJs(appUrl);
+          final appTabId = (await worker.evaluate(tabIdForAppJs)) as int;
+          final debugInfoKey = '$appTabId-debugInfo';
+          final storageObj =
+              await worker.evaluate(_fetchStorageObjJs(debugInfoKey));
+          final json = storageObj[debugInfoKey];
+          final debugInfo =
+              serializers.deserialize(jsonDecode(json)) as DebugInfo;
+          expect(debugInfo.appId, isNotNull);
+          expect(debugInfo.appEntrypointPath, isNotNull);
+          expect(debugInfo.appInstanceId, isNotNull);
+          expect(debugInfo.appOrigin, isNotNull);
+          expect(debugInfo.appUrl, isNotNull);
+          await appTab.close();
+        });
+
         test(
             'can configure opening DevTools in a tab/window with extension settings',
             () async {
@@ -62,12 +94,11 @@ void main() async {
           final windowIdForAppJs = _windowIdForTabJs(appUrl);
           final windowIdForDevToolsJs = _windowIdForTabJs(devToolsUrl);
           // Navigate to the Dart app:
-          await navigateToPage(browser, url: appUrl, isNew: true);
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
           final worker = (await serviceWorkerTarget.worker)!;
-          // Note: The following delay is required to reduce flakiness (it makes
-          // sure the execution context is ready):
-          await Future.delayed(Duration(seconds: 1));
+          await Future.delayed(Duration(seconds: executionContextDelay));
           await worker.evaluate(clickIconJs);
           // Verify the extension opened the Dart docs in the same window:
           var devToolsTabTarget = await browser
@@ -107,10 +138,21 @@ void main() async {
           // Close the DevTools tab:
           devToolsTab = await devToolsTabTarget.page;
           await devToolsTab.close();
+          await appTab.close();
         });
       });
     }
   });
+}
+
+String _tabIdForTabJs(String tabUrl) {
+  return '''
+    async () => {
+      const matchingTabs = await chrome.tabs.query({ url: "$tabUrl" });
+      const tab = matchingTabs[0];
+      return tab.id;
+    }
+''';
 }
 
 String _windowIdForTabJs(String tabUrl) {
@@ -119,6 +161,23 @@ String _windowIdForTabJs(String tabUrl) {
       const matchingTabs = await chrome.tabs.query({ url: "$tabUrl" });
       const tab = matchingTabs[0];
       return tab.windowId;
+    }
+''';
+}
+
+String _fetchStorageObjJs(String storageKey) {
+  return '''
+    async () => {
+      const storageKey = "$storageKey";
+      return new Promise((resolve, reject) => {
+        chrome.storage.local.get(storageKey, (storageObj) => {
+          if (storageObj != null) {
+            resolve(storageObj);
+          } else {
+            resolve(null);
+          }
+        });
+      });
     }
 ''';
 }

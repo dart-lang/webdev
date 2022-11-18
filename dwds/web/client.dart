@@ -176,7 +176,7 @@ Future<void>? main() {
     final windowContext = JsObject.fromBrowserObject(window);
     final debugInfoJson = jsonEncode(serializers.serialize(DebugInfo((b) => b
       ..appEntrypointPath = dartEntrypointPath
-      ..appId = windowContext['\$dartExtensionUri']
+      ..appId = windowContext['\$dartAppId']
       ..appInstanceId = dartAppInstanceId
       ..appOrigin = window.location.origin
       ..appUrl = window.location.href

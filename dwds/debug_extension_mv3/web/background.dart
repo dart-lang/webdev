@@ -53,11 +53,19 @@ void _handleRuntimeMessages(
         final currentTab = await _getTab();
         final currentUrl = currentTab?.url ?? '';
         final appUrl = debugInfo.appUrl ?? '';
-        if (currentUrl.isEmpty || appUrl.isEmpty || currentUrl != appUrl) {
+        if (currentTab == null ||
+            currentUrl.isEmpty ||
+            appUrl.isEmpty ||
+            currentUrl != appUrl) {
           console.warn(
               'Dart app detected at $appUrl but current tab is $currentUrl.');
           return;
         }
+        // Save the debug info for the Dart app in storage:
+        await setStorageObject<DebugInfo>(
+            type: StorageObject.debugInfo,
+            value: debugInfo,
+            tabId: currentTab.id);
         // Update the icon to show that a Dart app has been detected:
         chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
       });
