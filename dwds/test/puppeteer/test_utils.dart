@@ -14,10 +14,10 @@ Future<String> buildDebugExtension() async {
     throw StateError(
         'Expected to be in /dwds directory, instead path was $currentDir.');
   }
-  final extensionDir = '$currentDir/debug_extension_mv3';
+  final extensionDir = p.join(currentDir, 'debug_extension_mv3');
   // TODO(elliette): This doesn't work on Windows, see https://github.com/dart-lang/webdev/issues/1724.
   await Process.run(
-    'tool/build_extension.sh',
+    p.join('tool', 'build_extension.sh'),
     [],
     workingDirectory: extensionDir,
   );
