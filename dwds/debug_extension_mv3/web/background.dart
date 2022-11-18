@@ -5,6 +5,7 @@
 @JS()
 library background;
 
+import 'dart:async';
 import 'dart:html';
 
 import 'package:dwds/data/debug_info.dart';
@@ -12,6 +13,7 @@ import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'data_types.dart';
+import 'lifeline_ports.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'web_api.dart';
@@ -22,13 +24,16 @@ void main() {
 
 void _registerListeners() {
   chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
+  chrome.tabs.onRemoved
+      .addListener(allowInterop((tabId, _) => maybeRemoveLifelinePort(tabId)));
 
   // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
 }
 
-Future<void> _startDebugSession(Tab _) async {
-  // TODO(elliette): Start a debug session instead.
+// TODO(elliette): Start a debug session instead.
+Future<void> _startDebugSession(Tab currentTab) async {
+  maybeCreateLifelinePort(currentTab.id);
   final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
       type: StorageObject.devToolsOpener);
   await _createTab('https://dart.dev/',
