@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:dwds/data/debug_info.dart';
+import 'package:dwds/data/extension_request.dart';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
@@ -17,6 +18,8 @@ import 'lifeline_ports.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'web_api.dart';
+
+const _authSuccessResponse = 'Dart Debug Authentication Success!';
 
 void main() {
   _registerListeners();
@@ -33,11 +36,44 @@ void _registerListeners() {
 
 // TODO(elliette): Start a debug session instead.
 Future<void> _startDebugSession(Tab currentTab) async {
+  final tabId = currentTab.id;
+  final debugInfo = await _fetchDebugInfo(tabId);
+  final extensionUrl = debugInfo?.extensionUrl;
+  if (extensionUrl == null) {
+    _showWarningNotification('Can\'t debug Dart app. Extension URL not found.');
+    return;
+  }
+  final isAuthenticated = await _authenticateUser(extensionUrl, tabId);
+  if (!isAuthenticated) return;
+
   maybeCreateLifelinePort(currentTab.id);
   final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
       type: StorageObject.devToolsOpener);
   await _createTab('https://dart.dev/',
       inNewWindow: devToolsOpener?.newWindow ?? false);
+}
+
+Future<bool> _authenticateUser(String extensionUrl, int tabId) async {
+  final authUrl = _constructAuthUrl(extensionUrl).toString();
+  final response = await fetchRequest(authUrl);
+  final responseBody = response.body ?? '';
+  if (!responseBody.contains(_authSuccessResponse)) {
+    _showWarningNotification('Please re-authenticate and try again.');
+    await _createTab(authUrl, inNewWindow: false);
+    return false;
+  }
+  return true;
+}
+
+Uri _constructAuthUrl(String extensionUrl) {
+  final authUri = Uri.parse(extensionUrl).replace(path: authenticationPath);
+  if (authUri.scheme == 'ws') {
+    return authUri.replace(scheme: 'http');
+  }
+  if (authUri.scheme == 'wss') {
+    return authUri.replace(scheme: 'https');
+  }
+  return authUri;
 }
 
 void _handleRuntimeMessages(
@@ -69,6 +105,26 @@ void _handleRuntimeMessages(
         // Update the icon to show that a Dart app has been detected:
         chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
       });
+}
+
+Future<DebugInfo?> _fetchDebugInfo(int tabId) {
+  return fetchStorageObject<DebugInfo>(
+    type: StorageObject.debugInfo,
+    tabId: tabId,
+  );
+}
+
+void _showWarningNotification(String message) {
+  chrome.notifications.create(
+    /*notificationId*/ null,
+    NotificationOptions(
+      title: '[Error] Dart Debug Extension',
+      message: message,
+      iconUrl: 'dart.png',
+      type: 'basic',
+    ),
+    /*callback*/ null,
+  );
 }
 
 Future<Tab?> _getTab() async {
