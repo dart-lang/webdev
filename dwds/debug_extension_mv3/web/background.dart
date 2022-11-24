@@ -60,7 +60,7 @@ void _handleRuntimeMessages(
       expectedSender: Script.detector,
       expectedRecipient: Script.background,
       messageHandler: (DebugInfo debugInfo) async {
-        final dartTab = await sender.tab;
+        final dartTab = sender.tab;
         if (dartTab == null) {
           console.warn('Received debug info but tab is missing.');
           return;
