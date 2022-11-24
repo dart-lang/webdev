@@ -24,7 +24,10 @@ void main() async {
   group('MV3 Debug Extension Lifeline Connection', () {
     setUpAll(() async {
       extensionPath = await buildDebugExtension();
-      await context.setUp(launchChrome: false);
+      await context.setUp(
+        launchChrome: false,
+        enableDebugExtension: true,
+      );
       browser = await puppeteer.launch(
         headless: false,
         timeout: Duration(seconds: 60),
