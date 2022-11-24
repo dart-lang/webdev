@@ -26,6 +26,16 @@ void _registerListeners() {
   chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
   chrome.tabs.onRemoved
       .addListener(allowInterop((tabId, _) => maybeRemoveLifelinePort(tabId)));
+  // Update the extension icon on tab navigation:
+  chrome.tabs.onActivated.addListener(allowInterop((ActiveInfo info) {
+    _updateIcon(info.tabId);
+  }));
+  chrome.windows.onFocusChanged.addListener(allowInterop((_) async {
+    final currentTab = await _getTab();
+    if (currentTab?.id != null) {
+      _updateIcon(currentTab!.id);
+    }
+  }));
 
   // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
@@ -50,25 +60,44 @@ void _handleRuntimeMessages(
       expectedSender: Script.detector,
       expectedRecipient: Script.background,
       messageHandler: (DebugInfo debugInfo) async {
-        final currentTab = await _getTab();
-        final currentUrl = currentTab?.url ?? '';
-        final appUrl = debugInfo.appUrl ?? '';
-        if (currentTab == null ||
-            currentUrl.isEmpty ||
-            appUrl.isEmpty ||
-            currentUrl != appUrl) {
-          console.warn(
-              'Dart app detected at $appUrl but current tab is $currentUrl.');
+        final dartTab = await sender.tab;
+        if (dartTab == null) {
+          console.warn('Received debug info but tab is missing.');
           return;
         }
         // Save the debug info for the Dart app in storage:
         await setStorageObject<DebugInfo>(
-            type: StorageObject.debugInfo,
-            value: debugInfo,
-            tabId: currentTab.id);
+            type: StorageObject.debugInfo, value: debugInfo, tabId: dartTab.id);
         // Update the icon to show that a Dart app has been detected:
-        chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
+        final currentTab = await _getTab();
+        if (currentTab?.id == dartTab.id) {
+          _setDebuggableIcon();
+        }
       });
+}
+
+void _updateIcon(int activeTabId) async {
+  final debugInfo = await _fetchDebugInfo(activeTabId);
+  if (debugInfo != null) {
+    _setDebuggableIcon();
+  } else {
+    _setDefaultIcon();
+  }
+}
+
+void _setDebuggableIcon() {
+  chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
+}
+
+void _setDefaultIcon() {
+  chrome.action.setIcon(IconInfo(path: 'dart_grey.png'), /*callback*/ null);
+}
+
+Future<DebugInfo?> _fetchDebugInfo(int tabId) {
+  return fetchStorageObject<DebugInfo>(
+    type: StorageObject.debugInfo,
+    tabId: tabId,
+  );
 }
 
 Future<Tab?> _getTab() async {
