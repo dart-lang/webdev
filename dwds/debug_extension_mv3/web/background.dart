@@ -12,13 +12,13 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:js/js.dart';
 
-import 'data_types.dart';
 import 'debug_session.dart';
 import 'chrome_api.dart';
 import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
+import 'tabs.dart';
 import 'web_api.dart';
 
 const _authSuccessResponse = 'Dart Debug Authentication Success!';
@@ -70,7 +70,7 @@ Future<bool> _authenticateUser(String extensionUrl, int tabId) async {
   if (!responseBody.contains(_authSuccessResponse)) {
     debugWarn('Not authenticated: ${response.status} / $responseBody');
     _showWarningNotification('Please re-authenticate and try again.');
-    await _createTab(authUrl, inNewWindow: false);
+    await createTab(authUrl, inNewWindow: false);
     return false;
   }
   return true;

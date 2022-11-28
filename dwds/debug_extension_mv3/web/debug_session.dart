@@ -23,13 +23,13 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
 import 'package:sse/client/sse_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'data_types.dart';
 import 'chrome_api.dart';
 import 'data_serializers.dart';
 import 'logger.dart';
 import 'storage.dart';
+import 'tabs.dart';
 import 'web_api.dart';
-
-bool _enableDebugLogging = const bool.fromEnvironment("is_dev");
 
 const _notADartAppAlert = 'No Dart application detected.'
     ' Are you trying to debug an application that includes a Chrome hosted app'
@@ -161,7 +161,7 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
         // TODO(elliette): Forward to external extensions.
         break;
       case 'dwds.devtoolsUri':
-        debugLog('Received DevTools URL: ${message.params}');
+        _openDevTools(message.params);
         break;
     }
   }
@@ -237,6 +237,16 @@ int _removeDebugSessionForTab(int tabId) {
   } else {
     return -1;
   }
+}
+
+void _openDevTools(String devToolsUrl) async {
+  if (devToolsUrl.isEmpty) {
+    debugError('DevTools URL is empty.');
+    return;
+  }
+  final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
+      type: StorageObject.devToolsOpener);
+  await createTab(devToolsUrl, inNewWindow: devToolsOpener?.newWindow ?? false);
 }
 
 /// Construct an [ExtensionEvent] from [method] and [params].
