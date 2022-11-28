@@ -10,6 +10,10 @@ import 'dart:js_util' as js_util;
 external Console get console;
 
 @JS()
+// ignore: non_constant_identifier_names
+external Json get JSON;
+
+@JS()
 @anonymous
 class Console {
   external void log(String header,
@@ -20,6 +24,13 @@ class Console {
 
   external void error(String header,
       [String style1, String style2, String style3]);
+}
+
+@JS()
+@anonymous
+class Json {
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+  external String stringify(o);
 }
 
 // Custom implementation of Fetch API until the Dart implementation supports

@@ -10,11 +10,13 @@ environment:
 
 dependencies:
   built_value: ^8.3.0
+  collection: ^1.15.0
   js: ^0.6.1+1
 
 dev_dependencies:
   build: ^2.0.0
   build_runner: ^2.0.6
+  built_collection: ^5.0.0
   built_value_generator: ^8.3.0
   build_web_compilers: ^3.0.0
   dwds: ^16.0.0
@@ -22,3 +24,5 @@ dev_dependencies:
 dependency_overrides:
   dwds:
     path: ..
+  sse:
+    path: /Users/elliottbrooks/dev/sse

@@ -12,8 +12,9 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:js/js.dart';
 
-import 'chrome_api.dart';
 import 'data_types.dart';
+import 'debug_session.dart';
+import 'chrome_api.dart';
 import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
@@ -58,10 +59,8 @@ Future<void> _startDebugSession(Tab currentTab) async {
   if (!isAuthenticated) return;
 
   maybeCreateLifelinePort(currentTab.id);
-  final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
-      type: StorageObject.devToolsOpener);
-  await _createTab('https://dart.dev/',
-      inNewWindow: devToolsOpener?.newWindow ?? false);
+  registerDebugEventListeners();
+  attachDebugger(tabId);
 }
 
 Future<bool> _authenticateUser(String extensionUrl, int tabId) async {
