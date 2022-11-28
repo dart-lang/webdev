@@ -41,7 +41,11 @@ void main() async {
         setUpAll(() async {
           // TODO(elliette): Only start a TestServer, that way we can get rid of
           // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
-          await context.setUp(launchChrome: false, useSse: useSse);
+          await context.setUp(
+            launchChrome: false,
+            useSse: useSse,
+            enableDebugExtension: true,
+          );
           browser = await puppeteer.launch(
             headless: false,
             timeout: Duration(seconds: 60),

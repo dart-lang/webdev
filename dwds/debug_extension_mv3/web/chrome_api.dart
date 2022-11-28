@@ -11,6 +11,7 @@ external Chrome get chrome;
 @anonymous
 class Chrome {
   external Action get action;
+  external Notifications get notifications;
   external Runtime get runtime;
   external Scripting get scripting;
   external Storage get storage;
@@ -40,6 +41,27 @@ class OnClickedHandler {
 class IconInfo {
   external String get path;
   external factory IconInfo({String path});
+}
+
+/// chrome.notification APIs:
+/// https://developer.chrome.com/docs/extensions/reference/notifications
+
+@JS()
+@anonymous
+class Notifications {
+  external void create(
+      String? notificationId, NotificationOptions options, Function? callback);
+}
+
+@JS()
+@anonymous
+class NotificationOptions {
+  external factory NotificationOptions({
+    String title,
+    String message,
+    String iconUrl,
+    String type,
+  });
 }
 
 /// chrome.runtime APIs:
