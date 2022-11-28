@@ -177,13 +177,27 @@ class Tabs {
 
   external Object create(TabInfo tabInfo);
 
+  external OnActivatedHandler get onActivated;
+
   external OnRemovedHandler get onRemoved;
+}
+
+@JS()
+@anonymous
+class OnActivatedHandler {
+  external void addListener(void Function(ActiveInfo activeInfo) callback);
 }
 
 @JS()
 @anonymous
 class OnRemovedHandler {
   external void addListener(void Function(int tabId, dynamic info) callback);
+}
+
+@JS()
+@anonymous
+class ActiveInfo {
+  external int get tabId;
 }
 
 @JS()
@@ -218,6 +232,14 @@ class Tab {
 @anonymous
 class Windows {
   external Object create(WindowInfo? createData);
+
+  external OnFocusChangedHandler get onFocusChanged;
+}
+
+@JS()
+@anonymous
+class OnFocusChangedHandler {
+  external void addListener(void Function(int windowId) callback);
 }
 
 @JS()
