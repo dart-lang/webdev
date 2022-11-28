@@ -3,15 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'chrome_api.dart';
-import 'web_api.dart';
+import 'logger.dart';
 
 void main() async {
   _connectToLifelinePort();
 }
 
 void _connectToLifelinePort() {
-  console.log(
-      '[Dart Debug Extension] Connecting to lifeline port at ${_currentTime()}.');
+  debugLog(
+    'Connecting to lifeline port at ${_currentTime()}.',
+    prefix: 'Dart Debug Extension',
+  );
   chrome.runtime.connect(
     /*extensionId=*/ null,
     ConnectInfo(name: 'keepAlive'),

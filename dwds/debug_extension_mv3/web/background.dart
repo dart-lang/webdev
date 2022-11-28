@@ -15,6 +15,7 @@ import 'package:js/js.dart';
 import 'chrome_api.dart';
 import 'data_types.dart';
 import 'lifeline_ports.dart';
+import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'web_api.dart';
@@ -68,6 +69,7 @@ Future<bool> _authenticateUser(String extensionUrl, int tabId) async {
   final response = await fetchRequest(authUrl);
   final responseBody = response.body ?? '';
   if (!responseBody.contains(_authSuccessResponse)) {
+    debugWarn('Not authenticated: ${response.status} / $responseBody');
     _showWarningNotification('Please re-authenticate and try again.');
     await _createTab(authUrl, inNewWindow: false);
     return false;
@@ -98,7 +100,7 @@ void _handleRuntimeMessages(
       messageHandler: (DebugInfo debugInfo) async {
         final dartTab = sender.tab;
         if (dartTab == null) {
-          console.warn('Received debug info but tab is missing.');
+          debugWarn('Received debug info but tab is missing.');
           return;
         }
         // Save the debug info for the Dart app in storage:

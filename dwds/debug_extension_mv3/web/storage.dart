@@ -13,10 +13,7 @@ import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'data_serializers.dart';
-import 'web_api.dart';
-
-/// Switch to true for debug logging.
-bool enableDebugLogging = true;
+import 'logger.dart';
 
 enum StorageObject {
   debugInfo,
@@ -46,7 +43,7 @@ Future<bool> setStorageObject<T>({
     if (callback != null) {
       callback();
     }
-    _debugLog(storageKey, 'Set: $json');
+    debugLog('Set: $json', prefix: storageKey);
     completer.complete(true);
   }));
   return completer.future;
@@ -58,11 +55,11 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
   chrome.storage.local.get([storageKey], allowInterop((Object storageObj) {
     final json = getProperty(storageObj, storageKey) as String?;
     if (json == null) {
-      _debugWarn(storageKey, 'Does not exist.');
+      debugWarn('Does not exist.', prefix: storageKey);
       completer.complete(null);
     } else {
       final value = serializers.deserialize(jsonDecode(json)) as T;
-      _debugLog(storageKey, 'Fetched: $json');
+      debugLog('Fetched: $json', prefix: storageKey);
       completer.complete(value);
     }
   }));
@@ -72,16 +69,4 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
 String _createStorageKey(StorageObject type, int? tabId) {
   if (tabId == null) return type.keyName;
   return '$tabId-${type.keyName}';
-}
-
-void _debugLog(String storageKey, String msg) {
-  if (enableDebugLogging) {
-    console.log('[$storageKey] $msg');
-  }
-}
-
-void _debugWarn(String storageKey, String msg) {
-  if (enableDebugLogging) {
-    console.warn('[$storageKey] $msg');
-  }
 }
