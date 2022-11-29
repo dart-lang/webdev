@@ -24,5 +24,6 @@ dev_dependencies:
 dependency_overrides:
   dwds:
     path: ..
+  # TODO(elliette): Remove override once package:sse is published.
   sse:
     path: /Users/elliottbrooks/dev/sse

@@ -94,11 +94,9 @@ void main() async {
             'can configure opening DevTools in a tab/window with extension settings',
             () async {
           final appUrl = context.appUrl;
-          // TODO(elliette): Replace with the DevTools url.
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
           final windowIdForAppJs = _windowIdForTabJs(appUrl);
-          // final windowIdForDevToolsJs = _windowIdForTabJs(devToolsUrlFragment);
           // Navigate to the Dart app:
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
