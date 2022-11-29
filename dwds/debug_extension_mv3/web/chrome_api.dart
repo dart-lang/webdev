@@ -75,6 +75,8 @@ class Runtime {
   external void sendMessage(
       String? id, Object? message, Object? options, Function? callback);
 
+  external Object getManifest();
+
   external ConnectionHandler get onConnect;
 
   external OnMessageHandler get onMessage;
