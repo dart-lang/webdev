@@ -5,12 +5,24 @@
 @JS()
 library logger;
 
+import 'dart:js_util';
+
 import 'package:js/js.dart';
 
 import 'web_api.dart';
+import 'chrome_api.dart';
 
-// Switch to true for debug logging.
-bool _enableDebugLogging = true;
+bool? _isDevMode;
+
+bool isDevMode() {
+  if (_isDevMode != null) {
+    return _isDevMode!;
+  }
+
+  final extensionManifest = chrome.runtime.getManifest();
+  final extensionName = getProperty(extensionManifest, 'name') ?? '';
+  return extensionName.contains('DEV');
+}
 
 enum _LogLevel {
   info,
@@ -18,20 +30,38 @@ enum _LogLevel {
   error,
 }
 
-debugLog(String msg, {String? prefix}) {
+debugLog(
+  String msg, {
+  String? prefix,
+  bool devOnly = true,
+}) {
   _log(msg, prefix: prefix);
 }
 
-debugWarn(String msg, {String? prefix}) {
+debugWarn(
+  String msg, {
+  String? prefix,
+  bool devOnly = true,
+}) {
   _log(msg, prefix: prefix, level: _LogLevel.warn);
 }
 
-debugError(String msg, {String? prefix}) {
+debugError(
+  String msg, {
+  String? prefix,
+  bool devOnly = true,
+}) {
   _log(msg, prefix: prefix, level: _LogLevel.error);
 }
 
-void _log(String msg, {_LogLevel? level, String? prefix}) {
-  if (!_enableDebugLogging) return;
+void _log(
+  String msg, {
+  bool devOnly = true,
+  _LogLevel? level,
+  String? prefix,
+}) {
+  console.log('IS DEV MODE? ${isDevMode()}');
+  if (devOnly && !isDevMode()) return;
   final logMsg = prefix != null ? '[$prefix] $msg' : msg;
   final logLevel = level ?? _LogLevel.info;
   switch (logLevel) {
