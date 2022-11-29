@@ -18,9 +18,9 @@ enum _LogLevel {
 debugLog(
   String msg, {
   String? prefix,
-  bool devOnly = true,
+  bool verbose = false,
 }) {
-  _log(msg, prefix: prefix);
+  _log(msg, prefix: prefix, verbose: verbose);
 }
 
 debugWarn(
@@ -28,7 +28,7 @@ debugWarn(
   String? prefix,
   bool devOnly = true,
 }) {
-  _log(msg, prefix: prefix, level: _LogLevel.warn);
+  _log(msg, prefix: prefix, level: _LogLevel.warn, verbose: verbose);
 }
 
 debugError(
@@ -36,16 +36,16 @@ debugError(
   String? prefix,
   bool devOnly = true,
 }) {
-  _log(msg, prefix: prefix, level: _LogLevel.error);
+  _log(msg, prefix: prefix, level: _LogLevel.error, verbose: verbose);
 }
 
 void _log(
   String msg, {
-  bool devOnly = true,
+  bool verbose = false,
   _LogLevel? level,
   String? prefix,
 }) {
-  if (devOnly && !isDevMode()) return;
+  if (!verbose && !isDevMode()) return;
   final logMsg = prefix != null ? '[$prefix] $msg' : msg;
   final logLevel = level ?? _LogLevel.info;
   switch (logLevel) {
