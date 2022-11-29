@@ -75,4 +75,3 @@ class _Console {
   external void error(String header,
       [String style1, String style2, String style3]);
 }
-
