@@ -155,18 +155,3 @@ Future<Tab?> _getTab() async {
   final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
   return tabs.isNotEmpty ? tabs.first : null;
 }
-
-Future<Tab> _createTab(String url, {bool inNewWindow = false}) async {
-  if (inNewWindow) {
-    final windowPromise = chrome.windows.create(
-      WindowInfo(focused: true, url: url),
-    );
-    final windowObj = await promiseToFuture<WindowObj>(windowPromise);
-    return windowObj.tabs.first;
-  }
-  final tabPromise = chrome.tabs.create(TabInfo(
-    active: true,
-    url: url,
-  ));
-  return promiseToFuture<Tab>(tabPromise);
-}

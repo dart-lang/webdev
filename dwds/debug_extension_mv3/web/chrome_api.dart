@@ -58,7 +58,16 @@ class Debugger {
   external void sendCommand(Debuggee target, String method,
       Object? commandParams, Function? callback);
 
+  external OnDetachHandler get onDetach;
+
   external OnEventHandler get onEvent;
+}
+
+@JS()
+@anonymous
+class OnDetachHandler {
+  external void addListener(
+      void Function(Debuggee source, String reason) callback);
 }
 
 @JS()
@@ -220,6 +229,8 @@ class Tabs {
   external Object create(TabInfo tabInfo);
 
   external Object get(int tabId);
+
+  external Object remove(int tabId);
 
   external OnActivatedHandler get onActivated;
 

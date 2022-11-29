@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library debugging;
+library debug_session;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
-import 'dart:js_util';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart' show IterableExtension;
@@ -23,9 +21,10 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
 import 'package:sse/client/sse_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'data_types.dart';
+
 import 'chrome_api.dart';
 import 'data_serializers.dart';
+import 'data_types.dart';
 import 'logger.dart';
 import 'storage.dart';
 import 'tabs.dart';
@@ -42,8 +41,17 @@ const _devToolsAlreadyOpenedAlert =
 
 final _debugSessions = <_DebugSession>[];
 
+enum TabType {
+  dartApp,
+  devTools,
+}
+
 void registerDebugEventListeners() {
   chrome.debugger.onEvent.addListener(allowInterop(_onDebuggerEvent));
+  chrome.debugger.onDetach.addListener(allowInterop(_handleDebuggerDetach));
+  chrome.tabs.onRemoved.addListener(allowInterop(
+    (tabId, _) => _detachDebuggerForTab(tabId, type: TabType.devTools),
+  ));
 }
 
 void attachDebugger(int tabId) {
@@ -131,11 +139,11 @@ Future<bool> _connectToDwds({
     (data) => _routeDwdsEvent(data, client, dartAppTabId),
     onDone: () {
       debugLog('Shutting down DWDS communication channel.');
-      _removeAndDetachDebugSessionForTab(dartAppTabId);
+      _detachDebuggerForTab(dartAppTabId, type: TabType.dartApp);
     },
     onError: (err) {
       debugWarn('Error in DWDS communication channel: $err');
-      _removeAndDetachDebugSessionForTab(dartAppTabId);
+      _detachDebuggerForTab(dartAppTabId, type: TabType.dartApp);
     },
     cancelOnError: true,
   );
@@ -161,7 +169,7 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
         // TODO(elliette): Forward to external extensions.
         break;
       case 'dwds.devtoolsUri':
-        _openDevTools(message.params);
+        _openDevTools(message.params, dartTabId: tabId);
         break;
     }
   }
@@ -195,11 +203,8 @@ void _forwardChromeDebuggerEventToDwds(
     Debuggee source, String method, dynamic params) {
   final debugSession = _debugSessions
       .firstWhereOrNull((session) => session.appTabId == source.tabId);
-
   if (debugSession == null) return;
-
   final event = _extensionEventFor(method, params);
-
   if (method == 'Debugger.scriptParsed') {
     debugSession.sendBatchedEvent(event);
   } else {
@@ -207,46 +212,76 @@ void _forwardChromeDebuggerEventToDwds(
   }
 }
 
-// Tries to remove the debug session for the specified tab, and detach the
-// debugger associated with that debug session.
-void _removeAndDetachDebugSessionForTab(int tabId) {
-  final removedTabId = _removeDebugSessionForTab(tabId);
-
-  if (removedTabId != -1) {
-    chrome.debugger.detach(Debuggee(tabId: removedTabId), allowInterop(() {}));
-  }
-}
-
-// Tries to remove the debug session for the specified tab. If no session is
-// found, returns -1. Otherwise returns the tab ID.
-int _removeDebugSessionForTab(int tabId) {
-  final session =
-      _debugSessions.firstWhereOrNull((session) => session.appTabId == tabId);
-  if (session != null) {
-    // Note: package:sse will try to keep the connection alive, even after the
-    // client has been closed. Therefore the extension sends an event to notify
-    // DWDS that we should close the connection, instead of relying on the done
-    // event sent when the client is closed. See details:
-    // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
-    final event =
-        _extensionEventFor('DebugExtension.detached', js_util.jsify({}));
-    session.sendEvent(event);
-    session.close();
-    _debugSessions.remove(session);
-    return session.appTabId;
-  } else {
-    return -1;
-  }
-}
-
-void _openDevTools(String devToolsUrl) async {
+void _openDevTools(String devToolsUrl, {required int dartTabId}) async {
   if (devToolsUrl.isEmpty) {
     debugError('DevTools URL is empty.');
     return;
   }
+  final debugSession = _debugSessionForTab(dartTabId, type: TabType.dartApp);
+  if (debugSession == null) {
+    debugError('Debug session not found.');
+    return;
+  }
   final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
       type: StorageObject.devToolsOpener);
-  await createTab(devToolsUrl, inNewWindow: devToolsOpener?.newWindow ?? false);
+  final devToolsTab = await createTab(
+    devToolsUrl,
+    inNewWindow: devToolsOpener?.newWindow ?? false,
+  );
+  debugSession.devToolsTabId = devToolsTab.id;
+}
+
+void _detachDebuggerForTab(int tabId, {required TabType type}) {
+  final debugSession = _debugSessionForTab(tabId, type: type);
+  if (debugSession == null) return;
+  chrome.debugger.detach(Debuggee(tabId: debugSession.appTabId),
+      allowInterop(() {
+    final error = chrome.runtime.lastError;
+    if (error != null) {
+      debugWarn('Error detaching tab: ${error.message}');
+    } else {
+      debugLog('Detached debugger for ${debugSession.appTabId}');
+    }
+  }));
+}
+
+void _handleDebuggerDetach(Debuggee source, String _) async {
+  final debugSession = _debugSessionForTab(source.tabId, type: TabType.dartApp);
+  if (debugSession == null) return;
+  _removeDebugSession(debugSession);
+  // Maybe close the associated DevTools tab as well:
+  final devToolsTabId = debugSession.devToolsTabId;
+  final devToolsTab = await getTab(devToolsTabId);
+  if (devToolsTab != null) {
+    chrome.tabs.remove(devToolsTabId);
+  }
+}
+
+void _removeDebugSession(_DebugSession debugSession) {
+  // Note: package:sse will try to keep the connection alive, even after the
+  // client has been closed. Therefore the extension sends an event to notify
+  // DWDS that we should close the connection, instead of relying on the done
+  // event sent when the client is closed. See details:
+  // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
+  final event =
+      _extensionEventFor('DebugExtension.detached', js_util.jsify({}));
+  debugSession.sendEvent(event);
+  debugSession.close();
+  final removed = _debugSessions.remove(debugSession);
+  if (!removed) {
+    debugWarn('Could not remove debug session.');
+  }
+}
+
+_DebugSession? _debugSessionForTab(tabId, {required TabType type}) {
+  switch (type) {
+    case TabType.dartApp:
+      return _debugSessions
+          .firstWhereOrNull((session) => session.appTabId == tabId);
+    case TabType.devTools:
+      return _debugSessions
+          .firstWhereOrNull((session) => session.devToolsTabId == tabId);
+  }
 }
 
 /// Construct an [ExtensionEvent] from [method] and [params].
@@ -257,7 +292,7 @@ ExtensionEvent _extensionEventFor(String method, dynamic params) {
 }
 
 Future<String> _getTabUrl(int tabId) async {
-  final tab = await promiseToFuture<Tab?>(chrome.tabs.get(tabId));
+  final tab = await getTab(tabId);
   return tab?.url ?? '';
 }
 
@@ -270,6 +305,9 @@ class EmptyParam {
 class _DebugSession {
   // The tab ID that contains the running Dart application.
   final int appTabId;
+
+  // The tab ID that contains the corresponding Dart DevTools.
+  late final int _devToolsTabId;
 
   // Socket client for communication with dwds extension backend.
   late final SocketClient _socketClient;
@@ -301,6 +339,14 @@ class _DebugSession {
       _socketClient.sink.add(jsonEncode(serializers.serialize(BatchedEvents(
           (b) => b.events = ListBuilder<ExtensionEvent>(events)))));
     });
+  }
+
+  int get devToolsTabId {
+    return _devToolsTabId;
+  }
+
+  void set devToolsTabId(int tabId) {
+    _devToolsTabId = tabId;
   }
 
   void sendEvent(ExtensionEvent event) {
