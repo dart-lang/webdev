@@ -70,10 +70,8 @@ Future<bool> _authenticateUser(String extensionUrl, int tabId) async {
   final response = await fetchRequest(authUrl);
   final responseBody = response.body ?? '';
   if (!responseBody.contains(_authSuccessResponse)) {
-    debugError(
-      'Not authenticated: ${response.status} / $responseBody',
-      devOnly: false,
-    );
+    debugError('Not authenticated: ${response.status} / $responseBody',
+        verbose: true);
     _showWarningNotification('Please re-authenticate and try again.');
     await _createTab(authUrl, inNewWindow: false);
     return false;

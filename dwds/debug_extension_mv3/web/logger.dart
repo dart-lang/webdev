@@ -26,7 +26,7 @@ debugLog(
 debugWarn(
   String msg, {
   String? prefix,
-  bool devOnly = true,
+  bool verbose = false,
 }) {
   _log(msg, prefix: prefix, level: _LogLevel.warn, verbose: verbose);
 }
@@ -34,7 +34,7 @@ debugWarn(
 debugError(
   String msg, {
   String? prefix,
-  bool devOnly = true,
+  bool verbose = false,
 }) {
   _log(msg, prefix: prefix, level: _LogLevel.error, verbose: verbose);
 }
