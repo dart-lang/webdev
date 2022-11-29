@@ -31,7 +31,7 @@ Future<FetchResponse> fetchRequest(String resourceUrl) async {
   try {
     final options = FetchOptions(
       method: 'GET',
-      credentialsOptions: CredentialsOptions(credentials: 'include'),
+      credentials: 'include',
     );
     final response =
         await promiseToFuture(_nativeJsFetch(resourceUrl, options));
@@ -51,14 +51,6 @@ Future<FetchResponse> fetchRequest(String resourceUrl) async {
 class FetchOptions {
   external factory FetchOptions({
     required String method, // e.g., 'GET', 'POST'
-    required CredentialsOptions credentialsOptions,
-  });
-}
-
-@JS()
-@anonymous
-class CredentialsOptions {
-  external factory CredentialsOptions({
     required String credentials, // e.g., 'omit', 'same-origin', 'include'
   });
 }
