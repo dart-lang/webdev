@@ -18,7 +18,7 @@ import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
-import 'tabs.dart';
+import 'utils.dart';
 import 'web_api.dart';
 
 const _authSuccessResponse = 'Dart Debug Authentication Success!';

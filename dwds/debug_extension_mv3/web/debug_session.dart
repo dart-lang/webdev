@@ -27,7 +27,7 @@ import 'data_serializers.dart';
 import 'data_types.dart';
 import 'logger.dart';
 import 'storage.dart';
-import 'tabs.dart';
+import 'utils.dart';
 import 'web_api.dart';
 
 const _notADartAppAlert = 'No Dart application detected.'
