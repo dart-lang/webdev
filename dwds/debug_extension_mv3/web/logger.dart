@@ -5,24 +5,9 @@
 @JS()
 library logger;
 
-import 'dart:js_util';
-
 import 'package:js/js.dart';
 
-import 'web_api.dart';
-import 'chrome_api.dart';
-
-bool? _isDevMode;
-
-bool isDevMode() {
-  if (_isDevMode != null) {
-    return _isDevMode!;
-  }
-
-  final extensionManifest = chrome.runtime.getManifest();
-  final extensionName = getProperty(extensionManifest, 'name') ?? '';
-  return extensionName.contains('DEV');
-}
+import 'utils.dart';
 
 enum _LogLevel {
   info,
@@ -60,18 +45,34 @@ void _log(
   _LogLevel? level,
   String? prefix,
 }) {
-  console.log('IS DEV MODE? ${isDevMode()}');
   if (devOnly && !isDevMode()) return;
   final logMsg = prefix != null ? '[$prefix] $msg' : msg;
   final logLevel = level ?? _LogLevel.info;
   switch (logLevel) {
     case _LogLevel.error:
-      console.error(logMsg);
+      _console.error(logMsg);
       break;
     case _LogLevel.warn:
-      console.warn(logMsg);
+      _console.warn(logMsg);
       break;
     case _LogLevel.info:
-      console.log(logMsg);
+      _console.log(logMsg);
   }
 }
+
+@JS('console')
+external _Console get _console;
+
+@JS()
+@anonymous
+class _Console {
+  external void log(String header,
+      [String style1, String style2, String style3]);
+
+  external void warn(String header,
+      [String style1, String style2, String style3]);
+
+  external void error(String header,
+      [String style1, String style2, String style3]);
+}
+
