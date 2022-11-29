@@ -17,6 +17,9 @@ class Console {
 
   external void warn(String header,
       [String style1, String style2, String style3]);
+
+  external void error(String header,
+      [String style1, String style2, String style3]);
 }
 
 // Custom implementation of Fetch API until the Dart implementation supports
