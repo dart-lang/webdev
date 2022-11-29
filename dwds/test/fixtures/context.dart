@@ -167,7 +167,7 @@ class TestContext {
 
     try {
       DartUri.currentDirectory = workingDirectory;
-      // configureLogWriter();
+      configureLogWriter();
 
       _client = IOClient(HttpClient()
         ..maxConnectionsPerHost = 200

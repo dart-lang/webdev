@@ -42,6 +42,7 @@ void main() async {
           // TODO(elliette): Only start a TestServer, that way we can get rid of
           // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
           await context.setUp(
+            serveDevTools: true,
             launchChrome: false,
             useSse: useSse,
             enableDebugExtension: true,
@@ -86,7 +87,6 @@ void main() async {
           expect(debugInfo.appInstanceId, isNotNull);
           expect(debugInfo.appOrigin, isNotNull);
           expect(debugInfo.appUrl, isNotNull);
-          print('EXTENSION URL ${debugInfo.extensionUrl}');
           await appTab.close();
         });
 
@@ -95,7 +95,8 @@ void main() async {
             () async {
           final appUrl = context.appUrl;
           // TODO(elliette): Replace with the DevTools url.
-          final devToolsUrlFragment = useSse ? 'uri=sse' : 'uri=ws';
+          final devToolsUrlFragment =
+              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
           final windowIdForAppJs = _windowIdForTabJs(appUrl);
           // final windowIdForDevToolsJs = _windowIdForTabJs(devToolsUrlFragment);
           // Navigate to the Dart app:
@@ -106,10 +107,9 @@ void main() async {
           await Future.delayed(Duration(seconds: executionContextDelay));
           await worker.evaluate(clickIconJs);
           // Verify the extension opened the Dart docs in the same window:
-          var devToolsTabTarget = await browser
-              .waitForTarget((target) => target.url.contains(devToolsUrlFragment));
+          var devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
           final devToolsPage = await devToolsTabTarget.page;
-          print('URL IS: ${devToolsPage.url}');
           final windowIdForDevToolsJs = _windowIdForTabJs(devToolsPage.url!);
           var devToolsWindowId =
               (await worker.evaluate(windowIdForDevToolsJs)) as int?;
@@ -137,8 +137,8 @@ void main() async {
           // Click on the Dart Debug Extension icon:
           await worker.evaluate(clickIconJs);
           // Verify the extension opened DevTools in a different window:
-          devToolsTabTarget = await browser
-              .waitForTarget((target) => target.url.contains(devToolsUrlFragment));
+          devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
           devToolsWindowId =
               (await worker.evaluate(windowIdForDevToolsJs)) as int?;
           appWindowId = (await worker.evaluate(windowIdForAppJs)) as int?;
