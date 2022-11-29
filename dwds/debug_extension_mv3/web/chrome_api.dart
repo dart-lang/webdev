@@ -118,6 +118,8 @@ class Runtime {
   external void sendMessage(
       String? id, Object? message, Object? options, Function? callback);
 
+  external Object getManifest();
+
   // Note: Not checking the lastError when one occurs throws a runtime exception.
   external ChromeError? get lastError;
 

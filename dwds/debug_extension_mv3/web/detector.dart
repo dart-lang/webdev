@@ -24,7 +24,7 @@ void _registerListeners() {
 void _onDartAppReadyEvent(Event event) {
   final debugInfo = getProperty(event, 'detail') as String?;
   if (debugInfo == null) {
-    debugWarn('Can\'t debug Dart app without debug info.');
+    debugError('Can\'t debug Dart app without debug info.', verbose: true);
     return;
   }
   _sendMessageToBackgroundScript(

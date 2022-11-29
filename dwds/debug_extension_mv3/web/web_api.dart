@@ -7,24 +7,8 @@ import 'package:js/js.dart';
 import 'dart:js_util' as js_util;
 
 @JS()
-external Console get console;
-
-@JS()
 // ignore: non_constant_identifier_names
 external Json get JSON;
-
-@JS()
-@anonymous
-class Console {
-  external void log(String header,
-      [String style1, String style2, String style3]);
-
-  external void warn(String header,
-      [String style1, String style2, String style3]);
-
-  external void error(String header,
-      [String style1, String style2, String style3]);
-}
 
 @JS()
 @anonymous
@@ -42,7 +26,7 @@ Future<FetchResponse> fetchRequest(String resourceUrl) async {
   try {
     final options = FetchOptions(
       method: 'GET',
-      credentialsOptions: CredentialsOptions(credentials: 'include'),
+      credentials: 'include',
     );
     final response =
         await promiseToFuture(_nativeJsFetch(resourceUrl, options));
@@ -62,14 +46,6 @@ Future<FetchResponse> fetchRequest(String resourceUrl) async {
 class FetchOptions {
   external factory FetchOptions({
     required String method, // e.g., 'GET', 'POST'
-    required CredentialsOptions credentialsOptions,
-  });
-}
-
-@JS()
-@anonymous
-class CredentialsOptions {
-  external factory CredentialsOptions({
     required String credentials, // e.g., 'omit', 'same-origin', 'include'
   });
 }

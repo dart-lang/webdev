@@ -68,7 +68,8 @@ Future<bool> _authenticateUser(String extensionUrl, int tabId) async {
   final response = await fetchRequest(authUrl);
   final responseBody = response.body ?? '';
   if (!responseBody.contains(_authSuccessResponse)) {
-    debugWarn('Not authenticated: ${response.status} / $responseBody');
+    debugError('Not authenticated: ${response.status} / $responseBody',
+        verbose: true);
     _showWarningNotification('Please re-authenticate and try again.');
     await createTab(authUrl, inNewWindow: false);
     return false;
@@ -127,7 +128,8 @@ void _setDebuggableIcon() {
 }
 
 void _setDefaultIcon() {
-  chrome.action.setIcon(IconInfo(path: 'dart_grey.png'), /*callback*/ null);
+  final iconPath = isDevMode() ? 'dart_dev.png' : 'dart_grey.png';
+  chrome.action.setIcon(IconInfo(path: iconPath), /*callback*/ null);
 }
 
 Future<DebugInfo?> _fetchDebugInfo(int tabId) {

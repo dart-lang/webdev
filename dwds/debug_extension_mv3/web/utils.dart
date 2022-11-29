@@ -6,7 +6,7 @@
 library utils;
 
 import 'dart:async';
-import 'dart:html';
+import 'dart:js_util';
 
 import 'package:js/js.dart';
 
@@ -35,4 +35,15 @@ Future<Tab?> getActiveTab() async {
   final query = QueryInfo(active: true, currentWindow: true);
   final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
   return tabs.isNotEmpty ? tabs.first : null;
+}
+
+bool? _isDevMode;
+
+bool isDevMode() {
+  if (_isDevMode != null) {
+    return _isDevMode!;
+  }
+  final extensionManifest = chrome.runtime.getManifest();
+  final extensionName = getProperty(extensionManifest, 'name') ?? '';
+  return extensionName.contains('DEV');
 }

@@ -7,10 +7,7 @@ library logger;
 
 import 'package:js/js.dart';
 
-import 'web_api.dart';
-
-// Switch to true for debug logging.
-bool _enableDebugLogging = true;
+import 'utils.dart';
 
 enum _LogLevel {
   info,
@@ -18,30 +15,63 @@ enum _LogLevel {
   error,
 }
 
-debugLog(String msg, {String? prefix}) {
-  _log(msg, prefix: prefix);
+debugLog(
+  String msg, {
+  String? prefix,
+  bool verbose = false,
+}) {
+  _log(msg, prefix: prefix, verbose: verbose);
 }
 
-debugWarn(String msg, {String? prefix}) {
-  _log(msg, prefix: prefix, level: _LogLevel.warn);
+debugWarn(
+  String msg, {
+  String? prefix,
+  bool verbose = false,
+}) {
+  _log(msg, prefix: prefix, level: _LogLevel.warn, verbose: verbose);
 }
 
-debugError(String msg, {String? prefix}) {
-  _log(msg, prefix: prefix, level: _LogLevel.error);
+debugError(
+  String msg, {
+  String? prefix,
+  bool verbose = false,
+}) {
+  _log(msg, prefix: prefix, level: _LogLevel.error, verbose: verbose);
 }
 
-void _log(String msg, {_LogLevel? level, String? prefix}) {
-  if (!_enableDebugLogging) return;
+void _log(
+  String msg, {
+  bool verbose = false,
+  _LogLevel? level,
+  String? prefix,
+}) {
+  if (!verbose && !isDevMode()) return;
   final logMsg = prefix != null ? '[$prefix] $msg' : msg;
   final logLevel = level ?? _LogLevel.info;
   switch (logLevel) {
     case _LogLevel.error:
-      console.error(logMsg);
+      _console.error(logMsg);
       break;
     case _LogLevel.warn:
-      console.warn(logMsg);
+      _console.warn(logMsg);
       break;
     case _LogLevel.info:
-      console.log(logMsg);
+      _console.log(logMsg);
   }
+}
+
+@JS('console')
+external _Console get _console;
+
+@JS()
+@anonymous
+class _Console {
+  external void log(String header,
+      [String style1, String style2, String style3]);
+
+  external void warn(String header,
+      [String style1, String style2, String style3]);
+
+  external void error(String header,
+      [String style1, String style2, String style3]);
 }
