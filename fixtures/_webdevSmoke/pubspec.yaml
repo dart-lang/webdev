@@ -1,6 +1,6 @@
 # This code is for testing that the debugger works with weak null-safety
 # so we should not migrate it to null-safety.
-# TODO(elliette): Once Dart 3.0 is released, delete
+# TODO(elliette): Once Dart 3.0 is released, delete this directory.
 name: _webdev_smoke
 description:
   A test fixture for webdev testing with weak null-safety.
