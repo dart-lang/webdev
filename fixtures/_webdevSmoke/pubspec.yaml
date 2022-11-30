@@ -1,9 +1,10 @@
+# This code is for testing that the debugger works with weak null-safety
+# so we should not migrate it to null-safety.
+# TODO(elliette): Delete this directory post Dart 3.0 (when we no longer
+# support weak null-safety).
 name: _webdev_smoke
 description:
-  A test fixture for webdev testing.
-  This code is for testing that debugger works with weak null safety so we
-  should not migrate it to null safety. Once Dart 3.0 is released, we should
-  delete this directory.
+  A test fixture for webdev testing with weak null-safety.
 
 
 # The versions in this pubspec should match the requirements
