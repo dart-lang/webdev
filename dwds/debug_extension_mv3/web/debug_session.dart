@@ -307,7 +307,7 @@ class _DebugSession {
   final int appTabId;
 
   // The tab ID that contains the corresponding Dart DevTools.
-  late final int _devToolsTabId;
+  late final int devToolsTabId;
 
   // Socket client for communication with dwds extension backend.
   late final SocketClient _socketClient;
@@ -331,7 +331,7 @@ class _DebugSession {
     });
   }
 
-  void set socketClient(SocketClient client) {
+  set socketClient(SocketClient client) {
     _socketClient = client;
 
     // Collect extension events and send them periodically to the server.
@@ -339,14 +339,6 @@ class _DebugSession {
       _socketClient.sink.add(jsonEncode(serializers.serialize(BatchedEvents(
           (b) => b.events = ListBuilder<ExtensionEvent>(events)))));
     });
-  }
-
-  int get devToolsTabId {
-    return _devToolsTabId;
-  }
-
-  void set devToolsTabId(int tabId) {
-    _devToolsTabId = tabId;
   }
 
   void sendEvent(ExtensionEvent event) {
