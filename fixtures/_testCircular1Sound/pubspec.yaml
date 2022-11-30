@@ -1,4 +1,3 @@
-# TODO(elliette): Migrate to sound null-safety.
 name: _test_circular1_sound
 version: 1.0.0
 description: >-
