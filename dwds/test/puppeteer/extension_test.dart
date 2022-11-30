@@ -42,6 +42,7 @@ void main() async {
           // TODO(elliette): Only start a TestServer, that way we can get rid of
           // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
           await context.setUp(
+            serveDevTools: true,
             launchChrome: false,
             useSse: useSse,
             enableDebugExtension: true,
@@ -93,10 +94,9 @@ void main() async {
             'can configure opening DevTools in a tab/window with extension settings',
             () async {
           final appUrl = context.appUrl;
-          // TODO(elliette): Replace with the DevTools url.
-          final devToolsUrl = 'https://dart.dev/';
+          final devToolsUrlFragment =
+              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
           final windowIdForAppJs = _windowIdForTabJs(appUrl);
-          final windowIdForDevToolsJs = _windowIdForTabJs(devToolsUrl);
           // Navigate to the Dart app:
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
@@ -105,8 +105,10 @@ void main() async {
           await Future.delayed(Duration(seconds: executionContextDelay));
           await worker.evaluate(clickIconJs);
           // Verify the extension opened the Dart docs in the same window:
-          var devToolsTabTarget = await browser
-              .waitForTarget((target) => target.url.contains(devToolsUrl));
+          var devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
+          final devToolsPage = await devToolsTabTarget.page;
+          final windowIdForDevToolsJs = _windowIdForTabJs(devToolsPage.url!);
           var devToolsWindowId =
               (await worker.evaluate(windowIdForDevToolsJs)) as int?;
           var appWindowId = (await worker.evaluate(windowIdForAppJs)) as int?;
@@ -133,8 +135,8 @@ void main() async {
           // Click on the Dart Debug Extension icon:
           await worker.evaluate(clickIconJs);
           // Verify the extension opened DevTools in a different window:
-          devToolsTabTarget = await browser
-              .waitForTarget((target) => target.url.contains(devToolsUrl));
+          devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
           devToolsWindowId =
               (await worker.evaluate(windowIdForDevToolsJs)) as int?;
           appWindowId = (await worker.evaluate(windowIdForAppJs)) as int?;

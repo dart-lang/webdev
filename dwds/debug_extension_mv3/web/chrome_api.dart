@@ -11,6 +11,7 @@ external Chrome get chrome;
 @anonymous
 class Chrome {
   external Action get action;
+  external Debugger get debugger;
   external Notifications get notifications;
   external Runtime get runtime;
   external Scripting get scripting;
@@ -41,6 +42,48 @@ class OnClickedHandler {
 class IconInfo {
   external String get path;
   external factory IconInfo({String path});
+}
+
+/// chrome.debugger APIs:
+/// https://developer.chrome.com/docs/extensions/reference/debugger
+
+@JS()
+@anonymous
+class Debugger {
+  external void attach(
+      Debuggee target, String requiredVersion, Function? callback);
+
+  external void detach(Debuggee target, Function? callback);
+
+  external void sendCommand(Debuggee target, String method,
+      Object? commandParams, Function? callback);
+
+  external OnDetachHandler get onDetach;
+
+  external OnEventHandler get onEvent;
+}
+
+@JS()
+@anonymous
+class OnDetachHandler {
+  external void addListener(
+      void Function(Debuggee source, String reason) callback);
+}
+
+@JS()
+@anonymous
+class OnEventHandler {
+  external void addListener(
+      void Function(Debuggee source, String method, Object? params) callback);
+}
+
+@JS()
+@anonymous
+class Debuggee {
+  external int get tabId;
+  external String get extensionId;
+  external String get targetId;
+  external factory Debuggee({int tabId, String? extensionId, String? targetId});
 }
 
 /// chrome.notification APIs:
@@ -77,9 +120,17 @@ class Runtime {
 
   external Object getManifest();
 
+  // Note: Not checking the lastError when one occurs throws a runtime exception.
+  external ChromeError? get lastError;
+
   external ConnectionHandler get onConnect;
 
   external OnMessageHandler get onMessage;
+}
+
+@JS()
+class ChromeError {
+  external String get message;
 }
 
 @JS()
@@ -178,6 +229,10 @@ class Tabs {
   external Object query(QueryInfo queryInfo);
 
   external Object create(TabInfo tabInfo);
+
+  external Object get(int tabId);
+
+  external Object remove(int tabId);
 
   external OnActivatedHandler get onActivated;
 

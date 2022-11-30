@@ -12,8 +12,8 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:js/js.dart';
 
+import 'debug_session.dart';
 import 'chrome_api.dart';
-import 'data_types.dart';
 import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
@@ -59,10 +59,8 @@ Future<void> _startDebugSession(Tab currentTab) async {
   if (!isAuthenticated) return;
 
   maybeCreateLifelinePort(currentTab.id);
-  final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
-      type: StorageObject.devToolsOpener);
-  await _createTab('https://dart.dev/',
-      inNewWindow: devToolsOpener?.newWindow ?? false);
+  registerDebugEventListeners();
+  attachDebugger(tabId);
 }
 
 Future<bool> _authenticateUser(String extensionUrl, int tabId) async {
@@ -73,7 +71,7 @@ Future<bool> _authenticateUser(String extensionUrl, int tabId) async {
     debugError('Not authenticated: ${response.status} / $responseBody',
         verbose: true);
     _showWarningNotification('Please re-authenticate and try again.');
-    await _createTab(authUrl, inNewWindow: false);
+    await createTab(authUrl, inNewWindow: false);
     return false;
   }
   return true;
@@ -158,19 +156,4 @@ Future<Tab?> _getTab() async {
   final query = QueryInfo(active: true, currentWindow: true);
   final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
   return tabs.isNotEmpty ? tabs.first : null;
-}
-
-Future<Tab> _createTab(String url, {bool inNewWindow = false}) async {
-  if (inNewWindow) {
-    final windowPromise = chrome.windows.create(
-      WindowInfo(focused: true, url: url),
-    );
-    final windowObj = await promiseToFuture<WindowObj>(windowPromise);
-    return windowObj.tabs.first;
-  }
-  final tabPromise = chrome.tabs.create(TabInfo(
-    active: true,
-    url: url,
-  ));
-  return promiseToFuture<Tab>(tabPromise);
 }
