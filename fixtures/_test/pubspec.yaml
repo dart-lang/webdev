@@ -1,7 +1,10 @@
+# This code is for testing that the debugger works with weak null-safety
+# so we should not migrate it to null-safety.
+# TODO(elliette): Once Dart 3.0 is released, delete this directory.
 name: _test
 version: 1.0.0
 description: >-
-  A fake package used for testing
+  A fake package used for testing weak null-safety.
 publish_to: none
 
 environment:
