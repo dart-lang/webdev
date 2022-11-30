@@ -15,5 +15,5 @@ void main() {
     testCircularDependencies();
   });
 
-  document.body.appendText(concatenate('Program', ' is running!'));
+  document.body!.appendText(concatenate('Program', ' is running!'));
 }
