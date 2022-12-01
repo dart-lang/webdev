@@ -8156,7 +8156,7 @@
     },
     _$DebugInfoSerializer: function _$DebugInfoSerializer() {
     },
-    _$DebugInfo: function _$DebugInfo(t0, t1, t2, t3, t4, t5, t6, t7) {
+    _$DebugInfo: function _$DebugInfo(t0, t1, t2, t3, t4, t5, t6, t7, t8) {
       var _ = this;
       _.appEntrypointPath = t0;
       _.appId = t1;
@@ -8166,10 +8166,11 @@
       _.dwdsVersion = t5;
       _.extensionUrl = t6;
       _.isInternalBuild = t7;
+      _.isFlutterApp = t8;
     },
     DebugInfoBuilder: function DebugInfoBuilder() {
       var _ = this;
-      _._isInternalBuild = _._extensionUrl = _._dwdsVersion = _._appUrl = _._appOrigin = _._appInstanceId = _._appId = _._appEntrypointPath = _._$v = null;
+      _._isFlutterApp = _._isInternalBuild = _._extensionUrl = _._dwdsVersion = _._appUrl = _._appOrigin = _._appInstanceId = _._appId = _._appEntrypointPath = _._$v = null;
     },
     DevToolsRequest: function DevToolsRequest() {
     },
@@ -22544,6 +22545,11 @@
         result.push("isInternalBuild");
         result.push(serializers.serialize$2$specifiedType(value, B.FullType_MtR));
       }
+      value = object.isFlutterApp;
+      if (value != null) {
+        result.push("isFlutterApp");
+        result.push(serializers.serialize$2$specifiedType(value, B.FullType_MtR));
+      }
       return result;
     },
     serialize$2(serializers, object) {
@@ -22592,6 +22598,10 @@
             t1 = A._asBoolQ(serializers.deserialize$2$specifiedType(value, B.FullType_MtR));
             result.get$_$this()._isInternalBuild = t1;
             break;
+          case "isFlutterApp":
+            t1 = A._asBoolQ(serializers.deserialize$2$specifiedType(value, B.FullType_MtR));
+            result.get$_$this()._isFlutterApp = t1;
+            break;
         }
       }
       return result._debug_info$_build$0();
@@ -22615,11 +22625,11 @@
         return false;
       if (other === _this)
         return true;
-      return other instanceof A.DebugInfo && _this.appEntrypointPath == other.appEntrypointPath && _this.appId == other.appId && _this.appInstanceId == other.appInstanceId && _this.appOrigin == other.appOrigin && _this.appUrl == other.appUrl && _this.dwdsVersion == other.dwdsVersion && _this.extensionUrl == other.extensionUrl && _this.isInternalBuild == other.isInternalBuild;
+      return other instanceof A.DebugInfo && _this.appEntrypointPath == other.appEntrypointPath && _this.appId == other.appId && _this.appInstanceId == other.appInstanceId && _this.appOrigin == other.appOrigin && _this.appUrl == other.appUrl && _this.dwdsVersion == other.dwdsVersion && _this.extensionUrl == other.extensionUrl && _this.isInternalBuild == other.isInternalBuild && _this.isFlutterApp == other.isFlutterApp;
     },
     get$hashCode(_) {
       var _this = this;
-      return A.$jf(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(0, J.get$hashCode$(_this.appEntrypointPath)), J.get$hashCode$(_this.appId)), J.get$hashCode$(_this.appInstanceId)), J.get$hashCode$(_this.appOrigin)), J.get$hashCode$(_this.appUrl)), J.get$hashCode$(_this.dwdsVersion)), J.get$hashCode$(_this.extensionUrl)), J.get$hashCode$(_this.isInternalBuild)));
+      return A.$jf(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(0, J.get$hashCode$(_this.appEntrypointPath)), J.get$hashCode$(_this.appId)), J.get$hashCode$(_this.appInstanceId)), J.get$hashCode$(_this.appOrigin)), J.get$hashCode$(_this.appUrl)), J.get$hashCode$(_this.dwdsVersion)), J.get$hashCode$(_this.extensionUrl)), J.get$hashCode$(_this.isInternalBuild)), J.get$hashCode$(_this.isFlutterApp)));
     },
     toString$0(_) {
       var _this = this,
@@ -22633,6 +22643,7 @@
       t2.add$2(t1, "dwdsVersion", _this.dwdsVersion);
       t2.add$2(t1, "extensionUrl", _this.extensionUrl);
       t2.add$2(t1, "isInternalBuild", _this.isInternalBuild);
+      t2.add$2(t1, "isFlutterApp", _this.isFlutterApp);
       return t2.toString$0(t1);
     }
   };
@@ -22649,6 +22660,7 @@
         _this._dwdsVersion = $$v.dwdsVersion;
         _this._extensionUrl = $$v.extensionUrl;
         _this._isInternalBuild = $$v.isInternalBuild;
+        _this._isFlutterApp = $$v.isFlutterApp;
         _this._$v = null;
       }
       return _this;
@@ -22657,7 +22669,7 @@
       var _this = this,
         _$result = _this._$v;
       if (_$result == null)
-        _$result = new A._$DebugInfo(_this.get$_$this()._appEntrypointPath, _this.get$_$this()._appId, _this.get$_$this()._appInstanceId, _this.get$_$this()._appOrigin, _this.get$_$this()._appUrl, _this.get$_$this()._dwdsVersion, _this.get$_$this()._extensionUrl, _this.get$_$this()._isInternalBuild);
+        _$result = new A._$DebugInfo(_this.get$_$this()._appEntrypointPath, _this.get$_$this()._appId, _this.get$_$this()._appInstanceId, _this.get$_$this()._appOrigin, _this.get$_$this()._appUrl, _this.get$_$this()._dwdsVersion, _this.get$_$this()._extensionUrl, _this.get$_$this()._isInternalBuild, _this.get$_$this()._isFlutterApp);
       A.ArgumentError_checkNotNull(_$result, "other", type$.DebugInfo);
       return _this._$v = _$result;
     }
@@ -25187,8 +25199,10 @@
       b.get$_$this()._appUrl = t2;
       t2 = A._asStringQ(t1.$index(0, "$dartExtensionUri"));
       b.get$_$this()._extensionUrl = t2;
-      t1 = A._asBoolQ(t1.$index(0, "$isInternalDartBuild"));
-      b.get$_$this()._isInternalBuild = t1;
+      t2 = A._asBoolQ(t1.$index(0, "$isInternalDartBuild"));
+      b.get$_$this()._isInternalBuild = t2;
+      t1 = A._asBoolQ(t1.$index(0, "$isFlutterApp"));
+      b.get$_$this()._isFlutterApp = t1;
       return b;
     },
     $signature: 77
