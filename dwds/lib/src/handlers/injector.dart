@@ -144,17 +144,16 @@ class DwdsInjector {
 /// Returns the provided body with the main function hoisted into a global
 /// variable and a snippet of JS that loads the injected client.
 String _injectClientAndHoistMain(
-  String body,
-  String appId,
-  String devHandlerPath,
-  String entrypointPath,
-  String? extensionUri,
-  LoadStrategy loadStrategy,
-  bool enableDevtoolsLaunch,
-  bool emitDebugEvents,
-  bool isInternalBuild,
-  bool isFlutterApp
-) {
+    String body,
+    String appId,
+    String devHandlerPath,
+    String entrypointPath,
+    String? extensionUri,
+    LoadStrategy loadStrategy,
+    bool enableDevtoolsLaunch,
+    bool emitDebugEvents,
+    bool isInternalBuild,
+    bool isFlutterApp) {
   final bodyLines = body.split('\n');
   final extensionIndex =
       bodyLines.indexWhere((line) => line.contains(mainExtensionMarker));
