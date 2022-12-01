@@ -323,9 +323,9 @@ class _DebugSession {
   _DebugSession({
     required client,
     required this.appTabId,
-    required void onIncoming(String data),
-    required void onDone(),
-    required void onError(dynamic error),
+    required void Function(String data) onIncoming,
+    required void Function() onDone,
+    required void Function(dynamic error) onError,
     required bool cancelOnError,
   }) : _socketClient = client {
     // Collect extension events and send them periodically to the server.
