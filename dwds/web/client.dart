@@ -181,7 +181,8 @@ Future<void>? main() {
       ..appOrigin = window.location.origin
       ..appUrl = window.location.href
       ..extensionUrl = windowContext['\$dartExtensionUri']
-      ..isInternalBuild = windowContext['\$isInternalBuild'])));
+      ..isInternalBuild = windowContext['\$isInternalBuild']
+      ..isFlutterApp = windowContext['\$isFlutterApp'])));
 
     dispatchEvent(CustomEvent('dart-app-ready', detail: debugInfoJson));
   }, (error, stackTrace) {
