@@ -128,6 +128,7 @@ class Dwds {
       extensionUri: extensionUri,
       enableDevtoolsLaunch: enableDevtoolsLaunch,
       emitDebugEvents: emitDebugEvents,
+      isInternalBuild: isInternalBuild,
     );
 
     final devHandler = DevHandler(
