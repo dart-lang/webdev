@@ -84,8 +84,7 @@ void main() async {
           final tabIdForAppJs = _tabIdForTabJs(appUrl);
           final appTabId = (await worker.evaluate(tabIdForAppJs)) as int;
           final debugInfoKey = '$appTabId-debugInfo';
-          final storageObj =
-              await worker.evaluate(
+          final storageObj = await worker.evaluate(
               _fetchStorageObjJs(debugInfoKey, storageArea: 'session'));
           final json = storageObj[debugInfoKey];
           final debugInfo =

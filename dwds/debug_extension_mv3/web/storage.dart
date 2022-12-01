@@ -28,17 +28,17 @@ enum StorageObject {
     }
   }
 
-  _Persistance get persistance {
+  Persistance get persistance {
     switch (this) {
       case StorageObject.debugInfo:
-        return _Persistance.sessionOnly;
+        return Persistance.sessionOnly;
       case StorageObject.devToolsOpener:
-        return _Persistance.acrossSessions;
+        return Persistance.acrossSessions;
     }
   }
 }
 
-enum _Persistance {
+enum Persistance {
   sessionOnly,
   acrossSessions;
 }
@@ -82,15 +82,15 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
   return completer.future;
 }
 
-StorageArea _getStorageArea(_Persistance persistance) {
+StorageArea _getStorageArea(Persistance persistance) {
   switch (persistance) {
-    case _Persistance.acrossSessions:
+    case Persistance.acrossSessions:
       return chrome.storage.local;
-    case _Persistance.sessionOnly:
+    case Persistance.sessionOnly:
       return chrome.storage.session;
   }
 }
- 
+
 String _createStorageKey(StorageObject type, int? tabId) {
   if (tabId == null) return type.keyName;
   return '$tabId-${type.keyName}';
