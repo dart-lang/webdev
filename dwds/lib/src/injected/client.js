@@ -25187,7 +25187,7 @@
       b.get$_$this()._appUrl = t2;
       t2 = A._asStringQ(t1.$index(0, "$dartExtensionUri"));
       b.get$_$this()._extensionUrl = t2;
-      t1 = A._asBoolQ(t1.$index(0, "$isInternalDartBuild"));
+      t1 = A._asBoolQ(t1.$index(0, "$isInternalBuild"));
       b.get$_$this()._isInternalBuild = t1;
       return b;
     },
