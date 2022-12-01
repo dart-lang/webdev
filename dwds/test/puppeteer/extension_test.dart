@@ -13,10 +13,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dwds/data/debug_info.dart';
-import 'package:dwds/data/serializers.dart';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
+import '../../debug_extension_mv3/web/data_serializers.dart';
+import '../../debug_extension_mv3/web/data_types.dart';
 import '../fixtures/context.dart';
 import 'test_utils.dart';
 
@@ -61,11 +62,17 @@ void main() async {
               .waitForTarget((target) => target.type == 'service_worker');
         });
 
+        tearDown(() async {
+          final worker = (await serviceWorkerTarget.worker)!;
+          await Future.delayed(Duration(seconds: executionContextDelay));
+          await worker.evaluate(_clearStorageJs());
+        });
+
         tearDownAll(() async {
           await browser.close();
         });
 
-        test('the debug info for a Dart app is saved in the extension storage',
+        test('the debug info for a Dart app is saved in session storage',
             () async {
           final appUrl = context.appUrl;
           // Navigate to the Dart app:
@@ -78,7 +85,8 @@ void main() async {
           final appTabId = (await worker.evaluate(tabIdForAppJs)) as int;
           final debugInfoKey = '$appTabId-debugInfo';
           final storageObj =
-              await worker.evaluate(_fetchStorageObjJs(debugInfoKey));
+              await worker.evaluate(
+              _fetchStorageObjJs(debugInfoKey, storageArea: 'session'));
           final json = storageObj[debugInfoKey];
           final debugInfo =
               serializers.deserialize(jsonDecode(json)) as DebugInfo;
@@ -88,6 +96,32 @@ void main() async {
           expect(debugInfo.appOrigin, isNotNull);
           expect(debugInfo.appUrl, isNotNull);
           await appTab.close();
+        });
+
+        test('whether to open in a new tab or window is saved in local storage',
+            () async {
+          // Navigate to the extension settings page:
+          final extensionOrigin = getExtensionOrigin(browser);
+          final settingsTab = await navigateToPage(
+            browser,
+            url: '$extensionOrigin/settings.html',
+            isNew: true,
+          );
+          // Set the settings to open DevTools in a new window:
+          await settingsTab.tap('#windowOpt');
+          await settingsTab.tap('#saveButton');
+          // Wait for the saved message to verify settings have been saved:
+          await settingsTab.waitForSelector('#savedMsg');
+          // Close the settings tab:
+          await settingsTab.close();
+          // Check that is has been saved in local storage:
+          final worker = (await serviceWorkerTarget.worker)!;
+          final storageObj = await worker.evaluate(
+              _fetchStorageObjJs('devToolsOpener', storageArea: 'local'));
+          final json = storageObj['devToolsOpener'];
+          final devToolsOpener =
+              serializers.deserialize(jsonDecode(json)) as DevToolsOpener;
+          expect(devToolsOpener.newWindow, isTrue);
         });
 
         test(
@@ -171,12 +205,15 @@ String _windowIdForTabJs(String tabUrl) {
 ''';
 }
 
-String _fetchStorageObjJs(String storageKey) {
+String _fetchStorageObjJs(
+  String storageKey, {
+  required String storageArea,
+}) {
   return '''
     async () => {
       const storageKey = "$storageKey";
       return new Promise((resolve, reject) => {
-        chrome.storage.local.get(storageKey, (storageObj) => {
+        chrome.storage.$storageArea.get(storageKey, (storageObj) => {
           if (storageObj != null) {
             resolve(storageObj);
           } else {
@@ -184,6 +221,16 @@ String _fetchStorageObjJs(String storageKey) {
           }
         });
       });
+    }
+''';
+}
+
+String _clearStorageJs() {
+  return '''
+    async () => {
+      await chrome.storage.local.clear();
+      await chrome.storage.session.clear();
+      return true;
     }
 ''';
 }
