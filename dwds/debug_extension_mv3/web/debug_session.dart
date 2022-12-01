@@ -208,7 +208,7 @@ void _forwardChromeDebuggerEventToDwds(
   if (method == 'Debugger.scriptParsed') {
     debugSession.sendBatchedEvent(event);
   } else {
-    debugSession.sendEvent(event);
+    debugSession.sendEvent<ExtensionEvent>(event);
   }
 }
 
@@ -265,7 +265,7 @@ void _removeDebugSession(_DebugSession debugSession) {
   // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
   final event =
       _extensionEventFor('DebugExtension.detached', js_util.jsify({}));
-  debugSession.sendEvent(event);
+  debugSession.sendEvent<ExtensionEvent>(event);
   debugSession.close();
   final removed = _debugSessions.remove(debugSession);
   if (!removed) {
