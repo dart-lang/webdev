@@ -37,6 +37,7 @@ class DwdsInjector {
   final bool _useSseForInjectedClient;
   final bool _emitDebugEvents;
   final bool _isInternalBuild;
+  final bool _isFlutterApp;
 
   DwdsInjector(
     this._loadStrategy, {
@@ -45,11 +46,13 @@ class DwdsInjector {
     bool useSseForInjectedClient = true,
     bool emitDebugEvents = true,
     bool isInternalBuild = false,
+    bool isFlutterApp = false,
   })  : _extensionUri = extensionUri,
         _enableDevtoolsLaunch = enableDevtoolsLaunch,
         _useSseForInjectedClient = useSseForInjectedClient,
         _emitDebugEvents = emitDebugEvents,
-        _isInternalBuild = isInternalBuild;
+        _isInternalBuild = isInternalBuild,
+        _isFlutterApp = isFlutterApp;
 
   /// Returns the embedded dev handler paths.
   ///
@@ -115,6 +118,7 @@ class DwdsInjector {
                 _enableDevtoolsLaunch,
                 _emitDebugEvents,
                 _isInternalBuild,
+                _isFlutterApp,
               );
               body += await _loadStrategy.bootstrapFor(entrypoint);
               _logger.info('Injected debugging metadata for '
@@ -140,16 +144,16 @@ class DwdsInjector {
 /// Returns the provided body with the main function hoisted into a global
 /// variable and a snippet of JS that loads the injected client.
 String _injectClientAndHoistMain(
-  String body,
-  String appId,
-  String devHandlerPath,
-  String entrypointPath,
-  String? extensionUri,
-  LoadStrategy loadStrategy,
-  bool enableDevtoolsLaunch,
-  bool emitDebugEvents,
-  bool isInternalBuild,
-) {
+    String body,
+    String appId,
+    String devHandlerPath,
+    String entrypointPath,
+    String? extensionUri,
+    LoadStrategy loadStrategy,
+    bool enableDevtoolsLaunch,
+    bool emitDebugEvents,
+    bool isInternalBuild,
+    bool isFlutterApp) {
   final bodyLines = body.split('\n');
   final extensionIndex =
       bodyLines.indexWhere((line) => line.contains(mainExtensionMarker));
@@ -169,7 +173,8 @@ String _injectClientAndHoistMain(
       loadStrategy,
       enableDevtoolsLaunch,
       emitDebugEvents,
-      isInternalBuild);
+      isInternalBuild,
+      isFlutterApp);
   result += '''
   // Injected by dwds for debugging support.
   if(!window.\$dwdsInitialized) {
@@ -204,6 +209,7 @@ String _injectedClientSnippet(
   bool enableDevtoolsLaunch,
   bool emitDebugEvents,
   bool isInternalBuild,
+  bool isFlutterApp,
 ) {
   var injectedBody = 'window.\$dartAppId = "$appId";\n'
       'window.\$dartReloadConfiguration = "${loadStrategy.reloadConfiguration}";\n'
@@ -215,6 +221,7 @@ String _injectedClientSnippet(
       'window.\$dartEntrypointPath = "$entrypointPath";\n'
       'window.\$dartEmitDebugEvents = $emitDebugEvents;\n'
       'window.\$isInternalBuild = $isInternalBuild;\n'
+      'window.\$isFlutterApp = $isFlutterApp;\n'
       '${loadStrategy.loadClientSnippet(_clientScript)}';
   if (extensionUri != null) {
     injectedBody += 'window.\$dartExtensionUri = "$extensionUri";\n';
