@@ -150,7 +150,7 @@ Future<bool> _connectToDwds({
   _debugSessions.add(debugSession);
   final tabUrl = await _getTabUrl(dartAppTabId);
   // Send a DevtoolsRequest to the event stream:
-  debugSession.sendEvent<DevToolsRequest>(DevToolsRequest((b) => b
+  debugSession.sendEvent(DevToolsRequest((b) => b
     ..appId = debugInfo.appId
     ..instanceId = debugInfo.appInstanceId
     ..contextId = dartAppContextId
@@ -208,7 +208,7 @@ void _forwardChromeDebuggerEventToDwds(
   if (method == 'Debugger.scriptParsed') {
     debugSession.sendBatchedEvent(event);
   } else {
-    debugSession.sendEvent<ExtensionEvent>(event);
+    debugSession.sendEvent(event);
   }
 }
 
@@ -265,7 +265,7 @@ void _removeDebugSession(_DebugSession debugSession) {
   // https://github.com/dart-lang/webdev/pull/1595#issuecomment-1116773378
   final event =
       _extensionEventFor('DebugExtension.detached', js_util.jsify({}));
-  debugSession.sendEvent<ExtensionEvent>(event);
+  debugSession.sendEvent(event);
   debugSession.close();
   final removed = _debugSessions.remove(debugSession);
   if (!removed) {
