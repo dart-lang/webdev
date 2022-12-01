@@ -129,6 +129,7 @@ class Dwds {
       extensionUri: extensionUri,
       enableDevtoolsLaunch: enableDevtoolsLaunch,
       emitDebugEvents: emitDebugEvents,
+      isInternalBuild: isInternalBuild,
       isFlutterApp: isFlutterApp,
     );
 
