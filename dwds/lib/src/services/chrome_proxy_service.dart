@@ -200,22 +200,27 @@ class ChromeProxyService implements VmServiceInterface {
         if (!_compilerCompleter.isCompleted) _compilerCompleter.complete();
         return result;
       }, (result) => DwdsEvent.compilerUpdateDependencies(entrypoint));
+    }
+  }
 
-      // Pre-warm the flutter framework module cache in the compiler.
-      //
-      // Flutter inspector relies on evaluations in widget_inspector
-      // library, which is a part of the flutter framework module, to
-      // produce widget trees, draw the layout explorer, show hover
-      // cards etc.
-      // Pre-warming the cache while DevTools is still loading helps
-      // Flutter Inspector start faster.
-      final libraryToCache = await inspector.flutterWidgetInspectorLibrary;
-      if (libraryToCache != null) {
-        _logger.finest(
-            'Caching ${libraryToCache.uri} in expression compiler worker');
-        unawaited(
-            evaluate(inspector.isolateRef.id!, libraryToCache.id!, 'true'));
-      }
+  Future<void> _prewarmExpressionCompilerCache() async {
+    // Wait until the inspector and the expression compiler are ready.
+    await isInitialized;
+    await isCompilerInitialized;
+
+    // Pre-warm the flutter framework module cache in the compiler.
+    //
+    // Flutter inspector relies on evaluations in widget_inspector
+    // library, which is a part of the flutter framework module, to
+    // produce widget trees, draw the layout explorer, show hover
+    // cards etc.
+    // Pre-warming the cache while DevTools is still loading helps
+    // Flutter Inspector start faster.
+    final libraryToCache = await inspector.flutterWidgetInspectorLibrary;
+    if (libraryToCache != null) {
+      _logger.finest(
+          'Caching ${libraryToCache.uri} in expression compiler worker');
+      await evaluate(inspector.isolateRef.id!, libraryToCache.id!, 'true');
     }
   }
 
@@ -266,6 +271,8 @@ class ChromeProxyService implements VmServiceInterface {
             _modules,
             compiler,
           );
+
+    unawaited(_prewarmExpressionCompilerCache());
 
     await debugger.reestablishBreakpoints(
         _previousBreakpoints, _disabledBreakpoints);
