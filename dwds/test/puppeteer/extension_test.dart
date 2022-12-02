@@ -154,7 +154,8 @@ void main() async {
           await appTab.close();
         });
 
-        test('Navigating away from the Dart app while debugging closes DevTools',
+        test(
+            'Navigating away from the Dart app while debugging closes DevTools',
             () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
@@ -177,8 +178,7 @@ void main() async {
           await devToolsTabTarget.onClose;
         });
 
-        test('Closing the Dart app while debugging closes DevTools',
-            () async {
+        test('Closing the Dart app while debugging closes DevTools', () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
