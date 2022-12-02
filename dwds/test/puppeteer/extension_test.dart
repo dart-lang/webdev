@@ -61,6 +61,12 @@ void main() async {
               .waitForTarget((target) => target.type == 'service_worker');
         });
 
+        tearDown(() async {
+          final worker = (await serviceWorkerTarget.worker)!;
+          await Future.delayed(Duration(seconds: executionContextDelay));
+          await worker.evaluate(_clearStorageJs());
+        });
+
         tearDownAll(() async {
           await browser.close();
         });
@@ -77,8 +83,8 @@ void main() async {
           final tabIdForAppJs = _tabIdForTabJs(appUrl);
           final appTabId = (await worker.evaluate(tabIdForAppJs)) as int;
           final debugInfoKey = '$appTabId-debugInfo';
-          final storageObj =
-              await worker.evaluate(_fetchStorageObjJs(debugInfoKey));
+          final storageObj = await worker.evaluate(
+              _fetchStorageObjJs(debugInfoKey, storageArea: 'session'));
           final json = storageObj[debugInfoKey];
           final debugInfo =
               serializers.deserialize(jsonDecode(json)) as DebugInfo;
@@ -105,7 +111,7 @@ void main() async {
           final worker = (await serviceWorkerTarget.worker)!;
           await Future.delayed(Duration(seconds: executionContextDelay));
           await worker.evaluate(clickIconJs);
-          // Verify the extension opened the Dart docs in the same window:
+          // Verify the extension opened Dart DevTools in the same window:
           var devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
           final devToolsPage = await devToolsTabTarget.page;
@@ -147,6 +153,51 @@ void main() async {
           await devToolsTab.close();
           await appTab.close();
         });
+
+        test('Navigating away from the Dart app while debugging closes DevTools',
+            () async {
+          final appUrl = context.appUrl;
+          final devToolsUrlFragment =
+              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+          // Navigate to the Dart app:
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
+          // Click on the Dart Debug Extension icon:
+          final worker = (await serviceWorkerTarget.worker)!;
+          await Future.delayed(Duration(seconds: executionContextDelay));
+          await worker.evaluate(clickIconJs);
+          // Verify that the Dart DevTools tab is open:
+          final devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
+          expect(devToolsTabTarget.type, equals('page'));
+          // Navigate away from the Dart app:
+          await appTab.goto('https://dart.dev/', wait: Until.domContentLoaded);
+          await appTab.bringToFront();
+          // Verify that the Dart DevTools tab closes:
+          await devToolsTabTarget.onClose;
+        });
+
+        test('Closing the Dart app while debugging closes DevTools',
+            () async {
+          final appUrl = context.appUrl;
+          final devToolsUrlFragment =
+              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+          // Navigate to the Dart app:
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
+          // Click on the Dart Debug Extension icon:
+          final worker = (await serviceWorkerTarget.worker)!;
+          await Future.delayed(Duration(seconds: executionContextDelay));
+          await worker.evaluate(clickIconJs);
+          // Verify that the Dart DevTools tab is open:
+          final devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
+          expect(devToolsTabTarget.type, equals('page'));
+          // Close the Dart app:
+          await appTab.close();
+          // Verify that the Dart DevTools tab closes:
+          await devToolsTabTarget.onClose;
+        });
       });
     }
   });
@@ -172,12 +223,15 @@ String _windowIdForTabJs(String tabUrl) {
 ''';
 }
 
-String _fetchStorageObjJs(String storageKey) {
+String _fetchStorageObjJs(
+  String storageKey, {
+  required String storageArea,
+}) {
   return '''
     async () => {
       const storageKey = "$storageKey";
       return new Promise((resolve, reject) => {
-        chrome.storage.local.get(storageKey, (storageObj) => {
+        chrome.storage.$storageArea.get(storageKey, (storageObj) => {
           if (storageObj != null) {
             resolve(storageObj);
           } else {
@@ -185,6 +239,16 @@ String _fetchStorageObjJs(String storageKey) {
           }
         });
       });
+    }
+''';
+}
+
+String _clearStorageJs() {
+  return '''
+    async () => {
+      await chrome.storage.local.clear();
+      await chrome.storage.session.clear();
+      return true;
     }
 ''';
 }
