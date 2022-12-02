@@ -75,6 +75,13 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
         ..add(
             serializers.serialize(value, specifiedType: const FullType(bool)));
     }
+    value = object.isFlutterApp;
+    if (value != null) {
+      result
+        ..add('isFlutterApp')
+        ..add(
+            serializers.serialize(value, specifiedType: const FullType(bool)));
+    }
     return result;
   }
 
@@ -121,6 +128,10 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
           result.isInternalBuild = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool?;
           break;
+        case 'isFlutterApp':
+          result.isFlutterApp = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool?;
+          break;
       }
     }
 
@@ -145,6 +156,8 @@ class _$DebugInfo extends DebugInfo {
   final String? extensionUrl;
   @override
   final bool? isInternalBuild;
+  @override
+  final bool? isFlutterApp;
 
   factory _$DebugInfo([void Function(DebugInfoBuilder)? updates]) =>
       (new DebugInfoBuilder()..update(updates))._build();
@@ -157,7 +170,8 @@ class _$DebugInfo extends DebugInfo {
       this.appUrl,
       this.dwdsVersion,
       this.extensionUrl,
-      this.isInternalBuild})
+      this.isInternalBuild,
+      this.isFlutterApp})
       : super._();
 
   @override
@@ -178,7 +192,8 @@ class _$DebugInfo extends DebugInfo {
         appUrl == other.appUrl &&
         dwdsVersion == other.dwdsVersion &&
         extensionUrl == other.extensionUrl &&
-        isInternalBuild == other.isInternalBuild;
+        isInternalBuild == other.isInternalBuild &&
+        isFlutterApp == other.isFlutterApp;
   }
 
   @override
@@ -189,14 +204,16 @@ class _$DebugInfo extends DebugInfo {
                 $jc(
                     $jc(
                         $jc(
-                            $jc($jc(0, appEntrypointPath.hashCode),
-                                appId.hashCode),
-                            appInstanceId.hashCode),
-                        appOrigin.hashCode),
-                    appUrl.hashCode),
-                dwdsVersion.hashCode),
-            extensionUrl.hashCode),
-        isInternalBuild.hashCode));
+                            $jc(
+                                $jc($jc(0, appEntrypointPath.hashCode),
+                                    appId.hashCode),
+                                appInstanceId.hashCode),
+                            appOrigin.hashCode),
+                        appUrl.hashCode),
+                    dwdsVersion.hashCode),
+                extensionUrl.hashCode),
+            isInternalBuild.hashCode),
+        isFlutterApp.hashCode));
   }
 
   @override
@@ -209,7 +226,8 @@ class _$DebugInfo extends DebugInfo {
           ..add('appUrl', appUrl)
           ..add('dwdsVersion', dwdsVersion)
           ..add('extensionUrl', extensionUrl)
-          ..add('isInternalBuild', isInternalBuild))
+          ..add('isInternalBuild', isInternalBuild)
+          ..add('isFlutterApp', isFlutterApp))
         .toString();
   }
 }
@@ -252,6 +270,10 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
   set isInternalBuild(bool? isInternalBuild) =>
       _$this._isInternalBuild = isInternalBuild;
 
+  bool? _isFlutterApp;
+  bool? get isFlutterApp => _$this._isFlutterApp;
+  set isFlutterApp(bool? isFlutterApp) => _$this._isFlutterApp = isFlutterApp;
+
   DebugInfoBuilder();
 
   DebugInfoBuilder get _$this {
@@ -265,6 +287,7 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
       _dwdsVersion = $v.dwdsVersion;
       _extensionUrl = $v.extensionUrl;
       _isInternalBuild = $v.isInternalBuild;
+      _isFlutterApp = $v.isFlutterApp;
       _$v = null;
     }
     return this;
@@ -294,7 +317,8 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
             appUrl: appUrl,
             dwdsVersion: dwdsVersion,
             extensionUrl: extensionUrl,
-            isInternalBuild: isInternalBuild);
+            isInternalBuild: isInternalBuild,
+            isFlutterApp: isFlutterApp);
     replace(_$result);
     return _$result;
   }
