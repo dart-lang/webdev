@@ -27,7 +27,7 @@ final context = TestContext();
 const executionContextDelay = 1;
 
 void main() async {
-  late Target serviceWorkerTarget;
+  late Worker worker;
   late Browser browser;
   late String extensionPath;
 
@@ -57,8 +57,10 @@ void main() async {
             ],
           );
 
-          serviceWorkerTarget = await browser
+          final serviceWorkerTarget = await browser
               .waitForTarget((target) => target.type == 'service_worker');
+          worker = (await serviceWorkerTarget.worker)!;
+          await Future.delayed(Duration(seconds: executionContextDelay));
         });
 
         tearDownAll(() async {
@@ -71,8 +73,6 @@ void main() async {
           // Navigate to the Dart app:
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
-          final worker = (await serviceWorkerTarget.worker)!;
-          await Future.delayed(Duration(seconds: executionContextDelay));
           // Verify that we have debug info for the Dart app:
           final tabIdForAppJs = _tabIdForTabJs(appUrl);
           final appTabId = (await worker.evaluate(tabIdForAppJs)) as int;
@@ -102,8 +102,6 @@ void main() async {
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          final worker = (await serviceWorkerTarget.worker)!;
-          await Future.delayed(Duration(seconds: executionContextDelay));
           await worker.evaluate(clickIconJs);
           // Verify the extension opened the Dart docs in the same window:
           var devToolsTabTarget = await browser.waitForTarget(
