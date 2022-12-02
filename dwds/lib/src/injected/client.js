@@ -25172,11 +25172,10 @@
   A.main__closure8.prototype = {
     call$1(b) {
       var t2, t3,
-        _s17_ = "$dartExtensionUri",
         t1 = A._asStringQ(self.$dartEntrypointPath);
       b.get$_$this()._appEntrypointPath = t1;
       t1 = this.windowContext;
-      t2 = A._asStringQ(t1.$index(0, _s17_));
+      t2 = A._asStringQ(t1.$index(0, "$dartAppId"));
       b.get$_$this()._appId = t2;
       t2 = A._asStringQ(self.$dartAppInstanceId);
       b.get$_$this()._appInstanceId = t2;
@@ -25186,9 +25185,9 @@
       t2 = t2._as(window.location).href;
       t2.toString;
       b.get$_$this()._appUrl = t2;
-      t2 = A._asStringQ(t1.$index(0, _s17_));
+      t2 = A._asStringQ(t1.$index(0, "$dartExtensionUri"));
       b.get$_$this()._extensionUrl = t2;
-      t1 = A._asBoolQ(t1.$index(0, "$isInternalDartBuild"));
+      t1 = A._asBoolQ(t1.$index(0, "$isInternalBuild"));
       b.get$_$this()._isInternalBuild = t1;
       return b;
     },

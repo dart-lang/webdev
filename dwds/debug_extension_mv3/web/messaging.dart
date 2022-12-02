@@ -10,7 +10,7 @@ import 'dart:convert';
 import 'package:dwds/data/serializers.dart';
 import 'package:js/js.dart';
 
-import 'web_api.dart';
+import 'logger.dart';
 
 enum Script {
   background,
@@ -85,7 +85,7 @@ void interceptMessage<T>({
     messageHandler(
         serializers.deserialize(jsonDecode(decodedMessage.body)) as T);
   } catch (error) {
-    console.warn(
+    debugError(
         'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error');
   }
 }

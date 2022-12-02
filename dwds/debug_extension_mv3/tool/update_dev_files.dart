@@ -9,7 +9,7 @@ void main() async {
   await _updateManifestJson();
 }
 
-/// Adds the Googler extension key.
+/// Adds the Googler extension key, and prefixes the extension name with "DEV".
 Future<void> _updateManifestJson() async {
   final manifestJson = File('compiled/manifest.json');
   final extensionKeyTxt = File('extension_key.txt');
@@ -19,7 +19,11 @@ Future<void> _updateManifestJson() async {
   return _transformDevFile(manifestJson, (line) {
     if (_matchesKey(line: line, key: 'name')) {
       return [
-        line,
+        _newKeyValue(
+          oldLine: line,
+          newKey: 'name',
+          newValue: '[DEV] MV3 Dart Debug Extension',
+        ),
         if (extensionKey != null)
           _newKeyValue(
             oldLine: line,

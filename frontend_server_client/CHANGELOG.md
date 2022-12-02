@@ -1,3 +1,8 @@
+## 3.2.0
+
+- Add `nativeAssets` parameter to `FrontendServerClient`, for passing
+  additional `--native-assets` to the kernel compiler.
+
 ## 3.1.0
 
 - Add `additionalSources` parameter to `FrontendServerClient`, for passing

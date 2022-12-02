@@ -8,6 +8,7 @@
   metadata.
 - Include the entire exception description up to the stacktrace in
   `mapExceptionStackTrace`.
+- Allow enabling experiments in the expression compiler service.
 - Pre-warm expression compiler cache to speed up Flutter Inspector loading.
 
 ## 16.0.1

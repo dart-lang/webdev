@@ -1,28 +1,19 @@
 {
-    "name": "[MV3] Dart Debug Extension",
+    "name": "MV3 Dart Debug Extension",
     "version": "1.0",
     "manifest_version": 3,
     "action": {
         "default_icon": "dart_dev.png"
     },
     "permissions": [
+        "debugger",
+        "notifications",
         "scripting",
-        "tabs",
-        "debugger"
+        "storage",
+        "tabs"
     ],
     "host_permissions": [
         "<all_urls>"
-    ],
-    "web_accessible_resources": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "resources": [
-                "iframe.html",
-                "iframe_injector.dart.js"
-            ]
-        }
     ],
     "background": {
         "service_worker": "background.dart.js"
@@ -37,5 +28,6 @@
             ],
             "run_at": "document_end"
         }
-    ]
+    ],
+    "options_page": "settings.html"
 }

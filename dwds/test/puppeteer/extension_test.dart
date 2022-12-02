@@ -2,82 +2,189 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(elliette): Enable on Windows, see https://github.com/dart-lang/webdev/issues/1724.
 @OnPlatform({
-  'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
+  // TODO(elliette): Enable on Windows.
+  'windows': Skip('https://github.com/dart-lang/webdev/issues/1724'),
+  // TODO(elliette): Enable on Linux.
+  'linux': Skip('https://github.com/dart-lang/webdev/issues/1787'),
 })
-import 'dart:io';
+@Timeout(Duration(seconds: 60))
+import 'dart:async';
+import 'dart:convert';
 
+import 'package:dwds/data/debug_info.dart';
+import 'package:dwds/data/serializers.dart';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
 import '../fixtures/context.dart';
-
-late Target serviceWorkerTarget;
-late Browser browser;
+import 'test_utils.dart';
 
 final context = TestContext();
 
+// Note: The following delay is required to reduce flakiness. It makes
+// sure the service worker execution context is ready.
+const executionContextDelay = 1;
+
 void main() async {
-  for (var useSse in [true, false]) {
-    group(useSse ? 'SSE' : 'WebSockets', () {
-      setUpAll(() async {
-        // TODO(elliette): Only start a TestServer, that way we can get rid of
-        // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
-        await context.setUp(launchChrome: false, useSse: useSse);
-        final extensionPath = await _buildDebugExtension();
-        browser = await puppeteer.launch(
-          headless: false,
-          args: [
-            '--load-extension=$extensionPath',
-            '--disable-extensions-except=$extensionPath',
-            '--disable-features=DialMediaRouteProvider',
-          ],
-        );
+  late Target serviceWorkerTarget;
+  late Browser browser;
+  late String extensionPath;
 
-        serviceWorkerTarget = await browser
-            .waitForTarget((target) => target.type == 'service_worker');
-      });
-
-      tearDownAll(() async {
-        await browser.close();
-      });
-
-      test('Can use the MV3 Dart Debug Extension', () async {
-        final appTab = await browser.newPage();
-        await appTab.goto(context.appUrl,
-            wait: Until.all([Until.domContentLoaded]));
-        await appTab.bringToFront();
-        final worker = (await serviceWorkerTarget.worker)!;
-        await worker.evaluate(clickIconJs);
-        // Verify that the extension opened the Dart docs:
-        final targetUrls = browser.targets.map((target) => target.url);
-        expect(targetUrls, contains('https://dart.dev/'));
-      });
+  group('MV3 Debug Extension', () {
+    setUpAll(() async {
+      extensionPath = await buildDebugExtension();
     });
-  }
+
+    for (var useSse in [true, false]) {
+      group(useSse ? 'with SSE' : 'with WebSockets', () {
+        setUpAll(() async {
+          // TODO(elliette): Only start a TestServer, that way we can get rid of
+          // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
+          await context.setUp(
+            serveDevTools: true,
+            launchChrome: false,
+            useSse: useSse,
+            enableDebugExtension: true,
+          );
+          browser = await puppeteer.launch(
+            headless: false,
+            timeout: Duration(seconds: 60),
+            args: [
+              '--load-extension=$extensionPath',
+              '--disable-extensions-except=$extensionPath',
+              '--disable-features=DialMediaRouteProvider',
+            ],
+          );
+
+          serviceWorkerTarget = await browser
+              .waitForTarget((target) => target.type == 'service_worker');
+        });
+
+        tearDownAll(() async {
+          await browser.close();
+        });
+
+        test('the debug info for a Dart app is saved in the extension storage',
+            () async {
+          final appUrl = context.appUrl;
+          // Navigate to the Dart app:
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
+          final worker = (await serviceWorkerTarget.worker)!;
+          await Future.delayed(Duration(seconds: executionContextDelay));
+          // Verify that we have debug info for the Dart app:
+          final tabIdForAppJs = _tabIdForTabJs(appUrl);
+          final appTabId = (await worker.evaluate(tabIdForAppJs)) as int;
+          final debugInfoKey = '$appTabId-debugInfo';
+          final storageObj =
+              await worker.evaluate(_fetchStorageObjJs(debugInfoKey));
+          final json = storageObj[debugInfoKey];
+          final debugInfo =
+              serializers.deserialize(jsonDecode(json)) as DebugInfo;
+          expect(debugInfo.appId, isNotNull);
+          expect(debugInfo.appEntrypointPath, isNotNull);
+          expect(debugInfo.appInstanceId, isNotNull);
+          expect(debugInfo.appOrigin, isNotNull);
+          expect(debugInfo.appUrl, isNotNull);
+          expect(debugInfo.isInternalBuild, isNotNull);
+          await appTab.close();
+        });
+
+        test(
+            'can configure opening DevTools in a tab/window with extension settings',
+            () async {
+          final appUrl = context.appUrl;
+          final devToolsUrlFragment =
+              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+          final windowIdForAppJs = _windowIdForTabJs(appUrl);
+          // Navigate to the Dart app:
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
+          // Click on the Dart Debug Extension icon:
+          final worker = (await serviceWorkerTarget.worker)!;
+          await Future.delayed(Duration(seconds: executionContextDelay));
+          await worker.evaluate(clickIconJs);
+          // Verify the extension opened the Dart docs in the same window:
+          var devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
+          final devToolsPage = await devToolsTabTarget.page;
+          final windowIdForDevToolsJs = _windowIdForTabJs(devToolsPage.url!);
+          var devToolsWindowId =
+              (await worker.evaluate(windowIdForDevToolsJs)) as int?;
+          var appWindowId = (await worker.evaluate(windowIdForAppJs)) as int?;
+          expect(devToolsWindowId == appWindowId, isTrue);
+          // Close the DevTools tab:
+          var devToolsTab = await devToolsTabTarget.page;
+          await devToolsTab.close();
+          // Navigate to the extension settings page:
+          final extensionOrigin = getExtensionOrigin(browser);
+          final settingsTab = await navigateToPage(
+            browser,
+            url: '$extensionOrigin/settings.html',
+            isNew: true,
+          );
+          // Set the settings to open DevTools in a new window:
+          await settingsTab.tap('#windowOpt');
+          await settingsTab.tap('#saveButton');
+          // Wait for the saved message to verify settings have been saved:
+          await settingsTab.waitForSelector('#savedMsg');
+          // Close the settings tab:
+          await settingsTab.close();
+          // Navigate to the Dart app:
+          await navigateToPage(browser, url: appUrl);
+          // Click on the Dart Debug Extension icon:
+          await worker.evaluate(clickIconJs);
+          // Verify the extension opened DevTools in a different window:
+          devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
+          devToolsWindowId =
+              (await worker.evaluate(windowIdForDevToolsJs)) as int?;
+          appWindowId = (await worker.evaluate(windowIdForAppJs)) as int?;
+          expect(devToolsWindowId == appWindowId, isFalse);
+          // Close the DevTools tab:
+          devToolsTab = await devToolsTabTarget.page;
+          await devToolsTab.close();
+          await appTab.close();
+        });
+      });
+    }
+  });
 }
 
-Future<String> _buildDebugExtension() async {
-  final currentDir = Directory.current.path;
-  if (!currentDir.endsWith('dwds')) {
-    throw StateError(
-        'Expected to be in /dwds directory, instead path was $currentDir.');
-  }
-  final extensionDir = '$currentDir/debug_extension_mv3';
-  // TODO(elliette): This doesn't work on Windows, see https://github.com/dart-lang/webdev/issues/1724.
-  await Process.run(
-    'tool/build_extension.sh',
-    [],
-    workingDirectory: extensionDir,
-  );
-  return '$extensionDir/compiled';
-}
-
-final clickIconJs = '''
-  async () => {
-    const activeTabs = await chrome.tabs.query({ active: true });
-    const tab = activeTabs[0];
-    chrome.action.onClicked.dispatch(tab);
-  }
+String _tabIdForTabJs(String tabUrl) {
+  return '''
+    async () => {
+      const matchingTabs = await chrome.tabs.query({ url: "$tabUrl" });
+      const tab = matchingTabs[0];
+      return tab.id;
+    }
 ''';
+}
+
+String _windowIdForTabJs(String tabUrl) {
+  return '''
+    async () => {
+      const matchingTabs = await chrome.tabs.query({ url: "$tabUrl" });
+      const tab = matchingTabs[0];
+      return tab.windowId;
+    }
+''';
+}
+
+String _fetchStorageObjJs(String storageKey) {
+  return '''
+    async () => {
+      const storageKey = "$storageKey";
+      return new Promise((resolve, reject) => {
+        chrome.storage.local.get(storageKey, (storageObj) => {
+          if (storageObj != null) {
+            resolve(storageObj);
+          } else {
+            resolve(null);
+          }
+        });
+      });
+    }
+''';
+}

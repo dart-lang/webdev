@@ -176,12 +176,12 @@ Future<void>? main() {
     final windowContext = JsObject.fromBrowserObject(window);
     final debugInfoJson = jsonEncode(serializers.serialize(DebugInfo((b) => b
       ..appEntrypointPath = dartEntrypointPath
-      ..appId = windowContext['\$dartExtensionUri']
+      ..appId = windowContext['\$dartAppId']
       ..appInstanceId = dartAppInstanceId
       ..appOrigin = window.location.origin
       ..appUrl = window.location.href
       ..extensionUrl = windowContext['\$dartExtensionUri']
-      ..isInternalBuild = windowContext['\$isInternalDartBuild'])));
+      ..isInternalBuild = windowContext['\$isInternalBuild'])));
 
     dispatchEvent(CustomEvent('dart-app-ready', detail: debugInfoJson));
   }, (error, stackTrace) {
@@ -275,7 +275,7 @@ external set emitDebugEvent(void Function(String, String) func);
 @JS(r'$emitRegisterEvent')
 external set emitRegisterEvent(void Function(String) func);
 
-@JS(r'$isInternalDartBuild')
-external bool get isInternalDartBuild;
+@JS(r'$isInternalBuild')
+external bool get isInternalBuild;
 
 bool get _isChromium => window.navigator.vendor.contains('Google');

@@ -1,10 +1,11 @@
+# This code is for testing that the debugger works with weak null-safety
+# so we should not migrate it to null-safety.
+# TODO(elliette): Delete this directory post Dart 3.0 (when we no longer
+# support weak null-safety).
 name: _test_circular2
 version: 1.0.0
 description: >-
-  A fake package used for testing imports. Imports _test.
-  This code is for testing that debugger works with weak null safety so we
-  should not migrate it to null safety. Once Dart 3.0 is released, we should
-  delete this directory.
+  A fake package used for testing imports with weak null-safety. Imports _test.
 publish_to: none
 
 environment:

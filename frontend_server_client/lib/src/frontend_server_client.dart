@@ -58,6 +58,7 @@ class FrontendServerClient {
     bool verbose = false, // Verbose logs, including server/client messages
     bool printIncrementalDependencies = true,
     List<String> additionalSources = const [],
+    String? nativeAssets,
   }) async {
     var feServer = await Process.start(Platform.resolvedExecutable, [
       if (debug) '--observe',
@@ -84,6 +85,10 @@ class FrontendServerClient {
       for (var source in additionalSources) ...[
         '--source',
         source,
+      ],
+      if (nativeAssets != null) ...[
+        '--native-assets',
+        nativeAssets,
       ],
     ]);
     var feServerStdoutLines = StreamQueue(feServer.stdout
