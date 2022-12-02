@@ -7,6 +7,7 @@ library debug_session;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:html';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart' show IterableExtension;
@@ -46,22 +47,46 @@ enum TabType {
   devTools,
 }
 
-void registerDebugEventListeners() {
+void attachDebugger(int dartAppTabId) {
+  _registerDebugEventListeners();
+  chrome.debugger.attach(
+    Debuggee(tabId: dartAppTabId),
+    '1.3',
+    allowInterop(
+      () => _enableExecutionContextReporting(dartAppTabId),
+    ),
+  );
+}
+
+void detachDebugger(
+  int tabId, {
+  required TabType type,
+  required String reason,
+}) async {
+  final debugSession = _debugSessionForTab(tabId, type: type);
+  if (debugSession == null) return;
+  final debuggee = Debuggee(tabId: debugSession.appTabId);
+  final detachPromise = chrome.debugger.detach(debuggee);
+  await promiseToFuture(detachPromise);
+  final error = chrome.runtime.lastError;
+  if (error != null) {
+    debugWarn(
+        'Error detaching tab for reason: $reason. Error: ${error.message}');
+  } else {
+    _handleDebuggerDetach(debuggee, reason);
+  }
+}
+
+void _registerDebugEventListeners() {
   chrome.debugger.onEvent.addListener(allowInterop(_onDebuggerEvent));
   chrome.debugger.onDetach.addListener(allowInterop(_handleDebuggerDetach));
   chrome.tabs.onRemoved.addListener(allowInterop(
-    (tabId, _) => _detachDebuggerForTab(tabId, type: TabType.devTools),
-  ));
-}
-
-void attachDebugger(int tabId) {
-  chrome.debugger.attach(
-    Debuggee(tabId: tabId),
-    '1.3',
-    allowInterop(
-      () => _enableExecutionContextReporting(tabId),
+    (tabId, _) => detachDebugger(
+      tabId,
+      type: TabType.devTools,
+      reason: 'DevTools tab closed.',
     ),
-  );
+  ));
 }
 
 _enableExecutionContextReporting(int tabId) {
@@ -138,12 +163,18 @@ Future<bool> _connectToDwds({
   client.stream.listen(
     (data) => _routeDwdsEvent(data, client, dartAppTabId),
     onDone: () {
-      debugLog('Shutting down DWDS communication channel.');
-      _detachDebuggerForTab(dartAppTabId, type: TabType.dartApp);
+      detachDebugger(
+        dartAppTabId,
+        type: TabType.dartApp,
+        reason: 'Done event in DWDS stream.',
+      );
     },
     onError: (err) {
-      debugWarn('Error in DWDS communication channel: $err');
-      _detachDebuggerForTab(dartAppTabId, type: TabType.dartApp);
+      detachDebugger(
+        dartAppTabId,
+        type: TabType.dartApp,
+        reason: 'Error in DWDS stream: $err',
+      );
     },
     cancelOnError: true,
   );
@@ -231,28 +262,21 @@ void _openDevTools(String devToolsUrl, {required int dartTabId}) async {
   debugSession.devToolsTabId = devToolsTab.id;
 }
 
-void _detachDebuggerForTab(int tabId, {required TabType type}) {
-  final debugSession = _debugSessionForTab(tabId, type: type);
-  if (debugSession == null) return;
-  chrome.debugger.detach(Debuggee(tabId: debugSession.appTabId),
-      allowInterop(() {
-    final error = chrome.runtime.lastError;
-    if (error != null) {
-      debugWarn('Error detaching tab: ${error.message}');
-    } else {
-      debugLog('Detached debugger for ${debugSession.appTabId}');
-    }
-  }));
-}
-
-void _handleDebuggerDetach(Debuggee source, String _) async {
+void _handleDebuggerDetach(Debuggee source, String reason) async {
+  debugLog(
+    'Debugger detached due to: $reason',
+    verbose: true,
+    prefix: '${source.tabId}',
+  );
   final debugSession = _debugSessionForTab(source.tabId, type: TabType.dartApp);
   if (debugSession == null) return;
+  debugLog('Removing debug session...');
   _removeDebugSession(debugSession);
   // Maybe close the associated DevTools tab as well:
   final devToolsTabId = debugSession.devToolsTabId;
   final devToolsTab = await getTab(devToolsTabId);
   if (devToolsTab != null) {
+    debugLog('Closing DevTools tab...');
     chrome.tabs.remove(devToolsTabId);
   }
 }
