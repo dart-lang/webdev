@@ -88,6 +88,7 @@ void main() async {
           expect(debugInfo.appOrigin, isNotNull);
           expect(debugInfo.appUrl, isNotNull);
           expect(debugInfo.isInternalBuild, isNotNull);
+          expect(debugInfo.isFlutterApp, isNotNull);
           await appTab.close();
         });
 
