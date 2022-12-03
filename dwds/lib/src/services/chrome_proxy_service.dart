@@ -204,6 +204,11 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<void> _prewarmExpressionCompilerCache() async {
+    // Exit early (as supposed to doing nothing in the evaluate call)
+    // if the expression evaluation is not enabled).
+    if (_compiler == null || _expressionEvaluator == null) {
+      return;
+    }
     // Wait until the inspector is ready.
     await isInitialized;
 
