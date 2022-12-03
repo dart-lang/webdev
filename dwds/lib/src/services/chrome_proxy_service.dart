@@ -217,9 +217,13 @@ class ChromeProxyService implements VmServiceInterface {
     // Flutter Inspector start faster.
     final libraryToCache = await inspector.flutterWidgetInspectorLibrary;
     if (libraryToCache != null) {
-      _logger.finest(
-          'Caching ${libraryToCache.uri} in expression compiler worker');
-      await evaluate(inspector.isolateRef.id!, libraryToCache.id!, 'true');
+      final isolateId = inspector.isolateRef.id;
+      final libraryId = libraryToCache.id;
+      if (isolateId != null && libraryId != null) {
+        _logger.finest(
+            'Caching ${libraryToCache.uri} in expression compiler worker');
+        await evaluate(isolateId, libraryId, 'true');
+      }
     }
   }
 
