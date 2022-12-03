@@ -204,9 +204,8 @@ class ChromeProxyService implements VmServiceInterface {
   }
 
   Future<void> _prewarmExpressionCompilerCache() async {
-    // Wait until the inspector and the expression compiler are ready.
+    // Wait until the inspector is ready.
     await isInitialized;
-    await isCompilerInitialized;
 
     // Pre-warm the flutter framework module cache in the compiler.
     //
