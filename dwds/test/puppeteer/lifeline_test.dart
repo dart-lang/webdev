@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 10))
+@Timeout(Duration(minutes: 12))
 @Skip('https://github.com/dart-lang/webdev/issues/1788')
 import 'dart:async';
 
@@ -15,7 +15,7 @@ import 'test_utils.dart';
 final context = TestContext();
 
 void main() async {
-  late Target serviceWorkerTarget;
+  late Worker worker;
   late Browser browser;
   late String extensionPath;
 
@@ -38,8 +38,9 @@ void main() async {
         ],
       );
 
-      serviceWorkerTarget = await browser
+      final serviceWorkerTarget = await browser
           .waitForTarget((target) => target.type == 'service_worker');
+      worker = (await serviceWorkerTarget.worker)!;
     });
 
     tearDownAll(() async {
@@ -50,14 +51,10 @@ void main() async {
       // Navigate to the Dart app:
       final appTab =
           await navigateToPage(browser, url: context.appUrl, isNew: true);
-      // Click on the Dart Debug Extension icon:
-      final worker = (await serviceWorkerTarget.worker)!;
-      // Note: The following delay is required to reduce flakiness (it makes
-      // sure the execution context is ready):
-      await Future.delayed(Duration(seconds: 1));
+      await workerEvalDelay();
       // Initiate listeners for the port connection event and the subsequent
       // reconnection logs:
-      final portConnectionPromise = worker.evaluate<bool>(_portConnectionJs);
+      final portConnectionFuture = _connectToPort(worker);
       appTab.onConsole.listen((ConsoleMessage message) {
         final messageText = message.text ?? '';
         if (messageText
@@ -66,17 +63,26 @@ void main() async {
         }
       });
       // Click on the Dart Debug Extension icon to intiate a debug session:
-      await worker.evaluate(clickIconJs);
-      final connectedToPort = await portConnectionPromise;
+      await clickOnExtensionIcon(worker);
+      final connectedToPort = await portConnectionFuture;
       // Verify that we have connected to the port:
       expect(connectedToPort, isTrue);
       expect(connectionCount, equals(1));
       // Wait for a little over 5 minutes, and verify that we have reconnected
       // to the port again:
-      await Future.delayed(Duration(minutes: 5) + Duration(seconds: 15));
+      await _reconnectToPortDelay();
       expect(connectionCount, equals(2));
     });
   });
+}
+
+Future<void> _reconnectToPortDelay() async {
+  await Future.delayed(Duration(minutes: 5) + Duration(seconds: 15));
+  return;
+}
+
+Future<bool?> _connectToPort(Worker worker) async {
+  return worker.evaluate<bool>(_portConnectionJs);
 }
 
 final _portConnectionJs = '''
