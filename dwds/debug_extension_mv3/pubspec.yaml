@@ -20,6 +20,8 @@ dev_dependencies:
   built_value_generator: ^8.3.0
   build_web_compilers: ^3.0.0
   dwds: ^16.0.0
+  sse: ^4.1.0
+  web_socket_channel: ^2.2.0
 
 dependency_overrides:
   dwds:

@@ -203,6 +203,34 @@ class ChromeProxyService implements VmServiceInterface {
     }
   }
 
+  Future<void> _prewarmExpressionCompilerCache() async {
+    // Exit early if the expression evaluation is not enabled.
+    if (_compiler == null || _expressionEvaluator == null) {
+      return;
+    }
+    // Wait until the inspector is ready.
+    await isInitialized;
+
+    // Pre-warm the flutter framework module cache in the compiler.
+    //
+    // Flutter inspector relies on evaluations in widget_inspector
+    // library, which is a part of the flutter framework module, to
+    // produce widget trees, draw the layout explorer, show hover
+    // cards etc.
+    // Pre-warming the cache while DevTools is still loading helps
+    // Flutter Inspector start faster.
+    final libraryToCache = await inspector.flutterWidgetInspectorLibrary;
+    if (libraryToCache != null) {
+      final isolateId = inspector.isolateRef.id;
+      final libraryId = libraryToCache.id;
+      if (isolateId != null && libraryId != null) {
+        _logger.finest(
+            'Caching ${libraryToCache.uri} in expression compiler worker');
+        await evaluate(isolateId, libraryId, 'true');
+      }
+    }
+  }
+
   /// Creates a new isolate.
   ///
   /// Only one isolate at a time is supported, but they should be cleaned up
@@ -250,6 +278,8 @@ class ChromeProxyService implements VmServiceInterface {
             _modules,
             compiler,
           );
+
+    unawaited(_prewarmExpressionCompilerCache());
 
     await debugger.reestablishBreakpoints(
         _previousBreakpoints, _disabledBreakpoints);

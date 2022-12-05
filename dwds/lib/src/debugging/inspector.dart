@@ -83,6 +83,10 @@ class AppInspector implements AppInspectorInterface {
   /// Regex used to extract the message from an exception description.
   static final exceptionMessageRegex = RegExp(r'^.*$', multiLine: true);
 
+  /// Flutter widget inspector library.
+  Future<LibraryRef?> get flutterWidgetInspectorLibrary => _libraryHelper
+      .libraryRefFor('package:flutter/src/widgets/widget_inspector.dart');
+
   /// Regex used to extract a stack trace line from the exception description.
   static final stackTraceLineRegex = RegExp(r'^\s*at\s.*$', multiLine: true);
 

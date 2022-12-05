@@ -11,6 +11,7 @@
 - Allow enabling experiments in the expression compiler service.
 - Include an optional param to `Dwds.start` to indicate whether it a Flutter app
   or not.
+- Pre-warm expression compiler cache to speed up Flutter Inspector loading.
 
 ## 16.0.1
 
