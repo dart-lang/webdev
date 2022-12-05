@@ -87,6 +87,7 @@ class Dwds {
     SdkConfigurationProvider? sdkConfigurationProvider,
     bool emitDebugEvents = true,
     bool isInternalBuild = false,
+    bool isFlutterApp = false,
   }) async {
     globalLoadStrategy = loadStrategy;
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
@@ -129,6 +130,7 @@ class Dwds {
       enableDevtoolsLaunch: enableDevtoolsLaunch,
       emitDebugEvents: emitDebugEvents,
       isInternalBuild: isInternalBuild,
+      isFlutterApp: isFlutterApp,
     );
 
     final devHandler = DevHandler(

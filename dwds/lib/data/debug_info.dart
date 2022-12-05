@@ -22,4 +22,5 @@ abstract class DebugInfo implements Built<DebugInfo, DebugInfoBuilder> {
   String? get dwdsVersion;
   String? get extensionUrl;
   bool? get isInternalBuild;
+  bool? get isFlutterApp;
 }

@@ -133,10 +133,10 @@ Future<bool> _connectToDwds({
   final client = uri.isScheme('ws') || uri.isScheme('wss')
       ? WebSocketClient(WebSocketChannel.connect(uri))
       : SseSocketClient(SseClient(uri.toString()));
-  final debugSession = _DebugSession(client: client, appTabId: dartAppTabId);
-  _debugSessions.add(debugSession);
-  client.stream.listen(
-    (data) => _routeDwdsEvent(data, client, dartAppTabId),
+  final debugSession = _DebugSession(
+    client: client,
+    appTabId: dartAppTabId,
+    onIncoming: (data) => _routeDwdsEvent(data, client, dartAppTabId),
     onDone: () {
       debugLog('Shutting down DWDS communication channel.');
       _detachDebuggerForTab(dartAppTabId, type: TabType.dartApp);
@@ -147,15 +147,15 @@ Future<bool> _connectToDwds({
     },
     cancelOnError: true,
   );
+  _debugSessions.add(debugSession);
   final tabUrl = await _getTabUrl(dartAppTabId);
   // Send a DevtoolsRequest to the event stream:
-  final event = jsonEncode(serializers.serialize(DevToolsRequest((b) => b
+  debugSession.sendEvent(DevToolsRequest((b) => b
     ..appId = debugInfo.appId
     ..instanceId = debugInfo.appInstanceId
     ..contextId = dartAppContextId
     ..tabUrl = tabUrl
-    ..uriOnly = true)));
-  client.sink.add(event);
+    ..uriOnly = true));
   return true;
 }
 
@@ -323,12 +323,23 @@ class _DebugSession {
   _DebugSession({
     required client,
     required this.appTabId,
+    required void Function(String data) onIncoming,
+    required void Function() onDone,
+    required void Function(dynamic error) onError,
+    required bool cancelOnError,
   }) : _socketClient = client {
     // Collect extension events and send them periodically to the server.
     _batchSubscription = _batchController.stream.listen((events) {
       _socketClient.sink.add(jsonEncode(serializers.serialize(BatchedEvents(
           (b) => b.events = ListBuilder<ExtensionEvent>(events)))));
     });
+    // Listen for incoming events:
+    _socketClient.stream.listen(
+      onIncoming,
+      onDone: onDone,
+      onError: onError,
+      cancelOnError: cancelOnError,
+    );
   }
 
   set socketClient(SocketClient client) {
@@ -341,7 +352,7 @@ class _DebugSession {
     });
   }
 
-  void sendEvent(ExtensionEvent event) {
+  void sendEvent<T>(T event) {
     _socketClient.sink.add(jsonEncode(serializers.serialize(event)));
   }
 
