@@ -372,6 +372,8 @@ class TestContext {
         expressionCompiler,
         spawnDds,
         ddcService,
+        isFlutterApp,
+        isInternalBuild
       );
 
       _appUrl = basePath.isEmpty
