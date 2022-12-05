@@ -14,7 +14,6 @@ import 'logger.dart';
 import 'storage.dart';
 import 'utils.dart';
 
-
 bool panelsExist = false;
 
 void main() async {

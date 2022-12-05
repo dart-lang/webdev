@@ -26,7 +26,7 @@ final context = TestContext();
 void main() async {
   group('MV3 Debug Extension', () {
     late String extensionPath;
-    
+
     setUpAll(() async {
       extensionPath = await buildDebugExtension();
     });
@@ -219,9 +219,7 @@ void main() async {
         });
 
         test('the debug info for a Dart app is saved in session storage',
-            () async {
-
-            });
+            () async {});
       });
     }
   });

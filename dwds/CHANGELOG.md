@@ -9,8 +9,9 @@
 - Include the entire exception description up to the stacktrace in
   `mapExceptionStackTrace`.
 - Allow enabling experiments in the expression compiler service.
-- Include an optional param to `Dwds.start` to indicate whether it a Flutter app
-  or not.
+- Pre-warm expression compiler cache to speed up Flutter Inspector loading.
+- Include an optional param to `Dwds.start` to indicate whether the connected
+  app is a Flutter app.
 
 ## 16.0.1
 

@@ -277,7 +277,6 @@ class OnChangedHandler {
   );
 }
 
-
 /// chrome.tabs APIs
 /// https://developer.chrome.com/docs/extensions/reference/tabs
 
