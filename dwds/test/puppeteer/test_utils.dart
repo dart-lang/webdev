@@ -24,6 +24,17 @@ Future<String> buildDebugExtension() async {
   return '$extensionDir/compiled';
 }
 
+Future<void> clickOnExtensionIcon(Worker worker) async {
+  return worker.evaluate(_clickIconJs);
+}
+
+// Note: The following delay is required to reduce flakiness. It makes
+// sure the service worker execution context is ready.
+Future<void> workerEvalDelay() async {
+  await Future.delayed(Duration(seconds: 1));
+  return;
+}
+
 Future<Page> navigateToPage(
   Browser browser, {
   required String url,
@@ -60,7 +71,7 @@ Future<Page> _getPageForUrl(Browser browser, {required String url}) {
   return pageTarget.page;
 }
 
-final clickIconJs = '''
+final _clickIconJs = '''
   async () => {
     const activeTabs = await chrome.tabs.query({ active: true });
     const tab = activeTabs[0];

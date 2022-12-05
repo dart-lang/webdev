@@ -23,12 +23,8 @@ import 'test_utils.dart';
 
 final context = TestContext();
 
-// Note: The following delay is required to reduce flakiness. It makes
-// sure the service worker execution context is ready.
-const executionContextDelay = 1;
-
 void main() async {
-  late Target serviceWorkerTarget;
+  late Worker worker;
   late Browser browser;
   late String extensionPath;
 
@@ -58,13 +54,13 @@ void main() async {
             ],
           );
 
-          serviceWorkerTarget = await browser
+          final serviceWorkerTarget = await browser
               .waitForTarget((target) => target.type == 'service_worker');
+          worker = (await serviceWorkerTarget.worker)!;
         });
 
         tearDown(() async {
-          final worker = (await serviceWorkerTarget.worker)!;
-          await Future.delayed(Duration(seconds: executionContextDelay));
+          await workerEvalDelay();
           await worker.evaluate(_clearStorageJs());
         });
 
@@ -78,17 +74,15 @@ void main() async {
           // Navigate to the Dart app:
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
-          final worker = (await serviceWorkerTarget.worker)!;
-          await Future.delayed(Duration(seconds: executionContextDelay));
           // Verify that we have debug info for the Dart app:
-          final tabIdForAppJs = _tabIdForTabJs(appUrl);
-          final appTabId = (await worker.evaluate(tabIdForAppJs)) as int;
+          await workerEvalDelay();
+          final appTabId = await _getTabId(appUrl, worker: worker);
           final debugInfoKey = '$appTabId-debugInfo';
-          final storageObj = await worker.evaluate(
-              _fetchStorageObjJs(debugInfoKey, storageArea: 'session'));
-          final json = storageObj[debugInfoKey];
-          final debugInfo =
-              serializers.deserialize(jsonDecode(json)) as DebugInfo;
+          final debugInfo = await _fetchStorageObj<DebugInfo>(
+            debugInfoKey,
+            storageArea: 'session',
+            worker: worker,
+          );
           expect(debugInfo.appId, isNotNull);
           expect(debugInfo.appEntrypointPath, isNotNull);
           expect(debugInfo.appInstanceId, isNotNull);
@@ -116,12 +110,11 @@ void main() async {
           // Close the settings tab:
           await settingsTab.close();
           // Check that is has been saved in local storage:
-          final worker = (await serviceWorkerTarget.worker)!;
-          final storageObj = await worker.evaluate(
-              _fetchStorageObjJs('devToolsOpener', storageArea: 'local'));
-          final json = storageObj['devToolsOpener'];
-          final devToolsOpener =
-              serializers.deserialize(jsonDecode(json)) as DevToolsOpener;
+          final devToolsOpener = await _fetchStorageObj<DevToolsOpener>(
+            'devToolsOpener',
+            storageArea: 'local',
+            worker: worker,
+          );
           expect(devToolsOpener.newWindow, isTrue);
         });
 
@@ -131,22 +124,21 @@ void main() async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
-          final windowIdForAppJs = _windowIdForTabJs(appUrl);
           // Navigate to the Dart app:
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          final worker = (await serviceWorkerTarget.worker)!;
-          await Future.delayed(Duration(seconds: executionContextDelay));
-          await worker.evaluate(clickIconJs);
-          // Verify the extension opened Dart DevTools in the same window:
+          await workerEvalDelay();
+          await clickOnExtensionIcon(worker);
+          // Verify the extension opened the Dart docs in the same window:
           var devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
           final devToolsPage = await devToolsTabTarget.page;
-          final windowIdForDevToolsJs = _windowIdForTabJs(devToolsPage.url!);
-          var devToolsWindowId =
-              (await worker.evaluate(windowIdForDevToolsJs)) as int?;
-          var appWindowId = (await worker.evaluate(windowIdForAppJs)) as int?;
+          var devToolsWindowId = await _getWindowId(
+            devToolsPage.url!,
+            worker: worker,
+          );
+          var appWindowId = await _getWindowId(appUrl, worker: worker);
           expect(devToolsWindowId == appWindowId, isTrue);
           // Close the DevTools tab:
           var devToolsTab = await devToolsTabTarget.page;
@@ -168,13 +160,15 @@ void main() async {
           // Navigate to the Dart app:
           await navigateToPage(browser, url: appUrl);
           // Click on the Dart Debug Extension icon:
-          await worker.evaluate(clickIconJs);
+          await clickOnExtensionIcon(worker);
           // Verify the extension opened DevTools in a different window:
           devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
-          devToolsWindowId =
-              (await worker.evaluate(windowIdForDevToolsJs)) as int?;
-          appWindowId = (await worker.evaluate(windowIdForAppJs)) as int?;
+          devToolsWindowId = await _getWindowId(
+            devToolsPage.url!,
+            worker: worker,
+          );
+          appWindowId = await _getWindowId(appUrl, worker: worker);
           expect(devToolsWindowId == appWindowId, isFalse);
           // Close the DevTools tab:
           devToolsTab = await devToolsTabTarget.page;
@@ -192,9 +186,8 @@ void main() async {
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          final worker = (await serviceWorkerTarget.worker)!;
-          await Future.delayed(Duration(seconds: executionContextDelay));
-          await worker.evaluate(clickIconJs);
+          await workerEvalDelay();
+          await clickOnExtensionIcon(worker);
           // Verify that the Dart DevTools tab is open:
           final devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
@@ -214,9 +207,8 @@ void main() async {
           final appTab =
               await navigateToPage(browser, url: appUrl, isNew: true);
           // Click on the Dart Debug Extension icon:
-          final worker = (await serviceWorkerTarget.worker)!;
-          await Future.delayed(Duration(seconds: executionContextDelay));
-          await worker.evaluate(clickIconJs);
+          await workerEvalDelay();
+          await clickOnExtensionIcon(worker);
           // Verify that the Dart DevTools tab is open:
           final devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
@@ -229,6 +221,35 @@ void main() async {
       });
     }
   });
+}
+
+Future<int> _getTabId(
+  String url, {
+  required Worker worker,
+}) async {
+  final jsExpression = _tabIdForTabJs(url);
+  return (await worker.evaluate(jsExpression)) as int;
+}
+
+Future<int?> _getWindowId(
+  String url, {
+  required Worker worker,
+}) async {
+  final jsExpression = _windowIdForTabJs(url);
+  return (await worker.evaluate(jsExpression)) as int?;
+}
+
+Future<T> _fetchStorageObj<T>(
+  String storageKey, {
+  required String storageArea,
+  required Worker worker,
+}) async {
+  final storageObj = await worker.evaluate(_fetchStorageObjJs(
+    storageKey,
+    storageArea: storageArea,
+  ));
+  final json = storageObj[storageKey];
+  return serializers.deserialize(jsonDecode(json)) as T;
 }
 
 String _tabIdForTabJs(String tabUrl) {
