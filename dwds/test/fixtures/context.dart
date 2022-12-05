@@ -162,6 +162,8 @@ class TestContext {
     SdkConfigurationProvider? sdkConfigurationProvider,
     bool useDebuggerModuleNames = false,
     bool launchChrome = true,
+    bool isFlutterApp = false,
+    bool isInternalBuild = false,
   }) async {
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
