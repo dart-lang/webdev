@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library detector;
+library devtools;
 
 import 'dart:html';
-import 'dart:js_util';
 import 'package:js/js.dart';
 import 'package:dwds/data/debug_info.dart';
 
@@ -43,35 +42,32 @@ void _maybeCreatePanels() async {
   if (debugInfo == null) return;
   final isInternalBuild = debugInfo.isInternalBuild ?? false;
   if (!isInternalBuild) return;
-  // Create a Debugger panel:
+  // Create a Debugger panel for all internal apps:
   chrome.devtools.panels.create(
     isDevMode() ? '[DEV] Dart Debugger' : 'Dart Debugger',
     '',
     'panel.html',
-    allowInterop(_onDebuggerPanelAdded),
+    allowInterop((ExtensionPanel panel) => _onPanelAdded(panel, debugInfo)),
   );
-    // Create an inspector panel:
+  // Create an inspector panel for internal Flutter apps:
   final isFlutterApp = debugInfo.isFlutterApp ?? false;
   if (isFlutterApp) {
     chrome.devtools.panels.create(
       isDevMode() ? '[DEV] Flutter Inspector' : 'Flutter Inspector',
       '',
       'panel.html',
-      allowInterop(_onInspectorPanelAdded),
+      allowInterop((ExtensionPanel panel) => _onPanelAdded(panel, debugInfo)),
     );
   }
   panelsExist = true;
 }
 
-void _onDebuggerPanelAdded(ExtensionPanel debuggerPanel) {
-  debuggerPanel.onShown.addListener(allowInterop((Window window) {
-    debugLog('shown and window is ${window.origin}');
+void _onPanelAdded(ExtensionPanel panel, DebugInfo debugInfo) {
+  panel.onShown.addListener(allowInterop((Window window) {
+    if (window.origin != debugInfo.appOrigin) {
+      debugWarn('Page at ${window.origin} is no longer a Dart app.');
+      // TODO(elliette): Display banner that panel is not applicable. See:
+      // https://stackoverflow.com/questions/18927147/how-to-close-destroy-chrome-devtools-extensionpanel-programmatically
+    }
   }));
-  debuggerPanel.onHidden.addListener(allowInterop(() {
-    debugLog('hidden');
-  }));
-}
-
-void _onInspectorPanelAdded(ExtensionPanel inspectorPanel) {
-  // TODO(elliette) Implement.
 }
