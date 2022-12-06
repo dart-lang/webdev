@@ -8,6 +8,8 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 
+import '../fixtures/context.dart';
+
 Future<String> buildDebugExtension() async {
   final currentDir = Directory.current.path;
   if (!currentDir.endsWith('dwds')) {
@@ -22,6 +24,43 @@ Future<String> buildDebugExtension() async {
     workingDirectory: extensionDir,
   );
   return '$extensionDir/compiled';
+}
+
+Future<Browser> setUpExtensionTest(
+  TestContext context, {
+  required String extensionPath,
+  bool serveDevTools = true,
+  bool useSse = false,
+  bool isInternalBuild = false,
+  bool isFlutterApp = false,
+  bool openChromeDevTools = false,
+}) async {
+  // TODO(elliette): Only start a TestServer, that way we can get rid of the
+  // launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
+  await context.setUp(
+    launchChrome: false,
+    serveDevTools: serveDevTools,
+    useSse: useSse,
+    enableDebugExtension: true,
+    isInternalBuild: isInternalBuild,
+    isFlutterApp: isFlutterApp,
+  );
+  return await puppeteer.launch(
+    devTools: openChromeDevTools,
+    headless: false,
+    timeout: Duration(seconds: 60),
+    args: [
+      '--load-extension=$extensionPath',
+      '--disable-extensions-except=$extensionPath',
+      '--disable-features=DialMediaRouteProvider',
+    ],
+  );
+}
+
+Future<Worker> getServiceWorker(Browser browser) async {
+  final serviceWorkerTarget =
+      await browser.waitForTarget((target) => target.type == 'service_worker');
+  return (await serviceWorkerTarget.worker)!;
 }
 
 Future<void> clickOnExtensionIcon(Worker worker) async {

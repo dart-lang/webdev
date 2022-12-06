@@ -37,27 +37,18 @@ void main() async {
         late Worker worker;
 
         setUpAll(() async {
-          // TODO(elliette): Only start a TestServer, that way we can get rid of
-          // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
-          await context.setUp(
+          browser = await setUpExtensionTest(
+            context,
+            extensionPath: extensionPath,
             serveDevTools: true,
-            launchChrome: false,
             useSse: useSse,
-            enableDebugExtension: true,
           );
-          browser = await puppeteer.launch(
-            headless: false,
-            timeout: Duration(seconds: 60),
-            args: [
-              '--load-extension=$extensionPath',
-              '--disable-extensions-except=$extensionPath',
-              '--disable-features=DialMediaRouteProvider',
-            ],
-          );
+          worker = await getServiceWorker(browser);
 
-          final serviceWorkerTarget = await browser
-              .waitForTarget((target) => target.type == 'service_worker');
-          worker = (await serviceWorkerTarget.worker)!;
+          // Navigate to the Chrome extension page instead of the blank tab
+          // opened by Chrome. This is helpful for local debugging.
+          final blankTab = await navigateToPage(browser, url: 'about:blank');
+          await blankTab.goto('chrome://extensions/');
         });
 
         tearDown(() async {
@@ -165,6 +156,7 @@ void main() async {
           // Verify the extension opened DevTools in a different window:
           devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
+          print('GETTING WINDOW ID FOR ${devToolsPage.url!}');
           devToolsWindowId = await _getWindowId(
             devToolsPage.url!,
             worker: worker,
@@ -198,6 +190,7 @@ void main() async {
           await appTab.bringToFront();
           // Verify that the Dart DevTools tab closes:
           await devToolsTabTarget.onClose;
+          await appTab.close();
         });
 
         test('Closing the Dart app while debugging closes DevTools', () async {
@@ -222,19 +215,129 @@ void main() async {
       });
     }
 
-    group('external apps', () {
-      // TODO(elliette): Test that extension does not add any panels to Chrome
-      // DevTools. Requires either of the following to be resolved:
-      // - https://github.com/puppeteer/puppeteer/issues/9371
-      // - https://github.com/xvrh/puppeteer-dart/issues/201
-    }, skip: true);
+/*
+    group('external builds', () {
+      for (var isFlutterApp in [true, false]) {
+        group(isFlutterApp ? 'flutter apps' : 'dart apps', () {
+          late Browser browser;
+          late Worker worker;
 
-    group('internal apps', () {
-      // TODO(elliette): Test that extension does not adds the correct panels to
-      // Chrome DevTools. Requires either of the following to be resolved:
-      // - https://github.com/puppeteer/puppeteer/issues/9371
-      // - https://github.com/xvrh/puppeteer-dart/issues/201
-    }, skip: true);
+          setUpAll(() async {
+            browser = await setUpExtensionTest(
+              context,
+              extensionPath: extensionPath,
+              serveDevTools: true,
+              isInternalBuild: false,
+              isFlutterApp: isFlutterApp,
+            );
+            worker = await getServiceWorker(browser);
+          });
+
+          tearDown(() async {
+            await workerEvalDelay();
+            await worker.evaluate(_clearStorageJs());
+          });
+
+          tearDownAll(() async {
+            await browser.close();
+          });
+          test(
+              'isFlutterApp=$isFlutterApp and isInternalBuild=false are saved in storage',
+              () async {
+            final appUrl = context.appUrl;
+            // Navigate to the Dart app:
+            final appTab =
+                await navigateToPage(browser, url: appUrl, isNew: true);
+            // Verify that we have debug info for the Dart app:
+            await workerEvalDelay();
+            final appTabId = await _getTabId(appUrl, worker: worker);
+            final debugInfoKey = '$appTabId-debugInfo';
+            final debugInfo = await _fetchStorageObj<DebugInfo>(
+              debugInfoKey,
+              storageArea: 'session',
+              worker: worker,
+            );
+            expect(debugInfo.isInternalBuild, equals(false));
+            expect(debugInfo.isFlutterApp, equals(isFlutterApp));
+            await appTab.close();
+          });
+
+          test('No additional panels are added in Chrome DevTools', () async {
+            // TODO(elliette): Requires either of the following to be resolved:
+            // - https://github.com/puppeteer/puppeteer/issues/9371
+            // - https://github.com/xvrh/puppeteer-dart/issues/201
+          }, skip: true);
+        });
+      }
+    });
+
+    */
+
+    /*
+    group('internal builds', () {
+      for (var isFlutterApp in [true, false]) {
+        group(isFlutterApp ? 'flutter apps' : 'dart apps', () {
+          late Browser browser;
+          late Worker worker;
+
+          setUpAll(() async {
+            browser = await setUpExtensionTest(
+              context,
+              extensionPath: extensionPath,
+              serveDevTools: true,
+              isInternalBuild: true,
+              isFlutterApp: isFlutterApp,
+            );
+            worker = await getServiceWorker(browser);
+          });
+
+          tearDown(() async {
+            await workerEvalDelay();
+            await worker.evaluate(_clearStorageJs());
+          });
+
+          tearDownAll(() async {
+            await browser.close();
+          });
+          test(
+              'isFlutterApp=$isFlutterApp and isInternalBuild=true are saved in storage',
+              () async {
+            final appUrl = context.appUrl;
+            // Navigate to the Dart app:
+            final appTab =
+                await navigateToPage(browser, url: appUrl, isNew: true);
+            // Verify that we have debug info for the Dart app:
+            await workerEvalDelay();
+            final appTabId = await _getTabId(appUrl, worker: worker);
+            final debugInfoKey = '$appTabId-debugInfo';
+            final debugInfo = await _fetchStorageObj<DebugInfo>(
+              debugInfoKey,
+              storageArea: 'session',
+              worker: worker,
+            );
+            expect(debugInfo.isInternalBuild, equals(false));
+            expect(debugInfo.isFlutterApp, equals(isFlutterApp));
+            await appTab.close();
+          });
+
+          test('The Dart Debugger panel is added to Chrome DevTools', () async {
+            // TODO(elliette): Requires either of the following to be resolved:
+            // - https://github.com/puppeteer/puppeteer/issues/9371
+            // - https://github.com/xvrh/puppeteer-dart/issues/201
+          }, skip: true);
+
+          if (isFlutterApp) {
+            test('The Flutter Inspector panel is added to Chrome DevTools',
+                () async {
+              // TODO(elliette): Requires either of the following to be resolved:
+              // - https://github.com/puppeteer/puppeteer/issues/9371
+              // - https://github.com/xvrh/puppeteer-dart/issues/201
+            }, skip: true);
+          }
+        });
+      }
+    });
+    */
   });
 }
 
@@ -251,7 +354,9 @@ Future<int?> _getWindowId(
   required Worker worker,
 }) async {
   final jsExpression = _windowIdForTabJs(url);
-  return (await worker.evaluate(jsExpression)) as int?;
+  print(jsExpression);
+  final result = (await worker.evaluate(jsExpression)) as int?;
+  return result;
 }
 
 Future<T> _fetchStorageObj<T>(
@@ -280,8 +385,8 @@ String _tabIdForTabJs(String tabUrl) {
 String _windowIdForTabJs(String tabUrl) {
   return '''
     async () => {
-      const matchingTabs = await chrome.tabs.query({ url: "$tabUrl" });
-      const tab = matchingTabs[0];
+      const allTabs = await chrome.tabs.query({});
+      const tab = allTabs.find((tab) => tab.url == "$tabUrl");
       return tab.windowId;
     }
 ''';
