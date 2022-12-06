@@ -180,107 +180,18 @@ void main() async {
     }
 
     group('external apps', () {
-      late Browser browser;
-      late Worker worker;
-
-      setUpAll(() async {
-        // TODO(elliette): Only start a TestServer, that way we can get rid of
-        // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
-        await context.setUp(
-          serveDevTools: true,
-          launchChrome: false,
-          useSse: true,
-          enableDebugExtension: true,
-          isInternalBuild: true,
-        );
-        browser = await puppeteer.launch(
-          devTools: true,
-          headless: false,
-          timeout: Duration(seconds: 60),
-          args: [
-            '--load-extension=$extensionPath',
-            '--disable-extensions-except=$extensionPath',
-            '--disable-features=DialMediaRouteProvider',
-          ],
-        );
-
-        final serviceWorkerTarget = await browser
-            .waitForTarget((target) => target.type == 'service_worker');
-        worker = (await serviceWorkerTarget.worker)!;
-      });
-
-      tearDown(() async {
-        await workerEvalDelay();
-        await worker.evaluate(_clearStorageJs());
-      });
-
-      tearDownAll(() async {
-        await browser.close();
-      });
-
-      test('No additional panels are added in Chrome DevTools', () async {
-        // TODO
-      });
+      // TODO(elliette): Test that extension does not add any panels to Chrome 
+      // DevTools. Requires either of the following to be resolved:
+      // - https://github.com/puppeteer/puppeteer/issues/9371
+      // - https://github.com/xvrh/puppeteer-dart/issues/201
     }, skip: true);
 
-
-    for (var isFlutterApp in [true, false]) {
-      group(isFlutterApp ? 'internal Flutter app' : 'internal Dart app', () {
-        late Browser browser;
-        late Worker worker;
-
-        setUpAll(() async {
-          // TODO(elliette): Only start a TestServer, that way we can get rid of
-          // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
-          await context.setUp(
-            serveDevTools: true,
-            launchChrome: false,
-            useSse: true,
-            enableDebugExtension: true,
-            isFlutterApp: isFlutterApp,
-            isInternalBuild: true,
-          );
-          browser = await puppeteer.launch(
-            devTools: true,
-            headless: false,
-            timeout: Duration(seconds: 60),
-            args: [
-              '--load-extension=$extensionPath',
-              '--disable-extensions-except=$extensionPath',
-              '--disable-features=DialMediaRouteProvider',
-            ],
-          );
-
-          final serviceWorkerTarget = await browser
-              .waitForTarget((target) => target.type == 'service_worker');
-          worker = (await serviceWorkerTarget.worker)!;
-        });
-
-        tearDown(() async {
-          await workerEvalDelay();
-          await worker.evaluate(_clearStorageJs());
-        });
-
-        tearDownAll(() async {
-          await browser.close();
-        });
-
-        test('the correct additional panels are added to Chrome DevTools',
-            () async {
-          final appUrl = context.appUrl;
-          // Navigate to the Dart app:
-          final appTab =
-              await navigateToPage(browser, url: appUrl, isNew: true);
-          // Verify that we have debug info for the Dart app:
-          await workerEvalDelay();
-          final targets = browser.targets;
-          for (var target in targets) {
-            print(target.url);
-          }
-          // Find the chrome devtools target:
-        });
-      });
-    }
+    group('internal apps', () {
+      // TODO(elliette): Test that extension does not adds the correct panels to
+      // Chrome DevTools. Requires either of the following to be resolved:
+      // - https://github.com/puppeteer/puppeteer/issues/9371
+      // - https://github.com/xvrh/puppeteer-dart/issues/201
+    }, skip: true);
   });
 }
 
