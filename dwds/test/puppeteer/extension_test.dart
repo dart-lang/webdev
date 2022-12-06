@@ -35,7 +35,6 @@ void main() async {
 
     for (var useSse in [true, false]) {
       group(useSse ? 'with SSE' : 'with WebSockets', () {
-
         setUpAll(() async {
           // TODO(elliette): Only start a TestServer, that way we can get rid of
           // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
