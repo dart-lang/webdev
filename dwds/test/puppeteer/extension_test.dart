@@ -215,7 +215,7 @@ void main() async {
       });
     }
 
-    group('connected to an externally built', () {
+    group('connected to an externally-built', () {
       for (var isFlutterApp in [true, false]) {
         group(isFlutterApp ? 'Flutter app:' : 'Dart app:', () {
           late Browser browser;
@@ -270,7 +270,7 @@ void main() async {
       }
     });
 
-    group('connected to an internally built', () {
+    group('connected to an internally-built', () {
       for (var isFlutterApp in [true, false]) {
         group(isFlutterApp ? 'Flutter app:' : 'Dart app:', () {
           late Browser browser;
