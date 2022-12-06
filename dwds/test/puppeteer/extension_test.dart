@@ -125,15 +125,15 @@ void main() async {
           // Verify the extension opened the Dart docs in the same window:
           var devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
-          final devToolsPage = await devToolsTabTarget.page;
+          var devToolsTab = await devToolsTabTarget.page;
           var devToolsWindowId = await _getWindowId(
-            devToolsPage.url!,
+            devToolsTab.url!,
             worker: worker,
           );
           var appWindowId = await _getWindowId(appUrl, worker: worker);
           expect(devToolsWindowId == appWindowId, isTrue);
           // Close the DevTools tab:
-          var devToolsTab = await devToolsTabTarget.page;
+          devToolsTab = await devToolsTabTarget.page;
           await devToolsTab.close();
           // Navigate to the extension settings page:
           final extensionOrigin = getExtensionOrigin(browser);
@@ -156,9 +156,9 @@ void main() async {
           // Verify the extension opened DevTools in a different window:
           devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
-          print('GETTING WINDOW ID FOR ${devToolsPage.url!}');
+          devToolsTab = await devToolsTabTarget.page;
           devToolsWindowId = await _getWindowId(
-            devToolsPage.url!,
+            devToolsTab.url!,
             worker: worker,
           );
           appWindowId = await _getWindowId(appUrl, worker: worker);
@@ -215,7 +215,6 @@ void main() async {
       });
     }
 
-/*
     group('external builds', () {
       for (var isFlutterApp in [true, false]) {
         group(isFlutterApp ? 'flutter apps' : 'dart apps', () {
@@ -271,9 +270,6 @@ void main() async {
       }
     });
 
-    */
-
-    /*
     group('internal builds', () {
       for (var isFlutterApp in [true, false]) {
         group(isFlutterApp ? 'flutter apps' : 'dart apps', () {
@@ -337,7 +333,6 @@ void main() async {
         });
       }
     });
-    */
   });
 }
 
@@ -354,9 +349,7 @@ Future<int?> _getWindowId(
   required Worker worker,
 }) async {
   final jsExpression = _windowIdForTabJs(url);
-  print(jsExpression);
-  final result = (await worker.evaluate(jsExpression)) as int?;
-  return result;
+  return (await worker.evaluate(jsExpression)) as int?;
 }
 
 Future<T> _fetchStorageObj<T>(
@@ -385,8 +378,8 @@ String _tabIdForTabJs(String tabUrl) {
 String _windowIdForTabJs(String tabUrl) {
   return '''
     async () => {
-      const allTabs = await chrome.tabs.query({});
-      const tab = allTabs.find((tab) => tab.url == "$tabUrl");
+      const matchingTabs = await chrome.tabs.query({ url: "$tabUrl" });
+      const tab = matchingTabs[0];
       return tab.windowId;
     }
 ''';
