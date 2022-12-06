@@ -32,7 +32,7 @@ void main() async {
     });
 
     for (var useSse in [true, false]) {
-      group(useSse ? 'with SSE' : 'with WebSockets', () {
+      group(useSse ? 'connected with SSE:' : 'connected with WebSockets:', () {
         late Browser browser;
         late Worker worker;
 
@@ -170,7 +170,7 @@ void main() async {
         });
 
         test(
-            'Navigating away from the Dart app while debugging closes DevTools',
+            'navigating away from the Dart app while debugging closes DevTools',
             () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
@@ -193,7 +193,7 @@ void main() async {
           await appTab.close();
         });
 
-        test('Closing the Dart app while debugging closes DevTools', () async {
+        test('closing the Dart app while debugging closes DevTools', () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
@@ -215,9 +215,9 @@ void main() async {
       });
     }
 
-    group('external builds', () {
+    group('connected to an externally built', () {
       for (var isFlutterApp in [true, false]) {
-        group(isFlutterApp ? 'flutter apps' : 'dart apps', () {
+        group(isFlutterApp ? 'Flutter app:' : 'Dart app:', () {
           late Browser browser;
           late Worker worker;
 
@@ -261,7 +261,7 @@ void main() async {
             await appTab.close();
           });
 
-          test('No additional panels are added in Chrome DevTools', () async {
+          test('no additional panels are added in Chrome DevTools', () async {
             // TODO(elliette): Requires either of the following to be resolved:
             // - https://github.com/puppeteer/puppeteer/issues/9371
             // - https://github.com/xvrh/puppeteer-dart/issues/201
@@ -270,9 +270,9 @@ void main() async {
       }
     });
 
-    group('internal builds', () {
+    group('connected to an internally built', () {
       for (var isFlutterApp in [true, false]) {
-        group(isFlutterApp ? 'flutter apps' : 'dart apps', () {
+        group(isFlutterApp ? 'Flutter app:' : 'Dart app:', () {
           late Browser browser;
           late Worker worker;
 
@@ -311,19 +311,19 @@ void main() async {
               storageArea: 'session',
               worker: worker,
             );
-            expect(debugInfo.isInternalBuild, equals(false));
+            expect(debugInfo.isInternalBuild, equals(true));
             expect(debugInfo.isFlutterApp, equals(isFlutterApp));
             await appTab.close();
           });
 
-          test('The Dart Debugger panel is added to Chrome DevTools', () async {
+          test('the Dart Debugger panel is added to Chrome DevTools', () async {
             // TODO(elliette): Requires either of the following to be resolved:
             // - https://github.com/puppeteer/puppeteer/issues/9371
             // - https://github.com/xvrh/puppeteer-dart/issues/201
           }, skip: true);
 
           if (isFlutterApp) {
-            test('The Flutter Inspector panel is added to Chrome DevTools',
+            test('the Flutter Inspector panel is added to Chrome DevTools',
                 () async {
               // TODO(elliette): Requires either of the following to be resolved:
               // - https://github.com/puppeteer/puppeteer/issues/9371
