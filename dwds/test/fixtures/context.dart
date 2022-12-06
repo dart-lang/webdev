@@ -355,26 +355,25 @@ class TestContext {
       final connection = ChromeConnection('localhost', debugPort);
 
       _testServer = await TestServer.start(
-        hostname,
-        port,
-        assetHandler,
-        assetReader,
-        requireStrategy,
-        pathToServe,
-        buildResults,
-        () async => connection,
-        serveDevTools,
-        enableDebugExtension,
-        autoRun,
-        enableDebugging,
-        useSse,
-        urlEncoder,
-        expressionCompiler,
-        spawnDds,
-        ddcService,
-        isFlutterApp,
-        isInternalBuild
-      );
+          hostname,
+          port,
+          assetHandler,
+          assetReader,
+          requireStrategy,
+          pathToServe,
+          buildResults,
+          () async => connection,
+          serveDevTools,
+          enableDebugExtension,
+          autoRun,
+          enableDebugging,
+          useSse,
+          urlEncoder,
+          expressionCompiler,
+          spawnDds,
+          ddcService,
+          isFlutterApp,
+          isInternalBuild);
 
       _appUrl = basePath.isEmpty
           ? 'http://localhost:$port/$path'

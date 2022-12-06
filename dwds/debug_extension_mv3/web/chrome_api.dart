@@ -20,6 +20,7 @@ class Chrome {
   external Scripting get scripting;
   external Storage get storage;
   external Tabs get tabs;
+  external WebNavigation get webNavigation;
   external Windows get windows;
 }
 
@@ -56,7 +57,7 @@ class Debugger {
   external void attach(
       Debuggee target, String requiredVersion, Function? callback);
 
-  external void detach(Debuggee target, Function? callback);
+  external Object detach(Debuggee target);
 
   external void sendCommand(Debuggee target, String method,
       Object? commandParams, Function? callback);
@@ -267,6 +268,8 @@ class StorageArea {
   external Object get(List<String> keys, void Function(Object result) callback);
 
   external Object set(Object items, void Function()? callback);
+
+  external Object remove(List<String> keys, void Function()? callback);
 }
 
 @JS()
@@ -336,6 +339,30 @@ class QueryInfo {
 @anonymous
 class Tab {
   external int get id;
+  external String get url;
+}
+
+/// chrome.webNavigation APIs
+/// https://developer.chrome.com/docs/extensions/reference/webNavigation
+
+@JS()
+@anonymous
+class WebNavigation {
+  // https://developer.chrome.com/docs/extensions/reference/webNavigation/#event-onCommitted
+  external OnCommittedHandler get onCommitted;
+}
+
+@JS()
+@anonymous
+class OnCommittedHandler {
+  external void addListener(void Function(NavigationInfo details) callback);
+}
+
+@JS()
+@anonymous
+class NavigationInfo {
+  external String get transitionType;
+  external int get tabId;
   external String get url;
 }
 
