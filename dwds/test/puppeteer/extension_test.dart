@@ -35,8 +35,6 @@ void main() async {
 
     for (var useSse in [true, false]) {
       group(useSse ? 'with SSE' : 'with WebSockets', () {
-        late Browser browser;
-        late Worker worker;
 
         setUpAll(() async {
           // TODO(elliette): Only start a TestServer, that way we can get rid of
