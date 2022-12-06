@@ -35,6 +35,9 @@ void main() async {
 
     for (var useSse in [true, false]) {
       group(useSse ? 'with SSE' : 'with WebSockets', () {
+        late Browser browser;
+        late Worker worker;
+
         setUpAll(() async {
           // TODO(elliette): Only start a TestServer, that way we can get rid of
           // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
@@ -133,15 +136,14 @@ void main() async {
           // Verify the extension opened the Dart docs in the same window:
           var devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
-          var devToolsPage = await devToolsTabTarget.page;
+          var devToolsTab = await devToolsTabTarget.page;
           var devToolsWindowId = await _getWindowId(
-            devToolsPage.url!,
+            devToolsTab.url!,
             worker: worker,
           );
           var appWindowId = await _getWindowId(appUrl, worker: worker);
           expect(devToolsWindowId == appWindowId, isTrue);
           // Close the DevTools tab:
-          var devToolsTab = await devToolsTabTarget.page;
           await devToolsTab.close();
           // Navigate to the extension settings page:
           final extensionOrigin = getExtensionOrigin(browser);
@@ -164,10 +166,10 @@ void main() async {
           // Verify the extension opened DevTools in a different window:
           devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
-          devToolsPage = await devToolsTabTarget.page;
-          await devToolsPage.bringToFront();
+          devToolsTab = await devToolsTabTarget.page;
+          await devToolsTab.bringToFront();
           devToolsWindowId = await _getWindowId(
-            devToolsPage.url!,
+            devToolsTab.url!,
             worker: worker,
           );
           appWindowId = await _getWindowId(appUrl, worker: worker);
@@ -199,6 +201,7 @@ void main() async {
           await appTab.bringToFront();
           // Verify that the Dart DevTools tab closes:
           await devToolsTabTarget.onClose;
+          await appTab.close();
         });
 
         test('Closing the Dart app while debugging closes DevTools', () async {
