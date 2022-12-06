@@ -133,7 +133,7 @@ void main() async {
           // Verify the extension opened the Dart docs in the same window:
           var devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
-          final devToolsPage = await devToolsTabTarget.page;
+          var devToolsPage = await devToolsTabTarget.page;
           var devToolsWindowId = await _getWindowId(
             devToolsPage.url!,
             worker: worker,
@@ -164,6 +164,8 @@ void main() async {
           // Verify the extension opened DevTools in a different window:
           devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
+          devToolsPage = await devToolsTabTarget.page;
+          await devToolsPage.bringToFront();
           devToolsWindowId = await _getWindowId(
             devToolsPage.url!,
             worker: worker,
