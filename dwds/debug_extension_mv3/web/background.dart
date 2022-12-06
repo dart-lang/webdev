@@ -41,6 +41,8 @@ void _registerListeners() {
       _updateIcon(currentTab!.id);
     }
   }));
+  chrome.webNavigation.onCommitted
+      .addListener(allowInterop(_detectNavigationAwayFromDartApp));
 
   // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
@@ -59,7 +61,6 @@ Future<void> _startDebugSession(Tab currentTab) async {
   if (!isAuthenticated) return;
 
   maybeCreateLifelinePort(currentTab.id);
-  registerDebugEventListeners();
   attachDebugger(tabId);
 }
 
@@ -112,6 +113,21 @@ void _handleRuntimeMessages(
           _setDebuggableIcon();
         }
       });
+}
+
+void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
+  final tabId = navigationInfo.tabId;
+  final debugInfo = await _fetchDebugInfo(navigationInfo.tabId);
+  if (debugInfo == null) return;
+  if (debugInfo.appUrl != navigationInfo.url) {
+    _setDefaultIcon();
+    await removeStorageObject(type: StorageObject.debugInfo, tabId: tabId);
+    detachDebugger(
+      tabId,
+      type: TabType.dartApp,
+      reason: 'Navigated away from Dart app.',
+    );
+  }
 }
 
 void _updateIcon(int activeTabId) async {

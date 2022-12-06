@@ -175,6 +175,49 @@ void main() async {
           await devToolsTab.close();
           await appTab.close();
         });
+
+        test(
+            'Navigating away from the Dart app while debugging closes DevTools',
+            () async {
+          final appUrl = context.appUrl;
+          final devToolsUrlFragment =
+              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+          // Navigate to the Dart app:
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
+          // Click on the Dart Debug Extension icon:
+          await workerEvalDelay();
+          await clickOnExtensionIcon(worker);
+          // Verify that the Dart DevTools tab is open:
+          final devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
+          expect(devToolsTabTarget.type, equals('page'));
+          // Navigate away from the Dart app:
+          await appTab.goto('https://dart.dev/', wait: Until.domContentLoaded);
+          await appTab.bringToFront();
+          // Verify that the Dart DevTools tab closes:
+          await devToolsTabTarget.onClose;
+        });
+
+        test('Closing the Dart app while debugging closes DevTools', () async {
+          final appUrl = context.appUrl;
+          final devToolsUrlFragment =
+              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+          // Navigate to the Dart app:
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
+          // Click on the Dart Debug Extension icon:
+          await workerEvalDelay();
+          await clickOnExtensionIcon(worker);
+          // Verify that the Dart DevTools tab is open:
+          final devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
+          expect(devToolsTabTarget.type, equals('page'));
+          // Close the Dart app:
+          await appTab.close();
+          // Verify that the Dart DevTools tab closes:
+          await devToolsTabTarget.onClose;
+        });
       });
     }
   });

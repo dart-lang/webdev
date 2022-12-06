@@ -82,6 +82,17 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
   return completer.future;
 }
 
+Future<bool> removeStorageObject<T>({required StorageObject type, int? tabId}) {
+  final storageKey = _createStorageKey(type, tabId);
+  final completer = Completer<bool>();
+  final storageArea = _getStorageArea(type.persistance);
+  storageArea.remove([storageKey], allowInterop(() {
+    debugLog('Removed object.', prefix: storageKey);
+    completer.complete(true);
+  }));
+  return completer.future;
+}
+
 StorageArea _getStorageArea(Persistance persistance) {
   switch (persistance) {
     case Persistance.acrossSessions:
