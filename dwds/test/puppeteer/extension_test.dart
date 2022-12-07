@@ -133,7 +133,6 @@ void main() async {
           var appWindowId = await _getWindowId(appUrl, worker: worker);
           expect(devToolsWindowId == appWindowId, isTrue);
           // Close the DevTools tab:
-          devToolsTab = await devToolsTabTarget.page;
           await devToolsTab.close();
           // Navigate to the extension settings page:
           final extensionOrigin = getExtensionOrigin(browser);
@@ -157,6 +156,7 @@ void main() async {
           devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
           devToolsTab = await devToolsTabTarget.page;
+          await devToolsTab.bringToFront();
           devToolsWindowId = await _getWindowId(
             devToolsTab.url!,
             worker: worker,
