@@ -162,6 +162,8 @@ class TestContext {
     SdkConfigurationProvider? sdkConfigurationProvider,
     bool useDebuggerModuleNames = false,
     bool launchChrome = true,
+    bool isFlutterApp = false,
+    bool isInternalBuild = false,
   }) async {
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
@@ -370,6 +372,8 @@ class TestContext {
         expressionCompiler,
         spawnDds,
         ddcService,
+        isFlutterApp,
+        isInternalBuild,
       );
 
       _appUrl = basePath.isEmpty

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:html';
+
 import 'package:js/js.dart';
 
 @JS()
@@ -12,6 +14,7 @@ external Chrome get chrome;
 class Chrome {
   external Action get action;
   external Debugger get debugger;
+  external Devtools get devtools;
   external Notifications get notifications;
   external Runtime get runtime;
   external Scripting get scripting;
@@ -85,6 +88,50 @@ class Debuggee {
   external String get extensionId;
   external String get targetId;
   external factory Debuggee({int tabId, String? extensionId, String? targetId});
+}
+
+/// chrome.devtools APIs:
+
+@JS()
+@anonymous
+class Devtools {
+  // https://developer.chrome.com/docs/extensions/reference/devtools_inspectedWindow
+  external InspectedWindow get inspectedWindow;
+
+  // https://developer.chrome.com/docs/extensions/reference/devtools_panels/
+  external Panels get panels;
+}
+
+@JS()
+@anonymous
+class InspectedWindow {
+  external int get tabId;
+}
+
+@JS()
+@anonymous
+class Panels {
+  external void create(String title, String iconPath, String pagePath,
+      void Function(ExtensionPanel)? callback);
+}
+
+@JS()
+@anonymous
+class ExtensionPanel {
+  external OnHiddenHandler get onHidden;
+  external OnShownHandler get onShown;
+}
+
+@JS()
+@anonymous
+class OnHiddenHandler {
+  external void addListener(void Function() callback);
+}
+
+@JS()
+@anonymous
+class OnShownHandler {
+  external void addListener(void Function(Window window) callback);
 }
 
 /// chrome.notification APIs:
@@ -211,6 +258,8 @@ class Storage {
   external StorageArea get local;
 
   external StorageArea get session;
+
+  external OnChangedHandler get onChanged;
 }
 
 @JS()
@@ -221,6 +270,14 @@ class StorageArea {
   external Object set(Object items, void Function()? callback);
 
   external Object remove(List<String> keys, void Function()? callback);
+}
+
+@JS()
+@anonymous
+class OnChangedHandler {
+  external void addListener(
+    void Function(Object changes, String areaName) callback,
+  );
 }
 
 /// chrome.tabs APIs

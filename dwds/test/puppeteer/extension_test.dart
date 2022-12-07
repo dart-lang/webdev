@@ -24,39 +24,31 @@ import 'test_utils.dart';
 final context = TestContext();
 
 void main() async {
-  late Worker worker;
-  late Browser browser;
-  late String extensionPath;
-
   group('MV3 Debug Extension', () {
+    late String extensionPath;
+
     setUpAll(() async {
       extensionPath = await buildDebugExtension();
     });
 
     for (var useSse in [true, false]) {
-      group(useSse ? 'with SSE' : 'with WebSockets', () {
-        setUpAll(() async {
-          // TODO(elliette): Only start a TestServer, that way we can get rid of
-          // the launchChrome parameter: https://github.com/dart-lang/webdev/issues/1779
-          await context.setUp(
-            serveDevTools: true,
-            launchChrome: false,
-            useSse: useSse,
-            enableDebugExtension: true,
-          );
-          browser = await puppeteer.launch(
-            headless: false,
-            timeout: Duration(seconds: 60),
-            args: [
-              '--load-extension=$extensionPath',
-              '--disable-extensions-except=$extensionPath',
-              '--disable-features=DialMediaRouteProvider',
-            ],
-          );
+      group(useSse ? 'connected with SSE:' : 'connected with WebSockets:', () {
+        late Browser browser;
+        late Worker worker;
 
-          final serviceWorkerTarget = await browser
-              .waitForTarget((target) => target.type == 'service_worker');
-          worker = (await serviceWorkerTarget.worker)!;
+        setUpAll(() async {
+          browser = await setUpExtensionTest(
+            context,
+            extensionPath: extensionPath,
+            serveDevTools: true,
+            useSse: useSse,
+          );
+          worker = await getServiceWorker(browser);
+
+          // Navigate to the Chrome extension page instead of the blank tab
+          // opened by Chrome. This is helpful for local debugging.
+          final blankTab = await navigateToPage(browser, url: 'about:blank');
+          await blankTab.goto('chrome://extensions/');
         });
 
         tearDown(() async {
@@ -178,7 +170,7 @@ void main() async {
         });
 
         test(
-            'Navigating away from the Dart app while debugging closes DevTools',
+            'navigating away from the Dart app while debugging closes DevTools',
             () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
@@ -201,7 +193,7 @@ void main() async {
           await appTab.close();
         });
 
-        test('Closing the Dart app while debugging closes DevTools', () async {
+        test('closing the Dart app while debugging closes DevTools', () async {
           final appUrl = context.appUrl;
           final devToolsUrlFragment =
               useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
@@ -222,6 +214,125 @@ void main() async {
         });
       });
     }
+
+    group('connected to an externally-built', () {
+      for (var isFlutterApp in [true, false]) {
+        group(isFlutterApp ? 'Flutter app:' : 'Dart app:', () {
+          late Browser browser;
+          late Worker worker;
+
+          setUpAll(() async {
+            browser = await setUpExtensionTest(
+              context,
+              extensionPath: extensionPath,
+              serveDevTools: true,
+              isInternalBuild: false,
+              isFlutterApp: isFlutterApp,
+            );
+            worker = await getServiceWorker(browser);
+          });
+
+          tearDown(() async {
+            await workerEvalDelay();
+            await worker.evaluate(_clearStorageJs());
+          });
+
+          tearDownAll(() async {
+            await browser.close();
+          });
+          test(
+              'isFlutterApp=$isFlutterApp and isInternalBuild=false are saved in storage',
+              () async {
+            final appUrl = context.appUrl;
+            // Navigate to the Dart app:
+            final appTab =
+                await navigateToPage(browser, url: appUrl, isNew: true);
+            // Verify that we have debug info for the Dart app:
+            await workerEvalDelay();
+            final appTabId = await _getTabId(appUrl, worker: worker);
+            final debugInfoKey = '$appTabId-debugInfo';
+            final debugInfo = await _fetchStorageObj<DebugInfo>(
+              debugInfoKey,
+              storageArea: 'session',
+              worker: worker,
+            );
+            expect(debugInfo.isInternalBuild, equals(false));
+            expect(debugInfo.isFlutterApp, equals(isFlutterApp));
+            await appTab.close();
+          });
+
+          test('no additional panels are added in Chrome DevTools', () async {
+            // TODO(elliette): Requires either of the following to be resolved:
+            // - https://github.com/puppeteer/puppeteer/issues/9371
+            // - https://github.com/xvrh/puppeteer-dart/issues/201
+          }, skip: true);
+        });
+      }
+    });
+
+    group('connected to an internally-built', () {
+      for (var isFlutterApp in [true, false]) {
+        group(isFlutterApp ? 'Flutter app:' : 'Dart app:', () {
+          late Browser browser;
+          late Worker worker;
+
+          setUpAll(() async {
+            browser = await setUpExtensionTest(
+              context,
+              extensionPath: extensionPath,
+              serveDevTools: true,
+              isInternalBuild: true,
+              isFlutterApp: isFlutterApp,
+            );
+            worker = await getServiceWorker(browser);
+          });
+
+          tearDown(() async {
+            await workerEvalDelay();
+            await worker.evaluate(_clearStorageJs());
+          });
+
+          tearDownAll(() async {
+            await browser.close();
+          });
+          test(
+              'isFlutterApp=$isFlutterApp and isInternalBuild=true are saved in storage',
+              () async {
+            final appUrl = context.appUrl;
+            // Navigate to the Dart app:
+            final appTab =
+                await navigateToPage(browser, url: appUrl, isNew: true);
+            // Verify that we have debug info for the Dart app:
+            await workerEvalDelay();
+            final appTabId = await _getTabId(appUrl, worker: worker);
+            final debugInfoKey = '$appTabId-debugInfo';
+            final debugInfo = await _fetchStorageObj<DebugInfo>(
+              debugInfoKey,
+              storageArea: 'session',
+              worker: worker,
+            );
+            expect(debugInfo.isInternalBuild, equals(true));
+            expect(debugInfo.isFlutterApp, equals(isFlutterApp));
+            await appTab.close();
+          });
+
+          test('the Dart Debugger panel is added to Chrome DevTools', () async {
+            // TODO(elliette): Requires either of the following to be resolved:
+            // - https://github.com/puppeteer/puppeteer/issues/9371
+            // - https://github.com/xvrh/puppeteer-dart/issues/201
+          }, skip: true);
+
+          if (isFlutterApp) {
+            test('the Flutter Inspector panel is added to Chrome DevTools',
+                () async {
+              // TODO(elliette): Requires either of the following to be resolved:
+              // - https://github.com/puppeteer/puppeteer/issues/9371
+              // - https://github.com/xvrh/puppeteer-dart/issues/201
+            }, skip: true);
+          }
+        });
+      }
+    });
   });
 }
 

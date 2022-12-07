@@ -80,6 +80,8 @@ class TestServer {
     ExpressionCompiler? expressionCompiler,
     bool spawnDds,
     ExpressionCompilerService? ddcService,
+    bool isFlutterApp,
+    bool isInternalBuild,
   ) async {
     var pipeline = const Pipeline();
 
@@ -113,6 +115,8 @@ class TestServer {
         hostname: hostname,
         urlEncoder: urlEncoder,
         expressionCompiler: expressionCompiler,
+        isInternalBuild: isInternalBuild,
+        isFlutterApp: isFlutterApp,
         devtoolsLauncher: serveDevTools
             ? (hostname) async {
                 final server = await DevToolsServer().serveDevTools(

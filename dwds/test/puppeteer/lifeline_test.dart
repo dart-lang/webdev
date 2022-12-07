@@ -24,23 +24,12 @@ void main() async {
   group('MV3 Debug Extension Lifeline Connection', () {
     setUpAll(() async {
       extensionPath = await buildDebugExtension();
-      await context.setUp(
-        launchChrome: false,
-        enableDebugExtension: true,
+      browser = await setUpExtensionTest(
+        context,
+        extensionPath: extensionPath,
+        serveDevTools: true,
       );
-      browser = await puppeteer.launch(
-        headless: false,
-        timeout: Duration(seconds: 60),
-        args: [
-          '--load-extension=$extensionPath',
-          '--disable-extensions-except=$extensionPath',
-          '--disable-features=DialMediaRouteProvider',
-        ],
-      );
-
-      final serviceWorkerTarget = await browser
-          .waitForTarget((target) => target.type == 'service_worker');
-      worker = (await serviceWorkerTarget.worker)!;
+      worker = await getServiceWorker(browser);
     });
 
     tearDownAll(() async {
