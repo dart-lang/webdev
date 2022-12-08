@@ -6,7 +6,7 @@ description: >-
 repository: https://github.com/dart-lang/webdev/tree/master/frontend_server_client
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.12.0 <4.0.0"
 
 dependencies:
   async: ^2.5.0
