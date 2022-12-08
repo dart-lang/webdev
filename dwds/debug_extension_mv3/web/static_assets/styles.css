@@ -50,8 +50,8 @@
 .debugger-card > .mdl-card__title {
   background-position: center;
   background-repeat: no-repeat;
-  background: url("devtools_settings.png");
-  height: 150px;
+  background: url("debugger_settings.png");
+  height: 200px;
 }
 
 .inspector-card > .mdl-card__title {
@@ -79,15 +79,15 @@ h6 {
   z-index: 1;
 }
 
-.snackbar.snackbar--info {
+.snackbar--info {
   background-color: #303030;
 }
 
-.snackbar.snackbar--warning {
+.snackbar--warning {
   background-color: #b00020;
 }
 
-.snackbar.snackbar--show {
+.show {
   -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
   animation: fadein 0.5s, fadeout 0.5s 2.5s;
   visibility: visible;

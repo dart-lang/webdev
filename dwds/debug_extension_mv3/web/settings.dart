@@ -47,16 +47,16 @@ void _saveSettingsToStorage(Event event) async {
 void _showSavedMsg() {
   final snackbar = document.getElementById('savedSnackbar');
   if (snackbar == null) return;
-  snackbar.classes.add('snackbar--show');
+  snackbar.classes.add('show');
   Timer(Duration(seconds: 3), () {
-    snackbar.classes.remove('snackbar--show');
+    _maybeHideSavedMsg();
   });
 }
 
 void _maybeHideSavedMsg() {
   final snackbar = document.getElementById('savedSnackbar');
   if (snackbar == null) return;
-  snackbar.classes.remove('snackbar--show');
+  snackbar.classes.remove('show');
 }
 
 RadioButtonInputElement _getRadioButton(String id) {

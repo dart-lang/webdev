@@ -19,9 +19,9 @@ builders:
     build_extensions:
       {
         "web/{{}}.dart.js": ["compiled/{{}}.dart.js"],
-        "web/{{}}.png": ["compiled/{{}}.png"],
-        "web/{{}}.html": ["compiled/{{}}.html"],
-        "web/{{}}.css": ["compiled/{{}}.css"],
+        "web/static_assets/{{}}.png": ["compiled/static_assets/{{}}.png"],
+        "web/static_assets/{{}}.html": ["compiled/static_assets/{{}}.html"],
+        "web/static_assets/{{}}.css": ["compiled/static_assets/{{}}.css"],
         "web/manifest.json": ["compiled/manifest.json"],
       }
     auto_apply: none
