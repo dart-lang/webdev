@@ -13,6 +13,7 @@ class _CopyBuilder extends Builder {
         "web/{{}}.dart.js": ["compiled/{{}}.dart.js"],
         "web/{{}}.png": ["compiled/{{}}.png"],
         "web/{{}}.html": ["compiled/{{}}.html"],
+        "web/{{}}.css": ["compiled/{{}}.css"],
         "web/manifest.json": ["compiled/manifest.json"],
       };
 

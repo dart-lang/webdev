@@ -33,6 +33,7 @@ void _updateSettingsFromStorage(Event _) async {
 
 void _saveSettingsToStorage(Event event) async {
   event.preventDefault();
+  _maybeHideSavedMsg();
   final form = document.querySelector("form") as FormElement;
   final data = FormData(form);
   final devToolsOpenerValue = data.get('devToolsOpener') as String;
@@ -44,14 +45,18 @@ void _saveSettingsToStorage(Event event) async {
 }
 
 void _showSavedMsg() {
-  final msgContainer = document.getElementById('savedMsgEmpty');
-  if (msgContainer == null) return;
-  msgContainer.id = 'savedMsg';
-  msgContainer.innerHtml = 'Saved!';
+  final snackbar = document.getElementById('savedSnackbar');
+  if (snackbar == null) return;
+  snackbar.classes.add('snackbar--show');
   Timer(Duration(seconds: 3), () {
-    msgContainer.id = 'savedMsgEmpty';
-    msgContainer.innerHtml = '';
+    snackbar.classes.remove('snackbar--show');
   });
+}
+
+void _maybeHideSavedMsg() {
+  final snackbar = document.getElementById('savedSnackbar');
+  if (snackbar == null) return;
+  snackbar.classes.remove('snackbar--show');
 }
 
 RadioButtonInputElement _getRadioButton(String id) {
