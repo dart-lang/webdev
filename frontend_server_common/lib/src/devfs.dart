@@ -90,8 +90,7 @@ class WebDevFS {
     final sdkVersion = Version.parse(Platform.version.split(' ')[0]);
     var sdk =
         (soundNullSafety && sdkVersion.major < 3) ? dartSdkSound : dartSdk;
-    var sdkSourceMap =
-        (soundNullSafety && sdkVersion.major < 3)
+    var sdkSourceMap = (soundNullSafety && sdkVersion.major < 3)
         ? dartSdkSourcemapSound
         : dartSdkSourcemap;
     assetServer.writeFile('dart_sdk.js', sdk.readAsStringSync());
