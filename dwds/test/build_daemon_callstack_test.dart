@@ -14,6 +14,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
+import 'utils/version_compatibility.dart';
 
 class TestSetup {
   static final contextUnsound = TestContext(
@@ -48,7 +49,7 @@ void main() {
     // Enable verbose logging for debugging.
     final debug = false;
 
-    for (var nullSafety in NullSafety.values) {
+    for (var nullSafety in supportedNullSafetyModes()) {
       final soundNullSafety = nullSafety == NullSafety.sound;
       final setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
       final context = setup.context;

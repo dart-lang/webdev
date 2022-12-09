@@ -8,12 +8,13 @@ import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
 import 'evaluate_common.dart';
+import 'utils/version_compatibility.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  for (var nullSafety in NullSafety.values) {
+  for (var nullSafety in supportedNullSafetyModes()) {
     group('${nullSafety.name} null safety |', () {
       testAll(
         compilationMode: CompilationMode.buildDaemon,

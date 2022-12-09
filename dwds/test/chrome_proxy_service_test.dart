@@ -20,6 +20,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
+import 'utils/version_compatibility.dart';
 
 final context = TestContext();
 
@@ -126,7 +127,7 @@ void main() {
 
       test('addBreakpointWithScriptUri absolute file URI', () async {
         final current = context.workingDirectory;
-        final test = path.join(path.dirname(current), '_test');
+        final test = path.join(path.dirname(current), '_testSound');
         final scriptPath = Uri.parse(mainScript.uri!).path.substring(1);
         final fullPath = path.join(test, scriptPath);
         final fileUri = Uri.file(fullPath);
@@ -471,7 +472,7 @@ void main() {
               isolate.id!, rootLibrary!.classes!.first.id!) as Class;
           expect(
               testClass.functions,
-              unorderedEquals([
+              containsAll([
                 predicate(
                     (FuncRef f) => f.name == 'staticHello' && f.isStatic!),
                 predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
@@ -610,15 +611,6 @@ void main() {
         expect(obj.kind, InstanceKind.kDouble);
         expect(obj.classRef!.name, 'Double');
         expect(obj.valueAsString, '42');
-      });
-
-      test('null', () async {
-        final ref = await service.evaluate(
-            isolate.id!, bootstrap!.id!, 'helloNum(null)') as InstanceRef;
-        final obj = await service.getObject(isolate.id!, ref.id!) as Instance;
-        expect(obj.kind, InstanceKind.kNull);
-        expect(obj.classRef!.name, 'Null');
-        expect(obj.valueAsString, 'null');
       });
 
       test('Scripts', () async {
@@ -860,8 +852,8 @@ void main() {
 
       // Containts part files as well.
       expect(scriptUris, contains(endsWith('part.dart')));
-      expect(scriptUris,
-          contains('package:intl/src/intl/date_format_helpers.dart'));
+      expect(
+          scriptUris, contains('package:intl/src/date_format_internal.dart'));
     });
 
     group('getSourceReport', () {
@@ -1368,7 +1360,7 @@ void main() {
       expect(
           resolvedUris.uris,
           containsAll([
-            contains('/_test/example/hello_world/main.dart'),
+            contains('/_testSound/example/hello_world/main.dart'),
             contains('/lib/path.dart'),
             contains('/lib/src/path_set.dart'),
           ]));
