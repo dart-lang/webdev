@@ -634,7 +634,6 @@ void testAll({
       setCurrentLogWriter(debug: debug);
       await context.setUp(
         compilationMode: compilationMode,
-        nullSafety: nullSafety,
         enableExpressionEvaluation: false,
         verboseCompiler: debug,
       );
