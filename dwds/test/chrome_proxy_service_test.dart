@@ -20,7 +20,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
-import 'utils/version_compatibility.dart';
 
 final context = TestContext();
 
