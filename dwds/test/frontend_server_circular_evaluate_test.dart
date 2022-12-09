@@ -20,9 +20,13 @@ void main() async {
   final debuggerModuleNamesSupported =
       Version.parse(Platform.version.split(' ').first) >=
           Version.parse('2.19.0-150.0.dev');
+  final sdkVersion = Version.parse(Platform.version.split(' ')[0]);
+  final nullSafetyValues = (sdkVersion.major >= 3)
+      ? [NullSafety.sound]
+      : [NullSafety.sound, NullSafety.weak];
 
   group('Context with circular dependencies |', () {
-    for (var nullSafety in NullSafety.values) {
+    for (var nullSafety in nullSafetyValues) {
       group('${nullSafety.name} null safety |', () {
         for (var indexBaseMode in IndexBaseMode.values) {
           group(
