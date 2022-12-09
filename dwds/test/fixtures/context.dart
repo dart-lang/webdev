@@ -117,10 +117,10 @@ class TestContext {
       String? entry,
       this.path = 'hello_world/index.html',
       this.pathToServe = 'example'}) {
-    final relativeDirectory = p.join('..', 'fixtures', '_test');
+    final relativeDirectory = p.join('..', 'fixtures', '_testSound');
 
     final relativeEntry = p.join(
-        '..', 'fixtures', '_test', 'example', 'append_body', 'main.dart');
+        '..', 'fixtures', '_testSound', 'example', 'append_body', 'main.dart');
 
     workingDirectory = p.normalize(p
         .absolute(directory ?? p.relative(relativeDirectory, from: p.current)));
