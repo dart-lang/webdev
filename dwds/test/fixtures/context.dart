@@ -156,7 +156,7 @@ class TestContext {
     bool waitToDebug = false,
     UrlEncoder? urlEncoder,
     CompilationMode compilationMode = CompilationMode.buildDaemon,
-    NullSafety nullSafety = NullSafety.weak,
+    NullSafety nullSafety = NullSafety.sound,
     bool enableExpressionEvaluation = false,
     bool verboseCompiler = false,
     SdkConfigurationProvider? sdkConfigurationProvider,

@@ -12,15 +12,15 @@ import 'package:test/test.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext(
-    directory: p.join('..', 'fixtures', '_testPackage'),
-    entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
+    directory: p.join('..', 'fixtures', '_testPackageSound'),
+    entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
     path: 'index.html',
     pathToServe: 'web');
 
 final dwdsDir = Directory.current.absolute.path;
 
 /// The directory for the general _test package.
-final testDir = p.join(p.dirname(dwdsDir), 'fixtures', '_test');
+final testDir = p.join(p.dirname(dwdsDir), 'fixtures', '_testSound');
 
 /// The directory for the _testPackage package (contained within dwds), which
 /// imports _test.
@@ -43,14 +43,14 @@ void main() {
           final serverPath =
               compilationMode == CompilationMode.frontendServer &&
                       useDebuggerModuleNames
-                  ? 'packages/_testPackage/lib/test_library.dart'
-                  : 'packages/_test_package/test_library.dart';
+                  ? 'packages/_testPackageSound/lib/test_library.dart'
+                  : 'packages/_test_package_sound/test_library.dart';
 
           final anotherServerPath =
               compilationMode == CompilationMode.frontendServer &&
                       useDebuggerModuleNames
-                  ? 'packages/_test/lib/library.dart'
-                  : 'packages/_test/library.dart';
+                  ? 'packages/_testSound/lib/library.dart'
+                  : 'packages/_test_sound/library.dart';
 
           setUpAll(() async {
             await context.setUp(
