@@ -23,7 +23,7 @@ void main() {
         reason:
             'Min sdk constraint is outdated. Please update SDK constraint in '
             'pubspec to allow latest stable and backwards compatible versions.'
-            '\n  Current stable: $sdkVersion,'
+            '\n  Expected version constraint: $sdkConstraint,'
             '\n  Dwds pubspec constraint: $pubspecSdkConstraint');
   });
 }
