@@ -17,16 +17,20 @@ import 'fixtures/logging.dart';
 
 class TestSetup {
   static final contextUnsound = TestContext(
-      directory: p.join('..', 'fixtures', '_testPackage'),
-      entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
-      path: 'index.html',
-      pathToServe: 'web');
+    directory: p.join('..', 'fixtures', '_testPackage'),
+    entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
+    path: 'index.html',
+    pathToServe: 'web',
+    nullSafety: NullSafety.weak,
+  );
 
   static final contextSound = TestContext(
-      directory: p.join('..', 'fixtures', '_testPackageSound'),
-      entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
-      path: 'index.html',
-      pathToServe: 'web');
+    directory: p.join('..', 'fixtures', '_testPackageSound'),
+    entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
+    path: 'index.html',
+    pathToServe: 'web',
+    nullSafety: NullSafety.sound,
+  );
 
   TestContext context;
 
@@ -54,7 +58,6 @@ void main() {
           setCurrentLogWriter(debug: debug);
           await context.setUp(
               compilationMode: CompilationMode.frontendServer,
-              nullSafety: nullSafety,
               enableExpressionEvaluation: true,
               verboseCompiler: debug);
         });

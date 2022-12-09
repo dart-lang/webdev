@@ -20,13 +20,17 @@ class TestSetup {
       directory: p.join('..', 'fixtures', '_testPackage'),
       entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
       path: 'index.html',
-      pathToServe: 'web');
+    pathToServe: 'web',
+    nullSafety: NullSafety.weak,
+  );
 
   static final contextSound = TestContext(
       directory: p.join('..', 'fixtures', '_testPackageSound'),
       entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
       path: 'index.html',
-      pathToServe: 'web');
+    pathToServe: 'web',
+    nullSafety: NullSafety.sound,
+  );
 
   TestContext context;
 
@@ -54,7 +58,6 @@ void main() {
           setCurrentLogWriter(debug: debug);
           await context.setUp(
             compilationMode: CompilationMode.buildDaemon,
-            nullSafety: nullSafety,
             enableExpressionEvaluation: true,
             verboseCompiler: debug,
           );
