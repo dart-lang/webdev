@@ -44,7 +44,7 @@
 
 .dart-card.mdl-card {
   min-height: 150px;
-  width: 500px;
+  width: 505px;
 }
 
 .debugger-card > .mdl-card__title {
@@ -58,7 +58,7 @@
   background-position: center;
   background-repeat: no-repeat;
   background: url("inspect_widget.png");
-  height: 250px;
+  height: 300px;
 }
 
 h6 {
