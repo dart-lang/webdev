@@ -16,8 +16,8 @@ import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
 
 final context = TestContext(
-    directory: p.join('..', 'fixtures', '_testPackage'),
-    entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
+    directory: p.join('..', 'fixtures', '_testPackageSound'),
+    entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
     path: 'index.html',
     pathToServe: 'web');
 
