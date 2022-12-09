@@ -65,7 +65,7 @@ name: sample
   });
 
   var invalidRanges = <String, List<String>>{
-    'build_runner': ['0.8.9', '4.0.0'],
+    'build_runner': ['0.8.9', '3.0.0'],
     'build_web_compilers': ['0.3.5', '4.0.0'],
     'build_daemon': ['0.3.0', '4.0.0'],
   };
@@ -158,7 +158,7 @@ name: sample
               switch (entry.key) {
                 case 'build_runner':
                   buildRunnerVersion = version;
-                  supportedRange = '>=$_supportedBuildRunnerVersion <4.0.0';
+                  supportedRange = '>=$_supportedBuildRunnerVersion <3.0.0';
                   break;
                 case 'build_web_compilers':
                   webCompilersVersion = version;
