@@ -16,7 +16,7 @@ void main() {
     var sdkVersion = Version.parse(Platform.version.split(' ')[0]);
     sdkVersion = Version(sdkVersion.major, sdkVersion.minor, 0);
 
-    final sdkConstraint = VersionConstraint.compatibleWith(sdkVersion);
+    final sdkConstraint = VersionConstraint.parse('>=$sdkVersion <4.0.0');
     final pubspecSdkConstraint = pubspec.environment?['sdk'];
     expect(pubspecSdkConstraint, isNotNull);
     expect(sdkConstraint.allowsAll(pubspecSdkConstraint!), true,
