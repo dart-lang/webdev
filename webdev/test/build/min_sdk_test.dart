@@ -16,13 +16,13 @@ void main() {
     var sdkVersion = Version.parse(Platform.version.split(' ')[0]);
     sdkVersion = Version(sdkVersion.major, sdkVersion.minor, 0);
 
-    var sdkConstraint = VersionConstraint.compatibleWith(sdkVersion);
+    var sdkConstraint = VersionConstraint.parse('>=$sdkVersion <4.0.0');
     var pubspecSdkConstraint = pubspec.environment!['sdk']!;
     expect(sdkConstraint.allowsAll(pubspecSdkConstraint), true,
         reason:
             'Min sdk constraint is outdated. Please update SDK constraint in '
             'pubspec to allow latest stable and backwards compatible versions.'
-            '\n  Current stable: $sdkVersion, '
+            '\n  Expected version constraint: $sdkConstraint,'
             '\n  Webdev pubspec constraint: $pubspecSdkConstraint');
   });
 }
