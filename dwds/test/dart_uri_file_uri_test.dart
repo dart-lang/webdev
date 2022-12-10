@@ -33,7 +33,7 @@ final testPackageDir = context.workingDirectory;
 // These tests are separated out because we need a running isolate in order to
 // look up packages.
 void main() {
-  for (final nullSafetyMode in supportedNullSafetyModes()) {
+  for (final nullSafetyMode in supportedNullSafetyModes) {
     for (final compilationMode in supportedCompilationModes(nullSafetyMode)) {
       group('$compilationMode |', () {
         for (final useDebuggerModuleNames in [false, true]) {

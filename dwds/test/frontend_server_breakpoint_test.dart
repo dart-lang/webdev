@@ -41,7 +41,7 @@ void main() {
 
   // TODO(https://github.com/dart-lang/webdev/issues/1591): Frontend server
   // compilation is currently incompatible with sound null safety.
-  if (supportedNullSafetyModes().contains(NullSafety.weak)) {
+  if (supportedNullSafetyModes.contains(NullSafety.weak)) {
     group('shared context', () {
       setUpAll(() async {
         setCurrentLogWriter(debug: debug);

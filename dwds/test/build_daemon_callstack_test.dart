@@ -49,7 +49,7 @@ void main() {
     // Enable verbose logging for debugging.
     final debug = false;
 
-    for (var nullSafety in supportedNullSafetyModes()) {
+    for (var nullSafety in supportedNullSafetyModes) {
       final soundNullSafety = nullSafety == NullSafety.sound;
       final setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
       final context = setup.context;

@@ -8,12 +8,12 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../fixtures/context.dart';
 
-List<NullSafety> supportedNullSafetyModes() {
-  final sdkVersion = Version.parse(Platform.version.split(' ')[0]);
-  return (sdkVersion.major >= 3)
-      ? [NullSafety.sound]
-      : [NullSafety.sound, NullSafety.weak];
-}
+bool get versionSupportsWeakNullSafety =>
+    Version.parse(Platform.version.split(' ')[0]).major < 3;
+
+List<NullSafety> get supportedNullSafetyModes => versionSupportsWeakNullSafety
+    ? [NullSafety.sound]
+    : [NullSafety.sound, NullSafety.weak];
 
 // TODO(https://github.com/dart-lang/webdev/issues/1591): Frontend server
 // compilation is currently incompatible with sound null safety.

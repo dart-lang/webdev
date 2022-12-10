@@ -15,7 +15,7 @@ void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  for (var nullSafety in supportedNullSafetyModes()) {
+  for (var nullSafety in supportedNullSafetyModes) {
     group('${nullSafety.name} null safety |', () {
       testAll(
         compilationMode: CompilationMode.buildDaemon,

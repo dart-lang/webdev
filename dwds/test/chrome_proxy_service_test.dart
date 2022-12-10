@@ -20,6 +20,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
+import 'utils/version_compatibility.dart';
 
 final context = TestContext();
 
@@ -464,56 +465,47 @@ void main() {
         expect(library1, equals(library2));
       });
 
-      test(
-        'Classes',
-        () async {
-          final testClass = await service.getObject(
-              isolate.id!, rootLibrary!.classes!.first.id!) as Class;
-          expect(
-              testClass.functions,
-              containsAll([
-                predicate(
-                    (FuncRef f) => f.name == 'staticHello' && f.isStatic!),
-                predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
-                predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
-                predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-                predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
-                predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-                predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
-                predicate(
-                    (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!),
-                predicate(
-                    (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
-              ]));
-          expect(
-              testClass.fields,
-              unorderedEquals([
-                predicate((FieldRef f) =>
-                    f.name == 'message' &&
-                    f.declaredType != null &&
-                    !f.isStatic! &&
-                    !f.isConst! &&
-                    f.isFinal!),
-                predicate((FieldRef f) =>
-                    f.name == 'notFinal' &&
-                    f.declaredType != null &&
-                    !f.isStatic! &&
-                    !f.isConst! &&
-                    !f.isFinal!),
-                predicate((FieldRef f) =>
-                    f.name == 'staticMessage' &&
-                    f.declaredType != null &&
-                    f.isStatic! &&
-                    !f.isConst! &&
-                    !f.isFinal!),
-              ]));
-        },
-        // TODO(elliette): Remove once 2.15.0 is the stable release.
-        skip: semver.Version.parse(Platform.version.split(' ').first) >=
-                semver.Version.parse('2.15.0-268.18.beta')
-            ? null
-            : 'SDK does not expose static member information.',
-      );
+      test('Classes', () async {
+        final testClass = await service.getObject(
+            isolate.id!, rootLibrary!.classes!.first.id!) as Class;
+        expect(
+            testClass.functions,
+            unorderedEquals([
+              predicate((FuncRef f) => f.name == 'staticHello' && f.isStatic!),
+              predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
+              predicate(
+                  (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!),
+              predicate((FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
+            ]));
+        expect(
+            testClass.fields,
+            unorderedEquals([
+              predicate((FieldRef f) =>
+                  f.name == 'message' &&
+                  f.declaredType != null &&
+                  !f.isStatic! &&
+                  !f.isConst! &&
+                  f.isFinal!),
+              predicate((FieldRef f) =>
+                  f.name == 'notFinal' &&
+                  f.declaredType != null &&
+                  !f.isStatic! &&
+                  !f.isConst! &&
+                  !f.isFinal!),
+              predicate((FieldRef f) =>
+                  f.name == 'staticMessage' &&
+                  f.declaredType != null &&
+                  f.isStatic! &&
+                  !f.isConst! &&
+                  !f.isFinal!),
+            ]));
+        // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
+      }, skip: !versionSupportsWeakNullSafety);
 
       test('Runtime classes', () async {
         final testClass = await service.getObject(
@@ -731,63 +723,53 @@ void main() {
           expect(world.offset, 3);
         });
 
-        test(
-          'offset/count parameters are ignored for Classes',
-          () async {
-            final testClass = await service.getObject(
-              isolate.id!,
-              rootLibrary!.classes!.first.id!,
-              offset: 100,
-              count: 100,
-            ) as Class;
-            expect(
-                testClass.functions,
-                unorderedEquals([
-                  predicate(
-                      (FuncRef f) => f.name == 'staticHello' && f.isStatic!),
-                  predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
-                  predicate(
-                      (FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
-                  predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
-                  predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
-                  predicate(
-                      (FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
-                  predicate(
-                      (FuncRef f) => f.name == 'toString' && !f.isStatic!),
-                  predicate(
-                      (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!),
-                  predicate(
-                      (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
-                ]));
-            expect(
-                testClass.fields,
-                unorderedEquals([
-                  predicate((FieldRef f) =>
-                      f.name == 'message' &&
-                      f.declaredType != null &&
-                      !f.isStatic! &&
-                      !f.isConst! &&
-                      f.isFinal!),
-                  predicate((FieldRef f) =>
-                      f.name == 'notFinal' &&
-                      f.declaredType != null &&
-                      !f.isStatic! &&
-                      !f.isConst! &&
-                      !f.isFinal!),
-                  predicate((FieldRef f) =>
-                      f.name == 'staticMessage' &&
-                      f.declaredType != null &&
-                      f.isStatic! &&
-                      !f.isConst! &&
-                      !f.isFinal!),
-                ]));
-          },
-          // TODO(elliette): Remove once 2.15.0 is the stable release.
-          skip: semver.Version.parse(Platform.version.split(' ').first) >=
-                  semver.Version.parse('2.15.0-268.18.beta')
-              ? null
-              : 'SDK does not expose static member information.',
-        );
+        test('offset/count parameters are ignored for Classes', () async {
+          final testClass = await service.getObject(
+            isolate.id!,
+            rootLibrary!.classes!.first.id!,
+            offset: 100,
+            count: 100,
+          ) as Class;
+          expect(
+              testClass.functions,
+              unorderedEquals([
+                predicate(
+                    (FuncRef f) => f.name == 'staticHello' && f.isStatic!),
+                predicate((FuncRef f) => f.name == 'message' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == 'notFinal' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == 'hello' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == '_equals' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == 'hashCode' && !f.isStatic!),
+                predicate((FuncRef f) => f.name == 'toString' && !f.isStatic!),
+                predicate(
+                    (FuncRef f) => f.name == 'noSuchMethod' && !f.isStatic!),
+                predicate(
+                    (FuncRef f) => f.name == 'runtimeType' && !f.isStatic!),
+              ]));
+          expect(
+              testClass.fields,
+              unorderedEquals([
+                predicate((FieldRef f) =>
+                    f.name == 'message' &&
+                    f.declaredType != null &&
+                    !f.isStatic! &&
+                    !f.isConst! &&
+                    f.isFinal!),
+                predicate((FieldRef f) =>
+                    f.name == 'notFinal' &&
+                    f.declaredType != null &&
+                    !f.isStatic! &&
+                    !f.isConst! &&
+                    !f.isFinal!),
+                predicate((FieldRef f) =>
+                    f.name == 'staticMessage' &&
+                    f.declaredType != null &&
+                    f.isStatic! &&
+                    !f.isConst! &&
+                    !f.isFinal!),
+              ]));
+          // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
+        }, skip: !versionSupportsWeakNullSafety);
 
         test('offset/count parameters are ignored for bools', () async {
           final ref = await service.evaluate(
@@ -829,7 +811,7 @@ void main() {
           expect(obj.kind, InstanceKind.kNull);
           expect(obj.classRef!.name, 'Null');
           expect(obj.valueAsString, 'null');
-        });
+        }, skip: !versionSupportsWeakNullSafety);
       });
     });
 
