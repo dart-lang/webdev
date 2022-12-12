@@ -210,7 +210,7 @@ void main() {
       expect(source, contains('Hello World!'));
       // TODO(https://github.com/dart-lang/webdev/issues/1818): Re-enable. The
       // callback passed to registerExtension requires a non-null return type.
-    }, skip: !versionSupportsWeakNullSafety);
+    }, skip: 'https://github.com/dart-lang/webdev/issues/1818');
 
     test('can refresh the page via the fullReload service extension', () async {
       final client = context.debugConnection.vmService;

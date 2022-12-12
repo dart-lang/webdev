@@ -17,8 +17,8 @@ import 'fixtures/logging.dart';
 import 'utils/version_compatibility.dart';
 
 final context = TestContext(
-  directory: p.join('..', 'fixtures', '_testSound'),
-  entry: p.join('..', 'fixtures', '_testSound', 'web', 'main.dart'),
+  directory: p.join('..', 'fixtures', '_testPackage'),
+  entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
   path: 'index.html',
   pathToServe: 'web',
   nullSafety: NullSafety.weak,
