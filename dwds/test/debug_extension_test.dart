@@ -99,9 +99,9 @@ void main() async {
               scripts.values.map((s) => s.url),
               containsAllInOrder([
                 contains('stack_trace_mapper.dart.js'),
-                contains('hello_world/main.unsound.ddc.js'),
-                contains('packages/path/path.unsound.ddc.js'),
-                contains('dev_compiler/dart_sdk.js'),
+                contains('hello_world/main.sound.ddc.js'),
+                contains('packages/path/path.sound.ddc.js'),
+                contains('dev_compiler/dart_sdk.sound.js'),
                 contains('dwds/src/injected/client.js'),
               ]));
         });
