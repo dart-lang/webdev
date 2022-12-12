@@ -504,7 +504,7 @@ void main() {
                   !f.isFinal!),
             ]));
         // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
-      }, skip: !versionSupportsWeakNullSafety);
+      }, skip: true);
 
       test('Runtime classes', () async {
         final testClass = await service.getObject(
@@ -768,7 +768,7 @@ void main() {
                     !f.isFinal!),
               ]));
           // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
-        }, skip: !versionSupportsWeakNullSafety);
+        }, skip: true);
 
         test('offset/count parameters are ignored for bools', () async {
           final ref = await service.evaluate(
@@ -810,7 +810,7 @@ void main() {
           expect(obj.kind, InstanceKind.kNull);
           expect(obj.classRef!.name, 'Null');
           expect(obj.valueAsString, 'null');
-        }, skip: !versionSupportsWeakNullSafety);
+        }, skip: true);
       });
     });
 

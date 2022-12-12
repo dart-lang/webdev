@@ -9,7 +9,7 @@ import '../fixtures/context.dart';
 import '../utils/version_compatibility.dart';
 
 void main() {
-  final context = TestContext();
+  final context = TestContext(nullSafety: NullSafety.weak);
   late ProxyServerAssetReader assetReader;
   setUpAll(() async {
     await context.setUp();

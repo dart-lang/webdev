@@ -10,6 +10,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
+import 'utils/version_compatibility.dart';
 
 final context = TestContext(
   path: 'append_body/index.html',
@@ -207,7 +208,9 @@ void main() {
       final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
       expect(source, contains('Hello World!'));
-    });
+      // TODO(https://github.com/dart-lang/webdev/issues/1818): Re-enable. The
+      // callback passed to registerExtension requires a non-null return type.
+    }, skip: !versionSupportsWeakNullSafety);
 
     test('can refresh the page via the fullReload service extension', () async {
       final client = context.debugConnection.vmService;
