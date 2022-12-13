@@ -24,7 +24,7 @@ void main() async {
 
   for (var useDebuggerModuleNames in [false, true]) {
     group('Debugger module names: $useDebuggerModuleNames |', () {
-      for (var nullSafety in supportedNullSafetyModes) {
+      for (var nullSafety in NullSafety.values) {
         group('${nullSafety.name} null safety |', () {
           for (var indexBaseMode in IndexBaseMode.values) {
             group(
@@ -44,7 +44,13 @@ void main() async {
                       // https://github.com/dart-lang/webdev/issues/1591
                       (nullSafety == NullSafety.sound) ||
                       // Needs debugger module names feature in SDK.
-                      (useDebuggerModuleNames && !debuggerModuleNamesSupported),
+                      (useDebuggerModuleNames &&
+                          !debuggerModuleNamesSupported) ||
+                      // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
+                      !supportedMode(
+                        compilationMode: CompilationMode.frontendServer,
+                        nullSafetyMode: nullSafety,
+                      ),
             );
           }
         });
