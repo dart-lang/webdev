@@ -23,28 +23,30 @@ void main() async {
           Version.parse('2.19.0-150.0.dev');
 
   group('Context with circular dependencies |', () {
-    for (var nullSafety in supportedNullSafetyModes) {
+    for (var nullSafety in NullSafety.values) {
       group('${nullSafety.name} null safety |', () {
         for (var indexBaseMode in IndexBaseMode.values) {
-          group(
-            'with ${indexBaseMode.name} |',
-            () {
-              testAll(
-                compilationMode: CompilationMode.frontendServer,
-                indexBaseMode: indexBaseMode,
-                nullSafety: nullSafety,
-                useDebuggerModuleNames: true,
-                debug: debug,
-              );
-            },
-            skip:
-                // https://github.com/dart-lang/sdk/issues/49277
-                indexBaseMode == IndexBaseMode.base && Platform.isWindows ||
-                    // https://github.com/dart-lang/webdev/issues/1591);
-                    nullSafety == NullSafety.sound ||
-                    // Needs debugger module names change in the SDK to work.
-                    !debuggerModuleNamesSupported,
-          );
+          group('with ${indexBaseMode.name} |', () {
+            testAll(
+              compilationMode: CompilationMode.frontendServer,
+              indexBaseMode: indexBaseMode,
+              nullSafety: nullSafety,
+              useDebuggerModuleNames: true,
+              debug: debug,
+            );
+          },
+              skip:
+                  // https://github.com/dart-lang/sdk/issues/49277
+                  indexBaseMode == IndexBaseMode.base && Platform.isWindows ||
+                      // https://github.com/dart-lang/webdev/issues/1591);
+                      nullSafety == NullSafety.sound ||
+                      // Needs debugger module names change in the SDK to work.
+                      !debuggerModuleNamesSupported ||
+                      // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
+                      !supportedMode(
+                        compilationMode: CompilationMode.frontendServer,
+                        nullSafetyMode: nullSafety,
+                      ));
         }
       });
     }
