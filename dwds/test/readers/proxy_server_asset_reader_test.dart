@@ -38,6 +38,9 @@ void main() {
           .dartSourceContents('hello_world/foo.unsound.ddc.js.map');
       expect(result, isNull);
     });
-    // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
-  }, skip: !versionSupportsWeakNullSafety);
+  },
+      // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
+      skip: !supportedMode(
+          compilationMode: CompilationMode.frontendServer,
+          nullSafetyMode: NullSafety.weak));
 }
