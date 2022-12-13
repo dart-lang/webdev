@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-@Skip('Migrate to null-safety: https://github.com/dart-lang/webdev/issues/1818')
 import 'dart:async';
 import 'dart:io';
 
@@ -28,7 +26,7 @@ final context = TestContext();
 
 void main() {
   group('serve requests', () {
-    HttpServer server;
+    late HttpServer server;
 
     setUp(() async {
       setCurrentLogWriter();
@@ -57,7 +55,7 @@ void main() {
       // Start serving requests with a failing handler in an error zone.
       serveHttpRequests(server, (request) async {
         unawaited(throwAsyncException());
-        return null;
+        return Future.error('error');
       }, (e, s) {
         emitEvent(DwdsEvent.httpRequestException('FakeServer', '$e:$s'));
       });
@@ -77,15 +75,15 @@ void main() {
   });
 
   group('with dwds', () {
-    Future initialEvents;
-    VmService vmService;
-    Keyboard keyboard;
-    Stream<DwdsEvent> events;
+    Future? initialEvents;
+    late VmService vmService;
+    late Keyboard keyboard;
+    late Stream<DwdsEvent> events;
 
     /// Runs [action] and waits for an event matching [eventMatcher].
     Future<T> expectEventDuring<T>(
         Matcher eventMatcher, Future<T> Function() action,
-        {Timeout timeout}) async {
+        {Timeout? timeout}) async {
       // The events stream is a broadcast stream so start listening
       // before the action.
       final events = expectLater(
@@ -99,7 +97,7 @@ void main() {
     /// Runs [action] and waits for an event matching [eventMatcher].
     Future<T> expectEventsDuring<T>(
         List<Matcher> eventMatchers, Future<T> Function() action,
-        {Timeout timeout}) async {
+        {Timeout? timeout}) async {
       // The events stream is a broadcast stream so start listening
       // before the action.
       final events = eventMatchers.map((matcher) => expectLater(
@@ -170,14 +168,15 @@ void main() {
     });
 
     group('evaluate', () {
-      Isolate isolate;
-      LibraryRef bootstrap;
+      late String isolateId;
+      late String bootstrapId;
 
       setUpAll(() async {
         setCurrentLogWriter();
         final vm = await service.getVM();
-        isolate = await service.getIsolate(vm.isolates.first.id);
-        bootstrap = isolate.rootLib;
+        final isolate = await service.getIsolate(vm.isolates!.first.id!);
+        isolateId = isolate.id!;
+        bootstrapId = isolate.rootLib!.id!;
       });
 
       setUp(() async {
@@ -192,7 +191,7 @@ void main() {
               'success': isTrue,
               'elapsedMilliseconds': isNotNull,
             }),
-            () => service.evaluate(isolate.id, bootstrap.id, expression));
+            () => service.evaluate(isolateId, bootstrapId, expression));
       });
 
       test('emits COMPILER_UPDATE_DEPENDENCIES event', () async {
@@ -208,26 +207,25 @@ void main() {
               'error': isA<ErrorRef>(),
               'elapsedMilliseconds': isNotNull,
             }),
-            () => service.evaluate(isolate.id, bootstrap.id, expression));
+            () => service.evaluate(isolateId, bootstrapId, expression));
       });
     });
 
     group('evaluateInFrame', () {
-      String isolateId;
-      Stream<Event> stream;
-      ScriptList scripts;
-      ScriptRef mainScript;
+      late String isolateId;
+      late Stream<Event> stream;
+      late ScriptRef mainScript;
 
       setUpAll(() async {
         setCurrentLogWriter();
         final vm = await service.getVM();
 
-        isolateId = vm.isolates.first.id;
-        scripts = await service.getScripts(isolateId);
+        isolateId = vm.isolates!.first.id!;
         await service.streamListen('Debug');
         stream = service.onEvent('Debug');
-        mainScript = scripts.scripts
-            .firstWhere((script) => script.uri.contains('main.dart'));
+        final scriptList = await service.getScripts(isolateId);
+        mainScript = scriptList.scripts!
+            .firstWhere((script) => script.uri!.contains('main.dart'));
       });
 
       setUp(() async {
@@ -246,13 +244,13 @@ void main() {
             }),
             () => service
                 .evaluateInFrame(isolateId, 0, expression)
-                .catchError((_) {}));
+                .catchError((_) => Future.value(Response())));
       });
 
       test('emits EVALUATE_IN_FRAME events on evaluation error', () async {
         final line = await context.findBreakpointLine(
             'callPrintCount', isolateId, mainScript);
-        final bp = await service.addBreakpoint(isolateId, mainScript.id, line);
+        final bp = await service.addBreakpoint(isolateId, mainScript.id!, line);
         // Wait for breakpoint to trigger.
         await stream
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -269,16 +267,16 @@ void main() {
             }),
             () => service
                 .evaluateInFrame(isolateId, 0, expression)
-                .catchError((_) {}));
+                .catchError((_) => Future.value(Response())));
 
-        await service.removeBreakpoint(isolateId, bp.id);
+        await service.removeBreakpoint(isolateId, bp.id!);
         await service.resume(isolateId);
       });
 
       test('emits EVALUATE_IN_FRAME events on evaluation success', () async {
         final line = await context.findBreakpointLine(
             'callPrintCount', isolateId, mainScript);
-        final bp = await service.addBreakpoint(isolateId, mainScript.id, line);
+        final bp = await service.addBreakpoint(isolateId, mainScript.id!, line);
         // Wait for breakpoint to trigger.
         await stream
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
@@ -294,26 +292,25 @@ void main() {
             }),
             () => service
                 .evaluateInFrame(isolateId, 0, expression)
-                .catchError((_) {}));
+                .catchError((_) => Future.value(Response())));
 
-        await service.removeBreakpoint(isolateId, bp.id);
+        await service.removeBreakpoint(isolateId, bp.id!);
         await service.resume(isolateId);
       });
     });
 
     group('getSourceReport', () {
-      String isolateId;
-      ScriptList scripts;
-      ScriptRef mainScript;
+      late String isolateId;
+      late ScriptRef mainScript;
 
       setUp(() async {
         setCurrentLogWriter();
         final vm = await service.getVM();
-        isolateId = vm.isolates.first.id;
-        scripts = await service.getScripts(isolateId);
+        isolateId = vm.isolates!.first.id!;
+        final scriptList = await service.getScripts(isolateId);
 
-        mainScript = scripts.scripts
-            .firstWhere((script) => script.uri.contains('main.dart'));
+        mainScript = scriptList.scripts!
+            .firstWhere((script) => script.uri!.contains('main.dart'));
       });
 
       test('emits GET_SOURCE_REPORT events', () async {
@@ -328,12 +325,12 @@ void main() {
     });
 
     group('getSripts', () {
-      String isolateId;
+      late String isolateId;
 
       setUp(() async {
         setCurrentLogWriter();
         final vm = await service.getVM();
-        isolateId = vm.isolates.first.id;
+        isolateId = vm.isolates!.first.id!;
       });
 
       test('emits GET_SCRIPTS events', () async {
@@ -346,12 +343,12 @@ void main() {
     });
 
     group('getIsolate', () {
-      String isolateId;
+      late String isolateId;
 
       setUp(() async {
         setCurrentLogWriter();
         final vm = await service.getVM();
-        isolateId = vm.isolates.first.id;
+        isolateId = vm.isolates!.first.id!;
       });
 
       test('emits GET_ISOLATE events', () async {
@@ -394,27 +391,24 @@ void main() {
     });
 
     group('resume', () {
-      String isolateId;
-      Stream<Event> stream;
-      ScriptList scripts;
-      ScriptRef mainScript;
+      late String isolateId;
 
       setUp(() async {
         setCurrentLogWriter();
         final vm = await service.getVM();
-        isolateId = vm.isolates.first.id;
-        scripts = await service.getScripts(isolateId);
+        isolateId = vm.isolates!.first.id!;
         await service.streamListen('Debug');
-        stream = service.onEvent('Debug');
-        mainScript = scripts.scripts
-            .firstWhere((script) => script.uri.contains('main.dart'));
+        final stream = service.onEvent('Debug');
+        final scriptList = await service.getScripts(isolateId);
+        final mainScript = scriptList.scripts!
+            .firstWhere((script) => script.uri!.contains('main.dart'));
         final line = await context.findBreakpointLine(
             'callPrintCount', isolateId, mainScript);
-        final bp = await service.addBreakpoint(isolateId, mainScript.id, line);
+        final bp = await service.addBreakpoint(isolateId, mainScript.id!, line);
         // Wait for breakpoint to trigger.
         await stream
             .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
-        await service.removeBreakpoint(isolateId, bp.id);
+        await service.removeBreakpoint(isolateId, bp.id!);
       });
 
       tearDown(() async {
@@ -460,13 +454,13 @@ Matcher matchesEvent(String type, Map<String, Object> payload) {
 
 /// Pipes the [stream] into a newly created stream.
 /// Returns the new stream which is closed on [timeout].
-Stream<DwdsEvent> pipe(Stream<DwdsEvent> stream, {Timeout timeout}) {
+Stream<DwdsEvent> pipe(Stream<DwdsEvent> stream, {Timeout? timeout}) {
   final controller = StreamController<DwdsEvent>();
   final defaultTimeout = const Timeout(Duration(seconds: 20));
   timeout ??= defaultTimeout;
   unawaited(stream
       .forEach(controller.add)
-      .timeout(defaultTimeout.merge(timeout).duration)
+      .timeout(defaultTimeout.merge(timeout).duration!)
       .catchError((_) {})
       .then((value) => controller.close()));
   return controller.stream;
