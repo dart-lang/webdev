@@ -1104,26 +1104,6 @@ void main() {
         expect(stack.truncated, isFalse);
       });
 
-      test('break on exceptions with legacy setExceptionPauseMode', () async {
-        final oldPauseMode =
-            (await service.getIsolate(isolateId!)).exceptionPauseMode!;
-        await service.setExceptionPauseMode(
-            isolateId!, ExceptionPauseMode.kAll);
-        // Wait for pausing to actually propagate.
-        final event = await stream
-            .firstWhere((event) => event.kind == EventKind.kPauseException);
-        expect(event.exception, isNotNull);
-        // Check that the exception stack trace has been mapped to Dart source files.
-        // TODO(https://github.com/dart-lang/webdev/issues/1821) Uncomment.
-        // expect(event.exception!.valueAsString, contains('main.dart'));
-
-        final stack = await service.getStack(isolateId!);
-        expect(stack, isNotNull);
-
-        await service.setExceptionPauseMode(isolateId!, oldPauseMode);
-        await service.resume(isolateId!);
-      });
-
       test('break on exceptions with setIsolatePauseMode', () async {
         final oldPauseMode =
             (await service.getIsolate(isolateId!)).exceptionPauseMode;
@@ -1462,17 +1442,25 @@ void main() {
       await expectLater(service.reloadSources(''), throwsRPCError);
     });
 
-    test('setExceptionPauseMode', () async {
+    test('setIsolatePauseMode', () async {
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
-      expect(await service.setExceptionPauseMode(isolateId, 'all'), _isSuccess);
-      expect(await service.setExceptionPauseMode(isolateId, 'unhandled'),
+      expect(
+          await service.setIsolatePauseMode(isolateId,
+              exceptionPauseMode: ExceptionPauseMode.kAll),
+          _isSuccess);
+      expect(
+          await service.setIsolatePauseMode(isolateId,
+              exceptionPauseMode: ExceptionPauseMode.kUnhandled),
           _isSuccess);
       // Make sure this is the last one - or future tests might hang.
       expect(
-          await service.setExceptionPauseMode(isolateId, 'none'), _isSuccess);
+          await service.setIsolatePauseMode(isolateId,
+              exceptionPauseMode: ExceptionPauseMode.kNone),
+          _isSuccess);
       await expectLater(
-          service.setExceptionPauseMode(isolateId, 'invalid'), throwsRPCError);
+          service.setIsolatePauseMode(isolateId, exceptionPauseMode: 'invalid'),
+          throwsRPCError);
     });
 
     test('setFlag', () async {
