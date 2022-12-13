@@ -318,6 +318,7 @@ void main() {
               });
             });
           },
+          // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
           skip: !supportedMode(
             compilationMode: CompilationMode.buildDaemon,
             nullSafetyMode: nullSafety,
