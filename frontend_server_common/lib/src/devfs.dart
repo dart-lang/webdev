@@ -3,10 +3,12 @@
 // found in the LICENSE file.
 
 // Note: this is a copy from flutter tools, updated to work with dwds tests
+import 'dart:io';
 
 import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 
 import 'asset_server.dart';
 import 'bootstrap.dart';
@@ -85,9 +87,12 @@ class WebDevFS {
 
     assetServer.writeFile('main_module.digests', '{}');
 
-    var sdk = soundNullSafety ? dartSdkSound : dartSdk;
-    var sdkSourceMap =
-        soundNullSafety ? dartSdkSourcemapSound : dartSdkSourcemap;
+    final sdkVersion = Version.parse(Platform.version.split(' ')[0]);
+    var sdk =
+        (soundNullSafety && sdkVersion.major < 3) ? dartSdkSound : dartSdk;
+    var sdkSourceMap = (soundNullSafety && sdkVersion.major < 3)
+        ? dartSdkSourcemapSound
+        : dartSdkSourcemap;
     assetServer.writeFile('dart_sdk.js', sdk.readAsStringSync());
     assetServer.writeFile('dart_sdk.js.map', sdkSourceMap.readAsStringSync());
 

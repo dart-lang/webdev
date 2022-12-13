@@ -15,4 +15,5 @@ dependencies:
   shelf: ^1.1.4
   package_config: ^2.0.0
   path: ^1.8.0
+  pub_semver: ^2.1.1
   usage: ^4.0.0

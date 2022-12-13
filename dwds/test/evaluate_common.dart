@@ -16,18 +16,20 @@ import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
 
 class TestSetup {
-  static TestContext createContext(String index, String packageRoot) =>
+  static TestContext createContext(
+          String index, String packageRoot, NullSafety nullSafety) =>
       TestContext(
           directory: p.join('..', 'fixtures', packageRoot),
           entry: p.join('..', 'fixtures', packageRoot, 'web', 'main.dart'),
           path: index,
-          pathToServe: 'web');
+          pathToServe: 'web',
+          nullSafety: nullSafety);
 
   static TestContext contextUnsound(String index) =>
-      createContext(index, '_testPackage');
+      createContext(index, '_testPackage', NullSafety.weak);
 
   static TestContext contextSound(String index) =>
-      createContext(index, '_testPackageSound');
+      createContext(index, '_testPackageSound', NullSafety.sound);
 
   TestContext context;
 
@@ -87,7 +89,6 @@ void testAll({
       setCurrentLogWriter(debug: debug);
       await context.setUp(
         compilationMode: compilationMode,
-        nullSafety: nullSafety,
         enableExpressionEvaluation: true,
         useDebuggerModuleNames: useDebuggerModuleNames,
         verboseCompiler: debug,
@@ -633,7 +634,6 @@ void testAll({
       setCurrentLogWriter(debug: debug);
       await context.setUp(
         compilationMode: compilationMode,
-        nullSafety: nullSafety,
         enableExpressionEvaluation: false,
         verboseCompiler: debug,
       );

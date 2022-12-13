@@ -6,16 +6,16 @@ import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:test/test.dart';
 
 import '../fixtures/context.dart';
+import '../utils/version_compatibility.dart';
 
 void main() {
-  final context = TestContext();
-  late ProxyServerAssetReader assetReader;
-  setUpAll(() async {
-    await context.setUp();
-    assetReader = context.testServer.assetReader as ProxyServerAssetReader;
-  });
-
   group('ProxyServerAssetReader', () {
+    final context = TestContext(nullSafety: NullSafety.weak);
+    late ProxyServerAssetReader assetReader;
+    setUpAll(() async {
+      await context.setUp();
+      assetReader = context.testServer.assetReader as ProxyServerAssetReader;
+    });
     test('returns null if the dart path does not exist', () async {
       final result = await assetReader.dartSourceContents('some/path/foo.dart');
       expect(result, isNull);
@@ -38,5 +38,6 @@ void main() {
           .dartSourceContents('hello_world/foo.unsound.ddc.js.map');
       expect(result, isNull);
     });
-  });
+    // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
+  }, skip: !versionSupportsWeakNullSafety);
 }

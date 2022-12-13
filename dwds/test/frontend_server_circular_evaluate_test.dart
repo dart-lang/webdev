@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
 import 'evaluate_circular_common.dart';
+import 'utils/version_compatibility.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
@@ -22,7 +23,7 @@ void main() async {
           Version.parse('2.19.0-150.0.dev');
 
   group('Context with circular dependencies |', () {
-    for (var nullSafety in NullSafety.values) {
+    for (var nullSafety in supportedNullSafetyModes) {
       group('${nullSafety.name} null safety |', () {
         for (var indexBaseMode in IndexBaseMode.values) {
           group(

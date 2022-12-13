@@ -14,19 +14,24 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
+import 'utils/version_compatibility.dart';
 
 class TestSetup {
   static final contextUnsound = TestContext(
-      directory: p.join('..', 'fixtures', '_testPackage'),
-      entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
-      path: 'index.html',
-      pathToServe: 'web');
+    directory: p.join('..', 'fixtures', '_testPackage'),
+    entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
+    path: 'index.html',
+    pathToServe: 'web',
+    nullSafety: NullSafety.weak,
+  );
 
   static final contextSound = TestContext(
-      directory: p.join('..', 'fixtures', '_testPackageSound'),
-      entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
-      path: 'index.html',
-      pathToServe: 'web');
+    directory: p.join('..', 'fixtures', '_testPackageSound'),
+    entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
+    path: 'index.html',
+    pathToServe: 'web',
+    nullSafety: NullSafety.sound,
+  );
 
   TestContext context;
 
@@ -44,7 +49,7 @@ void main() {
     // Enable verbose logging for debugging.
     final debug = false;
 
-    for (var nullSafety in NullSafety.values) {
+    for (var nullSafety in supportedNullSafetyModes) {
       final soundNullSafety = nullSafety == NullSafety.sound;
       final setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
       final context = setup.context;
@@ -54,7 +59,6 @@ void main() {
           setCurrentLogWriter(debug: debug);
           await context.setUp(
             compilationMode: CompilationMode.buildDaemon,
-            nullSafety: nullSafety,
             enableExpressionEvaluation: true,
             verboseCompiler: debug,
           );

@@ -10,12 +10,15 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
+import 'utils/version_compatibility.dart';
 
 final context = TestContext(
-    directory: p.join('..', 'fixtures', '_testPackage'),
-    entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
-    path: 'index.html',
-    pathToServe: 'web');
+  directory: p.join('..', 'fixtures', '_testPackage'),
+  entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
+  path: 'index.html',
+  pathToServe: 'web',
+  nullSafety: NullSafety.weak,
+);
 
 final dwdsDir = Directory.current.absolute.path;
 
@@ -84,6 +87,7 @@ void main() {
           });
         });
       }
-    });
+      // TODO(https://github.com/dart-lang/webdev/issues/1818): Re-enable.
+    }, skip: !versionSupportsWeakNullSafety);
   }
 }
