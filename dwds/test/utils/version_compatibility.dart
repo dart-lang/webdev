@@ -27,3 +27,22 @@ List<CompilationMode> supportedCompilationModes(NullSafety nullSafetyMode) {
           CompilationMode.frontendServer,
         ];
 }
+
+bool supportedMode(
+    {required CompilationMode compilationMode,
+    required NullSafety nullSafetyMode}) {
+  final isDart3 = Version.parse(Platform.version.split(' ')[0]).major == 3;
+  // TODO(https://github.com/dart-lang/webdev/issues/1818): Support compiling to
+  // to weak null-safety for both FrontendServer and BuildDaemon.
+  if (isDart3 && nullSafetyMode == NullSafety.weak) {
+    return false;
+  }
+  // TODO(https://github.com/dart-lang/webdev/issues/1591): Support compiling to
+  // sound null-safety for the FrontendServer.
+  if (compilationMode == CompilationMode.frontendServer &&
+      nullSafetyMode == NullSafety.sound) {
+    return false;
+  }
+  // All other modes are supported.
+  return true;
+}
