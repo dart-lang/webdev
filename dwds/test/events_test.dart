@@ -34,7 +34,7 @@ void main() {
     });
 
     tearDown(() async {
-      await server?.close();
+      await server.close();
     });
 
     test('emits HTTP_REQUEST_EXCEPTION event', () async {
