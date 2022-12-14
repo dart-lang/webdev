@@ -140,11 +140,14 @@ void _updateIcon(int activeTabId) async {
 }
 
 void _setDebuggableIcon() {
-  chrome.action.setIcon(IconInfo(path: 'dart.png'), /*callback*/ null);
+  chrome.action
+      .setIcon(IconInfo(path: 'static_assets/dart.png'), /*callback*/ null);
 }
 
 void _setDefaultIcon() {
-  final iconPath = isDevMode() ? 'dart_dev.png' : 'dart_grey.png';
+  final iconPath = isDevMode()
+      ? 'static_assets/dart_dev.png'
+      : 'static_assets/dart_grey.png';
   chrome.action.setIcon(IconInfo(path: iconPath), /*callback*/ null);
 }
 
@@ -161,7 +164,7 @@ void _showWarningNotification(String message) {
     NotificationOptions(
       title: '[Error] Dart Debug Extension',
       message: message,
-      iconUrl: 'dart.png',
+      iconUrl: 'static_assets/dart.png',
       type: 'basic',
     ),
     /*callback*/ null,

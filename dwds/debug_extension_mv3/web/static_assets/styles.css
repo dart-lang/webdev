@@ -1,0 +1,138 @@
+.dark-theme {
+  background-color: #262626;
+  color: #eeeeee;
+}
+
+.dark-theme .mdl-layout__header {
+  background-color: #303030;
+  color: #eeeeee;
+}
+
+.dark-theme .mdl-card__supporting-text {
+  color: #eeeeee;
+}
+
+.dark-theme .mdl-card {
+  background: #303030;
+}
+
+.light-theme {
+  background-color: #eeeeee;
+  color: #595959;
+}
+
+.light-theme .mdl-layout__header {
+  background-color: #fafafa;
+  color: #595959;
+}
+
+.light-theme .mdl-card__supporting-text {
+  color: #595959;
+}
+
+.light-theme .mdl-card {
+  background: #fafafa;
+}
+
+.dart-card {
+  margin-top: 15px;
+}
+
+.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.mdl-button--accent {
+  background-color: #0091ea;
+}
+
+.dart-card.mdl-card {
+  min-height: 150px;
+  width: 505px;
+}
+
+.debugger-card > .mdl-card__title {
+  background-position: center;
+  background-repeat: no-repeat;
+  background: url("debugger_settings.png");
+  height: 200px;
+}
+
+.inspector-card > .mdl-card__title {
+  background-position: center;
+  background-repeat: no-repeat;
+  background: url("inspect_widget.png");
+  height: 300px;
+}
+
+h6 {
+  margin: 8px 0px 12px;
+}
+
+.snackbar {
+  border-radius: 2px;
+  bottom: 0px;
+  color: #eeeeee;
+  left: 50%;
+  margin-left: -125px;
+  padding: 16px;
+  position: fixed;
+  text-align: center;
+  visibility: hidden;
+  width: 250px;
+  z-index: 1;
+}
+
+.snackbar--info {
+  background-color: #303030;
+}
+
+.snackbar--warning {
+  background-color: #b00020;
+}
+
+.show {
+  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  visibility: visible;
+}
+
+@-webkit-keyframes fadein {
+  from {
+    bottom: 0;
+    opacity: 0;
+  }
+  to {
+    bottom: 0px;
+    opacity: 1;
+  }
+}
+
+@keyframes fadein {
+  from {
+    bottom: 0;
+    opacity: 0;
+  }
+  to {
+    bottom: 0px;
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes fadeout {
+  from {
+    bottom: 0px;
+    opacity: 1;
+  }
+  to {
+    bottom: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes fadeout {
+  from {
+    bottom: 0px;
+    opacity: 1;
+  }
+  to {
+    bottom: 0;
+    opacity: 0;
+  }
+}

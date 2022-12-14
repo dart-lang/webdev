@@ -11,8 +11,9 @@ class _CopyBuilder extends Builder {
   @override
   Map<String, List<String>> get buildExtensions => {
         "web/{{}}.dart.js": ["compiled/{{}}.dart.js"],
-        "web/{{}}.png": ["compiled/{{}}.png"],
-        "web/{{}}.html": ["compiled/{{}}.html"],
+        "web/static_assets/{{}}.png": ["compiled/static_assets/{{}}.png"],
+        "web/static_assets/{{}}.html": ["compiled/static_assets/{{}}.html"],
+        "web/static_assets/{{}}.css": ["compiled/static_assets/{{}}.css"],
         "web/manifest.json": ["compiled/manifest.json"],
       };
 

@@ -45,7 +45,7 @@ void _maybeCreatePanels() async {
   chrome.devtools.panels.create(
     isDevMode() ? '[DEV] Dart Debugger' : 'Dart Debugger',
     '',
-    'panel.html',
+    'static_assets/debugger_panel.html',
     allowInterop((ExtensionPanel panel) => _onPanelAdded(panel, debugInfo)),
   );
   // Create an inspector panel for internal Flutter apps:
@@ -54,7 +54,7 @@ void _maybeCreatePanels() async {
     chrome.devtools.panels.create(
       isDevMode() ? '[DEV] Flutter Inspector' : 'Flutter Inspector',
       '',
-      'panel.html',
+      'static_assets/inspector_panel.html',
       allowInterop((ExtensionPanel panel) => _onPanelAdded(panel, debugInfo)),
     );
   }
