@@ -4,16 +4,16 @@
 <head>
   <title>Dart Debug Extension Settings</title>
   <link rel="icon" href="dart.png">
-  <!-- TODO(elliette): Update stylesheet to more closely match the DevTools styles: -->
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-blue.min.css" />
   <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+  <link rel="stylesheet" href="styles.css" type="text/css">
 </head>
 
-<body>
+<body class="dark-theme">
+
   <div class="mdl-layout mdl-js-layout">
 
     <header class="mdl-layout__header">
-      <div class="mdl-layout-icon"></div>
       <div class="mdl-layout__header-row">
         <span class="mdl-layout__title">Dart Debug Extension Settings</span>
         <div class="mdl-layout-spacer"></div>
@@ -22,7 +22,9 @@
 
     <div class="mdl-grid">
       <div class="mdl-cell mdl-cell--12-col">
-        <div class="demo-card-square mdl-card mdl-shadow--2dp">
+        
+        <div class="dart-card mdl-card mdl-shadow--2dp">
+          
           <div class="mdl-card__supporting-text">
             <h6>Open DevTools in a:</h3>
               <form>
@@ -38,18 +40,22 @@
                 </fieldset>
               </form>
           </div>
+
           <div class="mdl-card__actions mdl-card--border">
-            <button id="saveButton" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
-              Save settings
+            <button
+                id="saveButton"
+                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                Save settings
             </button>
-            <span id="savedMsgEmpty"></span>
           </div>
+
         </div>
       </div>
     </div>
+    <div id="savedSnackbar" class="snackbar snackbar--info">Settings saved!</div>
 
     <!-- Load script: -->
-    <script src="settings.dart.js"></script>
+    <script src="../settings.dart.js"></script>
 </body>
 
 </html>

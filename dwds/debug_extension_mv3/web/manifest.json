@@ -2,9 +2,9 @@
     "name": "MV3 Dart Debug Extension",
     "version": "1.0",
     "manifest_version": 3,
-    "devtools_page": "devtools.html",
+    "devtools_page": "static_assets/devtools.html",
     "action": {
-        "default_icon": "dart_dev.png"
+        "default_icon": "static_assets/dart_dev.png"
     },
     "permissions": [
         "debugger",
@@ -31,5 +31,5 @@
             "run_at": "document_end"
         }
     ],
-    "options_page": "settings.html"
+    "options_page": "static_assets/settings.html"
 }
