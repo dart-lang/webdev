@@ -44,7 +44,13 @@ void main() async {
                       // https://github.com/dart-lang/webdev/issues/1591
                       (nullSafety == NullSafety.sound) ||
                       // Needs debugger module names feature in SDK.
-                      (useDebuggerModuleNames && !debuggerModuleNamesSupported),
+                      (useDebuggerModuleNames &&
+                          !debuggerModuleNamesSupported) ||
+                      // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
+                      !supportedMode(
+                        compilationMode: CompilationMode.frontendServer,
+                        nullSafetyMode: nullSafety,
+                      ),
             );
           }
         });

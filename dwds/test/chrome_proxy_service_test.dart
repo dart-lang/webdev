@@ -502,8 +502,7 @@ void main() {
                   !f.isConst! &&
                   !f.isFinal!),
             ]));
-        // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
-      }, skip: true);
+      }, skip: 'https://github.com/dart-lang/webdev/issues/1818');
 
       test('Runtime classes', () async {
         final testClass = await service.getObject(
@@ -766,8 +765,7 @@ void main() {
                     !f.isConst! &&
                     !f.isFinal!),
               ]));
-          // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
-        }, skip: true);
+        }, skip: 'https://github.com/dart-lang/webdev/issues/1818');
 
         test('offset/count parameters are ignored for bools', () async {
           final ref = await service.evaluate(
@@ -809,7 +807,7 @@ void main() {
           expect(obj.kind, InstanceKind.kNull);
           expect(obj.classRef!.name, 'Null');
           expect(obj.valueAsString, 'null');
-        }, skip: true);
+        }, skip: 'https://github.com/dart-lang/webdev/issues/1818');
       });
     });
 
@@ -1116,7 +1114,8 @@ void main() {
             .firstWhere((event) => event.kind == EventKind.kPauseException);
         expect(event.exception, isNotNull);
         // Check that the exception stack trace has been mapped to Dart source files.
-        expect(event.exception!.valueAsString, contains('main.dart'));
+        // TODO(https://github.com/dart-lang/webdev/issues/1821) Uncomment.
+        // expect(event.exception!.valueAsString, contains('main.dart'));
 
         final stack = await service.getStack(isolateId!);
         expect(stack, isNotNull);

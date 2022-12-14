@@ -14,13 +14,21 @@ void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
 
-  for (var nullSafety in supportedNullSafetyModes) {
-    group('${nullSafety.name} null safety |', () {
-      testAll(
+  for (var nullSafety in NullSafety.values) {
+    group(
+      '${nullSafety.name} null safety |',
+      () {
+        testAll(
+          compilationMode: CompilationMode.buildDaemon,
+          nullSafety: nullSafety,
+          debug: debug,
+        );
+      },
+      // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
+      skip: !supportedMode(
         compilationMode: CompilationMode.buildDaemon,
-        nullSafety: nullSafety,
-        debug: debug,
-      );
-    });
+        nullSafetyMode: nullSafety,
+      ),
+    );
   }
 }

@@ -38,11 +38,9 @@ void main() {
   // currently redirected to a logger. As a result, it will be printed
   // regardless of the logger settings.
   final verboseCompiler = false;
-
-  // TODO(https://github.com/dart-lang/webdev/issues/1591): Frontend server
-  // compilation is currently incompatible with sound null safety.
-  if (supportedNullSafetyModes.contains(NullSafety.weak)) {
-    group('shared context', () {
+  group(
+    'shared context',
+    () {
       setUpAll(() async {
         setCurrentLogWriter(debug: debug);
         await context.setUp(
@@ -136,6 +134,11 @@ void main() {
           await service.removeBreakpoint(isolateId, bp.id!);
         });
       });
-    });
-  }
+    },
+    // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
+    skip: !supportedMode(
+      compilationMode: CompilationMode.frontendServer,
+      nullSafetyMode: NullSafety.weak,
+    ),
+  );
 }
