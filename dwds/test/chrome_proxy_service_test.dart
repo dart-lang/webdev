@@ -1448,6 +1448,7 @@ void main() {
     test('setIsolatePauseMode', () async {
       final vm = await service.getVM();
       final isolateId = vm.isolates!.first.id!;
+      expect(await service.setIsolatePauseMode(isolateId), _isSuccess);
       expect(
           await service.setIsolatePauseMode(isolateId,
               exceptionPauseMode: ExceptionPauseMode.kAll),
