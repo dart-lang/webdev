@@ -17,19 +17,19 @@ void main() {
       final fileSystem = LocalFileSystem();
 
       final packageUri =
-          Uri(scheme: 'package', path: '_test_package/test_library.dart');
+          Uri(scheme: 'package', path: '_test_package_sound/test_library.dart');
 
       final serverPath = useDebuggerModuleNames
-          ? 'packages/_testPackage/lib/test_library.dart'
-          : '/packages/_test_package/test_library.dart';
+          ? 'packages/_testPackageSound/lib/test_library.dart'
+          : '/packages/_test_package_sound/test_library.dart';
 
       final resolvedPath =
-          '/webdev/fixtures/_testPackage/lib/test_library.dart';
+          '/webdev/fixtures/_testPackageSound/lib/test_library.dart';
 
       final packageConfigFile = Uri.file(p.normalize(p.absolute(p.join(
         '..',
         'fixtures',
-        '_testPackage',
+        '_testPackageSound',
         '.dart_tool',
         'package_config.json',
       ))));
