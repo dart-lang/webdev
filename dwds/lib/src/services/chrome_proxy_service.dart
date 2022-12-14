@@ -776,15 +776,10 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
       {String? exceptionPauseMode, bool? shouldPauseOnExit}) async {
     // TODO(elliette): Is there a way to respect the shouldPauseOnExit parameter
     // in Chrome?
-    return setExceptionPauseMode(
-        isolateId, exceptionPauseMode ?? ExceptionPauseMode.kNone);
-  }
-
-  @override
-  Future<Success> setExceptionPauseMode(String isolateId, String mode) async {
     await isInitialized;
-    _checkIsolate('setExceptionPauseMode', isolateId);
-    return (await debuggerFuture).setExceptionPauseMode(mode);
+    _checkIsolate('setIsolatePauseMode', isolateId);
+    return (await debuggerFuture)
+        .setExceptionPauseMode(exceptionPauseMode ?? ExceptionPauseMode.kNone);
   }
 
   @override
