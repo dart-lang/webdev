@@ -24,7 +24,7 @@ void main() async {
 
   for (var useDebuggerModuleNames in [false, true]) {
     group('Debugger module names: $useDebuggerModuleNames |', () {
-      for (var nullSafety in supportedNullSafetyModes) {
+      for (var nullSafety in NullSafety.values) {
         group('${nullSafety.name} null safety |', () {
           for (var indexBaseMode in IndexBaseMode.values) {
             group(

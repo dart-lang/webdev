@@ -23,7 +23,7 @@ void main() async {
           Version.parse('2.19.0-150.0.dev');
 
   group('Context with circular dependencies |', () {
-    for (var nullSafety in supportedNullSafetyModes) {
+    for (var nullSafety in NullSafety.values) {
       group('${nullSafety.name} null safety |', () {
         for (var indexBaseMode in IndexBaseMode.values) {
           group('with ${indexBaseMode.name} |', () {
