@@ -8,18 +8,27 @@ import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
 import 'evaluate_common.dart';
+import 'utils/version_compatibility.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
   final debug = false;
 
   for (var nullSafety in NullSafety.values) {
-    group('${nullSafety.name} null safety |', () {
-      testAll(
+    group(
+      '${nullSafety.name} null safety |',
+      () {
+        testAll(
+          compilationMode: CompilationMode.buildDaemon,
+          nullSafety: nullSafety,
+          debug: debug,
+        );
+      },
+      // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
+      skip: !supportedMode(
         compilationMode: CompilationMode.buildDaemon,
-        nullSafety: nullSafety,
-        debug: debug,
-      );
-    });
+        nullSafetyMode: nullSafety,
+      ),
+    );
   }
 }

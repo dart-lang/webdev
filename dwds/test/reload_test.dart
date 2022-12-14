@@ -207,7 +207,9 @@ void main() {
       final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
       expect(source, contains('Hello World!'));
-    });
+      // TODO(https://github.com/dart-lang/webdev/issues/1818): Re-enable. The
+      // callback passed to registerExtension requires a non-null return type.
+    }, skip: 'https://github.com/dart-lang/webdev/issues/1818');
 
     test('can refresh the page via the fullReload service extension', () async {
       final client = context.debugConnection.vmService;

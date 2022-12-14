@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // @dart = 2.9
-
+@Skip('Migrate to null-safety: https://github.com/dart-lang/webdev/issues/1818')
 import 'dart:async';
 import 'dart:io';
 

@@ -112,15 +112,20 @@ class TestContext {
   /// The path part of the application URL.
   String path;
 
-  TestContext(
-      {String? directory,
-      String? entry,
-      this.path = 'hello_world/index.html',
-      this.pathToServe = 'example'}) {
-    final relativeDirectory = p.join('..', 'fixtures', '_test');
+  NullSafety nullSafety;
+
+  TestContext({
+    String? directory,
+    String? entry,
+    this.nullSafety = NullSafety.sound,
+    this.path = 'hello_world/index.html',
+    this.pathToServe = 'example',
+  }) {
+    final packageName = nullSafety == NullSafety.sound ? '_testSound' : '_test';
+    final relativeDirectory = p.join('..', 'fixtures', packageName);
 
     final relativeEntry = p.join(
-        '..', 'fixtures', '_test', 'example', 'append_body', 'main.dart');
+        '..', 'fixtures', packageName, 'example', 'append_body', 'main.dart');
 
     workingDirectory = p.normalize(p
         .absolute(directory ?? p.relative(relativeDirectory, from: p.current)));
@@ -156,7 +161,6 @@ class TestContext {
     bool waitToDebug = false,
     UrlEncoder? urlEncoder,
     CompilationMode compilationMode = CompilationMode.buildDaemon,
-    NullSafety nullSafety = NullSafety.weak,
     bool enableExpressionEvaluation = false,
     bool verboseCompiler = false,
     SdkConfigurationProvider? sdkConfigurationProvider,
@@ -165,6 +169,14 @@ class TestContext {
     bool isFlutterApp = false,
     bool isInternalBuild = false,
   }) async {
+    // TODO(https://github.com/dart-lang/webdev/issues/1591): Support compiling
+    // with sound null-safety in Frontend Server.
+    if (compilationMode == CompilationMode.frontendServer &&
+        nullSafety == NullSafety.sound) {
+      throw Exception(
+          'Frontend Server compilation does not support sound null-safety. See https://github.com/dart-lang/webdev/issues/1591');
+    }
+
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
     try {

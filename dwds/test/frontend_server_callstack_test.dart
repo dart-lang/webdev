@@ -14,19 +14,24 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
+import 'utils/version_compatibility.dart';
 
 class TestSetup {
   static final contextUnsound = TestContext(
-      directory: p.join('..', 'fixtures', '_testPackage'),
-      entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
-      path: 'index.html',
-      pathToServe: 'web');
+    directory: p.join('..', 'fixtures', '_testPackage'),
+    entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
+    path: 'index.html',
+    pathToServe: 'web',
+    nullSafety: NullSafety.weak,
+  );
 
   static final contextSound = TestContext(
-      directory: p.join('..', 'fixtures', '_testPackageSound'),
-      entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
-      path: 'index.html',
-      pathToServe: 'web');
+    directory: p.join('..', 'fixtures', '_testPackageSound'),
+    entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
+    path: 'index.html',
+    pathToServe: 'web',
+    nullSafety: NullSafety.sound,
+  );
 
   TestContext context;
 
@@ -45,265 +50,273 @@ void main() {
     final debug = false;
 
     for (var nullSafety in NullSafety.values) {
-      final soundNullSafety = nullSafety == NullSafety.sound;
-      final setup = soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
-      final context = setup.context;
+      group(
+        '${nullSafety.name} null safety |',
+        () {
+          final soundNullSafety = nullSafety == NullSafety.sound;
+          final setup =
+              soundNullSafety ? TestSetup.sound() : TestSetup.unsound();
+          final context = setup.context;
 
-      group('${nullSafety.name} null safety |', () {
-        setUpAll(() async {
-          setCurrentLogWriter(debug: debug);
-          await context.setUp(
-              compilationMode: CompilationMode.frontendServer,
-              nullSafety: nullSafety,
-              enableExpressionEvaluation: true,
-              verboseCompiler: debug);
-        });
-
-        tearDownAll(() async {
-          await context.tearDown();
-        });
-
-        group('callStack |', () {
-          late ChromeProxyService service;
-          VM vm;
-          late Isolate isolate;
-          late String isolateId;
-          ScriptList scripts;
-          late ScriptRef mainScript;
-          late ScriptRef testLibraryScript;
-          late Stream<Event> stream;
-
-          setUp(() async {
+          setUpAll(() async {
             setCurrentLogWriter(debug: debug);
-            service = setup.service;
-            vm = await service.getVM();
-            isolate = await service.getIsolate(vm.isolates!.first.id!);
-            isolateId = isolate.id!;
-            scripts = await service.getScripts(isolateId);
-
-            await service.streamListen('Debug');
-            stream = service.onEvent('Debug');
-
-            final testPackage =
-                soundNullSafety ? '_test_package_sound' : '_test_package';
-
-            mainScript = scripts.scripts!
-                .firstWhere((each) => each.uri!.contains('main.dart'));
-            testLibraryScript = scripts.scripts!.firstWhere((each) =>
-                each.uri!.contains('package:$testPackage/test_library.dart'));
+            await context.setUp(
+                compilationMode: CompilationMode.frontendServer,
+                enableExpressionEvaluation: true,
+                verboseCompiler: debug);
           });
 
-          tearDown(() async {
-            await service.resume(isolateId);
+          tearDownAll(() async {
+            await context.tearDown();
           });
 
-          Future<void> onBreakPoint(BreakpointTestData breakpoint,
-              Future<void> Function() body) async {
-            Breakpoint? bp;
-            try {
-              final bpId = breakpoint.bpId;
-              final script = breakpoint.script;
-              final line =
-                  await context.findBreakpointLine(bpId, isolateId, script);
-              bp = await setup.service
-                  .addBreakpointWithScriptUri(isolateId, script.uri!, line);
+          group('callStack |', () {
+            late ChromeProxyService service;
+            VM vm;
+            late Isolate isolate;
+            late String isolateId;
+            ScriptList scripts;
+            late ScriptRef mainScript;
+            late ScriptRef testLibraryScript;
+            late Stream<Event> stream;
 
-              expect(bp, isNotNull);
-              expect(bp.location, _matchBpLocation(script, line, 0));
+            setUp(() async {
+              setCurrentLogWriter(debug: debug);
+              service = setup.service;
+              vm = await service.getVM();
+              isolate = await service.getIsolate(vm.isolates!.first.id!);
+              isolateId = isolate.id!;
+              scripts = await service.getScripts(isolateId);
 
-              await stream.firstWhere(
-                  (Event event) => event.kind == EventKind.kPauseBreakpoint);
+              await service.streamListen('Debug');
+              stream = service.onEvent('Debug');
 
-              await body();
-            } finally {
-              // Remove breakpoint so it doesn't impact other tests or retries.
-              if (bp != null) {
-                await setup.service.removeBreakpoint(isolateId, bp.id!);
+              final testPackage =
+                  soundNullSafety ? '_test_package_sound' : '_test_package';
+
+              mainScript = scripts.scripts!
+                  .firstWhere((each) => each.uri!.contains('main.dart'));
+              testLibraryScript = scripts.scripts!.firstWhere((each) =>
+                  each.uri!.contains('package:$testPackage/test_library.dart'));
+            });
+
+            tearDown(() async {
+              await service.resume(isolateId);
+            });
+
+            Future<void> onBreakPoint(BreakpointTestData breakpoint,
+                Future<void> Function() body) async {
+              Breakpoint? bp;
+              try {
+                final bpId = breakpoint.bpId;
+                final script = breakpoint.script;
+                final line =
+                    await context.findBreakpointLine(bpId, isolateId, script);
+                bp = await setup.service
+                    .addBreakpointWithScriptUri(isolateId, script.uri!, line);
+
+                expect(bp, isNotNull);
+                expect(bp.location, _matchBpLocation(script, line, 0));
+
+                await stream.firstWhere(
+                    (Event event) => event.kind == EventKind.kPauseBreakpoint);
+
+                await body();
+              } finally {
+                // Remove breakpoint so it doesn't impact other tests or retries.
+                if (bp != null) {
+                  await setup.service.removeBreakpoint(isolateId, bp.id!);
+                }
               }
             }
-          }
 
-          Future<void> testCallStack(List<BreakpointTestData> breakpoints,
-              {int frameIndex = 1}) async {
-            // Find lines the breakpoints are located on.
-            final lines = await Future.wait(breakpoints.map((frame) => context
-                .findBreakpointLine(frame.bpId, isolateId, frame.script)));
+            Future<void> testCallStack(List<BreakpointTestData> breakpoints,
+                {int frameIndex = 1}) async {
+              // Find lines the breakpoints are located on.
+              final lines = await Future.wait(breakpoints.map((frame) => context
+                  .findBreakpointLine(frame.bpId, isolateId, frame.script)));
 
-            // Get current stack.
-            final stack = await service.getStack(isolateId);
+              // Get current stack.
+              final stack = await service.getStack(isolateId);
 
-            // Verify the stack is correct.
-            expect(stack.frames!.length, greaterThanOrEqualTo(lines.length));
-            final expected = [
-              for (var i = 0; i < lines.length; i++)
-                _matchFrame(
-                    breakpoints[i].script, breakpoints[i].function, lines[i])
-            ];
-            expect(stack.frames, containsAll(expected));
+              // Verify the stack is correct.
+              expect(stack.frames!.length, greaterThanOrEqualTo(lines.length));
+              final expected = [
+                for (var i = 0; i < lines.length; i++)
+                  _matchFrame(
+                      breakpoints[i].script, breakpoints[i].function, lines[i])
+              ];
+              expect(stack.frames, containsAll(expected));
 
-            // Verify that expression evaluation is not failing.
-            final instance =
-                await service.evaluateInFrame(isolateId, frameIndex, 'true');
-            expect(instance, isA<InstanceRef>());
-          }
+              // Verify that expression evaluation is not failing.
+              final instance =
+                  await service.evaluateInFrame(isolateId, frameIndex, 'true');
+              expect(instance, isA<InstanceRef>());
+            }
 
-          test('breakpoint succeeds with correct callstack', () async {
-            // Expected breakpoints on the stack
-            final breakpoints = [
-              BreakpointTestData(
-                'printEnclosingObject',
-                'printEnclosingObject',
-                mainScript,
-              ),
-              BreakpointTestData(
-                'printEnclosingFunctionMultiLine',
-                'printNestedObjectsMultiLine',
-                mainScript,
-              ),
-              BreakpointTestData(
-                'callPrintEnclosingFunctionMultiLine',
-                '<closure>',
-                mainScript,
-              ),
-            ];
-            await onBreakPoint(
-                breakpoints[0], () => testCallStack(breakpoints));
-          });
+            test('breakpoint succeeds with correct callstack', () async {
+              // Expected breakpoints on the stack
+              final breakpoints = [
+                BreakpointTestData(
+                  'printEnclosingObject',
+                  'printEnclosingObject',
+                  mainScript,
+                ),
+                BreakpointTestData(
+                  'printEnclosingFunctionMultiLine',
+                  'printNestedObjectsMultiLine',
+                  mainScript,
+                ),
+                BreakpointTestData(
+                  'callPrintEnclosingFunctionMultiLine',
+                  '<closure>',
+                  mainScript,
+                ),
+              ];
+              await onBreakPoint(
+                  breakpoints[0], () => testCallStack(breakpoints));
+            });
 
-          test('expression evaluation succeeds on parent frame', () async {
-            // Expected breakpoints on the stack
-            final breakpoints = [
-              BreakpointTestData(
-                'testLibraryClassConstructor',
-                'new',
-                testLibraryScript,
-              ),
-              BreakpointTestData(
-                'createLibraryObject',
-                'printFieldFromLibraryClass',
-                mainScript,
-              ),
-              BreakpointTestData(
-                'callPrintFieldFromLibraryClass',
-                '<closure>',
-                mainScript,
-              ),
-            ];
-            await onBreakPoint(breakpoints[0],
-                () => testCallStack(breakpoints, frameIndex: 2));
-          });
+            test('expression evaluation succeeds on parent frame', () async {
+              // Expected breakpoints on the stack
+              final breakpoints = [
+                BreakpointTestData(
+                  'testLibraryClassConstructor',
+                  'new',
+                  testLibraryScript,
+                ),
+                BreakpointTestData(
+                  'createLibraryObject',
+                  'printFieldFromLibraryClass',
+                  mainScript,
+                ),
+                BreakpointTestData(
+                  'callPrintFieldFromLibraryClass',
+                  '<closure>',
+                  mainScript,
+                ),
+              ];
+              await onBreakPoint(breakpoints[0],
+                  () => testCallStack(breakpoints, frameIndex: 2));
+            });
 
-          test('breakpoint inside a line gives correct callstack', () async {
-            // Expected breakpoints on the stack
-            final breakpoints = [
-              BreakpointTestData(
-                'newEnclosedClass',
-                'new',
-                mainScript,
-              ),
-              BreakpointTestData(
-                'printNestedObjectMultiLine',
-                'printNestedObjectsMultiLine',
-                mainScript,
-              ),
-              BreakpointTestData(
-                'callPrintEnclosingFunctionMultiLine',
-                '<closure>',
-                mainScript,
-              ),
-            ];
-            await onBreakPoint(
-                breakpoints[0], () => testCallStack(breakpoints));
-          });
+            test('breakpoint inside a line gives correct callstack', () async {
+              // Expected breakpoints on the stack
+              final breakpoints = [
+                BreakpointTestData(
+                  'newEnclosedClass',
+                  'new',
+                  mainScript,
+                ),
+                BreakpointTestData(
+                  'printNestedObjectMultiLine',
+                  'printNestedObjectsMultiLine',
+                  mainScript,
+                ),
+                BreakpointTestData(
+                  'callPrintEnclosingFunctionMultiLine',
+                  '<closure>',
+                  mainScript,
+                ),
+              ];
+              await onBreakPoint(
+                  breakpoints[0], () => testCallStack(breakpoints));
+            });
 
-          test('breakpoint gives correct callstack after step out', () async {
-            // Expected breakpoints on the stack
-            final breakpoints = [
-              BreakpointTestData(
-                'newEnclosedClass',
-                'new',
-                mainScript,
-              ),
-              BreakpointTestData(
-                'printEnclosingObjectMultiLine',
-                'printNestedObjectsMultiLine',
-                mainScript,
-              ),
-              BreakpointTestData(
-                'callPrintEnclosingFunctionMultiLine',
-                '<closure>',
-                mainScript,
-              ),
-            ];
-            await onBreakPoint(breakpoints[0], () async {
-              await service.resume(isolateId, step: 'Out');
-              await stream.firstWhere(
-                  (Event event) => event.kind == EventKind.kPauseInterrupted);
-              return testCallStack([breakpoints[1], breakpoints[2]]);
+            test('breakpoint gives correct callstack after step out', () async {
+              // Expected breakpoints on the stack
+              final breakpoints = [
+                BreakpointTestData(
+                  'newEnclosedClass',
+                  'new',
+                  mainScript,
+                ),
+                BreakpointTestData(
+                  'printEnclosingObjectMultiLine',
+                  'printNestedObjectsMultiLine',
+                  mainScript,
+                ),
+                BreakpointTestData(
+                  'callPrintEnclosingFunctionMultiLine',
+                  '<closure>',
+                  mainScript,
+                ),
+              ];
+              await onBreakPoint(breakpoints[0], () async {
+                await service.resume(isolateId, step: 'Out');
+                await stream.firstWhere(
+                    (Event event) => event.kind == EventKind.kPauseInterrupted);
+                return testCallStack([breakpoints[1], breakpoints[2]]);
+              });
+            });
+
+            test('breakpoint gives correct callstack after step in', () async {
+              // Expected breakpoints on the stack
+              final breakpoints = [
+                BreakpointTestData(
+                  'newEnclosedClass',
+                  'new',
+                  mainScript,
+                ),
+                BreakpointTestData(
+                  'printNestedObjectMultiLine',
+                  'printNestedObjectsMultiLine',
+                  mainScript,
+                ),
+                BreakpointTestData(
+                  'callPrintEnclosingFunctionMultiLine',
+                  '<closure>',
+                  mainScript,
+                ),
+              ];
+              await onBreakPoint(breakpoints[1], () async {
+                await service.resume(isolateId, step: 'Into');
+                await stream.firstWhere(
+                    (Event event) => event.kind == EventKind.kPauseInterrupted);
+                return testCallStack(breakpoints);
+              });
+            });
+
+            test(
+                'breakpoint gives correct callstack after step into chain calls',
+                () async {
+              // Expected breakpoints on the stack
+              final breakpoints = [
+                BreakpointTestData(
+                  'createObjectWithMethod',
+                  'createObject',
+                  mainScript,
+                ),
+                BreakpointTestData(
+                  // This is currently incorrect, should be printObjectMultiLine.
+                  // See issue: https://github.com/dart-lang/sdk/issues/48874
+                  'printMultiLine',
+                  'printObjectMultiLine',
+                  mainScript,
+                ),
+                BreakpointTestData(
+                  'callPrintObjectMultiLine',
+                  '<closure>',
+                  mainScript,
+                ),
+              ];
+              final bp = BreakpointTestData(
+                  'printMultiLine', 'printObjectMultiLine', mainScript);
+              await onBreakPoint(bp, () async {
+                await service.resume(isolateId, step: 'Into');
+                await stream.firstWhere(
+                    (Event event) => event.kind == EventKind.kPauseInterrupted);
+                return testCallStack(breakpoints);
+              });
             });
           });
-
-          test('breakpoint gives correct callstack after step in', () async {
-            // Expected breakpoints on the stack
-            final breakpoints = [
-              BreakpointTestData(
-                'newEnclosedClass',
-                'new',
-                mainScript,
-              ),
-              BreakpointTestData(
-                'printNestedObjectMultiLine',
-                'printNestedObjectsMultiLine',
-                mainScript,
-              ),
-              BreakpointTestData(
-                'callPrintEnclosingFunctionMultiLine',
-                '<closure>',
-                mainScript,
-              ),
-            ];
-            await onBreakPoint(breakpoints[1], () async {
-              await service.resume(isolateId, step: 'Into');
-              await stream.firstWhere(
-                  (Event event) => event.kind == EventKind.kPauseInterrupted);
-              return testCallStack(breakpoints);
-            });
-          });
-
-          test('breakpoint gives correct callstack after step into chain calls',
-              () async {
-            // Expected breakpoints on the stack
-            final breakpoints = [
-              BreakpointTestData(
-                'createObjectWithMethod',
-                'createObject',
-                mainScript,
-              ),
-              BreakpointTestData(
-                // This is currently incorrect, should be printObjectMultiLine.
-                // See issue: https://github.com/dart-lang/sdk/issues/48874
-                'printMultiLine',
-                'printObjectMultiLine',
-                mainScript,
-              ),
-              BreakpointTestData(
-                'callPrintObjectMultiLine',
-                '<closure>',
-                mainScript,
-              ),
-            ];
-            final bp = BreakpointTestData(
-                'printMultiLine', 'printObjectMultiLine', mainScript);
-            await onBreakPoint(bp, () async {
-              await service.resume(isolateId, step: 'Into');
-              await stream.firstWhere(
-                  (Event event) => event.kind == EventKind.kPauseInterrupted);
-              return testCallStack(breakpoints);
-            });
-          });
-        });
-      }, // https://github.com/dart-lang/webdev/issues/1591
-          skip: soundNullSafety);
+        },
+        // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
+        skip: !supportedMode(
+          compilationMode: CompilationMode.frontendServer,
+          nullSafetyMode: nullSafety,
+        ),
+      );
     }
   });
 }
