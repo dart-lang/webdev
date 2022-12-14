@@ -1,11 +1,11 @@
 name: _test_circular1_sound
 version: 1.0.0
 description: >-
-  A fake package used for testing sound null-safety.
+    A fake package used for testing imports with sound null-safety with circular dependency.
 publish_to: none
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=2.18.0 <3.0.0'
 
 dependencies:
   intl: ^0.17.0
