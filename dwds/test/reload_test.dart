@@ -13,6 +13,7 @@ import 'fixtures/logging.dart';
 
 final context = TestContext(
   path: 'append_body/index.html',
+  nullSafety: NullSafety.sound,
 );
 
 void main() {

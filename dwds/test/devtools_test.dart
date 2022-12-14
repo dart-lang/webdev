@@ -14,6 +14,7 @@ import 'fixtures/context.dart';
 
 final context = TestContext(
   path: 'append_body/index.html',
+  nullSafety: NullSafety.sound,
 );
 
 Future<void> _waitForPageReady(TestContext context) async {

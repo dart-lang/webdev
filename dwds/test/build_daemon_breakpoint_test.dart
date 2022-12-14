@@ -15,10 +15,12 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext(
-    directory: p.join('..', 'fixtures', '_testPackageSound'),
-    entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
-    path: 'index.html',
-    pathToServe: 'web');
+  directory: p.join('..', 'fixtures', '_testPackageSound'),
+  entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
+  path: 'index.html',
+  pathToServe: 'web',
+  nullSafety: NullSafety.sound,
+);
 
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);

@@ -117,7 +117,7 @@ class TestContext {
   TestContext({
     String? directory,
     String? entry,
-    this.nullSafety = NullSafety.sound,
+    required this.nullSafety,
     this.path = 'hello_world/index.html',
     this.pathToServe = 'example',
   }) {
