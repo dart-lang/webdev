@@ -5,14 +5,14 @@
 name: _test_circular1
 version: 1.0.0
 description: >-
-  A fake package used for testing weak null-safety.
+  A fake package used for testing weak null-safety with circular dependency.
 publish_to: none
 
 environment:
-  sdk: ">=2.5.0 <3.0.0"
+  sdk: ">=2.18.0 <3.0.0"
 
 dependencies:
-  intl: ^0.16.0
+  intl: ^0.17.0
   path: ^1.6.1
   _test_circular2:
     path: ../_testCircular2

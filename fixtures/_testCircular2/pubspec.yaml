@@ -5,11 +5,11 @@
 name: _test_circular2
 version: 1.0.0
 description: >-
-  A fake package used for testing imports with weak null-safety. Imports _test.
+  A fake package used for testing imports with weak null-safety with circular dependency.
 publish_to: none
 
 environment:
-  sdk: ">=2.10.0 <3.0.0"
+  sdk: ">=2.18.0 <3.0.0"
 
 dependencies:
   _test_circular1:
