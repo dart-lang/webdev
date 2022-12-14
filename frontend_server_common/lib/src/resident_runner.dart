@@ -45,6 +45,7 @@ class ResidentWebRunner {
           soundNullSafety ? '$platformDillSound' : '$platformDillUnsound',
       fileSystemRoots: fileSystemRoots,
       fileSystemScheme: fileSystemScheme,
+      soundNullSafety: soundNullSafety,
       verbose: verbose,
     );
     expressionCompiler = TestExpressionCompiler(generator);

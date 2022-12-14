@@ -259,6 +259,7 @@ class ResidentCompiler {
     required this.fileSystemRoots,
     required this.fileSystemScheme,
     required this.platformDill,
+    required this.soundNullSafety,
     this.verbose = false,
     CompilerMessageConsumer compilerMessageConsumer = defaultConsumer,
   }) : _stdoutHandler = StdoutHandler(consumer: compilerMessageConsumer);
@@ -269,6 +270,7 @@ class ResidentCompiler {
   final List<Uri> fileSystemRoots;
   final String fileSystemScheme;
   final String platformDill;
+  final bool soundNullSafety;
   final bool verbose;
 
   /// The path to the root of the Dart SDK used to compile.
@@ -386,6 +388,7 @@ class ResidentCompiler {
       ],
       if (useDebuggerModuleNames) '--debugger-module-names',
       '--experimental-emit-debug-metadata',
+      '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
       if (verbose) '--verbose'
     ];
 
