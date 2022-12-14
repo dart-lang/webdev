@@ -36,6 +36,10 @@ void main() {
 
       late final PackageUriMapper packageUriMapper;
       setUpAll(() async {
+        print('CURRENT PATH: ${p.current}');
+        print('PACKAGE CONFIG FILE: ${packageConfigFile.toFilePath()}');
+        final resolvedUri = Uri.file(resolvedPath).toFilePath();
+        print('VERSUS $resolvedUri');
         packageUriMapper = await PackageUriMapper.create(
           fileSystem,
           packageConfigFile,
