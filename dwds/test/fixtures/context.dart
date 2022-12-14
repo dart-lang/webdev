@@ -169,6 +169,7 @@ class TestContext {
     bool isFlutterApp = false,
     bool isInternalBuild = false,
   }) async {
+    print('=== START SETUP, DIRECTORY IS ${Directory.current} ===');
     // TODO(https://github.com/dart-lang/webdev/issues/1591): Support compiling
     // with sound null-safety in Frontend Server.
     if (compilationMode == CompilationMode.frontendServer &&
@@ -418,6 +419,7 @@ class TestContext {
       await tearDown();
       rethrow;
     }
+    print('=== END SETUP, DIRECTORY IS ${Directory.current} ===');
   }
 
   Future<void> startDebugging() async {
@@ -426,9 +428,10 @@ class TestContext {
   }
 
   Future<void> tearDown() async {
+    print('=== START TEARDOWN, DIRECTORY IS ${Directory.current} ===');
     await _webDriver?.quit(closeSession: true);
     _chromeDriver?.kill();
-    DartUri.currentDirectory = workingDirectory;
+    DartUri.currentDirectory = p.current;
     _entryFile.writeAsStringSync(_entryContents);
     await _daemonClient?.close();
     await ddcService?.stop();
@@ -447,6 +450,7 @@ class TestContext {
     _testServer = null;
     _client = null;
     _outputDir = null;
+    print('=== END TEARDOWN, DIRECTORY IS ${Directory.current} ===');
   }
 
   Future<void> changeInput() async {
