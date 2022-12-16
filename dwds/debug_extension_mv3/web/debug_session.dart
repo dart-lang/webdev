@@ -41,8 +41,6 @@ const _notADartAppAlert = 'No Dart application detected.'
 const _devToolsAlreadyOpenedAlert =
     'DevTools is already opened on a different window.';
 
-const _authSuccessResponse = 'Dart Debug Authentication Success!';
-
 final _debugSessions = <_DebugSession>[];
 final _tabIdToTrigger = <int, Trigger>{};
 
@@ -180,7 +178,8 @@ Future<void> _maybeConnectToDwds(int tabId, Object? params) async {
   );
   if (!connected) {
     debugWarn('Failed to connect to DWDS for $contextOrigin.');
-    sendConnectFailureMessage(ConnectFailureReason.unknown, dartAppTabId: tabId);
+    sendConnectFailureMessage(ConnectFailureReason.unknown,
+        dartAppTabId: tabId);
   }
 }
 
@@ -481,11 +480,4 @@ class _DebugSession {
     _batchSubscription.cancel();
     _batchController.close();
   }
-}
-
-Future<DebugInfo?> _fetchDebugInfo(int tabId) {
-  return fetchStorageObject<DebugInfo>(
-    type: StorageObject.debugInfo,
-    tabId: tabId,
-  );
 }
