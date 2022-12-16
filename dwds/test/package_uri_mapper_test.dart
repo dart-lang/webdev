@@ -42,6 +42,8 @@ void main() {
 
       late final PackageUriMapper packageUriMapper;
       setUpAll(() async {
+        // Note: Run `dart pub upgrade` before the test cases to fix
+        // https://github.com/dart-lang/webdev/issues/1834:
         await Process.run(
           'dart',
           ['pub', 'upgrade'],
