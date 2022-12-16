@@ -28,11 +28,11 @@ void main() {
       final resolvedPath =
           '/webdev/fixtures/_testPackageSound/lib/test_library.dart';
 
-      final testPackageSoundDir = Uri.file(p.normalize(p.absolute(p.join(
+      final testPackageSoundPath = p.normalize(p.absolute(p.join(
         '..',
         'fixtures',
         '_testPackageSound',
-      ))));
+      )));
 
       final packageConfigFile = Uri.file(p.normalize(p.absolute(p.join(
         '..',
@@ -47,7 +47,7 @@ void main() {
         await Process.run(
           'dart',
           ['pub', 'upgrade'],
-          workingDirectory: testPackageSoundDir.toFilePath(),
+          workingDirectory: testPackageSoundPath,
         );
 
         packageUriMapper = await PackageUriMapper.create(
