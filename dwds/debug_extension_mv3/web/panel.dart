@@ -3,22 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library debugger_panel;
+library panel;
 
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:js/js.dart';
 import 'package:dwds/data/debug_info.dart';
+import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'data_types.dart';
-import 'messaging.dart';
 import 'data_serializers.dart';
-import 'logger.dart';
+import 'data_types.dart';
 import 'debug_session.dart';
+import 'logger.dart';
+import 'messaging.dart';
 import 'storage.dart';
-// Show banner is no longer a dart app, and disable launch button.
 
 bool connecting = false;
 String devToolsBackgroundColor = darkColor;

@@ -27,10 +27,10 @@ import 'chrome_api.dart';
 import 'data_serializers.dart';
 import 'data_types.dart';
 import 'logger.dart';
+import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
 import 'web_api.dart';
-import 'messaging.dart';
 
 const _notADartAppAlert = 'No Dart application detected.'
     ' Are you trying to debug an application that includes a Chrome hosted app'
