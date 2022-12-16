@@ -4,6 +4,8 @@
 
 @TestOn('vm')
 
+import 'dart:io';
+
 import 'package:dwds/dwds.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
@@ -26,6 +28,12 @@ void main() {
       final resolvedPath =
           '/webdev/fixtures/_testPackageSound/lib/test_library.dart';
 
+      final testPackageSoundDir = Uri.file(p.normalize(p.absolute(p.join(
+        '..',
+        'fixtures',
+        '_testPackageSound',
+      ))));
+
       final packageConfigFile = Uri.file(p.normalize(p.absolute(p.join(
         '..',
         'fixtures',
@@ -36,6 +44,12 @@ void main() {
 
       late final PackageUriMapper packageUriMapper;
       setUpAll(() async {
+        await Process.run(
+          'dart',
+          ['pub', 'upgrade'],
+          workingDirectory: testPackageSoundDir.toFilePath(),
+        );
+
         packageUriMapper = await PackageUriMapper.create(
           fileSystem,
           packageConfigFile,
