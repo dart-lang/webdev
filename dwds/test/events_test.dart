@@ -22,7 +22,7 @@ ChromeProxyService get service =>
 
 WipConnection get tabConnection => context.tabConnection;
 
-final context = TestContext();
+final context = TestContext(nullSafety: NullSafety.sound);
 
 void main() {
   group('serve requests', () {
