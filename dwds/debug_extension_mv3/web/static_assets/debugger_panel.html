@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="styles.css" type="text/css" />
   </head>
 
-  <body class="dark-theme">
+  <body id="panelBody" data-panel="debugger" class="dark-theme">
     <div id="landingPage" class="mdl-layout mdl-js-layout">
       <header class="mdl-layout__header">
         <div class="mdl-layout__header-row">
@@ -39,7 +39,7 @@
             </div>
             <div class="mdl-card__actions mdl-card--border">
               <button
-                id="launchDebuggerButton"
+                id="launchDebugConnectionButton"
                 class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
               >
                 Launch Debugger
@@ -67,6 +67,6 @@
     </div>
 
     <!-- Load script: -->
-    <script src="../debugger_panel.dart.js"></script>
+    <script src="../panel.dart.js"></script>
   </body>
 </html>

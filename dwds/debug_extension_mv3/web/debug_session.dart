@@ -45,11 +45,11 @@ final _debugSessions = <_DebugSession>[];
 final _tabIdToTrigger = <int, Trigger>{};
 
 enum DetachReason {
-  canceled_by_user,
-  connection_error_event,
-  connection_done_event,
-  devtools_tab_closed,
-  navigated_away_from_app,
+  canceledByUser,
+  connectionErrorEvent,
+  connectionDoneEvent,
+  devToolsTabClosed,
+  navigatedAwayFromApp,
   unknown;
 
   factory DetachReason.fromString(String value) {
@@ -59,7 +59,7 @@ enum DetachReason {
 
 enum ConnectFailureReason {
   authentication,
-  no_dart_app,
+  noDartApp,
   timeout,
   unknown;
 
@@ -114,14 +114,14 @@ void _registerDebugEventListeners() {
   chrome.debugger.onDetach.addListener(allowInterop(
     (source, _) => _handleDebuggerDetach(
       source,
-      DetachReason.canceled_by_user,
+      DetachReason.canceledByUser,
     ),
   ));
   chrome.tabs.onRemoved.addListener(allowInterop(
     (tabId, _) => detachDebugger(
       tabId,
       type: TabType.devTools,
-      reason: DetachReason.devtools_tab_closed,
+      reason: DetachReason.devToolsTabClosed,
     ),
   ));
 }
@@ -207,7 +207,7 @@ Future<bool> _connectToDwds({
       detachDebugger(
         dartAppTabId,
         type: TabType.dartApp,
-        reason: DetachReason.connection_done_event,
+        reason: DetachReason.connectionDoneEvent,
       );
     },
     onError: (err) {
@@ -215,7 +215,7 @@ Future<bool> _connectToDwds({
       detachDebugger(
         dartAppTabId,
         type: TabType.dartApp,
-        reason: DetachReason.connection_error_event,
+        reason: DetachReason.connectionErrorEvent,
       );
     },
     cancelOnError: true,

@@ -1,44 +1,62 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://code.getmdl.io/1.3.0/material.indigo-blue.min.css"
+      type="text/css"
+    />
+    <link
+      rel="stylesheet"
+      href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700"
+      type="text/css"
+    />
+    <link rel="stylesheet" href="styles.css" type="text/css" />
+  </head>
 
-<head>
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-blue.min.css" type="text/css" />
-    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
-    <link rel="stylesheet" href="styles.css" type="text/css">
-</head>
-
-<body class="dark-theme">
-
+  <body id="panelBody" data-panel="inspector" class="dark-theme">
     <div class="mdl-layout mdl-js-layout">
-
-        <header class="mdl-layout__header">
-            <div class="mdl-layout__header-row">
-              <span class="mdl-layout__title">Flutter Inspector</span>
-              <div class="mdl-layout-spacer"></div>
-            </div>
-          </header>
-
-        <div class="mdl-grid">
-            <div class="mdl-cell mdl-cell--12-col">
-
-                <div class="dart-card inspector-card mdl-card mdl-shadow--2dp">
-                    <div class="mdl-card__title"></div>
-                    <div class="mdl-card__supporting-text">
-                        The Flutter Inspector allows you to inspect the widgets in your Flutter app.
-                    </div>
-                    <div class="mdl-card__actions mdl-card--border">
-                        <button
-                            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
-                            Launch Inspector
-                        </button>
-                    </div>
-                </div>
-            
-            </div>
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <span class="mdl-layout__title">Flutter Inspector</span>
+          <div class="mdl-layout-spacer"></div>
         </div>
+      </header>
 
+      <div class="mdl-grid">
+        <div class="mdl-cell mdl-cell--12-col">
+          <div class="dart-card inspector-card mdl-card mdl-shadow--2dp">
+            <div class="mdl-card__title"></div>
+            <div class="mdl-card__supporting-text">
+              The Flutter Inspector allows you to inspect the widgets in your
+              Flutter app.
+            </div>
+            <div class="mdl-card__actions mdl-card--border">
+              <button
+                id="launchDebugConnectionButton"
+                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+              >
+                Launch Inspector
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    
-</body>
 
+    <div id="iframeContainer"></div>
+    <div id="warningBanner" class="snackbar snackbar--warning">
+      <span id="warningMsg">Error.</span> If something is broken, please
+      <a
+        id="bugLink"
+        href="https://github.com/dart-lang/webdev/issues/new"
+        target="_blank"
+        rel="noopener noreferrer"
+        >file a bug.</a
+      >
+    </div>
+
+    <!-- Load script: -->
+    <script src="../panel.dart.js"></script>
+  </body>
 </html>

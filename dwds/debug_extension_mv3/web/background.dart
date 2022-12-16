@@ -60,7 +60,7 @@ Future<void> _startDebugSession(int tabId, {required Trigger trigger}) async {
   if (extensionUrl == null) {
     _showWarningNotification('Can\'t debug Dart app. Extension URL not found.');
     sendConnectFailureMessage(
-      ConnectFailureReason.no_dart_app,
+      ConnectFailureReason.noDartApp,
       dartAppTabId: tabId,
     );
     return;
@@ -152,7 +152,7 @@ void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
     detachDebugger(
       tabId,
       type: TabType.dartApp,
-      reason: DetachReason.navigated_away_from_app,
+      reason: DetachReason.navigatedAwayFromApp,
     );
   }
 }

@@ -21,6 +21,16 @@ import 'storage.dart';
 
 bool connecting = false;
 
+const bugLinkId = 'bugLink';
+const iframeContainerId = 'iframeContainer';
+const landingPageId = 'landingPage';
+const launchDebugConnectionButtonId = 'launchDebugConnectionButton';
+const loadingSpinnerId = 'loadingSpinner';
+const panelAttribute = 'data-panel';
+const panelBodyId = 'panelBody';
+const warningBannerId = 'warningBanner';
+const warningMsgId = 'warningMsg';
+
 void main() {
   _registerListeners();
   _maybeUpdateFileABugLink();
@@ -28,9 +38,9 @@ void main() {
 
 void _registerListeners() {
   chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
-  final launchDebuggerButton =
-      document.getElementById('launchDebuggerButton') as ButtonElement;
-  launchDebuggerButton.addEventListener('click', _launchDebugConnection);
+  final launchDebugConnectionButton =
+      document.getElementById(launchDebugConnectionButtonId) as ButtonElement;
+  launchDebugConnectionButton.addEventListener('click', _launchDebugConnection);
 }
 
 void _handleRuntimeMessages(
@@ -94,7 +104,7 @@ void _maybeUpdateFileABugLink() async {
   );
   final isInternal = debugInfo?.isInternalBuild ?? false;
   if (isInternal) {
-    final bugLink = document.getElementById('bugLink');
+    final bugLink = document.getElementById(bugLinkId);
     if (bugLink == null) return;
     bugLink.setAttribute('href',
         'https://b.corp.google.com/issues/new?component=775375&template=1369639');
@@ -104,8 +114,8 @@ void _maybeUpdateFileABugLink() async {
 void _handleDebugConnectionLost(String? reason) {
   final detachReason = DetachReason.fromString(reason ?? 'unknown');
   _removeDevToolsIframe();
-  _updateElementVisibility('landingPage', visible: true);
-  if (detachReason != DetachReason.canceled_by_user) {
+  _updateElementVisibility(landingPageId, visible: true);
+  if (detachReason != DetachReason.canceledByUser) {
     _showWarningBanner('Lost connection.');
   }
 }
@@ -115,7 +125,7 @@ void _handleConnectFailure(ConnectFailureReason reason) {
     case ConnectFailureReason.authentication:
       _showWarningBanner('Please re-authenticate and try again.');
       break;
-    case ConnectFailureReason.no_dart_app:
+    case ConnectFailureReason.noDartApp:
       _showWarningBanner('No Dart app detected.');
       break;
     case ConnectFailureReason.timeout:
@@ -124,26 +134,26 @@ void _handleConnectFailure(ConnectFailureReason reason) {
     default:
       _showWarningBanner('Failed to connect, please try again.');
   }
-  _updateElementVisibility('launchDebuggerButton', visible: true);
-  _updateElementVisibility('loadingSpinner', visible: false);
+  _updateElementVisibility(launchDebugConnectionButtonId, visible: true);
+  _updateElementVisibility(loadingSpinnerId, visible: false);
 }
 
 void _showWarningBanner(String message) {
-  final warningMsg = document.getElementById('warningMsg');
+  final warningMsg = document.getElementById(warningMsgId);
   warningMsg?.setInnerHtml(message);
   print(warningMsg);
-  final warningBanner = document.getElementById('warningBanner');
+  final warningBanner = document.getElementById(warningBannerId);
   warningBanner?.classes.add('show');
 }
 
 void _hideWarningBanner() {
-  final warningBanner = document.getElementById('warningBanner');
+  final warningBanner = document.getElementById(warningBannerId);
   warningBanner?.classes.remove('show');
 }
 
 void _launchDebugConnection(Event _) async {
-  _updateElementVisibility('launchDebuggerButton', visible: false);
-  _updateElementVisibility('loadingSpinner', visible: true);
+  _updateElementVisibility(launchDebugConnectionButtonId, visible: false);
+  _updateElementVisibility(loadingSpinnerId, visible: true);
   final dartAppTabId = chrome.devtools.inspectedWindow.tabId;
   final json = jsonEncode(serializers.serialize(DebugStateChange((b) => b
     ..tabId = dartAppTabId
@@ -165,20 +175,21 @@ void _maybeHandleConnectionTimeout() async {
 }
 
 void _injectDevToolsIframe(String devToolsUrl) {
-  final iframeContainer = document.getElementById('iframeContainer');
+  final iframeContainer = document.getElementById(iframeContainerId);
   if (iframeContainer == null) return;
+  final panelBody = document.getElementById(panelBodyId);
+  final panelType = panelBody?.getAttribute(panelAttribute) ?? 'debugger';
   final iframe = document.createElement('iframe');
-  iframe.setAttribute('src', '$devToolsUrl&embed=true&page=debugger');
-  iframe.setAttribute('id', 'dartDebugExtensionIframe');
+  iframe.setAttribute('src', '$devToolsUrl&embed=true&page=$panelType');
   _hideWarningBanner();
-  _updateElementVisibility('landingPage', visible: false);
-  _updateElementVisibility('loadingSpinner', visible: false);
-  _updateElementVisibility('launchDebuggerButton', visible: true);
+  _updateElementVisibility(landingPageId, visible: false);
+  _updateElementVisibility(loadingSpinnerId, visible: false);
+  _updateElementVisibility(launchDebugConnectionButtonId, visible: true);
   iframeContainer.append(iframe);
 }
 
 void _removeDevToolsIframe() {
-  final iframeContainer = document.getElementById('iframeContainer');
+  final iframeContainer = document.getElementById(iframeContainerId);
   final iframe = iframeContainer?.firstChild;
   if (iframe == null) return;
   iframe.remove();
