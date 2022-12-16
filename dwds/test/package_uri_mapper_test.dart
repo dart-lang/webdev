@@ -34,13 +34,11 @@ void main() {
         '_testPackageSound',
       )));
 
-      final packageConfigFile = Uri.file(p.normalize(p.absolute(p.join(
-        '..',
-        'fixtures',
-        '_testPackageSound',
+      final packageConfigFile = Uri.file(p.join(
+        testPackageSoundPath,
         '.dart_tool',
         'package_config.json',
-      ))));
+      ));
 
       late final PackageUriMapper packageUriMapper;
       setUpAll(() async {
