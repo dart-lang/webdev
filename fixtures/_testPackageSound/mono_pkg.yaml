@@ -10,3 +10,5 @@ cache:
   directories:
     - .dart_tool/build
     - .dart_tool/pub
+  files:
+    - .dart_tool/package_config.json
