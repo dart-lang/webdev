@@ -23,6 +23,8 @@ import 'test_utils.dart';
 
 final context = TestContext();
 
+enum Panel { debugger, inspector }
+
 void main() async {
   group('MV3 Debug Extension', () {
     late String extensionPath;
@@ -133,6 +135,7 @@ void main() async {
           var appWindowId = await _getWindowId(appUrl, worker: worker);
           expect(devToolsWindowId == appWindowId, isTrue);
           // Close the DevTools tab:
+          devToolsTab = await devToolsTabTarget.page;
           await devToolsTab.close();
           // Navigate to the extension settings page:
           final extensionOrigin = getExtensionOrigin(browser);
@@ -156,7 +159,6 @@ void main() async {
           devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
           devToolsTab = await devToolsTabTarget.page;
-          await devToolsTab.bringToFront();
           devToolsWindowId = await _getWindowId(
             devToolsTab.url!,
             worker: worker,
@@ -212,7 +214,7 @@ void main() async {
           // Verify that the Dart DevTools tab closes:
           await devToolsTabTarget.onClose;
         });
-      });
+      }, skip: true);
     }
 
     group('connected to an externally-built', () {
@@ -228,7 +230,9 @@ void main() async {
               serveDevTools: true,
               isInternalBuild: false,
               isFlutterApp: isFlutterApp,
+              openChromeDevTools: true,
             );
+
             worker = await getServiceWorker(browser);
           });
 
@@ -268,7 +272,7 @@ void main() async {
           }, skip: true);
         });
       }
-    });
+    }, skip: true);
 
     group('connected to an internally-built', () {
       for (var isFlutterApp in [true, false]) {
@@ -283,7 +287,9 @@ void main() async {
               serveDevTools: true,
               isInternalBuild: true,
               isFlutterApp: isFlutterApp,
+              openChromeDevTools: true,
             );
+
             worker = await getServiceWorker(browser);
           });
 
@@ -314,26 +320,66 @@ void main() async {
             expect(debugInfo.isInternalBuild, equals(true));
             expect(debugInfo.isFlutterApp, equals(isFlutterApp));
             await appTab.close();
-          });
-
-          test('the Dart Debugger panel is added to Chrome DevTools', () async {
-            // TODO(elliette): Requires either of the following to be resolved:
-            // - https://github.com/puppeteer/puppeteer/issues/9371
-            // - https://github.com/xvrh/puppeteer-dart/issues/201
           }, skip: true);
 
-          if (isFlutterApp) {
-            test('the Flutter Inspector panel is added to Chrome DevTools',
-                () async {
-              // TODO(elliette): Requires either of the following to be resolved:
-              // - https://github.com/puppeteer/puppeteer/issues/9371
-              // - https://github.com/xvrh/puppeteer-dart/issues/201
-            }, skip: true);
-          }
+          test('the correct extension panels are added to Chrome DevTools',
+              () async {
+            final appUrl = context.appUrl;
+            // This is the blank page automatically opened by Chrome:
+            final blankTab = await navigateToPage(browser, url: 'about:blank');
+            // Navigate to the Dart app:
+            await blankTab.goto(appUrl, wait: Until.domContentLoaded);
+            final appTab = blankTab;
+            await appTab.bringToFront();
+            final chromeDevToolsTarget = browser.targets.firstWhere(
+                (target) => target.url.startsWith('devtools://devtools'));
+            chromeDevToolsTarget.type = 'page';
+            final chromeDevToolsPage = await chromeDevToolsTarget.page;
+            if (isFlutterApp) {
+              await workerEvalDelay();
+              _tabLeft(chromeDevToolsPage);
+              final inspectorPanelElement =
+                  await _getPanelElement(browser, panel: Panel.inspector);
+              expect(inspectorPanelElement, isNotNull);
+            }
+            await workerEvalDelay();
+            _tabLeft(chromeDevToolsPage);
+            final debuggerPanelElement =
+                await _getPanelElement(browser, panel: Panel.debugger);
+            expect(debuggerPanelElement, isNotNull);
+          });
         });
       }
     });
   });
+}
+
+Future<ElementHandle?> _getPanelElement(
+  Browser browser, {
+  required Panel panel,
+}) async {
+  final panelName =
+      panel == Panel.inspector ? 'inspector_panel' : 'debugger_panel';
+  final panelSelector =
+      panel == Panel.inspector ? '#inspector-panel' : '#debugger-panel';
+  final panelTarget =
+      await browser.waitForTarget((target) => target.url.contains(panelName));
+  panelTarget.type = 'page';
+  final panelPage = await panelTarget.page;
+  final frames = panelPage.frames;
+  final mainFrame = frames[0];
+  final panelElement = await mainFrame.$OrNull(panelSelector);
+  return panelElement;
+}
+
+void _tabLeft(Page chromeDevToolsPage) async {
+  // TODO(elliette): Detect which enviroment we are OS we are running
+  // in and update modifier key accordingly. Meta key for MacOs and
+  // Ctrl key for Linux/Windows.
+  final modifierKey = Key.meta;
+  await chromeDevToolsPage.keyboard.down(modifierKey);
+  await chromeDevToolsPage.keyboard.press(Key.bracketLeft);
+  await chromeDevToolsPage.keyboard.up(modifierKey);
 }
 
 Future<int> _getTabId(
