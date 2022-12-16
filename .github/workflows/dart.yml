@@ -75,7 +75,7 @@ jobs:
         working-directory: dwds
         run: dart test test/build/ensure_version_test.dart
   job_003:
-    name: "analyzer_and_format; linux; Dart dev; PKGS: example, fixtures/_webdevSmoke, frontend_server_client, frontend_server_common; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
+    name: "analyzer_and_format; linux; Dart dev; PKGS: example, fixtures/_webdevSmoke, fixtures/_testPackageSound, frontend_server_client, frontend_server_common; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -119,6 +119,11 @@ jobs:
         if: "always() && steps.fixtures__webdevSmoke_pub_upgrade.conclusion == 'success'"
         working-directory: fixtures/_webdevSmoke
         run: dart analyze --fatal-infos .
+      - id: fixtures__testPackageSound_pub_upgrade
+        name: fixtures/_testPackageSound; dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: fixtures/_testPackageSound
+        run: dart pub upgrade
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
