@@ -22,6 +22,7 @@ import 'storage.dart';
 
 bool connecting = false;
 String devToolsBackgroundColor = darkColor;
+bool isDartApp = true;
 
 const bugLinkId = 'bugLink';
 const darkColor = '202125';
@@ -46,6 +47,7 @@ void main() {
 }
 
 void _registerListeners() {
+  chrome.storage.onChanged.addListener(allowInterop(_handleDebugInfoChanges));
   chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
   final launchDebugConnectionButton =
       document.getElementById(launchDebugConnectionButtonId) as ButtonElement;
@@ -99,11 +101,26 @@ void _handleRuntimeMessages(
           return;
         }
         connecting = false;
-        debugLog('handling connect failure');
         _handleConnectFailure(
           ConnectFailureReason.fromString(connectFailure.reason ?? 'unknown'),
         );
       });
+}
+
+void _handleDebugInfoChanges(Object _, String storageArea) async {
+  if (storageArea != 'session') return;
+  final debugInfo = await fetchStorageObject<DebugInfo>(
+    type: StorageObject.debugInfo,
+    tabId: chrome.devtools.inspectedWindow.tabId,
+  );
+  if (debugInfo == null && isDartApp) {
+    isDartApp = false;
+    _showWarningBanner('Dart app is no longer open.');
+  }
+  if (debugInfo != null && !isDartApp) {
+    isDartApp = true;
+    _hideWarningBanner();
+  }
 }
 
 void _maybeUpdateFileABugLink() async {
