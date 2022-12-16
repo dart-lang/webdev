@@ -59,13 +59,19 @@ Future<void> _startDebugSession(int tabId, {required Trigger trigger}) async {
   final extensionUrl = debugInfo?.extensionUrl;
   if (extensionUrl == null) {
     _showWarningNotification('Can\'t debug Dart app. Extension URL not found.');
-    sendConnectFailureMessage(ConnectFailureReason.no_dart_app, dartAppTabId: tabId);
+    sendConnectFailureMessage(
+      ConnectFailureReason.no_dart_app,
+      dartAppTabId: tabId,
+    );
     return;
   }
   final isAuthenticated = await _authenticateUser(extensionUrl, tabId);
   if (!isAuthenticated) {
-        sendConnectFailureMessage(ConnectFailureReason.authentication, dartAppTabId: tabId);
-        return;
+    sendConnectFailureMessage(
+      ConnectFailureReason.authentication,
+      dartAppTabId: tabId,
+    );
+    return;
   }
 
   maybeCreateLifelinePort(tabId);
@@ -131,7 +137,6 @@ void _handleRuntimeMessages(
         final newState = debugStateChange.newState;
         final tabId = debugStateChange.tabId;
         if (newState == DebugStateChange.startDebugging) {
-          debugLog('sending start debugging for $tabId, triggered from extension panel');
           _startDebugSession(tabId, trigger: Trigger.extensionPanel);
         }
       });

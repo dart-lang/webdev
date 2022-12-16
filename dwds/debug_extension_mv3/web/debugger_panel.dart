@@ -74,10 +74,13 @@ void _handleRuntimeMessages(
       expectedSender: Script.background,
       expectedRecipient: Script.debuggerPanel,
       messageHandler: (ConnectFailure connectFailure) async {
+        debugLog(
+            'Received connect failure for ${connectFailure.tabId} vs $tabId');
         if (connectFailure.tabId != tabId) {
           return;
         }
         connecting = false;
+        debugLog('handling connect failure');
         _handleConnectFailure(
           ConnectFailureReason.fromString(connectFailure.reason ?? 'unknown'),
         );
@@ -93,14 +96,13 @@ void _maybeUpdateFileABugLink() async {
   if (isInternal) {
     final bugLink = document.getElementById('bugLink');
     if (bugLink == null) return;
-    bugLink.setAttribute('src',
+    bugLink.setAttribute('href',
         'https://b.corp.google.com/issues/new?component=775375&template=1369639');
   }
 }
 
 void _handleDebugConnectionLost(String? reason) {
   final detachReason = DetachReason.fromString(reason ?? 'unknown');
-  // Remove Dart DevTools IFRAME:
   _removeDevToolsIframe();
   _updateElementVisibility('landingPage', visible: true);
   if (detachReason != DetachReason.canceled_by_user) {
@@ -129,7 +131,14 @@ void _handleConnectFailure(ConnectFailureReason reason) {
 void _showWarningBanner(String message) {
   final warningMsg = document.getElementById('warningMsg');
   warningMsg?.setInnerHtml(message);
-  _updateElementVisibility('warningBanner', visible: true);
+  print(warningMsg);
+  final warningBanner = document.getElementById('warningBanner');
+  warningBanner?.classes.add('show');
+}
+
+void _hideWarningBanner() {
+  final warningBanner = document.getElementById('warningBanner');
+  warningBanner?.classes.remove('show');
 }
 
 void _launchDebugConnection(Event _) async {
@@ -161,8 +170,8 @@ void _injectDevToolsIframe(String devToolsUrl) {
   final iframe = document.createElement('iframe');
   iframe.setAttribute('src', '$devToolsUrl&embed=true&page=debugger');
   iframe.setAttribute('id', 'dartDebugExtensionIframe');
+  _hideWarningBanner();
   _updateElementVisibility('landingPage', visible: false);
-  _updateElementVisibility('lostConnectionSnackbar', visible: false);
   _updateElementVisibility('loadingSpinner', visible: false);
   _updateElementVisibility('launchDebuggerButton', visible: true);
   iframeContainer.append(iframe);
@@ -173,7 +182,7 @@ void _removeDevToolsIframe() {
   final iframe = iframeContainer?.firstChild;
   if (iframe == null) return;
   iframe.remove();
-  _updateElementVisibility('lostConnectionSnackbar', visible: true);
+  _showWarningBanner('Lost connection.');
 }
 
 void _updateElementVisibility(String elementId, {required bool visible}) {

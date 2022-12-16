@@ -44,7 +44,10 @@
               >
                 Launch Debugger
               </button>
-              <div id="loadingSpinner" class="mdl-spinner mdl-js-spinner is-active hidden"></div>
+              <div
+                id="loadingSpinner"
+                class="mdl-spinner mdl-js-spinner is-active hidden"
+              ></div>
             </div>
           </div>
         </div>
@@ -52,8 +55,15 @@
     </div>
 
     <div id="iframeContainer"></div>
-    <div id="warningBanner" class="snackbar snackbar--warning hidden">
-      <span id="warningMsg">Lost connection.</span> If something is broken, please <href id="bugLink" src="https://github.com/dart-lang/webdev/issues/new">file a bug.</href>
+    <div id="warningBanner" class="snackbar snackbar--warning">
+      <span id="warningMsg">Error.</span> If something is broken, please
+      <a
+        id="bugLink"
+        href="https://github.com/dart-lang/webdev/issues/new"
+        target="_blank"
+        rel="noopener noreferrer"
+        >file a bug.</a
+      >
     </div>
 
     <!-- Load script: -->

@@ -88,6 +88,11 @@ h6 {
   z-index: 1;
 }
 
+.snackbar > a {
+  font-weight: bold;
+  color: #eeeeee;
+}
+
 .snackbar--info {
   background-color: #303030;
 }
@@ -97,8 +102,8 @@ h6 {
 }
 
 .show {
-  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  -webkit-animation: fadein 0.5s;
+  animation: fadein 0.5s;
   visibility: visible;
 }
 
