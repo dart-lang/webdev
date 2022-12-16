@@ -119,6 +119,8 @@ void printNestedObjectsMultiLine() {
 }
 
 void printObjectMultiLine() {
+  // TODO(https://github.com/dart-lang/webdev/issues/1831) Tests should not
+  // break when this file is formatted.
   // Note: formatting the line below breaks callstack tests.
   print( // Breakpoint: printMultiLine
     createObject() // Breakpoint: printObjectMultiLine
