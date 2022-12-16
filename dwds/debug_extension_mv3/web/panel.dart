@@ -18,21 +18,30 @@ import 'data_serializers.dart';
 import 'logger.dart';
 import 'debug_session.dart';
 import 'storage.dart';
+// Show banner is no longer a dart app, and disable launch button.
 
 bool connecting = false;
+String devToolsBackgroundColor = darkColor;
 
 const bugLinkId = 'bugLink';
+const darkColor = '202125';
+const darkThemeClass = 'dark-theme';
+const hiddenClass = 'hidden';
 const iframeContainerId = 'iframeContainer';
 const landingPageId = 'landingPage';
 const launchDebugConnectionButtonId = 'launchDebugConnectionButton';
+const lightColor = 'ffffff';
+const lightThemeClass = 'light-theme';
 const loadingSpinnerId = 'loadingSpinner';
 const panelAttribute = 'data-panel';
 const panelBodyId = 'panelBody';
+const showClass = 'show';
 const warningBannerId = 'warningBanner';
 const warningMsgId = 'warningMsg';
 
 void main() {
   _registerListeners();
+  _setColorThemeToMatchChromeDevTools();
   _maybeUpdateFileABugLink();
 }
 
@@ -106,8 +115,33 @@ void _maybeUpdateFileABugLink() async {
   if (isInternal) {
     final bugLink = document.getElementById(bugLinkId);
     if (bugLink == null) return;
-    bugLink.setAttribute('href',
-        'https://b.corp.google.com/issues/new?component=775375&template=1369639');
+    bugLink.setAttribute(
+        'href', 'http://b/issues/new?component=775375&template=1369639');
+  }
+}
+
+void _setColorThemeToMatchChromeDevTools() async {
+  final chromeTheme = chrome.devtools.panels.themeName;
+  final panelBody = document.getElementById(panelBodyId);
+  if (chromeTheme == 'dark') {
+    devToolsBackgroundColor = darkColor;
+    _updateColorThemeForElement(panelBody, isDarkTheme: true);
+  } else {
+    devToolsBackgroundColor = lightColor;
+    _updateColorThemeForElement(panelBody, isDarkTheme: false);
+  }
+}
+
+void _updateColorThemeForElement(
+  Element? element, {
+  required bool isDarkTheme,
+}) {
+  if (element == null) return;
+  final classToRemove = isDarkTheme ? lightThemeClass : darkThemeClass;
+  if (element.classes.contains(classToRemove)) {
+    element.classes.remove(classToRemove);
+    final classToAdd = isDarkTheme ? darkThemeClass : lightThemeClass;
+    element.classes.add(classToAdd);
   }
 }
 
@@ -143,12 +177,12 @@ void _showWarningBanner(String message) {
   warningMsg?.setInnerHtml(message);
   print(warningMsg);
   final warningBanner = document.getElementById(warningBannerId);
-  warningBanner?.classes.add('show');
+  warningBanner?.classes.add(showClass);
 }
 
 void _hideWarningBanner() {
   final warningBanner = document.getElementById(warningBannerId);
-  warningBanner?.classes.remove('show');
+  warningBanner?.classes.remove(showClass);
 }
 
 void _launchDebugConnection(Event _) async {
@@ -180,7 +214,10 @@ void _injectDevToolsIframe(String devToolsUrl) {
   final panelBody = document.getElementById(panelBodyId);
   final panelType = panelBody?.getAttribute(panelAttribute) ?? 'debugger';
   final iframe = document.createElement('iframe');
-  iframe.setAttribute('src', '$devToolsUrl&embed=true&page=$panelType');
+  iframe.setAttribute(
+    'src',
+    '$devToolsUrl&embed=true&page=$panelType&backgroundColor=$devToolsBackgroundColor',
+  );
   _hideWarningBanner();
   _updateElementVisibility(landingPageId, visible: false);
   _updateElementVisibility(loadingSpinnerId, visible: false);
@@ -193,15 +230,14 @@ void _removeDevToolsIframe() {
   final iframe = iframeContainer?.firstChild;
   if (iframe == null) return;
   iframe.remove();
-  _showWarningBanner('Lost connection.');
 }
 
 void _updateElementVisibility(String elementId, {required bool visible}) {
   final element = document.getElementById(elementId);
   if (element == null) return;
   if (visible) {
-    element.classes.remove('hidden');
+    element.classes.remove(hiddenClass);
   } else {
-    element.classes.add('hidden');
+    element.classes.add(hiddenClass);
   }
 }
