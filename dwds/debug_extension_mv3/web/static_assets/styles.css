@@ -78,13 +78,11 @@ h6 {
   border-radius: 2px;
   bottom: 0px;
   color: #eeeeee;
-  left: 50%;
-  margin-left: -125px;
   padding: 16px;
   position: fixed;
   text-align: center;
   visibility: hidden;
-  width: 350px;
+  width: 100%;
   z-index: 1;
 }
 
