@@ -8,11 +8,14 @@
   // TODO(elliette): Enable on Linux.
   'linux': Skip('https://github.com/dart-lang/webdev/issues/1787'),
 })
-@Timeout(Duration(seconds: 60))
+@Timeout(Duration(minutes: 2))
+import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:dwds/data/debug_info.dart';
+import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
@@ -56,6 +59,7 @@ void main() async {
         tearDown(() async {
           await workerEvalDelay();
           await worker.evaluate(_clearStorageJs());
+          await workerEvalDelay();
         });
 
         tearDownAll(() async {
@@ -93,14 +97,14 @@ void main() async {
           final extensionOrigin = getExtensionOrigin(browser);
           final settingsTab = await navigateToPage(
             browser,
-            url: '$extensionOrigin/settings.html',
+            url: '$extensionOrigin/static_assets/settings.html',
             isNew: true,
           );
           // Set the settings to open DevTools in a new window:
           await settingsTab.tap('#windowOpt');
           await settingsTab.tap('#saveButton');
           // Wait for the saved message to verify settings have been saved:
-          await settingsTab.waitForSelector('#savedMsg');
+          await settingsTab.waitForSelector('.show');
           // Close the settings tab:
           await settingsTab.close();
           // Check that is has been saved in local storage:
@@ -141,14 +145,14 @@ void main() async {
           final extensionOrigin = getExtensionOrigin(browser);
           final settingsTab = await navigateToPage(
             browser,
-            url: '$extensionOrigin/settings.html',
+            url: '$extensionOrigin/static_assets/settings.html',
             isNew: true,
           );
           // Set the settings to open DevTools in a new window:
           await settingsTab.tap('#windowOpt');
           await settingsTab.tap('#saveButton');
           // Wait for the saved message to verify settings have been saved:
-          await settingsTab.waitForSelector('#savedMsg');
+          await settingsTab.waitForSelector('.show');
           // Close the settings tab:
           await settingsTab.close();
           // Navigate to the Dart app:
@@ -214,7 +218,7 @@ void main() async {
           // Verify that the Dart DevTools tab closes:
           await devToolsTabTarget.onClose;
         });
-      }, skip: true);
+      });
     }
 
     group('connected to an externally-built', () {
@@ -266,13 +270,30 @@ void main() async {
           });
 
           test('no additional panels are added in Chrome DevTools', () async {
-            // TODO(elliette): Requires either of the following to be resolved:
-            // - https://github.com/puppeteer/puppeteer/issues/9371
-            // - https://github.com/xvrh/puppeteer-dart/issues/201
-          }, skip: true);
+            final appUrl = context.appUrl;
+            // This is the blank page automatically opened by Chrome:
+            final blankTab = await navigateToPage(browser, url: 'about:blank');
+            // Navigate to the Dart app:
+            await blankTab.goto(appUrl, wait: Until.domContentLoaded);
+            final appTab = blankTab;
+            await appTab.bringToFront();
+            final chromeDevToolsTarget = browser.targets.firstWhere(
+                (target) => target.url.startsWith('devtools://devtools'));
+            chromeDevToolsTarget.type = 'page';
+            final chromeDevToolsPage = await chromeDevToolsTarget.page;
+            _tabLeft(chromeDevToolsPage);
+            await _takeScreenshot(chromeDevToolsPage,
+                screenshotName: 'chromeDevTools_externalBuild');
+            final inspectorPanelTarget = browser.targets
+                .firstWhereOrNull((target) => target.url == 'inspector_panel');
+            expect(inspectorPanelTarget, isNull);
+            final debuggerPanelTarget = browser.targets
+                .firstWhereOrNull((target) => target.url == 'debugger_panel');
+            expect(debuggerPanelTarget, isNull);
+          });
         });
       }
-    }, skip: true);
+    });
 
     group('connected to an internally-built', () {
       for (var isFlutterApp in [true, false]) {
@@ -296,6 +317,7 @@ void main() async {
           tearDown(() async {
             await workerEvalDelay();
             await worker.evaluate(_clearStorageJs());
+            await workerEvalDelay();
           });
 
           tearDownAll(() async {
@@ -320,7 +342,7 @@ void main() async {
             expect(debugInfo.isInternalBuild, equals(true));
             expect(debugInfo.isFlutterApp, equals(isFlutterApp));
             await appTab.close();
-          }, skip: true);
+          });
 
           test('the correct extension panels are added to Chrome DevTools',
               () async {
@@ -335,18 +357,28 @@ void main() async {
                 (target) => target.url.startsWith('devtools://devtools'));
             chromeDevToolsTarget.type = 'page';
             final chromeDevToolsPage = await chromeDevToolsTarget.page;
+            // There are no hooks for when a panel is added to Chrome DevTools,
+            // therefore we rely on a slight delay:
+            await Future.delayed(Duration(seconds: 1));
             if (isFlutterApp) {
-              await workerEvalDelay();
               _tabLeft(chromeDevToolsPage);
               final inspectorPanelElement =
                   await _getPanelElement(browser, panel: Panel.inspector);
               expect(inspectorPanelElement, isNotNull);
+              await _takeScreenshot(
+                chromeDevToolsPage,
+                screenshotName: 'inspectorPanelLandingPage_flutterApp',
+              );
             }
-            await workerEvalDelay();
             _tabLeft(chromeDevToolsPage);
             final debuggerPanelElement =
                 await _getPanelElement(browser, panel: Panel.debugger);
             expect(debuggerPanelElement, isNotNull);
+            await _takeScreenshot(
+              chromeDevToolsPage,
+              screenshotName:
+                  'debuggerPanelLandingPage_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
+            );
           });
         });
       }
@@ -360,15 +392,13 @@ Future<ElementHandle?> _getPanelElement(
 }) async {
   final panelName =
       panel == Panel.inspector ? 'inspector_panel' : 'debugger_panel';
-  final panelSelector =
-      panel == Panel.inspector ? '#inspector-panel' : '#debugger-panel';
   final panelTarget =
       await browser.waitForTarget((target) => target.url.contains(panelName));
   panelTarget.type = 'page';
   final panelPage = await panelTarget.page;
   final frames = panelPage.frames;
   final mainFrame = frames[0];
-  final panelElement = await mainFrame.$OrNull(panelSelector);
+  final panelElement = await mainFrame.$OrNull('#panelBody');
   return panelElement;
 }
 
@@ -459,4 +489,15 @@ String _clearStorageJs() {
       return true;
     }
 ''';
+}
+
+Future<void> _takeScreenshot(
+  Page page, {
+  required String screenshotName,
+}) async {
+  await Future.delayed(Duration(seconds: 1));
+  final screenshot = await page.screenshot();
+  final screenshotPath =
+      p.join('test', 'puppeteer', 'test_images', '$screenshotName.png');
+  await File(screenshotPath).writeAsBytes(screenshot);
 }
