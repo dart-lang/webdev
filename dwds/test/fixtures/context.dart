@@ -107,29 +107,49 @@ class TestContext {
   late String workingDirectory;
 
   /// The path to build and serve.
-  String pathToServe;
+  late String pathToServe;
 
   /// The path part of the application URL.
-  String path;
+  late String path;
 
   NullSafety nullSafety;
 
-  TestContext({
-    String? directory,
-    String? entry,
-    this.nullSafety = NullSafety.sound,
-    this.path = 'hello_world/index.html',
-    this.pathToServe = 'example',
+  TestContext.withSoundNullSafety({
+    String packageName = '_testSound',
+    String webAssetsPath = 'example/hello_world',
+    String dartEntryFileName = 'main.dart',
+    String htmlEntryFileName = 'index.html',
+  }) : this._(
+          nullSafety: NullSafety.sound,
+          packageName: packageName,
+          webAssetsPath: webAssetsPath,
+          dartEntryFileName: dartEntryFileName,
+          htmlEntryFileName: htmlEntryFileName,
+        );
+
+  TestContext.withWeakNullSafety({
+    String packageName = '_test',
+    String webAssetsPath = 'example/hello_world',
+    String dartEntryFileName = 'main.dart',
+    String htmlEntryFileName = 'index.html',
+  }) : this._(
+          nullSafety: NullSafety.weak,
+          packageName: packageName,
+          webAssetsPath: webAssetsPath,
+          dartEntryFileName: dartEntryFileName,
+          htmlEntryFileName: htmlEntryFileName,
+        );
+
+  TestContext._({
+    required String packageName,
+    required String webAssetsPath,
+    required String dartEntryFileName,
+    required String htmlEntryFileName,
+    required this.nullSafety,
   }) {
-    final defaultPackage =
-        nullSafety == NullSafety.sound ? '_testSound' : '_test';
-    final defaultDirectory = p.join('..', 'fixtures', defaultPackage);
-    final defaultEntry = p.join('..', 'fixtures', defaultPackage, 'example',
-        'append_body', 'main.dart');
-
-    workingDirectory = p.canonicalize(
-        p.relative(directory ?? defaultDirectory, from: p.current));
-
+    final isSoundPackage = packageName.toLowerCase().contains('sound');
+    assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
+    workingDirectory = _canonicalizeFromFixtures([packageName]);
     DartUri.currentDirectory = workingDirectory;
 
     // package_config.json is located in <project directory>/.dart_tool/package_config
@@ -137,8 +157,13 @@ class TestContext {
     _packageConfigFile =
         p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
 
-    final entryFilePath =
-        p.canonicalize(p.relative(entry ?? defaultEntry, from: p.current));
+    pathToServe = _canonicalizeFromFixtures(p.split(webAssetsPath));
+    final entryFilePath = _canonicalizeFromFixtures(
+      [packageName, ...p.split(webAssetsPath), dartEntryFileName],
+    );
+    path = _canonicalizeFromFixtures(
+      [packageName, ...p.split(webAssetsPath), htmlEntryFileName],
+    );
 
     _logger.info('Serving: $pathToServe/$path');
     _logger.info('Project: $_projectDirectory');
@@ -147,6 +172,12 @@ class TestContext {
 
     _entryFile = File(entryFilePath);
     _entryContents = _entryFile.readAsStringSync();
+  }
+
+  String _canonicalizeFromFixtures(List<String> pathParts) {
+    return p.canonicalize(p.relative(
+        p.join('..', 'fixtures', p.joinAll(pathParts)),
+        from: p.current));
   }
 
   Future<void> setUp({

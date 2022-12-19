@@ -15,8 +15,8 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext(
-    directory: p.join('..', 'fixtures', '_testPackageSound'),
-    entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
+    testFixturesPackageName: '_testPackageSound',
+    testFixturesEntryPath: p.join('web', 'main.dart'),
     path: 'index.html',
     pathToServe: 'web');
 
