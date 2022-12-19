@@ -46,6 +46,7 @@ class ResidentWebRunner {
       fileSystemRoots: fileSystemRoots,
       fileSystemScheme: fileSystemScheme,
       verbose: verbose,
+      soundNullSafety: soundNullSafety,
     );
     expressionCompiler = TestExpressionCompiler(generator);
   }
