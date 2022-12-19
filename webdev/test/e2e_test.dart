@@ -302,6 +302,7 @@ void main() {
               'daemon',
               'web:$openPort',
               '--enable-expression-evaluation',
+              '--null-safety=$nullSafetyOption',
               '--verbose',
             ];
             var process = await runWebDev(args,
