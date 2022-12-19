@@ -157,7 +157,7 @@ class TestContext {
     _packageConfigFile =
         p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
 
-    pathToServe = _canonicalizeFromFixtures(p.split(webAssetsPath));
+    pathToServe = webAssetsPath;
     final entryFilePath = _canonicalizeFromFixtures(
       [packageName, ...p.split(webAssetsPath), dartEntryFileName],
     );
@@ -165,10 +165,10 @@ class TestContext {
       [packageName, ...p.split(webAssetsPath), htmlEntryFileName],
     );
 
-    _logger.info('Serving: $pathToServe/$path');
-    _logger.info('Project: $_projectDirectory');
-    _logger.info('Packages: $_packageConfigFile');
-    _logger.info('Entry: $entryFilePath');
+    print('Serving: $pathToServe/$path');
+    print('Project: $_projectDirectory');
+    print('Packages: $_packageConfigFile');
+    print('Entry: $entryFilePath');
 
     _entryFile = File(entryFilePath);
     _entryContents = _entryFile.readAsStringSync();
@@ -261,6 +261,8 @@ class TestContext {
 
       _port = await findUnusedPort();
       final soundNullSafety = nullSafety == NullSafety.sound;
+      print('working directory: $workingDirectory');
+      print('path to serve: $pathToServe');
       switch (compilationMode) {
         case CompilationMode.buildDaemon:
           {
