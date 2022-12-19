@@ -14,8 +14,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext(
-    directory: '../example', path: 'scopes.html', pathToServe: 'web');
+final context = TestContext(path: 'scopes/scopes.html');
 
 WipConnection get tabConnection => context.tabConnection;
 
@@ -34,10 +33,10 @@ void main() {
     await context.tearDown();
   });
 
-  final url = 'org-dartlang-app:///web/scopes_main.dart';
+  final url = 'org-dartlang-app:///example/scopes/scopes_main.dart';
 
   String libraryVariableExpression(String variable) =>
-      '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
+      '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("example/scopes/scopes_main")'
       '["$url"]["$variable"];';
 
   /// A reference to the the variable `libraryPublicFinal`, an instance of
@@ -81,7 +80,7 @@ void main() {
       expect(classRef.name, 'MyTestClass<dynamic>');
       expect(
           classRef.id,
-          'classes|org-dartlang-app:///web/scopes_main.dart'
+          'classes|org-dartlang-app:///example/scopes/scopes_main.dart'
           '|MyTestClass<dynamic>');
     });
 
