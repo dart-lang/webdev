@@ -13,12 +13,37 @@ stages:
   - unit_test:
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - test:
+      - test: --total-shards 3 --shard-index 0
       sdk:
         - dev
         - stable
-    - test:
-      os: windows
+    - group:
+      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - test: --total-shards 3 --shard-index 1
+      sdk:
+        - dev
+        - stable
+    - group:
+      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - test: --total-shards 3 --shard-index 2
+      sdk:
+        - dev
+        - stable
+    - group:
+      - test: --total-shards 3 --shard-index 0
+        os: windows
+      sdk:
+        - dev
+        - stable
+    - group:
+      - test: --total-shards 3 --shard-index 1
+        os: windows
+      sdk:
+        - dev
+        - stable
+    - group:
+      - test: --total-shards 3 --shard-index 2
+        os: windows
       sdk:
         - dev
         - stable
