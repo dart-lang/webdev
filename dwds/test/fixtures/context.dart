@@ -122,13 +122,16 @@ class TestContext {
     this.pathToServe = 'example',
   }) {
     final packageName = nullSafety == NullSafety.sound ? '_testSound' : '_test';
+    print('CURRENT DIRECTORY: ${p.current}');
     final relativeDirectory = p.join('..', 'fixtures', packageName);
-
+    print('RELATIVE DIRECTORY: $relativeDirectory');
     final relativeEntry = p.join(
         '..', 'fixtures', packageName, 'example', 'append_body', 'main.dart');
+    print('RELATIVE ENTRY: $relativeEntry');
 
     workingDirectory = p.normalize(p
         .absolute(directory ?? p.relative(relativeDirectory, from: p.current)));
+    print('WORKING DIRECTORY: $workingDirectory');
 
     DartUri.currentDirectory = workingDirectory;
 
