@@ -4,6 +4,8 @@
 
 @TestOn('vm')
 
+import 'dart:io';
+
 import 'package:dwds/dwds.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
@@ -26,16 +28,28 @@ void main() {
       final resolvedPath =
           '/webdev/fixtures/_testPackageSound/lib/test_library.dart';
 
-      final packageConfigFile = Uri.file(p.normalize(p.absolute(p.join(
+      final testPackageSoundPath = p.normalize(p.absolute(p.join(
         '..',
         'fixtures',
         '_testPackageSound',
+      )));
+
+      final packageConfigFile = Uri.file(p.join(
+        testPackageSoundPath,
         '.dart_tool',
         'package_config.json',
-      ))));
+      ));
 
       late final PackageUriMapper packageUriMapper;
       setUpAll(() async {
+        // Note: Run `dart pub upgrade` before the test cases to fix
+        // https://github.com/dart-lang/webdev/issues/1834:
+        await Process.run(
+          'dart',
+          ['pub', 'upgrade'],
+          workingDirectory: testPackageSoundPath,
+        );
+
         packageUriMapper = await PackageUriMapper.create(
           fileSystem,
           packageConfigFile,
