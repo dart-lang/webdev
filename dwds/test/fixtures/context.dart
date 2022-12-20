@@ -63,11 +63,14 @@ class TestContext {
 
   /// The path to DWDS, e.g. "/workstation/webdev/dwds".
   String get dwdsPath {
-    assert(p.current.contains('dwds'));
+    final currentPath = p.current;
+    if (!currentPath.contains('webdev')) {
+      throw Exception(
+          'Expected to be in /webdev, instead path is $currentPath');
+    }
     final pathParts = p.split(p.current);
     return p.joinAll(
-      pathParts.sublist(0, pathParts.indexOf('dwds') + 1),
-    );
+        [...pathParts.sublist(0, pathParts.lastIndexOf('webdev') + 1), 'dwds']);
   }
 
   /// Top level directory in which we run the test server, e.g.
