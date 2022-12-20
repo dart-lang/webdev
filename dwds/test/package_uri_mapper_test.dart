@@ -11,6 +11,10 @@ import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import 'fixtures/context.dart';
+
+final testContext = TestContext();
+
 void main() {
   for (final useDebuggerModuleNames in [true, false]) {
     group(
@@ -28,11 +32,11 @@ void main() {
       final resolvedPath =
           '/webdev/fixtures/_testPackageSound/lib/test_library.dart';
 
-      final testPackageSoundPath = p.normalize(p.absolute(p.join(
+      final testPackageSoundPath = testContext.absoluteDwdsPath(p.join(
         '..',
         'fixtures',
         '_testPackageSound',
-      )));
+      ));
 
       final packageConfigFile = Uri.file(p.join(
         testPackageSoundPath,
