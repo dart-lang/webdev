@@ -92,26 +92,14 @@ for PKG in ${PKGS}; do
         dart test test/build/min_sdk_test.dart --run-skipped || EXIT_CODE=$?
         ;;
       test_2)
-        echo 'dart test --total-shards 3 --shard-index 0'
-        dart test --total-shards 3 --shard-index 0 || EXIT_CODE=$?
-        ;;
-      test_3)
-        echo 'dart test --total-shards 3 --shard-index 1'
-        dart test --total-shards 3 --shard-index 1 || EXIT_CODE=$?
-        ;;
-      test_4)
-        echo 'dart test --total-shards 3 --shard-index 2'
-        dart test --total-shards 3 --shard-index 2 || EXIT_CODE=$?
-        ;;
-      test_5)
         echo 'dart test'
         dart test || EXIT_CODE=$?
         ;;
-      test_6)
+      test_3)
         echo 'dart test -j 1'
         dart test -j 1 || EXIT_CODE=$?
         ;;
-      test_7)
+      test_4)
         echo 'dart test test/build/ensure_build_test.dart'
         dart test test/build/ensure_build_test.dart || EXIT_CODE=$?
         ;;

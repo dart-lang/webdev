@@ -159,7 +159,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:format-analyze_0-test_7"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:format-analyze_0-test_4"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -237,14 +237,14 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
   job_006:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --total-shards 3 --shard-index 0`, `dart test --total-shards 3 --shard-index 1`, `dart test --total-shards 3 --shard-index 2`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_2-test_3-test_4"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -266,16 +266,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 0"
-        run: dart test --total-shards 3 --shard-index 0
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 1"
-        run: dart test --total-shards 3 --shard-index 1
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 2"
-        run: dart test --total-shards 3 --shard-index 2
+      - name: dwds; dart test
+        run: dart test
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -292,7 +284,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:frontend_server_client;commands:test_6"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:frontend_server_client;commands:test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:frontend_server_client
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -328,7 +320,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:command-test_6"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:command-test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -361,14 +353,14 @@ jobs:
       - job_004
       - job_005
   job_009:
-    name: "unit_test; linux; Dart stable; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --total-shards 3 --shard-index 0`, `dart test --total-shards 3 --shard-index 1`, `dart test --total-shards 3 --shard-index 2`"
+    name: "unit_test; linux; Dart stable; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds;commands:command-test_2-test_3-test_4"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds;commands:command-test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
@@ -390,16 +382,8 @@ jobs:
         run: "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 0"
-        run: dart test --total-shards 3 --shard-index 0
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 1"
-        run: dart test --total-shards 3 --shard-index 1
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 2"
-        run: dart test --total-shards 3 --shard-index 2
+      - name: dwds; dart test
+        run: dart test
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -416,7 +400,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client;commands:test_6"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client;commands:test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
@@ -452,7 +436,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:command-test_6"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:command-test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
@@ -649,7 +633,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:command-test_6"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:command-test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
@@ -702,7 +686,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:command-test_6"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:command-test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
