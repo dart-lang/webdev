@@ -15,9 +15,9 @@ import 'fixtures/context.dart';
 
 final context = TestContext.withSoundNullSafety(
   packageName: '_testPackageSound',
-  webAssetsDirectoryName: 'web',
-  dartEntryFilePath: 'main.dart',
-  htmlEntryFilePath: 'index.html',
+  webAssetsPath: 'web',
+  dartEntryFileName: 'main.dart',
+  htmlEntryFileName: 'index.html',
 );
 
 ChromeProxyService get service =>

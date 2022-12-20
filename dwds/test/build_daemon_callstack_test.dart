@@ -18,16 +18,16 @@ import 'utils/version_compatibility.dart';
 class TestSetup {
   static final contextUnsound = TestContext.withWeakNullSafety(
     packageName: '_testPackage',
-    dartEntryFilePath: 'main.dart',
-    htmlEntryFilePath: 'index.html',
-    webAssetsDirectoryName: 'web',
+    webAssetsPath: 'web',
+    dartEntryFileName: 'main.dart',
+    htmlEntryFileName: 'index.html',
   );
 
   static final contextSound = TestContext.withSoundNullSafety(
     packageName: '_testPackageSound',
-    dartEntryFilePath: 'main.dart',
-    htmlEntryFilePath: 'index.html',
-    webAssetsDirectoryName: 'web',
+    webAssetsPath: 'web',
+    dartEntryFileName: 'main.dart',
+    htmlEntryFileName: 'index.html',
   );
 
   TestContext context;

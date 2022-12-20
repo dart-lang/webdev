@@ -18,17 +18,17 @@ class TestSetup {
   static TestContext contextUnsound(String index) =>
       TestContext.withWeakNullSafety(
         packageName: '_testCircular2',
-        webAssetsDirectoryName: 'web',
-        dartEntryFilePath: 'main.dart',
-        htmlEntryFilePath: index,
+        webAssetsPath: 'web',
+        dartEntryFileName: 'main.dart',
+        htmlEntryFileName: index,
       );
 
   static TestContext contextSound(String index) =>
       TestContext.withSoundNullSafety(
         packageName: '_testCircular2Sound',
-        webAssetsDirectoryName: 'web',
-        dartEntryFilePath: 'main.dart',
-        htmlEntryFilePath: index,
+        webAssetsPath: 'web',
+        dartEntryFileName: 'main.dart',
+        htmlEntryFileName: index,
       );
 
   TestContext context;

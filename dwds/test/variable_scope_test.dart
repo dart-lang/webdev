@@ -13,8 +13,9 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext.withSoundNullSafety(
-  dartEntryFilePath: 'scopes/scopes_main.dart',
-  htmlEntryFilePath: 'scopes/scopes.html',
+  webAssetsPath: 'example/scopes',
+  dartEntryFileName: 'scopes_main.dart',
+  htmlEntryFileName: 'scopes.html',
 );
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);

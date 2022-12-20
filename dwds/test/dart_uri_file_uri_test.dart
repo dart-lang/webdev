@@ -14,9 +14,9 @@ import 'utils/version_compatibility.dart';
 
 final context = TestContext.withWeakNullSafety(
   packageName: '_testPackage',
-  webAssetsDirectoryName: 'web',
-  dartEntryFilePath: 'main.dart',
-  htmlEntryFilePath: 'index.html',
+  webAssetsPath: 'web',
+  dartEntryFileName: 'main.dart',
+  htmlEntryFileName: 'index.html',
 );
 
 final dwdsDir = Directory.current.absolute.path;

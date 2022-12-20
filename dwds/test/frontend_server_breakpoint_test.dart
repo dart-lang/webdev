@@ -17,9 +17,9 @@ import 'utils/version_compatibility.dart';
 
 final context = TestContext.withWeakNullSafety(
   packageName: '_testPackage',
-  webAssetsDirectoryName: 'web',
-  htmlEntryFilePath: 'index.html',
-  dartEntryFilePath: 'main.dart',
+  webAssetsPath: 'web',
+  dartEntryFileName: 'main.dart',
+  htmlEntryFileName: 'index.html',
 );
 
 ChromeProxyService get service =>

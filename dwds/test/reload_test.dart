@@ -12,8 +12,9 @@ import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
 
 final context = TestContext.withSoundNullSafety(
-  dartEntryFilePath: 'append_body/main.dart',
-  htmlEntryFilePath: 'append_body/index.html',
+  webAssetsPath: 'example/append_body',
+  dartEntryFileName: 'main.dart',
+  htmlEntryFileName: 'index.html',
 );
 
 void main() {
