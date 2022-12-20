@@ -61,18 +61,6 @@ class TestContext {
   final String htmlEntryFileName;
   final NullSafety nullSafety;
 
-  /// The path to DWDS, e.g. "/workstation/webdev/dwds".
-  String get dwdsPath {
-    final currentPath = p.current;
-    if (!currentPath.contains('webdev')) {
-      throw Exception(
-          'Expected to be in /webdev, instead path is $currentPath');
-    }
-    final pathParts = p.split(p.current);
-    return p.joinAll(
-        [...pathParts.sublist(0, pathParts.lastIndexOf('webdev') + 1), 'dwds']);
-  }
-
   /// Top level directory in which we run the test server, e.g.
   /// "/workstation/webdev/fixtures/_testSound".
   String get workingDirectory => testFixturesAbsolutePath(packageName);
@@ -102,6 +90,18 @@ class TestContext {
   /// <project directory>/.dart_tool/package_config
   Uri get _packageConfigFile =>
       p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
+
+  /// The path to DWDS, e.g. "/workstation/webdev/dwds".
+  String get _dwdsPath {
+    final currentPath = p.current;
+    if (!currentPath.contains('webdev')) {
+      throw Exception(
+          'Expected to be in a subdirectory of /webdev, instead path is $currentPath');
+    }
+    final pathParts = p.split(currentPath);
+    return p.joinAll(
+        [...pathParts.sublist(0, pathParts.lastIndexOf('webdev') + 1), 'dwds']);
+  }
 
   String get appUrl => _appUrl!;
   late String? _appUrl;
@@ -185,8 +185,6 @@ class TestContext {
     assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
     // Verify that the web assets path has no starting slash:
     assert(!webAssetsPath.startsWith('/'));
-    // Verify that we are running the test from a DWDS directory:
-    assert(p.current.contains('dwds'));
 
     DartUri.currentDirectory = workingDirectory;
 
@@ -476,7 +474,7 @@ class TestContext {
                 'fixtures',
                 fixturesPath,
               ),
-              from: dwdsPath),
+              from: _dwdsPath),
         ),
       );
 
