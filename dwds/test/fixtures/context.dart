@@ -127,8 +127,8 @@ class TestContext {
     final defaultEntry = p.join('..', 'fixtures', defaultPackage, 'example',
         'append_body', 'main.dart');
 
-    workingDirectory = p.canonicalize(
-        p.relative(directory ?? defaultDirectory, from: p.current));
+    workingDirectory = p.normalize(
+        p.absolute(p.relative(directory ?? defaultDirectory, from: p.current)));
 
     DartUri.currentDirectory = workingDirectory;
 
@@ -137,8 +137,8 @@ class TestContext {
     _packageConfigFile =
         p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
 
-    final entryFilePath =
-        p.canonicalize(p.relative(entry ?? defaultEntry, from: p.current));
+    final entryFilePath = p.normalize(
+        p.absolute(p.relative(entry ?? defaultEntry, from: p.current)));
 
     _logger.info('Serving: $pathToServe/$path');
     _logger.info('Project: $_projectDirectory');

@@ -23,10 +23,10 @@ final context = TestContext(
 final dwdsDir = Directory.current.absolute.path;
 
 /// The directory for the general _test package.
-final testDir = p.canonicalize(p.relative(
+final testDir = p.normalize(p.absolute(p.relative(
   p.join('..', 'fixtures', '_test'),
   from: p.current,
-));
+)));
 
 /// The directory for the _testPackage package (contained within dwds), which
 /// imports _test.
