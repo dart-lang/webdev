@@ -55,6 +55,42 @@ enum IndexBaseMode { noBase, base }
 enum NullSafety { weak, sound }
 
 class TestContext {
+  final String packageName;
+  final String webAssetsPath;
+  final String dartEntryFileName;
+  final String htmlEntryFileName;
+  final NullSafety nullSafety;
+
+  /// Top level directory in which we run the test server, e.g.
+  /// "/workstation/webdev/fixtures/_testSound".
+  String get workingDirectory => testFixturesAbsolutePath([packageName]);
+
+  /// The directory to build and serve, e.g. "example".
+  String get directoryToServe => p.split(webAssetsPath).first;
+
+  /// The path to the HTML file to serve, relative to the [directoryToServe],
+  /// e.g. "hello_world/index.html".
+  String get filePathToServe => p.relative(
+        p.join(webAssetsPath, htmlEntryFileName),
+        from: directoryToServe,
+      );
+
+  /// The entry file is the Dart entry file, e.g,
+  /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
+  File get _entryFile => File(
+        testFixturesAbsolutePath(
+          [packageName, ...p.split(webAssetsPath), dartEntryFileName],
+        ),
+      );
+
+  /// The contents of the Dart entry file:
+  String get _entryContents => _entryFile.readAsStringSync();
+
+  /// The URI for the package_config.json is located in:
+  /// <project directory>/.dart_tool/package_config
+  Uri get _packageConfigFile =>
+      p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
+
   String get appUrl => _appUrl!;
   late String? _appUrl;
 
@@ -96,82 +132,56 @@ class TestContext {
   late WipConnection extensionConnection;
   late AppConnection appConnection;
   late DebugConnection debugConnection;
-  late File _entryFile;
-  late Uri _packageConfigFile;
-  late Uri _projectDirectory;
-  late String _entryContents;
 
   final _logger = logging.Logger('Context');
 
-  /// Top level directory in which we run the test server.
-  late String workingDirectory;
-
-  /// The directory to build and serve (eg, `example`).
-  late String directoryToServe;
-
-  /// The path to the HTML file to serve, relative to the [directoryToServe]
-  /// (eg, `hello_world/index.html`).
-  late String filePathToServe;
-
-  NullSafety nullSafety;
-
   TestContext.withSoundNullSafety({
     String packageName = '_testSound',
-    String webAssetsDirectoryName = 'example',
-    String dartEntryFilePath = 'hello_world/main.dart',
-    String htmlEntryFilePath = 'hello_world/index.html',
+    String webAssetsPath = 'example/hello_world',
+    String dartEntryFileName = 'main.dart',
+    String htmlEntryFileName = 'index.html',
   }) : this._(
           nullSafety: NullSafety.sound,
           packageName: packageName,
-          webAssetsDirectoryName: webAssetsDirectoryName,
-          dartEntryFilePath: dartEntryFilePath,
-          htmlEntryFilePath: htmlEntryFilePath,
+          webAssetsPath: webAssetsPath,
+          dartEntryFileName: dartEntryFileName,
+          htmlEntryFileName: htmlEntryFileName,
         );
 
   TestContext.withWeakNullSafety({
     String packageName = '_test',
-    String webAssetsDirectoryName = 'example',
-    String dartEntryFilePath = 'hello_world/main.dart',
-    String htmlEntryFilePath = 'hello_world/index.html',
+    String webAssetsPath = 'example/hello_world',
+    String dartEntryFileName = 'main.dart',
+    String htmlEntryFileName = 'index.html',
   }) : this._(
           nullSafety: NullSafety.weak,
           packageName: packageName,
-          webAssetsDirectoryName: webAssetsDirectoryName,
-          dartEntryFilePath: dartEntryFilePath,
-          htmlEntryFilePath: htmlEntryFilePath,
+          webAssetsPath: webAssetsPath,
+          dartEntryFileName: dartEntryFileName,
+          htmlEntryFileName: htmlEntryFileName,
         );
 
   TestContext._({
-    required String packageName,
-    required String webAssetsDirectoryName,
-    required String dartEntryFilePath,
-    required String htmlEntryFilePath,
+    required this.packageName,
+    required this.webAssetsPath,
+    required this.dartEntryFileName,
+    required this.htmlEntryFileName,
     required this.nullSafety,
   }) {
+    // Verify that the test fixtures package matches the null-safety mode:
     final isSoundPackage = packageName.toLowerCase().contains('sound');
     assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
+    // Verify that the web assets path has no starting slash:
+    assert(!webAssetsPath.startsWith('/'));
+    // Verify that we are running the test from the DWDS directory:
     assert(p.current.endsWith('dwds'));
 
-    workingDirectory = testFixturesAbsolutePath([packageName]);
     DartUri.currentDirectory = workingDirectory;
 
-    // package_config.json is located in <project directory>/.dart_tool/package_config
-    _projectDirectory = p.toUri(workingDirectory);
-    _packageConfigFile =
-        p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
-
-    directoryToServe = webAssetsDirectoryName;
-    filePathToServe = htmlEntryFilePath;
-    final entryFilePath = testFixturesAbsolutePath(
-      [packageName, webAssetsDirectoryName, ...p.split(dartEntryFilePath)],
-    );
     _logger.info('Serving: $directoryToServe/$filePathToServe');
-    _logger.info('Project: $_projectDirectory');
+    _logger.info('Project: $workingDirectory');
     _logger.info('Packages: $_packageConfigFile');
-    _logger.info('Entry: $entryFilePath');
-
-    _entryFile = File(entryFilePath);
-    _entryContents = _entryFile.readAsStringSync();
+    _logger.info('Entry: ${_entryFile.path}');
   }
 
   Future<void> setUp({
@@ -314,9 +324,7 @@ class TestContext {
           {
             _logger.warning('Index: $filePathToServe');
 
-            final entry = p.toUri(_entryFile.path
-                .substring(_projectDirectory.toFilePath().length + 1));
-
+            final entry = p.toUri(p.join(webAssetsPath, dartEntryFileName));
             final fileSystem = LocalFileSystem();
             final packageUriMapper = await PackageUriMapper.create(
               fileSystem,
@@ -327,10 +335,10 @@ class TestContext {
             _webRunner = ResidentWebRunner(
               entry,
               urlEncoder,
-              _projectDirectory,
+              p.toUri(workingDirectory),
               _packageConfigFile,
               packageUriMapper,
-              [_projectDirectory],
+              [p.toUri(workingDirectory)],
               'org-dartlang-app',
               outputDir.path,
               nullSafety == NullSafety.sound,
