@@ -114,7 +114,7 @@ class TestContext {
 
   NullSafety nullSafety;
 
-  late String dwdsDirectory;
+  late String _dwdsPath;
 
   TestContext({
     String? directory,
@@ -124,9 +124,9 @@ class TestContext {
     this.pathToServe = 'example',
   }) {
     final pathParts = p.split(p.current);
-    assert(pathParts.contains('dwds'));
-    dwdsDirectory = p.joinAll(
-      pathParts.sublist(0, pathParts.indexOf('dwds') + 1),
+    assert(pathParts.contains('webdev'));
+    _dwdsPath = p.joinAll(
+      [...pathParts.sublist(0, pathParts.lastIndexOf('webdev') + 1), 'dwds'],
     );
     final defaultPackage =
         nullSafety == NullSafety.sound ? '_testSound' : '_test';
@@ -134,8 +134,7 @@ class TestContext {
     final defaultEntry = p.join('..', 'fixtures', defaultPackage, 'example',
         'append_body', 'main.dart');
 
-    workingDirectory = p.normalize(p.absolute(
-        p.relative(directory ?? defaultDirectory, from: dwdsDirectory)));
+    workingDirectory = absoluteDwdsPath(directory ?? defaultDirectory);
 
     DartUri.currentDirectory = workingDirectory;
 
@@ -144,8 +143,7 @@ class TestContext {
     _packageConfigFile =
         p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
 
-    final entryFilePath = p.normalize(
-        p.absolute(p.relative(entry ?? defaultEntry, from: dwdsDirectory)));
+    final entryFilePath = absoluteDwdsPath(entry ?? defaultEntry);
 
     _logger.info('Serving: $pathToServe/$path');
     _logger.info('Project: $_projectDirectory');
@@ -430,11 +428,9 @@ class TestContext {
     }
   }
 
-  String absoluteDwdsPath(String relativePath) =>
-      p.normalize(p.absolute(p.relative(
-        relativePath,
-        from: dwdsDirectory,
-      )));
+  String absoluteDwdsPath(String relativePath) => p.normalize(
+        p.join(_dwdsPath, relativePath),
+      );
 
   Future<void> startDebugging() async {
     debugConnection = await testServer.dwds.debugConnection(appConnection);
