@@ -468,13 +468,12 @@ class TestContext {
 
   String testFixturesAbsolutePath(String fixturesPath) => p.normalize(
         p.absolute(
-          p.relative(
-              p.join(
-                '..',
-                'fixtures',
-                fixturesPath,
-              ),
-              from: _dwdsPath),
+          p.join(
+            _dwdsPath,
+            '..',
+            'fixtures',
+            fixturesPath,
+          ),
         ),
       );
 
