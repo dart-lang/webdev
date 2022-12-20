@@ -11,17 +11,52 @@ stages:
       - test: test/build/min_sdk_test.dart --run-skipped
       sdk: stable
   - unit_test:
+    # Linux extension tests:
+    # Note: `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &` must be
+    # run first for Linux.
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      - test:
+      - test: --tags=extension
       sdk:
         - dev
         - stable
-    - test:
-      os: windows
+      os:
+        - linux
+     # Windows extension tests:
+    - group:
+      - test: --tags=extension
       sdk:
         - dev
         - stable
+      os:
+        - windows
+    # First test shard:
+    - group:
+      - test: --total-shards 3 --shard-index 0 --exclude-tag=extension
+      sdk:
+        - dev
+        - stable
+      os: 
+        - linux
+        - windows
+    # Second test shard:
+    - group:
+      - test: --total-shards 3 --shard-index 0 --exclude-tag=extension
+      sdk:
+        - dev
+        - stable
+      os: 
+        - linux
+        - windows
+    # Third test shard:
+    - group:
+      - test: --total-shards 3 --shard-index 0 --exclude-tag=extension
+      sdk:
+        - dev
+        - stable
+      os: 
+        - linux
+        - windows
   - beta_cron:
     - analyze: .
       sdk: beta
