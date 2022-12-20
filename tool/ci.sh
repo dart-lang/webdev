@@ -96,16 +96,16 @@ for PKG in ${PKGS}; do
         dart test --tags=extension || EXIT_CODE=$?
         ;;
       test_3)
-        echo 'dart test --total-shards 3 --shard-index 0 --exclude-tag=extension'
-        dart test --total-shards 3 --shard-index 0 --exclude-tag=extension || EXIT_CODE=$?
+        echo 'dart test --total-shards 3 --shard-index 0 --exclude-tags=extension'
+        dart test --total-shards 3 --shard-index 0 --exclude-tags=extension || EXIT_CODE=$?
         ;;
       test_4)
-        echo 'dart test --total-shards 3 --shard-index 1 --exclude-tag=extension'
-        dart test --total-shards 3 --shard-index 1 --exclude-tag=extension || EXIT_CODE=$?
+        echo 'dart test --total-shards 3 --shard-index 1 --exclude-tags=extension'
+        dart test --total-shards 3 --shard-index 1 --exclude-tags=extension || EXIT_CODE=$?
         ;;
       test_5)
-        echo 'dart test --total-shards 3 --shard-index 2 --exclude-tag=extension'
-        dart test --total-shards 3 --shard-index 2 --exclude-tag=extension || EXIT_CODE=$?
+        echo 'dart test --total-shards 3 --shard-index 2 --exclude-tags=extension'
+        dart test --total-shards 3 --shard-index 2 --exclude-tags=extension || EXIT_CODE=$?
         ;;
       test_6)
         echo 'dart test -j 1'

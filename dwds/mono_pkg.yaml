@@ -32,7 +32,7 @@ stages:
         - windows
     # First test shard:
     - group:
-      - test: --total-shards 3 --shard-index 0 --exclude-tag=extension
+      - test: --total-shards 3 --shard-index 0 --exclude-tags=extension
       sdk:
         - dev
         - stable
@@ -41,7 +41,7 @@ stages:
         - windows
     # Second test shard:
     - group:
-      - test: --total-shards 3 --shard-index 1 --exclude-tag=extension
+      - test: --total-shards 3 --shard-index 1 --exclude-tags=extension
       sdk:
         - dev
         - stable
@@ -50,7 +50,7 @@ stages:
         - windows
     # Third test shard:
     - group:
-      - test: --total-shards 3 --shard-index 2 --exclude-tag=extension
+      - test: --total-shards 3 --shard-index 2 --exclude-tags=extension
       sdk:
         - dev
         - stable

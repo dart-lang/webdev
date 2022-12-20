@@ -277,7 +277,7 @@ jobs:
       - job_004
       - job_005
   job_007:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 0 --exclude-tag=extension`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -302,8 +302,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 0 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -313,7 +313,7 @@ jobs:
       - job_004
       - job_005
   job_008:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 1 --exclude-tag=extension`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -338,8 +338,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 1 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -349,7 +349,7 @@ jobs:
       - job_004
       - job_005
   job_009:
-    name: "unit_test; linux; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 2 --exclude-tag=extension`"
+    name: "unit_test; linux; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -374,8 +374,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 2 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -501,7 +501,7 @@ jobs:
       - job_004
       - job_005
   job_013:
-    name: "unit_test; linux; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 0 --exclude-tag=extension`"
+    name: "unit_test; linux; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -526,8 +526,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 0 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -537,7 +537,7 @@ jobs:
       - job_004
       - job_005
   job_014:
-    name: "unit_test; linux; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 1 --exclude-tag=extension`"
+    name: "unit_test; linux; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -562,8 +562,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 1 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -573,7 +573,7 @@ jobs:
       - job_004
       - job_005
   job_015:
-    name: "unit_test; linux; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 2 --exclude-tag=extension`"
+    name: "unit_test; linux; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -598,8 +598,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 2 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -711,7 +711,7 @@ jobs:
       - job_004
       - job_005
   job_019:
-    name: "unit_test; windows; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 0 --exclude-tag=extension`"
+    name: "unit_test; windows; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
@@ -726,8 +726,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 0 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -737,7 +737,7 @@ jobs:
       - job_004
       - job_005
   job_020:
-    name: "unit_test; windows; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 1 --exclude-tag=extension`"
+    name: "unit_test; windows; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
@@ -752,8 +752,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 1 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -763,7 +763,7 @@ jobs:
       - job_004
       - job_005
   job_021:
-    name: "unit_test; windows; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 2 --exclude-tag=extension`"
+    name: "unit_test; windows; Dart dev; PKG: dwds; `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
@@ -778,8 +778,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 2 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -867,7 +867,7 @@ jobs:
       - job_004
       - job_005
   job_025:
-    name: "unit_test; windows; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 0 --exclude-tag=extension`"
+    name: "unit_test; windows; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 0 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
@@ -882,8 +882,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 0 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 0 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -893,7 +893,7 @@ jobs:
       - job_004
       - job_005
   job_026:
-    name: "unit_test; windows; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 1 --exclude-tag=extension`"
+    name: "unit_test; windows; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 1 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
@@ -908,8 +908,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 1 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 1 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
@@ -919,7 +919,7 @@ jobs:
       - job_004
       - job_005
   job_027:
-    name: "unit_test; windows; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 2 --exclude-tag=extension`"
+    name: "unit_test; windows; Dart stable; PKG: dwds; `dart test --total-shards 3 --shard-index 2 --exclude-tags=extension`"
     runs-on: windows-latest
     steps:
       - name: Setup Dart SDK
@@ -934,8 +934,8 @@ jobs:
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tag=extension"
-        run: "dart test --total-shards 3 --shard-index 2 --exclude-tag=extension"
+      - name: "dwds; dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
+        run: "dart test --total-shards 3 --shard-index 2 --exclude-tags=extension"
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
     needs:
