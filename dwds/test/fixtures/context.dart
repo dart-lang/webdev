@@ -103,7 +103,7 @@ class TestContext {
 
   final _logger = logging.Logger('Context');
 
-  /// Top level directory in which we run the test server..
+  /// Top level directory in which we run the test server.
   late String workingDirectory;
 
   /// The directory to build and serve (eg, `example`).

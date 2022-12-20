@@ -22,7 +22,10 @@ final context = TestContext.withWeakNullSafety(
 final dwdsDir = Directory.current.absolute.path;
 
 /// The directory for the general _test package.
-final testDir = p.join(p.dirname(dwdsDir), 'fixtures', '_test');
+final testDir = p.normalize(p.absolute(p.relative(
+  p.join('..', 'fixtures', '_test'),
+  from: p.current,
+)));
 
 /// The directory for the _testPackage package (contained within dwds), which
 /// imports _test.
