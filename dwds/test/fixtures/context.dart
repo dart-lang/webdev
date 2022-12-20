@@ -150,6 +150,8 @@ class TestContext {
   }) {
     final isSoundPackage = packageName.toLowerCase().contains('sound');
     assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
+    assert(p.current.endsWith('dwds'));
+
     workingDirectory = testFixturesAbsolutePath([packageName]);
     DartUri.currentDirectory = workingDirectory;
 
