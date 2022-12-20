@@ -106,45 +106,46 @@ class TestContext {
   /// Top level directory in which we run the test server..
   late String workingDirectory;
 
-  /// The path to build and serve.
-  late String pathToServe;
+  /// The directory to build and serve (eg, `example`).
+  late String directoryToServe;
 
-  /// The path part of the application URL.
-  late String path;
+  /// The path to the HTML file to serve, relative to the [directoryToServe]
+  /// (eg, `hello_world/index.html`).
+  late String filePathToServe;
 
   NullSafety nullSafety;
 
   TestContext.withSoundNullSafety({
     String packageName = '_testSound',
-    String webAssetsPath = 'example/hello_world',
-    String dartEntryFileName = 'main.dart',
-    String htmlEntryFileName = 'index.html',
+    String webAssetsDirectoryName = 'example',
+    String dartEntryFilePath = 'hello_world/main.dart',
+    String htmlEntryFilePath = 'hello_world/index.html',
   }) : this._(
           nullSafety: NullSafety.sound,
           packageName: packageName,
-          webAssetsPath: webAssetsPath,
-          dartEntryFileName: dartEntryFileName,
-          htmlEntryFileName: htmlEntryFileName,
+          webAssetsDirectoryName: webAssetsDirectoryName,
+          dartEntryFilePath: dartEntryFilePath,
+          htmlEntryFilePath: htmlEntryFilePath,
         );
 
   TestContext.withWeakNullSafety({
     String packageName = '_test',
-    String webAssetsPath = 'example/hello_world',
-    String dartEntryFileName = 'main.dart',
-    String htmlEntryFileName = 'index.html',
+    String webAssetsDirectoryName = 'example',
+    String dartEntryFilePath = 'hello_world/main.dart',
+    String htmlEntryFilePath = 'hello_world/index.html',
   }) : this._(
           nullSafety: NullSafety.weak,
           packageName: packageName,
-          webAssetsPath: webAssetsPath,
-          dartEntryFileName: dartEntryFileName,
-          htmlEntryFileName: htmlEntryFileName,
+          webAssetsDirectoryName: webAssetsDirectoryName,
+          dartEntryFilePath: dartEntryFilePath,
+          htmlEntryFilePath: htmlEntryFilePath,
         );
 
   TestContext._({
     required String packageName,
-    required String webAssetsPath,
-    required String dartEntryFileName,
-    required String htmlEntryFileName,
+    required String webAssetsDirectoryName,
+    required String dartEntryFilePath,
+    required String htmlEntryFilePath,
     required this.nullSafety,
   }) {
     final isSoundPackage = packageName.toLowerCase().contains('sound');
@@ -157,18 +158,15 @@ class TestContext {
     _packageConfigFile =
         p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
 
-    pathToServe = webAssetsPath;
+    directoryToServe = webAssetsDirectoryName;
+    filePathToServe = htmlEntryFilePath;
     final entryFilePath = _canonicalizeFromFixtures(
-      [packageName, ...p.split(webAssetsPath), dartEntryFileName],
+      [packageName, webAssetsDirectoryName, ...p.split(dartEntryFilePath)],
     );
-    path = _canonicalizeFromFixtures(
-      [packageName, ...p.split(webAssetsPath), htmlEntryFileName],
-    );
-
-    print('Serving: $pathToServe/$path');
-    print('Project: $_projectDirectory');
-    print('Packages: $_packageConfigFile');
-    print('Entry: $entryFilePath');
+    _logger.info('Serving: $directoryToServe/$filePathToServe');
+    _logger.info('Project: $_projectDirectory');
+    _logger.info('Packages: $_packageConfigFile');
+    _logger.info('Entry: $entryFilePath');
 
     _entryFile = File(entryFilePath);
     _entryContents = _entryFile.readAsStringSync();
@@ -261,8 +259,6 @@ class TestContext {
 
       _port = await findUnusedPort();
       final soundNullSafety = nullSafety == NullSafety.sound;
-      print('working directory: $workingDirectory');
-      print('path to serve: $pathToServe');
       switch (compilationMode) {
         case CompilationMode.buildDaemon:
           {
@@ -284,7 +280,7 @@ class TestContext {
                   record.stackTrace);
             });
             daemonClient.registerBuildTarget(
-                DefaultBuildTarget((b) => b..target = pathToServe));
+                DefaultBuildTarget((b) => b..target = directoryToServe));
             daemonClient.startBuild();
 
             await daemonClient.buildResults
@@ -294,10 +290,10 @@ class TestContext {
 
             final assetServerPort = daemonPort(workingDirectory);
             _assetHandler = proxyHandler(
-                'http://localhost:$assetServerPort/$pathToServe/',
+                'http://localhost:$assetServerPort/$directoryToServe/',
                 client: client);
             assetReader =
-                ProxyServerAssetReader(assetServerPort, root: pathToServe);
+                ProxyServerAssetReader(assetServerPort, root: directoryToServe);
 
             if (enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
@@ -320,7 +316,7 @@ class TestContext {
           break;
         case CompilationMode.frontendServer:
           {
-            _logger.warning('Index: $path');
+            _logger.warning('Index: $filePathToServe');
 
             final entry = p.toUri(_entryFile.path
                 .substring(_projectDirectory.toFilePath().length + 1));
@@ -347,7 +343,7 @@ class TestContext {
 
             final assetServerPort = await findUnusedPort();
             await webRunner.run(fileSystem, hostname, assetServerPort,
-                p.join(pathToServe, path));
+                p.join(directoryToServe, filePathToServe));
 
             if (enableExpressionEvaluation) {
               expressionCompiler = webRunner.expressionCompiler;
@@ -408,7 +404,7 @@ class TestContext {
         assetHandler,
         assetReader,
         requireStrategy,
-        pathToServe,
+        directoryToServe,
         buildResults,
         () async => connection,
         serveDevTools,
@@ -425,8 +421,8 @@ class TestContext {
       );
 
       _appUrl = basePath.isEmpty
-          ? 'http://localhost:$port/$path'
-          : 'http://localhost:$port/$basePath/$path';
+          ? 'http://localhost:$port/$filePathToServe'
+          : 'http://localhost:$port/$basePath/$filePathToServe';
 
       if (launchChrome) {
         await _webDriver?.get(appUrl);
