@@ -28,7 +28,7 @@ import 'fixtures/utilities.dart';
 // Remove the key before pushing code to GitHub.
 // See go/extension-identification.
 
-final context = TestContext();
+final context = TestContext.withSoundNullSafety();
 
 void main() async {
   Future<void> waitForDartDevToolsWithRetry({
@@ -202,7 +202,7 @@ void main() async {
   }
 
   group('With encoding', () {
-    final context = TestContext();
+    final context = TestContext.withSoundNullSafety();
     setUp(() async {
       await context.setUp(
           enableDebugExtension: true,
@@ -223,7 +223,7 @@ void main() async {
   });
 
   group('With "any" hostname', () {
-    final context = TestContext();
+    final context = TestContext.withSoundNullSafety();
     final uriPattern = RegExp(r'dartExtensionUri = "([^"]+)";');
 
     setUp(() async {

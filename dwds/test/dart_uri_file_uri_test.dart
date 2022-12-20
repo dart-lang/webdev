@@ -12,12 +12,11 @@ import 'package:test/test.dart';
 import 'fixtures/context.dart';
 import 'utils/version_compatibility.dart';
 
-final context = TestContext(
-  directory: p.join('..', 'fixtures', '_testPackage'),
-  entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
-  path: 'index.html',
-  pathToServe: 'web',
-  nullSafety: NullSafety.weak,
+final context = TestContext.withWeakNullSafety(
+  packageName: '_testPackage',
+  webAssetsDirectoryName: 'web',
+  dartEntryFilePath: 'main.dart',
+  htmlEntryFilePath: 'index.html',
 );
 
 final dwdsDir = Directory.current.absolute.path;

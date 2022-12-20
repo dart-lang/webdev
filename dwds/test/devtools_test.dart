@@ -12,9 +12,7 @@ import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext(
-  path: 'append_body/index.html',
-);
+final context = TestContext.withSoundNullSafety();
 
 Future<void> _waitForPageReady(TestContext context) async {
   var attempt = 100;

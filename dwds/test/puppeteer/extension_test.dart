@@ -21,7 +21,7 @@ import '../../debug_extension_mv3/web/data_types.dart';
 import '../fixtures/context.dart';
 import 'test_utils.dart';
 
-final context = TestContext();
+final context = TestContext.withSoundNullSafety();
 
 void main() async {
   group('MV3 Debug Extension', () {

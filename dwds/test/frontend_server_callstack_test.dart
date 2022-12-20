@@ -7,7 +7,6 @@ import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -17,20 +16,18 @@ import 'fixtures/logging.dart';
 import 'utils/version_compatibility.dart';
 
 class TestSetup {
-  static final contextUnsound = TestContext(
-    directory: p.join('..', 'fixtures', '_testPackage'),
-    entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
-    path: 'index.html',
-    pathToServe: 'web',
-    nullSafety: NullSafety.weak,
+  static final contextUnsound = TestContext.withWeakNullSafety(
+    packageName: '_testPackage',
+    webAssetsDirectoryName: 'web',
+    htmlEntryFilePath: 'index.html',
+    dartEntryFilePath: 'main.dart',
   );
 
-  static final contextSound = TestContext(
-    directory: p.join('..', 'fixtures', '_testPackageSound'),
-    entry: p.join('..', 'fixtures', '_testPackageSound', 'web', 'main.dart'),
-    path: 'index.html',
-    pathToServe: 'web',
-    nullSafety: NullSafety.sound,
+  static final contextSound = TestContext.withSoundNullSafety(
+    packageName: '_testPackageSound',
+    webAssetsDirectoryName: 'web',
+    htmlEntryFilePath: 'index.html',
+    dartEntryFilePath: 'main.dart',
   );
 
   TestContext context;

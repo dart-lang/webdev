@@ -14,7 +14,10 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext(path: 'scopes/scopes.html');
+final context = TestContext.withSoundNullSafety(
+  dartEntryFilePath: 'scopes/scopes_main.dart',
+  htmlEntryFilePath: 'scopes/scopes.html',
+);
 
 WipConnection get tabConnection => context.tabConnection;
 

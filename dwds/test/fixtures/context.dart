@@ -150,7 +150,7 @@ class TestContext {
   }) {
     final isSoundPackage = packageName.toLowerCase().contains('sound');
     assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
-    workingDirectory = _canonicalizeFromFixtures([packageName]);
+    workingDirectory = testFixturesAbsolutePath([packageName]);
     DartUri.currentDirectory = workingDirectory;
 
     // package_config.json is located in <project directory>/.dart_tool/package_config
@@ -160,7 +160,7 @@ class TestContext {
 
     directoryToServe = webAssetsDirectoryName;
     filePathToServe = htmlEntryFilePath;
-    final entryFilePath = _canonicalizeFromFixtures(
+    final entryFilePath = testFixturesAbsolutePath(
       [packageName, webAssetsDirectoryName, ...p.split(dartEntryFilePath)],
     );
     _logger.info('Serving: $directoryToServe/$filePathToServe');
@@ -170,12 +170,6 @@ class TestContext {
 
     _entryFile = File(entryFilePath);
     _entryContents = _entryFile.readAsStringSync();
-  }
-
-  String _canonicalizeFromFixtures(List<String> pathParts) {
-    return p.canonicalize(p.relative(
-        p.join('..', 'fixtures', p.joinAll(pathParts)),
-        from: p.current));
   }
 
   Future<void> setUp({
@@ -547,3 +541,15 @@ class TestContext {
     return lineNumber + 1;
   }
 }
+
+String testFixturesAbsolutePath(List<String> relativePathParts) => p.normalize(
+      p.absolute(
+        p.relative(
+            p.join(
+              '..',
+              'fixtures',
+              p.joinAll(relativePathParts),
+            ),
+            from: p.current),
+      ),
+    );

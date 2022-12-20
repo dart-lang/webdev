@@ -11,8 +11,9 @@ import 'package:vm_service/vm_service.dart';
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
 
-final context = TestContext(
-  path: 'append_body/index.html',
+final context = TestContext.withSoundNullSafety(
+  dartEntryFilePath: 'append_body/main.dart',
+  htmlEntryFilePath: 'append_body/index.html',
 );
 
 void main() {
