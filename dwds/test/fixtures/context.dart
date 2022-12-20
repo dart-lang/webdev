@@ -61,9 +61,18 @@ class TestContext {
   final String htmlEntryFileName;
   final NullSafety nullSafety;
 
+  /// The path to DWDS, e.g. "/workstation/webdev/dwds".
+  String get dwdsPath {
+    assert(p.current.contains('dwds'));
+    final pathParts = p.split(p.current);
+    return p.joinAll(
+      pathParts.sublist(0, pathParts.indexOf('dwds') + 1),
+    );
+  }
+
   /// Top level directory in which we run the test server, e.g.
   /// "/workstation/webdev/fixtures/_testSound".
-  String get workingDirectory => testFixturesAbsolutePath([packageName]);
+  String get workingDirectory => testFixturesAbsolutePath(packageName);
 
   /// The directory to build and serve, e.g. "example".
   String get directoryToServe => p.split(webAssetsPath).first;
@@ -79,7 +88,7 @@ class TestContext {
   /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
   File get _entryFile => File(
         testFixturesAbsolutePath(
-          [packageName, ...p.split(webAssetsPath), dartEntryFileName],
+          p.joinAll([packageName, webAssetsPath, dartEntryFileName]),
         ),
       );
 
@@ -173,8 +182,8 @@ class TestContext {
     assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
     // Verify that the web assets path has no starting slash:
     assert(!webAssetsPath.startsWith('/'));
-    // Verify that we are running the test from the DWDS directory:
-    assert(p.current.endsWith('dwds'));
+    // Verify that we are running the test from a DWDS directory:
+    assert(p.current.contains('dwds'));
 
     DartUri.currentDirectory = workingDirectory;
 
@@ -456,6 +465,18 @@ class TestContext {
     }
   }
 
+  String testFixturesAbsolutePath(String fixturesPath) => p.normalize(
+        p.absolute(
+          p.relative(
+              p.join(
+                '..',
+                'fixtures',
+                fixturesPath,
+              ),
+              from: dwdsPath),
+        ),
+      );
+
   Future<void> startDebugging() async {
     debugConnection = await testServer.dwds.debugConnection(appConnection);
     _webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
@@ -551,15 +572,3 @@ class TestContext {
     return lineNumber + 1;
   }
 }
-
-String testFixturesAbsolutePath(List<String> relativePathParts) => p.normalize(
-      p.absolute(
-        p.relative(
-            p.join(
-              '..',
-              'fixtures',
-              p.joinAll(relativePathParts),
-            ),
-            from: p.current),
-      ),
-    );

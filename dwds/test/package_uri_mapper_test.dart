@@ -13,6 +13,8 @@ import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
 
+final context = TestContext.withSoundNullSafety();
+
 void main() {
   for (final useDebuggerModuleNames in [true, false]) {
     group(
@@ -31,7 +33,7 @@ void main() {
           '/webdev/fixtures/_testPackageSound/lib/test_library.dart';
 
       final testPackageSoundPath =
-          testFixturesAbsolutePath(['_testPackageSound']);
+          context.testFixturesAbsolutePath('_testPackageSound');
 
       final packageConfigFile = Uri.file(p.join(
         testPackageSoundPath,
