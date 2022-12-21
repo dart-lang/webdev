@@ -114,7 +114,7 @@ class TestContext {
 
   NullSafety nullSafety;
 
-  late String _dwdsPath;
+  late String dwdsPath;
 
   TestContext({
     String? directory,
@@ -125,7 +125,7 @@ class TestContext {
   }) {
     final pathParts = p.split(p.current);
     assert(pathParts.contains('webdev'));
-    _dwdsPath = p.joinAll(
+    dwdsPath = p.joinAll(
       [...pathParts.sublist(0, pathParts.lastIndexOf('webdev') + 1), 'dwds'],
     );
     final defaultPackage =
@@ -429,7 +429,7 @@ class TestContext {
   }
 
   String absoluteDwdsPath(String relativePath) => p.normalize(
-        p.join(_dwdsPath, relativePath),
+        p.join(dwdsPath, relativePath),
       );
 
   Future<void> startDebugging() async {

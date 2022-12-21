@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
-import 'dart:io';
 
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
@@ -20,17 +19,13 @@ final context = TestContext(
   nullSafety: NullSafety.weak,
 );
 
-final dwdsDir = Directory.current.absolute.path;
-
 /// The directory for the general _test package.
-final testDir = p.normalize(p.absolute(p.relative(
-  p.join('..', 'fixtures', '_test'),
-  from: p.current,
-)));
+final testDir = context.absoluteDwdsPath(p.join('..', 'fixtures', '_test'));
 
 /// The directory for the _testPackage package (contained within dwds), which
 /// imports _test.
-final testPackageDir = context.workingDirectory;
+final testPackageDir =
+    context.absoluteDwdsPath(p.join('..', 'fixtures', '_testPackage'));
 
 // This tests converting file Uris into our internal paths.
 //
