@@ -17,6 +17,8 @@ final packagesDir = absolutePath(
   pathFromDwds: p.join('..', 'fixtures', '_test'),
 );
 
+final fixturesDir = absolutePath(pathFromDwds: p.join('test', 'fixtures'));
+
 void main() {
   late FrontendServerAssetReader assetReader;
   late Directory tempFixtures;
@@ -24,12 +26,11 @@ void main() {
   late File mapOriginal;
 
   Future<void> createTempFixtures() async {
-    final fixtures = p.join('test', 'fixtures');
     tempFixtures = await Directory.systemTemp.createTemp('dwds_test_fixtures');
     await tempFixtures.create();
-    jsonOriginal = await File(p.join(fixtures, 'main.dart.dill.json'))
+    jsonOriginal = await File(p.join(fixturesDir, 'main.dart.dill.json'))
         .copy(p.join(tempFixtures.path, 'main.dart.dill.json'));
-    mapOriginal = await File(p.join(fixtures, 'main.dart.dill.map'))
+    mapOriginal = await File(p.join(fixturesDir, 'main.dart.dill.map'))
         .copy(p.join(tempFixtures.path, 'main.dart.dill.map'));
   }
 
