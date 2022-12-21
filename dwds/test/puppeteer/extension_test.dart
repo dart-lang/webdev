@@ -495,6 +495,10 @@ Future<void> _takeScreenshot(
   Page page, {
   required String screenshotName,
 }) async {
+  // Since the DevTools panels are not real "pages" but merely targets we have
+  // coerced into having a "page" type, there doesn't seem to be a way to verify
+  // that the DOM has been loaded. Therefore we use a slight delay before taking
+  // a screenshot. See https://github.com/puppeteer/puppeteer/issues/9371.
   await Future.delayed(Duration(seconds: 1));
   final screenshot = await page.screenshot();
   final screenshotPath =
