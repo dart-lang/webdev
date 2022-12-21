@@ -12,8 +12,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext(
-    directory: '../example', path: 'scopes.html', pathToServe: 'web');
+final context = TestContext(path: 'scopes/scopes.html');
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
