@@ -114,8 +114,6 @@ class TestContext {
 
   NullSafety nullSafety;
 
-  late String dwdsDirectory;
-
   TestContext({
     String? directory,
     String? entry,
@@ -124,18 +122,15 @@ class TestContext {
     this.pathToServe = 'example',
   }) {
     final pathParts = p.split(p.current);
-    assert(pathParts.contains('dwds'));
-    dwdsDirectory = p.joinAll(
-      pathParts.sublist(0, pathParts.indexOf('dwds') + 1),
-    );
+    assert(pathParts.contains('webdev'));
     final defaultPackage =
         nullSafety == NullSafety.sound ? '_testSound' : '_test';
     final defaultDirectory = p.join('..', 'fixtures', defaultPackage);
     final defaultEntry = p.join('..', 'fixtures', defaultPackage, 'example',
         'append_body', 'main.dart');
 
-    workingDirectory = p.normalize(p.absolute(
-        p.relative(directory ?? defaultDirectory, from: dwdsDirectory)));
+    workingDirectory =
+        absolutePath(pathFromDwds: directory ?? defaultDirectory);
 
     DartUri.currentDirectory = workingDirectory;
 
@@ -144,8 +139,7 @@ class TestContext {
     _packageConfigFile =
         p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
 
-    final entryFilePath = p.normalize(
-        p.absolute(p.relative(entry ?? defaultEntry, from: dwdsDirectory)));
+    final entryFilePath = absolutePath(pathFromDwds: entry ?? defaultEntry);
 
     _logger.info('Serving: $pathToServe/$path');
     _logger.info('Project: $_projectDirectory');
@@ -430,12 +424,6 @@ class TestContext {
     }
   }
 
-  String absoluteDwdsPath(String relativePath) =>
-      p.normalize(p.absolute(p.relative(
-        relativePath,
-        from: dwdsDirectory,
-      )));
-
   Future<void> startDebugging() async {
     debugConnection = await testServer.dwds.debugConnection(appConnection);
     _webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
@@ -482,16 +470,8 @@ class TestContext {
   }
 
   Future<void> _buildDebugExtension() async {
-    final currentDir = Directory.current.path;
-    if (!currentDir.endsWith('dwds')) {
-      throw StateError(
-          'Expected to be in /dwds directory, instead path was $currentDir.');
-    }
-    final process = await Process.run(
-      'tool/build_extension.sh',
-      ['prod'],
-      workingDirectory: '$currentDir/debug_extension',
-    );
+    final process = await Process.run('tool/build_extension.sh', ['prod'],
+        workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
     print(process.stdout);
   }
 
