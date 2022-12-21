@@ -63,7 +63,7 @@ class TestContext {
 
   /// Top level directory in which we run the test server, e.g.
   /// "/workstation/webdev/fixtures/_testSound".
-  String get workingDirectory => testFixturesAbsolutePath(packageName);
+  String get workingDirectory => absolutePath(pathFromFixtures: packageName);
 
   /// The directory to build and serve, e.g. "example".
   String get directoryToServe => p.split(webAssetsPath).first;
@@ -78,8 +78,10 @@ class TestContext {
   /// The entry file is the Dart entry file, e.g,
   /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
   File get _entryFile => File(
-        testFixturesAbsolutePath(
-          p.joinAll([packageName, webAssetsPath, dartEntryFileName]),
+        absolutePath(
+          pathFromFixtures: p.joinAll(
+            [packageName, webAssetsPath, dartEntryFileName],
+          ),
         ),
       );
 
@@ -90,18 +92,6 @@ class TestContext {
   /// <project directory>/.dart_tool/package_config
   Uri get _packageConfigFile =>
       p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
-
-  /// The path to DWDS, e.g. "/workstation/webdev/dwds".
-  String get _dwdsPath {
-    final currentPath = p.current;
-    if (!currentPath.contains('webdev')) {
-      throw Exception(
-          'Expected to be in a subdirectory of /webdev, instead path is $currentPath');
-    }
-    final pathParts = p.split(currentPath);
-    return p.joinAll(
-        [...pathParts.sublist(0, pathParts.lastIndexOf('webdev') + 1), 'dwds']);
-  }
 
   String get appUrl => _appUrl!;
   late String? _appUrl;
@@ -466,17 +456,6 @@ class TestContext {
     }
   }
 
-  String testFixturesAbsolutePath(String fixturesPath) => p.normalize(
-        p.absolute(
-          p.join(
-            _dwdsPath,
-            '..',
-            'fixtures',
-            fixturesPath,
-          ),
-        ),
-      );
-
   Future<void> startDebugging() async {
     debugConnection = await testServer.dwds.debugConnection(appConnection);
     _webkitDebugger = WebkitDebugger(WipDebugger(tabConnection));
@@ -523,16 +502,8 @@ class TestContext {
   }
 
   Future<void> _buildDebugExtension() async {
-    final currentDir = Directory.current.path;
-    if (!currentDir.endsWith('dwds')) {
-      throw StateError(
-          'Expected to be in /dwds directory, instead path was $currentDir.');
-    }
-    final process = await Process.run(
-      'tool/build_extension.sh',
-      ['prod'],
-      workingDirectory: '$currentDir/debug_extension',
-    );
+    final process = await Process.run('tool/build_extension.sh', ['prod'],
+        workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
     print(process.stdout);
   }
 
