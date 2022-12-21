@@ -20,12 +20,11 @@ final context = TestContext.withWeakNullSafety(
 );
 
 /// The directory for the general _test package.
-final testDir = absolutePath(pathFromDwds: p.join('..', 'fixtures', '_test'));
+final testDir = absolutePath(pathFromFixtures: p.join('_test'));
 
 /// The directory for the _testPackage package (contained within dwds), which
 /// imports _test.
-final testPackageDir =
-    absolutePath(pathFromDwds: p.join('..', 'fixtures', '_testPackage'));
+final testPackageDir = absolutePath(pathFromFixtures: p.join('_testPackage'));
 
 // This tests converting file Uris into our internal paths.
 //

@@ -30,12 +30,8 @@ void main() {
       final resolvedPath =
           '/webdev/fixtures/_testPackageSound/lib/test_library.dart';
 
-      final testPackageSoundPath = absolutePath(
-          pathFromDwds: p.join(
-        '..',
-        'fixtures',
-        '_testPackageSound',
-      ));
+      final testPackageSoundPath =
+          absolutePath(pathFromFixtures: '_testPackageSound');
 
       final packageConfigFile = Uri.file(p.join(
         testPackageSoundPath,
