@@ -13,7 +13,9 @@ import '../fixtures/context.dart';
 import '../fixtures/utilities.dart';
 import '../utils/version_compatibility.dart';
 
-final packagesDir = p.relative('../fixtures/_test', from: p.current);
+final packagesDir = absolutePath(
+  pathFromDwds: p.join('..', 'fixtures', '_test'),
+);
 
 void main() {
   late FrontendServerAssetReader assetReader;

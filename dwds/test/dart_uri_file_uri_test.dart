@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/utilities.dart';
 import 'utils/version_compatibility.dart';
 
 final context = TestContext(
@@ -20,12 +21,12 @@ final context = TestContext(
 );
 
 /// The directory for the general _test package.
-final testDir = context.absoluteDwdsPath(p.join('..', 'fixtures', '_test'));
+final testDir = absolutePath(pathFromDwds: p.join('..', 'fixtures', '_test'));
 
 /// The directory for the _testPackage package (contained within dwds), which
 /// imports _test.
 final testPackageDir =
-    context.absoluteDwdsPath(p.join('..', 'fixtures', '_testPackage'));
+    absolutePath(pathFromDwds: p.join('..', 'fixtures', '_testPackage'));
 
 // This tests converting file Uris into our internal paths.
 //
