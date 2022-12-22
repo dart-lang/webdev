@@ -5,6 +5,7 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 5))
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -13,6 +14,8 @@ import 'fixtures/logging.dart';
 
 final context = TestContext(
   path: 'append_body/index.html',
+  entry: p.join(
+      '..', 'fixtures', '_testSound', 'example', 'append_body', 'main.dart'),
 );
 
 void main() {

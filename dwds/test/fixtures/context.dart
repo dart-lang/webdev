@@ -127,7 +127,7 @@ class TestContext {
         nullSafety == NullSafety.sound ? '_testSound' : '_test';
     final defaultDirectory = p.join('..', 'fixtures', defaultPackage);
     final defaultEntry = p.join('..', 'fixtures', defaultPackage, 'example',
-        'append_body', 'main.dart');
+        'hello_world', 'main.dart');
 
     workingDirectory =
         absolutePath(pathFromDwds: directory ?? defaultDirectory);
