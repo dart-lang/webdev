@@ -491,6 +491,9 @@ String _clearStorageJs() {
 ''';
 }
 
+// TODO(https://github.com/dart-lang/webdev/issues/1787): Compare to golden
+// images. Currently golden comparison is not set up, since this is only run
+// locally, not as part of our CI test suite.
 Future<void> _takeScreenshot(
   Page page, {
   required String screenshotName,
