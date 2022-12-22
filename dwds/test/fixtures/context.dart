@@ -55,7 +55,7 @@ enum IndexBaseMode { noBase, base }
 enum NullSafety { weak, sound }
 
 class TestContext {
-  late  String packageName;
+  late String packageName;
   final String webAssetsPath;
   final String dartEntryFileName;
   final String htmlEntryFileName;
@@ -113,35 +113,57 @@ class TestContext {
   late String workingDirectory;
 
   /// The path to build and serve.
-  String pathToServe;
+  late String pathToServe;
 
   /// The path part of the application URL.
-  String path;
+  late String path;
 
-  TestContext({
-    this.packageName = '',
-    this.webAssetsPath = 'example/hello_world',
-    this.dartEntryFileName = 'main.dart',
-    this.htmlEntryFileName = 'index.html',
-    this.nullSafety = NullSafety.sound,
-  }) {
+  TestContext(
+      {String? directory,
+      String? entry,
+      NullSafety nullSafety = NullSafety.sound,
+      String path = 'hello_world/index.html',
+      String pathToServe = 'example'})
+      : this._(
+          packageName: directory != null
+              ? p.split(directory).last
+              : nullSafety == NullSafety.sound
+                  ? '_testSound'
+                  : '_test',
+          webAssetsPath: p.join(pathToServe, p.split(path).first),
+          dartEntryFileName: entry != null ? p.split(entry).last : 'main.dart',
+          htmlEntryFileName: p.split(path).last,
+          nullSafety: nullSafety,
+        );
+
+  TestContext._(
+      {required this.packageName,
+      required this.webAssetsPath,
+      required this.dartEntryFileName,
+      required this.htmlEntryFileName,
+      required this.nullSafety}) {
     // Verify that the test fixtures package matches the null-safety mode:
     if (packageName.isNotEmpty) {
       final isSoundPackage = packageName.toLowerCase().contains('sound');
       assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
     }
     if (packageName.isEmpty) {
-       packageName = nullSafety == NullSafety.sound ? '_testSound' : '_test';
+      packageName = nullSafety == NullSafety.sound ? '_testSound' : '_test';
     }
     final pathParts = p.split(p.current);
     assert(pathParts.contains('webdev'));
     final directory = p.join('..', 'fixtures', packageName);
     final entry = p.join(directory, webAssetsPath, dartEntryFileName);
 
-    workingDirectory =
-        absolutePath(pathFromDwds: directory);
+    workingDirectory = absolutePath(pathFromDwds: directory);
 
     DartUri.currentDirectory = workingDirectory;
+
+    pathToServe = p.split(webAssetsPath).first;
+    final webPathParts = p.split(webAssetsPath).where(
+          (pathPart) => pathPart != pathToServe,
+        );
+    path = p.joinAll([...webPathParts, htmlEntryFileName]);
 
     // package_config.json is located in <project directory>/.dart_tool/package_config
     _projectDirectory = p.toUri(workingDirectory);
