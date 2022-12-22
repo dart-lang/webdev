@@ -9,21 +9,17 @@ import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 
 import '../fixtures/context.dart';
+import '../fixtures/utilities.dart';
 
 Future<String> buildDebugExtension() async {
-  final currentDir = Directory.current.path;
-  if (!currentDir.endsWith('dwds')) {
-    throw StateError(
-        'Expected to be in /dwds directory, instead path was $currentDir.');
-  }
-  final extensionDir = p.join(currentDir, 'debug_extension_mv3');
+  final extensionDir = absolutePath(pathFromDwds: 'debug_extension_mv3');
   // TODO(elliette): This doesn't work on Windows, see https://github.com/dart-lang/webdev/issues/1724.
   await Process.run(
     p.join('tool', 'build_extension.sh'),
     [],
     workingDirectory: extensionDir,
   );
-  return '$extensionDir/compiled';
+  return p.join(extensionDir, 'compiled');
 }
 
 Future<Browser> setUpExtensionTest(

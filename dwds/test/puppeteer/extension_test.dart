@@ -8,11 +8,14 @@
   // TODO(elliette): Enable on Linux.
   'linux': Skip('https://github.com/dart-lang/webdev/issues/1787'),
 })
-@Timeout(Duration(seconds: 60))
+@Timeout(Duration(minutes: 2))
+import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:dwds/data/debug_info.dart';
+import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
@@ -22,6 +25,8 @@ import '../fixtures/context.dart';
 import 'test_utils.dart';
 
 final context = TestContext.withSoundNullSafety();
+
+enum Panel { debugger, inspector }
 
 void main() async {
   group('MV3 Debug Extension', () {
@@ -54,6 +59,7 @@ void main() async {
         tearDown(() async {
           await workerEvalDelay();
           await worker.evaluate(_clearStorageJs());
+          await workerEvalDelay();
         });
 
         tearDownAll(() async {
@@ -91,14 +97,14 @@ void main() async {
           final extensionOrigin = getExtensionOrigin(browser);
           final settingsTab = await navigateToPage(
             browser,
-            url: '$extensionOrigin/settings.html',
+            url: '$extensionOrigin/static_assets/settings.html',
             isNew: true,
           );
           // Set the settings to open DevTools in a new window:
           await settingsTab.tap('#windowOpt');
           await settingsTab.tap('#saveButton');
           // Wait for the saved message to verify settings have been saved:
-          await settingsTab.waitForSelector('#savedMsg');
+          await settingsTab.waitForSelector('.show');
           // Close the settings tab:
           await settingsTab.close();
           // Check that is has been saved in local storage:
@@ -133,19 +139,20 @@ void main() async {
           var appWindowId = await _getWindowId(appUrl, worker: worker);
           expect(devToolsWindowId == appWindowId, isTrue);
           // Close the DevTools tab:
+          devToolsTab = await devToolsTabTarget.page;
           await devToolsTab.close();
           // Navigate to the extension settings page:
           final extensionOrigin = getExtensionOrigin(browser);
           final settingsTab = await navigateToPage(
             browser,
-            url: '$extensionOrigin/settings.html',
+            url: '$extensionOrigin/static_assets/settings.html',
             isNew: true,
           );
           // Set the settings to open DevTools in a new window:
           await settingsTab.tap('#windowOpt');
           await settingsTab.tap('#saveButton');
           // Wait for the saved message to verify settings have been saved:
-          await settingsTab.waitForSelector('#savedMsg');
+          await settingsTab.waitForSelector('.show');
           // Close the settings tab:
           await settingsTab.close();
           // Navigate to the Dart app:
@@ -156,7 +163,6 @@ void main() async {
           devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
           devToolsTab = await devToolsTabTarget.page;
-          await devToolsTab.bringToFront();
           devToolsWindowId = await _getWindowId(
             devToolsTab.url!,
             worker: worker,
@@ -228,7 +234,9 @@ void main() async {
               serveDevTools: true,
               isInternalBuild: false,
               isFlutterApp: isFlutterApp,
+              openChromeDevTools: true,
             );
+
             worker = await getServiceWorker(browser);
           });
 
@@ -262,10 +270,27 @@ void main() async {
           });
 
           test('no additional panels are added in Chrome DevTools', () async {
-            // TODO(elliette): Requires either of the following to be resolved:
-            // - https://github.com/puppeteer/puppeteer/issues/9371
-            // - https://github.com/xvrh/puppeteer-dart/issues/201
-          }, skip: true);
+            final appUrl = context.appUrl;
+            // This is the blank page automatically opened by Chrome:
+            final blankTab = await navigateToPage(browser, url: 'about:blank');
+            // Navigate to the Dart app:
+            await blankTab.goto(appUrl, wait: Until.domContentLoaded);
+            final appTab = blankTab;
+            await appTab.bringToFront();
+            final chromeDevToolsTarget = browser.targets.firstWhere(
+                (target) => target.url.startsWith('devtools://devtools'));
+            chromeDevToolsTarget.type = 'page';
+            final chromeDevToolsPage = await chromeDevToolsTarget.page;
+            _tabLeft(chromeDevToolsPage);
+            await _takeScreenshot(chromeDevToolsPage,
+                screenshotName: 'chromeDevTools_externalBuild');
+            final inspectorPanelTarget = browser.targets
+                .firstWhereOrNull((target) => target.url == 'inspector_panel');
+            expect(inspectorPanelTarget, isNull);
+            final debuggerPanelTarget = browser.targets
+                .firstWhereOrNull((target) => target.url == 'debugger_panel');
+            expect(debuggerPanelTarget, isNull);
+          });
         });
       }
     });
@@ -283,13 +308,16 @@ void main() async {
               serveDevTools: true,
               isInternalBuild: true,
               isFlutterApp: isFlutterApp,
+              openChromeDevTools: true,
             );
+
             worker = await getServiceWorker(browser);
           });
 
           tearDown(() async {
             await workerEvalDelay();
             await worker.evaluate(_clearStorageJs());
+            await workerEvalDelay();
           });
 
           tearDownAll(() async {
@@ -316,24 +344,72 @@ void main() async {
             await appTab.close();
           });
 
-          test('the Dart Debugger panel is added to Chrome DevTools', () async {
-            // TODO(elliette): Requires either of the following to be resolved:
-            // - https://github.com/puppeteer/puppeteer/issues/9371
-            // - https://github.com/xvrh/puppeteer-dart/issues/201
-          }, skip: true);
-
-          if (isFlutterApp) {
-            test('the Flutter Inspector panel is added to Chrome DevTools',
-                () async {
-              // TODO(elliette): Requires either of the following to be resolved:
-              // - https://github.com/puppeteer/puppeteer/issues/9371
-              // - https://github.com/xvrh/puppeteer-dart/issues/201
-            }, skip: true);
-          }
+          test('the correct extension panels are added to Chrome DevTools',
+              () async {
+            final appUrl = context.appUrl;
+            // This is the blank page automatically opened by Chrome:
+            final blankTab = await navigateToPage(browser, url: 'about:blank');
+            // Navigate to the Dart app:
+            await blankTab.goto(appUrl, wait: Until.domContentLoaded);
+            final appTab = blankTab;
+            await appTab.bringToFront();
+            final chromeDevToolsTarget = browser.targets.firstWhere(
+                (target) => target.url.startsWith('devtools://devtools'));
+            chromeDevToolsTarget.type = 'page';
+            final chromeDevToolsPage = await chromeDevToolsTarget.page;
+            // There are no hooks for when a panel is added to Chrome DevTools,
+            // therefore we rely on a slight delay:
+            await Future.delayed(Duration(seconds: 1));
+            if (isFlutterApp) {
+              _tabLeft(chromeDevToolsPage);
+              final inspectorPanelElement =
+                  await _getPanelElement(browser, panel: Panel.inspector);
+              expect(inspectorPanelElement, isNotNull);
+              await _takeScreenshot(
+                chromeDevToolsPage,
+                screenshotName: 'inspectorPanelLandingPage_flutterApp',
+              );
+            }
+            _tabLeft(chromeDevToolsPage);
+            final debuggerPanelElement =
+                await _getPanelElement(browser, panel: Panel.debugger);
+            expect(debuggerPanelElement, isNotNull);
+            await _takeScreenshot(
+              chromeDevToolsPage,
+              screenshotName:
+                  'debuggerPanelLandingPage_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
+            );
+          });
         });
       }
     });
   });
+}
+
+Future<ElementHandle?> _getPanelElement(
+  Browser browser, {
+  required Panel panel,
+}) async {
+  final panelName =
+      panel == Panel.inspector ? 'inspector_panel' : 'debugger_panel';
+  final panelTarget =
+      await browser.waitForTarget((target) => target.url.contains(panelName));
+  panelTarget.type = 'page';
+  final panelPage = await panelTarget.page;
+  final frames = panelPage.frames;
+  final mainFrame = frames[0];
+  final panelElement = await mainFrame.$OrNull('#panelBody');
+  return panelElement;
+}
+
+void _tabLeft(Page chromeDevToolsPage) async {
+  // TODO(elliette): Detect which enviroment we are OS we are running
+  // in and update modifier key accordingly. Meta key for MacOs and
+  // Ctrl key for Linux/Windows.
+  final modifierKey = Key.meta;
+  await chromeDevToolsPage.keyboard.down(modifierKey);
+  await chromeDevToolsPage.keyboard.press(Key.bracketLeft);
+  await chromeDevToolsPage.keyboard.up(modifierKey);
 }
 
 Future<int> _getTabId(
@@ -413,4 +489,22 @@ String _clearStorageJs() {
       return true;
     }
 ''';
+}
+
+// TODO(https://github.com/dart-lang/webdev/issues/1787): Compare to golden
+// images. Currently golden comparison is not set up, since this is only run
+// locally, not as part of our CI test suite.
+Future<void> _takeScreenshot(
+  Page page, {
+  required String screenshotName,
+}) async {
+  // Since the DevTools panels are not real "pages" but merely targets we have
+  // coerced into having a "page" type, there doesn't seem to be a way to verify
+  // that the DOM has been loaded. Therefore we use a slight delay before taking
+  // a screenshot. See https://github.com/puppeteer/puppeteer/issues/9371.
+  await Future.delayed(Duration(seconds: 1));
+  final screenshot = await page.screenshot();
+  final screenshotPath =
+      p.join('test', 'puppeteer', 'test_images', '$screenshotName.png');
+  await File(screenshotPath).writeAsBytes(screenshot);
 }
