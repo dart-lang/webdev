@@ -55,6 +55,12 @@ enum IndexBaseMode { noBase, base }
 enum NullSafety { weak, sound }
 
 class TestContext {
+  late  String packageName;
+  final String webAssetsPath;
+  final String dartEntryFileName;
+  final String htmlEntryFileName;
+  final NullSafety nullSafety;
+
   String get appUrl => _appUrl!;
   late String? _appUrl;
 
@@ -112,25 +118,28 @@ class TestContext {
   /// The path part of the application URL.
   String path;
 
-  NullSafety nullSafety;
-
   TestContext({
-    String? directory,
-    String? entry,
+    this.packageName = '',
+    this.webAssetsPath = 'example/hello_world',
+    this.dartEntryFileName = 'main.dart',
+    this.htmlEntryFileName = 'index.html',
     this.nullSafety = NullSafety.sound,
-    this.path = 'hello_world/index.html',
-    this.pathToServe = 'example',
   }) {
+    // Verify that the test fixtures package matches the null-safety mode:
+    if (packageName.isNotEmpty) {
+      final isSoundPackage = packageName.toLowerCase().contains('sound');
+      assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
+    }
+    if (packageName.isEmpty) {
+       packageName = nullSafety == NullSafety.sound ? '_testSound' : '_test';
+    }
     final pathParts = p.split(p.current);
     assert(pathParts.contains('webdev'));
-    final defaultPackage =
-        nullSafety == NullSafety.sound ? '_testSound' : '_test';
-    final defaultDirectory = p.join('..', 'fixtures', defaultPackage);
-    final defaultEntry = p.join('..', 'fixtures', defaultPackage, 'example',
-        'hello_world', 'main.dart');
+    final directory = p.join('..', 'fixtures', packageName);
+    final entry = p.join(directory, webAssetsPath, dartEntryFileName);
 
     workingDirectory =
-        absolutePath(pathFromDwds: directory ?? defaultDirectory);
+        absolutePath(pathFromDwds: directory);
 
     DartUri.currentDirectory = workingDirectory;
 
@@ -139,7 +148,7 @@ class TestContext {
     _packageConfigFile =
         p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
 
-    final entryFilePath = absolutePath(pathFromDwds: entry ?? defaultEntry);
+    final entryFilePath = absolutePath(pathFromDwds: entry);
 
     _logger.info('Serving: $pathToServe/$path');
     _logger.info('Project: $_projectDirectory');
