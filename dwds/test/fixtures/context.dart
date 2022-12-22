@@ -118,22 +118,55 @@ class TestContext {
   /// The path part of the application URL.
   late String path;
 
-  TestContext(
+  factory TestContext(
       {String? directory,
       String? entry,
       NullSafety nullSafety = NullSafety.sound,
       String path = 'hello_world/index.html',
-      String pathToServe = 'example'})
-      : this._(
-          packageName: directory != null
-              ? p.split(directory).last
-              : nullSafety == NullSafety.sound
-                  ? '_testSound'
-                  : '_test',
-          webAssetsPath: p.join(pathToServe, p.split(path).first),
-          dartEntryFileName: entry != null ? p.split(entry).last : 'main.dart',
-          htmlEntryFileName: p.split(path).last,
-          nullSafety: nullSafety,
+      String pathToServe = 'example'}) {
+    final webAssetsPath = p.join(pathToServe, p.split(path).first);
+    final dartEntryFileName = entry != null ? p.split(entry).last : 'main.dart';
+    final htmlEntryFileName = p.split(path).last;
+    if (nullSafety == NullSafety.sound) {
+      return TestContext.withSoundNullSafety(
+        packageName: directory != null ? p.split(directory).last : '_testSound',
+        webAssetsPath: webAssetsPath,
+        dartEntryFileName: dartEntryFileName,
+        htmlEntryFileName: p.split(path).last,
+      );
+    }
+    return TestContext.withWeakNullSafety(
+      packageName: directory != null ? p.split(directory).last : '_test',
+      webAssetsPath: webAssetsPath,
+      dartEntryFileName: dartEntryFileName,
+      htmlEntryFileName: htmlEntryFileName,
+    );
+  }
+
+  TestContext.withSoundNullSafety({
+    String packageName = '_testSound',
+    String webAssetsPath = 'example/hello_world',
+    String dartEntryFileName = 'main.dart',
+    String htmlEntryFileName = 'index.html',
+  }) : this._(
+          nullSafety: NullSafety.sound,
+          packageName: packageName,
+          webAssetsPath: webAssetsPath,
+          dartEntryFileName: dartEntryFileName,
+          htmlEntryFileName: htmlEntryFileName,
+        );
+
+  TestContext.withWeakNullSafety({
+    String packageName = '_test',
+    String webAssetsPath = 'example/hello_world',
+    String dartEntryFileName = 'main.dart',
+    String htmlEntryFileName = 'index.html',
+  }) : this._(
+          nullSafety: NullSafety.weak,
+          packageName: packageName,
+          webAssetsPath: webAssetsPath,
+          dartEntryFileName: dartEntryFileName,
+          htmlEntryFileName: htmlEntryFileName,
         );
 
   TestContext._(
