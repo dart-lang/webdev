@@ -17,7 +17,7 @@ import 'fixtures/context.dart';
 
 final context = TestContext.withSoundNullSafety(
   webAssetsPath: 'example/scopes',
-  dartEntryFileName: 'scopes_main.dart',
+  dartEntryFileName: 'main.dart',
   htmlEntryFileName: 'scopes.html',
 );
 
@@ -38,11 +38,11 @@ void main() {
     await context.tearDown();
   });
 
-  final url = 'org-dartlang-app:///example/scopes/scopes_main.dart';
+  final url = 'org-dartlang-app:///example/scopes/main.dart';
 
   /// A convenient way to get a library variable without boilerplate.
   String libraryVariableExpression(String variable) =>
-      '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("example/scopes/scopes_main")["$url"]["$variable"];';
+      '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("example/scopes/main")["$url"]["$variable"];';
 
   Future<RemoteObject> libraryPublicFinal() =>
       inspector.jsEvaluate(libraryVariableExpression('libraryPublicFinal'));
@@ -228,27 +228,27 @@ void main() {
 }
 
 final jsMultiLineExceptionWithStackTrace = '''
-Error: Assertion failed: org-dartlang-app:///example/scopes/scopes_main.dart:4:11
+Error: Assertion failed: org-dartlang-app:///example/scopes/main.dart:4:11
 false
 "THIS IS THE ASSERT MESSAGE"
-    at Object.assertFailed (org-dartlang-app:///example/scopes/scopes_main.dart.js:5297:15)
+    at Object.assertFailed (org-dartlang-app:///example/scopes/main.dart.js:5297:15)
 ''';
 
 final formattedMultiLineExceptionWithStackTrace = '''
-Error: Assertion failed: org-dartlang-app:///example/scopes/scopes_main.dart:4:11
+Error: Assertion failed: org-dartlang-app:///example/scopes/main.dart:4:11
 false
 "THIS IS THE ASSERT MESSAGE"
-org-dartlang-app:///example/scopes/scopes_main.dart.js 5297:15  assertFailed
+org-dartlang-app:///example/scopes/main.dart.js 5297:15  assertFailed
 ''';
 
 final jsMultiLineExceptionNoStackTrace = '''
-Error: Assertion failed: org-dartlang-app:///example/scopes/scopes_main.dart:4:11
+Error: Assertion failed: org-dartlang-app:///example/scopes/main.dart:4:11
 false
 "THIS IS THE ASSERT MESSAGE"
 ''';
 
 final formattedMultiLineExceptionNoStackTrace = '''
-Error: Assertion failed: org-dartlang-app:///example/scopes/scopes_main.dart:4:11
+Error: Assertion failed: org-dartlang-app:///example/scopes/main.dart:4:11
 false
 "THIS IS THE ASSERT MESSAGE"
 ''';

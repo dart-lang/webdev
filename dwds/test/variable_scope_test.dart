@@ -14,7 +14,7 @@ import 'fixtures/context.dart';
 
 final context = TestContext.withSoundNullSafety(
   webAssetsPath: 'example/scopes',
-  dartEntryFileName: 'scopes_main.dart',
+  dartEntryFileName: 'main.dart',
   htmlEntryFileName: 'scopes.html',
 );
 ChromeProxyService get service =>
@@ -116,7 +116,7 @@ void main() {
       await service.streamListen('Debug');
       stream = service.onEvent('Debug');
       mainScript = scripts.scripts!
-          .firstWhere((each) => each.uri!.contains('scopes_main.dart'));
+          .firstWhere((each) => each.uri!.contains('main.dart'));
     });
 
     tearDown(() async {
