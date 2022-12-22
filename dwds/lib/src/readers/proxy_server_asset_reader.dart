@@ -45,6 +45,7 @@ class ProxyServerAssetReader implements AssetReader {
       _readResource(serverPath);
 
   Future<String?> _readResource(String path) async {
+    print('READING RESOURCE AT $path');
     // Handlers expect a fully formed HTML URI. The actual hostname and port
     // does not matter.
     final response =
