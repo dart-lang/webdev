@@ -70,10 +70,12 @@ class TestContext {
 
   /// The path to the HTML file to serve, relative to the [directoryToServe],
   /// e.g. "hello_world/index.html".
-  String get filePathToServe => p.relative(
-        p.join(webAssetsPath, htmlEntryFileName),
-        from: directoryToServe,
-      );
+  String get filePathToServe {
+    final pathParts = p.split(webAssetsPath).where(
+          (pathPart) => pathPart != directoryToServe,
+        );
+    return p.joinAll([...pathParts, htmlEntryFileName]);
+  }
 
   /// The entry file is the Dart entry file, e.g,
   /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
