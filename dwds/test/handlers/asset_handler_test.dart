@@ -10,11 +10,12 @@ import 'package:test/test.dart';
 import '../fixtures/context.dart';
 import '../fixtures/logging.dart';
 
+late TestContext context;
+
 void main() {
   group('Asset handler', () {
-    final context = TestContext();
-
     setUpAll(() async {
+      context = TestContext();
       setCurrentLogWriter();
       await context.setUp(
         enableExpressionEvaluation: true,

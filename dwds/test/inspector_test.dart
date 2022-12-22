@@ -18,16 +18,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext(
-    path: 'scopes/scopes.html',
-    entry: p.join(
-      '..',
-      'fixtures',
-      '_testSound',
-      'example',
-      'scopes',
-      'scopes_main.dart',
-    ));
+late TestContext context;
 
 WipConnection get tabConnection => context.tabConnection;
 
@@ -36,6 +27,16 @@ void main() {
   late Debugger debugger;
 
   setUpAll(() async {
+    context = TestContext(
+        path: 'scopes/scopes.html',
+        entry: p.join(
+          '..',
+          'fixtures',
+          '_testSound',
+          'example',
+          'scopes',
+          'scopes_main.dart',
+        ));
     await context.setUp();
     final service = fetchChromeProxyService(context.debugConnection);
     inspector = service.inspector;

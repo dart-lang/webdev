@@ -12,10 +12,11 @@ import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext();
+late TestContext context;
 
 void main() {
   setUpAll(() async {
+    context = TestContext();
     // Disable DDS as we're testing DWDS behavior.
     await context.setUp(spawnDds: false);
   });

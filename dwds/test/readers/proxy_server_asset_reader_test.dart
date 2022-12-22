@@ -10,11 +10,13 @@ import 'package:test/test.dart';
 import '../fixtures/context.dart';
 import '../utils/version_compatibility.dart';
 
+late TestContext context;
+late ProxyServerAssetReader assetReader;
+
 void main() {
   group('ProxyServerAssetReader', () {
-    final context = TestContext(nullSafety: NullSafety.weak);
-    late ProxyServerAssetReader assetReader;
     setUpAll(() async {
+      final context = TestContext(nullSafety: NullSafety.weak);
       await context.setUp();
       assetReader = context.testServer.assetReader as ProxyServerAssetReader;
     });
