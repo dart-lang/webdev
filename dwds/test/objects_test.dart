@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
+@Timeout(Duration(minutes: 2))
+
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
