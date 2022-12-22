@@ -124,7 +124,9 @@ class TestContext {
       NullSafety nullSafety = NullSafety.sound,
       String path = 'hello_world/index.html',
       String pathToServe = 'example'}) {
-    final webAssetsPath = p.join(pathToServe, p.split(path).first);
+    final webAssetsPath = p.split(path).length > 1
+        ? p.join(pathToServe, p.split(path).first)
+        : pathToServe;
     final dartEntryFileName = entry != null ? p.split(entry).last : 'main.dart';
     final htmlEntryFileName = p.split(path).last;
     if (nullSafety == NullSafety.sound) {
