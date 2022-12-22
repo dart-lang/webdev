@@ -200,7 +200,7 @@ class TestContext {
     final webPathParts = p.split(webAssetsPath).where(
           (pathPart) => pathPart != pathToServe,
         );
-    path = p.joinAll([...webPathParts, htmlEntryFileName]);
+    path = p.joinAll([...webPathParts, htmlEntryFileName]).replaceAll('\\', '/');
 
     // package_config.json is located in <project directory>/.dart_tool/package_config
     _projectDirectory = p.toUri(workingDirectory);
