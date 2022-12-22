@@ -5,6 +5,7 @@
 /// Tests that require a fresh context to run, and can interfere with other
 /// tests.
 @TestOn('vm')
+@Timeout(Duration(minutes: 2))
 library refresh_test;
 
 import 'dart:async';

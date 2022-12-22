@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
+@Timeout(Duration(minutes: 2))
 
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
