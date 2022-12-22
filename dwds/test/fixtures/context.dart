@@ -207,10 +207,12 @@ class TestContext {
 
     final entryFilePath = absolutePath(pathFromDwds: entry);
 
-    _logger.info('Serving: $pathToServe/$path');
-    _logger.info('Project: $_projectDirectory');
-    _logger.info('Packages: $_packageConfigFile');
-    _logger.info('Entry: $entryFilePath');
+    print('Path: $path');
+    print('Path to serve: $pathToServe');
+    print('Serving: $pathToServe/$path');
+    print('Project: $_projectDirectory');
+    print('Packages: $_packageConfigFile');
+    print('Entry: $entryFilePath');
 
     _entryFile = File(entryFilePath);
     _entryContents = _entryFile.readAsStringSync();
