@@ -74,7 +74,10 @@ class TestContext {
     final pathParts = p.split(webAssetsPath).where(
           (pathPart) => pathPart != directoryToServe,
         );
-    return p.joinAll([...pathParts, htmlEntryFileName]);
+    // Note: Replacing "\" with "/" is necessary because `joinAll` uses "\" if
+    // the platform is Windows. However, this path is used by the browser, not
+    // by the OS.
+    return p.joinAll([...pathParts, htmlEntryFileName]).replaceAll('\\', '/');
   }
 
   /// The entry file is the Dart entry file, e.g,
