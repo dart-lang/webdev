@@ -118,23 +118,25 @@ class TestContext {
   /// The path part of the application URL.
   late String path;
 
-  factory TestContext(
-      {String? directory,
-      String? entry,
-      NullSafety nullSafety = NullSafety.sound,
-      String path = 'hello_world/index.html',
-      String pathToServe = 'example'}) {
-    final webAssetsPath = p.split(path).length > 1
-        ? p.join(pathToServe, p.split(path).first)
+  factory TestContext({
+    String? directory,
+    String? entry,
+    NullSafety nullSafety = NullSafety.sound,
+    String? path,
+    String pathToServe = 'example',
+  }) {
+    final filePath = path ?? p.join('hello_world', 'index.html');
+    final webAssetsPath = p.split(filePath).length > 1
+        ? p.join(pathToServe, p.split(filePath).first)
         : pathToServe;
     final dartEntryFileName = entry != null ? p.split(entry).last : 'main.dart';
-    final htmlEntryFileName = p.split(path).last;
+    final htmlEntryFileName = p.split(filePath).last;
     if (nullSafety == NullSafety.sound) {
       return TestContext.withSoundNullSafety(
         packageName: directory != null ? p.split(directory).last : '_testSound',
         webAssetsPath: webAssetsPath,
         dartEntryFileName: dartEntryFileName,
-        htmlEntryFileName: p.split(path).last,
+        htmlEntryFileName: p.split(filePath).last,
       );
     }
     return TestContext.withWeakNullSafety(
@@ -146,29 +148,29 @@ class TestContext {
   }
 
   TestContext.withSoundNullSafety({
-    String packageName = '_testSound',
-    String webAssetsPath = 'example/hello_world',
-    String dartEntryFileName = 'main.dart',
-    String htmlEntryFileName = 'index.html',
+    String? packageName,
+    String? webAssetsPath,
+    String? dartEntryFileName,
+    String? htmlEntryFileName,
   }) : this._(
           nullSafety: NullSafety.sound,
-          packageName: packageName,
-          webAssetsPath: webAssetsPath,
-          dartEntryFileName: dartEntryFileName,
-          htmlEntryFileName: htmlEntryFileName,
+          packageName: packageName ?? '_testSound',
+          webAssetsPath: webAssetsPath ?? p.join('example', 'hello_world'),
+          dartEntryFileName: dartEntryFileName ?? 'main.dart',
+          htmlEntryFileName: htmlEntryFileName ?? 'index.html',
         );
 
   TestContext.withWeakNullSafety({
-    String packageName = '_test',
-    String webAssetsPath = 'example/hello_world',
-    String dartEntryFileName = 'main.dart',
-    String htmlEntryFileName = 'index.html',
+    String? packageName,
+    String? webAssetsPath,
+    String? dartEntryFileName,
+    String? htmlEntryFileName,
   }) : this._(
           nullSafety: NullSafety.weak,
-          packageName: packageName,
-          webAssetsPath: webAssetsPath,
-          dartEntryFileName: dartEntryFileName,
-          htmlEntryFileName: htmlEntryFileName,
+          packageName: packageName ?? '_test',
+          webAssetsPath: webAssetsPath ?? p.join('example', 'hello_world'),
+          dartEntryFileName: dartEntryFileName ?? 'main.dart',
+          htmlEntryFileName: htmlEntryFileName ?? 'index.html',
         );
 
   TestContext._(
@@ -203,7 +205,7 @@ class TestContext {
     // package_config.json is located in <project directory>/.dart_tool/package_config
     _projectDirectory = p.toUri(workingDirectory);
     _packageConfigFile =
-        p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
+        p.toUri(p.join(workingDirectory, '.dart_tool', 'package_config.json'));
 
     final entryFilePath = absolutePath(pathFromDwds: entry);
 
