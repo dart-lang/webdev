@@ -8,6 +8,7 @@ repository: https://github.com/dart-lang/webdev/tree/master/dwds
 
 environment:
   sdk: ">=2.18.0 <3.0.0"
+
 dependencies:
   async: ^2.9.0
   built_collection: ^5.1.1
