@@ -218,7 +218,7 @@ void main() async {
           // Verify that the Dart DevTools tab closes:
           await devToolsTabTarget.onClose;
         });
-      }, skip: true);
+      });
     }
 
     group('connected to an externally-built', () {
@@ -293,7 +293,7 @@ void main() async {
           });
         });
       }
-    }, skip: true);
+    });
 
     group('connected to an internally-built', () {
       late Page appTab;
@@ -340,9 +340,6 @@ void main() async {
               'isFlutterApp=$isFlutterApp and isInternalBuild=true are saved in storage',
               () async {
             final appUrl = context.appUrl;
-            // Navigate to the Dart app:
-            // final appTab =
-            //     await navigateToPage(browser, url: appUrl, isNew: true);
             // Verify that we have debug info for the Dart app:
             await workerEvalDelay();
             final appTabId = await _getTabId(appUrl, worker: worker);
@@ -355,17 +352,10 @@ void main() async {
             expect(debugInfo.isInternalBuild, equals(true));
             expect(debugInfo.isFlutterApp, equals(isFlutterApp));
             // await appTab.close();
-          }, skip: true);
+          });
 
           test('the correct extension panels are added to Chrome DevTools',
               () async {
-            // final appUrl = context.appUrl;
-            // // This is the blank page automatically opened by Chrome:
-            // final blankTab = await navigateToPage(browser, url: 'about:blank');
-            // // Navigate to the Dart app:
-            // await blankTab.goto(appUrl, wait: Until.domContentLoaded);
-            // final appTab = blankTab;
-            // await appTab.bringToFront();
             final chromeDevToolsPage = await _getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
@@ -395,49 +385,53 @@ void main() async {
               screenshotName:
                   'debuggerPanelLandingPage_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
             );
-          }, skip: true);
+          });
 
-          if (isFlutterApp) {
-            test('Can load Flutter Inspector for app', () async {
-              final chromeDevToolsPage = await _getChromeDevToolsPage(browser);
-              // There are no hooks for when a panel is added to Chrome DevTools,
-              // therefore we rely on a slight delay:
-              await Future.delayed(Duration(seconds: 1));
-              _tabLeft(chromeDevToolsPage);
-              await _clickLaunchButton(browser);
-              // Wait for DevTools to load:
-              await Future.delayed(Duration(seconds: 8));
-              await _takeScreenshot(
-                chromeDevToolsPage,
-                screenshotName: 'inspectorPanelWithInspector_flutterApp',
-              );
-            }, skip: true);
-          }
-
-          test('Can load Dart Debugger for app', () async {
+          test('Dart DevTools is embedded for debug session lifetime',
+              () async {
             final chromeDevToolsPage = await _getChromeDevToolsPage(browser);
             // There are no hooks for when a panel is added to Chrome DevTools,
             // therefore we rely on a slight delay:
             await Future.delayed(Duration(seconds: 1));
+            // Navigate to the Dart Debugger panel:
             _tabLeft(chromeDevToolsPage);
             if (isFlutterApp) {
               _tabLeft(chromeDevToolsPage);
             }
-            print('CLICK LAUNCH BUTTON');
-            await _clickLaunchButton(browser);
-            // Wait for DevTools to load:
-            await Future.delayed(Duration(seconds: 8));
-
+            await _clickLaunchButton(
+              browser,
+              panel: Panel.debugger,
+            );
+            // Expect the Dart DevTools IFRAME to be added:
+            final devToolsUrlFragment =
+                'ide=ChromeDevTools&embed=true&page=debugger';
+            final iframeTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment),
+            );
+            var iframeDestroyed = false;
+            unawaited(iframeTarget.onClose.whenComplete(() {
+              iframeDestroyed = true;
+            }));
+            // TODO(elliette): Figure out how to reliably verify that Dart
+            // DevTools has loaded, and take screenshot.
+            expect(iframeTarget, isNotNull);
+            // Navigate away from the Dart app:
+            await appTab.goto('https://dart.dev/',
+                wait: Until.domContentLoaded);
+            // Expect the Dart DevTools IFRAME to be destroyed:
+            expect(iframeDestroyed, isTrue);
+            // Expect the connection lost banner to be visible:
+            final connectionLostBanner = await _getPanelElement(
+              browser,
+              panel: Panel.debugger,
+              elementSelector: '#warningBanner',
+            );
+            expect(connectionLostBanner, isNotNull);
             await _takeScreenshot(
               chromeDevToolsPage,
               screenshotName:
-                  'debuggerPanelWithDebugger_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
+                  'debuggerPanelDisconnected_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
             );
-
-            final targets = browser.targets;
-            for (final target in targets) {
-              print(target.url);
-            }
           });
         });
       }
@@ -445,14 +439,23 @@ void main() async {
   });
 }
 
-Future<void> _clickLaunchButton(Browser browser) async {
-  final launchButton = await _getPanelElement(
-    browser,
-    panel: Panel.debugger,
-    elementSelector: '#launchDebugConnectionButton',
-  );
-  print('launch button is $launchButton');
-  return launchButton!.click();
+Future<bool> _clickLaunchButton(
+  Browser browser, {
+  required Panel panel,
+}) async {
+  try {
+    final launchButton = await _getPanelElement(
+      browser,
+      panel: panel,
+      elementSelector: '#launchDebugConnectionButton',
+    );
+    // Slight delay to guarantee button is clickable:
+    await Future.delayed(Duration(seconds: 1));
+    await launchButton!.click();
+    return true;
+  } catch (_) {
+    return false;
+  }
 }
 
 Future<Page> _getChromeDevToolsPage(Browser browser) async {
@@ -462,20 +465,29 @@ Future<Page> _getChromeDevToolsPage(Browser browser) async {
   return await chromeDevToolsTarget.page;
 }
 
+Future<Page> _getPanelPage(
+  Browser browser, {
+  required Panel panel,
+}) async {
+  final panelName =
+      panel == Panel.inspector ? 'inspector_panel' : 'debugger_panel';
+  var panelTarget = browser.targets
+      .firstWhereOrNull((target) => target.url.contains(panelName));
+  panelTarget ??=
+      await browser.waitForTarget((target) => target.url.contains(panelName));
+  panelTarget.type = 'page';
+  return await panelTarget.page;
+}
+
 Future<ElementHandle?> _getPanelElement(
   Browser browser, {
   required Panel panel,
   required String elementSelector,
 }) async {
-  final panelName =
-      panel == Panel.inspector ? 'inspector_panel' : 'debugger_panel';
-  final panelTarget =
-      await browser.waitForTarget((target) => target.url.contains(panelName));
-  panelTarget.type = 'page';
-  final panelPage = await panelTarget.page;
+  final panelPage = await _getPanelPage(browser, panel: panel);
   final frames = panelPage.frames;
   final mainFrame = frames[0];
-  final panelElement = await mainFrame.$OrNull('#panelBody');
+  final panelElement = await mainFrame.$OrNull(elementSelector);
   return panelElement;
 }
 
