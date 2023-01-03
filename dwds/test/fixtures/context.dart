@@ -121,14 +121,16 @@ class TestContext {
     this.path = 'hello_world/index.html',
     this.pathToServe = 'example',
   }) {
-    final packageName = nullSafety == NullSafety.sound ? '_testSound' : '_test';
-    final relativeDirectory = p.join('..', 'fixtures', packageName);
+    final pathParts = p.split(p.current);
+    assert(pathParts.contains('webdev'));
+    final defaultPackage =
+        nullSafety == NullSafety.sound ? '_testSound' : '_test';
+    final defaultDirectory = p.join('..', 'fixtures', defaultPackage);
+    final defaultEntry = p.join('..', 'fixtures', defaultPackage, 'example',
+        'hello_world', 'main.dart');
 
-    final relativeEntry = p.join(
-        '..', 'fixtures', packageName, 'example', 'append_body', 'main.dart');
-
-    workingDirectory = p.normalize(p
-        .absolute(directory ?? p.relative(relativeDirectory, from: p.current)));
+    workingDirectory =
+        absolutePath(pathFromDwds: directory ?? defaultDirectory);
 
     DartUri.currentDirectory = workingDirectory;
 
@@ -137,8 +139,7 @@ class TestContext {
     _packageConfigFile =
         p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
 
-    final entryFilePath = p.normalize(
-        p.absolute(entry ?? p.relative(relativeEntry, from: p.current)));
+    final entryFilePath = absolutePath(pathFromDwds: entry ?? defaultEntry);
 
     _logger.info('Serving: $pathToServe/$path');
     _logger.info('Project: $_projectDirectory');
@@ -469,16 +470,8 @@ class TestContext {
   }
 
   Future<void> _buildDebugExtension() async {
-    final currentDir = Directory.current.path;
-    if (!currentDir.endsWith('dwds')) {
-      throw StateError(
-          'Expected to be in /dwds directory, instead path was $currentDir.');
-    }
-    final process = await Process.run(
-      'tool/build_extension.sh',
-      ['prod'],
-      workingDirectory: '$currentDir/debug_extension',
-    );
+    final process = await Process.run('tool/build_extension.sh', ['prod'],
+        workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
     print(process.stdout);
   }
 

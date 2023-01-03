@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
+@Timeout(Duration(minutes: 2))
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -13,7 +15,16 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext(
-    directory: '../example', path: 'scopes.html', pathToServe: 'web');
+    path: 'scopes/scopes.html',
+    entry: p.join(
+      '..',
+      'fixtures',
+      '_testSound',
+      'example',
+      'scopes',
+      'scopes_main.dart',
+    ));
+
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;

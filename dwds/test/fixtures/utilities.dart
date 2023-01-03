@@ -9,6 +9,29 @@ import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
 import 'package:path/path.dart' as p;
 
+const webdevDirName = 'webdev';
+const dwdsDirName = 'dwds';
+
+/// The path to the DWDS directory in the local machine, e.g.
+/// "/workstation/webdev/dwds".
+String get dwdsPath {
+  final pathParts = p.split(p.current);
+  // We expect all tests to be run from the webdev mono-repo:
+  assert(pathParts.contains(webdevDirName));
+  return p.joinAll(
+    [
+      ...pathParts.sublist(0, pathParts.lastIndexOf(webdevDirName) + 1),
+      dwdsDirName,
+    ],
+  );
+}
+
+/// Given a [pathFromDwds], e.g. '../fixtures/_test', returns its absolute
+/// path, e.g. '/workstation/webdev/fixtures/_test'.
+String absolutePath({required String pathFromDwds}) => p.normalize(
+      p.join(dwdsPath, pathFromDwds),
+    );
+
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(String workingDirectory,
         List<String> options, Function(ServerLog) logHandler) =>

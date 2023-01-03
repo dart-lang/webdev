@@ -5,10 +5,11 @@
 // When run locally this test may require a manifest key. This makes it easy to
 // just skip it.
 @Tags(['extension'])
-@Timeout(Duration(seconds: 60))
+@Timeout(Duration(minutes: 2))
 @OnPlatform({
   'windows': Skip('https://github.com/dart-lang/webdev/issues/711'),
 })
+
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;

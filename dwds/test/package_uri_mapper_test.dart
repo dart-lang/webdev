@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
+@Timeout(Duration(minutes: 2))
 
 import 'dart:io';
 
@@ -10,6 +11,8 @@ import 'package:dwds/dwds.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+import 'fixtures/utilities.dart';
 
 void main() {
   for (final useDebuggerModuleNames in [true, false]) {
@@ -28,11 +31,12 @@ void main() {
       final resolvedPath =
           '/webdev/fixtures/_testPackageSound/lib/test_library.dart';
 
-      final testPackageSoundPath = p.normalize(p.absolute(p.join(
+      final testPackageSoundPath = absolutePath(
+          pathFromDwds: p.join(
         '..',
         'fixtures',
         '_testPackageSound',
-      )));
+      ));
 
       final packageConfigFile = Uri.file(p.join(
         testPackageSoundPath,

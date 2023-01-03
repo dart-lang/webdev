@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@Timeout(Duration(minutes: 2))
 import 'dart:async';
 import 'dart:io';
 
@@ -13,7 +14,11 @@ import '../fixtures/context.dart';
 import '../fixtures/utilities.dart';
 import '../utils/version_compatibility.dart';
 
-final packagesDir = p.relative('../fixtures/_test', from: p.current);
+final packagesDir = absolutePath(
+  pathFromDwds: p.join('..', 'fixtures', '_test'),
+);
+
+final fixturesDir = absolutePath(pathFromDwds: p.join('test', 'fixtures'));
 
 void main() {
   late FrontendServerAssetReader assetReader;
@@ -22,12 +27,11 @@ void main() {
   late File mapOriginal;
 
   Future<void> createTempFixtures() async {
-    final fixtures = p.join('test', 'fixtures');
     tempFixtures = await Directory.systemTemp.createTemp('dwds_test_fixtures');
     await tempFixtures.create();
-    jsonOriginal = await File(p.join(fixtures, 'main.dart.dill.json'))
+    jsonOriginal = await File(p.join(fixturesDir, 'main.dart.dill.json'))
         .copy(p.join(tempFixtures.path, 'main.dart.dill.json'));
-    mapOriginal = await File(p.join(fixtures, 'main.dart.dill.map'))
+    mapOriginal = await File(p.join(fixturesDir, 'main.dart.dill.map'))
         .copy(p.join(tempFixtures.path, 'main.dart.dill.map'));
   }
 

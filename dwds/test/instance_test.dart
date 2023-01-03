@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@Timeout(Duration(minutes: 2))
 import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -15,7 +17,15 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 
 final context = TestContext(
-    directory: '../example', path: 'scopes.html', pathToServe: 'web');
+    path: 'scopes/scopes.html',
+    entry: p.join(
+      '..',
+      'fixtures',
+      '_testSound',
+      'example',
+      'scopes',
+      'scopes_main.dart',
+    ));
 
 WipConnection get tabConnection => context.tabConnection;
 
@@ -34,10 +44,10 @@ void main() {
     await context.tearDown();
   });
 
-  final url = 'org-dartlang-app:///web/scopes_main.dart';
+  final url = 'org-dartlang-app:///example/scopes/scopes_main.dart';
 
   String libraryVariableExpression(String variable) =>
-      '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("web/scopes_main")'
+      '${globalLoadStrategy.loadModuleSnippet}("dart_sdk").dart.getModuleLibraries("example/scopes/scopes_main")'
       '["$url"]["$variable"];';
 
   /// A reference to the the variable `libraryPublicFinal`, an instance of
@@ -81,7 +91,7 @@ void main() {
       expect(classRef.name, 'MyTestClass<dynamic>');
       expect(
           classRef.id,
-          'classes|org-dartlang-app:///web/scopes_main.dart'
+          'classes|org-dartlang-app:///example/scopes/scopes_main.dart'
           '|MyTestClass<dynamic>');
     });
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
+@Timeout(Duration(minutes: 2))
 import 'dart:io';
 
 import 'package:dwds/src/utilities/sdk_configuration.dart';
