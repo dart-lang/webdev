@@ -351,7 +351,6 @@ void main() async {
             );
             expect(debugInfo.isInternalBuild, equals(true));
             expect(debugInfo.isFlutterApp, equals(isFlutterApp));
-            // await appTab.close();
           });
 
           test('the correct extension panels are added to Chrome DevTools',
