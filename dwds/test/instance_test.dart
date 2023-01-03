@@ -2,19 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@Timeout(Duration(minutes: 2))
 import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/debugger.dart';
 import 'package:dwds/src/debugging/inspector.dart';
 import 'package:dwds/src/loaders/strategy.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext(path: 'scopes/scopes.html');
+final context = TestContext(
+    path: 'scopes/scopes.html',
+    entry: p.join(
+      '..',
+      'fixtures',
+      '_testSound',
+      'example',
+      'scopes',
+      'scopes_main.dart',
+    ));
 
 WipConnection get tabConnection => context.tabConnection;
 
