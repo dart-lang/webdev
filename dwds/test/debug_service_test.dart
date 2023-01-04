@@ -98,16 +98,17 @@ void main() {
 
     // DDS should fail to start with existing vm clients.
     ddsWs.add(json.encode(yieldControlToDDS));
-    
+
     final response = await completer.future;
     expect(response['id'], '0');
     expect(response.containsKey('error'), isTrue);
-    
+
     final result = response['error'] as Map<String, dynamic>;
     expect(result['message'], 'Feature is disabled.');
-    expect(result['data'], 'Existing VM service clients prevent DDS from taking control.');
+    expect(result['data'],
+        'Existing VM service clients prevent DDS from taking control.');
 
     await ddsWs.close();
     await ws.close();
-  }, solo:true);
+  });
 }

@@ -13,6 +13,7 @@
   or not.
 - Pre-warm expression compiler cache to speed up Flutter Inspector loading.
 - Remove `ChromeProxyService.setExceptionPauseMode()`.
+- Display full error on failure to start DDS.
 
 ## 16.0.1
 

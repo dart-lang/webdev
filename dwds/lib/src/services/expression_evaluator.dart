@@ -118,7 +118,7 @@ class ExpressionEvaluator {
     var result = await _inspector.callFunction(jsCode, scope.values);
     result = await _formatEvaluationError(result);
 
-    _logger.finest('Evaluated "$expression" to "$result" for isolate $isolateId');
+    _logger.finest('Evaluated "$expression" to "$result"');
     return result;
   }
 

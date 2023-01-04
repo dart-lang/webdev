@@ -48,21 +48,16 @@ void Function(WebSocketChannel) _createNewConnectionHandler(
     final inputStream = webSocket.stream.map((value) {
       if (value is List<int>) {
         value = utf8.decode(value);
-        print('WebSocket connection input: $value');
       } else if (value is! String) {
         throw StateError(
             'Got value with unexpected type ${value.runtimeType} from web '
             'socket, expected a List<int> or String.');
       }
-      value = jsonDecode(value);
-      print('WebSocket connection input: $value');
-      final request = Map<String, Object>.from(value);
+      final request = Map<String, Object>.from(jsonDecode(value));
       if (onRequest != null) onRequest(request);
       return request;
     });
-    
     ++_clientsConnected;
-    print('WebSocketConnection: $_clientsConnected, ${StackTrace.current},');
     VmServerConnection(inputStream, responseController.sink,
             serviceExtensionRegistry, chromeProxyService)
         .done
@@ -203,7 +198,6 @@ class DebugService {
 
   static bool yieldControlToDDS(String uri) {
     if (_clientsConnected > 1) {
-      print('Connections: $_clientsConnected');
       return false;
     }
     _ddsUri = uri;
@@ -263,7 +257,6 @@ class DebugService {
         if (request.url.pathSegments.first != authToken) {
           return shelf.Response.forbidden('Incorrect auth token');
         }
-        print('Request: ${request.headers}, ${request.handlerPath}, ${request.url}, ${request.requestedUri} ,${request.method}');
         return innerHandler(request);
       };
     }
