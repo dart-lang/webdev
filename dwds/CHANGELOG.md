@@ -13,6 +13,7 @@
   or not.
 - Pre-warm expression compiler cache to speed up Flutter Inspector loading.
 - Remove `ChromeProxyService.setExceptionPauseMode()`.
+- Wait for an old isolate to be destroyed before creating a new one.
 
 ## 16.0.1
 
