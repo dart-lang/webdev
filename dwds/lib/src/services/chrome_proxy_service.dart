@@ -231,12 +231,21 @@ class ChromeProxyService implements VmServiceInterface {
     }
   }
 
+  
+  var _isolateDestroyed = Completer<void>()..complete();
+
   /// Creates a new isolate.
   ///
   /// Only one isolate at a time is supported, but they should be cleaned up
   /// with [destroyIsolate] and recreated with this method there is a hot
   /// restart or full page refresh.
   Future<void> createIsolate(AppConnection appConnection) async {
+    // Wait for previous isolate to finish before starting the new one.
+    // The isolate is marked as destroyed on start.
+    final old = _isolateDestroyed.future;
+    _isolateDestroyed = Completer<void>();
+    await old;
+
     // Inspector is null if the previous isolate is destroyed.
     if (_isIsolateRunning) {
       throw UnsupportedError(
@@ -266,6 +275,7 @@ class ChromeProxyService implements VmServiceInterface {
       sdkConfiguration,
     );
     debugger.updateInspector(inspector);
+    _logger.fine('Creating isolate: ${inspector.isolate.id}');
 
     final compiler = _compiler;
     _expressionEvaluator = compiler == null
@@ -334,10 +344,12 @@ class ChromeProxyService implements VmServiceInterface {
   ///
   /// Clears out the [_inspector] and all related cached information.
   void destroyIsolate() {
-    _logger.fine('Destroying isolate');
+    //if (_isolateDestroyed.isCompleted) return;
     if (!_isIsolateRunning) return;
+
     final isolate = inspector.isolate;
     final isolateRef = inspector.isolateRef;
+    _logger.fine('Destroying isolate ${isolateRef.id}');
 
     _initializedCompleter = Completer<void>();
     _startedCompleter = Completer<void>();
@@ -355,6 +367,7 @@ class ChromeProxyService implements VmServiceInterface {
     _expressionEvaluator?.close();
     _consoleSubscription?.cancel();
     _consoleSubscription = null;
+    _isolateDestroyed.complete();
   }
 
   Future<void> disableBreakpoints() async {
@@ -443,10 +456,19 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     return _rpcNotSupportedFuture('clearVMTimeline');
   }
 
-  Future<Response> _getEvaluationResult(
+  
+  Future<Response> _getEvaluationResult(String isolateId,
       Future<RemoteObject> Function() evaluation, String expression) async {
     try {
       final result = await evaluation();
+      if (!_isIsolateRunning || isolateId != inspector.isolate.id) {
+        _logger.fine('Cannot get evaluation result for isolate $isolateId: isolate exited.');
+        return ErrorRef(
+          kind: 'error',
+          message: 'isolate exited',
+          id: createId(),
+       );
+      }
       // Handle compilation errors, internal errors,
       // and reference errors from JavaScript evaluation in chrome.
       if (result.type.contains('Error')) {
@@ -496,7 +518,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         _checkIsolate('evaluate', isolateId);
 
         final library = await inspector.getLibrary(targetId);
-        return await _getEvaluationResult(
+        return await _getEvaluationResult(isolateId,
             () => evaluator.evaluateExpression(
                 isolateId, library?.uri, expression, scope),
             expression);
@@ -519,7 +541,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         await isCompilerInitialized;
         _checkIsolate('evaluateInFrame', isolateId);
 
-        return await _getEvaluationResult(
+        return await _getEvaluationResult(isolateId,
             () => evaluator.evaluateExpressionInFrame(
                 isolateId, frameIndex, expression, scope),
             expression);

@@ -73,4 +73,41 @@ void main() {
             .then((ws) => ws.close()),
         completes);
   });
+
+  test('Refuses to yield to dwds if existing clients found', () async {
+    final ddsWs = await WebSocket.connect(
+      '${context.debugConnection.uri}/ws',
+    );
+
+    // Connect to vm service.
+    final ws = await WebSocket.connect('${context.debugConnection.uri}/ws');
+
+    final completer = Completer<Map<String, dynamic>>();
+    ddsWs.listen((event) {
+      completer.complete(json.decode(event as String));
+    });
+
+    const yieldControlToDDS = <String, dynamic>{
+      'jsonrpc': '2.0',
+      'id': '0',
+      'method': '_yieldControlToDDS',
+      'params': {
+        'uri': 'http://localhost:123',
+      },
+    };
+
+    // DDS should fail to start with existing vm clients.
+    ddsWs.add(json.encode(yieldControlToDDS));
+    
+    final response = await completer.future;
+    expect(response['id'], '0');
+    expect(response.containsKey('error'), isTrue);
+    
+    final result = response['error'] as Map<String, dynamic>;
+    expect(result['message'], 'Feature is disabled.');
+    expect(result['data'], 'Existing VM service clients prevent DDS from taking control.');
+
+    await ddsWs.close();
+    await ws.close();
+  }, solo:true);
 }
