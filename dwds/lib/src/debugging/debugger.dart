@@ -158,6 +158,7 @@ class Debugger extends Domain {
       throw RPCError('getStack', RPCError.kInternalError,
           'Cannot compute stack when application is not paused');
     }
+  
     final frames = await stackComputer!.calculateFrames(limit: limit);
     return Stack(
         frames: frames,
