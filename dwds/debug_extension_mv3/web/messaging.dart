@@ -29,6 +29,8 @@ enum MessageType {
   }
 }
 
+// This message is used for communication within the extension itself (eg, for
+// the service worker to communicate with the content scripts).
 class Message {
   final Script to;
   final Script from;
@@ -88,4 +90,61 @@ void interceptMessage<T>({
     debugError(
         'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error');
   }
+}
+
+const _angularDartDevToolsId = 'nbkbficgbembimioedhceniahniffgpl';
+
+// A map of DWDS events to the IDs of the external extensions that those events
+// should be forwarded to. This is only used to forward outgoing messages.
+// Incoming messages are restricted by externally_connectable in manifest.json.
+final dwdsEventsForExternalExtensions = {
+  'dwds.encodedUri': [_angularDartDevToolsId],
+};
+
+// A map of chrome.debugger events to the IDs of the external extensions that
+// those events should be forwarded to. This is only used to forward outgoing
+// messages. Incoming messages are restricted by externally_connectable in
+// manifest.json.
+final debugEventsForExternalExtensions = {
+  'Overlay.inspectNodeRequested': [_angularDartDevToolsId],
+};
+
+ExternalExtensionMessage debugEventMessage({
+  required String method,
+  required dynamic params,
+  required int tabId,
+}) =>
+    ExternalExtensionMessage(
+      name: 'chrome.debugger.event',
+      tabId: tabId,
+      options: DebugEvent(method: method, params: params),
+    );
+
+ExternalExtensionMessage dwdsEventMessage({
+  required String method,
+  required dynamic params,
+  required int tabId,
+}) =>
+    ExternalExtensionMessage(
+      name: method,
+      tabId: tabId,
+      options: params,
+    );
+
+// This message is used for cross-extension communication (eg, to send messages
+// between this extension and the AngularDart DevTools extension.)
+@JS()
+@anonymous
+class ExternalExtensionMessage {
+  external int get tabId;
+  external String get name;
+  external dynamic get options;
+  external factory ExternalExtensionMessage(
+      {required int tabId, required String name, required dynamic options});
+}
+
+@JS()
+@anonymous
+class DebugEvent {
+  external factory DebugEvent({String method, Object? params});
 }

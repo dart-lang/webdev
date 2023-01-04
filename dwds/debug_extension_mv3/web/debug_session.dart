@@ -27,6 +27,7 @@ import 'chrome_api.dart';
 import 'data_serializers.dart';
 import 'data_types.dart';
 import 'logger.dart';
+import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
 import 'web_api.dart';
@@ -115,6 +116,14 @@ String _translateChromeError(String chromeErrorMessage) {
 
 Future<void> _onDebuggerEvent(
     Debuggee source, String method, Object? params) async {
+  final externalExtensions = debugEventsForExternalExtensions[method] ?? [];
+  if (externalExtensions.isNotEmpty) {
+    _forwardMessageToExternalExtensions(
+      debugEventMessage(method: method, params: params, tabId: source.tabId),
+      extensionIds: externalExtensions,
+    );
+  }
+
   if (method == 'Runtime.executionContextCreated') {
     return _maybeConnectToDwds(source.tabId, params);
   }
@@ -194,14 +203,18 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
   final message = serializers.deserialize(jsonDecode(eventData));
   if (message is ExtensionRequest) {
     _forwardDwdsEventToChromeDebugger(message, client, tabId);
-  } else if (message is ExtensionEvent) {
-    switch (message.method) {
-      case 'dwds.encodedUri':
-        // TODO(elliette): Forward to external extensions.
-        break;
-      case 'dwds.devtoolsUri':
-        _openDevTools(message.params, dartTabId: tabId);
-        break;
+  }
+  if (message is ExtensionEvent) {
+    final method = message.method;
+    final params = message.params;
+    final externalExtensions = dwdsEventsForExternalExtensions[method] ?? [];
+    if (externalExtensions.isNotEmpty) {
+      _forwardMessageToExternalExtensions(
+          dwdsEventMessage(method: method, params: params, tabId: tabId),
+          extensionIds: externalExtensions);
+    }
+    if (method == 'dwds.devtoolsUri') {
+      _openDevTools(params, dartTabId: tabId);
     }
   }
 }
@@ -240,6 +253,32 @@ void _forwardChromeDebuggerEventToDwds(
     debugSession.sendBatchedEvent(event);
   } else {
     debugSession.sendEvent(event);
+  }
+}
+
+void _forwardMessageToExternalExtensions(
+  ExternalExtensionMessage message, {
+  required List<String> extensionIds,
+}) {
+  for (final extensionId in extensionIds) {
+    try {
+      chrome.runtime.sendMessage(
+        extensionId,
+        message,
+        /* options */ null,
+        allowInterop(([e]) {
+          if (e == null) {
+            // Error sending message:
+            final errorMessage =
+                chrome.runtime.lastError?.message ?? 'Unknown error.';
+            debugWarn(
+                'Error forwarding ${message.name} to $extensionId: $errorMessage');
+          }
+        }),
+      );
+    } catch (error) {
+      debugWarn('Error forwarding ${message.name} to $extensionId: $error');
+    }
   }
 }
 

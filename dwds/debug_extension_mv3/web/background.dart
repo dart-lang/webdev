@@ -48,7 +48,6 @@ void _registerListeners() {
   chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
 }
 
-// TODO(elliette): Start a debug session instead.
 Future<void> _startDebugSession(Tab currentTab) async {
   final tabId = currentTab.id;
   final debugInfo = await _fetchDebugInfo(tabId);
