@@ -82,6 +82,7 @@ class Debugger extends Domain {
   FrameComputer? stackComputer;
 
   bool _isStepping = false;
+  bool _isPaused = false;
 
   void updateInspector(AppInspectorInterface appInspector) {
     inspector = appInspector;
@@ -92,6 +93,7 @@ class Debugger extends Domain {
     _isStepping = false;
     final result = await _remoteDebugger.pause();
     handleErrorIfPresent(result);
+    _isPaused = true;
     return Success();
   }
 
@@ -143,6 +145,7 @@ class Debugger extends Domain {
     } else {
       _isStepping = false;
       result = await _remoteDebugger.resume();
+      _isPaused = false;
     }
     handleErrorIfPresent(result);
     return Success();
@@ -154,11 +157,14 @@ class Debugger extends Domain {
   ///
   /// The returned stack will contain up to [limit] frames if provided.
   Future<Stack> getStack({int? limit}) async {
-    if (stackComputer == null) {
+    if (!_isPaused) {
       throw RPCError('getStack', RPCError.kInternalError,
           'Cannot compute stack when application is not paused');
     }
-
+    if (stackComputer == null) {
+      throw RPCError('getStack', RPCError.kInternalError,
+          'Cannot compute stack without a stack computer.');
+    }
     final frames = await stackComputer!.calculateFrames(limit: limit);
     return Stack(
         frames: frames,
