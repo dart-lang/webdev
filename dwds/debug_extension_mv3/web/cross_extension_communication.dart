@@ -7,21 +7,19 @@ library cross_extension_communication;
 
 import 'package:js/js.dart';
 
+import 'chrome_api.dart';
+import 'data_types.dart';
 import 'debug_session.dart';
 import 'logger.dart';
-import 'chrome_api.dart';
-import 'web_api.dart';
 import 'storage.dart';
+import 'web_api.dart';
 
 const _angularDartDevToolsId = 'nbkbficgbembimioedhceniahniffgpl';
 
-// A map of events to the IDs of the external extensions that
-// those events should be forwarded to. This is only used to forward outgoing
-// messages. Incoming messages are restricted by externally_connectable in
-// manifest.json.
-final _eventsForExternalExtensions = {
-  'Overlay.inspectNodeRequested': [_angularDartDevToolsId],
-  'dwds.encodedUri': [_angularDartDevToolsId],
+// A set of events to forward to the AngularDart DevTools extension.
+final _eventsForAngularDartDevTools = {
+  'Overlay.inspectNodeRequested',
+  'dwds.encodedUri',
 };
 
 void handleMessagesFromAngularDartDevTools(
@@ -31,9 +29,7 @@ void handleMessagesFromAngularDartDevTools(
   if (message.name == 'chrome.debugger.sendCommand') {
     _forwardCommandToChromeDebugger(message, sendResponse);
   } else if (message.name == 'dwds.encodedUri') {
-      final encodedUri = await fetchStorageObject<EncodedUri>(
-      type: StorageObject.encodedUri, tabId: message.tabId);
-    sendResponse(encodedUri ?? '');
+    _respondWithEncodedUri(message.tabId, sendResponse);
   } else if (message.name == 'dwds.startDebugging') {
     attachDebugger(message.tabId);
     sendResponse(true);
@@ -43,67 +39,65 @@ void handleMessagesFromAngularDartDevTools(
   }
 }
 
-void _forwardCommandToChromeDebugger(ExternalExtensionMessage message, Function sendResponse) {
-      try {
-      final options = message.options as SendCommandOptions;
-      chrome.debugger.sendCommand(
-          Debuggee(tabId: message.tabId),
-          options.method,
-          options.commandParams,
-          allowInterop(([e]) {
-        // No arguments indicate that an error occurred.
-        if (e == null) {
-          sendResponse(ErrorResponse()
-            ..error = JSON.stringify(chrome.runtime.lastError));
-        } else {
-          sendResponse(e);
-        }
-      }
-    ));
-    } catch (e) {
-      sendResponse(ErrorResponse()..error = '$e');
-    }
-}
-
-void _respondWithEncodedUri() {
-  
-}
-
-void maybeForwardMessageToExternalExtensions(
+void maybeForwardMessageToAngularDartDevTools(
     {required String method, required dynamic params, required int tabId}) {
-  final extensionIds = _eventsForExternalExtensions[method];
-  if (extensionIds == null) return;
+  if (!_eventsForAngularDartDevTools.contains(method)) return;
 
   final message = method.startsWith('dwds')
       ? _dwdsEventMessage(method: method, params: params, tabId: tabId)
       : _debugEventMessage(method: method, params: params, tabId: tabId);
 
-  for (final extensionId in extensionIds) {
-    _forwardMessageToExternalExtension(message, recipient: extensionId);
+  _forwardMessageToAngularDartDevTools(message);
+}
+
+void _forwardCommandToChromeDebugger(
+    ExternalExtensionMessage message, Function sendResponse) {
+  try {
+    final options = message.options as SendCommandOptions;
+    chrome.debugger.sendCommand(
+      Debuggee(tabId: message.tabId),
+      options.method,
+      options.commandParams,
+      allowInterop(
+          ([result]) => _respondWithChromeResult(result, sendResponse)),
+    );
+  } catch (e) {
+    sendResponse(ErrorResponse()..error = '$e');
   }
 }
 
-void _forwardMessageToExternalExtension(
-  ExternalExtensionMessage message, {
-  required String recipient,
-}) {
-  try {
-    chrome.runtime.sendMessage(
-      recipient,
-      message,
-      /* options */ null,
-      allowInterop(([e]) {
-        if (e == null) {
-          // Error sending message:
-          final errorMessage =
-              chrome.runtime.lastError?.message ?? 'Unknown error.';
-          debugWarn(
-              'Error forwarding ${message.name} to $recipient: $errorMessage');
-        }
-      }),
-    );
-  } catch (error) {
-    debugWarn('Error forwarding ${message.name} to $recipient: $error');
+void _respondWithChromeResult(Object? chromeResult, Function sendResponse) {
+  // No result indicates that an error occurred.
+  if (chromeResult == null) {
+    sendResponse(ErrorResponse()
+      ..error = JSON.stringify(
+        chrome.runtime.lastError ?? 'Unknown error.',
+      ));
+  } else {
+    sendResponse(chromeResult);
+  }
+}
+
+void _respondWithEncodedUri(int tabId, Function sendResponse) async {
+  final encodedUri = await fetchStorageObject<EncodedUri>(
+      type: StorageObject.encodedUri, tabId: tabId);
+  sendResponse(encodedUri ?? '');
+}
+
+void _forwardMessageToAngularDartDevTools(ExternalExtensionMessage message) {
+  chrome.runtime.sendMessage(
+    _angularDartDevToolsId,
+    message,
+    /* options */ null,
+    allowInterop(([result]) => _checkForErrors(result, message.name)),
+  );
+}
+
+void _checkForErrors(Object? chromeResult, String messageName) {
+  // No result indicates that an error occurred.
+  if (chromeResult == null) {
+    final errorMessage = chrome.runtime.lastError?.message ?? 'Unknown error.';
+    debugWarn('Error forwarding ${messageName}: $errorMessage');
   }
 }
 
@@ -129,8 +123,8 @@ ExternalExtensionMessage _dwdsEventMessage({
       options: params,
     );
 
-// This message is used for cross-extension communication (eg, to send messages
-// between this extension and the AngularDart DevTools extension.)
+// This message is used for cross-extension communication between this extension
+// and the AngularDart DevTools extension.
 @JS()
 @anonymous
 class ExternalExtensionMessage {
@@ -159,4 +153,3 @@ class SendCommandOptions {
 class ErrorResponse {
   external set error(String error);
 }
-

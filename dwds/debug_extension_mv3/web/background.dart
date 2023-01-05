@@ -29,8 +29,12 @@ void main() {
 }
 
 void _registerListeners() {
-  chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
-  chrome.runtime.onMessageExternal.addListener(allowInterop(handleMessagesFromExternalExtensions));
+  chrome.runtime.onMessage.addListener(
+    allowInterop(_handleRuntimeMessages),
+  );
+  chrome.runtime.onMessageExternal.addListener(
+    allowInterop(handleMessagesFromAngularDartDevTools),
+  );
   chrome.tabs.onRemoved
       .addListener(allowInterop((tabId, _) => maybeRemoveLifelinePort(tabId)));
   // Update the extension icon on tab navigation:

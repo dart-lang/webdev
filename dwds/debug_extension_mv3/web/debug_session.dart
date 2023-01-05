@@ -116,7 +116,7 @@ String _translateChromeError(String chromeErrorMessage) {
 
 Future<void> _onDebuggerEvent(
     Debuggee source, String method, Object? params) async {
-  maybeForwardMessageToExternalExtensions(
+  maybeForwardMessageToAngularDartDevTools(
       method: method, params: params, tabId: source.tabId);
 
   if (method == 'Runtime.executionContextCreated') {
@@ -200,7 +200,7 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
     _forwardDwdsEventToChromeDebugger(message, client, tabId);
   }
   if (message is ExtensionEvent) {
-    maybeForwardMessageToExternalExtensions(
+    maybeForwardMessageToAngularDartDevTools(
         method: message.method, params: message.params, tabId: tabId);
     if (message.method == 'dwds.devtoolsUri') {
       _openDevTools(message.params, dartTabId: tabId);

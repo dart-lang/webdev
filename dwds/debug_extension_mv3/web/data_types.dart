@@ -19,3 +19,13 @@ abstract class DevToolsOpener
 
   bool get newWindow;
 }
+
+abstract class EncodedUri implements Built<EncodedUri, EncodedUriBuilder> {
+  static Serializer<EncodedUri> get serializer => _$encodedUriSerializer;
+
+  factory EncodedUri([Function(EncodedUriBuilder) updates]) = _$EncodedUri;
+
+  EncodedUri._();
+
+  String get uri;
+}

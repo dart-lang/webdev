@@ -8,6 +8,7 @@ part of 'data_types.dart';
 
 Serializer<DevToolsOpener> _$devToolsOpenerSerializer =
     new _$DevToolsOpenerSerializer();
+Serializer<EncodedUri> _$encodedUriSerializer = new _$EncodedUriSerializer();
 
 class _$DevToolsOpenerSerializer
     implements StructuredSerializer<DevToolsOpener> {
@@ -43,6 +44,45 @@ class _$DevToolsOpenerSerializer
         case 'newWindow':
           result.newWindow = serializers.deserialize(value,
               specifiedType: const FullType(bool))! as bool;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
+class _$EncodedUriSerializer implements StructuredSerializer<EncodedUri> {
+  @override
+  final Iterable<Type> types = const [EncodedUri, _$EncodedUri];
+  @override
+  final String wireName = 'EncodedUri';
+
+  @override
+  Iterable<Object?> serialize(Serializers serializers, EncodedUri object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object?>[
+      'uri',
+      serializers.serialize(object.uri, specifiedType: const FullType(String)),
+    ];
+
+    return result;
+  }
+
+  @override
+  EncodedUri deserialize(Serializers serializers, Iterable<Object?> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new EncodedUriBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current! as String;
+      iterator.moveNext();
+      final Object? value = iterator.current;
+      switch (key) {
+        case 'uri':
+          result.uri = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
           break;
       }
     }
@@ -128,6 +168,84 @@ class DevToolsOpenerBuilder
         new _$DevToolsOpener._(
             newWindow: BuiltValueNullFieldError.checkNotNull(
                 newWindow, r'DevToolsOpener', 'newWindow'));
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$EncodedUri extends EncodedUri {
+  @override
+  final String uri;
+
+  factory _$EncodedUri([void Function(EncodedUriBuilder)? updates]) =>
+      (new EncodedUriBuilder()..update(updates))._build();
+
+  _$EncodedUri._({required this.uri}) : super._() {
+    BuiltValueNullFieldError.checkNotNull(uri, r'EncodedUri', 'uri');
+  }
+
+  @override
+  EncodedUri rebuild(void Function(EncodedUriBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  EncodedUriBuilder toBuilder() => new EncodedUriBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is EncodedUri && uri == other.uri;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc(0, uri.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper(r'EncodedUri')..add('uri', uri))
+        .toString();
+  }
+}
+
+class EncodedUriBuilder implements Builder<EncodedUri, EncodedUriBuilder> {
+  _$EncodedUri? _$v;
+
+  String? _uri;
+  String? get uri => _$this._uri;
+  set uri(String? uri) => _$this._uri = uri;
+
+  EncodedUriBuilder();
+
+  EncodedUriBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _uri = $v.uri;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(EncodedUri other) {
+    ArgumentError.checkNotNull(other, 'other');
+    _$v = other as _$EncodedUri;
+  }
+
+  @override
+  void update(void Function(EncodedUriBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  EncodedUri build() => _build();
+
+  _$EncodedUri _build() {
+    final _$result = _$v ??
+        new _$EncodedUri._(
+            uri: BuiltValueNullFieldError.checkNotNull(
+                uri, r'EncodedUri', 'uri'));
     replace(_$result);
     return _$result;
   }
