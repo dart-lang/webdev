@@ -291,7 +291,7 @@ class ChromeProxyService implements VmServiceInterface {
         _startedCompleter.complete();
       } else {
         // See https://github.com/flutter/flutter/issues/117676:
-        _logger.warning('Expected state, debugging may not work as expected.');
+        _logger.warning('Unexpected state, debugging may not work as expected.');
       }
     }));
 
