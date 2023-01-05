@@ -47,6 +47,10 @@ class ChromeProxyService implements VmServiceInterface {
   Future<void> get isInitialized => _initializedCompleter.future;
   Completer<void> _initializedCompleter = Completer<void>();
 
+  /// Signals when isolate starts.
+  Future<void> get isStarted => _startedCompleter.future;
+  Completer<void> _startedCompleter = Completer<void>();
+
   /// Signals when expression compiler is ready to evaluate.
   Future<void> get isCompilerInitialized => _compilerCompleter.future;
   Completer<void> _compilerCompleter = Completer<void>();
@@ -283,6 +287,9 @@ class ChromeProxyService implements VmServiceInterface {
 
     unawaited(appConnection.onStart.then((_) async {
       await debugger.resumeFromStart();
+      if (!_startedCompleter.isCompleted) {
+        _startedCompleter.complete();
+      }
     }));
 
     unawaited(appConnection.onDone.then((_) => destroyIsolate()));
@@ -335,6 +342,7 @@ class ChromeProxyService implements VmServiceInterface {
     final isolateRef = inspector.isolateRef;
 
     _initializedCompleter = Completer<void>();
+    _startedCompleter = Completer<void>();
     _compilerCompleter = Completer<void>();
     _streamNotify(
         'Isolate',
@@ -614,6 +622,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Stack> getStack(String isolateId, {int? limit}) async {
     await isInitialized;
+    await isStarted;
     _checkIsolate('getStack', isolateId);
     return (await debuggerFuture).getStack(limit: limit);
   }
@@ -753,6 +762,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     if (inspector.appConnection.isStarted) {
       return captureElapsedTime(() async {
         await isInitialized;
+        await isStarted;
         _checkIsolate('resume', isolateId);
         return await (await debuggerFuture)
             .resume(step: step, frameIndex: frameIndex);

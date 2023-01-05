@@ -13,8 +13,8 @@
   or not.
 - Pre-warm expression compiler cache to speed up Flutter Inspector loading.
 - Remove `ChromeProxyService.setExceptionPauseMode()`.
-- Remove `Completer` in `ChromeProxyService` to fix Flutter tools crash:
-  https://github.com/dart-lang/webdev/pull/1862
+- Don't complete an already completed `Completer` in `ChromeProxyService` to fix
+  Flutter tools crash: https://github.com/dart-lang/webdev/pull/1862
 
 ## 16.0.1
 
