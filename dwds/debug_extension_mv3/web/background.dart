@@ -14,10 +14,10 @@ import 'package:js/js.dart';
 
 import 'debug_session.dart';
 import 'chrome_api.dart';
+import 'cross_extension_communication.dart';
 import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
-import 'cross_extension_communication.dart';
 import 'storage.dart';
 import 'utils.dart';
 import 'web_api.dart';

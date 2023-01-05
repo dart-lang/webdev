@@ -29,8 +29,6 @@ enum MessageType {
   }
 }
 
-// This message is used for communication within the extension itself (eg, for
-// the service worker to communicate with the content scripts).
 class Message {
   final Script to;
   final Script from;
