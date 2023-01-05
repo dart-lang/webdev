@@ -5,9 +5,6 @@
 @JS()
 library cross_extension_communication;
 
-import 'dart:convert';
-
-import 'package:dwds/data/serializers.dart';
 import 'package:js/js.dart';
 
 import 'debug_session.dart';
@@ -15,7 +12,6 @@ import 'logger.dart';
 import 'chrome_api.dart';
 import 'web_api.dart';
 import 'storage.dart';
-import 'debug_session.dart';
 
 const _angularDartDevToolsId = 'nbkbficgbembimioedhceniahniffgpl';
 
@@ -28,12 +24,27 @@ final _eventsForExternalExtensions = {
   'dwds.encodedUri': [_angularDartDevToolsId],
 };
 
-void handleMessagesFromExternalExtensions(
+void handleMessagesFromAngularDartDevTools(
     dynamic jsRequest, MessageSender sender, Function sendResponse) async {
   if (jsRequest == null) return;
   final message = jsRequest as ExternalExtensionMessage;
   if (message.name == 'chrome.debugger.sendCommand') {
-    try {
+    _forwardCommandToChromeDebugger(message, sendResponse);
+  } else if (message.name == 'dwds.encodedUri') {
+      final encodedUri = await fetchStorageObject<EncodedUri>(
+      type: StorageObject.encodedUri, tabId: message.tabId);
+    sendResponse(encodedUri ?? '');
+  } else if (message.name == 'dwds.startDebugging') {
+    attachDebugger(message.tabId);
+    sendResponse(true);
+  } else {
+    sendResponse(
+        ErrorResponse()..error = 'Unknown message name: ${message.name}');
+  }
+}
+
+void _forwardCommandToChromeDebugger(ExternalExtensionMessage message, Function sendResponse) {
+      try {
       final options = message.options as SendCommandOptions;
       chrome.debugger.sendCommand(
           Debuggee(tabId: message.tabId),
@@ -52,17 +63,10 @@ void handleMessagesFromExternalExtensions(
     } catch (e) {
       sendResponse(ErrorResponse()..error = '$e');
     }
-  } else if (message.name == 'dwds.encodedUri') {
-      final encodedUri = await fetchStorageObject<EncodedUri>(
-      type: StorageObject.encodedUri, tabId: message.tabId);
-    sendResponse(encodedUri ?? '');
-  } else if (message.name == 'dwds.startDebugging') {
-    attachDebugger(message.tabId);
-    sendResponse(true);
-  } else {
-    sendResponse(
-        ErrorResponse()..error = 'Unknown message name: ${message.name}');
-  }
+}
+
+void _respondWithEncodedUri() {
+  
 }
 
 void maybeForwardMessageToExternalExtensions(
@@ -148,20 +152,6 @@ class DebugEvent {
 class SendCommandOptions {
   external String get method;
   external Object get commandParams;
-}
-
-@JS()
-@anonymous
-class Request {
-  external String get dartAppId;
-  external String get sender;
-  external int get tabId;
-  external String get name;
-  external dynamic get options;
-  external String get warning;
-  external String get message;
-  external factory Request(
-      {required int tabId, required String name, required dynamic options});
 }
 
 @JS()
