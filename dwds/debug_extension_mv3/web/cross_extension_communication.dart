@@ -97,7 +97,7 @@ void _checkForErrors(Object? chromeResult, String messageName) {
   // No result indicates that an error occurred.
   if (chromeResult == null) {
     final errorMessage = chrome.runtime.lastError?.message ?? 'Unknown error.';
-    debugWarn('Error forwarding ${messageName}: $errorMessage');
+    debugWarn('Error forwarding $messageName: $errorMessage');
   }
 }
 
