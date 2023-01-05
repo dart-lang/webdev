@@ -36,6 +36,13 @@ String get fixturesPath {
   return p.join(webdevPath, fixturesDirName);
 }
 
+// Creates a path compatible for web.
+String webCompatiblePath(List<String> pathParts) {
+  // Note: Replacing "\" with "/" is necessary because `joinAll` uses "\" if
+  // the platform is Windows. However, only "/" is expected by the browser.
+  return p.joinAll([...pathParts]).replaceAll('\\', '/');
+}
+
 /// Expects one of [pathFromWebdev], [pathFromDwds] or [pathFromFixtures]  to be
 /// provided. Returns the absolute path in the local machine to that path, e.g.
 ///   absolutePath(pathFromFixtures: '_test/example') ->

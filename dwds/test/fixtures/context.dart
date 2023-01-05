@@ -74,10 +74,7 @@ class TestContext {
     final pathParts = p.split(webAssetsPath).where(
           (pathPart) => pathPart != directoryToServe,
         );
-    // Note: Replacing "\" with "/" is necessary because `joinAll` uses "\" if
-    // the platform is Windows. However, this path is used by the browser, not
-    // by the OS.
-    return p.joinAll([...pathParts, htmlEntryFileName]).replaceAll('\\', '/');
+    return webCompatiblePath([...pathParts, htmlEntryFileName]);
   }
 
   /// The entry file is the Dart entry file, e.g,
@@ -96,7 +93,7 @@ class TestContext {
   /// The URI for the package_config.json is located in:
   /// <project directory>/.dart_tool/package_config
   Uri get _packageConfigFile =>
-      p.toUri(p.join(workingDirectory, '.dart_tool/package_config.json'));
+      p.toUri(p.join(workingDirectory, '.dart_tool', 'package_config.json'));
 
   String get appUrl => _appUrl!;
   late String? _appUrl;
