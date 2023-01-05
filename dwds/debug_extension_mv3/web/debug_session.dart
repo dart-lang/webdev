@@ -24,10 +24,10 @@ import 'package:sse/client/sse_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'chrome_api.dart';
+import 'cross_extension_communication.dart';
 import 'data_serializers.dart';
 import 'data_types.dart';
 import 'logger.dart';
-import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
 import 'web_api.dart';
@@ -116,13 +116,8 @@ String _translateChromeError(String chromeErrorMessage) {
 
 Future<void> _onDebuggerEvent(
     Debuggee source, String method, Object? params) async {
-  final externalExtensions = debugEventsForExternalExtensions[method] ?? [];
-  if (externalExtensions.isNotEmpty) {
-    _forwardMessageToExternalExtensions(
-      debugEventMessage(method: method, params: params, tabId: source.tabId),
-      extensionIds: externalExtensions,
-    );
-  }
+  maybeForwardMessageToExternalExtensions(
+      method: method, params: params, tabId: source.tabId);
 
   if (method == 'Runtime.executionContextCreated') {
     return _maybeConnectToDwds(source.tabId, params);
@@ -205,16 +200,10 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
     _forwardDwdsEventToChromeDebugger(message, client, tabId);
   }
   if (message is ExtensionEvent) {
-    final method = message.method;
-    final params = message.params;
-    final externalExtensions = dwdsEventsForExternalExtensions[method] ?? [];
-    if (externalExtensions.isNotEmpty) {
-      _forwardMessageToExternalExtensions(
-          dwdsEventMessage(method: method, params: params, tabId: tabId),
-          extensionIds: externalExtensions);
-    }
-    if (method == 'dwds.devtoolsUri') {
-      _openDevTools(params, dartTabId: tabId);
+    maybeForwardMessageToExternalExtensions(
+        method: message.method, params: message.params, tabId: tabId);
+    if (message.method == 'dwds.devtoolsUri') {
+      _openDevTools(message.params, dartTabId: tabId);
     }
   }
 }
@@ -253,32 +242,6 @@ void _forwardChromeDebuggerEventToDwds(
     debugSession.sendBatchedEvent(event);
   } else {
     debugSession.sendEvent(event);
-  }
-}
-
-void _forwardMessageToExternalExtensions(
-  ExternalExtensionMessage message, {
-  required List<String> extensionIds,
-}) {
-  for (final extensionId in extensionIds) {
-    try {
-      chrome.runtime.sendMessage(
-        extensionId,
-        message,
-        /* options */ null,
-        allowInterop(([e]) {
-          if (e == null) {
-            // Error sending message:
-            final errorMessage =
-                chrome.runtime.lastError?.message ?? 'Unknown error.';
-            debugWarn(
-                'Error forwarding ${message.name} to $extensionId: $errorMessage');
-          }
-        }),
-      );
-    } catch (error) {
-      debugWarn('Error forwarding ${message.name} to $extensionId: $error');
-    }
   }
 }
 

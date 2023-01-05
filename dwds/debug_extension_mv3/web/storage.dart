@@ -17,7 +17,8 @@ import 'logger.dart';
 
 enum StorageObject {
   debugInfo,
-  devToolsOpener;
+  devToolsOpener,
+  encodedUri;
 
   String get keyName {
     switch (this) {
@@ -25,6 +26,8 @@ enum StorageObject {
         return 'debugInfo';
       case StorageObject.devToolsOpener:
         return 'devToolsOpener';
+      case StorageObject.encodedUri:
+        return 'encodedUri';
     }
   }
 
@@ -34,6 +37,8 @@ enum StorageObject {
         return Persistance.sessionOnly;
       case StorageObject.devToolsOpener:
         return Persistance.acrossSessions;
+      case StorageObject.encodedUri:
+        return Persistance.sessionOnly;
     }
   }
 }

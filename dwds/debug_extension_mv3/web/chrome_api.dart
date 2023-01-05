@@ -174,6 +174,8 @@ class Runtime {
   external ConnectionHandler get onConnect;
 
   external OnMessageHandler get onMessage;
+
+  external OnMessageHandler get onMessageExternal;
 }
 
 @JS()

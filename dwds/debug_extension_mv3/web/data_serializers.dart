@@ -18,6 +18,7 @@ part 'data_serializers.g.dart';
   DebugInfo,
   DevToolsOpener,
   DevToolsRequest,
+  EncodedUri,
   ExtensionEvent,
   ExtensionRequest,
   ExtensionResponse,
