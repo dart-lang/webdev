@@ -111,6 +111,8 @@ class InspectedWindow {
 @JS()
 @anonymous
 class Panels {
+  external String get themeName;
+
   external void create(String title, String iconPath, String pagePath,
       void Function(ExtensionPanel)? callback);
 }
@@ -174,6 +176,8 @@ class Runtime {
   external ConnectionHandler get onConnect;
 
   external OnMessageHandler get onMessage;
+
+  external OnMessageHandler get onMessageExternal;
 }
 
 @JS()

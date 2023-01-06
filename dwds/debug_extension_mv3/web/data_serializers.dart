@@ -15,9 +15,13 @@ part 'data_serializers.g.dart';
 /// Serializers for all the data types used in the Dart Debug Extension.
 @SerializersFor([
   BatchedEvents,
+  ConnectFailure,
   DebugInfo,
+  DebugStateChange,
   DevToolsOpener,
+  DevToolsUrl,
   DevToolsRequest,
+  EncodedUri,
   ExtensionEvent,
   ExtensionRequest,
   ExtensionResponse,

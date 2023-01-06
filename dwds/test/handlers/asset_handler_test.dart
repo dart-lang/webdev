@@ -12,7 +12,7 @@ import '../fixtures/logging.dart';
 
 void main() {
   group('Asset handler', () {
-    final context = TestContext();
+    final context = TestContext.withSoundNullSafety();
 
     setUpAll(() async {
       setCurrentLogWriter();

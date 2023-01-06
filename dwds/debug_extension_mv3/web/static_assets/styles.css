@@ -1,3 +1,12 @@
+iframe {
+  border: 0pt none;
+  height: 100%;
+  left: 0px;
+  position: absolute;
+  top: 0px;
+  width: 100%;
+}
+
 .dark-theme {
   background-color: #262626;
   color: #eeeeee;
@@ -69,14 +78,17 @@ h6 {
   border-radius: 2px;
   bottom: 0px;
   color: #eeeeee;
-  left: 50%;
-  margin-left: -125px;
   padding: 16px;
   position: fixed;
   text-align: center;
   visibility: hidden;
-  width: 250px;
+  width: 100%;
   z-index: 1;
+}
+
+.snackbar > a {
+  font-weight: bold;
+  color: #eeeeee;
 }
 
 .snackbar--info {
@@ -88,9 +100,13 @@ h6 {
 }
 
 .show {
-  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  -webkit-animation: fadein 0.5s;
+  animation: fadein 0.5s;
   visibility: visible;
+}
+
+.hidden {
+  visibility: none;
 }
 
 @-webkit-keyframes fadein {

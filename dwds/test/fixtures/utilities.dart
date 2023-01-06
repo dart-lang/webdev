@@ -11,26 +11,61 @@ import 'package:path/path.dart' as p;
 
 const webdevDirName = 'webdev';
 const dwdsDirName = 'dwds';
+const fixturesDirName = 'fixtures';
 
-/// The path to the DWDS directory in the local machine, e.g.
-/// "/workstation/webdev/dwds".
-String get dwdsPath {
+/// The path to the webdev directory in the local machine, e.g.
+/// '/workstation/webdev'.
+String get webdevPath {
   final pathParts = p.split(p.current);
   // We expect all tests to be run from the webdev mono-repo:
   assert(pathParts.contains(webdevDirName));
   return p.joinAll(
-    [
-      ...pathParts.sublist(0, pathParts.lastIndexOf(webdevDirName) + 1),
-      dwdsDirName,
-    ],
+    pathParts.sublist(0, pathParts.lastIndexOf(webdevDirName) + 1),
   );
 }
 
-/// Given a [pathFromDwds], e.g. '../fixtures/_test', returns its absolute
-/// path, e.g. '/workstation/webdev/fixtures/_test'.
-String absolutePath({required String pathFromDwds}) => p.normalize(
-      p.join(dwdsPath, pathFromDwds),
-    );
+/// The path to the DWDS directory in the local machine, e.g.
+/// '/workstation/webdev/dwds'.
+String get dwdsPath {
+  return p.join(webdevPath, dwdsDirName);
+}
+
+/// The path to the fixtures directory in the local machine, e.g.
+/// '/workstation/webdev/fixtures'.
+String get fixturesPath {
+  return p.join(webdevPath, fixturesDirName);
+}
+
+// Creates a path compatible for web.
+String webCompatiblePath(List<String> pathParts) {
+  // Note: Replacing "\" with "/" is necessary because `joinAll` uses "\" if
+  // the platform is Windows. However, only "/" is expected by the browser.
+  return p.joinAll([...pathParts]).replaceAll('\\', '/');
+}
+
+/// Expects one of [pathFromWebdev], [pathFromDwds] or [pathFromFixtures]  to be
+/// provided. Returns the absolute path in the local machine to that path, e.g.
+///   absolutePath(pathFromFixtures: '_test/example') ->
+///   '/workstation/webdev/fixtures/_test/example'
+String absolutePath({
+  String? pathFromWebdev,
+  String? pathFromDwds,
+  String? pathFromFixtures,
+}) {
+  if (pathFromWebdev != null) {
+    assert(pathFromDwds == null && pathFromFixtures == null);
+    return p.normalize(p.join(webdevPath, pathFromWebdev));
+  }
+  if (pathFromDwds != null) {
+    assert(pathFromFixtures == null);
+    return p.normalize(p.join(dwdsPath, pathFromDwds));
+  }
+  if (pathFromFixtures != null) {
+    assert(pathFromDwds == null && pathFromWebdev == null);
+    return p.normalize(p.join(fixturesPath, pathFromFixtures));
+  }
+  throw Exception('Expected a path parameter.');
+}
 
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(String workingDirectory,

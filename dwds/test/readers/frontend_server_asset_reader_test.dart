@@ -14,9 +14,7 @@ import '../fixtures/context.dart';
 import '../fixtures/utilities.dart';
 import '../utils/version_compatibility.dart';
 
-final packagesDir = absolutePath(
-  pathFromDwds: p.join('..', 'fixtures', '_test'),
-);
+final packagesDir = absolutePath(pathFromFixtures: '_test');
 
 final fixturesDir = absolutePath(pathFromDwds: p.join('test', 'fixtures'));
 

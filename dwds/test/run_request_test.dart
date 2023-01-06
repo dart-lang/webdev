@@ -12,7 +12,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 
-final context = TestContext();
+final context = TestContext.withSoundNullSafety();
 
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);

@@ -7,13 +7,15 @@ library messaging;
 
 import 'dart:convert';
 
-import 'package:dwds/data/serializers.dart';
 import 'package:js/js.dart';
 
+import 'data_serializers.dart';
+import 'chrome_api.dart';
 import 'logger.dart';
 
 enum Script {
   background,
+  debuggerPanel,
   detector;
 
   factory Script.fromString(String value) {
@@ -22,7 +24,10 @@ enum Script {
 }
 
 enum MessageType {
-  debugInfo;
+  connectFailure,
+  debugInfo,
+  debugStateChange,
+  devToolsUrl;
 
   factory MessageType.fromString(String value) {
     return MessageType.values.byName(value);
@@ -88,4 +93,23 @@ void interceptMessage<T>({
     debugError(
         'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error');
   }
+}
+
+void sendRuntimeMessage(
+    {required MessageType type,
+    required String body,
+    required Script sender,
+    required Script recipient}) {
+  final message = Message(
+    to: recipient,
+    from: sender,
+    type: type,
+    body: body,
+  );
+  chrome.runtime.sendMessage(
+    /*id*/ null,
+    message.toJSON(),
+    /*options*/ null,
+    /*callback*/ null,
+  );
 }

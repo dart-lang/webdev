@@ -17,16 +17,8 @@ import 'logger.dart';
 
 enum StorageObject {
   debugInfo,
-  devToolsOpener;
-
-  String get keyName {
-    switch (this) {
-      case StorageObject.debugInfo:
-        return 'debugInfo';
-      case StorageObject.devToolsOpener:
-        return 'devToolsOpener';
-    }
-  }
+  devToolsOpener,
+  encodedUri;
 
   Persistance get persistance {
     switch (this) {
@@ -34,6 +26,8 @@ enum StorageObject {
         return Persistance.sessionOnly;
       case StorageObject.devToolsOpener:
         return Persistance.acrossSessions;
+      case StorageObject.encodedUri:
+        return Persistance.sessionOnly;
     }
   }
 }
@@ -103,6 +97,6 @@ StorageArea _getStorageArea(Persistance persistance) {
 }
 
 String _createStorageKey(StorageObject type, int? tabId) {
-  if (tabId == null) return type.keyName;
-  return '$tabId-${type.keyName}';
+  if (tabId == null) return type.name;
+  return '$tabId-${type.name}';
 }

@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 import '../fixtures/context.dart';
 import 'test_utils.dart';
 
-final context = TestContext();
+final context = TestContext.withSoundNullSafety();
 
 void main() async {
   late Worker worker;
