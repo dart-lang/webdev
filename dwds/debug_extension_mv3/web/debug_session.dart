@@ -241,8 +241,7 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
   final message = serializers.deserialize(jsonDecode(eventData));
   if (message is ExtensionRequest) {
     _forwardDwdsEventToChromeDebugger(message, client, tabId);
-  }
-  if (message is ExtensionEvent) {
+  } else if (message is ExtensionEvent) {
     maybeForwardMessageToAngularDartDevTools(
         method: message.method, params: message.params, tabId: tabId);
     if (message.method == 'dwds.devtoolsUri') {

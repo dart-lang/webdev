@@ -20,17 +20,6 @@ enum StorageObject {
   devToolsOpener,
   encodedUri;
 
-  String get keyName {
-    switch (this) {
-      case StorageObject.debugInfo:
-        return 'debugInfo';
-      case StorageObject.devToolsOpener:
-        return 'devToolsOpener';
-      case StorageObject.encodedUri:
-        return 'encodedUri';
-    }
-  }
-
   Persistance get persistance {
     switch (this) {
       case StorageObject.debugInfo:
@@ -108,6 +97,6 @@ StorageArea _getStorageArea(Persistance persistance) {
 }
 
 String _createStorageKey(StorageObject type, int? tabId) {
-  if (tabId == null) return type.keyName;
-  return '$tabId-${type.keyName}';
+  if (tabId == null) return type.name;
+  return '$tabId-${type.name}';
 }
