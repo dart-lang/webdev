@@ -131,7 +131,7 @@ class DwdsVmClient {
               'error': {
                 'code': kFeatureDisabled,
                 'message': kFeatureDisabledMessage,
-                'details':
+                'data':
                     'Existing VM service clients prevent DDS from taking control.',
               },
             };

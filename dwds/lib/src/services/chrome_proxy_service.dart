@@ -336,6 +336,7 @@ class ChromeProxyService implements VmServiceInterface {
   void destroyIsolate() {
     _logger.fine('Destroying isolate');
     if (!_isIsolateRunning) return;
+
     final isolate = inspector.isolate;
     final isolateRef = inspector.isolateRef;
 
