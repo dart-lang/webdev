@@ -167,14 +167,16 @@ void _processSendEvent(Map<String, dynamic> event,
         final screen = payload?['screen'] as String?;
         if (screen != null && action == 'pageReady') {
           if (dwdsStats.isFirstDebuggerReady) {
-              final debuggerReadyTime =
-                  DateTime.now().difference(dwdsStats.devToolsStart).inMilliseconds;
-              emitEvent(DwdsEvent.devToolsLoad(debuggerReadyTime, screen));
-              _logger.fine('DevTools load time: $debuggerReadyTime ms');
-              final debuggerStartTime =
-                  DateTime.now().difference(dwdsStats.debuggerStart).inMilliseconds;
-              emitEvent(DwdsEvent.debuggerReady(debuggerStartTime, screen));
-              _logger.fine('Debugger ready time: $debuggerStartTime ms');
+            final debuggerReadyTime = DateTime.now()
+                .difference(dwdsStats.devToolsStart)
+                .inMilliseconds;
+            emitEvent(DwdsEvent.devToolsLoad(debuggerReadyTime, screen));
+            _logger.fine('DevTools load time: $debuggerReadyTime ms');
+            final debuggerStartTime = DateTime.now()
+                .difference(dwdsStats.debuggerStart)
+                .inMilliseconds;
+            emitEvent(DwdsEvent.debuggerReady(debuggerStartTime, screen));
+            _logger.fine('Debugger ready time: $debuggerStartTime ms');
           } else {
             _logger
                 .finest('Debugger and DevTools startup times already recorded.'

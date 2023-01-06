@@ -17,6 +17,8 @@
 **Breaking changes**
 - Include an optional param to `Dwds.start` to indicate whether it is running
   internally or externally.
+- Include an optional param to `Dwds.start` to indicate whether it a Flutter app
+-  or not.
 - Remove deprecated `ChromeProxyService.setExceptionPauseMode()`.
 
 ## 16.0.1
