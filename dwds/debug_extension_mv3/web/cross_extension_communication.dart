@@ -14,6 +14,12 @@ import 'logger.dart';
 import 'storage.dart';
 import 'web_api.dart';
 
+// The only extension allowed to communicate with this extension is the
+// AngularDart DevTools extension.
+//
+// This ID is used to send messages to AngularDart DevTools, while the
+// externally_connectable field in the manifest.json allows AngularDart DevTools
+// to send messages to this extension.
 const _angularDartDevToolsId = 'nbkbficgbembimioedhceniahniffgpl';
 
 // A set of events to forward to the AngularDart DevTools extension.

@@ -33,6 +33,9 @@ void _registerListeners() {
   chrome.runtime.onMessage.addListener(
     allowInterop(_handleRuntimeMessages),
   );
+  // The only extension allowed to send messages to this extension is the
+  // AngularDart DevTools extension. Its permission is set in the manifest.json
+  // externally_connectable field.
   chrome.runtime.onMessageExternal.addListener(
     allowInterop(handleMessagesFromAngularDartDevTools),
   );
