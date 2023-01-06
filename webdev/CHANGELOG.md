@@ -1,7 +1,8 @@
-## 2.7.13-dev
+## 2.7.13
 
 - Add `--enable-experiment` flag to webdev commands and pass it
   to the build runner and the expression compiler service.
+- Update DWDS to `16.0.2`.
 
 ## 2.7.12
 
