@@ -8,9 +8,12 @@ part of 'data_serializers.dart';
 
 Serializers _$serializers = (new Serializers().toBuilder()
       ..add(BatchedEvents.serializer)
+      ..add(ConnectFailure.serializer)
       ..add(DebugInfo.serializer)
+      ..add(DebugStateChange.serializer)
       ..add(DevToolsOpener.serializer)
       ..add(DevToolsRequest.serializer)
+      ..add(DevToolsUrl.serializer)
       ..add(ExtensionEvent.serializer)
       ..add(ExtensionRequest.serializer)
       ..add(ExtensionResponse.serializer)

@@ -9,7 +9,6 @@ import 'dart:html';
 import 'dart:js_util';
 import 'package:js/js.dart';
 
-import 'chrome_api.dart';
 import 'logger.dart';
 import 'messaging.dart';
 
@@ -37,16 +36,10 @@ void _sendMessageToBackgroundScript({
   required MessageType type,
   required String body,
 }) {
-  final message = Message(
-    to: Script.background,
-    from: Script.detector,
+  sendRuntimeMessage(
     type: type,
     body: body,
-  );
-  chrome.runtime.sendMessage(
-    /*id*/ null,
-    message.toJSON(),
-    /*options*/ null,
-    /*callback*/ null,
+    sender: Script.detector,
+    recipient: Script.background,
   );
 }

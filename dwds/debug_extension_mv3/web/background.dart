@@ -12,6 +12,7 @@ import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/extension_request.dart';
 import 'package:js/js.dart';
 
+import 'data_types.dart';
 import 'debug_session.dart';
 import 'chrome_api.dart';
 import 'lifeline_ports.dart';
@@ -45,23 +46,36 @@ void _registerListeners() {
       .addListener(allowInterop(_detectNavigationAwayFromDartApp));
 
   // Detect clicks on the Dart Debug Extension icon.
-  chrome.action.onClicked.addListener(allowInterop(_startDebugSession));
+  chrome.action.onClicked.addListener(allowInterop(
+    (Tab tab) => _startDebugSession(
+      tab.id,
+      trigger: Trigger.extensionIcon,
+    ),
+  ));
 }
 
-// TODO(elliette): Start a debug session instead.
-Future<void> _startDebugSession(Tab currentTab) async {
-  final tabId = currentTab.id;
+Future<void> _startDebugSession(int tabId, {required Trigger trigger}) async {
   final debugInfo = await _fetchDebugInfo(tabId);
   final extensionUrl = debugInfo?.extensionUrl;
   if (extensionUrl == null) {
     _showWarningNotification('Can\'t debug Dart app. Extension URL not found.');
+    sendConnectFailureMessage(
+      ConnectFailureReason.noDartApp,
+      dartAppTabId: tabId,
+    );
     return;
   }
   final isAuthenticated = await _authenticateUser(extensionUrl, tabId);
-  if (!isAuthenticated) return;
+  if (!isAuthenticated) {
+    sendConnectFailureMessage(
+      ConnectFailureReason.authentication,
+      dartAppTabId: tabId,
+    );
+    return;
+  }
 
-  maybeCreateLifelinePort(currentTab.id);
-  attachDebugger(tabId);
+  maybeCreateLifelinePort(tabId);
+  attachDebugger(tabId, trigger: trigger);
 }
 
 Future<bool> _authenticateUser(String extensionUrl, int tabId) async {
@@ -113,6 +127,19 @@ void _handleRuntimeMessages(
           _setDebuggableIcon();
         }
       });
+
+  interceptMessage<DebugStateChange>(
+      message: jsRequest,
+      expectedType: MessageType.debugStateChange,
+      expectedSender: Script.debuggerPanel,
+      expectedRecipient: Script.background,
+      messageHandler: (DebugStateChange debugStateChange) {
+        final newState = debugStateChange.newState;
+        final tabId = debugStateChange.tabId;
+        if (newState == DebugStateChange.startDebugging) {
+          _startDebugSession(tabId, trigger: Trigger.extensionPanel);
+        }
+      });
 }
 
 void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
@@ -125,7 +152,7 @@ void _detectNavigationAwayFromDartApp(NavigationInfo navigationInfo) async {
     detachDebugger(
       tabId,
       type: TabType.dartApp,
-      reason: 'Navigated away from Dart app.',
+      reason: DetachReason.navigatedAwayFromApp,
     );
   }
 }
