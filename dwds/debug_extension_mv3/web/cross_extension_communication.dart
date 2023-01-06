@@ -31,7 +31,7 @@ void handleMessagesFromAngularDartDevTools(
   } else if (message.name == 'dwds.encodedUri') {
     _respondWithEncodedUri(message.tabId, sendResponse);
   } else if (message.name == 'dwds.startDebugging') {
-    attachDebugger(message.tabId);
+    attachDebugger(message.tabId, trigger: Trigger.angularDartDevTools);
     sendResponse(true);
   } else {
     sendResponse(

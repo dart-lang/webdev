@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -17,21 +16,21 @@ import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
 
 class TestSetup {
-  static TestContext createContext(
-          String index, String packageRoot, NullSafety nullSafety) =>
-      TestContext(
-        directory: p.join('..', 'fixtures', packageRoot),
-        entry: p.join('..', 'fixtures', packageRoot, 'web', 'main.dart'),
-        path: index,
-        pathToServe: 'web',
-        nullSafety: nullSafety,
+  static TestContext contextUnsound(String index) =>
+      TestContext.withWeakNullSafety(
+        packageName: '_testCircular2',
+        webAssetsPath: 'web',
+        dartEntryFileName: 'main.dart',
+        htmlEntryFileName: index,
       );
 
-  static TestContext contextUnsound(String index) =>
-      createContext(index, '_testCircular2', NullSafety.weak);
-
   static TestContext contextSound(String index) =>
-      createContext(index, '_testCircular2Sound', NullSafety.sound);
+      TestContext.withSoundNullSafety(
+        packageName: '_testCircular2Sound',
+        webAssetsPath: 'web',
+        dartEntryFileName: 'main.dart',
+        htmlEntryFileName: index,
+      );
 
   TestContext context;
 

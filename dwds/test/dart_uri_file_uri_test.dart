@@ -13,21 +13,19 @@ import 'fixtures/context.dart';
 import 'fixtures/utilities.dart';
 import 'utils/version_compatibility.dart';
 
-final context = TestContext(
-  directory: p.join('..', 'fixtures', '_testPackage'),
-  entry: p.join('..', 'fixtures', '_testPackage', 'web', 'main.dart'),
-  path: 'index.html',
-  pathToServe: 'web',
-  nullSafety: NullSafety.weak,
+final context = TestContext.withWeakNullSafety(
+  packageName: '_testPackage',
+  webAssetsPath: 'web',
+  dartEntryFileName: 'main.dart',
+  htmlEntryFileName: 'index.html',
 );
 
 /// The directory for the general _test package.
-final testDir = absolutePath(pathFromDwds: p.join('..', 'fixtures', '_test'));
+final testDir = absolutePath(pathFromFixtures: p.join('_test'));
 
 /// The directory for the _testPackage package (contained within dwds), which
 /// imports _test.
-final testPackageDir =
-    absolutePath(pathFromDwds: p.join('..', 'fixtures', '_testPackage'));
+final testPackageDir = absolutePath(pathFromFixtures: p.join('_testPackage'));
 
 // This tests converting file Uris into our internal paths.
 //

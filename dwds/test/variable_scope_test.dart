@@ -7,24 +7,18 @@
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/debugging/dart_scope.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
+import 'fixtures/utilities.dart';
 
-final context = TestContext(
-    path: 'scopes/scopes.html',
-    entry: p.join(
-      '..',
-      'fixtures',
-      '_testSound',
-      'example',
-      'scopes',
-      'scopes_main.dart',
-    ));
-
+final context = TestContext.withSoundNullSafety(
+  webAssetsPath: webCompatiblePath(['example', 'scopes']),
+  dartEntryFileName: 'main.dart',
+  htmlEntryFileName: 'scopes.html',
+);
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);
 WipConnection get tabConnection => context.tabConnection;
@@ -124,7 +118,7 @@ void main() {
       await service.streamListen('Debug');
       stream = service.onEvent('Debug');
       mainScript = scripts.scripts!
-          .firstWhere((each) => each.uri!.contains('scopes_main.dart'));
+          .firstWhere((each) => each.uri!.contains('main.dart'));
     });
 
     tearDown(() async {

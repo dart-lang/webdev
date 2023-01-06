@@ -22,7 +22,7 @@ import 'fixtures/context.dart';
 import 'fixtures/debugger_data.dart';
 import 'fixtures/fakes.dart';
 
-final context = TestContext();
+final context = TestContext.withSoundNullSafety();
 late AppInspector inspector;
 late Debugger debugger;
 late FakeWebkitDebugger webkitDebugger;

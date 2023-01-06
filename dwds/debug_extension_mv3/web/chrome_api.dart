@@ -111,6 +111,8 @@ class InspectedWindow {
 @JS()
 @anonymous
 class Panels {
+  external String get themeName;
+
   external void create(String title, String iconPath, String pagePath,
       void Function(ExtensionPanel)? callback);
 }

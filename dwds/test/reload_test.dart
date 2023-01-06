@@ -6,17 +6,17 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 5))
 import 'package:dwds/src/loaders/strategy.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
+import 'fixtures/utilities.dart';
 
-final context = TestContext(
-  path: 'append_body/index.html',
-  entry: p.join(
-      '..', 'fixtures', '_testSound', 'example', 'append_body', 'main.dart'),
+final context = TestContext.withSoundNullSafety(
+  webAssetsPath: webCompatiblePath(['example', 'append_body']),
+  dartEntryFileName: 'main.dart',
+  htmlEntryFileName: 'index.html',
 );
 
 void main() {
