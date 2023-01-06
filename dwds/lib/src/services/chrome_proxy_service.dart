@@ -257,7 +257,13 @@ class ChromeProxyService implements VmServiceInterface {
 
     unawaited(appConnection.onStart.then((_) async {
       await debugger.resumeFromStart();
-      _startedCompleter.complete();
+      if (!_startedCompleter.isCompleted) {
+        _startedCompleter.complete();
+      } else {
+        // See https://github.com/flutter/flutter/issues/117676:
+        _logger
+            .warning('Unexpected state, debugging may not work as expected.');
+      }
     }));
 
     unawaited(appConnection.onDone.then((_) => destroyIsolate()));

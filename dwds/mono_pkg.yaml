@@ -15,12 +15,10 @@ stages:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
       - test:
       sdk:
-        - dev
         - stable
     - test:
       os: windows
       sdk:
-        - dev
         - stable
   - beta_cron:
     - analyze: .
