@@ -278,15 +278,15 @@ class DevHandler {
           } else if (message is IsolateStart) {
             await _handleIsolateStart(connection, injectedConnection);
           } else if (message is BatchedDebugEvents) {
-            await _servicesByAppId[connection.request.appId]
+            _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
                 .parseBatchedDebugEvents(message);
           } else if (message is DebugEvent) {
-            await _servicesByAppId[connection.request.appId]
+            _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
                 .parseDebugEvent(message);
           } else if (message is RegisterEvent) {
-            await _servicesByAppId[connection.request.appId]
+            _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
                 .parseRegisterEvent(message);
           }
