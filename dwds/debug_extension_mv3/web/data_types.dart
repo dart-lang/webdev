@@ -35,6 +35,8 @@ abstract class DevToolsOpener
   bool get newWindow;
 }
 
+// TODO(elliette): Standardize on uri or url here and across DWDS, instead of a
+// combination of both.
 abstract class EncodedUri implements Built<EncodedUri, EncodedUriBuilder> {
   static Serializer<EncodedUri> get serializer => _$encodedUriSerializer;
 
