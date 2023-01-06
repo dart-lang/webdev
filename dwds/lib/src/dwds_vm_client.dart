@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
@@ -31,6 +32,9 @@ class DwdsVmClient {
   ///
   /// All subsequent calls to [close] will return this future.
   Future<void>? _closed;
+
+  /// Synchronizes hot restarts to avoid races.
+  final _hotRestartQueue = AtomicQueue();
 
   DwdsVmClient(this.client, this._requestController, this._responseController);
 
@@ -60,6 +64,9 @@ class DwdsVmClient {
     final chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
 
+    final dwdsVmClient =
+        DwdsVmClient(client, requestController, responseController);
+
     // Register '_flutter.listViews' method on the chrome proxy service vm.
     // In native world, this method is provided by the engine, but the web
     // engine is not aware of the VM uri or the isolates.
@@ -85,7 +92,7 @@ class DwdsVmClient {
     client.registerServiceCallback(
         'hotRestart',
         (request) => captureElapsedTime(
-            () => _hotRestart(chromeProxyService, client),
+            () => dwdsVmClient.hotRestart(chromeProxyService, client),
             (_) => DwdsEvent.hotRestart()));
     await client.registerService('hotRestart', 'DWDS');
 
@@ -138,7 +145,13 @@ class DwdsVmClient {
     });
     await client.registerService('_yieldControlToDDS', 'DWDS');
 
-    return DwdsVmClient(client, requestController, responseController);
+    return dwdsVmClient;
+  }
+
+  Future<Map<String, dynamic>> hotRestart(
+      ChromeProxyService chromeProxyService, VmService client) async {
+    return _hotRestartQueue
+        .runTask(() => _hotRestart(chromeProxyService, client));
   }
 }
 
@@ -152,22 +165,18 @@ void _processSendEvent(Map<String, dynamic> event,
         _logger.finest('Received DevTools event: $event');
         final action = payload?['action'] as String?;
         final screen = payload?['screen'] as String?;
-        final devToolsStart = dwdsStats.devToolsStart;
-        final debuggerStart = dwdsStats.debuggerStart;
         if (screen != null && action == 'pageReady') {
           if (dwdsStats.isFirstDebuggerReady) {
-            if (devToolsStart != null) {
-              final debuggerReadyTime =
-                  DateTime.now().difference(devToolsStart).inMilliseconds;
-              emitEvent(DwdsEvent.devToolsLoad(debuggerReadyTime, screen));
-              _logger.fine('DevTools load time: $debuggerReadyTime ms');
-            }
-            if (debuggerStart != null) {
-              final debuggerStartTime =
-                  DateTime.now().difference(debuggerStart).inMilliseconds;
-              emitEvent(DwdsEvent.debuggerReady(debuggerStartTime, screen));
-              _logger.fine('Debugger ready time: $debuggerStartTime ms');
-            }
+            final debuggerReadyTime = DateTime.now()
+                .difference(dwdsStats.devToolsStart)
+                .inMilliseconds;
+            emitEvent(DwdsEvent.devToolsLoad(debuggerReadyTime, screen));
+            _logger.fine('DevTools load time: $debuggerReadyTime ms');
+            final debuggerStartTime = DateTime.now()
+                .difference(dwdsStats.debuggerStart)
+                .inMilliseconds;
+            emitEvent(DwdsEvent.debuggerReady(debuggerStartTime, screen));
+            _logger.fine('Debugger ready time: $debuggerStartTime ms');
           } else {
             _logger
                 .finest('Debugger and DevTools startup times already recorded.'

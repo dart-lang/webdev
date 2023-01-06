@@ -125,7 +125,7 @@ void main() {
       await eventsDone;
     });
 
-    test('can hot restart twice', () async {
+    test('can execute simltaneous hot restarts', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
       await context.changeInput();

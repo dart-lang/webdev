@@ -41,6 +41,7 @@ class ExpressionEvaluator {
   final Modules _modules;
   final ExpressionCompiler _compiler;
   final _logger = Logger('ExpressionEvaluator');
+  bool _closed = false;
 
   /// Strip synthetic library name from compiler error messages.
   static final _syntheticNameFilterRegex =
@@ -56,12 +57,14 @@ class ExpressionEvaluator {
   ExpressionEvaluator(this._entrypoint, this._inspector, this._debugger,
       this._locations, this._modules, this._compiler);
 
-  RemoteObject _createError(ErrorKind severity, String message) {
+  RemoteObject createError(ErrorKind severity, String message) {
     return RemoteObject(
         <String, String>{'type': '$severity', 'value': message});
   }
 
-  void close() {}
+  void close() {
+    _closed = true;
+  }
 
   /// Evaluate dart expression inside a given library.
   ///
@@ -80,19 +83,23 @@ class ExpressionEvaluator {
     String expression,
     Map<String, String>? scope,
   ) async {
+    if (_closed) {
+      return createError(ErrorKind.internal, 'expression evaluator closed.');
+    }
+
     scope ??= {};
 
     if (expression.isEmpty) {
-      return _createError(ErrorKind.invalidInput, expression);
+      return createError(ErrorKind.invalidInput, expression);
     }
 
     if (libraryUri == null) {
-      return _createError(ErrorKind.invalidInput, 'no library uri');
+      return createError(ErrorKind.invalidInput, 'no library uri');
     }
 
     final module = await _modules.moduleForLibrary(libraryUri);
     if (module == null) {
-      return _createError(ErrorKind.internal, 'no module for $libraryUri');
+      return createError(ErrorKind.internal, 'no module for $libraryUri');
     }
 
     // Wrap the expression in a lambda so we can call it as a function.
@@ -140,20 +147,20 @@ class ExpressionEvaluator {
     if (scope != null) {
       // TODO(annagrin): Implement scope support.
       // Issue: https://github.com/dart-lang/webdev/issues/1344
-      return _createError(
+      return createError(
           ErrorKind.internal,
           'Using scope for expression evaluation in frame '
           'is not supported.');
     }
 
     if (expression.isEmpty) {
-      return _createError(ErrorKind.invalidInput, expression);
+      return createError(ErrorKind.invalidInput, expression);
     }
 
     // Get JS scope and current JS location.
     final jsFrame = _debugger.jsFrameForIndex(frameIndex);
     if (jsFrame == null) {
-      return _createError(
+      return createError(
           ErrorKind.internal,
           'Expression evaluation in async frames '
           'is not supported. No frame with index $frameIndex.');
@@ -168,12 +175,12 @@ class ExpressionEvaluator {
     // Find corresponding dart location and scope.
     final url = _debugger.urlForScriptId(jsScriptId);
     if (url == null) {
-      return _createError(
+      return createError(
           ErrorKind.internal, 'Cannot find url for JS script: $jsScriptId');
     }
     final locationMap = await _locations.locationForJs(url, jsLine, jsColumn);
     if (locationMap == null) {
-      return _createError(
+      return createError(
           ErrorKind.internal,
           'Cannot find Dart location for JS location: '
           'url: $url, '
@@ -186,13 +193,13 @@ class ExpressionEvaluator {
     final dartSourcePath = dartLocation.uri.serverPath;
     final libraryUri = await _modules.libraryForSource(dartSourcePath);
     if (libraryUri == null) {
-      return _createError(
+      return createError(
           ErrorKind.internal, 'no libraryUri for $dartSourcePath');
     }
 
     final module = await _modules.moduleForLibrary(libraryUri.toString());
     if (module == null) {
-      return _createError(
+      return createError(
           ErrorKind.internal, 'no module for $libraryUri ($dartSourcePath)');
     }
 
@@ -247,10 +254,10 @@ class ExpressionEvaluator {
     }
     if (error.contains('InternalError: ')) {
       error = error.replaceAll('InternalError: ', '');
-      return _createError(ErrorKind.internal, error);
+      return createError(ErrorKind.internal, error);
     }
     error = error.replaceAll(_syntheticNameFilterRegex, '');
-    return _createError(ErrorKind.compilation, error);
+    return createError(ErrorKind.compilation, error);
   }
 
   Future<RemoteObject> _formatEvaluationError(RemoteObject result) async {
@@ -258,10 +265,10 @@ class ExpressionEvaluator {
       var error = '${result.value}';
       if (error.startsWith('ReferenceError: ')) {
         error = error.replaceFirst('ReferenceError: ', '');
-        return _createError(ErrorKind.reference, error);
+        return createError(ErrorKind.reference, error);
       } else if (error.startsWith('TypeError: ')) {
         error = error.replaceFirst('TypeError: ', '');
-        return _createError(ErrorKind.type, error);
+        return createError(ErrorKind.type, error);
       } else if (error.startsWith('NetworkError: ')) {
         var modulePath = _loadModuleErrorRegex.firstMatch(error)?.group(1);
         final module = modulePath != null
@@ -272,7 +279,7 @@ class ExpressionEvaluator {
         error = 'Module is not loaded : $module (path: $modulePath). '
             'Accessing libraries that have not yet been used in the '
             'application is not supported during expression evaluation.';
-        return _createError(ErrorKind.loadModule, error);
+        return createError(ErrorKind.loadModule, error);
       }
     }
     return result;

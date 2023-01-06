@@ -1634,7 +1634,7 @@ void main() {
                     event.kind == EventKind.kIsolateRunnable &&
                     event.isolate!.id != initialIsolateId),
               ])));
-          service.destroyIsolate();
+          await service.destroyIsolate();
           await service.createIsolate(context.appConnection);
           await eventsDone;
           expect((await service.getVM()).isolates!.first.id,

@@ -317,7 +317,7 @@ class DevHandler {
           if (services.connectedInstanceId == null ||
               services.connectedInstanceId == connection.request.instanceId) {
             services.connectedInstanceId = null;
-            services.chromeProxyService.destroyIsolate();
+            await services.chromeProxyService.destroyIsolate();
           }
         }
       }
@@ -413,7 +413,7 @@ class DevHandler {
       // Disconnect any old connection (eg. those in the keep-alive waiting
       // state when reloading the page).
       existingConnection?.shutDown();
-      services.chromeProxyService.destroyIsolate();
+      await services.chromeProxyService.destroyIsolate();
 
       // Reconnect to existing service.
       services.connectedInstanceId = message.instanceId;
@@ -425,7 +425,7 @@ class DevHandler {
   }
 
   Future<void> _handleIsolateExit(AppConnection appConnection) async {
-    _servicesByAppId[appConnection.request.appId]
+    await _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
         .destroyIsolate();
   }
@@ -542,7 +542,7 @@ class DevHandler {
         extensionDebugger.sendEvent('dwds.encodedUri', encodedUri);
         unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
             .whenComplete(() async {
-          appServices?.chromeProxyService.destroyIsolate();
+          await appServices?.chromeProxyService.destroyIsolate();
           await appServices?.close();
           _servicesByAppId.remove(devToolsRequest.appId);
           _logger.info('Stopped debug service on '

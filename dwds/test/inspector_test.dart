@@ -39,7 +39,7 @@ void main() {
     await context.setUp();
     final service = fetchChromeProxyService(context.debugConnection);
     inspector = service.inspector;
-    debugger = service.debugger;
+    debugger = await service.debuggerFuture;
   });
 
   tearDownAll(() async {
