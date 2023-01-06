@@ -52,7 +52,7 @@ Future<void>? main() {
     final fixedUri = Uri.parse(fixedPath);
     final client = fixedUri.isScheme('ws') || fixedUri.isScheme('wss')
         ? WebSocketClient(WebSocketChannel.connect(fixedUri))
-        : SseSocketClient(SseClient(fixedPath));
+        : SseSocketClient(SseClient(fixedPath, debugKey: 'InjectedClient'));
 
     Restarter restarter;
     if (dartModuleStrategy == 'require-js') {
