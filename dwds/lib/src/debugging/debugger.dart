@@ -48,6 +48,13 @@ class Debugger extends Domain {
   final SkipLists _skipLists;
   final String _root;
 
+  /// Signals when isolate starts.
+  ///
+  /// Some debugger operations require the app to be running, so we make
+  /// sure that they await for this signal.
+  Future<bool> get isIsolateStarted => _isolateStartedCompleter.future;
+  Completer<bool> _isolateStartedCompleter = Completer<bool>();
+
   Debugger._(
     this._remoteDebugger,
     this._streamNotify,
@@ -89,6 +96,7 @@ class Debugger extends Domain {
   }
 
   Future<Success> pause() async {
+    _validateIsolate('pause');
     _isStepping = false;
     final result = await _remoteDebugger.pause();
     handleErrorIfPresent(result);
@@ -121,6 +129,8 @@ class Debugger extends Domain {
   /// Note that stepping will automatically continue until Chrome is paused at
   /// a location for which we have source information.
   Future<Success> resume({String? step, int? frameIndex}) async {
+    _validateIsolate('resume');
+
     if (frameIndex != null) {
       throw ArgumentError('FrameIndex is currently unsupported.');
     }
@@ -154,6 +164,8 @@ class Debugger extends Domain {
   ///
   /// The returned stack will contain up to [limit] frames if provided.
   Future<Stack> getStack({int? limit}) async {
+    _validateIsolate('getStack');
+
     if (stackComputer == null) {
       throw RPCError('getStack', RPCError.kInternalError,
           'Cannot compute stack when application is not paused');
@@ -206,15 +218,26 @@ class Debugger extends Domain {
     }));
   }
 
-  /// Resumes the Isolate from start.
+  /// Notify the debugger the [Isolate] is paused at the application start.
+  void notifyPausedAtStart() {
+    stackComputer = FrameComputer(this, []);
+  }
+
+  /// Notify the debugger that the [Isolate] has resumed from start.
   ///
   /// The JS VM is technically not paused at the start of the Isolate so there
   /// will not be a corresponding [DebuggerResumedEvent].
-  Future<void> resumeFromStart() => _resumeHandler(null);
+  void notifyIsolateStart() {
+    _resumeHandler(null);
+    _isolateStartedCompleter.complete(true);
+  }
 
-  /// Notify the debugger the [Isolate] is paused at the application start.
-  void notifyPausedAtStart() async {
-    stackComputer = FrameComputer(this, []);
+  /// Notify the debugger that the [Isolate] has exited.
+  void notifyIsolateExit() {
+    if (!_isolateStartedCompleter.isCompleted) {
+      _isolateStartedCompleter.complete(false);
+    }
+    _isolateStartedCompleter = Completer<bool>();
   }
 
   /// Add a breakpoint at the given position.
@@ -364,6 +387,8 @@ class Debugger extends Domain {
 
   /// The variables visible in a frame in Dart protocol [BoundVariable] form.
   Future<List<BoundVariable>> variablesFor(WipCallFrame frame) async {
+    _validateIsolate('variablesFor');
+
     // TODO(alanknight): Can these be moved to dart_scope.dart?
     final properties = await visibleProperties(debugger: this, frame: frame);
     final boundVariables = await Future.wait(
@@ -471,12 +496,14 @@ class Debugger extends Domain {
   /// range of entries. They will be ignored if there is no [length].
   Future<List<Property>> getProperties(String objectId,
       {int? offset, int? count, int? length}) async {
+    _validateIsolate('getProperties');
+
     String rangeId = objectId;
     if (length != null && (offset != null || count != null)) {
       final range = await _subrange(objectId, offset ?? 0, count ?? 0, length);
       rangeId = range.objectId ?? rangeId;
     }
-    final jsProperties = await sendCommandAndValidateResult<List>(
+    final jsProperties = await _sendCommandAndValidateResult<List>(
       _remoteDebugger,
       method: 'Runtime.getProperties',
       resultField: 'result',
@@ -496,6 +523,8 @@ class Debugger extends Domain {
     int frameIndex, {
     bool populateVariables = true,
   }) async {
+    _validateIsolate('calculateDartFrameFor');
+
     final location = frame.location;
     final line = location.lineNumber;
     final column = location.columnNumber;
@@ -654,7 +683,7 @@ class Debugger extends Domain {
   }
 
   /// Handles resume events coming from the Chrome connection.
-  Future<void> _resumeHandler(DebuggerResumedEvent? _) async {
+  void _resumeHandler(DebuggerResumedEvent? _) {
     // We can receive a resume event in the middle of a reload which will result
     // in a null isolate.
     final isolate = inspector.isolate;
@@ -674,7 +703,7 @@ class Debugger extends Domain {
   }
 
   /// Handles targetCrashed events coming from the Chrome connection.
-  Future<void> _crashHandler(TargetCrashedEvent _) async {
+  void _crashHandler(TargetCrashedEvent _) {
     // We can receive a resume event in the middle of a reload which will result
     // in a null isolate.
     final isolate = inspector.isolate;
@@ -717,6 +746,8 @@ class Debugger extends Domain {
   /// the call frame with id [callFrameId].
   Future<RemoteObject> evaluateJsOnCallFrame(
       String callFrameId, String expression) async {
+    _validateIsolate('evaluateJsOnCallFrame');
+
     // TODO(alanknight): Support a version with arguments if needed.
     try {
       return await _remoteDebugger.evaluateOnCallFrame(callFrameId, expression);
@@ -727,9 +758,16 @@ class Debugger extends Domain {
       );
     }
   }
+
+  void _validateIsolate(String method) async {
+    if (!await isIsolateStarted) {
+      throw RPCError(method, RPCError.kInternalError,
+          'Cannot call $method: isolate exited');
+    }
+  }
 }
 
-Future<T> sendCommandAndValidateResult<T>(
+Future<T> _sendCommandAndValidateResult<T>(
   RemoteDebugger remoteDebugger, {
   required String method,
   required String resultField,
@@ -869,7 +907,7 @@ class _Breakpoints extends Domain {
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
     // simultaneously by serializing the requests.
     return _pool.withResource(() async {
-      final breakPointId = await sendCommandAndValidateResult<String>(
+      final breakPointId = await _sendCommandAndValidateResult<String>(
           remoteDebugger,
           method: 'Debugger.setBreakpointByUrl',
           resultField: 'breakpointId',

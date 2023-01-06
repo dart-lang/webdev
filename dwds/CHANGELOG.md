@@ -1,19 +1,25 @@
-## 16.0.2-dev
+## 17.0.0-dev
 
 - Include debug information in the event sent from the injected client to the
   Dart Debug Extension notifying that the Dart app is ready.
-- Include an optional param to `Dwds.start` to indicate whether it is running
-  internally or externally.
 - Fix null cast error on expression evaluations after dwds fails to find class
   metadata.
 - Include the entire exception description up to the stacktrace in
   `mapExceptionStackTrace`.
 - Allow enabling experiments in the expression compiler service.
-- Include an optional param to `Dwds.start` to indicate whether it a Flutter app
-  or not.
 - Pre-warm expression compiler cache to speed up Flutter Inspector loading.
-- Remove `ChromeProxyService.setExceptionPauseMode()`.
-- Wait for an old isolate to be destroyed before creating a new one.
+
+- Fix race condition on running two `createIsolate` calls simultaneously.
+  - Run `destroyIsolate` followed by `createIsolate` an atomic operation.
+  - Make debugger API that depend on isolate running wait for the start of the app.
+  - Make debugger API throw if the isolate exits while the API is waiting.
+- Fix exception on uninitialized `DwdsStats._devToolsStart` when using
+  an observatory uri to connect to the dwds VM service.
+
+**Breaking changes**
+- Include an optional param to `Dwds.start` to indicate whether it is running
+  internally or externally.
+- Remove deprecated `ChromeProxyService.setExceptionPauseMode()`.
 
 ## 16.0.1
 

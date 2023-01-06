@@ -8,12 +8,12 @@ import 'package:vm_service/vm_service.dart';
 
 class DwdsStats {
   /// The time when the user starts the debugger.
-  late DateTime _debuggerStart;
-  DateTime get debuggerStart => _debuggerStart;
+  DateTime? _debuggerStart;
+  DateTime? get debuggerStart => _debuggerStart;
 
   /// The time when dwds launches DevTools.
-  late DateTime _devToolsStart;
-  DateTime get devToolsStart => _devToolsStart;
+  DateTime? _devToolsStart;
+  DateTime? get devToolsStart => _devToolsStart;
 
   /// Records and returns weither the debugger is ready.
   bool _isFirstDebuggerReady = true;

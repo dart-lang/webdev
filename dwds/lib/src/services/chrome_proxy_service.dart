@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart' hide LogRecord;
+import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -43,17 +44,12 @@ class ChromeProxyService implements VmServiceInterface {
   /// are dynamic and roughly map to chrome tabs.
   final VM _vm;
 
+  /// Pool used to synchronize isolate creation.
+  final _isolateCreationPool = Pool(1);
+
   /// Signals when isolate is initialized.
   Future<void> get isInitialized => _initializedCompleter.future;
   Completer<void> _initializedCompleter = Completer<void>();
-
-  /// Signals when isolate is destroyed.
-  Future<void> get isolateDestroyed => _isolateDestroyedCompleter.future;
-  Completer<void> _isolateDestroyedCompleter = Completer<void>()..complete();
-
-  /// Signals when isolate starts.
-  Future<void> get isIsolateStarted => _isolateStartedCompleter.future;
-  Completer<void> _isolateStartedCompleter = Completer<void>();
 
   /// Signals when expression compiler is ready to evaluate.
   Future<void> get isCompilerInitialized => _compilerCompleter.future;
@@ -74,8 +70,8 @@ class ChromeProxyService implements VmServiceInterface {
   final Modules _modules;
 
   /// Provides debugger-related functionality.
-  Future<Debugger> get debuggerFuture => _debuggerCompleter.future;
-  final _debuggerCompleter = Completer<Debugger>();
+  late Debugger _debugger;
+  Debugger get debugger => _debugger;
 
   /// Provides variable inspection functionality.
   AppInspector get inspector {
@@ -119,16 +115,7 @@ class ChromeProxyService implements VmServiceInterface {
     this.executionContext,
     this._compiler,
     this._sdkConfigurationProvider,
-  ) {
-    final debugger = Debugger.create(
-      remoteDebugger,
-      _streamNotify,
-      _locations,
-      _skipLists,
-      root,
-    );
-    debugger.then((value) => _debuggerCompleter.complete(value));
-  }
+  );
 
   static Future<ChromeProxyService> create(
     RemoteDebugger remoteDebugger,
@@ -170,6 +157,14 @@ class ChromeProxyService implements VmServiceInterface {
       expressionCompiler,
       sdkConfigurationProvider,
     );
+    service._debugger = await Debugger.create(
+      remoteDebugger,
+      service._streamNotify,
+      locations,
+      skipLists,
+      root,
+    );
+
     unawaited(service.createIsolate(appConnection));
     return service;
   }
@@ -237,16 +232,25 @@ class ChromeProxyService implements VmServiceInterface {
 
   /// Creates a new isolate.
   ///
+  /// Destroys previous isolate before creating a new one if needed.
+  /// Destroying and creating an isolate is performed as an atomic
+  /// operation to prevent race conditions if two [createIsolate]
+  /// calls run simultaneously.
+  Future<void> createIsolate(AppConnection appConnection) {
+    Future<void> task() {
+      destroyIsolate();
+      return _createIsolate(appConnection);
+    }
+
+    return _isolateCreationPool.withResource(task);
+  }
+
+  /// Creates a new isolate.
+  ///
   /// Only one isolate at a time is supported, but they should be cleaned up
   /// with [destroyIsolate] and recreated with this method there is a hot
   /// restart or full page refresh.
-  Future<void> createIsolate(AppConnection appConnection) async {
-    // Wait for previous isolate to finish before starting the new one.
-    // The isolate is marked as destroyed on start.
-    final isolateDestroyed = _isolateDestroyedCompleter.future;
-    _isolateDestroyedCompleter = Completer<void>();
-    await isolateDestroyed;
-
+  Future<void> _createIsolate(AppConnection appConnection) async {
     // Inspector is null if the previous isolate is destroyed.
     if (_isIsolateRunning) {
       throw UnsupportedError(
@@ -259,7 +263,6 @@ class ChromeProxyService implements VmServiceInterface {
     // in first `Uri.base` call in the expression compiler service isolate,
     // the expression compiler service will fail to start.
     // Issue: https://github.com/dart-lang/webdev/issues/1282
-    final debugger = await debuggerFuture;
     final entrypoint = appConnection.request.entrypointPath;
     await _initializeEntrypoint(entrypoint);
     final sdkConfiguration = await _sdkConfigurationProvider.configuration;
@@ -296,11 +299,7 @@ class ChromeProxyService implements VmServiceInterface {
         _previousBreakpoints, _disabledBreakpoints);
     _disabledBreakpoints.clear();
 
-    unawaited(appConnection.onStart.then((_) async {
-      await debugger.resumeFromStart();
-      _isolateStartedCompleter.complete();
-    }));
-
+    unawaited(appConnection.onStart.then((_) => debugger.notifyIsolateStart()));
     unawaited(appConnection.onDone.then((_) => destroyIsolate()));
 
     final isolateRef = inspector.isolateRef;
@@ -346,13 +345,13 @@ class ChromeProxyService implements VmServiceInterface {
   /// Clears out the [_inspector] and all related cached information.
   void destroyIsolate() {
     if (!_isIsolateRunning) return;
+    debugger.notifyIsolateExit();
 
     final isolate = inspector.isolate;
     final isolateRef = inspector.isolateRef;
     _logger.fine('Destroying isolate ${isolateRef.id}');
 
     _initializedCompleter = Completer<void>();
-    _isolateStartedCompleter = Completer<void>();
     _compilerCompleter = Completer<void>();
     _streamNotify(
         'Isolate',
@@ -367,7 +366,6 @@ class ChromeProxyService implements VmServiceInterface {
     _expressionEvaluator?.close();
     _consoleSubscription?.cancel();
     _consoleSubscription = null;
-    _isolateDestroyedCompleter.complete();
   }
 
   Future<void> disableBreakpoints() async {
@@ -377,7 +375,7 @@ class ChromeProxyService implements VmServiceInterface {
 
     _disabledBreakpoints.addAll(isolate.breakpoints ?? []);
     for (var breakpoint in isolate.breakpoints?.toList() ?? []) {
-      await (await debuggerFuture).removeBreakpoint(breakpoint.id);
+      await debugger.removeBreakpoint(breakpoint.id);
     }
   }
 
@@ -386,7 +384,7 @@ class ChromeProxyService implements VmServiceInterface {
       {int? column}) async {
     await isInitialized;
     _checkIsolate('addBreakpoint', isolateId);
-    return (await debuggerFuture).addBreakpoint(scriptId, line, column: column);
+    return debugger.addBreakpoint(scriptId, line, column: column);
   }
 
   @override
@@ -421,7 +419,7 @@ class ChromeProxyService implements VmServiceInterface {
               'at the specified line or function: $scriptUri:$line:$column: '
               'cannot find script ID for ${dartUri.serverPath}');
     }
-    return (await debuggerFuture).addBreakpoint(scriptId, line, column: column);
+    return debugger.addBreakpoint(scriptId, line, column: column);
   }
 
   @override
@@ -644,9 +642,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   @override
   Future<Stack> getStack(String isolateId, {int? limit}) async {
     await isInitialized;
-    await isIsolateStarted;
     _checkIsolate('getStack', isolateId);
-    return (await debuggerFuture).getStack(limit: limit);
+    return debugger.getStack(limit: limit);
   }
 
   @override
@@ -733,7 +730,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   Future<Success> pause(String isolateId) async {
     await isInitialized;
     _checkIsolate('pause', isolateId);
-    return (await debuggerFuture).pause();
+    return debugger.pause();
   }
 
   // Note: Ignore the optional local parameter, it is there to keep the method
@@ -775,7 +772,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     _checkIsolate('removeBreakpoint', isolateId);
     _disabledBreakpoints
         .removeWhere((breakpoint) => breakpoint.id == breakpointId);
-    return (await debuggerFuture).removeBreakpoint(breakpointId);
+    return debugger.removeBreakpoint(breakpointId);
   }
 
   @override
@@ -784,10 +781,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     if (inspector.appConnection.isStarted) {
       return captureElapsedTime(() async {
         await isInitialized;
-        await isIsolateStarted;
         _checkIsolate('resume', isolateId);
-        return await (await debuggerFuture)
-            .resume(step: step, frameIndex: frameIndex);
+        return await debugger.resume(step: step, frameIndex: frameIndex);
       }, (result) => DwdsEvent.resume(step));
     } else {
       inspector.appConnection.runMain();
@@ -802,7 +797,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     // in Chrome?
     await isInitialized;
     _checkIsolate('setIsolatePauseMode', isolateId);
-    return (await debuggerFuture)
+    return debugger
         .setExceptionPauseMode(exceptionPauseMode ?? ExceptionPauseMode.kNone);
   }
 
@@ -922,15 +917,15 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   /// Parses the [BatchedDebugEvents] and emits corresponding Dart VM Service
   /// protocol [Event]s.
-  Future<void> parseBatchedDebugEvents(BatchedDebugEvents debugEvents) async {
+  void parseBatchedDebugEvents(BatchedDebugEvents debugEvents) {
     for (var debugEvent in debugEvents.events) {
-      await parseDebugEvent(debugEvent);
+      parseDebugEvent(debugEvent);
     }
   }
 
   /// Parses the [DebugEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
-  Future<void> parseDebugEvent(DebugEvent debugEvent) async {
+  void parseDebugEvent(DebugEvent debugEvent) {
     if (terminatingIsolates) return;
     if (!_isIsolateRunning) return;
     final isolateRef = inspector.isolateRef;
@@ -948,7 +943,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   /// Parses the [RegisterEvent] and emits a corresponding Dart VM Service
   /// protocol [Event].
-  Future<void> parseRegisterEvent(RegisterEvent registerEvent) async {
+  void parseRegisterEvent(RegisterEvent registerEvent) {
     if (terminatingIsolates) return;
     if (!_isIsolateRunning) return;
 
