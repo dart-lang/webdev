@@ -6,6 +6,11 @@
     "action": {
         "default_icon": "static_assets/dart_dev.png"
     },
+    "externally_connectable": {
+        "ids": [
+            "nbkbficgbembimioedhceniahniffgpl"
+        ]
+    },
     "permissions": [
         "debugger",
         "notifications",

@@ -24,6 +24,7 @@ import 'package:sse/client/sse_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'chrome_api.dart';
+import 'cross_extension_communication.dart';
 import 'data_serializers.dart';
 import 'data_types.dart';
 import 'logger.dart';
@@ -74,6 +75,7 @@ enum TabType {
 }
 
 enum Trigger {
+  angularDartDevTools,
   extensionPanel,
   extensionIcon,
 }
@@ -152,6 +154,9 @@ String _translateChromeError(String chromeErrorMessage) {
 
 Future<void> _onDebuggerEvent(
     Debuggee source, String method, Object? params) async {
+  maybeForwardMessageToAngularDartDevTools(
+      method: method, params: params, tabId: source.tabId);
+
   if (method == 'Runtime.executionContextCreated') {
     return _maybeConnectToDwds(source.tabId, params);
   }
@@ -196,7 +201,7 @@ Future<bool> _connectToDwds({
   // Start the client connection with DWDS:
   final client = uri.isScheme('ws') || uri.isScheme('wss')
       ? WebSocketClient(WebSocketChannel.connect(uri))
-      : SseSocketClient(SseClient(uri.toString()));
+      : SseSocketClient(SseClient(uri.toString(), debugKey: 'DebugExtension'));
   final trigger = _tabIdToTrigger[dartAppTabId];
   final debugSession = _DebugSession(
     client: client,
@@ -237,13 +242,10 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
   if (message is ExtensionRequest) {
     _forwardDwdsEventToChromeDebugger(message, client, tabId);
   } else if (message is ExtensionEvent) {
-    switch (message.method) {
-      case 'dwds.encodedUri':
-        // TODO(elliette): Forward to external extensions.
-        break;
-      case 'dwds.devtoolsUri':
-        _openDevTools(message.params, dartAppTabId: tabId);
-        break;
+    maybeForwardMessageToAngularDartDevTools(
+        method: message.method, params: message.params, tabId: tabId);
+    if (message.method == 'dwds.devtoolsUri') {
+      _openDevTools(message.params, dartAppTabId: tabId);
     }
   }
 }
@@ -297,8 +299,10 @@ void _openDevTools(String devToolsUrl, {required int dartAppTabId}) async {
   }
   // Send the DevTools URL to the extension panels:
   _sendDevToolsUrlMessage(devToolsUrl, dartAppTabId: dartAppTabId);
-  // Open a separate tab / window if triggered through the extension icon:
-  if (debugSession.trigger == Trigger.extensionIcon) {
+  // Open a separate tab / window if triggered through the extension icon or
+  // through AngularDart DevTools:
+  if (debugSession.trigger == Trigger.extensionIcon ||
+      debugSession.trigger == Trigger.angularDartDevTools) {
     final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
         type: StorageObject.devToolsOpener);
     final devToolsTab = await createTab(

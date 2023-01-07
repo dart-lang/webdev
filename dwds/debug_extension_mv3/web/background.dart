@@ -15,6 +15,7 @@ import 'package:js/js.dart';
 import 'data_types.dart';
 import 'debug_session.dart';
 import 'chrome_api.dart';
+import 'cross_extension_communication.dart';
 import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
@@ -29,7 +30,15 @@ void main() {
 }
 
 void _registerListeners() {
-  chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
+  chrome.runtime.onMessage.addListener(
+    allowInterop(_handleRuntimeMessages),
+  );
+  // The only extension allowed to send messages to this extension is the
+  // AngularDart DevTools extension. Its permission is set in the manifest.json
+  // externally_connectable field.
+  chrome.runtime.onMessageExternal.addListener(
+    allowInterop(handleMessagesFromAngularDartDevTools),
+  );
   chrome.tabs.onRemoved
       .addListener(allowInterop((tabId, _) => maybeRemoveLifelinePort(tabId)));
   // Update the extension icon on tab navigation:
