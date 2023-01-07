@@ -779,11 +779,8 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
   ///
   // ignore: annotate_overrides
   Future<Success> setExceptionPauseMode(
-      String isolateId, /*ExceptionPauseMode*/ String mode) async {
-    await isInitialized;
-    _checkIsolate('setExceptionPauseMode', isolateId);
-    return (await debuggerFuture).setExceptionPauseMode(mode);
-  }
+          String isolateId, /*ExceptionPauseMode*/ String mode) =>
+      setIsolatePauseMode(isolateId, exceptionPauseMode: mode);
 
   @override
   Future<Success> setIsolatePauseMode(String isolateId,
