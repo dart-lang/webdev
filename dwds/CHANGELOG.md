@@ -8,17 +8,18 @@
   `mapExceptionStackTrace`.
 - Allow enabling experiments in the expression compiler service.
 - Pre-warm expression compiler cache to speed up Flutter Inspector loading.
-
+- Display full error on failure to start DDS.
 - Fix race condition on running two `createIsolate` calls simultaneously.
   - Run `destroyIsolate` followed by `createIsolate` an atomic operation.
   - Make debugger API that depend on isolate running wait for the start of the app.
   - Make debugger API throw if the isolate exits while the API is waiting.
+  - Return error on expression evaluation if expression evaluator stopped.
 
 **Breaking changes**
 - Include an optional param to `Dwds.start` to indicate whether it is running
   internally or externally.
 - Include an optional param to `Dwds.start` to indicate whether it a Flutter app
--  or not.
+  or not.
 - Remove deprecated `ChromeProxyService.setExceptionPauseMode()`.
 
 ## 16.0.1
