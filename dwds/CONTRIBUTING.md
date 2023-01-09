@@ -174,11 +174,15 @@ DWDS in Flutter.
    `remotes/upstream/16.0.2-hotfix-release`)
 
 1. Update the CI tests so that the branch tests against the appropriate Dart
-   SDKs. a. Make the appropriate changes to DWDS' `mono_pkg.yaml` then run
+   SDKs:
+
+   a. Make the appropriate changes to DWDS' `mono_pkg.yaml` then run
    `mono_repo generate`. Submit this change to the branch you created in step
    #3, **not** `master`.
 
-1. You can now make the change you would like to hotfix. From the Github UI,
+1. Make the fix:
+
+   a. You can now make the change you would like to hotfix. From the Github UI,
    open a PR to merge your change into the branch you created in step #3,
    **not** `master`. See https://github.com/dart-lang/webdev/pull/1867 as an
    example.
