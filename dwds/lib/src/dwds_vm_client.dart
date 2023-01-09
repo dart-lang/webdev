@@ -152,31 +152,33 @@ void _processSendEvent(Map<String, dynamic> event,
         _logger.finest('Received DevTools event: $event');
         final action = payload?['action'] as String?;
         final screen = payload?['screen'] as String?;
-        final devToolsStart = dwdsStats.devToolsStart;
-        final debuggerStart = dwdsStats.debuggerStart;
         if (screen != null && action == 'pageReady') {
-          if (dwdsStats.isFirstDebuggerReady) {
-            if (devToolsStart != null) {
-              final debuggerReadyTime =
-                  DateTime.now().difference(devToolsStart).inMilliseconds;
-              emitEvent(DwdsEvent.devToolsLoad(debuggerReadyTime, screen));
-              _logger.fine('DevTools load time: $debuggerReadyTime ms');
-            }
-            if (debuggerStart != null) {
-              final debuggerStartTime =
-                  DateTime.now().difference(debuggerStart).inMilliseconds;
-              emitEvent(DwdsEvent.debuggerReady(debuggerStartTime, screen));
-              _logger.fine('Debugger ready time: $debuggerStartTime ms');
-            }
-          } else {
-            _logger
-                .finest('Debugger and DevTools startup times already recorded.'
-                    ' Ignoring $event.');
-          }
+          _recordDwdsStats(dwdsStats, screen);
         } else {
           _logger.finest('Ignoring unknown event: $event');
         }
       }
+  }
+}
+
+void _recordDwdsStats(DwdsStats dwdsStats, String screen) {
+  if (dwdsStats.isFirstDebuggerReady) {
+    final devToolsStart = dwdsStats.devToolsStart;
+    final debuggerStart = dwdsStats.debuggerStart;
+    if (devToolsStart != null) {
+      final devToolLoadTime =
+          DateTime.now().difference(devToolsStart).inMilliseconds;
+      emitEvent(DwdsEvent.devToolsLoad(devToolLoadTime, screen));
+      _logger.fine('DevTools load time: $devToolLoadTime ms');
+    }
+    if (debuggerStart != null) {
+      final debuggerReadyTime =
+          DateTime.now().difference(debuggerStart).inMilliseconds;
+      emitEvent(DwdsEvent.debuggerReady(debuggerReadyTime, screen));
+      _logger.fine('Debugger ready time: $debuggerReadyTime ms');
+    }
+  } else {
+    _logger.finest('Debugger and DevTools stats are already recorded.');
   }
 }
 
