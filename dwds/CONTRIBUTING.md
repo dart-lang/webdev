@@ -138,3 +138,42 @@ you need to:
 > run tests for all earlier stable releases of the SDK that match the
 > constraint, which would have differences in functionality and therefore need
 > different tests.
+
+## Hotfixes
+
+Sometimes you might need to do a hotfix release of DWDS. An example of why this
+might be necessary is if you need to do a hotfix of DWDS into Flutter, but don't
+want to release a new version of DWDS with the current untested changes on the
+master branch. Instead you only want to apply a fix to the current version of
+DWDS in Flutter.
+
+### Instructions:
+
+1. In the Github UI's
+   [commit history view](https://github.com/dart-lang/webdev/commits/master),
+   find the commit that prepared the release of DWDS that you would like to
+   hotfix.
+1. Click on `< >` ("Browse the repository at this point in history").
+1. At the top-left, you should see the commit hash in a dropdown. Click the
+   dropdown, and type in a name for your hotfix branch (e.g.
+   `16.0.2-hotfix-release`). Then select "Create branch `16.0.2-hotfix-release`
+   from `commit_hash`".
+1. From your local clone of DWDS, run `git fetch upstream`. (*Note: this assumes
+   you have already configured git to sync your fork with the `upstream`
+   repository. If you haven't, follow
+   [these instructions](https://docs.github.com/en/get-started/quickstart/fork-a-repo#configuring-git-to-sync-your-fork-with-the-upstream-repository).)*
+1. Search for the branch that you just created, e.g.
+   `git branch -a | grep 16.0.2-hotfix-release`
+1. Track that branch with `git checkout --track branch_name` (e.g.
+   `remotes/upstream/16.0.2-hotfix-release`)
+1. You can now make the change you would like to hotfix on the branch you have.
+   When you are done, push it to Github (eg,
+   `git push origin 16.0.2-hotfix-release`).
+1. Now, from the Github UI, open a PR to merge your change into the branch you
+   created in step #3, **not** `master`. See
+   https://github.com/dart-lang/webdev/pull/1867 as an example.
+1. Once it's merged, you can follow the instructions to
+   [publish DWDS to pub](#step-2-publish-dwds-to-pub), except instead of pulling
+   from `master`, pull from the branch your created in step #3.
+1. If necessary, open a cherry-pick request in Flutter to update the version.
+   See https://github.com/flutter/flutter/issues/118122 for an example.
