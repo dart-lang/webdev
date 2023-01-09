@@ -1,4 +1,6 @@
 analyzer:
+  language:
+    strict-casts: true
   errors:
     dead_code: error
     unused_element: error
