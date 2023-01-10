@@ -266,7 +266,6 @@ class TestContext {
       String basePath = '';
 
       _port = await findUnusedPort();
-      final soundNullSafety = nullSafety == NullSafety.sound;
       switch (compilationMode) {
         case CompilationMode.buildDaemon:
           {
@@ -275,8 +274,6 @@ class TestContext {
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
               ],
-              '--define',
-              'build_web_compilers:entrypoint=sound_null_safety=$soundNullSafety',
               '--verbose',
             ];
             _daemonClient =

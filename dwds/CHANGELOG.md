@@ -14,6 +14,9 @@
 - Pre-warm expression compiler cache to speed up Flutter Inspector loading.
 - Remove `ChromeProxyService.setExceptionPauseMode()`.
 - Display full error on failure to start DDS.
+- Prepare or Dart 3 alpha breaking changes:
+  - Move weak null safety tests to special branch of `build_web_compilers`.
+  - Do not pass `--(no)-sound-null-safety` flag to build daemon.
 
 ## 16.0.1
 
