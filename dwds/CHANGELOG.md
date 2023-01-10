@@ -19,6 +19,7 @@
 - Prepare or Dart 3 alpha breaking changes:
   - Move weak null safety tests to special branch of `build_web_compilers`.
   - Do not pass `--(no)-sound-null-safety` flag to build daemon.
+- Add back `ChromeProxyService.setExceptionPauseMode()` without override.
 
 
 ## 16.0.1
