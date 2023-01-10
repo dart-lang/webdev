@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/utilities/synchronized.dart';
+import 'package:pool/pool.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -11,9 +11,9 @@ import 'debugger.dart';
 class FrameComputer {
   final Debugger debugger;
 
-  // To ensure that the frames are computed only once, we use an atomic queue
-  // to guard the work. Frames are computed sequentially.
-  final _queue = AtomicQueue();
+  // To ensure that the frames are computed only once, we use a pool to guard
+  // the work. Frames are computed sequentially.
+  final _pool = Pool(1);
 
   final List<WipCallFrame> _callFrames;
   final List<Frame> _computedFrames = [];
@@ -36,7 +36,7 @@ class FrameComputer {
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
   /// [Frame]s.
   Future<List<Frame>> calculateFrames({int? limit}) async {
-    return _queue.runTask(() async {
+    return _pool.withResource(() async {
       if (limit != null && _computedFrames.length >= limit) {
         return _computedFrames.take(limit).toList();
       }

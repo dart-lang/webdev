@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
@@ -32,9 +31,6 @@ class DwdsVmClient {
   ///
   /// All subsequent calls to [close] will return this future.
   Future<void>? _closed;
-
-  /// Synchronizes hot restarts to avoid races.
-  final _hotRestartQueue = AtomicQueue();
 
   DwdsVmClient(this.client, this._requestController, this._responseController);
 
@@ -64,9 +60,6 @@ class DwdsVmClient {
     final chromeProxyService =
         debugService.chromeProxyService as ChromeProxyService;
 
-    final dwdsVmClient =
-        DwdsVmClient(client, requestController, responseController);
-
     // Register '_flutter.listViews' method on the chrome proxy service vm.
     // In native world, this method is provided by the engine, but the web
     // engine is not aware of the VM uri or the isolates.
@@ -92,7 +85,7 @@ class DwdsVmClient {
     client.registerServiceCallback(
         'hotRestart',
         (request) => captureElapsedTime(
-            () => dwdsVmClient.hotRestart(chromeProxyService, client),
+            () => _hotRestart(chromeProxyService, client),
             (_) => DwdsEvent.hotRestart()));
     await client.registerService('hotRestart', 'DWDS');
 
@@ -145,13 +138,7 @@ class DwdsVmClient {
     });
     await client.registerService('_yieldControlToDDS', 'DWDS');
 
-    return dwdsVmClient;
-  }
-
-  Future<Map<String, dynamic>> hotRestart(
-      ChromeProxyService chromeProxyService, VmService client) async {
-    return _hotRestartQueue
-        .runTask(() => _hotRestart(chromeProxyService, client));
+    return DwdsVmClient(client, requestController, responseController);
   }
 }
 

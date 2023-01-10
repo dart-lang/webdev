@@ -278,15 +278,15 @@ class DevHandler {
           } else if (message is IsolateStart) {
             await _handleIsolateStart(connection, injectedConnection);
           } else if (message is BatchedDebugEvents) {
-            _servicesByAppId[connection.request.appId]
+            await _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
                 .parseBatchedDebugEvents(message);
           } else if (message is DebugEvent) {
-            _servicesByAppId[connection.request.appId]
+            await _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
                 .parseDebugEvent(message);
           } else if (message is RegisterEvent) {
-            _servicesByAppId[connection.request.appId]
+            await _servicesByAppId[connection.request.appId]
                 ?.chromeProxyService
                 .parseRegisterEvent(message);
           }
@@ -317,7 +317,7 @@ class DevHandler {
           if (services.connectedInstanceId == null ||
               services.connectedInstanceId == connection.request.instanceId) {
             services.connectedInstanceId = null;
-            await services.chromeProxyService.destroyIsolate();
+            services.chromeProxyService.destroyIsolate();
           }
         }
       }
@@ -413,7 +413,7 @@ class DevHandler {
       // Disconnect any old connection (eg. those in the keep-alive waiting
       // state when reloading the page).
       existingConnection?.shutDown();
-      await services.chromeProxyService.destroyIsolate();
+      services.chromeProxyService.destroyIsolate();
 
       // Reconnect to existing service.
       services.connectedInstanceId = message.instanceId;
@@ -425,7 +425,7 @@ class DevHandler {
   }
 
   Future<void> _handleIsolateExit(AppConnection appConnection) async {
-    await _servicesByAppId[appConnection.request.appId]
+    _servicesByAppId[appConnection.request.appId]
         ?.chromeProxyService
         .destroyIsolate();
   }
@@ -542,7 +542,7 @@ class DevHandler {
         extensionDebugger.sendEvent('dwds.encodedUri', encodedUri);
         unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
             .whenComplete(() async {
-          await appServices?.chromeProxyService.destroyIsolate();
+          appServices?.chromeProxyService.destroyIsolate();
           await appServices?.close();
           _servicesByAppId.remove(devToolsRequest.appId);
           _logger.info('Stopped debug service on '
