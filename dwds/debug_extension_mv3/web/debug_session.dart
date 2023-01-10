@@ -420,14 +420,14 @@ class _DebugSession {
   // What triggered the debug session (debugger panel, extension icon, etc.)
   final Trigger? trigger;
 
-  // The tab ID that contains the corresponding Dart DevTools.
-  late final int? devToolsTabId;
-
   // Socket client for communication with dwds extension backend.
   late final SocketClient _socketClient;
 
   // How often to send batched events.
   static const int _batchDelayMilliseconds = 1000;
+  
+  // The tab ID that contains the corresponding Dart DevTools, if it exists.
+  int? devToolsTabId;
 
   // Collect events into batches to be send periodically to the server.
   final _batchController =
