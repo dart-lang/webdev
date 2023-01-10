@@ -14,6 +14,8 @@
 - Pre-warm expression compiler cache to speed up Flutter Inspector loading.
 - Remove `ChromeProxyService.setExceptionPauseMode()`.
 - Display full error on failure to start DDS.
+- Fix crash on processing DevTools event when starting DevTools from observatory
+  uri.
 - Add back `ChromeProxyService.setExceptionPauseMode()` without override.
 
 ## 16.0.1

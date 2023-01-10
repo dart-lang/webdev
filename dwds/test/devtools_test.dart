@@ -102,7 +102,11 @@ void main() {
       // https://github.com/dart-lang/webdev/pull/901#issuecomment-586438132
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await context.changeInput();
+      context.makeEditToDartEntryFile(
+        toReplace: 'Hello World!',
+        replaceWith: 'Bonjour le monde!',
+      );
+      await context.waitForSuccessfulBuild(propogateToBrowser: true);
 
       final eventsDone = expectLater(
           client.onIsolateEvent,
@@ -115,6 +119,11 @@ void main() {
       await context.webDriver.driver.refresh();
 
       await eventsDone;
+      // Re-set the edited file:
+      context.makeEditToDartEntryFile(
+        toReplace: 'Bonjour le monde!',
+        replaceWith: 'Hello World!',
+      );
     });
   });
 
