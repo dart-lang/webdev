@@ -89,13 +89,6 @@ List<String> buildRunnerArgs(
       ..add('build_web_compilers|ddc=generate-full-dill=true');
   }
 
-  if (configuration.nullSafety != nullSafetyAuto) {
-    arguments
-      ..add('--define')
-      ..add('build_web_compilers:entrypoint=sound_null_safety='
-          '${configuration.nullSafety == nullSafetySound}');
-  }
-
   for (var experiment in configuration.experiments) {
     arguments.add('--enable-experiment=$experiment');
   }

@@ -141,6 +141,23 @@ void testAll({
         await setup.service.resume(isolateId);
       });
 
+      test('uses correct null safety mode', () async {
+        await onBreakPoint(isolateId, mainScript, 'printLocal', () async {
+          final event = await stream
+              .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
+
+          final isNullSafetyEnabled =
+              '() { const sound = !(<Null>[] is List<int>); return sound; } ()';
+          final result = await setup.service.evaluateInFrame(
+              isolateId, event.topFrame!.index!, isNullSafetyEnabled);
+
+          expect(
+              result,
+              isA<InstanceRef>().having((instance) => instance.valueAsString,
+                  'valueAsString', '${nullSafety == NullSafety.sound}'));
+        });
+      });
+
       test('does not crash if class metadata cannot be found', () async {
         await onBreakPoint(isolateId, mainScript, 'printStream', () async {
           final event = await stream
