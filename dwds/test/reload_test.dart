@@ -18,6 +18,9 @@ final context = TestContext.withSoundNullSafety(
   htmlEntryFileName: 'index.html',
 );
 
+const originalString = 'Hello World!';
+const newString = 'Bonjour le monde!';
+
 void main() {
   // set to true for debug logging.
   final debug = false;
@@ -31,17 +34,17 @@ void main() {
       });
 
       tearDown(() async {
+        undoEdit();
         await context.tearDown();
       });
 
       test('can live reload changes ', () async {
-        await context.changeInput();
-
+        await makeEditAndWaitForRebuild();
         final source = await context.webDriver.pageSource;
 
         // A full reload should clear the state.
-        expect(source.contains('Hello World!'), isFalse);
-        expect(source.contains('Gary is awesome!'), isTrue);
+        expect(source.contains(originalString), isFalse);
+        expect(source.contains(newString), isTrue);
       });
     });
 
@@ -55,17 +58,18 @@ void main() {
       });
 
       tearDown(() async {
+        undoEdit();
         await context.tearDown();
       });
 
       test('can live reload changes ', () async {
-        await context.changeInput();
+        await makeEditAndWaitForRebuild();
 
         final source = await context.webDriver.pageSource;
 
         // A full reload should clear the state.
-        expect(source.contains('Hello World!'), isFalse);
-        expect(source.contains('Gary is awesome!'), isTrue);
+        expect(source.contains(originalString), isFalse);
+        expect(source.contains(newString), isTrue);
       });
     });
 
@@ -81,16 +85,17 @@ void main() {
 
       tearDown(() async {
         await context.tearDown();
+        undoEdit();
       });
 
       test('can live reload changes ', () async {
-        await context.changeInput();
+        await makeEditAndWaitForRebuild();
 
         final source = await context.webDriver.pageSource;
 
         // A full reload should clear the state.
-        expect(source.contains('Hello World!'), isFalse);
-        expect(source.contains('Gary is awesome!'), isTrue);
+        expect(source.contains(originalString), isFalse);
+        expect(source.contains(newString), isTrue);
       });
     });
   });
@@ -103,12 +108,13 @@ void main() {
 
     tearDown(() async {
       await context.tearDown();
+      undoEdit();
     });
 
     test('destroys and recreates the isolate during a hot restart', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await context.changeInput();
+      await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
           client.onIsolateEvent,
@@ -127,7 +133,7 @@ void main() {
     test('destroys and recreates the isolate during a page refresh', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await context.changeInput();
+      await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
           client.onIsolateEvent,
@@ -145,7 +151,7 @@ void main() {
     test('can hot restart via the service extension', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await context.changeInput();
+      await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
           client.onIsolateEvent,
@@ -162,8 +168,8 @@ void main() {
 
       final source = await context.webDriver.pageSource;
       // Main is re-invoked which shouldn't clear the state.
-      expect(source, contains('Hello World!'));
-      expect(source, contains('Gary is awesome!'));
+      expect(source, contains(originalString));
+      expect(source, contains(newString));
     });
 
     test('can send events before and after hot restart', () async {
@@ -217,7 +223,7 @@ void main() {
     test('can refresh the page via the fullReload service extension', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await context.changeInput();
+      await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
           client.onIsolateEvent,
@@ -233,8 +239,8 @@ void main() {
 
       final source = await context.webDriver.pageSource;
       // Should see only the new text
-      expect(source, isNot(contains('Hello World!')));
-      expect(source, contains('Gary is awesome!'));
+      expect(source.contains(originalString), isFalse);
+      expect(source.contains(newString), isTrue);
     });
 
     test('can hot restart while paused', () async {
@@ -252,13 +258,13 @@ void main() {
       await stream
           .firstWhere((event) => event.kind == EventKind.kPauseBreakpoint);
 
-      await context.changeInput();
+      await makeEditAndWaitForRebuild();
       await client.callServiceExtension('hotRestart');
       final source = await context.webDriver.pageSource;
 
       // Main is re-invoked which shouldn't clear the state.
-      expect(source.contains('Hello World!'), isTrue);
-      expect(source.contains('Gary is awesome!'), isTrue);
+      expect(source.contains(originalString), isTrue);
+      expect(source.contains(newString), isTrue);
 
       vm = await client.getVM();
       isolateId = vm.isolates!.first.id!;
@@ -335,19 +341,20 @@ void main() {
 
       tearDown(() async {
         await context.tearDown();
+        undoEdit();
       });
 
       test('can hot restart changes ', () async {
-        await context.changeInput();
+        await makeEditAndWaitForRebuild();
 
         final source = await context.webDriver.pageSource;
 
         // Main is re-invoked which shouldn't clear the state.
-        expect(source.contains('Hello World!'), isTrue);
-        expect(source.contains('Gary is awesome!'), isTrue);
+        expect(source.contains(originalString), isTrue);
+        expect(source.contains(newString), isTrue);
         // The ext.flutter.disassemble callback is invoked and waited for.
-        expect(source,
-            contains('start disassemble end disassemble Gary is awesome'));
+        expect(
+            source, contains('start disassemble end disassemble $newString'));
       });
 
       test('fires isolate create/destroy events during hot restart', () async {
@@ -362,7 +369,7 @@ void main() {
               _hasKind(EventKind.kIsolateRunnable),
             ])));
 
-        await context.changeInput();
+        await makeEditAndWaitForRebuild();
 
         await eventsDone;
       });
@@ -379,22 +386,38 @@ void main() {
 
       tearDown(() async {
         await context.tearDown();
+        undoEdit();
       });
 
       test('can hot restart changes ', () async {
-        await context.changeInput();
+        await makeEditAndWaitForRebuild();
 
         final source = await context.webDriver.pageSource;
 
         // Main is re-invoked which shouldn't clear the state.
-        expect(source.contains('Hello World!'), isTrue);
-        expect(source.contains('Gary is awesome!'), isTrue);
+        expect(source.contains(originalString), isTrue);
+        expect(source.contains(newString), isTrue);
         // The ext.flutter.disassemble callback is invoked and waited for.
-        expect(source,
-            contains('start disassemble end disassemble Gary is awesome'));
+        expect(
+            source, contains('start disassemble end disassemble $newString'));
       });
     });
   });
+}
+
+Future<void> makeEditAndWaitForRebuild() async {
+  context.makeEditToDartEntryFile(
+    toReplace: originalString,
+    replaceWith: newString,
+  );
+  await context.waitForSuccessfulBuild(propogateToBrowser: true);
+}
+
+void undoEdit() {
+  context.makeEditToDartEntryFile(
+    toReplace: newString,
+    replaceWith: originalString,
+  );
 }
 
 TypeMatcher<Event> _hasKind(String kind) =>
