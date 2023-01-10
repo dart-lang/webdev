@@ -1,40 +1,32 @@
 {
-    "name": "MV3 Dart Debug Extension",
-    "version": "1.0",
-    "manifest_version": 3,
-    "devtools_page": "static_assets/devtools.html",
-    "action": {
-        "default_icon": "static_assets/dart_dev.png"
-    },
-    "externally_connectable": {
-        "ids": [
-            "nbkbficgbembimioedhceniahniffgpl"
-        ]
-    },
-    "permissions": [
-        "debugger",
-        "notifications",
-        "scripting",
-        "storage",
-        "tabs",
-        "webNavigation"
-    ],
-    "host_permissions": [
-        "<all_urls>"
-    ],
-    "background": {
-        "service_worker": "background.dart.js"
-    },
-    "content_scripts": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "detector.dart.js"
-            ],
-            "run_at": "document_end"
-        }
-    ],
-    "options_page": "static_assets/settings.html"
+  "name": "Dart Debug Extension",
+  "version": "1.31",
+  "manifest_version": 3,
+  "devtools_page": "static_assets/devtools.html",
+  "action": {
+    "default_icon": "static_assets/dart_dev.png"
+  },
+  "externally_connectable": {
+    "ids": ["nbkbficgbembimioedhceniahniffgpl"]
+  },
+  "permissions": [
+    "debugger",
+    "notifications",
+    "scripting",
+    "storage",
+    "tabs",
+    "webNavigation"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.dart.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["detector.dart.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "options_page": "static_assets/settings.html"
 }
