@@ -795,6 +795,16 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     }
   }
 
+  /// This method is deprecated in vm_service package.
+  ///
+  /// TODO(annagrin): remove after dart-code and IntelliJ stop using this API.
+  /// Issue: https://github.com/dart-lang/webdev/issues/1868
+  ///
+  // ignore: annotate_overrides
+  Future<Success> setExceptionPauseMode(
+          String isolateId, /*ExceptionPauseMode*/ String mode) =>
+      setIsolatePauseMode(isolateId, exceptionPauseMode: mode);
+
   @override
   Future<Success> setIsolatePauseMode(String isolateId,
       {String? exceptionPauseMode, bool? shouldPauseOnExit}) async {

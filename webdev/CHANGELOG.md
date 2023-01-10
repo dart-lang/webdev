@@ -2,6 +2,9 @@
 
 - Add `--enable-experiment` flag to webdev commands and pass it
   to the build runner and the expression compiler service.
+- Prepare or Dart 3 alpha breaking changes:
+  - Move weak null safety tests to special branch of `build_web_compilers`.
+  - Do not pass `--(no)-sound-null-safety` flag to build daemon.
 
 ## 2.7.12
 

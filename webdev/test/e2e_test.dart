@@ -64,9 +64,9 @@ void main() {
   });
 
   test('smoke test is configured properly', () async {
-    var smokeYaml =
-        loadYaml(await File('$exampleDirectory/pubspec.yaml').readAsString())
-            as YamlMap;
+    var smokeYaml = loadYaml(
+            await File('$soundExampleDirectory/pubspec.yaml').readAsString())
+        as YamlMap;
     var webdevYaml =
         loadYaml(await File('pubspec.yaml').readAsString()) as YamlMap;
     expect(smokeYaml['environment']['sdk'],
@@ -168,32 +168,24 @@ void main() {
           : 'SDK does not support sound null safety',
     );
 
-    test(
-      'and --null-safety=unsound',
-      () async {
-        var args = [
-          'build',
-          '-o',
-          'web:${d.sandbox}',
-          '--no-release',
-          '--null-safety=unsound'
-        ];
+    test('and --null-safety=unsound', () async {
+      var args = [
+        'build',
+        '-o',
+        'web:${d.sandbox}',
+        '--no-release',
+        '--null-safety=unsound'
+      ];
 
-        var process =
-            await runWebDev(args, workingDirectory: soundExampleDirectory);
+      var process = await runWebDev(args, workingDirectory: exampleDirectory);
 
-        var expectedItems = <Object>['Succeeded'];
+      var expectedItems = <Object>['Succeeded'];
 
-        await checkProcessStdout(process, expectedItems);
-        await process.shouldExit(0);
+      await checkProcessStdout(process, expectedItems);
+      await process.shouldExit(0);
 
-        await d.file('main.unsound.ddc.js', isNotEmpty).validate();
-      },
-      skip: semver.Version.parse(Platform.version.split(' ').first) >
-              semver.Version.parse('2.11.0')
-          ? null
-          : 'SDK does not support sound null safety',
-    );
+      await d.file('main.unsound.ddc.js', isNotEmpty).validate();
+    });
   });
 
   group('should build with --output=NONE', () {
@@ -344,14 +336,17 @@ void main() {
               await stream.firstWhere(
                   (Event event) => event.kind == EventKind.kPauseBreakpoint);
 
-              var result =
-                  await vmService.evaluateInFrame(isolateId, 0, 'true');
+              final isNullSafetyEnabled =
+                  '() { const sound = !(<Null>[] is List<int>); return sound; } ()';
+              final result = await vmService.evaluateInFrame(
+                  isolateId, 0, isNullSafetyEnabled);
+
               expect(
                   result,
                   const TypeMatcher<InstanceRef>().having(
                       (instance) => instance.valueAsString,
                       'valueAsString',
-                      'true'));
+                      '$soundNullSafety'));
             } finally {
               await vmService?.dispose();
               await exitWebdev(process);

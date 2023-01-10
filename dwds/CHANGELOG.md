@@ -9,11 +9,13 @@
 - Allow enabling experiments in the expression compiler service.
 - Pre-warm expression compiler cache to speed up Flutter Inspector loading.
 - Display full error on failure to start DDS.
-- Fix race condition on running two `createIsolate` calls simultaneously.
-  - Run `destroyIsolate` followed by `createIsolate` an atomic operation.
-  - Make debugger API that depend on isolate running wait for the start of the app.
-  - Make debugger API throw if the isolate exits while the API is waiting.
-  - Return error on expression evaluation if expression evaluator stopped.
+- Fix crash on processing DevTools event when starting DevTools from DevTools
+  uri.
+- Prepare or Dart 3 alpha breaking changes:
+  - Move weak null safety tests to special branch of `build_web_compilers`.
+  - Do not pass `--(no)-sound-null-safety` flag to build daemon.
+- Add back `ChromeProxyService.setExceptionPauseMode()` without override.
+- Return error on expression evaluation if expression evaluator stopped.
 
 **Breaking changes**
 - Include an optional param to `Dwds.start` to indicate whether it is running

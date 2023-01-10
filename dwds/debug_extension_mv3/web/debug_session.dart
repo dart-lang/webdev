@@ -201,7 +201,7 @@ Future<bool> _connectToDwds({
   // Start the client connection with DWDS:
   final client = uri.isScheme('ws') || uri.isScheme('wss')
       ? WebSocketClient(WebSocketChannel.connect(uri))
-      : SseSocketClient(SseClient(uri.toString()));
+      : SseSocketClient(SseClient(uri.toString(), debugKey: 'DebugExtension'));
   final trigger = _tabIdToTrigger[dartAppTabId];
   final debugSession = _DebugSession(
     client: client,

@@ -77,18 +77,13 @@ class TestContext {
     return webCompatiblePath([...pathParts, htmlEntryFileName]);
   }
 
-  /// The entry file is the Dart entry file, e.g,
+  /// The path to the Dart entry file, e.g,
   /// "/workstation/webdev/fixtures/_testSound/example/hello_world/main.dart":
-  File get _entryFile => File(
-        absolutePath(
-          pathFromFixtures: p.joinAll(
-            [packageName, webAssetsPath, dartEntryFileName],
-          ),
+  String get _dartEntryFilePath => absolutePath(
+        pathFromFixtures: p.joinAll(
+          [packageName, webAssetsPath, dartEntryFileName],
         ),
       );
-
-  /// The contents of the Dart entry file:
-  String get _entryContents => _entryFile.readAsStringSync();
 
   /// The URI for the package_config.json is located in:
   /// <project directory>/.dart_tool/package_config
@@ -183,7 +178,7 @@ class TestContext {
     _logger.info('Serving: $directoryToServe/$filePathToServe');
     _logger.info('Project: $workingDirectory');
     _logger.info('Packages: $_packageConfigFile');
-    _logger.info('Entry: ${_entryFile.path}');
+    _logger.info('Entry: $_dartEntryFilePath');
   }
 
   Future<void> setUp({
@@ -266,7 +261,6 @@ class TestContext {
       String basePath = '';
 
       _port = await findUnusedPort();
-      final soundNullSafety = nullSafety == NullSafety.sound;
       switch (compilationMode) {
         case CompilationMode.buildDaemon:
           {
@@ -275,8 +269,6 @@ class TestContext {
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
               ],
-              '--define',
-              'build_web_compilers:entrypoint=sound_null_safety=$soundNullSafety',
               '--verbose',
             ];
             _daemonClient =
@@ -291,10 +283,7 @@ class TestContext {
                 DefaultBuildTarget((b) => b..target = directoryToServe));
             daemonClient.startBuild();
 
-            await daemonClient.buildResults
-                .firstWhere((results) => results.results
-                    .any((result) => result.status == BuildStatus.succeeded))
-                .timeout(const Duration(seconds: 60));
+            await waitForSuccessfulBuild();
 
             final assetServerPort = daemonPort(workingDirectory);
             _assetHandler = proxyHandler(
@@ -467,7 +456,6 @@ class TestContext {
     await _webDriver?.quit(closeSession: true);
     _chromeDriver?.kill();
     DartUri.currentDirectory = p.current;
-    _entryFile.writeAsStringSync(_entryContents);
     await _daemonClient?.close();
     await ddcService?.stop();
     await _webRunner?.stop();
@@ -487,20 +475,31 @@ class TestContext {
     _outputDir = null;
   }
 
-  Future<void> changeInput() async {
-    _entryFile.writeAsStringSync(
-        _entryContents.replaceAll('Hello World!', 'Gary is awesome!'));
+  void makeEditToDartEntryFile({
+    required String toReplace,
+    required String replaceWith,
+  }) async {
+    final file = File(_dartEntryFilePath);
+    final fileContents = file.readAsStringSync();
+    file.writeAsStringSync(fileContents.replaceAll(toReplace, replaceWith));
+  }
 
-    // Wait for the build.
-    await _daemonClient?.buildResults.firstWhere((results) => results.results
-        .any((result) => result.status == BuildStatus.succeeded));
+  Future<void> waitForSuccessfulBuild(
+      {Duration? timeout, bool propogateToBrowser = false}) async {
+    // Wait for the build until the timeout is reached:
+    await daemonClient.buildResults
+        .firstWhere((results) => results.results
+            .any((result) => result.status == BuildStatus.succeeded))
+        .timeout(timeout ?? const Duration(seconds: 60));
 
-    // Allow change to propagate to the browser.
-    // Windows, or at least Travis on Windows, seems to need more time.
-    final delay = Platform.isWindows
-        ? const Duration(seconds: 5)
-        : const Duration(seconds: 2);
-    await Future.delayed(delay);
+    if (propogateToBrowser) {
+      // Allow change to propagate to the browser.
+      // Windows, or at least Travis on Windows, seems to need more time.
+      final delay = Platform.isWindows
+          ? const Duration(seconds: 5)
+          : const Duration(seconds: 2);
+      await Future.delayed(delay);
+    }
   }
 
   Future<void> _buildDebugExtension() async {
