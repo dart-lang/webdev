@@ -11,6 +11,10 @@
 - Display full error on failure to start DDS.
 - Fix crash on processing DevTools event when starting DevTools from DevTools
   uri.
+- Prepare or Dart 3 alpha breaking changes:
+  - Move weak null safety tests to special branch of `build_web_compilers`.
+  - Do not pass `--(no)-sound-null-safety` flag to build daemon.
+- Add back `ChromeProxyService.setExceptionPauseMode()` without override.
 - Make hot restart atomic to prevent races on simultaneous execution.
 
 **Breaking changes**
@@ -19,7 +23,6 @@
 - Include an optional param to `Dwds.start` to indicate whether it a Flutter app
   or not.
 - Remove deprecated `ChromeProxyService.setExceptionPauseMode()`.
-
 
 ## 16.0.1
 
