@@ -868,7 +868,7 @@ class _Breakpoints extends Domain {
     final urlRegex = '.*${location.jsLocation.module}.*';
     // Prevent `Aww, snap!` errors when setting multiple breakpoints
     // simultaneously by serializing the requests.
-    return _queue.runTask(() async {
+    return _queue.run(() async {
       final breakPointId = await sendCommandAndValidateResult<String>(
           remoteDebugger,
           method: 'Debugger.setBreakpointByUrl',

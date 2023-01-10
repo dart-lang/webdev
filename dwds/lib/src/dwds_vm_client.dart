@@ -150,8 +150,7 @@ class DwdsVmClient {
 
   Future<Map<String, dynamic>> hotRestart(
       ChromeProxyService chromeProxyService, VmService client) async {
-    return _hotRestartQueue
-        .runTask(() => _hotRestart(chromeProxyService, client));
+    return _hotRestartQueue.run(() => _hotRestart(chromeProxyService, client));
   }
 }
 

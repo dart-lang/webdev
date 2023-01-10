@@ -12,5 +12,5 @@ class AtomicQueue {
   AtomicQueue();
 
   // Executes tasks sequentially.
-  Future<T> runTask<T>(FutureOr<T> Function() task) => _pool.withResource(task);
+  Future<T> run<T>(FutureOr<T> Function() task) => _pool.withResource(task);
 }

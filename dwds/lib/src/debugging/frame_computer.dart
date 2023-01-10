@@ -36,7 +36,7 @@ class FrameComputer {
   /// Translates Chrome callFrames contained in [DebuggerPausedEvent] into Dart
   /// [Frame]s.
   Future<List<Frame>> calculateFrames({int? limit}) async {
-    return _queue.runTask(() async {
+    return _queue.run(() async {
       if (limit != null && _computedFrames.length >= limit) {
         return _computedFrames.take(limit).toList();
       }
