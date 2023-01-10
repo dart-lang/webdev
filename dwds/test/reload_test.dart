@@ -130,10 +130,10 @@ void main() {
       await eventsDone;
     });
 
-    test('can execute simltaneous hot restarts', () async {
+    test('can execute simultaneous hot restarts', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
-      await context.changeInput();
+      await makeEditAndWaitForRebuild();
 
       final eventsDone = expectLater(
           client.onIsolateEvent,
@@ -151,8 +151,7 @@ void main() {
       expect(await done,
           [const TypeMatcher<Success>(), const TypeMatcher<Success>()]);
 
-      // The debugger is still working
-
+      // The debugger is still working.
       final vm = await client.getVM();
       final isolateId = vm.isolates!.first.id!;
       final isolate = await client.getIsolate(isolateId);
@@ -447,7 +446,7 @@ Future<void> makeEditAndWaitForRebuild() async {
     toReplace: originalString,
     replaceWith: newString,
   );
-  await context.waitForSuccessfulBuild(propogateToBrowser: true);
+  await context.waitForSuccessfulBuild(propagateToBrowser: true);
 }
 
 void undoEdit() {

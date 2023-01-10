@@ -8603,7 +8603,7 @@
       this._pool = t0;
       this._released = false;
     },
-    SseClient$(serverUrl) {
+    SseClient$(serverUrl, debugKey) {
       var t3, t4, t5, _null = null,
         t1 = type$.String,
         t2 = A.StreamController_StreamController(_null, _null, false, t1);
@@ -8611,8 +8611,8 @@
       t3 = A.Logger_Logger("SseClient");
       t4 = $.Zone__current;
       t5 = A.generateUuidV4();
-      t1 = new A.SseClient(t5, t2, t1, t3, new A._AsyncCompleter(new A._Future(t4, type$._Future_dynamic), type$._AsyncCompleter_dynamic));
-      t1.SseClient$2$debugKey(serverUrl, _null);
+      t1 = new A.SseClient(debugKey + "-" + t5, t2, t1, t3, new A._AsyncCompleter(new A._Future(t4, type$._Future_dynamic), type$._AsyncCompleter_dynamic));
+      t1.SseClient$2$debugKey(serverUrl, debugKey);
       return t1;
     },
     SseClient: function SseClient(t0, t1, t2, t3, t4) {
@@ -24971,7 +24971,7 @@
               }
               fixedPath = uri.toString$0(0);
               fixedUri = A.Uri_parse(fixedPath);
-              client = fixedUri.isScheme$1("ws") || fixedUri.isScheme$1("wss") ? new A.WebSocketClient(A.HtmlWebSocketChannel$connect(fixedUri, null)) : new A.SseSocketClient(A.SseClient$(fixedPath));
+              client = fixedUri.isScheme$1("ws") || fixedUri.isScheme$1("wss") ? new A.WebSocketClient(A.HtmlWebSocketChannel$connect(fixedUri, null)) : new A.SseSocketClient(A.SseClient$(fixedPath, "InjectedClient"));
               $async$goto = J.$eq$(self.$dartModuleStrategy, "require-js") ? 2 : 4;
               break;
             case 2:

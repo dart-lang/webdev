@@ -31,7 +31,6 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
   final Debugger _debugger;
   final _requestController =
       BatchedStreamController<EvaluateRequest>(delay: 200);
-  bool _closed = false;
 
   BatchedExpressionEvaluator(
     String entrypoint,
@@ -46,10 +45,8 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
 
   @override
   void close() {
-    if (_closed) return;
     _logger.fine('Closed');
     _requestController.close();
-    _closed = true;
   }
 
   @override
@@ -58,11 +55,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
     String? libraryUri,
     String expression,
     Map<String, String>? scope,
-  ) async {
-    if (_closed) {
-      return createError(
-          ErrorKind.internal, 'Batched expression compiler closed');
-    }
+  ) {
     final request = EvaluateRequest(isolateId, libraryUri, expression, scope);
     _requestController.sink.add(request);
     return request.completer.future;
