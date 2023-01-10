@@ -130,6 +130,42 @@ void main() {
       await eventsDone;
     });
 
+    test('can execute simultaneous hot restarts', () async {
+      final client = context.debugConnection.vmService;
+      await client.streamListen('Isolate');
+      await makeEditAndWaitForRebuild();
+
+      final eventsDone = expectLater(
+          client.onIsolateEvent,
+          emitsThrough(emitsInOrder([
+            _hasKind(EventKind.kIsolateExit),
+            _hasKind(EventKind.kIsolateStart),
+            _hasKind(EventKind.kIsolateRunnable),
+          ])));
+
+      // Execute two hot restart calls in parallel.
+      final done = Future.wait([
+        client.callServiceExtension('hotRestart'),
+        client.callServiceExtension('hotRestart'),
+      ]);
+      expect(await done,
+          [const TypeMatcher<Success>(), const TypeMatcher<Success>()]);
+
+      // The debugger is still working.
+      final vm = await client.getVM();
+      final isolateId = vm.isolates!.first.id!;
+      final isolate = await client.getIsolate(isolateId);
+      final library = isolate.rootLib!.uri!;
+
+      final result = await client.evaluate(isolateId, library, 'true');
+      expect(
+          result,
+          isA<InstanceRef>().having(
+              (instance) => instance.valueAsString, 'valueAsString', 'true'));
+
+      await eventsDone;
+    });
+
     test('destroys and recreates the isolate during a page refresh', () async {
       final client = context.debugConnection.vmService;
       await client.streamListen('Isolate');
@@ -410,7 +446,7 @@ Future<void> makeEditAndWaitForRebuild() async {
     toReplace: originalString,
     replaceWith: newString,
   );
-  await context.waitForSuccessfulBuild(propogateToBrowser: true);
+  await context.waitForSuccessfulBuild(propagateToBrowser: true);
 }
 
 void undoEdit() {

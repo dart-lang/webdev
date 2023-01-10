@@ -485,14 +485,14 @@ class TestContext {
   }
 
   Future<void> waitForSuccessfulBuild(
-      {Duration? timeout, bool propogateToBrowser = false}) async {
+      {Duration? timeout, bool propagateToBrowser = false}) async {
     // Wait for the build until the timeout is reached:
     await daemonClient.buildResults
         .firstWhere((results) => results.results
             .any((result) => result.status == BuildStatus.succeeded))
         .timeout(timeout ?? const Duration(seconds: 60));
 
-    if (propogateToBrowser) {
+    if (propagateToBrowser) {
       // Allow change to propagate to the browser.
       // Windows, or at least Travis on Windows, seems to need more time.
       final delay = Platform.isWindows
