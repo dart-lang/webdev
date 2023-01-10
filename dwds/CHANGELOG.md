@@ -15,6 +15,7 @@
   - Move weak null safety tests to special branch of `build_web_compilers`.
   - Do not pass `--(no)-sound-null-safety` flag to build daemon.
 - Add back `ChromeProxyService.setExceptionPauseMode()` without override.
+- Make hot restart atomic to prevent races on simultaneous execution.
 - Return error on expression evaluation if expression evaluator stopped.
 
 **Breaking changes**

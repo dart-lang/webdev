@@ -13,7 +13,7 @@ import 'utils/version_compatibility.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
-  final debug = true;
+  final debug = false;
 
   for (var nullSafety in NullSafety.values) {
     group(

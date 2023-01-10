@@ -106,7 +106,7 @@ void main() {
         toReplace: 'Hello World!',
         replaceWith: 'Bonjour le monde!',
       );
-      await context.waitForSuccessfulBuild(propogateToBrowser: true);
+      await context.waitForSuccessfulBuild(propagateToBrowser: true);
 
       final eventsDone = expectLater(
           client.onIsolateEvent,
