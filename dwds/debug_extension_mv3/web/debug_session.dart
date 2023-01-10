@@ -425,7 +425,7 @@ class _DebugSession {
 
   // How often to send batched events.
   static const int _batchDelayMilliseconds = 1000;
-  
+
   // The tab ID that contains the corresponding Dart DevTools, if it exists.
   int? devToolsTabId;
 
