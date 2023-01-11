@@ -57,17 +57,8 @@ class FakeInspector implements AppInspector {
 
   @override
   Future<RemoteObject> callFunction(
-      String function, Iterable<String> argumentIds) async {
-    final stmt =
-        function.split('\n').where((line) => line.contains('return')).first;
-    final expr = stmt
-        .replaceAll('return', '')
-        .replaceAll('=>', '')
-        .replaceAll('()', '')
-        .replaceAll(';', '')
-        .replaceAll(' ', '');
-    return RemoteObject({'type': 'string', 'value': expr});
-  }
+          String function, Iterable<String> argumentIds) async =>
+      RemoteObject({'type': 'string', 'value': 'true'});
 
   @override
   Future<void> initialize(LibraryHelper libraryHelper, ClassHelper classHelper,
