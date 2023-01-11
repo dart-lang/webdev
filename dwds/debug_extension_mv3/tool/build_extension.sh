@@ -9,10 +9,23 @@
 # Builds the unminifed dart2js app (see DDC issue: https://github.com/dart-lang/sdk/issues/49869):
 # ./tool/build_extension.sh
 
+
+prod="false"
+
+case "$1" in
+    prod)
+        prod="true"
+        shift;;
+esac
+
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "Building dart2js-compiled extension to /compiled directory."
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 dart run build_runner build web --output build --release
+
+if [ $prod == true ]; then
+    exit 1
+fi
 
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "Updating manifest.json in /compiled directory."
