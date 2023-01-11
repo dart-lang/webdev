@@ -62,7 +62,12 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
   final storageKey = _createStorageKey(type, tabId);
   final completer = Completer<T?>();
   final storageArea = _getStorageArea(type.persistance);
-  storageArea.get([storageKey], allowInterop((Object storageObj) {
+  storageArea.get([storageKey], allowInterop((Object? storageObj) {
+    if (storageObj == null) {
+      debugWarn('Does not exist.', prefix: storageKey);
+      completer.complete(null);
+      return;
+    }
     final json = getProperty(storageObj, storageKey) as String?;
     if (json == null) {
       debugWarn('Does not exist.', prefix: storageKey);

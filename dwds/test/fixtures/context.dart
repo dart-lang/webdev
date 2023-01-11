@@ -261,7 +261,6 @@ class TestContext {
       String basePath = '';
 
       _port = await findUnusedPort();
-      final soundNullSafety = nullSafety == NullSafety.sound;
       switch (compilationMode) {
         case CompilationMode.buildDaemon:
           {
@@ -270,8 +269,6 @@ class TestContext {
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
               ],
-              '--define',
-              'build_web_compilers:entrypoint=sound_null_safety=$soundNullSafety',
               '--verbose',
             ];
             _daemonClient =
@@ -488,14 +485,14 @@ class TestContext {
   }
 
   Future<void> waitForSuccessfulBuild(
-      {Duration? timeout, bool propogateToBrowser = false}) async {
+      {Duration? timeout, bool propagateToBrowser = false}) async {
     // Wait for the build until the timeout is reached:
     await daemonClient.buildResults
         .firstWhere((results) => results.results
             .any((result) => result.status == BuildStatus.succeeded))
         .timeout(timeout ?? const Duration(seconds: 60));
 
-    if (propogateToBrowser) {
+    if (propagateToBrowser) {
       // Allow change to propagate to the browser.
       // Windows, or at least Travis on Windows, seems to need more time.
       final delay = Platform.isWindows
