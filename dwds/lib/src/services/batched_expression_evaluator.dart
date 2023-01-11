@@ -61,7 +61,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
   ) async {
     if (_closed) {
       return createError(
-          ErrorKind.internal, 'Batched expression compiler closed');
+          ErrorKind.internal, 'Batched expression evaluator closed');
     }
     final request = EvaluateRequest(isolateId, libraryUri, expression, scope);
     _requestController.sink.add(request);

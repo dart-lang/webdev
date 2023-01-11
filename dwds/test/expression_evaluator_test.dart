@@ -102,7 +102,7 @@ void main() async {
             result,
             const TypeMatcher<RemoteObject>()
                 .having((o) => o.type, 'type', 'InternalError')
-                .having((o) => o.value, 'value', contains('compiler closed')));
+                .having((o) => o.value, 'value', contains('evaluator closed')));
       });
     });
 
@@ -130,7 +130,7 @@ void main() async {
             result,
             const TypeMatcher<RemoteObject>()
                 .having((o) => o.type, 'type', 'InternalError')
-                .having((o) => o.value, 'value', contains('compiler closed')));
+                .having((o) => o.value, 'value', contains('evaluator closed')));
       });
     });
   });
