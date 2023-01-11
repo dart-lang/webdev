@@ -182,8 +182,7 @@ String get message => p.join('hello', 'world');
     var dartDevcClient = client = await DartDevcFrontendServerClient.start(
         entrypoint, p.join(packageRoot, 'out.dill'),
         platformKernel: p
-            .toUri(
-                p.join(sdkDir, 'lib', '_internal', 'ddc_platform_sound.dill'))
+            .toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill'))
             .toString());
     var result = await client.compile();
     client.accept();

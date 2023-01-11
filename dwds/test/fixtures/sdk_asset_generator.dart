@@ -125,6 +125,10 @@ class SdkAssetGenerator {
         }
       });
 
+      final outputJsDir = fileSystem.directory(p.dirname(outputJsPath));
+      if (!outputJsDir.existsSync()) {
+        outputJsDir.createSync(recursive: true);
+      }
       await _moveAndValidate(jsPath, outputJsPath);
       await _moveAndValidate(jsMapPath, outputJsMapPath);
       await _moveAndValidate(fullDillPath, outputFullDillPath);

@@ -32,6 +32,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
+// ignore: deprecated_member_use
 import 'package:webdriver/io.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 

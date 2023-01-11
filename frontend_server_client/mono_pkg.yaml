@@ -4,12 +4,12 @@ stages:
     - group:
       - format
       - analyze: --fatal-infos .
-      sdk: dev
+      sdk: main
   - unit_test:
     - test: -j 1
       sdk:
-        - stable
         - dev
+        - main
       os:
         - windows
         - linux
