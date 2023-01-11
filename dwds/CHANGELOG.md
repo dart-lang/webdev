@@ -16,6 +16,7 @@
   - Do not pass `--(no)-sound-null-safety` flag to build daemon.
 - Add back `ChromeProxyService.setExceptionPauseMode()` without override.
 - Make hot restart atomic to prevent races on simultaneous execution.
+- Return error on expression evaluation if expression evaluator stopped.
 
 **Breaking changes**
 - Include an optional param to `Dwds.start` to indicate whether it is running
