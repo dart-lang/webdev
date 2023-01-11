@@ -180,6 +180,7 @@ class TestContext {
     _logger.info('Packages: $_packageConfigFile');
     _logger.info('Entry: $_dartEntryFilePath');
   }
+  static bool _sdkAssetsGenerated = false;
 
   Future<void> setUp({
     ReloadConfiguration reloadConfiguration = ReloadConfiguration.none,
@@ -210,6 +211,16 @@ class TestContext {
     }
 
     sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
+
+    if (!_sdkAssetsGenerated) {
+      _sdkAssetsGenerated = true;
+      final configuration = await sdkConfigurationProvider.configuration;
+      await generateSdkAssets(
+        configuration: configuration,
+        soundNullSafety: nullSafety == NullSafety.sound,
+        verbose: verboseCompiler,
+      );
+    }
 
     try {
       DartUri.currentDirectory = workingDirectory;

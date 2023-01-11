@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file/file.dart';
 import 'package:file/local.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 class InvalidSdkConfigurationException implements Exception {
@@ -139,4 +142,65 @@ class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
       compilerWorkerPath: p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
     );
   }
+}
+
+/// Generates sdk.js, sdk.map, and summary files?
+Future<void> generateSdkAssets({
+  FileSystem fileSystem = const LocalFileSystem(),
+  required SdkConfiguration configuration,
+  required bool soundNullSafety,
+  bool verbose = false,
+}) async {
+  final logger = Logger('generateSdkAssets');
+  final outputDir = soundNullSafety
+      ? p.join(configuration.sdkDirectory!, 'lib', '_newInternalSound')
+      : p.join(configuration.sdkDirectory!, 'lib', '_newInternalWeak');
+  final directory = fileSystem.directory(outputDir);
+  if (directory.existsSync()) {
+    directory.deleteSync(recursive: true);
+  }
+  directory.createSync();
+  final outputPath = p.join(outputDir, 'sdk.js');
+
+  final args = <String>[
+    configuration.compilerWorkerPath!,
+    '--compile-sdk',
+    '--multi-root',
+    configuration.sdkDirectory!,
+    '--multi-root-scheme',
+    'dev-dart-sdk',
+    '--libraries-file',
+    'dev-dart-sdk:///lib/libraries.json',
+    '--modules',
+    'amd',
+    '--summarize',
+    //'--experimental-output-compiled-kernel',
+    if (soundNullSafety) '--sound-null-safety',
+    if (!soundNullSafety) '--no-sound-null-safety',
+    'dart:core',
+    '-o',
+    outputPath,
+    if (verbose) '--verbose'
+  ];
+
+  logger.info('Executing dart ${args.join(' ')}');
+  final process = await Process.start(Platform.resolvedExecutable, args,
+      workingDirectory: configuration.sdkDirectory!);
+
+  process.stdout
+      .transform<String>(utf8.decoder)
+      .transform<String>(const LineSplitter())
+      .listen(logger.info);
+
+  process.stderr
+      .transform<String>(utf8.decoder)
+      .transform<String>(const LineSplitter())
+      .listen(logger.warning);
+
+  await process.exitCode.then((int code) {
+    if (code != 0) {
+      logger.severe('Cannot generate SDK assets');
+      throw Exception('the Dart compiler exited unexpectedly.');
+    }
+  });
 }
