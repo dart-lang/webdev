@@ -1,21 +1,28 @@
-## 16.0.2-dev
+## 17.0.0-dev
 
 - Include debug information in the event sent from the injected client to the
   Dart Debug Extension notifying that the Dart app is ready.
-- Include an optional param to `Dwds.start` to indicate whether it is running
-  internally or externally.
 - Fix null cast error on expression evaluations after dwds fails to find class
   metadata.
 - Include the entire exception description up to the stacktrace in
   `mapExceptionStackTrace`.
 - Allow enabling experiments in the expression compiler service.
+- Pre-warm expression compiler cache to speed up Flutter Inspector loading.
+- Display full error on failure to start DDS.
+- Fix crash on processing DevTools event when starting DevTools from DevTools
+  uri.
+- Prepare or Dart 3 alpha breaking changes:
+  - Move weak null safety tests to special branch of `build_web_compilers`.
+  - Do not pass `--(no)-sound-null-safety` flag to build daemon.
+- Add back `ChromeProxyService.setExceptionPauseMode()` without override.
+- Make hot restart atomic to prevent races on simultaneous execution.
+
+**Breaking changes**
+- Include an optional param to `Dwds.start` to indicate whether it is running
+  internally or externally.
 - Include an optional param to `Dwds.start` to indicate whether it a Flutter app
   or not.
-- Pre-warm expression compiler cache to speed up Flutter Inspector loading.
-- Remove `ChromeProxyService.setExceptionPauseMode()`.
-- Display full error on failure to start DDS.
-- Fix crash on processing DevTools event when starting DevTools from observatory
-  uri.
+- Remove deprecated `ChromeProxyService.setExceptionPauseMode()`.
 
 ## 16.0.1
 
