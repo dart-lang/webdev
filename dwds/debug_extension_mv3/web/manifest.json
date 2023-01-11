@@ -28,5 +28,11 @@
       "run_at": "document_end"
     }
   ],
+  "web_accessible_resources": [
+    {
+      "matches": ["<all_urls>"],
+      "resources": ["debug_info.dart.js"]
+    }
+  ],
   "options_page": "static_assets/settings.html"
 }

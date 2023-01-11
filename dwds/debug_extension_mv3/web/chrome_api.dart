@@ -170,6 +170,8 @@ class Runtime {
 
   external Object getManifest();
 
+  external String getURL(String path);
+
   // Note: Not checking the lastError when one occurs throws a runtime exception.
   external ChromeError? get lastError;
 
