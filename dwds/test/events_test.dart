@@ -120,6 +120,7 @@ void main() {
               'entrypoint': 'hello_world/main.dart.bootstrap.js',
               'elapsedMilliseconds': isNotNull
             })));
+        await context.setUpAll();
         await context.setUp(
           serveDevTools: true,
           enableExpressionEvaluation: true,
@@ -131,6 +132,7 @@ void main() {
 
       tearDownAll(() async {
         await context.tearDown();
+        await context.tearDownAll();
       });
 
       test('emits DEBUGGER_READY and DEVTOOLS_LOAD events', () async {

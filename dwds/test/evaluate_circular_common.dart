@@ -88,6 +88,7 @@ void testAll({
   group('shared context with evaluation', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
+      await context.setUpAll();
       await context.setUp(
         compilationMode: compilationMode,
         enableExpressionEvaluation: true,
@@ -98,6 +99,7 @@ void testAll({
 
     tearDownAll(() async {
       await context.tearDown();
+      await context.tearDownAll();
     });
 
     setUp(() => setCurrentLogWriter(debug: debug));

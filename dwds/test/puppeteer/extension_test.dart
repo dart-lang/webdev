@@ -35,6 +35,11 @@ void main() async {
 
     setUpAll(() async {
       extensionPath = await buildDebugExtension();
+      await context.setUpAll();
+    });
+
+    tearDownAll(() async {
+      await context.tearDownAll();
     });
 
     for (var useSse in [true, false]) {

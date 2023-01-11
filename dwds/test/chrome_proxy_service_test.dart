@@ -34,6 +34,7 @@ void main() {
   group('shared context', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
+      await context.setUpAll();
       await context.setUp(
         enableExpressionEvaluation: true,
         verboseCompiler: false,
@@ -42,6 +43,7 @@ void main() {
 
     tearDownAll(() async {
       await context.tearDown();
+      await context.tearDownAll();
     });
 
     group('breakpoints', () {

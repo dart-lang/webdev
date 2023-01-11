@@ -27,6 +27,14 @@ Future<void> _waitForPageReady(TestContext context) async {
 
 void main() {
   group('Injected client', () {
+    setUpAll(() async {
+      await context.setUpAll();
+    });
+
+    tearDownAll(() async {
+      await context.tearDownAll();
+    });
+
     setUp(() async {
       await context.setUp(
         serveDevTools: true,
@@ -119,6 +127,14 @@ void main() {
   });
 
   group('Injected client without DevTools', () {
+    setUpAll(() async {
+      await context.setUpAll();
+    });
+
+    tearDownAll(() async {
+      await context.tearDownAll();
+    });
+
     setUp(() async {
       await context.setUp(serveDevTools: false);
     });
@@ -139,6 +155,14 @@ void main() {
   });
 
   group('Injected client with debug extension and without DevTools', () {
+    setUpAll(() async {
+      await context.setUpAll();
+    });
+
+    tearDownAll(() async {
+      await context.tearDownAll();
+    });
+
     setUp(() async {
       await context.setUp(enableDebugExtension: true, serveDevTools: false);
     });

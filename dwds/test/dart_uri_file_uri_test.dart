@@ -33,59 +33,69 @@ final testPackageDir = absolutePath(pathFromFixtures: p.join('_testPackage'));
 // TODO(https://github.com/dart-lang/webdev/issues/1818): Switch test over for
 // testing sound null-safety.
 void main() {
-  for (final compilationMode in CompilationMode.values) {
-    group('$compilationMode |', () {
-      for (final useDebuggerModuleNames in [false, true]) {
-        group('Debugger module names: $useDebuggerModuleNames |', () {
-          final appServerPath =
-              compilationMode == CompilationMode.frontendServer
-                  ? 'web/main.dart'
-                  : 'main.dart';
-
-          final serverPath =
-              compilationMode == CompilationMode.frontendServer &&
-                      useDebuggerModuleNames
-                  ? 'packages/_testPackage/lib/test_library.dart'
-                  : 'packages/_test_package/test_library.dart';
-
-          final anotherServerPath =
-              compilationMode == CompilationMode.frontendServer &&
-                      useDebuggerModuleNames
-                  ? 'packages/_test/lib/library.dart'
-                  : 'packages/_test/library.dart';
-
-          setUpAll(() async {
-            await context.setUp(
-              compilationMode: compilationMode,
-              useDebuggerModuleNames: useDebuggerModuleNames,
-            );
-          });
-
-          tearDownAll(() async {
-            await context.tearDown();
-          });
-
-          test('file path to org-dartlang-app', () {
-            final webMain =
-                Uri.file(p.join(testPackageDir, 'web', 'main.dart'));
-            final uri = DartUri('$webMain');
-            expect(uri.serverPath, appServerPath);
-          });
-
-          test('file path to this package', () {
-            final testPackageLib =
-                Uri.file(p.join(testPackageDir, 'lib', 'test_library.dart'));
-            final uri = DartUri('$testPackageLib');
-            expect(uri.serverPath, serverPath);
-          });
-
-          test('file path to another package', () {
-            final testLib = Uri.file(p.join(testDir, 'lib', 'library.dart'));
-            final dartUri = DartUri('$testLib');
-            expect(dartUri.serverPath, anotherServerPath);
-          });
-        });
-      }
+  group('shared context |', () {
+    setUpAll(() async {
+      await context.setUpAll();
     });
-  }
+
+    tearDownAll(() async {
+      await context.tearDownAll();
+    });
+
+    for (final compilationMode in CompilationMode.values) {
+      group('$compilationMode |', () {
+        for (final useDebuggerModuleNames in [false, true]) {
+          group('Debugger module names: $useDebuggerModuleNames |', () {
+            final appServerPath =
+                compilationMode == CompilationMode.frontendServer
+                    ? 'web/main.dart'
+                    : 'main.dart';
+
+            final serverPath =
+                compilationMode == CompilationMode.frontendServer &&
+                        useDebuggerModuleNames
+                    ? 'packages/_testPackage/lib/test_library.dart'
+                    : 'packages/_test_package/test_library.dart';
+
+            final anotherServerPath =
+                compilationMode == CompilationMode.frontendServer &&
+                        useDebuggerModuleNames
+                    ? 'packages/_test/lib/library.dart'
+                    : 'packages/_test/library.dart';
+
+            setUpAll(() async {
+              await context.setUp(
+                compilationMode: compilationMode,
+                useDebuggerModuleNames: useDebuggerModuleNames,
+              );
+            });
+
+            tearDownAll(() async {
+              await context.tearDown();
+            });
+
+            test('file path to org-dartlang-app', () {
+              final webMain =
+                  Uri.file(p.join(testPackageDir, 'web', 'main.dart'));
+              final uri = DartUri('$webMain');
+              expect(uri.serverPath, appServerPath);
+            });
+
+            test('file path to this package', () {
+              final testPackageLib =
+                  Uri.file(p.join(testPackageDir, 'lib', 'test_library.dart'));
+              final uri = DartUri('$testPackageLib');
+              expect(uri.serverPath, serverPath);
+            });
+
+            test('file path to another package', () {
+              final testLib = Uri.file(p.join(testDir, 'lib', 'library.dart'));
+              final dartUri = DartUri('$testLib');
+              expect(dartUri.serverPath, anotherServerPath);
+            });
+          });
+        }
+      });
+    }
+  });
 }

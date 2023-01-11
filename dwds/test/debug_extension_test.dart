@@ -30,10 +30,9 @@ import 'fixtures/utilities.dart';
 // Remove the key before pushing code to GitHub.
 // See go/extension-identification.
 
-final context = TestContext.withSoundNullSafety();
-
 void main() async {
   Future<void> waitForDartDevToolsWithRetry({
+    required TestContext context,
     int retryCount = 6,
     Duration retryWait = const Duration(seconds: 1),
   }) async {
@@ -45,166 +44,192 @@ void main() async {
 
     await Future.delayed(retryWait);
     return waitForDartDevToolsWithRetry(
+      context: context,
       retryCount: retryCount--,
       retryWait: retryWait,
     );
   }
 
-  for (var useSse in [true, false]) {
-    group(useSse ? 'SSE' : 'WebSockets', () {
-      group('Without encoding', () {
-        setUp(() async {
-          await context.setUp(
-              enableDebugExtension: true, serveDevTools: true, useSse: useSse);
-          await context.extensionConnection.sendCommand('Runtime.evaluate', {
-            'expression': 'fakeClick()',
-          });
-          // Wait for DevTools to actually open.
-          await waitForDartDevToolsWithRetry();
-        });
+  group('shared context |', () {
+    final context = TestContext.withSoundNullSafety();
 
-        tearDown(() async {
-          await context.tearDown();
-        });
-
-        test('can launch DevTools', () async {
-          final windows = await context.webDriver.windows.toList();
-          await context.webDriver.driver.switchTo.window(windows.last);
-          expect(await context.webDriver.title, contains('Dart DevTools'));
-          expect(await context.webDriver.currentUrl,
-              contains('ide=DebugExtension'));
-        });
-
-        test('can close DevTools and relaunch', () async {
-          for (var window in await context.webDriver.windows.toList()) {
-            await context.webDriver.driver.switchTo.window(window);
-            if (await context.webDriver.title == 'Dart DevTools') {
-              await window.close();
-              break;
-            }
-          }
-
-          // Relaunch DevTools by (fake) clicking the extension.
-          await context.extensionConnection.sendCommand('Runtime.evaluate', {
-            'expression': 'fakeClick()',
-          });
-          await waitForDartDevToolsWithRetry();
-          expect(await context.webDriver.title, 'Dart DevTools');
-        });
-
-        test('sends script parsed events', () async {
-          // Check if the extension debugger receives Debugger.ScriptParsed
-          // events for some important scripts.
-          final service = fetchChromeProxyService(context.debugConnection);
-          final scripts = service.remoteDebugger.scripts;
-          expect(
-              scripts.values.map((s) => s.url),
-              containsAllInOrder([
-                contains('stack_trace_mapper.dart.js'),
-                contains('hello_world/main.ddc.js'),
-                contains('packages/path/path.ddc.js'),
-                contains('dev_compiler/dart_sdk.js'),
-                contains('dwds/src/injected/client.js'),
-              ]));
-        });
-      });
-
-      group('With a sharded Dart app', () {
-        setUp(() async {
-          await context.setUp(
-              enableDebugExtension: true, serveDevTools: true, useSse: useSse);
-          final htmlTag =
-              await context.webDriver.findElement(const By.tagName('html'));
-
-          await context.webDriver.execute(
-              "arguments[0].setAttribute('data-multiple-dart-apps', 'true');",
-              [htmlTag]);
-        });
-
-        tearDown(() async {
-          await context.tearDown();
-        });
-
-        test('opens an alert', () async {
-          await context.extensionConnection.sendCommand('Runtime.evaluate', {
-            'expression': 'fakeClick()',
-          });
-          // Wait for the alert to open.
-          final alert =
-              await retryFn<Alert>(() => context.webDriver.switchTo.alert);
-          expect(alert, isNotNull);
-        });
-      });
-
-      // TODO(elliette): Figure out a way to verify that the Dart panel is added
-      // to Chrome DevTools. This might not be possible to test with WebDriver,
-      // because WebDriver doesn't allow you to interact with Chrome DevTools.
-      group('With an internal Dart app', () {
-        setUp(() async {
-          await context.setUp(
-              enableDebugExtension: true, serveDevTools: true, useSse: false);
-          final htmlTag =
-              await context.webDriver.findElement(const By.tagName('html'));
-
-          await context.webDriver.execute(
-              "arguments[0].setAttribute('data-ddr-dart-app', 'true');",
-              [htmlTag]);
-
-          await context.extensionConnection.sendCommand('Runtime.evaluate', {
-            'expression': 'fakeClick()',
-          });
-          // Wait for DevTools to actually open.
-          await waitForDartDevToolsWithRetry();
-        });
-
-        tearDown(() async {
-          await context.tearDown();
-        });
-
-        test('can launch DevTools', () async {
-          final windows = await context.webDriver.windows.toList();
-          await context.webDriver.driver.switchTo.window(windows.last);
-          expect(await context.webDriver.title, 'Dart DevTools');
-        });
-
-        test('can close DevTools and relaunch', () async {
-          for (var window in await context.webDriver.windows.toList()) {
-            await context.webDriver.driver.switchTo.window(window);
-            if (await context.webDriver.title == 'Dart DevTools') {
-              await window.close();
-              break;
-            }
-          }
-
-          // Relaunch DevTools by (fake) clicking the extension.
-          await context.extensionConnection.sendCommand('Runtime.evaluate', {
-            'expression': 'fakeClick()',
-          });
-          await waitForDartDevToolsWithRetry();
-          expect(await context.webDriver.title, 'Dart DevTools');
-        });
-
-        test('sends script parsed events', () async {
-          // Check if the extension debugger receives Debugger.ScriptParsed
-          // events for some important scripts.
-          final service = fetchChromeProxyService(context.debugConnection);
-          final scripts = service.remoteDebugger.scripts;
-          expect(
-              scripts.values.map((s) => s.url),
-              containsAllInOrder([
-                contains('stack_trace_mapper.dart.js'),
-                contains('hello_world/main.ddc.js'),
-                contains('packages/path/path.ddc.js'),
-                contains('dev_compiler/dart_sdk.js'),
-                contains('dwds/src/injected/client.js'),
-              ]));
-        });
-      });
+    setUpAll(() async {
+      await context.setUpAll();
     });
-  }
+
+    tearDownAll(() async {
+      await context.tearDownAll();
+    });
+
+    for (var useSse in [true, false]) {
+      group(useSse ? 'SSE' : 'WebSockets', () {
+        group('Without encoding', () {
+          setUp(() async {
+            await context.setUp(
+                enableDebugExtension: true,
+                serveDevTools: true,
+                useSse: useSse);
+            await context.extensionConnection.sendCommand('Runtime.evaluate', {
+              'expression': 'fakeClick()',
+            });
+            // Wait for DevTools to actually open.
+            await waitForDartDevToolsWithRetry(context: context);
+          });
+
+          tearDown(() async {
+            await context.tearDown();
+          });
+
+          test('can launch DevTools', () async {
+            final windows = await context.webDriver.windows.toList();
+            await context.webDriver.driver.switchTo.window(windows.last);
+            expect(await context.webDriver.title, contains('Dart DevTools'));
+            expect(await context.webDriver.currentUrl,
+                contains('ide=DebugExtension'));
+          });
+
+          test('can close DevTools and relaunch', () async {
+            for (var window in await context.webDriver.windows.toList()) {
+              await context.webDriver.driver.switchTo.window(window);
+              if (await context.webDriver.title == 'Dart DevTools') {
+                await window.close();
+                break;
+              }
+            }
+
+            // Relaunch DevTools by (fake) clicking the extension.
+            await context.extensionConnection.sendCommand('Runtime.evaluate', {
+              'expression': 'fakeClick()',
+            });
+            await waitForDartDevToolsWithRetry(context: context);
+            expect(await context.webDriver.title, 'Dart DevTools');
+          });
+
+          test('sends script parsed events', () async {
+            // Check if the extension debugger receives Debugger.ScriptParsed
+            // events for some important scripts.
+            final service = fetchChromeProxyService(context.debugConnection);
+            final scripts = service.remoteDebugger.scripts;
+            expect(
+                scripts.values.map((s) => s.url),
+                containsAllInOrder([
+                  contains('stack_trace_mapper.dart.js'),
+                  contains('hello_world/main.ddc.js'),
+                  contains('packages/path/path.ddc.js'),
+                  contains('dev_compiler/dart_sdk.js'),
+                  contains('dwds/src/injected/client.js'),
+                ]));
+          });
+        });
+
+        group('With a sharded Dart app', () {
+          setUp(() async {
+            await context.setUp(
+                enableDebugExtension: true,
+                serveDevTools: true,
+                useSse: useSse);
+            final htmlTag =
+                await context.webDriver.findElement(const By.tagName('html'));
+
+            await context.webDriver.execute(
+                "arguments[0].setAttribute('data-multiple-dart-apps', 'true');",
+                [htmlTag]);
+          });
+
+          tearDown(() async {
+            await context.tearDown();
+          });
+
+          test('opens an alert', () async {
+            await context.extensionConnection.sendCommand('Runtime.evaluate', {
+              'expression': 'fakeClick()',
+            });
+            // Wait for the alert to open.
+            final alert =
+                await retryFn<Alert>(() => context.webDriver.switchTo.alert);
+            expect(alert, isNotNull);
+          });
+        });
+
+        // TODO(elliette): Figure out a way to verify that the Dart panel is added
+        // to Chrome DevTools. This might not be possible to test with WebDriver,
+        // because WebDriver doesn't allow you to interact with Chrome DevTools.
+        group('With an internal Dart app', () {
+          setUp(() async {
+            await context.setUp(
+                enableDebugExtension: true, serveDevTools: true, useSse: false);
+            final htmlTag =
+                await context.webDriver.findElement(const By.tagName('html'));
+
+            await context.webDriver.execute(
+                "arguments[0].setAttribute('data-ddr-dart-app', 'true');",
+                [htmlTag]);
+
+            await context.extensionConnection.sendCommand('Runtime.evaluate', {
+              'expression': 'fakeClick()',
+            });
+            // Wait for DevTools to actually open.
+            await waitForDartDevToolsWithRetry(context: context);
+          });
+
+          tearDown(() async {
+            await context.tearDown();
+          });
+
+          test('can launch DevTools', () async {
+            final windows = await context.webDriver.windows.toList();
+            await context.webDriver.driver.switchTo.window(windows.last);
+            expect(await context.webDriver.title, 'Dart DevTools');
+          });
+
+          test('can close DevTools and relaunch', () async {
+            for (var window in await context.webDriver.windows.toList()) {
+              await context.webDriver.driver.switchTo.window(window);
+              if (await context.webDriver.title == 'Dart DevTools') {
+                await window.close();
+                break;
+              }
+            }
+
+            // Relaunch DevTools by (fake) clicking the extension.
+            await context.extensionConnection.sendCommand('Runtime.evaluate', {
+              'expression': 'fakeClick()',
+            });
+            await waitForDartDevToolsWithRetry(context: context);
+            expect(await context.webDriver.title, 'Dart DevTools');
+          });
+
+          test('sends script parsed events', () async {
+            // Check if the extension debugger receives Debugger.ScriptParsed
+            // events for some important scripts.
+            final service = fetchChromeProxyService(context.debugConnection);
+            final scripts = service.remoteDebugger.scripts;
+            expect(
+                scripts.values.map((s) => s.url),
+                containsAllInOrder([
+                  contains('stack_trace_mapper.dart.js'),
+                  contains('hello_world/main.ddc.js'),
+                  contains('packages/path/path.ddc.js'),
+                  contains('dev_compiler/dart_sdk.js'),
+                  contains('dwds/src/injected/client.js'),
+                ]));
+          });
+        });
+      });
+    }
+  });
 
   group('With encoding', () {
     final context = TestContext.withSoundNullSafety();
+
+    setUpAll(() async {
+      await context.setUpAll();
+    });
+
+    tearDownAll(() async {
+      await context.tearDownAll();
+    });
+
     setUp(() async {
       await context.setUp(
           enableDebugExtension: true,
@@ -227,6 +252,14 @@ void main() async {
   group('With "any" hostname', () {
     final context = TestContext.withSoundNullSafety();
     final uriPattern = RegExp(r'dartExtensionUri = "([^"]+)";');
+
+    setUpAll(() async {
+      await context.setUpAll();
+    });
+
+    tearDownAll(() async {
+      await context.tearDownAll();
+    });
 
     setUp(() async {
       await context.setUp(enableDebugExtension: true, hostname: 'any');

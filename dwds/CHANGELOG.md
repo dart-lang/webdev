@@ -24,6 +24,12 @@
 - Include an optional param to `Dwds.start` to indicate whether it a Flutter
   app or not.
 - Remove deprecated `ChromeProxyService.setExceptionPauseMode()`.
+- Refactor `SdkConfiguration`:
+  - Constructor now takes `SdkLayout` as a parameter.
+  - Rename `SdkConfiguration.unsoundSdkSummaryPath` with
+    `SdkConfiguration.weakSummaryPath`.
+  - Rename `SdkConfiguration.soundSdkSummaryPath` with
+    `SdkConfiguration.soundSummaryPath`.
 - Support dart 3.0-alpha breaking changes:
   - Generate missing SDK assets for tests.
   - Enable frontend server null safe tests.

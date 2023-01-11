@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/utilities/sdk_configuration.dart';
+import 'package:dwds/src/utilities/sdk_layout.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart';
@@ -13,7 +13,7 @@ import 'package:path/path.dart' as p;
 /// - sound null safety: js, source map, full dill.
 /// - weak null safety: js, source map, full dill, summary.
 class SdkAssetGenerator {
-  static bool _sdkAssetsGenerated = false;
+  bool _sdkAssetsGenerated = false;
   final _logger = Logger('SdkAssetGenerator');
 
   final FileSystem fileSystem;
@@ -45,7 +45,7 @@ class SdkAssetGenerator {
   }
 
   Future<void> _generateSdkJavaScript({required bool soundNullSafety}) async {
-    Directory? outputDir;
+    Directory? tempOutputDir;
     try {
       // Files to copy generated files to.
       final outputJsPath =
@@ -56,25 +56,25 @@ class SdkAssetGenerator {
           ? sdkLayout.soundFullDillPath
           : sdkLayout.weakFullDillPath;
 
-      final hasJsAsset = _exists(outputJsPath);
-      final hasJsMapAsset = _exists(outputJsMapPath);
-      final hasFullDillAsset = _exists(outputFullDillPath);
+      final hasJsAsset = _fileExists(outputJsPath);
+      final hasJsMapAsset = _fileExists(outputJsMapPath);
+      final hasFullDillAsset = _fileExists(outputFullDillPath);
       final hasAssets = hasFullDillAsset && hasJsAsset && hasJsMapAsset;
 
       // Files already exist.
       if (hasAssets) return;
 
       // Generate missing files.
-      outputDir = fileSystem.systemTempDirectory.createTempSync();
+      tempOutputDir = fileSystem.systemTempDirectory.createTempSync();
 
       // Files to generate
       final jsPath = soundNullSafety
-          ? p.join(outputDir.path, sdkLayout.sdkJsSoundFileName)
-          : p.join(outputDir.path, sdkLayout.sdkJsWeakFileName);
+          ? p.join(tempOutputDir.path, sdkLayout.soundJsFileName)
+          : p.join(tempOutputDir.path, sdkLayout.weakJsFileName);
       final jsMapPath = p.setExtension(jsPath, '.js.map');
       final fullDillPath = p.setExtension(jsPath, '.dill');
 
-      _logger.info('Generating js and full dill SDK files...');
+      _logger.info('Generating js, source map, and full dill SDK files...');
 
       final sdkDirectoryUri = fileSystem.directory(sdkLayout.sdkDirectory).uri;
       final args = <String>[
@@ -99,7 +99,7 @@ class SdkAssetGenerator {
 
       final output = <String>[];
       _logger.fine('Executing dart ${args.join(' ')}');
-      final process = await Process.start(Platform.resolvedExecutable, args,
+      final process = await Process.start(sdkLayout.dartPath, args,
           workingDirectory: sdkLayout.sdkDirectory);
 
       process.stdout
@@ -125,41 +125,41 @@ class SdkAssetGenerator {
         }
       });
 
-      final outputJsDir = fileSystem.directory(p.dirname(outputJsPath));
-      if (!outputJsDir.existsSync()) {
-        outputJsDir.createSync(recursive: true);
-      }
+      // Move generated files to the final destination.
+      final outputDir = p.dirname(outputJsPath);
+      _createDirectory(outputDir);
+
       await _moveAndValidate(jsPath, outputJsPath);
       await _moveAndValidate(jsMapPath, outputJsMapPath);
       await _moveAndValidate(fullDillPath, outputFullDillPath);
 
-      _logger.info('Done generating js and full dill SDK files.');
+      _logger.info('Done generating js, source map, and full dill SDK files.');
     } catch (e, s) {
       _logger.severe(
           'Failed to generate SDK js, source map, and full dill', e, s);
       rethrow;
     } finally {
-      outputDir?.deleteSync(recursive: true);
+      tempOutputDir?.deleteSync(recursive: true);
     }
   }
 
   Future<void> _generateSdkSummary({required bool soundNullSafety}) async {
-    Directory? outputDir;
+    Directory? tempOutputDir;
     try {
       // Files to copy generated files to.
       final outputSummaryPath = soundNullSafety
           ? sdkLayout.soundSummaryPath
           : sdkLayout.weakSummaryPath;
-      final hasAssets = _exists(outputSummaryPath);
+      final hasAssets = _fileExists(outputSummaryPath);
 
       // Files already exist.
       if (hasAssets) return;
 
       // Generate missing files.
-      outputDir = fileSystem.systemTempDirectory.createTempSync();
+      tempOutputDir = fileSystem.systemTempDirectory.createTempSync();
       final summaryPath = soundNullSafety
-          ? p.join(outputDir.path, sdkLayout.sdkSummarySoundFileName)
-          : p.join(outputDir.path, sdkLayout.sdkSummaryWeakFileName);
+          ? p.join(tempOutputDir.path, sdkLayout.soundSummaryFileName)
+          : p.join(tempOutputDir.path, sdkLayout.weakSummaryFileName);
 
       _logger.info('Generating SDK summary files...');
 
@@ -187,7 +187,7 @@ class SdkAssetGenerator {
       ];
 
       _logger.fine('Executing dart ${args.join(' ')}');
-      final process = await Process.start(Platform.resolvedExecutable, args,
+      final process = await Process.start(sdkLayout.dartPath, args,
           workingDirectory: sdkLayout.sdkDirectory);
 
       final output = <String>[];
@@ -215,6 +215,9 @@ class SdkAssetGenerator {
         }
       });
 
+      // Move generated files to the final destination.
+      final outputDir = p.dirname(outputSummaryPath);
+      _createDirectory(outputDir);
       await _moveAndValidate(summaryPath, outputSummaryPath);
 
       _logger.info('Done generating SDK summary files.');
@@ -222,20 +225,26 @@ class SdkAssetGenerator {
       _logger.severe('Failed to generate SDK summary', e, s);
       rethrow;
     } finally {
-      outputDir?.deleteSync(recursive: true);
+      tempOutputDir?.deleteSync(recursive: true);
     }
   }
 
-  bool _exists(String path) => fileSystem.file(path).existsSync();
-  void _delete(String path) => fileSystem.file(path).deleteSync();
+  bool _fileExists(String path) => fileSystem.file(path).existsSync();
+  void _deleteFile(String path) => fileSystem.file(path).deleteSync();
+  void _createDirectory(String path) {
+    final directory = fileSystem.directory(path);
+    if (!directory.existsSync()) {
+      directory.createSync(recursive: true);
+    }
+  }
 
   Future<void> _moveAndValidate(String from, String to) async {
     _logger.fine('Renaming $from to $to');
 
-    if (_exists(to)) _delete(to);
+    if (_fileExists(to)) _deleteFile(to);
     await fileSystem.file(from).rename(to);
 
-    if (!_exists(to)) {
+    if (!_fileExists(to)) {
       _logger.severe('Failed to generate SDK asset at $to');
       throw Exception('File does not exist.');
     }

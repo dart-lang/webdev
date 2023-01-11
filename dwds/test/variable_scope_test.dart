@@ -25,11 +25,13 @@ WipConnection get tabConnection => context.tabConnection;
 
 void main() {
   setUpAll(() async {
+    await context.setUpAll();
     await context.setUp();
   });
 
   tearDownAll(() async {
     await context.tearDown();
+    await context.tearDownAll();
   });
 
   group('ddcTemporaryVariableRegExp', () {

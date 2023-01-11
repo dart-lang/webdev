@@ -24,6 +24,7 @@ void main() async {
   group('MV3 Debug Extension Lifeline Connection', () {
     setUpAll(() async {
       extensionPath = await buildDebugExtension();
+      await context.setUpAll();
       browser = await setUpExtensionTest(
         context,
         extensionPath: extensionPath,
@@ -34,6 +35,7 @@ void main() async {
 
     tearDownAll(() async {
       await browser.close();
+      await context.tearDownAll();
     });
 
     test('connects to a lifeline port', () async {

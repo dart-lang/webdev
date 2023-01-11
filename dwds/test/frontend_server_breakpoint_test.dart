@@ -15,7 +15,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
 
-final context = TestContext.withWeakNullSafety(
+final context = TestContext.withSoundNullSafety(
   packageName: '_testPackage',
   webAssetsPath: 'web',
   dartEntryFileName: 'main.dart',
@@ -39,6 +39,7 @@ void main() {
   group('shared context', () {
     setUpAll(() async {
       setCurrentLogWriter(debug: debug);
+      await context.setUpAll(verboseCompiler: verboseCompiler);
       await context.setUp(
         compilationMode: CompilationMode.frontendServer,
         verboseCompiler: verboseCompiler,
@@ -47,6 +48,7 @@ void main() {
 
     tearDownAll(() async {
       await context.tearDown();
+      await context.tearDownAll();
     });
 
     group('breakpoint', () {

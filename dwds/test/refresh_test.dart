@@ -27,12 +27,14 @@ void main() {
   group('fresh context', () {
     late VM vm;
     setUpAll(() async {
+      await context.setUpAll();
       await context.setUp();
       vm = await service.getVM();
     });
 
     tearDownAll(() async {
       await context.tearDown();
+      await context.tearDownAll();
     });
 
     test('can add and remove after a refresh', () async {

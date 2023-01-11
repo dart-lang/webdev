@@ -79,16 +79,16 @@ jobs:
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
   job_003:
-    name: "analyzer_and_format; linux; Dart dev; PKGS: example, fixtures/_webdevSoundSmoke, frontend_server_client, frontend_server_common; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
+    name: "analyzer_and_format; linux; Dart dev; PKG: webdev; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`, `dart test test/build/ensure_build_test.dart`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-fixtures/_webdevSoundSmoke-frontend_server_client-frontend_server_common;commands:format-analyze_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:format-analyze_0-test_6"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:example-fixtures/_webdevSoundSmoke-frontend_server_client-frontend_server_common
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -96,6 +96,44 @@ jobs:
         uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: dev
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - id: webdev_pub_upgrade
+        name: webdev; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: webdev
+      - name: "webdev; dart format --output=none --set-exit-if-changed ."
+        run: "dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+      - name: "webdev; dart analyze --fatal-infos ."
+        run: dart analyze --fatal-infos .
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+      - name: webdev; dart test test/build/ensure_build_test.dart
+        run: dart test test/build/ensure_build_test.dart
+        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
+        working-directory: webdev
+  job_004:
+    name: "analyzer_and_format; linux; Dart main; PKGS: example, fixtures/_webdevSoundSmoke, frontend_server_client, frontend_server_common; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:main;packages:example-fixtures/_webdevSoundSmoke-frontend_server_client-frontend_server_common;commands:format-analyze_0"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:main;packages:example-fixtures/_webdevSoundSmoke-frontend_server_client-frontend_server_common
+            os:ubuntu-latest;pub-cache-hosted;sdk:main
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+        with:
+          sdk: main
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
@@ -151,44 +189,6 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.frontend_server_common_pub_upgrade.conclusion == 'success'"
         working-directory: frontend_server_common
-  job_004:
-    name: "analyzer_and_format; linux; Dart dev; PKG: webdev; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`, `dart test test/build/ensure_build_test.dart`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:format-analyze_0-test_6"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
-        with:
-          sdk: dev
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
-      - id: webdev_pub_upgrade
-        name: webdev; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: webdev
-      - name: "webdev; dart format --output=none --set-exit-if-changed ."
-        run: "dart format --output=none --set-exit-if-changed ."
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-      - name: "webdev; dart analyze --fatal-infos ."
-        run: dart analyze --fatal-infos .
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
-      - name: webdev; dart test test/build/ensure_build_test.dart
-        run: dart test test/build/ensure_build_test.dart
-        if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
-        working-directory: webdev
   job_005:
     name: "unit_test; linux; Dart dev; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test --tags=extension`"
     runs-on: ubuntu-latest

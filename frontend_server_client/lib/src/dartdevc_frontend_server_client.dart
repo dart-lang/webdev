@@ -10,7 +10,6 @@ import 'package:path/path.dart' as p;
 
 import 'dartdevc_bootstrap_amd.dart';
 import 'frontend_server_client.dart';
-import 'shared.dart';
 
 /// Wraps a [FrontendServerClient] with opinionated web specific functionality,
 /// and provides some typical defaults.
@@ -20,6 +19,12 @@ import 'shared.dart';
 ///
 /// Also has the ability to create a bootstrap file for the current entrypoint.
 class DartDevcFrontendServerClient implements FrontendServerClient {
+  static final sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
+  static final dartdevcPlatformKernel =
+      p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill');
+  static final requireJsPath =
+      p.join(sdkDir, 'lib', 'dev_compiler', 'amd', 'require.js');
+
   final FrontendServerClient _frontendServerClient;
 
   final _assets = <String, Uint8List>{};
@@ -73,7 +78,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     var feServer = await FrontendServerClient.start(
       entrypoint,
       outputDillPath,
-      platformKernel ?? _dartdevcPlatformKernel,
+      platformKernel ?? dartdevcPlatformKernel,
       dartdevcModuleFormat: dartdevcModuleFormat,
       debug: debug,
       enableHttpUris: enableHttpUris,
@@ -206,6 +211,3 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     }
   }
 }
-
-final _dartdevcPlatformKernel =
-    p.toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill')).toString();

@@ -128,6 +128,10 @@ class TestContext {
   Directory get outputDir => _outputDir!;
   late Directory? _outputDir;
 
+  TestSdkConfigurationProvider get sdkConfigurationProvider =>
+      _sdkConfigurationProvider!;
+  TestSdkConfigurationProvider? _sdkConfigurationProvider;
+
   late WipConnection extensionConnection;
   late AppConnection appConnection;
   late DebugConnection debugConnection;
@@ -181,6 +185,16 @@ class TestContext {
     _logger.info('Entry: $_dartEntryFilePath');
   }
 
+  Future<void> setUpAll({bool verboseCompiler = false}) async {
+    // Generate missing SDK assets if needed.
+    _sdkConfigurationProvider =
+        TestSdkConfigurationProvider(verboseCompiler: verboseCompiler);
+    final configuration = await sdkConfigurationProvider.configuration;
+    configuration.validate();
+  }
+
+  Future<void> tearDownAll() async => _sdkConfigurationProvider?.cleanup();
+
   Future<void> setUp({
     ReloadConfiguration reloadConfiguration = ReloadConfiguration.none,
     bool serveDevTools = false,
@@ -200,9 +214,11 @@ class TestContext {
     bool isFlutterApp = false,
     bool isInternalBuild = false,
   }) async {
-    // Generate missing SDK assets if needed.
-    final sdkConfigurationProvider =
-        TestSdkConfigurationProvider(verboseCompiler: verboseCompiler);
+    if (_sdkConfigurationProvider == null) {
+      throw StateError('SDK configuration provider is not set up. '
+          'Please make sure to call context.setUpAll and context.tearDownAll.');
+    }
+
     final configuration = await sdkConfigurationProvider.configuration;
     configuration.validate();
 
@@ -246,7 +262,8 @@ class TestContext {
             'Could not start ChromeDriver. Is it installed?\nError: $e');
       }
 
-      await Process.run(dartPath, ['pub', 'upgrade'],
+      final dart = configuration.dartPath;
+      await Process.run(dart, ['pub', 'upgrade'],
           workingDirectory: workingDirectory);
 
       ExpressionCompiler? expressionCompiler;
@@ -273,7 +290,7 @@ class TestContext {
                   record.loggerName == '' ? '' : '${record.loggerName}: ';
               _logger.log(record.level, '$name${record.message}', record.error,
                   record.stackTrace);
-            });
+            }, executable: dart);
             daemonClient.registerBuildTarget(
                 DefaultBuildTarget((b) => b..target = directoryToServe));
             daemonClient.startBuild();
@@ -328,6 +345,7 @@ class TestContext {
               'org-dartlang-app',
               outputDir.path,
               nullSafety == NullSafety.sound,
+              configuration.sdkLayout!,
               verboseCompiler,
             );
 

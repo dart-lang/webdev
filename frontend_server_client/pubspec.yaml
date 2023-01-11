@@ -14,6 +14,7 @@ dependencies:
 
 dev_dependencies:
   package_config: ^2.0.0
+  pub_semver: ^2.1.1
   shelf: ^1.0.0
   shelf_packages_handler: ^3.0.0
   shelf_static: ^1.1.0

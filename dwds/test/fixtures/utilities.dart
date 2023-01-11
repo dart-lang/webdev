@@ -8,6 +8,7 @@ import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
 import 'package:dwds/src/utilities/sdk_configuration.dart';
+import 'package:dwds/src/utilities/sdk_layout.dart';
 import 'package:path/path.dart' as p;
 
 import 'sdk_asset_generator.dart';
@@ -72,9 +73,10 @@ String absolutePath({
 
 /// Connects to the `build_runner` daemon.
 Future<BuildDaemonClient> connectClient(String workingDirectory,
-        List<String> options, Function(ServerLog) logHandler) =>
+        List<String> options, Function(ServerLog) logHandler,
+        {String? executable}) =>
     BuildDaemonClient.connect(workingDirectory,
-        [dartPath, 'run', 'build_runner', 'daemon', ...options],
+        [executable ?? dartPath, 'run', 'build_runner', 'daemon', ...options],
         logHandler: logHandler);
 
 /// The path to the root directory of the SDK.
@@ -169,10 +171,13 @@ Future<T> retryFnAsync<T>(
 /// for frontend server after we have no uses of weak null safety.
 class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   final bool _verboseCompiler;
+  late final Directory _sdkDirectory;
   SdkConfiguration? _configuration;
 
   TestSdkConfigurationProvider({bool verboseCompiler = false})
-      : _verboseCompiler = verboseCompiler;
+      : _verboseCompiler = verboseCompiler {
+    _sdkDirectory = Directory.systemTemp.createTempSync('tempSdkDir');
+  }
 
   @override
   Future<SdkConfiguration> get configuration async =>
@@ -180,22 +185,42 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
 
   /// Generate missing assets in the default SDK layout.
   Future<SdkConfiguration> _create() async {
-    final sdk = SdkConfiguration.defaultConfiguration;
-    final sdkLayout = SdkConfiguration.defaultSdkLayout;
+    final sdkDirectory = _sdkDirectory.path;
+    await copyDirectory(SdkLayout.defaultSdkDirectory, sdkDirectory);
+    final sdk = SdkConfiguration(SdkLayout.createDefault(sdkDirectory));
 
     final assetGenerator = SdkAssetGenerator(
-      sdkLayout: sdkLayout,
+      sdkLayout: sdk.sdkLayout!,
       verboseCompiler: _verboseCompiler,
     );
 
-    if (sdkLayout.soundSummaryPath != sdk.soundSdkSummaryPath) {
-      throw StateError('Invalid asset path ${sdkLayout.soundSummaryPath}');
-    }
-    if (sdkLayout.weakSummaryPath != sdk.weakSdkSummaryPath) {
-      throw StateError('Invalid asset path ${sdkLayout.weakSummaryPath}');
-    }
-
     await assetGenerator.generateSdkAssets();
     return sdk;
+  }
+
+  void cleanup() {
+    if (_sdkDirectory.existsSync()) {
+      _sdkDirectory.deleteSync(recursive: true);
+    }
+  }
+}
+
+/// Copy directory structure recursively.
+///
+/// Copies [from] to [to] recursively, including directories,
+/// files, and symbolic links.
+Future<void> copyDirectory(String from, String to) async {
+  if (!Directory(from).existsSync()) return;
+  await Directory(to).create(recursive: true);
+
+  await for (final file in Directory(from).list()) {
+    final copyTo = p.join(to, p.relative(file.path, from: from));
+    if (file is Directory) {
+      await copyDirectory(file.path, copyTo);
+    } else if (file is File) {
+      await File(file.path).copy(copyTo);
+    } else if (file is Link) {
+      await Link(copyTo).create(await file.target(), recursive: true);
+    }
   }
 }

@@ -14,9 +14,16 @@ void main() {
     final context = TestContext.withWeakNullSafety();
     late ProxyServerAssetReader assetReader;
     setUpAll(() async {
+      await context.setUpAll();
       await context.setUp();
       assetReader = context.testServer.assetReader as ProxyServerAssetReader;
     });
+
+    tearDownAll(() async {
+      await context.tearDown();
+      await context.tearDownAll();
+    });
+
     test('returns null if the dart path does not exist', () async {
       final result = await assetReader.dartSourceContents('some/path/foo.dart');
       expect(result, isNull);

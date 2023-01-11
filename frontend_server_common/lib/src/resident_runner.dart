@@ -9,18 +9,12 @@ import 'dart:async';
 
 import 'package:dwds/asset_reader.dart';
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds/sdk_configuration.dart';
 import 'package:file/file.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 
 import 'devfs.dart';
 import 'frontend_server_client.dart';
-import 'utilities.dart';
-
-final Uri platformDillUnsound = Uri.file(
-    p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline_unsound.dill'));
-final Uri platformDillSound =
-    Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline.dill'));
 
 class ResidentWebRunner {
   final _logger = Logger('ResidentWebRunner');
@@ -35,14 +29,20 @@ class ResidentWebRunner {
       this.fileSystemScheme,
       this.outputPath,
       this.soundNullSafety,
+      this.sdkLayout,
       bool verbose) {
+    final sdkSummaryUri = soundNullSafety
+        ? Uri.file(sdkLayout.soundSummaryPath)
+        : Uri.file(sdkLayout.weakSummaryPath);
+
     generator = ResidentCompiler(
-      dartSdkPath,
+      sdkLayout.sdkDirectory,
+      sdkLayout.dartPath,
+      sdkLayout.frontendServerSnapshotPath,
       projectDirectory: projectDirectory,
       packageConfigFile: packageConfigFile,
       useDebuggerModuleNames: packageUriMapper.useDebuggerModuleNames,
-      platformDill:
-          soundNullSafety ? '$platformDillSound' : '$platformDillUnsound',
+      platformDill: '$sdkSummaryUri',
       fileSystemRoots: fileSystemRoots,
       fileSystemScheme: fileSystemScheme,
       verbose: verbose,
@@ -60,6 +60,7 @@ class ResidentWebRunner {
   final List<Uri> fileSystemRoots;
   final String fileSystemScheme;
   final bool soundNullSafety;
+  final SdkLayout sdkLayout;
 
   late ResidentCompiler generator;
   late ExpressionCompiler expressionCompiler;
@@ -78,6 +79,7 @@ class ResidentWebRunner {
       index: index,
       urlTunneler: urlTunneler,
       soundNullSafety: soundNullSafety,
+      sdkLayout: sdkLayout,
     );
     uri = await devFS.create();
 

@@ -29,6 +29,7 @@ void main() {
   late Debugger debugger;
 
   setUpAll(() async {
+    await context.setUpAll();
     await context.setUp();
     final chromeProxyService = fetchChromeProxyService(context.debugConnection);
     inspector = chromeProxyService.inspector;
@@ -37,6 +38,7 @@ void main() {
 
   tearDownAll(() async {
     await context.tearDown();
+    await context.tearDownAll();
   });
 
   final url = 'org-dartlang-app:///example/scopes/main.dart';

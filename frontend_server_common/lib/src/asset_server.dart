@@ -15,8 +15,6 @@ import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'utilities.dart';
-
 class TestAssetServer implements AssetReader {
   late final String basePath;
   final String index;
@@ -27,6 +25,7 @@ class TestAssetServer implements AssetReader {
   // makes no claims as to the structure of the data.
   static const String _defaultMimeType = 'application/octet-stream';
   final FileSystem _fileSystem;
+  final String _dartSdkPath;
   final HttpServer _httpServer;
   final Map<String, Uint8List> _files = {};
   final Map<String, Uint8List> _sourceMaps = {};
@@ -41,6 +40,7 @@ class TestAssetServer implements AssetReader {
     this._packageUriMapper,
     this.internetAddress,
     this._fileSystem,
+    this._dartSdkPath,
   ) {
     basePath = _parseBasePathFromIndexHtml(index);
   }
@@ -60,6 +60,7 @@ class TestAssetServer implements AssetReader {
   /// trace.
   static Future<TestAssetServer> start(
     FileSystem fileSystem,
+    String dartSdkPath,
     String index,
     String hostname,
     int port,
@@ -69,7 +70,7 @@ class TestAssetServer implements AssetReader {
     var address = (await InternetAddress.lookup(hostname)).first;
     var httpServer = await HttpServer.bind(address, port);
     var server = TestAssetServer(
-        index, httpServer, packageUriMapper, address, fileSystem);
+        index, httpServer, packageUriMapper, address, fileSystem, dartSdkPath);
     return server;
   }
 
@@ -257,7 +258,7 @@ class TestAssetServer implements AssetReader {
     }
 
     // Otherwise it must be a Dart SDK source.
-    var dartSdkParent = _fileSystem.directory(dartSdkPath).parent;
+    var dartSdkParent = _fileSystem.directory(_dartSdkPath).parent;
     var dartSdkFile = _fileSystem.file(
         _fileSystem.path.joinAll(<String>[dartSdkParent.path, ...segments]));
     return dartSdkFile;

@@ -54,6 +54,7 @@ void main() {
 
         setUpAll(() async {
           setCurrentLogWriter(debug: debug);
+          await context.setUpAll();
           await context.setUp(
               compilationMode: CompilationMode.frontendServer,
               enableExpressionEvaluation: true,
@@ -62,6 +63,7 @@ void main() {
 
         tearDownAll(() async {
           await context.tearDown();
+          await context.tearDownAll();
         });
 
         group('callStack |', () {

@@ -12,11 +12,13 @@ final context = TestContext.withSoundNullSafety();
 
 void main() {
   setUpAll(() async {
+    await context.setUpAll();
     await context.setUp();
   });
 
   tearDownAll(() async {
     await context.tearDown();
+    await context.tearDownAll();
   });
 
   test(

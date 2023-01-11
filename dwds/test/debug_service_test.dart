@@ -16,12 +16,14 @@ final context = TestContext.withSoundNullSafety();
 
 void main() {
   setUpAll(() async {
+    await context.setUpAll();
     // Disable DDS as we're testing DWDS behavior.
     await context.setUp(spawnDds: false);
   });
 
   tearDownAll(() async {
     await context.tearDown();
+    await context.tearDownAll();
   });
 
   test('Refuses connections without the auth token', () async {

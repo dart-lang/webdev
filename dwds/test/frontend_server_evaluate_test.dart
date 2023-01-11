@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
-@Timeout(Duration(minutes: 5))
+// TODO(annagrin): split the tests into safe and weak versions
+// and lower the timeout.
+@Timeout(Duration(minutes: 10))
 
 import 'dart:io';
 

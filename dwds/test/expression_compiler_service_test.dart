@@ -10,14 +10,13 @@ import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
-import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/logging.dart';
+import 'fixtures/utilities.dart';
 
 ExpressionCompilerService get service => _service!;
 late ExpressionCompilerService? _service;
@@ -31,7 +30,8 @@ late StreamController<String>? _output;
 void main() async {
   group('expression compiler service with fake asset server', () {
     final logger = Logger('ExpressionCompilerServiceTest');
-    late Directory outputDir;
+    Directory? outputDir;
+    TestSdkConfigurationProvider? provider;
 
     Future<void> stop() async {
       await _service?.stop();
@@ -43,15 +43,6 @@ void main() async {
     }
 
     setUp(() async {
-      final systemTempDir = Directory.systemTemp;
-      outputDir = systemTempDir.createTempSync('foo bar');
-      final source = outputDir.uri.resolve('try.dart');
-      final packages = outputDir.uri.resolve('package_config.json');
-      final kernel = outputDir.uri.resolve('try.full.dill');
-      final executable = Platform.resolvedExecutable;
-      final binDir = p.dirname(executable);
-      final dartdevc = p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
-
       // redirect logs for testing
       _output = StreamController<String>.broadcast();
       output.stream.listen(printOnFailure);
@@ -62,6 +53,17 @@ void main() async {
         final s = stackTrace == null ? '' : ':\n$stackTrace';
         output.add('[$level] $loggerName: $message$e$s');
       });
+
+      provider = TestSdkConfigurationProvider();
+      final systemTempDir = Directory.systemTemp;
+      outputDir = systemTempDir.createTempSync('foo bar');
+      final source = outputDir!.uri.resolve('try.dart');
+      final packages = outputDir!.uri.resolve('package_config.json');
+      final kernel = outputDir!.uri.resolve('try.full.dill');
+
+      final configuration = await provider!.configuration;
+      final executable = configuration.dartPath;
+      final dartdevc = configuration.compilerWorkerPath!;
 
       // start asset server
       _server = await startHttpServer('localhost');
@@ -74,7 +76,7 @@ void main() async {
         'localhost',
         port,
         verbose: false,
-        sdkConfigurationProvider: DefaultSdkConfigurationProvider(),
+        sdkConfigurationProvider: provider!,
       );
 
       await service.initialize(moduleFormat: 'amd');
@@ -113,14 +115,14 @@ void main() async {
         'try.js',
         '--experimental-output-compiled-kernel',
         '--multi-root',
-        '${outputDir.uri}',
+        '${outputDir!.uri}',
         '--multi-root-scheme',
         'org-dartlang-app',
         '--packages',
         packages.path,
       ];
       final process = await Process.start(executable, args,
-              workingDirectory: outputDir.path)
+              workingDirectory: outputDir!.path)
           .then((p) {
         transformToLines(p.stdout).listen(output.add);
         transformToLines(p.stderr).listen(output.add);
@@ -134,7 +136,8 @@ void main() async {
 
     tearDown(() async {
       await stop();
-      outputDir.deleteSync(recursive: true);
+      outputDir?.deleteSync(recursive: true);
+      provider?.cleanup();
     });
 
     test('works with no errors', () async {

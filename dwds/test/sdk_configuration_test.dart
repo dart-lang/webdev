@@ -7,9 +7,12 @@
 import 'dart:io';
 
 import 'package:dwds/src/utilities/sdk_configuration.dart';
+import 'package:dwds/src/utilities/sdk_layout.dart';
 import 'package:file/memory.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+import 'fixtures/utilities.dart';
 
 var _throwsDoesNotExistException = throwsA(
     isA<InvalidSdkConfigurationException>()
@@ -21,11 +24,10 @@ void main() {
       final defaultConfiguration =
           await DefaultSdkConfigurationProvider().configuration;
       defaultConfiguration.validateSdkDir();
-      defaultConfiguration.validate();
     });
 
     test('Cannot validate an empty configuration layout', () async {
-      final emptyConfiguration = SdkConfiguration();
+      final emptyConfiguration = SdkConfiguration.empty();
       expect(() => emptyConfiguration.validateSdkDir(),
           _throwsDoesNotExistException);
       expect(() => emptyConfiguration.validate(), _throwsDoesNotExistException);
@@ -46,44 +48,46 @@ void main() {
 
     test('Can validate existing configuration layout', () async {
       final defaultSdkConfiguration =
-          await DefaultSdkConfigurationProvider().configuration;
+          await TestSdkConfigurationProvider().configuration;
 
       final sdkDirectory = outputDir.path;
-      final librariesDir = p.join(sdkDirectory, 'specs');
-      final librariesPath = p.join(librariesDir, 'libraries.json');
+      final sdkLayout = _createNonStandardLayout(sdkDirectory);
+
+      final librariesPath = sdkLayout.librariesPath;
+      final librariesDir = p.dirname(librariesPath);
 
       Directory(librariesDir).createSync(recursive: true);
       File(defaultSdkConfiguration.librariesPath!).copySync(librariesPath);
 
-      final summariesDir = p.join(sdkDirectory, 'summaries');
-      final weakSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
-      final soundSdkSummaryPath =
-          p.join(summariesDir, 'ddc_outline_sound.dill');
+      final dartPath = sdkLayout.dartPath;
+      final dartDir = p.dirname(dartPath);
 
-      Directory(summariesDir).createSync(recursive: true);
-      File(defaultSdkConfiguration.weakSdkSummaryPath!)
+      Directory(dartDir).createSync(recursive: true);
+      File(defaultSdkConfiguration.dartPath).copySync(dartPath);
+
+      final weakSdkSummaryPath = sdkLayout.weakSummaryPath;
+      final soundSdkSummaryPath = sdkLayout.soundSummaryPath;
+      final kernelDir = p.dirname(soundSdkSummaryPath);
+
+      Directory(kernelDir).createSync(recursive: true);
+      File(defaultSdkConfiguration.weakSummaryPath!)
           .copySync(weakSdkSummaryPath);
-      File(defaultSdkConfiguration.soundSdkSummaryPath!)
+      File(defaultSdkConfiguration.soundSummaryPath!)
           .copySync(soundSdkSummaryPath);
 
-      final workerDir = p.join(sdkDirectory, 'snapshots');
-      final compilerWorkerPath = p.join(workerDir, 'dartdevc.dart.snapshot');
+      final compilerWorkerPath = sdkLayout.dartdevcSnapshotPath;
+      final workerDir = p.dirname(compilerWorkerPath);
 
       Directory(workerDir).createSync(recursive: true);
       File(defaultSdkConfiguration.compilerWorkerPath!)
           .copySync(compilerWorkerPath);
 
-      final sdkConfiguration = SdkConfiguration(
-        sdkDirectory: sdkDirectory,
-        soundSdkSummaryPath: soundSdkSummaryPath,
-        weakSdkSummaryPath: weakSdkSummaryPath,
-        librariesPath: librariesPath,
-        compilerWorkerPath: compilerWorkerPath,
-      );
+      final sdkConfiguration = SdkConfiguration(sdkLayout);
 
       expect(sdkConfiguration.sdkDirectory, equals(sdkDirectory));
-      expect(sdkConfiguration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
-      expect(sdkConfiguration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
+      expect(sdkConfiguration.dartPath, equals(dartPath));
+      expect(sdkConfiguration.weakSummaryPath, equals(weakSdkSummaryPath));
+      expect(sdkConfiguration.soundSummaryPath, equals(soundSdkSummaryPath));
       expect(sdkConfiguration.librariesPath, equals(librariesPath));
       expect(sdkConfiguration.compilerWorkerPath, equals(compilerWorkerPath));
 
@@ -92,25 +96,9 @@ void main() {
     });
 
     test('Cannot validate non-existing configuration layout', () async {
-      final sdkDir = outputDir.path;
-      final librariesDir = p.join(sdkDir, 'fakespecs');
-      final librariesPath = p.join(librariesDir, 'libraries.json');
-      final summariesDir = p.join(sdkDir, 'fakesummaries');
-      final weakSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
-      final soundSdkSummaryPath =
-          p.join(summariesDir, 'ddc_outline_sound.dill');
-      final workerDir = p.join(sdkDir, 'fakesnapshots');
-      final compilerWorkerPath = p.join(workerDir, 'dartdevc.dart.snapshot');
-
-      final sdkConfiguration = SdkConfiguration(
-        sdkDirectory: sdkDir,
-        soundSdkSummaryPath: soundSdkSummaryPath,
-        weakSdkSummaryPath: weakSdkSummaryPath,
-        librariesPath: librariesPath,
-        compilerWorkerPath: compilerWorkerPath,
-      );
-
-      sdkConfiguration.validateSdkDir();
+      final sdkConfiguration = SdkConfiguration(_fakeSdkLayout);
+      expect(() => sdkConfiguration.validateSdkDir(),
+          _throwsDoesNotExistException);
       expect(() => sdkConfiguration.validate(), _throwsDoesNotExistException);
     });
   });
@@ -118,36 +106,35 @@ void main() {
   group('SDK configuration', () {
     late MemoryFileSystem fs;
 
-    final root = '/root';
-    final sdkDirectory = root;
-    final soundSdkSummaryPath = _soundSdkSummaryPath(sdkDirectory);
-    final weakSdkSummaryPath = _weakSdkSummaryPath(sdkDirectory);
-    final librariesPath = _librariesPath(sdkDirectory);
-    final compilerWorkerPath = _compilerWorkerPath(root);
+    final sdkDirectory = '/root';
+    final sdkLayout = SdkLayout.createDefault(sdkDirectory);
 
     setUp(() async {
       fs = MemoryFileSystem();
       await fs.directory(sdkDirectory).create(recursive: true);
-      await fs.file(soundSdkSummaryPath).create(recursive: true);
-      await fs.file(weakSdkSummaryPath).create(recursive: true);
-      await fs.file(librariesPath).create(recursive: true);
-      await fs.file(compilerWorkerPath).create(recursive: true);
+      await fs.file(sdkLayout.soundSummaryPath).create(recursive: true);
+      await fs.file(sdkLayout.weakSummaryPath).create(recursive: true);
+      await fs.file(sdkLayout.dartPath).create(recursive: true);
+      await fs.file(sdkLayout.librariesPath).create(recursive: true);
+      await fs.file(sdkLayout.dartdevcSnapshotPath).create(recursive: true);
     });
 
-    test('Can create and validate default SDK configuration', () async {
-      final configuration = SdkConfiguration(
-        sdkDirectory: sdkDirectory,
-        soundSdkSummaryPath: soundSdkSummaryPath,
-        weakSdkSummaryPath: weakSdkSummaryPath,
-        librariesPath: librariesPath,
-        compilerWorkerPath: compilerWorkerPath,
-      );
+    test('Can create and validate SDK configuration', () async {
+      final configuration = SdkConfiguration(sdkLayout);
 
-      expect(configuration.sdkDirectory, equals(sdkDirectory));
-      expect(configuration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
-      expect(configuration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
-      expect(configuration.librariesPath, equals(librariesPath));
-      expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
+      expect(configuration.sdkDirectory, equals(sdkLayout.sdkDirectory));
+      expect(configuration.dartPath, equals(sdkLayout.dartPath));
+      expect(
+          configuration.soundSummaryPath, equals(sdkLayout.soundSummaryPath));
+      expect(configuration.weakSummaryPath, equals(sdkLayout.weakSummaryPath));
+
+      expect(configuration.sdkDirectory, equals(sdkLayout.sdkDirectory));
+      expect(
+          configuration.soundSummaryPath, equals(sdkLayout.soundSummaryPath));
+      expect(configuration.weakSummaryPath, equals(sdkLayout.weakSummaryPath));
+      expect(configuration.librariesPath, equals(sdkLayout.librariesPath));
+      expect(configuration.compilerWorkerPath,
+          equals(sdkLayout.dartdevcSnapshotPath));
 
       configuration.validateSdkDir(fileSystem: fs);
       configuration.validate(fileSystem: fs);
@@ -155,13 +142,47 @@ void main() {
   });
 }
 
-String _weakSdkSummaryPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill');
+final _fakeSdkLayout = SdkLayout(
+  sdkDirectory: 'fakeDirectory',
+  soundJsPath: 'fakeJs',
+  soundJsMapPath: 'fakeJsMap',
+  soundSummaryPath: 'fakeSummary',
+  soundFullDillPath: 'fakeSummary',
+  weakJsPath: 'fakeJs',
+  weakJsMapPath: 'fakeJsMap',
+  weakSummaryPath: 'fakeSummary',
+  weakFullDillPath: 'fakeSummary',
+  librariesPath: 'fakeLibraries',
+  requireJsPath: 'fakeRequire',
+  stackTraceMapperPath: 'fakeTraceMapper',
+  dartPath: 'fakeDart',
+  frontendServerSnapshotPath: 'fakeSnapshot',
+  dartdevcSnapshotPath: 'fakeSnapshot',
+  kernelWorkerSnapshotPath: 'fakeSnapshot',
+);
 
-String _soundSdkSummaryPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill');
-
-String _librariesPath(String sdkDir) => p.join(sdkDir, 'lib', 'libraries.json');
-
-String _compilerWorkerPath(String binDir) =>
-    p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot');
+SdkLayout _createNonStandardLayout(String sdkDirectory) => SdkLayout(
+      sdkDirectory: sdkDirectory,
+      soundSummaryPath: p.join(sdkDirectory, 'kernel', 'ddc_outline.dill'),
+      soundFullDillPath: p.join(sdkDirectory, 'kernel', 'ddc_platform.dill'),
+      soundJsPath: p.join(sdkDirectory, 'web_assets', 'dart_sdk.js'),
+      soundJsMapPath: p.join(sdkDirectory, 'web_assets', 'dart_sdk.js.map'),
+      weakSummaryPath:
+          p.join(sdkDirectory, 'kernel', 'ddc_outline_unsound.dill'),
+      weakFullDillPath:
+          p.join(sdkDirectory, 'kernel', 'ddc_platform_unsound.dill'),
+      weakJsPath: p.join(sdkDirectory, 'web_assets', 'dart_sdk_unsound.js'),
+      weakJsMapPath:
+          p.join(sdkDirectory, 'web_assets', 'dart_sdk_unsound.js.map'),
+      librariesPath: p.join(sdkDirectory, 'specs', 'libraries.json'),
+      requireJsPath: p.join(sdkDirectory, 'web_assets', 'require.js'),
+      stackTraceMapperPath:
+          p.join(sdkDirectory, 'web_assets', 'dart_stack_trace_mapper.js'),
+      dartPath: p.join(sdkDirectory, 'binaries', 'dart'),
+      frontendServerSnapshotPath:
+          p.join(sdkDirectory, 'snapshots', 'frontend_server.dart.snapshot'),
+      dartdevcSnapshotPath:
+          p.join(sdkDirectory, 'snapshots', 'dartdevc.dart.snapshot'),
+      kernelWorkerSnapshotPath:
+          p.join(sdkDirectory, 'snapshots', 'kernel_worker.dart.snapshot'),
+    );

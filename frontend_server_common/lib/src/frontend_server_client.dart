@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:dwds/expression_compiler.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
-import 'package:path/path.dart' as p;
 import 'package:usage/uuid/uuid.dart';
 
 import 'utilities.dart';
@@ -23,9 +22,6 @@ void defaultConsumer(String message, {StackTrace? stackTrace}) =>
     stackTrace == null
         ? _serverLogger.info(message)
         : _serverLogger.severe(message, null, stackTrace);
-
-String get frontendServerExecutable =>
-    p.join(dartSdkPath, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
 
 typedef CompilerMessageConsumer = void Function(String message,
     {StackTrace stackTrace});
@@ -252,7 +248,9 @@ class _RejectRequest extends _CompilationRequest {
 /// restarts the Flutter app.
 class ResidentCompiler {
   ResidentCompiler(
-    this.sdkRoot, {
+    this.sdkRoot,
+    this.executable,
+    this.frontendServer, {
     required this.projectDirectory,
     required this.packageConfigFile,
     required this.useDebuggerModuleNames,
@@ -275,6 +273,12 @@ class ResidentCompiler {
 
   /// The path to the root of the Dart SDK used to compile.
   final String sdkRoot;
+
+  /// Dart executable.
+  final String executable;
+
+  /// Frontend server executable.
+  final String frontendServer;
 
   Process? _server;
   final StdoutHandler _stdoutHandler;
@@ -360,7 +364,6 @@ class ResidentCompiler {
 
   Future<CompilerOutput?> _compile(
       String scriptUri, String outputFilePath) async {
-    var frontendServer = frontendServerExecutable;
     var args = <String>[
       frontendServer,
       '--sdk-root',
@@ -395,7 +398,7 @@ class ResidentCompiler {
 
     _logger.info(args.join(' '));
     final workingDirectory = projectDirectory.toFilePath();
-    _server = await Process.start(Platform.resolvedExecutable, args,
+    _server = await Process.start(executable, args,
         workingDirectory: workingDirectory);
 
     var server = _server!;
