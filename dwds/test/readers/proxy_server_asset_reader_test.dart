@@ -8,7 +8,6 @@ import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:test/test.dart';
 
 import '../fixtures/context.dart';
-import '../utils/version_compatibility.dart';
 
 void main() {
   group('ProxyServerAssetReader', () {
@@ -40,9 +39,5 @@ void main() {
           .dartSourceContents('hello_world/foo.unsound.ddc.js.map');
       expect(result, isNull);
     });
-  },
-      // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
-      skip: !supportedMode(
-          compilationMode: CompilationMode.frontendServer,
-          nullSafetyMode: NullSafety.weak));
+  });
 }

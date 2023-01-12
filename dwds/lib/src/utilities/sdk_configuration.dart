@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/utilities/sdk_asset_generator.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 class InvalidSdkConfigurationException implements Exception {
@@ -27,7 +26,7 @@ class InvalidSdkConfigurationException implements Exception {
 /// SDK configuration provider interface.
 ///
 /// Supports lazily populated configurations by allowing to create
-/// configuration asyncronously.
+/// configuration asynchronously.
 abstract class SdkConfigurationProvider {
   Future<SdkConfiguration> get configuration;
 }
@@ -88,14 +87,23 @@ class SdkConfiguration {
   }
 
   void validateSummaries({FileSystem fileSystem = const LocalFileSystem()}) {
+    validateWeakSummaries(fileSystem: fileSystem);
+    validateWeakSummaries(fileSystem: fileSystem);
+  }
+
+  void validateWeakSummaries(
+      {FileSystem fileSystem = const LocalFileSystem()}) {
     if (unsoundSdkSummaryPath == null ||
         !fileSystem.file(unsoundSdkSummaryPath).existsSync()) {
       throw InvalidSdkConfigurationException(
           'Sdk summary $unsoundSdkSummaryPath does not exist');
     }
+  }
 
-    if (soundSdkSummaryPath == null ||
-        !fileSystem.file(soundSdkSummaryPath).existsSync()) {
+  void validateSoundSummaries(
+      {FileSystem fileSystem = const LocalFileSystem()}) {
+    if ((soundSdkSummaryPath == null ||
+        !fileSystem.file(soundSdkSummaryPath).existsSync())) {
       throw InvalidSdkConfigurationException(
           'Sdk summary $soundSdkSummaryPath does not exist');
     }
@@ -121,86 +129,53 @@ class SdkConfiguration {
 
 /// Implementation for the default SDK configuration layout.
 class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
+  static final binDir = p.dirname(Platform.resolvedExecutable);
+  static final sdkDir = p.dirname(binDir);
+
+  /// Configuration matching the default SDK layout.
+  static final defaultSdkConfiguration = SdkConfiguration(
+    sdkDirectory: sdkDir,
+    unsoundSdkSummaryPath: p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill'),
+    soundSdkSummaryPath:
+        p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill'),
+    librariesPath: p.join(sdkDir, 'lib', 'libraries.json'),
+    compilerWorkerPath: p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
+  );
+
   DefaultSdkConfigurationProvider();
 
-  late final SdkConfiguration _configuration = _create();
-
-  /// Create and validate configuration matching the default SDK layout.
   @override
-  Future<SdkConfiguration> get configuration async => _configuration;
-
-  SdkConfiguration _create() {
-    final binDir = p.dirname(Platform.resolvedExecutable);
-    final sdkDir = p.dirname(binDir);
-
-    return SdkConfiguration(
-      sdkDirectory: sdkDir,
-      unsoundSdkSummaryPath: p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill'),
-      soundSdkSummaryPath:
-          p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill'),
-      librariesPath: p.join(sdkDir, 'lib', 'libraries.json'),
-      compilerWorkerPath: p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
-    );
-  }
+  Future<SdkConfiguration> get configuration async => defaultSdkConfiguration;
 }
 
-/// Generates sdk.js, sdk.map, and summary files?
-Future<void> generateSdkAssets({
-  FileSystem fileSystem = const LocalFileSystem(),
-  required SdkConfiguration configuration,
-  required bool soundNullSafety,
-  bool verbose = false,
-}) async {
-  final logger = Logger('generateSdkAssets');
-  final outputDir = soundNullSafety
-      ? p.join(configuration.sdkDirectory!, 'lib', '_newInternalSound')
-      : p.join(configuration.sdkDirectory!, 'lib', '_newInternalWeak');
-  final directory = fileSystem.directory(outputDir);
-  if (directory.existsSync()) {
-    directory.deleteSync(recursive: true);
-  }
-  directory.createSync();
-  final outputPath = p.join(outputDir, 'sdk.js');
+/// Implementation for SDK configuration for tests that can generate missing assets.
+class GeneratingSdkConfigurationProvider extends SdkConfigurationProvider {
+  final bool _verboseCompiler;
+  SdkConfiguration? _configuration;
 
-  final args = <String>[
-    configuration.compilerWorkerPath!,
-    '--compile-sdk',
-    '--multi-root',
-    configuration.sdkDirectory!,
-    '--multi-root-scheme',
-    'dev-dart-sdk',
-    '--libraries-file',
-    'dev-dart-sdk:///lib/libraries.json',
-    '--modules',
-    'amd',
-    '--summarize',
-    //'--experimental-output-compiled-kernel',
-    if (soundNullSafety) '--sound-null-safety',
-    if (!soundNullSafety) '--no-sound-null-safety',
-    'dart:core',
-    '-o',
-    outputPath,
-    if (verbose) '--verbose'
-  ];
+  GeneratingSdkConfigurationProvider(this._verboseCompiler);
 
-  logger.info('Executing dart ${args.join(' ')}');
-  final process = await Process.start(Platform.resolvedExecutable, args,
-      workingDirectory: configuration.sdkDirectory!);
+  @override
+  Future<SdkConfiguration> get configuration async =>
+      _configuration ??= await _create();
 
-  process.stdout
-      .transform<String>(utf8.decoder)
-      .transform<String>(const LineSplitter())
-      .listen(logger.info);
+  /// Generate missing assets in the default SDK layout.
+  Future<SdkConfiguration> _create() async {
+    final sdkDir = DefaultSdkConfigurationProvider.sdkDir;
+    final sdk = DefaultSdkConfigurationProvider.defaultSdkConfiguration;
 
-  process.stderr
-      .transform<String>(utf8.decoder)
-      .transform<String>(const LineSplitter())
-      .listen(logger.warning);
-
-  await process.exitCode.then((int code) {
-    if (code != 0) {
-      logger.severe('Cannot generate SDK assets');
-      throw Exception('the Dart compiler exited unexpectedly.');
+    final assetGenerator = SdkAssetGenerator(
+      sdkDirectory: sdkDir,
+      verboseCompiler: _verboseCompiler,
+    );
+    if (assetGenerator.soundSummaryPath != sdk.soundSdkSummaryPath) {
+      throw StateError('Invalid asset ${assetGenerator.soundSummaryPath}');
     }
-  });
+    if (assetGenerator.weakSummaryPath != sdk.unsoundSdkSummaryPath) {
+      throw StateError('Invalid asset ${assetGenerator.weakSummaryPath}');
+    }
+
+    await assetGenerator.generateSdkAssets();
+    return sdk;
+  }
 }
