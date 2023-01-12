@@ -84,7 +84,8 @@ class Dwds {
     bool enableDevtoolsLaunch = true,
     DevtoolsLauncher? devtoolsLauncher,
     bool launchDevToolsInNewWindow = true,
-    required SdkConfigurationProvider sdkConfigurationProvider,
+    SdkConfigurationProvider sdkConfigurationProvider =
+        const DefaultSdkConfigurationProvider(),
     bool emitDebugEvents = true,
     bool isInternalBuild = false,
     bool isFlutterApp = false,

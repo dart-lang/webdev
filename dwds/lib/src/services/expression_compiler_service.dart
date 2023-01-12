@@ -241,7 +241,8 @@ class ExpressionCompilerService implements ExpressionCompiler {
     this._address,
     this._port, {
     bool verbose = false,
-    required SdkConfigurationProvider sdkConfigurationProvider,
+    SdkConfigurationProvider sdkConfigurationProvider =
+        const DefaultSdkConfigurationProvider(),
     this.experiments = const [],
   })  : _verbose = verbose,
         _sdkConfigurationProvider = sdkConfigurationProvider;

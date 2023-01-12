@@ -74,7 +74,7 @@ void main() async {
         'localhost',
         port,
         verbose: false,
-        sdkConfigurationProvider: TestSdkConfigurationProvider(),
+        sdkConfigurationProvider: DefaultSdkConfigurationProvider(),
       );
 
       await service.initialize(moduleFormat: 'amd');

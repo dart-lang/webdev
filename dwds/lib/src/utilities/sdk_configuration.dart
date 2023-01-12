@@ -28,6 +28,8 @@ class InvalidSdkConfigurationException implements Exception {
 /// Supports lazily populated configurations by allowing to create
 /// configuration asynchronously.
 abstract class SdkConfigurationProvider {
+  const SdkConfigurationProvider();
+
   Future<SdkConfiguration> get configuration;
 }
 
@@ -127,17 +129,7 @@ class SdkConfiguration {
   }
 }
 
-/// Implementation for SDK configuration for tests that can generate missing assets.
-/// Frontend server:
-///  - need to generate SDK js (normally included in flutter SDK).
-///  - need to generate SDK summary for weak null safety mode as it is not
-///    provided by the SDK installation.
-/// Build daemon:
-///  - need to generate the weak sdk summary before the build can generate
-///    SDK js.
-/// TODO(annagrin): update to only generate SDK JavaScript for frontend
-/// server after we have no uses of weak null safety.
-class TestSdkConfigurationProvider extends SdkConfigurationProvider {
+class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
   static final binDir = p.dirname(Platform.resolvedExecutable);
   static final sdkDir = p.dirname(binDir);
 
@@ -151,6 +143,23 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
     compilerWorkerPath: p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
   );
 
+  const DefaultSdkConfigurationProvider();
+
+  @override
+  Future<SdkConfiguration> get configuration async => defaultSdkConfiguration;
+}
+
+/// Implementation for SDK configuration for tests that can generate missing assets.
+/// Frontend server:
+///  - need to generate SDK js (normally included in flutter SDK).
+///  - need to generate SDK summary for weak null safety mode as it is not
+///    provided by the SDK installation.
+/// Build daemon:
+///  - need to generate the weak sdk summary before the build can generate
+///    SDK js.
+/// TODO(annagrin): update to only generate SDK JavaScript for frontend
+/// server after we have no uses of weak null safety.
+class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   final bool _verboseCompiler;
   SdkConfiguration? _configuration;
 
@@ -163,8 +172,8 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
 
   /// Generate missing assets in the default SDK layout.
   Future<SdkConfiguration> _create() async {
-    final sdkDir = TestSdkConfigurationProvider.sdkDir;
-    final sdk = TestSdkConfigurationProvider.defaultSdkConfiguration;
+    final sdkDir = DefaultSdkConfigurationProvider.sdkDir;
+    final sdk = DefaultSdkConfigurationProvider.defaultSdkConfiguration;
 
     final assetGenerator = SdkAssetGenerator(
       sdkDirectory: sdkDir,
