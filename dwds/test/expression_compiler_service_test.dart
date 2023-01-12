@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
+import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
@@ -69,7 +70,12 @@ void main() async {
       // start expression compilation service
       Response assetHandler(request) =>
           Response(200, body: File.fromUri(kernel).readAsBytesSync());
-      _service = ExpressionCompilerService('localhost', port, verbose: false);
+      _service = ExpressionCompilerService(
+        'localhost',
+        port,
+        verbose: false,
+        sdkConfigurationProvider: TestSdkConfigurationProvider(),
+      );
 
       await service.initialize(moduleFormat: 'amd');
 

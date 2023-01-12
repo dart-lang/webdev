@@ -200,30 +200,9 @@ class TestContext {
     bool isFlutterApp = false,
     bool isInternalBuild = false,
   }) async {
-    // TODO(https://github.com/dart-lang/webdev/issues/1591): Support compiling
-    // with sound null-safety in Frontend Server.
-    // if (compilationMode == CompilationMode.frontendServer &&
-    //     nullSafety == NullSafety.sound) {
-    //   throw Exception(
-    //       'Frontend Server compilation does not support sound null-safety. See https://github.com/dart-lang/webdev/issues/1591');
-    // }
-
-    // Generate SDK assets if needed.
-    // Frontend server:
-    //  - need to generate SDK js (normally included in flutter SDK).
-    //  - need to generate SDK summary for weak null safety mode as it is not
-    //    provided by the SDK installation.
-    // Build daemon:
-    //  - need to generate the weak sdk summary before the build can generate
-    //    SDK js.
-    // TODO(annagrin): update to only generate SDK JavaScript for frontend
-    // server after we have no uses of weak null safety.
+    // Generate missing SDK assets if needed.
     final sdkConfigurationProvider =
-        (compilationMode == CompilationMode.frontendServer ||
-                nullSafety == NullSafety.weak)
-            ? GeneratingSdkConfigurationProvider(verboseCompiler)
-            : DefaultSdkConfigurationProvider();
-
+        TestSdkConfigurationProvider(verboseCompiler: verboseCompiler);
     final configuration = await sdkConfigurationProvider.configuration;
     if (nullSafety == NullSafety.sound) {
       configuration.validateSoundSummaries();
@@ -433,6 +412,7 @@ class TestContext {
         ddcService,
         isFlutterApp,
         isInternalBuild,
+        sdkConfigurationProvider,
       );
 
       _appUrl = basePath.isEmpty

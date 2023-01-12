@@ -241,11 +241,10 @@ class ExpressionCompilerService implements ExpressionCompiler {
     this._address,
     this._port, {
     bool verbose = false,
-    SdkConfigurationProvider? sdkConfigurationProvider,
+    required SdkConfigurationProvider sdkConfigurationProvider,
     this.experiments = const [],
   })  : _verbose = verbose,
-        _sdkConfigurationProvider =
-            sdkConfigurationProvider ?? DefaultSdkConfigurationProvider();
+        _sdkConfigurationProvider = sdkConfigurationProvider;
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(

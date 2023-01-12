@@ -71,9 +71,12 @@ class SdkAssetGenerator {
     }
   }
 
+  bool _exists(String path) => fileSystem.file(path).existsSync();
+
+  void _delete(String path) => fileSystem.file(path).deleteSync();
+
   void _deleteIfExists(String path) {
-    final file = fileSystem.file(path);
-    if (file.existsSync()) file.deleteSync();
+    if (_exists(path)) _delete(path);
   }
 
   Future<void> _generateSdkJavaScript(bool soundNullSafety) async {
@@ -90,17 +93,18 @@ class SdkAssetGenerator {
     final newFullDillPath =
         soundNullSafety ? soundFullDillPath : weakFullDillPath;
 
-    // TODO(annagrin) Generate only if needed.
-    if (!soundNullSafety) {
-      _deleteIfExists(fullDillPath);
-      _deleteIfExists(newFullDillPath);
-    }
-    {
-      _deleteIfExists(jsPath);
-      _deleteIfExists(newJsPath);
-      _deleteIfExists(jsMapPath);
-      _deleteIfExists(newJsMapPath);
-    }
+    final hasFullDillAsset = _exists(newFullDillPath);
+    final hasAssets =
+        hasFullDillAsset && _exists(newJsPath) && _exists(newJsMapPath);
+
+    if (hasAssets) return;
+
+    _deleteIfExists(fullDillPath);
+    _deleteIfExists(newFullDillPath);
+    _deleteIfExists(jsPath);
+    _deleteIfExists(newJsPath);
+    _deleteIfExists(jsMapPath);
+    _deleteIfExists(newJsMapPath);
 
     _logger.info('Generating js and full dill SDK files...');
 
@@ -118,7 +122,7 @@ class SdkAssetGenerator {
       // Sound full dill file is included in the SDK,
       // we only create one for weak mode.
       // This creates full dill file in '$fullDillPath'.
-      if (!soundNullSafety) '--summarize',
+      if (!hasFullDillAsset) '--summarize',
       if (soundNullSafety) '--sound-null-safety',
       if (!soundNullSafety) '--no-sound-null-safety',
       'dart:core',
@@ -148,7 +152,7 @@ class SdkAssetGenerator {
       }
     });
 
-    if (!soundNullSafety) {
+    if (!hasFullDillAsset) {
       _logger.fine('Renaming $fullDillPath to $newFullDillPath');
       await fileSystem.file(fullDillPath).rename(newFullDillPath);
     }
@@ -166,8 +170,8 @@ class SdkAssetGenerator {
     if (soundNullSafety) return;
 
     final summaryPath = soundNullSafety ? soundSummaryPath : weakSummaryPath;
-    // TODO(annagrin) Generate only if needed.
-    _deleteIfExists(summaryPath);
+    final hasAssets = _exists(summaryPath);
+    if (hasAssets) return;
 
     _logger.info('Generating SDK summary files...');
 

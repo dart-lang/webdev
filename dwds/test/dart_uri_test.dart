@@ -83,7 +83,7 @@ void main() {
     group('initialized with current SDK directory', () {
       setUpAll(() async {
         final sdkConfiguration =
-            await DefaultSdkConfigurationProvider().configuration;
+            await TestSdkConfigurationProvider().configuration;
         await DartUri.initialize(sdkConfiguration);
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });

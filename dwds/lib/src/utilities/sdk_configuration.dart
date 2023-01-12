@@ -127,8 +127,17 @@ class SdkConfiguration {
   }
 }
 
-/// Implementation for the default SDK configuration layout.
-class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
+/// Implementation for SDK configuration for tests that can generate missing assets.
+/// Frontend server:
+///  - need to generate SDK js (normally included in flutter SDK).
+///  - need to generate SDK summary for weak null safety mode as it is not
+///    provided by the SDK installation.
+/// Build daemon:
+///  - need to generate the weak sdk summary before the build can generate
+///    SDK js.
+/// TODO(annagrin): update to only generate SDK JavaScript for frontend
+/// server after we have no uses of weak null safety.
+class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   static final binDir = p.dirname(Platform.resolvedExecutable);
   static final sdkDir = p.dirname(binDir);
 
@@ -142,18 +151,11 @@ class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
     compilerWorkerPath: p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
   );
 
-  DefaultSdkConfigurationProvider();
-
-  @override
-  Future<SdkConfiguration> get configuration async => defaultSdkConfiguration;
-}
-
-/// Implementation for SDK configuration for tests that can generate missing assets.
-class GeneratingSdkConfigurationProvider extends SdkConfigurationProvider {
   final bool _verboseCompiler;
   SdkConfiguration? _configuration;
 
-  GeneratingSdkConfigurationProvider(this._verboseCompiler);
+  TestSdkConfigurationProvider({bool verboseCompiler = false})
+      : _verboseCompiler = verboseCompiler;
 
   @override
   Future<SdkConfiguration> get configuration async =>
@@ -161,8 +163,8 @@ class GeneratingSdkConfigurationProvider extends SdkConfigurationProvider {
 
   /// Generate missing assets in the default SDK layout.
   Future<SdkConfiguration> _create() async {
-    final sdkDir = DefaultSdkConfigurationProvider.sdkDir;
-    final sdk = DefaultSdkConfigurationProvider.defaultSdkConfiguration;
+    final sdkDir = TestSdkConfigurationProvider.sdkDir;
+    final sdk = TestSdkConfigurationProvider.defaultSdkConfiguration;
 
     final assetGenerator = SdkAssetGenerator(
       sdkDirectory: sdkDir,

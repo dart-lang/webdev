@@ -84,13 +84,12 @@ class Dwds {
     bool enableDevtoolsLaunch = true,
     DevtoolsLauncher? devtoolsLauncher,
     bool launchDevToolsInNewWindow = true,
-    SdkConfigurationProvider? sdkConfigurationProvider,
+    required SdkConfigurationProvider sdkConfigurationProvider,
     bool emitDebugEvents = true,
     bool isInternalBuild = false,
     bool isFlutterApp = false,
   }) async {
     globalLoadStrategy = loadStrategy;
-    sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
 
     DevTools? devTools;
     Future<String>? extensionUri;
