@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:io/io.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
@@ -141,32 +140,25 @@ void main() {
         }
       });
     }
-    test(
-      'and --null-safety=sound',
-      () async {
-        var args = [
-          'build',
-          '-o',
-          'web:${d.sandbox}',
-          '--no-release',
-          '--null-safety=sound'
-        ];
+    test('and --null-safety=sound', () async {
+      var args = [
+        'build',
+        '-o',
+        'web:${d.sandbox}',
+        '--no-release',
+        '--null-safety=sound'
+      ];
 
-        var process =
-            await runWebDev(args, workingDirectory: soundExampleDirectory);
+      var process =
+          await runWebDev(args, workingDirectory: soundExampleDirectory);
 
-        var expectedItems = <Object>['Succeeded'];
+      var expectedItems = <Object>['Succeeded'];
 
-        await checkProcessStdout(process, expectedItems);
-        await process.shouldExit(0);
+      await checkProcessStdout(process, expectedItems);
+      await process.shouldExit(0);
 
-        await d.file('main.sound.ddc.js', isNotEmpty).validate();
-      },
-      skip: semver.Version.parse(Platform.version.split(' ').first) >
-              semver.Version.parse('2.11.0')
-          ? null
-          : 'SDK does not support sound null safety',
-    );
+      await d.file('main.sound.ddc.js', isNotEmpty).validate();
+    });
 
     test('and --null-safety=unsound', () async {
       var args = [

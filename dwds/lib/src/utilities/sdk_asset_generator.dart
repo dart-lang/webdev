@@ -102,6 +102,8 @@ class SdkAssetGenerator {
       _deleteIfExists(newJsMapPath);
     }
 
+    _logger.info('Generating js and full dill SDK files...');
+
     final args = <String>[
       dartdevcSnapshotPath,
       '--compile-sdk',
@@ -124,7 +126,7 @@ class SdkAssetGenerator {
       jsPath,
     ];
 
-    _logger.info('Executing dart ${args.join(' ')}');
+    _logger.fine('Executing dart ${args.join(' ')}');
     final process = await Process.start(Platform.resolvedExecutable, args,
         workingDirectory: sdkDirectory);
 
@@ -156,6 +158,7 @@ class SdkAssetGenerator {
 
     _logger.fine('Renaming $jsMapPath to $newJsMapPath');
     await fileSystem.file(jsMapPath).rename(newJsMapPath);
+    _logger.info('Done generating js and full dill SDK files.');
   }
 
   Future<void> _generateSdkSummary(bool soundNullSafety) async {
@@ -165,6 +168,8 @@ class SdkAssetGenerator {
     final summaryPath = soundNullSafety ? soundSummaryPath : weakSummaryPath;
     // TODO(annagrin) Generate only if needed.
     _deleteIfExists(summaryPath);
+
+    _logger.info('Generating SDK summary files...');
 
     final args = <String>[
       kernelWorkerSnapshotPath,
@@ -186,7 +191,7 @@ class SdkAssetGenerator {
       if (verboseCompiler) '--verbose',
     ];
 
-    _logger.info('Executing dart ${args.join(' ')}');
+    _logger.fine('Executing dart ${args.join(' ')}');
     final process = await Process.start(Platform.resolvedExecutable, args,
         workingDirectory: sdkDirectory);
 
@@ -207,5 +212,6 @@ class SdkAssetGenerator {
         throw Exception('the Dart kernel worker exited unexpectedly.');
       }
     });
+    _logger.info('Done generating SDK summary files.');
   }
 }

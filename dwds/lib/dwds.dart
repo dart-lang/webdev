@@ -30,3 +30,4 @@ export 'src/services/expression_compiler_service.dart'
     show ExpressionCompilerService;
 export 'src/utilities/sdk_configuration.dart'
     show SdkConfiguration, SdkConfigurationProvider;
+export 'src/utilities/sdk_asset_generator.dart' show SdkAssetGenerator;
