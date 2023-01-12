@@ -9,6 +9,7 @@ import 'dart:html';
 import 'dart:js_util';
 import 'package:js/js.dart';
 
+import 'chrome_api.dart';
 import 'logger.dart';
 import 'messaging.dart';
 
@@ -23,13 +24,26 @@ void _registerListeners() {
 void _onDartAppReadyEvent(Event event) {
   final debugInfo = getProperty(event, 'detail') as String?;
   if (debugInfo == null) {
-    debugError('Can\'t debug Dart app without debug info.', verbose: true);
-    return;
+    debugWarn(
+        'No debug info sent with ready event, instead reading from Window.');
+    _injectDebugInfoScript();
+  } else {
+    _sendMessageToBackgroundScript(
+      type: MessageType.debugInfo,
+      body: debugInfo,
+    );
   }
-  _sendMessageToBackgroundScript(
-    type: MessageType.debugInfo,
-    body: debugInfo,
-  );
+}
+
+// TODO(elliette): Remove once DWDS 17.0.0 is in Flutter stable. If we are on an
+// older version of DWDS, then the debug info is not sent along with the ready
+// event. Therefore we must read it from the Window object, which is slower.
+void _injectDebugInfoScript() {
+  final script = document.createElement('script');
+  final scriptSrc = chrome.runtime.getURL('debug_info.dart.js');
+  script.setAttribute('src', scriptSrc);
+  script.setAttribute('defer', true);
+  document.head?.append(script);
 }
 
 void _sendMessageToBackgroundScript({

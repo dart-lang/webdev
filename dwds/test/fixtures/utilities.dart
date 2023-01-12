@@ -125,3 +125,31 @@ Future<T> retryFn<T>(
     failureMessage: failureMessage,
   );
 }
+
+/// Retries an asynchronous callback function with a delay until the result is
+/// non-null.
+Future<T> retryFnAsync<T>(
+  Future<T> Function() callback, {
+  int retryCount = 3,
+  int delayInMs = 1000,
+  String failureMessage = 'Function did not succeed after retries.',
+}) async {
+  if (retryCount == 0) {
+    throw Exception(failureMessage);
+  }
+
+  await Future.delayed(Duration(milliseconds: delayInMs));
+  try {
+    final result = await callback();
+    if (result != null) return result;
+  } catch (_) {
+    // Ignore any exceptions.
+  }
+
+  return retryFnAsync<T>(
+    callback,
+    retryCount: retryCount - 1,
+    delayInMs: delayInMs,
+    failureMessage: failureMessage,
+  );
+}

@@ -31,6 +31,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
   final Debugger _debugger;
   final _requestController =
       BatchedStreamController<EvaluateRequest>(delay: 200);
+  bool _closed = false;
 
   BatchedExpressionEvaluator(
     String entrypoint,
@@ -45,8 +46,10 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
 
   @override
   void close() {
+    if (_closed) return;
     _logger.fine('Closed');
     _requestController.close();
+    _closed = true;
   }
 
   @override
@@ -55,7 +58,11 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
     String? libraryUri,
     String expression,
     Map<String, String>? scope,
-  ) {
+  ) async {
+    if (_closed) {
+      return createError(
+          ErrorKind.internal, 'Batched expression evaluator closed');
+    }
     final request = EvaluateRequest(isolateId, libraryUri, expression, scope);
     _requestController.sink.add(request);
     return request.completer.future;
@@ -121,15 +128,22 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       final request = requests[i];
       if (request.completer.isCompleted) continue;
       _logger.fine('Getting result out of a batch for ${request.expression}');
-      unawaited(_debugger
-          .getProperties(list.objectId!,
-              offset: i, count: 1, length: requests.length)
-          .then((v) {
-        final result = v.first.value;
-        _logger.fine(
-            'Got result out of a batch for ${request.expression}: $result');
-        request.completer.complete(result);
-      }));
+
+      final listId = list.objectId;
+      if (listId == null) {
+        final error =
+            createError(ErrorKind.internal, 'No batch result object ID.');
+        request.completer.complete(error);
+      } else {
+        unawaited(_debugger
+            .getProperties(listId, offset: i, count: 1, length: requests.length)
+            .then((v) {
+          final result = v.first.value;
+          _logger.fine(
+              'Got result out of a batch for ${request.expression}: $result');
+          request.completer.complete(result);
+        }));
+      }
     }
   }
 }

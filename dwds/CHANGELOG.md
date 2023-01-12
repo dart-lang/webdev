@@ -16,6 +16,7 @@
   - Do not pass `--(no)-sound-null-safety` flag to build daemon.
 - Add back `ChromeProxyService.setExceptionPauseMode()` without override.
 - Make hot restart atomic to prevent races on simultaneous execution.
+- Return error on expression evaluation if expression evaluator stopped.
 - Prepare or Dart 3 alpha breaking changes:
   - Generate missing SDK assets for tests.
   - Enable frontend server null safe tests.
