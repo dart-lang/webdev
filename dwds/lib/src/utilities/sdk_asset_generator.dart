@@ -137,10 +137,7 @@ class SdkAssetGenerator {
       _logger.info('Done generating js and full dill SDK files.');
     } catch (e, s) {
       _logger.severe(
-          'Failed to generate '
-          'SDK js, source map, and full dill',
-          e,
-          s);
+          'Failed to generate SDK js, source map, and full dill', e, s);
       rethrow;
     } finally {
       outputDir?.deleteSync(recursive: true);
