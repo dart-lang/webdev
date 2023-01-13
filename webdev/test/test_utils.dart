@@ -50,20 +50,11 @@ Map<String, String> getPubEnvironment() {
   return environment;
 }
 
-/// Implementation for SDK configuration for tests that can generate missing assets.
+/// Implementation for SDK configuration for tests that
+/// can generate missing assets.
 class TestSdkConfigurationProvider extends SdkConfigurationProvider {
-  static final binDir = p.dirname(Platform.resolvedExecutable);
-  static final sdkDir = p.dirname(binDir);
-
-  /// Configuration matching the default SDK layout.
-  static final defaultSdkConfiguration = SdkConfiguration(
-    sdkDirectory: sdkDir,
-    unsoundSdkSummaryPath: p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill'),
-    soundSdkSummaryPath:
-        p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill'),
-    librariesPath: p.join(sdkDir, 'lib', 'libraries.json'),
-    compilerWorkerPath: p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
-  );
+  static final sdkLayout = SdkConfiguration.defaultSdkLayout;
+  static final sdkConfiguration = SdkConfiguration.defaultConfiguration;
 
   SdkConfiguration? _configuration;
 
@@ -75,17 +66,15 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
 
   /// Generate missing assets in the default SDK layout.
   Future<SdkConfiguration> _create() async {
-    final assetGenerator = SdkAssetGenerator(sdkDirectory: sdkDir);
-    if (assetGenerator.soundSummaryPath !=
-        defaultSdkConfiguration.soundSdkSummaryPath) {
-      throw StateError('Invalid asset ${assetGenerator.soundSummaryPath}');
+    final assetGenerator = SdkAssetGenerator(sdkLayout: sdkLayout);
+    if (sdkLayout.soundSummaryPath != sdkConfiguration.soundSdkSummaryPath) {
+      throw StateError('Invalid asset ${sdkLayout.soundSummaryPath}');
     }
-    if (assetGenerator.weakSummaryPath !=
-        defaultSdkConfiguration.unsoundSdkSummaryPath) {
-      throw StateError('Invalid asset ${assetGenerator.weakSummaryPath}');
+    if (sdkLayout.weakSummaryPath != sdkConfiguration.unsoundSdkSummaryPath) {
+      throw StateError('Invalid asset ${sdkLayout.weakSummaryPath}');
     }
 
     await assetGenerator.generateSdkAssets();
-    return defaultSdkConfiguration;
+    return sdkConfiguration;
   }
 }

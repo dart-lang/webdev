@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
+import 'package:dwds/src/utilities/sdk_asset_generator.dart';
+import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 
 const webdevDirName = 'webdev';
@@ -152,4 +154,47 @@ Future<T> retryFnAsync<T>(
     delayInMs: delayInMs,
     failureMessage: failureMessage,
   );
+}
+
+/// Implementation for SDK configuration for tests that can generate missing assets.
+/// Frontend server:
+///  - need to generate SDK js (normally included in flutter SDK).
+///  - need to generate SDK summary for weak null safety mode as it is not
+///    provided by the SDK installation.
+/// Build daemon:
+///  - need to generate the weak sdk summary before the build can generate
+///    SDK js.
+/// TODO(annagrin): update to only generate SDK JavaScript for frontend
+/// server after we have no uses of weak null safety.
+class TestSdkConfigurationProvider extends SdkConfigurationProvider {
+  final bool _verboseCompiler;
+  SdkConfiguration? _configuration;
+
+  TestSdkConfigurationProvider({bool verboseCompiler = false})
+      : _verboseCompiler = verboseCompiler;
+
+  @override
+  Future<SdkConfiguration> get configuration async =>
+      _configuration ??= await _create();
+
+  /// Generate missing assets in the default SDK layout.
+  Future<SdkConfiguration> _create() async {
+    final sdk = SdkConfiguration.defaultConfiguration;
+    final sdkLayout = SdkConfiguration.defaultSdkLayout;
+
+    final assetGenerator = SdkAssetGenerator(
+      sdkLayout: sdkLayout,
+      verboseCompiler: _verboseCompiler,
+    );
+
+    if (sdkLayout.soundSummaryPath != sdk.soundSdkSummaryPath) {
+      throw StateError('Invalid asset path ${sdkLayout.soundSummaryPath}');
+    }
+    if (sdkLayout.weakSummaryPath != sdk.unsoundSdkSummaryPath) {
+      throw StateError('Invalid asset path ${sdkLayout.weakSummaryPath}');
+    }
+
+    await assetGenerator.generateSdkAssets();
+    return sdk;
+  }
 }

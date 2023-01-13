@@ -14,6 +14,7 @@ import 'package:test/test.dart';
 
 import 'fixtures/logging.dart';
 import 'fixtures/fakes.dart';
+import 'fixtures/utilities.dart';
 
 class TestStrategy extends FakeStrategy {
   @override

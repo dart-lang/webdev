@@ -19,7 +19,7 @@ void main() {
   group('Basic configuration', () {
     test('Can validate default configuration layout', () async {
       final defaultConfiguration =
-          await TestSdkConfigurationProvider().configuration;
+          await DefaultSdkConfigurationProvider().configuration;
       defaultConfiguration.validateSdkDir();
       defaultConfiguration.validate();
     });
@@ -46,7 +46,7 @@ void main() {
 
     test('Can validate existing configuration layout', () async {
       final defaultSdkConfiguration =
-          await TestSdkConfigurationProvider().configuration;
+          await DefaultSdkConfigurationProvider().configuration;
 
       final sdkDirectory = outputDir.path;
       final librariesDir = p.join(sdkDirectory, 'specs');

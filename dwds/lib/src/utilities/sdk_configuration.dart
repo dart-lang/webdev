@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dwds/src/utilities/sdk_asset_generator.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
@@ -33,6 +32,121 @@ abstract class SdkConfigurationProvider {
   Future<SdkConfiguration> get configuration;
 }
 
+/// Sdk layout.
+///
+/// Contains definition of the default SDK layout.
+/// We keep all the path constants in one place for ease of update.
+class SdkLayout {
+  static final sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
+  static final defaultSdkLayout = createDefault(sdkDir);
+
+  static SdkLayout createDefault(String sdkDirectory) {
+    final sdkJsWeakFileName = 'dart_sdk.js';
+    final sdkJsMapWeakFileName = 'dart_sdk.js.map';
+    final sdkJsSoundFileName = 'dart_sdk_sound.js';
+    final sdkJsMapSoundFileName = 'dart_sdk_sound.js.map';
+    final sdkSummarySoundFileName = 'ddc_outline_sound.dill';
+    final sdkSummaryWeakFileName = 'ddc_sdk.dill';
+    final sdkFullDillSoundFileName = 'ddc_platform_sound.dill';
+    final sdkFullDillWeakFileName = 'ddc_platform.dill';
+
+    final sdkSummaryDirectory = p.join(sdkDirectory, 'lib', '_internal');
+    final sdkJsDirectory =
+        p.join(sdkDirectory, 'lib', 'dev_compiler', 'kernel', 'amd');
+
+    final soundSummaryPath =
+        p.join(sdkSummaryDirectory, sdkSummarySoundFileName);
+    final soundFullDillPath =
+        p.join(sdkSummaryDirectory, sdkFullDillSoundFileName);
+    final soundJsPath = p.join(sdkJsDirectory, sdkJsSoundFileName);
+    final soundJsMapPath = p.join(sdkJsDirectory, sdkJsMapSoundFileName);
+
+    final weakSummaryPath = p.join(sdkSummaryDirectory, sdkSummaryWeakFileName);
+    final weakFullDillPath =
+        p.join(sdkSummaryDirectory, sdkFullDillWeakFileName);
+    final weakJsPath = p.join(sdkJsDirectory, sdkJsWeakFileName);
+    final weakJsMapPath = p.join(sdkJsDirectory, sdkJsMapWeakFileName);
+
+    final librariesPath = p.join(sdkDirectory, 'lib', 'libraries.json');
+    final dartdevcSnapshotPath =
+        p.join(sdkDirectory, 'bin', 'snapshots', 'dartdevc.dart.snapshot');
+    final kernelWorkerSnapshotPath =
+        p.join(sdkDirectory, 'bin', 'snapshots', 'kernel_worker.dart.snapshot');
+
+    return SdkLayout(
+      sdkJsWeakFileName: sdkJsWeakFileName,
+      sdkJsMapWeakFileName: sdkJsMapWeakFileName,
+      sdkJsSoundFileName: sdkJsSoundFileName,
+      sdkJsMapSoundFileName: sdkJsMapSoundFileName,
+      sdkSummarySoundFileName: sdkSummarySoundFileName,
+      sdkSummaryWeakFileName: sdkSummaryWeakFileName,
+      sdkFullDillSoundFileName: sdkFullDillSoundFileName,
+      sdkFullDillWeakFileName: sdkFullDillWeakFileName,
+      sdkDirectory: sdkDirectory,
+      soundSummaryPath: soundSummaryPath,
+      soundFullDillPath: soundFullDillPath,
+      soundJsPath: soundJsPath,
+      soundJsMapPath: soundJsMapPath,
+      weakSummaryPath: weakSummaryPath,
+      weakFullDillPath: weakFullDillPath,
+      weakJsPath: weakJsPath,
+      weakJsMapPath: weakJsMapPath,
+      librariesPath: librariesPath,
+      dartdevcSnapshotPath: dartdevcSnapshotPath,
+      kernelWorkerSnapshotPath: kernelWorkerSnapshotPath,
+    );
+  }
+
+  final String sdkJsWeakFileName;
+  final String sdkJsMapWeakFileName;
+  final String sdkJsSoundFileName;
+  final String sdkJsMapSoundFileName;
+  final String sdkSummarySoundFileName;
+  final String sdkSummaryWeakFileName;
+  final String sdkFullDillSoundFileName;
+  final String sdkFullDillWeakFileName;
+
+  final String sdkDirectory;
+
+  final String soundSummaryPath;
+  final String soundFullDillPath;
+  final String soundJsPath;
+  final String soundJsMapPath;
+
+  final String weakSummaryPath;
+  final String weakFullDillPath;
+  final String weakJsPath;
+  final String weakJsMapPath;
+
+  final String librariesPath;
+
+  final String dartdevcSnapshotPath;
+  final String kernelWorkerSnapshotPath;
+
+  SdkLayout({
+    required this.sdkJsWeakFileName,
+    required this.sdkJsMapWeakFileName,
+    required this.sdkJsSoundFileName,
+    required this.sdkJsMapSoundFileName,
+    required this.sdkSummarySoundFileName,
+    required this.sdkSummaryWeakFileName,
+    required this.sdkFullDillSoundFileName,
+    required this.sdkFullDillWeakFileName,
+    required this.sdkDirectory,
+    required this.soundSummaryPath,
+    required this.soundFullDillPath,
+    required this.soundJsPath,
+    required this.soundJsMapPath,
+    required this.weakSummaryPath,
+    required this.weakFullDillPath,
+    required this.weakJsPath,
+    required this.weakJsMapPath,
+    required this.librariesPath,
+    required this.dartdevcSnapshotPath,
+    required this.kernelWorkerSnapshotPath,
+  });
+}
+
 /// Data class describing the SDK layout.
 ///
 /// Provides helpers to convert paths to uris that work on all platforms.
@@ -40,9 +154,10 @@ abstract class SdkConfigurationProvider {
 /// Call [validate] method to make sure the files in the configuration
 /// layout exist before reading the files.
 class SdkConfiguration {
-  // TODO(annagrin): update the tests to take those parameters
-  // and make all of the paths required (except for the compilerWorkerPath
-  // that is not used in Flutter).
+  static final defaultSdkLayout = SdkLayout.defaultSdkLayout;
+  static final defaultConfiguration =
+      SdkConfiguration.fromSdkLayout(defaultSdkLayout);
+
   String? sdkDirectory;
   String? unsoundSdkSummaryPath;
   String? soundSdkSummaryPath;
@@ -56,6 +171,17 @@ class SdkConfiguration {
     this.librariesPath,
     this.compilerWorkerPath,
   });
+
+  SdkConfiguration.empty() : this();
+
+  SdkConfiguration.fromSdkLayout(SdkLayout sdkLayout)
+      : this(
+          sdkDirectory: sdkLayout.sdkDirectory,
+          unsoundSdkSummaryPath: sdkLayout.weakSummaryPath,
+          soundSdkSummaryPath: sdkLayout.soundSummaryPath,
+          librariesPath: sdkLayout.librariesPath,
+          compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
+        );
 
   static Uri? _toUri(String? path) => path == null ? null : p.toUri(path);
   static Uri? _toAbsoluteUri(String? path) =>
@@ -130,63 +256,9 @@ class SdkConfiguration {
 }
 
 class DefaultSdkConfigurationProvider extends SdkConfigurationProvider {
-  static final binDir = p.dirname(Platform.resolvedExecutable);
-  static final sdkDir = p.dirname(binDir);
-
-  /// Configuration matching the default SDK layout.
-  static final defaultSdkConfiguration = SdkConfiguration(
-    sdkDirectory: sdkDir,
-    unsoundSdkSummaryPath: p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill'),
-    soundSdkSummaryPath:
-        p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill'),
-    librariesPath: p.join(sdkDir, 'lib', 'libraries.json'),
-    compilerWorkerPath: p.join(binDir, 'snapshots', 'dartdevc.dart.snapshot'),
-  );
-
   const DefaultSdkConfigurationProvider();
 
   @override
-  Future<SdkConfiguration> get configuration async => defaultSdkConfiguration;
-}
-
-/// Implementation for SDK configuration for tests that can generate missing assets.
-/// Frontend server:
-///  - need to generate SDK js (normally included in flutter SDK).
-///  - need to generate SDK summary for weak null safety mode as it is not
-///    provided by the SDK installation.
-/// Build daemon:
-///  - need to generate the weak sdk summary before the build can generate
-///    SDK js.
-/// TODO(annagrin): update to only generate SDK JavaScript for frontend
-/// server after we have no uses of weak null safety.
-class TestSdkConfigurationProvider extends SdkConfigurationProvider {
-  final bool _verboseCompiler;
-  SdkConfiguration? _configuration;
-
-  TestSdkConfigurationProvider({bool verboseCompiler = false})
-      : _verboseCompiler = verboseCompiler;
-
-  @override
   Future<SdkConfiguration> get configuration async =>
-      _configuration ??= await _create();
-
-  /// Generate missing assets in the default SDK layout.
-  Future<SdkConfiguration> _create() async {
-    final sdkDir = DefaultSdkConfigurationProvider.sdkDir;
-    final sdk = DefaultSdkConfigurationProvider.defaultSdkConfiguration;
-
-    final assetGenerator = SdkAssetGenerator(
-      sdkDirectory: sdkDir,
-      verboseCompiler: _verboseCompiler,
-    );
-    if (assetGenerator.soundSummaryPath != sdk.soundSdkSummaryPath) {
-      throw StateError('Invalid asset ${assetGenerator.soundSummaryPath}');
-    }
-    if (assetGenerator.weakSummaryPath != sdk.unsoundSdkSummaryPath) {
-      throw StateError('Invalid asset ${assetGenerator.weakSummaryPath}');
-    }
-
-    await assetGenerator.generateSdkAssets();
-    return sdk;
-  }
+      SdkConfiguration.defaultConfiguration;
 }

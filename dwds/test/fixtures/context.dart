@@ -21,7 +21,6 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:file/local.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
@@ -204,11 +203,7 @@ class TestContext {
     final sdkConfigurationProvider =
         TestSdkConfigurationProvider(verboseCompiler: verboseCompiler);
     final configuration = await sdkConfigurationProvider.configuration;
-    if (nullSafety == NullSafety.sound) {
-      configuration.validateSoundSummaries();
-    } else {
-      configuration.validateWeakSummaries();
-    }
+    configuration.validate();
 
     try {
       DartUri.currentDirectory = workingDirectory;
