@@ -44,7 +44,8 @@ Future<bool> setStorageObject<T>({
   void Function()? callback,
 }) {
   final storageKey = _createStorageKey(type, tabId);
-  final json = jsonEncode(serializers.serialize(value));
+  final json =
+      value is String ? value : jsonEncode(serializers.serialize(value));
   final storageObj = <String, String>{storageKey: json};
   final completer = Completer<bool>();
   final storageArea = _getStorageArea(type.persistance);
@@ -73,9 +74,13 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
       debugWarn('Does not exist.', prefix: storageKey);
       completer.complete(null);
     } else {
-      final value = serializers.deserialize(jsonDecode(json)) as T;
       debugLog('Fetched: $json', prefix: storageKey);
-      completer.complete(value);
+      if (T == String) {
+        completer.complete(json as T);
+      } else {
+        final value = serializers.deserialize(jsonDecode(json)) as T;
+        completer.complete(value);
+      }
     }
   }));
   return completer.future;
