@@ -17,7 +17,7 @@
 - Add back `ChromeProxyService.setExceptionPauseMode()` without override.
 - Make hot restart atomic to prevent races on simultaneous execution.
 - Return error on expression evaluation if expression evaluator stopped.
-- Prepare or Dart 3 alpha breaking changes:
+- Prepare for Dart 3 alpha breaking changes:
   - Generate missing SDK assets for tests.
   - Enable frontend server null safe tests.
 
@@ -27,7 +27,7 @@
 - Include an optional param to `Dwds.start` to indicate whether it a Flutter app
   or not.
 - Remove deprecated `ChromeProxyService.setExceptionPauseMode()`.
-- Replace `SdkConfiguration.unsoundSdkSummaryPath` by 
+- Replace `SdkConfiguration.unsoundSdkSummaryPath` with
   `SdkConfiguration.weakSdkSummaryPath`.
 
 ## 16.0.1
