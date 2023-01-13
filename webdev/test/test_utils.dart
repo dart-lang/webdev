@@ -70,7 +70,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
     if (sdkLayout.soundSummaryPath != sdkConfiguration.soundSdkSummaryPath) {
       throw StateError('Invalid asset ${sdkLayout.soundSummaryPath}');
     }
-    if (sdkLayout.weakSummaryPath != sdkConfiguration.unsoundSdkSummaryPath) {
+    if (sdkLayout.weakSummaryPath != sdkConfiguration.weakSdkSummaryPath) {
       throw StateError('Invalid asset ${sdkLayout.weakSummaryPath}');
     }
 

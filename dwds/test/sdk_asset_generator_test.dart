@@ -30,17 +30,17 @@ void main() {
     late final String soundSdkJsMapPath;
 
     // Missing weak assets
-    late final String unsoundSdkSummaryPath;
-    late final String unsoundSdkFullDillPath;
-    late final String unsoundSdkJsPath;
-    late final String unsoundSdkJsMapPath;
+    late final String weakSdkSummaryPath;
+    late final String weakSdkFullDillPath;
+    late final String weakSdkJsPath;
+    late final String weakSdkJsMapPath;
 
     setUp(() async {
       setCurrentLogWriter(debug: debug);
       tempDir = Directory.systemTemp.createTempSync();
 
       sdkDirectory = tempDir.path;
-      soundSdkSummaryPath = _dartSoundSdkSummaryPath(sdkDirectory);
+      soundSdkSummaryPath = _soundSdkSummaryPath(sdkDirectory);
       librariesPath = _librariesPath(sdkDirectory);
       compilerWorkerPath = _compilerWorkerPath(sdkDirectory);
 
@@ -48,24 +48,24 @@ void main() {
       await _copy(SdkLayout.sdkDir, sdkDirectory);
 
       // Simulate missing sound assets.
-      soundSdkFullDillPath = _dartSoundSdkFullDillPath(sdkDirectory);
-      soundSdkJsPath = _dartSoundSdkJsPath(sdkDirectory);
-      soundSdkJsMapPath = _dartSoundSdkJsMapPath(sdkDirectory);
+      soundSdkFullDillPath = _soundSdkFullDillPath(sdkDirectory);
+      soundSdkJsPath = _soundSdkJsPath(sdkDirectory);
+      soundSdkJsMapPath = _soundSdkJsMapPath(sdkDirectory);
 
       _deleteIfExists(soundSdkFullDillPath);
       _deleteIfExists(soundSdkJsPath);
       _deleteIfExists(soundSdkJsMapPath);
 
       // Simulate missing weak assets.
-      unsoundSdkSummaryPath = _dartUnsoundSdkSummaryPath(sdkDirectory);
-      unsoundSdkFullDillPath = _dartUnsoundSdkFullDillPath(sdkDirectory);
-      unsoundSdkJsPath = _dartUnsoundSdkJsPath(sdkDirectory);
-      unsoundSdkJsMapPath = _dartUnsoundSdkJsMapPath(sdkDirectory);
+      weakSdkSummaryPath = _weakSdkSummaryPath(sdkDirectory);
+      weakSdkFullDillPath = _weakSdkFullDillPath(sdkDirectory);
+      weakSdkJsPath = _weakSdkJsPath(sdkDirectory);
+      weakSdkJsMapPath = _weakSdkJsMapPath(sdkDirectory);
 
-      _deleteIfExists(unsoundSdkSummaryPath);
-      _deleteIfExists(unsoundSdkFullDillPath);
-      _deleteIfExists(unsoundSdkJsPath);
-      _deleteIfExists(unsoundSdkJsMapPath);
+      _deleteIfExists(weakSdkSummaryPath);
+      _deleteIfExists(weakSdkFullDillPath);
+      _deleteIfExists(weakSdkJsPath);
+      _deleteIfExists(weakSdkJsMapPath);
     });
 
     tearDown(() {
@@ -91,10 +91,10 @@ void main() {
       expect(sdkLayout.soundJsPath, equals(soundSdkJsPath));
       expect(sdkLayout.soundJsMapPath, equals(soundSdkJsMapPath));
 
-      expect(sdkLayout.weakSummaryPath, equals(unsoundSdkSummaryPath));
-      expect(sdkLayout.weakFullDillPath, equals(unsoundSdkFullDillPath));
-      expect(sdkLayout.weakJsPath, equals(unsoundSdkJsPath));
-      expect(sdkLayout.weakJsMapPath, equals(unsoundSdkJsMapPath));
+      expect(sdkLayout.weakSummaryPath, equals(weakSdkSummaryPath));
+      expect(sdkLayout.weakFullDillPath, equals(weakSdkFullDillPath));
+      expect(sdkLayout.weakJsPath, equals(weakSdkJsPath));
+      expect(sdkLayout.weakJsMapPath, equals(weakSdkJsMapPath));
 
       // Validate that configuration files exist.
       configuration.validateSdkDir();
@@ -114,28 +114,28 @@ void main() {
   });
 }
 
-String _dartUnsoundSdkSummaryPath(String sdkDir) =>
+String _weakSdkSummaryPath(String sdkDir) =>
     p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill');
 
-String _dartSoundSdkSummaryPath(String sdkDir) =>
+String _soundSdkSummaryPath(String sdkDir) =>
     p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill');
 
-String _dartUnsoundSdkFullDillPath(String sdkDir) =>
+String _weakSdkFullDillPath(String sdkDir) =>
     p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill');
 
-String _dartSoundSdkFullDillPath(String sdkDir) =>
+String _soundSdkFullDillPath(String sdkDir) =>
     p.join(sdkDir, 'lib', '_internal', 'ddc_platform_sound.dill');
 
-String _dartUnsoundSdkJsPath(String sdkDir) =>
+String _weakSdkJsPath(String sdkDir) =>
     p.join(sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'dart_sdk.js');
 
-String _dartSoundSdkJsPath(String sdkDir) =>
+String _soundSdkJsPath(String sdkDir) =>
     p.join(sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'dart_sdk_sound.js');
 
-String _dartUnsoundSdkJsMapPath(String sdkDir) =>
+String _weakSdkJsMapPath(String sdkDir) =>
     p.join(sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'dart_sdk.js.map');
 
-String _dartSoundSdkJsMapPath(String sdkDir) => p.join(
+String _soundSdkJsMapPath(String sdkDir) => p.join(
     sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'dart_sdk_sound.js.map');
 
 String _librariesPath(String sdkDir) => p.join(sdkDir, 'lib', 'libraries.json');

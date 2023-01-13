@@ -7,14 +7,16 @@ import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
-/// Generates sdk.js, sdk.map, and sdk summary files.
+/// Generates sdk.js, sdk.map, sdk full dill, and sdk summary files.
 ///
 /// Missing assets:
-/// mode\env | test (FE server) | test (build daemon) | test (webdev)
-/// -----------------------------------------------------------------
-/// strong   | js               |                     |
-/// weak     | js, summary      | summary             | summary (TODO)
-/// -----------------------------------------------------------------
+/// ___________________________________________________________________
+/// mode\env | test (FE server)   | test (build daemon) | test (webdev)
+/// ___________________________________________________________________
+/// sound    | js, map, full dill |                     |
+/// ___________________________________________________________________
+/// weak     | all                | all                 | all
+/// ___________________________________________________________________
 class SdkAssetGenerator {
   static bool _sdkAssetsGenerated = false;
   final _logger = Logger('SdkAssetGenerator');
@@ -90,12 +92,10 @@ class SdkAssetGenerator {
         'org-dartlang-sdk:///lib/libraries.json',
         '--modules',
         'amd',
-        // Sound full dill file is included in the SDK,
-        // we only create one for weak mode.
-        // This creates full dill file in '$fullDillPath'.
-        if (!hasFullDillAsset) '--summarize',
-        if (soundNullSafety) '--sound-null-safety',
-        if (!soundNullSafety) '--no-sound-null-safety',
+        if (soundNullSafety)
+          '--sound-null-safety'
+        else
+          '--no-sound-null-safety',
         'dart:core',
         '-o',
         jsPath,
@@ -172,8 +172,10 @@ class SdkAssetGenerator {
         '--source',
         'dart:core',
         '--summary-only',
-        if (soundNullSafety) '--sound-null-safety',
-        if (!soundNullSafety) '--no-sound-null-safety',
+        if (soundNullSafety)
+          '--sound-null-safety'
+        else
+          '--no-sound-null-safety',
         '--output',
         summaryPath,
         if (verboseCompiler) '--verbose',
@@ -212,16 +214,17 @@ class SdkAssetGenerator {
   }
 
   bool _exists(String path) => fileSystem.file(path).existsSync();
+  void _delete(String path) => fileSystem.file(path).deleteSync();
 
   Future<void> _moveAndValidate(String from, String to) async {
-    if (!_exists(to)) {
-      _logger.fine('Renaming $from to $to');
-      await fileSystem.file(from).rename(to);
+    _logger.fine('Renaming $from to $to');
 
-      if (!_exists(to)) {
-        _logger.severe('Failed to generate SDK asset at $to');
-        throw Exception('File does not exist.');
-      }
+    if (_exists(to)) _delete(to);
+    await fileSystem.file(from).rename(to);
+
+    if (!_exists(to)) {
+      _logger.severe('Failed to generate SDK asset at $to');
+      throw Exception('File does not exist.');
     }
   }
 }

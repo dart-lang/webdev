@@ -77,7 +77,7 @@ class _Compiler {
     final workerUri = sdkConfiguration.compilerWorkerUri!;
     final sdkSummaryUri = soundNullSafety
         ? sdkConfiguration.soundSdkSummaryUri!
-        : sdkConfiguration.unsoundSdkSummaryUri!;
+        : sdkConfiguration.weakSdkSummaryUri!;
 
     final args = [
       '--experimental-expression-compiler',

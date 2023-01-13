@@ -159,14 +159,14 @@ class SdkConfiguration {
       SdkConfiguration.fromSdkLayout(defaultSdkLayout);
 
   String? sdkDirectory;
-  String? unsoundSdkSummaryPath;
+  String? weakSdkSummaryPath;
   String? soundSdkSummaryPath;
   String? librariesPath;
   String? compilerWorkerPath;
 
   SdkConfiguration({
     this.sdkDirectory,
-    this.unsoundSdkSummaryPath,
+    this.weakSdkSummaryPath,
     this.soundSdkSummaryPath,
     this.librariesPath,
     this.compilerWorkerPath,
@@ -177,7 +177,7 @@ class SdkConfiguration {
   SdkConfiguration.fromSdkLayout(SdkLayout sdkLayout)
       : this(
           sdkDirectory: sdkLayout.sdkDirectory,
-          unsoundSdkSummaryPath: sdkLayout.weakSummaryPath,
+          weakSdkSummaryPath: sdkLayout.weakSummaryPath,
           soundSdkSummaryPath: sdkLayout.soundSummaryPath,
           librariesPath: sdkLayout.librariesPath,
           compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
@@ -189,7 +189,7 @@ class SdkConfiguration {
 
   Uri? get sdkDirectoryUri => _toUri(sdkDirectory);
   Uri? get soundSdkSummaryUri => _toUri(soundSdkSummaryPath);
-  Uri? get unsoundSdkSummaryUri => _toUri(unsoundSdkSummaryPath);
+  Uri? get weakSdkSummaryUri => _toUri(weakSdkSummaryPath);
   Uri? get librariesUri => _toUri(librariesPath);
 
   /// Note: has to be ///file: Uri to run in an isolate.
@@ -215,16 +215,16 @@ class SdkConfiguration {
   }
 
   void validateSummaries({FileSystem fileSystem = const LocalFileSystem()}) {
-    validateWeakSummaries(fileSystem: fileSystem);
+    validateSoundSummaries(fileSystem: fileSystem);
     validateWeakSummaries(fileSystem: fileSystem);
   }
 
   void validateWeakSummaries(
       {FileSystem fileSystem = const LocalFileSystem()}) {
-    if (unsoundSdkSummaryPath == null ||
-        !fileSystem.file(unsoundSdkSummaryPath).existsSync()) {
+    if (weakSdkSummaryPath == null ||
+        !fileSystem.file(weakSdkSummaryPath).existsSync()) {
       throw InvalidSdkConfigurationException(
-          'Sdk summary $unsoundSdkSummaryPath does not exist');
+          'Sdk summary $weakSdkSummaryPath does not exist');
     }
   }
 

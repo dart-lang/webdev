@@ -156,16 +156,16 @@ Future<T> retryFnAsync<T>(
   );
 }
 
-/// Implementation for SDK configuration for tests that can generate missing assets.
-/// Frontend server:
-///  - need to generate SDK js (normally included in flutter SDK).
-///  - need to generate SDK summary for weak null safety mode as it is not
-///    provided by the SDK installation.
-/// Build daemon:
-///  - need to generate the weak sdk summary before the build can generate
-///    SDK js.
-/// TODO(annagrin): update to only generate SDK JavaScript for frontend
-/// server after we have no uses of weak null safety.
+/// Implementation for SDK configuration for tests that can generate
+/// missing assets.
+///
+///  - Generate SDK js, source map, and full dill for weak and sound
+///    modes (normally included in flutter SDK or produced by build).
+///  - Need to generate SDK summary for weak null safety mode as it
+///    is not provided by the SDK installation.
+///
+/// TODO(annagrin): update to only generating missing sound artifacts
+/// for frontend server after we have no uses of weak null safety.
 class TestSdkConfigurationProvider extends SdkConfigurationProvider {
   final bool _verboseCompiler;
   SdkConfiguration? _configuration;
@@ -190,7 +190,7 @@ class TestSdkConfigurationProvider extends SdkConfigurationProvider {
     if (sdkLayout.soundSummaryPath != sdk.soundSdkSummaryPath) {
       throw StateError('Invalid asset path ${sdkLayout.soundSummaryPath}');
     }
-    if (sdkLayout.weakSummaryPath != sdk.unsoundSdkSummaryPath) {
+    if (sdkLayout.weakSummaryPath != sdk.weakSdkSummaryPath) {
       throw StateError('Invalid asset path ${sdkLayout.weakSummaryPath}');
     }
 
