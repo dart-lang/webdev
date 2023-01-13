@@ -5,19 +5,15 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dwds/dwds.dart';
-import 'package:dwds/src/utilities/sdk_asset_generator.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_process/test_process.dart';
 import 'package:webdev/src/util.dart';
 
 final _webdevBin = p.absolute(p.join('bin', 'webdev.dart'));
-final _sdkConfigurationProvider = TestSdkConfigurationProvider();
 
 Future<TestProcess> runWebDev(List<String> args,
     {String? workingDirectory}) async {
-  await _sdkConfigurationProvider.configuration;
   var fullArgs = [_webdevBin, ...args];
 
   return TestProcess.start(dartPath, fullArgs,
@@ -49,33 +45,4 @@ Map<String, String> getPubEnvironment() {
   var environment = {'PUB_ENVIRONMENT': pubEnvironment};
 
   return environment;
-}
-
-/// Implementation for SDK configuration for tests that
-/// can generate missing assets.
-class TestSdkConfigurationProvider extends SdkConfigurationProvider {
-  static final sdkLayout = SdkConfiguration.defaultSdkLayout;
-  static final sdkConfiguration = SdkConfiguration.defaultConfiguration;
-
-  SdkConfiguration? _configuration;
-
-  TestSdkConfigurationProvider();
-
-  @override
-  Future<SdkConfiguration> get configuration async =>
-      _configuration ??= await _create();
-
-  /// Generate missing assets in the default SDK layout.
-  Future<SdkConfiguration> _create() async {
-    final assetGenerator = SdkAssetGenerator(sdkLayout: sdkLayout);
-    if (sdkLayout.soundSummaryPath != sdkConfiguration.soundSdkSummaryPath) {
-      throw StateError('Invalid asset ${sdkLayout.soundSummaryPath}');
-    }
-    if (sdkLayout.weakSummaryPath != sdkConfiguration.weakSdkSummaryPath) {
-      throw StateError('Invalid asset ${sdkLayout.weakSummaryPath}');
-    }
-
-    await assetGenerator.generateSdkAssets();
-    return sdkConfiguration;
-  }
 }

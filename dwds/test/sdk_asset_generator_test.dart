@@ -7,12 +7,12 @@
 
 import 'dart:io';
 
-import 'package:dwds/src/utilities/sdk_asset_generator.dart';
 import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'fixtures/logging.dart';
+import 'fixtures/sdk_asset_generator.dart';
 
 void main() {
   group('SDK asset generator', () {

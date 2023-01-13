@@ -7,9 +7,10 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
-import 'package:dwds/src/utilities/sdk_asset_generator.dart';
 import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:path/path.dart' as p;
+
+import 'sdk_asset_generator.dart';
 
 const webdevDirName = 'webdev';
 const dwdsDirName = 'dwds';

@@ -9,14 +9,9 @@ import 'package:path/path.dart' as p;
 
 /// Generates sdk.js, sdk.map, sdk full dill, and sdk summary files.
 ///
-/// Missing assets:
-/// ___________________________________________________________________
-/// mode\env | test (FE server)   | test (build daemon) | test (webdev)
-/// ___________________________________________________________________
-/// sound    | js, map, full dill |                     |
-/// ___________________________________________________________________
-/// weak     | all                | all                 | all
-/// ___________________________________________________________________
+/// Generates following missing assets if needed:
+/// - sound null safety: js, source map, full dill.
+/// - weak null safety: js, source map, full dill, summary.
 class SdkAssetGenerator {
   static bool _sdkAssetsGenerated = false;
   final _logger = Logger('SdkAssetGenerator');
