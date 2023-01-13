@@ -81,11 +81,12 @@ class SdkAssetGenerator {
 
       _logger.info('Generating js and full dill SDK files...');
 
+      final sdkDirectoryUri = fileSystem.directory(sdkLayout.sdkDirectory).uri;
       final args = <String>[
         sdkLayout.dartdevcSnapshotPath,
         '--compile-sdk',
         '--multi-root',
-        sdkLayout.sdkDirectory,
+        '$sdkDirectoryUri',
         '--multi-root-scheme',
         'org-dartlang-sdk',
         '--libraries-file',
@@ -101,6 +102,7 @@ class SdkAssetGenerator {
         jsPath,
       ];
 
+      final output = <String>[];
       _logger.fine('Executing dart ${args.join(' ')}');
       final process = await Process.start(Platform.resolvedExecutable, args,
           workingDirectory: sdkLayout.sdkDirectory);
@@ -108,17 +110,23 @@ class SdkAssetGenerator {
       process.stdout
           .transform<String>(utf8.decoder)
           .transform<String>(const LineSplitter())
-          .listen(_logger.fine);
+          .listen((line) {
+        _logger.fine(line);
+        output.add(line);
+      });
 
       process.stderr
           .transform<String>(utf8.decoder)
           .transform<String>(const LineSplitter())
-          .listen(_logger.warning);
+          .listen((line) {
+        _logger.warning(line);
+        output.add(line);
+      });
 
       await process.exitCode.then((int code) {
         if (code != 0) {
-          throw Exception('The Dart compiler exited unexpectedly '
-              'while generating $jsPath');
+          _logger.warning('Error generating $jsPath: ${output.join('\n')}');
+          throw Exception('The Dart compiler exited unexpectedly');
         }
       });
 
@@ -159,12 +167,13 @@ class SdkAssetGenerator {
 
       _logger.info('Generating SDK summary files...');
 
+      final sdkDirectoryUri = fileSystem.directory(sdkLayout.sdkDirectory).uri;
       final args = <String>[
         sdkLayout.kernelWorkerSnapshotPath,
         '--target',
         'ddc',
         '--multi-root',
-        sdkLayout.sdkDirectory,
+        '$sdkDirectoryUri',
         '--multi-root-scheme',
         'org-dartlang-sdk',
         '--libraries-file',
@@ -185,20 +194,28 @@ class SdkAssetGenerator {
       final process = await Process.start(Platform.resolvedExecutable, args,
           workingDirectory: sdkLayout.sdkDirectory);
 
+      final output = <String>[];
       process.stdout
           .transform<String>(utf8.decoder)
           .transform<String>(const LineSplitter())
-          .listen(_logger.fine);
+          .listen((line) {
+        _logger.fine(line);
+        output.add(line);
+      });
 
       process.stderr
           .transform<String>(utf8.decoder)
           .transform<String>(const LineSplitter())
-          .listen(_logger.warning);
+          .listen((line) {
+        _logger.warning(line);
+        output.add(line);
+      });
 
       await process.exitCode.then((int code) {
         if (code != 0) {
-          throw Exception('The Dart kernel worker exited unexpectedly '
-              'while generating $summaryPath');
+          _logger
+              .warning('Error generating $summaryPath: ${output.join('\n')}');
+          throw Exception('The Dart kernel worker exited unexpectedly');
         }
       });
 
