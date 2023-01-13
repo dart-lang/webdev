@@ -39,6 +39,8 @@ const showClass = 'show';
 const warningBannerId = 'warningBanner';
 const warningMsgId = 'warningMsg';
 
+int get _tabId => chrome.devtools.inspectedWindow.tabId;
+
 void main() {
   _registerListeners();
   _setColorThemeToMatchChromeDevTools();
@@ -46,31 +48,18 @@ void main() {
 }
 
 void _registerListeners() {
-  chrome.storage.onChanged.addListener(allowInterop(_handleDebugInfoChanges));
+  chrome.storage.onChanged.addListener(allowInterop(_handleStorageChanges));
   chrome.runtime.onMessage.addListener(allowInterop(_handleRuntimeMessages));
   final launchDebugConnectionButton =
       document.getElementById(launchDebugConnectionButtonId) as ButtonElement;
   launchDebugConnectionButton.addEventListener('click', _launchDebugConnection);
+
+  _maybeInjectDevToolsIframe();
 }
 
 void _handleRuntimeMessages(
     dynamic jsRequest, MessageSender sender, Function sendResponse) async {
   if (jsRequest is! String) return;
-  final tabId = chrome.devtools.inspectedWindow.tabId;
-  interceptMessage<DevToolsUrl>(
-      message: jsRequest,
-      expectedType: MessageType.devToolsUrl,
-      expectedSender: Script.background,
-      expectedRecipient: Script.debuggerPanel,
-      messageHandler: (DevToolsUrl devToolsUrl) async {
-        if (devToolsUrl.tabId != tabId) {
-          debugWarn(
-              'Received DevTools URL, but Dart app tab does not match current tab.');
-          return;
-        }
-        connecting = false;
-        _injectDevToolsIframe(devToolsUrl.url);
-      });
 
   interceptMessage<DebugStateChange>(
       message: jsRequest,
@@ -78,7 +67,7 @@ void _handleRuntimeMessages(
       expectedSender: Script.background,
       expectedRecipient: Script.debuggerPanel,
       messageHandler: (DebugStateChange debugStateChange) async {
-        if (debugStateChange.tabId != tabId) {
+        if (debugStateChange.tabId != _tabId) {
           debugWarn(
               'Received debug state change request, but Dart app tab does not match current tab.');
           return;
@@ -95,8 +84,8 @@ void _handleRuntimeMessages(
       expectedRecipient: Script.debuggerPanel,
       messageHandler: (ConnectFailure connectFailure) async {
         debugLog(
-            'Received connect failure for ${connectFailure.tabId} vs $tabId');
-        if (connectFailure.tabId != tabId) {
+            'Received connect failure for ${connectFailure.tabId} vs $_tabId');
+        if (connectFailure.tabId != _tabId) {
           return;
         }
         connecting = false;
@@ -106,12 +95,25 @@ void _handleRuntimeMessages(
       });
 }
 
-void _handleDebugInfoChanges(Object _, String storageArea) async {
+void _handleStorageChanges(Object storageObj, String storageArea) {
+  // We only care about session storage objects:
   if (storageArea != 'session') return;
-  final debugInfo = await fetchStorageObject<DebugInfo>(
-    type: StorageObject.debugInfo,
-    tabId: chrome.devtools.inspectedWindow.tabId,
+
+  interceptStorageChange<DebugInfo>(
+    storageObj: storageObj,
+    expectedType: StorageObject.debugInfo,
+    tabId: _tabId,
+    changeHandler: _handleDebugInfoChanges,
   );
+  interceptStorageChange<String>(
+    storageObj: storageObj,
+    expectedType: StorageObject.devToolsUri,
+    tabId: _tabId,
+    changeHandler: _handleDevToolsUriChanges,
+  );
+}
+
+void _handleDebugInfoChanges(DebugInfo? debugInfo) async {
   if (debugInfo == null && isDartApp) {
     isDartApp = false;
     _showWarningBanner('Dart app is no longer open.');
@@ -122,10 +124,16 @@ void _handleDebugInfoChanges(Object _, String storageArea) async {
   }
 }
 
+void _handleDevToolsUriChanges(String? devToolsUri) async {
+  if (devToolsUri != null) {
+    _injectDevToolsIframe(devToolsUri);
+  }
+}
+
 void _maybeUpdateFileABugLink() async {
   final debugInfo = await fetchStorageObject<DebugInfo>(
     type: StorageObject.debugInfo,
-    tabId: chrome.devtools.inspectedWindow.tabId,
+    tabId: _tabId,
   );
   final isInternal = debugInfo?.isInternalBuild ?? false;
   if (isInternal) {
@@ -204,9 +212,8 @@ void _hideWarningBanner() {
 void _launchDebugConnection(Event _) async {
   _updateElementVisibility(launchDebugConnectionButtonId, visible: false);
   _updateElementVisibility(loadingSpinnerId, visible: true);
-  final dartAppTabId = chrome.devtools.inspectedWindow.tabId;
   final json = jsonEncode(serializers.serialize(DebugStateChange((b) => b
-    ..tabId = dartAppTabId
+    ..tabId = _tabId
     ..newState = DebugStateChange.startDebugging)));
   sendRuntimeMessage(
       type: MessageType.debugStateChange,
@@ -224,7 +231,16 @@ void _maybeHandleConnectionTimeout() async {
   }
 }
 
-void _injectDevToolsIframe(String devToolsUrl) {
+void _maybeInjectDevToolsIframe() async {
+  final devToolsUri = await fetchStorageObject<String>(
+      type: StorageObject.devToolsUri, tabId: _tabId);
+  if (devToolsUri != null) {
+    _injectDevToolsIframe(devToolsUri);
+  }
+}
+
+void _injectDevToolsIframe(String devToolsUri) {
+  connecting = false;
   final iframeContainer = document.getElementById(iframeContainerId);
   if (iframeContainer == null) return;
   final panelBody = document.getElementById(panelBodyId);
@@ -232,7 +248,7 @@ void _injectDevToolsIframe(String devToolsUrl) {
   final iframe = document.createElement('iframe');
   iframe.setAttribute(
     'src',
-    '$devToolsUrl&embed=true&page=$panelType&backgroundColor=$devToolsBackgroundColor',
+    '$devToolsUri&embed=true&page=$panelType&backgroundColor=$devToolsBackgroundColor',
   );
   _hideWarningBanner();
   _updateElementVisibility(landingPageId, visible: false);

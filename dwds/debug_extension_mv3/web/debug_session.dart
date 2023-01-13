@@ -294,9 +294,9 @@ void _forwardChromeDebuggerEventToDwds(
   }
 }
 
-void _openDevTools(String devToolsUrl, {required int dartAppTabId}) async {
-  if (devToolsUrl.isEmpty) {
-    debugError('DevTools URL is empty.');
+void _openDevTools(String devToolsUri, {required int dartAppTabId}) async {
+  if (devToolsUri.isEmpty) {
+    debugError('DevTools URI is empty.');
     return;
   }
   final debugSession = _debugSessionForTab(dartAppTabId, type: TabType.dartApp);
@@ -304,8 +304,12 @@ void _openDevTools(String devToolsUrl, {required int dartAppTabId}) async {
     debugError('Debug session not found.');
     return;
   }
-  // Send the DevTools URL to the extension panels:
-  _sendDevToolsUrlMessage(devToolsUrl, dartAppTabId: dartAppTabId);
+  // Save the DevTools URI so that the extension panels have access to it:
+  await setStorageObject(
+    type: StorageObject.devToolsUri,
+    value: devToolsUri,
+    tabId: dartAppTabId,
+  );
   // Open a separate tab / window if triggered through the extension icon or
   // through AngularDart DevTools:
   if (debugSession.trigger == Trigger.extensionIcon ||
@@ -313,7 +317,7 @@ void _openDevTools(String devToolsUrl, {required int dartAppTabId}) async {
     final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
         type: StorageObject.devToolsOpener);
     final devToolsTab = await createTab(
-      devToolsUrl,
+      devToolsUri,
       inNewWindow: devToolsOpener?.newWindow ?? false,
     );
     debugSession.devToolsTabId = devToolsTab.id;
@@ -321,17 +325,21 @@ void _openDevTools(String devToolsUrl, {required int dartAppTabId}) async {
 }
 
 void _handleDebuggerDetach(Debuggee source, DetachReason reason) async {
+  final tabId = source.tabId;
   debugLog(
     'Debugger detached due to: $reason',
     verbose: true,
-    prefix: '${source.tabId}',
+    prefix: '$tabId',
   );
-  final debugSession = _debugSessionForTab(source.tabId, type: TabType.dartApp);
+  final debugSession = _debugSessionForTab(tabId, type: TabType.dartApp);
   if (debugSession == null) return;
   debugLog('Removing debug session...');
   _removeDebugSession(debugSession);
   // Notify the extension panels that the debug session has ended:
   _sendStopDebuggingMessage(reason, dartAppTabId: source.tabId);
+  // Remove the DevTools URI and encoded URI from storage:
+  await removeStorageObject(type: StorageObject.devToolsUri, tabId: tabId);
+  await removeStorageObject(type: StorageObject.encodedUri, tabId: tabId);
   // Maybe close the associated DevTools tab as well:
   final devToolsTabId = debugSession.devToolsTabId;
   if (devToolsTabId == null) return;
@@ -365,24 +373,6 @@ void sendConnectFailureMessage(ConnectFailureReason reason,
     ..reason = reason.name)));
   sendRuntimeMessage(
       type: MessageType.connectFailure,
-      body: json,
-      sender: Script.background,
-      recipient: Script.debuggerPanel);
-}
-
-void _sendDevToolsUrlMessage(String devToolsUrl,
-    {required int dartAppTabId}) async {
-  await setStorageObject<String>(
-    type: StorageObject.devToolsUrl,
-    value: devToolsUrl,
-    tabId: dartAppTabId,
-  );
-  
-  final json = jsonEncode(serializers.serialize(DevToolsUrl((b) => b
-    ..tabId = dartAppTabId
-    ..url = devToolsUrl)));
-  sendRuntimeMessage(
-      type: MessageType.devToolsUrl,
       body: json,
       sender: Script.background,
       recipient: Script.debuggerPanel);
