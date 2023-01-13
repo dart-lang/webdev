@@ -77,10 +77,13 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
       debugWarn('Does not exist.', prefix: storageKey);
       completer.complete(null);
     } else {
-      final value =
-          (T is String ? json : serializers.deserialize(jsonDecode(json))) as T;
       debugLog('Fetched: $json', prefix: storageKey);
-      completer.complete(value);
+      if (T == String) {
+        completer.complete(json as T);
+      } else {
+        final value = serializers.deserialize(jsonDecode(json)) as T;
+        completer.complete(value);
+      }
     }
   }));
   return completer.future;

@@ -247,6 +247,13 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
     if (message.method == 'dwds.devtoolsUri') {
       _openDevTools(message.params, dartAppTabId: tabId);
     }
+    if (message.method == 'dwds.encodedUri') {
+      setStorageObject(
+        type: StorageObject.encodedUri,
+        value: message.params,
+        tabId: tabId,
+      );
+    }
   }
 }
 

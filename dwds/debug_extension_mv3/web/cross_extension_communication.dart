@@ -8,7 +8,6 @@ library cross_extension_communication;
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'data_types.dart';
 import 'debug_session.dart';
 import 'logger.dart';
 import 'storage.dart';
