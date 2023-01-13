@@ -85,7 +85,7 @@ void _respondWithChromeResult(Object? chromeResult, Function sendResponse) {
 }
 
 void _respondWithEncodedUri(int tabId, Function sendResponse) async {
-  final encodedUri = await fetchStorageObject<EncodedUri>(
+  final encodedUri = await fetchStorageObject<String>(
       type: StorageObject.encodedUri, tabId: tabId);
   sendResponse(encodedUri ?? '');
 }

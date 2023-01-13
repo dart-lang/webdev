@@ -365,6 +365,12 @@ void sendConnectFailureMessage(ConnectFailureReason reason,
 
 void _sendDevToolsUrlMessage(String devToolsUrl,
     {required int dartAppTabId}) async {
+  await setStorageObject<String>(
+    type: StorageObject.devToolsUrl,
+    value: devToolsUrl,
+    tabId: dartAppTabId,
+  );
+  
   final json = jsonEncode(serializers.serialize(DevToolsUrl((b) => b
     ..tabId = dartAppTabId
     ..url = devToolsUrl)));
