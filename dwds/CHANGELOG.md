@@ -27,6 +27,8 @@
 - Include an optional param to `Dwds.start` to indicate whether it a Flutter app
   or not.
 - Remove deprecated `ChromeProxyService.setExceptionPauseMode()`.
+- Replace `SdkConfiguration.unsoundSdkSummaryPath` by 
+  `SdkConfiguration.weakSdkSummaryPath`.
 
 ## 16.0.1
 
