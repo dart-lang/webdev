@@ -49,7 +49,7 @@ Future<bool> setStorageObject<T>({
   final storageKey = _createStorageKey(type, tabId);
   final json =
       value is String ? value : jsonEncode(serializers.serialize(value));
-  final storageObj = <String, String>{storageKey: json, 'type': type.name};
+  final storageObj = <String, String>{storageKey: json};
   final completer = Completer<bool>();
   final storageArea = _getStorageArea(type.persistance);
   storageArea.set(jsify(storageObj), allowInterop(() {
@@ -100,11 +100,6 @@ Future<bool> removeStorageObject<T>({required StorageObject type, int? tabId}) {
   return completer.future;
 }
 
-StorageObject storageObjectType(Object object) {
-  final type = getProperty(object, 'type');
-  return StorageObject.values.byName(type);
-}
-
 void interceptStorageChange<T>({
   required Object storageObj,
   required StorageObject expectedType,
@@ -112,19 +107,19 @@ void interceptStorageChange<T>({
   int? tabId,
 }) {
   try {
-    final typeProp = getProperty(storageObj, 'type');
-    final objType = StorageObject.values.byName(typeProp);
-    if (objType != expectedType) return;
+    final expectedStorageKey = _createStorageKey(expectedType, tabId);
+    final isExpected = hasProperty(storageObj, expectedStorageKey);
+    if (!isExpected) return;
 
-    final storageKey = _createStorageKey(objType, tabId);
-    final json = getProperty(storageObj, storageKey) as String?;
+    final objProp = getProperty(storageObj, expectedStorageKey);
+    final json = getProperty(objProp, 'newValue') as String?;
     T? decodedObj;
     if (json == null || T == String) {
       decodedObj = json as T?;
     } else {
       decodedObj = serializers.deserialize(jsonDecode(json)) as T?;
     }
-    debugLog('Intercepted $storageKey change: $json');
+    debugLog('Intercepted $expectedStorageKey change: $json');
     return changeHandler(decodedObj);
   } catch (error) {
     debugError(
