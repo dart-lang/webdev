@@ -14,6 +14,7 @@ import 'package:test/test.dart';
 
 import 'fixtures/logging.dart';
 import 'fixtures/fakes.dart';
+import 'fixtures/utilities.dart';
 
 class TestStrategy extends FakeStrategy {
   @override
@@ -83,7 +84,7 @@ void main() {
     group('initialized with current SDK directory', () {
       setUpAll(() async {
         final sdkConfiguration =
-            await DefaultSdkConfigurationProvider().configuration;
+            await TestSdkConfigurationProvider().configuration;
         await DartUri.initialize(sdkConfiguration);
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });

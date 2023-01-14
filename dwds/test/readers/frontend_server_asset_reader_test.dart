@@ -10,9 +10,7 @@ import 'package:dwds/src/readers/frontend_server_asset_reader.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import '../fixtures/context.dart';
 import '../fixtures/utilities.dart';
-import '../utils/version_compatibility.dart';
 
 final packagesDir = absolutePath(pathFromFixtures: '_test');
 
@@ -112,11 +110,5 @@ void main() {
         expect(newResult, isNotNull);
       });
     });
-    // TODO(https://github.com/dart-lang/webdev/issues/1818): Re-enable. Not sure
-    // why this is passing locally but failing during CI tests.
-  },
-      skip: !supportedMode(
-        compilationMode: CompilationMode.frontendServer,
-        nullSafetyMode: NullSafety.weak,
-      ));
+  });
 }

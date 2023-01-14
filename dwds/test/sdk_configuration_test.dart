@@ -56,13 +56,13 @@ void main() {
       File(defaultSdkConfiguration.librariesPath!).copySync(librariesPath);
 
       final summariesDir = p.join(sdkDirectory, 'summaries');
-      final unsoundSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
+      final weakSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
       final soundSdkSummaryPath =
           p.join(summariesDir, 'ddc_outline_sound.dill');
 
       Directory(summariesDir).createSync(recursive: true);
-      File(defaultSdkConfiguration.unsoundSdkSummaryPath!)
-          .copySync(unsoundSdkSummaryPath);
+      File(defaultSdkConfiguration.weakSdkSummaryPath!)
+          .copySync(weakSdkSummaryPath);
       File(defaultSdkConfiguration.soundSdkSummaryPath!)
           .copySync(soundSdkSummaryPath);
 
@@ -76,14 +76,13 @@ void main() {
       final sdkConfiguration = SdkConfiguration(
         sdkDirectory: sdkDirectory,
         soundSdkSummaryPath: soundSdkSummaryPath,
-        unsoundSdkSummaryPath: unsoundSdkSummaryPath,
+        weakSdkSummaryPath: weakSdkSummaryPath,
         librariesPath: librariesPath,
         compilerWorkerPath: compilerWorkerPath,
       );
 
       expect(sdkConfiguration.sdkDirectory, equals(sdkDirectory));
-      expect(sdkConfiguration.unsoundSdkSummaryPath,
-          equals(unsoundSdkSummaryPath));
+      expect(sdkConfiguration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
       expect(sdkConfiguration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
       expect(sdkConfiguration.librariesPath, equals(librariesPath));
       expect(sdkConfiguration.compilerWorkerPath, equals(compilerWorkerPath));
@@ -97,7 +96,7 @@ void main() {
       final librariesDir = p.join(sdkDir, 'fakespecs');
       final librariesPath = p.join(librariesDir, 'libraries.json');
       final summariesDir = p.join(sdkDir, 'fakesummaries');
-      final unsoundSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
+      final weakSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
       final soundSdkSummaryPath =
           p.join(summariesDir, 'ddc_outline_sound.dill');
       final workerDir = p.join(sdkDir, 'fakesnapshots');
@@ -106,7 +105,7 @@ void main() {
       final sdkConfiguration = SdkConfiguration(
         sdkDirectory: sdkDir,
         soundSdkSummaryPath: soundSdkSummaryPath,
-        unsoundSdkSummaryPath: unsoundSdkSummaryPath,
+        weakSdkSummaryPath: weakSdkSummaryPath,
         librariesPath: librariesPath,
         compilerWorkerPath: compilerWorkerPath,
       );
@@ -121,8 +120,8 @@ void main() {
 
     final root = '/root';
     final sdkDirectory = root;
-    final soundSdkSummaryPath = _dartSoundSdkSummaryPath(sdkDirectory);
-    final unsoundSdkSummaryPath = _dartUnsoundSdkSummaryPath(sdkDirectory);
+    final soundSdkSummaryPath = _soundSdkSummaryPath(sdkDirectory);
+    final weakSdkSummaryPath = _weakSdkSummaryPath(sdkDirectory);
     final librariesPath = _librariesPath(sdkDirectory);
     final compilerWorkerPath = _compilerWorkerPath(root);
 
@@ -130,7 +129,7 @@ void main() {
       fs = MemoryFileSystem();
       await fs.directory(sdkDirectory).create(recursive: true);
       await fs.file(soundSdkSummaryPath).create(recursive: true);
-      await fs.file(unsoundSdkSummaryPath).create(recursive: true);
+      await fs.file(weakSdkSummaryPath).create(recursive: true);
       await fs.file(librariesPath).create(recursive: true);
       await fs.file(compilerWorkerPath).create(recursive: true);
     });
@@ -139,15 +138,14 @@ void main() {
       final configuration = SdkConfiguration(
         sdkDirectory: sdkDirectory,
         soundSdkSummaryPath: soundSdkSummaryPath,
-        unsoundSdkSummaryPath: unsoundSdkSummaryPath,
+        weakSdkSummaryPath: weakSdkSummaryPath,
         librariesPath: librariesPath,
         compilerWorkerPath: compilerWorkerPath,
       );
 
       expect(configuration.sdkDirectory, equals(sdkDirectory));
       expect(configuration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
-      expect(
-          configuration.unsoundSdkSummaryPath, equals(unsoundSdkSummaryPath));
+      expect(configuration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
       expect(configuration.librariesPath, equals(librariesPath));
       expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
@@ -157,10 +155,10 @@ void main() {
   });
 }
 
-String _dartUnsoundSdkSummaryPath(String sdkDir) =>
+String _weakSdkSummaryPath(String sdkDir) =>
     p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill');
 
-String _dartSoundSdkSummaryPath(String sdkDir) =>
+String _soundSdkSummaryPath(String sdkDir) =>
     p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill');
 
 String _librariesPath(String sdkDir) => p.join(sdkDir, 'lib', 'libraries.json');
