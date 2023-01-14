@@ -21,7 +21,6 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:dwds/src/utilities/shared.dart';
 import 'package:file/local.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
@@ -195,21 +194,16 @@ class TestContext {
     CompilationMode compilationMode = CompilationMode.buildDaemon,
     bool enableExpressionEvaluation = false,
     bool verboseCompiler = false,
-    SdkConfigurationProvider? sdkConfigurationProvider,
     bool useDebuggerModuleNames = false,
     bool launchChrome = true,
     bool isFlutterApp = false,
     bool isInternalBuild = false,
   }) async {
-    // TODO(https://github.com/dart-lang/webdev/issues/1591): Support compiling
-    // with sound null-safety in Frontend Server.
-    if (compilationMode == CompilationMode.frontendServer &&
-        nullSafety == NullSafety.sound) {
-      throw Exception(
-          'Frontend Server compilation does not support sound null-safety. See https://github.com/dart-lang/webdev/issues/1591');
-    }
-
-    sdkConfigurationProvider ??= DefaultSdkConfigurationProvider();
+    // Generate missing SDK assets if needed.
+    final sdkConfigurationProvider =
+        TestSdkConfigurationProvider(verboseCompiler: verboseCompiler);
+    final configuration = await sdkConfigurationProvider.configuration;
+    configuration.validate();
 
     try {
       DartUri.currentDirectory = workingDirectory;
@@ -413,6 +407,7 @@ class TestContext {
         ddcService,
         isFlutterApp,
         isInternalBuild,
+        sdkConfigurationProvider,
       );
 
       _appUrl = basePath.isEmpty

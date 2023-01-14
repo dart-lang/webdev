@@ -12,7 +12,6 @@ import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
 import 'evaluate_circular_common.dart';
-import 'utils/version_compatibility.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
@@ -39,15 +38,8 @@ void main() async {
               skip:
                   // https://github.com/dart-lang/sdk/issues/49277
                   indexBaseMode == IndexBaseMode.base && Platform.isWindows ||
-                      // https://github.com/dart-lang/webdev/issues/1591);
-                      nullSafety == NullSafety.sound ||
                       // Needs debugger module names change in the SDK to work.
-                      !debuggerModuleNamesSupported ||
-                      // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
-                      !supportedMode(
-                        compilationMode: CompilationMode.frontendServer,
-                        nullSafetyMode: nullSafety,
-                      ));
+                      !debuggerModuleNamesSupported);
         }
       });
     }
