@@ -311,6 +311,9 @@ void main() async {
               serveDevTools: true,
               isInternalBuild: true,
               isFlutterApp: isFlutterApp,
+              // TODO(elliette): Figure out if there is a way to close and then
+              // re-open Chrome DevTools. That way we can test that a debug
+              // session lasts across Chrome DevTools being opened and closed.
               openChromeDevTools: true,
             );
 
