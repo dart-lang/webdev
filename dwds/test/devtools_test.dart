@@ -44,7 +44,8 @@ void main() {
       await context.webDriver.driver.switchTo.window(windows.last);
       expect(await context.webDriver.title, equals('Dart DevTools'));
       expect(await context.webDriver.currentUrl, contains('ide=Dwds'));
-    });
+      // TODO(https://github.com/dart-lang/webdev/issues/1888): Re-enable.
+    }, skip: Platform.isWindows);
 
     test('can not launch devtools for the same app in multiple tabs', () async {
       final appUrl = await context.webDriver.currentUrl;
