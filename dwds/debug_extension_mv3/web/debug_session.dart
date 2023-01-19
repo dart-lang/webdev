@@ -80,18 +80,6 @@ enum Trigger {
   extensionIcon,
 }
 
-enum DevToolsLocation {
-  chromeDevTools,
-  chromeTab,
-}
-
-DevToolsLocation? devToolsLocation(int dartAppTabId) {
-  final debugSession = _debugSessionForTab(dartAppTabId, type: TabType.dartApp);
-  if (debugSession == null) return null;
-  if (debugSession.devToolsTabId != null) return DevToolsLocation.chromeTab;
-  return DevToolsLocation.chromeDevTools;
-}
-
 void attachDebugger(int dartAppTabId, {required Trigger trigger}) {
   _tabIdToTrigger[dartAppTabId] = trigger;
   _registerDebugEventListeners();
@@ -166,17 +154,11 @@ String _translateChromeError(String chromeErrorMessage) {
 
 Future<void> _onDebuggerEvent(
     Debuggee source, String method, Object? params) async {
-  final tabId = source.tabId;
   maybeForwardMessageToAngularDartDevTools(
-    method: method,
-    params: params,
-    tabId: tabId,
-  );
+      method: method, params: params, tabId: source.tabId);
 
   if (method == 'Runtime.executionContextCreated') {
-    if (devToolsLocation(tabId) == null) {
-      return _maybeConnectToDwds(source.tabId, params);
-    }
+    return _maybeConnectToDwds(source.tabId, params);
   }
 
   return _forwardChromeDebuggerEventToDwds(source, method, params);
@@ -277,33 +259,26 @@ void _routeDwdsEvent(String eventData, SocketClient client, int tabId) {
 
 void _forwardDwdsEventToChromeDebugger(
     ExtensionRequest message, SocketClient client, int tabId) {
-  try {
-    final messageParams = message.commandParams;
-    final params = messageParams == null
-        ? <String, Object>{}
-        : BuiltMap<String, Object>(json.decode(messageParams)).toMap();
-    chrome.debugger.sendCommand(
-        Debuggee(tabId: tabId), message.command, js_util.jsify(params),
-        allowInterop(([e]) {
-      // No arguments indicate that an error occurred.
-      if (e == null) {
-        client.sink
-            .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
-              ..id = message.id
-              ..success = false
-              ..result = JSON.stringify(chrome.runtime.lastError)))));
-      } else {
-        client.sink
-            .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
-              ..id = message.id
-              ..success = true
-              ..result = JSON.stringify(e)))));
-      }
-    }));
-  } catch (error) {
-    debugError(
-        'Error forwarding ${message.command} with ${message.commandParams} to chrome.debugger: $error');
-  }
+  final messageParams = message.commandParams ?? '{}';
+  final params = BuiltMap<String, Object>(json.decode(messageParams)).toMap();
+  chrome.debugger.sendCommand(
+      Debuggee(tabId: tabId), message.command, js_util.jsify(params),
+      allowInterop(([e]) {
+    // No arguments indicate that an error occurred.
+    if (e == null) {
+      client.sink
+          .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
+            ..id = message.id
+            ..success = false
+            ..result = JSON.stringify(chrome.runtime.lastError)))));
+    } else {
+      client.sink
+          .add(jsonEncode(serializers.serialize(ExtensionResponse((b) => b
+            ..id = message.id
+            ..success = true
+            ..result = JSON.stringify(e)))));
+    }
+  }));
 }
 
 void _forwardChromeDebuggerEventToDwds(
@@ -500,19 +475,11 @@ class _DebugSession {
   }
 
   void sendEvent<T>(T event) {
-    try {
-      _socketClient.sink.add(jsonEncode(serializers.serialize(event)));
-    } catch (error) {
-      debugError('Error sending event $event: $error');
-    }
+    _socketClient.sink.add(jsonEncode(serializers.serialize(event)));
   }
 
   void sendBatchedEvent(ExtensionEvent event) {
-    try {
-      _batchController.sink.add(event);
-    } catch (error) {
-      debugError('Error sending batched event $event: $error');
-    }
+    _batchController.sink.add(event);
   }
 
   void close() {

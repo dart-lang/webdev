@@ -89,8 +89,8 @@ void interceptMessage<T>({
         decodedMessage.from != expectedSender) {
       return;
     }
-    if (T is String) {
-      messageHandler(message as T);
+    if (T == String) {
+      messageHandler(decodedMessage.body as T);
     } else {
       messageHandler(
           serializers.deserialize(jsonDecode(decodedMessage.body)) as T);

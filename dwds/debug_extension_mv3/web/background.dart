@@ -65,15 +65,6 @@ Future<void> _handleStartDebuggingRequest(
   int tabId, {
   required Trigger trigger,
 }) async {
-  // Check if Dart DevTools is already opened:
-  final existingDevToolsLocation = devToolsLocation(tabId);
-  if (existingDevToolsLocation != null) {
-    final location = existingDevToolsLocation == DevToolsLocation.chromeDevTools
-        ? 'Chrome DevTools'
-        : 'a separate tab';
-    return _showWarningNotification('DevTools is already opened in $location.');
-  }
-
   // Note: This is a workaround for b/26295128. We authenticate the user from
   // the Dart app, and not from the service worker:
   _debugTrigger = trigger;

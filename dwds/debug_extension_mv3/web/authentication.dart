@@ -9,7 +9,8 @@ import 'web_api.dart';
 import 'messaging.dart';
 
 const _authSuccessResponse = 'Dart Debug Authentication Success!';
-const _authPopUpMessage = 'Authentication required.\n\nClick OK to authenticate then try again.';
+const _authPopUpMessage =
+    'Authentication required.\n\nClick OK to authenticate then try again.';
 const _authPageTitle = 'Dart Debug Extension Authentication';
 
 void main() async {
@@ -39,9 +40,9 @@ Future<void> _authenticateUser(String authUrl) async {
 
 void _sendIsAuthenticatedMsg(bool isAuthenticated) {
   sendRuntimeMessage(
-    type: MessageType.isAuthenticated, 
-    body: '$isAuthenticated', 
-    sender: Script.authentication, 
+    type: MessageType.isAuthenticated,
+    body: '$isAuthenticated',
+    sender: Script.authentication,
     recipient: Script.background,
   );
 }
