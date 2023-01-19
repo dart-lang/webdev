@@ -24,23 +24,25 @@ void _registerListeners() {
 void _onDartAppReadyEvent(Event event) {
   final debugInfo = getProperty(event, 'detail') as String?;
   if (debugInfo == null) {
+    // TODO(elliette): Remove once DWDS 17.0.0 is in Flutter stable. If we are
+    // on an older version of DWDS, then the debug info is not sent along with
+    // the ready event. Therefore we must read it from the Window object, which
+    // is slower.
     debugWarn(
         'No debug info sent with ready event, instead reading from Window.');
-    _injectDebugInfoScript();
+    _injectScript('debug_info');
   } else {
     _sendMessageToBackgroundScript(
       type: MessageType.debugInfo,
       body: debugInfo,
     );
   }
+  _injectScript('auth_url');
 }
 
-// TODO(elliette): Remove once DWDS 17.0.0 is in Flutter stable. If we are on an
-// older version of DWDS, then the debug info is not sent along with the ready
-// event. Therefore we must read it from the Window object, which is slower.
-void _injectDebugInfoScript() {
+void _injectScript(String scriptName) {
   final script = document.createElement('script');
-  final scriptSrc = chrome.runtime.getURL('debug_info.dart.js');
+  final scriptSrc = chrome.runtime.getURL('$scriptName.dart.js');
   script.setAttribute('src', scriptSrc);
   script.setAttribute('defer', true);
   document.head?.append(script);

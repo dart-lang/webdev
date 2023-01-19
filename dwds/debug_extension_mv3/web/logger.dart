@@ -34,7 +34,7 @@ debugWarn(
 debugError(
   String msg, {
   String? prefix,
-  bool verbose = false,
+  bool verbose = true,
 }) {
   _log(msg, prefix: prefix, level: _LogLevel.error, verbose: verbose);
 }

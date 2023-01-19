@@ -44,7 +44,6 @@ void maybeCreateLifelinePort(int tabId) {
       target: Target(tabId: tabId),
       files: ['lifeline_connection.dart.js'],
     ),
-    /*callback*/ null,
   );
 }
 

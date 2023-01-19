@@ -31,7 +31,7 @@
   "web_accessible_resources": [
     {
       "matches": ["<all_urls>"],
-      "resources": ["debug_info.dart.js"]
+      "resources": ["debug_info.dart.js", "auth_url.dart.js"]
     }
   ],
   "options_page": "static_assets/settings.html"

@@ -230,7 +230,7 @@ class MessageSender {
 @JS()
 @anonymous
 class Scripting {
-  external executeScript(InjectDetails details, Function? callback);
+  external Object executeScript(InjectDetails details);
 }
 
 @JS()
@@ -252,7 +252,8 @@ class InjectDetails<T, U> {
 @anonymous
 class Target {
   external int get tabId;
-  external factory Target({int tabId});
+  external bool get allFrames;
+  external factory Target({int tabId, bool allFrames = true});
 }
 
 /// chrome.storage APIs

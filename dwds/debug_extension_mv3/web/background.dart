@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:dwds/data/debug_info.dart';
-import 'package:dwds/data/extension_request.dart';
 import 'package:js/js.dart';
 
 import 'data_types.dart';
@@ -21,9 +20,8 @@ import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
-import 'web_api.dart';
 
-const _authSuccessResponse = 'Dart Debug Authentication Success!';
+Trigger? _debugTrigger;
 
 void main() {
   _registerListeners();
@@ -56,65 +54,65 @@ void _registerListeners() {
 
   // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop(
-    (Tab tab) => _startDebugSession(
+    (Tab tab) => _handleStartDebuggingRequest(
       tab.id,
       trigger: Trigger.extensionIcon,
     ),
   ));
 }
 
-Future<void> _startDebugSession(int tabId, {required Trigger trigger}) async {
-  final debugInfo = await _fetchDebugInfo(tabId);
-  final extensionUrl = debugInfo?.extensionUrl;
-  if (extensionUrl == null) {
-    _showWarningNotification('Can\'t debug Dart app. Extension URL not found.');
-    sendConnectFailureMessage(
-      ConnectFailureReason.noDartApp,
-      dartAppTabId: tabId,
-    );
-    return;
-  }
-  final isAuthenticated = await _authenticateUser(extensionUrl, tabId);
-  if (!isAuthenticated) {
-    sendConnectFailureMessage(
-      ConnectFailureReason.authentication,
-      dartAppTabId: tabId,
-    );
-    return;
+Future<void> _handleStartDebuggingRequest(
+  int tabId, {
+  required Trigger trigger,
+}) async {
+  // Check if Dart DevTools is already opened:
+  final existingDevToolsLocation = devToolsLocation(tabId);
+  if (existingDevToolsLocation != null) {
+    final location = existingDevToolsLocation == DevToolsLocation.chromeDevTools
+        ? 'Chrome DevTools'
+        : 'a separate tab';
+    return _showWarningNotification('DevTools is already opened in $location.');
   }
 
-  maybeCreateLifelinePort(tabId);
-  attachDebugger(tabId, trigger: trigger);
-}
-
-Future<bool> _authenticateUser(String extensionUrl, int tabId) async {
-  final authUrl = _constructAuthUrl(extensionUrl).toString();
-  final response = await fetchRequest(authUrl);
-  final responseBody = response.body ?? '';
-  if (!responseBody.contains(_authSuccessResponse)) {
-    debugError('Not authenticated: ${response.status} / $responseBody',
-        verbose: true);
-    _showWarningNotification('Please re-authenticate and try again.');
-    await createTab(authUrl, inNewWindow: false);
-    return false;
-  }
-  return true;
-}
-
-Uri _constructAuthUrl(String extensionUrl) {
-  final authUri = Uri.parse(extensionUrl).replace(path: authenticationPath);
-  if (authUri.scheme == 'ws') {
-    return authUri.replace(scheme: 'http');
-  }
-  if (authUri.scheme == 'wss') {
-    return authUri.replace(scheme: 'https');
-  }
-  return authUri;
+  // Note: This is a workaround for b/26295128. We authenticate the user from
+  // the Dart app, and not from the service worker:
+  _debugTrigger = trigger;
+  chrome.scripting.executeScript(
+    InjectDetails(
+      target: Target(tabId: tabId),
+      files: ['authentication.dart.js'],
+    ),
+  );
 }
 
 void _handleRuntimeMessages(
     dynamic jsRequest, MessageSender sender, Function sendResponse) async {
   if (jsRequest is! String) return;
+
+  interceptMessage<String>(
+      message: jsRequest,
+      expectedType: MessageType.isAuthenticated,
+      expectedSender: Script.authentication,
+      expectedRecipient: Script.background,
+      messageHandler: (String isAuthenticated) async {
+        try {
+          final dartTab = sender.tab!.id;
+          if (isAuthenticated != 'true') {
+            sendConnectFailureMessage(
+              ConnectFailureReason.authentication,
+              dartAppTabId: dartTab,
+            );
+          } else {
+            // Authentication succeeded, start a debug session:
+            maybeCreateLifelinePort(dartTab);
+            attachDebugger(dartTab, trigger: _debugTrigger!);
+          }
+        } catch (error) {
+          debugError('Authentication error: $error', verbose: true);
+        } finally {
+          _debugTrigger = null;
+        }
+      });
 
   interceptMessage<DebugInfo>(
       message: jsRequest,
@@ -146,7 +144,7 @@ void _handleRuntimeMessages(
         final newState = debugStateChange.newState;
         final tabId = debugStateChange.tabId;
         if (newState == DebugStateChange.startDebugging) {
-          _startDebugSession(tabId, trigger: Trigger.extensionPanel);
+          _handleStartDebuggingRequest(tabId, trigger: Trigger.extensionPanel);
         }
       });
 }
