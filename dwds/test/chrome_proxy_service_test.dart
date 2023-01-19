@@ -380,6 +380,10 @@ void main() {
 
     test('getInstances', () async {
       await expectLater(service.getInstances('', '', 0), throwsRPCError);
+      await expectLater(
+          service.getInstances('', '', 0,
+              includeImplementers: true, includeSubclasses: true),
+          throwsRPCError);
     });
 
     group('getIsolate', () {
