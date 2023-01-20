@@ -9,8 +9,12 @@ import 'dart:async';
 import 'dart:js_util';
 
 import 'package:js/js.dart';
+import 'package:dwds/data/extension_request.dart';
 
 import 'chrome_api.dart';
+import 'web_api.dart';
+
+const _authSuccessResponse = 'Dart Debug Authentication Success!';
 
 Future<Tab> createTab(String url, {bool inNewWindow = false}) async {
   if (inNewWindow) {
@@ -46,4 +50,22 @@ bool isDevMode() {
   final extensionManifest = chrome.runtime.getManifest();
   final extensionName = getProperty(extensionManifest, 'name') ?? '';
   return extensionName.contains('DEV');
+}
+
+Future<bool> authenticateUser(String extensionUrl) async {
+  final authUrl = constructAuthUrl(extensionUrl);
+  final response = await fetchRequest(authUrl.toString());
+  final responseBody = response.body ?? '';
+  return responseBody.contains(_authSuccessResponse);
+}
+
+Uri constructAuthUrl(String extensionUrl) {
+  final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
+  if (authUrl.scheme == 'ws') {
+    return authUrl.replace(scheme: 'http');
+  }
+  if (authUrl.scheme == 'wss') {
+    return authUrl.replace(scheme: 'https');
+  }
+  return authUrl;
 }

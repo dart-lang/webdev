@@ -2,47 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@JS()
+library authentication;
+
 import 'dart:html';
+import 'dart:js';
 
-import 'logger.dart';
-import 'web_api.dart';
-import 'messaging.dart';
+import 'package:js/js.dart';
 
-const _authSuccessResponse = 'Dart Debug Authentication Success!';
-const _authPopUpMessage =
-    'Authentication required.\n\nClick OK to authenticate then try again.';
-const _authPageTitle = 'Dart Debug Extension Authentication';
+import 'utils.dart';
 
-void main() async {
-  final authUrl = document.documentElement?.getAttribute('data-dart-auth-url');
-  if (authUrl == null) {
-    _sendIsAuthenticatedMsg(false);
-  } else {
-    await _authenticateUser(authUrl);
-  }
+void main() {
+  _authenticateUser();
 }
 
-Future<void> _authenticateUser(String authUrl) async {
-  final response = await fetchRequest(authUrl);
-  final responseBody = response.body ?? '';
-  // Handle authentication succeeded:
-  if (responseBody.contains(_authSuccessResponse)) {
-    _sendIsAuthenticatedMsg(true);
-  } else {
-    // Handle authentication failed:
-    _sendIsAuthenticatedMsg(false);
-    debugError('Not authenticated: ${response.status} / $responseBody');
-    if (window.confirm(_authPopUpMessage)) {
-      window.open(authUrl, _authPageTitle);
-    }
-  }
-}
-
-void _sendIsAuthenticatedMsg(bool isAuthenticated) {
-  sendRuntimeMessage(
-    type: MessageType.isAuthenticated,
-    body: '$isAuthenticated',
-    sender: Script.authentication,
-    recipient: Script.background,
-  );
+// Note: This is a workaround for b/26295128. We re-authenticate the user from
+// the Dart app on every page reload, instead of re-authenticating from the
+// service worker:
+void _authenticateUser() async {
+  final windowContext = JsObject.fromBrowserObject(window);
+  final extensionUrl = windowContext['\$dartExtensionUri'];
+  final authenticationSuccess = await authenticateUser(extensionUrl);
+  document.dispatchEvent(CustomEvent(
+    'dart-debug-extension-auth',
+    detail: '$authenticationSuccess',
+  ));
 }

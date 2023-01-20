@@ -19,6 +19,7 @@ void main() {
 
 void _registerListeners() {
   document.addEventListener('dart-app-ready', _onDartAppReadyEvent);
+  document.addEventListener('dart-debug-extension-auth', _onDartAuthEvent);
 }
 
 void _onDartAppReadyEvent(Event event) {
@@ -37,7 +38,15 @@ void _onDartAppReadyEvent(Event event) {
       body: debugInfo,
     );
   }
-  _injectScript('auth_url');
+  _injectScript('authentication');
+}
+
+void _onDartAuthEvent(Event event) {
+  final isAuthenticated = getProperty(event, 'detail') as String;
+  _sendMessageToBackgroundScript(
+    type: MessageType.isAuthenticated,
+    body: isAuthenticated,
+  );
 }
 
 void _injectScript(String scriptName) {

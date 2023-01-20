@@ -16,6 +16,7 @@ import 'data_serializers.dart';
 import 'logger.dart';
 
 enum StorageObject {
+  authenticated,
   debugInfo,
   devToolsOpener,
   devToolsUri,
@@ -23,6 +24,8 @@ enum StorageObject {
 
   Persistance get persistance {
     switch (this) {
+      case StorageObject.authenticated:
+        return Persistance.sessionOnly;
       case StorageObject.debugInfo:
         return Persistance.sessionOnly;
       case StorageObject.devToolsOpener:
