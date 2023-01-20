@@ -64,6 +64,15 @@ void _registerListeners() {
 }
 
 Future<void> _startDebugSession(int tabId, {required Trigger trigger}) async {
+  // Check if Dart DevTools is already opened:
+  final existingDevToolsLocation = devToolsLocation(tabId);
+  if (existingDevToolsLocation != null) {
+    final location = existingDevToolsLocation == DevToolsLocation.chromeDevTools
+        ? 'Chrome DevTools'
+        : 'a separate tab';
+    return _showWarningNotification('DevTools is already opened in $location.');
+  }
+
   final debugInfo = await _fetchDebugInfo(tabId);
   final extensionUrl = debugInfo?.extensionUrl;
   if (extensionUrl == null) {
