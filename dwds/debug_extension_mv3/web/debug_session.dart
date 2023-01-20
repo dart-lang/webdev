@@ -80,6 +80,18 @@ enum Trigger {
   extensionIcon,
 }
 
+enum DevToolsLocation {
+  chromeDevTools,
+  chromeTab,
+}
+
+DevToolsLocation? devToolsLocation(int dartAppTabId) {
+  final debugSession = _debugSessionForTab(dartAppTabId, type: TabType.dartApp);
+  if (debugSession == null) return null;
+  if (debugSession.devToolsTabId != null) return DevToolsLocation.chromeTab;
+  return DevToolsLocation.chromeDevTools;
+}
+
 void attachDebugger(int dartAppTabId, {required Trigger trigger}) {
   _tabIdToTrigger[dartAppTabId] = trigger;
   _registerDebugEventListeners();
@@ -154,11 +166,16 @@ String _translateChromeError(String chromeErrorMessage) {
 
 Future<void> _onDebuggerEvent(
     Debuggee source, String method, Object? params) async {
+  final tabId = source.tabId;
   maybeForwardMessageToAngularDartDevTools(
       method: method, params: params, tabId: source.tabId);
 
   if (method == 'Runtime.executionContextCreated') {
-    return _maybeConnectToDwds(source.tabId, params);
+    // Only try to connect to DWDS if we don't already have a DevTools instance
+    // open:
+    if (devToolsLocation(tabId) == null) {
+      return _maybeConnectToDwds(source.tabId, params);
+    }
   }
 
   return _forwardChromeDebuggerEventToDwds(source, method, params);
