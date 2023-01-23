@@ -14,7 +14,7 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
-import 'package:webdriver/io.dart';
+import 'package:webdriver/async_io.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/utilities.dart';
