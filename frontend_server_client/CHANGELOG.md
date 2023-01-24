@@ -1,7 +1,7 @@
 ## 3.3.0-dev
 
 - Require min dart SDK version of `3.0.0-134.0.dev`.
-- Support changes in the SDK layout for dart 3.0.
+- Support changes in the SDK layout for Dart 3.0.
 
 ## 3.2.0
 
