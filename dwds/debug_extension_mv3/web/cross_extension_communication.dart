@@ -8,7 +8,6 @@ library cross_extension_communication;
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
-import 'data_types.dart';
 import 'debug_session.dart';
 import 'logger.dart';
 import 'storage.dart';
@@ -85,7 +84,7 @@ void _respondWithChromeResult(Object? chromeResult, Function sendResponse) {
 }
 
 void _respondWithEncodedUri(int tabId, Function sendResponse) async {
-  final encodedUri = await fetchStorageObject<EncodedUri>(
+  final encodedUri = await fetchStorageObject<String>(
       type: StorageObject.encodedUri, tabId: tabId);
   sendResponse(encodedUri ?? '');
 }

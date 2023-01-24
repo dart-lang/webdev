@@ -161,8 +161,8 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
   return issues;
 }
 
-final buildRunnerConstraint = VersionConstraint.parse('>=1.6.2 <3.0.0');
-final buildWebCompilersConstraint = VersionConstraint.parse('>=2.12.0 <4.0.0');
+final buildRunnerConstraint = VersionConstraint.parse('^2.4.0');
+final buildWebCompilersConstraint = VersionConstraint.parse('^4.0.0');
 
 // Note the minimum versions should never be dev versions as users will not
 // get them by default.

@@ -7,7 +7,10 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/constants.dart';
 import 'package:build_daemon/data/server_log.dart';
+import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:path/path.dart' as p;
+
+import 'sdk_asset_generator.dart';
 
 const webdevDirName = 'webdev';
 const dwdsDirName = 'dwds';
@@ -124,4 +127,75 @@ Future<T> retryFn<T>(
     delayInMs: delayInMs,
     failureMessage: failureMessage,
   );
+}
+
+/// Retries an asynchronous callback function with a delay until the result is
+/// non-null.
+Future<T> retryFnAsync<T>(
+  Future<T> Function() callback, {
+  int retryCount = 3,
+  int delayInMs = 1000,
+  String failureMessage = 'Function did not succeed after retries.',
+}) async {
+  if (retryCount == 0) {
+    throw Exception(failureMessage);
+  }
+
+  await Future.delayed(Duration(milliseconds: delayInMs));
+  try {
+    final result = await callback();
+    if (result != null) return result;
+  } catch (_) {
+    // Ignore any exceptions.
+  }
+
+  return retryFnAsync<T>(
+    callback,
+    retryCount: retryCount - 1,
+    delayInMs: delayInMs,
+    failureMessage: failureMessage,
+  );
+}
+
+/// Implementation for SDK configuration for tests that can generate
+/// missing assets.
+///
+///  - Generate SDK js, source map, and full dill for weak and sound
+///    modes (normally included in flutter SDK or produced by build).
+///  - Need to generate SDK summary for weak null safety mode as it
+///    is not provided by the SDK installation.
+///
+/// TODO(annagrin): update to only generating missing sound artifacts
+/// for frontend server after we have no uses of weak null safety.
+class TestSdkConfigurationProvider extends SdkConfigurationProvider {
+  final bool _verboseCompiler;
+  SdkConfiguration? _configuration;
+
+  TestSdkConfigurationProvider({bool verboseCompiler = false})
+      : _verboseCompiler = verboseCompiler;
+
+  @override
+  Future<SdkConfiguration> get configuration async =>
+      _configuration ??= await _create();
+
+  /// Generate missing assets in the default SDK layout.
+  Future<SdkConfiguration> _create() async {
+    final sdk = SdkConfiguration.defaultConfiguration;
+    final sdkLayout = SdkConfiguration.defaultSdkLayout;
+
+    final assetGenerator = SdkAssetGenerator(
+      sdkLayout: sdkLayout,
+      verboseCompiler: _verboseCompiler,
+    );
+
+    if (sdkLayout.soundSummaryPath != sdk.soundSdkSummaryPath) {
+      throw StateError('Invalid asset path ${sdkLayout.soundSummaryPath}');
+    }
+    if (sdkLayout.weakSummaryPath != sdk.weakSdkSummaryPath) {
+      throw StateError('Invalid asset path ${sdkLayout.weakSummaryPath}');
+    }
+
+    await assetGenerator.generateSdkAssets();
+    return sdk;
+  }
 }

@@ -444,10 +444,20 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
     return _rpcNotSupportedFuture('clearVMTimeline');
   }
 
-  Future<Response> _getEvaluationResult(
+  Future<Response> _getEvaluationResult(String isolateId,
       Future<RemoteObject> Function() evaluation, String expression) async {
     try {
       final result = await evaluation();
+      if (!_isIsolateRunning || isolateId != inspector.isolate.id) {
+        _logger.fine('Cannot get evaluation result for isolate $isolateId: '
+            ' isolate exited.');
+        return ErrorRef(
+          kind: 'error',
+          message: 'Isolate exited',
+          id: createId(),
+        );
+      }
+
       // Handle compilation errors, internal errors,
       // and reference errors from JavaScript evaluation in chrome.
       if (result.type.contains('Error')) {
@@ -498,6 +508,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
         final library = await inspector.getLibrary(targetId);
         return await _getEvaluationResult(
+            isolateId,
             () => evaluator.evaluateExpression(
                 isolateId, library?.uri, expression, scope),
             expression);
@@ -521,6 +532,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
         _checkIsolate('evaluateInFrame', isolateId);
 
         return await _getEvaluationResult(
+            isolateId,
             () => evaluator.evaluateExpressionInFrame(
                 isolateId, frameIndex, expression, scope),
             expression);

@@ -14,6 +14,7 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
+// ignore: deprecated_member_use
 import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
@@ -100,9 +101,9 @@ void main() async {
               scripts.values.map((s) => s.url),
               containsAllInOrder([
                 contains('stack_trace_mapper.dart.js'),
-                contains('hello_world/main.sound.ddc.js'),
-                contains('packages/path/path.sound.ddc.js'),
-                contains('dev_compiler/dart_sdk.sound.js'),
+                contains('hello_world/main.ddc.js'),
+                contains('packages/path/path.ddc.js'),
+                contains('dev_compiler/dart_sdk.js'),
                 contains('dwds/src/injected/client.js'),
               ]));
         });
@@ -192,9 +193,9 @@ void main() async {
               scripts.values.map((s) => s.url),
               containsAllInOrder([
                 contains('stack_trace_mapper.dart.js'),
-                contains('hello_world/main.sound.ddc.js'),
-                contains('packages/path/path.sound.ddc.js'),
-                contains('dev_compiler/dart_sdk.sound.js'),
+                contains('hello_world/main.ddc.js'),
+                contains('packages/path/path.ddc.js'),
+                contains('dev_compiler/dart_sdk.js'),
                 contains('dwds/src/injected/client.js'),
               ]));
         });

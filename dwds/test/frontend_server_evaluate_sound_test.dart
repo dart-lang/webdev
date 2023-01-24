@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('vm')
-@Timeout(Duration(minutes: 2))
+@Timeout(Duration(minutes: 5))
 
 import 'dart:io';
 
@@ -12,7 +12,6 @@ import 'package:test/test.dart';
 
 import 'fixtures/context.dart';
 import 'evaluate_common.dart';
-import 'utils/version_compatibility.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
@@ -28,31 +27,22 @@ void main() async {
       for (var nullSafety in NullSafety.values) {
         group('${nullSafety.name} null safety |', () {
           for (var indexBaseMode in IndexBaseMode.values) {
-            group(
-              'with ${indexBaseMode.name} |',
-              () {
-                testAll(
-                  compilationMode: CompilationMode.frontendServer,
-                  indexBaseMode: indexBaseMode,
-                  nullSafety: nullSafety,
-                  useDebuggerModuleNames: useDebuggerModuleNames,
-                  debug: debug,
-                );
-              },
-              skip:
-                  // https://github.com/dart-lang/sdk/issues/49277
-                  (indexBaseMode == IndexBaseMode.base && Platform.isWindows) ||
-                      // https://github.com/dart-lang/webdev/issues/1591
-                      (nullSafety == NullSafety.sound) ||
-                      // Needs debugger module names feature in SDK.
-                      (useDebuggerModuleNames &&
-                          !debuggerModuleNamesSupported) ||
-                      // TODO(https://github.com/dart-lang/webdev/issues/1818) Re-enable.
-                      !supportedMode(
-                        compilationMode: CompilationMode.frontendServer,
-                        nullSafetyMode: nullSafety,
-                      ),
-            );
+            group('with ${indexBaseMode.name} |', () {
+              testAll(
+                compilationMode: CompilationMode.frontendServer,
+                indexBaseMode: indexBaseMode,
+                nullSafety: nullSafety,
+                useDebuggerModuleNames: useDebuggerModuleNames,
+                debug: debug,
+              );
+            },
+                skip:
+                    // https://github.com/dart-lang/sdk/issues/49277
+                    (indexBaseMode == IndexBaseMode.base &&
+                            Platform.isWindows) ||
+                        // Needs debugger module names feature in SDK.
+                        (useDebuggerModuleNames &&
+                            !debuggerModuleNamesSupported));
           }
         });
       }
