@@ -26,10 +26,10 @@ import 'test_utils.dart';
 /// Value: `null`  - exists in both modes
 ///        `true`  - DDC only
 ///        `false` - dart2js only
-const _testItems = <String, bool?>{
+final _testItems = <String, bool?>{
   'main.dart.js': null,
   'main.dart.bootstrap.js': true,
-  'main.sound.ddc.js': true,
+  'main.ddc.js': true,
 };
 
 void main() {
@@ -160,7 +160,7 @@ void main() {
       await checkProcessStdout(process, expectedItems);
       await process.shouldExit(0);
 
-      await d.file('main.sound.ddc.js', isNotEmpty).validate();
+      await d.file('main.ddc.js', isNotEmpty).validate();
     });
 
     test('and --null-safety=unsound', () async {

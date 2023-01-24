@@ -10,8 +10,8 @@ similar to:
 ```yaml
 ...
 dev_dependencies:
-  build_runner: ^2.1.1
-  build_web_compilers: ^3.0.0
+  build_runner: ^2.4.0
+  build_web_compilers: ^4.0.0
 ...
 ```
 

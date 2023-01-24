@@ -6,10 +6,6 @@ stages:
       - analyze: --fatal-infos .
       - test: test/build/ensure_version_test.dart
       sdk: dev
-    - group:
-      - analyze: .
-      - test: test/build/min_sdk_test.dart --run-skipped
-      sdk: stable
   - unit_test:
     # Linux extension tests:
     # Note: `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &` must be
@@ -19,7 +15,7 @@ stages:
       - test: --tags=extension
       sdk:
         - dev
-        - stable
+        - main
       os:
         - linux
      # Windows extension tests:
@@ -27,7 +23,7 @@ stages:
       - test: --tags=extension
       sdk:
         - dev
-        - stable
+        - main
       os:
         - windows
     # First test shard:
@@ -35,7 +31,7 @@ stages:
       - test: --total-shards 3 --shard-index 0 --exclude-tags=extension
       sdk:
         - dev
-        - stable
+        - main
       os: 
         - linux
         - windows
@@ -44,7 +40,7 @@ stages:
       - test: --total-shards 3 --shard-index 1 --exclude-tags=extension
       sdk:
         - dev
-        - stable
+        - main
       os: 
         - linux
         - windows
@@ -53,7 +49,7 @@ stages:
       - test: --total-shards 3 --shard-index 2 --exclude-tags=extension
       sdk:
         - dev
-        - stable
+        - main
       os: 
         - linux
         - windows
