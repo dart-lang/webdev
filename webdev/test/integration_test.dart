@@ -66,7 +66,7 @@ name: sample
 
   var invalidRanges = <String, List<String>>{
     'build_runner': ['0.8.9', '3.0.0'],
-    'build_web_compilers': ['0.3.5', '4.0.0'],
+    'build_web_compilers': ['0.3.5', '5.0.0'],
     'build_daemon': ['0.3.0', '4.0.0'],
   };
 
@@ -158,11 +158,11 @@ name: sample
               switch (entry.key) {
                 case 'build_runner':
                   buildRunnerVersion = version;
-                  supportedRange = '>=$_supportedBuildRunnerVersion <3.0.0';
+                  supportedRange = '^$_supportedBuildRunnerVersion';
                   break;
                 case 'build_web_compilers':
                   webCompilersVersion = version;
-                  supportedRange = '>=$_supportedWebCompilersVersion <4.0.0';
+                  supportedRange = '^$_supportedWebCompilersVersion';
                   break;
                 case 'build_daemon':
                   buildDaemonVersion = version;
@@ -265,8 +265,8 @@ dependencies:
   }
 }
 
-const _supportedBuildRunnerVersion = '1.6.2';
-const _supportedWebCompilersVersion = '2.12.0';
+const _supportedBuildRunnerVersion = '2.4.0';
+const _supportedWebCompilersVersion = '4.0.0';
 const _supportedBuildDaemonVersion = '2.0.0';
 
 String _pubspecLock(

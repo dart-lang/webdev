@@ -112,16 +112,16 @@ void main() {
 }
 
 String _weakSdkSummaryPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill');
+    p.join(sdkDir, 'lib', '_internal', 'ddc_outline_unsound.dill');
 
 String _soundSdkSummaryPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_outline_sound.dill');
+    p.join(sdkDir, 'lib', '_internal', 'ddc_outline.dill');
 
 String _weakSdkFullDillPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill');
+    p.join(sdkDir, 'lib', '_internal', 'ddc_platform_unsound.dill');
 
 String _soundSdkFullDillPath(String sdkDir) =>
-    p.join(sdkDir, 'lib', '_internal', 'ddc_platform_sound.dill');
+    p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill');
 
 String _weakSdkJsPath(String sdkDir) =>
     p.join(sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'dart_sdk.js');

@@ -45,10 +45,10 @@ class SdkLayout {
     final sdkJsMapWeakFileName = 'dart_sdk.js.map';
     final sdkJsSoundFileName = 'dart_sdk_sound.js';
     final sdkJsMapSoundFileName = 'dart_sdk_sound.js.map';
-    final sdkSummarySoundFileName = 'ddc_outline_sound.dill';
-    final sdkSummaryWeakFileName = 'ddc_sdk.dill';
-    final sdkFullDillSoundFileName = 'ddc_platform_sound.dill';
-    final sdkFullDillWeakFileName = 'ddc_platform.dill';
+    final sdkSummarySoundFileName = 'ddc_outline.dill';
+    final sdkSummaryWeakFileName = 'ddc_outline_unsound.dill';
+    final sdkFullDillSoundFileName = 'ddc_platform.dill';
+    final sdkFullDillWeakFileName = 'ddc_platform_unsound.dill';
 
     final sdkSummaryDirectory = p.join(sdkDirectory, 'lib', '_internal');
     final sdkJsDirectory =

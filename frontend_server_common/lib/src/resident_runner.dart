@@ -17,10 +17,10 @@ import 'devfs.dart';
 import 'frontend_server_client.dart';
 import 'utilities.dart';
 
-final Uri platformDillUnsound =
-    Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.dill'));
-final Uri platformDillSound =
-    Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline_sound.dill'));
+final Uri summaryDillUnsound = Uri.file(
+    p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline_unsound.dill'));
+final Uri summaryDillSound =
+    Uri.file(p.join(dartSdkPath, 'lib', '_internal', 'ddc_outline.dill'));
 
 class ResidentWebRunner {
   final _logger = Logger('ResidentWebRunner');
@@ -42,7 +42,7 @@ class ResidentWebRunner {
       packageConfigFile: packageConfigFile,
       useDebuggerModuleNames: packageUriMapper.useDebuggerModuleNames,
       platformDill:
-          soundNullSafety ? '$platformDillSound' : '$platformDillUnsound',
+          soundNullSafety ? '$summaryDillSound' : '$summaryDillUnsound',
       fileSystemRoots: fileSystemRoots,
       fileSystemScheme: fileSystemScheme,
       verbose: verbose,
