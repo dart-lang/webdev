@@ -17,6 +17,7 @@
 - Add back `ChromeProxyService.setExceptionPauseMode()` without override.
 - Make hot restart atomic to prevent races on simultaneous execution.
 - Return error on expression evaluation if expression evaluator stopped.
+- Update SDK constraint to `>=3.0.0-134.0.dev <4.0.0`.
 
 **Breaking changes**
 - Include an optional param to `Dwds.start` to indicate whether it is running
@@ -29,7 +30,6 @@
   - Enable frontend server null safe tests.
   - Update `build_web_compilers` constraint to `^4.0.0`.
   - Update `build_runner` constraint to `^2.4.0`.
-  - Update min dart SDK constraint to `3.0.0-134.0.dev`
   - Support changes in the SDK layout for dart 3.0.
 
 ## 16.0.1
