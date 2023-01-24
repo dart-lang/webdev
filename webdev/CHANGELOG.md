@@ -2,6 +2,7 @@
 
 - Add `--enable-experiment` flag to webdev commands and pass it
   to the build runner and the expression compiler service.
+- Update SDK constraint to `>=3.0.0-134.0.dev <4.0.0`.
 
 **Breaking changes**
 
@@ -9,7 +10,6 @@
   - Do not pass `--(no)-sound-null-safety` flag to build daemon.
   - Update `build_web_compilers` constraint to `^4.0.0`.
   - Update `build_runner` constraint to `^2.4.0`.
-  - Update min dart SDK constraint to `3.0.0-134.0.dev`.
   - Support changes in the SDK layout for Dart 3.0.
 
 ## 2.7.12
