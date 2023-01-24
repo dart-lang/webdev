@@ -23,6 +23,7 @@
   internally or externally.
 - Include an optional param to `Dwds.start` to indicate whether it a Flutter
   app or not.
+- Remove `sdkConfigurationProvider` parameter from `Dwds.start`.
 - Remove deprecated `ChromeProxyService.setExceptionPauseMode()`.
 - Support dart 3.0-alpha breaking changes:
   - Generate missing SDK assets for tests.
