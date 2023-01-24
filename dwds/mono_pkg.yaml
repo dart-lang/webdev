@@ -5,7 +5,7 @@ stages:
       - format
       - analyze: --fatal-infos .
       - test: test/build/ensure_version_test.dart
-      sdk: main
+      sdk: dev
   - unit_test:
     # Linux extension tests:
     # Note: `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &` must be

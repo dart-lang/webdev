@@ -4,7 +4,7 @@ stages:
     - group:
       - format
       - analyze: --fatal-infos .
-      sdk: main
+      sdk: dev
   - unit_test:
     - test: -j 1
       sdk:
