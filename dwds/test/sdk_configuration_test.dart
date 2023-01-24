@@ -49,12 +49,6 @@ void main() {
           await DefaultSdkConfigurationProvider().configuration;
 
       final sdkDirectory = outputDir.path;
-      final librariesDir = p.join(sdkDirectory, 'specs');
-      final librariesPath = p.join(librariesDir, 'libraries.json');
-
-      Directory(librariesDir).createSync(recursive: true);
-      File(defaultSdkConfiguration.librariesPath!).copySync(librariesPath);
-
       final summariesDir = p.join(sdkDirectory, 'summaries');
       final weakSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
       final soundSdkSummaryPath =
@@ -77,14 +71,12 @@ void main() {
         sdkDirectory: sdkDirectory,
         soundSdkSummaryPath: soundSdkSummaryPath,
         weakSdkSummaryPath: weakSdkSummaryPath,
-        librariesPath: librariesPath,
         compilerWorkerPath: compilerWorkerPath,
       );
 
       expect(sdkConfiguration.sdkDirectory, equals(sdkDirectory));
       expect(sdkConfiguration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
       expect(sdkConfiguration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
-      expect(sdkConfiguration.librariesPath, equals(librariesPath));
       expect(sdkConfiguration.compilerWorkerPath, equals(compilerWorkerPath));
 
       sdkConfiguration.validateSdkDir();
@@ -93,8 +85,6 @@ void main() {
 
     test('Cannot validate non-existing configuration layout', () async {
       final sdkDir = outputDir.path;
-      final librariesDir = p.join(sdkDir, 'fakespecs');
-      final librariesPath = p.join(librariesDir, 'libraries.json');
       final summariesDir = p.join(sdkDir, 'fakesummaries');
       final weakSdkSummaryPath = p.join(summariesDir, 'ddc_sdk.dill');
       final soundSdkSummaryPath =
@@ -106,7 +96,6 @@ void main() {
         sdkDirectory: sdkDir,
         soundSdkSummaryPath: soundSdkSummaryPath,
         weakSdkSummaryPath: weakSdkSummaryPath,
-        librariesPath: librariesPath,
         compilerWorkerPath: compilerWorkerPath,
       );
 
@@ -139,14 +128,13 @@ void main() {
         sdkDirectory: sdkDirectory,
         soundSdkSummaryPath: soundSdkSummaryPath,
         weakSdkSummaryPath: weakSdkSummaryPath,
-        librariesPath: librariesPath,
         compilerWorkerPath: compilerWorkerPath,
       );
 
       expect(configuration.sdkDirectory, equals(sdkDirectory));
       expect(configuration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
       expect(configuration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
-      expect(configuration.librariesPath, equals(librariesPath));
+
       expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
       configuration.validateSdkDir(fileSystem: fs);

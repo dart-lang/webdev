@@ -73,7 +73,6 @@ class _Compiler {
   ) async {
     sdkConfiguration.validate();
 
-    final librariesUri = sdkConfiguration.librariesUri!;
     final workerUri = sdkConfiguration.compilerWorkerUri!;
     final sdkSummaryUri = soundNullSafety
         ? sdkConfiguration.soundSdkSummaryUri!
@@ -81,8 +80,6 @@ class _Compiler {
 
     final args = [
       '--experimental-expression-compiler',
-      '--libraries-file',
-      '$librariesUri',
       '--dart-sdk-summary',
       '$sdkSummaryUri',
       '--asset-server-address',

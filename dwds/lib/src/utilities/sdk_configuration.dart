@@ -161,14 +161,12 @@ class SdkConfiguration {
   String? sdkDirectory;
   String? weakSdkSummaryPath;
   String? soundSdkSummaryPath;
-  String? librariesPath;
   String? compilerWorkerPath;
 
   SdkConfiguration({
     this.sdkDirectory,
     this.weakSdkSummaryPath,
     this.soundSdkSummaryPath,
-    this.librariesPath,
     this.compilerWorkerPath,
   });
 
@@ -179,7 +177,6 @@ class SdkConfiguration {
           sdkDirectory: sdkLayout.sdkDirectory,
           weakSdkSummaryPath: sdkLayout.weakSummaryPath,
           soundSdkSummaryPath: sdkLayout.soundSummaryPath,
-          librariesPath: sdkLayout.librariesPath,
           compilerWorkerPath: sdkLayout.dartdevcSnapshotPath,
         );
 
@@ -190,7 +187,6 @@ class SdkConfiguration {
   Uri? get sdkDirectoryUri => _toUri(sdkDirectory);
   Uri? get soundSdkSummaryUri => _toUri(soundSdkSummaryPath);
   Uri? get weakSdkSummaryUri => _toUri(weakSdkSummaryPath);
-  Uri? get librariesUri => _toUri(librariesPath);
 
   /// Note: has to be ///file: Uri to run in an isolate.
   Uri? get compilerWorkerUri => _toAbsoluteUri(compilerWorkerPath);
@@ -200,7 +196,6 @@ class SdkConfiguration {
   void validate({FileSystem fileSystem = const LocalFileSystem()}) {
     validateSdkDir(fileSystem: fileSystem);
     validateSummaries(fileSystem: fileSystem);
-    validateLibrariesSpec(fileSystem: fileSystem);
     validateCompilerWorker(fileSystem: fileSystem);
   }
 
@@ -234,14 +229,6 @@ class SdkConfiguration {
         !fileSystem.file(soundSdkSummaryPath).existsSync())) {
       throw InvalidSdkConfigurationException(
           'Sdk summary $soundSdkSummaryPath does not exist');
-    }
-  }
-
-  void validateLibrariesSpec(
-      {FileSystem fileSystem = const LocalFileSystem()}) {
-    if (librariesPath == null || !fileSystem.file(librariesPath).existsSync()) {
-      throw InvalidSdkConfigurationException(
-          'Libraries spec $librariesPath does not exist');
     }
   }
 
