@@ -562,7 +562,12 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<InstanceSet> getInstances(
-      String isolateId, String classId, int limit) {
+    String isolateId,
+    String classId,
+    int limit, {
+    bool? includeImplementers,
+    bool? includeSubclasses,
+  }) {
     return _rpcNotSupportedFuture('getInstances');
   }
 
