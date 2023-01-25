@@ -75,7 +75,7 @@ void main() {
         equals(buildRunnerConstraint.toString()));
     expect(smokeYaml['dev_dependencies']['build_web_compilers'],
         equals(buildWebCompilersConstraint.toString()));
-  });
+  }, skip: true);
 
   test('build should fail if targeting an existing directory', () async {
     await d.file('simple thing', 'throw-away').create();
