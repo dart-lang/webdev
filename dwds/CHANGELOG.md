@@ -18,6 +18,7 @@
 - Make hot restart atomic to prevent races on simultaneous execution.
 - Return error on expression evaluation if expression evaluator stopped.
 - Update SDK constraint to `>=3.0.0-134.0.dev <4.0.0`.
+- Update `package:vm_service` to `10.0.0`.
 
 **Breaking changes**
 - Include an optional param to `Dwds.start` to indicate whether it is running
