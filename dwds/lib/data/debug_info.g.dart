@@ -68,6 +68,13 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
         ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
     }
+    value = object.authUrl;
+    if (value != null) {
+      result
+        ..add('authUrl')
+        ..add(serializers.serialize(value,
+            specifiedType: const FullType(String)));
+    }
     value = object.isInternalBuild;
     if (value != null) {
       result
@@ -124,6 +131,10 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
           result.extensionUrl = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
           break;
+        case 'authUrl':
+          result.authUrl = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
         case 'isInternalBuild':
           result.isInternalBuild = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool?;
@@ -155,6 +166,8 @@ class _$DebugInfo extends DebugInfo {
   @override
   final String? extensionUrl;
   @override
+  final String? authUrl;
+  @override
   final bool? isInternalBuild;
   @override
   final bool? isFlutterApp;
@@ -170,6 +183,7 @@ class _$DebugInfo extends DebugInfo {
       this.appUrl,
       this.dwdsVersion,
       this.extensionUrl,
+      this.authUrl,
       this.isInternalBuild,
       this.isFlutterApp})
       : super._();
@@ -192,6 +206,7 @@ class _$DebugInfo extends DebugInfo {
         appUrl == other.appUrl &&
         dwdsVersion == other.dwdsVersion &&
         extensionUrl == other.extensionUrl &&
+        authUrl == other.authUrl &&
         isInternalBuild == other.isInternalBuild &&
         isFlutterApp == other.isFlutterApp;
   }
@@ -206,6 +221,7 @@ class _$DebugInfo extends DebugInfo {
     _$hash = $jc(_$hash, appUrl.hashCode);
     _$hash = $jc(_$hash, dwdsVersion.hashCode);
     _$hash = $jc(_$hash, extensionUrl.hashCode);
+    _$hash = $jc(_$hash, authUrl.hashCode);
     _$hash = $jc(_$hash, isInternalBuild.hashCode);
     _$hash = $jc(_$hash, isFlutterApp.hashCode);
     _$hash = $jf(_$hash);
@@ -222,6 +238,7 @@ class _$DebugInfo extends DebugInfo {
           ..add('appUrl', appUrl)
           ..add('dwdsVersion', dwdsVersion)
           ..add('extensionUrl', extensionUrl)
+          ..add('authUrl', authUrl)
           ..add('isInternalBuild', isInternalBuild)
           ..add('isFlutterApp', isFlutterApp))
         .toString();
@@ -261,6 +278,10 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
   String? get extensionUrl => _$this._extensionUrl;
   set extensionUrl(String? extensionUrl) => _$this._extensionUrl = extensionUrl;
 
+  String? _authUrl;
+  String? get authUrl => _$this._authUrl;
+  set authUrl(String? authUrl) => _$this._authUrl = authUrl;
+
   bool? _isInternalBuild;
   bool? get isInternalBuild => _$this._isInternalBuild;
   set isInternalBuild(bool? isInternalBuild) =>
@@ -282,6 +303,7 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
       _appUrl = $v.appUrl;
       _dwdsVersion = $v.dwdsVersion;
       _extensionUrl = $v.extensionUrl;
+      _authUrl = $v.authUrl;
       _isInternalBuild = $v.isInternalBuild;
       _isFlutterApp = $v.isFlutterApp;
       _$v = null;
@@ -313,6 +335,7 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
             appUrl: appUrl,
             dwdsVersion: dwdsVersion,
             extensionUrl: extensionUrl,
+            authUrl: authUrl,
             isInternalBuild: isInternalBuild,
             isFlutterApp: isFlutterApp);
     replace(_$result);

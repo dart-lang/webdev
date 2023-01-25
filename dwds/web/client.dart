@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
+import 'dart:js_util' as js_util;
 
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
@@ -17,6 +18,7 @@ import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
+import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
@@ -39,6 +41,19 @@ import 'reloader/restarter.dart';
 import 'run_main.dart';
 
 const _batchDelayMilliseconds = 1000;
+
+String? get _authUrl {
+  final extensionUrl = _extensionUrl;
+  if (extensionUrl == null) return null;
+  final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
+  if (authUrl.scheme == 'ws') {
+    authUrl.replace(scheme: 'http');
+  } else if (authUrl.scheme == 'wss') {
+    authUrl.replace(scheme: 'https');
+  }
+  return authUrl.toString();
+}
+
 
 // GENERATE:
 // pub run build_runner build web
@@ -173,18 +188,7 @@ Future<void>? main() {
       // If not Chromium we just invoke main, devtools aren't supported.
       runMain();
     }
-    final windowContext = JsObject.fromBrowserObject(window);
-    final debugInfoJson = jsonEncode(serializers.serialize(DebugInfo((b) => b
-      ..appEntrypointPath = dartEntrypointPath
-      ..appId = windowContext['\$dartAppId']
-      ..appInstanceId = dartAppInstanceId
-      ..appOrigin = window.location.origin
-      ..appUrl = window.location.href
-      ..extensionUrl = windowContext['\$dartExtensionUri']
-      ..isInternalBuild = windowContext['\$isInternalBuild']
-      ..isFlutterApp = windowContext['\$isFlutterApp'])));
-
-    dispatchEvent(CustomEvent('dart-app-ready', detail: debugInfoJson));
+    _launchCommunicationWithDebugExtension();
   }, (error, stackTrace) {
     print('''
 Unhandled error detected in the injected client.js script.
@@ -229,6 +233,68 @@ String _fixProtocol(String url) {
     uri = uri.replace(scheme: 'wss');
   }
   return uri.toString();
+}
+
+void _launchCommunicationWithDebugExtension() {
+  // Listen for an event from the Dart Debug Extension to authenticate the
+  // user (sent once the extension receives the dart-app-read event):
+  _listenForDebugExtensionAuthRequest();
+
+  // Send the dart-app-ready event along with debug info to the Dart Debug
+  // Extension so that it can debug the Dart app:
+  final debugInfoJson = jsonEncode(serializers.serialize(DebugInfo((b) => b
+    ..appEntrypointPath = dartEntrypointPath
+    ..appId = _appId
+    ..appInstanceId = dartAppInstanceId
+    ..appOrigin = window.location.origin
+    ..appUrl = window.location.href
+    ..authUrl = _authUrl
+    ..extensionUrl = _extensionUrl
+    ..isInternalBuild = _isInternalBuild
+    ..isFlutterApp = _isFlutterApp)));
+  dispatchEvent(CustomEvent('dart-app-ready', detail: debugInfoJson));
+}
+
+void _listenForDebugExtensionAuthRequest() {
+  window.addEventListener('message', allowInterop((event) async {
+    window.console.log('=== RECEIVED A REQUEST FOR AUTHENTICATION');
+    final messageEvent = event as MessageEvent;
+    if (messageEvent.data is! String) return;
+    if (messageEvent.data as String != 'dart-extension-auth-request') return;
+
+    // Notify the Dart Debug Extension of authentication status:
+    final isAuthenticated = await _authenticateUser();
+    window.console.log('=== IS USER AUTHENTICATED? $isAuthenticated');
+    dispatchEvent(CustomEvent('dart-user-auth', detail: isAuthenticated));
+  }));
+}
+
+Future<bool> _authenticateUser() async {
+  final authUrl = _authUrl;
+  if (authUrl == null) return false;
+
+  final response = await _fetchRequest(authUrl);
+  final responseBody = response.body ?? '';
+  return responseBody.contains('Dart Debug Authentication Success!');
+}
+
+Future<FetchResponse> _fetchRequest(String resourceUrl) async {
+  try {
+    final options = FetchOptions(
+      method: 'GET',
+      credentials: 'include',
+    );
+    final response =
+        await promiseToFuture(_nativeJsFetch(resourceUrl, options));
+    final body =
+        await promiseToFuture(js_util.callMethod(response, 'text', []));
+    final ok = js_util.getProperty<bool>(response, 'ok');
+    final status = js_util.getProperty<int>(response, 'status');
+    return FetchResponse(status: status, ok: ok, body: body);
+  } catch (error) {
+    return FetchResponse(
+        status: 400, ok: false, body: 'Error fetching $resourceUrl: $error');
+  }
 }
 
 @JS(r'$dartAppId')
@@ -282,4 +348,40 @@ external bool get isInternalBuild;
 @JS(r'$isFlutterApp')
 external bool get isFlutterApp;
 
+// Custom implementation of Fetch API until the Dart implementation supports
+// credentials. See https://github.com/dart-lang/http/issues/595.
+@JS('fetch')
+external Object _nativeJsFetch(String resourceUrl, FetchOptions options);
+
+@JS()
+@anonymous
+class FetchOptions {
+  external factory FetchOptions({
+    required String method, // e.g., 'GET', 'POST'
+    required String credentials, // e.g., 'omit', 'same-origin', 'include'
+  });
+}
+
+class FetchResponse {
+  final int status;
+  final bool ok;
+  final String? body;
+
+  FetchResponse({
+    required this.status,
+    required this.ok,
+    required this.body,
+  });
+}
+
 bool get _isChromium => window.navigator.vendor.contains('Google');
+
+JsObject get _windowContext => JsObject.fromBrowserObject(window);
+
+bool? get _isInternalBuild => _windowContext['\$isInternalBuild'];
+
+bool? get _isFlutterApp => _windowContext['\$isFlutterApp'];
+
+String? get _appId => _windowContext['\$dartAppId'];
+
+String? get _extensionUrl => _windowContext['\$dartExtensionUri'];
