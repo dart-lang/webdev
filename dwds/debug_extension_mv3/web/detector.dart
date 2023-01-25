@@ -23,7 +23,7 @@ void main() {
 
 void _registerListeners() {
   document.addEventListener('dart-app-ready', _onDartAppReadyEvent);
-  document.addEventListener('dart-user-auth', _onDartUserAuthEvent);
+  document.addEventListener('dart-user-auth-response', _onDartUserAuthEvent);
 }
 
 void _onDartAppReadyEvent(Event event) {
@@ -42,7 +42,7 @@ void _onDartAppReadyEvent(Event event) {
 }
 
 void _onDartUserAuthEvent(Event event) {
-  final isAuthenticated = getProperty(event, 'detail') as bool?;
+  final isAuthenticated = getProperty(event, 'detail') as String?;
   window.console.log('RECEIVED IS AUTHENTICATED: $isAuthenticated');
 }
 
@@ -75,7 +75,7 @@ void _sendAuthRequest(String debugInfoJson) {
   final appOrigin = debugInfo?.appOrigin;
   if (appOrigin != null) {
     window.console.log('SENDING AUTH REQEUST...');
-    window.postMessage('dart-user-auth', appOrigin);
+    window.postMessage('dart-user-auth-request', appOrigin);
   } else {
     window.console.log('NO APP ORIGIN');
   }
