@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webdriver/io.dart';
+import 'package:webdriver/async_io.dart';
 
 import 'fixtures/context.dart';
 

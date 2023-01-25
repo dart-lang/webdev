@@ -9,7 +9,6 @@ stages:
     - test: -j 1
       sdk:
         - stable
-        - dev
       os:
         - windows
         - linux
