@@ -1,4 +1,10 @@
+## 16.0.3
+
+- Update the `vm_service` constraint to `>=10.1.0 <12.0.0`. See
+  https://github.com/dart-lang/webdev/issues/1912
+
 ## 16.0.2
+
 - Don't complete an already completed `Completer` in `ChromeProxyService` to fix
   Flutter tools crash: https://github.com/dart-lang/webdev/pull/1862
 
@@ -8,9 +14,10 @@
   - `LoadStrategy.serverPathForModule`
   - `LoadStrategy.sourceMapPathForModule`
 - Expression evaluation performance improvement:
-  - Batch `ChromeProxyService.evaluate()` requests that are close in time
-    and are executed in the same library and scope.
-- Update `package:file` version to `6.13` or greater to handle https://github.com/dart-lang/sdk/issues/49647.
+  - Batch `ChromeProxyService.evaluate()` requests that are close in time and
+    are executed in the same library and scope.
+- Update `package:file` version to `6.13` or greater to handle
+  https://github.com/dart-lang/sdk/issues/49647.
 
 ## 16.0.0
 
