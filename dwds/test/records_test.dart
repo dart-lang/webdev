@@ -105,11 +105,11 @@ void main() async {
 
               final result = await setup.service
                   .evaluateInFrame(isolateId, event.topFrame!.index!, 'record');
-
-              //  Actual: InstanceRef:<[InstanceRef id: 5614429716467540672.1.54, kind: PlainInstance, identityHashCode: 912649884, classRef: [ClassRef id: classes|null|RecordType(bool, int), name: RecordType(bool, int), library: null]]>
               expect(result, isA<InstanceRef>());
 
               final instanceRef = result as InstanceRef;
+              expect(instanceRef.kind, InstanceKind.kRecord);
+
               final instance = await setup.service
                   .getObject(isolateId, instanceRef.id!) as Instance;
 
@@ -124,8 +124,8 @@ void main() async {
                   .whereNotNull()
                   .toList();
               expect(fieldNames, [
-                r'$0',
-                r'$1',
+                '0',
+                '1',
               ]);
             });
           });

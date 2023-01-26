@@ -501,6 +501,14 @@ class InstanceHelper extends Domain {
               classRef: metaData.classRef)
             ..length = metaData.length;
         }
+        if (metaData.isRecord) {
+          return InstanceRef(
+              kind: InstanceKind.kRecord,
+              id: objectId,
+              identityHashCode: remoteObject.objectId.hashCode,
+              classRef: metaData.classRef)
+            ..length = metaData.length;
+        }
         return InstanceRef(
             kind: InstanceKind.kPlainInstance,
             id: objectId,
