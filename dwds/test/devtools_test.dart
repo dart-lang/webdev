@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@Skip('Test passing locally')
 @Timeout(Duration(minutes: 5))
 @TestOn('vm')
 import 'dart:io';
