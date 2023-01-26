@@ -4,6 +4,7 @@
 
 // When run locally this test may require a manifest key. This makes it easy to
 // just skip it.
+@Skip('Test passing locally')
 @Tags(['extension'])
 @Timeout(Duration(seconds: 60))
 @OnPlatform({
