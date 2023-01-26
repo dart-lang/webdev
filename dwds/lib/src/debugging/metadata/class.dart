@@ -10,22 +10,37 @@ import '../../debugging/remote_debugger.dart';
 import '../../loaders/strategy.dart';
 import '../../services/chrome_debug_exception.dart';
 
+const _dartCoreLibrary = 'dart:core';
+
 /// A hard-coded ClassRef for the Closure class.
-final classRefForClosure = classRefFor('dart:core', 'Closure');
+final classRefForClosure = classRefFor(_dartCoreLibrary, 'Closure');
 
 /// A hard-coded ClassRef for the String class.
-final classRefForString = classRefFor('dart:core', InstanceKind.kString);
+final classRefForString = classRefFor(_dartCoreLibrary, InstanceKind.kString);
 
 /// A hard-coded ClassRef for a (non-existent) class called Unknown.
-final classRefForUnknown = classRefFor('dart:core', 'Unknown');
+final classRefForUnknown = classRefFor(_dartCoreLibrary, 'Unknown');
+
+///  A hard-coded LibraryRef for a a dart:core library.
+final libraryRefForCore = LibraryRef(
+  id: _dartCoreLibrary,
+  name: _dartCoreLibrary,
+  uri: _dartCoreLibrary,
+);
+
+/// Returns a [LibraryRef] for the provided library ID and class name.
+LibraryRef libraryRefFor(String libraryId) => LibraryRef(
+      id: libraryId,
+      name: libraryId,
+      uri: libraryId,
+    );
 
 /// Returns a [ClassRef] for the provided library ID and class name.
-ClassRef classRefFor(String? libraryId, String? name) => ClassRef(
-    id: 'classes|$libraryId|$name',
-    name: name,
-    library: libraryId == null
-        ? null
-        : LibraryRef(id: libraryId, name: libraryId, uri: libraryId));
+ClassRef classRefFor(String libraryId, String? name) => ClassRef(
+      id: 'classes|$libraryId|$name',
+      name: name,
+      library: libraryRefFor(libraryId),
+    );
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
@@ -44,12 +59,15 @@ class ClassMetaData {
   final String? dartName;
 
   /// The library identifier, which is the URI of the library.
-  final String? libraryId;
+  final String libraryId;
 
   factory ClassMetaData(
       {Object? jsName, Object? libraryId, Object? dartName, Object? length}) {
-    return ClassMetaData._(jsName as String?, libraryId as String?,
-        dartName as String?, int.tryParse('$length'));
+    return ClassMetaData._(
+        jsName as String?,
+        libraryId as String? ?? _dartCoreLibrary,
+        dartName as String?,
+        int.tryParse('$length'));
   }
 
   ClassMetaData._(this.jsName, this.libraryId, this.dartName, this.length);
@@ -106,4 +124,7 @@ class ClassMetaData {
 
   /// True if this class refers to system Lists, which are treated specially.
   bool get isSystemList => jsName == 'JSArray';
+
+  /// True if this class refers to a record type.
+  bool get isRecord => jsName?.startsWith('RecordType(') ?? false;
 }

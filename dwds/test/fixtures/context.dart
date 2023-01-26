@@ -168,7 +168,8 @@ class TestContext {
     required this.nullSafety,
   }) {
     // Verify that the test fixtures package matches the null-safety mode:
-    final isSoundPackage = packageName.toLowerCase().contains('sound');
+    final isSoundPackage = packageName.toLowerCase().contains('sound') ||
+        packageName.toLowerCase().contains('experiment');
     assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
     // Verify that the web assets path has no starting slash:
     assert(!webAssetsPath.startsWith('/'));
@@ -199,6 +200,7 @@ class TestContext {
     bool launchChrome = true,
     bool isFlutterApp = false,
     bool isInternalBuild = false,
+    List<String> experiments = const <String>[],
   }) async {
     // Generate missing SDK assets if needed.
     final sdkConfigurationProvider =
@@ -265,6 +267,8 @@ class TestContext {
                 'build_web_compilers|ddc=generate-full-dill=true',
               ],
               '--verbose',
+              for (var experiment in experiments)
+                '--enable-experiment=$experiment',
             ];
             _daemonClient =
                 await connectClient(workingDirectory, options, (log) {
@@ -293,6 +297,7 @@ class TestContext {
                 port,
                 verbose: verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
+                experiments: experiments,
               );
               expressionCompiler = ddcService;
             }
@@ -328,6 +333,7 @@ class TestContext {
               'org-dartlang-app',
               outputDir.path,
               nullSafety == NullSafety.sound,
+              experiments,
               verboseCompiler,
             );
 

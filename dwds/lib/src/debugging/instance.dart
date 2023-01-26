@@ -125,6 +125,9 @@ class InstanceHelper extends Domain {
     } else if (metaData.isSystemMap) {
       return await _mapInstanceFor(
           classRef, remoteObject, properties, offset, count);
+    } else if (metaData.isRecord) {
+      return await _recordInstanceFor(
+          classRef, remoteObject, properties, offset, count);
     } else {
       return await _plainInstanceFor(classRef, remoteObject, properties);
     }
@@ -152,6 +155,7 @@ class InstanceHelper extends Domain {
   Future<BoundField> _fieldFor(Property property, ClassRef classRef) async {
     final instance = await _instanceRefForRemote(property.value);
     return BoundField(
+        name: property.name,
         decl: FieldRef(
           // TODO(grouma) - Convert JS name to Dart.
           name: property.name,
@@ -295,6 +299,79 @@ class InstanceHelper extends Domain {
       ..elements = fields
       ..offset = offset
       ..count = (numberOfProperties == length) ? null : numberOfProperties;
+  }
+
+  /// The associations for a Dart Map or IdentityMap.
+  Future<List<MapAssociation>> _recordAssociations(
+      RemoteObject map, int? offset, int? count) async {
+    // We do this in in awkward way because we want the keys and values, but we
+    // can't return things by value or some Dart objects will come back as
+    // values that we need to be RemoteObject, e.g. a List of int.
+    final expression = '''
+      function() {
+        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
+        var shape = sdkUtils.dloadRepl(this, "shape");
+        var positionals = sdkUtils.dloadRepl(shape, "positionals");
+        var names = new Array();
+        var named = sdkUtils.dloadRepl(shape, "named");
+        for (var i = 0; i < positionals; i++) {
+          names.push(i);
+        }
+        for (var name in named) {
+          names.push(name);
+        }
+
+        var values = sdkUtils.dloadRepl(this, "values");
+        values = sdkUtils.dsendRepl(values, "toList", []);
+        
+        return {
+          names: names,
+          values: values
+        };
+      }
+    ''';
+    final keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
+    final keys = await inspector.loadField(keysAndValues, 'names');
+    final values = await inspector.loadField(keysAndValues, 'values');
+    final keysInstance = await instanceFor(keys, offset: offset, count: count);
+    final valuesInstance =
+        await instanceFor(values, offset: offset, count: count);
+    final associations = <MapAssociation>[];
+    final keyElements = keysInstance?.elements;
+    final valueElements = valuesInstance?.elements;
+    if (keyElements != null && valueElements != null) {
+      Map.fromIterables(keyElements, valueElements).forEach((key, value) {
+        associations.add(MapAssociation(key: key, value: value));
+      });
+    }
+    return associations;
+  }
+
+  /// Create a Map instance with class [classRef] from [remoteObject].
+  Future<Instance?> _recordInstanceFor(
+      ClassRef classRef,
+      RemoteObject remoteObject,
+      List<Property> _,
+      int? offset,
+      int? count) async {
+    final objectId = remoteObject.objectId;
+    if (objectId == null) return null;
+    // Maps are complicated, do an eval to get keys and values.
+    final associations = await _recordAssociations(remoteObject, offset, count);
+    final length = (offset == null && count == null)
+        ? associations.length
+        : (await instanceRefFor(remoteObject))?.length;
+    return Instance(
+        identityHashCode: remoteObject.objectId.hashCode,
+        kind: InstanceKind.kRecord,
+        id: objectId,
+        classRef: classRef)
+      ..length = length
+      ..offset = offset
+      ..count = (associations.length == length) ? null : associations.length
+      ..fields = associations
+          .map((e) => BoundField(name: e.key.valueAsString, value: e.value))
+          .toList();
   }
 
   /// Return the value of the length attribute from [properties], if present.

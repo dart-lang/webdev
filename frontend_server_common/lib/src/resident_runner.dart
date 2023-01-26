@@ -35,6 +35,7 @@ class ResidentWebRunner {
       this.fileSystemScheme,
       this.outputPath,
       this.soundNullSafety,
+      this.experiments,
       bool verbose) {
     generator = ResidentCompiler(
       dartSdkPath,
@@ -45,8 +46,9 @@ class ResidentWebRunner {
           soundNullSafety ? '$summaryDillSound' : '$summaryDillUnsound',
       fileSystemRoots: fileSystemRoots,
       fileSystemScheme: fileSystemScheme,
-      verbose: verbose,
       soundNullSafety: soundNullSafety,
+      experiments: experiments,
+      verbose: verbose,
     );
     expressionCompiler = TestExpressionCompiler(generator);
   }
@@ -60,6 +62,7 @@ class ResidentWebRunner {
   final List<Uri> fileSystemRoots;
   final String fileSystemScheme;
   final bool soundNullSafety;
+  final List<String> experiments;
 
   late ResidentCompiler generator;
   late ExpressionCompiler expressionCompiler;
