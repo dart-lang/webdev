@@ -9,9 +9,9 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:dwds/data/debug_info.dart';
-import 'package:dwds/src/web_utilities/authentication.dart';
 import 'package:js/js.dart';
 
+import 'authentication.dart';
 import 'data_types.dart';
 import 'debug_session.dart';
 import 'chrome_api.dart';
