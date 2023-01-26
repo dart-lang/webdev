@@ -22,7 +22,6 @@ import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/sockets.dart';
-import 'package:dwds/src/web_utilities/authentication.dart';
 // NOTE(annagrin): using 'package:dwds/src/utilities/batched_stream.dart'
 // makes dart2js skip creating background.js, so we use a copy instead.
 // import 'package:dwds/src/utilities/batched_stream.dart';
@@ -33,6 +32,7 @@ import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import 'authentication.dart';
 import 'promise.dart';
 import 'reloader/legacy_restarter.dart';
 import 'reloader/manager.dart';
