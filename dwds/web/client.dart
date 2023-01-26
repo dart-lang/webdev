@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
-import 'dart:js_util' as js_util;
 
 import 'package:built_collection/built_collection.dart';
 import 'package:dwds/data/build_result.dart';
@@ -23,6 +22,7 @@ import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
 import 'package:dwds/src/sockets.dart';
+import 'package:dwds/src/web_utilities/authentication.dart';
 // NOTE(annagrin): using 'package:dwds/src/utilities/batched_stream.dart'
 // makes dart2js skip creating background.js, so we use a copy instead.
 // import 'package:dwds/src/utilities/batched_stream.dart';
@@ -41,19 +41,6 @@ import 'reloader/restarter.dart';
 import 'run_main.dart';
 
 const _batchDelayMilliseconds = 1000;
-
-String? get _authUrl {
-  final extensionUrl = _extensionUrl;
-  if (extensionUrl == null) return null;
-  final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
-  if (authUrl.scheme == 'ws') {
-    authUrl.replace(scheme: 'http');
-  } else if (authUrl.scheme == 'wss') {
-    authUrl.replace(scheme: 'https');
-  }
-  return authUrl.toString();
-}
-
 
 // GENERATE:
 // pub run build_runner build web
@@ -257,44 +244,16 @@ void _launchCommunicationWithDebugExtension() {
 
 void _listenForDebugExtensionAuthRequest() {
   window.addEventListener('message', allowInterop((event) async {
-    window.console.log('=== RECEIVED A REQUEST FOR AUTHENTICATION');
     final messageEvent = event as MessageEvent;
     if (messageEvent.data is! String) return;
-    if (messageEvent.data as String != 'dart-extension-auth-request') return;
+    if (messageEvent.data as String != 'dart-auth-request') return;
 
     // Notify the Dart Debug Extension of authentication status:
-    final isAuthenticated = await _authenticateUser();
-    window.console.log('=== IS USER AUTHENTICATED? $isAuthenticated');
-    dispatchEvent(CustomEvent('dart-user-auth', detail: isAuthenticated));
+    if (_authUrl != null) {
+      final isAuthenticated = await authenticateUser(_authUrl!);
+      dispatchEvent(CustomEvent('dart-auth-response', detail: isAuthenticated));
+    }
   }));
-}
-
-Future<bool> _authenticateUser() async {
-  final authUrl = _authUrl;
-  if (authUrl == null) return false;
-
-  final response = await _fetchRequest(authUrl);
-  final responseBody = response.body ?? '';
-  return responseBody.contains('Dart Debug Authentication Success!');
-}
-
-Future<FetchResponse> _fetchRequest(String resourceUrl) async {
-  try {
-    final options = FetchOptions(
-      method: 'GET',
-      credentials: 'include',
-    );
-    final response =
-        await promiseToFuture(_nativeJsFetch(resourceUrl, options));
-    final body =
-        await promiseToFuture(js_util.callMethod(response, 'text', []));
-    final ok = js_util.getProperty<bool>(response, 'ok');
-    final status = js_util.getProperty<int>(response, 'status');
-    return FetchResponse(status: status, ok: ok, body: body);
-  } catch (error) {
-    return FetchResponse(
-        status: 400, ok: false, body: 'Error fetching $resourceUrl: $error');
-  }
 }
 
 @JS(r'$dartAppId')
@@ -348,32 +307,6 @@ external bool get isInternalBuild;
 @JS(r'$isFlutterApp')
 external bool get isFlutterApp;
 
-// Custom implementation of Fetch API until the Dart implementation supports
-// credentials. See https://github.com/dart-lang/http/issues/595.
-@JS('fetch')
-external Object _nativeJsFetch(String resourceUrl, FetchOptions options);
-
-@JS()
-@anonymous
-class FetchOptions {
-  external factory FetchOptions({
-    required String method, // e.g., 'GET', 'POST'
-    required String credentials, // e.g., 'omit', 'same-origin', 'include'
-  });
-}
-
-class FetchResponse {
-  final int status;
-  final bool ok;
-  final String? body;
-
-  FetchResponse({
-    required this.status,
-    required this.ok,
-    required this.body,
-  });
-}
-
 bool get _isChromium => window.navigator.vendor.contains('Google');
 
 JsObject get _windowContext => JsObject.fromBrowserObject(window);
@@ -385,3 +318,15 @@ bool? get _isFlutterApp => _windowContext['\$isFlutterApp'];
 String? get _appId => _windowContext['\$dartAppId'];
 
 String? get _extensionUrl => _windowContext['\$dartExtensionUri'];
+
+String? get _authUrl {
+  final extensionUrl = _extensionUrl;
+  if (extensionUrl == null) return null;
+  final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
+  if (authUrl.scheme == 'ws') {
+    authUrl.replace(scheme: 'http');
+  } else if (authUrl.scheme == 'wss') {
+    authUrl.replace(scheme: 'https');
+  }
+  return authUrl.toString();
+}

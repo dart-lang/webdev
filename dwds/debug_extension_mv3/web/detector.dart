@@ -23,7 +23,7 @@ void main() {
 
 void _registerListeners() {
   document.addEventListener('dart-app-ready', _onDartAppReadyEvent);
-  document.addEventListener('dart-user-auth-response', _onDartUserAuthEvent);
+  document.addEventListener('dart-auth-response', _onDartAuthEvent);
 }
 
 void _onDartAppReadyEvent(Event event) {
@@ -41,9 +41,13 @@ void _onDartAppReadyEvent(Event event) {
   }
 }
 
-void _onDartUserAuthEvent(Event event) {
+void _onDartAuthEvent(Event event) {
   final isAuthenticated = getProperty(event, 'detail') as String?;
-  window.console.log('RECEIVED IS AUTHENTICATED: $isAuthenticated');
+  if (isAuthenticated == null) return;
+  _sendMessageToBackgroundScript(
+    type: MessageType.isAuthenticated,
+    body: isAuthenticated,
+  );
 }
 
 // TODO(elliette): Remove once DWDS 17.0.0 is in Flutter stable. If we are on an
@@ -74,9 +78,6 @@ void _sendAuthRequest(String debugInfoJson) {
       serializers.deserialize(jsonDecode(debugInfoJson)) as DebugInfo?;
   final appOrigin = debugInfo?.appOrigin;
   if (appOrigin != null) {
-    window.console.log('SENDING AUTH REQEUST...');
-    window.postMessage('dart-user-auth-request', appOrigin);
-  } else {
-    window.console.log('NO APP ORIGIN');
+    window.postMessage('dart-auth-request', appOrigin);
   }
 }
