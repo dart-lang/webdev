@@ -61,16 +61,32 @@ class ClassMetaData {
   /// The library identifier, which is the URI of the library.
   final String libraryId;
 
-  factory ClassMetaData(
-      {Object? jsName, Object? libraryId, Object? dartName, Object? length}) {
+  factory ClassMetaData({
+    Object? jsName,
+    Object? libraryId,
+    Object? dartName,
+    Object? length,
+    bool isFunction = false,
+    bool isRecord = false,
+  }) {
     return ClassMetaData._(
-        jsName as String?,
-        libraryId as String? ?? _dartCoreLibrary,
-        dartName as String?,
-        int.tryParse('$length'));
+      jsName as String?,
+      libraryId as String? ?? _dartCoreLibrary,
+      dartName as String?,
+      int.tryParse('$length'),
+      isFunction,
+      isRecord,
+    );
   }
 
-  ClassMetaData._(this.jsName, this.libraryId, this.dartName, this.length);
+  ClassMetaData._(
+    this.jsName,
+    this.libraryId,
+    this.dartName,
+    this.length,
+    this.isFunction,
+    this.isRecord,
+  );
 
   /// Returns the ID of the class.
   ///
@@ -88,11 +104,26 @@ class ClassMetaData {
         const sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         const classObject = sdkUtils.getReifiedType(arg);
         const isFunction = sdkUtils.AbstractFunctionType.is(classObject);
+        const isRecord = sdkUtils.RecordType.is(classObject);
         const result = {};
-        result['name'] = isFunction ? 'Function' : classObject.name;
+        var name = isFunction ? 'Function' : classObject.name;
+        
+        result['name'] = name;
         result['libraryId'] = sdkUtils.getLibraryUri(classObject);
         result['dartName'] = sdkUtils.typeName(classObject);
+        result['isFunction'] = isFunction;
+        result['isRecord'] = isRecord;
         result['length'] = arg['length'];
+
+        if (isRecord) {
+          result['name'] = 'Record';
+          var positionals = classObject.shape.positionals;
+          var named = classObject.shape.named == null
+            ? 0
+            : classObject.shape.named.length;
+          result['length'] = positionals + named;
+        }
+
         return result;
       }
     ''';
@@ -104,6 +135,8 @@ class ClassMetaData {
         jsName: metadata['name'],
         libraryId: metadata['libraryId'],
         dartName: metadata['dartName'],
+        isFunction: metadata['isFunction'],
+        isRecord: metadata['isRecord'],
         length: metadata['length'],
       );
     } on ChromeDebugException {
@@ -125,6 +158,9 @@ class ClassMetaData {
   /// True if this class refers to system Lists, which are treated specially.
   bool get isSystemList => jsName == 'JSArray';
 
+  /// True if this class refers to a function type.
+  bool isFunction;
+
   /// True if this class refers to a record type.
-  bool get isRecord => jsName?.startsWith('RecordType(') ?? false;
+  bool isRecord;
 }

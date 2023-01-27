@@ -76,8 +76,7 @@ class ClassHelper extends Domain {
 
     if (libraryUri == null || classId == null || className == null) return null;
 
-    var rawName = className.split('<').first;
-    if (rawName.startsWith('RecordType(')) rawName = 'Record';
+    final rawName = className.split('<').first;
     final expression = '''
     (function() {
       ${globalLoadStrategy.loadLibrarySnippet(libraryUri)}

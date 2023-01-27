@@ -109,24 +109,32 @@ void main() async {
 
               final instanceRef = result as InstanceRef;
               expect(instanceRef.kind, InstanceKind.kRecord);
+              expect(instanceRef.length, 2);
 
-              final instance = await setup.service
-                  .getObject(isolateId, instanceRef.id!) as Instance;
+              Future<List<Object>> getFields(int? offset, int? count) async {
+                final instance = await setup.service.getObject(
+                    isolateId, instanceRef.id!,
+                    offset: offset, count: count) as Instance;
 
-              expect(instance.kind, InstanceKind.kRecord);
+                expect(instance.kind, InstanceKind.kRecord);
 
-              final classRef = instance.classRef!;
-              expect(classRef, isNotNull);
-              expect(classRef.name, 'RecordType(bool, int)');
+                final classRef = instance.classRef!;
+                expect(classRef, isNotNull);
+                expect(classRef.name, 'Record');
 
-              final fieldNames = instance.fields!
-                  .map((boundField) => boundField.name)
-                  .whereNotNull()
-                  .toList();
-              expect(fieldNames, [
-                '0',
-                '1',
-              ]);
+                return instance.fields!
+                    .map((boundField) => boundField.name)
+                    .whereNotNull()
+                    .toList();
+              }
+
+              await expectLater(await getFields(null, null), ['0', '1']);
+              await expectLater(await getFields(0, null), ['0', '1']);
+              await expectLater(await getFields(1, null), ['1']);
+              await expectLater(await getFields(0, 0), []);
+              await expectLater(await getFields(0, 1), ['0']);
+              await expectLater(await getFields(0, 2), ['0', '1']);
+              await expectLater(await getFields(0, 5), ['0', '1']);
             });
           });
         });

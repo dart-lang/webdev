@@ -113,7 +113,7 @@ class InstanceHelper extends Domain {
 
     final classRef = metaData?.classRef;
     if (metaData == null || classRef == null) return null;
-    if (metaData.jsName == 'Function') {
+    if (metaData.isFunction) {
       return _closureInstanceFor(remoteObject);
     }
 
@@ -255,7 +255,7 @@ class InstanceHelper extends Domain {
     if (objectId == null) return null;
     // Maps are complicated, do an eval to get keys and values.
     final associations = await _mapAssociations(remoteObject, offset, count);
-    final length = (offset == null && count == null)
+    final length = (/*offset == null &&*/ count == null)
         ? associations.length
         : (await instanceRefFor(remoteObject))?.length;
     return Instance(
@@ -283,11 +283,11 @@ class InstanceHelper extends Domain {
     /// TODO(annagrin): split into cases to make the logic clear.
     /// TODO(annagrin): make sure we use offset correctly.
     final numberOfProperties = _lengthOf(properties) ?? 0;
-    final length = (offset == null && count == null)
+    final length = (/*offset == null &&*/ count == null)
         ? numberOfProperties
         : (await instanceRefFor(remoteObject))?.length;
-    final indexed = properties.sublist(
-        0, min(count ?? length ?? numberOfProperties, numberOfProperties));
+    final indexed = properties.sublist(offset ?? 0,
+        min(count ?? length ?? numberOfProperties, numberOfProperties));
     final fields = await Future.wait(indexed
         .map((property) async => await _instanceRefForRemote(property.value)));
     return Instance(
@@ -355,10 +355,17 @@ class InstanceHelper extends Domain {
       int? offset,
       int? count) async {
     final objectId = remoteObject.objectId;
+    // DevTools always calls with the offset = 0, even if count is null.
+    // Set the offset to null to make sure collecting associations works correctly.
+    // TODO: figure out what is the difference is in contract for maps, lists,
+    // records between the following two cases:
+    //   - offset = 0; count = null;
+    //   - offset = null; count = null;
+    //if (count == null) offset = null;
     if (objectId == null) return null;
     // Maps are complicated, do an eval to get keys and values.
     final associations = await _recordAssociations(remoteObject, offset, count);
-    final length = (offset == null && count == null)
+    final length = (count == null)
         ? associations.length
         : (await instanceRefFor(remoteObject))?.length;
     return Instance(

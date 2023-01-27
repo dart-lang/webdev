@@ -472,8 +472,8 @@ class Debugger extends Domain {
   Future<List<Property>> getProperties(String objectId,
       {int? offset, int? count, int? length}) async {
     String rangeId = objectId;
-    if (length != null && (offset != null || count != null)) {
-      final range = await _subrange(objectId, offset ?? 0, count ?? 0, length);
+    if (length != null && (/*offset != null || */ count != null)) {
+      final range = await _subrange(objectId, offset ?? 0, count, length);
       rangeId = range.objectId ?? rangeId;
     }
     final jsProperties = await sendCommandAndValidateResult<List>(
