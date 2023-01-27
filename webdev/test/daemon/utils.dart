@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -38,14 +39,41 @@ Future<String> waitForAppId(TestProcess webdev) async {
 }
 
 Future<String> prepareWorkspace() async {
-  var exampleDirectory =
+  var relativeDirPath =
       p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSmoke'));
+  var absoluteDirPath = absolutePath(pathFromFixtures: '_webdevSmoke');
+  final useRelativePath = true;
+  final dirPath = useRelativePath ? relativeDirPath : absoluteDirPath;
+  final notDirPath = useRelativePath ? absoluteDirPath : relativeDirPath;
+  print('========= RUNNING dart pub upgrade IN $dirPath');
+  print('========= (not running it in $notDirPath');
 
   var process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
-      workingDirectory: exampleDirectory, environment: getPubEnvironment());
+      workingDirectory: dirPath, environment: getPubEnvironment());
 
   await process.shouldExit(0);
-  return exampleDirectory;
+
+  final generatedWebPath = p.join(dirPath, '.dart_tool', 'build', 'generated', '_webdev_smoke', 'web');
+  final generatedWebDir = Directory(generatedWebPath);
+  if (generatedWebDir.existsSync()) {
+    final files = await generatedWebDir.list().toList();
+    for (final file in files) {
+      if (file.path.contains('main.unsound.ddc.js')) {
+        print('-- ${file.path}');
+        if (file.path.contains('errors')) {
+          final errorFile = File(file.path);
+          final lines = errorFile.readAsLinesSync();
+          for (final line in lines) {
+            print(line);
+          }
+        }
+      }
+    }
+  } else {
+    print('$generatedWebPath does not exist.');
+  }
+
+  return dirPath;
 }
 
 String? getDebugServiceUri(String line) {
