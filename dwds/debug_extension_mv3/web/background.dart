@@ -11,7 +11,6 @@ import 'dart:html';
 import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
-import 'authentication.dart';
 import 'data_types.dart';
 import 'debug_session.dart';
 import 'chrome_api.dart';
@@ -21,6 +20,7 @@ import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
+import 'web_api.dart';
 
 void main() {
   _registerListeners();
@@ -80,7 +80,7 @@ Future<bool> _authenticateUser(int tabId) async {
     _showWarningNotification('Cannot authenticate user.');
     return false;
   }
-  final isAuthenticated = await authenticateUser(authUrl);
+  final isAuthenticated = await _sendAuthRequest(authUrl);
   if (isAuthenticated) {
     await setStorageObject<String>(
       type: StorageObject.isAuthenticated,
@@ -204,6 +204,12 @@ Future<bool> _fetchIsAuthenticated(int tabId) async {
     tabId: tabId,
   );
   return authenticated == 'true';
+}
+
+Future<bool> _sendAuthRequest(String authUrl) async {
+  final response = await fetchRequest(authUrl);
+  final responseBody = response.body ?? '';
+  return responseBody.contains('Dart Debug Authentication Success!');
 }
 
 void _showWarningNotification(String message) {
