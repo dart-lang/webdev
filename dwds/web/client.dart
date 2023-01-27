@@ -32,7 +32,6 @@ import 'package:sse/client/sse_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'authentication.dart';
 import 'promise.dart';
 import 'reloader/legacy_restarter.dart';
 import 'reloader/manager.dart';
@@ -250,11 +249,21 @@ void _listenForDebugExtensionAuthRequest() {
 
     // Notify the Dart Debug Extension of authentication status:
     if (_authUrl != null) {
-      final isAuthenticated = await authenticateUser(_authUrl!);
+      final isAuthenticated = await _authenticateUser(_authUrl!);
       dispatchEvent(
           CustomEvent('dart-auth-response', detail: '$isAuthenticated'));
     }
   }));
+}
+
+Future<bool> _authenticateUser(String authUrl) async {
+  final response = await HttpRequest.request(
+    authUrl,
+    method: 'GET',
+    withCredentials: true,
+  );
+  final responseText = response.responseText ?? '';
+  return responseText.contains('Dart Debug Authentication Success!');
 }
 
 @JS(r'$dartAppId')
