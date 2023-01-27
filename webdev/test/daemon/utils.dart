@@ -52,7 +52,8 @@ Future<String> prepareWorkspace() async {
 
   await process.shouldExit(0);
 
-  final generatedWebPath = p.join(dirPath, '.dart_tool', 'build', 'generated', '_webdev_smoke', 'web');
+  final generatedWebPath = p.join(
+      dirPath, '.dart_tool', 'build', 'generated', '_webdev_smoke', 'web');
   final generatedWebDir = Directory(generatedWebPath);
   if (generatedWebDir.existsSync()) {
     final files = await generatedWebDir.list().toList();
