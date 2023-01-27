@@ -251,7 +251,8 @@ void _listenForDebugExtensionAuthRequest() {
     // Notify the Dart Debug Extension of authentication status:
     if (_authUrl != null) {
       final isAuthenticated = await authenticateUser(_authUrl!);
-      dispatchEvent(CustomEvent('dart-auth-response', detail: isAuthenticated));
+      dispatchEvent(
+          CustomEvent('dart-auth-response', detail: '$isAuthenticated'));
     }
   }));
 }
