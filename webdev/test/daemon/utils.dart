@@ -42,9 +42,8 @@ Future<String> prepareWorkspace() async {
   var relativeDirPath =
       p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSmoke'));
   var absoluteDirPath = absolutePath(pathFromFixtures: '_webdevSmoke');
-  final useRelativePath = true;
-  final dirPath = useRelativePath ? relativeDirPath : absoluteDirPath;
-  final notDirPath = useRelativePath ? absoluteDirPath : relativeDirPath;
+  final dirPath = relativeDirPath;
+  final notDirPath = absoluteDirPath;
   print('========= RUNNING dart pub upgrade IN $dirPath');
   print('========= (not running it in $notDirPath');
 
