@@ -38,8 +38,10 @@ Future<String> waitForAppId(TestProcess webdev) async {
 }
 
 Future<String> prepareWorkspace() async {
+  // TODO(elliette): Test on weak null-safety webdevSmoke package as well. See:
+  // https://github.com/dart-lang/webdev/issues/1892
   var exampleDirectory =
-      p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSmoke'));
+      p.absolute(p.join(p.current, '..', 'fixtures', 'webdevSoundSmoke'));
 
   var process = await TestProcess.start(dartPath, ['pub', 'upgrade'],
       workingDirectory: exampleDirectory, environment: getPubEnvironment());
