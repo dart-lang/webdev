@@ -4,6 +4,7 @@
   to the build runner and the expression compiler service.
 - Update SDK constraint to `>=3.0.0-134.0.dev <4.0.0`.
 - Update `package:vm_service` constraint to `>=10.1.0 <12.0.0`.
+- Make all tests use sound null safety fixtures.
 
 **Breaking changes**
 
