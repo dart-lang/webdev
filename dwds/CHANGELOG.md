@@ -1,4 +1,4 @@
-## 17.0.0-dev
+## 17.0.0
 
 - Include debug information in the event sent from the injected client to the
   Dart Debug Extension notifying that the Dart app is ready.
