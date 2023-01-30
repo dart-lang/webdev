@@ -393,7 +393,7 @@ class ResidentCompiler {
       if (soundNullSafety) '--sound-null-safety',
       if (!soundNullSafety) '--no-sound-null-safety',
       if (verbose) '--verbose',
-      for(var experiment in experiments) '--enable-experiment=$experiment',
+      for (var experiment in experiments) '--enable-experiment=$experiment',
     ];
 
     _logger.info(args.join(' '));
