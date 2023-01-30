@@ -19,6 +19,7 @@
 - Return error on expression evaluation if expression evaluator stopped.
 - Update SDK constraint to `>=3.0.0-134.0.dev <4.0.0`.
 - Update `package:vm_service` constraint to `>=10.1.0 <12.0.0`.
+- Fix expression compiler throwing when weak SDK summary is not found.
 
 **Breaking changes**
 - Include an optional param to `Dwds.start` to indicate whether it is running
