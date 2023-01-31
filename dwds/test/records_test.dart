@@ -30,7 +30,7 @@ class TestSetup {
 
 void main() async {
   // Enable verbose logging for debugging.
-  final debug = true;
+  final debug = false;
 
   final setup = TestSetup.sound();
   final context = setup.context;

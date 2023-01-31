@@ -641,10 +641,10 @@ void main() {
             isolate.id!,
             list.objectId!,
             count: null,
-            offset: 1,
+            offset: 0,
           ) as Instance;
           expect(inst.length, 1001);
-          expect(inst.offset, 1);
+          expect(inst.offset, 0);
           expect(inst.count, null);
           final fifth = inst.elements![4] as InstanceRef;
           expect(fifth.valueAsString, '100');
@@ -704,16 +704,16 @@ void main() {
           expect(sixth.value.valueAsString, '995');
         });
 
-        test('Maps with null offset/count are not truncated', () async {
+        test('Maps with null count are not truncated', () async {
           final map = await createMap();
           final inst = await service.getObject(
             isolate.id!,
             map.objectId!,
             count: null,
-            offset: 1,
+            offset: 0,
           ) as Instance;
           expect(inst.length, 1001);
-          expect(inst.offset, 1);
+          expect(inst.offset, 0);
           expect(inst.count, null);
           final fifth = inst.associations![4];
           expect(fifth.key.valueAsString, '4');
