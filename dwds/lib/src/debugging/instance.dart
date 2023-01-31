@@ -255,7 +255,7 @@ class InstanceHelper extends Domain {
     if (objectId == null) return null;
     // Maps are complicated, do an eval to get keys and values.
     final associations = await _mapAssociations(remoteObject, offset, count);
-    final length = (/*offset == null &&*/ count == null)
+    final length = count == null
         ? associations.length
         : (await instanceRefFor(remoteObject))?.length;
     return Instance(
@@ -281,9 +281,8 @@ class InstanceHelper extends Domain {
     if (objectId == null) return null;
 
     /// TODO(annagrin): split into cases to make the logic clear.
-    /// TODO(annagrin): make sure we use offset correctly.
     final numberOfProperties = _lengthOf(properties) ?? 0;
-    final length = (/*offset == null &&*/ count == null)
+    final length = count == null
         ? numberOfProperties
         : (await instanceRefFor(remoteObject))?.length;
     final indexed = properties.sublist(offset ?? 0,
@@ -301,7 +300,7 @@ class InstanceHelper extends Domain {
       ..count = (numberOfProperties == length) ? null : numberOfProperties;
   }
 
-  /// The associations for a Dart Map or IdentityMap.
+  /// The associations for a Dart Record.
   Future<List<MapAssociation>> _recordAssociations(
       RemoteObject map, int? offset, int? count) async {
     // We do this in in awkward way because we want the keys and values, but we
@@ -312,26 +311,27 @@ class InstanceHelper extends Domain {
         var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         var shape = sdkUtils.dloadRepl(this, "shape");
         var positionals = sdkUtils.dloadRepl(shape, "positionals");
-        var names = new Array();
         var named = sdkUtils.dloadRepl(shape, "named");
+
+        var keys = new Array();
         for (var i = 0; i < positionals; i++) {
-          names.push(i);
+          keys.push(i);
         }
-        for (var name in named) {
-          names.push(name);
+        for (var key in named) {
+          key.push(key);
         }
 
         var values = sdkUtils.dloadRepl(this, "values");
         values = sdkUtils.dsendRepl(values, "toList", []);
         
         return {
-          names: names,
+          keys: keys,
           values: values
         };
       }
     ''';
     final keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
-    final keys = await inspector.loadField(keysAndValues, 'names');
+    final keys = await inspector.loadField(keysAndValues, 'keys');
     final values = await inspector.loadField(keysAndValues, 'values');
     final keysInstance = await instanceFor(keys, offset: offset, count: count);
     final valuesInstance =
@@ -355,15 +355,8 @@ class InstanceHelper extends Domain {
       int? offset,
       int? count) async {
     final objectId = remoteObject.objectId;
-    // DevTools always calls with the offset = 0, even if count is null.
-    // Set the offset to null to make sure collecting associations works correctly.
-    // TODO: figure out what is the difference is in contract for maps, lists,
-    // records between the following two cases:
-    //   - offset = 0; count = null;
-    //   - offset = null; count = null;
-    //if (count == null) offset = null;
     if (objectId == null) return null;
-    // Maps are complicated, do an eval to get keys and values.
+    // Records are complicated, do an eval to get names and values.
     final associations = await _recordAssociations(remoteObject, offset, count);
     final length = (count == null)
         ? associations.length

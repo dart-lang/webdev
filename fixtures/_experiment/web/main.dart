@@ -9,14 +9,26 @@ import 'dart:html';
 void main() {
   // for evaluation
   Timer.periodic(const Duration(seconds: 1), (_) {
-    printLocal();
+    printSimpleLocal();
+    printComplexLocal();
+    printNestedLocal();
   });
 
   document.body!.appendText('Program is running!');
 }
 
-void printLocal() {
+void printSimpleLocal() {
   final record = (true, 3);
-  print(record); // Breakpoint: printLocal
+  print(record); // Breakpoint: printSimpleLocal
+}
+
+void printComplexLocal() {
+  final record = (true, 3, {'a': 1, 'b': 5});
+  print(record); // Breakpoint: printComplexLocal
+}
+
+void printNestedLocal() {
+  final record = (true, (false, 5));
+  print(record); // Breakpoint: printNestedLocal
 }
 

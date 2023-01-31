@@ -127,6 +127,7 @@ class ClassMetaData {
         return result;
       }
     ''';
+
       final result = await inspector.jsCallFunctionOn(
           remoteObject, evalExpression, [remoteObject],
           returnByValue: true);
