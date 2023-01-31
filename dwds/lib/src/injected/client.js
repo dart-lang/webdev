@@ -9982,6 +9982,13 @@
     $add(receiver, other) {
       return receiver + other;
     },
+    endsWith$1(receiver, other) {
+      var otherLength = other.length,
+        t1 = receiver.length;
+      if (otherLength > t1)
+        return false;
+      return other === this.substring$1(receiver, t1 - otherLength);
+    },
     replaceRange$3(receiver, start, end, replacement) {
       var e = A.RangeError_checkValidRange(start, end, receiver.length);
       return A.stringReplaceRangeUnchecked(receiver, start, e, replacement);
@@ -24334,6 +24341,8 @@
         thisName = this.name;
       if (B.JSString_methods.startsWith$1(thisName, "."))
         A.throwExpression(A.ArgumentError$("name shouldn't start with a '.'", null));
+      if (B.JSString_methods.endsWith$1(thisName, "."))
+        A.throwExpression(A.ArgumentError$("name shouldn't end with a '.'", null));
       dot = B.JSString_methods.lastIndexOf$1(thisName, ".");
       if (dot === -1)
         $parent = thisName !== "" ? A.Logger_Logger("") : null;
