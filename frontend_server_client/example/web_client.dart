@@ -61,8 +61,7 @@ void main(List<String> args) async {
                 'dart_stack_trace_mapper.js'),
             url: 'example/app/dart_stack_trace_mapper.js'))
         .add(createFileHandler(
-            p.join(
-                sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'require.js'),
+            p.join(sdkDir, 'lib', 'dev_compiler', 'amd', 'require.js'),
             url: 'example/app/require.js'))
         .add(packagesDirHandler());
     final server = await shelf_io.serve(cascade.handler, 'localhost', 8080);
@@ -153,6 +152,5 @@ final app = 'example/app/main.dart';
 final dartSdkJs = p.join('.dart_tool', 'out', 'dart_sdk.js');
 final outputDill = p.join('.dart_tool', 'out', 'example_app.dill');
 final sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
-final sdkKernelPath =
-    p.join(sdkDir, 'lib', '_internal', 'ddc_platform_sound.dill');
+final sdkKernelPath = p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill');
 final watch = Stopwatch();

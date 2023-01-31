@@ -1,3 +1,8 @@
+## 3.3.0-dev
+
+- Update SDK constraint to `>=3.0.0-134.0.dev <4.0.0`.
+- Support changes in the SDK layout for Dart 3.0.
+
 ## 3.2.0
 
 - Add `nativeAssets` parameter to `FrontendServerClient`, for passing
