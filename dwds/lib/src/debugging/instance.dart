@@ -123,11 +123,9 @@ class InstanceHelper extends Domain {
       return await _listInstanceFor(
           classRef, remoteObject, properties, offset, count);
     } else if (metaData.isSystemMap) {
-      return await _mapInstanceFor(
-          classRef, remoteObject, properties, offset, count);
+      return await _mapInstanceFor(classRef, remoteObject, offset, count);
     } else if (metaData.isRecord) {
-      return await _recordInstanceFor(
-          classRef, remoteObject, properties, offset, count);
+      return await _recordInstanceFor(classRef, remoteObject, offset, count);
     } else {
       return await _plainInstanceFor(classRef, remoteObject, properties);
     }
@@ -245,12 +243,8 @@ class InstanceHelper extends Domain {
   }
 
   /// Create a Map instance with class [classRef] from [remoteObject].
-  Future<Instance?> _mapInstanceFor(
-      ClassRef classRef,
-      RemoteObject remoteObject,
-      List<Property> _,
-      int? offset,
-      int? count) async {
+  Future<Instance?> _mapInstanceFor(ClassRef classRef,
+      RemoteObject remoteObject, int? offset, int? count) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
     // Maps are complicated, do an eval to get keys and values.
@@ -285,8 +279,8 @@ class InstanceHelper extends Domain {
     final length = count == null
         ? numberOfProperties
         : (await instanceRefFor(remoteObject))?.length;
-    final indexed = properties.sublist(offset ?? 0,
-        min(count ?? length ?? numberOfProperties, numberOfProperties));
+    final indexed = properties.sublist(
+        0, min(count ?? length ?? numberOfProperties, numberOfProperties));
     final fields = await Future.wait(indexed
         .map((property) async => await _instanceRefForRemote(property.value)));
     return Instance(
@@ -348,12 +342,8 @@ class InstanceHelper extends Domain {
   }
 
   /// Create a Map instance with class [classRef] from [remoteObject].
-  Future<Instance?> _recordInstanceFor(
-      ClassRef classRef,
-      RemoteObject remoteObject,
-      List<Property> _,
-      int? offset,
-      int? count) async {
+  Future<Instance?> _recordInstanceFor(ClassRef classRef,
+      RemoteObject remoteObject, int? offset, int? count) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
     // Records are complicated, do an eval to get names and values.
