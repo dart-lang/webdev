@@ -131,7 +131,6 @@ class WebDevFS {
 
   File get requireJS => fileSystem.file(fileSystem.path.join(
         dartWebSdkPath,
-        'kernel',
         'amd',
         'require.js',
       ));

@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
+// ignore: deprecated_member_use
 import 'package:webdriver/io.dart';
 
 import 'fixtures/context.dart';
