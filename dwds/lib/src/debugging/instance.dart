@@ -300,8 +300,8 @@ class InstanceHelper extends Domain {
       ..count = (numberOfProperties == length) ? null : numberOfProperties;
   }
 
-  /// The associations for a Dart Record.
-  Future<List<MapAssociation>> _recordAssociations(
+  /// The fields for a Dart Record.
+  Future<List<BoundField>> _recordFields(
       RemoteObject map, int? offset, int? count) async {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
@@ -336,15 +336,15 @@ class InstanceHelper extends Domain {
     final keysInstance = await instanceFor(keys, offset: offset, count: count);
     final valuesInstance =
         await instanceFor(values, offset: offset, count: count);
-    final associations = <MapAssociation>[];
+    final fields = <BoundField>[];
     final keyElements = keysInstance?.elements;
     final valueElements = valuesInstance?.elements;
     if (keyElements != null && valueElements != null) {
       Map.fromIterables(keyElements, valueElements).forEach((key, value) {
-        associations.add(MapAssociation(key: key, value: value));
+        fields.add(BoundField(name: key.valueAsString, value: value));
       });
     }
-    return associations;
+    return fields;
   }
 
   /// Create a Map instance with class [classRef] from [remoteObject].
@@ -357,9 +357,9 @@ class InstanceHelper extends Domain {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
     // Records are complicated, do an eval to get names and values.
-    final associations = await _recordAssociations(remoteObject, offset, count);
+    final fields = await _recordFields(remoteObject, offset, count);
     final length = (count == null)
-        ? associations.length
+        ? fields.length
         : (await instanceRefFor(remoteObject))?.length;
     return Instance(
         identityHashCode: remoteObject.objectId.hashCode,
@@ -368,10 +368,8 @@ class InstanceHelper extends Domain {
         classRef: classRef)
       ..length = length
       ..offset = offset
-      ..count = (associations.length == length) ? null : associations.length
-      ..fields = associations
-          .map((e) => BoundField(name: e.key.valueAsString, value: e.value))
-          .toList();
+      ..count = (fields.length == length) ? null : fields.length
+      ..fields = fields;
   }
 
   /// Return the value of the length attribute from [properties], if present.

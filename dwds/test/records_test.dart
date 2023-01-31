@@ -71,7 +71,6 @@ void main() async {
           .where((e) => e.name != null)
           .map((e) => MapEntry(e.name, e.value)));
     } else if (instance.associations != null) {
-      print(instance.associations);
       final keys = instance.associations!.map((e) => e.key as InstanceRef);
       final valueRefs =
           instance.associations!.map((e) => e.value as InstanceRef);
