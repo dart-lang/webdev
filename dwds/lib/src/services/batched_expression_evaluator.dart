@@ -121,15 +121,23 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       final request = requests[i];
       if (request.completer.isCompleted) continue;
       _logger.fine('Getting result out of a batch for ${request.expression}');
-      _debugger
-          .getProperties(list.objectId!,
-              offset: i, count: 1, length: requests.length)
-          .then((v) {
-        final result = v.first.value;
-        _logger.fine(
-            'Got result out of a batch for ${request.expression}: $result');
-        request.completer.complete(result);
-      });
+      final listId = list.objectId;
+      if (listId == null) {
+        final error = RemoteObject(<String, String>{
+          'type': '${ErrorKind.internal}',
+          'value': 'No batch result object ID.,'
+        });
+        request.completer.complete(error);
+      } else {
+        _debugger
+            .getProperties(listId, offset: i, count: 1, length: requests.length)
+            .then((v) {
+          final result = v.first.value;
+          _logger.fine(
+              'Got result out of a batch for ${request.expression}: $result');
+          request.completer.complete(result);
+        });
+      }
     }
   }
 }
