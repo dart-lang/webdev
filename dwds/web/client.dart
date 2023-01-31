@@ -333,10 +333,12 @@ String? get _authUrl {
   final extensionUrl = _extensionUrl;
   if (extensionUrl == null) return null;
   final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
-  if (authUrl.scheme == 'ws') {
-    authUrl.replace(scheme: 'http');
-  } else if (authUrl.scheme == 'wss') {
-    authUrl.replace(scheme: 'https');
+  switch (authUrl.scheme) {
+    case 'ws':
+      return authUrl.replace(scheme: 'http').toString();
+    case 'wss':
+      return authUrl.replace(scheme: 'https').toString();
+    default:
+      return authUrl.toString();
   }
-  return authUrl.toString();
 }
