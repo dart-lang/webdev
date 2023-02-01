@@ -24,6 +24,7 @@ enum Script {
 }
 
 enum MessageType {
+  isAuthenticated,
   connectFailure,
   debugInfo,
   debugStateChange,
@@ -87,8 +88,12 @@ void interceptMessage<T>({
         decodedMessage.from != expectedSender) {
       return;
     }
-    messageHandler(
-        serializers.deserialize(jsonDecode(decodedMessage.body)) as T);
+    if (T == String) {
+      messageHandler(decodedMessage.body as T);
+    } else {
+      messageHandler(
+          serializers.deserialize(jsonDecode(decodedMessage.body)) as T);
+    }
   } catch (error) {
     debugError(
         'Error intercepting $expectedType from $expectedSender to $expectedRecipient: $error');

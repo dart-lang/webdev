@@ -71,7 +71,12 @@ class _Compiler {
     List<String> experiments,
     bool verbose,
   ) async {
-    sdkConfiguration.validate();
+    sdkConfiguration.validateSdkDir();
+    if (soundNullSafety) {
+      sdkConfiguration.validateSoundSummaries();
+    } else {
+      sdkConfiguration.validateWeakSummaries();
+    }
 
     final workerUri = sdkConfiguration.compilerWorkerUri!;
     final sdkSummaryUri = soundNullSafety
