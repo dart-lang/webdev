@@ -36,7 +36,6 @@ import '../servers/extension_backend.dart';
 import '../services/app_debug_services.dart';
 import '../services/debug_service.dart';
 import '../services/expression_compiler.dart';
-import '../utilities/sdk_configuration.dart';
 import 'injector.dart';
 
 /// When enabled, this logs VM service protocol and Chrome debug protocol
@@ -72,7 +71,6 @@ class DevHandler {
   final bool _launchDevToolsInNewWindow;
   final ExpressionCompiler? _expressionCompiler;
   final DwdsInjector _injected;
-  final SdkConfigurationProvider _sdkConfigurationProvider;
 
   /// Null until [close] is called.
   ///
@@ -96,7 +94,6 @@ class DevHandler {
     this._injected,
     this._spawnDds,
     this._launchDevToolsInNewWindow,
-    this._sdkConfigurationProvider,
   ) {
     _subs.add(buildResults.listen(_emitBuildResults));
     _listen();
@@ -219,7 +216,6 @@ class DevHandler {
       useSse: false,
       expressionCompiler: _expressionCompiler,
       spawnDds: _spawnDds,
-      sdkConfigurationProvider: _sdkConfigurationProvider,
     );
   }
 
@@ -532,7 +528,6 @@ class DevHandler {
           useSse: _useSseForDebugProxy,
           expressionCompiler: _expressionCompiler,
           spawnDds: _spawnDds,
-          sdkConfigurationProvider: _sdkConfigurationProvider,
         );
         appServices = await _createAppDebugServices(
           devToolsRequest.appId,
