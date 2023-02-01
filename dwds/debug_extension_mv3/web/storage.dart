@@ -19,7 +19,8 @@ enum StorageObject {
   debugInfo,
   devToolsOpener,
   devToolsUri,
-  encodedUri;
+  encodedUri,
+  isAuthenticated;
 
   Persistance get persistance {
     switch (this) {
@@ -30,6 +31,8 @@ enum StorageObject {
       case StorageObject.devToolsUri:
         return Persistance.sessionOnly;
       case StorageObject.encodedUri:
+        return Persistance.sessionOnly;
+      case StorageObject.isAuthenticated:
         return Persistance.sessionOnly;
     }
   }

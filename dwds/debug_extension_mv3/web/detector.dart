@@ -5,11 +5,15 @@
 @JS()
 library detector;
 
+import 'dart:convert';
 import 'dart:html';
 import 'dart:js_util';
+
+import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
 
 import 'chrome_api.dart';
+import 'data_serializers.dart';
 import 'logger.dart';
 import 'messaging.dart';
 
@@ -19,6 +23,7 @@ void main() {
 
 void _registerListeners() {
   document.addEventListener('dart-app-ready', _onDartAppReadyEvent);
+  document.addEventListener('dart-auth-response', _onDartAuthEvent);
 }
 
 void _onDartAppReadyEvent(Event event) {
@@ -32,7 +37,17 @@ void _onDartAppReadyEvent(Event event) {
       type: MessageType.debugInfo,
       body: debugInfo,
     );
+    _sendAuthRequest(debugInfo);
   }
+}
+
+void _onDartAuthEvent(Event event) {
+  final isAuthenticated = getProperty(event, 'detail') as String?;
+  if (isAuthenticated == null) return;
+  _sendMessageToBackgroundScript(
+    type: MessageType.isAuthenticated,
+    body: isAuthenticated,
+  );
 }
 
 // TODO(elliette): Remove once DWDS 17.0.0 is in Flutter stable. If we are on an
@@ -56,4 +71,13 @@ void _sendMessageToBackgroundScript({
     sender: Script.detector,
     recipient: Script.background,
   );
+}
+
+void _sendAuthRequest(String debugInfoJson) {
+  final debugInfo =
+      serializers.deserialize(jsonDecode(debugInfoJson)) as DebugInfo?;
+  final appOrigin = debugInfo?.appOrigin;
+  if (appOrigin != null) {
+    window.postMessage('dart-auth-request', appOrigin);
+  }
 }

@@ -17,6 +17,7 @@ import 'package:dwds/data/debug_event.dart';
 import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/error_response.dart';
+import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/data/register_event.dart';
 import 'package:dwds/data/run_request.dart';
 import 'package:dwds/data/serializers.dart';
@@ -173,18 +174,7 @@ Future<void>? main() {
       // If not Chromium we just invoke main, devtools aren't supported.
       runMain();
     }
-    final windowContext = JsObject.fromBrowserObject(window);
-    final debugInfoJson = jsonEncode(serializers.serialize(DebugInfo((b) => b
-      ..appEntrypointPath = dartEntrypointPath
-      ..appId = windowContext['\$dartAppId']
-      ..appInstanceId = dartAppInstanceId
-      ..appOrigin = window.location.origin
-      ..appUrl = window.location.href
-      ..extensionUrl = windowContext['\$dartExtensionUri']
-      ..isInternalBuild = windowContext['\$isInternalBuild']
-      ..isFlutterApp = windowContext['\$isFlutterApp'])));
-
-    dispatchEvent(CustomEvent('dart-app-ready', detail: debugInfoJson));
+    _launchCommunicationWithDebugExtension();
   }, (error, stackTrace) {
     print('''
 Unhandled error detected in the injected client.js script.
@@ -229,6 +219,51 @@ String _fixProtocol(String url) {
     uri = uri.replace(scheme: 'wss');
   }
   return uri.toString();
+}
+
+void _launchCommunicationWithDebugExtension() {
+  // Listen for an event from the Dart Debug Extension to authenticate the
+  // user (sent once the extension receives the dart-app-read event):
+  _listenForDebugExtensionAuthRequest();
+
+  // Send the dart-app-ready event along with debug info to the Dart Debug
+  // Extension so that it can debug the Dart app:
+  final debugInfoJson = jsonEncode(serializers.serialize(DebugInfo((b) => b
+    ..appEntrypointPath = dartEntrypointPath
+    ..appId = _appId
+    ..appInstanceId = dartAppInstanceId
+    ..appOrigin = window.location.origin
+    ..appUrl = window.location.href
+    ..authUrl = _authUrl
+    ..extensionUrl = _extensionUrl
+    ..isInternalBuild = _isInternalBuild
+    ..isFlutterApp = _isFlutterApp)));
+  dispatchEvent(CustomEvent('dart-app-ready', detail: debugInfoJson));
+}
+
+void _listenForDebugExtensionAuthRequest() {
+  window.addEventListener('message', allowInterop((event) async {
+    final messageEvent = event as MessageEvent;
+    if (messageEvent.data is! String) return;
+    if (messageEvent.data as String != 'dart-auth-request') return;
+
+    // Notify the Dart Debug Extension of authentication status:
+    if (_authUrl != null) {
+      final isAuthenticated = await _authenticateUser(_authUrl!);
+      dispatchEvent(
+          CustomEvent('dart-auth-response', detail: '$isAuthenticated'));
+    }
+  }));
+}
+
+Future<bool> _authenticateUser(String authUrl) async {
+  final response = await HttpRequest.request(
+    authUrl,
+    method: 'GET',
+    withCredentials: true,
+  );
+  final responseText = response.responseText ?? '';
+  return responseText.contains('Dart Debug Authentication Success!');
 }
 
 @JS(r'$dartAppId')
@@ -283,3 +318,27 @@ external bool get isInternalBuild;
 external bool get isFlutterApp;
 
 bool get _isChromium => window.navigator.vendor.contains('Google');
+
+JsObject get _windowContext => JsObject.fromBrowserObject(window);
+
+bool? get _isInternalBuild => _windowContext['\$isInternalBuild'];
+
+bool? get _isFlutterApp => _windowContext['\$isFlutterApp'];
+
+String? get _appId => _windowContext['\$dartAppId'];
+
+String? get _extensionUrl => _windowContext['\$dartExtensionUri'];
+
+String? get _authUrl {
+  final extensionUrl = _extensionUrl;
+  if (extensionUrl == null) return null;
+  final authUrl = Uri.parse(extensionUrl).replace(path: authenticationPath);
+  switch (authUrl.scheme) {
+    case 'ws':
+      return authUrl.replace(scheme: 'http').toString();
+    case 'wss':
+      return authUrl.replace(scheme: 'https').toString();
+    default:
+      return authUrl.toString();
+  }
+}
