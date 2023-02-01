@@ -70,9 +70,10 @@ void main() async {
       semver.Version.parse(Platform.version.split(' ').first) >=
           semver.Version.parse('3.0.0-180.0.dev');
 
-  // Remove once the dev version is released for
-  // https://github.com/dart-lang/sdk/issues/51197
-  final recordTypesWork = !recordsIndexStartsFromZero;
+  // Remove once the dev version below is released.
+  final recordTypesWork = !recordsIndexStartsFromZero ||
+      semver.Version.parse(Platform.version.split(' ').first) >=
+          semver.Version.parse('3.0.0-188.0.dev');
 
   for (var compilationMode in CompilationMode.values) {
     group('$compilationMode |', () {
