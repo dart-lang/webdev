@@ -191,8 +191,7 @@ Future<void> _onDebuggerEvent(
       method: method, params: params, tabId: source.tabId);
 
   if (method == 'Runtime.executionContextCreated') {
-    // Only try to connect to DWDS if we don't already have a DevTools instance
-    // open:
+    // Only try to connect to DWDS if we don't already have a debugger instance:
     if (_debuggerLocation(tabId) == null) {
       return _maybeConnectToDwds(source.tabId, params);
     }
