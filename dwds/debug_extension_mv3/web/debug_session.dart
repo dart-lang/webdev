@@ -80,19 +80,39 @@ enum Trigger {
   extensionIcon,
 }
 
-enum DevToolsLocation {
+enum DebuggerLocation {
+  angularDartDevTools,
   chromeDevTools,
-  chromeTab,
+  dartDevTools,
+  ide;
+
+  String get displayName {
+    switch (this) {
+      case DebuggerLocation.angularDartDevTools:
+        return 'AngularDart DevTools';
+      case DebuggerLocation.chromeDevTools:
+        return 'Chrome DevTools';
+      case DebuggerLocation.dartDevTools:
+        return 'a Dart DevTools tab';
+      case DebuggerLocation.ide:
+        return 'an IDE';
+    }
+  }
 }
 
-DevToolsLocation? devToolsLocation(int dartAppTabId) {
-  final debugSession = _debugSessionForTab(dartAppTabId, type: TabType.dartApp);
-  if (debugSession == null) return null;
-  if (debugSession.devToolsTabId != null) return DevToolsLocation.chromeTab;
-  return DevToolsLocation.chromeDevTools;
-}
+void attachDebugger(int dartAppTabId, {required Trigger trigger}) async {
+  // Check if a debugger is already attached:
+  final existingDebuggerLocation = _debuggerLocation(dartAppTabId);
+  if (existingDebuggerLocation != null) {
+    return _showWarningNotification(
+      'Already debugging in ${existingDebuggerLocation.displayName}.',
+    );
+  }
 
-void attachDebugger(int dartAppTabId, {required Trigger trigger}) {
+  // Verify that the user is authenticated:
+  final isAuthenticated = await _authenticateUser(dartAppTabId);
+  if (!isAuthenticated) return;
+
   _tabIdToTrigger[dartAppTabId] = trigger;
   _registerDebugEventListeners();
   chrome.debugger.attach(
@@ -173,7 +193,7 @@ Future<void> _onDebuggerEvent(
   if (method == 'Runtime.executionContextCreated') {
     // Only try to connect to DWDS if we don't already have a DevTools instance
     // open:
-    if (devToolsLocation(tabId) == null) {
+    if (_debuggerLocation(tabId) == null) {
       return _maybeConnectToDwds(source.tabId, params);
     }
   }
@@ -200,7 +220,7 @@ Future<void> _maybeConnectToDwds(int tabId, Object? params) async {
   );
   if (!connected) {
     debugWarn('Failed to connect to DWDS for $contextOrigin.');
-    sendConnectFailureMessage(ConnectFailureReason.unknown,
+    _sendConnectFailureMessage(ConnectFailureReason.unknown,
         dartAppTabId: tabId);
   }
 }
@@ -390,7 +410,7 @@ void _removeDebugSession(_DebugSession debugSession) {
   }
 }
 
-void sendConnectFailureMessage(ConnectFailureReason reason,
+void _sendConnectFailureMessage(ConnectFailureReason reason,
     {required int dartAppTabId}) async {
   final json = jsonEncode(serializers.serialize(ConnectFailure((b) => b
     ..tabId = dartAppTabId
@@ -423,6 +443,81 @@ _DebugSession? _debugSessionForTab(tabId, {required TabType type}) {
     case TabType.devTools:
       return _debugSessions
           .firstWhereOrNull((session) => session.devToolsTabId == tabId);
+  }
+}
+
+Future<bool> _authenticateUser(int tabId) async {
+  final isAlreadyAuthenticated = await _fetchIsAuthenticated(tabId);
+  if (isAlreadyAuthenticated) return true;
+  final debugInfo = await fetchStorageObject<DebugInfo>(
+    type: StorageObject.debugInfo,
+    tabId: tabId,
+  );
+  final authUrl = debugInfo?.authUrl;
+  if (authUrl == null) {
+    _showWarningNotification('Cannot authenticate user.');
+    return false;
+  }
+  final isAuthenticated = await _sendAuthRequest(authUrl);
+  if (isAuthenticated) {
+    await setStorageObject<String>(
+      type: StorageObject.isAuthenticated,
+      value: '$isAuthenticated',
+      tabId: tabId,
+    );
+  } else {
+    _sendConnectFailureMessage(
+      ConnectFailureReason.authentication,
+      dartAppTabId: tabId,
+    );
+    await createTab(authUrl, inNewWindow: false);
+  }
+  return isAuthenticated;
+}
+
+Future<bool> _fetchIsAuthenticated(int tabId) async {
+  final authenticated = await fetchStorageObject<String>(
+    type: StorageObject.isAuthenticated,
+    tabId: tabId,
+  );
+  return authenticated == 'true';
+}
+
+Future<bool> _sendAuthRequest(String authUrl) async {
+  final response = await fetchRequest(authUrl);
+  final responseBody = response.body ?? '';
+  return responseBody.contains('Dart Debug Authentication Success!');
+}
+
+void _showWarningNotification(String message) {
+  chrome.notifications.create(
+    /*notificationId*/ null,
+    NotificationOptions(
+      title: '[Error] Dart Debug Extension',
+      message: message,
+      iconUrl: 'static_assets/dart.png',
+      type: 'basic',
+    ),
+    /*callback*/ null,
+  );
+}
+
+DebuggerLocation? _debuggerLocation(int dartAppTabId) {
+  final debugSession = _debugSessionForTab(dartAppTabId, type: TabType.dartApp);
+  final trigger = _tabIdToTrigger[dartAppTabId];
+  if (debugSession == null || trigger == null) return null;
+
+  switch (trigger) {
+    case Trigger.extensionIcon:
+      if (debugSession.devToolsTabId != null) {
+        return DebuggerLocation.dartDevTools;
+      } else {
+        return DebuggerLocation.ide;
+      }
+    case Trigger.angularDartDevTools:
+      return DebuggerLocation.angularDartDevTools;
+    case Trigger.extensionPanel:
+      return DebuggerLocation.chromeDevTools;
   }
 }
 
