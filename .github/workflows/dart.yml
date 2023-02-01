@@ -159,7 +159,7 @@ jobs:
         uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:format-analyze_0-test_4"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:format-analyze_0-test_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -190,16 +190,16 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
   job_005:
-    name: "analyzer_and_format; linux; Dart stable; PKGS: dwds, webdev; `dart analyze .`, `dart test test/build/min_sdk_test.dart --run-skipped`"
+    name: "analyzer_and_format; linux; Dart stable; PKG: dwds; `dart analyze .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds-webdev;commands:analyze_1-test_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds;commands:analyze_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds-webdev
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -219,10 +219,27 @@ jobs:
         run: dart analyze .
         if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
         working-directory: dwds
-      - name: "dwds; dart test test/build/min_sdk_test.dart --run-skipped"
-        run: dart test test/build/min_sdk_test.dart --run-skipped
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
+  job_006:
+    name: "analyzer_and_format; linux; Dart stable; PKG: webdev; `dart analyze .`, `dart test test/build/min_sdk_test.dart --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:analyze_1-test_4"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+        with:
+          sdk: stable
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -236,7 +253,7 @@ jobs:
         run: dart test test/build/min_sdk_test.dart --run-skipped
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
-  job_006:
+  job_007:
     name: "unit_test; linux; Dart stable; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -244,7 +261,7 @@ jobs:
         uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds;commands:command-test_2"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds;commands:command-test_1"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
@@ -276,7 +293,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_007:
+      - job_006
+  job_008:
     name: "unit_test; linux; Dart stable; PKG: frontend_server_client; `dart test -j 1`"
     runs-on: ubuntu-latest
     steps:
@@ -284,7 +302,7 @@ jobs:
         uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client;commands:test_3"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client;commands:test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:frontend_server_client
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
@@ -312,7 +330,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_008:
+      - job_006
+  job_009:
     name: "unit_test; linux; Dart stable; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
     runs-on: ubuntu-latest
     steps:
@@ -320,7 +339,7 @@ jobs:
         uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:command-test_3"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev;commands:command-test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:stable
@@ -352,7 +371,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_009:
+      - job_006
+  job_010:
     name: "unit_test; windows; Dart stable; PKG: dwds; `dart test`"
     runs-on: windows-latest
     steps:
@@ -378,7 +398,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_010:
+      - job_006
+  job_011:
     name: "unit_test; windows; Dart stable; PKG: frontend_server_client; `dart test -j 1`"
     runs-on: windows-latest
     steps:
@@ -404,7 +425,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_011:
+      - job_006
+  job_012:
     name: "unit_test; windows; Dart stable; PKG: webdev; `dart test -j 1`"
     runs-on: windows-latest
     steps:
@@ -430,7 +452,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_012:
+      - job_006
+  job_013:
     name: "beta_cron; linux; Dart beta; PKG: dwds; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
@@ -439,7 +462,7 @@ jobs:
         uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:command-test_3"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:command-test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
@@ -477,7 +500,8 @@ jobs:
       - job_009
       - job_010
       - job_011
-  job_013:
+      - job_012
+  job_014:
     name: "beta_cron; linux; Dart beta; PKG: webdev; `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &`, `dart test -j 1`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
@@ -486,7 +510,7 @@ jobs:
         uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:command-test_3"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:command-test_2"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
@@ -524,7 +548,8 @@ jobs:
       - job_009
       - job_010
       - job_011
-  job_014:
+      - job_012
+  job_015:
     name: "beta_cron; linux; Dart beta; PKG: dwds; `dart analyze .`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
@@ -567,7 +592,8 @@ jobs:
       - job_009
       - job_010
       - job_011
-  job_015:
+      - job_012
+  job_016:
     name: "beta_cron; linux; Dart beta; PKG: webdev; `dart analyze .`"
     runs-on: ubuntu-latest
     if: "github.event_name == 'schedule'"
@@ -610,7 +636,8 @@ jobs:
       - job_009
       - job_010
       - job_011
-  job_016:
+      - job_012
+  job_017:
     name: "beta_cron; windows; Dart beta; PKG: dwds; `dart test -j 1`"
     runs-on: windows-latest
     if: "github.event_name == 'schedule'"
@@ -643,7 +670,8 @@ jobs:
       - job_009
       - job_010
       - job_011
-  job_017:
+      - job_012
+  job_018:
     name: "beta_cron; windows; Dart beta; PKG: webdev; `dart test -j 1`"
     runs-on: windows-latest
     if: "github.event_name == 'schedule'"
@@ -676,7 +704,8 @@ jobs:
       - job_009
       - job_010
       - job_011
-  job_018:
+      - job_012
+  job_019:
     name: Notify failure
     runs-on: ubuntu-latest
     if: "(github.event_name == 'push' || github.event_name == 'schedule') && failure()"
@@ -705,3 +734,4 @@ jobs:
       - job_015
       - job_016
       - job_017
+      - job_018
