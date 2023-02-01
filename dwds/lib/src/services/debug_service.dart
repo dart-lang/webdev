@@ -25,7 +25,6 @@ import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
 import '../events.dart';
 import '../utilities/shared.dart';
-import '../utilities/sdk_configuration.dart';
 import 'chrome_proxy_service.dart';
 
 bool _acceptNewConnections = true;
@@ -219,7 +218,6 @@ class DebugService {
     bool spawnDds = true,
     bool useSse = false,
     ExpressionCompiler? expressionCompiler,
-    required SdkConfigurationProvider sdkConfigurationProvider,
   }) async {
     final chromeProxyService = await ChromeProxyService.create(
       remoteDebugger,
@@ -229,7 +227,6 @@ class DebugService {
       appConnection,
       executionContext,
       expressionCompiler,
-      sdkConfigurationProvider,
     );
     final authToken = _makeAuthToken();
     final serviceExtensionRegistry = ServiceExtensionRegistry();

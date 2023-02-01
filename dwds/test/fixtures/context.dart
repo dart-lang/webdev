@@ -414,7 +414,6 @@ class TestContext {
         ddcService,
         isFlutterApp,
         isInternalBuild,
-        sdkConfigurationProvider,
       );
 
       _appUrl = basePath.isEmpty
