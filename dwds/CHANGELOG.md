@@ -1,3 +1,9 @@
+## 16.0.2+1
+
+- Handle the case where `list.objectId` is `null` in
+  `batched_expression_evaluator` to fix crash on Flutter 3.7.0:
+  https://github.com/flutter/flutter/issues/119084
+
 ## 16.0.2
 - Don't complete an already completed `Completer` in `ChromeProxyService` to fix
   Flutter tools crash: https://github.com/dart-lang/webdev/pull/1862
