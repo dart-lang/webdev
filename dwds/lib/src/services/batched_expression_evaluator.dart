@@ -125,7 +125,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       if (listId == null) {
         final error = RemoteObject(<String, String>{
           'type': '${ErrorKind.internal}',
-          'value': 'No batch result object ID.,'
+          'value': 'No batch result object ID.'
         });
         request.completer.complete(error);
       } else {

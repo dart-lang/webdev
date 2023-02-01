@@ -558,6 +558,32 @@ void testAll({
                 (instance) => instance.valueAsString, 'valueAsString', '1'));
       });
 
+      test('in parallel (in a batch) handles errors', () async {
+        final library = isolate.rootLib!;
+        final missingLibId = '';
+        final evaluation1 = setup.service
+            .evaluate(isolateId, missingLibId, 'MainClass(0).toString()');
+        final evaluation2 = setup.service
+            .evaluate(isolateId, library.id!, 'MainClass(1).toString()');
+
+        final results = await Future.wait([evaluation1, evaluation2]);
+
+        expect(
+            results[0],
+            isA<ErrorRef>().having(
+              (instance) => instance.message,
+              'message',
+              contains('No batch result object ID'),
+            ));
+        expect(
+            results[1],
+            isA<ErrorRef>().having(
+              (instance) => instance.message,
+              'message',
+              contains('No batch result object ID'),
+            ));
+      });
+
       test('with scope override', () async {
         final library = isolate.rootLib!;
         final object = await setup.service
