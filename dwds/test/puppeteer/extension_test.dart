@@ -92,6 +92,25 @@ void main() async {
           await appTab.close();
         });
 
+        test('the auth status is saved in session storage', () async {
+          final appUrl = context.appUrl;
+          // Navigate to the Dart app:
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
+          // Verify that we have debug info for the Dart app:
+          await workerEvalDelay();
+          final appTabId = await _getTabId(appUrl, worker: worker);
+          final authKey = '$appTabId-isAuthenticated';
+          final authenticated = await _fetchStorageObj<String>(
+            authKey,
+            storageArea: 'session',
+            worker: worker,
+          );
+          expect(authenticated, isNotNull);
+          expect(authenticated, equals('true'));
+          await appTab.close();
+        });
+
         test('whether to open in a new tab or window is saved in local storage',
             () async {
           // Navigate to the extension settings page:
@@ -600,6 +619,7 @@ Future<T> _fetchStorageObj<T>(
     ));
     return storageObj[storageKey];
   });
+  if (T == String) return json as T;
   return serializers.deserialize(jsonDecode(json)) as T;
 }
 
