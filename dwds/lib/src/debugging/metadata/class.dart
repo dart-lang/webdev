@@ -107,7 +107,7 @@ class ClassMetaData {
         const isRecord = sdkUtils.RecordType.is(classObject);
         const result = {};
         var name = isFunction ? 'Function' : classObject.name;
-        
+
         result['name'] = name;
         result['libraryId'] = sdkUtils.getLibraryUri(classObject);
         result['dartName'] = sdkUtils.typeName(classObject);

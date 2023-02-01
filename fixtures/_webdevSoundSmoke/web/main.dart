@@ -10,10 +10,6 @@ import 'dart:html';
 void main() {
   print('Initial Print');
 
-  //var r = (true, 3);
-  //print(r);
-  //print(r is (bool, int));
-
   registerExtension('ext.print', (_, __) async {
     print('Hello World');
     return ServiceExtensionResponse.result(json.encode({'success': true}));

@@ -317,7 +317,7 @@ class InstanceHelper extends Domain {
 
         var values = sdkUtils.dloadRepl(this, "values");
         values = sdkUtils.dsendRepl(values, "toList", []);
-        
+
         return {
           keys: keys,
           values: values
