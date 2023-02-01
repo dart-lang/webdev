@@ -54,6 +54,13 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
         ..add(serializers.serialize(value,
             specifiedType: const FullType(String)));
     }
+    value = object.authUrl;
+    if (value != null) {
+      result
+        ..add('authUrl')
+        ..add(serializers.serialize(value,
+            specifiedType: const FullType(String)));
+    }
     value = object.dwdsVersion;
     if (value != null) {
       result
@@ -116,6 +123,10 @@ class _$DebugInfoSerializer implements StructuredSerializer<DebugInfo> {
           result.appUrl = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
           break;
+        case 'authUrl':
+          result.authUrl = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
         case 'dwdsVersion':
           result.dwdsVersion = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
@@ -151,6 +162,8 @@ class _$DebugInfo extends DebugInfo {
   @override
   final String? appUrl;
   @override
+  final String? authUrl;
+  @override
   final String? dwdsVersion;
   @override
   final String? extensionUrl;
@@ -168,6 +181,7 @@ class _$DebugInfo extends DebugInfo {
       this.appInstanceId,
       this.appOrigin,
       this.appUrl,
+      this.authUrl,
       this.dwdsVersion,
       this.extensionUrl,
       this.isInternalBuild,
@@ -190,6 +204,7 @@ class _$DebugInfo extends DebugInfo {
         appInstanceId == other.appInstanceId &&
         appOrigin == other.appOrigin &&
         appUrl == other.appUrl &&
+        authUrl == other.authUrl &&
         dwdsVersion == other.dwdsVersion &&
         extensionUrl == other.extensionUrl &&
         isInternalBuild == other.isInternalBuild &&
@@ -204,6 +219,7 @@ class _$DebugInfo extends DebugInfo {
     _$hash = $jc(_$hash, appInstanceId.hashCode);
     _$hash = $jc(_$hash, appOrigin.hashCode);
     _$hash = $jc(_$hash, appUrl.hashCode);
+    _$hash = $jc(_$hash, authUrl.hashCode);
     _$hash = $jc(_$hash, dwdsVersion.hashCode);
     _$hash = $jc(_$hash, extensionUrl.hashCode);
     _$hash = $jc(_$hash, isInternalBuild.hashCode);
@@ -220,6 +236,7 @@ class _$DebugInfo extends DebugInfo {
           ..add('appInstanceId', appInstanceId)
           ..add('appOrigin', appOrigin)
           ..add('appUrl', appUrl)
+          ..add('authUrl', authUrl)
           ..add('dwdsVersion', dwdsVersion)
           ..add('extensionUrl', extensionUrl)
           ..add('isInternalBuild', isInternalBuild)
@@ -253,6 +270,10 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
   String? get appUrl => _$this._appUrl;
   set appUrl(String? appUrl) => _$this._appUrl = appUrl;
 
+  String? _authUrl;
+  String? get authUrl => _$this._authUrl;
+  set authUrl(String? authUrl) => _$this._authUrl = authUrl;
+
   String? _dwdsVersion;
   String? get dwdsVersion => _$this._dwdsVersion;
   set dwdsVersion(String? dwdsVersion) => _$this._dwdsVersion = dwdsVersion;
@@ -280,6 +301,7 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
       _appInstanceId = $v.appInstanceId;
       _appOrigin = $v.appOrigin;
       _appUrl = $v.appUrl;
+      _authUrl = $v.authUrl;
       _dwdsVersion = $v.dwdsVersion;
       _extensionUrl = $v.extensionUrl;
       _isInternalBuild = $v.isInternalBuild;
@@ -311,6 +333,7 @@ class DebugInfoBuilder implements Builder<DebugInfo, DebugInfoBuilder> {
             appInstanceId: appInstanceId,
             appOrigin: appOrigin,
             appUrl: appUrl,
+            authUrl: authUrl,
             dwdsVersion: dwdsVersion,
             extensionUrl: extensionUrl,
             isInternalBuild: isInternalBuild,
