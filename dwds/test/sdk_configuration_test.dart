@@ -134,7 +134,6 @@ void main() {
       expect(configuration.sdkDirectory, equals(sdkDirectory));
       expect(configuration.soundSdkSummaryPath, equals(soundSdkSummaryPath));
       expect(configuration.weakSdkSummaryPath, equals(weakSdkSummaryPath));
-
       expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
       configuration.validateSdkDir(fileSystem: fs);
