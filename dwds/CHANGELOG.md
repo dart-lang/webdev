@@ -1,4 +1,4 @@
-## 17.0.0-dev
+## 17.0.0
 
 - Include debug information in the event sent from the injected client to the
   Dart Debug Extension notifying that the Dart app is ready.
@@ -16,13 +16,23 @@
   - Do not pass `--(no)-sound-null-safety` flag to build daemon.
 - Add back `ChromeProxyService.setExceptionPauseMode()` without override.
 - Make hot restart atomic to prevent races on simultaneous execution.
+- Return error on expression evaluation if expression evaluator stopped.
+- Update SDK constraint to `>=3.0.0-134.0.dev <4.0.0`.
+- Update `package:vm_service` constraint to `>=10.1.0 <12.0.0`.
+- Fix expression compiler throwing when weak SDK summary is not found.
 
 **Breaking changes**
 - Include an optional param to `Dwds.start` to indicate whether it is running
   internally or externally.
-- Include an optional param to `Dwds.start` to indicate whether it a Flutter app
-  or not.
+- Include an optional param to `Dwds.start` to indicate whether it a Flutter
+  app or not.
 - Remove deprecated `ChromeProxyService.setExceptionPauseMode()`.
+- Support dart 3.0-alpha breaking changes:
+  - Generate missing SDK assets for tests.
+  - Enable frontend server null safe tests.
+  - Update `build_web_compilers` constraint to `^4.0.0`.
+  - Update `build_runner` constraint to `^2.4.0`.
+  - Support changes in the SDK layout for dart 3.0.
 
 ## 16.0.1
 

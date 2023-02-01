@@ -71,13 +71,18 @@ class _Compiler {
     List<String> experiments,
     bool verbose,
   ) async {
-    sdkConfiguration.validate();
+    sdkConfiguration.validateSdkDir();
+    if (soundNullSafety) {
+      sdkConfiguration.validateSoundSummaries();
+    } else {
+      sdkConfiguration.validateWeakSummaries();
+    }
 
     final librariesUri = sdkConfiguration.librariesUri!;
     final workerUri = sdkConfiguration.compilerWorkerUri!;
     final sdkSummaryUri = soundNullSafety
         ? sdkConfiguration.soundSdkSummaryUri!
-        : sdkConfiguration.unsoundSdkSummaryUri!;
+        : sdkConfiguration.weakSdkSummaryUri!;
 
     final args = [
       '--experimental-expression-compiler',
@@ -241,11 +246,11 @@ class ExpressionCompilerService implements ExpressionCompiler {
     this._address,
     this._port, {
     bool verbose = false,
-    SdkConfigurationProvider? sdkConfigurationProvider,
+    SdkConfigurationProvider sdkConfigurationProvider =
+        const DefaultSdkConfigurationProvider(),
     this.experiments = const [],
   })  : _verbose = verbose,
-        _sdkConfigurationProvider =
-            sdkConfigurationProvider ?? DefaultSdkConfigurationProvider();
+        _sdkConfigurationProvider = sdkConfigurationProvider;
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(

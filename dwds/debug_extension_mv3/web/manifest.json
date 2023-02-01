@@ -1,6 +1,6 @@
 {
-  "name": "MV3 Dart Debug Extension",
-  "version": "1.0",
+  "name": "Dart Debug Extension",
+  "version": "1.31",
   "manifest_version": 3,
   "devtools_page": "static_assets/devtools.html",
   "action": {
@@ -26,6 +26,12 @@
       "matches": ["<all_urls>"],
       "js": ["detector.dart.js"],
       "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": ["<all_urls>"],
+      "resources": ["debug_info.dart.js"]
     }
   ],
   "options_page": "static_assets/settings.html"

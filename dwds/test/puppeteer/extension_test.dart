@@ -22,6 +22,7 @@ import 'package:test/test.dart';
 import '../../debug_extension_mv3/web/data_serializers.dart';
 import '../../debug_extension_mv3/web/data_types.dart';
 import '../fixtures/context.dart';
+import '../fixtures/utilities.dart';
 import 'test_utils.dart';
 
 final context = TestContext.withSoundNullSafety();
@@ -310,6 +311,9 @@ void main() async {
               serveDevTools: true,
               isInternalBuild: true,
               isFlutterApp: isFlutterApp,
+              // TODO(elliette): Figure out if there is a way to close and then
+              // re-open Chrome DevTools. That way we can test that a debug
+              // session lasts across Chrome DevTools being opened and closed.
               openChromeDevTools: true,
             );
 
@@ -435,6 +439,74 @@ void main() async {
         });
       }
     });
+
+    group('connected to a fake app', () {
+      final fakeAppPath = webCompatiblePath(
+        p.split(
+          absolutePath(
+            pathFromDwds: p.join(
+              'test',
+              'puppeteer',
+              'fake_app',
+              'index.html',
+            ),
+          ),
+        ),
+      );
+      final fakeAppUrl = 'file://$fakeAppPath';
+      late Browser browser;
+      late Worker worker;
+
+      setUpAll(() async {
+        browser = await puppeteer.launch(
+          headless: false,
+          timeout: Duration(seconds: 60),
+          args: [
+            '--load-extension=$extensionPath',
+            '--disable-extensions-except=$extensionPath',
+            '--disable-features=DialMediaRouteProvider',
+          ],
+        );
+        worker = await getServiceWorker(browser);
+        // Navigate to the Chrome extension page instead of the blank tab
+        // opened by Chrome. This is helpful for local debugging.
+        final blankTab = await navigateToPage(browser, url: 'about:blank');
+        await blankTab.goto('chrome://extensions/');
+      });
+
+      tearDown(() async {
+        await workerEvalDelay();
+        await worker.evaluate(_clearStorageJs());
+        await workerEvalDelay();
+      });
+
+      tearDownAll(() async {
+        await browser.close();
+      });
+
+      // Note: This tests that the debug extension still works for DWDS versions
+      // <17.0.0. Those versions don't send the debug info with the ready event.
+      // Therefore the values are read from the Window object.
+      test('reads debug info from Window and saves to storage', () async {
+        // Navigate to the "Dart" app:
+        await navigateToPage(browser, url: fakeAppUrl, isNew: true);
+        // Verify that we have debug info for the fake "Dart" app:
+        final appTabId = await _getTabId(fakeAppUrl, worker: worker);
+        final debugInfoKey = '$appTabId-debugInfo';
+        final debugInfo = await _fetchStorageObj<DebugInfo>(
+          debugInfoKey,
+          storageArea: 'session',
+          worker: worker,
+        );
+        expect(debugInfo.appId, equals('DART_APP_ID'));
+        expect(debugInfo.appEntrypointPath, equals('DART_ENTRYPOINT_PATH'));
+        expect(debugInfo.appInstanceId, equals('DART_APP_INSTANCE_ID'));
+        expect(debugInfo.isInternalBuild, isTrue);
+        expect(debugInfo.isFlutterApp, isFalse);
+        expect(debugInfo.appOrigin, isNotNull);
+        expect(debugInfo.appUrl, isNotNull);
+      });
+    });
   });
 }
 
@@ -521,11 +593,13 @@ Future<T> _fetchStorageObj<T>(
   required String storageArea,
   required Worker worker,
 }) async {
-  final storageObj = await worker.evaluate(_fetchStorageObjJs(
-    storageKey,
-    storageArea: storageArea,
-  ));
-  final json = storageObj[storageKey];
+  final json = await retryFnAsync<String>(() async {
+    final storageObj = await worker.evaluate(_fetchStorageObjJs(
+      storageKey,
+      storageArea: storageArea,
+    ));
+    return storageObj[storageKey];
+  });
   return serializers.deserialize(jsonDecode(json)) as T;
 }
 

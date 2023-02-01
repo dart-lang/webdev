@@ -5,7 +5,6 @@
 @Timeout(Duration(minutes: 2))
 
 import 'package:dwds/src/debugging/location.dart';
-import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:test/test.dart';
@@ -28,7 +27,7 @@ void main() {
   final dartUri = DartUri('org-dartlang-app://web/main.dart');
 
   final assetReader = FakeAssetReader(sourceMap: sourceMapContents);
-  final modules = MockModules();
+  final modules = FakeModules(module: _module);
   final locations = Locations(assetReader, modules, '');
   locations.initialize('fake_entrypoint');
 
@@ -197,27 +196,4 @@ class MockLoadStrategy extends FakeStrategy {
 
   @override
   String serverPathForAppUri(String appUri) => _serverPath;
-}
-
-class MockModules implements Modules {
-  @override
-  void initialize(String entrypoint) {}
-
-  @override
-  Future<Uri> libraryForSource(String serverPath) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<String> moduleForSource(String serverPath) async => _module;
-
-  @override
-  Future<Map<String, String>> modules() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<String> moduleForLibrary(String libraryUri) {
-    throw UnimplementedError();
-  }
 }

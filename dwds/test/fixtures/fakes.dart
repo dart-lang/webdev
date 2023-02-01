@@ -56,6 +56,11 @@ class FakeInspector implements AppInspector {
   }
 
   @override
+  Future<RemoteObject> callFunction(
+          String function, Iterable<String> argumentIds) async =>
+      RemoteObject({'type': 'string', 'value': 'true'});
+
+  @override
   Future<void> initialize(LibraryHelper libraryHelper, ClassHelper classHelper,
           InstanceHelper instanceHelper) async =>
       {};
@@ -111,28 +116,32 @@ class FakeSseConnection implements SseSocketConnection {
 }
 
 class FakeModules implements Modules {
+  final String _library;
+  final String _module;
+  final String _path;
+
+  FakeModules({
+    String library = 'main.dart',
+    String module = 'main',
+    String path = 'web/main.dart',
+  })  : _library = library,
+        _module = module,
+        _path = path;
+
   @override
   void initialize(String entrypoint) {}
 
   @override
-  Future<Uri> libraryForSource(String serverPath) {
-    throw UnimplementedError();
-  }
+  Future<Uri> libraryForSource(String serverPath) async => Uri(path: _library);
 
   @override
-  Future<String> moduleForSource(String serverPath) {
-    throw UnimplementedError();
-  }
+  Future<String> moduleForSource(String serverPath) async => _module;
 
   @override
-  Future<Map<String, String>> modules() {
-    throw UnimplementedError();
-  }
+  Future<Map<String, String>> modules() async => {_module: _path};
 
   @override
-  Future<String> moduleForLibrary(String libraryUri) {
-    throw UnimplementedError();
-  }
+  Future<String> moduleForLibrary(String libraryUri) async => _module;
 }
 
 class FakeWebkitDebugger implements WebkitDebugger {
@@ -364,6 +373,30 @@ class FakeAssetReader implements AssetReader {
     if (contents == null) throw UnimplementedError();
     return contents;
   }
+}
+
+class FakeExpressionCompiler implements ExpressionCompiler {
+  @override
+  Future<ExpressionCompilationResult> compileExpressionToJs(
+          String isolateId,
+          String libraryUri,
+          int line,
+          int column,
+          Map<String, String> jsModules,
+          Map<String, String> jsFrameValues,
+          String moduleName,
+          String expression) async =>
+      ExpressionCompilationResult(expression, false);
+
+  @override
+  Future<bool> updateDependencies(Map<String, ModuleInfo> modules) async =>
+      true;
+
+  @override
+  Future<void> initialize({
+    required String moduleFormat,
+    bool soundNullSafety = false,
+  }) async {}
 }
 
 final fakeWipResponse = WipResponse({

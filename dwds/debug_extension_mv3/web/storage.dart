@@ -18,6 +18,7 @@ import 'logger.dart';
 enum StorageObject {
   debugInfo,
   devToolsOpener,
+  devToolsUri,
   encodedUri;
 
   Persistance get persistance {
@@ -26,6 +27,8 @@ enum StorageObject {
         return Persistance.sessionOnly;
       case StorageObject.devToolsOpener:
         return Persistance.acrossSessions;
+      case StorageObject.devToolsUri:
+        return Persistance.sessionOnly;
       case StorageObject.encodedUri:
         return Persistance.sessionOnly;
     }
@@ -44,7 +47,8 @@ Future<bool> setStorageObject<T>({
   void Function()? callback,
 }) {
   final storageKey = _createStorageKey(type, tabId);
-  final json = jsonEncode(serializers.serialize(value));
+  final json =
+      value is String ? value : jsonEncode(serializers.serialize(value));
   final storageObj = <String, String>{storageKey: json};
   final completer = Completer<bool>();
   final storageArea = _getStorageArea(type.persistance);
@@ -73,9 +77,13 @@ Future<T?> fetchStorageObject<T>({required StorageObject type, int? tabId}) {
       debugWarn('Does not exist.', prefix: storageKey);
       completer.complete(null);
     } else {
-      final value = serializers.deserialize(jsonDecode(json)) as T;
       debugLog('Fetched: $json', prefix: storageKey);
-      completer.complete(value);
+      if (T == String) {
+        completer.complete(json as T);
+      } else {
+        final value = serializers.deserialize(jsonDecode(json)) as T;
+        completer.complete(value);
+      }
     }
   }));
   return completer.future;
@@ -90,6 +98,33 @@ Future<bool> removeStorageObject<T>({required StorageObject type, int? tabId}) {
     completer.complete(true);
   }));
   return completer.future;
+}
+
+void interceptStorageChange<T>({
+  required Object storageObj,
+  required StorageObject expectedType,
+  required void Function(T? storageObj) changeHandler,
+  int? tabId,
+}) {
+  try {
+    final expectedStorageKey = _createStorageKey(expectedType, tabId);
+    final isExpected = hasProperty(storageObj, expectedStorageKey);
+    if (!isExpected) return;
+
+    final objProp = getProperty(storageObj, expectedStorageKey);
+    final json = getProperty(objProp, 'newValue') as String?;
+    T? decodedObj;
+    if (json == null || T == String) {
+      decodedObj = json as T?;
+    } else {
+      decodedObj = serializers.deserialize(jsonDecode(json)) as T?;
+    }
+    debugLog('Intercepted $expectedStorageKey change: $json');
+    return changeHandler(decodedObj);
+  } catch (error) {
+    debugError(
+        'Error intercepting storage object with type $expectedType: $error');
+  }
 }
 
 StorageArea _getStorageArea(Persistance persistance) {

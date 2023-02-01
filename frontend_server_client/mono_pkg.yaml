@@ -8,8 +8,8 @@ stages:
   - unit_test:
     - test: -j 1
       sdk:
-        - stable
         - dev
+        - main
       os:
         - windows
         - linux

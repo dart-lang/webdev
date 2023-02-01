@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:io/io.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
@@ -27,10 +26,10 @@ import 'test_utils.dart';
 /// Value: `null`  - exists in both modes
 ///        `true`  - DDC only
 ///        `false` - dart2js only
-const _testItems = <String, bool?>{
+final _testItems = <String, bool?>{
   'main.dart.js': null,
   'main.dart.bootstrap.js': true,
-  'main.unsound.ddc.js': true,
+  'main.ddc.js': true,
 };
 
 void main() {
@@ -59,8 +58,8 @@ void main() {
 
     await d
         .file('.dart_tool/package_config.json', isNotEmpty)
-        .validate(exampleDirectory);
-    await d.file('pubspec.lock', isNotEmpty).validate(exampleDirectory);
+        .validate(soundExampleDirectory);
+    await d.file('pubspec.lock', isNotEmpty).validate(soundExampleDirectory);
   });
 
   test('smoke test is configured properly', () async {
@@ -82,7 +81,8 @@ void main() {
 
     var args = ['build', '-o', 'web:${d.sandbox}'];
 
-    var process = await runWebDev(args, workingDirectory: exampleDirectory);
+    var process =
+        await runWebDev(args, workingDirectory: soundExampleDirectory);
 
     // NOTE: We'd like this to be more useful
     // See https://github.com/dart-lang/build/issues/1283
@@ -109,7 +109,8 @@ void main() {
       '--delete-conflicting-outputs'
     ];
 
-    var process = await runWebDev(args, workingDirectory: exampleDirectory);
+    var process =
+        await runWebDev(args, workingDirectory: soundExampleDirectory);
 
     await checkProcessStdout(process, ['Succeeded']);
     await process.shouldExit(0);
@@ -123,7 +124,8 @@ void main() {
           args.add('--no-release');
         }
 
-        var process = await runWebDev(args, workingDirectory: exampleDirectory);
+        var process =
+            await runWebDev(args, workingDirectory: soundExampleDirectory);
 
         var expectedItems = <Object>['Succeeded'];
 
@@ -141,32 +143,25 @@ void main() {
         }
       });
     }
-    test(
-      'and --null-safety=sound',
-      () async {
-        var args = [
-          'build',
-          '-o',
-          'web:${d.sandbox}',
-          '--no-release',
-          '--null-safety=sound'
-        ];
+    test('and --null-safety=sound', () async {
+      var args = [
+        'build',
+        '-o',
+        'web:${d.sandbox}',
+        '--no-release',
+        '--null-safety=sound'
+      ];
 
-        var process =
-            await runWebDev(args, workingDirectory: soundExampleDirectory);
+      var process =
+          await runWebDev(args, workingDirectory: soundExampleDirectory);
 
-        var expectedItems = <Object>['Succeeded'];
+      var expectedItems = <Object>['Succeeded'];
 
-        await checkProcessStdout(process, expectedItems);
-        await process.shouldExit(0);
+      await checkProcessStdout(process, expectedItems);
+      await process.shouldExit(0);
 
-        await d.file('main.sound.ddc.js', isNotEmpty).validate();
-      },
-      skip: semver.Version.parse(Platform.version.split(' ').first) >
-              semver.Version.parse('2.11.0')
-          ? null
-          : 'SDK does not support sound null safety',
-    );
+      await d.file('main.ddc.js', isNotEmpty).validate();
+    });
 
     test('and --null-safety=unsound', () async {
       var args = [
@@ -185,7 +180,8 @@ void main() {
       await process.shouldExit(0);
 
       await d.file('main.unsound.ddc.js', isNotEmpty).validate();
-    });
+      // 'https://github.com/dart-lang/webdev/issues/1892'
+    }, skip: true);
   });
 
   group('should build with --output=NONE', () {
@@ -196,14 +192,15 @@ void main() {
           args.add('--no-release');
         }
 
-        var process = await runWebDev(args, workingDirectory: exampleDirectory);
+        var process =
+            await runWebDev(args, workingDirectory: soundExampleDirectory);
 
         var expectedItems = <Object>['Succeeded'];
 
         await checkProcessStdout(process, expectedItems);
         await process.shouldExit(0);
 
-        await d.nothing('build').validate(exampleDirectory);
+        await d.nothing('build').validate(soundExampleDirectory);
       });
     }
   });
@@ -218,7 +215,8 @@ void main() {
           args.add('--release');
         }
 
-        var process = await runWebDev(args, workingDirectory: exampleDirectory);
+        var process =
+            await runWebDev(args, workingDirectory: soundExampleDirectory);
 
         var hostUrl = 'http://localhost:$openPort';
 
@@ -260,7 +258,7 @@ void main() {
           ];
 
           var process =
-              await runWebDev(args, workingDirectory: exampleDirectory);
+              await runWebDev(args, workingDirectory: soundExampleDirectory);
           await expectLater(
               process.stdout,
               emitsThrough(contains(
@@ -509,7 +507,8 @@ void main() {
             }
           }, timeout: const Timeout.factor(2));
         });
-      });
+        // 'https://github.com/dart-lang/webdev/issues/1892'
+      }, skip: !soundNullSafety);
     }
   });
 }

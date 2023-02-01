@@ -28,7 +28,7 @@ dependencies:
   path: ^1.0.0
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: ">3.0.0-134.0.dev <4.0.0"
       '''),
       d.dir('bin', [
         d.file('main.dart', '''
@@ -182,8 +182,7 @@ String get message => p.join('hello', 'world');
     var dartDevcClient = client = await DartDevcFrontendServerClient.start(
         entrypoint, p.join(packageRoot, 'out.dill'),
         platformKernel: p
-            .toUri(
-                p.join(sdkDir, 'lib', '_internal', 'ddc_platform_sound.dill'))
+            .toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_platform.dill'))
             .toString());
     var result = await client.compile();
     client.accept();
