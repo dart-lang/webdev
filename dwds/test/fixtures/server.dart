@@ -14,7 +14,6 @@ import 'package:dwds/src/loaders/require.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/shared.dart';
-import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
@@ -83,7 +82,6 @@ class TestServer {
     ExpressionCompilerService? ddcService,
     bool isFlutterApp,
     bool isInternalBuild,
-    SdkConfigurationProvider sdkConfigurationProvider,
   ) async {
     var pipeline = const Pipeline();
 
@@ -119,7 +117,6 @@ class TestServer {
         expressionCompiler: expressionCompiler,
         isInternalBuild: isInternalBuild,
         isFlutterApp: isFlutterApp,
-        sdkConfigurationProvider: sdkConfigurationProvider,
         devtoolsLauncher: serveDevTools
             ? (hostname) async {
                 final server = await DevToolsServer().serveDevTools(

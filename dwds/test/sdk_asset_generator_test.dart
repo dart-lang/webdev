@@ -21,7 +21,6 @@ void main() {
     late final Directory tempDir;
     late String sdkDirectory;
     late final String soundSdkSummaryPath;
-    late final String librariesPath;
     late final String compilerWorkerPath;
 
     // Missing sound assets
@@ -41,7 +40,6 @@ void main() {
 
       sdkDirectory = tempDir.path;
       soundSdkSummaryPath = _soundSdkSummaryPath(sdkDirectory);
-      librariesPath = _librariesPath(sdkDirectory);
       compilerWorkerPath = _compilerWorkerPath(sdkDirectory);
 
       // Copy the SDK directory into a temp directory.
@@ -83,7 +81,6 @@ void main() {
 
       // Make sure SDK configuration and asset generator agree on the file paths.
       expect(configuration.sdkDirectory, equals(sdkDirectory));
-      expect(configuration.librariesPath, equals(librariesPath));
       expect(configuration.compilerWorkerPath, equals(compilerWorkerPath));
 
       expect(sdkLayout.soundSummaryPath, equals(soundSdkSummaryPath));
@@ -137,8 +134,6 @@ String _weakSdkJsMapPath(String sdkDir) =>
 
 String _soundSdkJsMapPath(String sdkDir) => p.join(
     sdkDir, 'lib', 'dev_compiler', 'kernel', 'amd', 'dart_sdk_sound.js.map');
-
-String _librariesPath(String sdkDir) => p.join(sdkDir, 'lib', 'libraries.json');
 
 String _compilerWorkerPath(String sdkDir) =>
     p.join(sdkDir, 'bin', 'snapshots', 'dartdevc.dart.snapshot');

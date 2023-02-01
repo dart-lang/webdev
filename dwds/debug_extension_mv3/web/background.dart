@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:dwds/data/debug_info.dart';
-import 'package:dwds/data/extension_request.dart';
 import 'package:js/js.dart';
 
 import 'data_types.dart';
@@ -22,8 +21,6 @@ import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
 import 'web_api.dart';
-
-const _authSuccessResponse = 'Dart Debug Authentication Success!';
 
 void main() {
   _registerListeners();
@@ -65,6 +62,7 @@ void _registerListeners() {
 
 Future<void> _startDebugSession(int tabId, {required Trigger trigger}) async {
   // Check if Dart DevTools is already opened:
+  // TODO: handle case where user is debugging from their IDE.
   final existingDevToolsLocation = devToolsLocation(tabId);
   if (existingDevToolsLocation != null) {
     final location = existingDevToolsLocation == DevToolsLocation.chromeDevTools
@@ -73,57 +71,62 @@ Future<void> _startDebugSession(int tabId, {required Trigger trigger}) async {
     return _showWarningNotification('DevTools is already opened in $location.');
   }
 
-  final debugInfo = await _fetchDebugInfo(tabId);
-  final extensionUrl = debugInfo?.extensionUrl;
-  if (extensionUrl == null) {
-    _showWarningNotification('Can\'t debug Dart app. Extension URL not found.');
-    sendConnectFailureMessage(
-      ConnectFailureReason.noDartApp,
-      dartAppTabId: tabId,
-    );
-    return;
-  }
-  final isAuthenticated = await _authenticateUser(extensionUrl, tabId);
-  if (!isAuthenticated) {
-    sendConnectFailureMessage(
-      ConnectFailureReason.authentication,
-      dartAppTabId: tabId,
-    );
-    return;
-  }
+  // Verifty that the user is authenticated:
+  final isAuthenticated = await _authenticateUser(tabId);
+  if (!isAuthenticated) return;
 
   maybeCreateLifelinePort(tabId);
   attachDebugger(tabId, trigger: trigger);
 }
 
-Future<bool> _authenticateUser(String extensionUrl, int tabId) async {
-  final authUrl = _constructAuthUrl(extensionUrl).toString();
-  final response = await fetchRequest(authUrl);
-  final responseBody = response.body ?? '';
-  if (!responseBody.contains(_authSuccessResponse)) {
-    debugError('Not authenticated: ${response.status} / $responseBody',
-        verbose: true);
-    _showWarningNotification('Please re-authenticate and try again.');
-    await createTab(authUrl, inNewWindow: false);
+Future<bool> _authenticateUser(int tabId) async {
+  final isAlreadyAuthenticated = await _fetchIsAuthenticated(tabId);
+  if (isAlreadyAuthenticated) return true;
+  final debugInfo = await _fetchDebugInfo(tabId);
+  final authUrl = debugInfo?.authUrl;
+  if (authUrl == null) {
+    _showWarningNotification('Cannot authenticate user.');
     return false;
   }
-  return true;
-}
-
-Uri _constructAuthUrl(String extensionUrl) {
-  final authUri = Uri.parse(extensionUrl).replace(path: authenticationPath);
-  if (authUri.scheme == 'ws') {
-    return authUri.replace(scheme: 'http');
+  final isAuthenticated = await _sendAuthRequest(authUrl);
+  if (isAuthenticated) {
+    await setStorageObject<String>(
+      type: StorageObject.isAuthenticated,
+      value: '$isAuthenticated',
+      tabId: tabId,
+    );
+  } else {
+    sendConnectFailureMessage(
+      ConnectFailureReason.authentication,
+      dartAppTabId: tabId,
+    );
+    await createTab(authUrl, inNewWindow: false);
   }
-  if (authUri.scheme == 'wss') {
-    return authUri.replace(scheme: 'https');
-  }
-  return authUri;
+  return isAuthenticated;
 }
 
 void _handleRuntimeMessages(
     dynamic jsRequest, MessageSender sender, Function sendResponse) async {
   if (jsRequest is! String) return;
+
+  interceptMessage<String>(
+      message: jsRequest,
+      expectedType: MessageType.isAuthenticated,
+      expectedSender: Script.detector,
+      expectedRecipient: Script.background,
+      messageHandler: (String isAuthenticated) async {
+        final dartTab = sender.tab;
+        if (dartTab == null) {
+          debugWarn('Received auth info but tab is missing.');
+          return;
+        }
+        // Save the authentication info in storage:
+        await setStorageObject<String>(
+          type: StorageObject.isAuthenticated,
+          value: isAuthenticated,
+          tabId: dartTab.id,
+        );
+      });
 
   interceptMessage<DebugInfo>(
       message: jsRequest,
@@ -201,6 +204,20 @@ Future<DebugInfo?> _fetchDebugInfo(int tabId) {
     type: StorageObject.debugInfo,
     tabId: tabId,
   );
+}
+
+Future<bool> _fetchIsAuthenticated(int tabId) async {
+  final authenticated = await fetchStorageObject<String>(
+    type: StorageObject.isAuthenticated,
+    tabId: tabId,
+  );
+  return authenticated == 'true';
+}
+
+Future<bool> _sendAuthRequest(String authUrl) async {
+  final response = await fetchRequest(authUrl);
+  final responseBody = response.body ?? '';
+  return responseBody.contains('Dart Debug Authentication Success!');
 }
 
 void _showWarningNotification(String message) {

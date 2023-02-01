@@ -27,7 +27,6 @@ import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../services/expression_compiler.dart';
 import '../utilities/dart_uri.dart';
-import '../utilities/sdk_configuration.dart';
 import '../utilities/shared.dart';
 import 'expression_evaluator.dart';
 import 'batched_expression_evaluator.dart';
@@ -100,8 +99,6 @@ class ChromeProxyService implements VmServiceInterface {
   final ExpressionCompiler? _compiler;
   ExpressionEvaluator? _expressionEvaluator;
 
-  final SdkConfigurationProvider _sdkConfigurationProvider;
-
   bool terminatingIsolates = false;
 
   ChromeProxyService._(
@@ -114,7 +111,6 @@ class ChromeProxyService implements VmServiceInterface {
     this._skipLists,
     this.executionContext,
     this._compiler,
-    this._sdkConfigurationProvider,
   ) {
     final debugger = Debugger.create(
       remoteDebugger,
@@ -134,7 +130,6 @@ class ChromeProxyService implements VmServiceInterface {
     AppConnection appConnection,
     ExecutionContext executionContext,
     ExpressionCompiler? expressionCompiler,
-    SdkConfigurationProvider sdkConfigurationProvider,
   ) async {
     final vm = VM(
       name: 'ChromeDebugProxy',
@@ -164,7 +159,6 @@ class ChromeProxyService implements VmServiceInterface {
       skipLists,
       executionContext,
       expressionCompiler,
-      sdkConfigurationProvider,
     );
     unawaited(service.createIsolate(appConnection));
     return service;
@@ -252,7 +246,6 @@ class ChromeProxyService implements VmServiceInterface {
     final debugger = await debuggerFuture;
     final entrypoint = appConnection.request.entrypointPath;
     await _initializeEntrypoint(entrypoint);
-    final sdkConfiguration = await _sdkConfigurationProvider.configuration;
 
     debugger.notifyPausedAtStart();
     _inspector = await AppInspector.create(
@@ -263,7 +256,6 @@ class ChromeProxyService implements VmServiceInterface {
       root,
       debugger,
       executionContext,
-      sdkConfiguration,
     );
     debugger.updateInspector(inspector);
 
@@ -1131,7 +1123,7 @@ ${globalLoadStrategy.loadModuleSnippet}("dart_sdk").developer.invokeExtension(
 
   @override
   Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>
-      throw UnimplementedError();
+      _rpcNotSupportedFuture('streamCpuSamplesWithUserTag');
 
   /// Prevent DWDS from blocking Dart SDK rolls if changes in package:vm_service
   /// are unimplemented in DWDS.

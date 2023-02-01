@@ -14,7 +14,6 @@ import '../readers/asset_reader.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
-import '../utilities/sdk_configuration.dart';
 import '../utilities/shared.dart';
 import 'classes.dart';
 import 'debugger.dart';
@@ -75,7 +74,6 @@ class AppInspector implements AppInspectorInterface {
 
   /// The root URI from which the application is served.
   final String _root;
-  final SdkConfiguration _sdkConfiguration;
 
   /// JavaScript expression that evaluates to the Dart stack trace mapper.
   static const stackTraceMapperExpression = '\$dartStackTraceUtility.mapper';
@@ -98,7 +96,6 @@ class AppInspector implements AppInspectorInterface {
     this._locations,
     this._root,
     this._executionContext,
-    this._sdkConfiguration,
   ) : _isolateRef = _toIsolateRef(_isolate);
 
   Future<void> initialize(
@@ -116,7 +113,7 @@ class AppInspector implements AppInspectorInterface {
 
     final scripts = await scriptRefs;
 
-    await DartUri.initialize(_sdkConfiguration);
+    await DartUri.initialize();
     await DartUri.recordAbsoluteUris(
         libraries.map((lib) => lib.uri).whereNotNull());
     await DartUri.recordAbsoluteUris(
@@ -140,7 +137,6 @@ class AppInspector implements AppInspectorInterface {
     String root,
     Debugger debugger,
     ExecutionContext executionContext,
-    SdkConfiguration sdkConfiguration,
   ) async {
     final id = createId();
     final time = DateTime.now().millisecondsSinceEpoch;
@@ -176,7 +172,6 @@ class AppInspector implements AppInspectorInterface {
       locations,
       root,
       executionContext,
-      sdkConfiguration,
     );
 
     debugger.updateInspector(inspector);

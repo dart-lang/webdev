@@ -7,7 +7,6 @@ import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
 import '../loaders/strategy.dart';
-import 'sdk_configuration.dart';
 
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.
@@ -152,17 +151,11 @@ class DartUri {
   static String currentDirectoryUri = '${p.toUri(currentDirectory)}';
 
   /// Record library and script uris to enable resolving library and script paths.
-  static Future<void> initialize(SdkConfiguration sdkConfiguration) async {
+  static Future<void> initialize() async {
     final packagesUri =
         p.toUri(p.join(currentDirectory, '.dart_tool/package_config.json'));
 
     clear();
-
-    // Allow for tests to supply empty configurations.
-    if (sdkConfiguration.sdkDirectory != null) {
-      sdkConfiguration.validateSdkDir();
-    }
-
     await _loadPackageConfig(packagesUri);
   }
 
