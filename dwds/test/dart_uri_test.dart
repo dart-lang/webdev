@@ -4,17 +4,13 @@
 
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
-import 'dart:io';
 
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/sdk_configuration.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'fixtures/logging.dart';
 import 'fixtures/fakes.dart';
-import 'fixtures/utilities.dart';
 
 class TestStrategy extends FakeStrategy {
   @override
@@ -68,9 +64,7 @@ void main() {
 
     group('initialized with empty configuration', () {
       setUpAll(() async {
-        final sdkConfiguration =
-            await FakeSdkConfigurationProvider().configuration;
-        await DartUri.initialize(sdkConfiguration);
+        await DartUri.initialize();
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
@@ -83,9 +77,7 @@ void main() {
 
     group('initialized with current SDK directory', () {
       setUpAll(() async {
-        final sdkConfiguration =
-            await TestSdkConfigurationProvider().configuration;
-        await DartUri.initialize(sdkConfiguration);
+        await DartUri.initialize();
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
@@ -104,34 +96,13 @@ void main() {
     });
 
     group('initialized with other SDK directory', () {
-      late Directory outputDir;
-
       setUpAll(() async {
-        final systemTempDir = Directory.systemTemp;
-        outputDir = systemTempDir.createTempSync('foo bar');
-
-        final sdkDir = p.dirname(p.dirname(Platform.resolvedExecutable));
-        final librariesPath = p.join(sdkDir, 'lib', 'libraries.json');
-
-        // copy libraries.json to a new location mimicking SDK directory structure.
-        final fakeSdkDir = outputDir.path;
-        final fakeLibrariesDir = p.join(fakeSdkDir, 'lib');
-        final fakeLibrariesPath = p.join(fakeLibrariesDir, 'libraries.json');
-
-        Directory(fakeLibrariesDir).createSync();
-        File(librariesPath).copySync(fakeLibrariesPath);
-
-        final sdkConfiguration = SdkConfiguration(
-          sdkDirectory: fakeSdkDir,
-          librariesPath: fakeLibrariesPath,
-        );
-        await DartUri.initialize(sdkConfiguration);
+        await DartUri.initialize();
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
       tearDownAll(() async {
         DartUri.clear();
-        await outputDir.delete(recursive: true);
       });
 
       test('can resolve uris', () {
@@ -147,7 +118,6 @@ void main() {
     });
 
     group('initialized with other SDK directory with no libraries spec', () {
-      late Directory outputDir;
       final logs = <String>[];
 
       void logWriter(level, message,
@@ -161,24 +131,12 @@ void main() {
 
       setUpAll(() async {
         configureLogWriter(customLogWriter: logWriter);
-        final systemTempDir = Directory.systemTemp;
-        outputDir = systemTempDir.createTempSync('foo bar');
-
-        final fakeSdkDir = outputDir.path;
-        final fakeLibrariesDir = p.join(fakeSdkDir, 'lib');
-        final fakeLibrariesPath = p.join(fakeLibrariesDir, 'libraries.json');
-
-        final sdkConfiguration = SdkConfiguration(
-          sdkDirectory: fakeSdkDir,
-          librariesPath: fakeLibrariesPath,
-        );
-        await DartUri.initialize(sdkConfiguration);
+        await DartUri.initialize();
         await DartUri.recordAbsoluteUris(['dart:io', 'dart:html']);
       });
 
       tearDownAll(() async {
         DartUri.clear();
-        await outputDir.delete(recursive: true);
       });
 
       test('cannot resolve uris', () {
@@ -193,9 +151,4 @@ void main() {
       }, skip: 'https://github.com/dart-lang/webdev/issues/1584');
     });
   });
-}
-
-class FakeSdkConfigurationProvider extends SdkConfigurationProvider {
-  @override
-  Future<SdkConfiguration> get configuration async => SdkConfiguration();
 }

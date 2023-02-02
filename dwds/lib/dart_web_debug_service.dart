@@ -21,7 +21,6 @@ import 'src/readers/asset_reader.dart';
 import 'src/servers/devtools.dart';
 import 'src/servers/extension_backend.dart';
 import 'src/services/expression_compiler.dart';
-import 'src/utilities/sdk_configuration.dart';
 
 typedef ConnectionProvider = Future<ChromeConnection> Function();
 
@@ -84,8 +83,6 @@ class Dwds {
     bool enableDevtoolsLaunch = true,
     DevtoolsLauncher? devtoolsLauncher,
     bool launchDevToolsInNewWindow = true,
-    SdkConfigurationProvider sdkConfigurationProvider =
-        const DefaultSdkConfigurationProvider(),
     bool emitDebugEvents = true,
     bool isInternalBuild = false,
     bool isFlutterApp = false,
@@ -148,7 +145,6 @@ class Dwds {
       injected,
       spawnDds,
       launchDevToolsInNewWindow,
-      sdkConfigurationProvider,
     );
 
     return Dwds._(
