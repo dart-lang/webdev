@@ -5,8 +5,8 @@
 @Timeout(Duration(minutes: 1))
 import 'dart:convert';
 import 'dart:io';
-import 'package:path/path.dart' as p;
 
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
