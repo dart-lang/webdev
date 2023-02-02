@@ -6,6 +6,7 @@ name: _webdev_smoke
 description:
   A test fixture for webdev testing with weak null-safety.
 
+publish_to: none
 
 # The versions in this pubspec should match the requirements
 # defined by webdev. That is the SDK constraint should be the
