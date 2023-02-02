@@ -9,6 +9,9 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+// TODO(elliette): Move to a cron job. This tests that the currently published
+// Webdev can be activated and serve a web app. It is intended to catch any
+// regressions due to changes in the Dart SDK.
 void main() {
   Process? _serveProcess;
 
@@ -27,6 +30,7 @@ void main() {
   });
 
   test('can activate and serve webdev', () async {
+    // Verify that `dart pub global activate` works:
     final activateProcess = await Process.run(
       'dart',
       ['pub', 'global', 'activate', 'webdev'],
@@ -35,16 +39,14 @@ void main() {
     expect(activateStdout, contains('Activated webdev'));
     final activateStderr = stringifyOutput(await activateProcess.stderr);
     expect(activateStderr, isEmpty);
-
+    // Verify that `webdev serve` works:
     final soundPackage =
         p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
-
     _serveProcess = await Process.start(
       'webdev',
       ['serve'],
       workingDirectory: soundPackage,
     );
-
     await expectLater(
         _serveProcess!.stdout.transform(utf8.decoder),
         emitsThrough(
