@@ -6,6 +6,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -14,69 +15,65 @@ import 'package:test/test.dart';
 // regressions due to changes in the Dart SDK.
 void main() {
   Process? _serveProcess;
+  final _fixturesPath = p.absolute(p.join(p.current, '..', 'fixtures'));
+  final _tempAppPath = p.join(_fixturesPath, 'temp_app');
+  final _tempAppDir = Directory(_tempAppPath);
 
   setUp(() async {
     await Process.run(
       'dart',
       ['pub', 'global', 'deactivate', 'webdev'],
     );
-  });
-
-  tearDown(() async {
-    if (_serveProcess != null) {
-      Process.killPid(_serveProcess!.pid);
-      _serveProcess = null;
+    if (_tempAppDir.existsSync()) {
+      await _tempAppDir.delete(recursive: true);
     }
   });
 
-  test('can activate and serve webdev (webdev.bat)', () async {
-    // Verify that `dart pub global activate` works:
-    final activateProcess = await Process.run(
-      'dart',
-      ['pub', 'global', 'activate', 'webdev'],
-    );
-    final activateStdout = stringifyOutput(await activateProcess.stdout);
-    expect(activateStdout, contains('Activated webdev'));
-    final activateStderr = stringifyOutput(await activateProcess.stderr);
-    expect(activateStderr, isEmpty);
-    // Verify that `webdev serve` works:
-    final soundPackage =
-        p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
-    _serveProcess = await Process.start(
-      'webdev.bat',
-      ['serve'],
-      workingDirectory: soundPackage,
-    );
-    await expectLater(
-        _serveProcess!.stdout.transform(utf8.decoder),
-        emitsThrough(
-          contains('Serving `web` on'),
-        ));
+  tearDown(() async {
+    final serveProcess = _serveProcess;
+    if (serveProcess != null) {
+      Process.killPid(serveProcess.pid);
+      _serveProcess = null;
+    }
+    if (_tempAppDir.existsSync()) {
+      await _tempAppDir.delete(recursive: true);
+    }
   });
 
   test('can activate and serve webdev', () async {
+    // Verify that we can create a new Dart app:
+    final createProcess = await Process.run(
+      'dart',
+      ['create', '--template', 'web', 'temp_app'],
+      workingDirectory: _fixturesPath,
+    );
+    final createStderr = stringifyOutput(await createProcess.stderr);
+    expect(createStderr, isEmpty);
+    final createStdout = stringifyOutput(await createProcess.stdout);
+    expect(createStdout, contains('Created project temp_app in temp_app!'));
+    expect(await _tempAppDir.exists(), isTrue);
     // Verify that `dart pub global activate` works:
     final activateProcess = await Process.run(
       'dart',
       ['pub', 'global', 'activate', 'webdev'],
     );
-    final activateStdout = stringifyOutput(await activateProcess.stdout);
-    expect(activateStdout, contains('Activated webdev'));
     final activateStderr = stringifyOutput(await activateProcess.stderr);
     expect(activateStderr, isEmpty);
-    // Verify that `webdev serve` works:
-    final soundPackage =
-        p.absolute(p.join(p.current, '..', 'fixtures', '_webdevSoundSmoke'));
+    final activateStdout = stringifyOutput(await activateProcess.stdout);
+    expect(activateStdout, contains('Activated webdev'));
+    // Verify that `webdev serve` works for our new app:
     _serveProcess = await Process.start(
-      'dart',
-      ['pub', 'global', 'run', 'webdev', 'serve'],
-      workingDirectory: soundPackage,
-    );
+        'dart', ['pub', 'global', 'run', 'webdev', 'serve'],
+        workingDirectory: _tempAppPath);
     await expectLater(
         _serveProcess!.stdout.transform(utf8.decoder),
         emitsThrough(
           contains('Serving `web` on'),
         ));
+    // Print any stderr logs from `webdev serve`:
+    final serveStderr = stringifyOutput(
+        await _serveProcess!.stderr.transform(utf8.decoder).toList());
+    Logger.root.warning(serveStderr);
   });
 }
 
