@@ -168,8 +168,7 @@ class TestContext {
     required this.nullSafety,
   }) {
     // Verify that the test fixtures package matches the null-safety mode:
-    final isSoundPackage = packageName.toLowerCase().contains('sound') ||
-        packageName.toLowerCase().contains('experiment');
+    final isSoundPackage = packageName.toLowerCase().contains('sound');
     assert(nullSafety == NullSafety.sound ? isSoundPackage : !isSoundPackage);
     // Verify that the web assets path has no starting slash:
     assert(!webAssetsPath.startsWith('/'));

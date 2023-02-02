@@ -117,11 +117,10 @@ class ClassMetaData {
 
         if (isRecord) {
           result['name'] = 'Record';
-          var positionals = classObject.shape.positionals;
-          var named = classObject.shape.named == null
-            ? 0
-            : classObject.shape.named.length;
-          result['length'] = positionals + named;
+          var shape = classObject.shape;
+          var positionalCount = shape.positionals;
+          var namedCount = shape.named == null ? 0 : shape.named.length;
+          result['length'] = positionalCount + namedCount;
         }
 
         return result;

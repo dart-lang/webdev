@@ -304,44 +304,71 @@ class InstanceHelper extends Domain {
       function() {
         var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         var shape = sdkUtils.dloadRepl(this, "shape");
-        var positionals = sdkUtils.dloadRepl(shape, "positionals");
+        var positionalCount = sdkUtils.dloadRepl(shape, "positionals");
         var named = sdkUtils.dloadRepl(shape, "named");
-
-        var keys = new Array();
-        for (var i = 0; i < positionals; i++) {
-          keys.push(i);
-        }
-        for (var key in named) {
-          key.push(key);
-        }
-
+        named = named == null? null: sdkUtils.dsendRepl(named, "toList", []);
+        namedCount = named == null? 0: named.length;
         var values = sdkUtils.dloadRepl(this, "values");
         values = sdkUtils.dsendRepl(values, "toList", []);
 
+        var positional = Array.from(
+          { length: positionalCount },
+          (value, index) => 1 + index
+        );
+
         return {
-          keys: keys,
+          positionalCount: positionalCount,
+          positional: positional,
+          namedCount: namedCount,
+          named: named,
           values: values
         };
       }
     ''';
-    final keysAndValues = await inspector.jsCallFunctionOn(map, expression, []);
-    final keys = await inspector.loadField(keysAndValues, 'keys');
-    final values = await inspector.loadField(keysAndValues, 'values');
-    final keysInstance = await instanceFor(keys, offset: offset, count: count);
+    final result = await inspector.jsCallFunctionOn(map, expression, []);
+    final positionalCount =
+        (await inspector.loadField(result, 'positionalCount'))!.value as int;
+    final positional = await inspector.loadField(result, 'positional');
+    final named = await inspector.loadField(result, 'named');
+    final namedCount =
+        (await inspector.loadField(result, 'namedCount'))!.value as int;
+    final values = await inspector.loadField(result, 'values');
+
+    final length = positionalCount + namedCount;
+    if (offset != null && length <= offset) {
+      return [];
+    }
+
+    final positionalInstance =
+        await instanceFor(positional, offset: offset, count: count);
     final valuesInstance =
         await instanceFor(values, offset: offset, count: count);
-    final fields = <BoundField>[];
-    final keyElements = keysInstance?.elements;
-    final valueElements = valuesInstance?.elements;
-    if (keyElements != null && valueElements != null) {
-      Map.fromIterables(keyElements, valueElements).forEach((key, value) {
-        fields.add(BoundField(name: key.valueAsString, value: value));
-      });
+
+    int? nOffset;
+    int? nCount;
+    if (offset != null) {
+      nOffset = offset < positionalCount ? 0 : offset - positionalCount;
     }
+    if (count != null) {
+      nCount = count < positionalCount ? 0 : count - positionalCount;
+    }
+    final namedInstance =
+        await instanceFor(named, offset: nOffset, count: nCount);
+
+    final nameElements = [
+      ...positionalInstance?.elements?.map((e) => e.valueAsString) ?? [],
+      ...namedInstance?.elements?.map((e) => e.valueAsString) ?? [],
+    ];
+
+    final fields = <BoundField>[];
+    final valueElements = valuesInstance?.elements ?? [];
+    Map.fromIterables(nameElements, valueElements).forEach((key, value) {
+      fields.add(BoundField(name: key, value: value));
+    });
     return fields;
   }
 
-  /// Create a Map instance with class [classRef] from [remoteObject].
+  /// Create a Record instance with class [classRef] from [remoteObject].
   Future<Instance?> _recordInstanceFor(ClassRef classRef,
       RemoteObject remoteObject, int? offset, int? count) async {
     final objectId = remoteObject.objectId;
