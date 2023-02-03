@@ -19,7 +19,7 @@ class AppConnection {
   final SocketConnection _connection;
 
   AppConnection(this.request, this._connection) {
-    unawaited(_connection.sink.done.then((v) => _doneCompleter.complete()));
+    safeUnawaited(_connection.sink.done.then((v) => _doneCompleter.complete()));
   }
 
   bool get isInKeepAlivePeriod => _connection.isInKeepAlivePeriod;

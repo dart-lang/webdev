@@ -93,7 +93,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
           _logger.fine(' - scope: $scope != ${request.scope}');
         }
 
-        unawaited(_evaluateBatch(currentRequests));
+        safeUnawaited(_evaluateBatch(currentRequests));
         currentRequests = [];
         libraryUri = request.libraryUri;
         isolateId = request.isolateId;
@@ -101,7 +101,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       }
       currentRequests.add(request);
     }
-    unawaited(_evaluateBatch(currentRequests));
+    safeUnawaited(_evaluateBatch(currentRequests));
   }
 
   Future<void> _evaluateBatch(List<EvaluateRequest> requests) async {
@@ -135,7 +135,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
             createError(ErrorKind.internal, 'No batch result object ID.');
         request.completer.complete(error);
       } else {
-        unawaited(_debugger
+        safeUnawaited(_debugger
             .getProperties(listId, offset: i, count: 1, length: requests.length)
             .then((v) {
           final result = v.first.value;

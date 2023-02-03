@@ -1509,12 +1509,12 @@ void main() {
         test('basic Pause/Resume', () async {
           expect(service.streamListen('Debug'), completion(_isSuccess));
           final stream = service.onEvent('Debug');
-          unawaited(tabConnection.debugger.pause());
+          safeUnawaited(tabConnection.debugger.pause());
           await expectLater(
               stream,
               emitsThrough(const TypeMatcher<Event>()
                   .having((e) => e.kind, 'kind', EventKind.kPauseInterrupted)));
-          unawaited(tabConnection.debugger.resume());
+          safeUnawaited(tabConnection.debugger.resume());
           expect(
               eventStream,
               emitsThrough(const TypeMatcher<Event>()
@@ -1720,7 +1720,7 @@ void main() {
       final stream = service.onEvent(EventStreams.kLogging);
       final message = 'myMessage';
 
-      unawaited(tabConnection.runtime.evaluate("sendLog('$message');"));
+      safeUnawaited(tabConnection.runtime.evaluate("sendLog('$message');"));
 
       final event = await stream.first;
       expect(event.kind, EventKind.kLogging);

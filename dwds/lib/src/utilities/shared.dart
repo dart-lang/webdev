@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:vm_service/vm_service.dart';
@@ -14,6 +15,8 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     as wip;
 
 import 'package:dwds/src/services/chrome_debug_exception.dart';
+
+final logger = Logger('Utilities');
 
 VMRef toVMRef(VM vm) => VMRef(name: vm.name);
 
@@ -114,4 +117,10 @@ Map<String, dynamic> getResultOrHandleError(wip.WipResponse? response,
     );
   }
   return result;
+}
+
+void safeUnawaited(Future<void> future) {
+  unawaited(future.catchError((error, stackTrace) {
+    logger.warning('Error in unawaited future:', error, stackTrace);
+  }));
 }

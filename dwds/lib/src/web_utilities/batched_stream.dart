@@ -28,7 +28,7 @@ class BatchedStreamController<T> {
         _inputController = StreamController<T>(),
         _outputController = StreamController<List<T>>() {
     _inputQueue = StreamQueue<T>(_inputController.stream);
-    unawaited(_batchAndSendEvents());
+    safeUnawaited(_batchAndSendEvents());
   }
 
   /// Sink collecting events.
@@ -39,7 +39,7 @@ class BatchedStreamController<T> {
 
   /// Close the controller.
   Future<dynamic> close() async {
-    unawaited(_inputController.close());
+    safeUnawaited(_inputController.close());
     return _completer.future.then((value) => _outputController.close());
   }
 
