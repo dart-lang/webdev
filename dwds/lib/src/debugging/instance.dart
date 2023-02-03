@@ -11,7 +11,7 @@ import '../loaders/strategy.dart';
 import '../utilities/conversions.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart';
-import '../utilities/shared.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'debugger.dart';
 import 'metadata/class.dart';
 import 'metadata/function.dart';

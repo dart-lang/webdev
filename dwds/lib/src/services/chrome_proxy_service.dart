@@ -27,7 +27,7 @@ import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../services/expression_compiler.dart';
 import '../utilities/dart_uri.dart';
-import '../utilities/shared.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'expression_evaluator.dart';
 import 'batched_expression_evaluator.dart';
 

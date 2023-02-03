@@ -36,7 +36,7 @@ import '../servers/extension_backend.dart';
 import '../services/app_debug_services.dart';
 import '../services/debug_service.dart';
 import '../services/expression_compiler.dart';
-import '../utilities/shared.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'injector.dart';
 
 /// When enabled, this logs VM service protocol and Chrome debug protocol

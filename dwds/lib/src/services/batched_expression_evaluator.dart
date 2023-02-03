@@ -13,7 +13,7 @@ import '../debugging/debugger.dart';
 import '../debugging/location.dart';
 import '../debugging/modules.dart';
 import '../utilities/batched_stream.dart';
-import '../utilities/shared.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'expression_compiler.dart';
 import 'expression_evaluator.dart';
 

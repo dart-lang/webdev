@@ -12,7 +12,7 @@ import 'package:shelf/shelf.dart';
 import '../../data/extension_request.dart';
 import '../events.dart';
 import '../handlers/socket_connections.dart';
-import '../utilities/shared.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'extension_debugger.dart';
 
 const authenticationResponse = 'Dart Debug Authentication Success!\n\n'

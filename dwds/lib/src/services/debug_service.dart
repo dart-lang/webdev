@@ -24,7 +24,7 @@ import '../services/expression_compiler.dart';
 import '../debugging/execution_context.dart';
 import '../debugging/remote_debugger.dart';
 import '../events.dart';
-import '../utilities/shared.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'chrome_proxy_service.dart';
 
 bool _acceptNewConnections = true;

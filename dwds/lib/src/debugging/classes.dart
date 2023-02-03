@@ -5,10 +5,11 @@
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'package:dwds/src/utilities/shared.dart';
+
 import '../../src/services/chrome_debug_exception.dart';
 import '../loaders/strategy.dart';
 import '../utilities/domain.dart';
-import '../utilities/shared.dart';
 import 'metadata/class.dart';
 
 /// Keeps track of Dart classes available in the running application.

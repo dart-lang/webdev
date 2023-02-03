@@ -11,13 +11,14 @@ import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
 
+import 'package:dwds/src/utilities/shared.dart';
+
 import '../loaders/strategy.dart';
 import '../services/chrome_debug_exception.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
 import '../utilities/objects.dart' show Property;
-import '../utilities/shared.dart';
 import 'dart_scope.dart';
 import 'frame_computer.dart';
 import 'location.dart';

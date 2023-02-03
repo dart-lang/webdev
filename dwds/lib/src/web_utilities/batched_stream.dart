@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:async/async.dart';
 
-import '../utilities/shared.dart';
+import 'package:dwds/src/utilities/shared.dart';
 
 /// Stream controller allowing to batch events.
 class BatchedStreamController<T> {

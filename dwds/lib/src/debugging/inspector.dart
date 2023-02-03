@@ -8,13 +8,14 @@ import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+import 'package:dwds/src/utilities/shared.dart';
+
 import '../connections/app_connection.dart';
 import '../loaders/strategy.dart';
 import '../readers/asset_reader.dart';
 import '../utilities/conversions.dart';
 import '../utilities/dart_uri.dart';
 import '../utilities/domain.dart';
-import '../utilities/shared.dart';
 import 'classes.dart';
 import 'debugger.dart';
 import 'execution_context.dart';
