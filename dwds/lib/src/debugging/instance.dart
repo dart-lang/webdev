@@ -118,14 +118,14 @@ class InstanceHelper extends Domain {
     }
 
     if (metaData.isSystemList) {
-      return await _listInstanceFor(
-          classRef, remoteObject, offset, count, metaData.length);
+      return await _listInstanceFor(classRef, remoteObject,
+          offset: offset, count: count, length: metaData.length);
     } else if (metaData.isSystemMap) {
-      return await _mapInstanceFor(
-          classRef, remoteObject, offset, count, metaData.length);
+      return await _mapInstanceFor(classRef, remoteObject,
+          offset: offset, count: count, length: metaData.length);
     } else {
-      return await _plainInstanceFor(
-          classRef, remoteObject, offset, count, metaData.length);
+      return await _plainInstanceFor(classRef, remoteObject,
+          offset: offset, count: count, length: metaData.length);
     }
   }
 
@@ -173,11 +173,11 @@ class InstanceHelper extends Domain {
   /// properties [properties].
   Future<Instance?> _plainInstanceFor(
     ClassRef classRef,
-    RemoteObject remoteObject,
+    RemoteObject remoteObject, {
     int? offset,
     int? count,
     int? length,
-  ) async {
+  }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
@@ -208,8 +208,8 @@ class InstanceHelper extends Domain {
   }
 
   /// The associations for a Dart Map or IdentityMap.
-  Future<List<MapAssociation>> _mapAssociations(
-      RemoteObject map, int? offset, int? count) async {
+  Future<List<MapAssociation>> _mapAssociations(RemoteObject map,
+      {int? offset, int? count}) async {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
@@ -250,17 +250,19 @@ class InstanceHelper extends Domain {
   /// Create a Map instance with class [classRef] from [remoteObject].
   Future<Instance?> _mapInstanceFor(
     ClassRef classRef,
-    RemoteObject remoteObject,
+    RemoteObject remoteObject, {
     int? offset,
     int? count,
     int? length,
-  ) async {
+  }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
     // Maps are complicated, do an eval to get keys and values.
-    final associations = await _mapAssociations(remoteObject, offset, count);
-    final spanCount = _calculateSpanCount(count, associations.length, length);
+    final associations =
+        await _mapAssociations(remoteObject, offset: offset, count: count);
+    final rangeCount = _calculateRangeCount(
+        count: count, elementCount: associations.length, length: length);
     return Instance(
         identityHashCode: remoteObject.objectId.hashCode,
         kind: InstanceKind.kMap,
@@ -268,7 +270,7 @@ class InstanceHelper extends Domain {
         classRef: classRef)
       ..length = length
       ..offset = offset
-      ..count = spanCount
+      ..count = rangeCount
       ..associations = associations;
   }
 
@@ -276,16 +278,18 @@ class InstanceHelper extends Domain {
   /// properties [properties].
   Future<Instance?> _listInstanceFor(
     ClassRef classRef,
-    RemoteObject remoteObject,
+    RemoteObject remoteObject, {
     int? offset,
     int? count,
     int? length,
-  ) async {
+  }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
-    final elements = await _listElements(remoteObject, offset, count, length);
-    final spanCount = _calculateSpanCount(count, elements.length, length);
+    final elements = await _listElements(remoteObject,
+        offset: offset, count: count, length: length);
+    final rangeCount = _calculateRangeCount(
+        count: count, elementCount: elements.length, length: length);
     return Instance(
         identityHashCode: remoteObject.objectId.hashCode,
         kind: InstanceKind.kList,
@@ -294,32 +298,38 @@ class InstanceHelper extends Domain {
       ..length = length
       ..elements = elements
       ..offset = offset
-      ..count = spanCount;
+      ..count = rangeCount;
   }
 
   /// The elements for a Dart List.
   Future<List<InstanceRef?>> _listElements(
-    RemoteObject list,
+    RemoteObject list, {
     int? offset,
     int? count,
     int? length,
-  ) async {
+  }) async {
     final properties = await debugger.getProperties(list.objectId!,
         offset: offset, count: count, length: length);
-    final spanCount = _calculateSpanCount(count, _lengthOf(properties), length);
-    final indexed = properties.sublist(0, spanCount);
+    final rangeCount = _calculateRangeCount(
+        count: count, elementCount: _lengthOf(properties), length: length);
+    final indexed = properties.sublist(0, rangeCount);
 
     return Future.wait(indexed
         .map((property) async => await _instanceRefForRemote(property.value)));
   }
 
-  /// Return the available count of elements in the requested span.
-  /// Return `null` if the span includes the whole object.
-  static int? _calculateSpanCount(int? count, int? propertyCount, int? length) {
+  /// Return the available count of elements in the requested range.
+  /// Return `null` if the range includes the whole object.
+  /// [count] is the range length requested by the `getObject` call.
+  /// [elementCount] is the number of elements in the runtime object.
+  /// [length] is the expected length of the whole object, read from
+  /// the [ClassMetaData].
+  static int? _calculateRangeCount(
+      {int? count, int? elementCount, int? length}) {
     if (count == null) return null;
-    if (propertyCount == null) return null;
-    if (length == propertyCount) return null;
-    return min(count, propertyCount);
+    if (elementCount == null) return null;
+    if (length == elementCount) return null;
+    return min(count, elementCount);
   }
 
   /// Return the value of the length attribute from [properties], if present.
