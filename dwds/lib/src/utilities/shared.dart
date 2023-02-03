@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:http_multi_server/http_multi_server.dart';
-import 'package:shelf/shelf.dart';
 import 'package:logging/logging.dart';
+import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:vm_service/vm_service.dart';
@@ -121,6 +121,6 @@ Map<String, dynamic> getResultOrHandleError(wip.WipResponse? response,
 
 void safeUnawaited(Future<void> future) {
   unawaited(future.catchError((error, stackTrace) {
-    logger.warning('Error in unawaited future:', error, stackTrace);
+    logger.warning('Error in unawaited Future:', error, stackTrace);
   }));
 }
