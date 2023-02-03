@@ -313,13 +313,12 @@ class InstanceHelper extends Domain {
         .map((property) async => await _instanceRefForRemote(property.value)));
   }
 
+  /// Return the available count of elements in the requested span.
+  /// Return `null` if the span includes the whole object.
   static int? _calculateSpanCount(int? count, int? propertyCount, int? length) {
-    // Return null if if the span includes the whole object.
     if (count == null) return null;
     if (propertyCount == null) return null;
     if (length == propertyCount) return null;
-
-    // Return the available count in the requested span.
     return min(count, propertyCount);
   }
 
