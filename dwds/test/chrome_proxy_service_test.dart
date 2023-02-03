@@ -12,6 +12,7 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';

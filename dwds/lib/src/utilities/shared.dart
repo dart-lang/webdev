@@ -16,8 +16,6 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
 
 import 'package:dwds/src/services/chrome_debug_exception.dart';
 
-final logger = Logger('Utilities');
-
 VMRef toVMRef(VM vm) => VMRef(name: vm.name);
 
 int _nextId = 0;
@@ -25,6 +23,8 @@ String createId() {
   _nextId++;
   return '$_nextId';
 }
+
+final _logger = Logger('Utilities');
 
 /// Returns `true` if [hostname] is bound to an IPv6 address.
 Future<bool> useIPv6ForHost(String hostname) async {
@@ -121,6 +121,6 @@ Map<String, dynamic> getResultOrHandleError(wip.WipResponse? response,
 
 void safeUnawaited(Future<void> future) {
   unawaited(future.catchError((error, stackTrace) {
-    logger.warning('Error in unawaited Future:', error, stackTrace);
+    _logger.warning('Error in unawaited Future:', error, stackTrace);
   }));
 }
