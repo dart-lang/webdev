@@ -20,7 +20,6 @@ import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
 import 'utils.dart';
-import 'web_api.dart';
 
 void main() {
   _registerListeners();
@@ -53,48 +52,11 @@ void _registerListeners() {
 
   // Detect clicks on the Dart Debug Extension icon.
   chrome.action.onClicked.addListener(allowInterop(
-    (Tab tab) => _startDebugSession(
+    (Tab tab) => attachDebugger(
       tab.id,
       trigger: Trigger.extensionIcon,
     ),
   ));
-}
-
-Future<void> _startDebugSession(
-  int tabId, {
-  required Trigger trigger,
-}) async {
-  final isAuthenticated = await _authenticateUser(tabId);
-  if (!isAuthenticated) return;
-
-  maybeCreateLifelinePort(tabId);
-  attachDebugger(tabId, trigger: trigger);
-}
-
-Future<bool> _authenticateUser(int tabId) async {
-  final isAlreadyAuthenticated = await _fetchIsAuthenticated(tabId);
-  if (isAlreadyAuthenticated) return true;
-  final debugInfo = await _fetchDebugInfo(tabId);
-  final authUrl = debugInfo?.authUrl;
-  if (authUrl == null) {
-    _showWarningNotification('Cannot authenticate user.');
-    return false;
-  }
-  final isAuthenticated = await _sendAuthRequest(authUrl);
-  if (isAuthenticated) {
-    await setStorageObject<String>(
-      type: StorageObject.isAuthenticated,
-      value: '$isAuthenticated',
-      tabId: tabId,
-    );
-  } else {
-    sendConnectFailureMessage(
-      ConnectFailureReason.authentication,
-      dartAppTabId: tabId,
-    );
-    await createTab(authUrl, inNewWindow: false);
-  }
-  return isAuthenticated;
 }
 
 void _handleRuntimeMessages(
@@ -150,7 +112,7 @@ void _handleRuntimeMessages(
         final newState = debugStateChange.newState;
         final tabId = debugStateChange.tabId;
         if (newState == DebugStateChange.startDebugging) {
-          _startDebugSession(tabId, trigger: Trigger.extensionPanel);
+          attachDebugger(tabId, trigger: Trigger.extensionPanel);
         }
       });
 }
@@ -195,33 +157,6 @@ Future<DebugInfo?> _fetchDebugInfo(int tabId) {
   return fetchStorageObject<DebugInfo>(
     type: StorageObject.debugInfo,
     tabId: tabId,
-  );
-}
-
-Future<bool> _fetchIsAuthenticated(int tabId) async {
-  final authenticated = await fetchStorageObject<String>(
-    type: StorageObject.isAuthenticated,
-    tabId: tabId,
-  );
-  return authenticated == 'true';
-}
-
-Future<bool> _sendAuthRequest(String authUrl) async {
-  final response = await fetchRequest(authUrl);
-  final responseBody = response.body ?? '';
-  return responseBody.contains('Dart Debug Authentication Success!');
-}
-
-void _showWarningNotification(String message) {
-  chrome.notifications.create(
-    /*notificationId*/ null,
-    NotificationOptions(
-      title: '[Error] Dart Debug Extension',
-      message: message,
-      iconUrl: 'static_assets/dart.png',
-      type: 'basic',
-    ),
-    /*callback*/ null,
   );
 }
 
