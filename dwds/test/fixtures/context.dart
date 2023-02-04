@@ -265,7 +265,7 @@ class TestContext {
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
               ],
-              for (var experiment in experiments)
+              for (final experiment in experiments)
                 '--enable-experiment=$experiment',
               '--verbose',
             ];
