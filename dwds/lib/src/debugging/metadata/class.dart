@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../../debugging/remote_debugger.dart';
-import '../../loaders/strategy.dart';
-import '../../services/chrome_debug_exception.dart';
 
 /// A hard-coded ClassRef for the Closure class.
 final classRefForClosure = classRefFor('dart:core', 'Closure');

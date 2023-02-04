@@ -3,14 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:dwds/src/debugging/metadata/class.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'package:dwds/src/utilities/domain.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../loaders/strategy.dart';
-import '../utilities/domain.dart';
-import '../services/chrome_debug_exception.dart';
-import 'metadata/class.dart';
 
 /// Keeps track of Dart libraries available in the running application.
 class LibraryHelper extends Domain {

@@ -5,11 +5,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
-
-import '../readers/asset_reader.dart';
 
 /// A reader for Dart sources and related source maps provided by the Frontend
 /// Server.

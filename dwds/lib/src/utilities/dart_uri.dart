@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
-
-import '../loaders/strategy.dart';
 
 /// The URI for a particular Dart file, able to canonicalize from various
 /// different representations.

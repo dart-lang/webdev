@@ -5,16 +5,15 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dwds/src/events.dart';
+import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'events.dart';
-import 'services/chrome_proxy_service.dart';
-import 'services/chrome_debug_exception.dart';
-import 'services/debug_service.dart';
 
 final _logger = Logger('DwdsVmClient');
 
