@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:dwds/src/debugging/metadata/class.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'package:dwds/src/utilities/shared.dart';
-
-import '../../src/services/chrome_debug_exception.dart';
-import '../loaders/strategy.dart';
-import '../utilities/domain.dart';
-import 'metadata/class.dart';
 
 /// Keeps track of Dart classes available in the running application.
 class ClassHelper extends Domain {

@@ -5,25 +5,23 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:dwds/src/debugging/dart_scope.dart';
+import 'package:dwds/src/debugging/frame_computer.dart';
+import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/debugging/skip_list.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'package:dwds/src/utilities/conversions.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/objects.dart' show Property;
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:dwds/src/utilities/synchronized.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     hide StackTrace;
-
-import 'package:dwds/src/utilities/shared.dart';
-
-import '../loaders/strategy.dart';
-import '../services/chrome_debug_exception.dart';
-import '../utilities/conversions.dart';
-import '../utilities/dart_uri.dart';
-import '../utilities/domain.dart';
-import '../utilities/objects.dart' show Property;
-import 'dart_scope.dart';
-import 'frame_computer.dart';
-import 'location.dart';
-import 'remote_debugger.dart';
-import 'skip_list.dart';
 
 /// Adds [event] to the stream with [streamId] if there is anybody listening
 /// on that stream.

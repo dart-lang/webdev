@@ -6,38 +6,36 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/data/build_result.dart';
+import 'package:dwds/data/connect_request.dart';
+import 'package:dwds/data/debug_event.dart';
+import 'package:dwds/data/devtools_request.dart';
+import 'package:dwds/data/error_response.dart';
+import 'package:dwds/data/isolate_events.dart';
+import 'package:dwds/data/register_event.dart';
+import 'package:dwds/data/serializers.dart';
+import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/connections/debug_connection.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/debugging/webkit_debugger.dart';
+import 'package:dwds/src/dwds_vm_client.dart';
+import 'package:dwds/src/events.dart';
+import 'package:dwds/src/handlers/injector.dart';
+import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/loaders/require.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/servers/devtools.dart';
+import 'package:dwds/src/servers/extension_backend.dart';
+import 'package:dwds/src/services/app_debug_services.dart';
+import 'package:dwds/src/services/debug_service.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../../data/build_result.dart';
-import '../../data/connect_request.dart';
-import '../../data/debug_event.dart';
-import '../../data/devtools_request.dart';
-import '../../data/error_response.dart';
-import '../../data/isolate_events.dart';
-import '../../data/register_event.dart';
-import '../../data/serializers.dart';
-
-import '../connections/app_connection.dart';
-import '../connections/debug_connection.dart';
-import '../debugging/execution_context.dart';
-import '../debugging/remote_debugger.dart';
-import '../debugging/webkit_debugger.dart';
-import '../dwds_vm_client.dart';
-import '../events.dart';
-import '../handlers/socket_connections.dart';
-import '../loaders/strategy.dart';
-import '../readers/asset_reader.dart';
-import '../servers/devtools.dart';
-import '../servers/extension_backend.dart';
-import '../services/app_debug_services.dart';
-import '../services/debug_service.dart';
-import '../services/expression_compiler.dart';
-import 'package:dwds/src/utilities/shared.dart';
-import 'injector.dart';
 
 /// When enabled, this logs VM service protocol and Chrome debug protocol
 /// traffic to disk.

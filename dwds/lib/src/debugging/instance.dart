@@ -4,17 +4,16 @@
 
 import 'dart:math';
 
+import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/metadata/class.dart';
+import 'package:dwds/src/debugging/metadata/function.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/conversions.dart';
+import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/objects.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../loaders/strategy.dart';
-import '../utilities/conversions.dart';
-import '../utilities/domain.dart';
-import '../utilities/objects.dart';
-import 'package:dwds/src/utilities/shared.dart';
-import 'debugger.dart';
-import 'metadata/class.dart';
-import 'metadata/function.dart';
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {

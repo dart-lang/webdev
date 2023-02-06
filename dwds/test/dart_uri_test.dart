@@ -9,8 +9,8 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:test/test.dart';
 
-import 'fixtures/logging.dart';
 import 'fixtures/fakes.dart';
+import 'fixtures/logging.dart';
 
 class TestStrategy extends FakeStrategy {
   @override

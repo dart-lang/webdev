@@ -9,9 +9,9 @@
   'linux': Skip('https://github.com/dart-lang/webdev/issues/1787'),
 })
 @Timeout(Duration(minutes: 2))
-import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dwds/data/debug_info.dart';
@@ -236,6 +236,62 @@ void main() async {
           // Close the Dart app:
           await appTab.close();
           // Verify that the Dart DevTools tab closes:
+          await devToolsTabTarget.onClose;
+        });
+
+        test('Clicking extension icon while debugging shows warning', () async {
+          final appUrl = context.appUrl;
+          final devToolsUrlFragment =
+              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+          // Navigate to the Dart app:
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
+          // Click on the Dart Debug Extension icon:
+          await workerEvalDelay();
+          await clickOnExtensionIcon(worker);
+          // Wait for Dart Devtools to open:
+          final devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
+          // There should be no warning notifications:
+          var chromeNotifications = await worker.evaluate(_getNotifications());
+          expect(chromeNotifications, isEmpty);
+          // Navigate back to Dart app:
+          await navigateToPage(browser, url: appUrl, isNew: false);
+          // Click on the Dart Debug Extension icon again:
+          await workerEvalDelay();
+          await clickOnExtensionIcon(worker);
+          await workerEvalDelay();
+          // There should now be a warning notificiation:
+          chromeNotifications = await worker.evaluate(_getNotifications());
+          expect(chromeNotifications, isNotEmpty);
+          // Close the Dart app and the associated Dart DevTools:
+          await appTab.close();
+          await devToolsTabTarget.onClose;
+        });
+
+        test('Refreshing the Dart app does not open a new Dart DevTools',
+            () async {
+          final appUrl = context.appUrl;
+          final devToolsUrlFragment =
+              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+          // Navigate to the Dart app:
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
+          // Click on the Dart Debug Extension icon:
+          await workerEvalDelay();
+          await clickOnExtensionIcon(worker);
+          // Verify that the Dart DevTools tab is open:
+          final devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
+          expect(devToolsTabTarget.type, equals('page'));
+          // Refresh the app tab:
+          await appTab.reload();
+          // Verify that we don't open a new Dart DevTools on page refresh:
+          final devToolsTargets = browser.targets
+              .where((target) => target.url.contains(devToolsUrlFragment));
+          expect(devToolsTargets.length, equals(1));
+          // Close the Dart app and the associated Dart DevTools:
+          await appTab.close();
           await devToolsTabTarget.onClose;
         });
       });
@@ -669,6 +725,18 @@ String _clearStorageJs() {
       await chrome.storage.local.clear();
       await chrome.storage.session.clear();
       return true;
+    }
+''';
+}
+
+String _getNotifications() {
+  return '''
+    async () => {
+      return new Promise((resolve, reject) => {
+        chrome.notifications.getAll((notifications) => {
+          resolve(notifications);
+        });
+      });
     }
 ''';
 }
