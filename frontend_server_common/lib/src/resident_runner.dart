@@ -25,17 +25,19 @@ final Uri summaryDillSound =
 class ResidentWebRunner {
   final _logger = Logger('ResidentWebRunner');
 
-  ResidentWebRunner(
-      this.mainUri,
-      this.urlTunneler,
-      this.projectDirectory,
-      this.packageConfigFile,
-      this.packageUriMapper,
-      this.fileSystemRoots,
-      this.fileSystemScheme,
-      this.outputPath,
-      this.soundNullSafety,
-      bool verbose) {
+  ResidentWebRunner({
+    required this.mainUri,
+    required this.urlTunneler,
+    required this.projectDirectory,
+    required this.packageConfigFile,
+    required this.packageUriMapper,
+    required this.fileSystemRoots,
+    required this.fileSystemScheme,
+    required this.outputPath,
+    required this.soundNullSafety,
+    this.experiments = const <String>[],
+    bool verbose = false,
+  }) {
     generator = ResidentCompiler(
       dartSdkPath,
       projectDirectory: projectDirectory,
@@ -45,8 +47,9 @@ class ResidentWebRunner {
           soundNullSafety ? '$summaryDillSound' : '$summaryDillUnsound',
       fileSystemRoots: fileSystemRoots,
       fileSystemScheme: fileSystemScheme,
-      verbose: verbose,
       soundNullSafety: soundNullSafety,
+      experiments: experiments,
+      verbose: verbose,
     );
     expressionCompiler = TestExpressionCompiler(generator);
   }
@@ -60,6 +63,7 @@ class ResidentWebRunner {
   final List<Uri> fileSystemRoots;
   final String fileSystemScheme;
   final bool soundNullSafety;
+  final List<String> experiments;
 
   late ResidentCompiler generator;
   late ExpressionCompiler expressionCompiler;
