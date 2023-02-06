@@ -403,8 +403,11 @@ class Debugger extends Domain {
     return null;
   }
 
-  static bool _isSubRange({int? offset, int? count, int? length}) =>
-      length != null && (offset != null || count != null);
+  static bool _isSubRange({int? offset, int? count, int? length}) {
+    if (length == null) return false;
+    if (offset == 0 && count == null) return false;
+    return offset != null || count != null;
+  }
 
   /// Find a sub-range of the entries for a Map/List when offset and/or count
   /// have been specified on a getObject request.
