@@ -7,7 +7,7 @@
 
 import 'dart:async';
 
-import 'package:dwds/src/utilities/batched_stream.dart';
+import 'package:dwds/shared/batched_stream.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 

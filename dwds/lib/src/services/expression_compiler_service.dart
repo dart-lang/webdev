@@ -94,7 +94,7 @@ class _Compiler {
       moduleFormat,
       if (verbose) '--verbose',
       soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
-      for (var experiment in experiments) '--enable-experiment=$experiment',
+      for (final experiment in experiments) '--enable-experiment=$experiment',
     ];
 
     _logger.info('Starting...');

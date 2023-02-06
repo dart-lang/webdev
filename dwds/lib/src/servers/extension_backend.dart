@@ -10,7 +10,7 @@ import 'package:dwds/data/extension_request.dart';
 import 'package:dwds/src/events.dart';
 import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/servers/extension_debugger.dart';
-import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 

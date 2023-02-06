@@ -14,10 +14,8 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:dwds/data/debug_info.dart';
 import 'package:dwds/data/devtools_request.dart';
 import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/shared/batched_stream.dart';
 import 'package:dwds/src/sockets.dart';
-// TODO(https://github.com/dart-lang/sdk/issues/49973): Use conditional imports
-// in .../utilities/batched_stream so that we don't need to import a copy.
-import 'package:dwds/src/web_utilities/batched_stream.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
 import 'package:sse/client/sse_client.dart';

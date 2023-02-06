@@ -21,7 +21,7 @@ import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/readers/proxy_server_asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
-import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds/src/utilities/server.dart';
 import 'package:file/local.dart';
 import 'package:frontend_server_common/src/resident_runner.dart';
 import 'package:http/http.dart';
@@ -199,6 +199,7 @@ class TestContext {
     bool launchChrome = true,
     bool isFlutterApp = false,
     bool isInternalBuild = false,
+    List<String> experiments = const <String>[],
   }) async {
     // Generate missing SDK assets if needed.
     final sdkConfigurationProvider =
@@ -264,6 +265,8 @@ class TestContext {
                 '--define',
                 'build_web_compilers|ddc=generate-full-dill=true',
               ],
+              for (final experiment in experiments)
+                '--enable-experiment=$experiment',
               '--verbose',
             ];
             _daemonClient =
@@ -293,6 +296,7 @@ class TestContext {
                 port,
                 verbose: verboseCompiler,
                 sdkConfigurationProvider: sdkConfigurationProvider,
+                experiments: experiments,
               );
               expressionCompiler = ddcService;
             }
@@ -319,16 +323,17 @@ class TestContext {
             );
 
             _webRunner = ResidentWebRunner(
-              entry,
-              urlEncoder,
-              p.toUri(workingDirectory),
-              _packageConfigFile,
-              packageUriMapper,
-              [p.toUri(workingDirectory)],
-              'org-dartlang-app',
-              outputDir.path,
-              nullSafety == NullSafety.sound,
-              verboseCompiler,
+              mainUri: entry,
+              urlTunneler: urlEncoder,
+              projectDirectory: p.toUri(workingDirectory),
+              packageConfigFile: _packageConfigFile,
+              packageUriMapper: packageUriMapper,
+              fileSystemRoots: [p.toUri(workingDirectory)],
+              fileSystemScheme: 'org-dartlang-app',
+              outputPath: outputDir.path,
+              soundNullSafety: nullSafety == NullSafety.sound,
+              experiments: experiments,
+              verbose: verboseCompiler,
             );
 
             final assetServerPort = await findUnusedPort();
