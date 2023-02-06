@@ -4,10 +4,11 @@
 
 import 'dart:async';
 
-import '../dwds_vm_client.dart';
-import '../events.dart';
-import 'chrome_proxy_service.dart' show ChromeProxyService;
-import 'debug_service.dart';
+import 'package:dwds/src/dwds_vm_client.dart';
+import 'package:dwds/src/events.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart'
+    show ChromeProxyService;
+import 'package:dwds/src/services/debug_service.dart';
 
 /// A container for all the services required for debugging an application.
 class AppDebugServices {

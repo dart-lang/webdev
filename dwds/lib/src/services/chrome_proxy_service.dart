@@ -6,30 +6,29 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dwds/data/debug_event.dart';
+import 'package:dwds/data/register_event.dart';
+import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
+import 'package:dwds/src/debugging/inspector.dart';
+import 'package:dwds/src/debugging/instance.dart';
+import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/modules.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/debugging/skip_list.dart';
+import 'package:dwds/src/events.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/services/batched_expression_evaluator.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/services/expression_evaluator.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart' hide LogRecord;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../../data/debug_event.dart';
-import '../../data/register_event.dart';
-import '../connections/app_connection.dart';
-import '../debugging/debugger.dart';
-import '../debugging/execution_context.dart';
-import '../debugging/inspector.dart';
-import '../debugging/instance.dart';
-import '../debugging/location.dart';
-import '../debugging/modules.dart';
-import '../debugging/remote_debugger.dart';
-import '../debugging/skip_list.dart';
-import '../events.dart';
-import '../loaders/strategy.dart';
-import '../readers/asset_reader.dart';
-import '../services/expression_compiler.dart';
-import '../utilities/dart_uri.dart';
-import '../utilities/shared.dart';
-import 'expression_evaluator.dart';
-import 'batched_expression_evaluator.dart';
 
 /// A proxy from the chrome debug protocol to the dart vm service protocol.
 class ChromeProxyService implements VmServiceInterface {

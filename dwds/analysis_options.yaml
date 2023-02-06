@@ -15,5 +15,7 @@ analyzer:
 
 linter:
   rules:
+    - always_use_package_imports
+    - directives_ordering
     - prefer_final_locals
     - unawaited_futures

@@ -9,6 +9,15 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dds/dds.dart';
+import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/events.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/services/chrome_proxy_service.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart' hide Response;
@@ -16,16 +25,6 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-
-import '../connections/app_connection.dart';
-import '../loaders/strategy.dart';
-import '../readers/asset_reader.dart';
-import '../services/expression_compiler.dart';
-import '../debugging/execution_context.dart';
-import '../debugging/remote_debugger.dart';
-import '../events.dart';
-import '../utilities/shared.dart';
-import 'chrome_proxy_service.dart';
 
 bool _acceptNewConnections = true;
 int _clientsConnected = 0;

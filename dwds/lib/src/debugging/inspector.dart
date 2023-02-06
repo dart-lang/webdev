@@ -4,24 +4,23 @@
 
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
+import 'package:dwds/src/connections/app_connection.dart';
+import 'package:dwds/src/debugging/classes.dart';
+import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/execution_context.dart';
+import 'package:dwds/src/debugging/instance.dart';
+import 'package:dwds/src/debugging/libraries.dart';
+import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/readers/asset_reader.dart';
+import 'package:dwds/src/utilities/conversions.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../connections/app_connection.dart';
-import '../loaders/strategy.dart';
-import '../readers/asset_reader.dart';
-import '../utilities/conversions.dart';
-import '../utilities/dart_uri.dart';
-import '../utilities/domain.dart';
-import '../utilities/shared.dart';
-import 'classes.dart';
-import 'debugger.dart';
-import 'execution_context.dart';
-import 'instance.dart';
-import 'libraries.dart';
-import 'location.dart';
-import 'remote_debugger.dart';
 
 /// An inspector for a running Dart application contained in the
 /// [WipConnection].

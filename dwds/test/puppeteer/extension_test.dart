@@ -9,9 +9,9 @@
   'linux': Skip('https://github.com/dart-lang/webdev/issues/1787'),
 })
 @Timeout(Duration(minutes: 2))
-import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dwds/data/debug_info.dart';

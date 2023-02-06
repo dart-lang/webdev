@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
@@ -12,8 +13,6 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
     as wip;
-
-import 'package:dwds/src/services/chrome_debug_exception.dart';
 
 VMRef toVMRef(VM vm) => VMRef(name: vm.name);
 

@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:logging/logging.dart';
-
-import '../loaders/strategy.dart';
-import '../utilities/dart_uri.dart';
 
 /// Tracks modules for the compiled application.
 class Modules {

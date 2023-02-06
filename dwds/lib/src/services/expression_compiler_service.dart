@@ -6,10 +6,9 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:logging/logging.dart';
-
-import '../utilities/sdk_configuration.dart';
-import 'expression_compiler.dart';
 
 class _Compiler {
   static final _logger = Logger('ExpressionCompilerService');
