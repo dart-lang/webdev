@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/utilities/objects.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../utilities/objects.dart';
-import 'debugger.dart';
 
 // TODO(sdk/issues/44262) - use an alternative way to identify synthetic
 // variables.

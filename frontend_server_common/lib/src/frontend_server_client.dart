@@ -260,6 +260,7 @@ class ResidentCompiler {
     required this.fileSystemScheme,
     required this.platformDill,
     required this.soundNullSafety,
+    this.experiments = const <String>[],
     this.verbose = false,
     CompilerMessageConsumer compilerMessageConsumer = defaultConsumer,
   }) : _stdoutHandler = StdoutHandler(consumer: compilerMessageConsumer);
@@ -271,6 +272,7 @@ class ResidentCompiler {
   final String fileSystemScheme;
   final String platformDill;
   final bool soundNullSafety;
+  final List<String> experiments;
   final bool verbose;
 
   /// The path to the root of the Dart SDK used to compile.
@@ -390,7 +392,8 @@ class ResidentCompiler {
       '--experimental-emit-debug-metadata',
       if (soundNullSafety) '--sound-null-safety',
       if (!soundNullSafety) '--no-sound-null-safety',
-      if (verbose) '--verbose'
+      if (verbose) '--verbose',
+      for (final experiment in experiments) '--enable-experiment=$experiment',
     ];
 
     _logger.info(args.join(' '));

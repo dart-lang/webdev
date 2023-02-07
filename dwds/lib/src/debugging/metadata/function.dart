@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.import 'dart:async';
 
+import 'package:dwds/src/debugging/remote_debugger.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../../loaders/strategy.dart';
-import '../../utilities/shared.dart';
-import '../remote_debugger.dart';
 
 /// Meta data for a remote Dart function in Chrome.
 class FunctionMetaData {

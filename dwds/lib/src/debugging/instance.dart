@@ -4,17 +4,16 @@
 
 import 'dart:math';
 
+import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/metadata/class.dart';
+import 'package:dwds/src/debugging/metadata/function.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/utilities/conversions.dart';
+import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/objects.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../loaders/strategy.dart';
-import '../utilities/conversions.dart';
-import '../utilities/domain.dart';
-import '../utilities/objects.dart';
-import '../utilities/shared.dart';
-import 'debugger.dart';
-import 'metadata/class.dart';
-import 'metadata/function.dart';
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
@@ -117,16 +116,15 @@ class InstanceHelper extends Domain {
       return _closureInstanceFor(remoteObject);
     }
 
-    final properties = await debugger.getProperties(objectId,
-        offset: offset, count: count, length: metaData.length);
     if (metaData.isSystemList) {
-      return await _listInstanceFor(
-          classRef, remoteObject, properties, offset, count);
+      return await _listInstanceFor(classRef, remoteObject,
+          offset: offset, count: count, length: metaData.length);
     } else if (metaData.isSystemMap) {
-      return await _mapInstanceFor(
-          classRef, remoteObject, properties, offset, count);
+      return await _mapInstanceFor(classRef, remoteObject,
+          offset: offset, count: count, length: metaData.length);
     } else {
-      return await _plainInstanceFor(classRef, remoteObject, properties);
+      return await _plainInstanceFor(classRef, remoteObject,
+          offset: offset, count: count, length: metaData.length);
     }
   }
 
@@ -172,10 +170,18 @@ class InstanceHelper extends Domain {
 
   /// Create a plain instance of [classRef] from [remoteObject] and the JS
   /// properties [properties].
-  Future<Instance?> _plainInstanceFor(ClassRef classRef,
-      RemoteObject remoteObject, List<Property> properties) async {
+  Future<Instance?> _plainInstanceFor(
+    ClassRef classRef,
+    RemoteObject remoteObject, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
+
+    final properties = await debugger.getProperties(objectId,
+        offset: offset, count: count, length: length);
     final dartProperties = await _dartFieldsFor(properties, remoteObject);
     var boundFields = await Future.wait(
         dartProperties.map<Future<BoundField>>((p) => _fieldFor(p, classRef)));
@@ -201,8 +207,8 @@ class InstanceHelper extends Domain {
   }
 
   /// The associations for a Dart Map or IdentityMap.
-  Future<List<MapAssociation>> _mapAssociations(
-      RemoteObject map, int? offset, int? count) async {
+  Future<List<MapAssociation>> _mapAssociations(RemoteObject map,
+      {int? offset, int? count}) async {
     // We do this in in awkward way because we want the keys and values, but we
     // can't return things by value or some Dart objects will come back as
     // values that we need to be RemoteObject, e.g. a List of int.
@@ -242,18 +248,20 @@ class InstanceHelper extends Domain {
 
   /// Create a Map instance with class [classRef] from [remoteObject].
   Future<Instance?> _mapInstanceFor(
-      ClassRef classRef,
-      RemoteObject remoteObject,
-      List<Property> _,
-      int? offset,
-      int? count) async {
+    ClassRef classRef,
+    RemoteObject remoteObject, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
+
     // Maps are complicated, do an eval to get keys and values.
-    final associations = await _mapAssociations(remoteObject, offset, count);
-    final length = (offset == null && count == null)
-        ? associations.length
-        : (await instanceRefFor(remoteObject))?.length;
+    final associations =
+        await _mapAssociations(remoteObject, offset: offset, count: count);
+    final rangeCount = _calculateRangeCount(
+        count: count, elementCount: associations.length, length: length);
     return Instance(
         identityHashCode: remoteObject.objectId.hashCode,
         kind: InstanceKind.kMap,
@@ -261,40 +269,66 @@ class InstanceHelper extends Domain {
         classRef: classRef)
       ..length = length
       ..offset = offset
-      ..count = (associations.length == length) ? null : associations.length
+      ..count = rangeCount
       ..associations = associations;
   }
 
   /// Create a List instance of [classRef] from [remoteObject] with the JS
   /// properties [properties].
   Future<Instance?> _listInstanceFor(
-      ClassRef classRef,
-      RemoteObject remoteObject,
-      List<Property> properties,
-      int? offset,
-      int? count) async {
+    ClassRef classRef,
+    RemoteObject remoteObject, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
     final objectId = remoteObject.objectId;
     if (objectId == null) return null;
 
-    /// TODO(annagrin): split into cases to make the logic clear.
-    /// TODO(annagrin): make sure we use offset correctly.
-    final numberOfProperties = _lengthOf(properties) ?? 0;
-    final length = (offset == null && count == null)
-        ? numberOfProperties
-        : (await instanceRefFor(remoteObject))?.length;
-    final indexed = properties.sublist(
-        0, min(count ?? length ?? numberOfProperties, numberOfProperties));
-    final fields = await Future.wait(indexed
-        .map((property) async => await _instanceRefForRemote(property.value)));
+    final elements = await _listElements(remoteObject,
+        offset: offset, count: count, length: length);
+    final rangeCount = _calculateRangeCount(
+        count: count, elementCount: elements.length, length: length);
     return Instance(
         identityHashCode: remoteObject.objectId.hashCode,
         kind: InstanceKind.kList,
         id: objectId,
         classRef: classRef)
       ..length = length
-      ..elements = fields
+      ..elements = elements
       ..offset = offset
-      ..count = (numberOfProperties == length) ? null : numberOfProperties;
+      ..count = rangeCount;
+  }
+
+  /// The elements for a Dart List.
+  Future<List<InstanceRef?>> _listElements(
+    RemoteObject list, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
+    final properties = await debugger.getProperties(list.objectId!,
+        offset: offset, count: count, length: length);
+    final rangeCount = _calculateRangeCount(
+        count: count, elementCount: _lengthOf(properties), length: length);
+    final indexed = properties.sublist(0, rangeCount);
+
+    return Future.wait(indexed
+        .map((property) async => await _instanceRefForRemote(property.value)));
+  }
+
+  /// Return the available count of elements in the requested range.
+  /// Return `null` if the range includes the whole object.
+  /// [count] is the range length requested by the `getObject` call.
+  /// [elementCount] is the number of elements in the runtime object.
+  /// [length] is the expected length of the whole object, read from
+  /// the [ClassMetaData].
+  static int? _calculateRangeCount(
+      {int? count, int? elementCount, int? length}) {
+    if (count == null) return null;
+    if (elementCount == null) return null;
+    if (length == elementCount) return null;
+    return min(count, elementCount);
   }
 
   /// Return the value of the length attribute from [properties], if present.
@@ -302,7 +336,7 @@ class InstanceHelper extends Domain {
   /// This is only applicable to Lists or Maps, where we expect a length
   /// attribute. Even if a plain instance happens to have a length field, we
   /// don't use it to determine the properties to display.
-  int? _lengthOf(List<Property> properties) {
+  static int? _lengthOf(List<Property> properties) {
     final lengthProperty = properties.firstWhere((p) => p.name == 'length');
     return lengthProperty.value?.value as int?;
   }

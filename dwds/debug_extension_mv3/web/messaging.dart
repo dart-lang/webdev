@@ -9,8 +9,8 @@ import 'dart:convert';
 
 import 'package:js/js.dart';
 
-import 'data_serializers.dart';
 import 'chrome_api.dart';
+import 'data_serializers.dart';
 import 'logger.dart';
 
 enum Script {

@@ -7,8 +7,8 @@
 
 import 'package:test/test.dart';
 
-import 'fixtures/context.dart';
 import 'evaluate_circular_common.dart';
+import 'fixtures/context.dart';
 
 void main() async {
   // Enable verbose logging for debugging.
