@@ -267,7 +267,8 @@ Future<bool> _connectToDwds({
     ..instanceId = debugInfo.appInstanceId
     ..contextId = dartAppContextId
     ..tabUrl = tabUrl
-    ..uriOnly = true));
+    ..uriOnly = true
+    ..isMv3Extension = true));
   return true;
 }
 
@@ -358,7 +359,12 @@ void _openDevTools(String devToolsUri, {required int dartAppTabId}) async {
     final devToolsOpener = await fetchStorageObject<DevToolsOpener>(
         type: StorageObject.devToolsOpener);
     final devToolsTab = await createTab(
-      devToolsUri,
+      addQueryParameters(
+        devToolsUri,
+        queryParameters: {
+          'ide': 'DebugExtension',
+        },
+      ),
       inNewWindow: devToolsOpener?.newWindow ?? false,
     );
     debugSession.devToolsTabId = devToolsTab.id;

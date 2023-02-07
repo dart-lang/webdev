@@ -47,3 +47,15 @@ bool isDevMode() {
   final extensionName = getProperty(extensionManifest, 'name') ?? '';
   return extensionName.contains('DEV');
 }
+
+String addQueryParameters(
+  String uri, {
+  required Map<String, String> queryParameters,
+}) {
+  final originalUri = Uri.parse(uri);
+  final newUri = originalUri.replace(queryParameters: {
+    ...originalUri.queryParameters,
+    ...queryParameters,
+  });
+  return newUri.toString();
+}

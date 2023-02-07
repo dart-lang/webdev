@@ -148,7 +148,7 @@ void main() async {
           // Click on the Dart Debug Extension icon:
           await workerEvalDelay();
           await clickOnExtensionIcon(worker);
-          // Verify the extension opened the Dart docs in the same window:
+          // Verify the extension opened DevTools in the same window:
           var devToolsTabTarget = await browser.waitForTarget(
               (target) => target.url.contains(devToolsUrlFragment));
           var devToolsTab = await devToolsTabTarget.page;
@@ -191,6 +191,33 @@ void main() async {
           expect(devToolsWindowId == appWindowId, isFalse);
           // Close the DevTools tab:
           devToolsTab = await devToolsTabTarget.page;
+          await devToolsTab.close();
+          await appTab.close();
+        });
+
+        test('DevTools is opened with the correct query parameters', () async {
+          final appUrl = context.appUrl;
+          final devToolsUrlFragment =
+              useSse ? 'debugger?uri=sse' : 'debugger?uri=ws';
+          // Navigate to the Dart app:
+          final appTab =
+              await navigateToPage(browser, url: appUrl, isNew: true);
+          // Click on the Dart Debug Extension icon:
+          await workerEvalDelay();
+          await clickOnExtensionIcon(worker);
+          print('clicked, waiting for devtools');
+          // Wait for DevTools to open:
+          final devToolsTabTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment));
+          final devToolsUrl = devToolsTabTarget.url;
+          // Expect the correct query parameters to be on the DevTools url:
+          final uri = Uri.parse(devToolsUrl);
+          final queryParameters = uri.queryParameters;
+          expect(queryParameters.keys, unorderedMatches(['uri', 'ide']));
+          expect(queryParameters, containsPair('ide', 'DebugExtension'));
+          expect(queryParameters, containsPair('uri', isNotEmpty));
+          // Close the DevTools tab:
+          final devToolsTab = await devToolsTabTarget.page;
           await devToolsTab.close();
           await appTab.close();
         });
@@ -510,6 +537,47 @@ void main() async {
               screenshotName:
                   'debuggerPanelDisconnected_${isFlutterApp ? 'flutterApp' : 'dartApp'}',
             );
+          });
+
+          test('The Dart DevTools IFRAME has the correct query parameters',
+              () async {
+            final chromeDevToolsPage = await _getChromeDevToolsPage(browser);
+            // There are no hooks for when a panel is added to Chrome DevTools,
+            // therefore we rely on a slight delay:
+            await Future.delayed(Duration(seconds: 1));
+            // Navigate to the Dart Debugger panel:
+            _tabLeft(chromeDevToolsPage);
+            if (isFlutterApp) {
+              _tabLeft(chromeDevToolsPage);
+            }
+            await _clickLaunchButton(
+              browser,
+              panel: Panel.debugger,
+            );
+            // Expect the Dart DevTools IFRAME to be added:
+            final devToolsUrlFragment =
+                'ide=ChromeDevTools&embed=true&page=debugger';
+            final iframeTarget = await browser.waitForTarget(
+              (target) => target.url.contains(devToolsUrlFragment),
+            );
+            final iframeUrl = iframeTarget.url;
+            // Expect the correct query parameters to be on the IFRAME url:
+            final uri = Uri.parse(iframeUrl);
+            final queryParameters = uri.queryParameters;
+            expect(
+                queryParameters.keys,
+                unorderedMatches([
+                  'uri',
+                  'ide',
+                  'embed',
+                  'page',
+                  'backgroundColor',
+                ]));
+            expect(queryParameters, containsPair('ide', 'ChromeDevTools'));
+            expect(queryParameters, containsPair('uri', isNotEmpty));
+            expect(queryParameters, containsPair('page', isNotEmpty));
+            expect(
+                queryParameters, containsPair('backgroundColor', isNotEmpty));
           });
         });
       }
