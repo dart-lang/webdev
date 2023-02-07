@@ -16,6 +16,14 @@ import 'package:vm_service/vm_service.dart';
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
 
+// TODO(annagrin): Remove once the dev version below is released.
+final recordTypesWork =
+    semver.Version.parse(Platform.version.split(' ').first) >=
+        semver.Version.parse('3.0.0-188.0.dev');
+
+Matcher _matchRecordType(String type) =>
+    recordTypesWork ? equals(type) : anything;
+
 class TestSetup {
   TestContext context;
 
@@ -389,9 +397,7 @@ Future<void> _runTests({
             await getFields(instanceRef, offset: 0), {'1': 'false', '2': '5'});
       });
     });
-  }, // Remove once the dev version below is released.
-      skip: semver.Version.parse(Platform.version.split(' ').first) <
-          semver.Version.parse('3.0.0-188.0.dev'));
+  });
 }
 
 Future<void> _onBreakPoint(
@@ -522,4 +528,5 @@ Matcher _matchRecordInstance({required int length, required String type}) =>
     isA<Instance>()
         .having((e) => e.kind, 'kind', InstanceKind.kRecord)
         .having((e) => e.length, 'length', length)
-        .having((e) => e.classRef!.name, 'classRef.name', type);
+        .having(
+            (e) => e.classRef!.name, 'classRef.name', _matchRecordType(type));

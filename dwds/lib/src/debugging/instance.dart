@@ -311,14 +311,17 @@ class InstanceHelper extends Domain {
     int? count,
     int? length,
   }) async {
+    // Get all elements of the list without the `length` field.
     final properties = await debugger.getProperties(list.objectId!,
         offset: offset, count: count, length: length);
-    final rangeCount = _calculateRangeCount(
-        count: count, elementCount: _lengthOf(properties), length: length);
-    final indexed = properties.sublist(0, rangeCount);
+    final elements = properties.sublist(0, _lengthOf(properties));
 
-    return Future.wait(indexed
-        .map((property) async => await _instanceRefForRemote(property.value)));
+    final rangeCount = _calculateRangeCount(
+        count: count, elementCount: elements.length, length: length);
+    final range = elements.sublist(0, rangeCount);
+
+    return Future.wait(range
+        .map((element) async => await _instanceRefForRemote(element.value)));
   }
 
   /// Return the available count of elements in the requested range.
