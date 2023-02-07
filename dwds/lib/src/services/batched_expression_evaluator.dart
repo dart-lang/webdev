@@ -145,7 +145,8 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
                 'Got result out of a batch for ${request.expression}: $result');
             request.completer.complete(result);
           }),
-          onError: (error, _) => request.completer.completeError(error),
+          onError: (error, stackTrace) =>
+              request.completer.completeError(error, stackTrace),
         );
       }
     }
