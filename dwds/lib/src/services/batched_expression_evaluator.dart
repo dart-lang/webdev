@@ -5,16 +5,15 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:dwds/shared/batched_stream.dart';
+import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/modules.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../debugging/debugger.dart';
-import '../debugging/location.dart';
-import '../debugging/modules.dart';
-import '../utilities/batched_stream.dart';
-import 'expression_compiler.dart';
-import 'expression_evaluator.dart';
 
 class EvaluateRequest {
   final String isolateId;

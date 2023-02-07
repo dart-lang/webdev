@@ -6,8 +6,9 @@
 library devtools;
 
 import 'dart:html';
-import 'package:js/js.dart';
+
 import 'package:dwds/data/debug_info.dart';
+import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'logger.dart';
