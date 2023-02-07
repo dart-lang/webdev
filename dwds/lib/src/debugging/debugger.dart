@@ -402,6 +402,23 @@ class Debugger extends Domain {
     return null;
   }
 
+  static bool _isSubRange({int? offset, int? count, int? length}) {
+    if (length == null) return false;
+    if (offset == 0 && count == null) return false;
+    return offset != null || count != null;
+  }
+
+  /// Compute the last possible element index in the range of [offset]..end
+  /// that includes [count] elements, if available.
+  static int? _calculateRangeEnd(
+          {int? count, required int offset, required int length}) =>
+      count == null ? null : math.min(offset + count, length);
+
+  /// Calculate the number of available elements in the range.
+  static int _calculateRangeCount(
+          {int? count, required int offset, required int length}) =>
+      count == null ? length - offset : math.min(count, length - offset);
+
   /// Find a sub-range of the entries for a Map/List when offset and/or count
   /// have been specified on a getObject request.
   ///
@@ -409,15 +426,17 @@ class Debugger extends Domain {
   /// will just return a RemoteObject for it and ignore [offset], [count] and
   /// [length]. If it is, then [length] should be the number of entries in the
   /// List/Map and [offset] and [count] should indicate the desired range.
-  Future<RemoteObject> _subrange(
-      String id, int offset, int? count, int length) async {
+  Future<RemoteObject> _subRange(String id,
+      {required int offset, int? count, required int length}) async {
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
     final receiver = remoteObjectFor(id);
-    final end = count == null ? null : math.min(offset + count, length);
-    final actualCount = count ?? length - offset;
+    final end =
+        _calculateRangeEnd(count: count, offset: offset, length: length);
+    final rangeCount =
+        _calculateRangeCount(count: count, offset: offset, length: length);
     final args =
-        [offset, actualCount, end].map(dartIdFor).map(remoteObjectFor).toList();
+        [offset, rangeCount, end].map(dartIdFor).map(remoteObjectFor).toList();
     // If this is a List, just call sublist. If it's a Map, get the entries, but
     // avoid doing a toList on a large map using skip/take to get the section we
     // want. To make those alternatives easier in JS, pass both count and end.
@@ -468,11 +487,16 @@ class Debugger extends Domain {
   /// Symbol(DartClass.actualName) and will need to be converted. For a system
   /// List or Map, [offset] and/or [count] can be provided to indicate a desired
   /// range of entries. They will be ignored if there is no [length].
-  Future<List<Property>> getProperties(String objectId,
-      {int? offset, int? count, int? length}) async {
+  Future<List<Property>> getProperties(
+    String objectId, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
     String rangeId = objectId;
-    if (length != null && (offset != null || count != null)) {
-      final range = await _subrange(objectId, offset ?? 0, count ?? 0, length);
+    if (_isSubRange(offset: offset, count: count, length: length)) {
+      final range = await _subRange(objectId,
+          offset: offset ?? 0, count: count, length: length!);
       rangeId = range.objectId ?? rangeId;
     }
     final jsProperties = await sendCommandAndValidateResult<List>(

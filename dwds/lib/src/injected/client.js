@@ -8014,7 +8014,7 @@
       t2.add$1(0, new A.DoubleSerializer(A.BuiltList_BuiltList$from([B.Type_double_K1J], t1)));
       t2.add$1(0, new A.DurationSerializer(A.BuiltList_BuiltList$from([B.Type_Duration_SnA], t1)));
       t2.add$1(0, new A.IntSerializer(A.BuiltList_BuiltList$from([B.Type_int_tHn], t1)));
-      t2.add$1(0, new A.Int64Serializer(A.BuiltList_BuiltList$from([B.Type_Int64_gc6], t1)));
+      t2.add$1(0, new A.Int64Serializer(A.BuiltList_BuiltList$from([B.Type_Int64_ww8], t1)));
       t2.add$1(0, new A.JsonObjectSerializer(A.BuiltList_BuiltList$from([B.Type_JsonObject_gyf, B.Type_BoolJsonObject_8HQ, B.Type_ListJsonObject_yPV, B.Type_MapJsonObject_bBG, B.Type_NumJsonObject_H9C, B.Type_StringJsonObject_GAC], t1)));
       t2.add$1(0, new A.NullSerializer(A.BuiltList_BuiltList$from([B.Type_Null_Yyn], t1)));
       t2.add$1(0, new A.NumSerializer(A.BuiltList_BuiltList$from([B.Type_num_cv7], t1)));
@@ -8452,38 +8452,28 @@
     },
     WebSocketClient_stream_closure: function WebSocketClient_stream_closure() {
     },
-    Int32__decodeDigit(c) {
-      if (c >= 48 && c <= 57)
-        return c - 48;
-      else if (c >= 97 && c <= 122)
-        return c - 97 + 10;
-      else if (c >= 65 && c <= 90)
-        return c - 65 + 10;
-      else
-        return -1;
-    },
-    Int64__parseRadix(s, radix) {
-      var i, negative, d0, d1, d2, c, digit, d00, d10, _null = null,
-        t1 = s.length;
-      if (0 < t1 && s[0] === "-") {
+    Int64__parseRadix(s, radix, throwOnError) {
+      var i, negative, t1, d0, d1, d2, digit, d00, d10;
+      if (B.JSString_methods.startsWith$1(s, "-")) {
         i = 1;
         negative = true;
       } else {
         i = 0;
         negative = false;
       }
+      t1 = s.length;
       if (i >= t1)
-        throw A.wrapException(A.FormatException$("No digits in '" + s + "'", _null, _null));
+        throw A.wrapException(A.FormatException$("No digits", s, i));
       for (d0 = 0, d1 = 0, d2 = 0; i < t1; ++i, d1 = d10, d0 = d00) {
-        c = B.JSString_methods._codeUnitAt$1(s, i);
-        digit = A.Int32__decodeDigit(c);
-        if (digit < 0 || digit >= radix)
-          throw A.wrapException(A.FormatException$("Non-radix char code: " + c, _null, _null));
-        d0 = d0 * radix + digit;
-        d00 = d0 & 4194303;
-        d1 = d1 * radix + B.JSInt_methods._shrOtherPositive$1(d0, 22);
-        d10 = d1 & 4194303;
-        d2 = d2 * radix + (d1 >>> 22) & 1048575;
+        digit = A.decodeDigit(B.JSString_methods._codeUnitAt$1(s, i));
+        if (digit < radix) {
+          d0 = d0 * radix + digit;
+          d00 = d0 & 4194303;
+          d1 = d1 * radix + B.JSInt_methods._shrOtherPositive$1(d0, 22);
+          d10 = d1 & 4194303;
+          d2 = d2 * radix + (d1 >>> 22) & 1048575;
+        } else
+          throw A.wrapException(A.FormatException$("Not radix digit", s, i));
       }
       if (negative)
         return A.Int64__sub(0, 0, 0, d0, d1, d2);
@@ -8509,7 +8499,7 @@
         return value;
       else if (A._isInt(value))
         return A.Int64_Int64(value);
-      throw A.wrapException(A.ArgumentError$value(value, null, null));
+      throw A.wrapException(A.ArgumentError$value(value, "other", "not an int, Int32 or Int64"));
     },
     Int64__toRadixStringUnsigned(radix, d0, d1, d2, sign) {
       var d4, d3, fatRadix, chunk1, chunk2, chunk3, q, q0, q1, q2, q3, chunk10, residue;
@@ -9049,6 +9039,17 @@
         return;
       }
       throw "Unable to print message: " + String(string);
+    },
+    decodeDigit(c) {
+      var letter,
+        digit = c ^ 48;
+      if (digit < 10)
+        return digit;
+      letter = (c | 32) - 97;
+      if (letter >= 0)
+        return letter + 10;
+      else
+        return 255;
     },
     UuidUtil_mathRNG() {
       var i, t1,
@@ -21787,7 +21788,9 @@
       return this.serialize$3$specifiedType(serializers, int64, B.FullType_null_List_empty_false);
     },
     deserialize$3$specifiedType(serializers, serialized, specifiedType) {
-      return A.Int64__parseRadix(A._asString(serialized), 10);
+      var t1 = A.Int64__parseRadix(A._asString(serialized), 10, true);
+      t1.toString;
+      return t1;
     },
     deserialize$2(serializers, serialized) {
       return this.deserialize$3$specifiedType(serializers, serialized, B.FullType_null_List_empty_false);
@@ -26940,7 +26943,7 @@
     B.Type_Float64List_LB7 = A.typeLiteral("Float64List");
     B.Type_Int16List_uXf = A.typeLiteral("Int16List");
     B.Type_Int32List_O50 = A.typeLiteral("Int32List");
-    B.Type_Int64_gc6 = A.typeLiteral("Int64");
+    B.Type_Int64_ww8 = A.typeLiteral("Int64");
     B.Type_Int8List_ekJ = A.typeLiteral("Int8List");
     B.Type_JSObject_8k0 = A.typeLiteral("JSObject");
     B.Type_JsonObject_gyf = A.typeLiteral("JsonObject");
