@@ -10294,7 +10294,7 @@
     call$0() {
       return A.Future_Future$value(null, type$.Null);
     },
-    $signature: 24
+    $signature: 25
   };
   A.SentinelValue.prototype = {};
   A.EfficientLengthIterable.prototype = {};
@@ -11626,7 +11626,7 @@
       t2 = this.span;
       t1.firstChild ? t1.removeChild(t2) : t1.appendChild(t2);
     },
-    $signature: 65
+    $signature: 72
   };
   A._AsyncRun__scheduleImmediateJsOverride_internalCallback.prototype = {
     call$0() {
@@ -11733,13 +11733,13 @@
     call$2(error, stackTrace) {
       this.bodyFunction.call$2(1, new A.ExceptionAndStackTrace(error, type$.StackTrace._as(stackTrace)));
     },
-    $signature: 64
+    $signature: 65
   };
   A._wrapJsFunctionForAsync_closure.prototype = {
     call$2(errorCode, result) {
       this.$protected(A._asInt(errorCode), result);
     },
-    $signature: 63
+    $signature: 64
   };
   A.AsyncError.prototype = {
     toString$0(_) {
@@ -13506,7 +13506,7 @@
           t2._processUncaughtError$3(zone, type$.Object._as(e), t1._as(s));
       }
     },
-    $signature: 72
+    $signature: 85
   };
   A._HashMap.prototype = {
     get$length(_) {
@@ -14336,7 +14336,7 @@
       t1._contents = t2 + ": ";
       t1._contents += A.S(v);
     },
-    $signature: 18
+    $signature: 19
   };
   A.MapMixin.prototype = {
     cast$2$0(receiver, RK, RV) {
@@ -15406,7 +15406,7 @@
       B.JSArray_methods.$indexSet(t1, t2.i++, key);
       B.JSArray_methods.$indexSet(t1, t2.i++, value);
     },
-    $signature: 18
+    $signature: 19
   };
   A._JsonStringStringifier.prototype = {
     get$_partialResult() {
@@ -15557,7 +15557,7 @@
     call$2(key, value) {
       this.result.$indexSet(0, type$.Symbol._as(key)._name, value);
     },
-    $signature: 19
+    $signature: 20
   };
   A.NoSuchMethodError_toString_closure.prototype = {
     call$2(key, value) {
@@ -15572,7 +15572,7 @@
       t1._contents += A.Error_safeToString(value);
       t2.comma = ", ";
     },
-    $signature: 19
+    $signature: 20
   };
   A._BigIntImpl.prototype = {
     $negate(_) {
@@ -15907,7 +15907,7 @@
       hash = hash + ((hash & 524287) << 10) & 536870911;
       return hash ^ hash >>> 6;
     },
-    $signature: 20
+    $signature: 21
   };
   A._BigIntImpl_hashCode_finish.prototype = {
     call$1(hash) {
@@ -15915,7 +15915,7 @@
       hash ^= hash >>> 11;
       return hash + ((hash & 16383) << 15) & 536870911;
     },
-    $signature: 21
+    $signature: 22
   };
   A.DateTime.prototype = {
     $eq(_, other) {
@@ -16333,13 +16333,13 @@
     call$2(msg, position) {
       throw A.wrapException(A.FormatException$("Illegal IPv4 address, " + msg, this.host, position));
     },
-    $signature: 59
+    $signature: 63
   };
   A.Uri_parseIPv6Address_error.prototype = {
     call$2(msg, position) {
       throw A.wrapException(A.FormatException$("Illegal IPv6 address, " + msg, this.host, position));
     },
-    $signature: 53
+    $signature: 59
   };
   A.Uri_parseIPv6Address_parseHex.prototype = {
     call$2(start, end) {
@@ -16351,7 +16351,7 @@
         this.error.call$2("each part must be in the range of `0x0..0xFFFF`", start);
       return value;
     },
-    $signature: 20
+    $signature: 21
   };
   A._Uri.prototype = {
     get$_text() {
@@ -16537,7 +16537,7 @@
     call$1(s) {
       return A._Uri__uriEncode(B.List_XRg0, A._asString(s), B.C_Utf8Codec, false);
     },
-    $signature: 22
+    $signature: 23
   };
   A.UriData.prototype = {
     get$uri() {
@@ -16578,7 +16578,7 @@
       B.NativeUint8List_methods.fillRange$3(t1, 0, 96, defaultTransition);
       return t1;
     },
-    $signature: 44
+    $signature: 53
   };
   A._createTables_setChars.prototype = {
     call$3(target, chars, transition) {
@@ -16590,7 +16590,7 @@
         target[t2] = transition;
       }
     },
-    $signature: 23
+    $signature: 24
   };
   A._createTables_setRange.prototype = {
     call$3(target, range, transition) {
@@ -16602,7 +16602,7 @@
         target[t1] = transition;
       }
     },
-    $signature: 23
+    $signature: 24
   };
   A._SimpleUri.prototype = {
     get$hasAuthority() {
@@ -17110,7 +17110,7 @@
     call$1(e) {
       return type$.Element._is(type$.Node._as(e));
     },
-    $signature: 39
+    $signature: 44
   };
   A.Event.prototype = {$isEvent: 1};
   A.EventSource.prototype = {$isEventSource: 1};
@@ -17782,7 +17782,7 @@
     call$2(k, v) {
       return B.JSArray_methods.add$1(this.keys, k);
     },
-    $signature: 25
+    $signature: 26
   };
   A.StyleSheet.prototype = {$isStyleSheet: 1};
   A.TableElement.prototype = {
@@ -18457,13 +18457,13 @@
     call$1(v) {
       return type$.NodeValidator._as(v).allowsElement$1(this.element);
     },
-    $signature: 27
+    $signature: 28
   };
   A.NodeValidatorBuilder_allowsAttribute_closure.prototype = {
     call$1(v) {
       return type$.NodeValidator._as(v).allowsAttribute$3(this.element, this.attributeName, this.value);
     },
-    $signature: 27
+    $signature: 28
   };
   A._SimpleNodeValidator.prototype = {
     _SimpleNodeValidator$4$allowedAttributes$allowedElements$allowedUriAttributes(uriPolicy, allowedAttributes, allowedElements, allowedUriAttributes) {
@@ -18510,13 +18510,13 @@
     call$1(x) {
       return !B.JSArray_methods.contains$1(B.List_Jwp, A._asString(x));
     },
-    $signature: 28
+    $signature: 29
   };
   A._SimpleNodeValidator_closure0.prototype = {
     call$1(x) {
       return B.JSArray_methods.contains$1(B.List_Jwp, A._asString(x));
     },
-    $signature: 28
+    $signature: 29
   };
   A._TemplatingNodeValidator.prototype = {
     allowsAttribute$3(element, attributeName, value) {
@@ -18533,7 +18533,7 @@
     call$1(attr) {
       return "TEMPLATE::" + A._asString(attr);
     },
-    $signature: 22
+    $signature: 23
   };
   A._SvgNodeValidator.prototype = {
     allowsElement$1(element) {
@@ -18907,7 +18907,7 @@
     call$2(key, value) {
       this._box_0.copy[key] = this.$this.walk$1(value);
     },
-    $signature: 32
+    $signature: 39
   };
   A._AcceptStructuredClone.prototype = {
     findSlot$1(value) {
@@ -21356,7 +21356,7 @@
     call$1(value) {
       return this.serializers.deserialize$2$specifiedType(value, this.valueType);
     },
-    $signature: 37
+    $signature: 30
   };
   A.BuiltListSerializer.prototype = {
     serialize$3$specifiedType(serializers, builtList, specifiedType) {
@@ -24150,9 +24150,10 @@
   };
   A.safeUnawaited_closure.prototype = {
     call$2(error, stackTrace) {
-      $.$get$_logger().log$4(B.Level_WARNING_900, "Error in unawaited Future:", error, type$.nullable_StackTrace._as(stackTrace));
+      type$.StackTrace._as(stackTrace);
+      return $.$get$_logger().log$4(B.Level_WARNING_900, "Error in unawaited Future:", error, stackTrace);
     },
-    $signature: 32
+    $signature: 18
   };
   A.Int64.prototype = {
     $eq(_, other) {
@@ -24709,26 +24710,26 @@
       });
       return A._asyncStartSync($async$call$0, $async$completer);
     },
-    $signature: 24
+    $signature: 25
   };
   A._FetchOptions.prototype = {};
   A.generateUuidV4__generateBits.prototype = {
     call$1(bitCount) {
       return this.random.nextInt$1(B.JSInt_methods._shlPositive$1(1, bitCount));
     },
-    $signature: 21
+    $signature: 22
   };
   A.generateUuidV4__printDigits.prototype = {
     call$2(value, count) {
       return B.JSString_methods.padLeft$2(B.JSInt_methods.toRadixString$1(value, 16), count, "0");
     },
-    $signature: 29
+    $signature: 35
   };
   A.generateUuidV4__bitsDigits.prototype = {
     call$2(bitCount, digitCount) {
       return this._printDigits.call$2(this._generateBits.call$1(bitCount), digitCount);
     },
-    $signature: 29
+    $signature: 35
   };
   A.GuaranteeChannel.prototype = {
     GuaranteeChannel$3$allowSinkErrors(innerSink, allowSinkErrors, _box_0, $T) {
@@ -25055,7 +25056,7 @@
       t2.complete$0(0);
       t1._listen$0();
     },
-    $signature: 35
+    $signature: 34
   };
   A.HtmlWebSocketChannel_closure0.prototype = {
     call$1(_) {
@@ -25075,7 +25076,7 @@
       t1 === $ && A.throwLateFieldNI("_sink");
       t1.close$0(0);
     },
-    $signature: 35
+    $signature: 34
   };
   A.HtmlWebSocketChannel_closure1.prototype = {
     call$1($event) {
@@ -25089,7 +25090,7 @@
       t1 === $ && A.throwLateFieldNI("_sink");
       t1.add$1(0, data);
     },
-    $signature: 34
+    $signature: 33
   };
   A.HtmlWebSocketChannel_closure2.prototype = {
     call$1($event) {
@@ -25250,7 +25251,7 @@
         A._trySendEvent(new A._StreamSinkWrapper(t1, A._instanceType(t1)._eval$1("_StreamSinkWrapper<1>")), t2._debug_event$_build$0(), type$.DebugEvent);
       }
     },
-    $signature: 25
+    $signature: 26
   };
   A.main___closure1.prototype = {
     call$1(b) {
@@ -25597,7 +25598,7 @@
       if (t1)
         this.reloadCompleter.complete$1(0, true);
     },
-    $signature: 34
+    $signature: 33
   };
   A.LegacyRestarter_restart_closure0.prototype = {
     call$1(value) {
@@ -26094,7 +26095,7 @@
       _instance_0_u = hunkHelpers._instance_0u,
       _instance_1_u = hunkHelpers._instance_1u,
       _instance_0_i = hunkHelpers._instance_0i;
-    _static_2(J, "_interceptors_JSArray__compareAny$closure", "JSArray__compareAny", 31);
+    _static_2(J, "_interceptors_JSArray__compareAny$closure", "JSArray__compareAny", 37);
     _static_1(A, "async__AsyncRun__scheduleImmediateJsOverride$closure", "_AsyncRun__scheduleImmediateJsOverride", 10);
     _static_1(A, "async__AsyncRun__scheduleImmediateWithSetImmediate$closure", "_AsyncRun__scheduleImmediateWithSetImmediate", 10);
     _static_1(A, "async__AsyncRun__scheduleImmediateWithTimer$closure", "_AsyncRun__scheduleImmediateWithTimer", 10);
@@ -26128,39 +26129,39 @@
     _static(A, "async___rootPrint$closure", 4, null, ["call$4"], ["_rootPrint"], 98, 0);
     _static_1(A, "async___printToZone$closure", "_printToZone", 17);
     _static(A, "async___rootFork$closure", 5, null, ["call$5"], ["_rootFork"], 99, 0);
-    _instance(A._Completer.prototype, "get$completeError", 0, 1, null, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 26, 0, 0);
+    _instance(A._Completer.prototype, "get$completeError", 0, 1, null, ["call$2", "call$1"], ["completeError$2", "completeError$1"], 27, 0, 0);
     _instance(A._AsyncCompleter.prototype, "get$complete", 1, 0, function() {
       return [null];
     }, ["call$1", "call$0"], ["complete$1", "complete$0"], 52, 0, 0);
     _instance_2_u(A._Future.prototype, "get$_completeError", "_completeError$2", 11);
     var _;
-    _instance_1_i(_ = A._StreamController.prototype, "get$add", "add$1", 30);
+    _instance_1_i(_ = A._StreamController.prototype, "get$add", "add$1", 32);
     _instance(_, "get$addError", 0, 1, function() {
       return [null];
-    }, ["call$2", "call$1"], ["addError$2", "addError$1"], 26, 0, 0);
+    }, ["call$2", "call$1"], ["addError$2", "addError$1"], 27, 0, 0);
     _instance_0_u(_ = A._ControllerSubscription.prototype, "get$_onPause", "_onPause$0", 0);
     _instance_0_u(_, "get$_onResume", "_onResume$0", 0);
     _instance_0_u(_ = A._BufferingStreamSubscription.prototype, "get$_onPause", "_onPause$0", 0);
     _instance_0_u(_, "get$_onResume", "_onResume$0", 0);
     _instance_0_u(_ = A._ForwardingStreamSubscription.prototype, "get$_onPause", "_onPause$0", 0);
     _instance_0_u(_, "get$_onResume", "_onResume$0", 0);
-    _instance_1_u(_, "get$_handleData", "_handleData$1", 30);
-    _instance_2_u(_, "get$_handleError", "_handleError$2", 85);
+    _instance_1_u(_, "get$_handleData", "_handleData$1", 32);
+    _instance_2_u(_, "get$_handleError", "_handleError$2", 18);
     _instance_0_u(_, "get$_handleDone", "_handleDone$0", 0);
     _static_2(A, "collection___defaultEquals$closure", "_defaultEquals", 14);
     _static_1(A, "collection___defaultHashCode$closure", "_defaultHashCode", 15);
-    _static_2(A, "collection_ListMixin__compareAny$closure", "ListMixin__compareAny", 31);
+    _static_2(A, "collection_ListMixin__compareAny$closure", "ListMixin__compareAny", 37);
     _instance(A._HashSet.prototype, "get$_newSimilarSet", 0, 0, null, ["call$1$0", "call$0"], ["_newSimilarSet$1$0", "_newSimilarSet$0"], 13, 0, 0);
     _instance(A._LinkedHashSet.prototype, "get$_newSimilarSet", 0, 0, null, ["call$1$0", "call$0"], ["_newSimilarSet$1$0", "_newSimilarSet$0"], 13, 0, 0);
     _instance(A.SplayTreeSet.prototype, "get$_newSet", 0, 0, null, ["call$1$0", "call$0"], ["_newSet$1$0", "_newSet$0"], 13, 0, 0);
     _static_1(A, "convert___defaultToEncodable$closure", "_defaultToEncodable", 1);
     _static_1(A, "core__identityHashCode$closure", "identityHashCode", 15);
     _static_2(A, "core__identical$closure", "identical", 14);
-    _static(A, "html__Html5NodeValidator__standardAttributeValidator$closure", 4, null, ["call$4"], ["_Html5NodeValidator__standardAttributeValidator"], 33, 0);
-    _static(A, "html__Html5NodeValidator__uriAttributeValidator$closure", 4, null, ["call$4"], ["_Html5NodeValidator__uriAttributeValidator"], 33, 0);
+    _static(A, "html__Html5NodeValidator__standardAttributeValidator$closure", 4, null, ["call$4"], ["_Html5NodeValidator__standardAttributeValidator"], 31, 0);
+    _static(A, "html__Html5NodeValidator__uriAttributeValidator$closure", 4, null, ["call$4"], ["_Html5NodeValidator__uriAttributeValidator"], 31, 0);
     _instance_0_i(A.Node.prototype, "get$remove", "remove$0", 0);
     _instance_1_i(A.WebSocket.prototype, "get$send", "send$1", 3);
-    _static_1(A, "js___convertToJS$closure", "_convertToJS", 37);
+    _static_1(A, "js___convertToJS$closure", "_convertToJS", 30);
     _static_1(A, "js___convertToDart$closure", "_convertToDart", 2);
     _instance_2_u(_ = A.DeepCollectionEquality.prototype, "get$equals", "equals$2", 14);
     _instance_1_i(_, "get$hash", "hash$1", 15);
@@ -26412,7 +26413,7 @@
     typeUniverse: {eC: new Map(), tR: {}, eT: {}, tPV: {}, sEA: []},
     mangledGlobalNames: {int: "int", double: "double", num: "num", String: "String", bool: "bool", Null: "Null", List: "List"},
     mangledNames: {},
-    types: ["~()", "@(@)", "Object?(@)", "~(@)", "~(Event)", "Null()", "~(String,@)", "Null(@)", "Null(Object,StackTrace)", "~(@,@)", "~(~())", "~(Object,StackTrace)", "bool(@)", "Set<0^>()<Object?>", "bool(Object?,Object?)", "int(Object?)", "ScriptElement()", "~(String)", "~(Object?,Object?)", "~(Symbol0,@)", "int(int,int)", "int(int)", "String(String)", "~(Uint8List,String,int)", "Future<Null>()", "~(String,String)", "~(Object[StackTrace?])", "bool(NodeValidator)", "bool(String)", "String(int,int)", "~(Object?)", "int(@,@)", "Null(@,@)", "bool(Element,String,String,_Html5NodeValidator)", "~(MessageEvent)", "Null(Event)", "bool()", "Object?(Object?)", "~(Node,Node?)", "bool(Node)", "@(@,@)", "@(Object?)", "JsFunction(@)", "JsArray<@>(@)", "Uint8List(@,@)", "int(int,@)", "IndentingBuiltValueToStringHelper(String)", "ListBuilder<Object>()", "ListMultimapBuilder<Object,Object>()", "MapBuilder<Object,Object>()", "~(ProgressEvent)", "SetMultimapBuilder<Object,Object>()", "~([Object?])", "~(String,int?)", "@(String)", "@(@,String)", "bool(Object?)", "ListBuilder<DebugEvent>()", "JsObject(@)", "~(String,int)", "String(@)", "Logger()", "~(String?)", "~(int,@)", "Null(@,StackTrace)", "Null(~())", "Null(CloseEvent)", "bool(Object,Object)", "Promise<1&>(String)", "~(List<DebugEvent>)", "ListBuilder<DebugEvent>(BatchedDebugEventsBuilder)", "DebugEventBuilder(DebugEventBuilder)", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "RegisterEventBuilder(RegisterEventBuilder)", "DevToolsRequestBuilder(DevToolsRequestBuilder)", "Future<~>(String)", "ConnectRequestBuilder(ConnectRequestBuilder)", "DebugInfoBuilder(DebugInfoBuilder)", "Future<Null>(Event)", "bool(bool)", "List<String>(String)", "int(String,String)", "~(JsError)", "ScriptElement()()", "Future<~>()", "~(@,StackTrace)", "_Future<@>(@)", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "ListBuilder<ExtensionEvent>()", "SetBuilder<Object>()"],
+    types: ["~()", "@(@)", "Object?(@)", "~(@)", "~(Event)", "Null()", "~(String,@)", "Null(@)", "Null(Object,StackTrace)", "~(@,@)", "~(~())", "~(Object,StackTrace)", "bool(@)", "Set<0^>()<Object?>", "bool(Object?,Object?)", "int(Object?)", "ScriptElement()", "~(String)", "~(@,StackTrace)", "~(Object?,Object?)", "~(Symbol0,@)", "int(int,int)", "int(int)", "String(String)", "~(Uint8List,String,int)", "Future<Null>()", "~(String,String)", "~(Object[StackTrace?])", "bool(NodeValidator)", "bool(String)", "Object?(Object?)", "bool(Element,String,String,_Html5NodeValidator)", "~(Object?)", "~(MessageEvent)", "Null(Event)", "String(int,int)", "bool()", "int(@,@)", "~(Node,Node?)", "Null(@,@)", "@(@,@)", "@(Object?)", "JsFunction(@)", "JsArray<@>(@)", "bool(Node)", "int(int,@)", "IndentingBuiltValueToStringHelper(String)", "ListBuilder<Object>()", "ListMultimapBuilder<Object,Object>()", "MapBuilder<Object,Object>()", "~(ProgressEvent)", "SetMultimapBuilder<Object,Object>()", "~([Object?])", "Uint8List(@,@)", "@(String)", "@(@,String)", "bool(Object?)", "ListBuilder<DebugEvent>()", "JsObject(@)", "~(String,int?)", "String(@)", "Logger()", "~(String?)", "~(String,int)", "~(int,@)", "Null(@,StackTrace)", "Null(CloseEvent)", "bool(Object,Object)", "Promise<1&>(String)", "~(List<DebugEvent>)", "ListBuilder<DebugEvent>(BatchedDebugEventsBuilder)", "DebugEventBuilder(DebugEventBuilder)", "Null(~())", "RegisterEventBuilder(RegisterEventBuilder)", "DevToolsRequestBuilder(DevToolsRequestBuilder)", "Future<~>(String)", "ConnectRequestBuilder(ConnectRequestBuilder)", "DebugInfoBuilder(DebugInfoBuilder)", "Future<Null>(Event)", "bool(bool)", "List<String>(String)", "int(String,String)", "~(JsError)", "ScriptElement()()", "Future<~>()", "~(Zone,ZoneDelegate,Zone,Object,StackTrace)", "_Future<@>(@)", "~(Zone?,ZoneDelegate?,Zone,Object,StackTrace)", "0^(Zone?,ZoneDelegate?,Zone,0^())<Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^),1^)<Object?,Object?>", "0^(Zone?,ZoneDelegate?,Zone,0^(1^,2^),1^,2^)<Object?,Object?,Object?>", "0^()(Zone,ZoneDelegate,Zone,0^())<Object?>", "0^(1^)(Zone,ZoneDelegate,Zone,0^(1^))<Object?,Object?>", "0^(1^,2^)(Zone,ZoneDelegate,Zone,0^(1^,2^))<Object?,Object?,Object?>", "AsyncError?(Zone,ZoneDelegate,Zone,Object,StackTrace?)", "~(Zone?,ZoneDelegate?,Zone,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~())", "Timer(Zone,ZoneDelegate,Zone,Duration,~(Timer))", "~(Zone,ZoneDelegate,Zone,String)", "Zone(Zone?,ZoneDelegate?,Zone,ZoneSpecification?,Map<Object?,Object?>?)", "ListBuilder<ExtensionEvent>()", "SetBuilder<Object>()"],
     interceptorsByTag: null,
     leafTags: null,
     arrayRti: Symbol("$ti")
