@@ -409,6 +409,17 @@ class Debugger extends Domain {
     return offset != null || count != null;
   }
 
+  /// Compute the last possible element index in the range of [offset]..end
+  /// that includes [count] elements, if available.
+  static int? _calculateRangeEnd(
+          {int? count, required int offset, required int length}) =>
+      count == null ? null : math.min(offset + count, length);
+
+  /// Calculate the number of available elements in the range.
+  static int _calculateRangeCount(
+          {int? count, required int offset, required int length}) =>
+      count == null ? length - offset : math.min(count, length - offset);
+
   /// Find a sub-range of the entries for a Map/List when offset and/or count
   /// have been specified on a getObject request.
   ///
@@ -421,8 +432,10 @@ class Debugger extends Domain {
     // TODO(#809): Sometimes we already know the type of the object, and
     // we could take advantage of that to short-circuit.
     final receiver = remoteObjectFor(id);
-    final end = count == null ? null : math.min(offset + count, length);
-    final rangeCount = count ?? length - offset;
+    final end =
+        _calculateRangeEnd(count: count, offset: offset, length: length);
+    final rangeCount =
+        _calculateRangeCount(count: count, offset: offset, length: length);
     final args =
         [offset, rangeCount, end].map(dartIdFor).map(remoteObjectFor).toList();
     // If this is a List, just call sublist. If it's a Map, get the entries, but
