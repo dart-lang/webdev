@@ -6,14 +6,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:dwds/data/extension_request.dart';
+import 'package:dwds/src/events.dart';
+import 'package:dwds/src/handlers/socket_connections.dart';
+import 'package:dwds/src/servers/extension_debugger.dart';
+import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
-
-import '../../data/extension_request.dart';
-import '../events.dart';
-import '../handlers/socket_connections.dart';
-import '../utilities/shared.dart';
-import 'extension_debugger.dart';
 
 const authenticationResponse = 'Dart Debug Authentication Success!\n\n'
     'You can close this tab and launch the Dart Debug Extension again.';

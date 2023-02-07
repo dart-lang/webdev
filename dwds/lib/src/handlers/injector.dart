@@ -8,11 +8,10 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/version.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
-
-import '../loaders/strategy.dart';
-import '../version.dart';
 
 /// File extension that build_web_compilers will place the
 /// [entrypointExtensionMarker] in.

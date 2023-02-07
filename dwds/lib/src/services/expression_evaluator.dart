@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dwds/src/debugging/dart_scope.dart';
+import 'package:dwds/src/debugging/debugger.dart';
+import 'package:dwds/src/debugging/location.dart';
+import 'package:dwds/src/debugging/modules.dart';
+import 'package:dwds/src/loaders/strategy.dart';
+import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/objects.dart' as chrome;
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import '../debugging/dart_scope.dart';
-import '../debugging/debugger.dart';
-import '../debugging/location.dart';
-import '../debugging/modules.dart';
-import '../loaders/strategy.dart';
-import '../utilities/objects.dart' as chrome;
-import 'expression_compiler.dart';
 
 class ErrorKind {
   const ErrorKind._(this._kind);

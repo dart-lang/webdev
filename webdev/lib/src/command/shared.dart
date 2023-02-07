@@ -89,7 +89,7 @@ List<String> buildRunnerArgs(
       ..add('build_web_compilers|ddc=generate-full-dill=true');
   }
 
-  for (var experiment in configuration.experiments) {
+  for (final experiment in configuration.experiments) {
     arguments.add('--enable-experiment=$experiment');
   }
 

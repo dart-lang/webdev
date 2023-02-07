@@ -1,3 +1,8 @@
+## 17.0.1-dev
+
+- Cleanup `getObject` code for lists and maps.
+  - Now works with offset `0` and `null` count.
+
 ## 17.0.0
 
 - Include debug information in the event sent from the injected client to the

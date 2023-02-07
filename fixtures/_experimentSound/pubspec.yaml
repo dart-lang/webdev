@@ -1,4 +1,3 @@
-# This code is for testing that the debugger works with experimental features.
 name: _experiment
 version: 1.0.0
 description: >-
