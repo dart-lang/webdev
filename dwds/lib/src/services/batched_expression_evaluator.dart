@@ -135,14 +135,18 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
             createError(ErrorKind.internal, 'No batch result object ID.');
         request.completer.complete(error);
       } else {
-        safeUnawaited(_debugger
-            .getProperties(listId, offset: i, count: 1, length: requests.length)
-            .then((v) {
-          final result = v.first.value;
-          _logger.fine(
-              'Got result out of a batch for ${request.expression}: $result');
-          request.completer.complete(result);
-        }));
+        safeUnawaited(
+          _debugger
+              .getProperties(listId,
+                  offset: i, count: 1, length: requests.length)
+              .then((v) {
+            final result = v.first.value;
+            _logger.fine(
+                'Got result out of a batch for ${request.expression}: $result');
+            request.completer.complete(result);
+          }),
+          onError: (error, _) => request.completer.completeError(error),
+        );
       }
     }
   }

@@ -17,8 +17,11 @@ String createId() {
 
 final _logger = Logger('Utilities');
 
-void safeUnawaited(Future<void> future) {
-  unawaited(future.catchError((error, stackTrace) {
-    _logger.warning('Error in unawaited Future:', error, stackTrace);
-  }));
+void safeUnawaited(
+  Future<void> future, {
+  void Function(dynamic, StackTrace)? onError,
+}) {
+  onError ??= (error, stackTrace) =>
+      _logger.warning('Error in unawaited Future:', error, stackTrace);
+  unawaited(future.catchError(onError));
 }
