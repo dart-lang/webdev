@@ -43,7 +43,7 @@ abstract class DevToolsRequest
   /// Designates this as a request to send back the DevTools URI instead of
   /// opening DevTools in a new tab or window.
   ///
-  /// Only available on requests coming from the Dart Debug Extension. Is `null` 
+  /// Only available on requests coming from the Dart Debug Extension. Is `null`
   /// for local debug service.
   bool? get uriOnly;
 
