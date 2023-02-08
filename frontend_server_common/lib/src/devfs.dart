@@ -7,13 +7,11 @@
 import 'package:dwds/asset_reader.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
+import 'package:test_common/sdk_layout.dart';
 
 import 'asset_server.dart';
 import 'bootstrap.dart';
 import 'frontend_server_client.dart';
-import 'utilities.dart';
-
-final String dartWebSdkPath = p.join(dartSdkPath, 'lib', 'dev_compiler');
 
 class WebDevFS {
   WebDevFS({
@@ -25,6 +23,7 @@ class WebDevFS {
     required this.index,
     required this.soundNullSafety,
     this.urlTunneler,
+    required this.sdkLayout,
   });
 
   final FileSystem fileSystem;
@@ -36,6 +35,7 @@ class WebDevFS {
   final String index;
   final UrlEncoder? urlTunneler;
   final bool soundNullSafety;
+  final TestSdkLayout sdkLayout;
   late final Directory _savedCurrentDirectory;
 
   Future<Uri> create() async {
@@ -85,9 +85,9 @@ class WebDevFS {
 
     assetServer.writeFile('main_module.digests', '{}');
 
-    var sdk = soundNullSafety ? dartSdkSound : dartSdk;
+    var sdk = soundNullSafety ? dartSdk : dartSdkWeak;
     var sdkSourceMap =
-        soundNullSafety ? dartSdkSourcemapSound : dartSdkSourcemap;
+        soundNullSafety ? dartSdkSourcemap : dartSdkSourcemapWeak;
     assetServer.writeFile('dart_sdk.js', sdk.readAsStringSync());
     assetServer.writeFile('dart_sdk.js.map', sdkSourceMap.readAsStringSync());
 
@@ -129,45 +129,12 @@ class WebDevFS {
     )..invalidatedModules = modules;
   }
 
-  File get requireJS => fileSystem.file(fileSystem.path.join(
-        dartWebSdkPath,
-        'amd',
-        'require.js',
-      ));
-
-  File get dartSdk => fileSystem.file(fileSystem.path.join(
-        dartWebSdkPath,
-        'kernel',
-        'amd',
-        'dart_sdk_unsound.js',
-      ));
-
-  File get dartSdkSound => fileSystem.file(fileSystem.path.join(
-        dartWebSdkPath,
-        'kernel',
-        'amd',
-        'dart_sdk.js',
-      ));
-
-  File get dartSdkSourcemap => fileSystem.file(fileSystem.path.join(
-        dartWebSdkPath,
-        'kernel',
-        'amd',
-        'dart_sdk_unsound.js.map',
-      ));
-
-  File get dartSdkSourcemapSound => fileSystem.file(fileSystem.path.join(
-        dartWebSdkPath,
-        'kernel',
-        'amd',
-        'dart_sdk.js.map',
-      ));
-
-  File get stackTraceMapper => fileSystem.file(fileSystem.path.join(
-        dartWebSdkPath,
-        'web',
-        'dart_stack_trace_mapper.js',
-      ));
+  File get requireJS => fileSystem.file(sdkLayout.requireJsPath);
+  File get dartSdkWeak => fileSystem.file(sdkLayout.weakJsPath);
+  File get dartSdk => fileSystem.file(sdkLayout.soundJsPath);
+  File get dartSdkSourcemapWeak => fileSystem.file(sdkLayout.weakJsMapPath);
+  File get dartSdkSourcemap => fileSystem.file(sdkLayout.soundJsMapPath);
+  File get stackTraceMapper => fileSystem.file(sdkLayout.stackTraceMapperPath);
 }
 
 class UpdateFSReport {

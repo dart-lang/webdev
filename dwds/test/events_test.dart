@@ -11,12 +11,12 @@ import 'package:dwds/src/events.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webdriver/async_core.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/logging.dart';
 
 ChromeProxyService get service =>
     fetchChromeProxyService(context.debugConnection);

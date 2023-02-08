@@ -9,14 +9,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dwds/expression_compiler.dart';
+import 'package:dwds/sdk_configuration.dart';
 import 'package:dwds/src/services/expression_compiler_service.dart';
-import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
-
-import 'fixtures/logging.dart';
+import 'package:test_common/logging.dart';
 
 ExpressionCompilerService get service => _service!;
 late ExpressionCompilerService? _service;
@@ -50,7 +49,10 @@ void main() async {
       final executable = Platform.resolvedExecutable;
       final dartdevc =
           SdkConfiguration.defaultConfiguration.compilerWorkerPath!;
+<<<<<<< HEAD
 
+=======
+>>>>>>> af0c65ab91 (Changed accidentally renamed fields back)
       // redirect logs for testing
       _output = StreamController<String>.broadcast();
       output.stream.listen(printOnFailure);

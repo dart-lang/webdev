@@ -8,10 +8,10 @@
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
-import 'fixtures/logging.dart';
 
 class TestSetup {
   TestContext context;

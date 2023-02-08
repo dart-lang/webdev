@@ -16,4 +16,6 @@ dependencies:
   package_config: ^2.0.0
   path: ^1.8.0
   pub_semver: ^2.1.1
+  test_common:
+    path: ../test_common
   usage: ^4.0.0

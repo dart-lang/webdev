@@ -6,9 +6,9 @@
 
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
+import 'package:test_common/logging.dart';
 
 import '../fixtures/context.dart';
-import '../fixtures/logging.dart';
 
 void main() {
   group('Asset handler', () {
