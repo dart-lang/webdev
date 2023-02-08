@@ -5,10 +5,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dwds/src/services/chrome_debug_exception.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    as wip;
 
 /// Returns `true` if [hostname] is bound to an IPv6 address.
 Future<bool> useIPv6ForHost(String hostname) async {
@@ -72,4 +75,33 @@ void serveHttpRequests(Stream<HttpRequest> requests, Handler handler,
   return Chain.capture(() {
     serveRequests(requests, handler);
   }, onError: onError);
+}
+
+/// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
+/// result.
+void handleErrorIfPresent(wip.WipResponse? response, {String? evalContents}) {
+  final result = response?.result;
+  if (result == null) return;
+  if (result.containsKey('exceptionDetails')) {
+    throw ChromeDebugException(
+      result['exceptionDetails'] as Map<String, dynamic>,
+      evalContents: evalContents,
+    );
+  }
+}
+
+/// Returns result contained in the response.
+/// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
+/// result or the result is null.
+Map<String, dynamic> getResultOrHandleError(wip.WipResponse? response,
+    {String? evalContents}) {
+  handleErrorIfPresent(response, evalContents: evalContents);
+  final result = response?.result?['result'];
+  if (result == null) {
+    throw ChromeDebugException(
+      {'text': 'null result from Chrome Devtools'},
+      evalContents: evalContents,
+    );
+  }
+  return result;
 }

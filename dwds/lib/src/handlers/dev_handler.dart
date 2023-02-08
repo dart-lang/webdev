@@ -31,6 +31,7 @@ import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:dwds/src/services/app_debug_services.dart';
 import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -159,7 +160,7 @@ class DevHandler {
           .takeUntilGap(const Duration(milliseconds: 50));
       // We enqueue this work as we need to begin listening (`.hasNext`)
       // before events are received.
-      unawaited(Future.microtask(() => connection.runtime.enable()));
+      safeUnawaited(Future.microtask(() => connection.runtime.enable()));
 
       await for (var contextId in contextIds) {
         final result = await connection.sendCommand('Runtime.evaluate', {
@@ -175,7 +176,7 @@ class DevHandler {
         }
       }
       if (appTab != null) break;
-      unawaited(connection.close());
+      safeUnawaited(connection.close());
     }
     if (appTab == null || tabConnection == null || executionContext == null) {
       throw AppConnectionException(
@@ -234,7 +235,7 @@ class DevHandler {
           await _chromeConnection(), appConnection);
       appServices = await _createAppDebugServices(
           appConnection.request.appId, debugService);
-      unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
+      safeUnawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
           .whenComplete(() async {
         await appServices?.close();
         _servicesByAppId.remove(appConnection.request.appId);
@@ -301,7 +302,7 @@ class DevHandler {
       }
     });
 
-    unawaited(injectedConnection.sink.done.then((_) async {
+    safeUnawaited(injectedConnection.sink.done.then((_) async {
       _injectedConnections.remove(injectedConnection);
       final connection = appConnection;
       if (connection != null) {
@@ -533,7 +534,8 @@ class DevHandler {
         );
         final encodedUri = await debugService.encodedUri;
         extensionDebugger.sendEvent('dwds.encodedUri', encodedUri);
-        unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
+        safeUnawaited(appServices
+            .chromeProxyService.remoteDebugger.onClose.first
             .whenComplete(() async {
           appServices?.chromeProxyService.destroyIsolate();
           await appServices?.close();

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dwds/src/services/chrome_debug_exception.dart';
+import 'dart:async';
+
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
-    as wip;
 
 VMRef toVMRef(VM vm) => VMRef(name: vm.name);
 
@@ -15,31 +15,13 @@ String createId() {
   return '$_nextId';
 }
 
-/// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
-/// result.
-void handleErrorIfPresent(wip.WipResponse? response, {String? evalContents}) {
-  final result = response?.result;
-  if (result == null) return;
-  if (result.containsKey('exceptionDetails')) {
-    throw ChromeDebugException(
-      result['exceptionDetails'] as Map<String, dynamic>,
-      evalContents: evalContents,
-    );
-  }
-}
+final _logger = Logger('Utilities');
 
-/// Returns result contained in the response.
-/// Throws an [wip.ExceptionDetails] object if `exceptionDetails` is present on the
-/// result or the result is null.
-Map<String, dynamic> getResultOrHandleError(wip.WipResponse? response,
-    {String? evalContents}) {
-  handleErrorIfPresent(response, evalContents: evalContents);
-  final result = response?.result?['result'];
-  if (result == null) {
-    throw ChromeDebugException(
-      {'text': 'null result from Chrome Devtools'},
-      evalContents: evalContents,
-    );
-  }
-  return result;
+void safeUnawaited(
+  Future<void> future, {
+  void Function(dynamic, StackTrace)? onError,
+}) {
+  onError ??= (error, stackTrace) =>
+      _logger.warning('Error in unawaited Future:', error, stackTrace);
+  unawaited(future.catchError(onError));
 }

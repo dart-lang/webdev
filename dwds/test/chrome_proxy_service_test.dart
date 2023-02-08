@@ -12,6 +12,7 @@ import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -1616,12 +1617,12 @@ void main() {
         test('basic Pause/Resume', () async {
           expect(service.streamListen('Debug'), completion(_isSuccess));
           final stream = service.onEvent('Debug');
-          unawaited(tabConnection.debugger.pause());
+          safeUnawaited(tabConnection.debugger.pause());
           await expectLater(
               stream,
               emitsThrough(const TypeMatcher<Event>()
                   .having((e) => e.kind, 'kind', EventKind.kPauseInterrupted)));
-          unawaited(tabConnection.debugger.resume());
+          safeUnawaited(tabConnection.debugger.resume());
           expect(
               eventStream,
               emitsThrough(const TypeMatcher<Event>()
@@ -1827,7 +1828,7 @@ void main() {
       final stream = service.onEvent(EventStreams.kLogging);
       final message = 'myMessage';
 
-      unawaited(tabConnection.runtime.evaluate("sendLog('$message');"));
+      safeUnawaited(tabConnection.runtime.evaluate("sendLog('$message');"));
 
       final event = await stream.first;
       expect(event.kind, EventKind.kLogging);
