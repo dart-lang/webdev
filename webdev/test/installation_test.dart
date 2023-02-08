@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 1))
+@Timeout(Duration(minutes: 2))
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -15,18 +14,15 @@ import 'package:test/test.dart';
 // regressions due to changes in the Dart SDK.
 void main() {
   Process? _serveProcess;
-  final _fixturesPath = p.absolute(p.join(p.current, '..', 'fixtures'));
-  final _tempAppPath = p.join(_fixturesPath, 'temp_app');
-  final _tempAppDir = Directory(_tempAppPath);
+  Directory? _tempDir;
 
   setUp(() async {
+    _tempDir = Directory.systemTemp.createTempSync('installation_test');
+
     await Process.run(
       'dart',
       ['pub', 'global', 'deactivate', 'webdev'],
     );
-    if (_tempAppDir.existsSync()) {
-      await _tempAppDir.delete(recursive: true);
-    }
   });
 
   tearDown(() async {
@@ -35,23 +31,29 @@ void main() {
       Process.killPid(serveProcess.pid);
       _serveProcess = null;
     }
-    if (_tempAppDir.existsSync()) {
-      await _tempAppDir.delete(recursive: true);
+    final tempDir = _tempDir;
+    if (tempDir != null && tempDir.existsSync()) {
+      await tempDir.delete(recursive: true);
+      _tempDir = null;
     }
   });
 
   test('can activate and serve webdev', () async {
+    final tempDir = _tempDir!;
+    final tempPath = tempDir.path;
     // Verify that we can create a new Dart app:
     final createProcess = await Process.run(
       'dart',
       ['create', '--template', 'web', 'temp_app'],
-      workingDirectory: _fixturesPath,
+      workingDirectory: tempPath,
     );
     final createStderr = stringifyOutput(await createProcess.stderr);
     expect(createStderr, isEmpty);
     final createStdout = stringifyOutput(await createProcess.stdout);
     expect(createStdout, contains('Created project temp_app in temp_app!'));
-    expect(await _tempAppDir.exists(), isTrue);
+    expect(createProcess.exitCode, equals(0));
+    final appPath = p.join(tempPath, 'temp_app');
+    expect(await Directory(appPath).exists(), isTrue);
     // Verify that `dart pub global activate` works:
     final activateProcess = await Process.run(
       'dart',
@@ -61,19 +63,19 @@ void main() {
     expect(activateStderr, isEmpty);
     final activateStdout = stringifyOutput(await activateProcess.stdout);
     expect(activateStdout, contains('Activated webdev'));
+    expect(activateProcess.exitCode, equals(0));
     // Verify that `webdev serve` works for our new app:
     _serveProcess = await Process.start(
         'dart', ['pub', 'global', 'run', 'webdev', 'serve'],
-        workingDirectory: _tempAppPath);
+        workingDirectory: appPath);
     await expectLater(
         _serveProcess!.stdout.transform(utf8.decoder),
         emitsThrough(
           contains('Serving `web` on'),
         ));
-    // Print any stderr logs from `webdev serve`:
     final serveStderr = stringifyOutput(
         await _serveProcess!.stderr.transform(utf8.decoder).toList());
-    Logger.root.warning(serveStderr);
+    expect(serveStderr, isEmpty);
   });
 }
 
