@@ -6,6 +6,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -29,6 +30,7 @@ void main() {
     final serveProcess = _serveProcess;
     if (serveProcess != null) {
       Process.killPid(serveProcess.pid);
+      maybeLogStderr(serveProcess);
       _serveProcess = null;
     }
     final tempDir = _tempDir;
@@ -76,7 +78,7 @@ void main() {
     final serveStderr = stringifyOutput(
         await _serveProcess!.stderr.transform(utf8.decoder).toList());
     expect(serveStderr, isEmpty);
-  });
+  }, timeout: const Timeout(Duration(minutes: 1)));
 }
 
 String stringifyOutput(dynamic output) {
@@ -84,4 +86,13 @@ String stringifyOutput(dynamic output) {
   if (output == String) return output as String;
   final outputList = output is List ? output : [output];
   return outputList.map((output) => '$output').join('\n');
+}
+
+void maybeLogStderr(Process process) async {
+  final stderr = stringifyOutput(
+    await process.stderr.transform(utf8.decoder).toList(),
+  );
+  if (stderr.isNotEmpty) {
+    Logger.root.warning(stderr);
+  }
 }
