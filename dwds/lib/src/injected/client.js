@@ -8309,17 +8309,18 @@
     },
     _$DevToolsResponseSerializer: function _$DevToolsResponseSerializer() {
     },
-    _$DevToolsRequest: function _$DevToolsRequest(t0, t1, t2, t3, t4) {
+    _$DevToolsRequest: function _$DevToolsRequest(t0, t1, t2, t3, t4, t5) {
       var _ = this;
       _.appId = t0;
       _.instanceId = t1;
       _.contextId = t2;
       _.tabUrl = t3;
       _.uriOnly = t4;
+      _.isMv3Extension = t5;
     },
     DevToolsRequestBuilder: function DevToolsRequestBuilder() {
       var _ = this;
-      _._uriOnly = _._tabUrl = _._contextId = _._devtools_request$_instanceId = _._devtools_request$_appId = _._devtools_request$_$v = null;
+      _._isMv3Extension = _._uriOnly = _._tabUrl = _._contextId = _._devtools_request$_instanceId = _._devtools_request$_appId = _._devtools_request$_$v = null;
     },
     _$DevToolsResponse: function _$DevToolsResponse(t0, t1, t2) {
       this.success = t0;
@@ -22940,6 +22941,11 @@
         result.push("uriOnly");
         result.push(serializers.serialize$2$specifiedType(value, B.FullType_MtR));
       }
+      value = object.isMv3Extension;
+      if (value != null) {
+        result.push("isMv3Extension");
+        result.push(serializers.serialize$2$specifiedType(value, B.FullType_MtR));
+      }
       return result;
     },
     serialize$2(serializers, object) {
@@ -22979,6 +22985,10 @@
           case "uriOnly":
             t1 = A._asBoolQ(serializers.deserialize$2$specifiedType(value, B.FullType_MtR));
             result.get$_devtools_request$_$this()._uriOnly = t1;
+            break;
+          case "isMv3Extension":
+            t1 = A._asBoolQ(serializers.deserialize$2$specifiedType(value, B.FullType_MtR));
+            result.get$_devtools_request$_$this()._isMv3Extension = t1;
             break;
         }
       }
@@ -23073,11 +23083,11 @@
         return false;
       if (other === _this)
         return true;
-      return other instanceof A.DevToolsRequest && _this.appId === other.appId && _this.instanceId === other.instanceId && _this.contextId == other.contextId && _this.tabUrl == other.tabUrl && _this.uriOnly == other.uriOnly;
+      return other instanceof A.DevToolsRequest && _this.appId === other.appId && _this.instanceId === other.instanceId && _this.contextId == other.contextId && _this.tabUrl == other.tabUrl && _this.uriOnly == other.uriOnly && _this.isMv3Extension == other.isMv3Extension;
     },
     get$hashCode(_) {
       var _this = this;
-      return A.$jf(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(0, B.JSString_methods.get$hashCode(_this.appId)), B.JSString_methods.get$hashCode(_this.instanceId)), J.get$hashCode$(_this.contextId)), J.get$hashCode$(_this.tabUrl)), J.get$hashCode$(_this.uriOnly)));
+      return A.$jf(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(A.$jc(0, B.JSString_methods.get$hashCode(_this.appId)), B.JSString_methods.get$hashCode(_this.instanceId)), J.get$hashCode$(_this.contextId)), J.get$hashCode$(_this.tabUrl)), J.get$hashCode$(_this.uriOnly)), J.get$hashCode$(_this.isMv3Extension)));
     },
     toString$0(_) {
       var _this = this,
@@ -23088,6 +23098,7 @@
       t2.add$2(t1, "contextId", _this.contextId);
       t2.add$2(t1, "tabUrl", _this.tabUrl);
       t2.add$2(t1, "uriOnly", _this.uriOnly);
+      t2.add$2(t1, "isMv3Extension", _this.isMv3Extension);
       return t2.toString$0(t1);
     }
   };
@@ -23101,6 +23112,7 @@
         _this._contextId = $$v.contextId;
         _this._tabUrl = $$v.tabUrl;
         _this._uriOnly = $$v.uriOnly;
+        _this._isMv3Extension = $$v.isMv3Extension;
         _this._devtools_request$_$v = null;
       }
       return _this;
@@ -23114,7 +23126,7 @@
         t1 = type$.String;
         t2 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_devtools_request$_$this()._devtools_request$_appId, _s15_, "appId", t1);
         t3 = A.BuiltValueNullFieldError_checkNotNull(_this.get$_devtools_request$_$this()._devtools_request$_instanceId, _s15_, _s10_, t1);
-        _$result = new A._$DevToolsRequest(t2, t3, _this.get$_devtools_request$_$this()._contextId, _this.get$_devtools_request$_$this()._tabUrl, _this.get$_devtools_request$_$this()._uriOnly);
+        _$result = new A._$DevToolsRequest(t2, t3, _this.get$_devtools_request$_$this()._contextId, _this.get$_devtools_request$_$this()._tabUrl, _this.get$_devtools_request$_$this()._uriOnly, _this.get$_devtools_request$_$this()._isMv3Extension);
         A.BuiltValueNullFieldError_checkNotNull(t2, _s15_, "appId", t1);
         A.BuiltValueNullFieldError_checkNotNull(t3, _s15_, _s10_, t1);
       }

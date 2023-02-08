@@ -546,28 +546,40 @@ class DevHandler {
         extensionDebugConnections.add(DebugConnection(appServices));
         _servicesByAppId[appId] = appServices;
       }
+      // If we don't have a DevTools instance, then are connecting to an IDE.
+      // Therefore return early instead of opening DevTools:
+      if (_devTools == null) return;
+
       final encodedUri = await appServices.debugService.encodedUri;
 
       appServices.dwdsStats.updateLoadTime(
           debuggerStart: debuggerStart, devToolsStart: DateTime.now());
 
-      if (_devTools != null) {
-        // If we only want the URI, this means we are embedding Dart DevTools in
-        // Chrome DevTools. Therefore return early.
-        if (devToolsRequest.uriOnly ?? false) {
-          final devToolsUri = _constructDevToolsUri(
-            encodedUri,
-            ideQueryParam: 'ChromeDevTools',
-          );
-          extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
-          return;
-        }
-        final devToolsUri = _constructDevToolsUri(
+      // TODO(elliette): Remove handling requests from the MV2 extension after
+      // MV3 release.
+      // If we only want the URI, this means the Dart Debug Extension should
+      // handle how to open it. Therefore return early before opening a new
+      // tab or window:
+      if (devToolsRequest.uriOnly ?? false) {
+        // The MV3 extension is responsible for adding the IDE query
+        // parameter to the DevTools URI.
+        final devToolsUri = (devToolsRequest.isMv3Extension ?? false)
+            ? _constructDevToolsUri(encodedUri)
+            : _constructDevToolsUri(
+                encodedUri,
+                ideQueryParam: 'ChromeDevTools',
+              );
+        return extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
+      }
+
+      // Otherwise, launch DevTools in a new tab / window:
+      await _launchDevTools(
+        extensionDebugger,
+        _constructDevToolsUri(
           encodedUri,
           ideQueryParam: 'DebugExtension',
-        );
-        await _launchDevTools(extensionDebugger, devToolsUri);
-      }
+        ),
+      );
     });
   }
 
