@@ -553,12 +553,14 @@ class DevHandler {
       appServices.dwdsStats.updateLoadTime(
           debuggerStart: debuggerStart, devToolsStart: DateTime.now());
 
+      // TODO(elliette): Remove handling requests from the MV2 extension after
+      // MV3 release.
       // If we only want the URI, this means the Dart Debug Extension should
       // handle how to open it. Therefore return early before opening a new
       // tab or window:
       if (devToolsRequest.uriOnly ?? false) {
         // The MV3 extension is responsible for adding the IDE query
-        // parameter to the DevTools URI:
+        // parameter to the DevTools URI.
         final devToolsUri = (devToolsRequest.isMv3Extension ?? false)
             ? _constructDevToolsUri(encodedUri)
             : _constructDevToolsUri(
