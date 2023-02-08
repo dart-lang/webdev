@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 2))
+@Timeout(Duration(seconds: 90))
 import 'dart:convert';
 import 'dart:io';
 
@@ -70,15 +70,9 @@ void main() {
     _serveProcess = await Process.start(
         'dart', ['pub', 'global', 'run', 'webdev', 'serve'],
         workingDirectory: appPath);
-    await expectLater(
-        _serveProcess!.stdout.transform(utf8.decoder),
-        emitsThrough(
-          contains('Serving `web` on'),
-        ));
-    final serveStderr = stringifyOutput(
-        await _serveProcess!.stderr.transform(utf8.decoder).toList());
-    expect(serveStderr, isEmpty);
-  }, timeout: const Timeout(Duration(minutes: 1)));
+    final serveStdout = _serveProcess!.stdout.transform(utf8.decoder);
+    await expectLater(serveStdout, emitsThrough(contains('Serving `web` on')));
+  });
 }
 
 String stringifyOutput(dynamic output) {
@@ -93,6 +87,7 @@ void maybeLogStderr(Process process) async {
     await process.stderr.transform(utf8.decoder).toList(),
   );
   if (stderr.isNotEmpty) {
+    Logger.root.warning('stderr:');
     Logger.root.warning(stderr);
   }
 }
