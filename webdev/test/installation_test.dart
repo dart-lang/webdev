@@ -33,11 +33,6 @@ void main() {
       maybeLogStderr(serveProcess);
       _serveProcess = null;
     }
-    final tempDir = _tempDir;
-    if (tempDir != null && tempDir.existsSync()) {
-      await tempDir.delete(recursive: true);
-      _tempDir = null;
-    }
   });
 
   test('can activate and serve webdev', () async {
