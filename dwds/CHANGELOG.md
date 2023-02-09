@@ -2,6 +2,7 @@
 
 - Cleanup `getObject` code for lists and maps.
   - Now works with offset `0` and `null` count.
+  - Fix failures on edge cases.
 
 ## 17.0.0
 
