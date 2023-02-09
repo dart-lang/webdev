@@ -18,9 +18,10 @@ import 'debug_session.dart';
 import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
+import 'utils.dart';
 
 bool connecting = false;
-String devToolsBackgroundColor = darkColor;
+String backgroundColor = darkColor;
 bool isDartApp = true;
 
 const bugLinkId = 'bugLink';
@@ -148,10 +149,10 @@ void _setColorThemeToMatchChromeDevTools() async {
   final chromeTheme = chrome.devtools.panels.themeName;
   final panelBody = document.getElementById(panelBodyId);
   if (chromeTheme == 'dark') {
-    devToolsBackgroundColor = darkColor;
+    backgroundColor = darkColor;
     _updateColorThemeForElement(panelBody, isDarkTheme: true);
   } else {
-    devToolsBackgroundColor = lightColor;
+    backgroundColor = lightColor;
     _updateColorThemeForElement(panelBody, isDarkTheme: false);
   }
 }
@@ -246,10 +247,16 @@ void _injectDevToolsIframe(String devToolsUri) {
   final panelBody = document.getElementById(panelBodyId);
   final panelType = panelBody?.getAttribute(panelAttribute) ?? 'debugger';
   final iframe = document.createElement('iframe');
-  iframe.setAttribute(
-    'src',
-    '$devToolsUri&embed=true&page=$panelType&backgroundColor=$devToolsBackgroundColor',
+  final iframeSrc = addQueryParameters(
+    devToolsUri,
+    queryParameters: {
+      'ide': 'ChromeDevTools',
+      'embed': 'true',
+      'page': panelType,
+      'backgroundColor': backgroundColor,
+    },
   );
+  iframe.setAttribute('src', iframeSrc);
   _hideWarningBanner();
   _updateElementVisibility(landingPageId, visible: false);
   _updateElementVisibility(loadingSpinnerId, visible: false);
