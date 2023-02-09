@@ -564,6 +564,7 @@ void main() {
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
+        expect(inst.elements!.length, 1001);
         final fifth = inst.elements![4] as InstanceRef;
         expect(fifth.valueAsString, '100');
         final sixth = inst.elements![5] as InstanceRef;
@@ -577,6 +578,7 @@ void main() {
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
+        expect(inst.associations!.length, 1001);
         final fifth = inst.associations![4];
         expect(fifth.key.valueAsString, '4');
         expect(fifth.value.valueAsString, '996');
@@ -630,6 +632,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, null);
           expect(inst.count, null);
+          expect(inst.elements!.length, 1001);
           final fifth = inst.elements![4] as InstanceRef;
           expect(fifth.valueAsString, '100');
           final sixth = inst.elements![5] as InstanceRef;
@@ -647,6 +650,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 0);
           expect(inst.count, null);
+          expect(inst.elements!.length, 1001);
           final fifth = inst.elements![4] as InstanceRef;
           expect(fifth.valueAsString, '100');
           final sixth = inst.elements![5] as InstanceRef;
@@ -654,8 +658,8 @@ void main() {
         });
 
         test(
-            'Lists with null count and offset greater than 0 are truncated'
-            ' from offset to end of list', () async {
+            'Lists with null count and offset greater than 0 are '
+            'truncated from offset to end of list', () async {
           final list = await createList();
           final inst = await service.getObject(
             isolate.id!,
@@ -666,6 +670,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, null);
+          expect(inst.elements!.length, 1);
           final only = inst.elements![0] as InstanceRef;
           expect(only.valueAsString, '5');
         });
@@ -681,6 +686,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 4);
           expect(inst.count, 7);
+          expect(inst.elements!.length, 7);
           final fifth = inst.elements![0] as InstanceRef;
           expect(fifth.valueAsString, '100');
           final sixth = inst.elements![1] as InstanceRef;
@@ -699,6 +705,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, 1);
+          expect(inst.elements!.length, 1);
           final only = inst.elements![0] as InstanceRef;
           expect(only.valueAsString, '5');
         });
@@ -714,6 +721,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, null);
           expect(inst.count, null);
+          expect(inst.associations!.length, 1001);
           final fifth = inst.associations![4];
           expect(fifth.key.valueAsString, '4');
           expect(fifth.value.valueAsString, '996');
@@ -723,8 +731,8 @@ void main() {
         });
 
         test(
-            'Maps with null count and offset greater than 0 are truncated'
-            ' from offset to end of map', () async {
+            'Maps with null count and offset greater than 0 are '
+            'truncated from offset to end of map', () async {
           final list = await createMap();
           final inst = await service.getObject(
             isolate.id!,
@@ -735,6 +743,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, null);
+          expect(inst.associations!.length, 1);
           final only = inst.associations![0];
           expect(only.key.valueAsString, '1000');
           expect(only.value.valueAsString, '0');
@@ -751,6 +760,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 0);
           expect(inst.count, null);
+          expect(inst.associations!.length, 1001);
           final fifth = inst.associations![4];
           expect(fifth.key.valueAsString, '4');
           expect(fifth.value.valueAsString, '996');
@@ -770,6 +780,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 4);
           expect(inst.count, 7);
+          expect(inst.associations!.length, 7);
           final fifth = inst.associations![0];
           expect(fifth.key.valueAsString, '4');
           expect(fifth.value.valueAsString, '996');
@@ -790,6 +801,7 @@ void main() {
           expect(inst.length, 1001);
           expect(inst.offset, 1000);
           expect(inst.count, 1);
+          expect(inst.associations!.length, 1);
           final only = inst.associations![0];
           expect(only.key.valueAsString, '1000');
           expect(only.value.valueAsString, '0');
