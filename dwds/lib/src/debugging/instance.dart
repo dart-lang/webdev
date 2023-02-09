@@ -311,10 +311,12 @@ class InstanceHelper extends Domain {
     int? count,
     int? length,
   }) async {
-    // Get all elements of the list without the `length` field.
-    final properties = await debugger.getProperties(list.objectId!,
-        offset: offset, count: count, length: length);
-    final elements = properties.sublist(0, _lengthOf(properties));
+    // Filter out all non-indexed properties
+    final elements = _indexedListProperties(await debugger.getProperties(
+        list.objectId!,
+        offset: offset,
+        count: count,
+        length: length));
 
     final rangeCount = _calculateRangeCount(
         count: count, elementCount: elements.length, length: length);
@@ -324,19 +326,14 @@ class InstanceHelper extends Domain {
         .map((element) async => await _instanceRefForRemote(element.value)));
   }
 
-  /// Return the available count of elements in the requested range.
-  /// Return `null` if the range includes the whole object.
-  /// [count] is the range length requested by the `getObject` call.
-  /// [elementCount] is the number of elements in the runtime object.
-  /// [length] is the expected length of the whole object, read from
-  /// the [ClassMetaData].
-  static int? _calculateRangeCount(
-      {int? count, int? elementCount, int? length}) {
-    if (count == null) return null;
-    if (elementCount == null) return null;
-    if (length == elementCount) return null;
-    return min(count, elementCount);
-  }
+  /// Return the value of the length attribute from [properties], if present.
+  /// Return elements of the list from [properties].
+  ///
+  /// Ignore any non-elements like 'length', 'fixed$length', etc.
+  static List<Property> _indexedListProperties(List<Property> properties) =>
+      properties
+          .where((p) => p.name != null && int.tryParse(p.name!) != null)
+          .toList();
 
   /// The fields for a Dart Record.
   Future<List<BoundField>> _recordFields(RemoteObject map,
@@ -438,14 +435,18 @@ class InstanceHelper extends Domain {
       ..fields = fields;
   }
 
-  /// Return the value of the length attribute from [properties], if present.
-  ///
-  /// This is only applicable to Lists or Maps, where we expect a length
-  /// attribute. Even if a plain instance happens to have a length field, we
-  /// don't use it to determine the properties to display.
-  static int? _lengthOf(List<Property> properties) {
-    final lengthProperty = properties.firstWhere((p) => p.name == 'length');
-    return lengthProperty.value?.value as int?;
+  /// Return the available count of elements in the requested range.
+  /// Return `null` if the range includes the whole object.
+  /// [count] is the range length requested by the `getObject` call.
+  /// [elementCount] is the number of elements in the runtime object.
+  /// [length] is the expected length of the whole object, read from
+  /// the [ClassMetaData].
+  static int? _calculateRangeCount(
+      {int? count, int? elementCount, int? length}) {
+    if (count == null) return null;
+    if (elementCount == null) return null;
+    if (length == elementCount) return null;
+    return min(count, elementCount);
   }
 
   /// Filter [allJsProperties] and return a list containing only those
