@@ -563,6 +563,7 @@ void main() {
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
+        expect(inst.elements!.length, 1001);
         final fifth = inst.elements![4] as InstanceRef;
         expect(fifth.valueAsString, '100');
         final sixth = inst.elements![5] as InstanceRef;
@@ -576,6 +577,7 @@ void main() {
         expect(inst.length, 1001);
         expect(inst.offset, null);
         expect(inst.count, null);
+        expect(inst.associations!.length, 1001);
         final fifth = inst.associations![4];
         expect(fifth.key.valueAsString, '4');
         expect(fifth.value.valueAsString, '996');

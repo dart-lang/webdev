@@ -310,7 +310,7 @@ class InstanceHelper extends Domain {
     // Get all list elements without the `length` field.
     final properties = await debugger.getProperties(list.objectId!,
         offset: offset, count: count, length: length);
-    final elements = properties.sublist(0, _lengthOf(properties));
+    final elements = _listElementProperties(properties);
 
     final rangeCount = _calculateRangeCount(
         count: count, elementCount: elements.length, length: length);
@@ -334,15 +334,12 @@ class InstanceHelper extends Domain {
     return min(count, elementCount);
   }
 
-  /// Return the value of the length attribute from [properties], if present.
-  ///
-  /// This is only applicable to Lists or Maps, where we expect a length
-  /// attribute. Even if a plain instance happens to have a length field, we
-  /// don't use it to determine the properties to display.
-  static int? _lengthOf(List<Property> properties) {
-    final lengthProperty = properties.firstWhere((p) => p.name == 'length');
-    return lengthProperty.value?.value as int?;
-  }
+  /// Return only elements of the list from [properties].
+  /// Ignore any non-elements like 'length', 'fixed$length', etc.
+  static List<Property> _listElementProperties(List<Property> properties) =>
+      properties
+          .where((p) => p.name != null && int.tryParse(p.name!) != null)
+          .toList();
 
   /// Filter [allJsProperties] and return a list containing only those
   /// that correspond to Dart fields on [remoteObject].
