@@ -18,6 +18,7 @@ import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/server.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf.dart' hide Response;
@@ -84,7 +85,8 @@ Future<void> _handleSseConnections(
       if (onResponse != null) onResponse(response);
       return jsonEncode(response);
     }).listen(connection.sink.add);
-    unawaited(chromeProxyService.remoteDebugger.onClose.first.whenComplete(() {
+    safeUnawaited(
+        chromeProxyService.remoteDebugger.onClose.first.whenComplete(() {
       connection.sink.close();
       sub.cancel();
     }));
@@ -96,7 +98,7 @@ Future<void> _handleSseConnections(
     ++_clientsConnected;
     final vmServerConnection = VmServerConnection(inputStream,
         responseController.sink, serviceExtensionRegistry, chromeProxyService);
-    unawaited(vmServerConnection.done.whenComplete(() {
+    safeUnawaited(vmServerConnection.done.whenComplete(() {
       --_clientsConnected;
       if (!_acceptNewConnections && _clientsConnected == 0) {
         // DDS has disconnected so we can allow for clients to connect directly
@@ -235,7 +237,7 @@ class DebugService {
       final sseHandler = SseHandler(Uri.parse('/$authToken/\$debugHandler'),
           keepAlive: const Duration(seconds: 5));
       handler = sseHandler.handler;
-      unawaited(_handleSseConnections(
+      safeUnawaited(_handleSseConnections(
           sseHandler, chromeProxyService, serviceExtensionRegistry,
           onRequest: onRequest, onResponse: onResponse));
     } else {

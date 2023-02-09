@@ -159,7 +159,7 @@ class ChromeProxyService implements VmServiceInterface {
       executionContext,
       expressionCompiler,
     );
-    unawaited(service.createIsolate(appConnection));
+    safeUnawaited(service.createIsolate(appConnection));
     return service;
   }
 
@@ -170,7 +170,7 @@ class ChromeProxyService implements VmServiceInterface {
     _skipLists.initialize();
     // We do not need to wait for compiler dependencies to be updated as the
     // [ExpressionEvaluator] is robust to evaluation requests during updates.
-    unawaited(_updateCompilerDependencies(entrypoint));
+    safeUnawaited(_updateCompilerDependencies(entrypoint));
   }
 
   Future<void> _updateCompilerDependencies(String entrypoint) async {
@@ -270,18 +270,18 @@ class ChromeProxyService implements VmServiceInterface {
             compiler,
           );
 
-    unawaited(_prewarmExpressionCompilerCache());
+    safeUnawaited(_prewarmExpressionCompilerCache());
 
     await debugger.reestablishBreakpoints(
         _previousBreakpoints, _disabledBreakpoints);
     _disabledBreakpoints.clear();
 
-    unawaited(appConnection.onStart.then((_) async {
+    safeUnawaited(appConnection.onStart.then((_) async {
       await debugger.resumeFromStart();
       _startedCompleter.complete();
     }));
 
-    unawaited(appConnection.onDone.then((_) => destroyIsolate()));
+    safeUnawaited(appConnection.onDone.then((_) => destroyIsolate()));
 
     final isolateRef = inspector.isolateRef;
     final timestamp = DateTime.now().millisecondsSinceEpoch;

@@ -31,6 +31,7 @@ import 'package:dwds/src/servers/extension_backend.dart';
 import 'package:dwds/src/services/app_debug_services.dart';
 import 'package:dwds/src/services/debug_service.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -159,7 +160,7 @@ class DevHandler {
           .takeUntilGap(const Duration(milliseconds: 50));
       // We enqueue this work as we need to begin listening (`.hasNext`)
       // before events are received.
-      unawaited(Future.microtask(() => connection.runtime.enable()));
+      safeUnawaited(Future.microtask(() => connection.runtime.enable()));
 
       await for (var contextId in contextIds) {
         final result = await connection.sendCommand('Runtime.evaluate', {
@@ -175,7 +176,7 @@ class DevHandler {
         }
       }
       if (appTab != null) break;
-      unawaited(connection.close());
+      safeUnawaited(connection.close());
     }
     if (appTab == null || tabConnection == null || executionContext == null) {
       throw AppConnectionException(
@@ -234,7 +235,7 @@ class DevHandler {
           await _chromeConnection(), appConnection);
       appServices = await _createAppDebugServices(
           appConnection.request.appId, debugService);
-      unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
+      safeUnawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
           .whenComplete(() async {
         await appServices?.close();
         _servicesByAppId.remove(appConnection.request.appId);
@@ -301,7 +302,7 @@ class DevHandler {
       }
     });
 
-    unawaited(injectedConnection.sink.done.then((_) async {
+    safeUnawaited(injectedConnection.sink.done.then((_) async {
       _injectedConnections.remove(injectedConnection);
       final connection = appConnection;
       if (connection != null) {
@@ -533,7 +534,8 @@ class DevHandler {
         );
         final encodedUri = await debugService.encodedUri;
         extensionDebugger.sendEvent('dwds.encodedUri', encodedUri);
-        unawaited(appServices.chromeProxyService.remoteDebugger.onClose.first
+        safeUnawaited(appServices
+            .chromeProxyService.remoteDebugger.onClose.first
             .whenComplete(() async {
           appServices?.chromeProxyService.destroyIsolate();
           await appServices?.close();
@@ -544,28 +546,40 @@ class DevHandler {
         extensionDebugConnections.add(DebugConnection(appServices));
         _servicesByAppId[appId] = appServices;
       }
+      // If we don't have a DevTools instance, then are connecting to an IDE.
+      // Therefore return early instead of opening DevTools:
+      if (_devTools == null) return;
+
       final encodedUri = await appServices.debugService.encodedUri;
 
       appServices.dwdsStats.updateLoadTime(
           debuggerStart: debuggerStart, devToolsStart: DateTime.now());
 
-      if (_devTools != null) {
-        // If we only want the URI, this means we are embedding Dart DevTools in
-        // Chrome DevTools. Therefore return early.
-        if (devToolsRequest.uriOnly ?? false) {
-          final devToolsUri = _constructDevToolsUri(
-            encodedUri,
-            ideQueryParam: 'ChromeDevTools',
-          );
-          extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
-          return;
-        }
-        final devToolsUri = _constructDevToolsUri(
+      // TODO(elliette): Remove handling requests from the MV2 extension after
+      // MV3 release.
+      // If we only want the URI, this means the Dart Debug Extension should
+      // handle how to open it. Therefore return early before opening a new
+      // tab or window:
+      if (devToolsRequest.uriOnly ?? false) {
+        // The MV3 extension is responsible for adding the IDE query
+        // parameter to the DevTools URI.
+        final devToolsUri = (devToolsRequest.isMv3Extension ?? false)
+            ? _constructDevToolsUri(encodedUri)
+            : _constructDevToolsUri(
+                encodedUri,
+                ideQueryParam: 'ChromeDevTools',
+              );
+        return extensionDebugger.sendEvent('dwds.devtoolsUri', devToolsUri);
+      }
+
+      // Otherwise, launch DevTools in a new tab / window:
+      await _launchDevTools(
+        extensionDebugger,
+        _constructDevToolsUri(
           encodedUri,
           ideQueryParam: 'DebugExtension',
-        );
-        await _launchDevTools(extensionDebugger, devToolsUri);
-      }
+        ),
+      );
     });
   }
 

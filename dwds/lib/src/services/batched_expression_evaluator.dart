@@ -12,6 +12,7 @@ import 'package:dwds/src/debugging/modules.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:dwds/src/utilities/domain.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
@@ -92,7 +93,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
           _logger.fine(' - scope: $scope != ${request.scope}');
         }
 
-        unawaited(_evaluateBatch(currentRequests));
+        safeUnawaited(_evaluateBatch(currentRequests));
         currentRequests = [];
         libraryUri = request.libraryUri;
         isolateId = request.isolateId;
@@ -100,7 +101,7 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
       }
       currentRequests.add(request);
     }
-    unawaited(_evaluateBatch(currentRequests));
+    safeUnawaited(_evaluateBatch(currentRequests));
   }
 
   Future<void> _evaluateBatch(List<EvaluateRequest> requests) async {
@@ -134,14 +135,19 @@ class BatchedExpressionEvaluator extends ExpressionEvaluator {
             createError(ErrorKind.internal, 'No batch result object ID.');
         request.completer.complete(error);
       } else {
-        unawaited(_debugger
-            .getProperties(listId, offset: i, count: 1, length: requests.length)
-            .then((v) {
-          final result = v.first.value;
-          _logger.fine(
-              'Got result out of a batch for ${request.expression}: $result');
-          request.completer.complete(result);
-        }));
+        safeUnawaited(
+          _debugger
+              .getProperties(listId,
+                  offset: i, count: 1, length: requests.length)
+              .then((v) {
+            final result = v.first.value;
+            _logger.fine(
+                'Got result out of a batch for ${request.expression}: $result');
+            request.completer.complete(result);
+          }),
+          onError: (error, stackTrace) =>
+              request.completer.completeError(error, stackTrace),
+        );
       }
     }
   }
