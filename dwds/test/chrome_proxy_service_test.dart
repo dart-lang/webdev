@@ -726,6 +726,22 @@ void main() {
           expect(inst.elements!.length, 0);
         });
 
+        test('Lists are truncated to empty with 0 count and null offset',
+            () async {
+          final list = await createList();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: 0,
+            offset: null,
+          ) as Instance;
+          expect(inst.elements!.length, 0);
+          expect(inst.length, 1001);
+          expect(inst.offset, null);
+          expect(inst.count, 0);
+          expect(inst.elements!.length, 0);
+        });
+
         test('Maps with null offset/count are not truncated', () async {
           final map = await createMap();
           final inst = await service.getObject(
@@ -851,6 +867,22 @@ void main() {
           expect(inst.associations!.length, 0);
           expect(inst.length, 1001);
           expect(inst.offset, 1002);
+          expect(inst.count, 0);
+          expect(inst.associations!.length, 0);
+        });
+
+        test('Maps are truncated to empty with 0 count and null offset',
+            () async {
+          final list = await createMap();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: 0,
+            offset: null,
+          ) as Instance;
+          expect(inst.associations!.length, 0);
+          expect(inst.length, 1001);
+          expect(inst.offset, null);
           expect(inst.count, 0);
           expect(inst.associations!.length, 0);
         });
