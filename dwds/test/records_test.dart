@@ -191,6 +191,15 @@ Future<void> _runTests({
           '2': '3',
           '3': {'a': '1', 'b': '5'}
         });
+        expect(await getFields(instanceRef, offset: 1), {
+          '2': '3',
+          '3': {'a': '1', 'b': '5'}
+        });
+        expect(await getFields(instanceRef, offset: 1, count: 1), {'2': '3'});
+        expect(await getFields(instanceRef, offset: 1, count: 2), {
+          '2': '3',
+          '3': {'a': '1', 'b': '5'}
+        });
         expect(await getFields(instanceRef, offset: 2), {
           '3': {'a': '1', 'b': '5'}
         });
@@ -244,6 +253,15 @@ Future<void> _runTests({
         });
         expect(await getFields(instanceRef, offset: 0), {
           '1': 'true',
+          '2': '3',
+          'array': {'a': '1', 'b': '5'}
+        });
+        expect(await getFields(instanceRef, offset: 1), {
+          '2': '3',
+          'array': {'a': '1', 'b': '5'}
+        });
+        expect(await getFields(instanceRef, offset: 1, count: 1), {'2': '3'});
+        expect(await getFields(instanceRef, offset: 1, count: 2), {
           '2': '3',
           'array': {'a': '1', 'b': '5'}
         });
@@ -354,6 +372,12 @@ Future<void> _runTests({
           'inner': {'1': 'false', '2': '5'}
         });
         expect(await getFields(instanceRef, offset: 1), {
+          'inner': {'1': 'false', '2': '5'}
+        });
+        expect(await getFields(instanceRef, offset: 1, count: 1), {
+          'inner': {'1': 'false', '2': '5'}
+        });
+        expect(await getFields(instanceRef, offset: 1, count: 2), {
           'inner': {'1': 'false', '2': '5'}
         });
         expect(await getFields(instanceRef, offset: 2), {});

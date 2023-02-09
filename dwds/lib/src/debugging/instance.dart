@@ -348,7 +348,6 @@ class InstanceHelper extends Domain {
         var positionalCount = sdkUtils.dloadRepl(shape, "positionals");
         var named = sdkUtils.dloadRepl(shape, "named");
         named = named == null? null: sdkUtils.dsendRepl(named, "toList", []);
-        namedCount = named == null? 0: named.length;
         var values = sdkUtils.dloadRepl(this, "values");
         values = sdkUtils.dsendRepl(values, "toList", []);
 
@@ -360,7 +359,6 @@ class InstanceHelper extends Domain {
         return {
           positionalCount: positionalCount,
           positional: positional,
-          namedCount: namedCount,
           named: named,
           values: values
         };
@@ -371,39 +369,39 @@ class InstanceHelper extends Domain {
         (await inspector.loadField(result, 'positionalCount'))!.value as int;
     final positional = await inspector.loadField(result, 'positional');
     final named = await inspector.loadField(result, 'named');
-    final namedCount =
-        (await inspector.loadField(result, 'namedCount'))!.value as int;
     final values = await inspector.loadField(result, 'values');
-
-    final length = positionalCount + namedCount;
-    if (offset != null && length <= offset) {
-      return [];
-    }
 
     final positionalInstance =
         await instanceFor(positional, offset: offset, count: count);
     final valuesInstance =
         await instanceFor(values, offset: offset, count: count);
 
-    int? nOffset;
-    int? nCount;
+    final positionalElements =
+        positionalInstance?.elements?.map((e) => e.valueAsString) ?? [];
+    final positionalRangeCount = positionalElements.length;
+
+    int? namedOffset;
+    int? namedRangeCount;
     if (offset != null) {
-      nOffset = offset < positionalCount ? 0 : offset - positionalCount;
+      namedOffset = offset < positionalCount ? 0 : offset - positionalCount;
     }
     if (count != null) {
-      nCount = count < positionalCount ? 0 : count - positionalCount;
+      namedRangeCount =
+          count < positionalRangeCount ? 0 : count - positionalRangeCount;
     }
     final namedInstance =
-        await instanceFor(named, offset: nOffset, count: nCount);
+        await instanceFor(named, offset: namedOffset, count: namedRangeCount);
+    final namedElements =
+        namedInstance?.elements?.map((e) => e.valueAsString) ?? [];
 
-    final nameElements = [
-      ...positionalInstance?.elements?.map((e) => e.valueAsString) ?? [],
-      ...namedInstance?.elements?.map((e) => e.valueAsString) ?? [],
+    final fieldNameElements = [
+      ...positionalElements,
+      ...namedElements,
     ];
 
     final fields = <BoundField>[];
     final valueElements = valuesInstance?.elements ?? [];
-    Map.fromIterables(nameElements, valueElements).forEach((key, value) {
+    Map.fromIterables(fieldNameElements, valueElements).forEach((key, value) {
       fields.add(BoundField(name: key, value: value));
     });
     return fields;
