@@ -268,8 +268,6 @@ class TestContext {
               for (final experiment in experiments)
                 '--enable-experiment=$experiment',
               '--verbose',
-              for (var experiment in experiments)
-                '--enable-experiment=$experiment',
             ];
             _daemonClient =
                 await connectClient(workingDirectory, options, (log) {
