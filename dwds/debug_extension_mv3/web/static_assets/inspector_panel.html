@@ -15,7 +15,7 @@
   </head>
 
   <body id="panelBody" data-panel="inspector" class="dark-theme">
-    <div class="mdl-layout mdl-js-layout">
+    <div id="landingPage" class="mdl-layout mdl-js-layout">
       <header class="mdl-layout__header">
         <div class="mdl-layout__header-row">
           <span class="mdl-layout__title">Flutter Inspector</span>
@@ -38,6 +38,10 @@
               >
                 Launch Inspector
               </button>
+              <div
+              id="loadingSpinner"
+              class="mdl-spinner mdl-js-spinner is-active hidden"
+            ></div>
             </div>
           </div>
         </div>
