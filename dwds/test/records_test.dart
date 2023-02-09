@@ -5,24 +5,13 @@
 @TestOn('vm')
 @Timeout(Duration(minutes: 2))
 
-import 'dart:io';
-
 import 'package:dwds/src/connections/debug_connection.dart';
 import 'package:dwds/src/services/chrome_proxy_service.dart';
-import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'fixtures/context.dart';
 import 'fixtures/logging.dart';
-
-// TODO(annagrin): Remove once the dev version below is released.
-final recordTypesWork =
-    semver.Version.parse(Platform.version.split(' ').first) >=
-        semver.Version.parse('3.0.0-188.0.dev');
-
-Matcher _matchRecordType(String type) =>
-    recordTypesWork ? equals(type) : anything;
 
 class TestSetup {
   TestContext context;
@@ -528,5 +517,4 @@ Matcher _matchRecordInstance({required int length, required String type}) =>
     isA<Instance>()
         .having((e) => e.kind, 'kind', InstanceKind.kRecord)
         .having((e) => e.length, 'length', length)
-        .having(
-            (e) => e.classRef!.name, 'classRef.name', _matchRecordType(type));
+        .having((e) => e.classRef!.name, 'classRef.name', type);
