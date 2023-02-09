@@ -307,10 +307,12 @@ class InstanceHelper extends Domain {
     int? count,
     int? length,
   }) async {
-    // Get all list elements without the `length` field.
-    final properties = await debugger.getProperties(list.objectId!,
-        offset: offset, count: count, length: length);
-    final elements = _listElementProperties(properties);
+    // Filter out all non-indexed properties
+    final elements = _indexedListProperties(await debugger.getProperties(
+        list.objectId!,
+        offset: offset,
+        count: count,
+        length: length));
 
     final rangeCount = _calculateRangeCount(
         count: count, elementCount: elements.length, length: length);
@@ -334,9 +336,10 @@ class InstanceHelper extends Domain {
     return min(count, elementCount);
   }
 
-  /// Return only elements of the list from [properties].
+  /// Return elements of the list from [properties].
+  ///
   /// Ignore any non-elements like 'length', 'fixed$length', etc.
-  static List<Property> _listElementProperties(List<Property> properties) =>
+  static List<Property> _indexedListProperties(List<Property> properties) =>
       properties
           .where((p) => p.name != null && int.tryParse(p.name!) != null)
           .toList();
