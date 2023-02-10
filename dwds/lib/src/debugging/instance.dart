@@ -407,7 +407,7 @@ class InstanceHelper extends Domain {
       return needed < collected ? 0 : needed - collected;
     }
 
-    // Create requested positional fields.
+    // Collect positional fields in the requested range.
     final positionalOffset = offset ?? 0;
     final positionalAvailable = remaining(positionalCount, positionalOffset)!;
     final positionalRangeCount =
@@ -419,8 +419,8 @@ class InstanceHelper extends Domain {
         i
     ];
 
-    // Account for already collected positional fields when calculating
-    // the offset and count of fields to be collected from named fields.
+    // Collect named fields in the requested range.
+    // Account for already collected positional fields.
     final namedRangeOffset = remaining(offset, positionalCount);
     final namedRangeCount = remaining(count, positionalRangeCount);
     final namedInstance = await instanceFor(named,
