@@ -12,11 +12,14 @@ import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
+  final _logger = Logger('InstanceHelper');
+
   InstanceHelper(AppInspectorInterface appInspector, this.debugger) {
     inspector = appInspector;
   }
@@ -216,7 +219,7 @@ class InstanceHelper extends Domain {
   /// the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
-  /// If [count] is `null`, returns all available fields.
+  /// If [count] is `null`, return all fields starting from the offset.
   Future<List<MapAssociation>> _mapAssociations(RemoteObject map,
       {int? offset, int? count}) async {
     // We do this in in awkward way because we want the keys and values, but we
@@ -262,7 +265,7 @@ class InstanceHelper extends Domain {
   /// starting from the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
-  /// If [count] is `null`, returns all available fields.
+  /// If [count] is `null`, return all fields starting from the offset.
   /// [length] is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _mapInstanceFor(
@@ -297,7 +300,7 @@ class InstanceHelper extends Domain {
   /// starting from the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
-  /// If [count] is `null`, returns all available fields.
+  /// If [count] is `null`, return all fields starting from the offset.
   /// [length] is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _listInstanceFor(
@@ -331,7 +334,7 @@ class InstanceHelper extends Domain {
   /// the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
-  /// If [count] is `null`, returns all available fields.
+  /// If [count] is `null`, return all fields starting from the offset.
   /// [length] is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<List<InstanceRef?>> _listElements(
@@ -355,7 +358,6 @@ class InstanceHelper extends Domain {
         .map((element) async => await _instanceRefForRemote(element.value)));
   }
 
-  /// Return the value of the length attribute from [properties], if present.
   /// Return elements of the list from [properties].
   ///
   /// Ignore any non-elements like 'length', 'fixed$length', etc.
@@ -370,7 +372,7 @@ class InstanceHelper extends Domain {
   /// the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
-  /// If [count] is `null`, returns all available fields.
+  /// If [count] is `null`, return all fields starting from the offset.
   Future<List<BoundField>> _recordFields(RemoteObject map,
       {int? offset, int? count}) async {
     // We do this in in awkward way because we want the keys and values, but we
@@ -394,22 +396,22 @@ class InstanceHelper extends Domain {
       }
     ''';
     final result = await inspector.jsCallFunctionOn(map, expression, []);
-    final positionalCount =
-        (await inspector.loadField(result, 'positionalCount'))!.value as int;
-    final named = await inspector.loadField(result, 'named');
-    final values = await inspector.loadField(result, 'values');
-
-    final valuesInstance =
-        await instanceFor(values, offset: offset, count: count);
-
-    int? remaining(int? needed, int collected) {
-      if (needed == null) return null;
-      return needed < collected ? 0 : needed - collected;
+    final positionalCountObject =
+        await inspector.loadField(result, 'positionalCount');
+    if (positionalCountObject == null || positionalCountObject.value is! int) {
+      _logger.warning(
+          'Unexpected positional count from record: $positionalCountObject');
+      return [];
     }
 
+    final namedObject = await inspector.loadField(result, 'named');
+    final valuesObject = await inspector.loadField(result, 'values');
+
     // Collect positional fields in the requested range.
+    final positionalCount = positionalCountObject.value as int;
     final positionalOffset = offset ?? 0;
-    final positionalAvailable = remaining(positionalCount, positionalOffset)!;
+    final positionalAvailable =
+        _remainingCount(positionalCount, positionalOffset);
     final positionalRangeCount =
         min(positionalAvailable, count ?? positionalAvailable);
     final positionalElements = [
@@ -421,9 +423,11 @@ class InstanceHelper extends Domain {
 
     // Collect named fields in the requested range.
     // Account for already collected positional fields.
-    final namedRangeOffset = remaining(offset, positionalCount);
-    final namedRangeCount = remaining(count, positionalRangeCount);
-    final namedInstance = await instanceFor(named,
+    final namedRangeOffset =
+        offset == null ? null : _remainingCount(offset, positionalCount);
+    final namedRangeCount =
+        count == null ? null : _remainingCount(count, positionalRangeCount);
+    final namedInstance = await instanceFor(namedObject,
         offset: namedRangeOffset, count: namedRangeCount);
     final namedElements =
         namedInstance?.elements?.map((e) => e.valueAsString) ?? [];
@@ -433,12 +437,24 @@ class InstanceHelper extends Domain {
       ...namedElements,
     ];
 
-    final fields = <BoundField>[];
+    final valuesInstance =
+        await instanceFor(valuesObject, offset: offset, count: count);
     final valueElements = valuesInstance?.elements ?? [];
+
+    if (fieldNameElements.length != valueElements.length) {
+      _logger.warning('Record fields and values are not the same length.');
+      return [];
+    }
+
+    final fields = <BoundField>[];
     Map.fromIterables(fieldNameElements, valueElements).forEach((key, value) {
       fields.add(BoundField(name: key, value: value));
     });
     return fields;
+  }
+
+  static int _remainingCount(int requested, int collected) {
+    return requested < collected ? 0 : requested - collected;
   }
 
   /// Create a Record instance with class [classRef] from [remoteObject].
@@ -447,7 +463,7 @@ class InstanceHelper extends Domain {
   /// starting from the [offset].
   ///
   /// If [offset] is `null`, assumes 0 offset.
-  /// If [count] is `null`, returns all available fields.
+  /// If [count] is `null`, return all fields starting from the offset.
   /// [length] is the expected length of the whole object, read from
   /// the [ClassMetaData].
   Future<Instance?> _recordInstanceFor(
