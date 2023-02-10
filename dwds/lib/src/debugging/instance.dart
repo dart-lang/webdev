@@ -376,8 +376,9 @@ class InstanceHelper extends Domain {
     final valuesInstance =
         await instanceFor(values, offset: offset, count: count);
 
-    final positionalElements =
-        positionalInstance?.elements?.map((e) => e.valueAsString) ?? [];
+    final positionalElements = positionalInstance?.elements
+            ?.map((e) => int.tryParse(e.valueAsString)) ??
+        [];
     final positionalRangeCount = positionalElements.length;
 
     // Account for already collected positional fields when calculating
