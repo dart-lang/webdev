@@ -411,7 +411,7 @@ class InstanceHelper extends Domain {
     final positionalCount = positionalCountObject.value as int;
     final positionalOffset = offset ?? 0;
     final positionalAvailable =
-        _remainingCount(positionalCount, positionalOffset);
+        _remainingCount(positionalOffset, positionalCount);
     final positionalRangeCount =
         min(positionalAvailable, count ?? positionalAvailable);
     final positionalElements = [
@@ -424,9 +424,9 @@ class InstanceHelper extends Domain {
     // Collect named fields in the requested range.
     // Account for already collected positional fields.
     final namedRangeOffset =
-        offset == null ? null : _remainingCount(offset, positionalCount);
+        offset == null ? null : _remainingCount(positionalCount, offset);
     final namedRangeCount =
-        count == null ? null : _remainingCount(count, positionalRangeCount);
+        count == null ? null : _remainingCount(positionalRangeCount, count);
     final namedInstance = await instanceFor(namedObject,
         offset: namedRangeOffset, count: namedRangeCount);
     final namedElements =
@@ -453,7 +453,7 @@ class InstanceHelper extends Domain {
     return fields;
   }
 
-  static int _remainingCount(int requested, int collected) {
+  static int _remainingCount(int collected, int requested) {
     return requested < collected ? 0 : requested - collected;
   }
 
