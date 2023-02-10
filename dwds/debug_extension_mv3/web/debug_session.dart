@@ -25,7 +25,6 @@ import 'chrome_api.dart';
 import 'cross_extension_communication.dart';
 import 'data_serializers.dart';
 import 'data_types.dart';
-import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
