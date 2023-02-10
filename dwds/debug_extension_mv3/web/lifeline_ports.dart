@@ -13,6 +13,7 @@ import 'package:js/js.dart';
 
 import 'chrome_api.dart';
 import 'logger.dart';
+import 'utils.dart';
 
 // Switch to true to enable debug logs.
 // TODO(elliette): Enable / disable with flag while building the extension.
@@ -22,7 +23,7 @@ Port? lifelinePort;
 int? lifelineTab;
 final dartTabs = <int>{};
 
-void maybeCreateLifelinePort(int tabId) {
+void maybeCreateLifelinePort(int tabId) async {
   // Keep track of current Dart tabs that are being debugged. This way if one of
   // them is closed, we can reconnect the lifeline port to another one:
   dartTabs.add(tabId);
@@ -39,13 +40,7 @@ void maybeCreateLifelinePort(int tabId) {
   // will connect to the port:
   debugLog('Creating lifeline port.');
   lifelineTab = tabId;
-  chrome.scripting.executeScript(
-    InjectDetails(
-      target: Target(tabId: tabId),
-      files: ['lifeline_connection.dart.js'],
-    ),
-    /*callback*/ null,
-  );
+  await injectScript('lifeline_connection.dart.js', tabId: tabId);
 }
 
 void maybeRemoveLifelinePort(int removedTabId) {

@@ -25,6 +25,7 @@ import 'chrome_api.dart';
 import 'cross_extension_communication.dart';
 import 'data_serializers.dart';
 import 'data_types.dart';
+import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
@@ -393,7 +394,7 @@ void _handleDebuggerDetach(Debuggee source, DetachReason reason) async {
   final devToolsTab = await getTab(devToolsTabId);
   if (devToolsTab != null) {
     debugLog('Closing DevTools tab...');
-    chrome.tabs.remove(devToolsTabId);
+    await removeTab(devToolsTabId);
   }
 }
 
