@@ -404,9 +404,10 @@ class Debugger extends Domain {
   }
 
   static bool _isEmptyRange({int? offset, int? count, int? length}) {
-    if (offset == null) return false;
+    if (count == 0) return true;
     if (length == null) return false;
-    return count == 0 || offset >= length;
+    if (offset == null) return false;
+    return offset >= length;
   }
 
   static bool _isSubRange({int? offset, int? count, int? length}) {
@@ -501,7 +502,9 @@ class Debugger extends Domain {
     int? length,
   }) async {
     String rangeId = objectId;
-    if (_isEmptyRange(offset: offset, length: length)) return [];
+    if (_isEmptyRange(offset: offset, count: count, length: length)) {
+      return [];
+    }
     if (_isSubRange(offset: offset, count: count, length: length)) {
       final range = await _subRange(objectId,
           offset: offset ?? 0, count: count, length: length!);
