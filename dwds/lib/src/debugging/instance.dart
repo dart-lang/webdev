@@ -380,17 +380,17 @@ class InstanceHelper extends Domain {
         positionalInstance?.elements?.map((e) => e.valueAsString) ?? [];
     final positionalRangeCount = positionalElements.length;
 
-    int? namedOffset;
-    int? namedRangeCount;
-    if (offset != null) {
-      namedOffset = offset < positionalCount ? 0 : offset - positionalCount;
+    // Account for already collected positional fields when calculating
+    // the offset and count of fields to be collected from named fields.
+    int? remaining(int? current, int collected) {
+      if (current == null) return null;
+      return current < collected ? 0 : current - collected;
     }
-    if (count != null) {
-      namedRangeCount =
-          count < positionalRangeCount ? 0 : count - positionalRangeCount;
-    }
-    final namedInstance =
-        await instanceFor(named, offset: namedOffset, count: namedRangeCount);
+
+    final namedRangeOffset = remaining(offset, positionalCount);
+    final namedRangeCount = remaining(count, positionalRangeCount);
+    final namedInstance = await instanceFor(named,
+        offset: namedRangeOffset, count: namedRangeCount);
     final namedElements =
         namedInstance?.elements?.map((e) => e.valueAsString) ?? [];
 
