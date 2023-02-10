@@ -102,8 +102,8 @@ class ClassMetaData {
       function(arg) {
         const sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         const classObject = sdkUtils.getReifiedType(arg);
-        const isFunction = sdkUtils.AbstractFunctionType.is(classObject);
-        const isRecord = sdkUtils.RecordType.is(classObject);
+        const isFunction = classObject instanceof sdkUtils.AbstractFunctionType;
+        const isRecord = classObject instanceof sdkUtils.RecordType;
         const result = {};
         var name = isFunction ? 'Function' : classObject.name;
 
