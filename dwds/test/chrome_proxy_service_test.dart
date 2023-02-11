@@ -839,6 +839,22 @@ void main() {
           expect(only.value.valueAsString, '0');
         });
 
+        test('Maps are truncated to empty if offset runs off the end',
+            () async {
+          final list = await createMap();
+          final inst = await service.getObject(
+            isolate.id!,
+            list.objectId!,
+            count: 5,
+            offset: 1002,
+          ) as Instance;
+          expect(inst.associations!.length, 0);
+          expect(inst.length, 1001);
+          expect(inst.offset, 1002);
+          expect(inst.count, 0);
+          expect(inst.associations!.length, 0);
+        });
+
         test('Strings with offset/count are truncated', () async {
           final worldRef = await service.evaluate(
                   isolate.id!, bootstrap!.id!, "helloString('world')")

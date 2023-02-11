@@ -12,11 +12,14 @@ import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/domain.dart';
 import 'package:dwds/src/utilities/objects.dart';
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 /// Contains a set of methods for getting [Instance]s and [InstanceRef]s.
 class InstanceHelper extends Domain {
+  final _logger = Logger('InstanceHelper');
+
   InstanceHelper(AppInspectorInterface appInspector, this.debugger) {
     inspector = appInspector;
   }
@@ -112,7 +115,7 @@ class InstanceHelper extends Domain {
 
     final classRef = metaData?.classRef;
     if (metaData == null || classRef == null) return null;
-    if (metaData.jsName == 'Function') {
+    if (metaData.isFunction) {
       return _closureInstanceFor(remoteObject);
     }
 
@@ -121,6 +124,9 @@ class InstanceHelper extends Domain {
           offset: offset, count: count, length: metaData.length);
     } else if (metaData.isSystemMap) {
       return await _mapInstanceFor(classRef, remoteObject,
+          offset: offset, count: count, length: metaData.length);
+    } else if (metaData.isRecord) {
+      return await _recordInstanceFor(classRef, remoteObject,
           offset: offset, count: count, length: metaData.length);
     } else {
       return await _plainInstanceFor(classRef, remoteObject,
@@ -150,6 +156,7 @@ class InstanceHelper extends Domain {
   Future<BoundField> _fieldFor(Property property, ClassRef classRef) async {
     final instance = await _instanceRefForRemote(property.value);
     return BoundField(
+        name: property.name,
         decl: FieldRef(
           // TODO(grouma) - Convert JS name to Dart.
           name: property.name,
@@ -207,6 +214,12 @@ class InstanceHelper extends Domain {
   }
 
   /// The associations for a Dart Map or IdentityMap.
+  ///
+  /// Returns a range of [count] associations, if available, starting from
+  /// the [offset].
+  ///
+  /// If [offset] is `null`, assumes 0 offset.
+  /// If [count] is `null`, return all fields starting from the offset.
   Future<List<MapAssociation>> _mapAssociations(RemoteObject map,
       {int? offset, int? count}) async {
     // We do this in in awkward way because we want the keys and values, but we
@@ -247,6 +260,14 @@ class InstanceHelper extends Domain {
   }
 
   /// Create a Map instance with class [classRef] from [remoteObject].
+  ///
+  /// Returns an instance containing [count] associations, if available,
+  /// starting from the [offset].
+  ///
+  /// If [offset] is `null`, assumes 0 offset.
+  /// If [count] is `null`, return all fields starting from the offset.
+  /// [length] is the expected length of the whole object, read from
+  /// the [ClassMetaData].
   Future<Instance?> _mapInstanceFor(
     ClassRef classRef,
     RemoteObject remoteObject, {
@@ -273,8 +294,15 @@ class InstanceHelper extends Domain {
       ..associations = associations;
   }
 
-  /// Create a List instance of [classRef] from [remoteObject] with the JS
-  /// properties [properties].
+  /// Create a List instance of [classRef] from [remoteObject].
+  ///
+  /// Returns an instance containing [count] elements, if available,
+  /// starting from the [offset].
+  ///
+  /// If [offset] is `null`, assumes 0 offset.
+  /// If [count] is `null`, return all fields starting from the offset.
+  /// [length] is the expected length of the whole object, read from
+  /// the [ClassMetaData].
   Future<Instance?> _listInstanceFor(
     ClassRef classRef,
     RemoteObject remoteObject, {
@@ -301,6 +329,14 @@ class InstanceHelper extends Domain {
   }
 
   /// The elements for a Dart List.
+  ///
+  /// Returns a range of [count] elements, if available, starting from
+  /// the [offset].
+  ///
+  /// If [offset] is `null`, assumes 0 offset.
+  /// If [count] is `null`, return all fields starting from the offset.
+  /// [length] is the expected length of the whole object, read from
+  /// the [ClassMetaData].
   Future<List<InstanceRef?>> _listElements(
     RemoteObject list, {
     int? offset,
@@ -322,6 +358,139 @@ class InstanceHelper extends Domain {
         .map((element) async => await _instanceRefForRemote(element.value)));
   }
 
+  /// Return elements of the list from [properties].
+  ///
+  /// Ignore any non-elements like 'length', 'fixed$length', etc.
+  static List<Property> _indexedListProperties(List<Property> properties) =>
+      properties
+          .where((p) => p.name != null && int.tryParse(p.name!) != null)
+          .toList();
+
+  /// The fields for a Dart Record.
+  ///
+  /// Returns a range of [count] fields, if available, starting from
+  /// the [offset].
+  ///
+  /// If [offset] is `null`, assumes 0 offset.
+  /// If [count] is `null`, return all fields starting from the offset.
+  Future<List<BoundField>> _recordFields(RemoteObject map,
+      {int? offset, int? count}) async {
+    // We do this in in awkward way because we want the keys and values, but we
+    // can't return things by value or some Dart objects will come back as
+    // values that we need to be RemoteObject, e.g. a List of int.
+    final expression = '''
+      function() {
+        var sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
+        var shape = sdkUtils.dloadRepl(this, "shape");
+        var positionalCount = sdkUtils.dloadRepl(shape, "positionals");
+        var named = sdkUtils.dloadRepl(shape, "named");
+        named = named == null? null: sdkUtils.dsendRepl(named, "toList", []);
+        var values = sdkUtils.dloadRepl(this, "values");
+        values = sdkUtils.dsendRepl(values, "toList", []);
+
+        return {
+          positionalCount: positionalCount,
+          named: named,
+          values: values
+        };
+      }
+    ''';
+    final result = await inspector.jsCallFunctionOn(map, expression, []);
+    final positionalCountObject =
+        await inspector.loadField(result, 'positionalCount');
+    if (positionalCountObject == null || positionalCountObject.value is! int) {
+      _logger.warning(
+          'Unexpected positional count from record: $positionalCountObject');
+      return [];
+    }
+
+    final namedObject = await inspector.loadField(result, 'named');
+    final valuesObject = await inspector.loadField(result, 'values');
+
+    // Collect positional fields in the requested range.
+    final positionalCount = positionalCountObject.value as int;
+    final positionalOffset = offset ?? 0;
+    final positionalAvailable =
+        _remainingCount(positionalOffset, positionalCount);
+    final positionalRangeCount =
+        min(positionalAvailable, count ?? positionalAvailable);
+    final positionalElements = [
+      for (var i = positionalOffset + 1;
+          i <= positionalOffset + positionalRangeCount;
+          i++)
+        i
+    ];
+
+    // Collect named fields in the requested range.
+    // Account for already collected positional fields.
+    final namedRangeOffset =
+        offset == null ? null : _remainingCount(positionalCount, offset);
+    final namedRangeCount =
+        count == null ? null : _remainingCount(positionalRangeCount, count);
+    final namedInstance = await instanceFor(namedObject,
+        offset: namedRangeOffset, count: namedRangeCount);
+    final namedElements =
+        namedInstance?.elements?.map((e) => e.valueAsString) ?? [];
+
+    final fieldNameElements = [
+      ...positionalElements,
+      ...namedElements,
+    ];
+
+    final valuesInstance =
+        await instanceFor(valuesObject, offset: offset, count: count);
+    final valueElements = valuesInstance?.elements ?? [];
+
+    if (fieldNameElements.length != valueElements.length) {
+      _logger.warning('Record fields and values are not the same length.');
+      return [];
+    }
+
+    final fields = <BoundField>[];
+    Map.fromIterables(fieldNameElements, valueElements).forEach((key, value) {
+      fields.add(BoundField(name: key, value: value));
+    });
+    return fields;
+  }
+
+  static int _remainingCount(int collected, int requested) {
+    return requested < collected ? 0 : requested - collected;
+  }
+
+  /// Create a Record instance with class [classRef] from [remoteObject].
+  ///
+  /// Returns an instance containing [count] fields, if available,
+  /// starting from the [offset].
+  ///
+  /// If [offset] is `null`, assumes 0 offset.
+  /// If [count] is `null`, return all fields starting from the offset.
+  /// [length] is the expected length of the whole object, read from
+  /// the [ClassMetaData].
+  Future<Instance?> _recordInstanceFor(
+    ClassRef classRef,
+    RemoteObject remoteObject, {
+    int? offset,
+    int? count,
+    int? length,
+  }) async {
+    final objectId = remoteObject.objectId;
+    if (objectId == null) return null;
+    // Records are complicated, do an eval to get names and values.
+    final fields =
+        await _recordFields(remoteObject, offset: offset, count: count);
+    final rangeCount = _calculateRangeCount(
+        count: count, elementCount: fields.length, length: length);
+    return Instance(
+        identityHashCode: remoteObject.objectId.hashCode,
+        kind: InstanceKind.kRecord,
+        id: objectId,
+        classRef: classRef)
+      ..length = length
+      ..offset = offset
+      ..count = rangeCount
+      ..fields = fields;
+  }
+
   /// Return the available count of elements in the requested range.
   /// Return `null` if the range includes the whole object.
   /// [count] is the range length requested by the `getObject` call.
@@ -335,14 +504,6 @@ class InstanceHelper extends Domain {
     if (length == elementCount) return null;
     return min(count, elementCount);
   }
-
-  /// Return elements of the list from [properties].
-  ///
-  /// Ignore any non-elements like 'length', 'fixed$length', etc.
-  static List<Property> _indexedListProperties(List<Property> properties) =>
-      properties
-          .where((p) => p.name != null && int.tryParse(p.name!) != null)
-          .toList();
 
   /// Filter [allJsProperties] and return a list containing only those
   /// that correspond to Dart fields on [remoteObject].
@@ -456,6 +617,14 @@ class InstanceHelper extends Domain {
         if (metaData.isSystemMap) {
           return InstanceRef(
               kind: InstanceKind.kMap,
+              id: objectId,
+              identityHashCode: remoteObject.objectId.hashCode,
+              classRef: metaData.classRef)
+            ..length = metaData.length;
+        }
+        if (metaData.isRecord) {
+          return InstanceRef(
+              kind: InstanceKind.kRecord,
               id: objectId,
               identityHashCode: remoteObject.objectId.hashCode,
               classRef: metaData.classRef)
