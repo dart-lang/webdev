@@ -23,7 +23,7 @@ Port? lifelinePort;
 int? lifelineTab;
 final dartTabs = <int>{};
 
-void maybeCreateLifelinePort(int tabId) async {
+Future<void> maybeCreateLifelinePort(int tabId) async {
   // Keep track of current Dart tabs that are being debugged. This way if one of
   // them is closed, we can reconnect the lifeline port to another one:
   dartTabs.add(tabId);
