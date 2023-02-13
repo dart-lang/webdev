@@ -11,6 +11,8 @@
 //    - For dev: dart run tool/build_extension.dart
 //    - For prod: dart run tool/build_extension.dart prod
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -25,36 +27,57 @@ void main(List<String> arguments) async {
 
   exitCode = await run(isProd: argResults[prodFlag] as bool);
   if (exitCode != 0) {
-    print('BUILDING THE EXTENSION FAILED.');
+    print('BUILDING THE EXTENSION FAILED WITH EXIT CODE $exitCode.');
   }
 }
 
 Future<int> run({required bool isProd}) async {
   logInfo('Building extension for ${isProd ? 'prod' : 'dev'}');
   logInfo('Compiling extension with dart2js to /compiled directory');
-  final compileStep = await Process.run(
+  final compileStep = await Process.start(
     'dart',
     ['run', 'build_runner', 'build', 'web', '--output', 'build', '--release'],
   );
-  final compileStepSucceeded = _handleProcessResult(compileStep);
+  final compileExitCode = await _handleProcess(compileStep);
   // Terminate early if compilation failed:
-  if (!compileStepSucceeded) return compileStep.exitCode;
+  if (compileExitCode != 0) {
+    return compileExitCode;
+  }
   logInfo('Updating manifest.json in /compiled directory.');
-  final updateStep = await Process.run(
+  final updateStep = await Process.start(
     'dart',
     [p.join('tool', 'update_dev_files.dart')],
   );
-  final updateStepSucceeded = _handleProcessResult(updateStep);
+  final updateExitCode = await _handleProcess(updateStep);
   // Terminate early if updating dev files failed:
-  if (!updateStepSucceeded) return updateStep.exitCode;
+  if (updateExitCode != 0) {
+    return updateExitCode;
+  }
   // Return 0 to indicate success:
   return 0;
 }
 
-bool _handleProcessResult(ProcessResult result) {
-  final success = result.exitCode == 0;
-  logOutput(success ? result.stdout : result.stderr);
-  return success;
+Future<int> _handleProcess(Process process) async {
+  _handleOutput(process.stdout);
+  _handleOutput(process.stderr);
+  return process.exitCode;
+}
+
+void _handleOutput(Stream<List<int>> output) {
+  output
+      .transform(utf8.decoder)
+      .transform(const LineSplitter())
+      .listen(_handleOutputLine);
+}
+
+void _handleOutputLine(String line, {bool isStdout = true}) {
+  if (line.toUpperCase().contains('SEVERE') ||
+      line.toUpperCase().contains('ERROR')) {
+    throw Exception(line);
+  }
+  if (line.isNotEmpty) {
+    print('${isStdout ? 'stdout' : 'stderr'}: $line');
+  }
 }
 
 void logInfo(String message) {
