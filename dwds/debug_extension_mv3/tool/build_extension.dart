@@ -79,7 +79,7 @@ void _handleOutputLine(String line, {bool isStdout = true}) {
     throw Exception(error);
   }
   if (line.isNotEmpty) {
-    print('${isStdout ? 'stdout' : 'stderr'}: $line');
+    print('$outputName: $line');
   }
 }
 
