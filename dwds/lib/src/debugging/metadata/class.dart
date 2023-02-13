@@ -9,22 +9,37 @@ import 'package:dwds/src/utilities/domain.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
+const _dartCoreLibrary = 'dart:core';
+
 /// A hard-coded ClassRef for the Closure class.
-final classRefForClosure = classRefFor('dart:core', 'Closure');
+final classRefForClosure = classRefFor(_dartCoreLibrary, 'Closure');
 
 /// A hard-coded ClassRef for the String class.
-final classRefForString = classRefFor('dart:core', InstanceKind.kString);
+final classRefForString = classRefFor(_dartCoreLibrary, InstanceKind.kString);
 
 /// A hard-coded ClassRef for a (non-existent) class called Unknown.
-final classRefForUnknown = classRefFor('dart:core', 'Unknown');
+final classRefForUnknown = classRefFor(_dartCoreLibrary, 'Unknown');
+
+///  A hard-coded LibraryRef for a a dart:core library.
+final libraryRefForCore = LibraryRef(
+  id: _dartCoreLibrary,
+  name: _dartCoreLibrary,
+  uri: _dartCoreLibrary,
+);
+
+/// Returns a [LibraryRef] for the provided library ID and class name.
+LibraryRef libraryRefFor(String libraryId) => LibraryRef(
+      id: libraryId,
+      name: libraryId,
+      uri: libraryId,
+    );
 
 /// Returns a [ClassRef] for the provided library ID and class name.
-ClassRef classRefFor(String? libraryId, String? name) => ClassRef(
-    id: 'classes|$libraryId|$name',
-    name: name,
-    library: libraryId == null
-        ? null
-        : LibraryRef(id: libraryId, name: libraryId, uri: libraryId));
+ClassRef classRefFor(String libraryId, String? name) => ClassRef(
+      id: 'classes|$libraryId|$name',
+      name: name,
+      library: libraryRefFor(libraryId),
+    );
 
 /// Meta data for a remote Dart class in Chrome.
 class ClassMetaData {
@@ -43,15 +58,34 @@ class ClassMetaData {
   final String? dartName;
 
   /// The library identifier, which is the URI of the library.
-  final String? libraryId;
+  final String libraryId;
 
-  factory ClassMetaData(
-      {Object? jsName, Object? libraryId, Object? dartName, Object? length}) {
-    return ClassMetaData._(jsName as String?, libraryId as String?,
-        dartName as String?, int.tryParse('$length'));
+  factory ClassMetaData({
+    Object? jsName,
+    Object? libraryId,
+    Object? dartName,
+    Object? length,
+    bool isFunction = false,
+    bool isRecord = false,
+  }) {
+    return ClassMetaData._(
+      jsName as String?,
+      libraryId as String? ?? _dartCoreLibrary,
+      dartName as String?,
+      int.tryParse('$length'),
+      isFunction,
+      isRecord,
+    );
   }
 
-  ClassMetaData._(this.jsName, this.libraryId, this.dartName, this.length);
+  ClassMetaData._(
+    this.jsName,
+    this.libraryId,
+    this.dartName,
+    this.length,
+    this.isFunction,
+    this.isRecord,
+  );
 
   /// Returns the ID of the class.
   ///
@@ -68,15 +102,30 @@ class ClassMetaData {
       function(arg) {
         const sdkUtils = ${globalLoadStrategy.loadModuleSnippet}('dart_sdk').dart;
         const classObject = sdkUtils.getReifiedType(arg);
-        const isFunction = sdkUtils.AbstractFunctionType.is(classObject);
+        const isFunction = classObject instanceof sdkUtils.AbstractFunctionType;
+        const isRecord = classObject instanceof sdkUtils.RecordType;
         const result = {};
-        result['name'] = isFunction ? 'Function' : classObject.name;
+        var name = isFunction ? 'Function' : classObject.name;
+
+        result['name'] = name;
         result['libraryId'] = sdkUtils.getLibraryUri(classObject);
         result['dartName'] = sdkUtils.typeName(classObject);
+        result['isFunction'] = isFunction;
+        result['isRecord'] = isRecord;
         result['length'] = arg['length'];
+
+        if (isRecord) {
+          result['name'] = 'Record';
+          var shape = classObject.shape;
+          var positionalCount = shape.positionals;
+          var namedCount = shape.named == null ? 0 : shape.named.length;
+          result['length'] = positionalCount + namedCount;
+        }
+
         return result;
       }
     ''';
+
       final result = await inspector.jsCallFunctionOn(
           remoteObject, evalExpression, [remoteObject],
           returnByValue: true);
@@ -85,6 +134,8 @@ class ClassMetaData {
         jsName: metadata['name'],
         libraryId: metadata['libraryId'],
         dartName: metadata['dartName'],
+        isFunction: metadata['isFunction'],
+        isRecord: metadata['isRecord'],
         length: metadata['length'],
       );
     } on ChromeDebugException {
@@ -105,4 +156,10 @@ class ClassMetaData {
 
   /// True if this class refers to system Lists, which are treated specially.
   bool get isSystemList => jsName == 'JSArray';
+
+  /// True if this class refers to a function type.
+  bool isFunction;
+
+  /// True if this class refers to a record type.
+  bool isRecord;
 }

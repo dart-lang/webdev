@@ -6,7 +6,6 @@
 library background;
 
 import 'dart:async';
-import 'dart:html';
 
 import 'package:dwds/data/debug_info.dart';
 import 'package:js/js.dart';
@@ -15,7 +14,6 @@ import 'chrome_api.dart';
 import 'cross_extension_communication.dart';
 import 'data_types.dart';
 import 'debug_session.dart';
-import 'lifeline_ports.dart';
 import 'logger.dart';
 import 'messaging.dart';
 import 'storage.dart';
@@ -35,14 +33,12 @@ void _registerListeners() {
   chrome.runtime.onMessageExternal.addListener(
     allowInterop(handleMessagesFromAngularDartDevTools),
   );
-  chrome.tabs.onRemoved
-      .addListener(allowInterop((tabId, _) => maybeRemoveLifelinePort(tabId)));
   // Update the extension icon on tab navigation:
   chrome.tabs.onActivated.addListener(allowInterop((ActiveInfo info) {
     _updateIcon(info.tabId);
   }));
   chrome.windows.onFocusChanged.addListener(allowInterop((_) async {
-    final currentTab = await _getTab();
+    final currentTab = await activeTab;
     if (currentTab?.id != null) {
       _updateIcon(currentTab!.id);
     }
@@ -51,7 +47,7 @@ void _registerListeners() {
       .addListener(allowInterop(_detectNavigationAwayFromDartApp));
 
   // Detect clicks on the Dart Debug Extension icon.
-  chrome.action.onClicked.addListener(allowInterop(
+  onExtensionIconClicked(allowInterop(
     (Tab tab) => attachDebugger(
       tab.id,
       trigger: Trigger.extensionIcon,
@@ -97,7 +93,7 @@ void _handleRuntimeMessages(
         await setStorageObject<DebugInfo>(
             type: StorageObject.debugInfo, value: debugInfo, tabId: dartTab.id);
         // Update the icon to show that a Dart app has been detected:
-        final currentTab = await _getTab();
+        final currentTab = await activeTab;
         if (currentTab?.id == dartTab.id) {
           _setDebuggableIcon();
         }
@@ -142,15 +138,14 @@ void _updateIcon(int activeTabId) async {
 }
 
 void _setDebuggableIcon() {
-  chrome.action
-      .setIcon(IconInfo(path: 'static_assets/dart.png'), /*callback*/ null);
+  setExtensionIcon(IconInfo(path: 'static_assets/dart.png'));
 }
 
 void _setDefaultIcon() {
   final iconPath = isDevMode()
       ? 'static_assets/dart_dev.png'
       : 'static_assets/dart_grey.png';
-  chrome.action.setIcon(IconInfo(path: iconPath), /*callback*/ null);
+  setExtensionIcon(IconInfo(path: iconPath));
 }
 
 Future<DebugInfo?> _fetchDebugInfo(int tabId) {
@@ -158,10 +153,4 @@ Future<DebugInfo?> _fetchDebugInfo(int tabId) {
     type: StorageObject.debugInfo,
     tabId: tabId,
   );
-}
-
-Future<Tab?> _getTab() async {
-  final query = QueryInfo(active: true, currentWindow: true);
-  final tabs = List<Tab>.from(await promiseToFuture(chrome.tabs.query(query)));
-  return tabs.isNotEmpty ? tabs.first : null;
 }

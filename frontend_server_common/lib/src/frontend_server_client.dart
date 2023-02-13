@@ -390,10 +390,9 @@ class ResidentCompiler {
       ],
       if (useDebuggerModuleNames) '--debugger-module-names',
       '--experimental-emit-debug-metadata',
-      if (soundNullSafety) '--sound-null-safety',
-      if (!soundNullSafety) '--no-sound-null-safety',
-      if (verbose) '--verbose',
+      soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
       for (final experiment in experiments) '--enable-experiment=$experiment',
+      if (verbose) '--verbose',
     ];
 
     _logger.info(args.join(' '));
