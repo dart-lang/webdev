@@ -38,6 +38,7 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 
 import 'logging.dart';
 import 'server.dart';
+import 'test_sdk_configuration.dart';
 import 'utilities.dart';
 
 final _exeExt = Platform.isWindows ? '.exe' : '';

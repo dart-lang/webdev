@@ -236,17 +236,15 @@ class ExpressionCompilerService implements ExpressionCompiler {
   final List<String> experiments;
   final bool _verbose;
 
-  final SdkConfigurationProvider _sdkConfigurationProvider;
+  final SdkConfigurationProvider sdkConfigurationProvider;
 
   ExpressionCompilerService(
     this._address,
     this._port, {
     bool verbose = false,
-    SdkConfigurationProvider sdkConfigurationProvider =
-        const DefaultSdkConfigurationProvider(),
+    required this.sdkConfigurationProvider,
     this.experiments = const [],
-  })  : _verbose = verbose,
-        _sdkConfigurationProvider = sdkConfigurationProvider;
+  }) : _verbose = verbose;
 
   @override
   Future<ExpressionCompilationResult> compileExpressionToJs(
@@ -271,7 +269,7 @@ class ExpressionCompilerService implements ExpressionCompiler {
       await _port,
       moduleFormat,
       soundNullSafety,
-      await _sdkConfigurationProvider.configuration,
+      await sdkConfigurationProvider.configuration,
       experiments,
       _verbose,
     );

@@ -9,6 +9,7 @@ import 'package:build_daemon/data/build_status.dart' as daemon;
 import 'package:dds/devtools_server.dart';
 import 'package:dwds/data/build_result.dart';
 import 'package:dwds/dwds.dart';
+import 'package:dwds/sdk_configuration.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:http_multi_server/http_multi_server.dart';
@@ -130,6 +131,7 @@ class WebDevServer {
           options.port,
           verbose: options.configuration.verbose,
           experiments: options.configuration.experiments,
+          sdkConfigurationProvider: const DefaultSdkConfigurationProvider(),
         );
       }
       var shouldServeDevTools =

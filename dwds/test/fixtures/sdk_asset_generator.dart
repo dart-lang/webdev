@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+
+import 'test_sdk_layout.dart';
 
 /// Generates sdk.js, sdk.map, sdk full dill, and sdk summary files.
 ///
@@ -19,7 +20,7 @@ class SdkAssetGenerator {
   final FileSystem fileSystem;
   final bool verboseCompiler;
 
-  late final SdkLayout sdkLayout;
+  late final TestSdkLayout sdkLayout;
 
   SdkAssetGenerator({
     this.fileSystem = const LocalFileSystem(),
@@ -69,8 +70,8 @@ class SdkAssetGenerator {
 
       // Files to generate
       final jsPath = soundNullSafety
-          ? p.join(outputDir.path, sdkLayout.sdkJsSoundFileName)
-          : p.join(outputDir.path, sdkLayout.sdkJsWeakFileName);
+          ? p.join(outputDir.path, sdkLayout.soundJsFileName)
+          : p.join(outputDir.path, sdkLayout.weakJsFileName);
       final jsMapPath = p.setExtension(jsPath, '.js.map');
       final fullDillPath = p.setExtension(jsPath, '.dill');
 
@@ -158,8 +159,8 @@ class SdkAssetGenerator {
       // Generate missing files.
       outputDir = fileSystem.systemTempDirectory.createTempSync();
       final summaryPath = soundNullSafety
-          ? p.join(outputDir.path, sdkLayout.sdkSummarySoundFileName)
-          : p.join(outputDir.path, sdkLayout.sdkSummaryWeakFileName);
+          ? p.join(outputDir.path, sdkLayout.soundSummaryFileName)
+          : p.join(outputDir.path, sdkLayout.weakSummaryFileName);
 
       _logger.info('Generating SDK summary files...');
 
