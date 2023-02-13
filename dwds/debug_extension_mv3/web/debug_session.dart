@@ -267,7 +267,7 @@ Future<bool> _connectToDwds({
   );
   _debugSessions.add(debugSession);
   // Create a connection with the lifeline port to keep the debug session alive:
-  maybeCreateLifelinePort(dartAppTabId);
+  await maybeCreateLifelinePort(dartAppTabId);
   // Send a DevtoolsRequest to the event stream:
   final tabUrl = await _getTabUrl(dartAppTabId);
   debugSession.sendEvent(DevToolsRequest((b) => b
